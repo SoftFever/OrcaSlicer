@@ -326,7 +326,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         wxString msg_text = _(L("Alternate extra wall does't work well when ensure vertical shell thickness is set to All."));
 
         if (is_global_config)
-            msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+            msg_text += "\n\n" + _(L("Change these settings automatically?\n"
                                      "Yes - Change ensure vertical shell thickness to Moderate and enable alternate extra wall\n"
                                      "No  - Don't use alternate extra wall"));
 
@@ -878,7 +878,7 @@ int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
         msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
     }
     if (!is_object_config)
-        msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+        msg_text += "\n\n" + _(L("Change these settings automatically?\n"
             "Yes - Change these settings and enable spiral mode automatically\n"
             "No  - Give up using spiral mode this time"));
 
