@@ -4691,7 +4691,6 @@ int PrintOption::getValueInt()
     }
 }
 
-#define PRINT_OPT_WIDTH  FromDIP(44)
 PrintOptionItem::PrintOptionItem(wxWindow* parent, std::vector<POItem> ops, std::string param)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
@@ -4699,20 +4698,18 @@ PrintOptionItem::PrintOptionItem(wxWindow* parent, std::vector<POItem> ops, std:
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
-    m_ops = ops;
     m_param = param;
     SetBackgroundColour(PRINT_OPT_ITEM_BG_GRAY);
 
     Bind(wxEVT_PAINT, &PrintOptionItem::OnPaint, this);
-    auto width = ops.size() * PRINT_OPT_WIDTH + FromDIP(8);
-    auto height = FromDIP(22) + FromDIP(8);
-    SetMinSize(wxSize(width, height));
-    SetMaxSize(wxSize(width, height));
     Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
     Bind(wxEVT_LEFT_DOWN, &PrintOptionItem::on_left_down, this);
 
     m_selected_bk = ScalableBitmap(this, "print_options_bg", 22);
+
+    // update the options
+    update_options(ops);
 }
 
 void PrintOptionItem::OnPaint(wxPaintEvent& event)
@@ -4804,8 +4801,7 @@ void PrintOptionItem::doRender(wxDC& dc)
 
         if (text_key == selected_key)
         {
-
-            const wxColour& clr = wxGetApp().dark_mode() ? StateColor::darkModeColorFor("#00AE42") : "#00AE42";
+            const wxColour& clr = m_enable ? StateColor::darkModeColorFor("#00AE42") : StateColor::darkModeColorFor(wxColour(144, 144, 144));
             dc.SetPen(wxPen(clr));
             dc.SetTextForeground(clr);
 
@@ -4817,7 +4813,7 @@ void PrintOptionItem::doRender(wxDC& dc)
         }
         else
         {
-            const wxColour& clr = wxGetApp().dark_mode() ? StateColor::darkModeColorFor(*wxBLACK) : *wxBLACK;
+            const wxColour& clr = m_enable ? StateColor::darkModeColorFor(*wxBLACK) : StateColor::darkModeColorFor(wxColour(144, 144, 144));
             dc.SetPen(wxPen(clr));
             dc.SetTextForeground(clr);
 

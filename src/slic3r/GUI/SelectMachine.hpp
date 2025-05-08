@@ -137,6 +137,7 @@ struct POItem
     bool operator==(const POItem &other) const { return key == other.key && value == other.value; }
 };
 
+#define PRINT_OPT_WIDTH  FromDIP(44)
 class PrintOptionItem : public wxPanel
 {
 public:
@@ -151,7 +152,8 @@ public:
         {
             m_ops = ops;
             selected_key = "";
-            auto width = ops.size() * FromDIP(56) + FromDIP(8);
+
+            auto width = ops.size() * PRINT_OPT_WIDTH + FromDIP(8);
             auto height = FromDIP(22) + FromDIP(8);
             SetMinSize(wxSize(width, height));
             SetMaxSize(wxSize(width, height));
