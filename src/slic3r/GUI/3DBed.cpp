@@ -218,9 +218,10 @@ void Bed3D::Axes::render()
     };
 
     if (!m_arrow.is_initialized())
-        m_arrow.init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
+        //m_arrow.init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
+        m_arrow.init_from(smooth_cylinder(16, /*Radius*/ m_stem_length / 75.f, m_stem_length)); // ORCA use simple cylinder and scale thickness depends on length
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat"); // ORCA dont use shading to get closer color tone
     if (shader == nullptr)
         return;
 

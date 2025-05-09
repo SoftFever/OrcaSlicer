@@ -3167,11 +3167,8 @@ void TabFilament::add_filament_overrides_page()
         line = optgroup->create_single_option_line(optgroup->get_option(opt_key));
 
         line.near_label_widget = [this, optgroup_wk = ConfigOptionsGroupWkp(optgroup), opt_key, opt_index](wxWindow* parent) {
-            wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
-
-            check_box->Bind(
-                wxEVT_CHECKBOX,
-                [this, optgroup_wk, opt_key, opt_index](wxCommandEvent& evt) {
+            auto check_box = new ::CheckBox(parent); // ORCA modernize checkboxes
+            check_box->Bind(wxEVT_TOGGLEBUTTON, [this, optgroup_wk, opt_key, opt_index](wxCommandEvent& evt) {
                 const bool is_checked = evt.IsChecked();
                 if (auto optgroup_sh = optgroup_wk.lock(); optgroup_sh) {
                     if (Field *field = optgroup_sh->get_fieldc(opt_key, opt_index); field != nullptr) {
@@ -3311,10 +3308,7 @@ void TabFilament::build()
     auto page = add_options_page(L("Filament"), "custom-gcode_filament"); // ORCA: icon only visible on placeholders
         //BBS
         auto optgroup = page->new_optgroup(L("Basic information"), L"param_information");
-        // Set size as all another fields for a better alignment
-        Option option = optgroup->get_option("filament_type");
-        option.opt.width = Field::def_width();
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line("filament_type"); // ORCA use same width with other elements
         optgroup->append_single_option_line("filament_vendor");
         optgroup->append_single_option_line("filament_soluble");
         // BBS
@@ -3359,7 +3353,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("adaptive_pressure_advance_overhangs");
         optgroup->append_single_option_line("adaptive_pressure_advance_bridges");
     
-        option = optgroup->get_option("adaptive_pressure_advance_model");
+        Option option = optgroup->get_option("adaptive_pressure_advance_model");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = 15;
