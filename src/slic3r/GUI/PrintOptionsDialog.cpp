@@ -570,10 +570,10 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_panel = new wxPanel(this);
     multiple_panel->SetBackgroundColour(*wxWHITE);
 
-    auto m_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    m_line->SetBackgroundColour(wxColour(166, 169, 170));
-
     /*single nozzle*/
+    auto single_line = new wxPanel(single_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    single_line->SetBackgroundColour(wxColour(166, 169, 170));
+
     //nozzle type
     wxBoxSizer* line_sizer_nozzle_type = new wxBoxSizer(wxHORIZONTAL);
 
@@ -625,7 +625,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     change_nozzle_tips->SetFont(Label::Body_13);
     change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
-    single_sizer->Add(m_line, 0, wxEXPAND, 0);
+    single_sizer->Add(single_line, 0, wxEXPAND, 0);
     single_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     single_sizer->Add(line_sizer_nozzle_type, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
     single_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
@@ -641,6 +641,9 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     single_panel->Fit();
 
     /*multiple nozzle*/
+    auto multi_line = new wxPanel(multiple_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    multi_line->SetBackgroundColour(wxColour(166, 169, 170));
+
     /*left*/
     auto leftTitle = new Label(multiple_panel, _L("Left Nozzle"));
     leftTitle->SetFont(::Label::Head_15);
@@ -713,7 +716,8 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_change_nozzle_tips->SetFont(Label::Body_13);
     multiple_change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
-    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(40));
+    multiple_sizer->Add(multi_line, 0, wxEXPAND, 0);
+    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     multiple_sizer->Add(leftTitle, 0, wxLEFT, FromDIP(18));
     multiple_sizer->Add(multiple_left_line_sizer, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(18));
     multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
