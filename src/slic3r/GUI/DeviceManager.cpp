@@ -921,6 +921,10 @@ AmsTray *MachineObject::get_ams_tray(std::string ams_id, std::string tray_id)
         return nullptr;
 }
 
+std::string MachineObject::get_filament_id(std::string ams_id, std::string tray_id) const {
+    return this->get_tray(ams_id, tray_id).setting_id;
+}
+
 void MachineObject::_parse_ams_status(int ams_status)
 {
     ams_status_sub = ams_status & 0xFF;
@@ -6037,7 +6041,7 @@ bool MachineObject::contains_tray(const std::string &ams_id, const std::string &
         }
     } else {
         for (const auto& tray : vt_slot) {
-            if (tray.id == tray_id) { return true; }
+            if (tray.id == ams_id) { return true; }
         }
     }
 
@@ -6055,7 +6059,7 @@ AmsTray MachineObject::get_tray(const std::string &ams_id, const std::string &tr
     }
     else {
         for (const auto &tray : vt_slot) {
-            if (tray.id == tray_id) { return tray; }
+            if (tray.id == ams_id) { return tray; }
         }
     }
 

@@ -82,7 +82,6 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
     case PrintStatusNotSupportedPrintAll: return _L("This printer does not support printing all plates");
     case PrintStatusWarningTpuRightColdPulling: return _L("Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.");
     case PrintStatusFilamentHighChamberTempCloseDoor: return _L("High chamber temperature is required. Please close the door.");
-    case PrintStatusFilamentHighChamberTempSoft: return _L("The filament on the extruder may soften. Please unload.");
     }
     return wxEmptyString;
 }

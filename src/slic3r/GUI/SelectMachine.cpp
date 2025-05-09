@@ -1730,7 +1730,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusFilamentHighChamberTempCloseDoor) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
-    } else if (status == PrintDialogStatus::PrintStatusFilamentHighChamberTempSoft) {
+    } else if (status == PrintDialogStatus::PrintStatusFilamentHighChamberTempSoft || status == PrintDialogStatus::PrintStatusUnknownFilamentHighChamberTempSoft) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     }
@@ -3154,6 +3154,36 @@ static wxString _get_nozzle_name(int total_ext_count, int ext_id)
     return _L("nozzle");
 }
 
+static wxString _get_ext_loc_str(const std::unordered_set<int>& extruders, int total_ext_num)
+{
+    assert(!extruders.empty());
+    if (total_ext_num == 1)
+    {
+        return _L("extruder");
+    }
+    else if (total_ext_num == 2)
+    {
+        if (extruders.size() == 2)
+        {
+            return _L("both extruders");
+        }
+        else if (extruders.size() == 1)
+        {
+            auto iter = extruders.begin();
+            if (*iter == MAIN_NOZZLE_ID)
+            {
+                return _L("right extruder");
+            }
+            else
+            {
+                return _L("left extruder");
+            }
+        }
+    }
+
+    return wxEmptyString;
+}
+
 void SelectMachineDialog::update_show_status(MachineObject* obj_)
 {
     m_pre_print_checker.clear();
@@ -3481,6 +3511,8 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     }
 
     /*Check high temperture slicing*/
+    std::unordered_set<int> known_fila_soften_extruders;
+    std::unordered_set<int> unknown_fila_soften_extruders;
     auto preset_full_config = wxGetApp().preset_bundle->full_config();
     auto chamber_temperatures = preset_full_config.option<ConfigOptionInts>("chamber_temperatures");
     for (const FilamentInfo& item : m_ams_mapping_result)
@@ -3498,21 +3530,38 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
             }
 
             // check vitrification
-            if (obj_->is_filament_at_extruder())
-            {
-                AmsTray* tray = obj_->get_curr_tray();
-                if (tray)
-                {
-                    auto filament_info = wxGetApp().preset_bundle->get_filament_by_filament_id(tray->setting_id);
-                    if (filament_info && (filament_info->temperature_vitrification - chamber_temp <= 5))
-                    {
-                        show_status(PrintDialogStatus::PrintStatusFilamentHighChamberTempSoft);
-                        return;
+            for (const auto& extder : obj_->m_extder_data.extders) {
+                if (extder.ext_has_filament) {
+                    const auto& fila_id = obj_->get_filament_id(extder.snow.ams_id, extder.snow.slot_id);
+                    auto filament_info = wxGetApp().preset_bundle->get_filament_by_filament_id(fila_id);
+                    if (filament_info ) {
+                        if (filament_info->temperature_vitrification - chamber_temp <= 5) {
+                            known_fila_soften_extruders.insert(extder.id);
+                        }
+                    } else {
+                        // the minimum temperature_vitrification of the known filaments is 43 degrees
+                        if (43 - chamber_temp <= 5) {
+                            unknown_fila_soften_extruders.insert(extder.id);
+                        }
                     }
                 }
             }
         }
         catch (std::exception&) { assert(0); }
+    }
+
+    if (!known_fila_soften_extruders.empty()) {
+        const wxString& msg = wxString::Format(_L("The filament on %s may soften. Please unload."), 
+            _get_ext_loc_str(known_fila_soften_extruders, obj_->m_extder_data.total_extder_count));
+        show_status(PrintDialogStatus::PrintStatusFilamentHighChamberTempSoft, std::vector<wxString> {msg});
+        return;
+    }
+
+    if (!unknown_fila_soften_extruders.empty()) {
+        const wxString& msg = wxString::Format(_L("The filament on %s is unknown and may soften. Please set filament."),
+            _get_ext_loc_str(unknown_fila_soften_extruders, obj_->m_extder_data.total_extder_count));
+        show_status(PrintDialogStatus::PrintStatusUnknownFilamentHighChamberTempSoft, std::vector<wxString> {msg});
+        return;
     }
 
     /** normal check **/
