@@ -47,12 +47,9 @@ public:
 
 private:
     void Update(int humidiy_level, int humidity_percent, int left_dry_time, float current_temperature);
+    void UpdateContents();
 
-    void paintEvent(wxPaintEvent &evt);
-    void render(wxDC &dc);
-    void doRender(wxDC &dc);
-
-    void DrawGridArea(wxDC &dc, wxPoint start_p);
+    void Create();
 
 private:
     /*owner ams id*/
@@ -64,13 +61,26 @@ private:
     float m_current_temperature = 0;
 
     // Bitmap
-    ScalableBitmap close_img;
     ScalableBitmap drying_img;
     ScalableBitmap idle_img;
 
     // Widgets
+    ScalableButton* m_close_btn;
     wxStaticBitmap* m_humidity_img;
-    wxGrid*         m_grid_area;
+
+    wxStaticBitmap* m_dry_state_img;
+    Label*          m_dry_state;
+    
+    Label* m_humidity_header;
+    Label* m_humidity_label;
+
+    Label* m_temperature_header;
+    Label* m_temperature_label;
+
+    Label* left_dry_time_header;
+    Label* left_dry_time_label;
+
+    wxSizer*       m_sizer;
 };
 
 }} // namespace Slic3r::GUI
