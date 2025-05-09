@@ -190,21 +190,23 @@ bool ComboBox::SetFont(wxFont const& font)
         return TextInput::SetFont(font);
 }
 
-int ComboBox::Append(const wxString &item, const wxBitmap &bitmap)
+int ComboBox::Append(const wxString &item, const wxBitmap &bitmap, int style)
 {
-    return Append(item, bitmap, nullptr);
+    return Append(item, bitmap, nullptr, style);
 }
 
 int ComboBox::Append(const wxString &text,
                      const wxBitmap &bitmap,
-                     void *          clientData)
+                     void *          clientData,
+                     int style)
 {
-    return Append(text, bitmap, wxString{}, clientData);
+    return Append(text, bitmap, wxString{}, clientData, style);
 }
 
-int ComboBox::Append(const wxString &text, const wxBitmap &bitmap, const wxString &group, void *clientData)
+int ComboBox::Append(const wxString &text, const wxBitmap &bitmap, const wxString &group, void *clientData, int style)
 {
-    Item item{text, wxEmptyString, bitmap, bitmap, clientData, group};
+    Item item{text, wxEmptyString, bitmap, bitmap, clientData, group };
+    item.style = style;
     items.push_back(item);
     SetClientDataType(wxClientData_Void);
     drop.Invalidate();

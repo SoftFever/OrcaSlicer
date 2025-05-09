@@ -11,6 +11,8 @@
 #define DD_NO_TEXT          0x0002
 #define DD_STYLE_MASK       0x0003
 
+#define DD_ITEM_STYLE_SPLIT_ITEM  0x0001 // ----text----, text with horizontal line arounds 
+
 wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
 
 class DropDown : public PopupWindow
@@ -27,6 +29,7 @@ public:
         wxString alias{};
         wxString tip{};
         int      flag{0};
+        int      style{ 0 };// the style of item
     };
 
 private:
