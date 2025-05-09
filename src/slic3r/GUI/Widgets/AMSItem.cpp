@@ -2800,6 +2800,10 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
 
     Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
         if (m_show_humidity) {
+            if (m_amsinfo.ams_type == AMSModel::GENERIC_AMS) {
+                return;/*STUDIO-12083*/
+            }
+
             auto mouse_pos = ClientToScreen(e.GetPosition());
             auto rect = ClientToScreen(wxPoint(0, 0));
 
