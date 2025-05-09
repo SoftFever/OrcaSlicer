@@ -5491,7 +5491,7 @@ int CLI::run(int argc, char **argv)
                                                 auto *filament_printable_status = dynamic_cast<const ConfigOptionInts *>(m_print_config.option("filament_printable"));
                                                 if (filament_printable_status) {
                                                     int status = filament_printable_status->values.at(plate_filaments[f_index] - 1);
-                                                    if (!(status >> filament_extruder & 1)) {
+                                                    if (!(status >> (filament_extruder - 1) & 1)) {
                                                         BOOST_LOG_TRIVIAL(error)
                                                             << boost::format(
                                                                    "plate %1% : filament %2% can not be printed on extruder %3%, under manual mode for multi extruder printer") %
