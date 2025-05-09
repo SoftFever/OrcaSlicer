@@ -6413,7 +6413,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     if (current_panel == view3D) {
         if (old_panel == preview)
             preview->get_canvas3d()->unbind_event_handlers();
-        else if (old_panel == assemble_view)
+        else if (old_panel == assemble_view) {
             assemble_view->get_canvas3d()->unbind_event_handlers();
 
             GLCanvas3D* assemble_canvas = assemble_view->get_canvas3d();
@@ -6427,6 +6427,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                     view3d_selection.add(real_idx, false);
                 }
             }
+        }
 
         view3D->get_canvas3d()->bind_event_handlers();
 
