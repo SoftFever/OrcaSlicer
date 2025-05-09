@@ -3989,22 +3989,12 @@ void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
 void StatusPanel::axis_ctrl_e_hint(bool up_down)
 {
     if (ctrl_e_hint_dlg == nullptr) {
-        ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX | wxCAPTION, true);
+        ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX, true);
         ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170°C before loading or unloading filament."));
-        ctrl_e_hint_dlg->show_again_config_text = std::string("not_show_ectrl_hint");
+        ctrl_e_hint_dlg->m_show_again_checkbox->Hide();
+        ctrl_e_hint_dlg->m_button_cancel->Hide();
     }
-    if (up_down) {
-        ctrl_e_hint_dlg->update_btn_label(_L("Confirm"), _L("Still unload"));
-        ctrl_e_hint_dlg->Bind(EVT_SECONDARY_CHECK_CANCEL, [this](wxCommandEvent& e) {
-            obj->command_axis_control("E", 1.0, -10.0f, 900);
-            });
-    }
-    else {
-        ctrl_e_hint_dlg->update_btn_label(_L("Confirm"), _L("Still load"));
-        ctrl_e_hint_dlg->Bind(EVT_SECONDARY_CHECK_CANCEL, [this](wxCommandEvent& e) {
-            obj->command_axis_control("E", 1.0, 10.0f, 900);
-            });
-    }
+
     ctrl_e_hint_dlg->on_show();
 }
 
@@ -4012,7 +4002,7 @@ void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
 {
     if (obj) {
         auto current_nozzle_id = obj->m_extder_data.current_extder_id;
-        if (obj->m_extder_data.extders[current_nozzle_id].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+        if (obj->m_extder_data.extders[current_nozzle_id].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL)
             if (obj->is_enable_np) {
                 obj->command_extruder_control(current_nozzle_id, -10.0f);
             } else {
@@ -4028,7 +4018,7 @@ void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
 {
     if (obj) {
         auto current_nozzle_id = obj->m_extder_data.current_extder_id;
-        if (obj->m_extder_data.extders[current_nozzle_id].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+        if (obj->m_extder_data.extders[current_nozzle_id].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL)
             if (obj->is_enable_np) {
                 obj->command_extruder_control(current_nozzle_id, 10.0f);
             } else {
