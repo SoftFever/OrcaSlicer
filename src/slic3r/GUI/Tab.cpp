@@ -5958,27 +5958,23 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     sizer->Add(new wxStaticText(parent, wxID_ANY, "  ")); // weirdly didnt apply AddSpacer or wxRIGHT border
     sizer->Add((deps.btn), 0, wxALIGN_CENTER_VERTICAL);
 
-    bool sys_value = true; // for first launch
-    if (sys_value){
+    deps.checkbox->Bind(wxEVT_TOGGLEBUTTON, ([this, &deps](wxCommandEvent e)
+    {
+        deps.checkbox->SetValue(e.IsChecked());
+        deps.btn->Enable(!e.IsChecked());
+        // All printers have been made compatible with this preset.
+        if (e.IsChecked()) 
+            this->load_key_value(deps.key_list, std::vector<std::string> {});
+        this->get_field(deps.key_condition)->toggle(e.IsChecked());
+        this->update_changed_ui();
+        e.Skip();
+    }), deps.checkbox->GetId());
+
+    if (deps.checkbox){
         bool is_empty = m_config->option<ConfigOptionStrings>(deps.key_list)->values.empty();
         deps.checkbox->SetValue(is_empty);
         deps.btn->Enable(!is_empty);
     }
-
-    deps.checkbox->Bind(wxEVT_TOGGLEBUTTON, ([this, &deps, &sys_value](wxCommandEvent e)
-    {
-        sys_value = false;
-        bool is_checked = e.IsChecked();
-        deps.checkbox->SetValue(is_checked);
-        deps.btn->Enable(!is_checked);
-        // All printers have been made compatible with this preset.
-        if (is_checked) 
-            this->load_key_value(deps.key_list, std::vector<std::string> {});
-        this->get_field(deps.key_condition)->toggle(is_checked);
-        this->update_changed_ui();
-        e.Skip();
-    }));//, deps.checkbox->GetId());
-
 
     /*
     if (m_compatible_printers.checkbox) {
