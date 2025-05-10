@@ -12,6 +12,9 @@
     "features": {
         "ghcr.io/devcontainers/features/desktop-lite:1": {
 			"password": "orca"
+		},
+		"windows/arm64": {
+			"password": "orca"
 		}
     },
 	"customizations": {
