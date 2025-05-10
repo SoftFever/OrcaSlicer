@@ -1166,7 +1166,7 @@ std::string GUI_App::get_plugin_url(std::string name, std::string country_code)
 {
     std::string url = get_http_url(country_code);
 
-    std::string curr_version = SLIC3R_VERSION;
+    std::string curr_version = NetworkAgent::use_legacy_network ? BAMBU_NETWORK_AGENT_VERSION_LEGACY : BAMBU_NETWORK_AGENT_VERSION;
     std::string using_version = curr_version.substr(0, 9) + "00";
     if (name == "cameratools")
         using_version = curr_version.substr(0, 6) + "00.00";
@@ -1542,7 +1542,7 @@ bool GUI_App::check_networking_version()
     if (!network_ver.empty()) {
         BOOST_LOG_TRIVIAL(info) << "get_network_agent_version=" << network_ver;
     }
-    std::string studio_ver = SLIC3R_VERSION;
+    std::string studio_ver = NetworkAgent::use_legacy_network ? BAMBU_NETWORK_AGENT_VERSION_LEGACY : BAMBU_NETWORK_AGENT_VERSION;
     if (network_ver.length() >= 8) {
         if (network_ver.substr(0,8) == studio_ver.substr(0,8)) {
             m_networking_compatible = true;
@@ -2516,6 +2516,20 @@ bool GUI_App::on_init_inner()
     std::map<std::string, std::string> extra_headers = get_extra_header();
     Slic3r::Http::set_extra_headers(extra_headers);
 
+    // Orca: select network plugin version
+    NetworkAgent::use_legacy_network = app_config->get_bool("legacy_networking");
+    // Force legacy network plugin if debugger attached
+    // See https://github.com/bambulab/BambuStudio/issues/6726
+    if (!NetworkAgent::use_legacy_network) {
+        bool debugger_attached = false;
+#ifdef __WINDOWS__
+        debugger_attached = IsDebuggerPresent();
+#endif
+        if (debugger_attached) {
+            NetworkAgent::use_legacy_network = true;
+            wxMessageBox("Force using legacy bambu networking plugin because debugger is attached! If the app terminates itself immediately, please delete installed plugin and try again!");
+        }
+    }
     copy_network_if_available();
     on_init_network();
 

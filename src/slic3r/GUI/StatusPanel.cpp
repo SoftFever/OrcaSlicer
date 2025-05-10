@@ -828,6 +828,9 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     : wxScrolledWindow(parent, id, pos, size, wxHSCROLL | wxVSCROLL)
 {
     this->SetScrollRate(5, 5);
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    obj = dev->get_selected_machine();
 
     init_bitmaps();
 
@@ -2375,7 +2378,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_bed->SetIconNormal();
     }
 
-    m_tempCtrl_nozzle->SetCurrTemp((int) obj->nozzle_temp);
+    m_tempCtrl_nozzle->SetCurrTemp((int) obj->m_extder_data.extders[0].temp);
     if (obj->nozzle_max_temperature > -1) {
         if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(obj->nozzle_max_temperature);
     }
@@ -2386,10 +2389,10 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     if (m_temp_nozzle_timeout > 0) {
         m_temp_nozzle_timeout--;
     } else {
-        if (!nozzle_temp_input) { m_tempCtrl_nozzle->SetTagTemp((int) obj->nozzle_temp_target); }
+        if (!nozzle_temp_input) { m_tempCtrl_nozzle->SetTagTemp((int) obj->m_extder_data.extders[0].target_temp); }
     }
 
-    if ((obj->nozzle_temp_target - obj->nozzle_temp) >= TEMP_THRESHOLD_VAL) {
+    if ((obj->m_extder_data.extders[0].target_temp - obj->m_extder_data.extders[0].temp) >= TEMP_THRESHOLD_VAL) {
         m_tempCtrl_nozzle->SetIconActive();
     } else {
         m_tempCtrl_nozzle->SetIconNormal();
@@ -2583,7 +2586,11 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     if (obj->cali_version != -1 && last_cali_version != obj->cali_version) {
         last_cali_version = obj->cali_version;
-        CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
+        PACalibExtruderInfo cali_info;
+        cali_info.nozzle_diameter = obj->m_extder_data.extders[0].diameter;
+        cali_info.use_extruder_id = false;
+        cali_info.use_nozzle_volume_type = false;
+        CalibUtils::emit_get_PA_calib_infos(cali_info);
     }
 
     bool is_support_virtual_tray    = obj->ams_support_virtual_tray;
@@ -2593,6 +2600,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (obj) {
         if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::EXTRA_AMS; }
         else if(obj->get_printer_ams_type() == "generic") { ams_mode = AMSModel::GENERIC_AMS; }
+        obj->check_ams_filament_valid();
     }
 
     if (!obj
@@ -2627,10 +2635,13 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;
+    ams_info.clear();
     for (auto ams = obj->amsList.begin(); ams != obj->amsList.end(); ams++) {
         AMSinfo info;
         info.ams_id = ams->first;
-        if (ams->second->is_exists && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) ams_info.push_back(info);
+        if (ams->second->is_exists && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) {
+            ams_info.push_back(info);
+        }
     }
     //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
     //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
@@ -3402,7 +3413,7 @@ void StatusPanel::axis_ctrl_e_hint(bool up_down)
 void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
 {
     if (obj) {
-        if (obj->nozzle_temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+        if (obj->m_extder_data.extders[0].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
             obj->command_axis_control("E", 1.0, -10.0f, 900);
         else
             axis_ctrl_e_hint(true);
@@ -3412,7 +3423,7 @@ void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
 void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
 {
     if (obj) {
-        if (obj->nozzle_temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+        if (obj->m_extder_data.extders[0].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
             obj->command_axis_control("E", 1.0, 10.0f, 900);
         else
             axis_ctrl_e_hint(false);
@@ -3678,73 +3689,55 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
 
     if (obj) {
         m_filament_setting_dlg->obj = obj;
-        std::string ams_id          = m_ams_control->GetCurentAms();
-        int ams_id_int = 0;
-        int tray_id_int = 0;
-        if (ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
-            tray_id_int = VIRTUAL_TRAY_ID;
-            m_filament_setting_dlg->ams_id = ams_id_int;
-            m_filament_setting_dlg->tray_id = tray_id_int;
-            wxString k_val;
-            wxString n_val;
-            k_val = wxString::Format("%.3f", obj->vt_tray.k);
-            n_val = wxString::Format("%.3f", obj->vt_tray.n);
-            m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
-            m_filament_setting_dlg->Popup(wxEmptyString, wxEmptyString, wxEmptyString, wxEmptyString, k_val, n_val);
-        } else {
-            std::string tray_id = event.GetString().ToStdString(); // m_ams_control->GetCurrentCan(ams_id);
-            try {
-                ams_id_int = atoi(ams_id.c_str());
-                tray_id_int = atoi(tray_id.c_str());
-                m_filament_setting_dlg->ams_id = ams_id_int;
-                m_filament_setting_dlg->tray_id = tray_id_int;
 
-                std::string sn_number;
-                std::string filament;
-                std::string temp_max;
-                std::string temp_min;
-                wxString k_val;
-                wxString n_val;
-                auto it = obj->amsList.find(ams_id);
-                if (it != obj->amsList.end()) {
-                    auto tray_it = it->second->trayList.find(tray_id);
-                    if (tray_it != it->second->trayList.end()) {
-                        k_val = wxString::Format("%.3f", tray_it->second->k);
-                        n_val = wxString::Format("%.3f", tray_it->second->n);
-                        wxColor color = AmsTray::decode_color(tray_it->second->color);
-                        //m_filament_setting_dlg->set_color(color);
+        int ams_id = event.GetInt();
+        int slot_id = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
 
-                        std::vector<wxColour> cols;
-                        for (auto col : tray_it->second->cols) {
-                            cols.push_back( AmsTray::decode_color(col));
-                        }
-                        m_filament_setting_dlg->set_ctype(tray_it->second->ctype);
-                        m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
+        try {
+            m_filament_setting_dlg->ams_id  = ams_id;
+            m_filament_setting_dlg->slot_id = slot_id;
 
-                        if (m_filament_setting_dlg->ams_filament_id.empty()) {
-                            m_filament_setting_dlg->set_empty_color(color);
-                        }
-                        else {
-                            m_filament_setting_dlg->set_color(color);
-                            m_filament_setting_dlg->set_colors(cols);
-                        }
+            std::string sn_number;
+            std::string filament;
+            std::string temp_max;
+            std::string temp_min;
+            wxString    k_val;
+            wxString    n_val;
+            auto        it = obj->amsList.find(std::to_string(ams_id));
+            if (it != obj->amsList.end()) {
+                auto tray_it = it->second->trayList.find(std::to_string(slot_id));
+                if (tray_it != it->second->trayList.end()) {
+                    k_val         = wxString::Format("%.3f", tray_it->second->k);
+                    n_val         = wxString::Format("%.3f", tray_it->second->n);
+                    wxColor color = AmsTray::decode_color(tray_it->second->color);
+                    // m_filament_setting_dlg->set_color(color);
 
-                        m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
-                        if (!m_filament_setting_dlg->m_is_third) {
-                            sn_number = tray_it->second->uuid;
-                            filament = tray_it->second->sub_brands;
-                            temp_max = tray_it->second->nozzle_temp_max;
-                            temp_min = tray_it->second->nozzle_temp_min;
-                        }
+                    std::vector<wxColour> cols;
+                    for (auto col : tray_it->second->cols) { cols.push_back(AmsTray::decode_color(col)); }
+                    m_filament_setting_dlg->set_ctype(tray_it->second->ctype);
+                    m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
+
+                    if (m_filament_setting_dlg->ams_filament_id.empty()) {
+                        m_filament_setting_dlg->set_empty_color(color);
+                    } else {
+                        m_filament_setting_dlg->set_color(color);
+                        m_filament_setting_dlg->set_colors(cols);
+                    }
+
+                    m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
+                    if (!m_filament_setting_dlg->m_is_third) {
+                        sn_number = tray_it->second->uuid;
+                        filament  = tray_it->second->sub_brands;
+                        temp_max  = tray_it->second->nozzle_temp_max;
+                        temp_min  = tray_it->second->nozzle_temp_min;
                     }
                 }
+            }
 
-                m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
-                m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
-            }
-            catch (...) {
-                ;
-            }
+            m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
+            m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
+        } catch (...) {
+            ;
         }
     }
 }
@@ -3761,8 +3754,14 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
 
     if (obj) {
         m_filament_setting_dlg->obj = obj;
+
+        int ams_id                     = event.GetInt();
+        int slot_id                    = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
+
+        m_filament_setting_dlg->ams_id = ams_id;
+        m_filament_setting_dlg->slot_id  = slot_id;
+
         try {
-            m_filament_setting_dlg->tray_id = VIRTUAL_TRAY_ID;
             std::string sn_number;
             std::string filament;
             std::string temp_max;
@@ -3788,7 +3787,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
                 m_filament_setting_dlg->set_colors(cols);
 
             }
-            
+
             m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(obj->vt_tray.tag_uid);
             if (!m_filament_setting_dlg->m_is_third) {
                 sn_number = obj->vt_tray.uuid;
