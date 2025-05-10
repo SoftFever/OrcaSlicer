@@ -786,7 +786,7 @@ void AMSLib::render_extra_text(wxDC& dc)
             auto tsize = dc.GetMultiLineTextExtent("?");
             auto pot = wxPoint(0, 0);
             pot = wxPoint((libsize.x - tsize.x) / 2 + FromDIP(2), (libsize.y - tsize.y) / 2 - FromDIP(5));
-            dc.DrawText(L("?"), pot);
+            dc.DrawText("?", pot);
         }
         else {
             auto tsize = dc.GetMultiLineTextExtent(m_info.material_name);
@@ -830,9 +830,9 @@ void AMSLib::render_extra_text(wxDC& dc)
     }
 
     if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_EMPTY) {
-        auto tsize = dc.GetMultiLineTextExtent(_L("/"));
+        auto tsize = dc.GetMultiLineTextExtent("/");
         auto pot = wxPoint((libsize.x - tsize.x) / 2 + FromDIP(2), (libsize.y - tsize.y) / 2 + FromDIP(3));
-        dc.DrawText(_L("/"), pot);
+        dc.DrawText("/", pot);
     }
 }
 
@@ -885,7 +885,7 @@ void AMSLib::render_generic_text(wxDC &dc)
             else {
                 pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 + FromDIP(3));
             }
-            dc.DrawText(L("?"), pot);
+            dc.DrawText("?", pot);
 
         }
         else {
