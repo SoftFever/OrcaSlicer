@@ -3585,7 +3585,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_multitool_ramming_flow");
 
     page = add_options_page(L("Dependencies"), "advanced");
-        optgroup = page->new_optgroup(L("Profile dependencies"), "param_profile_dependencies");
+        optgroup = page->new_optgroup(L("Compatible printers"), "param_dependencies_printers");
         create_line_with_widget(optgroup.get(), "compatible_printers", "", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_printers);
         });
@@ -3594,6 +3594,7 @@ void TabFilament::build()
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
 
+        optgroup = page->new_optgroup(L("Compatible process profiles"), "param_dependencies_presets");
         create_line_with_widget(optgroup.get(), "compatible_prints", "", [this](wxWindow* parent) {
             return compatible_widget_create(parent, m_compatible_prints);
         });
@@ -5921,8 +5922,14 @@ void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::strin
 // Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
 wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &deps)
 {
-    deps.checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
-    deps.checkbox->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+    auto cb_text = _L("All");
+    deps.checkbox = new ::CheckBox(parent, wxID_ANY);
+    deps.checkbox->SetLabel(cb_text);
+    deps.checkbox->SetFont(Label::Body_14);
+    auto cb_size = wxSize(deps.checkbox->GetTextExtent(cb_text).x + deps.checkbox->GetBitmap().GetWidth() + FromDIP(6), -1);
+    deps.checkbox->SetSize(   cb_size);
+    deps.checkbox->SetMinSize(cb_size);
+    deps.checkbox->SetForegroundColour(wxColour("#363636"));
     wxGetApp().UpdateDarkUI(deps.checkbox, false, true);
 
     // ORCA modernize button style
@@ -5948,18 +5955,28 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
+    sizer->Add(new wxStaticText(parent, wxID_ANY, "  ")); // weirdly didnt apply AddSpacer or wxRIGHT border
     sizer->Add((deps.btn), 0, wxALIGN_CENTER_VERTICAL);
 
-    deps.checkbox->Bind(wxEVT_CHECKBOX, ([this, &deps](wxCommandEvent e)
+    deps.checkbox->Bind(wxEVT_TOGGLEBUTTON, ([this, &deps](wxCommandEvent e)
     {
-        deps.btn->Enable(! deps.checkbox->GetValue());
+        deps.checkbox->SetValue(e.IsChecked());
+        deps.btn->Enable(!e.IsChecked());
         // All printers have been made compatible with this preset.
-        if (deps.checkbox->GetValue()) 
+        if (e.IsChecked()) 
             this->load_key_value(deps.key_list, std::vector<std::string> {});
-        this->get_field(deps.key_condition)->toggle(deps.checkbox->GetValue());
+        this->get_field(deps.key_condition)->toggle(e.IsChecked());
         this->update_changed_ui();
-    }) );
+        e.Skip();
+    }), deps.checkbox->GetId());
 
+    if (deps.checkbox){
+        bool is_empty = m_config->option<ConfigOptionStrings>(deps.key_list)->values.empty();
+        deps.checkbox->SetValue(is_empty);
+        deps.btn->Enable(!is_empty);
+    }
+
+    /*
     if (m_compatible_printers.checkbox) {
         bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
         m_compatible_printers.checkbox->SetValue(is_empty);
@@ -5971,6 +5988,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
         m_compatible_prints.checkbox->SetValue(is_empty);
         is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
     }
+    */
 
     deps.btn->Bind(wxEVT_BUTTON, ([this, parent, &deps](wxCommandEvent e)
     {

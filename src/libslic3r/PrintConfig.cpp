@@ -1318,7 +1318,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("compatible_printers", coStrings);
-    def->label = L("Compatible machine");
+    def->label = L("Select printers");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
@@ -1331,7 +1331,7 @@ void PrintConfigDef::init_fff_params()
     def->cli   = ConfigOptionDef::nocli;
 
     def = this->add("compatible_printers_condition", coString);
-    def->label = L("Compatible machine condition");
+    def->label = L("Condition");
     def->tooltip = L("A boolean expression using the configuration values of an active printer profile. "
                   "If this expression evaluates to true, this profile is considered compatible "
                   "with the active printer profile.");
@@ -1340,13 +1340,13 @@ void PrintConfigDef::init_fff_params()
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("compatible_prints", coStrings);
-    def->label = L("Compatible process profiles");
+    def->label = L("Select profiles");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("compatible_prints_condition", coString);
-    def->label = L("Compatible process profiles condition");
+    def->label = L("Condition");
     def->tooltip = L("A boolean expression using the configuration values of an active print profile. "
                   "If this expression evaluates to true, this profile is considered compatible "
                   "with the active print profile.");
