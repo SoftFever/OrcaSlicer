@@ -628,8 +628,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // non-organic tree support use max_bridge_length instead of bridge_no_support
     toggle_line("max_bridge_length", support_is_normal_tree);
     toggle_line("bridge_no_support", !support_is_normal_tree);
-
-    // This is only supported for auto normal tree
     toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
     for (auto el : { "support_interface_spacing", "support_interface_filament",
