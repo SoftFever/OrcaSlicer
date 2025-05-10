@@ -4,7 +4,7 @@
     "inherits": "fdm_filament_common",
     "from": "system",
     "instantiation": "false",
-    "filament_id": "OGFLSBS99",
+    "filament_id": "OFLSBS99",
     "fan_cooling_layer_time": [
         "100"
     ],

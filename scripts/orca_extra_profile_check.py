@@ -232,6 +232,44 @@ def check_filament_name_consistency(profiles_dir, vendor_name):
     
     return error_count
 
+def check_filament_id(vendor, vendor_folder):
+    """
+    Make sure filament_id is not longer than 8 characters, otherwise AMS won't work properly
+    """
+    if vendor not in ('BBL', 'OrcaFilamentLibrary'):
+        return 0
+    
+    error = 0
+    vendor_path = Path(vendor_folder)
+    if not vendor_path.exists():
+        return 0
+
+    # Use rglob to recursively find .json files.
+    for file_path in vendor_path.rglob("*.json"):
+        try:
+            with open(file_path, 'r', encoding='UTF-8') as fp:
+                # Use custom hook to detect duplicates.
+                data = json.load(fp, object_pairs_hook=no_duplicates_object_pairs_hook)
+        except ValueError as ve:
+            print(f"Duplicate key error in {file_path}: {ve}")
+            error += 1
+            continue
+        except Exception as e:
+            print(f"Error processing {file_path}: {e}")
+            error += 1
+            continue
+
+        if 'filament_id' not in data:
+            continue
+            
+        filament_id = data['filament_id']
+
+        if len(filament_id) > 8:
+            error += 1
+            print(f"Filament id too long \"{filament_id}\": {file_path}")
+    
+    return error
+
 def main():
     print("Checking profiles ...")
     parser = argparse.ArgumentParser(description="Check profiles for issues")
@@ -251,12 +289,14 @@ def main():
         if args.check_materials:
             errors_found += check_machine_default_materials(profiles_dir, args.vendor)
         errors_found += check_filament_name_consistency(profiles_dir, args.vendor)
+        errors_found += check_filament_id(args.vendor, profiles_dir / args.vendor / "filament")
         checked_vendor_count += 1
     else:
         for vendor_dir in profiles_dir.iterdir():
             if not vendor_dir.is_dir():
                 continue
             errors_found += check_filament_name_consistency(profiles_dir, vendor_dir.name)
+            errors_found += check_filament_id(vendor_dir.name, vendor_dir / "filament")
             # skip "OrcaFilamentLibrary" folder
             if vendor_dir.name == "OrcaFilamentLibrary":
                 continue
