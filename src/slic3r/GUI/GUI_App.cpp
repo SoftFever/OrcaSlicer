@@ -1816,10 +1816,10 @@ void GUI_App::init_networking_callbacks()
                     auto sel = this->m_device_manager->get_selected_machine();
 
                     if (sel && sel->dev_id == dev_id) {
-                        obj->parse_json(msg);
+                        obj->parse_json("cloud", msg);
                     }
                     else {
-                        obj->parse_json(msg, true);
+                        obj->parse_json("cloud", msg, true);
                     }
 
 
@@ -1865,19 +1865,12 @@ void GUI_App::init_networking_callbacks()
 
                 this->process_network_msg(dev_id, msg);
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
-                if (!obj || !obj->is_lan_mode_printer()) {
-                    obj = m_device_manager->get_local_machine(dev_id);
-                }
 
                 if (obj) {
-                    obj->parse_json(msg, DeviceManager::key_field_only);
+                    obj->parse_json("lan", msg, DeviceManager::key_field_only);
                     if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                     }
-                }
-                obj = m_device_manager->get_local_machine(dev_id);
-                if (obj) {
-                    obj->parse_json(msg, DeviceManager::key_field_only);
                 }
 
                 if (GUI::wxGetApp().plater())

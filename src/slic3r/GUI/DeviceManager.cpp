@@ -681,7 +681,7 @@ std::string MachineObject::get_printer_series_str() const{ return DeviceManager:
 void MachineObject::reload_printer_settings()
 {
     print_json.load_compatible_settings("", "");
-    parse_json("{}");
+    parse_json("cloud", "{}");
 }
 
 MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip)
@@ -2988,6 +2988,7 @@ void MachineObject::reset()
 {
     BOOST_LOG_TRIVIAL(trace) << "reset dev_id=" << dev_id;
     last_update_time = std::chrono::system_clock::now();
+    subscribe_counter = SUBSCRIBE_RETRY_COUNT;
     m_push_count = 0;
     m_full_msg_count = 0;
     is_220V_voltage = false;
@@ -3005,9 +3006,10 @@ void MachineObject::reset()
     extruder_axis_status = LOAD;
     network_wired = false;
     dev_connection_name = "";
-    subscribe_counter = 3;
     job_id_ = "";
     m_plate_index = -1;
+
+    nt_reset_data();
 
     // reset print_json
     json empty_j;
@@ -3021,7 +3023,14 @@ void MachineObject::reset()
         }
     }
     subtask_ = nullptr;
+}
 
+void MachineObject::nt_reset_data()
+{
+    nt_try_local_tunnel = false;
+    nt_use_local_tunnel = false;
+    nt_cloud_full_msg_count = 0;
+    nt_local_full_msg_count = 0;
 }
 
 void MachineObject::set_print_state(std::string status)
@@ -3029,15 +3038,12 @@ void MachineObject::set_print_state(std::string status)
     print_status = status;
 }
 
-int MachineObject::connect(bool is_anonymous, bool use_openssl)
+int MachineObject::connect(bool use_openssl)
 {
     if (dev_ip.empty()) return -1;
-    std::string username;
-    std::string password;
-    if (!is_anonymous) {
-        username = "bblp";
-        password = get_access_code();
-    }
+    std::string username = "bblp";
+    std::string password = get_access_code();
+
     if (m_agent) {
         try {
             return m_agent->connect_printer(dev_id, dev_ip, username, password, use_openssl);
@@ -3183,7 +3189,7 @@ static ENUM enum_index_of(char const *key, char const **enum_names, int enum_cou
     return defl;
 }
 
-int MachineObject::parse_json(std::string payload, bool key_field_only)
+int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_field_only)
 {
 #ifdef ORCA_NETWORK_DEBUG
     BOOST_LOG_TRIVIAL(info) << "parse_json: payload = " << payload;
@@ -3231,6 +3237,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             BOOST_LOG_TRIVIAL(trace) << "static: get push_all msg, dev_id=" << dev_id;
                             m_push_count++;
                             m_full_msg_count++;
+
+                            if (tunnel == "cloud") {nt_cloud_full_msg_count++;}
+                            if (tunnel == "lan") {nt_local_full_msg_count++;}
+                            nt_condition_local_tunnel();
+
                             if (!printer_type.empty())
                                 print_json.load_compatible_settings(printer_type, "");
                             print_json.diff2all_base_reset(j_pre);
@@ -3254,9 +3265,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
                     }
                     else {
-                        if (!printer_type.empty() && connection_type() == "lan")
-                        {
+                        if (!printer_type.empty()) {
+                            nt_local_full_msg_count++;
                             m_full_msg_count++;/* all message package is full at LAN mode*/
+                            nt_condition_local_tunnel();
                             print_json.load_compatible_settings(printer_type, "");
                         }
 
@@ -3362,7 +3374,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
         if (Slic3r::get_logging_level() < level_string_to_boost("trace")) {
             BOOST_LOG_TRIVIAL(info) << "parse_json: dev_id=" << dev_id << ", origin playload=" << j_pre.dump(0);
         } else {
-            BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", merged playload=" << j.dump(0);
+            BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", tunnel is=" << tunnel << ", merged playload=" << j.dump(0);
         }
 
         // Parse version info first, as if version arrive or change, 'print' need parse again with new compatible settings
@@ -5448,17 +5460,20 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
         }
         catch (...)  {}
 
-	if (!key_field_only) {
-            if (m_active_state == Active && !module_vers.empty() && check_version_valid()
-                && !is_camera_busy_off()) {
-                m_active_state = UpdateToDate;
-                parse_version_func();
-                if (is_support_tunnel_mqtt && connection_type() != "lan") {
-                    m_agent->start_subscribe("tunnel");
-               }
-                parse_state_changed_event();
-            }
-	}
+        if (!key_field_only) {
+            BOOST_LOG_TRIVIAL(trace) << "parse_json  m_active_state =" << m_active_state;
+            //if (m_active_state == Active && !is_camera_busy_off()) {
+            //    if (is_support_tunnel_mqtt && connection_type() != "lan") {
+            //        m_active_state = UpdateToDate;
+            //        m_agent->start_subscribe("tunnel");
+            //    }
+            //} else if (m_active_state == UpdateToDate && is_camera_busy_off()) {
+            //    m_active_state = Active;
+            //    m_agent->stop_subscribe("tunnel");
+            //}
+
+            parse_state_changed_event();
+        }
     }
     catch (...) {
         BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << this->dev_id <<", payload = " << payload;
@@ -5840,6 +5855,31 @@ std::string MachineObject::get_string_from_fantype(int type)
         return "";
     }
     return "";
+}
+
+void MachineObject::nt_condition_local_tunnel()
+{
+    int full_msg_count_limit = 2;
+    if (!nt_try_local_tunnel && nt_cloud_full_msg_count == full_msg_count_limit) {
+        connect(Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
+        nt_try_local_tunnel = true;
+    }
+
+    if (!nt_use_local_tunnel && nt_try_local_tunnel && nt_local_full_msg_count == full_msg_count_limit) {
+        std::vector<std::string> dev_list{dev_id};
+        Slic3r::GUI::wxGetApp().getAgent()->del_subscribe(dev_list);
+        nt_use_local_tunnel = true;
+    }
+}
+
+void MachineObject::nt_restore_cloud_tunnel()
+{
+    if (is_connected()) {
+        disconnect();
+        std::vector<std::string> dev_list{dev_id};
+        Slic3r::GUI::wxGetApp().getAgent()->add_subscribe(dev_list);
+        nt_use_local_tunnel = false;
+    }
 }
 
 NozzleFlowType MachineObject::get_nozzle_flow_type(int extruder_id) const
@@ -6959,13 +6999,21 @@ void DeviceManager::check_pushing()
 {
     keep_alive();
     MachineObject* obj = this->get_selected_machine();
+
+    std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+    auto internal = std::chrono::duration_cast<std::chrono::milliseconds>(start - obj->last_update_time);
+
     if (obj && !obj->is_support_mqtt_alive) {
-        std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-        auto internal = std::chrono::duration_cast<std::chrono::milliseconds>(start - obj->last_update_time);
         if (internal.count() > TIMEOUT_FOR_STRAT && internal.count() < 1000 * 60 * 60 * 300) {
             BOOST_LOG_TRIVIAL(info) << "command_pushing: diff = " << internal.count();
             obj->command_pushing("start");
         }
+    }
+
+    /*check local tunnel state*/
+    if (obj && obj->nt_use_local_tunnel && internal.count() > PUSHINFO_TIMEOUT) {
+        obj->nt_restore_cloud_tunnel();
+        BOOST_LOG_TRIVIAL(info) << "Unable to receive more data in LAN tunnel";
     }
 }
 
@@ -7297,9 +7345,9 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
                     if (!need_disconnect) {m_agent->disconnect_printer();}
                     it->second->reset();
 #if !BBL_RELEASE_TO_PUBLIC
-                    it->second->connect(false, Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
+                    it->second->connect(Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
 #else
-                    it->second->connect(false, it->second->local_use_ssl_for_mqtt);
+                    it->second->connect(it->second->local_use_ssl_for_mqtt);
 #endif
                     it->second->set_lan_mode_connection_state(true);
                 }
@@ -7309,6 +7357,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
                 if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
                     if (m_agent->get_user_selected_machine() == dev_id) {
                         it->second->reset_update_time();
+                        it->second->nt_reset_data();
                     }
                     else {
                         BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = " << dev_id;
@@ -7319,9 +7368,9 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
                     BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = empty";
                     it->second->reset();
 #if !BBL_RELEASE_TO_PUBLIC
-                    it->second->connect(false, Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
+                    it->second->connect(Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
 #else
-                    it->second->connect(false, it->second->local_use_ssl_for_mqtt);
+                    it->second->connect(it->second->local_use_ssl_for_mqtt);
 #endif
                     m_agent->set_user_selected_machine(dev_id);
                     it->second->set_lan_mode_connection_state(true);

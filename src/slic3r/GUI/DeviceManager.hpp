@@ -1109,7 +1109,7 @@ public:
     std::vector<HMSItem>    hms_list;
 
     /* machine mqtt apis */
-    int connect(bool is_anonymous = false, bool use_openssl = true);
+    int connect(bool use_openssl = true);
     int disconnect();
 
     json_diff print_json;
@@ -1305,7 +1305,7 @@ public:
     int publish_json(std::string json_str, int qos = 0, int flag = 0);
     int cloud_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int local_publish_json(std::string json_str, int qos = 0, int flag = 0);
-    int parse_json(std::string payload, bool key_filed_only = false);
+    int parse_json(std::string tunnel, std::string payload, bool key_filed_only = false);
     int publish_gcode(std::string gcode_str);
 
     std::string setting_id_to_type(std::string setting_id, std::string tray_type);
@@ -1323,6 +1323,15 @@ public:
     void get_firmware_info();
     bool is_firmware_info_valid();
     std::string get_string_from_fantype(int type);
+
+    /*for local mqtt tunnel try*/
+    bool                        nt_try_local_tunnel { false };
+    bool                        nt_use_local_tunnel { false };
+    int                         nt_cloud_full_msg_count { 0 };
+    int                         nt_local_full_msg_count { 0 };
+    void nt_condition_local_tunnel();
+    void nt_restore_cloud_tunnel();
+    void nt_reset_data();
 
     /*for more extruder*/
     bool                        is_enable_np{ false };

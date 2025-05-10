@@ -175,8 +175,6 @@ public:
     void     on_cancel(wxCloseEvent &event);
     void     show_errors(wxString &info);
     void     Enable_Auto_Refill(bool enable);
-    void     connect_printer_mqtt();
-    void     clear_ip_address_config(wxCommandEvent &e);
     void     on_refresh(wxCommandEvent &event);
     void     on_set_finish_mapping(wxCommandEvent &evt);
     void     on_print_job_cancel(wxCommandEvent &evt);

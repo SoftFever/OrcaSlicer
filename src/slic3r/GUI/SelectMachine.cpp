@@ -2351,9 +2351,9 @@ void SelectMachineDialog::connect_printer_mqtt()
         m_status_bar->disable_cancel_button();
         m_status_bar->set_status_text(_L("Connecting to the printer. Unable to cancel during the connection process."));
 #if !BBL_RELEASE_TO_PUBLIC
-        obj_->connect(false, wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
+        obj_->connect(wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
 #else
-        obj_->connect(false, obj_->local_use_ssl_for_mqtt);
+        obj_->connect(obj_->local_use_ssl_for_mqtt);
 #endif
     }
     else {

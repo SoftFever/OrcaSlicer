@@ -1098,7 +1098,6 @@ void SyncAmsInfoDialog::reinit_dialog()
 void SyncAmsInfoDialog::init_bind()
 {
     Bind(wxEVT_TIMER, &SyncAmsInfoDialog::on_timer, this);
-    Bind(EVT_CLEAR_IPADDRESS, &SyncAmsInfoDialog::clear_ip_address_config, this);
     Bind(EVT_SHOW_ERROR_INFO, [this](auto &e) { show_print_failed_info(true); });
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SyncAmsInfoDialog::update_printer_combobox, this);
     Bind(EVT_PRINT_JOB_CANCEL, &SyncAmsInfoDialog::on_print_job_cancel, this);
@@ -2034,25 +2033,6 @@ void SyncAmsInfoDialog::Enable_Auto_Refill(bool enable)
     }
     m_ams_backup_tip->Refresh();
 }
-
-void SyncAmsInfoDialog::connect_printer_mqtt()
-{
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
-    MachineObject *obj_ = dev->get_selected_machine();
-
-    if (obj_->connection_type() == "cloud") {
-        show_status(PrintDialogStatus::PrintStatusSending);
-#if !BBL_RELEASE_TO_PUBLIC
-        obj_->connect(false, wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
-#else
-        obj_->connect(false, obj_->local_use_ssl_for_mqtt);
-#endif
-
-    }
-}
-
-void SyncAmsInfoDialog::clear_ip_address_config(wxCommandEvent &e) { prepare_mode(); }
 
 void SyncAmsInfoDialog::update_user_machine_list()
 {
