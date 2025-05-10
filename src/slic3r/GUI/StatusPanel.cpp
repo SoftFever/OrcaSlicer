@@ -3381,7 +3381,7 @@ void StatusPanel::axis_ctrl_e_hint(bool up_down)
 {
     if (ctrl_e_hint_dlg == nullptr) {
         ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX | wxCAPTION, true);
-        ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170 degree before loading or unloading filament."));
+        ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170 degrees before loading or unloading filament."));
         ctrl_e_hint_dlg->show_again_config_text = std::string("not_show_ectrl_hint");
     }
     if (up_down) {
@@ -4879,7 +4879,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
         m_upload_status_code = StatusCode::UPLOAD_PROGRESS;
 
         if (m_star_count == 0) {
-            MessageDialog dlg(this, _L("Please click on the star first."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("InFo"), wxOK);
+            MessageDialog dlg(this, _L("Please click on the star first."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxOK);
             dlg.ShowModal();
             return;
         }
@@ -4982,8 +4982,9 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                 if (!error_info.empty()) { BOOST_LOG_TRIVIAL(info) << error_info; }
 
                 dlg_info = new MessageDialog(this,
-                                             _L("Your comment result cannot be uploaded due to some reasons. As follows:\n\n  error code: ") + std::to_string(http_code) +
-                                                 "\n  " + _L("error message: ") + http_error + _L("\n\nWould you like to redirect to the webpage for rating?"),
+                                             _L("Your comment result cannot be uploaded due to the following reasons:\n\n  error code: ") +
+                                             std::to_string(http_code) + "\n  " + _L("error message: ") + http_error +
+                                             _L("\n\nWould you like to redirect to the webpage to give a rating?"),
                                              wxString(_L("info")), wxOK | wxNO | wxCENTER);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed and http error" << http_error;
                 if (dlg_info->ShowModal() == wxID_OK) {
@@ -4994,7 +4995,8 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                 break;
             }
         } else if (m_upload_status_code == StatusCode::UPLOAD_IMG_FAILED) {
-            MessageDialog *dlg_info = new MessageDialog(this, _L("Some of your images failed to upload. Would you like to redirect to the webpage for rating?"),
+            MessageDialog *dlg_info = new MessageDialog(this,
+                                                        _L("Some of your images failed to upload. Would you like to redirect to the webpage to give a rating?"),
                                                         wxString(_L("info")), wxOK | wxNO | wxCENTER);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed or get oss config failed";
             if (dlg_info->ShowModal() == wxID_OK) {

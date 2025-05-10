@@ -413,7 +413,7 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
         std::unordered_set<std::pair<std::string, std::string>, PACalibResult> set;
         for (auto& result : m_calib_results) {
             if (!set.insert({ result.second.name, result.second.filament_id }).second) {
-                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to override the other results?"), wxEmptyString, wxICON_WARNING | wxYES_NO);
+                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to overwrite the other results?"), wxEmptyString, wxICON_WARNING | wxYES_NO);
                 if (msg_dlg.ShowModal() != wxID_YES) {
                     return false;
                 }
