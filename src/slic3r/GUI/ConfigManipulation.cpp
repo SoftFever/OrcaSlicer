@@ -630,7 +630,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("bridge_no_support", !support_is_normal_tree);
 
     // This is only supported for auto normal tree
-    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_normal_tree);
+    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
     for (auto el : { "support_interface_spacing", "support_interface_filament",
         "support_interface_loop_pattern", "support_bottom_interface_spacing" })
