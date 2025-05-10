@@ -14150,21 +14150,7 @@ void publish(Model &model, SaveStrategy strategy) {
         }
     }
 
-    // Orca: don't show this in silence mode
-    if (exist_new && !(strategy & SaveStrategy::Silence)) {
-        MessageDialog dialog(nullptr,
-                             _L("Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
-                                "If you hit 'NO', all SVGs in the project will not be editable any more."),
-                             _L("Private protection"), wxYES_NO | wxICON_QUESTION);
-        if (dialog.ShowModal() == wxID_NO){
-            for (ModelObject *object : model.objects) 
-                for (ModelVolume *volume : object->volumes)
-                    if (volume->emboss_shape.has_value())
-                        volume->emboss_shape.reset();
-        }
-    }
-
-    for (SvgFile* svgfile : svgfiles){
+    for (SvgFile *svgfile : svgfiles) {
         if (!svgfile->path_in_3mf.empty())
             continue; // already suggested path (previous save)
 

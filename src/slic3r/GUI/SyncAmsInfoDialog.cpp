@@ -497,7 +497,6 @@ void SyncAmsInfoDialog::add_two_image_control()
         m_right_image_button = new wxButton(m_two_image_panel, wxID_ANY, {}, wxDefaultPosition,
                                             wxSize(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH)),
                                             wxBORDER_NONE | wxBU_AUTODRAW);
-        m_right_image_button->SetToolTip(_L("If the transparency of the mapping changes, this thumbnail is for reference only."));
         m_right_sizer_thumbnail = create_sizer_thumbnail(m_right_image_button, false);
         m_two_image_panel_sizer->Add(m_right_sizer_thumbnail, FromDIP(0), wxALIGN_LEFT | wxEXPAND | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(8));
         m_two_image_panel->SetSizer(m_two_image_panel_sizer);

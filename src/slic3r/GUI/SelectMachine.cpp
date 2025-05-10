@@ -150,7 +150,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_thumbnailPanel->SetMinSize(wxSize(FromDIP(198), FromDIP(198)));
     m_thumbnailPanel->SetMaxSize(wxSize(FromDIP(198), FromDIP(198)));
     m_thumbnailPanel->SetBackgroundColour(*wxWHITE);
-    m_thumbnailPanel->SetToolTip(_L("If the transparency of the mapping changes, this thumbnail is for reference only."));
     m_sizer_thumbnail->Add(m_thumbnailPanel, 0, wxALIGN_CENTER, 0);
     m_panel_image->SetSizer(m_sizer_thumbnail);
     m_panel_image->Layout();

@@ -197,7 +197,7 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
     else {
         wxBoxSizer *  error_mtl_sizer       = new wxBoxSizer(wxVERTICAL);
 
-        wxStaticText *error_mtl_title       = new wxStaticText(this, wxID_ANY, _L("Some faces not define color."));
+        wxStaticText *error_mtl_title       = new wxStaticText(this, wxID_ANY, _L("Some faces don't have color defined."));
         if (!in_out.lost_material_name.empty()) {
             error_mtl_title->SetLabel(_L("mtl file exist error,could not find the material:") + " " + in_out.lost_material_name + ".");
         }
