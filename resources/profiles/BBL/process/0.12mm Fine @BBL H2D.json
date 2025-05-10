@@ -5,8 +5,6 @@
     "from": "system",
     "setting_id": "GP142",
     "instantiation": "true",
-    "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
-    "bottom_color_penetration_layers": "5",
     "bottom_shell_layers": "7",
     "default_acceleration": "4000",
     "gap_infill_speed": "50",

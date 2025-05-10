@@ -5,7 +5,7 @@
     "from": "system",
     "setting_id": "GP146",
     "instantiation": "true",
-    "description": "It has a big layer height, and results in apparent layer lines and ordinary printing quality and printing time.",
+    "description": "Strength profile for 0.6mm nozzle, prioritizing strength.",
     "bridge_speed": [
         "50",
         "50",
@@ -48,7 +48,6 @@
         "250",
         "300"
     ],
-    "layer_height": "0.24",
     "outer_wall_speed": [
         "200",
         "200",

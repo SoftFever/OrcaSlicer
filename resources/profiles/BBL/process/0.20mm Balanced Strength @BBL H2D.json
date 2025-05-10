@@ -5,7 +5,7 @@
     "from": "system",
     "setting_id": "GP173",
     "instantiation": "true",
-    "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
+    "description": "High quality profile for 0.2mm layer height, prioritizing strength and print quality.",
     "bottom_shell_layers": "4",
     "default_acceleration": [
         "4000",

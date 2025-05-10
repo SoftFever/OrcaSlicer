@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GP144",
     "instantiation": "true",
-    "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
     "default_acceleration": [
         "8000",
         "8000",
@@ -24,7 +23,6 @@
         "250",
         "300"
     ],
-    "layer_height": "0.24",
     "outer_wall_speed": [
         "200",
         "200",

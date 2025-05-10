@@ -5,7 +5,7 @@
     "from": "system",
     "setting_id": "GP149",
     "instantiation": "true",
-    "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
+    "description": "Strength profile for 0.8mm nozzle, prioritizing strength.",
     "bridge_speed": [
         "50",
         "50",
@@ -48,7 +48,6 @@
         "250",
         "300"
     ],
-    "layer_height": "0.32",
     "outer_wall_speed": [
         "200",
         "200",
