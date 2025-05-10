@@ -3657,9 +3657,10 @@ msgstr "Виберіть файл STL для імпорту моделі сто�
 msgid "Bed Shape"
 msgstr "Форма столу"
 
+#, fuzzy
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 "Мінімально рекомендована температура менше 190 градусів або максимально "
 "рекомендована температура більше 300 градусів.\n"
@@ -5535,9 +5536,9 @@ msgstr "Шар: %s"
 msgid "Layer: %d/%d"
 msgstr "Шар: %d/%d"
 
+#, fuzzy
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 "Будь ласка, нагрійте насадку до понад 170 градусів перед завантаженням або "
 "вивантаженням філаменту."
