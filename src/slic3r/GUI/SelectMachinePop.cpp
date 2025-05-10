@@ -780,10 +780,12 @@ bool SelectMachinePopup::search_for_printer(MachineObject* obj)
         return true;
     }
 
-	const auto& ip_it = obj->dev_ip.find(search_text);
-	if (ip_it != std::string::npos) {
-		return true;
+#if !BBL_RELEASE_TO_PUBLIC
+    const auto& ip_it = obj->dev_ip.find(search_text);
+    if (ip_it != std::string::npos) {
+        return true;
     }
+#endif
 
     return false;
 }
