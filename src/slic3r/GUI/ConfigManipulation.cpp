@@ -282,6 +282,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
+    int    fill_multiline        = config->option<ConfigOptionInt>("fill_multiline")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
     if (!is_plate_config &&
@@ -516,10 +517,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "sparse_infill_pattern", "infill_combination",
         "minimum_sparse_infill_area", "sparse_infill_filament", "infill_anchor_max"})
         toggle_line(el, have_infill);
-
+     
     bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
     toggle_line("infill_combination_max_layer_height", have_combined_infill);
-
+    bool have_sparse_infill_pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern") == ipGyroid; // ||// toggle option fill_multiline 
+                                    //  config->opt_enum<InfillPattern>("sparse_infill_pattern") == ipGrid; // Fill multiline
+                                 
+    toggle_line("fill_multiline", have_sparse_infill_pattern);
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
     toggle_field("infill_anchor", has_infill_anchors);
