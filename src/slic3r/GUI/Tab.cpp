@@ -5922,15 +5922,13 @@ void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::strin
 // Return a callback to create a Tab widget to mark the preferences as compatible / incompatible to the current printer.
 wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &deps)
 {
-    auto cb_text = _L("All");
     deps.checkbox = new ::CheckBox(parent, wxID_ANY);
-    deps.checkbox->SetLabel(cb_text);
-    deps.checkbox->SetFont(Label::Body_14);
-    auto cb_size = wxSize(deps.checkbox->GetTextExtent(cb_text).x + deps.checkbox->GetBitmap().GetWidth() + FromDIP(6), -1);
-    deps.checkbox->SetSize(   cb_size);
-    deps.checkbox->SetMinSize(cb_size);
-    deps.checkbox->SetForegroundColour(wxColour("#363636"));
     wxGetApp().UpdateDarkUI(deps.checkbox, false, true);
+
+    deps.checkbox_title = new wxStaticText(parent, wxID_ANY, _L("All"));
+    deps.checkbox_title->SetFont(Label::Body_14);
+    deps.checkbox_title->SetForegroundColour(wxColour("#363636"));
+    wxGetApp().UpdateDarkUI(deps.checkbox_title, false, true);
 
     // ORCA modernize button style
     Button* btn = new Button(parent, _(L("Set")) + " " + dots);
@@ -5955,18 +5953,33 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL);
+    sizer->Add((deps.checkbox_title), 0, wxALIGN_CENTER_VERTICAL);
     sizer->Add(new wxStaticText(parent, wxID_ANY, "  ")); // weirdly didnt apply AddSpacer or wxRIGHT border
     sizer->Add((deps.btn), 0, wxALIGN_CENTER_VERTICAL);
 
-    deps.checkbox->Bind(wxEVT_TOGGLEBUTTON, ([this, &deps](wxCommandEvent e)
-    {
-        deps.checkbox->SetValue(e.IsChecked());
-        deps.btn->Enable(!e.IsChecked());
+    auto on_toggle = [this, &deps](const bool &state){
+        deps.checkbox->SetValue(state);
+        deps.btn->Enable(!state);
         // All printers have been made compatible with this preset.
-        if (e.IsChecked()) 
+        if (state) 
             this->load_key_value(deps.key_list, std::vector<std::string> {});
-        this->get_field(deps.key_condition)->toggle(e.IsChecked());
+        this->get_field(deps.key_condition)->toggle(state);
         this->update_changed_ui();
+    };
+
+    deps.checkbox_title->Bind(wxEVT_LEFT_DOWN,([this, &deps, on_toggle](wxMouseEvent e) {
+        if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
+        on_toggle(!deps.checkbox->GetValue());
+        e.Skip();
+    }));
+
+    deps.checkbox_title->Bind(wxEVT_LEFT_DCLICK,([this, &deps, on_toggle](wxMouseEvent e) {
+        on_toggle(!deps.checkbox->GetValue());
+        e.Skip();
+    }));
+
+    deps.checkbox->Bind(wxEVT_TOGGLEBUTTON, ([this, on_toggle](wxCommandEvent e) {
+        on_toggle(e.IsChecked());
         e.Skip();
     }), deps.checkbox->GetId());
 
