@@ -62,7 +62,7 @@ void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrint
     wxString msg_text;
     bool     need_check = false;
     if (temperature_range_low < 190 || temperature_range_high > 300) {
-        msg_text += _L("The recommended minimum temperature is less than 190 degree or the recommended maximum temperature is greater than 300 degree.\n");
+        msg_text += _L("The recommended minimum temperature is less than 190°C or the recommended maximum temperature is greater than 300°C.\n");
         need_check = true;
     }
     if (temperature_range_low > temperature_range_high) {
