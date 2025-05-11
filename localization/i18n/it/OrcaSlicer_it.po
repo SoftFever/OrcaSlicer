@@ -9061,8 +9061,11 @@ msgstr "Strumento Ruota"
 msgid "Gizmo cut"
 msgstr "Strumento Taglia"
 
-msgid "Gizmo Place face on bed"
-msgstr "Strumento Posiziona faccia sul piatto"
+msgid "Gizmo place face on bed"
+msgstr "Strumento posiziona faccia sul piatto"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo maglia booleana"
 
 msgid "Gizmo SLA support points"
 msgstr "Strumento Punti di supporto SLA"
@@ -9070,8 +9073,17 @@ msgstr "Strumento Punti di supporto SLA"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Strumento Dipingi cucitura FDM"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Strumento Testo in rilievo / incisione"
+msgid "Gizmo text emboss/engrave"
+msgstr "Strumento testo in rilievo/incisione"
+
+msgid "Gizmo measure"
+msgstr "Gizmo misura"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo assemblaggio"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo tese ad orecchio"
 
 msgid "Zoom in"
 msgstr "Ingrandisci"

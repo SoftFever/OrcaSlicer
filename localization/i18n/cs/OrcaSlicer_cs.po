@@ -8733,8 +8733,11 @@ msgstr "Gizmo rotace"
 msgid "Gizmo cut"
 msgstr "Gizmo řez"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Umístit plochou na podložku"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo umístit plochou na podložku"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo booleovská síť"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA podpěrné body"
@@ -8742,8 +8745,17 @@ msgstr "Gizmo SLA podpěrné body"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM malování pozice švu"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Gizmo Text emboss / gravírování"
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo text emboss/gravírování"
+
+msgid "Gizmo measure"
+msgstr "Gizmo měření"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo sestavit"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo uši límce"
 
 msgid "Zoom in"
 msgstr "Přiblížit"
@@ -16780,10 +16792,10 @@ msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " neplatný uši Límce"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Uši Límce"
 
 msgid "Please select single object."
 msgstr ""

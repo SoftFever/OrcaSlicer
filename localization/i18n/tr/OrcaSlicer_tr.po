@@ -8915,8 +8915,11 @@ msgstr "Gizmo döndürme"
 msgid "Gizmo cut"
 msgstr "Gizmo kesim"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Yüzünüzü yatağa yerleştirin"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo yüzünüzü yatağa yerleştirin"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo mesh bölme"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA destek noktaları"
@@ -8924,8 +8927,17 @@ msgstr "Gizmo SLA destek noktaları"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM boyalı dikiş"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Gizmo Metin kabartma / kazıma"
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo metin kabartma/kazıma"
+
+msgid "Gizmo measure"
+msgstr "Gizmo ölçüm"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo birleştir"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo "
 
 msgid "Zoom in"
 msgstr "Yakınlaştır"
@@ -16803,7 +16815,7 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr "Seçilen parçalarda bölme işlemi gerçekleştirilemiyor"
 
 msgid "Mesh Boolean"
-msgstr "Mesh Boolean"
+msgstr "Mesh Bölme"
 
 msgid "Union"
 msgstr "Union"

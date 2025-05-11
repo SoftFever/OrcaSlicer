@@ -9015,8 +9015,11 @@ msgstr "Gizmo de Rotació"
 msgid "Gizmo cut"
 msgstr "Gizmo de Tall"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo de Recolzament sobre la Cara a la placa"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo de recolzament sobre la Cara a la placa"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo booleà de malla"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo de Punts de suport SLA"
@@ -9024,8 +9027,17 @@ msgstr "Gizmo de Punts de suport SLA"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Eina de Pintat de costures FDM"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Gizmo de Text en relleu / gravat"
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo de text en relleu/gravat"
+
+msgid "Gizmo measure"
+msgstr "Gizmo mesurar"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo ensamblar"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo orelles de la Vora d'Adherència"
 
 msgid "Zoom in"
 msgstr "Augmentar zoom"

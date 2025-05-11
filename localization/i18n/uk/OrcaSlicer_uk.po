@@ -8999,8 +8999,11 @@ msgstr "Поворот Gizmo"
 msgid "Gizmo cut"
 msgstr "Виріз Gizmo"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Покласти грань на стіл"
+msgid "Gizmo place face on bed"
+msgstr "Покласти грань на стіл Gizmo"
+
+msgid "Gizmo mesh boolean"
+msgstr "Булеві операції Gizmo"
 
 msgid "Gizmo SLA support points"
 msgstr "Точки підтримки Gizmo SL"
@@ -9008,8 +9011,17 @@ msgstr "Точки підтримки Gizmo SL"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Швид, що фарбується Gizmo FDM"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Gizmo Текстове тиснення / гравіювання"
+msgid "Gizmo text emboss/engrave"
+msgstr "Текстове тиснення/гравіювання Gizmo"
+
+msgid "Gizmo measure"
+msgstr "виміряти Gizmo"
+
+msgid "Gizmo assemble"
+msgstr "Зібрати Gizmo"
+
+msgid "Gizmo brim ears"
+msgstr "Краєчки Gizmo"
 
 msgid "Zoom in"
 msgstr "Приблизити"

@@ -1889,10 +1889,10 @@ msgid "Assemble the selected objects to an object with single part"
 msgstr "選択したオブジェクトを一つオブジェクトに組み立てます（単パーツ）"
 
 msgid "Mesh boolean"
-msgstr ""
+msgstr "メッシュブール"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr ""
+msgstr "結合や減算などのメッシュのブール演算"
 
 msgid "Along X axis"
 msgstr "X軸方向"
@@ -8439,8 +8439,11 @@ msgstr "回転"
 msgid "Gizmo cut"
 msgstr "カット"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "底面選択"
+
+msgid "Gizmo mesh boolean"
+msgstr "メッシュブール"
 
 msgid "Gizmo SLA support points"
 msgstr "SLAサポートポイント"
@@ -8448,8 +8451,17 @@ msgstr "SLAサポートポイント"
 msgid "Gizmo FDM paint-on seam"
 msgstr "継ぎ目ペイント"
 
-msgid "Gizmo Text emboss / engrave"
+msgid "Gizmo text emboss/engrave"
 msgstr "ギズモ・テキストのエンボス/エングレーブ"
+
+msgid "Gizmo measure"
+msgstr "測る"
+
+msgid "Gizmo assemble"
+msgstr "組立てる"
+
+msgid "Gizmo brim ears"
+msgstr "ブリム"
 
 msgid "Zoom in"
 msgstr "ズームイン"
@@ -15089,7 +15101,7 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
 
 msgid "Mesh Boolean"
-msgstr ""
+msgstr "メッシュブール"
 
 msgid "Union"
 msgstr ""

@@ -8649,8 +8649,11 @@ msgstr "Gizmo rotera"
 msgid "Gizmo cut"
 msgstr "Gizmo skär"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Placera ansiktet på byggytan"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo placera ansiktet på byggytan"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo mesh boolean"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA support punkter"
@@ -8658,17 +8661,26 @@ msgstr "Gizmo SLA support punkter"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM målad söm"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr ""
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo textprägling/gravering"
+
+msgid "Gizmo measure"
+msgstr "Gizmo mäta"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo montera"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo brätte öron"
 
 msgid "Zoom in"
-msgstr ""
+msgstr "Zooma in"
 
 msgid "Zoom out"
-msgstr ""
+msgstr "Zooma ut"
 
 msgid "Switch between Prepare/Preview"
-msgstr ""
+msgstr "Växla mellan Förbered/Förhandsgranska"
 
 msgid "Plater"
 msgstr "Plätering/Förgyllning"
@@ -10133,7 +10145,7 @@ msgstr ""
 "borttagande av brim"
 
 msgid "Brim ears"
-msgstr ""
+msgstr "Brätte öron"
 
 msgid "Only draw brim over the sharp edges of the model."
 msgstr ""
@@ -16400,10 +16412,10 @@ msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " ogiltiga öron"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Brätte Öron"
 
 msgid "Please select single object."
 msgstr ""

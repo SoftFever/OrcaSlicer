@@ -8242,7 +8242,10 @@ msgstr ""
 msgid "Gizmo cut"
 msgstr ""
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
+msgstr ""
+
+msgid "Gizmo mesh boolean"
 msgstr ""
 
 msgid "Gizmo SLA support points"
@@ -8251,7 +8254,16 @@ msgstr ""
 msgid "Gizmo FDM paint-on seam"
 msgstr ""
 
-msgid "Gizmo Text emboss / engrave"
+msgid "Gizmo text emboss/engrave"
+msgstr ""
+
+msgid "Gizmo measure"
+msgstr ""
+
+msgid "Gizmo assemble"
+msgstr ""
+
+msgid "Gizmo brim ears"
 msgstr ""
 
 msgid "Zoom in"

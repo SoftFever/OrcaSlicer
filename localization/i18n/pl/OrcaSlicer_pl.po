@@ -8975,8 +8975,11 @@ msgstr "Obracanie za pomocą „uchwytów”"
 msgid "Gizmo cut"
 msgstr "Cięcie za pomocą „uchwytów”"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "Położenie na płaszczyźnie za pomocą „uchwytów”"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo operacje boolowskie na siatce"
 
 msgid "Gizmo SLA support points"
 msgstr "Punkty podpór SLA za pomocą „uchwytów”"
@@ -8984,8 +8987,17 @@ msgstr "Punkty podpór SLA za pomocą „uchwytów”"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Uchwyt malowania szwu FDM"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Uchwyt wytłaczania / grawerowania tekstu"
+msgid "Gizmo text emboss/engrave"
+msgstr "Uchwyt wytłaczania/grawerowania tekstu"
+
+msgid "Gizmo measure"
+msgstr "Gizmo mierzyć"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo montować"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo uszy brim"
 
 msgid "Zoom in"
 msgstr "Przybliżenie"

@@ -9004,8 +9004,11 @@ msgstr "Rotacionar gizmo"
 msgid "Gizmo cut"
 msgstr "Cortar gizmo"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "Posicionar face do gizmo na mesa"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo malha booleana"
 
 msgid "Gizmo SLA support points"
 msgstr "Pontos de suporte SLA do gizmo"
@@ -9013,8 +9016,17 @@ msgstr "Pontos de suporte SLA do gizmo"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Costura de pintura FDM do gizmo"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Texturizar / gravar texto no gizmo"
+msgid "Gizmo text emboss/engrave"
+msgstr "Texturizar/gravar texto no gizmo"
+
+msgid "Gizmo measure"
+msgstr "Gizmo medir"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo montar"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo orelhas da borda"
 
 msgid "Zoom in"
 msgstr "Dar zoom"

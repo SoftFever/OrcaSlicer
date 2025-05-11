@@ -9034,8 +9034,11 @@ msgstr "Herramienta de rotación"
 msgid "Gizmo cut"
 msgstr "Herramienta de corte"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "Herramienta de situar cara en cama"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo buleana de malla"
 
 msgid "Gizmo SLA support points"
 msgstr "Herramienta de puntos de soporte SLA"
@@ -9043,8 +9046,17 @@ msgstr "Herramienta de puntos de soporte SLA"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Herramienta de pintado de costuras FDM"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Herramienta de Texto en relieve / grabado"
+msgid "Gizmo text emboss/engrave"
+msgstr "Herramienta de texto en relieve/grabado"
+
+msgid "Gizmo measure"
+msgstr "Gizmo medir"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo ensamblar"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo orejas de borde"
 
 msgid "Zoom in"
 msgstr "Acercar"
@@ -18103,10 +18115,10 @@ msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " orejas de borde invalidos"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Orejas de borde"
 
 msgid "Please select single object."
 msgstr ""
