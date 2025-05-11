@@ -262,7 +262,7 @@ std::string GLGizmoCut3D::get_tooltip() const
 
     if (tooltip.empty() && (m_hover_id == X || m_hover_id == Y || m_hover_id == CutPlaneZRotation)) {
         std::string axis = m_hover_id == X ? "X" : m_hover_id == Y ? "Y" : "Z";
-        return axis + ": " + format(float(rad2deg(m_angle)), 1) + _u8L("°");
+        return axis + ": " + format(float(rad2deg(m_angle)), 1) + "°";
     }
 
     return tooltip;
@@ -2541,7 +2541,7 @@ bool GLGizmoCut3D::render_angle_input(const std::string& label, float& in_val, c
     float val = rad2deg(in_val);
     const float old_val = val;
 
-    const std::string format = "%.0f " + _u8L("°");
+    const std::string format = "%.0f°";
     m_imgui->bbl_slider_float_style("##angle_" + label, &val, min_val, max_val, format.c_str(), 1.f, true, from_u8(label));
 
     ImGui::SameLine(left_width);

@@ -333,12 +333,12 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     sizer_percent_icon->Add(0, 0, 1, wxEXPAND, 0);
 
 
-    m_staticText_progress_percent = new wxStaticText(penel_text, wxID_ANY, L("0"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_percent = new wxStaticText(penel_text, wxID_ANY, "0", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_progress_percent->SetFont(::Label::Head_18);
     m_staticText_progress_percent->SetMaxSize(wxSize(-1, FromDIP(20)));
     m_staticText_progress_percent->SetForegroundColour(wxColour(0, 150, 136));
 
-    m_staticText_progress_percent_icon = new wxStaticText(penel_text, wxID_ANY, L("%"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_percent_icon = new wxStaticText(penel_text, wxID_ANY, "%", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_progress_percent_icon->SetFont(::Label::Body_11);
     m_staticText_progress_percent_icon->SetMaxSize(wxSize(-1, FromDIP(13)));
     m_staticText_progress_percent_icon->SetForegroundColour(wxColour(0, 150, 136));
@@ -1267,7 +1267,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
 
     /* create speed control */
     m_switch_speed = new ImageSwitchButton(parent, m_bitmap_speed_active, m_bitmap_speed);
-    m_switch_speed->SetLabels(_L("100%"), _L("100%"));
+    m_switch_speed->SetLabels("100%", "100%");
     m_switch_speed->SetMinSize(MISC_BUTTON_2FAN_SIZE);
     m_switch_speed->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
     m_switch_speed->SetPadding(FromDIP(3));
@@ -1400,7 +1400,7 @@ void StatusBasePanel::reset_temp_misc_control()
     m_tempCtrl_bed->Enable(true);
 
     // reset misc control
-    m_switch_speed->SetLabels(_L("100%"), _L("100%"));
+    m_switch_speed->SetLabels("100%", "100%");
     m_switch_speed->SetValue(false);
     m_switch_lamp->SetLabels(_L("Lamp"), _L("Lamp"));
     m_switch_lamp->SetValue(false);
