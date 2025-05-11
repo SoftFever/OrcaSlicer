@@ -467,7 +467,8 @@ public:
 class ColourPicker : public Field {
 	using Field::Field;
 
-    void            draw_button(wxColourPickerCtrl* field, wxColour color);
+    void            set_undef_value(wxColourPickerCtrl* field);
+    void            draw_bmp_btn(wxColourPickerCtrl* field, wxColour color);
 public:
 	ColourPicker(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	ColourPicker(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
