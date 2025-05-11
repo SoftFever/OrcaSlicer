@@ -1948,7 +1948,8 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("default_filament_colour", coStrings);
     def->label    = L("Default color");
-    def->tooltip  = L("Default filament color");
+    def->tooltip  = L("Default filament color"
+                      "\nRight click to reset value to system default.");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{""});
