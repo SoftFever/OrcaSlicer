@@ -3592,8 +3592,8 @@ msgid "Bed Shape"
 msgstr "Tvar Podložky"
 
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 
 msgid ""
@@ -5415,8 +5415,7 @@ msgid "Layer: %d/%d"
 msgstr "Vrstva: %d/%d"
 
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 
 msgid "Still unload"
@@ -17817,7 +17816,7 @@ msgstr ""
 #~ "Ano - přepnout na přímočarý vzor automaticky\n"
 #~ "Ne - automaticky resetovat hustotu na výchozí ne 100% hodnotu"
 
-#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
+#~ msgid "Please heat the nozzle to above 170°C before loading filament."
 #~ msgstr "Před vložením filamentu zahřejte trysku na více než 170 stupňů."
 
 #~ msgid "Show G-code window"

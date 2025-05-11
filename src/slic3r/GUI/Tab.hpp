@@ -164,7 +164,8 @@ protected:
 
    	struct PresetDependencies {
 		Preset::Type type	  = Preset::TYPE_INVALID;
-		wxCheckBox 	*checkbox = nullptr;
+		::CheckBox*   checkbox = nullptr;
+		wxStaticText* checkbox_title = nullptr;
 		Button 	*btn  = nullptr;
 		std::string  key_list; // "compatible_printers"
 		std::string  key_condition;

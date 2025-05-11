@@ -343,7 +343,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(10,20));
     if (is_worker_running) { // apply or preview
         // draw progress bar
-        std::string progress_text = GUI::format(_L("%1%"), std::to_string(progress)) + "%%";
+        std::string progress_text = GUI::format("%1%", std::to_string(progress)) + "%%";
         ImVec2 progress_size(bottom_left_width - space_size, 0.0f);
         ImGui::BBLProgressBar2(progress / 100., progress_size);
         ImGui::SameLine();
