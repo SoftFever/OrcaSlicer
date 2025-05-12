@@ -2,6 +2,8 @@
 #include "GUI_Utils.hpp"
 #include "I18N.hpp"
 
+
+
 namespace Slic3r { namespace GUI {
 
 std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
@@ -162,4 +164,71 @@ void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip)
 //    Fit();
 //}
 
-}};
+PrinterMsgPanel::PrinterMsgPanel(wxWindow *parent)
+    : wxPanel(parent)
+{
+    m_sizer = new wxBoxSizer(wxVERTICAL);
+    this->SetSizer(m_sizer);
+}
+
+void PrinterMsgPanel::SetLabelList(const std::vector<wxString> &texts, const wxColour &colour)
+{
+
+    if (texts == m_last_texts)
+        return;
+
+    m_last_texts = texts;
+
+    m_labels.clear();
+    m_sizer->Clear(true);
+    //for (auto *label : m_labels) {
+    //    m_sizer->Detach(label);
+    //    label->Destroy();
+    //}
+    //m_labels.clear();
+
+    for (const wxString &text : texts) {
+        if (text.empty()) {
+            continue;
+        }
+
+        Label *label = new Label(this);
+        label->SetFont(::Label::Body_13);
+        label->SetForegroundColour(colour);
+        label->SetLabel(text);
+        label->Wrap(this->GetMinSize().GetWidth());
+        label->Show();
+        m_sizer->Add(label, 0, wxBOTTOM, FromDIP(4));
+        m_labels.push_back(label);
+    }
+    this->Show();
+    this->Layout();
+    Fit();
+}
+
+//void PrinterMsgPanel::SetLabelSingle(const wxString &texts, const wxColour &colour)
+//{
+//    Label *label = new Label(this);
+//    label->SetMinSize(wxSize(FromDIP(420), -1));
+//    label->SetMaxSize(wxSize(FromDIP(420), -1));
+//    label->SetFont(::Label::Body_13);
+//    label->SetForegroundColour(colour);
+//    label->SetLabel(texts);
+//    label->Wrap(FromDIP(-1));
+//    label->Show();
+//    m_sizer->Add(label, 0, wxBOTTOM, FromDIP(4));
+//    m_labels.push_back(label);
+//    this->Layout();
+//    Fit();
+//}
+
+wxString PrinterMsgPanel::GetLabel() {
+    if (!m_labels.empty() && m_labels[0] != nullptr)
+         return m_labels[0]->GetLabel();
+    return wxEmptyString;
+}
+
+}
+};
+
+

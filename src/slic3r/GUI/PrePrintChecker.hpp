@@ -2,7 +2,7 @@
 #define slic3r_GUI_PRE_PRINT_CHECK_hpp_
 
 #include <wx/wx.h>
-
+#include "Widgets/Label.hpp"
 namespace Slic3r { namespace GUI {
 
 enum prePrintInfoLevel {
@@ -130,8 +130,6 @@ public:
     bool is_warning_printer(PrintDialogStatus status) { return (PrintStatusPrinterWarningBegin < status) && (PrintStatusPrinterWarningEnd > status); };
     bool is_warning_filament(PrintDialogStatus status) { return (PrintStatusFilamentWarningBegin < status) && (PrintStatusFilamentWarningEnd > status); };
 };
-
-
 //class PrePrintMsgBoard : public wxWindow
 //{
 //public:
@@ -159,6 +157,25 @@ public:
 //    wxBoxSizer *m_sizer{nullptr};
 //};
 
+
+
+class PrinterMsgPanel : public wxPanel
+{
+public:
+    PrinterMsgPanel(wxWindow *parent);
+
+     void SetLabelList(const std::vector<wxString> &texts, const wxColour &colour);
+
+	// void SetLabelSingle(const  wxString &texts,const wxColour& colour);
+
+     wxString GetLabel();
+
+
+ private:
+    wxBoxSizer *         m_sizer = nullptr;
+    std::vector<Label *> m_labels;
+    std::vector<wxString> m_last_texts;
+};
 
 
 }} // namespace Slic3r::GUI

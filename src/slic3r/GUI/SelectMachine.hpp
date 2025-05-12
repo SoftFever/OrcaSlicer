@@ -365,11 +365,11 @@ protected:
     wxStaticText*                       m_rename_text{nullptr};
     Label*                              m_stext_time{ nullptr };
     Label*                              m_stext_weight{ nullptr };
-    Label*                              m_statictext_ams_msg{ nullptr };
+    PrinterMsgPanel *                   m_statictext_ams_msg{nullptr};
     Label*                              m_txt_change_filament_times{ nullptr };
 
     PrinterInfoBox*                     m_printer_box { nullptr};
-    Label*                              m_text_printer_msg{ nullptr };
+    PrinterMsgPanel *                   m_text_printer_msg{nullptr};
     Label*                              m_text_printer_msg_tips{ nullptr };
     wxStaticText*                       m_staticText_bed_title{ nullptr };
     wxStaticText*                       m_stext_sending{ nullptr };
@@ -467,8 +467,9 @@ public:
     void Enable_Send_Button(bool en);
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_user_machine_list();
-    void update_ams_status_msg(wxString msg, bool is_error);
-    void update_priner_status_msg(wxString msg, bool is_error);
+    void     update_ams_status_msg(vector<wxString> msg, bool is_error, bool is_single);
+    void     update_priner_status_msg(vector<wxString> msg, bool is_error, bool is_single);
+    //void     update_priner_status_msg(vector<wxString> msg);
     void update_printer_status_msg_tips(const wxString& msg_tips);
     void update_print_status_msg();
     void update_print_error_info(int code, std::string msg, std::string extra);
