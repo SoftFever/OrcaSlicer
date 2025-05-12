@@ -194,6 +194,9 @@ public:
     virtual bool Enable(bool enable = true);
     void parse_object(MachineObject* obj);
 
+private:
+    std::string get_filament_id(const std::string& ams_id, const std::string& can_id);
+
 public:
     std::string m_current_select;
 };

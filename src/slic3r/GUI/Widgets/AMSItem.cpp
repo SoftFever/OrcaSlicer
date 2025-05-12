@@ -178,6 +178,21 @@ void AMSinfo::parse_ext_info(MachineObject* obj, AmsTray tray) {
     this->cans.push_back(info);
 }
 
+Caninfo AMSinfo::get_caninfo(const std::string& can_id, bool& found) const
+{
+    found = false;
+    for (const auto& can_info : cans)
+    {
+        if (can_info.can_id == can_id)
+        {
+            found = true;
+            return can_info;
+        }
+    }
+
+    return Caninfo();
+};
+
 /*************************************************
 Description:AMSExtText
 **************************************************/
