@@ -103,7 +103,6 @@ public:
     void input_min_finish();
     void input_max_finish();
     void update();
-    void enable_confirm_button(bool en);
     bool Show(bool show) override;
     void Popup(wxString filament = wxEmptyString, wxString sn = wxEmptyString,
                wxString temp_min = wxEmptyString, wxString temp_max = wxEmptyString,
@@ -146,6 +145,8 @@ protected:
     void on_clr_picker(wxMouseEvent &event);
     bool is_virtual_tray();
     void update_widgets();
+
+    void update_filament_editing(bool is_printing);
 
 protected:
     StateColor          m_btn_bg_green;

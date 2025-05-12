@@ -414,21 +414,23 @@ void AMSMaterialsSetting::update()
 {
     if (obj) {
         update_widgets();
-        if (obj->is_in_printing() || obj->can_resume()) {
-            enable_confirm_button(false);
-        } else {
-            enable_confirm_button(true);
-        }
+        update_filament_editing(obj->is_in_printing() || obj->can_resume());
     }
 }
 
-void AMSMaterialsSetting::enable_confirm_button(bool en)
+void AMSMaterialsSetting::update_filament_editing(bool is_printing)
 {
-    if (!en) {
+    if (is_printing) {
+        m_comboBox_filament->Enable(obj->is_support_filament_setting_inprinting);
+        m_comboBox_cali_result->Enable(obj->is_support_filament_setting_inprinting);
         m_button_confirm->Show(obj->is_support_filament_setting_inprinting);
+        m_button_reset->Show(obj->is_support_filament_setting_inprinting);
     }
     else {
-        m_button_confirm->Show(en);
+        m_comboBox_filament->Enable(true);
+        m_comboBox_cali_result->Enable(true);
+        m_button_reset->Show(true);
+        m_button_confirm->Show(true);
     }
 
     if (!m_is_third) {
@@ -447,7 +449,7 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
         }
 
         m_tip_readonly->Wrap(FromDIP(380));
-        m_tip_readonly->Show(!en);
+        m_tip_readonly->Show(is_printing);
     }
 }
 
