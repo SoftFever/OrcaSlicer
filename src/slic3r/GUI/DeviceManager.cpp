@@ -2089,6 +2089,8 @@ int MachineObject::command_task_pause()
 
 int MachineObject::command_task_resume()
 {
+    if (jobState_ > 1) return 0;
+
     json j;
     j["print"]["command"] = "resume";
     j["print"]["param"] = "";
@@ -2099,6 +2101,8 @@ int MachineObject::command_task_resume()
 
 int MachineObject::command_hms_idle_ignore(const std::string &error_str, int type)
 {
+    if (jobState_ > 1) return 0;
+
     json j;
     j["print"]["command"]     = "idle_ignore";
     j["print"]["err"]         = error_str;
@@ -2109,6 +2113,8 @@ int MachineObject::command_hms_idle_ignore(const std::string &error_str, int typ
 
 int MachineObject::command_hms_resume(const std::string& error_str, const std::string& job_id)
 {
+    if (jobState_ > 1) return 0;
+
     json j;
     j["print"]["command"] = "resume";
     j["print"]["err"] = error_str;
@@ -2121,6 +2127,8 @@ int MachineObject::command_hms_resume(const std::string& error_str, const std::s
 
 int MachineObject::command_hms_ignore(const std::string& error_str, const std::string& job_id)
 {
+    if (jobState_ > 1) return 0;
+
     json j;
     j["print"]["command"] = "ignore";
     j["print"]["err"] = error_str;
@@ -2309,6 +2317,8 @@ int MachineObject::command_ams_select_tray(std::string tray_id)
 
 int MachineObject::command_ams_control(std::string action)
 {
+    if (action == "resume" && jobState_ > 1 ) return 0;
+
     //valid actions
     if (action == "resume" || action == "reset" || action == "pause" || action == "done" || action == "abort") {
         json j;
@@ -3007,6 +3017,7 @@ void MachineObject::reset()
     network_wired = false;
     dev_connection_name = "";
     job_id_ = "";
+    jobState_ = 0;
     m_plate_index = -1;
 
     nt_reset_data();
@@ -3898,6 +3909,11 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
                         if (jj.contains("task_id")) {
                             this->task_id_ = jj["task_id"].get<std::string>();
+                        }
+
+                        if (jj.contains("job_attr")) {
+                            int jobAttr = jj["job_attr"].get<int>();
+                            jobState_ =  get_flag_bits(jobAttr, 4, 4);
                         }
 
                         if (jj.contains("gcode_file"))

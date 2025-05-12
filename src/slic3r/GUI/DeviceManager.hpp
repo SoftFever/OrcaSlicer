@@ -1126,6 +1126,9 @@ public:
     boost::thread* get_slice_info_thread { nullptr };
     boost::thread* get_model_task_thread { nullptr };
 
+    /* job attr */
+    int jobState_ = 0;
+
     /* key: sequence id, value: callback */
     std::map<std::string, CommandCallBack> m_callback_list;
 
