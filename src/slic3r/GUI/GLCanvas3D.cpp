@@ -5767,9 +5767,9 @@ void GLCanvas3D::_render_3d_navigator()
     style.Colors[ImGuizmo::COLOR::DIRECTION_Z] = ImGuiWrapper::to_ImVec4(ColorRGBA::X());
     style.Colors[ImGuizmo::COLOR::TEXT] = m_is_dark ? ImVec4(224 / 255.f, 224 / 255.f, 224 / 255.f, 1.f) : ImVec4(.2f, .2f, .2f, 1.0f);
     style.Colors[ImGuizmo::COLOR::FACE]        = m_is_dark ? ImVec4(0.23f, 0.23f, 0.23f, 1.f) : ImVec4(0.77f, 0.77f, 0.77f, 1);
-    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_X], "y");
-    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Y], "z");
-    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Z], "x");
+    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_X], "Y"); // ORCA use uppercase to match text on tranform widgets
+    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Y], "Z"); // ORCA use uppercase to match text on tranform widgets
+    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Z], "X"); // ORCA use uppercase to match text on tranform widgets
     strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_FRONT], _utf8("Front").c_str());
     strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_BACK], _utf8("Back").c_str());
     strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_TOP], _utf8("Top").c_str());
@@ -9661,7 +9661,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         std::string objName2 = m_gcode_viewer.m_conflict_result.value()._objName2;
         double      height   = m_gcode_viewer.m_conflict_result.value()._height;
         int         layer    = m_gcode_viewer.m_conflict_result.value().layer;
-        text = (boost::format(_u8L("Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please separate the conflicted objects farther (%s <-> %s).")) % layer %
+        text = (boost::format(_u8L("Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please separate the conflicted objects farther (%s <-> %s).")) % layer %
                 height % objName1 % objName2)
                    .str();
         prevConflictText        = text;
@@ -9669,14 +9669,14 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         conflictObj             = obj2->model_object();
         break;
     }
-    case EWarning::ObjectOutside:      text = _u8L("An object is layed over the boundary of plate."); break;
+    case EWarning::ObjectOutside:      text = _u8L("An object is laid over the plate boundaries."); break;
     case EWarning::ToolHeightOutside:  text = _u8L("A G-code path goes beyond the max print height."); error = ErrorType::SLICING_ERROR; break;
-    case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the boundary of plate."); error = ErrorType::SLICING_ERROR; break;
+    case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the plate boundaries."); error = ErrorType::SLICING_ERROR; break;
     // BBS: remove _u8L() for SLA
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
     case EWarning::SomethingNotShown:  text = _u8L("Only the object being edit is visible."); break;
     case EWarning::ObjectClashed:
-        text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
+        text = _u8L("An object is laid over the plate boundaries or exceeds the height limit.\n"
             "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
         error = ErrorType::PLATER_ERROR;
         break;

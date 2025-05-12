@@ -40,6 +40,7 @@
 #include "ParamsPanel.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/TextInput.hpp"
+#include "Widgets/CheckBox.hpp" // ORCA
 
 class TabCtrl;
 
@@ -167,8 +168,9 @@ protected:
 
    	struct PresetDependencies {
 		Preset::Type type	  = Preset::TYPE_INVALID;
-		wxCheckBox 	*checkbox = nullptr;
-		ScalableButton 	*btn  = nullptr;
+		::CheckBox*   checkbox = nullptr;
+		wxStaticText* checkbox_title = nullptr;
+		Button 	*btn  = nullptr;
 		std::string  key_list; // "compatible_printers"
 		std::string  key_condition;
 		wxString     dialog_title;
@@ -562,7 +564,7 @@ private:
 	void 			update_volumetric_flow_preset_hints();
     void            update_spoolman_statistics();
 
-    std::map<std::string, wxCheckBox*> m_overrides_options;
+    std::map<std::string, ::CheckBox*> m_overrides_options;
 
 public:
 	//BBS: GUI refactor

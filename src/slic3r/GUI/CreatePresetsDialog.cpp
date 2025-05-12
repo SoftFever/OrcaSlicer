@@ -67,55 +67,96 @@ static const std::vector<std::string> filament_types = {"PLA",    "rPLA",  "PLA+
 
 static const std::vector<std::string> printer_vendors = 
     {"Anker",              "Anycubic",           "Artillery",          "Bambulab",           "BIQU",
-     "Comgrow",            "Creality",           "Custom Printer",     "Elegoo",             "Flashforge",
-     "FLSun",              "FlyingBear",         "Folgertech",         "InfiMech",           "Kingroon",
-     "Orca Arena Printer", "Peopoly",            "Prusa",              "Qidi",               "Raise3D",
-     "RatRig",             "SecKit",             "Snapmaker",          "Sovol",              "Tronxy",
-     "TwoTrees",           "UltiMaker",          "Vivedino",           "Voron",              "Voxelab",
-     "Vzbot",              "Wanhao"};
+     "Blocks",             "Chuanying",          "Co Print",           "Comgrow",            "CONSTRUCT3D",
+     "Creality",           "DeltaMaker",         "Dremel",             "Elegoo",             "Flashforge",
+     "FLSun",              "FlyingBear",         "Folgertech",         "Geeetech",           "Ginger Additive",
+     "InfiMech",           "Kingroon",           "Lulzbot",            "MagicMaker",         "Mellow",
+     "Orca Arena Printer", "Peopoly",            "Positron 3D",        "Prusa",              "Qidi",
+     "Raise3D",            "RatRig",             "RolohaunDesign",     "SecKit",             "Snapmaker",
+     "Sovol",              "Thinker X400",       "Tronxy",             "TwoTrees",           "UltiMaker",
+     "Vivedino",           "Volumic",            "Voron",              "Voxelab",            "Vzbot",
+     "Wanhao",             "Z-Bolt"};
 
 static const std::unordered_map<std::string, std::vector<std::string>> printer_model_map =
-    {{"Anker",          {"Anker M5", "Anker M5 All-Metal Hot End", "Anker M5C"}},
-     {"Anycubic",       {"Kossel Linear Plus", "Kossel Pulley(Linear)", "Mega Zero", "i3 Mega", "Predator"}},
-     {"Artillery",      {"sidewinder X1",   "Genius", "Hornet"}},
-     {"BIBO",           {"BIBO2 Touch"}},
-     {"BIQU",           {"BX"}},
-     {"Creality ENDER", {"Ender-3",         "Ender-3 BLTouch",  "Ender-3 Pro",      "Ender-3 Neo",      
-                        "Ender-3 V2 Neo",   "Ender-3 S1 Plus",  "Ender-3 Max", "Ender-3 Max Neo",
-                        "Ender-4",          "Ender-5 Pro",      "Ender-5 Pro",      
-                        "Ender-7",          "Ender-2",          "Ender-2 Pro"}},
-     {"Creality CR",    {"CR-5 Pro",        "CR-5 Pro H",       "CR-10 SMART", "CR-10 SMART Pro",   "CR-10 Mini",
-                        "CR-10",            "CR-10 v3",         "CR-10 S",     "CR-10 v2",          "CR-10 v2",
-                        "CR-10 S Pro",      "CR-10 S Pro v2",   "CR-10 S4",         "CR-10 S5",         "CR-20",       "CR-20 Pro",         "CR-200B",
-                        "CR-8"}},
-     {"Creality SERMOON",{"Sermoon-D1",     "Sermoon-V1",       "Sermoon-V1 Pro"}},
-     {"FLSun",          {"FLSun QQs Pro",   "FLSun Q5"}},
-     {"gCreate",        {"gMax 1.5XT Plus", "gMax 2",           "gMax 2 Pro",       "gMax 2 Dual 2in1", "gMax 2 Dual Chimera"}},
-     {"Geeetech",       {"Thunder",         "Thunder Pro",      "Mizar s",          "Mizar Pro",        "Mizar",        "Mizar Max",
-                        "Mizar M",          "A10 Pro",          "A10 M",            "A10 T",            "A20",          "A20 M",
-                        "A20T",             "A30 Pro",          "A30 M",            "A30 T",            "E180",         "Me Ducer",
-                        "Me creator",       "Me Creator2",      "GiantArmD200",     "l3 ProB",          "l3 Prow",      "l3 ProC"}},
-     {"INAT",           {"Proton X Rail",   "Proton x Rod",     "Proton XE-750"}},
-     {"Infinity3D",     {"DEV-200",         "DEV-350"}},
-     {"Jubilee",        {"Jubilee"}},
-     {"LNL3D",          {"D3 v2",           "D3 Vulcan",        "D5",               "D6"}},
-     {"LulzBot",        {"Mini Aero",       "Taz6 Aero"}},
-     {"MakerGear",      {"Micro",           "M2(V4 Hotend)",    "M2 Dual",          "M3-single Extruder", "M3-Independent Dual Rev.0", "M3-Independent Dual Rev.0(Duplication Mode)",
-                        "M3-Independent Dual Rev.1",            "M3-Independent Dual Rev.1(Duplication Mode)", "ultra One", "Ultra One (DuplicationMode)"}},
-     {"Original Prusa", {"MK4", "SL1S SPEED", "MMU3"}},
-     {"Papapiu",        {"N1s"}},
-     {"Print4Taste",    {"mycusini 2.0"}},
-     {"RatRig",         {"V-core-3 300mm",  "V-Core-3 400mm",   "V-Core-3 500mm", "V-Minion"}},
-     {"Rigid3D",        {"Zero2",           "Zero3"}},
-     {"Snapmaker",      {"A250",            "A350"}},
-     {"Sovol",          {"SV06",            "SV06 PLUS",        "SV05",             "SV04",             "SV03 / SV03 BLTOUCH",      "SVO2 / SV02 BLTOUCH",      "SVO1 / SV01 BLToUCH", "SV01 PRO"}},
-     {"TriLAB",         {"AzteQ Industrial","AzteQ Dynamic",    "DeltiQ 2",         "DeltiQ 2 Plus",    "DeltiQ 2 + FlexPrint 2",   "DeltiQ 2 Plus + FlexPrint 2", "DeltiQ 2 +FlexPrint",
-                        "DeltiQ 2 Plus + FlexPrint",            "DeltiQ M",         "DeltiQ L",         "DeltiQ XL"}},
-     {"Trimaker",       {"Nebula cloud",    "Nebula",           "Cosmos ll"}},
-     {"Ultimaker",      {"Ultimaker 2"}},
-     {"Voron",          {"v2 250mm3",        "v2 300mm3",        "v2 350mm3",        "v1 250mm3",        "v1 300mm3", "v1 350mm3",
-                        "Zero 120mm3",      "Switchwire"}},
-     {"Zonestar",       {"Z5",              "Z6",               "Z5x",              "Z8",               "Z9"}}};
+    {{"Anker",             {"Anker M5",                   "Anker M5 All-Metal Hot End", "Anker M5C"}},
+     {"Anycubic",          {"Anycubic i3 Mega S",    "Anycubic Chiron",       "Anycubic Vyper",        "Anycubic Kobra",        "Anycubic Kobra Max",
+                            "Anycubic Kobra Plus",   "Anycubic 4Max Pro",     "Anycubic 4Max Pro 2",   "Anycubic Kobra 2",      "Anycubic Kobra 2 Plus",
+                            "Anycubic Kobra 2 Max",  "Anycubic Kobra 2 Pro",  "Anycubic Kobra 2 Neo",  "Anycubic Kobra 3",      "Anycubic Kobra S1"}},
+     {"Artillery",         {"Artillery Sidewinder X1",      "Artillery Genius",             "Artillery Genius Pro",         "Artillery Sidewinder X2",      "Artillery Hornet",
+                            "Artillery Sidewinder X3 Pro",  "Artillery Sidewinder X3 Plus", "Artillery Sidewinder X4 Pro",  "Artillery Sidewinder X4 Plus"}},
+     {"Bambulab",          {"Bambu Lab X1 Carbon", "Bambu Lab X1",        "Bambu Lab X1E",       "Bambu Lab P1P",       "Bambu Lab P1S",
+                            "Bambu Lab A1 mini",   "Bambu Lab A1"}},
+     {"BIQU",              {"BIQU B1",      "BIQU BX",      "BIQU Hurakan"}},
+     {"Blocks",            {"BLOCKS Pro S100", "BLOCKS RD50 V2",  "BLOCKS RF50"}},
+     {"Chuanying",         {"Chuanying X1"}},
+     {"Co Print",          {"Co Print ChromaSet"}},
+     {"Comgrow",           {"Comgrow T300", "Comgrow T500"}},
+     {"CONSTRUCT3D",       {"Construct 1 XL", "Construct 1"}},
+     {"Creality",          {"Creality CR-10 V2",           "Creality CR-10 Max",          "Creality CR-10 SE",           "Creality CR-6 SE",            "Creality CR-6 Max",
+                            "Creality CR-M4",              "Creality Ender-3 V2",         "Creality Ender-3 V2 Neo",     "Creality Ender-3 S1",         "Creality Ender-3",
+                            "Creality Ender-3 Pro",        "Creality Ender-3 S1 Pro",     "Creality Ender-3 S1 Plus",    "Creality Ender-3 V3 SE",      "Creality Ender-3 V3 KE",
+                            "Creality Ender-3 V3",         "Creality Ender-3 V3 Plus",    "Creality Ender-5",            "Creality Ender-5 Max",        "Creality Ender-5 Plus",
+                            "Creality Ender-5 Pro (2019)", "Creality Ender-5S",           "Creality Ender-5 S1",         "Creality Ender-6",            "Creality Sermoon V1",
+                            "Creality K1",                 "Creality K1C",                "Creality K1 Max",             "Creality K1 SE",              "Creality K2 Plus",
+                            "Creality Hi"}},
+     {"DeltaMaker",        {"DeltaMaker 2",   "DeltaMaker 2T",  "DeltaMaker 2XT"}},
+     {"Dremel",            {"Dremel 3D20", "Dremel 3D40", "Dremel 3D45"}},
+     {"Elegoo",            {"Elegoo Centauri Carbon",  "Elegoo Centauri",         "Elegoo Neptune",          "Elegoo Neptune X",        "Elegoo Neptune 2",
+                            "Elegoo Neptune 2S",       "Elegoo Neptune 2D",       "Elegoo Neptune 3",        "Elegoo Neptune 3 Pro",    "Elegoo Neptune 3 Plus",
+                            "Elegoo Neptune 3 Max",    "Elegoo Neptune 4 Pro",    "Elegoo Neptune 4",        "Elegoo Neptune 4 Max",    "Elegoo Neptune 4 Plus",
+                            "Elegoo OrangeStorm Giga"}},
+     {"Flashforge",        {"Flashforge Adventurer 5M",       "Flashforge Adventurer 5M Pro",   "Flashforge AD5X",                "Flashforge Adventurer 3 Series", "Flashforge Adventurer 4 Series",
+                            "Flashforge Guider 3 Ultra",      "Flashforge Guider 2s"}},
+     {"FLSun",             {"FLSun Q5",               "FLSun QQ-S Pro",         "FLSun Super Racer (SR)", "FLSun V400",             "FLSun T1",
+                            "FLSun S1"}},
+     {"FlyingBear",        {"FlyingBear Reborn3", "FlyingBear S1",      "FlyingBear Ghost 6"}},
+     {"Folgertech",        {"Folgertech i3",   "Folgertech FT-5", "Folgertech FT-6"}},
+     {"Geeetech",          {"Geeetech Thunder",   "Geeetech Mizar M",   "Geeetech Mizar S",   "Geeetech Mizar Pro", "Geeetech Mizar Max",
+                            "Geeetech Mizar",     "Geeetech A10 Pro",   "Geeetech A10 M",     "Geeetech A10 T",     "Geeetech A20",
+                            "Geeetech A20 M",     "Geeetech A20 T",     "Geeetech A30 Pro",   "Geeetech A30 M",     "Geeetech A30 T",
+                            "Geeetech M1"}},
+     {"Ginger Additive",   {"ginger G1"}},
+     {"InfiMech",          {"InfiMech TX",                       "InfiMech TX Hardened Steel Nozzle"}},
+     {"Kingroon",          {"Kingroon KP3S PRO S1", "Kingroon KP3S PRO V2", "Kingroon KP3S 3.0",    "Kingroon KP3S V1",     "Kingroon KLP1"}},
+     {"Lulzbot",           {"Lulzbot Taz 6",        "Lulzbot Taz 4 or 5",   "Lulzbot Taz Pro Dual", "Lulzbot Taz Pro S"}},
+     {"MagicMaker",        {"MM hqs hj",   "MM hqs SF",   "MM hj SK",    "MM BoneKing", "MM slb"}},
+     {"Mellow",            {"M1"}},
+     {"Orca Arena Printer",{"Orca Arena X1 Carbon"}},
+     {"Peopoly",           {"Peopoly Magneto X"}},
+     {"Positron 3D",       {"The Positron"}},
+     {"Prusa",             {"MK4IS",       "MINIIS",      "MK3S",        "MINI",        "MK3.5",
+                            "Prusa XL",    "Prusa XL 5T", "MK4S",        "MK4S HF"}},
+     {"Qidi",              {"Qidi X-Plus 4",  "Qidi Q1 Pro",    "Qidi X-Max 3",   "Qidi X-Plus 3",  "Qidi X-Smart 3",
+                            "Qidi X-Plus",    "Qidi X-Max",     "Qidi X-CF Pro"}},
+     {"Raise3D",           {"Raise3D Pro3",      "Raise3D Pro3 Plus"}},
+     {"RatRig",            {"RatRig V-Core 3 200",                  "RatRig V-Core 3 300",                  "RatRig V-Core 3 400",                  "RatRig V-Core 3 500",                  "RatRig V-Minion",
+                            "RatRig V-Cast",                        "RatRig V-Core 4 300",                  "RatRig V-Core 4 400",                  "RatRig V-Core 4 500",                  "RatRig V-Core 4 HYBRID 300",
+                            "RatRig V-Core 4 HYBRID 400",           "RatRig V-Core 4 HYBRID 500",           "RatRig V-Core 4 IDEX 300",             "RatRig V-Core 4 IDEX 300 COPY MODE",   "RatRig V-Core 4 IDEX 300 MIRROR MODE",
+                            "RatRig V-Core 4 IDEX 400",             "RatRig V-Core 4 IDEX 400 COPY MODE",   "RatRig V-Core 4 IDEX 400 MIRROR MODE", "RatRig V-Core 4 IDEX 500",             "RatRig V-Core 4 IDEX 500 COPY MODE",
+                            "RatRig V-Core 4 IDEX 500 MIRROR MODE"}},
+     {"RolohaunDesign",    {"Rook MK1 LDO"}},
+     {"SecKit",            {"SecKit SK-Tank", "Seckit Go3"}},
+     {"Snapmaker",         {"Snapmaker J1",                 "Snapmaker A250",               "Snapmaker A350",               "Snapmaker A250 Dual",          "Snapmaker A350 Dual",
+                            "Snapmaker A250 QSKit",         "Snapmaker A350 QSKit",         "Snapmaker A250 BKit",          "Snapmaker A350 BKit",          "Snapmaker A250 QS+B Kit",
+                            "Snapmaker A350 QS+B Kit",      "Snapmaker A250 Dual QSKit",    "Snapmaker A350 Dual QSKit",    "Snapmaker A250 Dual BKit",     "Snapmaker A350 Dual BKit",
+                            "Snapmaker A250 Dual QS+B Kit", "Snapmaker A350 Dual QS+B Kit", "Snapmaker Artisan"}},
+     {"Sovol",             {"Sovol SV01 Pro",      "Sovol SV02",          "Sovol SV05",          "Sovol SV06",          "Sovol SV06 Plus",
+                            "Sovol SV06 ACE",      "Sovol SV06 Plus ACE", "Sovol SV07",          "Sovol SV07 Plus",     "Sovol SV08"}},
+     {"Thinker X400",      {"Thinker X400"}},
+     {"Tronxy",            {"Tronxy X5SA 400 Marlin Firmware"}},
+     {"TwoTrees",          {"TwoTrees SP-5 Klipper", "TwoTrees SK1"}},
+     {"UltiMaker",         {"UltiMaker 2"}},
+     {"Vivedino",          {"Troodon 2.0 - RRF",     "Troodon 2.0 - Klipper"}},
+     {"Volumic",           {"EXO42 Performance", "EXO65 Performance", "SH65 Performance",  "EXO42",             "EXO65",           
+                            "SH65",              "VS30SC2",           "VS30SC",            "VS30ULTRA",         "VS30MK3",         
+                            "VS30MK2",           "VS20MK2"}},
+     {"Voron",             {"Voron 2.4 250",        "Voron 2.4 300",        "Voron 2.4 350",        "Voron Trident 250",    "Voron Trident 300",
+                            "Voron Trident 350",    "Voron 0.1",            "Voron Switchwire 250"}},
+     {"Voxelab",           {"Voxelab Aquila X2"}},
+     {"Vzbot",             {"Vzbot 235 AWD", "Vzbot 330 AWD"}},
+     {"Wanhao",            {"Wanhao D12-300"}},
+     {"Z-Bolt",            {"Z-Bolt S300",      "Z-Bolt S300 Dual", "Z-Bolt S400",      "Z-Bolt S400 Dual", "Z-Bolt S600",
+                            "Z-Bolt S600 Dual"}}};
 
 static std::vector<std::string>               nozzle_diameter_vec = {"0.4", "0.15", "0.2", "0.25", "0.3", "0.35", "0.5", "0.6", "0.75", "0.8", "1.0", "1.2"};
 static std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.15", 0.15}, {"0.2", 0.2},   {"0.25", 0.25}, {"0.3", 0.3},
@@ -1018,7 +1059,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             } else {
                 vendor_name = into_u8(m_filament_custom_vendor_input->GetTextCtrl()->GetValue());
                 if (vendor_name == "Bambu" || vendor_name == "Generic") {
-                    MessageDialog dlg(this, _L("\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                    MessageDialog dlg(this, _L("\"Bambu\" or \"Generic\" cannot be used as a Vendor for custom filaments."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
                     dlg.ShowModal();
                     return;
@@ -1065,7 +1106,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             return;
         }
         if (m_can_not_find_vendor_checkbox->GetValue() && str_is_all_digit(vendor_name)) {
-            MessageDialog dlg(this, _L("The vendor can not be a number. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            MessageDialog dlg(this, _L("The vendor cannot be a number. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
@@ -1704,6 +1745,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_select_vendor->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     wxArrayString printer_vendor;
     for (const std::string &vendor : printer_vendors) { 
+        assert(printer_model_map.find(vendor) != printer_model_map.end());
         printer_vendor.Add(vendor); 
     }
     m_select_vendor->Set(printer_vendor);
@@ -1724,7 +1766,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
                 m_select_model->SetLabelColor(*wxBLACK);
             }
         } else {
-            MessageDialog dlg(this, _L("The model is not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+            MessageDialog dlg(this, _L("The model was not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
         }
         e.Skip();
@@ -2145,8 +2187,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
         }
     }
     if (m_printer_preset_vendor_selected.id.empty() || m_printer_preset_model_selected.id.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "selected id is not find";
-        MessageDialog dlg(this, _L("Preset path is not find, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        BOOST_LOG_TRIVIAL(info) << "selected id was not found";
+        MessageDialog dlg(this, _L("Preset path was not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return false;
     }
@@ -2166,8 +2208,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
         }
 
         if (preset_path.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "Preset path is not find";
-            MessageDialog dlg(this, _L("Preset path is not find, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            BOOST_LOG_TRIVIAL(info) << "Preset path was not found";
+            MessageDialog dlg(this, _L("Preset path was not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return false;
@@ -2204,7 +2246,7 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
         varient = model_varient.substr(index_at + 3, index_nozzle - index_at - 4);
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "get nozzle failed";
-        MessageDialog dlg(this, _L("The nozzle diameter is not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        MessageDialog dlg(this, _L("The nozzle diameter was not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return false;
     }
@@ -2215,7 +2257,7 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
     if (temp_printer_preset) {
         m_printer_preset = new Preset(*temp_printer_preset);
     } else {
-        MessageDialog dlg(this, _L("The printer preset is not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        MessageDialog dlg(this, _L("The printer preset was not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return false;
     }
@@ -2230,8 +2272,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
             preset_path = (boost::filesystem::path(Slic3r::resources_dir()) / PRESET_PROFILES_TEMOLATE_DIR).string();
         }
         if (preset_path.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "Preset path is not find";
-            MessageDialog dlg(this, _L("Preset path is not find, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            BOOST_LOG_TRIVIAL(info) << "Preset path was not found";
+            MessageDialog dlg(this, _L("Preset path was not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return false;
@@ -2942,7 +2984,7 @@ bool CreatePrinterPresetDialog::data_init()
         if (iterator != vendors.end()) {
             m_printer_preset_vendor_selected = iterator->second;
         } else {
-            MessageDialog dlg(this, _L("Vendor is not find, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+            MessageDialog dlg(this, _L("Vendor was not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
         }
@@ -3572,8 +3614,8 @@ std::string ExportConfigsDialog::initial_file_name(const wxString &path, const s
             }
             catch(...) {
                 MessageDialog dlg(this,
-                                  _L(wxString::Format("The file: %s \nmay have been opened by another program. \nPlease close it and try again.",
-                                                      encode_path(printer_export_path.string().c_str()))),
+                                  wxString::Format(_L("The file: %s \nmay have been opened by another program. \nPlease close it and try again."),
+                                                      encode_path(printer_export_path.string().c_str())),
                                   wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
                 dlg.ShowModal();
                 return "initial_failed";
@@ -4499,7 +4541,7 @@ void EditFilamentPresetDialog::delete_preset()
                 }
             wxString msg;
             if (count > 0) {
-                msg = _L("Presets inherited by other presets can not be deleted");
+                msg = _L("Presets inherited by other presets cannot be deleted");
                 msg += "\n";
                 msg += _L_PLURAL("The following presets inherits this preset.", "The following preset inherits this preset.", count);
                 wxString title = _L("Delete Preset");

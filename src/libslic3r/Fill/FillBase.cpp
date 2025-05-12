@@ -1787,6 +1787,18 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
 			polylines_out.emplace_back(std::move(pl));
 }
 
+void Fill::chain_or_connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const double spacing, const FillParams &params)
+{
+    if (!infill_ordered.empty()) {
+        if (params.dont_connect()) {
+            if (infill_ordered.size() > 1)
+                infill_ordered = chain_polylines(std::move(infill_ordered));
+            append(polylines_out, std::move(infill_ordered));
+        } else
+            connect_infill(std::move(infill_ordered), boundary, polylines_out, spacing, params);
+    }
+}
+
 // Extend the infill lines along the perimeters, this is mainly useful for grid aligned support, where a perimeter line may be nearly
 // aligned with the infill lines.
 static inline void base_support_extend_infill_lines(Polylines &infill, BoundaryInfillGraph &graph, const double spacing, const FillParams &params)
