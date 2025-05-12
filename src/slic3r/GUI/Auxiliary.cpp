@@ -1175,13 +1175,13 @@ void DesignerPanel::update_info()
 
     if (wxGetApp().plater()->model().model_info != nullptr) {
         m_input_model_name->GetTextCtrl()->SetValue(wxString::FromUTF8(wxGetApp().plater()->model().model_info->model_name));
-        m_input_description->GetTextCtrl()->SetValue(wxString::FromUTF8(wxGetApp().plater()->model().model_info->description));
+       // m_input_description->GetTextCtrl()->SetValue(wxString::FromUTF8(wxGetApp().plater()->model().model_info->description));
         if (!m_combo_license->SetStringSelection(wxString::FromUTF8(wxGetApp().plater()->model().model_info->license))) {
             m_combo_license->SetSelection(0);
         }
     } else {
         m_input_model_name->GetTextCtrl()->SetValue(wxEmptyString);
-        m_input_description->GetTextCtrl()->SetValue(wxEmptyString);
+       // m_input_description->GetTextCtrl()->SetValue(wxEmptyString);
         m_combo_license->SetSelection(0);
     }
 
