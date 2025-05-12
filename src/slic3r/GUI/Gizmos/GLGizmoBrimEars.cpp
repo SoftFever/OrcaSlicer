@@ -110,10 +110,12 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
 
     if (!has_points) return;
 
-    GLShaderProgram *shader = wxGetApp().get_shader("gouraud_light");
-    if (shader != nullptr) shader->start_using();
+    const auto shader = wxGetApp().get_shader("gouraud_light");
+    if (shader == nullptr)
+        return;
+    shader->start_using();
     ScopeGuard guard([shader]() {
-        if (shader != nullptr) shader->stop_using();
+        shader->stop_using();
     });
 
     const Camera&      camera                          = wxGetApp().plater()->get_camera();
@@ -121,6 +123,8 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
     const GLVolume    *vol                             = selection.get_volume(*selection.get_volume_idxs().begin());
     const Transform3d &instance_scaling_matrix_inverse = vol->get_instance_transformation().get_scaling_factor_matrix().inverse();
     const Transform3d &instance_matrix                 = vol->get_instance_transformation().get_matrix();
+
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
     ColorRGBA render_color;
     for (size_t i = 0; i < cache_size; ++i) {
@@ -151,7 +155,7 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
         }
 
         m_cylinder.model.set_color(render_color);
-        if (shader) shader->set_uniform("emission_factor", 0.5f);
+        shader->set_uniform("emission_factor", 0.5f);
 
         if (vol->is_left_handed()) glFrontFace(GL_CW);
 
