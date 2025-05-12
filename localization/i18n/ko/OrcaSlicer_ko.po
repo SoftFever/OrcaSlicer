@@ -8731,8 +8731,11 @@ msgstr "변형도구 회전"
 msgid "Gizmo cut"
 msgstr "변형도구 잘라내기"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "변형도구 바닥면 선택"
+
+msgid "Gizmo mesh boolean"
+msgstr "변형도구 합집합/차집합/교집합"
 
 msgid "Gizmo SLA support points"
 msgstr "변형도구 서포트 칠하기"
@@ -8740,8 +8743,17 @@ msgstr "변형도구 서포트 칠하기"
 msgid "Gizmo FDM paint-on seam"
 msgstr "변형도구 재봉선 칠하기"
 
-msgid "Gizmo Text emboss / engrave"
+msgid "Gizmo text emboss/engrave"
 msgstr "변형도구 - 텍스트 엠보싱/인그레이빙"
+
+msgid "Gizmo measure"
+msgstr "변형도구 측정"
+
+msgid "Gizmo assemble"
+msgstr "변형도구 병합"
+
+msgid "Gizmo brim ears"
+msgstr "변형도구 브림 귀"
 
 msgid "Zoom in"
 msgstr "확대"

@@ -104,7 +104,7 @@ msgid "Support Generated"
 msgstr "Support generiert"
 
 msgid "Gizmo-Place on Face"
-msgstr "Gizmo auf Fläche platzieren"
+msgstr "Gizmo-auf Fläche platzieren"
 
 msgid "Lay on face"
 msgstr "Auf Fläche legen"
@@ -9087,8 +9087,11 @@ msgstr "Rotieren"
 msgid "Gizmo cut"
 msgstr "Trennen"
 
-msgid "Gizmo Place face on bed"
-msgstr "Fläche auf Druckbett platzieren"
+msgid "Gizmo place face on bed"
+msgstr "Fläche auf druckbett platzieren"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo mesh-boolesche"
 
 msgid "Gizmo SLA support points"
 msgstr "SLA Stützpunkte"
@@ -9096,8 +9099,17 @@ msgstr "SLA Stützpunkte"
 msgid "Gizmo FDM paint-on seam"
 msgstr "FDM Naht aufmalen"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Text prägen / gravieren"
+msgid "Gizmo text emboss/engrave"
+msgstr "Text prägen/gravieren"
+
+msgid "Gizmo measure"
+msgstr "Gizmo messen"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo Zusammenbauen"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo mausohren"
 
 msgid "Zoom in"
 msgstr "Vergrößern"

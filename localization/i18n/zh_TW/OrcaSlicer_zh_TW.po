@@ -8547,8 +8547,11 @@ msgstr "旋轉物件"
 msgid "Gizmo cut"
 msgstr "切割物件"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "選擇底面"
+
+msgid "Gizmo mesh boolean"
+msgstr "線框網格布林運算"
 
 msgid "Gizmo SLA support points"
 msgstr "SLA 支撐點"
@@ -8556,8 +8559,17 @@ msgstr "SLA 支撐點"
 msgid "Gizmo FDM paint-on seam"
 msgstr "FDM 塗裝接縫"
 
-msgid "Gizmo Text emboss / engrave"
+msgid "Gizmo text emboss/engrave"
 msgstr "浮雕/雕刻文字工具"
+
+msgid "Gizmo measure"
+msgstr "Gizmo "
+
+msgid "Gizmo assemble"
+msgstr "Gizmo "
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo "
 
 msgid "Zoom in"
 msgstr "放大"

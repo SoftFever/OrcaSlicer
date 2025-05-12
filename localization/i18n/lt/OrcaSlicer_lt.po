@@ -8985,8 +8985,11 @@ msgstr "Gizmo pasukimas"
 msgid "Gizmo cut"
 msgstr "Gizmo pjaustymui"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Padėti paviršių ant pagrindo"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo padėti paviršių ant pagrindo"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo objektų jungimo/atėmimo/susikirtimo įrankiai"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA atramų taškai"
@@ -8994,8 +8997,17 @@ msgstr "Gizmo SLA atramų taškai"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM siūlių piešimui"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "\"Gizmo\" teksto įspaudimas / graviravimas"
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo teksto įspaudimas/graviravimas"
+
+msgid "Gizmo measure"
+msgstr "Gizmo matuoti"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo surinkimo"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo krašto \"ausys\""
 
 msgid "Zoom in"
 msgstr "Padidinti"

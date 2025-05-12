@@ -8504,8 +8504,11 @@ msgstr "旋转物件"
 msgid "Gizmo cut"
 msgstr "剪切物件"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "选择底面"
+
+msgid "Gizmo mesh boolean"
+msgstr "线框网格布尔操作"
 
 msgid "Gizmo SLA support points"
 msgstr "SLA支撑点"
@@ -8513,8 +8516,17 @@ msgstr "SLA支撑点"
 msgid "Gizmo FDM paint-on seam"
 msgstr "FDM涂装接缝"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Gizmo文本浮雕/雕刻"
+msgid "Gizmo text emboss/engrave"
+msgstr "线框文本浮雕/雕刻"
+
+msgid "Gizmo measure"
+msgstr "线框测量"
+
+msgid "Gizmo assemble"
+msgstr "线框组合"
+
+msgid "Gizmo brim ears"
+msgstr "线框耳状帽檐"
 
 msgid "Zoom in"
 msgstr "放大"
@@ -16389,10 +16401,10 @@ msgid "Set the brim type to \"painted\""
 msgstr "将Brim类型设置为绘制模式"
 
 msgid " invalid brim ears"
-msgstr "个无效耳状Brim"
+msgstr "个无效耳状帽檐"
 
 msgid "Brim Ears"
-msgstr "耳状Brim"
+msgstr "耳状帽檐"
 
 msgid "Please select single object."
 msgstr "请选中单个对象。"

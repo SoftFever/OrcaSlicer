@@ -8798,8 +8798,11 @@ msgstr "Gizmo roteren"
 msgid "Gizmo cut"
 msgstr "Gizmo snijden"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Plaats gebied op het bed"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo plaats gebied op het bed"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo mesh booleaan"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA-ondersteuningspunten"
@@ -8807,8 +8810,17 @@ msgstr "Gizmo SLA-ondersteuningspunten"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM seam schilderen"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr ""
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo tekst reliëf/graveren"
+
+msgid "Gizmo measure"
+msgstr "Gizmo maatregel"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo monteren"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo rand oren"
 
 msgid "Zoom in"
 msgstr "Zoom in"
@@ -10330,7 +10342,7 @@ msgstr ""
 "ervoor dat het object eenvoudiger van het printbed kan worden verwijderd."
 
 msgid "Brim ears"
-msgstr ""
+msgstr "Rand oren"
 
 msgid "Only draw brim over the sharp edges of the model."
 msgstr ""
@@ -16761,10 +16773,10 @@ msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " ongeldige rand oren"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Rand Oren"
 
 msgid "Please select single object."
 msgstr "Selecteer een enkel object."

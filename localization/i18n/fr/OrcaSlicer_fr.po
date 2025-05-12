@@ -9127,8 +9127,11 @@ msgstr "Gizmo pivoter"
 msgid "Gizmo cut"
 msgstr "Gizmo couper"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Placer la face sur le plateau"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo placer la face sur le plateau"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo booléennes"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo Point de support SLA"
@@ -9136,8 +9139,17 @@ msgstr "Gizmo Point de support SLA"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo Peinture de la couture FDM"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Gizmo Embosser / graver du texte"
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo embosser/graver du texte"
+
+msgid "Gizmo measure"
+msgstr "Gizmo mesurer"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo assembler"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo bordure à oreilles"
 
 msgid "Zoom in"
 msgstr "Zoom avant"
