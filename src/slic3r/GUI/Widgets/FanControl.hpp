@@ -178,6 +178,25 @@ public:
     void msw_rescale();
 };
 
+wxDECLARE_EVENT(EVT_FANCTRL_SWITCH, wxCommandEvent);
+class FanControlNewSwitchPanel : public wxWindow
+{
+    bool  switch_state_on = false;
+    wxStaticBitmap* m_switch_btn{ nullptr };
+    ScalableBitmap* m_bitmap_toggle_off{ nullptr };
+    ScalableBitmap* m_bitmap_toggle_on{ nullptr };
+
+public:
+    FanControlNewSwitchPanel(wxWindow* parent, const wxString& title, const wxString& tips, bool on = true);
+
+public:
+    bool IsSwitchOn() const { return switch_state_on; }
+    void SetSwitchOn(bool on);
+
+private:
+    void on_left_down(wxMouseEvent& event);
+};
+
 
 class FanControlPopupNew : public wxDialog
 {
@@ -189,15 +208,6 @@ public:
 private:
     wxBoxSizer* m_sizer_main{ nullptr };
 
-    //old protocol
-    //FanControl* m_part_fan;
-    //FanControl* m_aux_fan;
-    //FanControl* m_cham_fan;
-    wxWindow* m_line_top;
-    wxWindow* m_line_bottom;
-    bool      m_is_suppt_cham_fun{ true };
-    bool      m_is_suppt_aux_fun{ true };
-
     //new protocol
     wxGridSizer* m_radio_btn_sizer{ nullptr };
     wxGridSizer* m_sizer_fanControl { nullptr };
@@ -205,54 +215,58 @@ private:
     wxBoxSizer *m_mode_sizer{ nullptr };
     wxBoxSizer *m_bottom_sizer{ nullptr };
 
-    AirDuctData    m_data;
-    std::map<int, FanControlNew*> m_fan_control_list;    //<duct_id, <fan_id, FanControl>>
-    std::vector<SendModeSwitchButton*> m_mode_switch_btn_list;
-    int m_air_duct_time_out { 0 };
-    int m_fan_set_time_out{ 0 };
+    // mode switch buttons
+    std::unordered_map<int, SendModeSwitchButton*> m_mode_switch_btns; //<mode_id, SendModeSwitchButton>
 
-    std::map<int, bool> m_duct_ctrl;
+    // mode text
+    Label* m_mode_text;
 
-    Button* m_button_refresh;
-    Label* m_cooling_text;
+    // submodes
+    // cooling submode : filter
+    wxPanel*              m_sub_mode_panel{ nullptr };
+    wxBoxSizer*           m_sub_mode_sizer{ nullptr };
+    FanControlNewSwitchPanel* m_cooling_filter_switch_panel{ nullptr };
+
+    // The fan operates
+    std::map<int, FanControlNew*> m_fan_control_list; //<duct_id, <fan_id, FanControl>>
+
+    // The object
     MachineObject *m_obj{nullptr};
-
-    std::string m_strong_str = "Strong string ...wait fill";
-    std::string m_filter_str = "Filtering string ...wait fill";
-    std::string m_chamber_str = "Chamber string ...wait fill";
-    std::string m_normal_str = "Normal string ...wait fill";    //For X version machine
+    AirDuctData    m_data;
+    int            m_air_duct_time_out{ 0 };
+    int            m_fan_set_time_out{ 0 };
 
     std::map<AIR_DUCT, wxString> radio_btn_name;
     std::map<AIR_FUN, wxString> fan_func_name;
     std::map<AIR_DOOR, wxString> air_door_func_name;
     std::map<AIR_DUCT, wxString> label_text;
 
-    std::shared_ptr<FanControlPopupNew> token;
+private:
+    void  init_names(MachineObject* obj);
 
-    void on_mode_changed(const wxMouseEvent &event);
-    void on_fan_changed(const wxCommandEvent &event);
-    void init_names();
-    void CreateDuct();
-    void UpdateParts(int mode_id);
-    void UpdateTips(int mode_id);
-    void BackupOfCreate();
-    void update_fans();    //New protocol
+    void  CreateDuct();
+          
+    void  UpdateParts();
+    void  UpdatePartSubMode();
+          
+    void  update_fan_data(const AirDuctData& data);
+    void  update_fan_data(AIR_FUN id, int speed);
+
+    void  on_mode_changed(const wxMouseEvent& event);
+    void  on_fan_changed(const wxCommandEvent& event);
+    void  on_left_down(wxMouseEvent& evt);
+    void  post_event(int fan_type, wxString speed);
+
+    void  on_show(wxShowEvent& evt);
+    void  paintEvent(wxPaintEvent& evt);
+
+    void  command_control_air_duct(int mode_id, int submode = -1);
 
 public:
-    void         show_cham_fan(bool support_cham_fun);
-    void         show_aux_fan(bool support_aux_fun);
-    void         update_fan_data(MachineObject *obj);
-    void         update_fan_data(const AirDuctData& data);
-    void         update_fan_data(AIR_FUN id, int speed);
-    void         update_device(AirDuctData data, MachineObject *obj); // New protocol
-    void         on_left_down(wxMouseEvent& evt);
-    void         paintEvent(wxPaintEvent& evt);
-    void         post_event(int fan_type, wxString speed);
-    void         on_show(wxShowEvent& evt);
-    void         command_control_air_duct(int mode_id);
-
-    void         msw_rescale();
+    void  update_fan_data(MachineObject *obj);
+    void  msw_rescale();
 };
+
 wxDECLARE_EVENT(EVT_FAN_SWITCH_ON, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FAN_SWITCH_OFF, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FAN_ADD, wxCommandEvent);

@@ -2020,7 +2020,7 @@ int MachineObject::command_control_fan_new(int fan_id, int val, const CommandCal
     return this->publish_json(j.dump());
 }
 
-int MachineObject::command_control_air_duct(int mode_id, const CommandCallBack &cb)
+int MachineObject::command_control_air_duct(int mode_id, int submode, const CommandCallBack &cb)
 {
     BOOST_LOG_TRIVIAL(info) << "MachineObject::command_control_air_duct, set air duct, d = " << mode_id;
     m_callback_list[std::to_string(m_sequence_id)] = cb;
@@ -2028,6 +2028,7 @@ int MachineObject::command_control_air_duct(int mode_id, const CommandCallBack &
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"] = "set_airduct";
     j["print"]["modeId"] = mode_id;
+    j["print"]["submode"] = submode;
 
     return this->publish_json(j.dump());
 }
@@ -6291,6 +6292,7 @@ void MachineObject::parse_new_info(json print)
         is_support_brtc = get_flag_bits(fun, 31);
         m_support_mqtt_axis_control = get_flag_bits(fun, 38);
         m_support_mqtt_bet_ctrl = get_flag_bits(fun, 39);
+        m_air_duct_data.m_support_cooling_filter = get_flag_bits(fun, 46);
     }
 
     /*aux*/
@@ -6322,9 +6324,9 @@ void MachineObject::parse_new_info(json print)
             m_air_duct_data.modes.clear();
             m_air_duct_data.parts.clear();
 
-            m_air_duct_data.curren_mode = device["airduct"]["modeCur"].get<int>();
-
             const json& airduct = device["airduct"];
+            if (airduct.contains("modeCur")) { m_air_duct_data.curren_mode = airduct["modeCur"].get<int>();}
+            if (airduct.contains("subMode")) { m_air_duct_data.m_sub_mode = airduct["subMode"].get<int>(); }
             if (airduct.contains("modeList") && airduct["modeList"].is_array()) {
                 auto list = airduct["modeList"].get<std::vector<json>>();
 
@@ -7867,6 +7869,28 @@ bool DeviceManager::load_filaments_blacklist_config()
         return false;
     }
     return true;
+}
+
+string DeviceManager::get_fan_text(const std::string& type_str, const std::string& key)
+{
+    std::vector<std::string> filaments;
+    std::string              config_file = Slic3r::resources_dir() + "/printers/" + type_str + ".json";
+    boost::nowide::ifstream  json_file(config_file.c_str());
+    try
+    {
+        json jj;
+        if (json_file.is_open()) {
+            json_file >> jj;
+            if (jj.contains("00.00.00.00")) {
+                json const& printer = jj["00.00.00.00"];
+                if (printer.contains("fan") && printer["fan"].contains(key)) {
+                    return printer["fan"][key].get<std::string>();
+                }
+            }
+        }
+    }
+    catch (...) {}
+    return string();
 }
 
 bool DeviceManager::is_virtual_slot(int ams_id)

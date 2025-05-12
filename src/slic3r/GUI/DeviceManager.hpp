@@ -252,6 +252,11 @@ struct AirMode
     // If the fan is off, it cannot be controlled and is displayed as off
     std::vector<int> off;
     // If the fan is not off or ctrl, it will be displayed as auto
+
+public:
+    bool operator ==(const AirMode& other) const {
+        return (id == other.id) && (ctrl == other.ctrl) && (off == other.off);
+    };
 };
 
 struct AirParts
@@ -262,6 +267,11 @@ struct AirParts
     int         state{ 0 };// 100%
     int         range_start{ 0 };// 100%
     int         range_end{ 0 };// 100%
+
+public:
+    bool operator ==(const AirParts& other) const {
+        return (type == other.type) && (id == other.id) && (func == other.func) && (state == other.state) && (range_start == other.range_start) && (range_end == other.range_end);
+    };
 };
 
 struct AirDuctData
@@ -269,6 +279,22 @@ struct AirDuctData
     int curren_mode{ 0 };
     std::unordered_map<int, AirMode> modes;
     std::vector<AirParts> parts;
+
+    int  m_sub_mode = -1;// the submode of airduct, for cooling: 0-filter, 1-cooling
+    bool m_support_cooling_filter = false;// support switch filter on cooling mode or not
+
+public:
+    bool operator ==(const AirDuctData& other) const {
+        return (curren_mode == other.curren_mode) && (modes == other.modes) && (parts == other.parts) &&
+               (m_sub_mode == other.m_sub_mode) && (m_support_cooling_filter == other.m_support_cooling_filter);
+    };
+
+    bool operator !=(const AirDuctData& other) const {
+        return !(operator==(other));
+    };
+
+    bool IsSupportCoolingFilter() const { return m_support_cooling_filter;}
+    bool IsCoolingFilerOn() const { return m_sub_mode == 0;}
 };
 
 struct RatingInfo {
@@ -486,7 +512,6 @@ enum AIR_DUCT {
     AIR_DUCT_HEATING_INTERNAL_FILT,
     AIR_DUCT_EXHAUST,
     AIR_DUCT_FULL_COOLING,
-    AIR_DUCT_NUM,
     AIR_DUCT_INIT = 0xFF    //Initial mode, only used within mc
 };
 
@@ -1193,7 +1218,7 @@ public:
     int command_go_home2();
     int command_control_fan(int fan_type, int val);   // Old protocol
     int command_control_fan_new(int fan_id, int val, const CommandCallBack &cb); // New protocol
-    int command_control_air_duct(int mode_id, const CommandCallBack& cb);
+    int command_control_air_duct(int mode_id, int submode, const CommandCallBack& cb);
     int command_task_abort();
     /* cancelled the job_id */
     int command_task_cancel(std::string job_id);
@@ -1537,6 +1562,9 @@ public:
     static bool get_printer_is_enclosed(std::string type_str);
     static bool get_printer_can_set_nozzle(std::string type_str);// can set nozzle from studio
     static bool load_filaments_blacklist_config();
+
+    static string get_fan_text(const std::string& type_str, const std::string& key);
+
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
     static std::vector<std::string> get_unsupport_auto_cali_filaments(std::string type_str);
