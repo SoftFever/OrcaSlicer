@@ -1359,7 +1359,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
         }
 
         item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, item](wxMouseEvent& e) {
-            if (!is_match_material(tray_data.filament_type)) return;
+            if (m_ext_mapping_filatype_check && !is_match_material(tray_data.filament_type)) return;
             item->send_event(m_current_filament_id);
             Dismiss();
             });

@@ -208,6 +208,7 @@ class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
     bool m_ams_remain_detect_flag = false;
+    bool m_ext_mapping_filatype_check = true;
     wxStaticText* m_title_text{ nullptr };
 
 public:
@@ -288,6 +289,8 @@ public:
 
 public:
     void msw_rescale();
+
+    void EnableExtMappingFilaTypeCheck(bool to_check = true) { m_ext_mapping_filatype_check = to_check;} ;
 
 private:
     ResetCallback m_reset_callback{nullptr};

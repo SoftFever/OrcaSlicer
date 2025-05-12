@@ -80,6 +80,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     , m_mapping_tip_popup(AmsMapingTipPopup(this))
     , m_mapping_tutorial_popup(AmsTutorialPopup(this))
 {
+    m_mapping_popup.EnableExtMappingFilaTypeCheck(false);
+
     init_machine_bed_types();
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -1956,8 +1958,37 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     MachineObject* obj_ = dev->get_selected_machine();
     if (!obj_) return;
 
-
     std::vector<ConfirmBeforeSendInfo> confirm_text;
+
+    // check more than one using in same external spool
+    std::unordered_set<string> main_external_spool_filas;
+    std::unordered_set<string> deputy_external_spool_filas;
+    for (const auto& mapping_info : m_ams_mapping_result) {
+        if (mapping_info.ams_id == VIRTUAL_AMS_MAIN_ID_STR){
+            main_external_spool_filas.insert(mapping_info.filament_id);
+        } else if (mapping_info.ams_id == VIRTUAL_AMS_DEPUTY_ID_STR) {
+            deputy_external_spool_filas.insert(mapping_info.filament_id);
+        }
+    }
+
+    if (main_external_spool_filas.size() > 1 || deputy_external_spool_filas.size() > 1) {
+        confirm_text.push_back(ConfirmBeforeSendInfo(_L("More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing.")));
+        has_slice_warnings = true;
+    } else {
+        //check filaments type in external spool
+        for (const auto& mapping_info : m_ams_mapping_result) {
+            if (mapping_info.ams_id != VIRTUAL_AMS_MAIN_ID_STR && mapping_info.ams_id != VIRTUAL_AMS_DEPUTY_ID_STR) {
+                continue;
+            }
+
+            const auto& mapped_fila_id = obj_->get_filament_id(mapping_info.ams_id, mapping_info.slot_id);
+            if (!mapped_fila_id.empty() && (mapped_fila_id != mapping_info.filament_id)) {
+                confirm_text.push_back(ConfirmBeforeSendInfo(_L("The filament type setting of external spool is different from the filament in the slicing file.")));
+                has_slice_warnings = true;
+                break;
+            }
+        }
+    }
 
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
@@ -1965,7 +1996,6 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_text.push_back(ConfirmBeforeSendInfo(_L("The printer type selected when generating G-code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing.")));
         has_slice_warnings = true;
     }
-
 
     //check blacklist
     for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
