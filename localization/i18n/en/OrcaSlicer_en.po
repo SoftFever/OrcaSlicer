@@ -4142,7 +4142,7 @@ msgid "Left mouse button:"
 msgstr ""
 
 msgid "Add detail"
-msgstr "Add Detail"
+msgstr ""
 
 msgid "Right mouse button:"
 msgstr ""
@@ -4217,10 +4217,13 @@ msgid "Align to Y axis"
 msgstr ""
 
 msgid "Add plate"
-msgstr "Add Plate"
+msgstr ""
 
-msgid "Auto orient"
-msgstr "Auto Orient"
+msgid "Auto orient all/selected objects"
+msgstr ""
+
+msgid "Auto orient all objects on current plate"
+msgstr ""
 
 msgid "Arrange all objects"
 msgstr ""
@@ -4229,10 +4232,10 @@ msgid "Arrange objects on selected plates"
 msgstr ""
 
 msgid "Split to objects"
-msgstr "Split to Objects"
+msgstr ""
 
 msgid "Split to parts"
-msgstr "Split to Parts"
+msgstr ""
 
 msgid "Assembly View"
 msgstr ""
@@ -8361,13 +8364,14 @@ msgid "Shift+R"
 msgstr ""
 
 msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
+"Auto orients selected objects or all objects. If there are selected "
+"objects, it just orients the selected ones. Otherwise, it will orient "
+"all objects in the current project."
 msgstr ""
-"This auto orients selected objects or all objects. If there are selected "
-"objects, it just orients the selected ones. Otherwise, it will orient all "
-"objects in the current plate."
+""
+
+msgid "Auto orients all objects on the active plate."
+msgstr ""
 
 msgid "Shift+Tab"
 msgstr ""

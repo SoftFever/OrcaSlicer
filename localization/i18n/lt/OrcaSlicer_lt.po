@@ -4432,8 +4432,11 @@ msgstr "Išlygiuoti pagal Y ašį"
 msgid "Add plate"
 msgstr "Įtraukti plokštę"
 
-msgid "Auto orient"
-msgstr "Automatiškai orientuoti"
+msgid "Auto orient all/selected objects"
+msgstr "Automatiškai orientuoti visi/pasirinkti objektai"
+
+msgid "Auto orient all objects on current plate"
+msgstr "Automatiškai orientuoti visus objektus pasirinktoje plokštėje"
 
 msgid "Arrange all objects"
 msgstr "Išdėstyti visus objektus"
@@ -8872,9 +8875,12 @@ msgid "Shift+R"
 msgstr "Shift+R"
 
 msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
+"Auto orients selected objects or all objects. If there are selected "
+"objects, it just orients the selected ones. Otherwise, it will orient "
+"all objects in the current project."
+msgstr ""
+
+msgid "Auto orients all objects on the active plate."
 msgstr ""
 
 msgid "Shift+Tab"
