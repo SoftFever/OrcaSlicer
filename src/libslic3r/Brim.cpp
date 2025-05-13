@@ -587,9 +587,9 @@ double getadhesionCoeff(const PrintObject* printObject)
     }
     double adhesionCoeff = 1;
     for (const ModelVolume* modelVolume : objectVolumes) {
-        for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++)
+        for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++) {
             if (modelVolume->extruder_id() == *iter) {
-                if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
+                if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end()) {
                     if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG" ||
                         Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                         adhesionCoeff = 2;
@@ -597,11 +597,13 @@ double getadhesionCoeff(const PrintObject* printObject)
                     else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
                         adhesionCoeff = 0.5;
                     }
+                }
             }
+        }
     }
 
     return adhesionCoeff;
-    /*
+   /*
    def->enum_values.push_back("PLA");
    def->enum_values.push_back("PET");
    def->enum_values.push_back("ABS");
