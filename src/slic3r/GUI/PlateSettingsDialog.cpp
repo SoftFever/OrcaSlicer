@@ -54,8 +54,8 @@ LayerNumberTextInput::LayerNumberTextInput(wxWindow* parent, int layer_number, w
         // value should not be less than MIN_LAYER_VALUE, and should not be greater than MAX_LAYER_VALUE
         gui_value = std::clamp(gui_value, MIN_LAYER_VALUE, MAX_LAYER_VALUE);
 
-        int begin_value;
-        int end_value;
+        int begin_value = 0;
+        int end_value = 0;
         LayerNumberTextInput* end_layer_input = nullptr;
         if (this->m_type == Type::Begin) {
             begin_value = gui_value;

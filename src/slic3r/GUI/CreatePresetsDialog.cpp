@@ -786,7 +786,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     m_filament_custom_vendor_input->SetSize(NAME_OPTION_COMBOBOX_SIZE);
     textInputSizer->Add(m_filament_custom_vendor_input, 0, wxEXPAND | wxALL, 0);
     m_filament_custom_vendor_input->GetTextCtrl()->SetHint(_L("Input Custom Vendor"));
-    m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) {
             event.Skip(false);
@@ -896,7 +896,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     m_filament_serial_input   = new TextInput(this, "", "", "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
     m_filament_serial_input->GetTextCtrl()->SetMaxLength(50);
     comboBoxSizer->Add(m_filament_serial_input, 0, wxEXPAND | wxALL, 0);
-    m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) {
             event.Skip(false);
@@ -1796,7 +1796,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
 
     m_custom_vendor_text_ctrl                      = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
     m_custom_vendor_text_ctrl->SetHint(_L("Input Custom Vendor"));
-    m_custom_vendor_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_custom_vendor_text_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
@@ -1808,7 +1808,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_custom_vendor_text_ctrl->Hide();
     m_custom_model_text_ctrl = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
     m_custom_model_text_ctrl->SetHint(_L("Input Custom Model"));
-    m_custom_model_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_custom_model_text_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
@@ -3347,8 +3347,8 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     horizontal_sizer->Add(success_bitmap_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
 
     wxBoxSizer *success_text_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *success_text;
-    wxStaticText *next_step_text;
+    wxStaticText *success_text = nullptr;
+    wxStaticText *next_step_text = nullptr;
     bool          sync_user_preset_need_enabled = wxGetApp().getAgent() && wxGetApp().app_config->get("sync_user_preset") == "false";
     switch (create_success_type) {
     case PRINTER: 
