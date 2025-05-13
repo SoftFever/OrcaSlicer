@@ -860,7 +860,8 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
                                                                                            const Flow              &overhang_flow,
                                                                                            double                   scaled_resolution,
                                                                                            const PrintObjectConfig &object_config,
-                                                                                           const PrintConfig       &print_config)
+                                                                                           const PrintConfig       &print_config,
+                                                                                           ExPolygon                surface)
 {
     coord_t anchors_size = std::min(coord_t(scale_(EXTERNAL_INFILL_MARGIN)), overhang_flow.scaled_spacing() * (perimeter_count + 1));
 
@@ -930,7 +931,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
         }
 #endif
 
-        if (bridgeable_area > 0.0) {
+        if (bridgeable_area > 0.0 && surface.holes.size() == 0) {
             inset_overhang_area_left_unfilled.insert(inset_overhang_area_left_unfilled.end(),overhang_to_cover.begin(),overhang_to_cover.end());
             perimeter_polygon.clear();
         } else {
@@ -1058,7 +1059,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
     return {extra_perims, diff(inset_overhang_area, inset_overhang_area_left_unfilled)};
 }
 
-void PerimeterGenerator::apply_extra_perimeters(ExPolygons &infill_area)
+void PerimeterGenerator::apply_extra_perimeters(ExPolygons &infill_area, const ExPolygon &surface)
 {
     if (!m_spiral_vase && this->lower_slices != nullptr && this->config->detect_overhang_wall && this->config->extra_perimeters_on_overhangs &&
         this->config->wall_loops > 0 && this->layer_id > this->object_config->raft_layers) {
@@ -1066,7 +1067,8 @@ void PerimeterGenerator::apply_extra_perimeters(ExPolygons &infill_area)
         auto [extra_perimeters, filled_area] = generate_extra_perimeters_over_overhangs(infill_area, this->lower_slices_polygons(),
                                                                                         this->config->wall_loops, this->overhang_flow,
                                                                                         this->m_scaled_resolution, *this->object_config,
-                                                                                        *this->print_config);
+                                                                                        *this->print_config,
+                                                                                        surface);
         if (!extra_perimeters.empty()) {
             ExtrusionEntityCollection *this_islands_perimeters = static_cast<ExtrusionEntityCollection *>(this->loops->entities.back());
             ExtrusionEntityCollection  new_perimeters{};
@@ -1644,7 +1646,7 @@ void PerimeterGenerator::process_classic()
         }
         this->fill_surfaces->append(infill_exp, stInternal);
 
-        apply_extra_perimeters(infill_exp);
+        apply_extra_perimeters(infill_exp, surface.expolygon);
 
         // BBS: get the no-overlap infill expolygons
         {
@@ -2504,7 +2506,7 @@ void PerimeterGenerator::process_arachne()
         }
         this->fill_surfaces->append(infill_exp, stInternal);
 
-        apply_extra_perimeters(infill_exp);
+        apply_extra_perimeters(infill_exp, surface.expolygon);
 
         // BBS: get the no-overlap infill expolygons
         {
