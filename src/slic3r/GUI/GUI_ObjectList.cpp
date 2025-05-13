@@ -1253,33 +1253,41 @@ void ObjectList::copy_settings_to_clipboard()
 
 void ObjectList::paste_settings_into_list()
 {
-    wxDataViewItem item = GetSelection();
-    assert(item.IsOk());
-    if (m_objects_model->GetItemType(item) & itSettings)
-        item = m_objects_model->GetParent(item);
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    take_snapshot("Paste settings");
 
-    ItemType item_type = m_objects_model->GetItemType(item);
-    if(!(item_type & (itObject | itVolume |itLayer)))
-        return;
+    for (auto item : sels) {
 
-    DynamicPrintConfig& config_cache = m_clipboard.get_config_cache();
-    assert(!config_cache.empty());
+        if (m_objects_model->GetItemType(item) & itSettings)
+            item = m_objects_model->GetParent(item);
 
-    auto keys = config_cache.keys();
-    auto part_options = SettingsFactory::get_options(true);
+        ItemType item_type = m_objects_model->GetItemType(item);
+        if(!(item_type & (itObject | itVolume |itLayer)))
+            return;
 
-    for (const std::string& opt_key: keys) {
-        if (item_type & (itVolume | itLayer) &&
-            std::find(part_options.begin(), part_options.end(), opt_key) == part_options.end())
-            continue; // we can't to add object specific options for the part's(itVolume | itLayer) config
+        DynamicPrintConfig& config_cache = m_clipboard.get_config_cache();
+        assert(!config_cache.empty());
 
-        const ConfigOption* option = config_cache.option(opt_key);
-        if (option)
-            m_config->set_key_value(opt_key, option->clone());
+        auto keys = config_cache.keys();
+        auto part_options = SettingsFactory::get_options(true);
+        auto config       = &get_item_config(item);
+
+        for (const std::string& opt_key: keys) {
+            if (item_type & (itVolume | itLayer) &&
+                std::find(part_options.begin(), part_options.end(), opt_key) == part_options.end())
+                continue; // we can't to add object specific options for the part's(itVolume | itLayer) config
+
+            const ConfigOption* option = config_cache.option(opt_key);
+            if (option)
+                config->set_key_value(opt_key, option->clone());
+        }
+
+        // Add settings item for object/sub-object and show them
+        add_settings_item(item, &config->get());
     }
 
-    // Add settings item for object/sub-object and show them
-    show_settings(add_settings_item(item, &m_config->get()));
+    part_selection_changed();
 }
 
 void ObjectList::paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes)

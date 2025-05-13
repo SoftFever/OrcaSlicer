@@ -1397,6 +1397,7 @@ void MenuFactory::create_part_menu()
         [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts", nullptr,
         []() { return plater()->can_split(false); }, m_parent);
     m_part_menu.AppendSeparator();
+    append_menu_item_per_object_process(&m_part_menu);
     append_menu_item_per_object_settings(&m_part_menu);
 }
 
@@ -1410,6 +1411,7 @@ void MenuFactory::create_text_part_menu()
     append_menu_item_simplify(menu);
     append_menu_items_mirror(menu);
     menu->AppendSeparator();
+    append_menu_item_per_object_process(menu);
     append_menu_item_per_object_settings(menu);
     append_menu_item_change_type(menu);
 }
@@ -1424,6 +1426,7 @@ void MenuFactory::create_svg_part_menu()
     append_menu_item_simplify(menu);
     append_menu_items_mirror(menu);
     menu->AppendSeparator();
+    append_menu_item_per_object_process(menu);
     append_menu_item_per_object_settings(menu);
     append_menu_item_change_type(menu);
 }
@@ -1453,6 +1456,7 @@ void MenuFactory::create_bbl_part_menu()
     append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
         []() { return plater()->can_split(true); }, m_parent);
     menu->AppendSeparator();
+    append_menu_item_per_object_process(menu);
     append_menu_item_per_object_settings(menu);
     append_menu_item_change_type(menu);
     append_menu_item_reload_from_disk(menu);
@@ -1760,6 +1764,7 @@ wxMenu* MenuFactory::multi_selection_menu()
             append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
                 []() { return plater()->can_split(true); }, m_parent);
         }
+        append_menu_item_per_object_process(menu);
         menu->AppendSeparator();
         append_menu_item_change_filament(menu);
     }
@@ -1908,6 +1913,30 @@ void MenuFactory::append_menu_item_per_object_process(wxMenu* menu)
                 selection.is_single_volume() ||
                 selection.is_multiple_volume();
         }, m_parent);
+
+    const std::vector<wxString> names2 = {_L("Copy Process Settings"), _L("Copy Process Settings")};
+    append_menu_item(
+        menu, wxID_ANY, names2[0], names2[1], [](wxCommandEvent &) {
+            wxGetApp().obj_list()->copy_settings_to_clipboard();
+        }, "", nullptr,
+        []() {
+            Selection &selection = plater()->canvas3D()->get_selection();
+            return selection.is_single_full_object() || selection.is_single_full_instance() ||
+                   selection.is_single_volume();
+        },
+        m_parent);
+
+    const std::vector<wxString> names3 = {_L("Paste Process Settings"), _L("Paste Process Settings")};
+    append_menu_item(
+        menu, wxID_ANY, names3[0], names3[1], [](wxCommandEvent &) {
+            wxGetApp().obj_list()->paste_settings_into_list();
+        }, "", nullptr,
+        []() {
+            Selection &selection = plater()->canvas3D()->get_selection();
+            return selection.is_single_full_object() || selection.is_multiple_full_object() || selection.is_single_full_instance() || selection.is_multiple_full_instance() ||
+                   selection.is_single_volume() || selection.is_multiple_volume();
+        },
+        m_parent);
 }
 
 void MenuFactory::append_menu_item_per_object_settings(wxMenu* menu)
