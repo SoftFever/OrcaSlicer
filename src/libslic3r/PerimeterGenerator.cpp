@@ -909,6 +909,8 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
 
         Polygon anchoring_convex_hull = Geometry::convex_hull(anchoring);
         double  unbridgeable_area     = area(diff(real_overhang, {anchoring_convex_hull}));
+        Polygons bridgeable = intersection(real_overhang, anchoring_convex_hull);
+        double  bridgeable_area = area(bridgeable);
 
         auto [dir, unsupp_dist] = detect_bridging_direction(real_overhang, anchors);
 
@@ -928,7 +930,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
         }
 #endif
 
-        if (unbridgeable_area < 0.2 * area(real_overhang) && unsupp_dist < total_length(real_overhang) * 0.2) {
+        if (bridgeable_area > 0.0) {
             inset_overhang_area_left_unfilled.insert(inset_overhang_area_left_unfilled.end(),overhang_to_cover.begin(),overhang_to_cover.end());
             perimeter_polygon.clear();
         } else {
