@@ -1014,9 +1014,17 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
                 // When this happens, the first overhang perimeter is also a closed loop, and needs special check
                 // instead of the following simple is_anchored lambda, which checks only the first and last point (not very useful on closed
                 // polyline)
+
+                // Unfortunately if the first polyline is exactly aligned with a perimeter of optimized_lower_slices it is considered intersecting, 
+                // This fix adds a half extrusion width offset because we want to make sure we are actually intersecting with optimized_lower_slices
+                // Basically this ensures we are truly anchored.
+                Polygons first_overhang_polygons = to_polygons({overhang_region.front().polyline});
+                Polygons first_overhang_polygons_shrunk = offset(first_overhang_polygons, -0.25 * overhang_flow.scaled_spacing());
+                Polylines first_overhang_polyline_shrunk = to_polylines(first_overhang_polygons_shrunk);
+
                 bool first_overhang_is_closed_and_anchored =
                     (overhang_region.front().first_point() == overhang_region.front().last_point() &&
-                     !intersection_pl(overhang_region.front().polyline, optimized_lower_slices).empty());
+                     !intersection_pl(first_overhang_polyline_shrunk, optimized_lower_slices).empty());
                      
                 auto is_anchored = [&lower_layer_aabb_tree](const ExtrusionPath &path) {
                     return lower_layer_aabb_tree.distance_from_lines<true>(path.first_point()) <= 0 ||
