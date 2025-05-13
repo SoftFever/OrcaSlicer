@@ -114,7 +114,7 @@ struct Point {
 	Point(const T2 x_, const T2 y_) { Init(x_, y_); }
 
 	template <typename T2>
-	explicit Point<T>(const Point<T2>& p) { Init(p.x, p.y); }
+    explicit Point(const Point<T2>& p) { Init(p.x, p.y); }
 
 	Point operator * (const double scale) const
 	{
