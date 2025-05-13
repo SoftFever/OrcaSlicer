@@ -1533,6 +1533,8 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     m_messages.clear();
     if (result)
         m_cond.timed_wait(l, boost::posix_time::seconds(10));
+
+
     while (true) {
         while (m_stopped) {
             if (m_session.owner == nullptr)
@@ -1569,14 +1571,24 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
                 Bambu_SetLogger(tunnel, DumpLog, this);
                 ret = Bambu_Open(tunnel);
             }
+
             if (ret == 0)
-                do {
-                    ret = Bambu_StartStreamEx
-                        ? Bambu_StartStreamEx(tunnel, CTRL_TYPE)
-                        : Bambu_StartStream(tunnel, false);
-                    if (ret == Bambu_would_block) {}
+            {
+                auto                             start_time = boost::posix_time::microsec_clock::universal_time();
+                boost::posix_time::time_duration timeout    = boost::posix_time::seconds(3);
+                do{
+                    ret = Bambu_StartStreamEx ? Bambu_StartStreamEx(tunnel, CTRL_TYPE) : Bambu_StartStream(tunnel, false);
+                    if (ret == Bambu_would_block)
                         boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+
+                     auto now = boost::posix_time::microsec_clock::universal_time();
+                    if (now - start_time > timeout) {
+                        BOOST_LOG_TRIVIAL(warning) << "StartStream timeout after 5 seconds.";
+                        break;
+                    }
+
                 } while (ret == Bambu_would_block && !m_stopped);
+            }
             l.lock();
             if (ret == 0) {
                 m_session.tunnel = tunnel;

@@ -23,6 +23,7 @@
 #include <algorithm>
 #include "BitmapCache.hpp"
 
+
 namespace Slic3r {
 namespace GUI {
 
@@ -772,12 +773,13 @@ void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
     m_tutk_try_connect = false;
     m_ftp_try_connect  = false;
     m_connect_try_times = 0;
+
     this->EndModal(wxID_CANCEL);
 }
 
 void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 {
-    BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
+    BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send !";
     m_is_canceled = false;
     Enable_Send_Button(false);
     if (m_is_in_sending_mode)
@@ -878,7 +880,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 		file_name = default_output_file_path.filename().string();
     }*/
 
-    if (!obj_->is_lan_mode_printer() && obj_->is_support_brtc) {
+    if ((!obj_->is_lan_mode_printer() && obj_->is_support_brtc) || m_tcp_try_connect) {
         update_print_status_msg(wxEmptyString, false, false);
         if (m_file_sys) {
             PrintPrepareData print_data;
@@ -907,13 +909,36 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 
                 this->Bind(
                     wxEVT_TIMER,
-                    [this, wfs = boost::weak_ptr(m_file_sys)](auto e) {
+                    [this, wfs = boost::weak_ptr(m_file_sys), obj_](auto e) {
                         show_status(PrintDialogStatus::PrintStatusPublicUploadFiled);
-
                         boost::shared_ptr fs(wfs.lock());
                         if (!fs) return;
                         fs->CancelUploadTask(false);
-                        update_print_status_msg(_L("Upload file timeout, please check if the firmware version supports it."), false, true);
+
+                       //first time use tcp, second time use tutk , secnod time use ftp
+                        if (m_connect_try_times < 2) {
+                            bool is_lan = (obj_->connection_type() == "lan");
+                            m_tcp_try_connect = false;
+
+                            if (is_lan) {
+                                m_ftp_try_connect  = true;
+                                m_tutk_try_connect = false;
+                            } else {
+                                if (m_connect_try_times == 0) {
+                                    m_ftp_try_connect  = false;
+                                    m_tutk_try_connect = true;
+                                } else {
+                                    m_ftp_try_connect  = true;
+                                    m_tutk_try_connect = false;
+                                }
+                            }
+                            BOOST_LOG_TRIVIAL(info) << "send  failed";
+                            BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect is  " << m_ftp_try_connect ;
+                            BOOST_LOG_TRIVIAL(info) << "m_tutk_try_connect is  " << m_tutk_try_connect ;
+                            BOOST_LOG_TRIVIAL(info) << "m_tcp_try_connect is  " << m_tcp_try_connect ;
+                        } else
+                            update_print_status_msg(_L("Upload file timeout, please check if the firmware version supports it."), false, true);
+                        m_connect_try_times++;
                     },
                     m_task_timer->GetId());
                 m_task_timer->StartOnce(timeout_period);
@@ -931,14 +956,19 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
         m_send_job->m_access_code = obj_->get_access_code();
 
 
+
+        BOOST_LOG_TRIVIAL(info) << "send_job: use ftp send job";
+
+
+
 #if !BBL_RELEASE_TO_PUBLIC
         m_send_job->m_local_use_ssl_for_ftp  = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
         m_send_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
 #else
         m_send_job->m_local_use_ssl_for_ftp  = obj_->local_use_ssl_for_ftp;
         m_send_job->m_local_use_ssl_for_mqtt = obj_->local_use_ssl_for_mqtt;
-#endif
 
+#endif
         m_send_job->connection_type     = obj_->connection_type();
         m_send_job->cloud_print_only    = true;
         m_send_job->has_sdcard          = obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
@@ -1159,7 +1189,9 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     m_tcp_try_connect  = true;
     m_tutk_try_connect = false;
     m_ftp_try_connect  = false;
+
     m_connect_try_times = 0;
+
     MachineObject* obj = nullptr;
     for (int i = 0; i < m_list.size(); i++) {
         if (i == selection) {
@@ -1259,6 +1291,8 @@ void SendToPrinterDialog::update_show_status()
         return;
     }
 
+
+
     if (!m_is_in_sending_mode) {
         if (!obj_->is_support_brtc || m_ftp_try_connect) {
             if (m_file_sys) {
@@ -1266,6 +1300,9 @@ void SendToPrinterDialog::update_show_status()
                 m_file_sys->Stop(true);
                 m_file_sys.reset();
             }
+            BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect  is   " << m_ftp_try_connect;
+
+            // add log
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
             return;
         } else/* if (obj_->connection_type() == "cloud")*/ {
@@ -1274,7 +1311,10 @@ void SendToPrinterDialog::update_show_status()
             if (m_file_sys) {
                 if (dev_id == m_device_select) {
                     if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && obj_->get_file_remote()))
+                    {
                         m_file_sys->Retry();
+                        BOOST_LOG_TRIVIAL(info) << "m_file_sys  Retry success!" ;
+                    }
                     return;
                 } else {
                     m_file_sys->Stop(true);
@@ -1317,17 +1357,34 @@ void SendToPrinterDialog::update_show_status()
                     break;
                 }
                 case PrinterFileSystem::Failed: {
-                    if (m_connect_try_times < 3) {
+                    if (m_connect_try_times < 2) {
                         bool is_lan = (obj_->connection_type() == "lan");
 
-                        m_ftp_try_connect  = is_lan || m_tutk_try_connect;
-                        m_tutk_try_connect = !is_lan || m_tutk_try_connect;
-                        m_tcp_try_connect  = false;
+                         m_tcp_try_connect = false;
+
+                         if (is_lan) {
+                             m_ftp_try_connect = true;
+                             m_tutk_try_connect = false;
+                         } else {
+                             if (m_connect_try_times == 0) {
+                                 m_ftp_try_connect  = false;
+                                 m_tutk_try_connect = true;
+                             } else {
+                                 m_ftp_try_connect  = true;
+                                 m_tutk_try_connect = false;
+                             }
+                         }
+                       BOOST_LOG_TRIVIAL(info) << "connect  failed"  ;
+                        BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect is  " << m_ftp_try_connect;
+                        BOOST_LOG_TRIVIAL(info) << "m_tutk_try_connect is  " << m_tutk_try_connect ;
+                        BOOST_LOG_TRIVIAL(info) << "m_tcp_try_connect is  " << m_tcp_try_connect;
                     }
                     else
                         msg = _L("Please check the network and try again, You can restart or update the printer if the issue persists.");
                     fs->Stop();
                     m_connect_try_times++;
+                    BOOST_LOG_TRIVIAL(info) << "m_connect_try_times is  " << m_connect_try_times;
+
                     break;
                 }
 
@@ -1754,6 +1811,7 @@ bool SendToPrinterDialog::Show(bool show)
         m_tcp_try_connect   = true;
         m_ftp_try_connect   = false;
         m_tutk_try_connect  = false;
+     //BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect is  " << m_ftp_try_connect << boost::stacktrace::stacktrace();
         m_connect_try_times = 0;
     } else {
         m_refresh_timer->Stop();
@@ -1806,6 +1864,8 @@ void SendToPrinterDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     m_waiting_support           = false;
     NetworkAgent *agent         = wxGetApp().getAgent();
     std::string   agent_version = agent ? agent->get_version() : "";
+
+
 
        if (agent) {
             if (m_tcp_try_connect) {
