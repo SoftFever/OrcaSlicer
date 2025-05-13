@@ -2979,13 +2979,13 @@ msgid "Max volumetric speed"
 msgstr "Fluxo volumétrico máximo"
 
 msgid "℃"
-msgstr "°C"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Temperatura da mesa"
 
 msgid "mm³"
-msgstr "mm3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "Iniciar calibração"
@@ -3655,11 +3655,11 @@ msgid "Bed Shape"
 msgstr "Forma da Mesa"
 
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
-"A temperatura mínima recomendada é inferior a 190 graus ou a temperatura "
-"máxima recomendada é superior a 300 graus.\n"
+"A temperatura mínima recomendada é inferior a 190°C ou a temperatura máxima "
+"recomendada é superior a 300°C.\n"
 
 msgid ""
 "The recommended minimum temperature cannot be higher than the recommended "
@@ -5527,11 +5527,9 @@ msgid "Layer: %d/%d"
 msgstr "Camada: %d/%d"
 
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
-"Aqueça o bico a mais de 170 graus antes de carregar ou descarregar o "
-"filamento."
+"Aqueça o bico a mais de 170°C antes de carregar ou descarregar o filamento."
 
 msgid "Still unload"
 msgstr "Ainda descarregando"
@@ -9006,8 +9004,11 @@ msgstr "Rotacionar gizmo"
 msgid "Gizmo cut"
 msgstr "Cortar gizmo"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "Posicionar face do gizmo na mesa"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo malha booleana"
 
 msgid "Gizmo SLA support points"
 msgstr "Pontos de suporte SLA do gizmo"
@@ -9015,8 +9016,17 @@ msgstr "Pontos de suporte SLA do gizmo"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Costura de pintura FDM do gizmo"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Texturizar / gravar texto no gizmo"
+msgid "Gizmo text emboss/engrave"
+msgstr "Texturizar/gravar texto no gizmo"
+
+msgid "Gizmo measure"
+msgstr "Gizmo medir"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo montar"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo orelhas da borda"
 
 msgid "Zoom in"
 msgstr "Dar zoom"
@@ -10080,7 +10090,7 @@ msgstr ""
 "filamento não suporta a impressão na Placa Fria."
 
 msgid "°C"
-msgstr "°C"
+msgstr ""
 
 msgid ""
 "Bed temperature for layers except the initial one. A value of 0 means the "

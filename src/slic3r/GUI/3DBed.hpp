@@ -80,7 +80,7 @@ public:
             m_stem_length = length;
             m_arrow.reset();
         }
-        float get_total_length() const { return m_stem_length + DefaultTipLength; }
+        float get_total_length() const { return m_stem_length; } // + DefaultTipLength; } // ORCA axis without arrow
         void render();
     };
 

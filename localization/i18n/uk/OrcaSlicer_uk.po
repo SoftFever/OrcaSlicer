@@ -3657,9 +3657,10 @@ msgstr "Виберіть файл STL для імпорту моделі сто�
 msgid "Bed Shape"
 msgstr "Форма столу"
 
+#, fuzzy
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 "Мінімально рекомендована температура менше 190 градусів або максимально "
 "рекомендована температура більше 300 градусів.\n"
@@ -5535,9 +5536,9 @@ msgstr "Шар: %s"
 msgid "Layer: %d/%d"
 msgstr "Шар: %d/%d"
 
+#, fuzzy
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 "Будь ласка, нагрійте насадку до понад 170 градусів перед завантаженням або "
 "вивантаженням філаменту."
@@ -8998,8 +8999,11 @@ msgstr "Поворот Gizmo"
 msgid "Gizmo cut"
 msgstr "Виріз Gizmo"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Покласти грань на стіл"
+msgid "Gizmo place face on bed"
+msgstr "Покласти грань на стіл Gizmo"
+
+msgid "Gizmo mesh boolean"
+msgstr "Булеві операції Gizmo"
 
 msgid "Gizmo SLA support points"
 msgstr "Точки підтримки Gizmo SL"
@@ -9007,8 +9011,17 @@ msgstr "Точки підтримки Gizmo SL"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Швид, що фарбується Gizmo FDM"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Gizmo Текстове тиснення / гравіювання"
+msgid "Gizmo text emboss/engrave"
+msgstr "Текстове тиснення/гравіювання Gizmo"
+
+msgid "Gizmo measure"
+msgstr "виміряти Gizmo"
+
+msgid "Gizmo assemble"
+msgstr "Зібрати Gizmo"
+
+msgid "Gizmo brim ears"
+msgstr "Краєчки Gizmo"
 
 msgid "Zoom in"
 msgstr "Приблизити"

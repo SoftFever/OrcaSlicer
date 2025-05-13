@@ -3621,9 +3621,10 @@ msgstr "Yatak modelini içe aktarmak için bir STL dosyası seçin:"
 msgid "Bed Shape"
 msgstr "Yatak Şekli"
 
+#, fuzzy
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 "Önerilen minimum sıcaklık 190 dereceden azdır veya önerilen maksimum "
 "sıcaklık 300 dereceden yüksektir.\n"
@@ -5480,9 +5481,9 @@ msgstr "Katman: %s"
 msgid "Layer: %d/%d"
 msgstr "Katman: %d/%d"
 
+#, fuzzy
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 "Filamenti yüklemeden veya boşaltmadan önce lütfen nozulu 170 derecenin "
 "üzerine ısıtın."
@@ -8914,8 +8915,11 @@ msgstr "Gizmo döndürme"
 msgid "Gizmo cut"
 msgstr "Gizmo kesim"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Yüzünüzü yatağa yerleştirin"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo yüzünüzü yatağa yerleştirin"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo mesh bölme"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA destek noktaları"
@@ -8923,8 +8927,17 @@ msgstr "Gizmo SLA destek noktaları"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM boyalı dikiş"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Gizmo Metin kabartma / kazıma"
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo metin kabartma/kazıma"
+
+msgid "Gizmo measure"
+msgstr "Gizmo ölçüm"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo birleştir"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo "
 
 msgid "Zoom in"
 msgstr "Yakınlaştır"
@@ -16802,7 +16815,7 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr "Seçilen parçalarda bölme işlemi gerçekleştirilemiyor"
 
 msgid "Mesh Boolean"
-msgstr "Mesh Boolean"
+msgstr "Mesh Bölme"
 
 msgid "Union"
 msgstr "Union"
@@ -19713,7 +19726,7 @@ msgstr ""
 #~ "Hayır - yoğunluğu otomatik olarak %100 olmayan varsayılan değere "
 #~ "sıfırlayın"
 
-#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
+#~ msgid "Please heat the nozzle to above 170°C before loading filament."
 #~ msgstr ""
 #~ "Filamenti yüklemeden önce lütfen Nozulu 170 derecenin üzerine ısıtın."
 

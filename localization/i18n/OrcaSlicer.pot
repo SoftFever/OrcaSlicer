@@ -3430,8 +3430,8 @@ msgid "Bed Shape"
 msgstr ""
 
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 
 msgid ""
@@ -5154,8 +5154,7 @@ msgid "Layer: %d/%d"
 msgstr ""
 
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 
 msgid "Still unload"
@@ -8243,7 +8242,10 @@ msgstr ""
 msgid "Gizmo cut"
 msgstr ""
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
+msgstr ""
+
+msgid "Gizmo mesh boolean"
 msgstr ""
 
 msgid "Gizmo SLA support points"
@@ -8252,7 +8254,16 @@ msgstr ""
 msgid "Gizmo FDM paint-on seam"
 msgstr ""
 
-msgid "Gizmo Text emboss / engrave"
+msgid "Gizmo text emboss/engrave"
+msgstr ""
+
+msgid "Gizmo measure"
+msgstr ""
+
+msgid "Gizmo assemble"
+msgstr ""
+
+msgid "Gizmo brim ears"
 msgstr ""
 
 msgid "Zoom in"

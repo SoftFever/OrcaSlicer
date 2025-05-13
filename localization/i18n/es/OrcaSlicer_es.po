@@ -3689,11 +3689,11 @@ msgid "Bed Shape"
 msgstr "Forma de la cama de impresión"
 
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
-"La temperatura mínima recomendada es inferior a 190 grados o la temperatura "
-"máxima recomendada es superior a 300 grados.\n"
+"La temperatura mínima recomendada es inferior a 190°C o la temperatura "
+"máxima recomendada es superior a 300°C.\n"
 
 msgid ""
 "The recommended minimum temperature cannot be higher than the recommended "
@@ -5569,10 +5569,9 @@ msgid "Layer: %d/%d"
 msgstr "Capa:  %d/%d"
 
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
-"Por favor, caliente la boquilla por encima de 170 grados antes de cargar o "
+"Por favor, caliente la boquilla por encima de 170°C antes de cargar o "
 "descargar filamento."
 
 msgid "Still unload"
@@ -9035,8 +9034,11 @@ msgstr "Herramienta de rotación"
 msgid "Gizmo cut"
 msgstr "Herramienta de corte"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "Herramienta de situar cara en cama"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo buleana de malla"
 
 msgid "Gizmo SLA support points"
 msgstr "Herramienta de puntos de soporte SLA"
@@ -9044,8 +9046,17 @@ msgstr "Herramienta de puntos de soporte SLA"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Herramienta de pintado de costuras FDM"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Herramienta de Texto en relieve / grabado"
+msgid "Gizmo text emboss/engrave"
+msgstr "Herramienta de texto en relieve/grabado"
+
+msgid "Gizmo measure"
+msgstr "Gizmo medir"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo ensamblar"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo orejas de borde"
 
 msgid "Zoom in"
 msgstr "Acercar"
@@ -18104,10 +18115,10 @@ msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " orejas de borde invalidos"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Orejas de borde"
 
 msgid "Please select single object."
 msgstr ""
@@ -19827,9 +19838,9 @@ msgstr ""
 #~ "Sí - cambiar a patrón rectilíneo automaticamente\n"
 #~ "No - reiniciar a valor de densidad no 100% por defecto automáticamente"
 
-#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
+#~ msgid "Please heat the nozzle to above 170°C before loading filament."
 #~ msgstr ""
-#~ "Caliente la boquilla a más de 170 grados antes de cargar el filamento."
+#~ "Caliente la boquilla a más de 170°C antes de cargar el filamento."
 
 #~ msgid "Show G-code window"
 #~ msgstr "Mostrar la ventana de G-Code"

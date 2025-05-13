@@ -3543,11 +3543,11 @@ msgid "Bed Shape"
 msgstr "Byggplattans Form"
 
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
-"Den rekommenderade lägsta temperaturen är lägre än 190 grader eller den "
-"rekommenderade max temperaturen är högre än 300 grader.\n"
+"Den rekommenderade lägsta temperaturen är lägre än 190°C eller den "
+"rekommenderade max temperaturen är högre än 300°C.\n"
 
 msgid ""
 "The recommended minimum temperature cannot be higher than the recommended "
@@ -5348,10 +5348,9 @@ msgid "Layer: %d/%d"
 msgstr "Lager: %d/%d"
 
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
-"Värm nozzeln till över 170 grader innan du laddar eller matar ut filament."
+"Värm nozzeln till över 170°C innan du laddar eller matar ut filament."
 
 msgid "Still unload"
 msgstr "Matar ut fortfarande"
@@ -8650,8 +8649,11 @@ msgstr "Gizmo rotera"
 msgid "Gizmo cut"
 msgstr "Gizmo skär"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Placera ansiktet på byggytan"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo placera ansiktet på byggytan"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo mesh boolean"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA support punkter"
@@ -8659,17 +8661,26 @@ msgstr "Gizmo SLA support punkter"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM målad söm"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr ""
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo textprägling/gravering"
+
+msgid "Gizmo measure"
+msgstr "Gizmo mäta"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo montera"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo brätte öron"
 
 msgid "Zoom in"
-msgstr ""
+msgstr "Zooma in"
 
 msgid "Zoom out"
-msgstr ""
+msgstr "Zooma ut"
 
 msgid "Switch between Prepare/Preview"
-msgstr ""
+msgstr "Växla mellan Förbered/Förhandsgranska"
 
 msgid "Plater"
 msgstr "Plätering/Förgyllning"
@@ -10134,7 +10145,7 @@ msgstr ""
 "borttagande av brim"
 
 msgid "Brim ears"
-msgstr ""
+msgstr "Brätte öron"
 
 msgid "Only draw brim over the sharp edges of the model."
 msgstr ""
@@ -16401,10 +16412,10 @@ msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " ogiltiga öron"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Brätte Öron"
 
 msgid "Please select single object."
 msgstr ""

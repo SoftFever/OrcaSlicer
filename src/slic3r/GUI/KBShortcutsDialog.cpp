@@ -201,7 +201,7 @@ void KBShortcutsDialog::fill_shortcuts()
 #else
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
 #endif // __APPLE
-            
+
             // Switch table page
             { ctrl + "Tab", L("Switch table page")},
             //DEL
@@ -257,15 +257,19 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "Z", L("Undo")},
             {ctrl + "Y", L("Redo")},
             { "M", L("Gizmo move") },
-            { "S", L("Gizmo scale") },
             { "R", L("Gizmo rotate") },
+            { "S", L("Gizmo scale") },
+            { "F", L("Gizmo place face on bed") },
             { "C", L("Gizmo cut") },
-            { "F", L("Gizmo Place face on bed") },
+            { "B", L("Gizmo mesh boolean") },
             { "L", L("Gizmo SLA support points") },
             { "P", L("Gizmo FDM paint-on seam") },
-            { "T", L("Gizmo Text emboss / engrave")},
-            { "I", L("Zoom in")},
-            { "O", L("Zoom out")},
+            { "T", L("Gizmo text emboss/engrave") },
+            { "U", L("Gizmo measure") },
+            { "Y", L("Gizmo assemble") },
+            { "E", L("Gizmo brim ears") },
+            { "I", L("Zoom in") },
+            { "O", L("Zoom out") },
             { "Tab", L("Switch between Prepare/Preview") },
 
         };

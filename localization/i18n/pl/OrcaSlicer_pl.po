@@ -3654,9 +3654,10 @@ msgstr "Wybierz plik STL do zaimportowania modelu stołu z:"
 msgid "Bed Shape"
 msgstr "Kształt stołu"
 
+#, fuzzy
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 "Zalecana temperatura jest poniżej minimalnych 190 stopni lub temperatura "
 "przekracza zalecane maksimum 300 stopni.\n"
@@ -5524,9 +5525,9 @@ msgstr "Warstwa: %s"
 msgid "Layer: %d/%d"
 msgstr "Warstwa: %d/%d"
 
+#, fuzzy
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 "Przed załadowaniem lub rozładunkiem filamentu, podgrzej dyszę do temperatury "
 "powyżej 170 stopni."
@@ -8974,8 +8975,11 @@ msgstr "Obracanie za pomocą „uchwytów”"
 msgid "Gizmo cut"
 msgstr "Cięcie za pomocą „uchwytów”"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "Położenie na płaszczyźnie za pomocą „uchwytów”"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo operacje boolowskie na siatce"
 
 msgid "Gizmo SLA support points"
 msgstr "Punkty podpór SLA za pomocą „uchwytów”"
@@ -8983,8 +8987,17 @@ msgstr "Punkty podpór SLA za pomocą „uchwytów”"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Uchwyt malowania szwu FDM"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Uchwyt wytłaczania / grawerowania tekstu"
+msgid "Gizmo text emboss/engrave"
+msgstr "Uchwyt wytłaczania/grawerowania tekstu"
+
+msgid "Gizmo measure"
+msgstr "Gizmo mierzyć"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo montować"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo uszy brim"
 
 msgid "Zoom in"
 msgstr "Przybliżenie"
@@ -20919,7 +20932,7 @@ msgstr ""
 #~ "Tak - przełącz automatycznie na wzór prostoliniowy\n"
 #~ "Nie - automatycznie zresetuj gęstość do domyślnej wartości nie 100%"
 
-#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
+#~ msgid "Please heat the nozzle to above 170°C before loading filament."
 #~ msgstr ""
 #~ "Proszę podgrzać dyszę do ponad 170 stopni przed załadowaniem filamentu."
 

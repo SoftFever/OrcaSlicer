@@ -3695,9 +3695,10 @@ msgstr "Выберите STL файл для импорта формы стол�
 msgid "Bed Shape"
 msgstr "Форма стола"
 
+#, fuzzy
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 "Минимально рекомендуемая температура меньше 190 градусов или максимально "
 "рекомендуемая температура выше 300 градусов.\n"
@@ -5595,8 +5596,7 @@ msgid "Layer: %d/%d"
 msgstr "Слой: %d/%d"
 
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 "Пожалуйста, перед загрузкой или выгрузкой прутка, нагрейте сопло до "
 "температуры выше 170°C."
@@ -9117,8 +9117,11 @@ msgstr "Гизмо вращения"
 msgid "Gizmo cut"
 msgstr "Гизмо разреза"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "Гизмо поверхностью на стол"
+
+msgid "Gizmo mesh boolean"
+msgstr "Гизмо Булевы операции"
 
 msgid "Gizmo SLA support points"
 msgstr "Гизмо точки SLA поддержки"
@@ -9126,8 +9129,17 @@ msgstr "Гизмо точки SLA поддержки"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Гизмо рисования шва (FDM)"
 
-msgid "Gizmo Text emboss / engrave"
+msgid "Gizmo text emboss/engrave"
 msgstr "Гизмо рельефного/выгравированного текста"
+
+msgid "Gizmo measure"
+msgstr "Гизмо измерения"
+
+msgid "Gizmo assemble"
+msgstr "Гизмо собрать"
+
+msgid "Gizmo brim ears"
+msgstr "Гизмо уши границы"
 
 msgid "Zoom in"
 msgstr "Приблизить"
@@ -15807,7 +15819,7 @@ msgstr "Минимальное сохранение"
 msgid "export 3mf with minimum size."
 msgstr "экспорт 3mf файла с минимальным размером."
 
-# мктс, Макс. кол. треугольников на столе 
+# мктс, Макс. кол. треугольников на столе
 msgid "mtcpp"
 msgstr "mtcpp"
 

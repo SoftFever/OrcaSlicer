@@ -3592,8 +3592,8 @@ msgid "Bed Shape"
 msgstr "Tvar Podložky"
 
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 
 msgid ""
@@ -5415,8 +5415,7 @@ msgid "Layer: %d/%d"
 msgstr "Vrstva: %d/%d"
 
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 
 msgid "Still unload"
@@ -8734,8 +8733,11 @@ msgstr "Gizmo rotace"
 msgid "Gizmo cut"
 msgstr "Gizmo řez"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Umístit plochou na podložku"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo umístit plochou na podložku"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo booleovská síť"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA podpěrné body"
@@ -8743,8 +8745,17 @@ msgstr "Gizmo SLA podpěrné body"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM malování pozice švu"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Gizmo Text emboss / gravírování"
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo text emboss/gravírování"
+
+msgid "Gizmo measure"
+msgstr "Gizmo měření"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo sestavit"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo uši límce"
 
 msgid "Zoom in"
 msgstr "Přiblížit"
@@ -16781,10 +16792,10 @@ msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " neplatný uši Límce"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Uši Límce"
 
 msgid "Please select single object."
 msgstr ""
@@ -17817,7 +17828,7 @@ msgstr ""
 #~ "Ano - přepnout na přímočarý vzor automaticky\n"
 #~ "Ne - automaticky resetovat hustotu na výchozí ne 100% hodnotu"
 
-#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
+#~ msgid "Please heat the nozzle to above 170°C before loading filament."
 #~ msgstr "Před vložením filamentu zahřejte trysku na více než 170 stupňů."
 
 #~ msgid "Show G-code window"

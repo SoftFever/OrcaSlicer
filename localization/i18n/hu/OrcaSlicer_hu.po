@@ -100,7 +100,7 @@ msgid "Support Generated"
 msgstr "Támasz legenerálva"
 
 msgid "Gizmo-Place on Face"
-msgstr "Gizmo- Felület Tárgyasztalra Illesztése"
+msgstr "Gizmo-Felület Tárgyasztalra Illesztése"
 
 msgid "Lay on face"
 msgstr "Felületre fektetés"
@@ -181,13 +181,13 @@ msgid "Move"
 msgstr "Mozgatás"
 
 msgid "Gizmo-Move"
-msgstr "Gizmo-Mozgatása"
+msgstr "Gizmo-Mozgatás"
 
 msgid "Rotate"
 msgstr "Forgatás"
 
 msgid "Gizmo-Rotate"
-msgstr "Gizmo-Forgatása"
+msgstr "Gizmo-Forgatás"
 
 msgid "Optimize orientation"
 msgstr "Orientáció optimalizálása"
@@ -199,7 +199,7 @@ msgid "Scale"
 msgstr "Átméretezés"
 
 msgid "Gizmo-Scale"
-msgstr "Gizmo-Skála"
+msgstr "Gizmo-Átméretezés"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "Hiba: Kérjük, először zárd be az összes eszköztár menüt"
@@ -1193,7 +1193,7 @@ msgid "Lock/unlock the aspect ratio of the SVG."
 msgstr ""
 
 msgid "Reset scale"
-msgstr "Skála visszaállítása"
+msgstr "Méretezés visszaállítása"
 
 msgid "Distance of the center of the SVG to the model surface."
 msgstr ""
@@ -1286,7 +1286,7 @@ msgid "Cancel a feature until exit"
 msgstr ""
 
 msgid "Measure"
-msgstr ""
+msgstr "Mérés"
 
 msgid ""
 "Please confirm explosion ratio = 1,and please select at least one object"
@@ -1871,16 +1871,13 @@ msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "Összeállítja a kijelölt objektumot egy több részből álló objektummá"
 
 msgid "Assemble the selected objects to an object with single part"
-msgstr ""
-"Összeállítja a kijelölt objektumokat egy egyetlen részből álló objektummá"
+msgstr "Összeállítja a kijelölt objektumokat egy egyetlen részből álló objektummá"
 
 msgid "Mesh boolean"
-msgstr "Mesh boolean"
+msgstr "Modellháló logikai műveletek"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr ""
-"Olyan modellhálóval kapcsolatos logikai műveletek, mint például az egyesítés "
-"és kivonás"
+msgstr "Modellhálóval kapcsolatos logikai műveletek, mint például az egyesítés és kivonás"
 
 msgid "Along X axis"
 msgstr "X-tengely mentén"
@@ -2061,9 +2058,7 @@ msgid "Click the icon to reset all settings of the object"
 msgstr "Kattints az ikonra az objektum összes beállításának visszaállításához"
 
 msgid "Right button click the icon to drop the object printable property"
-msgstr ""
-"Kattints jobb gombbal az ikonra az objektum nyomtatható tulajdonságának "
-"elvetéséhez"
+msgstr "Kattints jobb gombbal az ikonra az objektum nyomtatható tulajdonságának elvetéséhez"
 
 msgid "Click the icon to toggle printable property of the object"
 msgstr ""
@@ -2094,9 +2089,7 @@ msgid "Add Modifier"
 msgstr "Módosító hozzáadása"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
-msgstr ""
-"Válts át objektumonkénti beállítási módba a módosító beállításainak "
-"szerkesztéséhez."
+msgstr "Válts át objektumonkénti beállítási módba a módosító beállításainak szerkesztéséhez."
 
 msgid ""
 "Switch to per-object setting mode to edit process settings of selected "
@@ -3548,9 +3541,10 @@ msgstr "Válassz egy STL fájlt az asztal textúrájának importálásához:"
 msgid "Bed Shape"
 msgstr "Asztal alakja"
 
+#, fuzzy
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 "Az ajánlott minimum hőmérséklet kevesebb, mint 190 fok, vagy az ajánlott "
 "maximális hőmérséklet nagyobb, mint 300 fok.\n"
@@ -5357,9 +5351,9 @@ msgstr ""
 msgid "Layer: %d/%d"
 msgstr ""
 
+#, fuzzy
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 "Kérjük, melegítsd a fúvókát 170 fok fölé a filament betöltése vagy kihúzása "
 "előtt."
@@ -8648,28 +8642,40 @@ msgid "Select all objects"
 msgstr "Összes objektum kijelölése"
 
 msgid "Gizmo move"
-msgstr ""
+msgstr "Gizmo mozgatás"
 
 msgid "Gizmo scale"
-msgstr ""
+msgstr "Gizmo átméretezés"
 
 msgid "Gizmo rotate"
-msgstr ""
+msgstr "Gizmo forgatás"
 
 msgid "Gizmo cut"
-msgstr ""
+msgstr "Gizmo vágás"
 
-msgid "Gizmo Place face on bed"
-msgstr ""
+msgid "Gizmo place face on bed"
+msgstr "Gizmo felület tárgyasztalra illesztése"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo modellháló logikai műveletek"
 
 msgid "Gizmo SLA support points"
-msgstr ""
+msgstr "Gizmo SLA támaszpontok"
 
 msgid "Gizmo FDM paint-on seam"
-msgstr ""
+msgstr "Gizmo FDM varrat festés"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr ""
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo szöveg dombornyomás/gravírozás"
+
+msgid "Gizmo measure"
+msgstr "Gizmo mérés"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo összeállítás"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo karimás fülek"
 
 msgid "Zoom in"
 msgstr "Zoom közelítés"
@@ -8678,7 +8684,7 @@ msgid "Zoom out"
 msgstr "Zoom távolítás"
 
 msgid "Switch between Prepare/Preview"
-msgstr ""
+msgstr "Váltás előkészítés/előnézet között"
 
 msgid "Plater"
 msgstr ""
@@ -10176,7 +10182,7 @@ msgstr ""
 "eltávolítását"
 
 msgid "Brim ears"
-msgstr ""
+msgstr "Karimás fülek"
 
 msgid "Only draw brim over the sharp edges of the model."
 msgstr ""
@@ -15470,7 +15476,7 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr "Nem lehet logikai műveletet végrehajtani a kiválasztott tárgyakon"
 
 msgid "Mesh Boolean"
-msgstr "Mesh Boolean"
+msgstr "Modellháló logikai műveletek"
 
 msgid "Union"
 msgstr "Egyesítés"
@@ -16501,10 +16507,10 @@ msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " érvénytelen karimás fülek"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Karimás Fülek"
 
 msgid "Please select single object."
 msgstr ""

@@ -24,10 +24,10 @@ wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -
 #endif /*__APPLE__*/
 }
 
-int Bed_2D::calculate_grid_step(const BoundingBox& bb)
+int Bed_2D::calculate_grid_step(const BoundingBox& bb, const double& scale)
 {
     // Orca: use 500 x 500 bed size as baseline.
-    int min_edge = (bb.size() / ((coord_t) scale_(1)) ).minCoeff(); // Get short edge 
+    int min_edge = (bb.size() * (1 / scale)).minCoeff(); // Get short edge 
                                            // if the grid is too dense, we increase the step
     return   min_edge >= 6000 ? 100        // Short edge >= 6000mm  Main Grid: 5 x 100 = 500mm
            : min_edge >= 1200 ? 50         // Short edge >= 1200mm  Main Grid: 5 x 50  = 250mm
@@ -35,7 +35,7 @@ int Bed_2D::calculate_grid_step(const BoundingBox& bb)
            : 10;                           // Short edge <  600mm   Main Grid: 5 x 10  =  50mm
 }
 
-std::vector<Polylines> Bed_2D::generate_grid(const ExPolygon& poly, const BoundingBox& bb, const Vec2d& origin, const float& step, const float& scale)
+std::vector<Polylines> Bed_2D::generate_grid(const ExPolygon& poly, const BoundingBox& bb, const Vec2d& origin, const double& step, const double& scale)
 {
     Polylines lines_thin, lines_bold;
     int   count = 0;
@@ -157,8 +157,8 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
     for (const Vec2d& p : shape)
         bed_poly.contour.append({p(0), p(1)});
     auto bed_bb     = bed_poly.contour.bounding_box();
-    int  step       = calculate_grid_step(bed_bb);
-    auto grid_lines = generate_grid(bed_poly, bed_bb, m_pos, step, 1.0f);
+    int  step       = calculate_grid_step(bed_bb, 1.00);
+    auto grid_lines = generate_grid(bed_poly, bed_bb, m_pos, step, 1.00);
 
     // clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
     dc.SetPen(wxPen(wxColour(lines_thin_color), 1, wxPENSTYLE_SOLID));
@@ -189,25 +189,25 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 	auto axes_len = 5 * wxGetApp().em_unit(); // scale axis
 	auto arrow_len = 6;
 	auto arrow_angle = Geometry::deg2rad(45.0);
-    dc.SetPen(wxPen(wxColour(255, 0, 0), 2, wxPENSTYLE_SOLID));  // red
+    dc.SetPen(wxPen(wxColour(encode_color(ColorRGB::X())), 2, wxPENSTYLE_SOLID));  // red // ORCA match axis colors
 	auto x_end = Vec2d(origin_px(0) + axes_len, origin_px(1));
 	dc.DrawLine(wxPoint(origin_px(0), origin_px(1)), wxPoint(x_end(0), x_end(1)));
-	for (auto angle : { -arrow_angle, arrow_angle }) {
-		Vec2d end = Eigen::Translation2d(x_end) * Eigen::Rotation2Dd(angle) * Eigen::Translation2d(- x_end) * Eigen::Vector2d(x_end(0) - arrow_len, x_end(1));
-		dc.DrawLine(wxPoint(x_end(0), x_end(1)), wxPoint(end(0), end(1)));
-	}
+	//for (auto angle : { -arrow_angle, arrow_angle }) {  // ORCA dont draw arrows
+	//	Vec2d end = Eigen::Translation2d(x_end) * Eigen::Rotation2Dd(angle) * Eigen::Translation2d(- x_end) * Eigen::Vector2d(x_end(0) - arrow_len, x_end(1));
+	//	dc.DrawLine(wxPoint(x_end(0), x_end(1)), wxPoint(end(0), end(1)));
+	//}
 
-    dc.SetPen(wxPen(wxColour(0, 255, 0), 2, wxPENSTYLE_SOLID));  // green
+    dc.SetPen(wxPen(wxColour(encode_color(ColorRGB::Y())), 2, wxPENSTYLE_SOLID));  // green // ORCA match axis colors
 	auto y_end = Vec2d(origin_px(0), origin_px(1) - axes_len);
 	dc.DrawLine(wxPoint(origin_px(0), origin_px(1)), wxPoint(y_end(0), y_end(1)));
-	for (auto angle : { -arrow_angle, arrow_angle }) {
-		Vec2d end = Eigen::Translation2d(y_end) * Eigen::Rotation2Dd(angle) * Eigen::Translation2d(- y_end) * Eigen::Vector2d(y_end(0), y_end(1) + arrow_len);
-		dc.DrawLine(wxPoint(y_end(0), y_end(1)), wxPoint(end(0), end(1)));
-	}
+	//for (auto angle : { -arrow_angle, arrow_angle }) {  // ORCA dont draw arrows
+	//	Vec2d end = Eigen::Translation2d(y_end) * Eigen::Rotation2Dd(angle) * Eigen::Translation2d(- y_end) * Eigen::Vector2d(y_end(0), y_end(1) + arrow_len);
+	//	dc.DrawLine(wxPoint(y_end(0), y_end(1)), wxPoint(end(0), end(1)));
+	//}
 
 	// draw origin
-    dc.SetPen(wxPen(wxColour(0, 0, 0), 1, wxPENSTYLE_SOLID));
-    dc.SetBrush(wxBrush(wxColour(0, 0, 0), wxBRUSHSTYLE_SOLID));
+    dc.SetPen(wxPen(wxColour(encode_color(ColorRGB::Z())), 1, wxPENSTYLE_SOLID));    // ORCA match axis colors
+    dc.SetBrush(wxBrush(wxColour(encode_color(ColorRGB::Z())), wxBRUSHSTYLE_SOLID)); // ORCA match axis colors
 	dc.DrawCircle(origin_px(0), origin_px(1), 3);
 
 	static const auto origin_label = wxString("(0,0)");

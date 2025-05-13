@@ -3646,9 +3646,10 @@ msgstr "Pasirinkite STL failą, iš kurio norite importuoti pagrindo modelį:"
 msgid "Bed Shape"
 msgstr "Pagrindo forma"
 
+#, fuzzy
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 "Rekomenduojama minimali temperatūra yra žemesnė nei 190 laipsnių arba "
 "maksimali temperatūra aukštesnė nei 300 laipsnių.\n"
@@ -5515,9 +5516,9 @@ msgstr "Sluoksnis: %s"
 msgid "Layer: %d/%d"
 msgstr "Sluoksnis: %d/%d"
 
+#, fuzzy
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 "Prašome prieš įtraukiant ar išstumiant giją įkaitinti purkštuką virš 170 "
 "laipsnių."
@@ -8984,8 +8985,11 @@ msgstr "Gizmo pasukimas"
 msgid "Gizmo cut"
 msgstr "Gizmo pjaustymui"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Padėti paviršių ant pagrindo"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo padėti paviršių ant pagrindo"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo objektų jungimo/atėmimo/susikirtimo įrankiai"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA atramų taškai"
@@ -8993,8 +8997,17 @@ msgstr "Gizmo SLA atramų taškai"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM siūlių piešimui"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "\"Gizmo\" teksto įspaudimas / graviravimas"
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo teksto įspaudimas/graviravimas"
+
+msgid "Gizmo measure"
+msgstr "Gizmo matuoti"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo surinkimo"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo krašto \"ausys\""
 
 msgid "Zoom in"
 msgstr "Padidinti"

@@ -3563,9 +3563,10 @@ msgstr "베드 모델을 가져올 STL 파일 선택:"
 msgid "Bed Shape"
 msgstr "베드 모양"
 
+#, fuzzy
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr "권장 최저 온도는 190도 미만 또는 권장 최고 온도는 300도 이상입니다.\n"
 
 msgid ""
@@ -5386,8 +5387,7 @@ msgid "Layer: %d/%d"
 msgstr "레이어: %d/%d"
 
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 "필라멘트를 로드하거나 언로드하기 전에 노즐을 170도 이상으로 가열하세요."
 
@@ -8731,8 +8731,11 @@ msgstr "변형도구 회전"
 msgid "Gizmo cut"
 msgstr "변형도구 잘라내기"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "변형도구 바닥면 선택"
+
+msgid "Gizmo mesh boolean"
+msgstr "변형도구 합집합/차집합/교집합"
 
 msgid "Gizmo SLA support points"
 msgstr "변형도구 서포트 칠하기"
@@ -8740,8 +8743,17 @@ msgstr "변형도구 서포트 칠하기"
 msgid "Gizmo FDM paint-on seam"
 msgstr "변형도구 재봉선 칠하기"
 
-msgid "Gizmo Text emboss / engrave"
+msgid "Gizmo text emboss/engrave"
 msgstr "변형도구 - 텍스트 엠보싱/인그레이빙"
+
+msgid "Gizmo measure"
+msgstr "변형도구 측정"
+
+msgid "Gizmo assemble"
+msgstr "변형도구 병합"
+
+msgid "Gizmo brim ears"
+msgstr "변형도구 브림 귀"
 
 msgid "Zoom in"
 msgstr "확대"
@@ -18871,7 +18883,7 @@ msgstr ""
 #~ "예   - 자동으로 직선 패턴으로 전환합니다\n"
 #~ "아니요 - 밀도를 기본값(100%가 아닌 값)으로 자동 재설정합니다"
 
-#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
+#~ msgid "Please heat the nozzle to above 170°C before loading filament."
 #~ msgstr "필라멘트를 로드하기 전에 노즐을 170도 이상으로 가열하십시오."
 
 #~ msgid "Show G-code window"

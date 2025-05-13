@@ -1889,10 +1889,10 @@ msgid "Assemble the selected objects to an object with single part"
 msgstr "選択したオブジェクトを一つオブジェクトに組み立てます（単パーツ）"
 
 msgid "Mesh boolean"
-msgstr ""
+msgstr "メッシュブール"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr ""
+msgstr "結合や減算などのメッシュのブール演算"
 
 msgid "Along X axis"
 msgstr "X軸方向"
@@ -3504,8 +3504,8 @@ msgid "Bed Shape"
 msgstr "ベッド形状"
 
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr ""
 
 msgid ""
@@ -5265,8 +5265,7 @@ msgid "Layer: %d/%d"
 msgstr ""
 
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
 
 msgid "Still unload"
@@ -8440,8 +8439,11 @@ msgstr "回転"
 msgid "Gizmo cut"
 msgstr "カット"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "底面選択"
+
+msgid "Gizmo mesh boolean"
+msgstr "メッシュブール"
 
 msgid "Gizmo SLA support points"
 msgstr "SLAサポートポイント"
@@ -8449,8 +8451,17 @@ msgstr "SLAサポートポイント"
 msgid "Gizmo FDM paint-on seam"
 msgstr "継ぎ目ペイント"
 
-msgid "Gizmo Text emboss / engrave"
+msgid "Gizmo text emboss/engrave"
 msgstr "ギズモ・テキストのエンボス/エングレーブ"
+
+msgid "Gizmo measure"
+msgstr "測る"
+
+msgid "Gizmo assemble"
+msgstr "組立てる"
+
+msgid "Gizmo brim ears"
+msgstr "ブリム"
 
 msgid "Zoom in"
 msgstr "ズームイン"
@@ -15090,7 +15101,7 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
 
 msgid "Mesh Boolean"
-msgstr ""
+msgstr "メッシュブール"
 
 msgid "Union"
 msgstr ""
@@ -16765,7 +16776,7 @@ msgstr ""
 #~ "はい - 直線パターンに切り替えます\n"
 #~ "いいえ - 充填密度をリセットします"
 
-#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
+#~ msgid "Please heat the nozzle to above 170°C before loading filament."
 #~ msgstr ""
 #~ "フィラメントをロードする前に、ノズル温度を170℃以上に加熱してください"
 
