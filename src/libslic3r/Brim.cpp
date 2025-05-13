@@ -1655,7 +1655,7 @@ ExtrusionEntityCollection makeBrimInfill(const ExPolygons& singleBrimArea, const
         Polylines              loops_pl = to_polylines(loops);
         loops_pl_by_levels.assign(loops_pl.size(), Polylines());
         tbb::parallel_for(tbb::blocked_range<size_t>(0, loops_pl.size()),
-            [&loops_pl_by_levels, &loops_pl, &islands_area](const tbb::blocked_range<size_t>& range) {
+            [&loops_pl_by_levels, &loops_pl /*, &islands_area*/](const tbb::blocked_range<size_t>& range) {
                 for (size_t i = range.begin(); i < range.end(); ++i) {
                     loops_pl_by_levels[i] = chain_polylines({ std::move(loops_pl[i]) });
                     //loops_pl_by_levels[i] = chain_polylines(intersection_pl({ std::move(loops_pl[i]) }, islands_area));
