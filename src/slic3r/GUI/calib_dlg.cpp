@@ -364,7 +364,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     Layout();
     Fit();
 
-    auto validate_text = [this](TextInput* ti){
+    auto validate_text = [](TextInput* ti){
         unsigned long t = 0;
         if(!ti->GetTextCtrl()->GetValue().ToULong(&t))
             return;
@@ -412,7 +412,7 @@ void Temp_Calibration_Dlg::on_start(wxCommandEvent& event) {
     }
     m_params.start = start;
     m_params.end = end;
-    m_params.mode =CalibMode::Calib_Temp_Tower;
+    m_params.mode = CalibMode::Calib_Temp_Tower;
     m_plater->calib_temp(m_params);
     EndModal(wxID_OK);
 
@@ -420,7 +420,7 @@ void Temp_Calibration_Dlg::on_start(wxCommandEvent& event) {
 
 void Temp_Calibration_Dlg::on_filament_type_changed(wxCommandEvent& event) {
     int selection = event.GetSelection();
-    unsigned long start,end;
+    unsigned long start = 0, end = 0;
     switch(selection)
     {
         case tABS_ASA:
