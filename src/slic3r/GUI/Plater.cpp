@@ -13744,7 +13744,7 @@ Preset *get_printer_preset(MachineObject *obj)
     return printer_preset;
 }
 
-bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning)
+bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning, bool popup_warning)
 {
     if (!obj)
         return false;
@@ -13764,22 +13764,23 @@ bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning)
     }
 
     if (!has_been_initialized) {
-        if (!only_warning) {
+        if (popup_warning) {
+            if (!only_warning) {
+                if (DeviceManager::get_printer_can_set_nozzle(obj->printer_type)) {
+                    MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please set the nozzle and try again."), _L("Warning"), wxOK | wxICON_WARNING);
+                    dlg.ShowModal();
+                } else {
+                    MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please check."), _L("Warning"), wxOK | wxICON_WARNING);
+                    dlg.ShowModal();
+                }
 
-            if (DeviceManager::get_printer_can_set_nozzle(obj->printer_type)) {
-                MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please set the nozzle and try again."), _L("Warning"), wxOK | wxICON_WARNING);
-                dlg.ShowModal();
+                PrinterPartsDialog *print_parts_dlg = new PrinterPartsDialog(nullptr);
+                print_parts_dlg->update_machine_obj(obj);
+                print_parts_dlg->ShowModal();
             } else {
-                MessageDialog dlg(wxGetApp().plater(), _L("The nozzle type is not set. Please check."), _L("Warning"), wxOK | wxICON_WARNING);
-                dlg.ShowModal();
+                auto printer_name = get_selected_printer_name_in_combox(); // wxString(obj->get_preset_printer_model_name(machine_print_name))
+                pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
             }
-
-            PrinterPartsDialog *print_parts_dlg = new PrinterPartsDialog(nullptr);
-            print_parts_dlg->update_machine_obj(obj);
-            print_parts_dlg->ShowModal();
-        } else {
-            auto printer_name = get_selected_printer_name_in_combox(); // wxString(obj->get_preset_printer_model_name(machine_print_name))
-            pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         }
         return false;
     }
@@ -15806,7 +15807,7 @@ bool Plater::is_same_printer_for_connected_and_selected(bool popup_warning)
     if (obj == nullptr) {
         return false;
     }
-    if (!check_printer_initialized(obj,true))
+    if (!check_printer_initialized(obj, true, popup_warning))
         return false;
     Preset *      machine_preset     = get_printer_preset(obj);
     if (!machine_preset)
