@@ -18,6 +18,7 @@
 #include <wx/dcclient.h>
 #include <wx/font.h>
 #include <wx/fontutil.h>
+#include <wx/display.h>
 
 #include "libslic3r/Config.hpp"
 
@@ -480,6 +481,19 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
 }
 
 std::deque<wxDialog*> dialogStack;
+
+void fit_in_display(wxTopLevelWindow& window, wxSize desired_size)
+{
+    const auto display_size = wxDisplay(window.GetParent()).GetClientArea();
+    if (desired_size.GetWidth() > display_size.GetWidth()) {
+        desired_size.SetWidth(display_size.GetWidth() * 4 / 5);
+    }
+    if (desired_size.GetHeight() > display_size.GetHeight()) {
+        desired_size.SetHeight(display_size.GetHeight() * 4 / 5);
+    }
+
+    window.SetSize(desired_size);
+}
 
 }
 }

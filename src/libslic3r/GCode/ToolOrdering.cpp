@@ -38,7 +38,7 @@ static std::vector<unsigned int> solve_extruder_order(const std::vector<std::vec
             std::swap(*all_extruders.begin(), *start_iter);
     }
     else {
-        *start_extruder_id = all_extruders.front();
+        start_extruder_id = all_extruders.front();
     }
 
     unsigned int iterations = (1 << all_extruders.size());

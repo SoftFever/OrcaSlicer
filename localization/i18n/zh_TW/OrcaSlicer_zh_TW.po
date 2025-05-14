@@ -3502,9 +3502,10 @@ msgstr "選擇 STL 檔案來匯入熱床模型："
 msgid "Bed Shape"
 msgstr "熱床形狀"
 
+#, fuzzy
 msgid ""
-"The recommended minimum temperature is less than 190 degree or the "
-"recommended maximum temperature is greater than 300 degree.\n"
+"The recommended minimum temperature is less than 190°C or the "
+"recommended maximum temperature is greater than 300°C.\n"
 msgstr "推薦的最小溫度低於 190 度或推薦的最大溫度高於 300 度。\n"
 
 msgid ""
@@ -4255,8 +4256,11 @@ msgstr "與 Y 軸對齊"
 msgid "Add plate"
 msgstr "新增列印板"
 
-msgid "Auto orient"
-msgstr "自動定向"
+msgid "Auto orient all/selected objects"
+msgstr "自动定位所有/选定的对象"
+
+msgid "Auto orient all objects on current plate"
+msgstr "自动调整当前板上的所有对象"
 
 msgid "Arrange all objects"
 msgstr "全域整理"
@@ -5302,9 +5306,9 @@ msgstr "%s 層"
 msgid "Layer: %d/%d"
 msgstr "%d/%d 層"
 
+#, fuzzy
 msgid ""
-"Please heat the nozzle to above 170 degree before loading or unloading "
-"filament."
+"Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr "請在上料或退料之前將噴嘴加熱至 170 度以上。"
 
 msgid "Still unload"
@@ -8431,12 +8435,16 @@ msgid "Shift+R"
 msgstr "Shift+R"
 
 msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
+"Auto orients selected objects or all objects. If there are selected "
+"objects, it just orients the selected ones. Otherwise, it will orient "
+"all objects in the current project."
 msgstr ""
-"自動調整選取零件/所有零件的方向，\n"
-"有選取零件時調整選取零件的方向，沒有選取零件時調整目前列印板所有零件的方向。"
+"自动调整选定零件/所有零件的方向,\n"
+"有选定零件时调整选定零件的朝向,\n"
+"没有选择零件时调整当项目所有零件的朝向"
+
+msgid "Auto orients all objects on the active plate."
+msgstr "自动调整活动板上的所有物体的方向。"
 
 msgid "Shift+Tab"
 msgstr "Shift+Tab"
@@ -8546,8 +8554,11 @@ msgstr "旋轉物件"
 msgid "Gizmo cut"
 msgstr "切割物件"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "選擇底面"
+
+msgid "Gizmo mesh boolean"
+msgstr "線框網格布林運算"
 
 msgid "Gizmo SLA support points"
 msgstr "SLA 支撐點"
@@ -8555,8 +8566,17 @@ msgstr "SLA 支撐點"
 msgid "Gizmo FDM paint-on seam"
 msgstr "FDM 塗裝接縫"
 
-msgid "Gizmo Text emboss / engrave"
+msgid "Gizmo text emboss/engrave"
 msgstr "浮雕/雕刻文字工具"
+
+msgid "Gizmo measure"
+msgstr "Gizmo "
+
+msgid "Gizmo assemble"
+msgstr "Gizmo "
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo "
 
 msgid "Zoom in"
 msgstr "放大"
