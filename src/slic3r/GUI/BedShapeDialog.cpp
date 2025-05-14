@@ -160,7 +160,8 @@ void BedShapeDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     const int& em = em_unit();
     m_panel->m_shape_options_book->SetMinSize(wxSize(32 * em, -1));
-    m_panel->m_shape_combo->SetMinSize(wxSize(32 * em, -1));
+    m_panel->m_shape_combo->Rescale();
+    m_panel->m_shape_combo->SetMinSize({-1, 3 * em}); // Fix combo size on scale
 
     for (auto og : m_panel->m_optgroups)
         og->msw_rescale();
@@ -187,13 +188,10 @@ void BedShapePanel::build_panel(const Pointfs& default_pt, const std::string& cu
     sbsizer->GetStaticBox()->SetFont(wxGetApp().bold_font());
     wxGetApp().UpdateDarkUI(sbsizer->GetStaticBox());
 
-	// shape options
-    m_shape_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxSize(32 * wxGetApp().em_unit(), -1), wxCHB_TOP);
-    wxGetApp().UpdateDarkUI(m_shape_options_book->GetChoiceCtrl());
-
-    // ORCA replace wxChoicebook with combo box
-    m_shape_options_book->GetChoiceCtrl()->Hide();
-    m_shape_combo = new ComboBox(this, wxID_ANY, "", wxDefaultPosition, wxSize(32 * wxGetApp().em_unit(), -1), 0, nullptr, wxCB_READONLY);
+	// shape options 
+    m_shape_options_book = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    // ORCA replace wxChoicebook wxSimplebook and add a combo box for control
+    m_shape_combo = new ComboBox(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     m_shape_combo->Append(BedShape::get_name(BedShape::PageType::Rectangle));
     m_shape_combo->Append(BedShape::get_name(BedShape::PageType::Circle));
     m_shape_combo->Append(BedShape::get_name(BedShape::PageType::Custom));
@@ -258,7 +256,7 @@ void BedShapePanel::build_panel(const Pointfs& default_pt, const std::string& cu
     wxPanel* texture_panel = init_texture_panel();
     wxPanel* model_panel = init_model_panel();
 
-    Bind(wxEVT_CHOICEBOOK_PAGE_CHANGED, ([this](wxCommandEvent& e) { update_shape(); }));
+    Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, ([this](wxCommandEvent& e) { update_shape(); }));
 
 	// right pane with preview canvas
 	m_canvas = new Bed_2D(this);

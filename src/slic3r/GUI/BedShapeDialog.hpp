@@ -12,7 +12,7 @@
 #include "Widgets/ComboBox.hpp"
 
 #include <wx/dialog.h>
-#include <wx/choicebk.h>
+#include <wx/simplebook.h> // ORCA
 
 namespace Slic3r {
 namespace GUI {
@@ -85,7 +85,7 @@ private:
     void		load_texture();
     void		load_model();
 
-    wxChoicebook* m_shape_options_book;
+    wxSimplebook* m_shape_options_book;
     ComboBox*     m_shape_combo;
 	std::vector <ConfigOptionsGroupShp>	m_optgroups;
 
