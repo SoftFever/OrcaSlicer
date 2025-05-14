@@ -132,7 +132,6 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
         const bool      &point_selected = editing_cache[i].selected;
         const bool      &hover          = editing_cache[i].is_hover;
         const bool      &error          = editing_cache[i].is_error;
-        if (!is_use_point(brim_point) && !hover) continue;
         // keep show brim ear
         // if (is_mesh_point_clipped(brim_point.pos.cast<double>()))
         //     continue;
