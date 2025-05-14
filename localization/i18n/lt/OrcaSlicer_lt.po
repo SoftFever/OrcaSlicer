@@ -4432,8 +4432,11 @@ msgstr "Išlygiuoti pagal Y ašį"
 msgid "Add plate"
 msgstr "Įtraukti plokštę"
 
-msgid "Auto orient"
-msgstr "Automatiškai orientuoti"
+msgid "Auto orient all/selected objects"
+msgstr "Automatiškai orientuoti visi/pasirinkti objektai"
+
+msgid "Auto orient all objects on current plate"
+msgstr "Automatiškai orientuoti visus objektus pasirinktoje plokštėje"
 
 msgid "Arrange all objects"
 msgstr "Išdėstyti visus objektus"
@@ -8872,9 +8875,12 @@ msgid "Shift+R"
 msgstr "Shift+R"
 
 msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
+"Auto orients selected objects or all objects. If there are selected "
+"objects, it just orients the selected ones. Otherwise, it will orient "
+"all objects in the current project."
+msgstr ""
+
+msgid "Auto orients all objects on the active plate."
 msgstr ""
 
 msgid "Shift+Tab"
@@ -8985,8 +8991,11 @@ msgstr "Gizmo pasukimas"
 msgid "Gizmo cut"
 msgstr "Gizmo pjaustymui"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Padėti paviršių ant pagrindo"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo padėti paviršių ant pagrindo"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo objektų jungimo/atėmimo/susikirtimo įrankiai"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA atramų taškai"
@@ -8994,8 +9003,17 @@ msgstr "Gizmo SLA atramų taškai"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo FDM siūlių piešimui"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "\"Gizmo\" teksto įspaudimas / graviravimas"
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo teksto įspaudimas/graviravimas"
+
+msgid "Gizmo measure"
+msgstr "Gizmo matuoti"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo surinkimo"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo krašto \"ausys\""
 
 msgid "Zoom in"
 msgstr "Padidinti"

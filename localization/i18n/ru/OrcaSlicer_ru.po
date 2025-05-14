@@ -4494,8 +4494,11 @@ msgstr "Выравнивать по оси Y"
 msgid "Add plate"
 msgstr "Добавить стол"
 
-msgid "Auto orient"
-msgstr "Автоориентация"
+msgid "Auto orient all/selected objects"
+msgstr "Автоориентация все/выбранные модели"
+
+msgid "Auto orient all objects on current plate"
+msgstr "Автоориентация всех моделей на текущем столе"
 
 msgid "Arrange all objects"
 msgstr "Расставить все модели"
@@ -9001,13 +9004,16 @@ msgid "Shift+R"
 msgstr "Shift+R"
 
 msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
+"Auto orients selected objects or all objects. If there are selected "
+"objects, it just orients the selected ones. Otherwise, it will orient "
+"all objects in the current project."
 msgstr ""
 "Автоориентация выбранных или всех моделей. Если выбраны отдельные модели, "
 "ориентация будет применена только к ним; в противном случае ко всем моделям "
-"на текущем столе."
+"в текущем проекте."
+
+msgid "Auto orients all objects on the active plate."
+msgstr "Автоориентация ко всем моделям на текущем столе."
 
 msgid "Shift+Tab"
 msgstr "Shift+Tab"
@@ -9117,8 +9123,11 @@ msgstr "Гизмо вращения"
 msgid "Gizmo cut"
 msgstr "Гизмо разреза"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "Гизмо поверхностью на стол"
+
+msgid "Gizmo mesh boolean"
+msgstr "Гизмо Булевы операции"
 
 msgid "Gizmo SLA support points"
 msgstr "Гизмо точки SLA поддержки"
@@ -9126,8 +9135,17 @@ msgstr "Гизмо точки SLA поддержки"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Гизмо рисования шва (FDM)"
 
-msgid "Gizmo Text emboss / engrave"
+msgid "Gizmo text emboss/engrave"
 msgstr "Гизмо рельефного/выгравированного текста"
+
+msgid "Gizmo measure"
+msgstr "Гизмо измерения"
+
+msgid "Gizmo assemble"
+msgstr "Гизмо собрать"
+
+msgid "Gizmo brim ears"
+msgstr "Гизмо уши границы"
 
 msgid "Zoom in"
 msgstr "Приблизить"
@@ -15807,7 +15825,7 @@ msgstr "Минимальное сохранение"
 msgid "export 3mf with minimum size."
 msgstr "экспорт 3mf файла с минимальным размером."
 
-# мктс, Макс. кол. треугольников на столе 
+# мктс, Макс. кол. треугольников на столе
 msgid "mtcpp"
 msgstr "mtcpp"
 

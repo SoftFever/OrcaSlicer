@@ -212,8 +212,8 @@ void Bed3D::Axes::render()
         const Transform3d& view_matrix = camera.get_view_matrix();
         shader->set_uniform("view_model_matrix", view_matrix * transform);
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * transform.matrix().block(0, 0, 3, 3).inverse().transpose();
-        shader->set_uniform("view_normal_matrix", view_normal_matrix);
+        //const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * transform.matrix().block(0, 0, 3, 3).inverse().transpose();
+        //shader->set_uniform("view_normal_matrix", view_normal_matrix);
         m_arrow.render();
     };
 
@@ -228,7 +228,7 @@ void Bed3D::Axes::render()
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     shader->start_using();
-    shader->set_uniform("emission_factor", 0.0f);
+    //shader->set_uniform("emission_factor", 0.0f);
 
     // x axis
     m_arrow.set_color(AXIS_X_COLOR);

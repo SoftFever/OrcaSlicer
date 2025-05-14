@@ -4440,8 +4440,11 @@ msgstr "Alinhar com o eixo Y"
 msgid "Add plate"
 msgstr "Adicionar placa"
 
-msgid "Auto orient"
-msgstr "Orientação automática"
+msgid "Auto orient all/selected objects"
+msgstr "Orientação automática todos/selecionados objetos"
+
+msgid "Auto orient all objects on current plate"
+msgstr "Orientação automática todos os objetos na placa atual"
 
 msgid "Arrange all objects"
 msgstr "Organizar todos os objetos"
@@ -8888,13 +8891,16 @@ msgid "Shift+R"
 msgstr "Shift+R"
 
 msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
+"Auto orients selected objects or all objects. If there are selected "
+"objects, it just orients the selected ones. Otherwise, it will orient "
+"all objects in the current project."
 msgstr ""
 "Orienta automaticamente os objetos selecionados ou todos os objetos. Se "
 "houver objetos selecionados, ele apenas orientará os selecionados. Caso "
-"contrário, orientará todos os objetos no disco atual."
+"contrário, ele orientará todos os objetos do projeto atual."
+
+msgid "Auto orients all objects on the active plate."
+msgstr "Orienta automaticamente todos os objetos na placao atual."
 
 msgid "Shift+Tab"
 msgstr "Shift+Tab"
@@ -9004,8 +9010,11 @@ msgstr "Rotacionar gizmo"
 msgid "Gizmo cut"
 msgstr "Cortar gizmo"
 
-msgid "Gizmo Place face on bed"
+msgid "Gizmo place face on bed"
 msgstr "Posicionar face do gizmo na mesa"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo malha booleana"
 
 msgid "Gizmo SLA support points"
 msgstr "Pontos de suporte SLA do gizmo"
@@ -9013,8 +9022,17 @@ msgstr "Pontos de suporte SLA do gizmo"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Costura de pintura FDM do gizmo"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Texturizar / gravar texto no gizmo"
+msgid "Gizmo text emboss/engrave"
+msgstr "Texturizar/gravar texto no gizmo"
+
+msgid "Gizmo measure"
+msgstr "Gizmo medir"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo montar"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo orelhas da borda"
 
 msgid "Zoom in"
 msgstr "Dar zoom"

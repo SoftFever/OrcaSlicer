@@ -4481,8 +4481,11 @@ msgstr "Aligner sur l’axe Y"
 msgid "Add plate"
 msgstr "Ajouter un plateau"
 
-msgid "Auto orient"
-msgstr "Orientation automatique"
+msgid "Auto orient all/selected objects"
+msgstr "Orientation automatique tous/sélectionnés objets"
+
+msgid "Auto orient all objects on current plate"
+msgstr "Orientation automatique tous les objets sur la plaque actuelle"
 
 msgid "Arrange all objects"
 msgstr "Organiser tous les objets"
@@ -9011,13 +9014,16 @@ msgid "Shift+R"
 msgstr "Maj+R"
 
 msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
+"Auto orients selected objects or all objects. If there are selected "
+"objects, it just orients the selected ones. Otherwise, it will orient "
+"all objects in the current project."
 msgstr ""
 "Oriente automatiquement les objets sélectionnés ou tous les objets. S'il y a "
 "des objets sélectionnés, il oriente uniquement ceux qui sont sélectionnés. "
-"Sinon, il oriente tous les objets du disque actuel."
+"Sinon, il oriente tous les objets du projet en cours."
+
+msgid "Auto orients all objects on the active plate."
+msgstr "Oriente automatiquement tous les objets du plaque actuelle."
 
 msgid "Shift+Tab"
 msgstr "Maj+Tab"
@@ -9127,8 +9133,11 @@ msgstr "Gizmo pivoter"
 msgid "Gizmo cut"
 msgstr "Gizmo couper"
 
-msgid "Gizmo Place face on bed"
-msgstr "Gizmo Placer la face sur le plateau"
+msgid "Gizmo place face on bed"
+msgstr "Gizmo placer la face sur le plateau"
+
+msgid "Gizmo mesh boolean"
+msgstr "Gizmo booléennes"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo Point de support SLA"
@@ -9136,8 +9145,17 @@ msgstr "Gizmo Point de support SLA"
 msgid "Gizmo FDM paint-on seam"
 msgstr "Gizmo Peinture de la couture FDM"
 
-msgid "Gizmo Text emboss / engrave"
-msgstr "Gizmo Embosser / graver du texte"
+msgid "Gizmo text emboss/engrave"
+msgstr "Gizmo embosser/graver du texte"
+
+msgid "Gizmo measure"
+msgstr "Gizmo mesurer"
+
+msgid "Gizmo assemble"
+msgstr "Gizmo assembler"
+
+msgid "Gizmo brim ears"
+msgstr "Gizmo bordure à oreilles"
 
 msgid "Zoom in"
 msgstr "Zoom avant"
