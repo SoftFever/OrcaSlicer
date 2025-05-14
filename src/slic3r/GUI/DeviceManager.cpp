@@ -1910,6 +1910,7 @@ int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::s
 
     if (tag_ams_id == VIRTUAL_TRAY_ID) {
         tag_tray_id = VIRTUAL_TRAY_ID;
+        tag_ams_id  = 255; // TODO: Orca hack
     } else {
         tag_tray_id = tag_slot_id;
     }
