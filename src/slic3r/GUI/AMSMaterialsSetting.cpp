@@ -24,7 +24,7 @@ static std::string float_to_string_with_precision(float value, int precision = 3
 }
 
 AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id)
-    : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_color_picker_popup(ColorPickerPopup(this))
 {
     create();
@@ -822,7 +822,7 @@ bool AMSMaterialsSetting::Show(bool show)
         m_input_k_val->Show();
         Layout();
         Fit();
-        wxGetApp().UpdateDarkUI(this);
+        wxGetApp().UpdateDlgDarkUI(this);
     }
     return DPIDialog::Show(show);
 }
