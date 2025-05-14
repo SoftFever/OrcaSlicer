@@ -2178,7 +2178,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_flush_temp", coInts);
     def->label = L("Flush temperature");
-    def->tooltip = L("temperature when flushing filament");
+    def->tooltip = L("temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range");
     def->mode = comAdvanced;
     def->nullable = true;
     def->min = 0;
@@ -2187,7 +2187,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_flush_volumetric_speed", coFloats);
     def->label = L("Flush volumetric speed");
-    def->tooltip = L("Volumetric speed when flushing filament");
+    def->tooltip = L("Volumetric speed when flushing filament. 0 indicates the max volumetric speed");
     def->mode = comAdvanced;
     def->nullable = true;
     def->min = 0;
