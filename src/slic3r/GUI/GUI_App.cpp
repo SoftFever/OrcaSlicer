@@ -2782,13 +2782,12 @@ void GUI_App::copy_network_if_available()
 
 bool GUI_App::on_init_network(bool try_backup)
 {
+    bool create_network_agent = false;
     auto should_load_networking_plugin = app_config->get_bool("installed_networking");
     if(!should_load_networking_plugin) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Don't load plugin as installed_networking is false";
-        return false;
-    }
+    } else {
     int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module();
-    bool create_network_agent = false;
 __retry:
     if (!load_agent_dll) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
@@ -2823,6 +2822,7 @@ __retry:
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
             m_networking_need_update = true;
         }
+    }
     }
 
     if (create_network_agent) {
