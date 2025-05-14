@@ -902,6 +902,17 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
                                                      overhang_to_cover.end());
             continue;
         }
+
+        ExPolygons real_overhang_ex = simplify_polygons_ex(real_overhang);
+
+        for (ExPolygon& expol : real_overhang_ex) {
+            expol.holes.clear();
+        }
+
+        Polygons real_overhang_no_holes = to_polygons(real_overhang_ex);
+
+        Polygons real_overhang_upper_layer_holes = intersection(surface.holes, real_overhang_no_holes);
+
         ExtrusionPaths &overhang_region = extra_perims.emplace_back();
 
         Polygons anchoring         = intersection(expanded_overhang_to_cover, inset_anchors);
@@ -931,7 +942,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
         }
 #endif
 
-        if (bridgeable_area > 0.0 && surface.holes.size() == 0) {
+        if (bridgeable_area > 0.0 && real_overhang_upper_layer_holes.empty()) {
             inset_overhang_area_left_unfilled.insert(inset_overhang_area_left_unfilled.end(),overhang_to_cover.begin(),overhang_to_cover.end());
             perimeter_polygon.clear();
         } else {
