@@ -1502,7 +1502,7 @@ void SelectMachineDialog::update_print_status_msg()
  //   for (const auto &info : m_pre_print_checker.filamentList) { update_ams_status_msg(info.msg, info.level == Error ? true : false); }
 
     std::vector<wxString> filamentList_msgs;
-    bool                  filamentList_color;
+    bool                  filamentList_color = false ;
     for (const auto &info : m_pre_print_checker.filamentList) {
         filamentList_msgs.push_back(info.msg);
         filamentList_color = info.level == Error ? true : false;
@@ -1511,7 +1511,7 @@ void SelectMachineDialog::update_print_status_msg()
 
 
     std::vector<wxString> printerList_msgs;
-    bool                  printermsg_color;
+    bool                  printermsg_color = false;
     for (const auto &info : m_pre_print_checker.printerList) {
         printerList_msgs.push_back(info.msg);
         printermsg_color = info.level == Error ? true : false;
