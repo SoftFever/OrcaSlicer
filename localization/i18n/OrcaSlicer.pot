@@ -4128,7 +4128,10 @@ msgstr ""
 msgid "Add plate"
 msgstr ""
 
-msgid "Auto orient"
+msgid "Auto orient all/selected objects"
+msgstr ""
+
+msgid "Auto orient all objects on current plate"
 msgstr ""
 
 msgid "Arrange all objects"
@@ -8129,9 +8132,12 @@ msgid "Shift+R"
 msgstr ""
 
 msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
+"Auto orients selected objects or all objects. If there are selected "
+"objects, it just orients the selected ones. Otherwise, it will orient "
+"all objects in the current project."
+msgstr ""
+
+msgid "Auto orients all objects on the active plate."
 msgstr ""
 
 msgid "Shift+Tab"

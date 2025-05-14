@@ -4231,8 +4231,11 @@ msgstr ""
 msgid "Add plate"
 msgstr "プレートを追加"
 
-msgid "Auto orient"
-msgstr "自動向き調整"
+msgid "Auto orient all/selected objects"
+msgstr "すべてのオブジェクト/選択したオブジェクトの方向を自動設定する"
+
+msgid "Auto orient all objects on current plate"
+msgstr "現在のプレート上のすべてのオブジェクトを自動で方向付ける"
 
 msgid "Arrange all objects"
 msgstr "全てをレイアウト"
@@ -8326,10 +8329,15 @@ msgid "Shift+R"
 msgstr "Shift+R"
 
 msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the current disk."
-msgstr "選択した或いは全てのオブジェクトの向きを自動調整します。"
+"Auto orients selected objects or all objects. If there are selected "
+"objects, it just orients the selected ones. Otherwise, it will orient "
+"all objects in the current project."
+msgstr "選択したオブジェクトまたはプロジェクト"
+"内のすべてのオブジェクトの方向を自動的"
+"に設定します。"
+
+msgid "Auto orients all objects on the active plate."
+msgstr "現在のプレート上のすべてのオブジェクトの方向を自動的に設定します。"
 
 msgid "Shift+Tab"
 msgstr "Shift+Tab"
