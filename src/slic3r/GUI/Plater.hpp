@@ -167,7 +167,7 @@ public:
     BedType get_cur_select_bed_type();
     std::string get_cur_select_bed_image();
     void set_bed_type_accord_combox(BedType bed_type);
-    bool reset_bed_type_combox_choices();
+    bool reset_bed_type_combox_choices(bool is_sidebar_init = false);
     void change_top_border_for_mode_sizer(bool increase_border);
     void msw_rescale();
     void sys_color_changed();
@@ -354,6 +354,8 @@ public:
     void update_obj_preview_thumbnail(ModelObject *, int obj_idx, int vol_idx, std::vector<Slic3r::ColorRGBA> colors, int camera_view_angle_type);
     void invalid_all_plate_thumbnails();
     void force_update_all_plate_thumbnails();
+
+    const VendorProfile::PrinterModel *get_curr_printer_model();
 
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);

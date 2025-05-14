@@ -1682,7 +1682,7 @@ Sidebar::Sidebar(Plater *parent)
         p->combo_printer_bed = new ComboBox(p->panel_printer_bed, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY | wxALIGN_CENTER_HORIZONTAL);
         p->combo_printer_bed->SetBorderWidth(0);
         p->combo_printer_bed->GetDropDown().SetUseContentWidth(true);
-        reset_bed_type_combox_choices();
+        reset_bed_type_combox_choices(true);
 
         p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
             bool isDual          = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
@@ -2472,18 +2472,13 @@ void Sidebar::set_bed_type_accord_combox(BedType bed_type) {
     p->combo_printer_bed->SelectAndNotify(0);
 }
 
-bool  Sidebar::reset_bed_type_combox_choices() {
+bool Sidebar::reset_bed_type_combox_choices(bool is_sidebar_init)
+{
     if (!p->combo_printer_bed) {
         return false;
     }
 
-    auto                               bundle = wxGetApp().preset_bundle;
-    const Preset *                     curr   = &bundle->printers.get_selected_preset();
-    const VendorProfile::PrinterModel *pm     = PresetUtils::system_printer_model(*curr);
-    if (!pm) {
-        auto curr_parent = bundle->printers.get_selected_preset_parent();
-        pm               = PresetUtils::system_printer_model(*curr_parent);
-    }
+    auto pm = p->plater->get_curr_printer_model();
     if (m_last_combo_bedtype_count != 0 && pm) {
         auto cur_count = (int) BedType::btCount - 1 - pm->not_support_bed_types.size();
         if (cur_count == m_last_combo_bedtype_count) {//no change
@@ -2518,6 +2513,9 @@ bool  Sidebar::reset_bed_type_combox_choices() {
         }
     }
     m_last_combo_bedtype_count = p->combo_printer_bed->GetCount();
+    if (!is_sidebar_init && &p->plater->get_partplate_list()) {
+        p->plater->get_partplate_list().check_all_plate_local_bed_type(m_cur_combox_bed_types);
+    }
     return true;
 }
 
@@ -4882,6 +4880,18 @@ void Plater::priv::select_view(const std::string& direction)
         BOOST_LOG_TRIVIAL(info) << "select assemble view";
         assemble_view->select_view(direction);
     }
+}
+
+const VendorProfile::PrinterModel *Plater::get_curr_printer_model()
+{
+    auto                               bundle = wxGetApp().preset_bundle;
+    const Preset *                     curr   = &bundle->printers.get_selected_preset();
+    const VendorProfile::PrinterModel *pm     = PresetUtils::system_printer_model(*curr);
+    if (!pm) {
+        auto curr_parent = bundle->printers.get_selected_preset_parent();
+        pm               = PresetUtils::system_printer_model(*curr_parent);
+    }
+    return pm;
 }
 
 wxColour Plater::get_next_color_for_filament()
@@ -16313,7 +16323,7 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
     dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
         PartPlate* curr_plate = p->partplate_list.get_curr_plate();
         BedType old_bed_type = curr_plate->get_bed_type();
-        auto bt_sel = BedType(dlg.get_bed_type_choice());
+        auto bt_sel = dlg.get_bed_type_choice();
         if (old_bed_type != bt_sel) {
             curr_plate->set_bed_type(bt_sel);
             update_project_dirty_from_presets();

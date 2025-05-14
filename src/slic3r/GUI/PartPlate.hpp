@@ -717,6 +717,7 @@ public:
     //int delete_plate(PartPlate* plate);
     void delete_selected_plate();
 
+    bool check_all_plate_local_bed_type(const std::vector<BedType>& cur_bed_types);
     //get a plate pointer by index
     PartPlate* get_plate(int index);
 
