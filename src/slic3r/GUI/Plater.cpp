@@ -15800,7 +15800,7 @@ void Plater::pop_warning_and_go_to_device_page(wxString printer_name, PrinterWar
     }
 }
 
-bool Plater::is_same_printer_for_connected_and_selected()
+bool Plater::is_same_printer_for_connected_and_selected(bool popup_warning)
 {
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     if (obj == nullptr) {
@@ -15813,8 +15813,10 @@ bool Plater::is_same_printer_for_connected_and_selected()
         return false;
 
     if (wxGetApp().is_blocking_printing()) {
-        auto printer_name = get_selected_printer_name_in_combox(); // wxString(obj->get_preset_printer_model_name(machine_print_name))
-        pop_warning_and_go_to_device_page(printer_name, PrinterWarningType::INCONSISTENT, _L("Synchronize AMS Filament Information"));
+        if (popup_warning) {
+            auto printer_name = get_selected_printer_name_in_combox(); // wxString(obj->get_preset_printer_model_name(machine_print_name))
+            pop_warning_and_go_to_device_page(printer_name, PrinterWarningType::INCONSISTENT, _L("Synchronize AMS Filament Information"));
+        }
         return false;
     }
     return true;

@@ -571,7 +571,7 @@ public:
     };
     void pop_warning_and_go_to_device_page(wxString printer_name, PrinterWarningType type, const wxString &title);
     bool check_printer_initialized(MachineObject *obj, bool only_warning = false);
-    bool is_same_printer_for_connected_and_selected();
+    bool is_same_printer_for_connected_and_selected(bool popup_warning = true);
     // BBS
     //void show_action_buttons(const bool is_ready_to_slice) const;
 

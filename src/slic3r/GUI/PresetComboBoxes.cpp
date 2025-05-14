@@ -1342,7 +1342,9 @@ void PlaterPresetComboBox::update()
 
     update_selection();
     if (m_type == Preset::TYPE_FILAMENT) {
-        update_badge_according_flag();
+        if (wxGetApp().plater()->is_same_printer_for_connected_and_selected(false)) { 
+            update_badge_according_flag();
+        }
     }
     Thaw();
 
