@@ -64,6 +64,18 @@ enum PrintFromType {
     FROM_SDCARD_VIEW,
 };
 
+enum class CloudTaskNozzleId : int
+{
+    NOZZLE_RIGHT    = 0,
+    NOZZLE_LEFT     = 1,
+};
+
+enum class ConfigNozzleIdx : int
+{
+    NOZZLE_LEFT      = 0,
+    NOZZLE_RIGHT     = 1,
+};
+
 static int get_brightness_value(wxImage image) {
 
     wxImage grayImage = image.ConvertToGreyscale();
@@ -539,6 +551,7 @@ public:
     bool Show(bool show);
     bool do_ams_mapping(MachineObject* obj_);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
+    bool build_nozzles_info(std::string& nozzles_info);
 
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_steel_name(std::string name);

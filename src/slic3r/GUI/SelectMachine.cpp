@@ -1962,6 +1962,8 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
         } else {
             sync_ams_mapping_result(m_ams_mapping_result);
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_array=" << ams_array;
+            BOOST_LOG_TRIVIAL(info) << "ams_mapping_array2=" << ams_array2;
+            BOOST_LOG_TRIVIAL(info) << "ams_mapping_info=" << mapping_info;
         }
         return obj_->is_valid_mapping_result(m_ams_mapping_result);
     } else {
@@ -2039,8 +2041,8 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                     try
                     {
                         if (m_ams_mapping_result[k].ams_id.empty() || m_ams_mapping_result[k].slot_id.empty()) {  // invalid case
-                            mapping_item_v1["ams_id"]  = VIRTUAL_TRAY_ID;
-                            mapping_item_v1["slot_id"] = VIRTUAL_TRAY_ID;
+                            mapping_item_v1["ams_id"]  = 255; // TODO: Orca hack
+                            mapping_item_v1["slot_id"] = 255;
                         }
                         else {
                             mapping_item_v1["ams_id"] = std::stoi(m_ams_mapping_result[k].ams_id);
@@ -2064,6 +2066,56 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
         ams_mapping_info = mapping_info_json.dump();
         return valid_mapping_result;
     }
+    return true;
+}
+
+bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
+{
+    /* init nozzles info */
+    json nozzle_info_json = json::array();
+    nozzles_info = nozzle_info_json.dump();
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle)
+        return false;
+    auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
+    if (opt_nozzle_diameters == nullptr) {
+        BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, opt_nozzle_diameters is nullptr";
+        return false;
+    }
+    //auto opt_nozzle_volume_type = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    //if (opt_nozzle_volume_type == nullptr) {
+    //    BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, opt_nozzle_volume_type is nullptr";
+    //    return false;
+    //}
+    json nozzle_item;
+    /* only o1d two nozzles has build_nozzles info now */
+    if (opt_nozzle_diameters->size() != 2) {
+        return false;
+    }
+    for (size_t i = 0; i < opt_nozzle_diameters->size(); i++) {
+        if (i == (size_t)ConfigNozzleIdx::NOZZLE_LEFT) {
+            nozzle_item["id"] = CloudTaskNozzleId::NOZZLE_LEFT;
+        }
+        else if (i == (size_t)ConfigNozzleIdx::NOZZLE_RIGHT) {
+            nozzle_item["id"] = CloudTaskNozzleId::NOZZLE_RIGHT;
+        }
+        else {
+            /* unknown ConfigNozzleIdx */
+            BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, unknown ConfigNozzleIdx = " << i;
+            assert(false);
+            continue;
+        }
+        nozzle_item["type"] = nullptr;
+        //if (i >= 0 && i < opt_nozzle_volume_type->size()) {
+            nozzle_item["flowSize"] = "standard_flow"; // TODO: Orca hack
+        //}
+        if (i >= 0 && i < opt_nozzle_diameters->size()) {
+            nozzle_item["diameter"] = opt_nozzle_diameters->get_at(i);
+        }
+        nozzle_info_json.push_back(nozzle_item);
+    }
+    nozzles_info = nozzle_info_json.dump();
     return true;
 }
 
@@ -2997,6 +3049,11 @@ void SelectMachineDialog::on_send_print()
         m_print_job->task_ams_mapping_info = "";
     }
 
+    /* build nozzles info for multi extruders printers */
+    if (build_nozzles_info(m_print_job->task_nozzles_info)) {
+        BOOST_LOG_TRIVIAL(error) << "build_nozzle_info errors";
+    }
+
     m_print_job->has_sdcard = obj_->has_sdcard();
 
 
@@ -3008,7 +3065,10 @@ void SelectMachineDialog::on_send_print()
         m_checkbox_list["flow_cali"]->GetValue(),
         false,
         timelapse_option,
-        true);
+        true,
+        0, // TODO: Orca hack
+        0,
+        0);
 
     if (obj_->has_ams()) {
         m_print_job->task_use_ams = m_checkbox_list["use_ams"]->GetValue();
