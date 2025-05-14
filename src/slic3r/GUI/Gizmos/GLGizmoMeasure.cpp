@@ -2108,7 +2108,7 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
                 m_buffered_around_center = 0;
             }
             ImGui::SameLine(rotate_around_center_size + m_space_size + m_input_size_max + m_space_size / 2.0f);
-            m_imgui->text(_L("°"));
+            m_imgui->text("°");
         }
     }
 }
