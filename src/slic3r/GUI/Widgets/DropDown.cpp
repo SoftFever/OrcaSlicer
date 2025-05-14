@@ -203,19 +203,18 @@ static void _DrawSplitItem(const wxWindow* w, wxDC& dc, wxString split_text, wxP
     // save dc
     auto pre_clr = dc.GetTextForeground();
     auto pre_pen = dc.GetPen();
-    dc.SetTextForeground(wxColour(144, 144, 144));
-    dc.SetPen(wxColour(144, 144, 144));
-
+    dc.SetTextForeground(wxColour(172, 172, 172));//GRAY 500
+    dc.SetPen(wxColour(166, 169, 170));//GRAY 400
     // miner font
     auto font = w->GetFont();
-    font.SetPointSize(font.GetPointSize() - 1);
+    font.SetPointSize(font.GetPointSize() - 3);
     dc.SetFont(font);
 
     int spacing = w->FromDIP(8);
-    int line_y = start_pt.y + (item_height) / 2;
-    if (!split_text.empty())// Paiting: spacing + line + spacing + text + spacing + line + spacing
+
+    if (!split_text.empty())// Paiting: text + spacing + line + spacing
     {
-        int max_content_width = item_width - start_pt.x - 4 * spacing;
+        int max_content_width = item_width - start_pt.x - 2 * spacing;
         wxSize tSize = dc.GetMultiLineTextExtent(split_text);
         if (tSize.x > max_content_width)
         {
@@ -223,21 +222,18 @@ static void _DrawSplitItem(const wxWindow* w, wxDC& dc, wxString split_text, wxP
             tSize = dc.GetMultiLineTextExtent(split_text);
         }
 
-        int line_width = (item_width - start_pt.x - tSize.x - 4 * spacing) / 2;
-        dc.DrawLine(start_pt.x + spacing, line_y, start_pt.x + line_width + spacing, line_y);// draw left line
-        dc.DrawLine(start_pt.x + tSize.x + line_width + 3 * spacing, line_y, start_pt.x + tSize.x + 2 * line_width + 3 * spacing, line_y);// draw right line
-
-        start_pt.x += (line_width + 2 * spacing);
-        start_pt.y += (item_height - tSize.y) / 2;
-
         dc.SetFont(font);
         dc.DrawText(split_text, start_pt);
+
+        int line_width = item_width - start_pt.x - tSize.x - 2 * spacing;
+        int line_y = start_pt.y + (tSize.GetHeight() / 2);
+        dc.DrawLine(start_pt.x + tSize.x + spacing, line_y, start_pt.x + tSize.x + line_width + spacing, line_y);// draw right line
     }
-    else// Paiting: spacing + line + spacing
+    else// Paiting: line + spacing
     {
-        int line_y = start_pt.y + (item_height) / 2;
-        int line_width = item_width - start_pt.x - 2 * spacing;
-        dc.DrawLine(start_pt.x + spacing, line_y, start_pt.x + spacing + line_width, line_y);// draw line
+        int line_y = start_pt.y + (item_height / 2);
+        int line_width = item_width - start_pt.x - spacing;
+        dc.DrawLine(start_pt.x, line_y, start_pt.x + line_width, line_y);// draw line
     }
 
     // restore dc
@@ -371,11 +367,8 @@ void DropDown::render(wxDC &dc)
         wxPoint pt   = rcContent.GetLeftTop();
 
         if (item.style & DD_ITEM_STYLE_SPLIT_ITEM) {
-            wxPoint start_pt = {0 , pt.y};
-            int item_width = GetSize().GetWidth();
-            int item_height = rowSize.GetHeight();
-            _DrawSplitItem(this, dc, item.text, start_pt, item_width, item_height);
-            rcContent.y += item_height;
+            _DrawSplitItem(this, dc, item.text, pt, rowSize.GetWidth(), rowSize.GetHeight());
+            rcContent.y += rowSize.GetHeight();
             continue;
         }
 
