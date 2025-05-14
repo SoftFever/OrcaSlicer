@@ -1267,7 +1267,7 @@ static ExPolygons get_boundary(const Layer &layer, float perimeter_spacing)
 }
 
 // called by AvoidCrossingPerimeters::travel_to()
-static ExPolygons get_slice_boundary(const Layer &layer)
+static ExPolygons get_slice_boundary_internal(const Layer &layer)
 {
     auto const *support_layer     = dynamic_cast<const SupportLayer *>(&layer);
     ExPolygons  boundary          = layer.lslices;
@@ -1435,22 +1435,27 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
 
     bool is_support_layer = dynamic_cast<const SupportLayer *>(gcodegen.layer()) != nullptr;
     if (!use_external && (is_support_layer || (!m_lslices_offset.empty() && !any_expolygon_contains(m_lslices_offset, m_lslices_offset_bboxes, m_grid_lslices_offset, travel)))) {
-        AvoidCrossingPerimeters::Boundary slice_boundary;
-        init_boundary(&slice_boundary, to_polygons(get_slice_boundary(*gcodegen.layer())), {start, end});
+        if (m_lslice_internal.boundaries.empty()) {
+            init_boundary(&m_lslice_internal, to_polygons(get_slice_boundary_internal(*gcodegen.layer())), {start, end});
+        } else if (!(m_lslice_internal.bbox.contains(startf) && m_lslice_internal.bbox.contains(endf))) {
+            // check if start and end are in bbox
+            m_lslice_internal.clear();
+            init_boundary(&m_lslice_internal, to_polygons(get_slice_boundary_internal(*gcodegen.layer())), {start, end});
+        }
+
         // Initialize m_internal only when it is necessary.
         if (m_internal.boundaries.empty()) {
-            init_boundary(&m_internal, to_polygons(get_boundary(*gcodegen.layer(), get_perimeter_spacing(*gcodegen.layer()))), get_extents(slice_boundary.boundaries),
+            init_boundary(&m_internal, to_polygons(get_boundary(*gcodegen.layer(), get_perimeter_spacing(*gcodegen.layer()))), get_extents(m_lslice_internal.boundaries),
                           {start, end});
         } else if (!(m_internal.bbox.contains(startf) && m_internal.bbox.contains(endf))) {
             // check if start and end are in bbox, if not, merge start and end points to bbox
             m_internal.clear();
-            init_boundary(&m_internal, to_polygons(get_boundary(*gcodegen.layer(), get_perimeter_spacing(*gcodegen.layer()))), get_extents(slice_boundary.boundaries),
+            init_boundary(&m_internal, to_polygons(get_boundary(*gcodegen.layer(), get_perimeter_spacing(*gcodegen.layer()))), get_extents(m_lslice_internal.boundaries),
                           {start, end});
         }
       
-        // Trim the travel line by the bounding box.
         if (!m_internal.boundaries.empty()) {
-            travel_intersection_count = avoid_perimeters(slice_boundary, m_internal, start, end, *gcodegen.layer(), result_pl);
+            travel_intersection_count = avoid_perimeters(m_lslice_internal, m_internal, start, end, *gcodegen.layer(), result_pl);
             result_pl.points.front()  = start;
             result_pl.points.back()   = end;
         }
@@ -1512,6 +1517,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
 void AvoidCrossingPerimeters::init_layer(const Layer &layer)
 {
     m_internal.clear();
+    m_lslice_internal.clear();
     m_external.clear();
     m_lslices_offset.clear();
     m_lslices_offset_bboxes.clear();
