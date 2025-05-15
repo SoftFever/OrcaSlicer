@@ -1683,10 +1683,25 @@ void GUI_App::init_networking_callbacks()
                     //subscribe device
                     if (m_agent->is_user_login()) {
                         m_agent->start_device_subscribe();
+
+                        /*disconnect lan*/
+                        DeviceManager* dev = this->getDeviceManager();
+                        if (!dev) return;
+
+                        MachineObject *obj = dev->get_selected_machine();
+                        if (!obj) return;
+
+                        if (obj->nt_try_local_tunnel && obj->connection_type() == "cloud") {
+                            if (obj->is_connected()) {
+                                obj->disconnect();
+                            }
+                            obj->nt_reset_data();
+                        }
+
                         /* resubscribe the cache dev list */
                         if (this->is_enable_multi_machine()) {
-                            DeviceManager* dev = this->getDeviceManager();
-                            if (dev && !dev->subscribe_list_cache.empty()) {
+
+                            if (!dev->subscribe_list_cache.empty()) {
                                 dev->subscribe_device_list(dev->subscribe_list_cache);
                             }
                         }
