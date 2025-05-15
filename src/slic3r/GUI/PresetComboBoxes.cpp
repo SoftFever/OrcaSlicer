@@ -898,14 +898,14 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
     auto selected_item = evt.GetSelection();
 
     auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
-    if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
+    if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX) {
         this->SetSelection(m_last_selected);
         if (LABEL_ITEM_WIZARD_ADD_PRINTERS == marker) {
             evt.Skip();
             return;
         }
         evt.StopPropagation();
-        if (marker == LABEL_ITEM_MARKER)
+        if (marker == LABEL_ITEM_MARKER || marker == LABEL_ITEM_DISABLED)
             return;
         //if (marker == LABEL_ITEM_WIZARD_PRINTERS)
         //    show_add_menu();
@@ -1238,7 +1238,7 @@ void PlaterPresetComboBox::update()
     std::vector<std::string> first_vendors     = {"", "Bambu", "Generic"}; // Empty vendor for non-system presets
     std::vector<std::string> first_types     = {"PLA", "PETG", "ABS", "TPU"};
     auto  add_presets       = [this, &preset_descriptions, &filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types, &selected_in_ams]
-            (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, std::string const &group) {
+            (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, std::string const &group, wxString const &groupName) {
         if (!presets.empty()) {
             set_label_marker(Append(group, wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
             if (m_type == Preset::TYPE_FILAMENT) {
@@ -1273,8 +1273,8 @@ void PlaterPresetComboBox::update()
                     });
                 bool unsupported = group == "Unsupported presets";
                 for (auto it : list) {
-                    auto groupName = groupByGroup ? group : preset_filament_vendors[it->first];
-                    int  index = Append(it->first, *it->second, groupName, nullptr, unsupported ? DD_ITEM_STYLE_DISABLED : 0);
+                    auto groupName2 = groupByGroup ? groupName : preset_filament_vendors[it->first];
+                    int  index = Append(it->first, *it->second, groupName2, nullptr, unsupported ? DD_ITEM_STYLE_DISABLED : 0);
                     if (unsupported)
                         set_label_marker(index, LABEL_ITEM_DISABLED);
                     SetItemTooltip(index, preset_descriptions[it->first]);
@@ -1296,11 +1296,11 @@ void PlaterPresetComboBox::update()
     };
 
     //BBS: add project embedded preset logic
-    add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"));
-    add_presets(nonsys_presets, selected_user_preset, L("User presets"));
+    add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"), _L("Project"));
+    add_presets(nonsys_presets, selected_user_preset, L("User presets"), _L("User"));
     // BBS: move system to the end
-    add_presets(system_presets, selected_system_preset, L("System presets"));
-    add_presets(uncompatible_presets, {}, L("Unsupported presets"));
+    add_presets(system_presets, selected_system_preset, L("System presets"), _L("System"));
+    add_presets(uncompatible_presets, {}, L("Unsupported presets"), _L("Unsupported"));
 
     //BBS: remove unused pysical printer logic
     /*if (m_type == Preset::TYPE_PRINTER)

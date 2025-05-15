@@ -633,7 +633,9 @@ void DropDown::mouseReleased(wxMouseEvent& event)
         pressedDown = false;
         if (HasCapture())
             ReleaseMouse();
-        if (hover_item >= 0 && subDropDown == nullptr) { // not moved
+        if (hover_item < 0)
+            return;
+        if (hover_item >= 0 && (subDropDown == nullptr || subDropDown->group.empty())) { // not moved
             sendDropDownEvent();
             if (mainDropDown)
                 mainDropDown->hover_item = -1; // To Dismiss mainDropDown
@@ -696,6 +698,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
                 drop.Popup(&drop);
         } else if (index >= 0) {
             if (subDropDown) {
+                subDropDown->group.clear();
                 if (subDropDown->IsShown())
                     subDropDown->Dismiss();
             }
@@ -723,7 +726,8 @@ void DropDown::mouseWheelMoved(wxMouseEvent &event)
     if (hover >= (int) count) hover = -1;
     if (hover != hover_item) {
         hover_item = hover;
-        if (hover >= 0) SetToolTip(items[hover].tip);
+        if (auto index = hoverIndex(); index >= 0)
+            SetToolTip(items[index].tip);
     }
     paintNow();
 }
@@ -732,7 +736,7 @@ void DropDown::mouseWheelMoved(wxMouseEvent &event)
 void DropDown::sendDropDownEvent()
 {
     int index = hoverIndex();
-    if (index < 0)
+    if (index < 0 || (items[index].style & DD_ITEM_STYLE_DISABLED))
         return;
     wxCommandEvent event(wxEVT_COMBOBOX, GetId());
     event.SetEventObject(this);
