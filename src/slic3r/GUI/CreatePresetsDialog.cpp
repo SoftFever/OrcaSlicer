@@ -1022,9 +1022,9 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_for_printer_item(
 wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
 {
     auto dlg_btns = new DialogButtons(this, {"Ok", "Cancel"});
-    dlg_btns->GetOK()->SetLabel(_L("Create"));
-
-    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+    m_button_create = dlg_btns->GetOK();
+    m_button_create->SetLabel(_L("Create"));
+    m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
         //get vendor name
         wxString vendor_str = m_filament_vendor_combobox->GetLabel();
         std::string vendor_name;
@@ -1182,7 +1182,8 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         EndModal(wxID_OK); 
         });
 
-    dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+    m_button_cancel = dlg_btns->GetCANCEL();
+    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
         EndModal(wxID_CANCEL); 
     });
 
