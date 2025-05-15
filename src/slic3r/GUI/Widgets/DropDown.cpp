@@ -755,7 +755,9 @@ void DropDown::Dismiss()
 void DropDown::OnDismiss()
 {
     if (mainDropDown) {
-        if (mainDropDown->hover_item < 0)
+
+        const wxPoint& mouse_pos = wxGetMousePosition();
+        if (!mainDropDown->GetScreenRect().Contains(mouse_pos))
             mainDropDown->DismissAndNotify();
         else
 #ifdef __WIN32__
