@@ -4603,16 +4603,8 @@ LayerResult GCode::process_layer(
         ctx.curr_layer = this->layer();
         ctx.curr_extruder_id = m_writer.filament()->extruder_id();
         ctx.picture_extruder_id = most_used_extruder;
-        if (m_config.nozzle_diameter.size() > 1) {
-            ctx.extruder_height_gap = std::abs(m_config.extruder_printable_height.values[0] - m_config.extruder_printable_height.values[1]);
-            ctx.liftable_extruder_id = m_config.extruder_printable_height.values[0] < m_config.extruder_printable_height.values[1] ? 0 : 1;
-        }
-        ctx.height_to_rod = m_config.extruder_clearance_height_to_rod;
-
-        ctx.print_sequence = m_config.print_sequence;
         if (m_config.print_sequence == PrintSequence::ByObject)
             ctx.printed_objects = printed_objects;
-        ctx.based_on_all_layer = m_config.timelapse_type == TimelapseType::tlSmooth;
 
         auto timelapse_pos=m_timelapse_pos_picker.pick_pos(ctx);
 

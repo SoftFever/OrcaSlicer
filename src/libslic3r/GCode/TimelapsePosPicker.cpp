@@ -10,6 +10,16 @@ namespace Slic3r {
         reset();
         m_plate_offset = plate_offset;
         print = print_;
+
+        m_nozzle_height_to_rod = print_->config().extruder_clearance_height_to_rod;
+        m_nozzle_clearance_radius = print_->config().extruder_clearance_radius;
+        if (print_->config().nozzle_diameter.size() > 1) {
+            m_extruder_height_gap = std::abs(print_->config().extruder_printable_height.values[0] - print_->config().extruder_printable_height.values[1]);
+            m_liftable_extruder_id = print_->config().extruder_printable_height.values[0] < print_->config().extruder_printable_height.values[1] ? 0 : 1;
+        }
+        m_print_seq = print_->config().print_sequence.value;
+        m_based_on_all_layer = print_->config().timelapse_type == TimelapseType::tlSmooth;
+
         construct_printable_area_by_printer();
     }
 
@@ -20,6 +30,13 @@ namespace Slic3r {
         m_extruder_printable_area.clear();
         m_all_layer_pos = std::nullopt;
         bbox_cache.clear();
+
+        m_print_seq = PrintSequence::ByObject;
+        m_nozzle_height_to_rod = 0;
+        m_nozzle_clearance_radius = 0;
+        m_liftable_extruder_id = std::nullopt;
+        m_extruder_height_gap = std::nullopt;
+        m_based_on_all_layer = false;
     }
 
     /**
@@ -79,7 +96,7 @@ namespace Slic3r {
             {transform_wt_pt({scale_(wt_box.max.x()),scale_(wt_box.max.y())})},
             {transform_wt_pt({scale_(wt_box.min.x()),scale_(wt_box.max.y())})}
         };
-        wipe_tower_area = expand_object_projection(wipe_tower_area);
+        wipe_tower_area = expand_object_projection(wipe_tower_area, m_print_seq == PrintSequence::ByObject);
 
         for (size_t idx = 0; idx < extruder_count; ++idx) {
             ExPolygons printable_area = diff_ex(diff(m_bed_polygon, bed_exclude_area), { wipe_tower_area });
@@ -99,9 +116,10 @@ namespace Slic3r {
      * @param layer The layer for which slices are being collected.
      * @param height_range The height range to consider for collecting slices.
      * @param object_list List of print objects to process.
+     * @param by_object Decides the expand length of polygon
      * @return ExPolygons representing the collected slice data.
      */
-    ExPolygons TimelapsePosPicker::collect_object_slices_data(const Layer* layer, float height_range, const std::vector<const PrintObject*>& object_list)
+    ExPolygons TimelapsePosPicker::collect_object_slices_data(const Layer* layer, float height_range, const std::vector<const PrintObject*>& object_list, bool by_object)
     {
         auto range_intersect = [](int left1, int right1, int left2, int right2) {
             if (left1 <= left2 && left2 <= right1)
@@ -120,7 +138,7 @@ namespace Slic3r {
         for (auto& obj : object_list) {
             for (auto& instance : obj->instances()) {
                 auto instance_bbox = get_real_instance_bbox(instance);
-                if(range_intersect(instance_bbox.min.z(), instance_bbox.max.z(), layer->print_z + height_range, layer->print_z)){
+                if(range_intersect(instance_bbox.min.z(), instance_bbox.max.z(), z_low, z_high)){
                     ExPolygon expoly;
                     expoly.contour = {
                         {scale_(instance_bbox.min.x()), scale_(instance_bbox.min.y())},
@@ -128,7 +146,7 @@ namespace Slic3r {
                         {scale_(instance_bbox.max.x()), scale_(instance_bbox.max.y())},
                         {scale_(instance_bbox.min.x()), scale_(instance_bbox.max.y())}
                     };
-                    expoly.contour = expand_object_projection(expoly.contour);
+                    expoly.contour = expand_object_projection(expoly.contour, by_object);
                     ret.emplace_back(std::move(expoly));
                 }
             }
@@ -150,7 +168,7 @@ namespace Slic3r {
     // scaled data
     Polygons TimelapsePosPicker::collect_limit_areas_for_rod(const std::vector<const PrintObject*>& object_list, const PosPickCtx& ctx)
     {
-        double rod_limit_height = ctx.height_to_rod + ctx.curr_layer->print_z;
+        double rod_limit_height = m_nozzle_height_to_rod + ctx.curr_layer->print_z;
         std::vector<const PrintObject*> rod_collision_candidates;
         for(auto& obj : object_list){
             if(ctx.printed_objects && obj == ctx.printed_objects->back())
@@ -160,17 +178,28 @@ namespace Slic3r {
                 rod_collision_candidates.push_back(obj);
         }
 
-        std::sort(rod_collision_candidates.begin(), rod_collision_candidates.end(), [&](const PrintObject* lhs, const PrintObject* rhs) {
-            auto lbbox =get_real_instance_bbox(lhs->instances().front());
-            auto rbbox =get_real_instance_bbox(rhs->instances().front());
-            if(lbbox.min.y() == rbbox.min.y())
+        if (rod_collision_candidates.empty())
+            return {};
+
+
+        std::vector<BoundingBoxf3> collision_obj_bboxs;
+        for (auto obj : rod_collision_candidates) {
+            collision_obj_bboxs.emplace_back(
+                expand_object_bbox(
+                    get_real_instance_bbox(obj->instances().front()),
+                    m_print_seq == PrintSequence::ByObject
+                )
+            );
+        }
+
+        std::sort(collision_obj_bboxs.begin(), collision_obj_bboxs.end(), [&](const auto& lbbox, const auto& rbbox) {
+            if (lbbox.min.y() == rbbox.min.y())
                 return lbbox.max.y() < rbbox.max.y();
             return lbbox.min.y() < rbbox.min.y();
-        });
+            });
 
         std::vector<std::pair<int,int>> object_y_ranges = {{0,0}};
-        for(auto& candidate : rod_collision_candidates){
-            auto bbox = get_real_instance_bbox(candidate->instances().front());
+        for(auto& bbox : collision_obj_bboxs){
             if( object_y_ranges.back().second >= bbox.min.y())
                 object_y_ranges.back().second = bbox.max.y();
             else
@@ -218,16 +247,40 @@ namespace Slic3r {
 
 
 
-    // expand the object expolygon by safe distance
-    Polygon TimelapsePosPicker::expand_object_projection(const Polygon& poly)
+    // expand the object expolygon by safe distance, scaled data
+    Polygon TimelapsePosPicker::expand_object_projection(const Polygon& poly, bool by_object)
     {
+        float radius = 0;
+        if (by_object)
+            radius = scale_(print->config().extruder_clearance_radius.value);
+        else
+            radius = scale_(print->config().extruder_clearance_radius.value / 2);
+
         // the input poly is bounding box, so we get the first offseted polygon is ok
-        float radius = scale_(print->config().extruder_clearance_radius.value / 2);
         auto ret = offset(poly, radius);
         if (ret.empty())
             return {};
         return ret[0];
     }
+
+    // unscaled data
+    BoundingBoxf3 TimelapsePosPicker::expand_object_bbox(const BoundingBoxf3& bbox, bool by_object)
+    {
+        float radius = 0;
+        if (by_object)
+            radius = print->config().extruder_clearance_radius.value;
+        else
+            radius = print->config().extruder_clearance_radius.value / 2;
+
+        BoundingBoxf3 ret = bbox;
+        ret.min.x() -= radius;
+        ret.min.y() -= radius;
+        ret.max.x() += radius;
+        ret.max.y() += radius;
+
+        return ret;
+    }
+
 
     double TimelapsePosPicker::get_raft_height(const PrintObject* obj)
     {
@@ -277,7 +330,7 @@ namespace Slic3r {
         if (!obj)
             return {};
         auto bbox = get_real_instance_bbox(obj->instances().front());
-        float radius = print->config().extruder_clearance_radius.value / 2;
+        float radius = m_nozzle_clearance_radius / 2;
 
         auto offset_bbox = bbox.inflated(sqrt(2) * radius);
         // Constrain the coordinates to the first quadrant.
@@ -347,7 +400,7 @@ namespace Slic3r {
     Point TimelapsePosPicker::pick_pos(const PosPickCtx& ctx)
     {
         Point res;
-        if (ctx.based_on_all_layer)
+        if (m_based_on_all_layer)
             res = pick_pos_for_all_layer(ctx);
         else
             res = pick_pos_for_curr_layer(ctx);
@@ -392,16 +445,17 @@ namespace Slic3r {
     {
         float height_gap = 0;
         if (ctx.curr_extruder_id != ctx.picture_extruder_id) {
-            if (ctx.liftable_extruder_id.has_value() && ctx.picture_extruder_id != ctx.liftable_extruder_id && ctx.extruder_height_gap.has_value())
-                height_gap = -*ctx.extruder_height_gap;
+            if(m_liftable_extruder_id.has_value() && ctx.picture_extruder_id != m_liftable_extruder_id && m_extruder_height_gap.has_value())
+                height_gap = -*m_extruder_height_gap;
         }
 
+        bool by_object = m_print_seq == PrintSequence::ByObject;
         std::vector<const PrintObject*> object_list = get_object_list(ctx.printed_objects);
 
-        ExPolygons layer_slices = collect_object_slices_data(ctx.curr_layer,height_gap, object_list);
+        ExPolygons layer_slices = collect_object_slices_data(ctx.curr_layer, height_gap, object_list, by_object);
         Polygons camera_limit_areas = collect_limit_areas_for_camera(object_list);
         Polygons rod_limit_areas;
-        if (ctx.print_sequence == PrintSequence::ByObject) {
+        if (m_print_seq == PrintSequence::ByObject) {
             rod_limit_areas = collect_limit_areas_for_rod(object_list,ctx);
         }
         ExPolygons unplacable_area = union_ex(union_ex(layer_slices, camera_limit_areas),rod_limit_areas);
@@ -447,13 +501,15 @@ namespace Slic3r {
     {
         float height_gap = 0;
         if (ctx.curr_extruder_id != ctx.picture_extruder_id) {
-            if (ctx.liftable_extruder_id.has_value() && ctx.picture_extruder_id != ctx.liftable_extruder_id && ctx.extruder_height_gap.has_value())
-                height_gap = *ctx.extruder_height_gap;
+            if (m_liftable_extruder_id.has_value() && ctx.picture_extruder_id != m_liftable_extruder_id && m_extruder_height_gap.has_value())
+                height_gap = *m_extruder_height_gap;
         }
         if (ctx.curr_layer->print_z < height_gap)
             return DefaultTimelapsePos;
         if (m_all_layer_pos)
             return *m_all_layer_pos;
+
+        bool by_object = m_print_seq == PrintSequence::ByObject;
 
         Polygons object_projections;
 
@@ -462,7 +518,7 @@ namespace Slic3r {
         for (auto& obj : object_list) {
             for (auto& instance : obj->instances()) {
                 const auto& bbox = get_real_instance_bbox(instance);
-                if (ctx.print_sequence == PrintSequence::ByObject && bbox.max.z() >= ctx.height_to_rod) {
+                if (m_print_seq == PrintSequence::ByObject && bbox.max.z() >= m_nozzle_height_to_rod) {
                     m_all_layer_pos = DefaultTimelapsePos;
                     return *m_all_layer_pos;
                 }
@@ -473,7 +529,7 @@ namespace Slic3r {
                     { max_p.x(),max_p.y() },
                     { min_p.x(),max_p.y() }
                 };
-                object_projections.emplace_back(expand_object_projection(obj_proj));
+                object_projections.emplace_back(expand_object_projection(obj_proj,by_object));
             }
         };
 
