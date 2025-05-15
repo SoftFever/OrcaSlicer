@@ -523,12 +523,12 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     isDual = isDual && isBBL;  // It indicates a multi-extruder layout.
     // Printer - preset
     if (auto sizer = static_cast<wxBoxSizer *>(panel_printer_preset->GetSizer());
-            sizer == nullptr || isDual != (sizer->GetOrientation() == wxVERTICAL)) {
+            sizer == nullptr || isBBL != (sizer->GetOrientation() == wxVERTICAL)) {
         wxBoxSizer *hsizer_printer_btn = new wxBoxSizer(wxHORIZONTAL);
         hsizer_printer_btn->AddStretchSpacer(1);
         hsizer_printer_btn->Add(btn_edit_printer, 0);
         hsizer_printer_btn->Add(btn_connect_printer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(4));
-        combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | (isDual ? wxALIGN_CENTER_HORIZONTAL : wxALIGN_RIGHT));
+        combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | (isBBL ? wxALIGN_CENTER_HORIZONTAL : wxALIGN_RIGHT));
         if (isBBL) {
             wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1657,7 +1657,7 @@ Sidebar::Sidebar(Plater *parent)
         p->panel_printer_bed = new StaticBox(p->m_panel_printer_content);
         p->panel_printer_bed->SetCornerRadius(8);
         p->panel_printer_bed->SetBorderColor(panel_bd_col);
-        p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_WIDEN);
+        p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
         p->panel_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
         });
@@ -2558,7 +2558,7 @@ void Sidebar::msw_rescale()
     p->btn_sync_printer->SetPaddingSize({FromDIP(6), FromDIP(12)});
     p->btn_sync_printer->SetMinSize(PRINTER_PANEL_SIZE);
     p->btn_sync_printer->SetMaxSize(PRINTER_PANEL_SIZE);
-    p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_WIDEN);
+    p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
     p->btn_sync_printer->Rescale();
 #if 0
     if (p->mode_sizer)
