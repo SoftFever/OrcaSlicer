@@ -62,7 +62,7 @@ void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrint
     wxString msg_text;
     bool     need_check = false;
     if (temperature_range_low < 190 || temperature_range_high > 300) {
-        msg_text += _L("The recommended minimum temperature is less than 190 degree or the recommended maximum temperature is greater than 300 degree.\n");
+        msg_text += _L("The recommended minimum temperature is less than 190°C or the recommended maximum temperature is greater than 300°C.\n");
         need_check = true;
     }
     if (temperature_range_low > temperature_range_high) {
@@ -628,9 +628,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // non-organic tree support use max_bridge_length instead of bridge_no_support
     toggle_line("max_bridge_length", support_is_normal_tree);
     toggle_line("bridge_no_support", !support_is_normal_tree);
-
-    // This is only supported for auto normal tree
-    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_normal_tree);
+    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
     for (auto el : { "support_interface_spacing", "support_interface_filament",
         "support_interface_loop_pattern", "support_bottom_interface_spacing" })

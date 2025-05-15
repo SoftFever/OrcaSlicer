@@ -42,8 +42,8 @@ bool GLGizmoBrimEars::on_init()
 {
 
     m_new_point_head_diameter = get_brim_default_radius();
-    
-    m_shortcut_key = WXK_CONTROL_L;
+
+    m_shortcut_key = WXK_CONTROL_E;
 
     m_desc["head_diameter"]    = _L("Head diameter");
     m_desc["max_angle"]        = _L("Max angle");
@@ -110,10 +110,12 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
 
     if (!has_points) return;
 
-    GLShaderProgram *shader = wxGetApp().get_shader("gouraud_light");
-    if (shader != nullptr) shader->start_using();
+    const auto shader = wxGetApp().get_shader("gouraud_light");
+    if (shader == nullptr)
+        return;
+    shader->start_using();
     ScopeGuard guard([shader]() {
-        if (shader != nullptr) shader->stop_using();
+        shader->stop_using();
     });
 
     const Camera&      camera                          = wxGetApp().plater()->get_camera();
@@ -121,6 +123,8 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
     const GLVolume    *vol                             = selection.get_volume(*selection.get_volume_idxs().begin());
     const Transform3d &instance_scaling_matrix_inverse = vol->get_instance_transformation().get_scaling_factor_matrix().inverse();
     const Transform3d &instance_matrix                 = vol->get_instance_transformation().get_matrix();
+
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
     ColorRGBA render_color;
     for (size_t i = 0; i < cache_size; ++i) {
@@ -151,7 +155,7 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
         }
 
         m_cylinder.model.set_color(render_color);
-        if (shader) shader->set_uniform("emission_factor", 0.5f);
+        shader->set_uniform("emission_factor", 0.5f);
 
         if (vol->is_left_handed()) glFrontFace(GL_CW);
 
@@ -164,10 +168,10 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
 
         double radius = (double) brim_point.head_front_radius * RenderPointScale;
         const Transform3d center_matrix =
-            instance_matrix 
-            * Geometry::translation_transform(brim_point.pos.cast<double>()) 
+            instance_matrix
+            * Geometry::translation_transform(brim_point.pos.cast<double>())
             // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-            * instance_scaling_matrix_inverse 
+            * instance_scaling_matrix_inverse
             * q
             * Geometry::scale_transform(Vec3d{radius, radius, .2});
         if (i < m_grabbers.size()) {
@@ -274,7 +278,7 @@ bool GLGizmoBrimEars::on_mouse(const wxMouseEvent& mouse_event)
     if (mouse_event.Moving()) {
         gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false);
     }
-    
+
     // when control is down we allow scene pan and rotation even when clicking
     // over some object
     bool control_down           = mouse_event.CmdDown();
@@ -283,14 +287,14 @@ bool GLGizmoBrimEars::on_mouse(const wxMouseEvent& mouse_event)
     const Selection &selection = m_parent.get_selection();
     int selected_object_idx = selection.get_object_idx();
     if (mouse_event.LeftDown()) {
-        if ((!control_down || grabber_contains_mouse) &&            
+        if ((!control_down || grabber_contains_mouse) &&
             gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false))
             // the gizmo got the event and took some action, there is no need
             // to do anything more
             return true;
     } else if (mouse_event.RightDown()){
         if (!control_down && selected_object_idx != -1 &&
-            gizmo_event(SLAGizmoEventType::RightDown, mouse_pos, false, false, false)) 
+            gizmo_event(SLAGizmoEventType::RightDown, mouse_pos, false, false, false))
             // event was taken care of
             return true;
     } else if (mouse_event.Dragging()) {
