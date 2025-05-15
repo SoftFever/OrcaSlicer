@@ -57,7 +57,7 @@ class OG_CustomCtrl;
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
-class Page// : public wxScrolledWindow
+class Page: public std::enable_shared_from_this<Page>// : public wxScrolledWindow
 {
 	//BBS: GUI refactor
 	wxPanel*		m_tab_owner;
@@ -164,7 +164,8 @@ protected:
 
    	struct PresetDependencies {
 		Preset::Type type	  = Preset::TYPE_INVALID;
-		wxCheckBox 	*checkbox = nullptr;
+		::CheckBox*   checkbox = nullptr;
+		wxStaticText* checkbox_title = nullptr;
 		Button 	*btn  = nullptr;
 		std::string  key_list; // "compatible_printers"
 		std::string  key_condition;
