@@ -3,9 +3,7 @@
   "from": "system",
   "setting_id": "GP001",
   "instantiation": "true",
-  "compatible_printers": [
-    "Flashforge Guider 3 Ultra 0.4 Nozzle"
-  ],
+  "compatible_printers": ["Flashforge Guider 3 Ultra 0.4 Nozzle"],
   "bridge_flow": "0.96",
   "bridge_speed": "20",
   "infill_wall_overlap": "25%",

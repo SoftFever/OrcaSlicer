@@ -20,9 +20,7 @@
   "brim_object_gap": "0.1",
   "brim_type": "no_brim",
   "brim_width": "5",
-  "compatible_printers": [
-    "Flashforge Guider 3 Ultra 0.4 Nozzle"
-  ],
+  "compatible_printers": ["Flashforge Guider 3 Ultra 0.4 Nozzle"],
   "compatible_printers_condition": "",
   "default_acceleration": "10000",
   "default_jerk": "0",
@@ -152,7 +150,7 @@
   "sparse_infill_density": "15%",
   "sparse_infill_filament": "1",
   "sparse_infill_line_width": "0.45",
-  "sparse_infill_pattern": "grid",
+  "sparse_infill_pattern": "crosshatch",
   "sparse_infill_speed": "270",
   "spiral_mode": "0",
   "staggered_inner_seams": "0",
