@@ -278,6 +278,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_text_printer_msg = new PrinterMsgPanel(m_basic_panel);
     m_text_printer_msg->SetMinSize(wxSize(FromDIP(420), -1));
     m_text_printer_msg->SetMaxSize(wxSize(FromDIP(420), -1));
+    m_text_printer_msg->SetBackgroundColour(m_colour_def_color);
     m_text_printer_msg->SetFont(::Label::Body_13);
     m_text_printer_msg->Hide();
 
@@ -412,8 +413,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_filament_panel->Hide();
 
     m_statictext_ams_msg = new PrinterMsgPanel(m_scroll_area);
-    m_statictext_ams_msg->SetMinSize(wxSize(FromDIP(645), -1));
-    m_statictext_ams_msg->SetMaxSize(wxSize(FromDIP(645), -1));
+    m_statictext_ams_msg->SetMinSize(wxSize(FromDIP(655), -1));
+    m_statictext_ams_msg->SetMaxSize(wxSize(FromDIP(655), -1));
+    m_statictext_ams_msg->SetBackgroundColour(m_colour_def_color);
     m_statictext_ams_msg->SetFont(::Label::Body_13);
     m_statictext_ams_msg->Hide();
 
@@ -1502,23 +1504,26 @@ void SelectMachineDialog::update_print_status_msg()
  //   for (const auto &info : m_pre_print_checker.filamentList) { update_ams_status_msg(info.msg, info.level == Error ? true : false); }
 
     std::vector<wxString> filamentList_msgs;
-    bool                  filamentList_color = false ;
+     bool                  has_filamen_error = false;
     for (const auto &info : m_pre_print_checker.filamentList) {
         filamentList_msgs.push_back(info.msg);
-        filamentList_color = info.level == Error ? true : false;
+        if (!has_filamen_error)
+            has_filamen_error = (info.level == Error);
+
     }
-    update_ams_status_msg(filamentList_msgs, filamentList_color, false);
+    update_ams_status_msg(filamentList_msgs, has_filamen_error, false);
 
 
     std::vector<wxString> printerList_msgs;
-    bool                  printermsg_color = false;
+    bool                  has_printer_error = false;
     for (const auto &info : m_pre_print_checker.printerList) {
         printerList_msgs.push_back(info.msg);
-        printermsg_color = info.level == Error ? true : false;
+        if (!has_printer_error)
+            has_printer_error = (info.level == Error );
 
         update_printer_status_msg_tips(info.tips);
     }
-    update_priner_status_msg(printerList_msgs, printermsg_color,false);
+    update_priner_status_msg(printerList_msgs, has_printer_error, false);
 
  }
 
@@ -3602,7 +3607,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     }
 
     /** normal check **/
-  //  show_status(PrintDialogStatus::PrintStatusReadyToGo);
+    show_status(PrintDialogStatus::PrintStatusReadyToGo);
 }
 
 bool SelectMachineDialog::has_timelapse_warning(wxString &msg_text)
