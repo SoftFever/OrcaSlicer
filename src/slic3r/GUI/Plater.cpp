@@ -2238,21 +2238,23 @@ void Sidebar::update_all_preset_comboboxes()
         // Orca: don't update bed type if loading project
         if (!p->plater->is_loading_project()) {
             bool has_changed = reset_bed_type_combox_choices();
-            if (m_begin_sync_printer_status && !has_changed) {
-                return;
-            }
-            auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
-                                                                           "curr_bed_type");
-            if (!str_bed_type.empty()) {
-                int bed_type_value = atoi(str_bed_type.c_str());
-                if (bed_type_value <= 0 || bed_type_value >= btCount) {
-                    bed_type_value = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-                }
+            bool flag         = m_begin_sync_printer_status && !has_changed;
+            if (!(flag)) {
+                auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
+                                                                               "curr_bed_type");
+                if (!str_bed_type.empty()) {
+                    int bed_type_value = atoi(str_bed_type.c_str());
+                    if (bed_type_value <= 0 || bed_type_value >= btCount) {
+                        bed_type_value = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
+                    }
 
-                p->combo_printer_bed->SelectAndNotify(bed_type_value - 1);
+                    p->combo_printer_bed->SelectAndNotify(bed_type_value - 1);
+                } else {
+                    BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
+                    p->combo_printer_bed->SelectAndNotify((int) bed_type - 1);
+                }
             } else {
-                BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-                p->combo_printer_bed->SelectAndNotify((int) bed_type - 1);
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":no need reset_bed_type_combox_choices";
             }
         }
     } else {
