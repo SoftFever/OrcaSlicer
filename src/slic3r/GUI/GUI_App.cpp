@@ -3253,7 +3253,11 @@ static void update_dark_children_ui(wxWindow* window, bool just_buttons_update =
     is_btn = false;*/
     if (!window) return;
 
-    wxGetApp().UpdateDarkUI(window);
+    if (ScalableButton* btn = dynamic_cast<ScalableButton*>(window)) {
+        btn->UpdateDarkUI();
+    } else {
+        wxGetApp().UpdateDarkUI(window);
+    }
 
     auto children = window->GetChildren();
     for (auto child : children) {

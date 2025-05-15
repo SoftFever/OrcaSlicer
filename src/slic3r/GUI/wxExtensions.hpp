@@ -263,6 +263,7 @@ public:
     void UseDefaultBitmapDisabled();
 
     void    msw_rescale();
+    void    UpdateDarkUI() { msw_rescale(); };
 
 private:
     wxWindow*       m_parent { nullptr };
