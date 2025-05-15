@@ -378,7 +378,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
 Temp_Calibration_Dlg::~Temp_Calibration_Dlg() {
     // Disconnect Events
     m_rbFilamentType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(Temp_Calibration_Dlg::on_filament_type_changed), NULL, this);
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Temp_Calibration_Dlg::on_start), NULL, this);
+    //m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Temp_Calibration_Dlg::on_start), NULL, this);
 }
 
 void Temp_Calibration_Dlg::on_start(wxCommandEvent& event) {
@@ -516,7 +516,7 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
 
 MaxVolumetricSpeed_Test_Dlg::~MaxVolumetricSpeed_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MaxVolumetricSpeed_Test_Dlg::on_start), NULL, this);
+    //m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MaxVolumetricSpeed_Test_Dlg::on_start), NULL, this);
 }
 
 void MaxVolumetricSpeed_Test_Dlg::on_start(wxCommandEvent& event) {
@@ -614,7 +614,7 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
 VFA_Test_Dlg::~VFA_Test_Dlg()
 {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(VFA_Test_Dlg::on_start), NULL, this);
+    //m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(VFA_Test_Dlg::on_start), NULL, this);
 }
 
 void VFA_Test_Dlg::on_start(wxCommandEvent& event)
@@ -711,7 +711,7 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
 
 Retraction_Test_Dlg::~Retraction_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Retraction_Test_Dlg::on_start), NULL, this);
+    //m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Retraction_Test_Dlg::on_start), NULL, this);
 }
 
 void Retraction_Test_Dlg::on_start(wxCommandEvent& event) {
@@ -831,7 +831,7 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
 
 Input_Shaping_Freq_Test_Dlg::~Input_Shaping_Freq_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Freq_Test_Dlg::on_start), NULL, this);
+    //m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Freq_Test_Dlg::on_start), NULL, this);
 }
 
 void Input_Shaping_Freq_Test_Dlg::on_start(wxCommandEvent& event) {
@@ -956,7 +956,7 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
 
 Input_Shaping_Damp_Test_Dlg::~Input_Shaping_Damp_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Damp_Test_Dlg::on_start), NULL, this);
+    //m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Damp_Test_Dlg::on_start), NULL, this);
 }
 
 void Input_Shaping_Damp_Test_Dlg::on_start(wxCommandEvent& event) {
@@ -1060,7 +1060,7 @@ Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWin
 
 Junction_Deviation_Test_Dlg::~Junction_Deviation_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Junction_Deviation_Test_Dlg::on_start), NULL, this);
+    //m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Junction_Deviation_Test_Dlg::on_start), NULL, this);
 }
 
 void Junction_Deviation_Test_Dlg::on_start(wxCommandEvent& event) {
