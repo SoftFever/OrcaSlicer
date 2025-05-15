@@ -434,6 +434,7 @@ public:
     void paste_layers_into_list();
     void copy_settings_to_clipboard();
     void paste_settings_into_list();
+    bool can_paste_settings_into_list();
     bool clipboard_is_empty() const { return m_clipboard.empty(); }
     void paste_volumes_into_list(int obj_idx, const ModelVolumePtrs& volumes);
     void paste_objects_into_list(const std::vector<size_t>& object_idxs);

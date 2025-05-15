@@ -1932,9 +1932,7 @@ void MenuFactory::append_menu_item_per_object_process(wxMenu* menu)
             wxGetApp().obj_list()->paste_settings_into_list();
         }, "", nullptr,
         []() {
-            Selection &selection = plater()->canvas3D()->get_selection();
-            return selection.is_single_full_object() || selection.is_multiple_full_object() || selection.is_single_full_instance() || selection.is_multiple_full_instance() ||
-                   selection.is_single_volume() || selection.is_multiple_volume();
+            return wxGetApp().obj_list()->can_paste_settings_into_list();
         },
         m_parent);
 }
