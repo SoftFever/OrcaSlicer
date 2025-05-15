@@ -1306,7 +1306,6 @@ void SendToPrinterDialog::update_show_status()
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
             return;
         } else/* if (obj_->connection_type() == "cloud")*/ {
-            Enable(obj_ && obj_->is_connected());
             std::string dev_id = obj_->dev_ip;
             if (m_file_sys) {
                 if (dev_id == m_device_select) {
