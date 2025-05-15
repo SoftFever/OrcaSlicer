@@ -120,7 +120,11 @@
     ],
     "default_filament_profile": [],
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
+<<<<<<< HEAD
+    "layer_change_gcode": ";LAYER:{layer_num+1}\n",
+=======
     "layer_change_gcode": "",
+>>>>>>> f0ede03e46c0d224f7b9805843961bb94078524e
     "machine_start_gcode": "",
     "machine_end_gcode": "",
     "change_filament_gcode": "",
