@@ -1738,10 +1738,10 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusWarningTpuRightColdPulling) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
-    } else if (status == PrintStatusFilamentHighChamberTempCloseDoor) {
+    } else if (status == PrintStatusFilamentWarningHighChamberTempCloseDoor) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
-    } else if (status == PrintDialogStatus::PrintStatusFilamentHighChamberTempSoft || status == PrintDialogStatus::PrintStatusUnknownFilamentHighChamberTempSoft) {
+    } else if (status == PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempSoft || status == PrintDialogStatus::PrintStatusFilamentWarningUnknownHighChamberTempSoft) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     }
@@ -3557,14 +3557,13 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     {
         try
         {
-            int fila_id = atoi(item.filament_id.c_str());
-            int chamber_temp = chamber_temperatures->values[fila_id];
+            int chamber_temp = chamber_temperatures->values[item.id];
 
             // check close door
-            if (obj_->is_support_chamber_edit && chamber_temp >= obj_->chamber_temp_switch_heat)
+            if (chamber_temp >= obj_->chamber_temp_switch_heat)
             {
-                show_status(PrintDialogStatus::PrintStatusFilamentHighChamberTempCloseDoor);
-               // return;
+                show_status(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempCloseDoor);
+                if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempCloseDoor)) { return; }
             }
 
             // check vitrification
@@ -3591,15 +3590,15 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     if (!known_fila_soften_extruders.empty()) {
         const wxString& msg = wxString::Format(_L("The filament on %s may soften. Please unload."),
             _get_ext_loc_str(known_fila_soften_extruders, obj_->m_extder_data.total_extder_count));
-        show_status(PrintDialogStatus::PrintStatusFilamentHighChamberTempSoft, std::vector<wxString> {msg});
-        return;
+        show_status(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempSoft, std::vector<wxString> {msg});
+        if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempSoft)) { return; }
     }
 
     if (!unknown_fila_soften_extruders.empty()) {
         const wxString& msg = wxString::Format(_L("The filament on %s is unknown and may soften. Please set filament."),
             _get_ext_loc_str(unknown_fila_soften_extruders, obj_->m_extder_data.total_extder_count));
-        show_status(PrintDialogStatus::PrintStatusUnknownFilamentHighChamberTempSoft, std::vector<wxString> {msg});
-        return;
+        show_status(PrintDialogStatus::PrintStatusFilamentWarningUnknownHighChamberTempSoft, std::vector<wxString> {msg});
+        if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusFilamentWarningUnknownHighChamberTempSoft)) { return; }
     }
 
     /** normal check **/

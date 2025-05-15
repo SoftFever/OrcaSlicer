@@ -87,9 +87,9 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusWarningKvalueNotUsed,
     PrintStatusWarningTpuRightColdPulling,
     PrintStatusHasFilamentInBlackListWarning,
-    PrintStatusFilamentHighChamberTempCloseDoor,
-    PrintStatusFilamentHighChamberTempSoft,
-    PrintStatusUnknownFilamentHighChamberTempSoft,
+    PrintStatusFilamentWarningHighChamberTempCloseDoor,
+    PrintStatusFilamentWarningHighChamberTempSoft,
+    PrintStatusFilamentWarningUnknownHighChamberTempSoft,
     PrintStatusFilamentWarningEnd,
 
     PrintStatusWarningEnd,//->end error<-
@@ -123,12 +123,12 @@ public:
     static ::std::string get_print_status_info(PrintDialogStatus status);
 
 	wxString get_pre_state_msg(PrintDialogStatus status);
-    bool is_error(PrintDialogStatus status) { return (PrintStatusErrorBegin < status) && (PrintStatusErrorEnd > status); };
-    bool is_error_printer(PrintDialogStatus status) { return (PrintStatusPrinterErrorBegin < status) && (PrintStatusPrinterErrorEnd > status); };
-    bool is_error_filament(PrintDialogStatus status) { return (PrintStatusFilamentErrorBegin < status) && (PrintStatusFilamentErrorEnd > status); };
-    bool is_warning(PrintDialogStatus status) { return (PrintStatusWarningBegin < status) && (PrintStatusWarningEnd > status); };
-    bool is_warning_printer(PrintDialogStatus status) { return (PrintStatusPrinterWarningBegin < status) && (PrintStatusPrinterWarningEnd > status); };
-    bool is_warning_filament(PrintDialogStatus status) { return (PrintStatusFilamentWarningBegin < status) && (PrintStatusFilamentWarningEnd > status); };
+    static bool is_error(PrintDialogStatus status) { return (PrintStatusErrorBegin < status) && (PrintStatusErrorEnd > status); };
+    static bool is_error_printer(PrintDialogStatus status) { return (PrintStatusPrinterErrorBegin < status) && (PrintStatusPrinterErrorEnd > status); };
+    static bool is_error_filament(PrintDialogStatus status) { return (PrintStatusFilamentErrorBegin < status) && (PrintStatusFilamentErrorEnd > status); };
+    static bool is_warning(PrintDialogStatus status) { return (PrintStatusWarningBegin < status) && (PrintStatusWarningEnd > status); };
+    static bool is_warning_printer(PrintDialogStatus status) { return (PrintStatusPrinterWarningBegin < status) && (PrintStatusPrinterWarningEnd > status); };
+    static bool is_warning_filament(PrintDialogStatus status) { return (PrintStatusFilamentWarningBegin < status) && (PrintStatusFilamentWarningEnd > status); };
 };
 //class PrePrintMsgBoard : public wxWindow
 //{
