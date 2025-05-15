@@ -3,6 +3,7 @@
 
 #include "wx/wx.h"
 #include "wx/sizer.h"
+#include "set"
 
 #include "Button.hpp"
 #include "Label.hpp"
