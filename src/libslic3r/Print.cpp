@@ -1051,7 +1051,7 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
         filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
 
     if (!check_multi_filaments_compatibility(filament_types))
-        return { L("Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing") };
+        return { L("Cannot print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing") };
 
     return {std::string()};
 }
@@ -1942,7 +1942,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                 }
                 if (!found_shared) {
                     BOOST_LOG_TRIVIAL(warning) << boost::format("Also can not find the shared object, identify_id %1%, maybe shared object is skipped")%obj->model_object()->instances[0]->loaded_id;
-                    //throw Slic3r::SlicingError("Can not find the cached data.");
+                    //throw Slic3r::SlicingError("Cannot find the cached data.");
                     //don't report errot, set use_cache to false, and reslice these objects
                     need_slicing_objects.insert(obj);
                     re_slicing_objects.insert(obj);

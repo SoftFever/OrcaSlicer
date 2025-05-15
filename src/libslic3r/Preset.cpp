@@ -2540,7 +2540,7 @@ const std::string& PresetCollection::get_suffix_modified() {
 }
 
 // Return a preset by its name. If the preset is active, a temporary copy is returned.
-// If a preset is not found by its name, null is returned.
+// If a preset was not found by its name, null is returned.
 Preset* PresetCollection::find_preset(const std::string &name, bool first_visible_if_not_found, bool real, bool only_from_library)
 {
     Preset key(m_type, name, false);

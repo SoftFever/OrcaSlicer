@@ -347,7 +347,7 @@ public:
 
 		// Based on Text
         memDc.SetFont(m_constant_text.based_on_font);
-        auto bs_version = wxString::Format("Based on PrusaSlicer and BambuStudio").ToStdString();
+        auto bs_version = wxString::Format(_L("Based on PrusaSlicer and BambuStudio")).ToStdString();
         wxSize based_on_ext = memDc.GetTextExtent(bs_version);
         wxRect based_on_rect(
 			wxPoint(0, height - based_on_ext.GetHeight() * 2),
@@ -2250,7 +2250,7 @@ bool GUI_App::on_init_inner()
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
     wxCHECK_MSG(wxDirExists(resources_dir), false,
-        wxString::Format("Resources path does not exist or is not a directory: %s", resources_dir));
+        wxString::Format(_L("Resources path does not exist or is not a directory: %s"), resources_dir));
 
 #ifdef __linux__
     if (! check_old_linux_datadir(GetAppName())) {
@@ -4053,7 +4053,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
         try {
         auto evt_str = evt.GetString();
         if (!evt_str.empty()) {
-            json j = json::parse(evt_str);
+            json j = json::parse(evt_str.utf8_string());
             if (j.contains("code")) {
                 if (!j["code"].is_null())
                     code = j["code"].get<int>();
