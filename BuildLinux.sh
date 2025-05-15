@@ -92,6 +92,8 @@ if [ "${DISTRIBUTION}" == "ubuntu" ] || [ "${DISTRIBUTION}" == "linuxmint" ]; th
 # Check if distribution is Debian/Ubuntu-like based on ID_LIKE
 elif [[ "${DISTRIBUTION_LIKE}" == *"debian"* ]] || [[ "${DISTRIBUTION_LIKE}" == *"ubuntu"* ]]; then
     DISTRIBUTION="debian"
+elif [[ "${DISTRIBUTION_LIKE}" == *"arch"* ]]; then
+    DISTRIBUTION="arch"
 fi
 if [ ! -f ./linux.d/${DISTRIBUTION} ]
 then
