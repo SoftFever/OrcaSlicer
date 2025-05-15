@@ -3290,10 +3290,11 @@ void SyncAmsInfoDialog::update_lan_machine_list()
 
 SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(InputInfo &input_info)
     : BaseTransparentDPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe),
-                              320,
+                              wxGetApp().preset_bundle->get_printer_extruder_count() == 1 ? 370 :320,
                               input_info.dialog_pos,
                               90,
-                              _L("Successfully synchronized nozzle and AMS number information."),
+                              wxGetApp().preset_bundle->get_printer_extruder_count() == 1 ? _L("Successfully synchronized nozzle information.") :
+                                                                                            _L("Successfully synchronized nozzle and AMS number information."),
                               _L("Continue to sync filaments"),
                               _CTX(L_CONTEXT("Cancel", "Sync_Nozzle_AMS"), "Sync_Nozzle_AMS"),
                               DisappearanceMode::TimedDisappearance)
