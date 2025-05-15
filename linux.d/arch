@@ -27,6 +27,9 @@ export REQUIRED_DEV_PACKAGES=(
     wget
 )
 
+# Arch has switched to cmake 4.x, pretend it didn't
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 if [[ -n "$UPDATE_LIB" ]]
 then
     echo -n -e "Updating linux ...\n"
