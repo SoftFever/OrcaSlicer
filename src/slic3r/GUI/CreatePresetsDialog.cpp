@@ -1021,7 +1021,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_for_printer_item(
 
 wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
 {
-    auto dlg_btns = new DialogButtons(this, {"Ok", "Cancel"});
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
     m_button_create = dlg_btns->GetOK();
     m_button_create->SetLabel(_L("Create"));
     m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
@@ -2030,7 +2030,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_max_print_height_item(wxWindow *pa
 
 wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
 {
-    auto dlg_btns = new DialogButtons(parent, {"Ok", "Cancel"});
+    auto dlg_btns = new DialogButtons(parent, {"OK", "Cancel"});
     
     m_button_OK = dlg_btns->GetOK();
     m_button_OK->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
@@ -2587,7 +2587,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
 
 wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
 {
-    auto dlg_btns = new DialogButtons(parent, {"Back", "Ok", "Cancel"});
+    auto dlg_btns = new DialogButtons(parent, {"Back", "OK", "Cancel"});
 
     m_button_page2_back = dlg_btns->GetBACK();
     m_button_page2_back->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { show_page1(); });
@@ -4061,7 +4061,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_process_preset_to_f
 
 wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
 {
-    auto dlg_btns = new DialogButtons(parent, {"Ok", "Cancel"});
+    auto dlg_btns = new DialogButtons(parent, {"OK", "Cancel"});
     m_button_ok = dlg_btns->GetOK();
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         if (!has_check_box_selected()) {

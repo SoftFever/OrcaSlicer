@@ -100,7 +100,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
 
     m_param_description = new wxStaticText(this, wxID_ANY, wxEmptyString);
 
-    auto dlg_btns = new DialogButtons(this, {"Ok", "Cancel"});
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 

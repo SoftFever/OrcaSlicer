@@ -96,7 +96,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     m_optgroup = new ConfigOptionsGroup(this, _L("Print Host upload"), m_config);
     build_printhost_settings(m_optgroup);
 
-    auto dlg_btns = new DialogButtons(this, {"Ok"}, _L("Ok"));
+    auto dlg_btns = new DialogButtons(this, {"OK"});
     btnOK = dlg_btns->GetOK();
     btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
 
