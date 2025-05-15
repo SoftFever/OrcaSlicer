@@ -4737,9 +4737,9 @@ void PrintOption::enable(bool en)
         m_printoption_item->enable(en);
 
         if (en) {
-            m_printoption_title->SetForegroundColour("#262E30");
+            m_printoption_title->SetForegroundColour(StateColor::darkModeColorFor("#262E30"));
         } else {
-            m_printoption_title->SetForegroundColour(wxColour(144, 144, 144));
+            m_printoption_title->SetForegroundColour(StateColor::darkModeColorFor(wxColour(144, 144, 144)));
         }
     }
 }
@@ -4812,7 +4812,9 @@ PrintOptionItem::PrintOptionItem(wxWindow* parent, std::vector<POItem> ops, std:
     Bind(wxEVT_LEFT_DOWN, &PrintOptionItem::on_left_down, this);
 
     m_selected_bk = ScalableBitmap(this, "print_options_bg", 22);
-    m_selected_disbabled_bk = ScalableBitmap(this, "print_options_bg_disabled", 22);
+    m_selected_bk_dark = ScalableBitmap(this, "print_options_bg_dark", 22);
+    m_selected_disabled_bk = ScalableBitmap(this, "print_options_bg_disabled", 22);
+    m_selected_disabled_bk_dark = ScalableBitmap(this, "print_options_bg_disabled_dark", 22);
 
     // update the options
     update_options(ops);
@@ -4899,9 +4901,18 @@ void PrintOptionItem::doRender(wxDC& dc)
     /*selected*/
     auto selected_left = selected * PRINT_OPT_WIDTH + FromDIP(4);
     if (m_enable) {
-        dc.DrawBitmap(m_selected_bk.bmp(), selected_left, (size.y - m_selected_bk.GetBmpHeight()) / 2);
+        if (!wxGetApp().dark_mode()) {
+            dc.DrawBitmap(m_selected_bk.bmp(), selected_left, (size.y - m_selected_bk.GetBmpHeight()) / 2);
+        } else {
+            dc.DrawBitmap(m_selected_bk_dark.bmp(), selected_left, (size.y - m_selected_bk_dark.GetBmpHeight()) / 2);
+        }
+
     } else {
-        dc.DrawBitmap(m_selected_disbabled_bk.bmp(), selected_left, (size.y - m_selected_disbabled_bk.GetBmpHeight()) / 2);
+        if (!wxGetApp().dark_mode()) {
+            dc.DrawBitmap(m_selected_disabled_bk.bmp(), selected_left, (size.y - m_selected_disabled_bk.GetBmpHeight()) / 2);
+        } else {
+            dc.DrawBitmap(m_selected_bk_dark.bmp(), selected_left, (size.y - m_selected_bk_dark.GetBmpHeight()) / 2);
+        }
     }
 
     for (auto it = m_ops.begin(); it != m_ops.end(); ++it)

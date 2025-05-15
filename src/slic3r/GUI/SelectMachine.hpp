@@ -180,7 +180,9 @@ private:
 
 private:
     ScalableBitmap m_selected_bk;
-    ScalableBitmap m_selected_disbabled_bk;
+    ScalableBitmap m_selected_bk_dark;
+    ScalableBitmap m_selected_disabled_bk;
+    ScalableBitmap m_selected_disabled_bk_dark;
     std::vector<POItem> m_ops;
     std::string selected_key;
     std::string m_param;
