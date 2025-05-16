@@ -9,6 +9,7 @@
 #include "MsgDialog.hpp"
 #include "libslic3r/Color.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/StaticLine.hpp"
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
@@ -48,6 +49,7 @@ static void update_ui(wxWindow* window)
 RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
 : wxDialog(parent, wxID_ANY, _(L("Ramming customization")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE/* | wxRESIZE_BORDER*/)
 {
+    SetBackgroundColour(*wxWHITE);
     update_ui(this);
     m_panel_ramming  = new RammingPanel(this,parameters);
 
@@ -99,6 +101,7 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
 RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
 : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxPoint(50,50), wxSize(800,350),wxBORDER_RAISED*/)
 {
+    SetBackgroundColour(*wxWHITE);
     update_ui(this);
 	auto sizer_chart = new wxBoxSizer(wxVERTICAL);
 	auto sizer_param = new wxBoxSizer(wxVERTICAL);
@@ -126,41 +129,56 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
 #endif
  	sizer_chart->Add(m_chart, 0, wxALL, 5);
 
-    m_widget_time						= new wxSpinCtrlDouble(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH()*2.5, -1),style,0.,5.0,3.,0.5);        
-    m_widget_volume							  = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH()*2.5, -1),style,0,10000,0);        
-    m_widget_ramming_line_width_multiplicator = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH()*2.5, -1),style,10,200,100);        
-    m_widget_ramming_step_multiplicator		  = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH()*2.5, -1),style,10,200,100);
+    m_widget_time                             = new SpinInput(this, wxEmptyString, _L("ms") , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 5000 , 3000, 500);
+    m_widget_volume                           = new SpinInput(this, wxEmptyString, _L("mm³"), wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 10000, 0   );
+    m_widget_ramming_line_width_multiplicator = new SpinInput(this, wxEmptyString, _L("%")  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 200  , 100 );
+    m_widget_ramming_step_multiplicator       = new SpinInput(this, wxEmptyString, _L("%")  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 200  , 100 );
 
-#ifdef _WIN32
-    update_ui(m_widget_time->GetText());
-    update_ui(m_widget_volume);
-    update_ui(m_widget_ramming_line_width_multiplicator);
-    update_ui(m_widget_ramming_step_multiplicator);
-#endif
+    auto add_title = [this, sizer_param](wxString label){
+        auto title = new StaticLine(this, 0, label);
+        title->SetFont(Label::Head_14);
+        title->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
+        sizer_param->Add(title, 0, wxEXPAND | wxBOTTOM, scale(8));
+    };
 
-	auto gsizer_param = new wxFlexGridSizer(2, 5, 15);
-	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Total ramming time")) + " (" + _(L("s")) + "):")), 0, wxALIGN_CENTER_VERTICAL);
-	gsizer_param->Add(m_widget_time);
-	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Total rammed volume")) + " (" + _(L("mm")) + wxString("³):", wxConvUTF8))), 0, wxALIGN_CENTER_VERTICAL);
-	gsizer_param->Add(m_widget_volume);
-	gsizer_param->AddSpacer(20);
-	gsizer_param->AddSpacer(20);
-	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Ramming line width")) + " (%):")), 0, wxALIGN_CENTER_VERTICAL);
-	gsizer_param->Add(m_widget_ramming_line_width_multiplicator);
-	gsizer_param->Add(new wxStaticText(this, wxID_ANY, wxString(_(L("Ramming line spacing")) + " (%):")), 0, wxALIGN_CENTER_VERTICAL);
-	gsizer_param->Add(m_widget_ramming_step_multiplicator);
+    SetFont(Label::Body_14);
+    wxSize col_size;
+    for(auto label : {"Time", "Volume", "Width", "Spacing"})
+        col_size.IncTo(GetTextExtent(_L(label)));
+    col_size = wxSize(col_size.x + scale(30) ,-1);
 
-	sizer_param->Add(gsizer_param, 0, wxTOP, scale(10));
+    auto add_spin = [this, sizer_param, col_size](wxString label, SpinInput* spin){
+        spin->Bind(wxEVT_KILL_FOCUS, [this](auto &e) {
+            e.SetId(GetId());
+            ProcessEventLocally(e);
+            e.Skip();
+        });
+        auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
+        auto text = new wxStaticText(this, wxID_ANY, label, wxDefaultPosition, col_size);
+        text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
+        h_sizer->Add(text, 0, wxALIGN_CENTER_VERTICAL);
+        h_sizer->Add(spin);
+        sizer_param->Add(h_sizer, 0, wxEXPAND | wxBOTTOM, scale(2));
+    };
 
-    m_widget_time->SetValue(m_chart->get_time());
-    m_widget_time->SetDigits(2);
+    add_title(_L("Total ramming"));
+    add_spin( _L("Time")  , m_widget_time  );
+    add_spin( _L("Volume"), m_widget_volume);
+
+    sizer_param->AddSpacer(10);
+
+    add_title(_L("Ramming line"));
+    add_spin( _L("Width")  , m_widget_ramming_line_width_multiplicator);
+    add_spin( _L("Spacing"), m_widget_ramming_step_multiplicator      );
+
+    m_widget_time->SetValue(int(m_chart->get_time() * 1000));
     m_widget_volume->SetValue(m_chart->get_volume());
     m_widget_volume->Disable();
     m_widget_ramming_line_width_multiplicator->SetValue(m_ramming_line_width_multiplicator);
-    m_widget_ramming_step_multiplicator->SetValue(m_ramming_step_multiplicator);        
-    
-    m_widget_ramming_step_multiplicator->Bind(wxEVT_TEXT,[this](wxCommandEvent&) { line_parameters_changed(); });
-    m_widget_ramming_line_width_multiplicator->Bind(wxEVT_TEXT,[this](wxCommandEvent&) { line_parameters_changed(); });
+    m_widget_ramming_step_multiplicator->SetValue(m_ramming_step_multiplicator);
+
+    m_widget_ramming_step_multiplicator->Bind(wxEVT_SPINCTRL,[this](wxCommandEvent&) { line_parameters_changed(); });
+    m_widget_ramming_line_width_multiplicator->Bind(wxEVT_SPINCTRL,[this](wxCommandEvent&) { line_parameters_changed(); });
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(sizer_chart, 0, wxALL, 5);
@@ -169,10 +187,15 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
 	sizer->SetSizeHints(this);
 	SetSizer(sizer);
 
-    m_widget_time->Bind(wxEVT_TEXT,[this](wxCommandEvent&) {m_chart->set_xy_range(m_widget_time->GetValue(),-1);});
+    m_widget_time->Bind(wxEVT_SPINCTRL,[this](wxCommandEvent&) {
+        m_chart->set_xy_range(m_widget_time->GetValue() * 0.001,-1);
+    });
     m_widget_time->Bind(wxEVT_CHAR,[](wxKeyEvent&){});      // do nothing - prevents the user to change the value
     m_widget_volume->Bind(wxEVT_CHAR,[](wxKeyEvent&){});    // do nothing - prevents the user to change the value   
-    Bind(EVT_WIPE_TOWER_CHART_CHANGED,[this](wxCommandEvent&) {m_widget_volume->SetValue(m_chart->get_volume()); m_widget_time->SetValue(m_chart->get_time());} );
+    Bind(EVT_WIPE_TOWER_CHART_CHANGED,[this](wxCommandEvent&) {
+        m_widget_volume->SetValue(m_chart->get_volume());
+        m_widget_time->SetValue(m_chart->get_time() * 1000);
+    });
     Refresh(true); // erase background
 }
 
