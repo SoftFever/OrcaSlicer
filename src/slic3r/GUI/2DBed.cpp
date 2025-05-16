@@ -15,7 +15,7 @@ namespace GUI {
 
 
 Bed_2D::Bed_2D(wxWindow* parent) : 
-wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1), wxTAB_TRAVERSAL)
+wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(32 * wxGetApp().em_unit(), -1), wxTAB_TRAVERSAL)
 {
 #ifdef __APPLE__
     m_user_drawn_background = false;
