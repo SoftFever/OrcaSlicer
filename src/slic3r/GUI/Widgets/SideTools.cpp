@@ -205,7 +205,7 @@ void SideToolsPanel::doRender(wxDC &dc)
             for (auto i = 0; i < m_dev_name.length(); i++) {
                 auto curr_width = dc.GetTextExtent(m_dev_name.substr(0, i));
                 if (curr_width.x >= limit_width) {
-                    finally_name = (m_dev_name.substr(0, i) + wxString("...")).ToStdString();
+                    finally_name = m_dev_name.substr(0, i) + "...";
                     break;
                 }
             }
