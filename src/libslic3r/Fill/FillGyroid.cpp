@@ -3,7 +3,7 @@
 #include "../Surface.hpp"
 #include <cmath>
 #include <algorithm>
-#include <iostream>
+
 
 #include "FillGyroid.hpp"
 
@@ -16,7 +16,7 @@ static inline double f(double x, double z_sin, double z_cos, bool vertical, bool
         double a   = sin(x + phase_offset);
         double b   = - z_cos;
         double res = z_sin * cos(x + phase_offset + (flip ? M_PI : 0.));
-        double r   = sqrt(sqr(a) + sqr(b));
+        double r   = std::hypot(a, b);
         return asin(a/r) + asin(res/r) + M_PI;
     }
     else {
@@ -24,14 +24,39 @@ static inline double f(double x, double z_sin, double z_cos, bool vertical, bool
         double a   = cos(x + phase_offset);
         double b   = - z_sin;
         double res = z_cos * sin(x + phase_offset + (flip ? 0 : M_PI));
-        double r   = sqrt(sqr(a) + sqr(b));
-        return (asin(a/r) + asin(res/r) + 0.5 * M_PI);
+        double r   = std::hypot(a,b);
+        return (asin(a/r) + asin(res/r) + M_PI_2);
     }
+}
+static inline double f2(double x, double z_sin, double z_cos, bool vertical, bool flip, double offset){
+   
+    if (offset == 0.0) {
+        return f(x, z_sin, z_cos, vertical, flip);
+    }
+    const double h = 0.2; // numerical derivative step size
+
+    // Numeric derivative
+    double f_plus  = f(x + h, z_sin, z_cos, vertical, flip);
+    double f_minus = f(x - h, z_sin, z_cos, vertical, flip);
+    double df_dx   = (f_plus - f_minus) / (2 * h); // Slope at x
+
+    df_dx = std::clamp(df_dx, -1e5, 1e5);
+
+    double cos_alpha = 1.0 / std::hypot(1.0, df_dx); 
+
+    if (fabs(cos_alpha) < 1e-10) {
+        cos_alpha = 1e-10; // avoid division by zero
+    }
+
+    double fx       = f(x, z_sin, z_cos, vertical, flip);
+    double y_offset = fx + offset / cos_alpha;
+
+    return y_offset;
 }
 
 static inline Polyline make_wave(
     const std::vector<Vec2d>& one_period, double width, double height, double offset, double scaleFactor,
-    double z_cos, double z_sin, bool vertical, bool flip)
+    double z_cos, double z_sin, bool vertical, bool flip,double multiline_offset)
 {
     std::vector<Vec2d> points = one_period;
     double period = points.back()(0);
@@ -42,10 +67,10 @@ static inline Polyline make_wave(
 
         size_t n = points.size();
         do {
-            points.emplace_back(points[points.size()-n].x() + period, points[points.size()-n].y());
+            points.emplace_back(points[points.size() - n].x() + period, points[points.size() - n].y());
         } while (points.back()(0) < width - EPSILON);
 
-        points.emplace_back(Vec2d(width, f(width, z_sin, z_cos, vertical, flip)));
+        points.emplace_back(Vec2d(width, f2(width, z_sin, z_cos, vertical, flip, multiline_offset)));
     }
 
     // and construct the final polyline to return:
@@ -62,27 +87,28 @@ static inline Polyline make_wave(
     return polyline;
 }
 
-static std::vector<Vec2d> make_one_period(double width, double scaleFactor, double z_cos, double z_sin, bool vertical, bool flip, double tolerance)
+static std::vector<Vec2d> make_one_period(
+    double width, double scaleFactor, double z_cos, double z_sin, bool vertical, bool flip, double tolerance, double multiline_offset)
 {
     std::vector<Vec2d> points;
-    double dx = M_PI_2; // exact coordinates on main inflexion lobes
-    double limit = std::min(2*M_PI, width);
+    double dx    = M_PI_2; // exact coordinates on main inflexion lobes
+    double limit = std::min(2 * M_PI, width);
     points.reserve(coord_t(ceil(limit / tolerance / 3)));
 
     for (double x = 0.; x < limit - EPSILON; x += dx) {
-        points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
+        points.emplace_back(x, f2(x, z_sin, z_cos, vertical, flip, multiline_offset));
     }
-    points.emplace_back(Vec2d(limit, f(limit, z_sin, z_cos, vertical, flip)));
+    points.emplace_back(limit, f2(limit, z_sin, z_cos, vertical, flip, multiline_offset));
 
     // piecewise increase in resolution up to requested tolerance
     for(;;)
     {
         size_t size = points.size();
-        for (unsigned int i = 1;i < size; ++i) {
-            auto& lp = points[i-1]; // left point
-            auto& rp = points[i];   // right point
+        for (unsigned int i = 1; i < size; ++i) {
+            auto& lp = points[i - 1]; // left point
+            auto& rp = points[i];  // right point
             double x = lp(0) + (rp(0) - lp(0)) / 2;
-            double y = f(x, z_sin, z_cos, vertical, flip);
+            double y = f2(x, z_sin, z_cos, vertical, flip,multiline_offset);
             Vec2d ip = {x, y};
             if (std::abs(cross2(Vec2d(ip - lp), Vec2d(ip - rp))) > sqr(tolerance)) {
                 points.emplace_back(std::move(ip));
@@ -102,7 +128,7 @@ static std::vector<Vec2d> make_one_period(double width, double scaleFactor, doub
     return points;
 }
 
-static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double line_spacing, double width, double height)
+static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double line_spacing, double width, double height, unsigned int multiline, double line_width)
 {
     const double scaleFactor = scale_(line_spacing) / density_adjusted;
 
@@ -124,21 +150,46 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
         flip = false;
         lower_bound = -M_PI;
         upper_bound = width - M_PI_2;
-        std::swap(width,height);
+        std::swap(width, height);
     }
 
-    std::vector<Vec2d> one_period_odd = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip, tolerance); // creates one period of the waves, so it doesn't have to be recalculated all the time
-    flip = !flip;                                                                   // even polylines are a bit shifted
-    std::vector<Vec2d> one_period_even = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip, tolerance);
-    Polylines result;
+    Polylines    result;
+    const double offset_step = line_width / unscale<double>(scaleFactor);
+
+    // compute symmetric offsets around the center
+    std::vector<double> offsets;
+    offsets.reserve(multiline);
+    if (multiline % 2 == 0) {
+        // Even: no center line, symmetric offsets around 0
+        for (unsigned int i = 0; i < multiline / 2; ++i) {
+            double val = (i + 0.5) * offset_step;
+            offsets.push_back(-val);
+            offsets.push_back(+val);
+        }
+    } else {
+        // Odd: center line at offset 0
+        offsets.push_back(0.0);
+        for (unsigned int i = 1; i <= multiline / 2; ++i) {
+            double val = i * offset_step;
+            offsets.push_back(-val);
+            offsets.push_back(+val);
+        }
+    }
 
     for (double y0 = lower_bound; y0 < upper_bound + EPSILON; y0 += M_PI) {
         // creates odd polylines
-        result.emplace_back(make_wave(one_period_odd, width, height, y0, scaleFactor, z_cos, z_sin, vertical, flip));
+        for (double offset : offsets) {
+            result.emplace_back(make_wave(make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip, tolerance, offset), width,// creates one period of the waves, so it doesn't have to be recalculated all the time
+                                          height, y0, scaleFactor, z_cos, z_sin, vertical, flip, offset));
+        }
         // creates even polylines
         y0 += M_PI;
         if (y0 < upper_bound + EPSILON) {
-            result.emplace_back(make_wave(one_period_even, width, height, y0, scaleFactor, z_cos, z_sin, vertical, flip));
+            bool local_flip = !flip;
+            for (double offset : offsets) {
+                result.emplace_back(make_wave(make_one_period(width, scaleFactor, z_cos, z_sin, vertical, local_flip, tolerance, offset),
+                                              width, height, y0, scaleFactor, z_cos, z_sin, vertical, local_flip, offset));
+            }
         }
     }
 
@@ -161,12 +212,12 @@ void FillGyroid::_fill_surface_single(
 
     BoundingBox bb = expolygon.contour.bounding_box();
     // Density adjusted to have a good %of weight.
-    double      density_adjusted = std::max(0., params.density * DensityAdjust);
+    double density_adjusted = std::max(0., params.density * DensityAdjust / params.multiline);
     // Distance between the gyroid waves in scaled coordinates.
-    coord_t     distance = coord_t(scale_(this->spacing) / density_adjusted);
+    coord_t distance = coord_t(scale_(this->spacing) / density_adjusted);
 
     // align bounding box to a multiple of our grid module
-    bb.merge(align_to_grid(bb.min, Point(2*M_PI*distance, 2*M_PI*distance)));
+    bb.merge(align_to_grid(bb.min, Point(2 * M_PI * distance, 2 * M_PI * distance)));
 
     // generate pattern
     Polylines polylines = make_gyroid_waves(
@@ -174,7 +225,9 @@ void FillGyroid::_fill_surface_single(
         density_adjusted,
         this->spacing,
         ceil(bb.size()(0) / distance) + 1.,
-        ceil(bb.size()(1) / distance) + 1.);
+        ceil(bb.size()(1) / distance) + 1.,											
+		params.multiline,
+        this->spacing);				
 
 	// shift the polyline to the grid origin
 	for (Polyline &pl : polylines)

@@ -2373,6 +2373,15 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->set_default_value(new ConfigOptionPercent(20));
 
+    // Infill multiline
+    def             = this->add("fill_multiline", coInt);
+    def->label      = L("Fill Multiline");
+    def->full_label = L("Fill Multiline");
+    def->tooltip    = L("Using multiple lines for the infill pattern, if supported by infill pattern");
+    def->min = 1;
+    def->max = 5; // TODO: What is a reasnable amount?
+    def->set_default_value(new ConfigOptionInt(1));
+
     def = this->add("sparse_infill_pattern", coEnum);
     def->label = L("Sparse infill pattern");
     def->category = L("Strength");
