@@ -1,6 +1,10 @@
 
 set(_srcdir ${CMAKE_CURRENT_LIST_DIR}/gmp)
 
+if (IN_GIT_REPO)
+    set(GMP_DIRECTORY_FLAG --directory ${BINARY_DIR_REL}/dep_GMP-prefix/src/dep_GMP)
+endif ()
+
 if (MSVC)
     set(_output  ${DESTDIR}/include/gmp.h
                  ${DESTDIR}/lib/libgmp-10.lib
