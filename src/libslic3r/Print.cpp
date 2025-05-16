@@ -2223,12 +2223,6 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             }
             // check map valid both in auto and mannual mode
             std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) {return value - 1; });
-            if (!ToolOrdering::check_tpu_group(used_filaments, filament_maps, &m_config)) {
-                int master_extruder_id = m_config.master_extruder_id.value - 1; // to 0 based
-                std::string nozzle_name = master_extruder_id == 0 ? L("left") : L("right");
-                std::string exception_str = L("TPU is incompatible with AMS and must be printed seperately in the ") + nozzle_name + L(" nozzle.\nPlease adjust the filament group accordingly.");
-                throw Slic3r::RuntimeError(exception_str);
-            }
 
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
             print_object_instance_sequential_active = print_object_instances_ordering.begin();
@@ -2796,9 +2790,6 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
     for (auto f : used_filaments) {
         if (m_config.filament_type.get_at(f) == "TPU")
             tpu_filaments.insert(f);
-    }
-    if (tpu_filaments.size() > 1) {
-        throw Slic3r::RuntimeError(_u8L("Only supports up to one TPU filament."));
     }
 
     for (auto f : used_filaments) {

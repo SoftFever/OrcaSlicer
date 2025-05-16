@@ -243,8 +243,6 @@ public:
     */
     static std::vector<int> get_recommended_filament_maps(const std::vector<std::vector<unsigned int>>& layer_filaments, const Print* print,const FilamentMapMode mode, const std::vector<std::set<int>>& physical_unprintables, const std::vector<std::set<int>>& geometric_unprintables);
 
-    static bool check_tpu_group(const std::vector<unsigned int>&used_filaments,const std::vector<int>& filament_maps,const PrintConfig* config);
-
     // should be called after doing reorder
     FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode);
     void                cal_most_used_extruder(const PrintConfig &config);

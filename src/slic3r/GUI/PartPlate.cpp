@@ -1756,10 +1756,8 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
 
 bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments)
 {
-    bool tpu_valid = true;
-
-    // only support at most 1 tpu
-    return tpu_filaments.size() <=1;
+	// do not limit the num of tpu filament in slicing
+	return true;
 }
 
 bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
