@@ -173,7 +173,6 @@ PrinterMsgPanel::PrinterMsgPanel(wxWindow *parent)
 
 void PrinterMsgPanel::SetLabelList(const std::vector<wxString> &texts, const wxColour &colour)
 {
-
     if (texts == m_last_texts)
         return;
 
@@ -181,17 +180,16 @@ void PrinterMsgPanel::SetLabelList(const std::vector<wxString> &texts, const wxC
 
     m_labels.clear();
     m_sizer->Clear(true);
-    //for (auto *label : m_labels) {
-    //    m_sizer->Detach(label);
-    //    label->Destroy();
-    //}
-    //m_labels.clear();
+
+     std::set<wxString> unique_texts;
 
     for (const wxString &text : texts) {
         if (text.empty()) {
             continue;
         }
-
+        if (!unique_texts.insert(text).second) {
+            continue;
+        }
         Label *label = new Label(this);
         label->SetFont(::Label::Body_13);
         label->SetForegroundColour(colour);
