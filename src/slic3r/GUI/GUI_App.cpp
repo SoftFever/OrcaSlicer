@@ -737,7 +737,7 @@ static void generic_exception_handle()
         // and terminate the app so it is at least certain to happen now.
         BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
         flush_logs();
-        wxString errmsg = wxString::Format(_L("OrcaSlicer will terminate because of running out of memory."
+        wxString errmsg = wxString::Format(_L("OrcaSlicer will terminate because of running out of memory. "
                                               "It may be a bug. It will be appreciated if you report the issue to our team."));
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Fatal error"), wxOK | wxICON_ERROR);
 

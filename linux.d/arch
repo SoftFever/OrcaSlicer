@@ -17,6 +17,7 @@ export REQUIRED_DEV_PACKAGES=(
     gtk3
     libmspack
     libsecret
+    libspnav
     mesa
     ninja
     openssl
