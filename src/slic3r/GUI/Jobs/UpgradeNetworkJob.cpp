@@ -89,7 +89,7 @@ void UpgradeNetworkJob::process(Ctl &ctl)
         name, package_name,
         [this, &ctl](int state, int percent, bool &cancel) {
         if (state == InstallStatusInstallCompleted) {
-            update_status(ctl, percent, _u8L("Install successfully."));
+            update_status(ctl, percent, _u8L("Installed successfully"));
         } else {
             update_status(ctl, percent, _u8L("Installing"));
         }

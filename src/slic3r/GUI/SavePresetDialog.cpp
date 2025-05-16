@@ -204,7 +204,7 @@ void SavePresetDialog::Item::update()
 
     const Preset *existing = m_presets->find_preset(m_preset_name, false);
     if (m_valid_type == Valid && existing && (existing->is_default || existing->is_system)) {
-        info_line = _L("Overwrite a system profile is not allowed");
+        info_line = _L("Overwriting a system profile is not allowed.");
         m_valid_type = NoValid;
     }
 
