@@ -603,7 +603,8 @@ protected:
     SecondaryCheckDialog* m_print_error_dlg_no_action = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* con_load_dlg = nullptr;
-    SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
+    MessageDialog *       ctrl_e_hint_dlg             = nullptr;
+
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
 
     FanControlPopupNew* m_fan_control_popup{nullptr};

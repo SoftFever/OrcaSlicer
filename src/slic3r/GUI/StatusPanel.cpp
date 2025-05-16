@@ -3989,13 +3989,17 @@ void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
 void StatusPanel::axis_ctrl_e_hint(bool up_down)
 {
     if (ctrl_e_hint_dlg == nullptr) {
-        ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX, true);
-        ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170°C before loading or unloading filament."));
-        ctrl_e_hint_dlg->m_show_again_checkbox->Hide();
-        ctrl_e_hint_dlg->m_button_cancel->Hide();
+        /* ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition,
+         ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170°C before loading or unloading filament."));
+         ctrl_e_hint_dlg->m_show_again_checkbox->Hide();
+         ctrl_e_hint_dlg->m_button_cancel->Hide();
+         ctrl_e_hint_dlg->m_staticText_release_note->SetMaxSize(wxSize(FromDIP(360), -1));
+         ctrl_e_hint_dlg->m_staticText_release_note->SetMinSize(wxSize(FromDIP(360), -1));
+         ctrl_e_hint_dlg->Fit();*/
+        ctrl_e_hint_dlg = new MessageDialog(this, _L("Please heat the nozzle to above 170°C before loading or unloading filament."), wxString(_L("Warning")), wxOK | wxCENTER);
     }
-
-    ctrl_e_hint_dlg->on_show();
+      ctrl_e_hint_dlg->ShowModal();
+   // ctrl_e_hint_dlg->on_show();
 }
 
 void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
@@ -4704,7 +4708,7 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
             case Slic3r::GUI::PrintErrorDialog::NO_REMINDER_NEXT_TIME: {
                 obj->command_hms_idle_ignore(std::to_string(before_error_code), 0); /*the type is 0, supported by AP*/
                 break;
-            } 
+            }
             case Slic3r::GUI::PrintErrorDialog::IGNORE_NO_REMINDER_NEXT_TIME: {
                 obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
                 break;
@@ -4979,7 +4983,7 @@ void StatusPanel::on_camera_enter(wxMouseEvent& event)
         m_camera_popup->Bind(EVT_CAM_SOURCE_CHANGE, &StatusPanel::on_camera_source_change, this);
         wxWindow* ctrl = (wxWindow*)event.GetEventObject();
         wxPoint   pos = ctrl->ClientToScreen(wxPoint(0, 0));
-        wxSize    sz = ctrl->GetSize();
+        wxSize        sz   = ctrl->GetSize();
         pos.x += sz.x;
         pos.y += sz.y;
         m_camera_popup->SetPosition(pos);
