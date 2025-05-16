@@ -17,6 +17,7 @@ REQUIRED_DEV_PACKAGES=(
     libmspack-dev
     libosmesa6-dev
     libsecret-1-dev
+    libspnav-dev
     libssl-dev
     libtool
     libudev-dev
