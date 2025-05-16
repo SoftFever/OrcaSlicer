@@ -160,7 +160,8 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
         auto iter = recommend_temp_map.find(filament_type);
         if (iter!=recommend_temp_map.end()) {
             if (iter->second < config->option<ConfigOptionInts>("chamber_temperatures")->get_at(0)) {
-                wxString msg_text = wxString::Format(_L("Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"), iter->second);
+                wxString msg_text = wxString::Format(_L("Current chamber temperature is higher than the material's safe temperature, this may result in material softening and clogging. "
+                                                        "The maximum safe temperature for the material is %d"), iter->second);
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
                 is_msg_dlg_already_exist = true;
                 dialog.ShowModal();
@@ -325,7 +326,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         wxString msg_text = _(L("Alternate extra wall does't work well when ensure vertical shell thickness is set to All."));
 
         if (is_global_config)
-            msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+            msg_text += "\n\n" + _(L("Change these settings automatically?\n"
                                      "Yes - Change ensure vertical shell thickness to Moderate and enable alternate extra wall\n"
                                      "No  - Don't use alternate extra wall"));
 
@@ -877,7 +878,7 @@ int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
         msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
     }
     if (!is_object_config)
-        msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+        msg_text += "\n\n" + _(L("Change these settings automatically?\n"
             "Yes - Change these settings and enable spiral mode automatically\n"
             "No  - Give up using spiral mode this time"));
 
