@@ -352,7 +352,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         NetworkAgent* agent = wxGetApp().getAgent();
         AppConfig* config = GUI::wxGetApp().app_config;
         if (agent) {
-            MessageDialog msg_wingow(this, _L("Changing the region will log out your account.\n") + "\n" + _L("Do you want to continue?"), L("Region selection"),
+            MessageDialog msg_wingow(this, _L("Changing the region will log out your account.\n") + "\n" + _L("Do you want to continue?"), _L("Region selection"),
                                      wxICON_QUESTION | wxOK | wxCANCEL);
             if (msg_wingow.ShowModal() == wxID_CANCEL) {
                 combobox->SetSelection(current_region);
