@@ -44,6 +44,7 @@ struct FillParams
 
     // Fill density, fraction in <0, 1>
     float       density 		{ 0.f };
+    int   multiline{1};
 
     // Length of an infill anchor along the perimeter.
     // 1000mm is roughly the maximum length line that fits into a 32bit coord_t.
