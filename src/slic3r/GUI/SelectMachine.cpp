@@ -5177,13 +5177,11 @@ void PrinterInfoBox::SetDefault(bool from_sd)
 {
     if (!from_sd)
     {
-        m_stext_printer_title->Show(true);
         m_comboBox_printer->Show(true);
         m_button_refresh->Show(true);
     }
     else
     {
-        m_stext_printer_title->Show(false);
         m_comboBox_printer->Show(true);
         m_button_refresh->Show(false);
     }
