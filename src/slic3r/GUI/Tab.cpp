@@ -2165,6 +2165,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
+        optgroup->append_single_option_line("fill_multiline"); // fill multiline
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
         optgroup->append_single_option_line("lattice_angle_1");
         optgroup->append_single_option_line("lattice_angle_2");
