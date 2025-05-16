@@ -33,9 +33,6 @@
         "-1",
         "-1"
     ],
-    "filament_printable": [
-        "1"
-    ],
     "filament_retract_before_wipe": [
         "nil",
         "nil"
