@@ -123,7 +123,6 @@ protected:
 
     int m_last_selected;
     int m_em_unit;
-    bool m_suppress_change { true };
 
     // BBS: ams
     int  m_filament_idx       = -1;

@@ -118,16 +118,6 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
 
     // parameters for an icon's drawing
     fill_width_height();
-
-    Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent& e) {
-        if (m_suppress_change)
-            e.StopPropagation();
-        else
-            e.Skip();
-    });
-    Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_suppress_change = false; });
-    Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_suppress_change = true;  });
-
     Bind(wxEVT_COMBOBOX, &PresetComboBox::OnSelect, this);
 }
 
