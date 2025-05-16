@@ -290,7 +290,7 @@ void KBShortcutsDialog::fill_shortcuts()
 
         Shortcuts object_list_shortcuts = {
             {"1-9", L("Set extruder number for the objects and parts") },
-            {L("Del"), L("Delete objects, parts, modifiers  ")},
+            {L("Del"), L("Delete objects, parts, modifiers")},
             {L("Esc"), L("Deselect all")},
             {ctrl + "C", L("Copy to clipboard")},
             {ctrl + "V", L("Paste from clipboard")},

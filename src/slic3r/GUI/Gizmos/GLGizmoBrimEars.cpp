@@ -739,7 +739,7 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
             ImColor HyperColor = ImGuiWrapper::COL_ORCA;
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
             float parent_width = ImGui::GetContentRegionAvail().x;
-            m_imgui->text_wrapped(_L("Warning: The brim type is not set to \"painted\",the brim ears will not take effect !"), parent_width);
+            m_imgui->text_wrapped(_L("Warning: The brim type is not set to \"painted\", the brim ears will not take effect!"), parent_width);
             ImGui::PopStyleColor();
             ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
             ImGui::Dummy(ImVec2(font_size * 1.8, font_size * 1.3));
