@@ -273,7 +273,7 @@ wxString WipingDialog::BuildTextObjStr(bool multi_language)
         cancel_btn_label = _L("Cancel");
     } else {
         auto_flush_tip = "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences";
-        volume_desp_panel = "Flushing volume (mm³) for each filament pair.";
+        volume_desp_panel = wxString::FromUTF8("Flushing volume (mm³) for each filament pair.");
         volume_range_panel = wxString::Format("Suggestion: Flushing Volume in range [%d, %d]", 0, 700);
         multiplier_range_panel = wxString::Format("The multiplier should be in range [%.2f, %.2f].", 0, 3);
         calc_btn_panel = "Re-calculate";
@@ -344,10 +344,12 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
     wxString filepath_str = wxString::FromUTF8(filepath.string());
     wxFileName fn(filepath_str);
     if(fn.FileExists()) {
-        wxString url = "file:///" + fn.GetFullPath();
+        wxString url = wxFileSystem::FileNameToURL(fn);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< "File exists and load url " << url.ToStdString();
         m_webview->LoadURL(url);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< "Successfully loaded url: " << url.ToStdString();
     } else {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< "WipingDialog.html not exist";
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< "WipingDialog.html not exist at path: " << filepath.string();
     }
 
     main_sizer->SetSizeHints(this);
@@ -366,6 +368,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
 
     m_webview->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this](wxWebViewEvent& evt) {
         std::string message = evt.GetString().ToStdString();
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< "Received message: " << message;
         try {
             json j = json::parse(message);
             if (j["msg"].get<std::string>() == "init") {
@@ -412,7 +415,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
             }
         }
         catch (...) {
-
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< "Failed to parse json message: " << message;
         }
         });
 }
