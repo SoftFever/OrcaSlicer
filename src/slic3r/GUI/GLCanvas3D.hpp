@@ -1188,7 +1188,7 @@ private:
     void _render_imgui_select_plate_toolbar();
     void _render_assemble_view_toolbar() const;
     void _render_return_toolbar() const;
-    void _render_camera_toolbar() const;
+    void _render_camera_toolbar();
     void _render_separator_toolbar_right() const;
     void _render_separator_toolbar_left() const;
     void _render_collapse_toolbar() const;

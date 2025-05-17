@@ -8281,7 +8281,7 @@ void GLCanvas3D::_render_return_toolbar() const
     imgui.end();
 }
 
-void GLCanvas3D::_render_camera_toolbar() const
+void GLCanvas3D::_render_camera_toolbar() 
 {
     float  font_size        = ImGui::GetFontSize();
     ImVec2 button_icon_size = ImVec2(font_size * 2.5, font_size * 2.5);
