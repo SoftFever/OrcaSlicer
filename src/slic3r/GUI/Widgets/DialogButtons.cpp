@@ -11,7 +11,7 @@ DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_transla
     m_parent  = parent;
     m_sizer   = new wxBoxSizer(wxHORIZONTAL);
     m_primary = primary_btn_label; // better to use translated label for non-standad buttons
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
 
     // Add all to array
     for (wxString label : non_translated_labels) {
@@ -40,8 +40,8 @@ DialogButtons::~DialogButtons() {
 
 void DialogButtons::on_dpi_changed(wxDPIChangedEvent& event) {
     Refresh();
-    m_sizer->Layout();
-    m_parent->Layout();
+    //m_sizer->Layout();
+    //m_parent->Layout();
     event.Skip();
 }
 
@@ -111,7 +111,7 @@ void DialogButtons::SetPrimaryButton(wxString label) {
 
 void DialogButtons::Refresh() {
     m_sizer->Clear();
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
     // we won't need color definations after button style management
     StateColor clr_bg = StateColor(
         std::pair(wxColour("#DFDFDF"), (int)StateColor::NotHovered),
