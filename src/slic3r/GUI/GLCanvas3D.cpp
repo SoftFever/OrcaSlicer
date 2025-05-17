@@ -8308,9 +8308,9 @@ void GLCanvas3D::_render_camera_toolbar()
 
     if (ImGui::ImageButton3(normal_id, hover_id, button_icon_size, ImVec2(0, 0), ImVec2(1, 1),  -1,
                            ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec2(10, 0))) {
-        select_view("plate");
+        //select_view("plate");
 
-        if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+        if (m_canvas_type == ECanvasType::CanvasView3D || m_canvas_type == ECanvasType::CanvasPreview) {
             toggle_world_axes_visibility(false);
         }
  
