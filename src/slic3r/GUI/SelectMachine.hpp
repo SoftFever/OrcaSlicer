@@ -64,6 +64,18 @@ enum PrintFromType {
     FROM_SDCARD_VIEW,
 };
 
+enum class CloudTaskNozzleId : int
+{
+    NOZZLE_RIGHT    = 0,
+    NOZZLE_LEFT     = 1,
+};
+
+enum class ConfigNozzleIdx : int
+{
+    NOZZLE_LEFT      = 0,
+    NOZZLE_RIGHT     = 1,
+};
+
 static int get_brightness_value(wxImage image) {
 
     wxImage grayImage = image.ConvertToGreyscale();
@@ -347,7 +359,6 @@ private:
     bool                                m_is_in_sending_mode{ false };
     bool                                m_ams_mapping_res{ false };
     bool                                m_ams_mapping_valid{ false };
-    bool                                m_need_adaptation_screen{ false };
     bool                                m_export_3mf_cancel{ false };
     bool                                m_is_canceled{ false };
     bool                                m_is_rename_mode{ false };
@@ -361,6 +372,7 @@ private:
     wxColour                            m_colour_def_color{wxColour(255, 255, 255)};
     wxColour                            m_colour_bold_color{wxColour(38, 46, 48)};
     StateColor                          m_btn_bg_enable;
+    Label* m_text_bed_type;
     
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
     std::map<std::string, CheckBox *>   m_checkbox_list;
@@ -385,18 +397,17 @@ protected:
     AmsTutorialPopup                    m_mapping_tutorial_popup{ nullptr };
     MaterialHash                        m_materialList;
     Plater *                            m_plater{nullptr};
-    wxWrapSizer*                        m_sizer_select{ nullptr };
+    wxBoxSizer*                         m_sizer_options{ nullptr };
     wxBoxSizer*                         m_sizer_thumbnail{ nullptr };
-    wxGridSizer*                        m_sizer_material{ nullptr };
+    
     wxBoxSizer*                         m_sizer_main{ nullptr };
-    wxBoxSizer*                         m_sizer_scrollable_view{ nullptr };
-    wxBoxSizer*                         m_sizer_scrollable_region{ nullptr };
+    wxBoxSizer*                         m_basicl_sizer{ nullptr };
     wxBoxSizer*                         rename_sizer_v{ nullptr };
     wxBoxSizer*                         rename_sizer_h{ nullptr };
-    wxBoxSizer*                         m_sizer_backup{ nullptr };
+    wxBoxSizer*                         m_sizer_autorefill{ nullptr };
     Button*                             m_button_refresh{ nullptr };
     Button*                             m_button_ensure{ nullptr };
-    ScalableButton *                    m_rename_button{nullptr};
+    wxStaticBitmap *                    m_rename_button{nullptr};
     ComboBox*                           m_comboBox_printer{ nullptr };
     wxStaticBitmap*                     m_staticbitmap{ nullptr };
     wxStaticBitmap*                     m_bitmap_last_plate{ nullptr };
@@ -408,15 +419,12 @@ protected:
     wxWindow*                           select_timelapse{ nullptr };
     wxWindow*                           select_use_ams{ nullptr };
     wxPanel*                            m_panel_status{ nullptr };
-    wxPanel*                            m_scrollable_region;
+    wxPanel*                            m_basic_panel;
     wxPanel*                            m_rename_normal_panel{nullptr};
-    wxPanel*                            m_line_schedule{nullptr};
     wxPanel*                            m_panel_sending{nullptr};
     wxPanel*                            m_panel_prepare{nullptr};
     wxPanel*                            m_panel_finish{nullptr};
     wxPanel*                            m_line_top{ nullptr };
-    wxPanel*                            m_panel_image{ nullptr };
-    wxPanel*                            m_line_materia{ nullptr };
     Label*                              m_st_txt_error_code{nullptr};
     Label*                              m_st_txt_error_desc{nullptr};
     Label*                              m_st_txt_extra_info{nullptr};
@@ -425,26 +433,25 @@ protected:
     wxSimplebook*                       m_rename_switch_panel{nullptr};
     wxSimplebook*                       m_simplebook{nullptr};
     wxStaticText*                       m_rename_text{nullptr};
-    wxStaticText*                       m_stext_printer_title{nullptr};
-    wxStaticText*                       m_stext_time{ nullptr };
-    wxStaticText*                       m_stext_weight{ nullptr };
+    Label*                              m_stext_printer_title{nullptr};
+    Label*                              m_stext_time{ nullptr };
+    Label*                              m_stext_weight{ nullptr };
     wxStaticText*                       m_statictext_ams_msg{ nullptr };
-    wxStaticText*                       m_statictext_printer_msg{ nullptr };
+    wxStaticText*                       m_text_printer_msg{ nullptr };
     wxStaticText*                       m_staticText_bed_title{ nullptr };
     wxStaticText*                       m_stext_sending{ nullptr };
     wxStaticText*                       m_statictext_finish{nullptr};
     TextInput*                          m_rename_input{nullptr};
     wxTimer*                            m_refresh_timer{ nullptr };
-    wxScrolledWindow*                   m_scrollable_view;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
     wxHyperlinkCtrl*                    m_hyperlink{nullptr};
-    ScalableBitmap *                    ams_editable{nullptr};
-    ScalableBitmap *                    ams_editable_light{nullptr};
+    ScalableBitmap *                    rename_editable{nullptr};
+    ScalableBitmap *                    rename_editable_light{nullptr};
     wxStaticBitmap *                    timeimg{nullptr};
     ScalableBitmap *                    print_time{nullptr};
     wxStaticBitmap *                    weightimg{nullptr};
     ScalableBitmap *                    print_weight{nullptr};
-    ScalableBitmap *                    enable_ams_mapping{nullptr};
+    ScalableBitmap *                    ams_mapping_help_icon{nullptr};
     wxStaticBitmap *                    img_use_ams_tip{nullptr};
     wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
@@ -454,6 +461,19 @@ protected:
     std::vector<wxColour>               m_preview_colors_in_thumbnail;
     std::vector<wxColour>               m_cur_colors_in_thumbnail;
     std::vector<bool>                   m_edge_pixels;
+
+    wxPanel*                            m_filament_panel;
+    wxPanel*                            m_filament_left_panel;
+    wxPanel*                            m_filament_right_panel;
+
+    wxBoxSizer*                         m_filament_panel_sizer;
+    wxBoxSizer*                         m_filament_panel_left_sizer;
+    wxBoxSizer*                         m_filament_panel_right_sizer;
+    wxBoxSizer*                         m_sizer_filament_2extruder;
+
+    wxGridSizer*                        m_sizer_ams_mapping{ nullptr };
+    wxGridSizer*                        m_sizer_ams_mapping_left{ nullptr };
+    wxGridSizer*                        m_sizer_ams_mapping_right{ nullptr };
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
@@ -478,7 +498,7 @@ public:
     void reset_ams_material();
     void update_show_status();
     void update_ams_check(MachineObject* obj);
-    void on_rename_click(wxCommandEvent& event);
+    void on_rename_click(wxMouseEvent& event);
     void on_rename_enter();
     void update_printer_combobox(wxCommandEvent& event);
     void on_cancel(wxCloseEvent& event);
@@ -530,7 +550,8 @@ public:
     void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
     bool do_ams_mapping(MachineObject* obj_);
-    bool get_ams_mapping_result(std::string& mapping_array_str, std::string& ams_mapping_info);
+    bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
+    bool build_nozzles_info(std::string& nozzles_info);
 
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_steel_name(std::string name);

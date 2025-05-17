@@ -1505,7 +1505,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     // set nozzle value from machine
     bool nozzle_is_set = false;
     for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-        if (abs(obj->nozzle_diameter - nozzle_diameter_list[i]) < 1e-3) {
+        if (abs(obj->m_extder_data.extders[0].diameter - nozzle_diameter_list[i]) < 1e-3) {
             if (m_comboBox_nozzle_dia->GetCount() > i) {
                 m_comboBox_nozzle_dia->SetSelection(i);
                 nozzle_is_set = true;
@@ -1556,7 +1556,12 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 {
     if (!obj) return;
 
-    std::map<int, DynamicPrintConfig> full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(obj);
+    std::map<int, DynamicPrintConfig> old_full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(obj);
+    std::map<int, DynamicPrintConfig> full_filament_ams_list;
+    for (auto ams_item : old_full_filament_ams_list) {
+        int key = ams_item.first & 0x0FFFF;
+        full_filament_ams_list[key] = std::move(ams_item.second);
+    }
 
     // sync filament_ams_list from obj ams list
     filament_ams_list.clear();
@@ -1780,7 +1785,7 @@ void CalibrationPresetPage::update_filament_combobox(std::string ams_id)
     empty_config.set_key_value("filament_colour", new ConfigOptionStrings{ "" });
     empty_config.set_key_value("filament_exist", new ConfigOptionBools{ false });
 
-    /* update virtual tray combo box*/
+    // update virtual tray combo box
     m_virtual_tray_comboBox->update_from_preset();
     auto it = std::find_if(filament_ams_list.begin(), filament_ams_list.end(), [](auto& entry) {
         return entry.first == VIRTUAL_TRAY_ID;
@@ -1836,7 +1841,7 @@ Preset* CalibrationPresetPage::get_printer_preset(MachineObject* obj, float nozz
         std::string model_id = printer_it->get_current_printer_type(preset_bundle);
 
         std::string printer_type = obj->printer_type;
-        if (obj->is_support_p1s_plus) { printer_type = "C12"; }
+        if (obj->is_support_upgrade_kit && obj->installed_upgrade_kit) { printer_type = "C12"; }
         if (model_id.compare(printer_type) == 0
             && printer_nozzle_vals
             && abs(printer_nozzle_vals->get_at(0) - nozzle_value) < 1e-3) {

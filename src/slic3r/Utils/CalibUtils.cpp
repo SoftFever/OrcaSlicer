@@ -35,6 +35,16 @@ static std::string MachineBedTypeString[7] = {
 };
 
 
+wxString get_nozzle_volume_type_name(NozzleVolumeType type)
+{
+    if (NozzleVolumeType::nvtNormal == type) {
+        return _L("Normal");
+    } else if (NozzleVolumeType::nvtBigTraffic == type) {
+        return _L("BigTraffic");
+    }
+    return wxString();
+}
+
 std::string get_calib_mode_name(CalibMode cali_mode, int stage)
 {
     switch(cali_mode) {
@@ -97,9 +107,9 @@ static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, cons
         auto opt_nozzle_diameters = full_config.option<ConfigOptionFloats>("nozzle_diameter");
         if (opt_nozzle_diameters != nullptr) {
             float preset_nozzle_diameter = opt_nozzle_diameters->get_at(0);
-            if (preset_nozzle_diameter != obj->nozzle_diameter) {
+            if (preset_nozzle_diameter != obj->m_extder_data.extders[0].diameter) {
                 wxString nozzle_in_preset  = wxString::Format(_L("nozzle in preset: %s %s"), wxString::Format("%.1f", preset_nozzle_diameter).ToStdString(), to_wstring_name(nozzle_type));
-                wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj->nozzle_diameter, to_wstring_name(obj->nozzle_type));
+                wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj->m_extder_data.extders[0].diameter, DeviceManager::nozzle_type_conver(obj->m_extder_data.extders[0].diameter));
 
                 error_msg = _L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?") + "\n    " + nozzle_in_preset +
                             "\n    " + nozzle_in_printer + "\n";
@@ -119,9 +129,9 @@ static bool is_same_nozzle_type(const DynamicPrintConfig &full_config, const Mac
 
     NozzleType nozzle_type = NozzleType::ntUndefine;
 
-    if (obj->nozzle_type == "stainless_steel") {
+    if (obj->m_extder_data.extders[0].type == "stainless_steel") {
         nozzle_type = NozzleType::ntStainlessSteel;
-    } else if (obj->nozzle_type == "hardened_steel") {
+    } else if (obj->m_extder_data.extders[0].type == "hardened_steel") {
         nozzle_type = NozzleType::ntHardenedSteel;
     }
 
@@ -131,7 +141,7 @@ static bool is_same_nozzle_type(const DynamicPrintConfig &full_config, const Mac
         if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
             BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch:  printer_nozzle_hrc = " << printer_nozzle_hrc << ", filament_nozzle_hrc = " << filament_nozzle_hrc;
             std::string filament_type = full_config.opt_string("filament_type", 0);
-            error_msg = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, to_wstring_name(obj->nozzle_type));
+            error_msg = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, to_wstring_name(obj->m_extder_data.extders[0].type));
             error_msg += "\n";
 
             MessageDialog msg_dlg(nullptr, error_msg, wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
@@ -164,7 +174,7 @@ static bool check_nozzle_diameter_and_type(const DynamicPrintConfig &full_config
     }
 
     // P1P/S
-    if (obj->nozzle_type.empty())
+    if (obj->m_extder_data.extders[0].type.empty())
         return true;
 
     if (!is_same_nozzle_diameters(full_config, obj, error_msg))
@@ -373,7 +383,7 @@ bool CalibUtils::get_PA_calib_results(std::vector<PACalibResult>& pa_calib_resul
     return pa_calib_results.size() > 0;
 }
 
-void CalibUtils::emit_get_PA_calib_infos(float nozzle_diameter)
+void CalibUtils::emit_get_PA_calib_infos(const PACalibExtruderInfo &cali_info)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -383,7 +393,7 @@ void CalibUtils::emit_get_PA_calib_infos(float nozzle_diameter)
     if (obj_ == nullptr)
         return;
 
-    obj_->command_get_pa_calibration_tab(nozzle_diameter);
+    obj_->command_get_pa_calibration_tab(cali_info);
 }
 
 bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
@@ -400,31 +410,6 @@ bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
         pa_calib_infos.assign(obj_->pa_calib_tab.begin(), obj_->pa_calib_tab.end());
     }
     return obj_->has_get_pa_calib_tab;
-}
-
-void CalibUtils::emit_get_PA_calib_info(float nozzle_diameter, const std::string &filament_id)
-{
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
-
-    MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr) return;
-
-    obj_->command_get_pa_calibration_tab(nozzle_diameter, filament_id);
-}
-
-bool CalibUtils::get_PA_calib_info(PACalibResult & pa_calib_info) {
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return false;
-
-    MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr) return false;
-
-    if (!obj_->pa_calib_tab.empty()) {
-        pa_calib_info = obj_->pa_calib_tab.front();
-        return true;
-    }
-    return false;
 }
 
 void CalibUtils::set_PA_calib_result(const std::vector<PACalibResult> &pa_calib_values, bool is_auto_cali)
@@ -1258,7 +1243,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     print_job->set_calibration_task(true);
 
     print_job->has_sdcard = obj_->has_sdcard();
-    print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true);
+    print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true, 0, 0, 0);
     print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event(), print_job->m_project_name);
 
     {  // after send: record the print job
