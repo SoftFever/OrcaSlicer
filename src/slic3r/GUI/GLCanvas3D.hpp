@@ -529,6 +529,7 @@ private:
     mutable IMToolbar m_sel_plate_toolbar;
     mutable GLToolbar m_assemble_view_toolbar;
     mutable IMReturnToolbar m_return_toolbar;
+    mutable Vec2i32 m_axis_button_pos = {128, 5};
     mutable float m_paint_toolbar_width;
 
     //BBS: add canvas type for assemble view usage
@@ -1186,6 +1187,7 @@ private:
     void _render_imgui_select_plate_toolbar();
     void _render_assemble_view_toolbar() const;
     void _render_return_toolbar() const;
+    void _render_camera_toolbar() const;
     void _render_separator_toolbar_right() const;
     void _render_separator_toolbar_left() const;
     void _render_collapse_toolbar() const;
