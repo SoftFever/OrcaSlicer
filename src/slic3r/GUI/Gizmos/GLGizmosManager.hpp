@@ -169,6 +169,10 @@ public:
         IC_TOOLBAR_TOOLTIP,
         IC_TOOLBAR_TOOLTIP_HOVER,
         IC_NAME_COUNT,
+        IC_AXIS_TOGGLE,
+        IC_AXIS_TOGGLE_HOVER,
+        IC_AXIS_TOGGLE_DARK,
+        IC_AXIS_TOGGLE_DARK_HOVER,
     };
 
     explicit GLGizmosManager(GLCanvas3D& parent);

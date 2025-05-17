@@ -1043,9 +1043,13 @@ void MainFrame::init_tabpanel() {
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
-        }
-        else {
+            m_topbar->EnableToggleAxesItem();
+        } else if (sel == tpPreview) {
             m_topbar->DisableUndoRedoItems();
+            m_topbar->EnableToggleAxesItem();
+        } else {
+            m_topbar->DisableUndoRedoItems();
+            m_topbar->DisableToggleAxesItem();
         }
 #endif
 

@@ -269,6 +269,26 @@ bool GLGizmosManager::init_icon_textures()
     else
         return false;
 
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/axis_toggle.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_AXIS_TOGGLE, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/axis_toggle.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_AXIS_TOGGLE_HOVER, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/axis_toggle.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_AXIS_TOGGLE_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/axis_toggle.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_AXIS_TOGGLE_DARK_HOVER, texture_id));
+    else
+        return false;
+    
     return true;
 }
 

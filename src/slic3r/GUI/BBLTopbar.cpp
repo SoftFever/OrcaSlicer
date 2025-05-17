@@ -10,6 +10,7 @@
 #include "MainFrame.hpp"
 #include "WebViewDialog.hpp"
 #include "PartPlate.hpp"
+#include "GLCanvas3D.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -30,6 +31,7 @@ enum CUSTOM_ID
     ID_CALIB,
     ID_TOOL_BAR = 3200,
     ID_AMS_NOTEBOOK,
+    ID_TOGGLE_AXES
 };
 
 class BBLTopbarArt : public wxAuiDefaultToolBarArt
@@ -254,6 +256,14 @@ void BBLTopbar::Init(wxFrame* parent)
     m_calib_item->SetDisabledBitmap(calib_bitmap_inactive);
 
     this->AddSpacer(FromDIP(10));
+
+    wxBitmap toggle_axes_bitmap = create_scaled_bitmap("axis_toggle", nullptr, TOPBAR_ICON_SIZE);
+    wxBitmap toggle_axes_bitmap_inactive = create_scaled_bitmap("axis_toggle_inactive", nullptr, TOPBAR_ICON_SIZE);
+    m_toggle_item = this->AddTool(ID_TOGGLE_AXES,"", toggle_axes_bitmap);
+    m_toggle_item->SetDisabledBitmap(toggle_axes_bitmap_inactive);
+
+    this->AddSpacer(FromDIP(10));
+
     this->AddStretchSpacer(1);
 
     m_title_item = this->AddLabel(ID_TITLE, "", FromDIP(TOPBAR_TITLE_WIDTH));
@@ -319,6 +329,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnSaveProject, this, wxID_SAVE);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnRedo, this, wxID_REDO);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnToggleAxes, this, ID_TOGGLE_AXES);
     //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPublishClicked, this, ID_PUBLISH);
 }
@@ -364,6 +375,16 @@ void BBLTopbar::OnRedo(wxAuiToolBarEvent& event)
     plater->redo();
 }
 
+void BBLTopbar::OnToggleAxes(wxAuiToolBarEvent& event)
+{
+    MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
+    GLCanvas3D *canvas = main_frame->plater()->get_current_canvas3D(false);
+
+    if (canvas) {
+        canvas->toggle_world_axes_visibility(false);
+    }
+}
+
 void BBLTopbar::EnableUndoRedoItems()
 {
     this->EnableTool(m_undo_item->GetId(), true);
@@ -377,6 +398,18 @@ void BBLTopbar::DisableUndoRedoItems()
     this->EnableTool(m_undo_item->GetId(), false);
     this->EnableTool(m_redo_item->GetId(), false);
     this->EnableTool(m_calib_item->GetId(), false);
+    Refresh();
+}
+
+void BBLTopbar::EnableToggleAxesItem()
+{
+    this->EnableTool(m_toggle_item->GetId(), true);
+    Refresh();
+}
+
+void BBLTopbar::DisableToggleAxesItem()
+{
+    this->EnableTool(m_toggle_item->GetId(), false);
     Refresh();
 }
 
@@ -495,6 +528,10 @@ void BBLTopbar::Rescale() {
     item = this->FindTool(ID_CALIB);
     item->SetBitmap(create_scaled_bitmap("calib_sf", nullptr, TOPBAR_ICON_SIZE));
     item->SetDisabledBitmap(create_scaled_bitmap("calib_sf_inactive", nullptr, TOPBAR_ICON_SIZE));
+
+    item = this->FindTool(ID_TOGGLE_AXES);
+    item->SetBitmap(create_scaled_bitmap("axis_toggle", nullptr, TOPBAR_ICON_SIZE));
+    item->SetDisabledBitmap(create_scaled_bitmap("axis_toggle_inactive", nullptr, TOPBAR_ICON_SIZE)); 
 
     item = this->FindTool(ID_TITLE);
 
