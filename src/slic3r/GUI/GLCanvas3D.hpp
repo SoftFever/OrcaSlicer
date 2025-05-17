@@ -810,7 +810,7 @@ public:
     void set_color_clip_plane(const Vec3d& cp_normal, double offset) { m_volumes.set_color_clip_plane(cp_normal, offset); }
     void set_color_clip_plane_colors(const std::array<ColorRGBA, 2>& colors) { m_volumes.set_color_clip_plane_colors(colors); }
 
-    void toggle_world_axes_visibility(bool force_show = false) const;
+    void toggle_world_axes_visibility(bool force_show = false);
     void refresh_camera_scene_box();
     void set_color_by(const std::string& value);
 

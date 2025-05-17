@@ -1369,7 +1369,7 @@ ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state() const
     return state;
 }
 
-void GLCanvas3D::toggle_world_axes_visibility(bool force_show) const
+void GLCanvas3D::toggle_world_axes_visibility(bool force_show)
 {
     if (force_show) {
         m_show_world_axes = true;
