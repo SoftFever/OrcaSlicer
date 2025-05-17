@@ -43,7 +43,6 @@ protected:
 	CheckBox* m_cbPrintNum;
 	TextInput* m_tiBMAccels;
 	TextInput* m_tiBMSpeeds;
-	Button* m_btnStart;
 
 	Plater* m_plater;
 };
@@ -65,7 +64,6 @@ protected:
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiStep;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 
@@ -84,7 +82,6 @@ protected:
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiStep;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 
@@ -101,7 +98,6 @@ protected:
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiStep;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 
@@ -121,7 +117,6 @@ protected:
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiStep;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 
@@ -143,7 +138,6 @@ protected:
     TextInput* m_tiFreqStartY;
     TextInput* m_tiFreqEndY;
     TextInput* m_tiDampingFactor;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 
@@ -164,7 +158,6 @@ protected:
     TextInput* m_tiFreqY;
     TextInput* m_tiDampingFactorStart;
     TextInput* m_tiDampingFactorEnd;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 
@@ -182,7 +175,6 @@ protected:
     wxRadioBox* m_rbModel;
     TextInput* m_tiJDStart;
     TextInput* m_tiJDEnd;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 }} // namespace Slic3r::GUI

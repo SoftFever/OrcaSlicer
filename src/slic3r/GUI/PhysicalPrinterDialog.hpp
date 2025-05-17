@@ -38,7 +38,7 @@ class PhysicalPrinterDialog : public DPIDialog
     RoundedRectangle*   m_input_area                        {nullptr};
     wxStaticText*       m_valid_label                       {nullptr};
     wxTextCtrl*         m_input_ctrl                        {nullptr};
-    wxButton*           btnOK                               {nullptr};
+    Button*             btnOK                               {nullptr};
 
     void build_printhost_settings(ConfigOptionsGroup* optgroup);
     void OnOK(wxEvent& event);
