@@ -576,7 +576,7 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
     float height   = icon_sz;
     float offset_y = factor * PARTPLATE_TEXT_OFFSET_Y;
 
-    float name_width;
+    float name_width = 0.0;
     if (texture && texture->get_width() > 0 && texture->get_height())
         // original width give correct ratio in here since rendering width can be much higher because of next_highest_power_of_2 for rendering
         name_width = icon_sz * texture->m_original_width / texture->get_height(); 
