@@ -27,12 +27,7 @@ public:
 
 
 protected:
-    void _fill_surface_single_brige(
-        const FillParams                &params, 
-        unsigned int                     thickness_layers,
-        const std::pair<float, Point>   &direction, 
-        ExPolygon                        expolygon,
-        Polylines                       &polylines_out);
+
     void _fill_surface_single(const FillParams&              params,
                                     unsigned int                   thickness_layers,
                                     const std::pair<float, Point>& direction,
