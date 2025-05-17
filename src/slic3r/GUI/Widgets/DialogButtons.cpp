@@ -148,12 +148,15 @@ void DialogButtons::SetAlertButton(wxString label) {
     btn->SetBackgroundColor(clr_bg);
     StateColor clr_br = StateColor(
         std::pair(wxColour("#DFDFDF"), (int)StateColor::NotFocused),
-        std::pair(wxColour("#F43200"), (int)StateColor::Focused)
+        std::pair(wxColour("#26A69A"), (int)StateColor::Focused)
     );
     btn->SetBorderColor(clr_br);
     StateColor clr_tx = StateColor(
+        std::pair(wxColour("#CD1F00"), (int)StateColor::NotHovered),
         std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
+        std::pair(wxColour("#CD1F00"), (int)StateColor::Pressed),
         std::pair(wxColour("#FFFFFD"), (int)StateColor::Hovered),
+        std::pair(wxColour("#CD1F00"), (int)StateColor::Focused),
         std::pair(wxColour("#CD1F00"), (int)StateColor::Normal)
     );
     btn->SetTextColor(clr_tx);
@@ -173,7 +176,7 @@ void DialogButtons::Refresh() {
     );
     StateColor clr_br = StateColor(
         std::pair(wxColour("#DFDFDF"), (int)StateColor::NotFocused),
-        std::pair(wxColour("#009688"), (int)StateColor::Focused)
+        std::pair(wxColour("#26A69A"), (int)StateColor::Focused)
     );
     StateColor clr_tx = StateColor(
         std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
@@ -239,7 +242,7 @@ void DialogButtons::on_keydown(wxKeyEvent& e) {
         // possible issue if button hidden
         if      (key == WXK_LEFT)  {m_buttons[i - 1 < 0 ? (cnt - 1) : i - 1]->SetFocus();}
         else if (key == WXK_RIGHT) {m_buttons[i + 1 > (cnt - 1) ? 0 : i + 1]->SetFocus();}
-        }
+    }
     e.Skip();
 }
 
