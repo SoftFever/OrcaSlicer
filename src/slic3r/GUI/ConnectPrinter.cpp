@@ -6,7 +6,7 @@
 
 namespace Slic3r { namespace GUI {
 ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos, const wxSize &size, long style)
-    : DPIDialog(parent, id, _L("ConnectPrinter(LAN)"), pos, size, style)
+    : DPIDialog(parent, id, _L("Connect Printer (LAN)"), pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);

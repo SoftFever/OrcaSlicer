@@ -110,8 +110,8 @@ modules:
   - name: libspnav
     sources:
       - type: archive
-        url: https://github.com/FreeSpacenav/libspnav/releases/download/v1.1/libspnav-1.1.tar.gz
-        sha256: 04b297f68a10db4fa40edf68d7f823ba7b9d0442f2b665181889abe2cea42759
+        url: https://github.com/FreeSpacenav/libspnav/releases/download/v1.2/libspnav-1.2.tar.gz
+        sha256: 093747e7e03b232e08ff77f1ad7f48552c06ac5236316a5012db4269951c39db
  
   - name: orca_wxwidgets
     buildsystem: simple
@@ -141,7 +141,7 @@ modules:
           -DwxUSE_LIBPNG=sys \
           -DwxUSE_ZLIB=sys \
           -DwxUSE_LIBJPEG=sys \
-          -DwxUSE_LIBTIFF=sys \
+          -DwxUSE_LIBTIFF=OFF \
           -DwxUSE_EXPAT=sys \
           -DBUILD_SHARED_LIBS:BOOL=ON \
           -DCMAKE_INSTALL_PREFIX:STRING=/app \
