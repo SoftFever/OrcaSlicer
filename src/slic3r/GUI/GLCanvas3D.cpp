@@ -1369,7 +1369,7 @@ ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state() const
     return state;
 }
 
-void GLCanvas3D::toggle_world_axes_visibility(bool force_show)
+void GLCanvas3D::toggle_world_axes_visibility(bool force_show) const
 {
     if (force_show) {
         m_show_world_axes = true;
@@ -5815,6 +5815,7 @@ void GLCanvas3D::_render_3d_navigator()
 
     const float size  = 128 * sc;
     m_axis_button_pos[0] = size - 10;
+    m_sc = sc;
     const auto result = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, nullptr,
                                                  camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - size), ImVec2(size, size),
                                                  0x00101010);
@@ -8299,8 +8300,8 @@ void GLCanvas3D::_render_camera_toolbar() const
     imgui.begin(_L("Toggle Axis"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
                                            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);//
 
-    ImTextureID normal_id = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_DARK : GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA);
-    ImTextureID hover_id  = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_DARK_HOVER : GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_HOVER);
+    ImTextureID normal_id = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_AXIS_TOGGLE_DARK : GLGizmosManager::MENU_ICON_NAME::IC_AXIS_TOGGLE);
+    ImTextureID hover_id  = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_AXIS_TOGGLE_DARK_HOVER : GLGizmosManager::MENU_ICON_NAME::IC_AXIS_TOGGLE_HOVER);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
@@ -8310,7 +8311,7 @@ void GLCanvas3D::_render_camera_toolbar() const
         select_view("plate");
 
         if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-            toggle_world_axes_visibility();
+            toggle_world_axes_visibility(false);
         }
  
     }
