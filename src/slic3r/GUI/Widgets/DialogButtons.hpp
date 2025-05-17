@@ -35,9 +35,9 @@ public:
 
     void SetPrimaryButton(wxString label);
 
-    void Refresh();
+    void SetAlertButton(wxString label);
 
-    void AddTo(wxBoxSizer* sizer);
+    void Refresh();
 
     //virtual ~DialogButtons();
     ~DialogButtons();
@@ -47,30 +47,73 @@ private:
     wxBoxSizer*          m_sizer;
     std::vector<Button*> m_buttons;
     wxString             m_primary;
+    wxString             m_alert;
+
+    // missing ones Transfer / Update / Create
     const std::map<wxString, wxStandardID> m_standardIDs = {
-        // missing ones Transfer / Update / Create
-        {"ok",      wxID_OK},
-        {"yes",     wxID_YES},
-        {"apply",   wxID_APPLY},
-        {"confirm", wxID_APPLY}, // no id for confirm, reusing wxID_APPLY
-        {"no",      wxID_NO},
-        {"cancel",  wxID_CANCEL},
-        {"open",    wxID_OPEN},
-        {"add",     wxID_ADD},
-        {"remove",  wxID_REMOVE},
-        {"delete",  wxID_DELETE},
-        {"refresh", wxID_REFRESH},
-        {"retry",   wxID_RETRY},
-        {"copy",    wxID_COPY},
-        {"save",    wxID_SAVE},
-        {"save as", wxID_SAVEAS},
-        {"back",    wxID_BACKWARD},
-        {"next",    wxID_FORWARD},
-        {"help",    wxID_HELP},
-        {"abort",   wxID_ABORT},
-        {"ignore",  wxID_IGNORE},
-        {"stop",    wxID_STOP}
+        // Choice
+        {"ok"         , wxID_OK},
+        {"yes"        , wxID_YES},
+        {"apply"      , wxID_APPLY},
+        {"confirm"    , wxID_APPLY}, // no id for confirm, reusing wxID_APPLY
+        {"no"         , wxID_NO},
+        {"cancel"     , wxID_CANCEL},
+        // Action
+        {"open"       , wxID_PRINT},
+        {"open"       , wxID_OPEN},
+        {"add"        , wxID_ADD},
+        {"copy"       , wxID_COPY},
+        {"new"        , wxID_NEW},
+        {"save"       , wxID_SAVE},
+        {"save as"    , wxID_SAVEAS},
+        {"refresh"    , wxID_REFRESH},
+        {"retry"      , wxID_RETRY},
+        {"ignore"     , wxID_IGNORE},
+        {"help"       , wxID_HELP},
+        {"clone"      , wxID_DUPLICATE},
+        {"duplicate"  , wxID_DUPLICATE},
+        {"select all" , wxID_SELECTALL},
+        {"replace"    , wxID_REPLACE},
+        {"replace all", wxID_REPLACE_ALL},
+        // Navigation
+        {"back"       , wxID_BACKWARD},
+        {"next"       , wxID_FORWARD},
+        // Alert / Negative
+        {"remove"     , wxID_REMOVE},
+        {"delete"     , wxID_DELETE},
+        {"abort"      , wxID_ABORT},
+        {"stop"       , wxID_STOP},
+        {"reset"      , wxID_RESET},
+        {"clear"      , wxID_CLEAR},
+        {"exit"       , wxID_EXIT},
+        {"quit"       , wxID_EXIT}
     };
+
+    std::set<wxStandardID> m_primaryIDs {
+        wxID_OK,
+        wxID_YES,
+        wxID_APPLY,
+        wxID_SAVE,
+        wxID_PRINT
+    };
+
+    std::set<wxStandardID> m_alertIDs {
+        wxID_REMOVE,
+        wxID_DELETE,
+        wxID_ABORT,
+        wxID_STOP,
+        wxID_RESET,
+        wxID_CLEAR,
+        wxID_EXIT
+    };
+
+    std::set<wxStandardID> m_left_align_IDs {
+        wxID_DELETE,
+        wxID_BACKWARD,
+        wxID_FORWARD
+    };
+
+    Button* PickFromList(std::set<wxStandardID> ID_list);
 
     int  FromDIP(int d);
 

@@ -5,12 +5,13 @@
 namespace Slic3r { namespace GUI {
 
 // ORCA standardize dialog buttons
-DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& primary_btn_label)
+DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& primary_btn_label /*Translated*/)
     : wxWindow(parent, wxID_ANY)
 {
     m_parent  = parent;
     m_sizer   = new wxBoxSizer(wxHORIZONTAL);
-    m_primary = primary_btn_label; // better to use translated label for non-standad buttons
+    m_primary = primary_btn_label;
+    m_alert   = wxEmptyString;
     SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
 
     // Add all to array
@@ -59,6 +60,17 @@ Button* DialogButtons::GetButtonFromLabel(wxString label) {
     return nullptr;
 }
 
+Button* DialogButtons::PickFromList(std::set<wxStandardID> ID_list) {
+    // Picks first button from given list
+    Button* b;
+    for (auto itr : ID_list) {
+        b = GetButtonFromID(itr);
+        if (b != nullptr)
+            return b;
+    }
+    return nullptr;
+}
+
 // shorthands for common buttons
 Button* DialogButtons::GetOK()     {return GetButtonFromID(wxID_OK)      ;}
 Button* DialogButtons::GetYES()    {return GetButtonFromID(wxID_YES)     ;}
@@ -71,17 +83,17 @@ Button* DialogButtons::GetFORWARD(){return GetButtonFromID(wxID_FORWARD) ;}
 
 void DialogButtons::SetPrimaryButton(wxString label) {
     // use _L("Create") translated text for custom buttons
-
+    // use non existing button name to disable primary styled button
     Button* btn;
-    if(label.IsEmpty()){ // prefer standart primary buttons if label empty
-        if     (GetOK()      != nullptr) btn = GetOK();
-        else if(GetYES()     != nullptr) btn = GetYES();
-        else if(GetAPPLY()   != nullptr) btn = GetAPPLY();
-        else if(GetCONFIRM() != nullptr) btn = GetCONFIRM();
+    if(label.IsEmpty()){ // prefer standard primary buttons if label empty
+        if(m_buttons.size() == 1)
+            btn = m_buttons.front();
+        else
+            btn = PickFromList(m_primaryIDs);
     }else
         btn = GetButtonFromLabel(label);
 
-    if(!btn) return;
+    if(btn == nullptr) return;
 
     m_primary = label;
 
@@ -95,17 +107,55 @@ void DialogButtons::SetPrimaryButton(wxString label) {
         std::pair(wxColour("#009688"), (int)StateColor::Normal),
         std::pair(wxColour("#009688"), (int)StateColor::Enabled)
     );
+    btn->SetBackgroundColor(clr_bg);
     StateColor clr_br = StateColor(
         std::pair(wxColour("#009688"), (int)StateColor::NotFocused),
         std::pair(wxColour("#26A69A"), (int)StateColor::Focused)
     );
+    btn->SetBorderColor(clr_br);
     StateColor clr_tx = StateColor(
         std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
         std::pair(wxColour("#FEFEFE"), (int)StateColor::Hovered),
         std::pair(wxColour("#FEFEFE"), (int)StateColor::Normal)
     );
+    btn->SetTextColor(clr_tx);
+}
+
+void DialogButtons::SetAlertButton(wxString label) {
+    // use _L("Create") translated text for custom buttons
+    // use non existing button name to disable alert styled button
+    if(m_buttons.size() == 1)
+        return;
+    Button* btn;
+    if(label.IsEmpty()){ // prefer standard alert buttons if label empty
+        btn = PickFromList(m_alertIDs);
+    }else
+        btn = GetButtonFromLabel(label);
+
+    if(btn == nullptr) return;
+
+    m_alert = label;
+
+    // we won't need color definations after button style management
+    StateColor clr_bg = StateColor(
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::NotHovered),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
+        std::pair(wxColour("#CD1F00"), (int)StateColor::Hovered),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
+    );
     btn->SetBackgroundColor(clr_bg);
+    StateColor clr_br = StateColor(
+        std::pair(wxColour("#DFDFDF"), (int)StateColor::NotFocused),
+        std::pair(wxColour("#F43200"), (int)StateColor::Focused)
+    );
     btn->SetBorderColor(clr_br);
+    StateColor clr_tx = StateColor(
+        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
+        std::pair(wxColour("#FFFFFD"), (int)StateColor::Hovered),
+        std::pair(wxColour("#CD1F00"), (int)StateColor::Normal)
+    );
     btn->SetTextColor(clr_tx);
 }
 
@@ -142,31 +192,27 @@ void DialogButtons::Refresh() {
         btn->SetBorderColor(clr_br);
         btn->SetTextColor(clr_tx);
         btn->Bind(wxEVT_KEY_DOWN, &DialogButtons::on_keydown, this);
-        //wxGetApp().UpdateDarkUI(btn);
     }
 
     int btn_gap = FromDIP(10);
 
-    std::set<int> list {wxID_DELETE, wxID_BACKWARD, wxID_FORWARD};
-    auto is_left_aligned = [list](int id){
-        return list.find(id) != list.end();
+    auto list = m_left_align_IDs;
+    auto on_left = [list](int id){
+        return list.find(wxStandardID(id)) != list.end();
     };
 
     for (Button* btn : m_buttons)  // Left aligned
-        if(is_left_aligned(btn->GetId()))
+        if(on_left(btn->GetId()))
             m_sizer->Add(btn, 0,  wxLEFT | wxTOP | wxBOTTOM | wxALIGN_CENTER_VERTICAL, btn_gap);
 
     m_sizer->AddStretchSpacer();
 
     for (Button* btn : m_buttons) // Right aligned
-        if(!is_left_aligned(btn->GetId()))
+        if(!on_left(btn->GetId()))
             m_sizer->Add(btn, 0, wxRIGHT | wxTOP | wxBOTTOM | wxALIGN_CENTER_VERTICAL, btn_gap);
 
     SetPrimaryButton(m_primary);
-}
-
-void DialogButtons::AddTo(wxBoxSizer* sizer) {
-    sizer->Add(m_sizer, 0, wxEXPAND);
+    SetAlertButton(m_alert);
 }
 
 int DialogButtons::FromDIP(int d) {
