@@ -5,12 +5,13 @@
 namespace Slic3r { namespace GUI {
 
 // ORCA standardize dialog buttons
-DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& focused_btn_label)
+DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& primary_btn_label)
     : wxWindow(parent, wxID_ANY)
 {
-    m_parent = parent;
-    m_sizer  = new wxBoxSizer(wxHORIZONTAL);
-    m_focus  = focused_btn_label; // better to use translated label for non-standad buttons
+    m_parent  = parent;
+    m_sizer   = new wxBoxSizer(wxHORIZONTAL);
+    m_primary = primary_btn_label; // better to use translated label for non-standad buttons
+    SetBackgroundColour(*wxWHITE);
 
     // Add all to array
     for (wxString label : non_translated_labels) {
@@ -24,8 +25,7 @@ DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_transla
     }
 
     m_parent->Bind(wxEVT_DPI_CHANGED, &DialogButtons::on_dpi_changed, this);
-    
-    //SetBackgroundColour(m_parent->GetBackgroundColour());
+
     //SetDoubleBuffered(true);
     SetSizer(m_sizer);
     Layout();
@@ -69,17 +69,21 @@ Button* DialogButtons::GetCANCEL() {return GetButtonFromID(wxID_CANCEL)  ;}
 Button* DialogButtons::GetBACK()   {return GetButtonFromID(wxID_BACKWARD);}
 Button* DialogButtons::GetFORWARD(){return GetButtonFromID(wxID_FORWARD) ;}
 
-void DialogButtons::SetFocus(wxString label) {
+void DialogButtons::SetPrimaryButton(wxString label) {
     // use _L("Create") translated text for custom buttons
-    // prefer standart primary buttons if label empty
+
     Button* btn;
-    if(label.IsEmpty()){
+    if(label.IsEmpty()){ // prefer standart primary buttons if label empty
         if     (GetOK()      != nullptr) btn = GetOK();
         else if(GetYES()     != nullptr) btn = GetYES();
         else if(GetAPPLY()   != nullptr) btn = GetAPPLY();
         else if(GetCONFIRM() != nullptr) btn = GetCONFIRM();
     }else
         btn = GetButtonFromLabel(label);
+
+    if(!btn) return;
+
+    m_primary = label;
 
     btn->SetFocus();
     // we won't need color definations after button style management
@@ -107,7 +111,7 @@ void DialogButtons::SetFocus(wxString label) {
 
 void DialogButtons::Refresh() {
     m_sizer->Clear();
-    SetBackgroundColour(m_parent->GetBackgroundColour());
+    SetBackgroundColour(*wxWHITE);
     // we won't need color definations after button style management
     StateColor clr_bg = StateColor(
         std::pair(wxColour("#DFDFDF"), (int)StateColor::NotHovered),
@@ -130,7 +134,6 @@ void DialogButtons::Refresh() {
     // Apply standard style to all
     for (Button* btn : m_buttons) {
         btn->SetFont(Label::Body_14);
-        //btn->SetSize(   wxSize(m_parent->FromDIP(100),m_parent->FromDIP(32)));
         btn->SetMinSize(wxSize(FromDIP(100),FromDIP(32)));
         btn->SetPaddingSize(wxSize(FromDIP(12), FromDIP(8)));
         btn->SetCornerRadius(FromDIP(4));
@@ -139,7 +142,7 @@ void DialogButtons::Refresh() {
         btn->SetBorderColor(clr_br);
         btn->SetTextColor(clr_tx);
         btn->Bind(wxEVT_KEY_DOWN, &DialogButtons::on_keydown, this);
-        wxGetApp().UpdateDarkUI(btn);
+        //wxGetApp().UpdateDarkUI(btn);
     }
 
     int btn_gap = FromDIP(10);
@@ -159,7 +162,7 @@ void DialogButtons::Refresh() {
         if(!is_left_aligned(btn->GetId()))
             m_sizer->Add(btn, 0, wxRIGHT | wxTOP | wxBOTTOM | wxALIGN_CENTER_VERTICAL, btn_gap);
 
-    SetFocus(m_focus);
+    SetPrimaryButton(m_primary);
 }
 
 void DialogButtons::AddTo(wxBoxSizer* sizer) {
@@ -177,21 +180,21 @@ int DialogButtons::FromDIP(int d) {
 // Prepend Button
 
 void DialogButtons::on_keydown(wxKeyEvent& e) {
-        wxObject* current = e.GetEventObject();
-        int key = e.GetKeyCode();
-        int cnt = m_buttons.size();
-        if(cnt > 1){
-            int i = -1;
-            for (Button* btn : m_buttons){
-                i++;
-                if(btn->HasFocus())
-                    break;
-            }
-            // possible issue if button hidden
-            if      (key == WXK_LEFT)  {m_buttons[i - 1 < 0 ? (cnt - 1) : i - 1]->SetFocus();}
-            else if (key == WXK_RIGHT) {m_buttons[i + 1 > (cnt - 1) ? 0 : i + 1]->SetFocus();}
+    wxObject* current = e.GetEventObject();
+    int key = e.GetKeyCode();
+    int cnt = m_buttons.size();
+    if(cnt > 1){
+        int i = -1;
+        for (Button* btn : m_buttons){
+            i++;
+            if(btn->HasFocus())
+                break;
         }
-        e.Skip();
+        // possible issue if button hidden
+        if      (key == WXK_LEFT)  {m_buttons[i - 1 < 0 ? (cnt - 1) : i - 1]->SetFocus();}
+        else if (key == WXK_RIGHT) {m_buttons[i + 1 > (cnt - 1) ? 0 : i + 1]->SetFocus();}
+        }
+    e.Skip();
 }
 
 }} // namespace Slic3r::GUI

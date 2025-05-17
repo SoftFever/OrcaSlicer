@@ -16,7 +16,7 @@ namespace Slic3r { namespace GUI {
 class DialogButtons  : public wxWindow{
 public:
 
-    DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& focused_btn_label = "");
+    DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& primary_btn_label = "");
 
     wxBoxSizer* GetSizer() const { return m_sizer; }
 
@@ -33,7 +33,7 @@ public:
     Button* GetBACK();
     Button* GetFORWARD();
 
-    void SetFocus(wxString label);
+    void SetPrimaryButton(wxString label);
 
     void Refresh();
 
@@ -46,7 +46,7 @@ private:
     wxWindow*            m_parent;
     wxBoxSizer*          m_sizer;
     std::vector<Button*> m_buttons;
-    wxString             m_focus;
+    wxString             m_primary;
     const std::map<wxString, wxStandardID> m_standardIDs = {
         // missing ones Transfer / Update / Create
         {"ok",      wxID_OK},
