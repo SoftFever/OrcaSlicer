@@ -5,42 +5,31 @@
 namespace Slic3r { namespace GUI {
 
 // ORCA standardize dialog buttons
-DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& focused_btn_label) {
+DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& focused_btn_label)
+    : wxWindow(parent, wxID_ANY)
+{
     m_parent = parent;
     m_sizer  = new wxBoxSizer(wxHORIZONTAL);
     m_focus  = focused_btn_label; // better to use translated label for non-standad buttons
 
     // Add all to array
     for (wxString label : non_translated_labels) {
-        Button* btn = new Button(m_parent, _L(label));
+        Button* btn = new Button(this, _L(label));
         wxString l = label;
         l.LowerCase();
-        // missing ones Transfer / Update / Create
-        if       (l == "ok")      btn->SetId(wxID_OK);
-        else if  (l == "yes")     btn->SetId(wxID_YES);
-        else if  (l == "apply")   btn->SetId(wxID_APPLY);
-        else if  (l == "confirm") btn->SetId(wxID_APPLY); // no id for confirm
-        else if  (l == "no")      btn->SetId(wxID_NO);
-        else if  (l == "cancel")  btn->SetId(wxID_CANCEL);
-        else if  (l == "open")    btn->SetId(wxID_OPEN);
-        else if  (l == "add")     btn->SetId(wxID_ADD);
-        else if  (l == "remove")  btn->SetId(wxID_REMOVE);
-        else if  (l == "delete")  btn->SetId(wxID_DELETE);
-        else if  (l == "refresh") btn->SetId(wxID_REFRESH);
-        else if  (l == "retry")   btn->SetId(wxID_RETRY);
-        else if  (l == "copy")    btn->SetId(wxID_COPY);
-        else if  (l == "save")    btn->SetId(wxID_SAVE);
-        else if  (l == "save as") btn->SetId(wxID_SAVEAS);
-        else if  (l == "back")    btn->SetId(wxID_BACKWARD);
-        else if  (l == "next")    btn->SetId(wxID_FORWARD);
-        else if  (l == "help")    btn->SetId(wxID_HELP);
-        else if  (l == "abort")   btn->SetId(wxID_ABORT);
-        else if  (l == "ignore")  btn->SetId(wxID_IGNORE);
-        else if  (l == "stop")    btn->SetId(wxID_STOP);
+        auto f = m_standardIDs.find(l);
+        if (f != m_standardIDs.end())
+            btn->SetId(f->second);
         m_buttons.push_back(btn);
     }
 
     m_parent->Bind(wxEVT_DPI_CHANGED, &DialogButtons::on_dpi_changed, this);
+    
+    //SetBackgroundColour(m_parent->GetBackgroundColour());
+    //SetDoubleBuffered(true);
+    SetSizer(m_sizer);
+    Layout();
+    Fit();
 
     Refresh();
 }
@@ -118,6 +107,7 @@ void DialogButtons::SetFocus(wxString label) {
 
 void DialogButtons::Refresh() {
     m_sizer->Clear();
+    SetBackgroundColour(m_parent->GetBackgroundColour());
     // we won't need color definations after button style management
     StateColor clr_bg = StateColor(
         std::pair(wxColour("#DFDFDF"), (int)StateColor::NotHovered),
@@ -141,17 +131,18 @@ void DialogButtons::Refresh() {
     for (Button* btn : m_buttons) {
         btn->SetFont(Label::Body_14);
         //btn->SetSize(   wxSize(m_parent->FromDIP(100),m_parent->FromDIP(32)));
-        btn->SetMinSize(wxSize(m_parent->FromDIP(100),m_parent->FromDIP(32)));
-        btn->SetPaddingSize( m_parent->FromDIP(wxSize(12,8)));
-        btn->SetCornerRadius(m_parent->FromDIP(4));
-        btn->SetBorderWidth( m_parent->FromDIP(1));
+        btn->SetMinSize(wxSize(FromDIP(100),FromDIP(32)));
+        btn->SetPaddingSize(wxSize(FromDIP(12), FromDIP(8)));
+        btn->SetCornerRadius(FromDIP(4));
+        btn->SetBorderWidth(FromDIP(1));
         btn->SetBackgroundColor(clr_bg);
         btn->SetBorderColor(clr_br);
         btn->SetTextColor(clr_tx);
         btn->Bind(wxEVT_KEY_DOWN, &DialogButtons::on_keydown, this);
+        wxGetApp().UpdateDarkUI(btn);
     }
 
-    int btn_gap = m_parent->FromDIP(10);
+    int btn_gap = FromDIP(10);
 
     std::set<int> list {wxID_DELETE, wxID_BACKWARD, wxID_FORWARD};
     auto is_left_aligned = [list](int id){
@@ -173,6 +164,10 @@ void DialogButtons::Refresh() {
 
 void DialogButtons::AddTo(wxBoxSizer* sizer) {
     sizer->Add(m_sizer, 0, wxEXPAND);
+}
+
+int DialogButtons::FromDIP(int d) {
+    return m_parent->FromDIP(d);
 }
 
 // This might be helpful for future use

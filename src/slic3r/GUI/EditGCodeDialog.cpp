@@ -101,6 +101,8 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     m_param_description = new wxStaticText(this, wxID_ANY, wxEmptyString);
 
     auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -108,7 +110,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     topSizer->Add(grid_sizer          , 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_param_label       , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_param_description , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
-    topSizer->Add(dlg_btns->GetSizer(), 0, wxEXPAND);
+    topSizer->Add(d_sizer             , 0, wxEXPAND);
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);

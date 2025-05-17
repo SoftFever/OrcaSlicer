@@ -97,6 +97,9 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     build_printhost_settings(m_optgroup);
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+
     btnOK = dlg_btns->GetOK();
     btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
 
@@ -105,7 +108,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     // topSizer->Add(label_top           , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
     topSizer->Add(input_sizer         , 0, wxEXPAND | wxALL, BORDER_W);
     topSizer->Add(m_optgroup->sizer   , 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
-    dlg_btns->AddTo(topSizer);
+    topSizer->Add(d_sizer, 0, wxEXPAND);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->EndModal(wxID_NO);});
 

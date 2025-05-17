@@ -141,7 +141,10 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 	v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    dlg_btns->AddTo(v_sizer);
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(d_sizer , 0, wxEXPAND);
+
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &PA_Calibration_Dlg::on_start, this);
 
     PA_Calibration_Dlg::reset_params();
@@ -336,7 +339,10 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    dlg_btns->AddTo(v_sizer);
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(d_sizer , 0, wxEXPAND);
+
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Temp_Calibration_Dlg::on_start, this);
 
     m_rbFilamentType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(Temp_Calibration_Dlg::on_filament_type_changed), NULL, this);
@@ -505,7 +511,10 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    dlg_btns->AddTo(v_sizer);
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(d_sizer , 0, wxEXPAND);
+
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &MaxVolumetricSpeed_Test_Dlg::on_start, this);
 
     //wxGetApp().UpdateDlgDarkUI(this);
@@ -602,7 +611,10 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    dlg_btns->AddTo(v_sizer);
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(d_sizer , 0, wxEXPAND);
+
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &VFA_Test_Dlg::on_start, this);
 
     // wxGetApp().UpdateDlgDarkUI(this);
@@ -700,7 +712,10 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    dlg_btns->AddTo(v_sizer);
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(d_sizer , 0, wxEXPAND);
+
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Retraction_Test_Dlg::on_start, this);
 
     //wxGetApp().UpdateDlgDarkUI(this);
@@ -820,7 +835,10 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    dlg_btns->AddTo(v_sizer);
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(d_sizer , 0, wxEXPAND);
+
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Input_Shaping_Freq_Test_Dlg::on_start, this);
 
     //wxGetApp().UpdateDlgDarkUI(this);//FIXME: dark mode background color
@@ -945,7 +963,10 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    dlg_btns->AddTo(v_sizer);
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(d_sizer , 0, wxEXPAND);
+
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Input_Shaping_Damp_Test_Dlg::on_start, this);
 
     //wxGetApp().UpdateDlgDarkUI(this);//FIXME: dark mode background color
@@ -1051,7 +1072,10 @@ Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    dlg_btns->AddTo(v_sizer);
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(d_sizer , 0, wxEXPAND);
+
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Junction_Deviation_Test_Dlg::on_start, this);
 
     Layout();

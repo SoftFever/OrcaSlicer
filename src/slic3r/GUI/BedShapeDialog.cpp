@@ -144,7 +144,10 @@ void BedShapeDialog::build_dialog(const Pointfs& default_pt, const ConfigOptionS
 	main_sizer->Add(m_panel, 1, wxEXPAND);
 
     auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
-    dlg_btns->AddTo(main_sizer);
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+
+    main_sizer->Add(d_sizer, 0, wxEXPAND);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
