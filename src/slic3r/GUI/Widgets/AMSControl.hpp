@@ -104,9 +104,9 @@ public:
     std::string GetCurrentCan(std::string amsid);
 	wxColour GetCanColour(std::string amsid, std::string canid);
 
-    AMSModel m_ams_model{AMSModel::NO_AMS};
-    AMSModel m_ext_model{AMSModel::NO_AMS};
-    AMSModel m_is_none_ams_mode{AMSModel::NO_AMS};
+    AMSModel m_ams_model{AMSModel::EXT_AMS};
+    AMSModel m_ext_model{AMSModel::EXT_AMS};
+    AMSModel m_is_none_ams_mode{AMSModel::EXT_AMS};
 
     void SetAmsModel(AMSModel mode, AMSModel ext_mode) {m_ams_model = mode; m_ext_model = ext_mode;};
 

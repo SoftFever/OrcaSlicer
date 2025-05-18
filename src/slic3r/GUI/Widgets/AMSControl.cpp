@@ -641,7 +641,7 @@ void AMSControl::SetActionState(bool button_status[])
 void AMSControl::EnterNoneAMSMode()
 {
     m_vams_lib->m_ams_model = m_ext_model;
-    if(m_is_none_ams_mode == AMSModel::NO_AMS) return;
+    if(m_is_none_ams_mode == AMSModel::EXT_AMS) return;
     m_panel_top->Hide();
     m_simplebook_amsitems->Hide();
     m_simplebook_amsitems->SetSelection(0);
@@ -657,7 +657,7 @@ void AMSControl::EnterNoneAMSMode()
     m_amswin->Layout();
     m_amswin->Fit();
     Layout();
-    m_is_none_ams_mode = AMSModel::NO_AMS;
+    m_is_none_ams_mode = AMSModel::EXT_AMS;
 }
 
 void AMSControl::EnterGenericAMSMode()
@@ -692,13 +692,13 @@ void AMSControl::EnterGenericAMSMode()
 void AMSControl::EnterExtraAMSMode()
 {
     m_vams_lib->m_ams_model = m_ext_model;
-    if(m_is_none_ams_mode == AMSModel::EXTRA_AMS) return;
+    if(m_is_none_ams_mode == AMSModel::AMS_LITE) return;
     m_panel_top->Hide();
     m_simplebook_amsitems->Show();
     m_simplebook_amsitems->SetSelection(1);
 
     
-    m_vams_lib->m_ams_model = AMSModel::EXTRA_AMS;
+    m_vams_lib->m_ams_model = AMSModel::AMS_LITE;
     m_ams_tip->SetLabel(wxEmptyString);
     m_img_vams_tip->SetBitmap(create_scaled_bitmap("enable_ams_disable", this, 16));
     m_img_vams_tip->Disable();
@@ -717,7 +717,7 @@ void AMSControl::EnterExtraAMSMode()
     m_amswin->Fit();
     Layout();
     Refresh(true);
-    m_is_none_ams_mode = AMSModel::EXTRA_AMS;
+    m_is_none_ams_mode = AMSModel::AMS_LITE;
 
 }
 
@@ -836,7 +836,7 @@ void AMSControl::UpdateStepCtrl(bool is_extrusion)
     }
 
 
-    if (m_ams_model == AMSModel::EXTRA_AMS || m_ext_model == AMSModel::EXTRA_AMS) {
+    if (m_ams_model == AMSModel::AMS_LITE || m_ext_model == AMSModel::AMS_LITE) {
         m_filament_load_step->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
         m_filament_load_step->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CHECK_POSITION]);
         m_filament_load_step->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);
@@ -908,11 +908,11 @@ void AMSControl::show_noams_mode()
     show_vams(true);
     m_sizer_ams_tips->Show(true);
 
-    if (m_ams_model == AMSModel::NO_AMS) {
+    if (m_ams_model == AMSModel::EXT_AMS) {
         EnterNoneAMSMode();
     } else if(m_ams_model == AMSModel::GENERIC_AMS){
         EnterGenericAMSMode();
-    } else if (m_ams_model == AMSModel::EXTRA_AMS) {
+    } else if (m_ams_model == AMSModel::AMS_LITE) {
         EnterExtraAMSMode();
     }
 }
@@ -998,7 +998,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
     if (m_ams_model == AMSModel::GENERIC_AMS){
         m_ams_cans_list = m_ams_generic_cans_list;
     }
-    else if (m_ams_model == AMSModel::EXTRA_AMS) {
+    else if (m_ams_model == AMSModel::AMS_LITE) {
         m_ams_cans_list = m_ams_extra_cans_list;
     }
 
@@ -1034,7 +1034,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
             if (ifo.ams_id == cans->amsIndex) {
                 cans->amsCans->m_info = ifo;
                 cans->amsCans->Update(ifo);
-                cans->amsCans->show_sn_value(m_ams_model == AMSModel::EXTRA_AMS?false:true);
+                cans->amsCans->show_sn_value(m_ams_model == AMSModel::AMS_LITE?false:true);
             }
         }
     }
@@ -1045,7 +1045,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
         }
     }
 
-    if (m_ams_model == AMSModel::NO_AMS && !m_vams_lib->is_selected()) {
+    if (m_ams_model == AMSModel::EXT_AMS && !m_vams_lib->is_selected()) {
         m_vams_lib->OnSelected();
     }
 }
@@ -1082,7 +1082,7 @@ void AMSControl::AddAms(AMSinfo info)
 void AMSControl::AddExtraAms(AMSinfo info)
 {
     AmsCansWindow* canswin = new AmsCansWindow();
-    auto           amscans = new AmsCans(m_simplebook_extra_cans, info, AMSModel::EXTRA_AMS);
+    auto           amscans = new AmsCans(m_simplebook_extra_cans, info, AMSModel::AMS_LITE);
 
     canswin->amsIndex = info.ams_id;
     canswin->amsCans = amscans;
@@ -1156,7 +1156,7 @@ void AMSControl::SwitchAms(std::string ams_id)
             if (m_ams_model == AMSModel::GENERIC_AMS) {
                 m_simplebook_generic_cans->SetSelection(cans->amsCans->m_selection);
             }
-            else if (m_ams_model == AMSModel::EXTRA_AMS) {
+            else if (m_ams_model == AMSModel::AMS_LITE) {
                 m_simplebook_extra_cans->SetSelection(cans->amsCans->m_selection);
             }
         }
@@ -1321,7 +1321,7 @@ void AMSControl::SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxC
             m_vams_road->OnVamsLoading(false);
         }
     }
-    else if (m_ams_model == AMSModel::EXTRA_AMS || m_ext_model == AMSModel::EXTRA_AMS) {
+    else if (m_ams_model == AMSModel::AMS_LITE || m_ext_model == AMSModel::AMS_LITE) {
         if (!is_vams && !on_off) {
             m_extruder->TurnOff();
             m_extruder->OnVamsLoading(false);
@@ -1400,7 +1400,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
             m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));
         }
     }
-    else if (m_ams_model == AMSModel::EXTRA_AMS) {
+    else if (m_ams_model == AMSModel::AMS_LITE) {
         cans->amsCans->SetAmsStepExtra(canid, type, step);
         if (step != AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
             m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));

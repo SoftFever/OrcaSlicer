@@ -49,6 +49,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
     }
 
     this->humidity_raw = ams->humidity_raw;
+    this->ams_type = AMSModel(ams->type);
 
     cans.clear();
     for (int i = 0; i < ams->trayList.size(); i++) {
@@ -707,7 +708,7 @@ void AMSLib::on_left_down(wxMouseEvent &evt)
                 top = (size.y - FromDIP(15) - m_bitmap_editable_light.GetBmpSize().y);
                 bottom = size.y - FromDIP(15);
             }
-            else if (m_ams_model == AMSModel::EXTRA_AMS) {
+            else if (m_ams_model == AMSModel::AMS_LITE) {
                 top = (size.y - FromDIP(20) - m_bitmap_editable_light.GetBmpSize().y);
                 bottom = size.y - FromDIP(20);
             }
@@ -759,7 +760,7 @@ void AMSLib::render(wxDC &dc)
     if (m_ams_model == AMSModel::GENERIC_AMS) {
         render_generic_text(dc);
     }
-    else if (m_ams_model == AMSModel::EXTRA_AMS) {
+    else if (m_ams_model == AMSModel::AMS_LITE) {
         render_extra_text(dc);
     }
 }
@@ -977,7 +978,7 @@ void AMSLib::doRender(wxDC &dc)
     if (m_ams_model == AMSModel::GENERIC_AMS) {
         render_generic_lib(dc);
     }
-    else if (m_ams_model == AMSModel::EXTRA_AMS) {
+    else if (m_ams_model == AMSModel::AMS_LITE) {
         render_extra_lib(dc);
     }
 }
@@ -1408,7 +1409,7 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
     for (int i = 1; i <= 5; i++) { ams_humidity_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_dark", 32));}
     for (int i = 1; i <= 5; i++) { ams_humidity_no_num_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_light", 16)); }
     for (int i = 1; i <= 5; i++) { ams_humidity_no_num_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_dark", 16)); }
-
+    ams_sun_img = ScalableBitmap(this, "ams_drying", 16);
     if (m_rode_mode != AMSRoadMode::AMS_ROAD_MODE_VIRTUAL_TRAY) {
         create(parent, id, pos, size);
     }
@@ -1701,6 +1702,7 @@ void AMSRoad::msw_rescale()
     for (auto& img : ams_humidity_dark_imgs) { img.msw_rescale(); }
     for (auto &img : ams_humidity_no_num_imgs) { img.msw_rescale(); }
     for (auto &img : ams_humidity_no_num_dark_imgs) { img.msw_rescale(); }
+    ams_sun_img.msw_rescale();
 }
 
 
@@ -1736,7 +1738,7 @@ void AmsCans::create(wxWindow *parent)
         }
         SetSizer(sizer_can);
     }
-    else if(m_ams_model == AMSModel::EXTRA_AMS) {
+    else if(m_ams_model == AMSModel::AMS_LITE) {
         sizer_can = new wxBoxSizer(wxVERTICAL);
         sizer_can_middle = new wxBoxSizer(wxHORIZONTAL);
         sizer_can_left = new wxBoxSizer(wxVERTICAL);
@@ -1823,7 +1825,7 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
         m_sizer_ams->Add(m_panel_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(3));
         m_sizer_ams->Add(m_panel_road, 0, wxALL, 0);
     }
-    else if (m_ams_model == AMSModel::EXTRA_AMS)
+    else if (m_ams_model == AMSModel::AMS_LITE)
     {
         m_sizer_ams = new wxBoxSizer(wxHORIZONTAL);
         m_panel_road->Hide();
@@ -1846,7 +1848,7 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
     if (m_ams_model == AMSModel::GENERIC_AMS) {
          sizer->Add(amscan, 0, wxALL, 0);
     }
-    else if (m_ams_model == AMSModel::EXTRA_AMS)
+    else if (m_ams_model == AMSModel::AMS_LITE)
     {
         if (canindex > 1) {
             sizer->Prepend(amscan, 0, wxALL, 0);
@@ -2100,7 +2102,7 @@ void AmsCans::doRender(wxDC& dc)
     dc.DrawBitmap(m_bitmap_extra_framework.bmp(), (size.x - m_bitmap_extra_framework.GetBmpSize().x) / 2, (size.y - m_bitmap_extra_framework.GetBmpSize().y) / 2);
 
     //road for extra
-    if (m_ams_model == AMSModel::EXTRA_AMS) {
+    if (m_ams_model == AMSModel::AMS_LITE) {
 
         auto end_top = size.x / 2 - FromDIP(99);
         auto passroad_width = 6;

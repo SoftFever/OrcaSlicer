@@ -2598,7 +2598,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     AMSModel ams_mode               = AMSModel::GENERIC_AMS;
 
     if (obj) {
-        if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::EXTRA_AMS; }
+        if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::AMS_LITE; }
         else if(obj->get_printer_ams_type() == "generic") { ams_mode = AMSModel::GENERIC_AMS; }
         obj->check_ams_filament_valid();
     }
@@ -2618,7 +2618,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
 
 
-        m_ams_control->SetAmsModel(AMSModel::NO_AMS, ams_mode);
+        m_ams_control->SetAmsModel(AMSModel::EXT_AMS, ams_mode);
         show_ams_group(false);
 
         m_ams_control->show_auto_refill(false);

@@ -36,11 +36,12 @@
 
 namespace Slic3r { namespace GUI {
 
-
 enum AMSModel {
-    NO_AMS              = 0,
+    EXT_AMS             = 0,    //ext
     GENERIC_AMS         = 1,
-    EXTRA_AMS           = 2
+    AMS_LITE            = 2,    //ams-lite
+    N3F_AMS             = 3,
+    N3S_AMS             = 4     //n3s  single_ams
 };
 
 enum ActionButton {
@@ -160,6 +161,7 @@ public:
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
     int                     humidity_raw = -1;
+    AMSModel                ams_type = AMSModel::GENERIC_AMS;
 
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
 };
@@ -396,7 +398,9 @@ public:
 
     std::vector<ScalableBitmap> ams_humidity_no_num_imgs;
     std::vector<ScalableBitmap> ams_humidity_no_num_dark_imgs;
-   
+
+    ScalableBitmap ams_sun_img;
+
     int      m_humidity = { 0 };
     bool     m_show_humidity = { false };
     bool     m_vams_loading{false};
