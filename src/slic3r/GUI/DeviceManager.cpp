@@ -3438,7 +3438,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         if (jj.contains("nozzle_target_temper")) {
                             if (jj["nozzle_target_temper"].is_number()) {
                                 if (m_extder_data.extders.size() == 1) {
-                                    m_extder_data.extders[0].target_temp = jj["nozzle_temper"].get<float>();
+                                    m_extder_data.extders[0].target_temp = jj["nozzle_target_temper"].get<float>();
                                 }
                             }
                         }
