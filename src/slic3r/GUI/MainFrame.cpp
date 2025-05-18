@@ -1572,12 +1572,10 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_option_btn->Enable();
     // sizer->Add(m_publish_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     // sizer->Add(FromDIP(15), 0, 0, 0, 0);
-    sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
-    sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
-    sizer->Add(FromDIP(15), 0, 0, 0, 0);
-    sizer->Add(m_print_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
-    sizer->Add(m_print_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
-    sizer->Add(FromDIP(19), 0, 0, 0, 0);
+    sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    sizer->Add(m_slice_btn       , 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(15));
+    sizer->Add(m_print_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    sizer->Add(m_print_btn       , 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(19));
 
     sizer->Layout();
 
