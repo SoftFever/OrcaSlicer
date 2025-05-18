@@ -146,7 +146,7 @@ private:
     void on_set_color_timer(wxTimerEvent& evt);
 
     // key MENU_ICON_NAME, value = ImtextureID
-    std::map<int, void*> icon_list;
+    static std::map<int, void*> icon_list;
 
     bool m_is_dark = false;
 

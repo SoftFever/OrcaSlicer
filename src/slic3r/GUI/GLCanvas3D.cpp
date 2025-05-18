@@ -5815,7 +5815,6 @@ void GLCanvas3D::_render_3d_navigator()
 
     const float size  = 128 * sc;
     m_axis_button_pos[0] = size - 10;
-    m_sc = sc;
     const auto result = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, nullptr,
                                                  camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - size), ImVec2(size, size),
                                                  0x00101010);
@@ -8284,6 +8283,7 @@ void GLCanvas3D::_render_return_toolbar() const
 void GLCanvas3D::_render_camera_toolbar() 
 {
     float  font_size        = ImGui::GetFontSize();
+    float sc = get_scale();
     ImVec2 button_icon_size = ImVec2(font_size * 2.5, font_size * 2.5);
 
     ImGuiWrapper &imgui         = *wxGetApp().imgui();
@@ -8291,7 +8291,7 @@ void GLCanvas3D::_render_camera_toolbar()
     float         window_height = button_icon_size.y + imgui.scaled(2.0f);
 
     Size cnv_size              = get_canvas_size();
-    m_axis_button_pos[1] = cnv_size.get_height() - button_icon_size[1] - 20 * m_sc;
+    m_axis_button_pos[1] = cnv_size.get_height() - button_icon_size[1] - 20 * sc;
     imgui.set_next_window_pos(m_axis_button_pos[0], m_axis_button_pos[1], ImGuiCond_Always, 0, 0);
 #ifdef __WINDOWS__
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);

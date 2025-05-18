@@ -6,13 +6,13 @@
             <circle cx="9" cy="10.5" r="7.5" style="fill:rgb(59,59,59);"/>
         </g>
         <g transform="matrix(6.2813,0.833537,0.833537,7.26368,-171.786,-7.25965)">
-            <path d="M9,9L2,13" style="fill:none;stroke:rgb(255,60,91);stroke-width:1.42px;"/>
+            <path d="M9,9L2,13" style="fill:none;stroke:rgb(255,60,91);stroke-opacity:0.65;stroke-width:1.42px;stroke-dasharray:1.42,1.42;"/>
         </g>
         <g transform="matrix(6.2813,-0.833537,-0.833537,7.26368,-156.782,7.74402)">
-            <path d="M9,9L16,13" style="fill:none;stroke:rgb(100,200,24);stroke-width:1.82px;"/>
+            <path d="M9,9L16,13" style="fill:none;stroke:rgb(100,200,24);stroke-opacity:0.65;stroke-width:1.82px;stroke-dasharray:1.82,1.82;"/>
         </g>
         <g transform="matrix(7.73999,0,0,5.80499,-177.412,13.3704)">
-            <path d="M9,1L9,9" style="fill:none;stroke:rgb(47,136,233);stroke-width:1.58px;"/>
+            <path d="M9,1L9,9" style="fill:none;stroke:rgb(47,136,233);stroke-opacity:0.65;stroke-width:1.58px;stroke-dasharray:1.58,1.58;"/>
         </g>
     </g>
 </svg>
