@@ -855,7 +855,7 @@ void AuxiliaryPanel::init_tabpanel()
     sizer_side_tools->Add(back_btn, 1, wxEXPAND, 0);
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(wxColour("#FEFFFF"));
-    m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [](wxBookCtrlEvent &e) { ; });
+    m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [](wxBookCtrlEvent &e) { /* Event handling */ });
 
     m_designer_panel          = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);
     m_pictures_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::MODEL_PICTURE);
@@ -1089,26 +1089,24 @@ void AuxiliaryPanel::update_all_cover()
      m_sizer_license->Add(m_combo_license, 0, wxALIGN_CENTER, 0);
 
      wxBoxSizer *m_sizer_description = new wxBoxSizer(wxHORIZONTAL);
-     auto m_text_description = new wxStaticText(this, wxID_ANY, _L("Description:"), wxDefaultPosition, wxSize(180, -1), 0); // Using "Description:" with the : because that already exists in the Localizations files
+     auto m_text_description = new wxStaticText(this, wxID_ANY, _L("Description:"), wxDefaultPosition, wxSize(170, -1), 0); // Using "Description:" with the : because that already exists in the Localizations files
      m_text_description->SetForegroundColour(*wxBLACK);
      m_text_description->Wrap(-1);
-     m_sizer_description->Add(m_text_description, 0, wxALIGN_CENTER, 0);
-     wxTextCtrl *m_input_description = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, 
-                                                 wxSize(FromDIP(450), FromDIP(100)), wxTE_MULTILINE | wxTE_PROCESS_ENTER);
+     m_sizer_description->Add(m_text_description, 0, wxALIGN_TOP | wxRIGHT, FromDIP(10));
+     m_input_description = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, 
+                                          wxSize(FromDIP(450), FromDIP(300)), wxTE_MULTILINE | wxTE_PROCESS_ENTER);
      m_input_description->SetFont(::Label::Body_14);
-     m_sizer_description->Add(m_text_description, 1, wxEXPAND | wxALIGN_CENTER, 0);
+     m_sizer_description->Add(m_input_description, 0, wxALIGN_CENTER, 0);
 
-
-     m_sizer_body->Add( 0, 0, 0, wxTOP, FromDIP(50) );
-     m_sizer_body->Add(m_sizer_designer, 0, wxLEFT, FromDIP(50));
-     m_sizer_body->Add( 0, 0, 0, wxTOP, FromDIP(20));
-     m_sizer_body->Add(m_sizer_model_name, 0, wxLEFT, FromDIP(50));
+     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(50));
+     m_sizer_body->Add(m_sizer_designer, 0, wxLEFT | wxALIGN_LEFT, FromDIP(50));
      m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
-     m_sizer_body->Add(m_sizer_license, 0, wxLEFT, FromDIP(50));
+     m_sizer_body->Add(m_sizer_model_name, 0, wxLEFT | wxALIGN_LEFT, FromDIP(50));
+     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
+     m_sizer_body->Add(m_sizer_license, 0, wxLEFT | wxALIGN_LEFT, FromDIP(50));
      init_license_list();
      m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
-     m_sizer_body->Add(m_sizer_description, 0, wxLEFT, FromDIP(50));
-
+     m_sizer_body->Add(m_sizer_description, 0, wxLEFT | wxALIGN_LEFT, FromDIP(50));
 
      SetSizer(m_sizer_body);
      Layout();
@@ -1116,6 +1114,7 @@ void AuxiliaryPanel::update_all_cover()
 
      m_input_designer->Bind(wxEVT_TEXT, &DesignerPanel::on_input_enter_designer, this);
      m_input_model_name->Bind(wxEVT_TEXT, &DesignerPanel::on_input_enter_model, this);
+     m_input_description->Bind(wxEVT_TEXT, &DesignerPanel::on_input_enter_description, this);
      m_combo_license->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &DesignerPanel::on_select_license, this);
 }
 
@@ -1175,16 +1174,15 @@ void DesignerPanel::update_info()
 
     if (wxGetApp().plater()->model().model_info != nullptr) {
         m_input_model_name->GetTextCtrl()->SetValue(wxString::FromUTF8(wxGetApp().plater()->model().model_info->model_name));
-       // m_input_description->GetTextCtrl()->SetValue(wxString::FromUTF8(wxGetApp().plater()->model().model_info->description));
+        m_input_description->ChangeValue(wxString::FromUTF8(wxGetApp().plater()->model().model_info->description));
         if (!m_combo_license->SetStringSelection(wxString::FromUTF8(wxGetApp().plater()->model().model_info->license))) {
             m_combo_license->SetSelection(0);
         }
     } else {
         m_input_model_name->GetTextCtrl()->SetValue(wxEmptyString);
-       // m_input_description->GetTextCtrl()->SetValue(wxEmptyString);
+        m_input_description->ChangeValue(wxEmptyString);
         m_combo_license->SetSelection(0);
     }
-
 }
 
 void DesignerPanel::msw_rescale()
@@ -1192,7 +1190,6 @@ void DesignerPanel::msw_rescale()
     m_input_designer->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
     m_input_model_name->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
     m_combo_license->SetSize(wxSize(FromDIP(450), -1));
-    m_input_description->GetTextCtrl()->SetSize(wxSize(FromDIP(450), -1));
-}
+    m_input_description->SetSize(wxSize(FromDIP(450), -1));}
 
 }} // namespace Slic3r::GUI
