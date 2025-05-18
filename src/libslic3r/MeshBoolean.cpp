@@ -371,7 +371,7 @@ std::vector<TriangleMesh> segment(const TriangleMesh& src, double smoothing_alph
     std::vector<TriangleMesh> out_meshes;
     for (auto& outf_cgal_mesh: out_cgal_meshes)
     {
-        out_meshes.emplace_back(cgal_to_triangle_mesh(outf_cgal_mesh.m));
+        out_meshes.emplace_back(std::move(cgal_to_triangle_mesh(outf_cgal_mesh.m)));
     }
 
     return out_meshes;
