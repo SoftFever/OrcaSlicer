@@ -1562,9 +1562,9 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     // m_publish_btn = new Button(this, _L("Upload"), "bar_publish", 0, FromDIP(16));
     m_slice_btn = new SideButton(this, _L("Slice plate"), "");
-    m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
+    m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14);
     m_print_btn = new SideButton(this, _L("Print plate"), "");
-    m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
+    m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14);
 
     update_side_button_style();
     // m_publish_btn->Hide();
