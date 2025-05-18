@@ -3,16 +3,16 @@
 <svg width="100%" height="100%" viewBox="0 0 18 18" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
     <g id="g15" transform="matrix(0.129199,0,0,0.129199,22.9215,0.522556)">
         <g transform="matrix(8.25599,0,0,8.25599,-182.056,-21.0726)">
-            <circle cx="9" cy="10.5" r="7.5" style="fill:rgb(169,169,169);"/>
+            <circle cx="9" cy="10.5" r="7.5" style="fill:rgb(59,59,59);"/>
         </g>
         <g transform="matrix(6.2813,0.833537,0.833537,7.26368,-171.786,-7.25965)">
-            <path d="M9,9L2,13" style="fill:none;stroke:rgb(255,60,91);stroke-opacity:0.65;stroke-width:1.42px;stroke-dasharray:1.42,1.42;"/>
+            <path d="M9,9L2,13" style="fill:none;stroke:rgb(255,60,91);stroke-opacity:0.5;stroke-width:1.42px;"/>
         </g>
         <g transform="matrix(6.2813,-0.833537,-0.833537,7.26368,-156.782,7.74402)">
-            <path d="M9,9L16,13" style="fill:none;stroke:rgb(100,200,24);stroke-opacity:0.65;stroke-width:1.82px;stroke-dasharray:1.82,1.82;"/>
+            <path d="M9,9L16,13" style="fill:none;stroke:rgb(100,200,24);stroke-opacity:0.5;stroke-width:1.82px;"/>
         </g>
         <g transform="matrix(7.73999,0,0,5.80499,-177.412,13.3704)">
-            <path d="M9,1L9,9" style="fill:none;stroke:rgb(47,136,233);stroke-opacity:0.65;stroke-width:1.58px;stroke-dasharray:1.58,1.58;"/>
+            <path d="M9,1L9,9" style="fill:none;stroke:rgb(47,136,233);stroke-opacity:0.49;stroke-width:1.58px;"/>
         </g>
     </g>
 </svg>
