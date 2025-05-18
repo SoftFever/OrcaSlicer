@@ -7690,7 +7690,7 @@ msgstr "Accesso non riuscito. Controlla il codice PIN."
 msgid "Log in printer"
 msgstr "Accesso stampante"
 
-msgid "Would you like to log in this printer with the current account?"
+msgid "Would you like to log in to this printer with the current account?"
 msgstr "Vuoi accedere alla stampante con il profilo utente corrente?"
 
 msgid "Check the reason"
@@ -8280,7 +8280,7 @@ msgstr "Dipendenze profilo"
 msgid "Printable space"
 msgstr "Spazio di stampa"
 
-#. TRN: First argument is parameter name, the second is the value.
+#. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
 msgstr "Valore non valido fornito per il parametro %1%: %2%"
@@ -11020,8 +11020,8 @@ msgid "No cooling for the first"
 msgstr "Nessun raffreddamento per primi strati"
 
 msgid ""
-"Close all cooling fan for the first certain layers. Cooling fan of the first "
-"layer used to be closed to get better build plate adhesion"
+"Turn off all cooling fans for the first few layers. This can be used to "
+"improve build plate adhesion."
 msgstr ""
 "Spegne tutte le ventole di raffreddamento per i primi strati. Può servire a "
 "migliorare l'adesione del piano di stampa"
@@ -11791,8 +11791,9 @@ msgid "Keep fan always on"
 msgstr "Mantieni la ventola sempre accesa"
 
 msgid ""
-"If enable this setting, part cooling fan will never be stopped and will run "
-"at least at minimum speed to reduce the frequency of starting and stopping"
+"Enabling this setting means that the part cooling fan will never stop "
+"completely and will run at least at minimum speed to reduce the frequency of "
+"starting and stopping."
 msgstr ""
 "Se si attiva questa impostazione, la ventola di raffreddamento non si "
 "arresterà mai del tutto, ma funzionerà almeno alla velocità minima per "

@@ -7425,7 +7425,7 @@ msgstr "로그인 실패. 핀 코드를 확인해주세요."
 msgid "Log in printer"
 msgstr "프린터 로그인"
 
-msgid "Would you like to log in this printer with the current account?"
+msgid "Would you like to log in to this printer with the current account?"
 msgstr "현재 계정으로 이 프린터에 로그인하시겠습니까?"
 
 msgid "Check the reason"
@@ -7977,7 +7977,7 @@ msgstr "프로필 종속성"
 msgid "Printable space"
 msgstr "출력 가능 공간"
 
-#. TRN: First argument is parameter name, the second is the value.
+#. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
 msgstr "%1% 매개변수에 잘못된 값이 입력됨: %2%"
@@ -10546,8 +10546,8 @@ msgid "No cooling for the first"
 msgstr "처음에는 냉각이 적용되지 않습니다"
 
 msgid ""
-"Close all cooling fan for the first certain layers. Cooling fan of the first "
-"layer used to be closed to get better build plate adhesion"
+"Turn off all cooling fans for the first few layers. This can be used to "
+"improve build plate adhesion."
 msgstr ""
 "빌드 플레이트의 접착력 향상을 위해 첫 레이어부터 특정 레이어까지의 모든 냉각 "
 "팬을 정지합니다"
@@ -11243,8 +11243,9 @@ msgid "Keep fan always on"
 msgstr "팬 상시 가동"
 
 msgid ""
-"If enable this setting, part cooling fan will never be stopped and will run "
-"at least at minimum speed to reduce the frequency of starting and stopping"
+"Enabling this setting means that the part cooling fan will never stop "
+"completely and will run at least at minimum speed to reduce the frequency of "
+"starting and stopping."
 msgstr ""
 "이 설정을 활성화하면 출력물 냉각 팬이 정지되지 않으며 팬을 최소 속도로 가동하"
 "여 시동 및 정지 빈도를 줄입니다"

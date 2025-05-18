@@ -7381,7 +7381,7 @@ msgstr ""
 msgid "Log in printer"
 msgstr "Bejelentkezés a nyomtatóra"
 
-msgid "Would you like to log in this printer with the current account?"
+msgid "Would you like to log in to this printer with the current account?"
 msgstr "Szeretnél bejelentkezni a nyomtatóra a jelenlegi fiókkal?"
 
 msgid "Check the reason"
@@ -7916,7 +7916,7 @@ msgstr "Profilfüggőségek"
 msgid "Printable space"
 msgstr "Nyomtatási terület"
 
-#. TRN: First argument is parameter name, the second is the value.
+#. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
 msgstr ""
@@ -10315,8 +10315,8 @@ msgid "No cooling for the first"
 msgstr "Nincs hűtés az első"
 
 msgid ""
-"Close all cooling fan for the first certain layers. Cooling fan of the first "
-"layer used to be closed to get better build plate adhesion"
+"Turn off all cooling fans for the first few layers. This can be used to "
+"improve build plate adhesion."
 msgstr ""
 "Kikapcsolja a hűtést a megadott első pár rétegnél. A hűtés kikapcsolása "
 "segítheti a jobb tárgyasztalhoz való tapadást"
@@ -10856,8 +10856,9 @@ msgid "Keep fan always on"
 msgstr "Ventilátor mindig bekapcsolva"
 
 msgid ""
-"If enable this setting, part cooling fan will never be stopped and will run "
-"at least at minimum speed to reduce the frequency of starting and stopping"
+"Enabling this setting means that the part cooling fan will never stop "
+"completely and will run at least at minimum speed to reduce the frequency of "
+"starting and stopping."
 msgstr ""
 "Ezen beállítás engedélyezése esetén a tárgyhűtő ventilátor soha nem áll le, "
 "és legalább a minimális fordulatszámon fog járni, hogy csökkentse az indítás "

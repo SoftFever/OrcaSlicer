@@ -1453,8 +1453,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("close_fan_the_first_x_layers", coInts);
     def->label = L("No cooling for the first");
-    def->tooltip = L("Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed "
-                     "to get better build plate adhesion");
+    def->tooltip = L("Turn off all cooling fans for the first few layers. "
+                     "This can be used to improve build plate adhesion.");
     def->sidetext = L("layers");
     def->min = 0;
     def->max = 1000;
@@ -1940,8 +1940,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("reduce_fan_stop_start_freq", coBools);
     def->label = L("Keep fan always on");
-    def->tooltip = L("If enable this setting, part cooling fan will never be stopped and will run at least "
-                     "at minimum speed to reduce the frequency of starting and stopping");
+    def->tooltip = L("Enabling this setting means that the part cooling fan will never stop completely "
+                     "and will run at least at minimum speed to reduce the frequency of starting and stopping.");
     def->set_default_value(new ConfigOptionBools { false });
     
     def = this->add("dont_slow_down_outer_wall", coBools);

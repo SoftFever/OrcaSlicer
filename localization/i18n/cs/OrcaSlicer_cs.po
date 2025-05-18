@@ -7454,7 +7454,7 @@ msgstr ""
 msgid "Log in printer"
 msgstr "Přihlaste se k tiskárně"
 
-msgid "Would you like to log in this printer with the current account?"
+msgid "Would you like to log in to this printer with the current account?"
 msgstr "Chcete se přihlásit k této tiskárně pomocí aktuálního účtu?"
 
 msgid "Check the reason"
@@ -8003,7 +8003,7 @@ msgstr "Profilové závislosti"
 msgid "Printable space"
 msgstr "Prostor pro tisk"
 
-#. TRN: First argument is parameter name, the second is the value.
+#. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
 msgstr "Neplatná hodnota zadaná pro parametr %1%: %2%"
@@ -10416,8 +10416,8 @@ msgid "No cooling for the first"
 msgstr "První bez chlazení"
 
 msgid ""
-"Close all cooling fan for the first certain layers. Cooling fan of the first "
-"layer used to be closed to get better build plate adhesion"
+"Turn off all cooling fans for the first few layers. This can be used to "
+"improve build plate adhesion."
 msgstr ""
 "Zavřete všechny chladicí ventilátory pro první určité vrstvy. Chladicí "
 "ventilátor první vrstvy býval uzavřen, aby se dosáhlo lepší přilnavosti "
@@ -10967,8 +10967,9 @@ msgid "Keep fan always on"
 msgstr "Ventilátor vždy zapnutý"
 
 msgid ""
-"If enable this setting, part cooling fan will never be stopped and will run "
-"at least at minimum speed to reduce the frequency of starting and stopping"
+"Enabling this setting means that the part cooling fan will never stop "
+"completely and will run at least at minimum speed to reduce the frequency of "
+"starting and stopping."
 msgstr ""
 "Pokud povolíte toto nastavení, ventilátor chlazení součástí se nikdy "
 "nezastaví a poběží alespoň na minimální rychlost, aby se snížila frekvence "

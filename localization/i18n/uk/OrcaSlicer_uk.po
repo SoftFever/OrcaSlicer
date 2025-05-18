@@ -7648,7 +7648,7 @@ msgstr "Вхід не вдається. Будь ласка, перевірте 
 msgid "Log in printer"
 msgstr "Вхід до принтера"
 
-msgid "Would you like to log in this printer with the current account?"
+msgid "Would you like to log in to this printer with the current account?"
 msgstr "Ви хочете увійти до цього принтера з поточним обліковим записом?"
 
 msgid "Check the reason"
@@ -8227,7 +8227,7 @@ msgstr "Залежності профілю"
 msgid "Printable space"
 msgstr "Місце для друку"
 
-#. TRN: First argument is parameter name, the second is the value.
+#. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
 msgstr "Надано некоректне значення для параметру %1%: %2%"
@@ -10897,8 +10897,8 @@ msgid "No cooling for the first"
 msgstr "Не охолоджувати перші"
 
 msgid ""
-"Close all cooling fan for the first certain layers. Cooling fan of the first "
-"layer used to be closed to get better build plate adhesion"
+"Turn off all cooling fans for the first few layers. This can be used to "
+"improve build plate adhesion."
 msgstr ""
 "Вимкнути всі вентилятори охолодження для певної кількості перших шарів. "
 "Вентилятор охолодження першого шару зазвичай вимкнений, щоб покращити "
@@ -11650,8 +11650,9 @@ msgid "Keep fan always on"
 msgstr "Тримати вентилятор завжди увімкненим"
 
 msgid ""
-"If enable this setting, part cooling fan will never be stopped and will run "
-"at least at minimum speed to reduce the frequency of starting and stopping"
+"Enabling this setting means that the part cooling fan will never stop "
+"completely and will run at least at minimum speed to reduce the frequency of "
+"starting and stopping."
 msgstr ""
 "Якщо увімкнути цей параметр, вентилятор охолодження деталі ніколи не "
 "будезупинятиметься і працюватиме\n"

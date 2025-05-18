@@ -7279,7 +7279,7 @@ msgstr "登入失敗。請檢查 Pin碼。"
 msgid "Log in printer"
 msgstr "登入列印設備"
 
-msgid "Would you like to log in this printer with the current account?"
+msgid "Would you like to log in to this printer with the current account?"
 msgstr "您想使用目前帳號登入這台列印設備嗎?"
 
 msgid "Check the reason"
@@ -7812,7 +7812,7 @@ msgstr "設定檔相依項目"
 msgid "Printable space"
 msgstr "可列印區域"
 
-#. TRN: First argument is parameter name, the second is the value.
+#. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
 msgstr "參數 %1% 的值無效：%2%"
@@ -10246,8 +10246,8 @@ msgid "No cooling for the first"
 msgstr "前Ｎ層關閉零件風扇"
 
 msgid ""
-"Close all cooling fan for the first certain layers. Cooling fan of the first "
-"layer used to be closed to get better build plate adhesion"
+"Turn off all cooling fans for the first few layers. This can be used to "
+"improve build plate adhesion."
 msgstr ""
 "對開始的一些層關閉所有的物件冷卻風扇。通常關閉首層冷卻用來獲得更好的首層黏附"
 
@@ -10891,8 +10891,9 @@ msgid "Keep fan always on"
 msgstr "保持風扇永遠開啟"
 
 msgid ""
-"If enable this setting, part cooling fan will never be stopped and will run "
-"at least at minimum speed to reduce the frequency of starting and stopping"
+"Enabling this setting means that the part cooling fan will never stop "
+"completely and will run at least at minimum speed to reduce the frequency of "
+"starting and stopping."
 msgstr ""
 "如果勾選這個選項，物件冷卻風扇將不會停止，並且會以最小風扇轉速設定值運轉以減"
 "少風扇的頻繁開關"
