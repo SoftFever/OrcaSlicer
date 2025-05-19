@@ -880,10 +880,12 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 		file_name = default_output_file_path.filename().string();
     }*/
 
-    if ((!obj_->is_lan_mode_printer() && obj_->is_support_brtc) || m_tcp_try_connect) {
+    if ( ( (!obj_->is_lan_mode_printer() && obj_->is_support_brtc) || m_tcp_try_connect)  &&  (!m_ftp_try_connect) ) {
         update_print_status_msg(wxEmptyString, false, false);
         if (m_file_sys) {
             PrintPrepareData print_data;
+
+
             m_plater->get_print_job_data(&print_data);
             std::string project_name = m_current_project_name.utf8_string() + ".3mf";
 
@@ -941,7 +943,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
                         m_connect_try_times++;
                     },
                     m_task_timer->GetId());
-                m_task_timer->StartOnce(timeout_period);
+                    m_task_timer->StartOnce(timeout_period);
             }
             else {
                 BOOST_LOG_TRIVIAL(error) << "SendToPrinter::send job: The printer media capability set is incorrect.";
@@ -1300,7 +1302,7 @@ void SendToPrinterDialog::update_show_status()
                 m_file_sys->Stop(true);
                 m_file_sys.reset();
             }
-            BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect  is   " << m_ftp_try_connect;
+            BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect is" << m_ftp_try_connect;
 
             // add log
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
