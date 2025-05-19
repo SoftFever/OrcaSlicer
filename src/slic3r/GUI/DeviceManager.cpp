@@ -7899,93 +7899,57 @@ void check_filaments_for_ams_slot(std::string model_id,
 
     in_blacklist = false;
 
-    if (DeviceManager::filaments_blacklist.contains("blacklist"))
-    {
-        for (auto prohibited_filament : DeviceManager::filaments_blacklist["blacklist"])
-        {
+    std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
+    std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
+    std::transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::tolower);
+    if (DeviceManager::filaments_blacklist.contains("blacklist")) {
+        for (auto filament_item : DeviceManager::filaments_blacklist["blacklist"]) {
 
-            std::string vendor;
-            std::string type;
-            std::string action;
-            std::string description;
-            std::string name = "undefine";
-            std::vector<std::string> model_ids;
+            std::string vendor                 = filament_item.contains("vendor") ? filament_item["vendor"].get<std::string>() : "";
+            std::string type                   = filament_item.contains("type") ? filament_item["type"].get<std::string>() : "";
+            std::string type_suffix            = filament_item.contains("type_suffix") ? filament_item["type_suffix"].get<std::string>() : "";
+            std::string name                   = filament_item.contains("name") ? filament_item["name"].get<std::string>() : "";
+            std::vector<std::string> model_ids = filament_item.contains("model_id") ? filament_item["model_id"].get<std::vector<std::string>>() : std::vector<std::string>();
+            std::string action                 = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
+            std::string description            = filament_item.contains("description") ? filament_item["description"].get<std::string>() : "";
 
-            if (prohibited_filament.contains("vendor") &&
-                prohibited_filament.contains("type") &&
-                prohibited_filament.contains("action") &&
-                prohibited_filament.contains("description"))
-            {
-                vendor = prohibited_filament["vendor"].get<std::string>();
-                type = prohibited_filament["type"].get<std::string>();
-                if (GUI::wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
-                    action = "warning";
-                } else {
-                    action = prohibited_filament["action"].get<std::string>();
-                }
-                description = prohibited_filament["description"].get<std::string>();
-            }
-            else
-            {
-                return;
-            }
+            // check model id
+            if (!model_ids.empty() && std::find(model_ids.begin(), model_ids.end(), model_id) == model_ids.end()) { continue;}
 
-            if (prohibited_filament.contains("name"))
-            {
-                name = prohibited_filament["name"].get<std::string>();
-            }
-
-            if (prohibited_filament.contains("model_id"))
-            {
-                for (auto res : prohibited_filament["model_id"])
-                    model_ids.emplace_back(res.get<std::string>());
-            }
-
+            // check vendor
             std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
-            std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
-            std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
+            if (!vendor.empty()) {
+                if ((vendor == "bambu lab" && (tag_vendor == vendor)) ||
+                    (vendor == "third party" && (tag_vendor != "bambu lab"))){
+                    // Do nothing
+                } else {
+                    continue;
+                }
+            }
+
+            // check type
             std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+            if (!type.empty() && (type != tag_type)) { continue; }
 
-
-            bool mactch_printer = false;
-            auto it = std::find(model_ids.begin(), model_ids.end(), model_id);
-            if (it != model_ids.end()) { mactch_printer = true; }
-
-            // third party
-            if (vendor == "third party")
-            {
-                if ("bambu lab" != tag_vendor && tag_type == type)
-                {
-                    if (name == "undefine" || (tag_name.find(name) != std::string::npos))
-                    {
-
-                        if (model_ids.empty() || mactch_printer)
-                        {
-                            in_blacklist = true;
-                            ac = action;
-                            info = blacklist_prompt[description].ToStdString();
-                            return;
-                        }
-                    }
-                }
+            // check type suffix
+            std::transform(type_suffix.begin(), type_suffix.end(), type_suffix.begin(), ::tolower);
+            if (!type_suffix.empty()) {
+                if (tag_type.length() < type_suffix.length()) { continue; }
+                if ((tag_type.substr(tag_type.length() - type_suffix.length()) != type_suffix)) { continue; }
             }
-            else
-            {
-                if (vendor == tag_vendor && tag_type == type)
-                {
-                    if (name == "undefine" || (tag_name.find(name) != std::string::npos))
-                    {
 
-                        if (model_ids.empty() || mactch_printer)
-                        {
-                            in_blacklist = true;
-                            ac = action;
-                            info = blacklist_prompt[description].ToStdString();
-                            return;
-                        }
-                    }
-                }
+            // check name
+            std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+            if (!name.empty() && (name != tag_name)) { continue;}
+
+            if (GUI::wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
+                action = "warning";
             }
+
+            in_blacklist = true;
+            ac = action;
+            info = blacklist_prompt[description].ToStdString();
+            return;
         }
     }
 }
