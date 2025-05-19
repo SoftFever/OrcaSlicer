@@ -525,7 +525,7 @@ public:
 
 protected:
     wxSize   m_cube_size;
-    wxColour m_background_colour = {AMS_CONTROL_DEF_BLOCK_BK_COLOUR};
+    wxColour m_background_colour = {AMS_CONTROL_DEF_LIB_BK_COLOUR};
     int      m_padding           = {7};
     int      m_space             = {5};
     bool     m_hover             = {false};

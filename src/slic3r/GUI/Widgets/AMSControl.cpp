@@ -112,21 +112,21 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_panel_can = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_SIZE, wxBORDER_NONE);
     m_panel_can->SetMinSize(AMS_CANS_SIZE);
     m_panel_can->SetCornerRadius(FromDIP(10));
-    m_panel_can->SetBackgroundColor(StateColor(std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Normal)));
+    m_panel_can->SetBackgroundColor(StateColor(std::pair<wxColour, int>(AMS_CONTROL_DEF_LIB_BK_COLOUR, StateColor::Normal)));
 
     m_sizer_cans = new wxBoxSizer(wxHORIZONTAL);
 
     m_simplebook_ams = new wxSimplebook(m_panel_can, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
-    m_simplebook_ams->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    m_simplebook_ams->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
     m_sizer_cans->Add(m_simplebook_ams, 0, wxLEFT | wxLEFT, FromDIP(10));
 
     // ams mode
     m_simplebook_generic_cans = new wxSimplebook(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
-    m_simplebook_generic_cans->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    m_simplebook_generic_cans->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 
     // none ams mode
     m_none_ams_panel = new wxPanel(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
-    m_none_ams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    m_none_ams_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 
     auto m_tip_none_ams = new wxStaticText(m_none_ams_panel, wxID_ANY, _L("AMS not connected"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_tip_none_ams->SetMinSize(wxSize(AMS_CANS_SIZE.x - FromDIP(20), -1));
@@ -144,7 +144,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     //extra ams mode
     m_simplebook_extra_cans = new wxSimplebook(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
-    m_simplebook_extra_cans->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    m_simplebook_extra_cans->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 
     m_simplebook_ams->AddPage(m_none_ams_panel, wxEmptyString, false);
     m_simplebook_ams->AddPage(m_simplebook_generic_cans, wxEmptyString, false);
@@ -252,7 +252,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     //virtual ams
     m_panel_virtual = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_panel_virtual->SetBackgroundColor(StateColor(std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Normal)));
+    m_panel_virtual->SetBackgroundColor(StateColor(std::pair<wxColour, int>(AMS_CONTROL_DEF_LIB_BK_COLOUR, StateColor::Normal)));
     m_panel_virtual->SetMinSize(wxSize(AMS_CAN_LIB_SIZE.x + FromDIP(16), AMS_CANS_SIZE.y));
     m_panel_virtual->SetMaxSize(wxSize(AMS_CAN_LIB_SIZE.x + FromDIP(16), AMS_CANS_SIZE.y));
 
@@ -260,7 +260,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_vams_info.can_id = wxString::Format("%d", VIRTUAL_TRAY_ID).ToStdString();
 
     auto vams_panel = new wxWindow(m_panel_virtual, wxID_ANY);
-    vams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    vams_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 
     m_vams_lib = new AMSLib(vams_panel, m_vams_info.can_id, m_vams_info);
     m_vams_lib->m_slot_id = m_vams_info.can_id;

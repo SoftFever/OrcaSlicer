@@ -145,7 +145,7 @@ AMSrefresh::AMSrefresh(wxWindow *parent, int number, Caninfo info, const wxPoint
 void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
     wxWindow::Create(parent, id, pos, size, wxBORDER_NONE);
-    SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
    
     Bind(wxEVT_TIMER, &AMSrefresh::on_timer, this);
     Bind(wxEVT_PAINT, &AMSrefresh::paintEvent, this);
@@ -608,7 +608,7 @@ void AMSVirtualRoad::doRender(wxDC& dc)
     dc.DrawRoundedRectangle(size.x / 2, -size.y / 1.1 + FromDIP(1), size.x, size.y, 4);
 
     if ((m_current_color == *wxWHITE || m_current_color.Alpha() == 0) && !wxGetApp().dark_mode()) {
-        dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_DEF_LIB_BK_COLOUR, 1, wxPENSTYLE_SOLID));
         dc.DrawRoundedRectangle(size.x / 2 - FromDIP(3), -size.y / 1.1 + FromDIP(4), size.x, size.y, 5);
         dc.DrawRoundedRectangle(size.x / 2 + FromDIP(3), -size.y / 1.1 - FromDIP(2), size.x, size.y, 3);
     }
@@ -630,7 +630,7 @@ AMSLib::AMSLib(wxWindow *parent, std::string ams_idx, Caninfo info)
 {
     m_border_color   = (wxColour(130, 130, 128));
     m_road_def_color = AMS_CONTROL_GRAY500;
-    wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
     create(parent);
 
     Bind(wxEVT_PAINT, &AMSLib::paintEvent, this);
@@ -1416,7 +1416,7 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
     }
     
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
-    wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 }
 
 void AMSRoad::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) { wxWindow::Create(parent, id, pos, size); }
@@ -1638,7 +1638,7 @@ AmsCans::AmsCans(wxWindow *parent,AMSinfo info,  AMSModel model) : AmsCans()
 void AmsCans::create(wxWindow *parent)
 {
     Freeze();
-    SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 
     if (m_ams_model == AMSModel::GENERIC_AMS || m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::N3S_AMS) {
         sizer_can = new wxBoxSizer(wxHORIZONTAL);
@@ -1695,7 +1695,7 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
 {
 
     auto        amscan = new wxWindow(this, wxID_ANY);
-    amscan->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    amscan->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 
     wxBoxSizer* m_sizer_ams = new wxBoxSizer(wxVERTICAL);
    
