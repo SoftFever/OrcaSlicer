@@ -381,17 +381,18 @@ coordf_t Layer::get_sparse_infill_max_void_area()
         switch (pattern) {
             case ipConcentric:
             case ipRectilinear:
+            case ip2DLattice:
             case ipLine:
             case ipGyroid:
             case ipAlignedRectilinear:
             case ipOctagramSpiral:
             case ipHilbertCurve:
+            case ip2DHoneycomb:
             case ip3DHoneycomb:
             case ipArchimedeanChords:
                 max_void_area = std::max(max_void_area, spacing * spacing);
                 break;
             case ipGrid:
-            case ip2DLattice:
             case ipHoneycomb:
             case ipLightning:
                 max_void_area = std::max(max_void_area, 4.0 * spacing * spacing);
