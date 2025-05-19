@@ -1309,9 +1309,9 @@ void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> tex
         if (enable_warning_clr && text.level == ConfirmBeforeSendInfo::InfoLevel::Warning) {
             label_item->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
         }
-        label_item->SetMaxSize(wxSize(FromDIP(500), -1));
-        label_item->SetMinSize(wxSize(FromDIP(500), -1));
-        label_item->Wrap(FromDIP(500));
+        label_item->SetMaxSize(wxSize(FromDIP(494), -1));
+        label_item->SetMinSize(wxSize(FromDIP(494), -1));
+        label_item->Wrap(FromDIP(494));
         label_item->Layout();
         sizer_text_release_note->Add(label_item, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
         height += label_item->GetSize().y;
@@ -1319,9 +1319,9 @@ void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> tex
 
     m_vebview_release_note->Layout();
     if (height < FromDIP(500))
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(500), height + FromDIP(25)));
+        m_vebview_release_note->SetMinSize(wxSize(-1, height + FromDIP(25)));
     else {
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(500), FromDIP(500)));
+        m_vebview_release_note->SetMinSize(wxSize(-1, FromDIP(500)));
     }
 
     Layout();
