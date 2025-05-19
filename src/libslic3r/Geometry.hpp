@@ -421,6 +421,7 @@ public:
     void set_offset(Axis axis, double offset) { m_matrix.translation()[axis] = offset; }
 
     Vec3d get_rotation() const;
+    Vec3d get_rotation_by_quaternion() const;
     double get_rotation(Axis axis) const { return get_rotation()[axis]; }
 
     Transform3d get_rotation_matrix() const;
@@ -545,6 +546,7 @@ inline bool is_rotation_ninety_degrees(const Vec3d &rotation)
 }
 
 Transformation mat_around_a_point_rotate(const Transformation& innMat, const Vec3d &pt, const Vec3d &axis, float rotate_theta_radian);
+Transformation generate_transform(const Vec3d &x_dir, const Vec3d &y_dir, const Vec3d &z_dir, const Vec3d &origin);
 
 /**
  * Checks if a given point is inside a corner of a polygon.

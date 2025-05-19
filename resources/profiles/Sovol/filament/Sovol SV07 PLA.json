@@ -5,7 +5,7 @@
 	"name": "Sovol SV07 PLA",
 	"from": "system",
 	"instantiation": "true",
-	"inherits": "Sovol Generic PLA",
+	"inherits": "Generic PLA @System",
 	"filament_flow_ratio": ["0.98"],
 	"filament_max_volumetric_speed": ["24"],
 	"filament_retraction_length": ["0.5"],

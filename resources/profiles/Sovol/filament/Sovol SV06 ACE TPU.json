@@ -5,7 +5,7 @@
 	"name": "Sovol SV06 ACE TPU",
 	"from": "system",
 	"instantiation": "true",
-	"inherits": "Sovol Generic TPU",
+	"inherits": "Generic TPU @System",
 	"filament_flow_ratio": ["0.98"],
 	"filament_max_volumetric_speed": ["3.6"],
 	"full_fan_speed_layer": [

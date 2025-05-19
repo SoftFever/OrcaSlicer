@@ -162,6 +162,7 @@ class Print;
             float width{ 0.0f }; // mm
             float height{ 0.0f }; // mm
             float mm3_per_mm{ 0.0f };
+            float travel_dist{ 0.0f }; // mm
             float fan_speed{ 0.0f }; // percentage
             float temperature{ 0.0f }; // Celsius degrees
             float time{ 0.0f }; // s
@@ -380,7 +381,7 @@ class Print;
             EMoveType move_type{ EMoveType::Noop };
             ExtrusionRole role{ erNone };
             unsigned int g1_line_id{ 0 };
-            unsigned int remaining_internal_g1_lines;
+            unsigned int remaining_internal_g1_lines{ 0 };
             unsigned int layer_id{ 0 };
             float distance{ 0.0f }; // mm
             float acceleration{ 0.0f }; // mm/s^2
@@ -429,7 +430,7 @@ class Print;
             struct G1LinesCacheItem
             {
                 unsigned int id;
-                unsigned int remaining_internal_g1_lines;
+                unsigned int remaining_internal_g1_lines{ 0 };
                 float elapsed_time;
             };
 
@@ -704,6 +705,7 @@ class Print;
         float m_forced_width; // mm
         float m_forced_height; // mm
         float m_mm3_per_mm;
+        float m_travel_dist; // mm
         float m_fan_speed; // percentage
         float m_z_offset; // mm
         ExtrusionRole m_extrusion_role;

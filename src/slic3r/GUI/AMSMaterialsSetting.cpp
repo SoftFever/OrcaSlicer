@@ -158,7 +158,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     wxBoxSizer* m_sizer_colour = new wxBoxSizer(wxHORIZONTAL);
 
-    m_title_colour = new wxStaticText(parent, wxID_ANY, _L("Colour"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
+    m_title_colour = new wxStaticText(parent, wxID_ANY, _L("Color"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
     m_title_colour->SetFont(::Label::Body_13);
     m_title_colour->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_colour->Wrap(-1);
@@ -992,10 +992,11 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
                 std::string filament_id   = filament_item.filament_id;
                 if (it->filament_id.compare(filament_id) == 0) {
+                    ConfigOption *       printer_opt  = it->config.option("compatible_printers");
+                    ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
                     bool has_compatible_printer = false;
-                    std::string preset_name            = it->name;
-                    for (std::string printer_name : printer_names) {
-                        if (preset_name.find(printer_name) != std::string::npos) {
+                    for (auto printer_str : printer_strs->values) {
+                        if (printer_names.find(printer_str) != printer_names.end()) {
                             has_compatible_printer = true;
                             break;
                         }
