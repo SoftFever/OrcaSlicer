@@ -1962,7 +1962,6 @@ void NotificationManager::push_slicing_customize_error_notification(Notification
     set_all_slicing_errors_gray(false);
     std::string prefix_msg = level == NotificationLevel::WarningNotificationLevel ? _u8L("Warning:") : _u8L("Error:");
     push_notification_data({type, level, 0, prefix_msg + "\n" + text, hypertext, callback}, 0);
-    set_slicing_progress_hidden();
 }
 
 void NotificationManager::close_slicing_customize_error_notification(NotificationType type, NotificationLevel level)
