@@ -2599,10 +2599,9 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     if (obj) {
         if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::AMS_LITE; }
-        else if(obj->get_printer_ams_type() == "generic") { ams_mode = AMSModel::GENERIC_AMS; }
         obj->check_ams_filament_valid();
     }
-
+    if (obj->is_enable_np && obj->amsList.size() > 0) { ams_mode = AMSModel(obj->amsList.begin()->second->type); }
     if (!obj
         || !obj->is_connected()
         || obj->amsList.empty()
@@ -2640,6 +2639,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         AMSinfo info;
         info.ams_id = ams->first;
         if (ams->second->is_exists && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) {
+            if (ams_mode == AMSModel::AMS_LITE) { info.ams_type = AMSModel::AMS_LITE; }
             ams_info.push_back(info);
         }
     }
