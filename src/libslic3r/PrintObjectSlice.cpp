@@ -832,6 +832,16 @@ void PrintObject::slice()
                 layer.lslices_bboxes.reserve(layer.lslices.size());
                 for (const ExPolygon &expoly : layer.lslices)
                 	layer.lslices_bboxes.emplace_back(get_extents(expoly));
+                if (layer.lsub_slices.size() > 0) {
+                    layer.lsub_slices_bboxes.clear();
+                    layer.lsub_slices_bboxes.reserve(layer.lsub_slices.back().second.size());
+                    for (const ExPolygon& expoly : layer.lsub_slices.back().second)
+                        layer.lsub_slices_bboxes.emplace_back(get_extents(expoly));
+                }
+                layer.lsub_slices_merged_bboxes.clear();
+                layer.lsub_slices_merged_bboxes.reserve(layer.lsub_slices_merged.size());
+                for (const ExPolygon &expoly : layer.lsub_slices_merged)
+                	layer.lsub_slices_merged_bboxes.emplace_back(get_extents(expoly));
                 layer.backup_untyped_slices();
             }
         });
@@ -999,6 +1009,42 @@ void PrintObject::slice_volumes()
     }
 
     std::vector<float>                   slice_zs      = zs_from_layers(m_layers);
+
+    // Generate sub slices for smooth outer perimeter
+    const int perimeter_divider = this->config().outer_perimeter_layer_divider;
+    if (perimeter_divider > 1) {
+        std::vector<float> sub_slice_zs;
+        sub_slice_zs.reserve(slice_zs.size() * perimeter_divider);
+        for (auto* layer : m_layers) {
+            const double bottom_z = layer->slice_z - layer->height / 2.f;
+            const double top_z    = bottom_z + layer->height;
+            const double step        = (top_z - bottom_z) / perimeter_divider;
+            const double step_offset = layer->height / perimeter_divider / 2.f;
+            for (int i = 0; i < perimeter_divider; ++i) {
+                sub_slice_zs.push_back(bottom_z + step_offset + i * step);
+            }
+        }
+        std::vector<VolumeSlices> volume_slices;
+        if (!sub_slice_zs.empty()) {
+            volume_slices = slice_volumes_inner(print->config(), this->config(), this->trafo_centered(), this->model_object()->volumes,
+                                         m_shared_regions->layer_ranges, sub_slice_zs, throw_on_cancel_callback);
+        }
+        std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(print->config(), *this, this->model_object()->volumes,
+            *m_shared_regions, sub_slice_zs, std::move(volume_slices), PrintObject::clip_multipart_objects, throw_on_cancel_callback);
+
+        for (size_t region_id = 0; region_id < region_slices.size(); ++region_id) {
+            std::vector<ExPolygons>& by_layer = region_slices[region_id];
+            for (size_t layer_id = 0; layer_id < by_layer.size(); ++layer_id) {
+                const size_t layer_idx = layer_id / perimeter_divider;
+                const Layer* layer = m_layers[layer_idx];
+                const float offset = layer->slice_z + layer->height / 2.f - layer->height / perimeter_divider / 2.f;
+                m_layers[layer_idx]->regions()[region_id]->sub_slices.emplace_back(sub_slice_zs[layer_id] - offset,
+                                                                              std::move(by_layer[layer_id]));
+            }
+        }
+        region_slices.clear();
+    }
+
     std::vector<VolumeSlices> objSliceByVolume;
     if (!slice_zs.empty()) {
         objSliceByVolume = slice_volumes_inner(
@@ -1086,6 +1132,29 @@ void PrintObject::slice_volumes()
 	                float elfoot = elephant_foot_compensation_scaled > 0 && layer_id < m_config.elefant_foot_compensation_layers.value ? 
                         elephant_foot_compensation_scaled - (elephant_foot_compensation_scaled / m_config.elefant_foot_compensation_layers.value) * layer_id : 
                         0.f;
+
+                    // Do simplified hole size compensation for sub slices (TODO: may require more complex solution)
+                    for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id) {
+                        LayerRegion *layerm = layer->m_regions[region_id];
+                        if (layerm->sub_slices.size() != layerm->slices.size()) {
+                            for (auto& [z, slice] : layerm->sub_slices) {
+                                ExPolygons expolygons = slice;
+                                if (xy_contour_scaled > 0 || xy_hole_scaled > 0) {
+                                    slice = _shrink_contour_holes(std::max(0.f, xy_contour_scaled),
+                                        std::max(0.f, xy_hole_scaled), slice);
+                                }
+                                if (xy_contour_scaled < 0 || xy_hole_scaled < 0) {
+                                    slice = _shrink_contour_holes(std::min(0.f, xy_contour_scaled),
+                                        std::min(0.f, xy_hole_scaled),slice);
+                                }
+                                if (elfoot > 0) {
+                                    slice = union_ex(Slic3r::elephant_foot_compensation(slice,
+                                            layerm->flow(frExternalPerimeter), unscale<double>(elfoot)));
+                                }
+                            }
+                        }
+                    }
+                                        
 	                if (layer->m_regions.size() == 1) {
 	                    // Optimized version for a single region layer.
 	                    // Single region, growing or shrinking.
