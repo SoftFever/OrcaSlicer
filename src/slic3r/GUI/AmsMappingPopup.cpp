@@ -598,8 +598,8 @@ void MaterialSyncItem::set_material_index_str(std::string str) {
     m_material_index = str;
 }
 
-AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog, bool enable_vscroll) :
-    PopupWindow(parent, wxBORDER_NONE), m_use_in_sync_dialog(use_in_sync_dialog), m_enable_vscroll(enable_vscroll)
+AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
+    PopupWindow(parent, wxBORDER_NONE), m_use_in_sync_dialog(use_in_sync_dialog)
  {
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
 
@@ -610,12 +610,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog, bool e
 
      SetBackgroundColour(*wxWHITE);
 
-     
-     m_scroll_area = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-     m_sizer_scroll_main = new wxBoxSizer(wxVERTICAL);
-     m_scroll_area->SetSizer(m_sizer_scroll_main);
-     if(m_enable_vscroll) { m_scroll_area->SetScrollRate(0, 20); }
-
+     m_sizer_main = new wxBoxSizer(wxVERTICAL);
      m_sizer_ams = new wxBoxSizer(wxHORIZONTAL);
      m_sizer_ams_left = new wxBoxSizer(wxVERTICAL);
      m_sizer_ams_right = new wxBoxSizer(wxVERTICAL);
@@ -625,7 +620,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog, bool e
      m_sizer_ams_basket_right = new wxBoxSizer(wxVERTICAL);
 
 
-     auto title_panel = new wxPanel(m_scroll_area, wxID_ANY);
+     auto title_panel = new wxPanel(this, wxID_ANY);
      title_panel->SetBackgroundColour(StateColor::darkModeColorFor("#F1F1F1"));
      title_panel->SetSize(wxSize(-1, FromDIP(30)));
      title_panel->SetMinSize(wxSize(-1, FromDIP(30)));
@@ -643,9 +638,9 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog, bool e
      title_panel->Layout();
      title_panel->Fit();
 
-     m_left_marea_panel = new wxPanel(m_scroll_area);
+     m_left_marea_panel = new wxPanel(this);
      m_left_marea_panel->SetName("left");
-     m_right_marea_panel = new wxPanel(m_scroll_area);
+     m_right_marea_panel = new wxPanel(this);
      m_right_marea_panel->SetName("right");
      m_left_first_text_panel  = new wxPanel(m_left_marea_panel);
      m_right_first_text_panel = new wxPanel(m_right_marea_panel);
@@ -733,14 +728,11 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog, bool e
      m_sizer_ams->Add(0, 0, 0, wxEXPAND, FromDIP(15));
      m_sizer_ams->Add(m_right_marea_panel, 1, wxEXPAND, FromDIP(0));
 
-     m_sizer_scroll_main->Add(title_panel, 0, wxEXPAND | wxALL, FromDIP(2));
-     m_sizer_scroll_main->Add(m_sizer_ams, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(14));
-     m_sizer_scroll_main->Add( 0, 0, 0, wxTOP, FromDIP(14));
+     m_sizer_main->Add(title_panel, 0, wxEXPAND | wxALL, FromDIP(2));
+     m_sizer_main->Add(m_sizer_ams, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(14));
+     m_sizer_main->Add( 0, 0, 0, wxTOP, FromDIP(14));
 
-
-     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
-     main_sizer->Add(m_scroll_area, 1, wxEXPAND | wxALL, FromDIP(0));
-     SetSizer(main_sizer);
+     SetSizer(m_sizer_main);
      Layout();
      Fit();
 
@@ -1239,22 +1231,6 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
     } else {
         m_right_split_ams_sizer->Show(false);
     }
-
-    if (m_enable_vscroll) {
-        wxSize new_size = m_scroll_area->GetSizer()->CalcMin();
-        new_size.SetWidth(-1);
-        if (new_size.GetHeight() > FromDIP(400))
-        {
-            new_size.SetHeight(FromDIP(400));
-        }
-
-        if (m_scroll_area->GetSize() != new_size)
-        {
-            m_scroll_area->SetMaxSize(new_size);
-            m_scroll_area->SetMinSize(new_size);
-        }
-    }
-
     Layout();
     Fit();
     Refresh();

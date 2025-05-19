@@ -211,11 +211,8 @@ class AmsMapingPopup : public PopupWindow
     bool m_ext_mapping_filatype_check = true;
     wxStaticText* m_title_text{ nullptr };
 
-    bool m_enable_vscroll = false;/*STUDIO-11895*/
-    wxScrolledWindow* m_scroll_area{ nullptr };
-
 public:
-    AmsMapingPopup(wxWindow *parent,bool use_in_sync_dialog = false, bool enable_vscroll = false);
+    AmsMapingPopup(wxWindow *parent,bool use_in_sync_dialog = false);
     ~AmsMapingPopup() {};
 
     MaterialItem* m_parent_item{ nullptr };
@@ -231,7 +228,7 @@ public:
     int         m_current_filament_id;
     ShowType    m_show_type{ShowType::RIGHT};
     std::string m_tag_material;
-    wxBoxSizer *m_sizer_scroll_main{nullptr};
+    wxBoxSizer *m_sizer_main{nullptr};
     wxBoxSizer *m_sizer_ams{nullptr};
     wxBoxSizer *m_sizer_ams_left{nullptr};
     wxBoxSizer *m_sizer_ams_right{nullptr};
