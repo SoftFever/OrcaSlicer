@@ -1219,7 +1219,7 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
     tmp_path += format(".%1%%2%", get_current_pid(), ".tmp");
 
 #if defined(__WINDOWS__)
-    if (is_running_on_arm64()) {
+    if (is_running_on_arm64() && !NetworkAgent::use_legacy_network) {
         //set to arm64 for plugins
         std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
         current_headers["X-BBL-OS-Type"] = "windows_arm";
@@ -1287,7 +1287,7 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
         }).perform_sync();
 
 #if defined(__WINDOWS__)
-    if (is_running_on_arm64()) {
+    if (is_running_on_arm64() && !NetworkAgent::use_legacy_network) {
         //set back
         std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
         current_headers["X-BBL-OS-Type"] = "windows";
