@@ -541,6 +541,7 @@ void GLGizmoBrimEars::delete_selected_points()
 
     select_point(NoPoints);
     find_single();
+    update_model_object();
 }
 
 void GLGizmoBrimEars::on_dragging(const UpdateData& data)
@@ -596,6 +597,7 @@ void GLGizmoBrimEars::update_cache_radius()
         if (cache_entry.selected) {
             cache_entry.brim_point.head_front_radius = m_new_point_head_diameter / 2.f;
             find_single();
+            update_model_object();
         }
     m_parent.set_as_dirty();
 }
@@ -739,12 +741,12 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
             ImColor HyperColor = ImGuiWrapper::COL_ORCA;
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
             float parent_width = ImGui::GetContentRegionAvail().x;
-            m_imgui->text_wrapped(_L("Warning: The brim type is not set to \"painted\",the brim ears will not take effect !"), parent_width);
+            m_imgui->text_wrapped(_L("Warning: The brim type is not set to \"painted\", the brim ears will not take effect!"), parent_width);
             ImGui::PopStyleColor();
             ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
             ImGui::Dummy(ImVec2(font_size * 1.8, font_size * 1.3));
             ImGui::SameLine();
-            m_imgui->bold_text(_u8L("Set the brim type to \"painted\""));
+            m_imgui->bold_text(_u8L("Set the brim type of this object to \"painted\""));
             ImGui::PopStyleColor();
             // underline
             ImVec2 lineEnd = ImGui::GetItemRectMax();
@@ -844,7 +846,7 @@ CommonGizmosDataID GLGizmoBrimEars::on_get_requirements() const
                               int(CommonGizmosDataID::ObjectClipper));
 }
 
-void GLGizmoBrimEars::save_model()
+void GLGizmoBrimEars::update_model_object()
 {
     ModelObject* mo = m_c->selection_info()->model_object();
     if (mo) {
@@ -852,6 +854,7 @@ void GLGizmoBrimEars::save_model()
         for (const CacheEntry& ce : m_editing_cache) mo->brim_points.emplace_back(ce.brim_point);
         wxGetApp().plater()->set_plater_dirty(true);
     }
+    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 // switch gizmos
@@ -867,8 +870,7 @@ void GLGizmoBrimEars::on_set_state()
     if (m_state == Off && m_old_state != Off) {
         // the gizmo was just turned Off
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Brim ears edit");
-        save_model();
-        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+        update_model_object();
         wxGetApp().plater()->leave_gizmos_stack();
         // wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, true);
     }
@@ -1077,6 +1079,7 @@ bool GLGizmoBrimEars::add_point_to_cache(Vec3f pos, float head_radius, bool sele
         if (m_editing_cache[i].brim_point == point) { return false; }
     }
     m_editing_cache.emplace_back(point, selected, normal);
+    update_model_object();
     return true;
 }
 
