@@ -289,7 +289,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_connecting_printer_msg = new wxStaticText(m_connecting_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_connecting_printer_msg->SetFont(::Label::Body_13);
     m_connecting_printer_msg->SetForegroundColour(*wxBLACK);
-    m_connecting_printer_msg->SetLabel("Try to connect");
+    m_connecting_printer_msg->SetLabel(_L("Try to connect"));
     /*m_connecting_printer_msg->Hide();*/
     m_connecting_printer_msg->Show();
 
@@ -1531,7 +1531,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     //connecting
     if(status == PrintDialogStatus::PrintStatusConnecting)
     {
-        m_connecting_printer_msg->SetLabel("Try to connect.");
+        m_connecting_printer_msg->SetLabel(_L("Try to connect"));
         update_print_status_msg(wxEmptyString, true, true);
         m_connecting_panel->Show();
         m_animaicon->Play();
@@ -1542,7 +1542,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         return;
 
     } else if (status == PrintDialogStatus::PrintStatusReconnecting) {
-            m_connecting_printer_msg->SetLabel("Click the spinning icon to retry.");
+        m_connecting_printer_msg->SetLabel(_L("Connection failed. Click the icon to retry"));
             update_print_status_msg(wxEmptyString, true, true);
             m_connecting_panel->Show();
             m_animaicon->Stop();
