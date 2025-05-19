@@ -569,13 +569,13 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
                     if (in_blacklist) {
                         if (action == "prohibition") {
-                            MessageDialog msg_wingow(nullptr, wxString::FromUTF8(info), _L("Error"), wxICON_WARNING | wxOK);
+                            MessageDialog msg_wingow(nullptr, info, _L("Error"), wxICON_WARNING | wxOK);
                             msg_wingow.ShowModal();
                             //m_comboBox_filament->SetSelection(m_filament_selection);
                             return;
                         }
                         else if (action == "warning") {
-                            MessageDialog msg_wingow(nullptr, wxString::FromUTF8(info), _L("Warning"), wxICON_INFORMATION | wxOK);
+                            MessageDialog msg_wingow(nullptr, info, _L("Warning"), wxICON_INFORMATION | wxOK);
                             msg_wingow.ShowModal();
                         }
                     }
