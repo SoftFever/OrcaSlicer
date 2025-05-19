@@ -137,6 +137,8 @@ enum FilamentStepType {
 #define AMS_EXTRUDER_SIZE wxSize(FromDIP(86), FromDIP(72))
 #define AMS_EXTRUDER_BITMAP_SIZE wxSize(FromDIP(36), FromDIP(55))
 
+#define AMS_HUMIDITY_SIZE wxSize(FromDIP(93), FromDIP(26))
+#define AMS_HUMIDITY_NO_PERCENT_SIZE wxSize(FromDIP(60), FromDIP(26))
 #define AMS_HUMIDITY_DRY_WIDTH FromDIP(35)
 
 
@@ -151,6 +153,25 @@ struct Caninfo
     float           k = 0.0f;
     float           n = 0.0f;
     std::vector<wxColour> material_cols;
+
+public:
+    bool operator==(const Caninfo& other) const
+    {
+        if (can_id == other.can_id &&
+            material_name == other.material_name &&
+            material_colour == other.material_colour &&
+            material_state == other.material_state &&
+            ctype == other.ctype &&
+            material_remain == other.material_remain &&
+            k == other.k &&
+            n == other.n &&
+            material_cols == other.material_cols)
+        {
+            return true;
+        }
+
+        return false;
+    };
 };
 
 struct AMSinfo
@@ -166,6 +187,35 @@ public:
     int                     humidity_raw = -1;
     int                     left_dray_time = 0;
     AMSModel                ams_type = AMSModel::GENERIC_AMS;
+
+public:
+    bool operator== (const AMSinfo& other) const
+    {
+        if (ams_id == other.ams_id &&
+            cans == other.cans &&
+            current_can_id == other.current_can_id &&
+            current_step == other.current_step &&
+            current_action == other.current_action &&
+            curreent_filamentstep == other.curreent_filamentstep &&
+            ams_humidity == other.ams_humidity &&
+            left_dray_time == other.left_dray_time &&
+            ams_type == other.ams_type)
+        {
+            return true;
+        }
+
+        return false;
+    };
+
+    bool operator!=(const AMSinfo &other) const
+    {
+        if (operator==(other))
+        {
+            return false;
+        }
+
+        return true;
+    };
 
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
 
@@ -399,17 +449,6 @@ public:
     wxColour                     m_road_color;
     void                         Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan);
 
-    std::vector<ScalableBitmap> ams_humidity_imgs;
-    std::vector<ScalableBitmap> ams_humidity_dark_imgs;
-
-    std::vector<ScalableBitmap> ams_humidity_no_num_imgs;
-    std::vector<ScalableBitmap> ams_humidity_no_num_dark_imgs;
-
-    ScalableBitmap ams_sun_img;
-    ScalableBitmap ams_drying_img;
-
-    int      m_humidity = { 0 };
-    bool     m_show_humidity = { false };
     bool     m_vams_loading{false};
     AMSModel m_ams_model;
 
@@ -422,7 +461,42 @@ public:
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
     void doRender(wxDC& dc);
+};
+
+/*************************************************
+Description:AMSHumidity
+**************************************************/
+class AMSHumidity : public wxWindow
+{
+public:
+    AMSHumidity();
+    AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    void create(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+
+public:
+    AMSinfo                      m_amsinfo;
+    void                         Update(AMSinfo amsinfo);
+
+    std::vector<ScalableBitmap> ams_humidity_imgs;
+    std::vector<ScalableBitmap> ams_humidity_dark_imgs;
+
+    std::vector<ScalableBitmap> ams_humidity_no_num_imgs;
+    std::vector<ScalableBitmap> ams_humidity_no_num_dark_imgs;
+
+    ScalableBitmap ams_sun_img;
+    ScalableBitmap ams_drying_img;
+
+
+    int      m_humidity = { 0 };
+    bool     m_show_humidity = { false };
+
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
     void msw_rescale();
+
+private:
+    void update_size();
 };
 
 /*************************************************
@@ -530,8 +604,11 @@ public:
     CanLibsHash     m_can_lib_list;
     CansRoadsHash   m_can_road_list;
     CanrefreshsHash m_can_refresh_list;
+    AMSHumidity*    m_humidity = { nullptr };
+
     AMSinfo         m_info;
     wxBoxSizer *    sizer_can = {nullptr};
+    wxBoxSizer *    sizer_item = { nullptr };
     wxBoxSizer *    sizer_can_middle = {nullptr};
     wxBoxSizer *    sizer_can_left = {nullptr};
     wxBoxSizer *    sizer_can_right = {nullptr};

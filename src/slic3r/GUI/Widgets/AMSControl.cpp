@@ -782,7 +782,6 @@ void AMSControl::msw_rescale()
     m_button_guide->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
     m_vams_lib->msw_rescale();
-    m_vams_road->msw_rescale();
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];
