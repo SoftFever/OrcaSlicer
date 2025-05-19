@@ -391,7 +391,8 @@ class GLCanvas3D
         MultiExtruderPrintableError,      // after slice
         MultiExtruderHeightOutside,       // after slice
         FilamentUnPrintableOnFirstLayer,
-        MixUsePLAAndPETG
+        MixUsePLAAndPETG,
+        PrimeTowerOutside,
     };
 
     class RenderStats

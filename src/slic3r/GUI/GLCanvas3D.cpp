@@ -3048,6 +3048,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
            // const bool objectLimited = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Limited);
 
+            bool wipe_tower_outside = m_volumes.check_wipe_tower_outside_state(m_bed.build_volume());
+            _set_warning_notification(EWarning::PrimeTowerOutside, !wipe_tower_outside);
+
             auto clash_flag = construct_error_string(object_results, get_object_clashed_text());
             auto unprintable_flag= construct_extruder_unprintable_error(object_results, get_left_extruder_unprintable_text(), get_right_extruder_unprintable_text());
 
@@ -3084,6 +3087,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::TPUPrintableError, false);
            _set_warning_notification(EWarning::FilamentPrintableError, false);
            _set_warning_notification(EWarning::MixUsePLAAndPETG, false);
+           _set_warning_notification(EWarning::PrimeTowerOutside, false);
            _set_warning_notification(EWarning::MultiExtruderPrintableError,false);
            _set_warning_notification(EWarning::MultiExtruderHeightOutside,false);
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
@@ -10127,6 +10131,9 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     }
     case EWarning::MixUsePLAAndPETG:
         text = _u8L("PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality.");
+        break;
+    case EWarning::PrimeTowerOutside:
+        text = _u8L("The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing.");
         break;
     }
     //BBS: this may happened when exit the app, plater is null

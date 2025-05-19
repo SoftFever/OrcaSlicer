@@ -1070,6 +1070,37 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
         glsafe(::glDisable(GL_BLEND));
 }
 
+bool GLVolumeCollection::check_wipe_tower_outside_state(const Slic3r::BuildVolume &build_volume) const
+{
+    for (GLVolume *volume : this->volumes) {
+        if (volume->is_wipe_tower) {
+            const std::vector<Vec2d>& printable_area = build_volume.printable_area();
+            Polygon printable_poly = Polygon::new_scale(printable_area);
+
+            // multi-extruder
+            Polygons extruder_polys;
+            const std::vector<std::vector<Vec2d>> & extruder_areas = build_volume.extruder_areas();
+            if (!extruder_areas.empty()) {
+                for (size_t i = 0; i < extruder_areas.size(); ++i) {
+                    extruder_polys.emplace_back(Polygon::new_scale(extruder_areas[i]));
+                }
+                extruder_polys = union_(extruder_polys);
+                if (extruder_polys.empty())
+                    return false;
+
+                printable_poly = extruder_polys[0];
+            }
+
+            const BoundingBoxf3 &bbox = volume->transformed_convex_hull_bounding_box();
+            Polygon wipe_tower_polygon = bbox.polygon(true);
+
+            Polygons diff_res = diff(wipe_tower_polygon, printable_poly);
+            return diff_res.empty();
+        }
+    }
+    return true;
+}
+
 bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, ModelInstanceEPrintVolumeState *out_state, ObjectFilamentResults* object_results) const
 {
     if (GUI::wxGetApp().plater() == NULL)
