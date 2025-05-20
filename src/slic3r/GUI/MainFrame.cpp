@@ -1614,6 +1614,11 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_filament_group_popup = new FilamentGroupPopup(m_slice_btn);
 
     auto try_hover_pop_up = [this]() {
+#ifdef __APPLE__
+        if (!IsActive()) {
+            return;
+        }
+#endif
         wxPoint pos = m_slice_btn->ClientToScreen(wxPoint(0, 0));
         pos.y += m_slice_btn->GetRect().height * 1.25;
         pos.x -= (m_slice_option_btn->GetRect().width + FromDIP(380) * 0.6);
