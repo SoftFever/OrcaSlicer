@@ -648,16 +648,16 @@ void PrintConfigDef::init_common_params()
     def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
     
     //for adaprive wall sequence
-    config_option_def<ConfigOptionBool>("adaptive_wall_sequence_enabled", {
-    { "false" },
-    { "Enable adaptive wall sequence" }
-    });
+    def("adaptive_wall_sequence_enabled", coBool)
+    .set_default(false)
+    .set_category(L("Perimeters"))
+    .set_description(L("Enable adaptive wall sequence"));
 
-    config_option_def<ConfigOptionFloat>("adaptive_wall_sequence_threshold", {
-    { "45" },
-    { "Overhang angle threshold (0-90)" },
-    { 0.f, 90.f }
-    });
+    def("adaptive_wall_sequence_threshold", coFloat)
+    .set_default(45.f)
+    .set_range(0.f, 90.f)
+    .set_category(L("Perimeters"))
+    .set_description(L("Overhang angle threshold (0-90°)"));
 
     // temporary workaround for compatibility with older Slicer
     {

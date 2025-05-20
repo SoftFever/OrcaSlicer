@@ -23,6 +23,13 @@
 #include "Print.hpp"
 #include "Algorithm/LineSplit.hpp"
 #include "libnoise/noise.h"
+static bool has_critical_overhangs(const LayerRegion* region, float threshold) {
+    for (const Surface& surface : region->fill_surfaces.surfaces) {
+        if (surface.is_overhang() && surface.overhang_angle >= threshold)
+            return true;
+    }
+    return false;
+}
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
 static const double min_degree_gap = 0.1;
@@ -2024,11 +2031,11 @@ void PerimeterGenerator::process_classic()
     // extra perimeters for each one
     Surfaces all_surfaces = this->slices->surfaces;
 
-if (this->config->adaptive_wall_sequence_enabled.value) {
-    float threshold = this->config->adaptive_wall_sequence_threshold.value;
+if (print_config->adaptive_wall_sequence_enabled) {
+    float threshold = print_config->adaptive_wall_sequence_threshold;
     for (const LayerRegion* region : this->layer->regions()) {
         if (has_critical_overhangs(region, threshold)) {
-            this->config->wall_sequence = WallSequence::InnerOuter;
+            config.wall_sequence = WallSequence::InnerOuter;
             break;
         }
     }
