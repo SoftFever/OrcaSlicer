@@ -310,6 +310,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
              OutputDebugStringA(std::to_string(i).c_str());
              OutputDebugStringA("\n");*/
             m_file_sys->Retry();
+            wxLogMessage(_L("click to retry"));
         }
     });
 
@@ -768,6 +769,8 @@ void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
             m_task_timer->Stop();
             m_task_timer.reset();
         }
+        m_file_sys->Stop(true);
+        m_file_sys.reset();
     }
     m_tcp_try_connect = true;
     m_tutk_try_connect = false;
@@ -1232,6 +1235,7 @@ void SendToPrinterDialog::update_show_status()
     if (!agent) return;
     if (!dev) return;
     MachineObject* obj_ = dev->get_my_machine(m_printer_last_select);
+
     if (!obj_) {
         if (agent) {
             if (agent->is_user_login()) {
@@ -1240,6 +1244,9 @@ void SendToPrinterDialog::update_show_status()
         }
         return;
     }
+
+
+
 
     /* check cloud machine connections */
     if (!obj_->is_lan_mode_printer()) {
@@ -1250,7 +1257,7 @@ void SendToPrinterDialog::update_show_status()
         }
     }
 
-    if (!obj_->is_info_ready()) {
+    if (!obj_->is_info_ready() || !obj_->is_online() || !obj_->is_connected()) {
         if (is_timeout()) {
             show_status(PrintDialogStatus::PrintStatusReadingTimeout);
             return;
@@ -1302,7 +1309,7 @@ void SendToPrinterDialog::update_show_status()
                 m_file_sys->Stop(true);
                 m_file_sys.reset();
             }
-            BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect is" << m_ftp_try_connect;
+            BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect is ok" << m_ftp_try_connect;
 
             // add log
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
@@ -1375,13 +1382,14 @@ void SendToPrinterDialog::update_show_status()
                                  m_tutk_try_connect = false;
                              }
                          }
-                       BOOST_LOG_TRIVIAL(info) << "connect  failed"  ;
-                        BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect is  " << m_ftp_try_connect;
-                        BOOST_LOG_TRIVIAL(info) << "m_tutk_try_connect is  " << m_tutk_try_connect ;
-                        BOOST_LOG_TRIVIAL(info) << "m_tcp_try_connect is  " << m_tcp_try_connect;
+                        BOOST_LOG_TRIVIAL(info) << "connect  failed"  ;
+                        BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect1 is  " << m_ftp_try_connect;
+                        BOOST_LOG_TRIVIAL(info) << "m_tutk_try_connect1 is  " << m_tutk_try_connect ;
+                        BOOST_LOG_TRIVIAL(info) << "m_tcp_try_connect1 is  " << m_tcp_try_connect;
                     }
                     else
                         msg = _L("Please check the network and try again, You can restart or update the printer if the issue persists.");
+
                     fs->Stop();
                     m_connect_try_times++;
                     BOOST_LOG_TRIVIAL(info) << "m_connect_try_times is  " << m_connect_try_times;
@@ -1567,7 +1575,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 	if (status == PrintDialogStatus::PrintStatusInit) {
 		update_print_status_msg(wxEmptyString, false, false);
 		Enable_Send_Button(false);
-		Enable_Refresh_Button(false);
+		Enable_Refresh_Button(true);
 	}
 	else if (status == PrintDialogStatus::PrintStatusInvalidPrinter) {
 		update_print_status_msg(wxEmptyString, true, true);

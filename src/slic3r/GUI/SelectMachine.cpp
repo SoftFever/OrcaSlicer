@@ -1731,7 +1731,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusTPUUnsupportAutoCali) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
-    } else if (status == PrintStatusHasFilamentInBlackListError) { //this war
+    } else if (status == PrintStatusHasFilamentInBlackListError) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
     } else if (status == PrintStatusWarningKvalueNotUsed) {
@@ -3561,7 +3561,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
             try
             {
                 int chamber_temp = chamber_temperatures->values[item.id];
-                if (chamber_temp >= obj_->chamber_temp_switch_heat) {// check close door 
+                if (chamber_temp >= obj_->chamber_temp_switch_heat) {// check close door
                     show_status(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempCloseDoor);
                     if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempCloseDoor)) { return; }
                 }
