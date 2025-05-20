@@ -23,6 +23,8 @@
 #include "Print.hpp"
 #include "Algorithm/LineSplit.hpp"
 #include "libnoise/noise.h"
+#include "ExPolygon.hpp"
+#include "Surface.hpp"
 static bool has_critical_overhangs(const LayerRegion* region, float threshold) {
     for (const Surface& surface : region->fill_surfaces.surfaces) {
         if (surface.is_overhang() && surface.overhang_angle >= threshold)
@@ -2031,7 +2033,7 @@ void PerimeterGenerator::process_classic()
     // extra perimeters for each one
     Surfaces all_surfaces = this->slices->surfaces;
 
-if (print_config->adaptive_wall_sequence_enabled) {
+if (config->opt_bool("adaptive_wall_sequence_enabled")) {
     float threshold = print_config->adaptive_wall_sequence_threshold;
     for (const LayerRegion* region : this->layer->regions()) {
         if (has_critical_overhangs(region, threshold)) {
