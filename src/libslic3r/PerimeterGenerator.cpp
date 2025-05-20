@@ -2046,7 +2046,7 @@ void PerimeterGenerator::process_classic()
     
     if (has_overhangs) {
         config.wall_sequence = WallSequence::InnerOuter;
-        BOOST_LOG_TRIVIAL(debug) << "Adaptive walls: Using Inner/Outer (overhang detected)";
+        //BOOST_LOG_TRIVIAL(debug) << "Adaptive walls: Using Inner/Outer (overhang detected)";
     }
 }
 

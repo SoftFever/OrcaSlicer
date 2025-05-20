@@ -112,6 +112,7 @@ public:
 	bool   is_solid()    const { return this->is_external() || this->surface_type == stInternalSolid || this->surface_type == stInternalBridge; }
 	bool   is_solid_infill() const { return this->surface_type == stInternalSolid; }
     
+    // For adaptive wall sequence
     bool is_overhang() const { return this->bridge_angle >= 0; }
     float overhang_angle = -1.f; // -1 означает "не нависание"
 };
