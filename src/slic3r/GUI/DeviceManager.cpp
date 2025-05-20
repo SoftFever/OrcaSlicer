@@ -330,6 +330,7 @@ bool check_filaments_printable(const std::string &tag_vendor, const std::string 
    for (int index = 0; index < physical_extruder_maps.size(); ++index) {
        if (physical_extruder_maps[index] == extruder_idx) {
            extruder_idx = index;
+           break;
        }
    }
 
