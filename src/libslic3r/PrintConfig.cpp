@@ -648,13 +648,16 @@ void PrintConfigDef::init_common_params()
     def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
     
     //for adaprive wall sequence
+// После других параметров периметра (~651)
 def->add("adaptive_wall_sequence_enabled", coBool)
     ->set_default_value(new ConfigOptionBool(false))
-    ->set_description("Enable adaptive wall ordering");
+    ->set_category("Layers and Perimeters")
+    ->set_group("Perimeter");
 
 def->add("adaptive_wall_sequence_threshold", coFloat)
     ->set_default_value(new ConfigOptionFloat(0.1))
-    ->set_description("Threshold for wall sequence adjustment");
+    ->set_category("Layers and Perimeters")
+    ->set_group("Perimeter");
 
     // temporary workaround for compatibility with older Slicer
     {
