@@ -840,7 +840,14 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
         auto left = item->GetSize();
 
         if (pos.x > p_rect.x && pos.y > p_rect.y && pos.x < (p_rect.x + item->GetSize().x) && pos.y < (p_rect.y + item->GetSize().y)) {
-            if (item->m_tray_data.type == TrayType::NORMAL  && !is_match_material(item->m_tray_data.filament_type)) return;
+            if (item->m_tray_data.type == TrayType::NORMAL) {
+                if (!m_ext_mapping_filatype_check && (item->m_ams_id == VIRTUAL_TRAY_MAIN_ID || item->m_ams_id == VIRTUAL_TRAY_DEPUTY_ID)) {
+                    // Do nothing
+                } else {
+                    if(!is_match_material(item->m_tray_data.filament_type)) { return; }
+                }
+            }
+
             if (item->m_tray_data.type == TrayType::EMPTY) return;
             if ((m_show_type == ShowType::LEFT && item->GetParent()->GetName() == "left") ||
                 (m_show_type == ShowType::RIGHT && item->GetParent()->GetName() == "right") ||
