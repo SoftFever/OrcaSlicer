@@ -1949,15 +1949,6 @@ static void group_region_by_fuzzify(PerimeterGenerator& g)
     }
 }
 
-static bool has_critical_overhangs(const LayerRegion* region, float threshold) {
-    for (const Surface& surface : region->fill_surfaces.surfaces) {
-        if (surface.is_overhang() && surface.overhang_angle >= threshold) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void PerimeterGenerator::process_classic()
 {
     group_region_by_fuzzify(*this);
@@ -2033,20 +2024,13 @@ void PerimeterGenerator::process_classic()
     // extra perimeters for each one
     Surfaces all_surfaces = this->slices->surfaces;
 
-    if (print_config->adaptive_wall_sequence_enabled) {
-    float threshold = print_config->adaptive_wall_sequence_threshold;
-    bool has_overhangs = false;
-    
-    for (const LayerRegion* region : layer->regions()) {
+if (this->config->adaptive_wall_sequence_enabled.value) {
+    float threshold = this->config->adaptive_wall_sequence_threshold.value;
+    for (const LayerRegion* region : this->layer->regions()) {
         if (has_critical_overhangs(region, threshold)) {
-            has_overhangs = true;
+            this->config->wall_sequence = WallSequence::InnerOuter;
             break;
         }
-    }
-    
-    if (has_overhangs) {
-        config.wall_sequence = WallSequence::InnerOuter;
-        //BOOST_LOG_TRIVIAL(debug) << "Adaptive walls: Using Inner/Outer (overhang detected)";
     }
 }
 
