@@ -2037,9 +2037,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
                                                     action, info);
 
         if (in_blacklist && action == "warning") {
-            wxString prohibited_error = wxString::FromUTF8(info);
-
-            confirm_text.push_back(ConfirmBeforeSendInfo(prohibited_error));
+            confirm_text.push_back(ConfirmBeforeSendInfo(info));
             has_slice_warnings = true;
         }
     }
