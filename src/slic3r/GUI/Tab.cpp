@@ -2108,6 +2108,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("min_length_factor");
 
         optgroup = page->new_optgroup(L("Walls and surfaces"), L"param_wall_surface");
+        // Чекбокс для включения функции
+        Line line_adaptive = create_line("Adaptive walls", "");
+        line_adaptive.append_checkbox("adaptive_wall_sequence_enabled", "Enable adaptive order");
+        // Чекбокс для включения функции
+        Line line_adaptive = create_line("Adaptive walls", "");
+        line_adaptive.append_checkbox("adaptive_wall_sequence_enabled", "Enable adaptive order");
         optgroup->append_single_option_line("wall_sequence");
         optgroup->append_single_option_line("is_infill_first");
         optgroup->append_single_option_line("wall_direction");

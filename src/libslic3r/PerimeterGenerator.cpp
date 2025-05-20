@@ -53,6 +53,15 @@ class UniformNoise: public noise::module::Module {
         virtual double GetValue(double x, double y, double z) const { return random_value() * 2 - 1; }
 };
 
+static bool has_critical_overhangs(const LayerRegion* region, float threshold_angle) {
+    for (const Surface& surface : region->fill_surfaces.surfaces) {
+        if (surface.is_bridge() || (surface.is_overhang() && surface.overhang_angle >= threshold_angle)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Hierarchy of perimeters.
 class PerimeterGeneratorLoop {
 public:
@@ -1939,9 +1948,41 @@ static void group_region_by_fuzzify(PerimeterGenerator& g)
     }
 }
 
+static bool has_critical_overhangs(const LayerRegion* region, float threshold) {
+    for (const Surface& surface : region->fill_surfaces.surfaces) {
+        if (surface.is_overhang() && surface.overhang_angle >= threshold) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void PerimeterGenerator::process_classic()
 {
     group_region_by_fuzzify(*this);
+
+    if (print_config->adaptive_wall_sequence_enabled) {
+    float threshold = print_config->adaptive_wall_sequence_threshold;
+    bool has_overhangs = std::any_of(
+        layer->regions().begin(),
+        layer->regions().end(),
+        [threshold](const LayerRegion* region) {
+            return has_critical_overhangs(region, threshold);
+        }
+    );
+        // Конвертируем % в градусы (100% = 90°)
+    float threshold_angle = print_config->adaptive_wall_sequence_threshold * 0.9f;
+    
+    if (has_critical_overhangs(layer->regions()[0], threshold_angle)) {
+        config.wall_sequence = WallSequence::InnerOuter;
+    }
+    if (has_overhangs) {
+        config.wall_sequence = WallSequence::InnerOuter;
+        BOOST_LOG_TRIVIAL(debug) << "Adaptive mode: Inner/Outer (overhang detected)";
+        // Для отладки можно добавить:
+        // BOOST_LOG_TRIVIAL(debug) << "Overhang threshold: " << threshold << "°";
+    }
+}
 
     // other perimeters
     m_mm3_per_mm               		= this->perimeter_flow.mm3_per_mm();
