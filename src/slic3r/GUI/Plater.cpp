@@ -3377,13 +3377,12 @@ void Sidebar::pop_sync_nozzle_and_ams_dialog() {
         wxSize  small_btn_size;
         get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
         temp_na_info.ams_btn_pos = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y / 2);
-
+        if (m_fna_dialog) { m_fna_dialog->on_hide(); }
         if (m_sna_dialog) {
-            if (m_fna_dialog) { m_fna_dialog->on_hide(); }
-            m_sna_dialog->update_info(temp_na_info);
-        } else {
-            m_sna_dialog = new SyncNozzleAndAmsDialog(temp_na_info);
+            m_sna_dialog->Destroy();
+            m_sna_dialog = nullptr;
         }
+        m_sna_dialog = new SyncNozzleAndAmsDialog(temp_na_info);
         m_sna_dialog->on_show();
     });
 }
@@ -3400,12 +3399,12 @@ void Sidebar::pop_finsish_sync_ams_dialog()
         temp_fsa_info.dialog_pos.x                       = same_dialog_pos_x;
         temp_fsa_info.dialog_pos.y                       = small_btn_pt.y;
         temp_fsa_info.ams_btn_pos                        = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y / 2);
+        if (m_sna_dialog) { m_sna_dialog->on_hide(); }
         if (m_fna_dialog) {
-            if (m_sna_dialog) { m_sna_dialog->on_hide(); }
-            m_fna_dialog->update_info(temp_fsa_info);
-        } else {
-            m_fna_dialog = new FinishSyncAmsDialog(temp_fsa_info);
+            m_fna_dialog->Destroy();
+            m_fna_dialog = nullptr;
         }
+        m_fna_dialog = new FinishSyncAmsDialog(temp_fsa_info);
         m_fna_dialog->on_show();
     });
 
