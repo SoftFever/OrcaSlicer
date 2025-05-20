@@ -53,6 +53,16 @@ class UniformNoise: public noise::module::Module {
         virtual double GetValue(double x, double y, double z) const { return random_value() * 2 - 1; }
 };
 
+static bool has_critical_overhangs(const LayerRegion* region, float threshold) 
+{
+    for (const Surface& surface : region->fill_surfaces.surfaces) {
+        if (surface.is_overhang() && surface.overhang_angle >= threshold) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Hierarchy of perimeters.
 class PerimeterGeneratorLoop {
 public:
@@ -1939,9 +1949,19 @@ static void group_region_by_fuzzify(PerimeterGenerator& g)
     }
 }
 
+static bool has_critical_overhangs(const LayerRegion* region, float threshold) {
+    for (const Surface& surface : region->fill_surfaces.surfaces) {
+        if (surface.is_overhang() && surface.overhang_angle >= threshold) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void PerimeterGenerator::process_classic()
 {
     group_region_by_fuzzify(*this);
+
 
     // other perimeters
     m_mm3_per_mm               		= this->perimeter_flow.mm3_per_mm();
@@ -2012,6 +2032,23 @@ void PerimeterGenerator::process_classic()
     // we need to process each island separately because we might have different
     // extra perimeters for each one
     Surfaces all_surfaces = this->slices->surfaces;
+
+    if (print_config->adaptive_wall_sequence_enabled) {
+    float threshold = print_config->adaptive_wall_sequence_threshold;
+    bool has_overhangs = false;
+    
+    for (const LayerRegion* region : layer->regions()) {
+        if (has_critical_overhangs(region, threshold)) {
+            has_overhangs = true;
+            break;
+        }
+    }
+    
+    if (has_overhangs) {
+        config.wall_sequence = WallSequence::InnerOuter;
+        BOOST_LOG_TRIVIAL(debug) << "Adaptive walls: Using Inner/Outer (overhang detected)";
+    }
+}
 
     process_no_bridge(all_surfaces, perimeter_spacing, ext_perimeter_width);
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled

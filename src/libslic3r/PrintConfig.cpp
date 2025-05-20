@@ -647,6 +647,18 @@ void PrintConfigDef::init_common_params()
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
     
+    //for adaprive wall sequence
+     def("adaptive_wall_sequence_enabled", coBool)
+        .set_default(false)
+        .set_category(L("Perimeters"))
+        .set_description(L("Enable adaptive wall order for overhangs"));
+
+    def("adaptive_wall_sequence_threshold", coFloat)
+        .set_default(45.f)
+        .set_range(0.f, 90.f)
+        .set_category(L("Perimeters"))
+        .set_description(L("Minimum overhang angle (0-90°)"));
+
     // temporary workaround for compatibility with older Slicer
     {
         def = this->add("preset_name", coString);
