@@ -177,11 +177,9 @@ void PrinterMsgPanel::SetLabelList(const std::vector<wxString> &texts, const wxC
         return;
 
     m_last_texts = texts;
-
     m_labels.clear();
     m_sizer->Clear(true);
-
-     std::set<wxString> unique_texts;
+    std::set<wxString> unique_texts;
 
     for (const wxString &text : texts) {
         if (text.empty()) {
@@ -225,6 +223,15 @@ wxString PrinterMsgPanel::GetLabel() {
          return m_labels[0]->GetLabel();
     return wxEmptyString;
 }
+
+
+std::vector<wxString> PrinterMsgPanel::GetLabelList() {
+    if (m_last_texts.empty())
+        wxLogDebug(_L("No labels are currently stored."));
+    return m_last_texts;
+}
+
+
 
 }
 };

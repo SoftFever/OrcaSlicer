@@ -1433,13 +1433,19 @@ void SelectMachineDialog::update_ams_status_msg(vector<wxString> msg, bool is_er
              }
         }
         else {
-            if (is_single)
-                m_statictext_ams_msg->SetLabelList({ msg[0] }, colour);
-            else {
-                m_statictext_ams_msg->SetLabelList(msg, colour);
-                m_statictext_ams_msg->Show();
-            }
+            if (m_statictext_ams_msg->GetLabelList() != msg) {
+                vector<wxString> TempMsg = {};
 
+                if (is_single)
+                    TempMsg = {msg[0]};
+                else
+                    TempMsg = msg;
+
+                m_statictext_ams_msg->SetLabelList(TempMsg, colour);
+                m_statictext_ams_msg->Show();
+                Layout();
+                Fit();
+            }
         }
 }
 
@@ -1457,12 +1463,19 @@ void SelectMachineDialog::update_priner_status_msg(vector<wxString> msg, bool is
         }
     }
     else {
-        if (is_single)
-            m_text_printer_msg->SetLabelList({msg[0]}, colour);
-        else {
-            m_text_printer_msg->SetLabelList(msg, colour);
+        if (m_text_printer_msg->GetLabelList() != msg) {
+            vector<wxString> TempMsg = {};
+
+            if (is_single)
+                TempMsg = {msg[0]};
+            else
+                TempMsg = msg;
+
+            m_text_printer_msg->SetLabelList(TempMsg, colour);
             m_text_printer_msg->Show();
-        }
+            Layout();
+            Fit();
+         }
     }
 }
 

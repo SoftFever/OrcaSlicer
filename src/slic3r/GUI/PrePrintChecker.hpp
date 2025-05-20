@@ -169,7 +169,7 @@ public:
 	// void SetLabelSingle(const  wxString &texts,const wxColour& colour);
 
      wxString GetLabel();
-
+     std::vector<wxString> GetLabelList();
 
  private:
     wxBoxSizer *         m_sizer = nullptr;
