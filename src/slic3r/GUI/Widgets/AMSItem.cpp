@@ -1733,9 +1733,9 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
     auto m_panel_road = new AMSRoad(amscan, wxID_ANY, caninfo, canindex, maxcan, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
     if (m_ams_model == AMSModel::GENERIC_AMS) {
-        m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
+        //m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
         m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-        m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
+        //m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
         m_sizer_ams->Add(m_panel_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(3));
         m_sizer_ams->Add(m_panel_road, 0, wxALL, 0);
     }
