@@ -13,6 +13,7 @@
     "extruder_clearance_height_to_rod": "33",
     "extruder_clearance_radius": "75",
     "from": "system",
+    "printer_structure": "corexy",
     "gcode_flavor": "marlin2",
     "host_type": "prusalink",
     "inherits": "fdm_machine_common",
