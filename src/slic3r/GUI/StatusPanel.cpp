@@ -883,6 +883,8 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     for (int i = 0; i < m_score_star.size(); ++i) {
         m_score_star[i] = new ScalableButton(m_score_subtask_info, wxID_ANY, "score_star_dark", wxEmptyString, wxSize(FromDIP(26), FromDIP(26)), wxDefaultPosition,
                                              wxBU_EXACTFIT | wxNO_BORDER, true, 26);
+        m_score_star[i]->SetMinSize(wxSize(FromDIP(26), FromDIP(26)));
+        m_score_star[i]->SetMaxSize(wxSize(FromDIP(26), FromDIP(26)));
         m_score_star[i]->Bind(wxEVT_LEFT_DOWN, [this, i](auto &e) {
             for (int j = 0; j < m_score_star.size(); ++j) {
                 ScalableBitmap light_star = ScalableBitmap(nullptr, "score_star_light", 26);
@@ -899,7 +901,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
             m_star_count_dirty = true;
             m_button_market_scoring->Enable(true);
         });
-        static_score_star_sizer->Add(m_score_star[i], 0, wxEXPAND | wxLEFT, FromDIP(10));
+        static_score_star_sizer->Add(m_score_star[i], 1, wxEXPAND | wxLEFT, FromDIP(5));
     }
 
     m_button_market_scoring = new Button(m_score_subtask_info, _L("Rate"));
