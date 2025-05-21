@@ -1620,559 +1620,6 @@ void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
 
 
 /*************************************************
-Description:AmsCan
-**************************************************/
-
-AmsCans::AmsCans() {}
-
-AmsCans::AmsCans(wxWindow *parent,AMSinfo info,  AMSModel model) : AmsCans()
-{
-    m_bitmap_extra_framework = ScalableBitmap(this, "ams_extra_framework_mid", 140);
-
-    SetDoubleBuffered(true);
-    m_ams_model = model;
-    m_info      = info;
-
-    wxWindow::Create(parent, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE);
-    create(parent);
-    Bind(wxEVT_PAINT, &AmsCans::paintEvent, this);
-}
-
-void AmsCans::create(wxWindow *parent)
-{
-    Freeze();
-    SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
-
-    if (m_ams_model == AMSModel::GENERIC_AMS || m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::N3S_AMS) {
-        sizer_can = new wxBoxSizer(wxHORIZONTAL);
-        sizer_item = new wxBoxSizer(wxVERTICAL);
-        for (auto it = m_info.cans.begin(); it != m_info.cans.end(); it++) {
-            AddCan(*it, m_can_count, m_info.cans.size(), sizer_can);
-            m_can_count++;
-        }
-        m_humidity = new AMSHumidity(this, wxID_ANY, m_info);
-        sizer_item->Add(m_humidity, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-        sizer_item->Add(sizer_can, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-        SetSizer(sizer_item);
-    }
-    else if(m_ams_model == AMSModel::AMS_LITE) {
-        sizer_can = new wxBoxSizer(wxVERTICAL);
-        sizer_can_middle = new wxBoxSizer(wxHORIZONTAL);
-        sizer_can_left = new wxBoxSizer(wxVERTICAL);
-        sizer_can_right = new wxBoxSizer(wxVERTICAL);
-
-        sizer_can_left->Add(0,0,0,wxTOP,FromDIP(8));
-
-        for (auto it = m_info.cans.begin(); it != m_info.cans.end(); it++) {
-            if (m_can_count <= 1) {
-                AddCan(*it, m_can_count, m_info.cans.size(), sizer_can_left);
-                if (m_can_count == 0) {
-                    sizer_can_left->Add(0,0,0,wxTOP,FromDIP(20));
-                }
-            }
-            else {
-                AddCan(*it, m_can_count, m_info.cans.size(), sizer_can_right);
-                if (m_can_count == 2) {
-                   sizer_can_right->Prepend(0, 0, 0, wxTOP, FromDIP(20));
-                }
-            }
-
-            m_can_count++;
-        }
-
-        sizer_can_right->Prepend(0,0,0,wxTOP,FromDIP(8));
-        sizer_can_middle->Add(0, 0, 0, wxLEFT, FromDIP(8));
-        sizer_can_middle->Add(sizer_can_left, 0, wxALL, 0);
-        sizer_can_middle->Add( 0, 0, 0, wxLEFT, FromDIP(20) );
-        sizer_can_middle->Add(sizer_can_right, 0, wxALL, 0);
-        sizer_can->Add(sizer_can_middle, 1, wxALIGN_CENTER, 0);
-        SetSizer(sizer_can);
-    }
-
-    Layout();
-    Fit();
-    Thaw();
-}
-
-void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer)
-{
-
-    auto        amscan = new wxWindow(this, wxID_ANY);
-    amscan->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
-
-    wxBoxSizer* m_sizer_ams = new wxBoxSizer(wxVERTICAL);
-   
-
-    auto m_panel_refresh = new AMSrefresh(amscan, m_can_count, caninfo);
-    auto m_panel_lib = new AMSLib(amscan, m_info.ams_id, caninfo);
-
-    m_panel_lib->Bind(wxEVT_LEFT_DOWN, [this, canindex](wxMouseEvent& ev) {
-        m_canlib_selection = canindex;
-        // m_canlib_id        = caninfo.can_id;
-
-        for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
-            CanLibs* lib = m_can_lib_list[i];
-            if (lib->canLib->m_can_index == m_canlib_selection) {
-                wxCommandEvent evt(EVT_AMS_UNSELETED_VAMS);
-                evt.SetString(m_info.ams_id);
-                wxPostEvent(GetParent()->GetParent(), evt);
-                lib->canLib->OnSelected();
-            }
-            else {
-                lib->canLib->UnSelected();
-            }
-        }
-        ev.Skip();
-        });
-
-
-    m_panel_lib->m_ams_model   = m_ams_model;
-    m_panel_lib->m_ams_id      = m_info.ams_id;
-    m_panel_lib->m_slot_id     = caninfo.can_id;
-    m_panel_lib->m_info.can_id = caninfo.can_id;
-    m_panel_lib->m_can_index = canindex;
-
-
-    auto m_panel_road = new AMSRoad(amscan, wxID_ANY, caninfo, canindex, maxcan, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
-
-    if (m_ams_model == AMSModel::GENERIC_AMS) {
-        //m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
-        m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-        //m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
-        m_sizer_ams->Add(m_panel_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(3));
-        m_sizer_ams->Add(m_panel_road, 0, wxALL, 0);
-    }
-    else if (m_ams_model == AMSModel::AMS_LITE)
-    {
-        m_sizer_ams = new wxBoxSizer(wxHORIZONTAL);
-        m_panel_road->Hide();
-
-        if (canindex <= 1) {
-            m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER, 0);
-            m_sizer_ams->Add(m_panel_lib, 0, wxALIGN_CENTER, 0);
-        }
-        else {
-            m_sizer_ams->Add(m_panel_lib, 0, wxALIGN_CENTER, 0);
-            m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER, 0);
-        }
-    }
-
-
-    amscan->SetSizer(m_sizer_ams);
-    amscan->Layout();
-    amscan->Fit();
-
-    if (m_ams_model == AMSModel::GENERIC_AMS) {
-         sizer->Add(amscan, 0, wxALL, 0);
-    }
-    else if (m_ams_model == AMSModel::AMS_LITE)
-    {
-        if (canindex > 1) {
-            sizer->Prepend(amscan, 0, wxALL, 0);
-        }
-        else {
-            sizer->Add(amscan, 0, wxALL, 0);
-        }
-    }
-   
-    Canrefreshs* canrefresh = new Canrefreshs;
-    canrefresh->canID = caninfo.can_id;
-    canrefresh->canrefresh = m_panel_refresh;
-    m_can_refresh_list.Add(canrefresh);
-
-    CanLibs* canlib = new CanLibs;
-    canlib->canID = caninfo.can_id;
-    canlib->canLib = m_panel_lib;
-    m_can_lib_list.Add(canlib);
-
-    CanRoads* canroad = new CanRoads;
-    canroad->canID = caninfo.can_id;
-    canroad->canRoad = m_panel_road;
-    m_can_road_list.Add(canroad);
-}
-
-void AmsCans::Update(AMSinfo info)
-{
-    m_info      = info;
-    m_can_count = info.cans.size();
-
-    if (m_humidity)
-    {
-        m_humidity->Update(m_info);
-    }
-
-    for (auto i = 0; i < m_can_refresh_list.GetCount(); i++) {
-        Canrefreshs *refresh = m_can_refresh_list[i];
-        if (i < m_can_count) {
-            refresh->canrefresh->Update(info.ams_id, info.cans[i]);
-            refresh->canrefresh->Show();
-        } else {
-            refresh->canrefresh->Hide();
-        }
-    }
-   
-    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
-        CanLibs *lib = m_can_lib_list[i];
-        if (i < m_can_count) {
-            lib->canLib->Update(info.cans[i], info.ams_id);
-            lib->canLib->Show();
-        } else {
-            lib->canLib->Hide();
-        }
-    }
-
-    if (m_ams_model == AMSModel::GENERIC_AMS) {
-        for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
-            CanRoads* road = m_can_road_list[i];
-            if (i < m_can_count) {
-                road->canRoad->Update(m_info, info.cans[i], i, m_can_count);
-                road->canRoad->Show();
-            }
-            else {
-                road->canRoad->Hide();
-            }
-        }
-    }
-    Layout();
-}
-
-void AmsCans::SetDefSelectCan()
-{
-    if (m_can_lib_list.GetCount() > 0) {
-        CanLibs* lib = m_can_lib_list[0];
-        m_canlib_selection =lib->canLib->m_can_index;
-        m_canlib_id = lib->canLib->m_info.can_id;
-        SelectCan(m_canlib_id);
-    }
-}
-
-
-void AmsCans::SelectCan(std::string canid)
-{
-    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
-        CanLibs *lib = m_can_lib_list[i];
-        if (lib->canLib->m_info.can_id == canid) { 
-            m_canlib_selection = lib->canLib->m_can_index; 
-        }
-    }
-
-    m_canlib_id = canid;
-
-    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
-        CanLibs *lib = m_can_lib_list[i];
-        if (lib->canLib->m_info.can_id == m_canlib_id) {
-            wxCommandEvent evt(EVT_AMS_UNSELETED_VAMS);
-            evt.SetString(m_info.ams_id);
-            wxPostEvent(GetParent()->GetParent(), evt);
-            lib->canLib->OnSelected();
-        } else {
-            lib->canLib->UnSelected();
-        }
-    }
-}
-
-wxColour AmsCans::GetTagColr(wxString canid) 
-{
-    auto tag_colour = *wxWHITE;
-    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
-        CanLibs* lib = m_can_lib_list[i];
-        if (canid == lib->canLib->m_info.can_id) tag_colour = lib->canLib->GetLibColour();
-    }
-    return tag_colour;
-}
-
-void AmsCans::SetAmsStepExtra(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
-{
-    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
-        SetAmsStep(canid.ToStdString());
-    }else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
-        SetAmsStep(canid.ToStdString());
-    }else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
-        SetAmsStep(canid.ToStdString());
-    }else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
-        SetAmsStep("");
-    }
-}
-
-void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
-{
-
-    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
-        for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
-            CanRoads *road = m_can_road_list[i];
-            auto      pr   = std::vector<AMSPassRoadMode>{};
-            pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_NONE);
-            road->canRoad->OnPassRoad(pr);
-        }
-
-        return;
-    }
-
-    
-    auto tag_can_index = -1;
-    for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
-        CanRoads *road = m_can_road_list[i];
-        if (canid == road->canRoad->m_info.can_id) { tag_can_index = road->canRoad->m_canindex; }
-    }
-    if (tag_can_index == -1) return;
-
-    // get colour
-    auto tag_colour = *wxWHITE;
-    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
-        CanLibs *lib = m_can_lib_list[i];
-        if (canid == lib->canLib->m_info.can_id) tag_colour = lib->canLib->GetLibColour();
-    }
-
-    // unload
-    if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD) {
-        for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
-            CanRoads *road = m_can_road_list[i];
-
-            auto index = road->canRoad->m_canindex;
-            auto pr    = std::vector<AMSPassRoadMode>{};
-
-            pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_BOTTOM);
-            if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_2) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_BOTTOM); }
-
-            if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_3) {
-                if (index == tag_can_index && index > 0) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_LEFT); }
-                if (index < tag_can_index && index > 0) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_LEFT_RIGHT); }
-                if (index == 0 && tag_can_index == index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_TOP); }
-                if (index == 0 && tag_can_index > index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_RIGHT); }
-            }
-
-            road->canRoad->SetPassRoadColour(tag_colour);
-            road->canRoad->OnPassRoad(pr);
-        }
-    }
-
-    // load
-    if (type == AMSPassRoadType::AMS_ROAD_TYPE_LOAD) {
-        for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
-            CanRoads *road = m_can_road_list[i];
-
-            auto index = road->canRoad->m_canindex;
-            auto pr    = std::vector<AMSPassRoadMode>{};
-
-            if (index == tag_can_index && index > 0) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_LEFT); }
-            if (index < tag_can_index && index > 0) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_LEFT_RIGHT); }
-            if (index == 0 && tag_can_index == index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_TOP); }
-            if (index == 0 && tag_can_index > index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_RIGHT); }
-
-            if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_2) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_BOTTOM); }
-
-            road->canRoad->SetPassRoadColour(tag_colour);
-            road->canRoad->OnPassRoad(pr);
-        }
-    }
-}
-
-void AmsCans::SetAmsStep(std::string can_id)
-{
-    if (m_road_canid != can_id) {
-        m_road_canid = can_id;
-        Refresh();
-    }
-}
-
-void AmsCans::PlayRridLoading(wxString canid)
-{
-    for (auto i = 0; i < m_can_refresh_list.GetCount(); i++) {
-        Canrefreshs *refresh = m_can_refresh_list[i];
-        if (refresh->canrefresh->m_info.can_id == canid) { refresh->canrefresh->PlayLoading(); }
-    }
-}
-
-std::string AmsCans::GetCurrentCan()
-{
-    if (m_canlib_selection < 0)
-        return "";
-
-    return wxString::Format("%d", m_canlib_selection).ToStdString();
-}
-
-void AmsCans::paintEvent(wxPaintEvent& evt)
-{
-    wxPaintDC dc(this);
-    render(dc);
-}
-
-void AmsCans::render(wxDC& dc)
-{
-#ifdef __WXMSW__
-    wxSize     size = GetSize();
-    wxMemoryDC memdc;
-    wxBitmap   bmp(size.x, size.y);
-    memdc.SelectObject(bmp);
-    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
-
-    {
-        wxGCDC dc2(memdc);
-        doRender(dc2);
-    }
-
-    memdc.SelectObject(wxNullBitmap);
-    dc.DrawBitmap(bmp, 0, 0);
-#else
-    doRender(dc);
-#endif
-}
-
-void AmsCans::doRender(wxDC& dc)
-{
-    wxSize     size = GetSize();
-    dc.DrawBitmap(m_bitmap_extra_framework.bmp(), (size.x - m_bitmap_extra_framework.GetBmpSize().x) / 2, (size.y - m_bitmap_extra_framework.GetBmpSize().y) / 2);
-
-    //road for extra
-    if (m_ams_model == AMSModel::AMS_LITE) {
-
-        auto end_top = size.x / 2 - FromDIP(99);
-        auto passroad_width = 6;
-
-        for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
-            CanLibs* lib = m_can_lib_list[i];
-
-            if (m_road_canid.empty()) {
-                lib->canLib->on_pass_road(false);
-            }
-            else {
-                if (lib->canLib->m_info.can_id == m_road_canid) {
-                    m_road_colour = lib->canLib->m_info.material_colour;
-                    lib->canLib->on_pass_road(true);
-                }
-            }
-        }
-
-       
-        // A1
-        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
-        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-
-        try
-        {
-            auto a1_top = size.y / 2 - FromDIP(4);
-            auto a1_left = m_can_lib_list[0]->canLib->GetScreenPosition().x + m_can_lib_list[0]->canLib->GetSize().x / 2;
-            auto local_pos1 = GetScreenPosition().x + GetSize().x / 2;
-            a1_left = size.x / 2 + (a1_left - local_pos1);
-            dc.DrawLine(a1_left, FromDIP(30), a1_left, a1_top);
-            dc.DrawLine(a1_left, a1_top, end_top, a1_top);
-
-
-            // A2
-            auto a2_top = size.y / 2 + FromDIP(8);
-            auto a2_left = m_can_lib_list[1]->canLib->GetScreenPosition().x + m_can_lib_list[1]->canLib->GetSize().x / 2;
-            auto local_pos2 = GetScreenPosition().x + GetSize().x / 2;
-            a2_left = size.x / 2 + (a2_left - local_pos2);
-            dc.DrawLine(a2_left, FromDIP(160), a2_left, a2_top);
-            dc.DrawLine(a2_left, a2_top, end_top, a2_top);
-
-            // A3
-            auto a3_top = size.y / 2 + FromDIP(4);
-            auto a3_left = m_can_lib_list[2]->canLib->GetScreenPosition().x + m_can_lib_list[2]->canLib->GetSize().x / 2;
-            auto local_pos3 = GetScreenPosition().x + GetSize().x / 2;
-            a3_left = size.x / 2 + (a3_left - local_pos3);
-            dc.DrawLine(a3_left, FromDIP(160), a3_left, a3_top);
-            dc.DrawLine(a3_left, a3_top, end_top, a3_top);
-
-
-            // A4
-            auto a4_top = size.y / 2;
-            auto a4_left = m_can_lib_list[3]->canLib->GetScreenPosition().x + m_can_lib_list[3]->canLib->GetSize().x / 2;
-            auto local_pos4 = GetScreenPosition().x + GetSize().x / 2;
-            a4_left = size.x / 2 + (a4_left - local_pos4);
-            dc.DrawLine(a4_left, FromDIP(30), a4_left, a4_top);
-            dc.DrawLine(a4_left, a4_top, end_top, a4_top);
-
-   
-            if (!m_road_canid.empty()) {
-                if (m_road_canid == "0") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                    dc.DrawLine(a1_left, FromDIP(30), a1_left, a1_top);
-                    dc.DrawLine(a1_left, a1_top, end_top, a1_top);
-                }
-
-                if (m_road_canid == "1") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                    dc.DrawLine(a2_left, FromDIP(160), a2_left, a2_top);
-                    dc.DrawLine(a2_left, a2_top, end_top, a2_top);
-                }
-
-                if (m_road_canid == "2") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                    dc.DrawLine(a3_left, FromDIP(160), a3_left, a3_top);
-                    dc.DrawLine(a3_left, a3_top, end_top, a3_top);
-                }
-
-                if (m_road_canid == "3") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                    dc.DrawLine(a4_left, FromDIP(30), a4_left, a4_top);
-                    dc.DrawLine(a4_left, a4_top, end_top, a4_top);
-                }
-            }
-
-            //to Extruder
-            dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
-            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-
-            dc.DrawLine(end_top, a1_top, end_top, size.y);
-
-            if (!m_road_canid.empty()) {
-                if (!m_road_canid.empty()) {
-                    if (m_road_canid == "0") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                        dc.DrawLine(end_top, a1_top, end_top, size.y);
-                    }
-                    else if (m_road_canid == "1") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                        dc.DrawLine(end_top, a2_top, end_top, size.y);
-                    }
-                    else if (m_road_canid == "2") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                        dc.DrawLine(end_top, a3_top, end_top, size.y);
-                    }
-                    else if (m_road_canid == "3") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                        dc.DrawLine(end_top, a4_top, end_top, size.y);
-                    }
-                }
-            }
-        }
-        catch (...){}
-    }
-}
-
-void AmsCans::StopRridLoading(wxString canid)
-{
-    for (auto i = 0; i < m_can_refresh_list.GetCount(); i++) {
-        Canrefreshs *refresh = m_can_refresh_list[i];
-        if (refresh->canrefresh->m_info.can_id == canid) { refresh->canrefresh->StopLoading(); }
-    }
-}
-
-void AmsCans::msw_rescale() 
-{
-    for (auto i = 0; i < m_can_refresh_list.GetCount(); i++) {
-        Canrefreshs *refresh = m_can_refresh_list[i];
-        refresh->canrefresh->msw_rescale(); 
-    }
-
-    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
-        CanLibs* lib = m_can_lib_list[i];
-        lib->canLib->msw_rescale();
-    }
-    if (m_humidity != nullptr) m_humidity->msw_rescale();
-}
-
-void AmsCans::show_sn_value(bool show)
-{
-    for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
-        CanLibs* lib = m_can_lib_list[i];
-        lib->canLib->show_kn_value(show);
-    }
-}
-
-
-/*************************************************
 Description:AMSPreview
 **************************************************/
 AMSPreview::AMSPreview() {}
@@ -2572,6 +2019,555 @@ void AMSHumidity::msw_rescale() {
 
     Layout();
     Refresh();
+}
+
+
+/*************************************************
+Description:AmsItem
+**************************************************/
+
+AmsItem::AmsItem() {}
+
+AmsItem::AmsItem(wxWindow *parent,AMSinfo info,  AMSModel model) : AmsItem()
+{
+    m_bitmap_extra_framework = ScalableBitmap(this, "ams_extra_framework_mid", 140);
+
+    SetDoubleBuffered(true);
+    m_ams_model = model;
+    m_info      = info;
+
+    wxWindow::Create(parent, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE);
+    create(parent);
+    Bind(wxEVT_PAINT, &AmsItem::paintEvent, this);
+}
+
+void AmsItem::create(wxWindow *parent)
+{
+    Freeze();
+    SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+
+    if (m_ams_model == AMSModel::GENERIC_AMS || m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::N3S_AMS) {
+        sizer_can = new wxBoxSizer(wxHORIZONTAL);
+        sizer_item = new wxBoxSizer(wxVERTICAL);
+        for (auto it = m_info.cans.begin(); it != m_info.cans.end(); it++) {
+            AddCan(*it, m_can_count, m_info.cans.size(), sizer_can);
+            m_can_count++;
+        }
+        m_humidity = new AMSHumidity(this, wxID_ANY, m_info);
+        sizer_item->Add(m_humidity, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+        sizer_item->Add(sizer_can, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+        SetSizer(sizer_item);
+    }
+    else if(m_ams_model == AMSModel::AMS_LITE) {
+        sizer_can = new wxBoxSizer(wxVERTICAL);
+        sizer_can_middle = new wxBoxSizer(wxHORIZONTAL);
+        sizer_can_left = new wxBoxSizer(wxVERTICAL);
+        sizer_can_right = new wxBoxSizer(wxVERTICAL);
+
+        sizer_can_left->Add(0,0,0,wxTOP,FromDIP(8));
+
+        for (auto it = m_info.cans.begin(); it != m_info.cans.end(); it++) {
+            if (m_can_count <= 1) {
+                AddCan(*it, m_can_count, m_info.cans.size(), sizer_can_left);
+                if (m_can_count == 0) {
+                    sizer_can_left->Add(0,0,0,wxTOP,FromDIP(20));
+                }
+            }
+            else {
+                AddCan(*it, m_can_count, m_info.cans.size(), sizer_can_right);
+                if (m_can_count == 2) {
+                   sizer_can_right->Prepend(0, 0, 0, wxTOP, FromDIP(20));
+                }
+            }
+
+            m_can_count++;
+        }
+
+        sizer_can_right->Prepend(0,0,0,wxTOP,FromDIP(8));
+        sizer_can_middle->Add(0, 0, 0, wxLEFT, FromDIP(8));
+        sizer_can_middle->Add(sizer_can_left, 0, wxALL, 0);
+        sizer_can_middle->Add( 0, 0, 0, wxLEFT, FromDIP(20) );
+        sizer_can_middle->Add(sizer_can_right, 0, wxALL, 0);
+        sizer_can->Add(sizer_can_middle, 1, wxALIGN_CENTER, 0);
+        SetSizer(sizer_can);
+    }
+
+    Layout();
+    Fit();
+    Thaw();
+}
+
+void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer)
+{
+
+    auto        amscan = new wxWindow(this, wxID_ANY);
+    amscan->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+
+    wxBoxSizer* m_sizer_ams = new wxBoxSizer(wxVERTICAL);
+   
+
+    auto m_panel_refresh = new AMSrefresh(amscan, m_can_count, caninfo);
+    m_can_refresh_list[caninfo.can_id] = m_panel_refresh;
+
+    auto m_panel_lib = new AMSLib(amscan, m_info.ams_id, caninfo);
+
+    m_panel_lib->Bind(wxEVT_LEFT_DOWN, [this, canindex](wxMouseEvent& ev) {
+        m_canlib_selection = canindex;
+        // m_canlib_id        = caninfo.can_id;
+
+        for (auto lib_it : m_can_lib_list) {
+            AMSLib* lib = lib_it.second;
+            if (lib->m_can_index == m_canlib_selection) {
+                wxCommandEvent evt(EVT_AMS_UNSELETED_VAMS);
+                evt.SetString(m_info.ams_id);
+                wxPostEvent(GetParent()->GetParent(), evt);
+                lib->OnSelected();
+            }
+            else {
+                lib->UnSelected();
+            }
+        }
+        ev.Skip();
+        });
+
+
+    m_panel_lib->m_ams_model   = m_ams_model;
+    m_panel_lib->m_ams_id      = m_info.ams_id;
+    m_panel_lib->m_slot_id     = caninfo.can_id;
+    m_panel_lib->m_info.can_id = caninfo.can_id;
+    m_panel_lib->m_can_index = canindex;
+
+
+    auto m_panel_road = new AMSRoad(amscan, wxID_ANY, caninfo, canindex, maxcan, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
+
+    if (m_ams_model == AMSModel::GENERIC_AMS) {
+        //m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
+        m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+        //m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
+        m_sizer_ams->Add(m_panel_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(3));
+        m_sizer_ams->Add(m_panel_road, 0, wxALL, 0);
+    }
+    else if (m_ams_model == AMSModel::AMS_LITE)
+    {
+        m_sizer_ams = new wxBoxSizer(wxHORIZONTAL);
+        m_panel_road->Hide();
+
+        if (canindex <= 1) {
+            m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER, 0);
+            m_sizer_ams->Add(m_panel_lib, 0, wxALIGN_CENTER, 0);
+        }
+        else {
+            m_sizer_ams->Add(m_panel_lib, 0, wxALIGN_CENTER, 0);
+            m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER, 0);
+        }
+    }
+
+
+    amscan->SetSizer(m_sizer_ams);
+    amscan->Layout();
+    amscan->Fit();
+
+    if (m_ams_model == AMSModel::GENERIC_AMS) {
+         sizer->Add(amscan, 0, wxALL, 0);
+    }
+    else if (m_ams_model == AMSModel::AMS_LITE)
+    {
+        if (canindex > 1) {
+            sizer->Prepend(amscan, 0, wxALL, 0);
+        }
+        else {
+            sizer->Add(amscan, 0, wxALL, 0);
+        }
+    }
+
+    m_can_lib_list[caninfo.can_id] = m_panel_lib;
+    m_can_road_list[caninfo.can_id] = m_panel_road;
+}
+
+void AmsItem::Update(AMSinfo info)
+{
+    m_info      = info;
+    m_can_count = info.cans.size();
+
+    if (m_humidity)
+    {
+        m_humidity->Update(m_info);
+    }
+
+    for (int i = 0; i < m_can_count; i++) {
+        auto it = m_can_refresh_list.find(std::to_string(i));
+        if (it == m_can_refresh_list.end()) break;
+
+        auto refresh = it->second;
+        if (refresh != nullptr){
+            refresh->Update(info.ams_id, info.cans[i]);
+            refresh->Show();
+        }
+    }
+   
+    for (int i = 0; i < m_can_lib_list.size(); i++) {
+        AMSLib* lib = m_can_lib_list[std::to_string(i)];
+        if (lib != nullptr){
+            if (i < m_can_count){
+                lib->Update(info.cans[i], info.ams_id);
+                lib->Show();
+            }
+            else{
+                lib->Hide();
+            }
+        }
+    }
+
+    if (m_ams_model == AMSModel::GENERIC_AMS) {
+        for (auto i = 0; i < m_can_road_list.size(); i++) {
+            AMSRoad* road = m_can_road_list[std::to_string(i)];
+            if (road != nullptr) {
+                if (i < m_can_count) {
+                    road->Update(m_info, info.cans[i], i, m_can_count);
+                    road->Show();
+                } else {
+                    road->Hide();
+                }
+            }
+        }
+    }
+    Layout();
+}
+
+void AmsItem::SetDefSelectCan()
+{
+    for (auto lib_it : m_can_lib_list) {
+        AMSLib* lib = lib_it.second;
+        m_canlib_selection =lib->m_can_index;
+        m_canlib_id = lib->m_info.can_id;
+        SelectCan(m_canlib_id);
+        break;
+    }
+}
+
+
+void AmsItem::SelectCan(std::string canid)
+{
+    for (auto lib_it : m_can_lib_list) {
+        AMSLib* lib = lib_it.second;
+        if (lib->m_info.can_id == canid) { 
+            m_canlib_selection = lib->m_can_index; 
+        }
+    }
+
+    m_canlib_id = canid;
+
+    for (auto lib_it : m_can_lib_list) {
+        AMSLib* lib = lib_it.second;
+        if (lib->m_info.can_id == m_canlib_id) {
+            wxCommandEvent evt(EVT_AMS_UNSELETED_VAMS);
+            evt.SetString(m_info.ams_id);
+            wxPostEvent(GetParent()->GetParent(), evt);
+            lib->OnSelected();
+        } else {
+            lib->UnSelected();
+        }
+    }
+}
+
+wxColour AmsItem::GetTagColr(wxString canid) 
+{
+    auto tag_colour = *wxWHITE;
+    for (auto lib_it : m_can_lib_list) {
+        AMSLib* lib = lib_it.second;
+        if (canid == lib->m_info.can_id) tag_colour = lib->GetLibColour();
+    }
+    return tag_colour;
+}
+
+void AmsItem::SetAmsStepExtra(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
+{
+    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
+        SetAmsStep(canid.ToStdString());
+    }else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
+        SetAmsStep(canid.ToStdString());
+    }else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
+        SetAmsStep(canid.ToStdString());
+    }else if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
+        SetAmsStep("");
+    }
+}
+
+void AmsItem::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
+{
+
+    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
+        for (auto road_it : m_can_road_list) {
+            AMSRoad* road = road_it.second;
+            auto      pr   = std::vector<AMSPassRoadMode>{};
+            pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_NONE);
+            road->OnPassRoad(pr);
+        }
+
+        return;
+    }
+
+    
+    auto tag_can_index = -1;
+    for (auto road_it : m_can_road_list) {
+        AMSRoad* road = road_it.second;
+        if (canid == road->m_info.can_id) { tag_can_index = road->m_canindex; }
+    }
+    if (tag_can_index == -1) return;
+
+    // get colour
+    auto tag_colour = *wxWHITE;
+    for (auto lib_it : m_can_lib_list) {
+        AMSLib* lib = lib_it.second;
+        if (canid == lib->m_info.can_id) tag_colour = lib->GetLibColour();
+    }
+
+    // unload
+    if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD) {
+        for (auto road_it : m_can_road_list) {
+            AMSRoad* road = road_it.second;
+
+            auto index = road->m_canindex;
+            auto pr    = std::vector<AMSPassRoadMode>{};
+
+            pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_BOTTOM);
+            if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_2) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_BOTTOM); }
+
+            if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_3) {
+                if (index == tag_can_index && index > 0) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_LEFT); }
+                if (index < tag_can_index && index > 0) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_LEFT_RIGHT); }
+                if (index == 0 && tag_can_index == index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_TOP); }
+                if (index == 0 && tag_can_index > index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_RIGHT); }
+            }
+
+            road->SetPassRoadColour(tag_colour);
+            road->OnPassRoad(pr);
+        }
+    }
+
+    // load
+    if (type == AMSPassRoadType::AMS_ROAD_TYPE_LOAD) {
+        for (auto road_it : m_can_road_list) {
+            AMSRoad* road = road_it.second;
+
+            auto index = road->m_canindex;
+            auto pr    = std::vector<AMSPassRoadMode>{};
+
+            if (index == tag_can_index && index > 0) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_LEFT); }
+            if (index < tag_can_index && index > 0) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_LEFT_RIGHT); }
+            if (index == 0 && tag_can_index == index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_TOP); }
+            if (index == 0 && tag_can_index > index) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_RIGHT); }
+
+            if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_2) { pr.push_back(AMSPassRoadMode::AMS_ROAD_MODE_END_BOTTOM); }
+
+            road->SetPassRoadColour(tag_colour);
+            road->OnPassRoad(pr);
+        }
+    }
+}
+
+void AmsItem::SetAmsStep(std::string can_id)
+{
+    if (m_road_canid != can_id) {
+        m_road_canid = can_id;
+        Refresh();
+    }
+}
+
+void AmsItem::PlayRridLoading(wxString canid)
+{
+    for (auto refresh_it : m_can_refresh_list) {
+        AMSrefresh* refresh = refresh_it.second;
+        if (refresh->GetCanId() == canid) { refresh->PlayLoading(); }
+    }
+}
+
+std::string AmsItem::GetCurrentCan()
+{
+    if (m_canlib_selection < 0)
+        return "";
+
+    return wxString::Format("%d", m_canlib_selection).ToStdString();
+}
+
+void AmsItem::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void AmsItem::render(wxDC& dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void AmsItem::doRender(wxDC& dc)
+{
+    wxSize     size = GetSize();
+    dc.DrawBitmap(m_bitmap_extra_framework.bmp(), (size.x - m_bitmap_extra_framework.GetBmpSize().x) / 2, (size.y - m_bitmap_extra_framework.GetBmpSize().y) / 2);
+
+    //road for extra
+    if (m_ams_model == AMSModel::AMS_LITE) {
+
+        auto end_top = size.x / 2 - FromDIP(99);
+        auto passroad_width = 6;
+
+        for (auto lib_it : m_can_lib_list) {
+            AMSLib* lib = lib_it.second;
+
+            if (m_road_canid.empty()) {
+                lib->on_pass_road(false);
+            }
+            else {
+                if (lib->m_info.can_id == m_road_canid) {
+                    m_road_colour = lib->m_info.material_colour;
+                    lib->on_pass_road(true);
+                }
+            }
+        }
+
+       
+        // A1
+        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
+        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+
+        try
+        {
+            auto a1_top = size.y / 2 - FromDIP(4);
+            auto a1_left = m_can_lib_list["0"]->GetScreenPosition().x + m_can_lib_list["0"]->GetSize().x / 2;
+            auto local_pos1 = GetScreenPosition().x + GetSize().x / 2;
+            a1_left = size.x / 2 + (a1_left - local_pos1);
+            dc.DrawLine(a1_left, FromDIP(30), a1_left, a1_top);
+            dc.DrawLine(a1_left, a1_top, end_top, a1_top);
+
+
+            // A2
+            auto a2_top = size.y / 2 + FromDIP(8);
+            auto a2_left = m_can_lib_list["1"]->GetScreenPosition().x + m_can_lib_list["1"]->GetSize().x / 2;
+            auto local_pos2 = GetScreenPosition().x + GetSize().x / 2;
+            a2_left = size.x / 2 + (a2_left - local_pos2);
+            dc.DrawLine(a2_left, FromDIP(160), a2_left, a2_top);
+            dc.DrawLine(a2_left, a2_top, end_top, a2_top);
+
+            // A3
+            auto a3_top = size.y / 2 + FromDIP(4);
+            auto a3_left = m_can_lib_list["2"]->GetScreenPosition().x + m_can_lib_list["2"]->GetSize().x / 2;
+            auto local_pos3 = GetScreenPosition().x + GetSize().x / 2;
+            a3_left = size.x / 2 + (a3_left - local_pos3);
+            dc.DrawLine(a3_left, FromDIP(160), a3_left, a3_top);
+            dc.DrawLine(a3_left, a3_top, end_top, a3_top);
+
+
+            // A4
+            auto a4_top = size.y / 2;
+            auto a4_left = m_can_lib_list["3"]->GetScreenPosition().x + m_can_lib_list["3"]->GetSize().x / 2;
+            auto local_pos4 = GetScreenPosition().x + GetSize().x / 2;
+            a4_left = size.x / 2 + (a4_left - local_pos4);
+            dc.DrawLine(a4_left, FromDIP(30), a4_left, a4_top);
+            dc.DrawLine(a4_left, a4_top, end_top, a4_top);
+
+   
+            if (!m_road_canid.empty()) {
+                if (m_road_canid == "0") {
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                    dc.DrawLine(a1_left, FromDIP(30), a1_left, a1_top);
+                    dc.DrawLine(a1_left, a1_top, end_top, a1_top);
+                }
+
+                if (m_road_canid == "1") {
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                    dc.DrawLine(a2_left, FromDIP(160), a2_left, a2_top);
+                    dc.DrawLine(a2_left, a2_top, end_top, a2_top);
+                }
+
+                if (m_road_canid == "2") {
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                    dc.DrawLine(a3_left, FromDIP(160), a3_left, a3_top);
+                    dc.DrawLine(a3_left, a3_top, end_top, a3_top);
+                }
+
+                if (m_road_canid == "3") {
+                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                    dc.DrawLine(a4_left, FromDIP(30), a4_left, a4_top);
+                    dc.DrawLine(a4_left, a4_top, end_top, a4_top);
+                }
+            }
+
+            //to Extruder
+            dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
+            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+
+            dc.DrawLine(end_top, a1_top, end_top, size.y);
+
+            if (!m_road_canid.empty()) {
+                if (!m_road_canid.empty()) {
+                    if (m_road_canid == "0") {
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                        dc.DrawLine(end_top, a1_top, end_top, size.y);
+                    }
+                    else if (m_road_canid == "1") {
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                        dc.DrawLine(end_top, a2_top, end_top, size.y);
+                    }
+                    else if (m_road_canid == "2") {
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                        dc.DrawLine(end_top, a3_top, end_top, size.y);
+                    }
+                    else if (m_road_canid == "3") {
+                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+                        dc.DrawLine(end_top, a4_top, end_top, size.y);
+                    }
+                }
+            }
+        }
+        catch (...){}
+    }
+}
+
+void AmsItem::StopRridLoading(wxString canid)
+{
+    for (auto refresh_it : m_can_refresh_list) {
+        AMSrefresh* refresh = refresh_it.second;
+        if (refresh->GetCanId() == canid) { refresh->StopLoading(); }
+    }
+}
+
+void AmsItem::msw_rescale() 
+{
+    for (auto refresh_it : m_can_refresh_list) {
+        AMSrefresh* refresh = refresh_it.second;
+        if(refresh) refresh->msw_rescale();
+    }
+
+    for (auto lib_it : m_can_lib_list) {
+        AMSLib* lib = lib_it.second;
+        if (lib) lib->msw_rescale();
+    }
+    if (m_humidity != nullptr) m_humidity->msw_rescale();
+}
+
+void AmsItem::show_sn_value(bool show)
+{
+    for (auto lib_it : m_can_lib_list) {
+        AMSLib* lib = lib_it.second;
+        if (lib) lib->show_kn_value(show);
+    }
 }
 
 }} // namespace Slic3r::GUI

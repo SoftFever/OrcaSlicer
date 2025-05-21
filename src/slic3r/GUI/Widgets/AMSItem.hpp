@@ -235,20 +235,26 @@ public:
     AMSrefresh(wxWindow *parent, wxString number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     AMSrefresh(wxWindow *parent, int number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~AMSrefresh();
+
+public:
+    void        Update(std::string ams_id, Caninfo info);
+
+    std::string GetCanId() const { return m_info.can_id; };
+
     void    PlayLoading();
     void    StopLoading();
-    void    create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
-    void    on_timer(wxTimerEvent &event);
-    void    OnEnterWindow(wxMouseEvent &evt);
-    void    OnLeaveWindow(wxMouseEvent &evt);
-    void    OnClick(wxMouseEvent &evt);
-    void    post_event(wxCommandEvent &&event);
-    void    paintEvent(wxPaintEvent &evt);
-    void    Update(std::string ams_id, Caninfo info);
+
     void    msw_rescale();
-    void    set_disable_mode(bool disable) { m_disable_mode = disable; }
-    Caninfo m_info;
-    
+
+protected:
+    void create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
+
+    void on_timer(wxTimerEvent &event);
+    void OnEnterWindow(wxMouseEvent &evt);
+    void OnLeaveWindow(wxMouseEvent &evt);
+    void OnClick(wxMouseEvent &evt);
+    void post_event(wxCommandEvent &&event);
+    void paintEvent(wxPaintEvent &evt);
 
 protected:
     wxTimer *m_playing_timer= {nullptr};
@@ -258,6 +264,7 @@ protected:
 
     std::string      m_ams_id;
     std::string      m_can_id;
+    Caninfo          m_info;
 
     ScalableBitmap   m_bitmap_normal;
     ScalableBitmap   m_bitmap_selected;
@@ -543,39 +550,15 @@ private:
     void update_size();
 };
 
+
 /*************************************************
-Description:AmsCans
+Description:AmsItem
 **************************************************/
-class Canrefreshs
+class AmsItem : public wxWindow
 {
 public:
-    wxString    canID;
-    AMSrefresh *canrefresh;
-};
-
-class CanLibs
-{
-public:
-    wxString canID;
-    AMSLib * canLib;
-};
-
-class CanRoads
-{
-public:
-    wxString canID;
-    AMSRoad *canRoad;
-};
-
-WX_DEFINE_ARRAY(Canrefreshs *, CanrefreshsHash);
-WX_DEFINE_ARRAY(CanLibs *, CanLibsHash);
-WX_DEFINE_ARRAY(CanRoads *, CansRoadsHash);
-
-class AmsCans : public wxWindow
-{
-public:
-    AmsCans();
-    AmsCans(wxWindow *parent, AMSinfo info, AMSModel model);
+    AmsItem();
+    AmsItem(wxWindow *parent, AMSinfo info, AMSModel model);
 
     void     Update(AMSinfo info);
     void     create(wxWindow *parent);
@@ -596,6 +579,14 @@ public:
     std::string GetCurrentCan();
 
 public:
+    std::string         get_ams_id() const { return m_info.ams_id; };
+
+    std::map<std::string, AMSLib*> get_can_lib_list() const { return m_can_lib_list; };
+
+    int  get_selection() const { return m_selection; };
+    void set_selection(int selection) { m_selection = selection; };
+
+private:
     ScalableBitmap  m_bitmap_extra_framework;
     int             m_canlib_selection = { -1 };
     int             m_selection = { 0 };
@@ -606,9 +597,9 @@ public:
     std::string     m_road_canid;
     wxColour        m_road_colour;
 
-    CanLibsHash     m_can_lib_list;
-    CansRoadsHash   m_can_road_list;
-    CanrefreshsHash m_can_refresh_list;
+    std::map<std::string, AMSLib*>     m_can_lib_list;
+    std::map<std::string, AMSRoad*>    m_can_road_list;
+    std::map<std::string, AMSrefresh*> m_can_refresh_list;
     AMSHumidity*    m_humidity = { nullptr };
 
     AMSinfo         m_info;
@@ -619,38 +610,6 @@ public:
     wxBoxSizer *    sizer_can_right = {nullptr};
     AMSPassRoadSTEP m_step    = {AMSPassRoadSTEP ::AMS_ROAD_STEP_NONE};
 };
-
-/*************************************************
-Description:AmsCansWindow
-**************************************************/
-class AmsCansWindow
-{
-public:
-    wxString amsIndex;
-    AmsCans *amsCans;
-    bool m_disable_mode{ false };
-
-    void set_disable_mode(bool disable) {
-        m_disable_mode = disable;
-        for (auto can_lib : amsCans->m_can_lib_list) {
-            can_lib->canLib->set_disable_mode(disable);
-        }
-        for (auto can_refresh : amsCans->m_can_refresh_list) {
-            can_refresh->canrefresh->set_disable_mode(disable);
-        }
-    }
-};
-
-class AMSextruders
-{
-public:
-    wxString     amsIndex;
-    AMSextruder *amsextruder;
-};
-
-WX_DEFINE_ARRAY(AmsCansWindow *, AmsCansHash);
-WX_DEFINE_ARRAY(AMSextruders *, AMSextrudersHash);
-
 
 wxDECLARE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_LOAD, SimpleEvent);

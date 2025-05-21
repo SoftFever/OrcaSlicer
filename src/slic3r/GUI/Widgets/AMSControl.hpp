@@ -36,11 +36,11 @@ protected:
     std::map<std::string, AMSPreview*> m_ams_preview_list;
 
     std::vector<AMSinfo>       m_ams_info;
-    AmsCansHash  m_ams_cans_list;
-    AmsCansHash  m_ams_generic_cans_list;
-    AmsCansHash  m_ams_extra_cans_list;
+    std::map<std::string, AmsItem*> m_ams_item_list;
+    std::map<std::string, AmsItem*> m_ams_generic_item_list;
+    std::map<std::string, AmsItem*> m_ams_extra_item_list;
 
-    AMSextruder *m_extruder = {nullptr};
+    AMSextruder *m_extruder{nullptr};
 
     AmsIntroducePopup m_ams_introduce_popup;
 
