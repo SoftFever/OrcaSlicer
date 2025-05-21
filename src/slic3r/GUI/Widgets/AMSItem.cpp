@@ -1561,7 +1561,7 @@ void AMSRoad::doRender(wxDC &dc)
     }
 
     // end mode
-    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END || m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END_ONLY) {
+    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END) {
         dc.SetPen(wxPen(m_road_def_color, 2, wxPENSTYLE_SOLID));
         dc.SetBrush(wxBrush(m_road_def_color));
         dc.DrawRoundedRectangle(size.x * 0.37 / 2, size.y * 0.6 - size.y / 6, size.x * 0.63, size.y / 3, m_radius);
@@ -1608,7 +1608,7 @@ void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
     }
 
     // left end
-    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END || m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END_ONLY) {
+    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END) {
         for (auto i = 0; i < prord_list.size(); i++) {
             std::vector<AMSPassRoadMode>::iterator iter = std::find(end_types.begin(), end_types.end(), prord_list[i]);
             if (iter != end_types.end()) m_pass_rode_mode.push_back(prord_list[i]);
@@ -2059,7 +2059,7 @@ void AmsItem::create(wxWindow *parent)
         }
         m_humidity = new AMSHumidity(this, wxID_ANY, m_info);
         sizer_item->Add(m_humidity, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-        sizer_item->Add(sizer_can, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+        sizer_item->Add(sizer_can, 0, wxALIGN_LEFT, 0);
         SetSizer(sizer_item);
     }
     else if(m_ams_model == AMSModel::AMS_LITE) {
@@ -2420,11 +2420,10 @@ void AmsItem::render(wxDC& dc)
 
 void AmsItem::doRender(wxDC& dc)
 {
-    wxSize     size = GetSize();
-    dc.DrawBitmap(m_bitmap_extra_framework.bmp(), (size.x - m_bitmap_extra_framework.GetBmpSize().x) / 2, (size.y - m_bitmap_extra_framework.GetBmpSize().y) / 2);
-
     //road for extra
     if (m_ams_model == AMSModel::AMS_LITE) {
+        wxSize     size = GetSize();
+        dc.DrawBitmap(m_bitmap_extra_framework.bmp(), (size.x - m_bitmap_extra_framework.GetBmpSize().x) / 2, (size.y - m_bitmap_extra_framework.GetBmpSize().y) / 2);
 
         auto end_top = size.x / 2 - FromDIP(99);
         auto passroad_width = 6;
