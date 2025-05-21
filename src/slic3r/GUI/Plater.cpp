@@ -2810,6 +2810,11 @@ void Sidebar::on_filaments_delete(size_t filament_id)
         p->combos_filament[idx]->update();
     }
 
+    auto min_size = p->m_panel_filament_content->GetSizer()->GetMinSize();
+    if (min_size.y > p->m_panel_filament_content->GetMaxHeight())
+        min_size.y = p->m_panel_filament_content->GetMaxHeight();
+    p->m_panel_filament_content->SetMinSize(min_size);
+
     Layout();
     p->m_panel_filament_title->Refresh();
     update_ui_from_settings();
