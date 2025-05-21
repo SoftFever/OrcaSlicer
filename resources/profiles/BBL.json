@@ -950,24 +950,12 @@
             "sub_path": "filament/Polymaker/Fiberon PA612-CF @base.json"
         },
         {
-            "name": "Generic PA",
-            "sub_path": "filament/Generic PA.json"
+            "name": "Generic PA @base",
+            "sub_path": "filament/Generic PA @base.json"
         },
         {
-            "name": "Generic PA @BBL H2D",
-            "sub_path": "filament/Generic PA @BBL H2D.json"
-        },
-        {
-            "name": "Generic PA @BBL P1P",
-            "sub_path": "filament/P1P/Generic PA @BBL P1P.json"
-        },
-        {
-            "name": "Generic PA-CF",
-            "sub_path": "filament/Generic PA-CF.json"
-        },
-        {
-            "name": "Generic PA-CF @BBL P1P",
-            "sub_path": "filament/P1P/Generic PA-CF @BBL P1P.json"
+            "name": "Generic PA-CF @base",
+            "sub_path": "filament/Generic PA-CF @base.json"
         },
         {
             "name": "Bambu PC @base",
@@ -1342,16 +1330,8 @@
             "sub_path": "filament/Bambu TPU for AMS @base.json"
         },
         {
-            "name": "Generic TPU",
-            "sub_path": "filament/Generic TPU.json"
-        },
-        {
-            "name": "Generic TPU @BBL H2D",
-            "sub_path": "filament/Generic TPU @BBL H2D.json"
-        },
-        {
-            "name": "Generic TPU @BBL P1P",
-            "sub_path": "filament/P1P/Generic TPU @BBL P1P.json"
+            "name": "Generic TPU @base",
+            "sub_path": "filament/Generic TPU @base.json"
         },
         {
             "name": "Generic TPU for AMS @base",
@@ -1806,20 +1786,24 @@
             "sub_path": "filament/Polymaker/Fiberon PA612-CF @BBL X1C.json"
         },
         {
-            "name": "Generic PA @BBL A1",
-            "sub_path": "filament/Generic PA @BBL A1.json"
+            "name": "Generic PA",
+            "sub_path": "filament/Generic PA.json"
         },
         {
-            "name": "Generic PA-CF @BBL A1",
-            "sub_path": "filament/Generic PA-CF @BBL A1.json"
+            "name": "Generic PA @BBL H2D",
+            "sub_path": "filament/Generic PA @BBL H2D.json"
         },
         {
-            "name": "Generic PA-CF @BBL H2D",
-            "sub_path": "filament/Generic PA-CF @BBL H2D.json"
+            "name": "Generic PA @BBL P1P",
+            "sub_path": "filament/P1P/Generic PA @BBL P1P.json"
         },
         {
-            "name": "Generic PA-CF @BBL X1E",
-            "sub_path": "filament/Generic PA-CF @BBL X1E.json"
+            "name": "Generic PA-CF",
+            "sub_path": "filament/Generic PA-CF.json"
+        },
+        {
+            "name": "Generic PA-CF @BBL P1P",
+            "sub_path": "filament/P1P/Generic PA-CF @BBL P1P.json"
         },
         {
             "name": "Bambu PC @BBL A1",
@@ -4762,12 +4746,16 @@
             "sub_path": "filament/Bambu TPU for AMS @BBL X1C.json"
         },
         {
-            "name": "Generic TPU @BBL A1",
-            "sub_path": "filament/Generic TPU @BBL A1.json"
+            "name": "Generic TPU",
+            "sub_path": "filament/Generic TPU.json"
         },
         {
-            "name": "Generic TPU @BBL A1M",
-            "sub_path": "filament/Generic TPU @BBL A1M.json"
+            "name": "Generic TPU @BBL H2D",
+            "sub_path": "filament/Generic TPU @BBL H2D.json"
+        },
+        {
+            "name": "Generic TPU @BBL P1P",
+            "sub_path": "filament/P1P/Generic TPU @BBL P1P.json"
         },
         {
             "name": "Generic TPU for AMS @BBL A1",
@@ -4860,6 +4848,22 @@
         {
             "name": "Bambu Support G @BBL X1E",
             "sub_path": "filament/Bambu Support G @BBL X1E.json"
+        },
+        {
+            "name": "Generic PA @BBL A1",
+            "sub_path": "filament/Generic PA @BBL A1.json"
+        },
+        {
+            "name": "Generic PA-CF @BBL A1",
+            "sub_path": "filament/Generic PA-CF @BBL A1.json"
+        },
+        {
+            "name": "Generic PA-CF @BBL H2D",
+            "sub_path": "filament/Generic PA-CF @BBL H2D.json"
+        },
+        {
+            "name": "Generic PA-CF @BBL X1E",
+            "sub_path": "filament/Generic PA-CF @BBL X1E.json"
         },
         {
             "name": "Bambu PC @BBL P1S",
@@ -5024,6 +5028,14 @@
         {
             "name": "PolyTerra PLA @BBL X1C 0.2 nozzle",
             "sub_path": "filament/Polymaker/PolyTerra PLA @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic TPU @BBL A1",
+            "sub_path": "filament/Generic TPU @BBL A1.json"
+        },
+        {
+            "name": "Generic TPU @BBL A1M",
+            "sub_path": "filament/Generic TPU @BBL A1M.json"
         },
         {
             "name": "PolyLite ABS @BBL X1E 0.2 nozzle",
