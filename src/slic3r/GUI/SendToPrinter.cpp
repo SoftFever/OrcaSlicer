@@ -883,7 +883,8 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 		file_name = default_output_file_path.filename().string();
     }*/
 
-    if ( ( (!obj_->is_lan_mode_printer() && obj_->is_support_brtc) || m_tcp_try_connect)  &&  (!m_ftp_try_connect) ) {
+    if (obj_->is_support_brtc && (m_tcp_try_connect || m_tutk_try_connect))
+    {
         update_print_status_msg(wxEmptyString, false, false);
         if (m_file_sys) {
             PrintPrepareData print_data;
