@@ -15,11 +15,11 @@
 
 namespace Slic3r { namespace GUI {
 
+#define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(196))
+#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(196))
 
-/*************************************************
-Description:AMSControl
-**************************************************/
-AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) 
+
+AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
     : wxSimplebook(parent, wxID_ANY, pos, size)
     , m_Humidity_tip_popup(AmsHumidityTipPopup(this))
     , m_percent_humidity_dry_popup(new uiAmsPercentHumidityDryPopup(this))

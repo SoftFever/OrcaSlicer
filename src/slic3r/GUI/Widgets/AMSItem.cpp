@@ -18,26 +18,26 @@
 
 namespace Slic3r { namespace GUI {
 
-static const wxColour AMS_TRAY_DEFAULT_COL = wxColour(255, 255, 255);
+    static const wxColour AMS_TRAY_DEFAULT_COL = wxColour(255, 255, 255);
+    wxDEFINE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
+    wxDEFINE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);
+    wxDEFINE_EVENT(EVT_AMS_SETTINGS, SimpleEvent);
+    wxDEFINE_EVENT(EVT_AMS_FILAMENT_BACKUP, SimpleEvent);
+    wxDEFINE_EVENT(EVT_AMS_REFRESH_RFID, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_AMS_ON_SELECTED, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_AMS_ON_FILAMENT_EDIT, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_VAMS_ON_FILAMENT_EDIT, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_AMS_CLIBRATION_AGAIN, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_AMS_CLIBRATION_CANCEL, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
 
-wxDEFINE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
-wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
-wxDEFINE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);
-wxDEFINE_EVENT(EVT_AMS_SETTINGS, SimpleEvent);
-wxDEFINE_EVENT(EVT_AMS_FILAMENT_BACKUP, SimpleEvent);
-wxDEFINE_EVENT(EVT_AMS_REFRESH_RFID, wxCommandEvent);
-wxDEFINE_EVENT(EVT_AMS_ON_SELECTED, wxCommandEvent);
-wxDEFINE_EVENT(EVT_AMS_ON_FILAMENT_EDIT, wxCommandEvent);
-wxDEFINE_EVENT(EVT_VAMS_ON_FILAMENT_EDIT, wxCommandEvent);
-wxDEFINE_EVENT(EVT_AMS_CLIBRATION_AGAIN, wxCommandEvent);
-wxDEFINE_EVENT(EVT_AMS_CLIBRATION_CANCEL, wxCommandEvent);
-wxDEFINE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
-wxDEFINE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
-wxDEFINE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
-wxDEFINE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
-wxDEFINE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
 
-
+#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(196))
 bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, bool humidity_flag)
 {
     if (!ams) return false;
@@ -85,11 +85,14 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
                 if (!MachineObject::is_bbl_filament(it->second->tag_uid) || !remain_flag) {
                     info.material_remain = 100;
                 } else {
-                    info.material_remain = it->second->remain < 0 ? 0 : it->second->remain;
-                    info.material_remain = it->second->remain > 100 ? 100 : info.material_remain;
+                    if(it->second->remain < 0 || it->second->remain > 100) {
+                        info.material_remain = 100;/*ignore the invalid data*/
+                    } else {
+                        info.material_remain = it->second->remain;
+                    }
                 }
-                
-                
+
+
             } else {
                 info.can_id = it->second->id;
                 info.material_name = "";
@@ -136,7 +139,7 @@ AMSrefresh::AMSrefresh(wxWindow *parent, int number, Caninfo info, const wxPoint
     create(parent, wxID_ANY, pos, size);
 }
 
- AMSrefresh::~AMSrefresh() 
+ AMSrefresh::~AMSrefresh()
  {
      if (m_playing_timer) {
          m_playing_timer->Stop();
@@ -149,7 +152,7 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 {
     wxWindow::Create(parent, id, pos, size, wxBORDER_NONE);
     SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
-   
+
     Bind(wxEVT_TIMER, &AMSrefresh::on_timer, this);
     Bind(wxEVT_PAINT, &AMSrefresh::paintEvent, this);
     Bind(wxEVT_ENTER_WINDOW, &AMSrefresh::OnEnterWindow, this);
@@ -186,7 +189,7 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     SetMaxSize(AMS_REFRESH_SIZE);
 }
 
-void AMSrefresh::on_timer(wxTimerEvent &event) 
+void AMSrefresh::on_timer(wxTimerEvent &event)
 {
     //if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
     //    m_rotation_angle = 0;
@@ -198,16 +201,17 @@ void AMSrefresh::on_timer(wxTimerEvent &event)
 
 void AMSrefresh::PlayLoading()
 {
-    if (m_play_loading | m_disable_mode)  return;
+    if (m_play_loading || m_disable_mode)  return;
+
     m_play_loading = true;
-    //m_rotation_angle = 0;
     m_playing_timer->Start(AMS_REFRESH_PLAY_LOADING_TIMER);
     Refresh();
 }
 
 void AMSrefresh::StopLoading()
 {
-    if (!m_play_loading | m_disable_mode) return;
+    if (!m_play_loading || m_disable_mode) return;
+
     m_playing_timer->Stop();
     m_play_loading = false;
     Refresh();
@@ -226,7 +230,7 @@ void AMSrefresh::OnLeaveWindow(wxMouseEvent &evt)
 }
 
 void AMSrefresh::OnClick(wxMouseEvent &evt) {
-    post_event(wxCommandEvent(EVT_AMS_REFRESH_RFID)); 
+    post_event(wxCommandEvent(EVT_AMS_REFRESH_RFID));
 }
 
 void AMSrefresh::post_event(wxCommandEvent &&event)
@@ -330,13 +334,13 @@ void AMSextruderImage::TurnOn(wxColour col)
     Refresh();
 }
 
-void AMSextruderImage::TurnOff() 
+void AMSextruderImage::TurnOff()
 {
     m_colour = AMS_EXTRUDER_DEF_COLOUR;
     Refresh();
 }
 
-void AMSextruderImage::msw_rescale() 
+void AMSextruderImage::msw_rescale()
 {
     //m_ams_extruder.SetSize(AMS_EXTRUDER_BITMAP_SIZE);
     //auto image     = m_ams_extruder.ConvertToImage();
@@ -344,7 +348,7 @@ void AMSextruderImage::msw_rescale()
     Refresh();
 }
 
-void AMSextruderImage::paintEvent(wxPaintEvent &evt) 
+void AMSextruderImage::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);
     render(dc);
@@ -371,8 +375,8 @@ void AMSextruderImage::render(wxDC &dc)
 #endif
 }
 
-void AMSextruderImage::doRender(wxDC &dc) 
-{ 
+void AMSextruderImage::doRender(wxDC &dc)
+{
     auto size = GetSize();
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(m_colour);
@@ -399,6 +403,8 @@ AMSextruderImage::~AMSextruderImage() {}
 
 
 
+
+//Ams Extruder
 AMSextruder::AMSextruder(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) { create(parent, id, pos, size); }
 
  AMSextruder::~AMSextruder() {}
@@ -625,7 +631,6 @@ void AMSVirtualRoad::msw_rescale()
     Refresh();
 }
 
-
 /*************************************************
 Description:AMSLib
 **************************************************/
@@ -655,7 +660,6 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     SetSize(AMS_CAN_LIB_SIZE);
     SetMinSize(AMS_CAN_LIB_SIZE);
     SetMaxSize(AMS_CAN_LIB_SIZE);
-
     auto m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer *m_sizer_edit = new wxBoxSizer(wxHORIZONTAL);
@@ -765,11 +769,11 @@ void AMSLib::render(wxDC &dc)
         render_generic_text(dc);
     }
     else if (m_ams_model == AMSModel::AMS_LITE) {
-        render_extra_text(dc);
+        render_lite_text(dc);
     }
 }
 
-void AMSLib::render_extra_text(wxDC& dc)
+void AMSLib::render_lite_text(wxDC& dc)
 {
     auto tmp_lib_colour = m_info.material_colour;
 
@@ -817,7 +821,6 @@ void AMSLib::render_extra_text(wxDC& dc)
                     has_split_char = split_char;
                 }
             }
-
 
             if (has_split) {
                 dc.SetFont(::Label::Body_10);
@@ -983,11 +986,11 @@ void AMSLib::doRender(wxDC &dc)
         render_generic_lib(dc);
     }
     else if (m_ams_model == AMSModel::AMS_LITE) {
-        render_extra_lib(dc);
+        render_lite_lib(dc);
     }
 }
 
-void AMSLib::render_extra_lib(wxDC& dc)
+void AMSLib::render_lite_lib(wxDC& dc)
 {
     wxSize size = GetSize();
 
@@ -1018,7 +1021,6 @@ void AMSLib::render_extra_lib(wxDC& dc)
     else {
         dc.DrawLine(size.x / 2, size.y / 2, size.x / 2, 0);
     }
-
 
     //draw def background
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
@@ -1387,7 +1389,7 @@ void AMSLib::msw_rescale()
 Description:AMSRoad
 **************************************************/
 AMSRoad::AMSRoad() : m_road_def_color(AMS_CONTROL_GRAY500), m_road_color(AMS_CONTROL_GRAY500) {}
-AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, int maxcan, const wxPoint &pos, const wxSize &size) 
+AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, int maxcan, const wxPoint &pos, const wxSize &size)
     : AMSRoad()
 {
     m_info     = info;
@@ -1417,7 +1419,7 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
         create(parent, id, pos, virtual_size);
 
     }
-    
+
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
     wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 }
@@ -1533,7 +1535,7 @@ void AMSRoad::doRender(wxDC &dc)
 
     if (m_road_color.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, m_passroad_width, wxPENSTYLE_SOLID));}
     else {dc.SetPen(wxPen(m_road_color, m_passroad_width, wxPENSTYLE_SOLID));}
-    
+
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
     // left pass mode
@@ -1626,9 +1628,9 @@ AMSPreview::AMSPreview() {}
 
 AMSPreview::AMSPreview(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size, const wxPoint &pos, const wxSize &size) : AMSPreview()
 {
-    m_amsinfo   = amsinfo;
-    m_cube_size = cube_size;
     create(parent, id, pos, AMS_ITEM_SIZE);
+    m_amsinfo = amsinfo;
+    m_cube_size = cube_size;
     Bind(wxEVT_PAINT, &AMSPreview::paintEvent, this);
     Bind(wxEVT_ENTER_WINDOW, &AMSPreview::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &AMSPreview::OnLeaveWindow, this);
@@ -2037,7 +2039,9 @@ AmsItem::AmsItem(wxWindow *parent,AMSinfo info,  AMSModel model) : AmsItem()
     m_info      = info;
 
     wxWindow::Create(parent, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE);
+
     create(parent);
+
     Bind(wxEVT_PAINT, &AmsItem::paintEvent, this);
 }
 
@@ -2092,6 +2096,7 @@ void AmsItem::create(wxWindow *parent)
         SetSizer(sizer_can);
     }
 
+
     Layout();
     Fit();
     Thaw();
@@ -2099,8 +2104,8 @@ void AmsItem::create(wxWindow *parent)
 
 void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer)
 {
-
     auto        amscan = new wxWindow(this, wxID_ANY);
+
     amscan->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 
     wxBoxSizer* m_sizer_ams = new wxBoxSizer(wxVERTICAL);
@@ -2130,13 +2135,11 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
         ev.Skip();
         });
 
-
-    m_panel_lib->m_ams_model   = m_ams_model;
-    m_panel_lib->m_ams_id      = m_info.ams_id;
-    m_panel_lib->m_slot_id     = caninfo.can_id;
+    m_panel_lib->m_ams_model = m_ams_model;
+    m_panel_lib->m_ams_id = m_info.ams_id;
+    m_panel_lib->m_slot_id = caninfo.can_id;
     m_panel_lib->m_info.can_id = caninfo.can_id;
     m_panel_lib->m_can_index = canindex;
-
 
     auto m_panel_road = new AMSRoad(amscan, wxID_ANY, caninfo, canindex, maxcan, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
@@ -2161,8 +2164,6 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
             m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER, 0);
         }
     }
-
-
     amscan->SetSizer(m_sizer_ams);
     amscan->Layout();
     amscan->Fit();
@@ -2204,7 +2205,7 @@ void AmsItem::Update(AMSinfo info)
             refresh->Show();
         }
     }
-   
+
     for (int i = 0; i < m_can_lib_list.size(); i++) {
         AMSLib* lib = m_can_lib_list[std::to_string(i)];
         if (lib != nullptr){
@@ -2231,6 +2232,7 @@ void AmsItem::Update(AMSinfo info)
             }
         }
     }
+
     Layout();
 }
 
@@ -2250,8 +2252,8 @@ void AmsItem::SelectCan(std::string canid)
 {
     for (auto lib_it : m_can_lib_list) {
         AMSLib* lib = lib_it.second;
-        if (lib->m_info.can_id == canid) { 
-            m_canlib_selection = lib->m_can_index; 
+        if (lib->m_info.can_id == canid) {
+            m_canlib_selection = lib->m_can_index;
         }
     }
 
@@ -2270,7 +2272,7 @@ void AmsItem::SelectCan(std::string canid)
     }
 }
 
-wxColour AmsItem::GetTagColr(wxString canid) 
+wxColour AmsItem::GetTagColr(wxString canid)
 {
     auto tag_colour = *wxWHITE;
     for (auto lib_it : m_can_lib_list) {
@@ -2295,7 +2297,6 @@ void AmsItem::SetAmsStepExtra(wxString canid, AMSPassRoadType type, AMSPassRoadS
 
 void AmsItem::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
-
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
         for (auto road_it : m_can_road_list) {
             AMSRoad* road = road_it.second;
@@ -2548,7 +2549,7 @@ void AmsItem::StopRridLoading(wxString canid)
     }
 }
 
-void AmsItem::msw_rescale() 
+void AmsItem::msw_rescale()
 {
     for (auto refresh_it : m_can_refresh_list) {
         AMSrefresh* refresh = refresh_it.second;

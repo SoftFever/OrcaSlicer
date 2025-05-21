@@ -28,11 +28,6 @@
 #define AMS_CONTROL_MAX_COUNT 4
 #define AMS_CONTRO_CALIBRATION_BUTTON_SIZE wxSize(FromDIP(150), FromDIP(28))
 
-// enum AMSRoadMode{
-//    AMS_ROAD_MODE_LEFT,
-//    AMS_ROAD_MODE_LEFT_RIGHT,
-//    AMS_ROAD_MODE_END,
-//};
 
 namespace Slic3r { namespace GUI {
 
@@ -118,6 +113,7 @@ enum FilamentStep {
     STEP_COUNT,
 };
 
+
 enum FilamentStepType {
     STEP_TYPE_LOAD      = 0,
     STEP_TYPE_UNLOAD    = 1,
@@ -130,8 +126,8 @@ enum FilamentStepType {
 #define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(80))
 #define AMS_CAN_ROAD_SIZE wxSize(FromDIP(66), FromDIP(70))
 #define AMS_CAN_ITEM_HEIGHT_SIZE FromDIP(27)
-#define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(196))
-#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(196))
+//#define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(196))
+//#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(196))
 #define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(196))
 #define AMS_REFRESH_SIZE wxSize(FromDIP(30), FromDIP(30))
 #define AMS_EXTRUDER_SIZE wxSize(FromDIP(86), FromDIP(72))
@@ -428,10 +424,10 @@ protected:
     void on_left_down(wxMouseEvent &evt);
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
-    void render_extra_text(wxDC& dc);
+    void render_lite_text(wxDC& dc);
     void render_generic_text(wxDC& dc);
     void doRender(wxDC& dc);
-    void render_extra_lib(wxDC& dc);
+    void render_lite_lib(wxDC& dc);
     void render_generic_lib(wxDC& dc);
 };
 
