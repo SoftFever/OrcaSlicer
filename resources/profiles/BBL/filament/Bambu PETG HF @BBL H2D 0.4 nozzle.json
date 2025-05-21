@@ -27,6 +27,10 @@
         "nil",
         "nil"
     ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
     "filament_flow_ratio": [
         "0.95",
         "0.95"
@@ -44,8 +48,16 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "24",
-        "32"
+        "25",
+        "35"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
@@ -94,18 +106,6 @@
     "filament_z_hop_types": [
         "nil",
         "nil"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
-    "filament_pre_cooling_temperature": [
-        "0",
-        "0"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
     ],
     "hole_coef_2": [
         "-0.008"
