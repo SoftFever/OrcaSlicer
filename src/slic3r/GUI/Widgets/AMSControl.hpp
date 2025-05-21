@@ -48,9 +48,8 @@ protected:
     wxSimplebook *m_simplebook_calibration = {nullptr};
     wxSimplebook *m_simplebook_amsprvs    = {nullptr};
     wxSimplebook *m_simplebook_ams         = {nullptr};
-
-    wxSimplebook *m_simplebook_generic_cans= {nullptr};
-    wxSimplebook *m_simplebook_extra_cans     = {nullptr};
+    wxSimplebook* m_simplebook_generic_ams = {nullptr};
+    wxSimplebook* m_simplebook_extra_ams   = {nullptr};
 
     wxSimplebook *m_simplebook_bottom      = {nullptr};
 
@@ -133,6 +132,8 @@ public:
 
     void UpdateStepCtrl(bool is_extrusion_exist);
     void CreateAms();
+    void CreateAmsSingleNozzle();
+    void ClearAms();
     void UpdateAms(std::vector<AMSinfo> info, bool is_reset = true);
     void AddAms(AMSinfo info);
     void AddAmsPreview(AMSinfo info);

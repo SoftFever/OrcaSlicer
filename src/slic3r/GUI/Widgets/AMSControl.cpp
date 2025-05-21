@@ -123,8 +123,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_cans->Add(m_simplebook_ams, 0, wxLEFT | wxLEFT, FromDIP(10));
 
     // ams mode
-    m_simplebook_generic_cans = new wxSimplebook(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
-    m_simplebook_generic_cans->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+    m_simplebook_generic_ams = new wxSimplebook(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
+    m_simplebook_generic_ams->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 
     // none ams mode
     m_none_ams_panel = new wxPanel(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
@@ -145,12 +145,12 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_none_ams_panel->Layout();
 
     //extra ams mode
-    m_simplebook_extra_cans = new wxSimplebook(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
-    m_simplebook_extra_cans->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+    m_simplebook_extra_ams = new wxSimplebook(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
+    m_simplebook_extra_ams->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
 
     m_simplebook_ams->AddPage(m_none_ams_panel, wxEmptyString, false);
-    m_simplebook_ams->AddPage(m_simplebook_generic_cans, wxEmptyString, false);
-    m_simplebook_ams->AddPage(m_simplebook_extra_cans, wxEmptyString, false);
+    m_simplebook_ams->AddPage(m_simplebook_generic_ams, wxEmptyString, false);
+    m_simplebook_ams->AddPage(m_simplebook_extra_ams, wxEmptyString, false);
 
     m_panel_can->SetSizer(m_sizer_cans);
     m_panel_can->Layout();
@@ -594,8 +594,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         post_event(wxCommandEvent(EVT_AMS_RETRY));
         });
 
-    CreateAms();
-    SetSelection(0);
     EnterNoneAMSMode();
 }
 
@@ -905,24 +903,52 @@ void AMSControl::CreateAms()
     Thaw();
 }
 
+
+void AMSControl::ClearAms() {
+    m_simplebook_generic_ams->DeleteAllPages();
+    m_simplebook_extra_ams->DeleteAllPages();
+    m_simplebook_generic_ams->DestroyChildren();
+    m_simplebook_extra_ams->DestroyChildren();
+    m_simplebook_generic_ams->Layout();
+    m_simplebook_extra_ams->Layout();
+    m_simplebook_generic_ams->Refresh();
+    m_simplebook_extra_ams->Refresh();
+
+    for (auto it : m_ams_preview_list) {
+        delete it.second;
+    }
+    m_ams_preview_list.clear();
+
+    m_current_show_ams = "";
+    m_current_ams      = "";
+    m_current_select   = "";
+
+    m_ams_item_list.clear();
+    m_sizer_prv->Clear();
+}
+
+void AMSControl::CreateAmsSingleNozzle()
+{
+    //add ams data
+    for (auto ams_info = m_ams_info.begin(); ams_info != m_ams_info.end(); ams_info++) {
+        if (ams_info->cans.size() == GENERIC_AMS_SLOT_NUM) {
+            AddAmsPreview(*ams_info);
+            AddAms(*ams_info);
+            AddExtraAms(*ams_info);
+        }
+        else if (ams_info->cans.size() == 1) {
+            AddAmsPreview(*ams_info);
+            AddAms(*ams_info);
+        }
+    }
+}
+
 void AMSControl::Reset() 
 {
-    auto caninfo0_0 = Caninfo{"0", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_1 = Caninfo{"1", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_2 = Caninfo{"2", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_3 = Caninfo{"3", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    m_ams_info.clear();
+    ClearAms();
 
-    AMSinfo ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams2 = AMSinfo{"1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams3 = AMSinfo{"2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo ams4 = AMSinfo{"3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-
-    std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
-    std::vector<AMSinfo>::iterator it;
-    UpdateAms(ams_info, true);
-    m_current_show_ams  = "";
-    m_current_ams       = "";
-    m_current_select    = "";
+    Layout();
 }
 
 void AMSControl::show_noams_mode()
@@ -1007,79 +1033,102 @@ void AMSControl::reset_vams()
 }
 
 
-void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
+void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, bool is_reset)
 {
-    std::string curr_ams_id = GetCurentAms();
-    std::string curr_can_id = GetCurrentCan(curr_ams_id);
-
     m_button_area->Layout();
-    m_button_area->Fit();        
+    m_button_area->Fit();
 
-    // update item
-    m_ams_info = info;
-    if (m_ams_model == AMSModel::GENERIC_AMS){
-        m_ams_item_list = m_ams_generic_item_list;
-    }
-    else if (m_ams_model == AMSModel::AMS_LITE) {
-        m_ams_item_list = m_ams_extra_item_list;
-    }
+    /*if (!test)*/{
+        // update item
+        bool fresh = false;
 
-    if (info.size() > 1) {
-        m_simplebook_amsprvs->Show();
-        m_amswin->Layout();
-        m_amswin->Fit();
-        SetSize(m_amswin->GetSize());
-        SetMinSize(m_amswin->GetSize());
-    } else {
-        m_simplebook_amsprvs->Hide();
-        m_amswin->Layout();
-        m_amswin->Fit();
-        SetSize(m_amswin->GetSize());
-        SetMinSize(m_amswin->GetSize());
-    }
-
-    size_t i = 0;
-    for (auto prv_it : m_ams_preview_list) {
-        AMSPreview* prv = prv_it.second;
-        if (i < info.size() && info.size() > 1) {
-            prv->Update(m_ams_info[i]);
-            prv->Open();
-        } else {
-            prv->Close();
-        }
-        i++;
-    }
-
-    // update cans
-    for (auto ams_item : m_ams_item_list) {
-        if (ams_item.second == nullptr) {
-            continue;
-        }
-        std::string ams_id = ams_item.second->get_ams_id();
-        AmsItem* cans = ams_item.second;
-        for (auto ifo : m_ams_info) {
-            if (ifo.ams_id == ams_id) {
-                cans->Update(ifo);
-                cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE?false:true);
+        // basic check
+        if (m_ams_info.size() == ams_info.size() ) {
+            for (int i = 0; i < m_ams_info.size(); i++){
+                if (m_ams_info[i].ams_id != ams_info[i].ams_id){
+                    fresh = true;
+                }
             }
         }
-    }
-
-    if ( m_current_show_ams.empty() && !is_reset ) {
-        if (info.size() > 0) {
-            SwitchAms(info[0].ams_id);
+        else{
+            fresh = true;
         }
-    }
 
-    if (m_ams_model == AMSModel::EXT_AMS && !m_vams_lib->is_selected()) {
-        m_vams_lib->OnSelected();
+        m_ams_info.clear();
+        m_ams_info = ams_info;
+        if (fresh){
+            ClearAms();
+            //if (m_extder_data.total_extder_count >= 2){
+            //    CreateAmsDoubleNozzle(series_name, printer_type);
+            //}else{
+                CreateAmsSingleNozzle();
+            //}
+            SetSize(wxSize(FromDIP(578), -1));
+            SetMinSize(wxSize(FromDIP(578), -1));
+            Layout();
+        }
+		
+        if (m_ams_model == AMSModel::GENERIC_AMS){
+            m_ams_item_list = m_ams_generic_item_list;
+        }
+        else if (m_ams_model == AMSModel::AMS_LITE) {
+            m_ams_item_list = m_ams_extra_item_list;
+        }
+
+        if (ams_info.size() > 1) {
+            m_simplebook_amsprvs->Show();
+            m_amswin->Layout();
+            m_amswin->Fit();
+            SetSize(m_amswin->GetSize());
+            SetMinSize(m_amswin->GetSize());
+        } else {
+            m_simplebook_amsprvs->Hide();
+            m_amswin->Layout();
+            m_amswin->Fit();
+            SetSize(m_amswin->GetSize());
+            SetMinSize(m_amswin->GetSize());
+        }
+
+        // update cans
+
+        for (auto ams_item : m_ams_item_list) {
+            if (ams_item.second == nullptr){
+                continue;
+            }
+            std::string ams_id = ams_item.second->get_ams_id();
+            AmsItem* cans = ams_item.second;
+            for (auto ifo : m_ams_info) {
+                if (ifo.ams_id == ams_id) {
+                    cans->Update(ifo);
+                    cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE?false:true);
+                }
+            }
+        }
+
+        for (auto ams_prv : m_ams_preview_list) {
+            std::string id = ams_prv.second->get_ams_id();
+            auto item = m_ams_item_list.find(id);
+            if (item != m_ams_item_list.end())
+            { ams_prv.second->Update(item->second->get_ams_info());
+            }
+        }
+
+        if ( m_current_show_ams.empty() && !is_reset ) {
+            if (ams_info.size() > 0) {
+                SwitchAms(ams_info[0].ams_id);
+            }
+        }
+
+        if (m_ams_model == AMSModel::EXT_AMS && !m_vams_lib->is_selected()) {
+            m_vams_lib->OnSelected();
+        }
     }
 
     /*update humidity popup*/
     if (m_percent_humidity_dry_popup->IsShown())
     {
         string target_id = m_percent_humidity_dry_popup->get_owner_ams_id();
-        for (const auto& the_info : info)
+        for (const auto& the_info : ams_info)
         {
             if (target_id == the_info.ams_id)
             {
@@ -1110,18 +1159,18 @@ void AMSControl::AddAmsPreview(AMSinfo info)
 
 void AMSControl::AddAms(AMSinfo info)
 {
-    auto ams_item = new AmsItem(m_simplebook_generic_cans, info, AMSModel::GENERIC_AMS);
-    m_simplebook_generic_cans->AddPage(ams_item, wxEmptyString, false);
-    ams_item->set_selection(m_simplebook_generic_cans->GetPageCount() - 1);
+    auto ams_item = new AmsItem(m_simplebook_generic_ams, info, AMSModel::GENERIC_AMS);
+    m_simplebook_generic_ams->AddPage(ams_item, wxEmptyString, false);
+    ams_item->set_selection(m_simplebook_generic_ams->GetPageCount() - 1);
 
     m_ams_generic_item_list[info.ams_id] = ams_item;
 }
 
 void AMSControl::AddExtraAms(AMSinfo info)
 {
-    auto ams_item = new AmsItem(m_simplebook_extra_cans, info, AMSModel::AMS_LITE);
-    m_simplebook_extra_cans->AddPage(ams_item, wxEmptyString, false);
-    ams_item->set_selection(m_simplebook_extra_cans->GetPageCount() - 1);
+    auto ams_item = new AmsItem(m_simplebook_extra_ams, info, AMSModel::AMS_LITE);
+    m_simplebook_extra_ams->AddPage(ams_item, wxEmptyString, false);
+    ams_item->set_selection(m_simplebook_extra_ams->GetPageCount() - 1);
 
     m_ams_extra_item_list[info.ams_id] = ams_item;
 }
@@ -1177,10 +1226,10 @@ void AMSControl::SwitchAms(std::string ams_id)
         if (item->get_ams_id() == ams_id) {
 
             if (m_ams_model == AMSModel::GENERIC_AMS) {
-                m_simplebook_generic_cans->SetSelection(item->get_selection());
+                m_simplebook_generic_ams->SetSelection(item->get_selection());
             }
             else if (m_ams_model == AMSModel::AMS_LITE) {
-                m_simplebook_extra_cans->SetSelection(item->get_selection());
+                m_simplebook_extra_ams->SetSelection(item->get_selection());
             }
         }
     }

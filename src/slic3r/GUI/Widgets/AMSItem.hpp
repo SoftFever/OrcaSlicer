@@ -137,6 +137,7 @@ enum FilamentStepType {
 #define AMS_HUMIDITY_NO_PERCENT_SIZE wxSize(FromDIP(60), FromDIP(26))
 #define AMS_HUMIDITY_DRY_WIDTH FromDIP(35)
 
+#define GENERIC_AMS_SLOT_NUM 4
 
 struct Caninfo
 {
@@ -575,6 +576,8 @@ public:
     std::string GetCurrentCan();
 
 public:
+    AMSinfo             get_ams_info() const { return m_info; };
+
     std::string         get_ams_id() const { return m_info.ams_id; };
 
     std::map<std::string, AMSLib*> get_can_lib_list() const { return m_can_lib_list; };

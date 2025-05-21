@@ -151,7 +151,7 @@ AMSrefresh::AMSrefresh(wxWindow *parent, int number, Caninfo info, const wxPoint
 void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
     wxWindow::Create(parent, id, pos, size, wxBORDER_NONE);
-    SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+    SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
 
     Bind(wxEVT_TIMER, &AMSrefresh::on_timer, this);
     Bind(wxEVT_PAINT, &AMSrefresh::paintEvent, this);
@@ -249,7 +249,7 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
     wxPaintDC dc(this);
 
     auto colour = StateColor::darkModeColorFor(AMS_CONTROL_GRAY700);
-    if (!wxWindow::IsEnabled()) { colour = AMS_CONTROL_GRAY500; }
+    if (!wxWindow::IsEnabled()) { colour = StateColor::darkModeColorFor(AMS_CONTROL_GRAY500); }
 
     auto pot = wxPoint((size.x - m_bitmap_selected.GetBmpSize().x) / 2, (size.y - m_bitmap_selected.GetBmpSize().y) / 2);
 
@@ -277,6 +277,7 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
     dc.SetPen(wxPen(colour));
     dc.SetBrush(wxBrush(colour));
     dc.SetFont(Label::Body_11);
+    //dc.SetTextForeground(StateColor::darkModeColorFor(AMS_CONTROL_BLACK_COLOUR));
     dc.SetTextForeground(colour);
     auto tsize = dc.GetTextExtent(m_refresh_id);
     pot        = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2);
@@ -388,7 +389,7 @@ void AMSextruderImage::doRender(wxDC &dc)
 AMSextruderImage::AMSextruderImage(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) 
 {
     wxWindow::Create(parent, id, pos, AMS_EXTRUDER_BITMAP_SIZE); 
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
     m_ams_extruder = ScalableBitmap(this, "monitor_ams_extruder",55);
     SetSize(AMS_EXTRUDER_BITMAP_SIZE);
@@ -568,7 +569,7 @@ void AMSVirtualRoad::OnVamsLoading(bool load, wxColour col)
 void AMSVirtualRoad::create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
     wxWindow::Create(parent, id, pos, wxDefaultSize, wxBORDER_NONE);
-    SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
+    SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_WHITE_COLOUR));
     Layout();
     Bind(wxEVT_PAINT, &AMSVirtualRoad::paintEvent, this);
 }
@@ -638,7 +639,7 @@ AMSLib::AMSLib(wxWindow *parent, std::string ams_idx, Caninfo info)
 {
     m_border_color   = (wxColour(130, 130, 128));
     m_road_def_color = AMS_CONTROL_GRAY500;
-    wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+    wxWindow::SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
     create(parent);
 
     Bind(wxEVT_PAINT, &AMSLib::paintEvent, this);
@@ -1024,7 +1025,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
 
     //draw def background
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
-    dc.SetBrush(wxBrush(AMS_CONTROL_DEF_LIB_BK_COLOUR));
+    dc.SetBrush(wxBrush(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR)));
     dc.DrawRoundedRectangle(FromDIP(10), FromDIP(10), size.x - FromDIP(20), size.y - FromDIP(20), 0);
 
     if (tmp_lib_colour.GetLuminance() < 0.6) {
@@ -1421,7 +1422,7 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
     }
 
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
-    wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+    wxWindow::SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
 }
 
 void AMSRoad::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) { wxWindow::Create(parent, id, pos, size); }
@@ -1659,7 +1660,7 @@ void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     wxWindow::Create(parent, id, pos, size);
     SetMinSize(AMS_ITEM_SIZE);
     SetMaxSize(AMS_ITEM_SIZE);
-    SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
+    SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_WHITE_COLOUR));
     Refresh();
 }
 
@@ -2042,14 +2043,13 @@ AmsItem::AmsItem(wxWindow *parent,AMSinfo info,  AMSModel model) : AmsItem()
 
     create(parent);
 
+    SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
     Bind(wxEVT_PAINT, &AmsItem::paintEvent, this);
 }
 
 void AmsItem::create(wxWindow *parent)
 {
     Freeze();
-    SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
-
     if (m_ams_model == AMSModel::GENERIC_AMS || m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::N3S_AMS) {
         sizer_can = new wxBoxSizer(wxHORIZONTAL);
         sizer_item = new wxBoxSizer(wxVERTICAL);
@@ -2106,7 +2106,7 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
 {
     auto        amscan = new wxWindow(this, wxID_ANY);
 
-    amscan->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+    amscan->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
 
     wxBoxSizer* m_sizer_ams = new wxBoxSizer(wxVERTICAL);
    
