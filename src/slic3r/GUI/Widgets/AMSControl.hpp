@@ -32,8 +32,8 @@ protected:
     std::string  m_current_ams;
     std::string  m_current_show_ams;
     std::map<std::string, int> m_ams_selection;
-    
-    AmsItemsHash m_ams_item_list;
+
+    std::map<std::string, AMSPreview*> m_ams_preview_list;
 
     std::vector<AMSinfo>       m_ams_info;
     AmsCansHash  m_ams_cans_list;
@@ -46,7 +46,7 @@ protected:
 
     wxSimplebook *m_simplebook_right       = {nullptr};
     wxSimplebook *m_simplebook_calibration = {nullptr};
-    wxSimplebook *m_simplebook_amsitems    = {nullptr};
+    wxSimplebook *m_simplebook_amsprvs    = {nullptr};
     wxSimplebook *m_simplebook_ams         = {nullptr};
 
     wxSimplebook *m_simplebook_generic_cans= {nullptr};
@@ -58,7 +58,7 @@ protected:
     Label        *m_tip_load_info            = {nullptr};
     wxStaticText *m_text_calibration_percent = {nullptr};
     wxWindow *    m_none_ams_panel           = {nullptr};
-    wxWindow *    m_panel_top                = {nullptr};
+    wxWindow*     m_panel_prv                = {nullptr};
     wxWindow *    m_amswin                   = {nullptr}; 
     wxBoxSizer*   m_vams_sizer               = {nullptr};
     wxBoxSizer*   m_sizer_vams_tips          = {nullptr};
@@ -73,7 +73,7 @@ protected:
     AMSVirtualRoad* m_vams_extra_road = {nullptr};
 
     StaticBox * m_panel_can       = {nullptr};
-    wxBoxSizer *m_sizer_top       = {nullptr};
+    wxBoxSizer* m_sizer_prv       = {nullptr};
     wxBoxSizer *m_sizer_cans      = {nullptr};
     wxBoxSizer *m_sizer_right_tip = {nullptr};
     wxBoxSizer* m_sizer_ams_tips  = {nullptr};
@@ -135,7 +135,7 @@ public:
     void CreateAms();
     void UpdateAms(std::vector<AMSinfo> info, bool is_reset = true);
     void AddAms(AMSinfo info);
-    void AddAmsItems(AMSinfo info);
+    void AddAmsPreview(AMSinfo info);
     void AddExtraAms(AMSinfo info);
     void SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxColour col);
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);

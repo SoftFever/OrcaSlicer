@@ -19,7 +19,6 @@ namespace Slic3r { namespace GUI {
 /*************************************************
 Description:AMSControl
 **************************************************/
-// WX_DEFINE_OBJARRAY(AmsItemsHash);
 AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) 
     : wxSimplebook(parent, wxID_ANY, pos, size)
     , m_Humidity_tip_popup(AmsHumidityTipPopup(this))
@@ -34,28 +33,28 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_amswin->SetBackgroundColour(*wxWHITE);
 
     // top - ams tag
-    m_simplebook_amsitems = new wxSimplebook(m_amswin, wxID_ANY);
-    m_simplebook_amsitems->SetSize(wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
-    m_simplebook_amsitems->SetMinSize(wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
-    auto m_sizer_amsitems = new wxBoxSizer(wxHORIZONTAL);
-    m_simplebook_amsitems->SetSizer(m_sizer_amsitems);
-    m_simplebook_amsitems->Layout();
-    m_sizer_amsitems->Fit(m_simplebook_amsitems);
+    m_simplebook_amsprvs = new wxSimplebook(m_amswin, wxID_ANY);
+    m_simplebook_amsprvs->SetSize(wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
+    m_simplebook_amsprvs->SetMinSize(wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
+    auto m_sizer_amspreviews = new wxBoxSizer(wxHORIZONTAL);
+    m_simplebook_amsprvs->SetSizer(m_sizer_amspreviews);
+    m_simplebook_amsprvs->Layout();
+    m_sizer_amspreviews->Fit(m_simplebook_amsprvs);
     
-    m_panel_top = new wxPanel(m_simplebook_amsitems, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
-    m_sizer_top = new wxBoxSizer(wxHORIZONTAL);
-    m_panel_top->SetSizer(m_sizer_top);
-    m_panel_top->Layout();
-    m_sizer_top->Fit(m_panel_top);
+    m_panel_prv = new wxPanel(m_simplebook_amsprvs, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
+    m_sizer_prv = new wxBoxSizer(wxHORIZONTAL);
+    m_panel_prv->SetSizer(m_sizer_prv);
+    m_panel_prv->Layout();
+    m_sizer_prv->Fit(m_panel_prv);
 
-    auto m_panel_top_empty = new wxPanel(m_simplebook_amsitems, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
+    auto m_panel_top_empty = new wxPanel(m_simplebook_amsprvs, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
     auto m_sizer_top_empty = new wxBoxSizer(wxHORIZONTAL);
     m_panel_top_empty->SetSizer(m_sizer_top_empty);
     m_panel_top_empty->Layout();
     m_sizer_top_empty->Fit(m_panel_top_empty);
 
-    m_simplebook_amsitems->AddPage(m_panel_top_empty, wxEmptyString, false);
-    m_simplebook_amsitems->AddPage(m_panel_top, wxEmptyString, false);
+    m_simplebook_amsprvs->AddPage(m_panel_top_empty, wxEmptyString, false);
+    m_simplebook_amsprvs->AddPage(m_panel_prv, wxEmptyString, false);
 
 
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
@@ -456,7 +455,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_bottom->Add(0, 0, 0, wxLEFT, FromDIP(15));
     m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, FromDIP(0));
 
-    m_sizer_body->Add(m_simplebook_amsitems, 0, wxEXPAND, 0);
+    m_sizer_body->Add(m_simplebook_amsprvs, 0, wxEXPAND, 0);
     m_sizer_body->Add(0, 0, 1, wxEXPAND | wxTOP, FromDIP(18));
     m_sizer_body->Add(m_sizer_bottom, 0, wxEXPAND | wxLEFT, FromDIP(6));
 
@@ -657,9 +656,9 @@ void AMSControl::EnterNoneAMSMode()
 {
     m_vams_lib->m_ams_model = m_ext_model;
     if(m_is_none_ams_mode == AMSModel::EXT_AMS) return;
-    m_panel_top->Hide();
-    m_simplebook_amsitems->Hide();
-    m_simplebook_amsitems->SetSelection(0);
+    m_panel_prv->Hide();
+    m_simplebook_amsprvs->Hide();
+    m_simplebook_amsprvs->SetSelection(0);
 
     m_simplebook_ams->SetSelection(0);
     m_extruder->no_ams_mode(true);
@@ -679,9 +678,9 @@ void AMSControl::EnterGenericAMSMode()
 {
     m_vams_lib->m_ams_model = m_ext_model;
     if(m_is_none_ams_mode == AMSModel::GENERIC_AMS) return;
-    m_panel_top->Show();
-    m_simplebook_amsitems->Show();
-    m_simplebook_amsitems->SetSelection(1);
+    m_panel_prv->Show();
+    m_simplebook_amsprvs->Show();
+    m_simplebook_amsprvs->SetSelection(1);
 
     m_vams_lib->m_ams_model = AMSModel::GENERIC_AMS;
     m_ams_tip->SetLabel(_L("AMS"));
@@ -708,9 +707,9 @@ void AMSControl::EnterExtraAMSMode()
 {
     m_vams_lib->m_ams_model = m_ext_model;
     if(m_is_none_ams_mode == AMSModel::AMS_LITE) return;
-    m_panel_top->Hide();
-    m_simplebook_amsitems->Show();
-    m_simplebook_amsitems->SetSelection(1);
+    m_panel_prv->Hide();
+    m_simplebook_amsprvs->Show();
+    m_simplebook_amsprvs->SetSelection(1);
 
     
     m_vams_lib->m_ams_model = AMSModel::AMS_LITE;
@@ -891,13 +890,13 @@ void AMSControl::CreateAms()
     std::vector<AMSinfo>::iterator it;
     Freeze();
     for (it = ams_info.begin(); it != ams_info.end(); it++) { 
-        AddAmsItems(*it); 
+        AddAmsPreview(*it); 
         AddAms(*it);
         AddExtraAms(*it);
         m_ams_info.push_back(*it);
     }
 
-    m_sizer_top->Layout();
+    m_sizer_prv->Layout();
     Thaw();
 }
 
@@ -1021,27 +1020,29 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
     }
 
     if (info.size() > 1) {
-        m_simplebook_amsitems->Show();
+        m_simplebook_amsprvs->Show();
         m_amswin->Layout();
         m_amswin->Fit();
         SetSize(m_amswin->GetSize());
         SetMinSize(m_amswin->GetSize());
     } else {
-        m_simplebook_amsitems->Hide();
+        m_simplebook_amsprvs->Hide();
         m_amswin->Layout();
         m_amswin->Fit();
         SetSize(m_amswin->GetSize());
         SetMinSize(m_amswin->GetSize());
     }
 
-    for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
-        AmsItems *item = m_ams_item_list[i];
+    size_t i = 0;
+    for (auto prv_it : m_ams_preview_list) {
+        AMSPreview* prv = prv_it.second;
         if (i < info.size() && info.size() > 1) {
-            item->amsItem->Update(m_ams_info[i]);
-            item->amsItem->Open();
+            prv->Update(m_ams_info[i]);
+            prv->Open();
         } else {
-            item->amsItem->Close();
+            prv->Close();
         }
+        i++;
     }
 
     // update cans
@@ -1088,20 +1089,16 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
     }
 }
 
-void AMSControl::AddAmsItems(AMSinfo info)
+void AMSControl::AddAmsPreview(AMSinfo info)
 {
-    auto amsitem = new AMSItem(m_panel_top, wxID_ANY, info);
-    amsitem->Bind(wxEVT_LEFT_DOWN, [this, amsitem](wxMouseEvent& e) {
-        SwitchAms(amsitem->m_amsinfo.ams_id);
+    auto ams_prv = new AMSPreview(m_panel_prv, wxID_ANY, info);
+    m_sizer_prv->Add(ams_prv, 0, wxALIGN_CENTER | wxRIGHT, 6);
+
+    ams_prv->Bind(wxEVT_LEFT_DOWN, [this, ams_prv](wxMouseEvent& e) {
+        SwitchAms(ams_prv->get_ams_id());
         e.Skip();
         });
-
-    AmsItems* item = new AmsItems();
-    item->amsIndex = info.ams_id;
-    item->amsItem = amsitem;
-
-    m_ams_item_list.Add(item);
-    m_sizer_top->Add(amsitem, 0, wxALIGN_CENTER | wxRIGHT, 6);
+    m_ams_preview_list[info.ams_id] = ams_prv;
 }
 
 void AMSControl::AddAms(AMSinfo info)
@@ -1141,23 +1138,11 @@ void AMSControl::SwitchAms(std::string ams_id)
         }
     }
 
-    for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
-        AmsItems *item = m_ams_item_list[i];
-        if (item->amsItem->m_amsinfo.ams_id == m_current_show_ams) {
-            item->amsItem->OnSelected();
+    for (auto prv_it : m_ams_preview_list) {
+        AMSPreview* prv = prv_it.second;
+        if (prv->get_ams_id() == m_current_show_ams) {
+            prv->OnSelected();
             m_current_select = ams_id;
-
-            //bool ready_selected = false;
-            //for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-            //    AmsCansWindow* ams = m_ams_cans_list[i];
-            //    if (ams->amsCans->m_info.ams_id == ams_id) {
-            //        //ams->amsCans->SetDefSelectCan();
-            //        //m_vams_lib->OnSelected();
-            //        if () {
-
-            //        }
-            //    }
-            //}
 
             bool ready_selected = false;
             for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
@@ -1181,10 +1166,10 @@ void AMSControl::SwitchAms(std::string ams_id)
             }
 
         } else {
-            item->amsItem->UnSelected();
+            prv->UnSelected();
         }
-        m_sizer_top->Layout();
-        m_panel_top->Fit();
+        m_sizer_prv->Layout();
+        m_panel_prv->Fit();
     }
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
@@ -1309,9 +1294,9 @@ void AMSControl::ShowFilamentTip(bool hasams)
 
 bool AMSControl::Enable(bool enable)
 {
-    for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
-        AmsItems *item = m_ams_item_list[i];
-        item->amsItem->Enable(enable);
+    for (auto prv_it : m_ams_preview_list) {
+        AMSPreview* prv = prv_it.second;
+        prv->Enable(enable);
     }
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {

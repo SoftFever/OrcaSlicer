@@ -466,6 +466,48 @@ public:
 };
 
 /*************************************************
+Description:AMSPreview
+**************************************************/
+class AMSPreview : public wxWindow
+{
+public:
+    AMSPreview();
+    AMSPreview(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size = wxSize(14, 14), const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+
+    bool m_open = {false};
+    void Open();
+    void Close();
+
+    void         Update(AMSinfo amsinfo);
+    void         create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
+    void         OnEnterWindow(wxMouseEvent &evt);
+    void         OnLeaveWindow(wxMouseEvent &evt);
+    void         OnSelected();
+    void         UnSelected();
+    virtual bool Enable(bool enable = true);
+
+
+    std::string  get_ams_id() const { return m_amsinfo.ams_id; };
+
+protected:
+    AMSinfo  m_amsinfo;
+
+    wxSize   m_cube_size;
+    wxColour m_background_colour = {AMS_CONTROL_DEF_LIB_BK_COLOUR};
+    int      m_padding           = {7};
+    int      m_space             = {5};
+    bool     m_hover             = {false};
+    bool     m_selected          = {false};
+    ScalableBitmap* m_ts_bitmap_cube;
+
+    void         paintEvent(wxPaintEvent &evt);
+    void         render(wxDC &dc);
+    void         doRender(wxDC &dc);
+    virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
+};
+
+
+/*************************************************
 Description:AMSHumidity
 **************************************************/
 class AMSHumidity : public wxWindow
@@ -499,45 +541,6 @@ public:
 
 private:
     void update_size();
-};
-
-/*************************************************
-Description:AMSItem
-**************************************************/
-
-class AMSItem : public wxWindow
-{
-public:
-    AMSItem();
-    AMSItem(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size = wxSize(14, 14), const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
-
-    bool m_open = {false};
-    void Open();
-    void Close();
-
-    void         Update(AMSinfo amsinfo);
-    void         create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
-    void         OnEnterWindow(wxMouseEvent &evt);
-    void         OnLeaveWindow(wxMouseEvent &evt);
-    void         OnSelected();
-    void         UnSelected();
-    virtual bool Enable(bool enable = true);
-
-    AMSinfo      m_amsinfo;
-
-protected:
-    wxSize   m_cube_size;
-    wxColour m_background_colour = {AMS_CONTROL_DEF_LIB_BK_COLOUR};
-    int      m_padding           = {7};
-    int      m_space             = {5};
-    bool     m_hover             = {false};
-    bool     m_selected          = {false};
-    ScalableBitmap* m_ts_bitmap_cube;
-
-    void         paintEvent(wxPaintEvent &evt);
-    void         render(wxDC &dc);
-    void         doRender(wxDC &dc);
-    virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
 };
 
 /*************************************************
@@ -638,13 +641,6 @@ public:
     }
 };
 
-class AmsItems
-{
-public:
-    wxString amsIndex;
-    AMSItem *amsItem;
-};
-
 class AMSextruders
 {
 public:
@@ -653,7 +649,6 @@ public:
 };
 
 WX_DEFINE_ARRAY(AmsCansWindow *, AmsCansHash);
-WX_DEFINE_ARRAY(AmsItems *, AmsItemsHash);
 WX_DEFINE_ARRAY(AMSextruders *, AMSextrudersHash);
 
 

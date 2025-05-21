@@ -2171,6 +2171,193 @@ void AmsCans::show_sn_value(bool show)
     }
 }
 
+
+/*************************************************
+Description:AMSPreview
+**************************************************/
+AMSPreview::AMSPreview() {}
+
+AMSPreview::AMSPreview(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size, const wxPoint &pos, const wxSize &size) : AMSPreview()
+{
+    m_amsinfo   = amsinfo;
+    m_cube_size = cube_size;
+    create(parent, id, pos, AMS_ITEM_SIZE);
+    Bind(wxEVT_PAINT, &AMSPreview::paintEvent, this);
+    Bind(wxEVT_ENTER_WINDOW, &AMSPreview::OnEnterWindow, this);
+    Bind(wxEVT_LEAVE_WINDOW, &AMSPreview::OnLeaveWindow, this);
+}
+
+void AMSPreview::Open()
+{
+    m_open = true;
+    Show();
+}
+
+void AMSPreview::Close()
+{
+    m_open = false;
+    Hide();
+}
+
+void AMSPreview::Update(AMSinfo amsinfo)
+{
+    m_amsinfo = amsinfo;
+}
+
+void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
+{
+    m_ts_bitmap_cube = new ScalableBitmap(this, "ts_bitmap_cube", 14);
+    wxWindow::Create(parent, id, pos, size);
+    SetMinSize(AMS_ITEM_SIZE);
+    SetMaxSize(AMS_ITEM_SIZE);
+    SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
+    Refresh();
+}
+
+void AMSPreview::OnEnterWindow(wxMouseEvent &evt)
+{
+    // m_hover = true;
+    // Refresh();
+}
+
+void AMSPreview::OnLeaveWindow(wxMouseEvent &evt)
+{
+    // m_hover = false;
+    // Refresh();
+}
+
+void AMSPreview::OnSelected()
+{
+    if (!wxWindow::IsEnabled()) { return; }
+    m_selected = true;
+    Refresh();
+}
+
+void AMSPreview::UnSelected()
+{
+    m_selected = false;
+    Refresh();
+}
+
+bool AMSPreview::Enable(bool enable) { return wxWindow::Enable(enable); }
+
+void AMSPreview::paintEvent(wxPaintEvent &evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void AMSPreview::render(wxDC &dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({0, 0}, size, &dc, {0, 0});
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void AMSPreview::doRender(wxDC &dc)
+{
+    wxSize size = GetSize();
+    dc.SetPen(wxPen(StateColor::darkModeColorFor(m_background_colour)));
+    dc.SetBrush(wxBrush(StateColor::darkModeColorFor(m_background_colour)));
+    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
+
+    auto left = m_padding;
+    for (std::vector<Caninfo>::iterator iter = m_amsinfo.cans.begin(); iter != m_amsinfo.cans.end(); iter++) {
+        dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+
+        if (wxWindow::IsEnabled()) {
+            wxColour color = iter->material_colour;
+            change_the_opacity(color);
+            dc.SetBrush(wxBrush(color));
+        } else {
+            dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
+        }
+
+        if (iter->material_cols.size() > 1) {
+            int fleft = left;
+            float total_width = AMS_ITEM_CUBE_SIZE.x;
+            int gwidth = std::round(total_width / (iter->material_cols.size() - 1));
+            if (iter->ctype == 0) {
+                for (int i = 0; i < iter->material_cols.size() - 1; i++) {
+
+                    if ((fleft + gwidth) > (AMS_ITEM_CUBE_SIZE.x)) {
+                        gwidth = (fleft + AMS_ITEM_CUBE_SIZE.x) - fleft;
+                    }
+
+                    auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
+                    dc.GradientFillLinear(rect, iter->material_cols[i], iter->material_cols[i + 1], wxEAST);
+                    fleft += gwidth;
+                }
+            } else {
+                int cols_size = iter->material_cols.size();
+                for (int i = 0; i < cols_size; i++) {
+                    dc.SetBrush(wxBrush(iter->material_cols[i]));
+                    float x = left + total_width * i / cols_size;
+                    dc.DrawRoundedRectangle(x, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, total_width / cols_size, AMS_ITEM_CUBE_SIZE.y , 0);
+                }
+            }
+
+            dc.SetPen(wxPen(StateColor::darkModeColorFor(m_background_colour)));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRoundedRectangle(left - 1, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2 - 1, AMS_ITEM_CUBE_SIZE.x + 2, AMS_ITEM_CUBE_SIZE.y + 2, 2);
+
+        }else {
+            if (iter->material_colour.Alpha() == 0) {
+                dc.DrawBitmap(m_ts_bitmap_cube->bmp(),left,(size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
+            }
+            else {
+                wxRect rect(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
+                if(iter->material_state==AMSCanType::AMS_CAN_TYPE_EMPTY){
+                    dc.SetPen(wxPen(wxColor(0, 0, 0)));
+                    dc.DrawRoundedRectangle(rect, 2);
+                    
+                    dc.DrawLine(rect.GetRight()-1, rect.GetTop()+1, rect.GetLeft()+1, rect.GetBottom()-1); 
+                } 
+                else {
+                    dc.DrawRoundedRectangle(rect, 2);
+                }
+            }
+            
+        }
+
+        
+        left += AMS_ITEM_CUBE_SIZE.x;
+        left += m_space;
+    }
+
+    auto border_colour = AMS_CONTROL_BRAND_COLOUR;
+    if (!wxWindow::IsEnabled()) { border_colour = AMS_CONTROL_DISABLE_COLOUR; }
+
+    if (m_hover) {
+        dc.SetPen(wxPen(border_colour, 2));
+        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+        dc.DrawRoundedRectangle(1, 1, size.x - 1, size.y - 1, 3);
+
+    }
+
+    if (m_selected) {
+        dc.SetPen(wxPen(border_colour, 2));
+        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+        dc.DrawRoundedRectangle(1, 1, size.x-1, size.y-1, 3);
+    }
+}
+
+void AMSPreview::DoSetSize(int x, int y, int width, int height, int sizeFlags /*= wxSIZE_AUTO*/) { wxWindow::DoSetSize(x, y, width, height, sizeFlags); }
+
 /*************************************************
 Description:AMSHumidity
 **************************************************/
@@ -2386,191 +2573,5 @@ void AMSHumidity::msw_rescale() {
     Layout();
     Refresh();
 }
-
-/*************************************************
-Description:AMSItem
-**************************************************/
-AMSItem::AMSItem() {}
-
-AMSItem::AMSItem(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size, const wxPoint &pos, const wxSize &size) : AMSItem()
-{
-    m_amsinfo   = amsinfo;
-    m_cube_size = cube_size;
-    create(parent, id, pos, AMS_ITEM_SIZE);
-    Bind(wxEVT_PAINT, &AMSItem::paintEvent, this);
-    Bind(wxEVT_ENTER_WINDOW, &AMSItem::OnEnterWindow, this);
-    Bind(wxEVT_LEAVE_WINDOW, &AMSItem::OnLeaveWindow, this);
-}
-
-void AMSItem::Open()
-{
-    m_open = true;
-    Show();
-}
-
-void AMSItem::Close()
-{
-    m_open = false;
-    Hide();
-}
-
-void AMSItem::Update(AMSinfo amsinfo)
-{
-    m_amsinfo = amsinfo;
-}
-
-void AMSItem::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
-{
-    m_ts_bitmap_cube = new ScalableBitmap(this, "ts_bitmap_cube", 14);
-    wxWindow::Create(parent, id, pos, size);
-    SetMinSize(AMS_ITEM_SIZE);
-    SetMaxSize(AMS_ITEM_SIZE);
-    SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
-    Refresh();
-}
-
-void AMSItem::OnEnterWindow(wxMouseEvent &evt)
-{
-    // m_hover = true;
-    // Refresh();
-}
-
-void AMSItem::OnLeaveWindow(wxMouseEvent &evt)
-{
-    // m_hover = false;
-    // Refresh();
-}
-
-void AMSItem::OnSelected()
-{
-    if (!wxWindow::IsEnabled()) { return; }
-    m_selected = true;
-    Refresh();
-}
-
-void AMSItem::UnSelected()
-{
-    m_selected = false;
-    Refresh();
-}
-
-bool AMSItem::Enable(bool enable) { return wxWindow::Enable(enable); }
-
-void AMSItem::paintEvent(wxPaintEvent &evt)
-{
-    wxPaintDC dc(this);
-    render(dc);
-}
-
-void AMSItem::render(wxDC &dc)
-{
-#ifdef __WXMSW__
-    wxSize     size = GetSize();
-    wxMemoryDC memdc;
-    wxBitmap   bmp(size.x, size.y);
-    memdc.SelectObject(bmp);
-    memdc.Blit({0, 0}, size, &dc, {0, 0});
-
-    {
-        wxGCDC dc2(memdc);
-        doRender(dc2);
-    }
-
-    memdc.SelectObject(wxNullBitmap);
-    dc.DrawBitmap(bmp, 0, 0);
-#else
-    doRender(dc);
-#endif
-}
-
-void AMSItem::doRender(wxDC &dc)
-{
-    wxSize size = GetSize();
-    dc.SetPen(wxPen(StateColor::darkModeColorFor(m_background_colour)));
-    dc.SetBrush(wxBrush(StateColor::darkModeColorFor(m_background_colour)));
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
-
-    auto left = m_padding;
-    for (std::vector<Caninfo>::iterator iter = m_amsinfo.cans.begin(); iter != m_amsinfo.cans.end(); iter++) {
-        dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
-
-        if (wxWindow::IsEnabled()) {
-            wxColour color = iter->material_colour;
-            change_the_opacity(color);
-            dc.SetBrush(wxBrush(color));
-        } else {
-            dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
-        }
-
-        if (iter->material_cols.size() > 1) {
-            int fleft = left;
-            float total_width = AMS_ITEM_CUBE_SIZE.x;
-            int gwidth = std::round(total_width / (iter->material_cols.size() - 1));
-            if (iter->ctype == 0) {
-                for (int i = 0; i < iter->material_cols.size() - 1; i++) {
-
-                    if ((fleft + gwidth) > (AMS_ITEM_CUBE_SIZE.x)) {
-                        gwidth = (fleft + AMS_ITEM_CUBE_SIZE.x) - fleft;
-                    }
-
-                    auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
-                    dc.GradientFillLinear(rect, iter->material_cols[i], iter->material_cols[i + 1], wxEAST);
-                    fleft += gwidth;
-                }
-            } else {
-                int cols_size = iter->material_cols.size();
-                for (int i = 0; i < cols_size; i++) {
-                    dc.SetBrush(wxBrush(iter->material_cols[i]));
-                    float x = left + total_width * i / cols_size;
-                    dc.DrawRoundedRectangle(x, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, total_width / cols_size, AMS_ITEM_CUBE_SIZE.y , 0);
-                }
-            }
-
-            dc.SetPen(wxPen(StateColor::darkModeColorFor(m_background_colour)));
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.DrawRoundedRectangle(left - 1, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2 - 1, AMS_ITEM_CUBE_SIZE.x + 2, AMS_ITEM_CUBE_SIZE.y + 2, 2);
-
-        }else {
-            if (iter->material_colour.Alpha() == 0) {
-                dc.DrawBitmap(m_ts_bitmap_cube->bmp(),left,(size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
-            }
-            else {
-                wxRect rect(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
-                if(iter->material_state==AMSCanType::AMS_CAN_TYPE_EMPTY){
-                    dc.SetPen(wxPen(wxColor(0, 0, 0)));
-                    dc.DrawRoundedRectangle(rect, 2);
-                    
-                    dc.DrawLine(rect.GetRight()-1, rect.GetTop()+1, rect.GetLeft()+1, rect.GetBottom()-1); 
-                } 
-                else {
-                    dc.DrawRoundedRectangle(rect, 2);
-                }
-            }
-            
-        }
-
-        
-        left += AMS_ITEM_CUBE_SIZE.x;
-        left += m_space;
-    }
-
-    auto border_colour = AMS_CONTROL_BRAND_COLOUR;
-    if (!wxWindow::IsEnabled()) { border_colour = AMS_CONTROL_DISABLE_COLOUR; }
-
-    if (m_hover) {
-        dc.SetPen(wxPen(border_colour, 2));
-        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-        dc.DrawRoundedRectangle(1, 1, size.x - 1, size.y - 1, 3);
-
-    }
-
-    if (m_selected) {
-        dc.SetPen(wxPen(border_colour, 2));
-        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-        dc.DrawRoundedRectangle(1, 1, size.x-1, size.y-1, 3);
-    }
-}
-
-void AMSItem::DoSetSize(int x, int y, int width, int height, int sizeFlags /*= wxSIZE_AUTO*/) { wxWindow::DoSetSize(x, y, width, height, sizeFlags); }
 
 }} // namespace Slic3r::GUI

@@ -614,12 +614,12 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
     auto ams_items_sizer = new wxBoxSizer(wxHORIZONTAL);
     for (int i = 0; i < 4; i++) {
         AMSinfo temp_info = AMSinfo{ std::to_string(i), std::vector<Caninfo>{} };
-        auto amsitem = new AMSItem(m_multi_ams_panel, wxID_ANY, temp_info);
+        auto amsitem = new AMSPreview(m_multi_ams_panel, wxID_ANY, temp_info);
         amsitem->Bind(wxEVT_LEFT_DOWN, [this, amsitem](wxMouseEvent& e) {
-            on_switch_ams(amsitem->m_amsinfo.ams_id);
+            on_switch_ams(amsitem->get_ams_id());
             e.Skip();
             });
-        m_ams_item_list.push_back(amsitem);
+        m_ams_preview_list.push_back(amsitem);
         ams_items_sizer->Add(amsitem, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
     }
     multi_ams_sizer->Add(ams_items_sizer, 0);
@@ -896,12 +896,11 @@ void CalibrationPresetPage::on_select_tray(wxCommandEvent& event)
 
 void CalibrationPresetPage::on_switch_ams(std::string ams_id)
 {
-    for (auto i = 0; i < m_ams_item_list.size(); i++) {
-        AMSItem* item = m_ams_item_list[i];
-        if (item->m_amsinfo.ams_id == ams_id) {
+    for (auto i = 0; i < m_ams_preview_list.size(); i++) {
+        AMSPreview *item = m_ams_preview_list[i];
+        if (item->get_ams_id() == ams_id) {
             item->OnSelected();
-        }
-        else {
+        } else {
             item->UnSelected();
         }
     }
@@ -1616,8 +1615,8 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         }
     }
     
-    for (auto i = 0; i < m_ams_item_list.size(); i++) {
-        AMSItem* item = m_ams_item_list[i];
+    for (auto i = 0; i < m_ams_preview_list.size(); i++) {
+        AMSPreview* item = m_ams_preview_list[i];
         if (ams_info.size() > 1) {
             if (i < ams_info.size()) {
                 item->Update(ams_info[i]);
