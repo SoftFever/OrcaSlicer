@@ -12,7 +12,7 @@ Orca Slicer includes three approaches for calibrating the pressure advance value
 
 > [!WARNING]
 > For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option when printings.
-> 
+>
 > ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)
 
 ## Line method
@@ -59,8 +59,8 @@ Next, Ellis' generator provided the ability to adjust specific printer, filament
 
 ## Tower method
 
-The tower method may take a bit more time to complete, but it does not rely on the quality of the first layer. 
-The PA value for this test will be increased by 0.002 for every 1 mm increase in height.  (**NOTE** 0.02 for Bowden)  
+The tower method may take a bit more time to complete, but it does not rely on the quality of the first layer.
+The PA value for this test will be increased by 0.002 for every 1 mm increase in height.  (**NOTE** 0.02 for Bowden)
 Steps:
  1. Select the printer, filament, and process you would like to use for the test.
  2. Examine each corner of the print and mark the height that yields the best overall result.

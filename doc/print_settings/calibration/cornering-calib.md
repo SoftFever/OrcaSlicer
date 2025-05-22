@@ -19,20 +19,20 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
       2. Speed high enough to trigger ringing (e.g., 100 mm/s).
    3. Use an opaque, high-gloss filament to make the ringing more visible.
 2. You need to print the Junction Deviation test.
-   
+
    ![image](../../images/JunctionDeviation/jd_first_menu.png)
 
    1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
-      
+
    ![image](../../images/JunctionDeviation/jd_first_print_measure.jpg)
    ![image](../../images/JunctionDeviation/jd_first_slicer_measure.png)
 
    2. It’s very likely that you’ll need to set values lower than 0.08 mm, as shown in the previous example. To determine a more accurate maximum JD value, you can print a new calibration tower with a maximum value set at the point where the corners start losing sharpness.
-   3. 
+   3.
    ![image](../../images/JunctionDeviation/jd_second_menu.png)
 
    4. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
-      
+
    ![image](../../images/JunctionDeviation/jd_second_print_measure.jpg)
    ![image](../../images/JunctionDeviation/jd_second_slicer_measure.png)
 3. Save the settings

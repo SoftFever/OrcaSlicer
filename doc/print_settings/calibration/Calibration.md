@@ -9,18 +9,18 @@ The recommended order for calibration is as follows:
 
 1. **[Temperature](temp-calib.md)**: Start by calibrating the temperature of the nozzle and the bed. This is crucial as it affects the viscosity of the filament, which in turn influences how well it flows through the nozzle and adheres to the print bed.
 
-   <img src="https://user-images.githubusercontent.com/103989404/221344534-40e1a629-450c-4ad5-a051-8e240e261a51.jpeg" alt="temp_tower" height="200">  
+   <img src="https://user-images.githubusercontent.com/103989404/221344534-40e1a629-450c-4ad5-a051-8e240e261a51.jpeg" alt="temp_tower" height="200">
 
 2. **[Flow](flow-rate-calib.md)**: Calibrate the flow rate to ensure that the correct amount of filament is being extruded. This is important for achieving accurate dimensions and good layer adhesion.
- 
+
    <img src="https://user-images.githubusercontent.com/103989404/210138585-98821729-b19e-4452-a08d-697f147d36f0.jpg" alt="flowrate-pass1_resize" height="200">
 
 3. **[Pressure Advance](pressure-advance-calib.md)**: Calibrate the pressure advance settings to improve print quality and reduce artifacts caused by pressure fluctuations in the nozzle.
    - **[Adaptative Pressure Advance](adaptive-pressure-advance-calib.md)**: This is an advanced calibration technique that can be used to further optimize the pressure advance settings for different print speeds and geometries.
- 
+
    <img src="https://user-images.githubusercontent.com/103989404/210140231-e886b98d-280a-4464-9781-c74ed9b7d44e.jpg" alt="tower" height="200">
 
-4. **[Retraction](retraction-calib.md)**: Calibrate the retraction settings to minimize stringing and improve print quality. Doing this after Flow and 
+4. **[Retraction](retraction-calib.md)**: Calibrate the retraction settings to minimize stringing and improve print quality. Doing this after Flow and
 
    <img src="../../images/retraction_test_print.jpg" alt="retraction" height="200">
 
@@ -47,7 +47,7 @@ Because of the nature of these artifacts the methods to reduce them can be mecha
 
 
 ***
-*Credits:*  
+*Credits:*
 - *The Flowrate test and retraction test is inspired by [SuperSlicer](https://github.com/supermerill/SuperSlicer).*
 - *The PA Line method is inspired by [K-factor Calibration Pattern](https://marlinfw.org/tools/lin_advance/k-factor.html).*
 - *The PA Tower method is inspired by [Klipper](https://www.klipper3d.org/Pressure_Advance.html).*
