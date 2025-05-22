@@ -1,5 +1,5 @@
 
-<h1> <p "font-size:200px;"><img align="left" src="https://github.com/kennethjiang/JusPrin/blob/main/resources/images/JusPrin.ico" width="50"> JusPrin</p> </h1>
+<h1> <p "font-size:200px;"><img align="left" src="https://github.com/TheSpaghettiDetective/JusPrin/blob/main/resources/images/JusPrin.ico" width="50"> JusPrin</p> </h1>
 
 **Welcome to JusPrin, the first GenAI app for 3D printing!**
 
@@ -26,7 +26,7 @@ This is a beta version, and while it’s not perfect yet, it’s already showing
 
 ## Download
 
-📥 **[Download the Latest Stable Release](https://github.com/kennethjiang/JusPrin/releases/latest)**
+📥 **[Download the Latest Stable Release](https://github.com/TheSpaghettiDetective/JusPrin/releases/latest)**
 
 ## Getting Started
 

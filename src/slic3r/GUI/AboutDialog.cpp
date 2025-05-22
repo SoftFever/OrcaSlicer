@@ -345,7 +345,7 @@ AboutDialog::AboutDialog()
               (boost::format(
               "<html>"
               "<body>"
-              "<p style=\"text-align:left\"><a style=\"color:#009789\" href=\"https://github.com/kennethjiang/JusPrin\">https://github.com/kennethjiang/JusPrin</ a></p>"
+              "<p style=\"text-align:left\"><a style=\"color:#009789\" href=\"https://github.com/TheSpaghettiDetective/JusPrin\">https://github.com/TheSpaghettiDetective/JusPrin</ a></p>"
               "</body>"
               "</html>")
             ).str());
