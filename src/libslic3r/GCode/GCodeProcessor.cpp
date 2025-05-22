@@ -2754,7 +2754,7 @@ bool GCodeProcessor::get_last_z_from_gcode(const std::string& gcode_str, double&
             line_str.erase(line_str.find_last_not_of(" ") + 1);
 
             //command which may have z movement
-            if (line_str.size() > 5 && (line_str.find("G0 ") == 0
+            if (line_str.size() > 4 && (line_str.find("G0 ") == 0
                                        || line_str.find("G1 ") == 0
                                        || line_str.find("G2 ") == 0
                                        || line_str.find("G3 ") == 0))
