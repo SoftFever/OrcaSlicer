@@ -182,7 +182,7 @@ void GCodeViewer::IBuffer::reset()
 bool GCodeViewer::Path::matches(const GCodeProcessorResult::MoveVertex& move) const
 {
     auto matches_percent = [](float value1, float value2, float max_percent) {
-        return std::abs(value2 - value1) / value1 <= max_percent;
+        return std::abs((value2 - value1) / value1) <= max_percent;
     };
 
     switch (move.type)
@@ -199,7 +199,10 @@ bool GCodeViewer::Path::matches(const GCodeProcessorResult::MoveVertex& move) co
         return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
             move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed &&
             height == round_to_bin(move.height) && width == round_to_bin(move.width) &&
-            matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f) && layer_time == move.layer_duration;
+            matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f) && layer_time == move.layer_duration 
+            && matches_percent(thermal_index_min, move.thermal_index_min, 0.01f)
+			&& matches_percent(thermal_index_max, move.thermal_index_max, 0.01f)
+			&& matches_percent(thermal_index_mean, move.thermal_index_mean, 0.01f);
     }
     case EMoveType::Travel: {
         return type == move.type && feedrate == move.feedrate && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id;
