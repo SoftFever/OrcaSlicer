@@ -1,7 +1,7 @@
 OrcaSlicer use `M106 P2` command to control auxiliary cooling fan.
 
-If you are using Klipper, you can define a `M106` macro to control the both normal part cooling fan and auxiliary fan and exhaust fan.  
-Below is a reference configuration for Klipper.   
+If you are using Klipper, you can define a `M106` macro to control the both normal part cooling fan and auxiliary fan and exhaust fan.
+Below is a reference configuration for Klipper.
 *Note: Don't forget to change the pin name to the actual pin name you are using in the configuration*
 
 ```
