@@ -2811,6 +2811,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 {
 #ifdef ORCA_NETWORK_DEBUG
     BOOST_LOG_TRIVIAL(info) << "parse_json: payload = " << payload;
+    flush_logs();
 #endif
 
     parse_msg_count++;
