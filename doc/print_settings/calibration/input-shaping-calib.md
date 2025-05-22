@@ -17,12 +17,14 @@ Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
    1. In OrcaSlicer, set:
       1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
       2. Speed high enough to trigger ringing (e.g., 100 mm/s).
+      > [!NOTE]
+      > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
       3. Jerk [Klipper Square Corner Velocity](https://www.klipper3d.org/Kinematics.html?h=square+corner+velocity#look-ahead) to 5 or a high value (e.g., 20).
    2. In printer settigs:
       1. Set the Shaper Type to ``MZV`` or ``EI``.
          ```
          SET_INPUT_SHAPER SHAPER_TYPE=MZV
-         ```  
+         ```
       2. Disable [Minimun Cruise Ratio](https://www.klipper3d.org/Kinematics.html#minimum-cruise-ratio) with:
             ```
             SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0
@@ -38,14 +40,14 @@ Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
    ![image](../../images/InputShaping/IS_freq_klipper_slicer_measure.png)
 
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
-   
+
    **Note**: There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
 3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
 
    ![image](../../images/InputShaping/IS_damp_menu.png)
 
    1. Measure the X and Y heights and read the damping set at that point in Orca Slicer.
-   
+
    ![image](../../images/InputShaping/IS_damp_klipper_print_measure.jpg)
    ![image](../../images/InputShaping/IS_damp_klipper_slicer_measure.png)
 
@@ -64,11 +66,13 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
    1. In OrcaSlicer, set:
       1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
       2. Speed high enough to trigger ringing (e.g., 100 mm/s).
+      > [!NOTE]
+      > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
       3. Jerk
          1. If using [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-) use a high value (e.g., 20).
          2. If using [Junction Deviation](https://marlinfw.org/docs/features/junction_deviation.html) (new Marlin default mode) this test will use 0.25 (high enough to most printers).
    2. Use an opaque, high-gloss filament to make the ringing more visible.
-2. Print the Input Shaping Frequency test with a range of frequencies. 
+2. Print the Input Shaping Frequency test with a range of frequencies.
 
    ![image](../../images/InputShaping/IS_freq_menu.png)
 
@@ -78,7 +82,7 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
    ![image](../../images/InputShaping/IS_freq_marlin_slicer_measure.png)
 
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
-   
+
    **Note**: There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
 3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
 

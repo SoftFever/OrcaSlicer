@@ -4,7 +4,7 @@ The Flow Ratio determines how much filament is extruded and plays a key role in 
 
 > [!WARNING]
 > For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option.
-> 
+
 > ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)
 
 > [!IMPORTANT]
@@ -12,7 +12,7 @@ The Flow Ratio determines how much filament is extruded and plays a key role in 
 
 ![flowrate](../../images/flow-calibration.gif)
 
-Calibrating the flow rate involves a two-step process.  
+Calibrating the flow rate involves a two-step process.
 Steps
 1. Select the printer, filament, and process you would like to use for the test.
 2. Select `Pass 1` in the `Calibration` menu
@@ -23,10 +23,10 @@ Steps
 
 1. Update the flow ratio in the filament settings using the following equation: `FlowRatio_old*(100 + modifier)/100`. If your previous flow ratio was `0.98` and you selected the block with a flow rate modifier of `+5`, the new value should be calculated as follows: `0.98x(100+5)/100 = 1.029`.** Remember** to save the filament profile.
 2. Perform the `Pass 2` calibration. This process is similar to `Pass 1`, but a new project with ten blocks will be generated. The flow rate modifiers for this project will range from `-9 to 0`.
-3. Repeat steps 4. and 5. In this case, if your previous flow ratio was 1.029 and you selected the block with a flow rate modifier of -6, the new value should be calculated as follows: `1.029x(100-6)/100 = 0.96726`. **Remember** to save the filament profile.  
+3. Repeat steps 4. and 5. In this case, if your previous flow ratio was 1.029 and you selected the block with a flow rate modifier of -6, the new value should be calculated as follows: `1.029x(100-6)/100 = 0.96726`. **Remember** to save the filament profile.
 
 ![pass2](https://user-images.githubusercontent.com/103989404/210139072-f2fa91a6-4e3b-4d2a-81f2-c50155e1ff6d.jpg)
-![-6](https://user-images.githubusercontent.com/103989404/210139131-ee224146-b242-4c1c-ac96-35ef0ca591f1.jpg)  
+![-6](https://user-images.githubusercontent.com/103989404/210139131-ee224146-b242-4c1c-ac96-35ef0ca591f1.jpg)
 ![image](../../images/flowcalibration_update_flowrate.jpg)
 
 > [!TIP]
