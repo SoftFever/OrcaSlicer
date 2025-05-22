@@ -4059,17 +4059,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     Ams* curr_ams = nullptr;
                                     auto ams_it = amsList.find(ams_id);
                                     if (ams_it == amsList.end()) {
-                                        Ams* new_ams = new Ams(ams_id, nozzle_id, type_id);
-
-                                        try {
-                                            if (!ams_id.empty()) {
-                                                int ams_id_int = atoi(ams_id.c_str());
-                                                new_ams->is_exists = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
-                                            }
-                                        }
-                                        catch (...) {
-                                            ;
-                                        }
+                                        Ams* new_ams    = new Ams(ams_id, nozzle_id, type_id);
                                         amsList.insert(std::make_pair(ams_id, new_ams));
                                         // new ams added event
                                         curr_ams = new_ams;
@@ -4077,6 +4067,25 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         curr_ams = ams_it->second;
                                     }
                                     if (!curr_ams) continue;
+
+                                    /*set ams type flag*/
+                                    curr_ams->type = type_id;
+
+
+                                    /*set ams exist flag*/
+                                    try {
+                                        if (!ams_id.empty()) {
+                                            int ams_id_int = atoi(ams_id.c_str());
+
+                                            if (type_id < 4) {
+                                                curr_ams->is_exists = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
+                                            } else {
+                                                curr_ams->is_exists = get_flag_bits(ams_exist_bits, 4 + (ams_id_int - 128));
+                                            }
+                                        }
+                                    } catch (...) {
+                                        ;
+                                    }
 
                                     if (it->contains("dry_time") && (*it)["dry_time"].is_number())
                                     {
