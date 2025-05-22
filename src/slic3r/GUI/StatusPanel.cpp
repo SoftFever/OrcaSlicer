@@ -3432,7 +3432,7 @@ void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
 
 void StatusPanel::on_start_unload(wxCommandEvent &event)
 {
-    if (obj) obj->command_ams_switch(255);
+    if (obj) obj->command_ams_change_filament(false, "255", "255");
 }
 
 void StatusPanel::on_set_bed_temp()
@@ -3518,10 +3518,11 @@ void StatusPanel::on_ams_load_curr()
         std::string                            curr_ams_id = m_ams_control->GetCurentAms();
         std::string                            curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
 
-        
+
         update_filament_step();
         //virtual tray
-        if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
+        if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0)
+        {
             int old_temp = -1;
             int new_temp = -1;
             AmsTray* curr_tray = &obj->vt_tray;
@@ -3531,13 +3532,22 @@ void StatusPanel::on_ams_load_curr()
             try {
                 if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
                     old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
-                if (!obj->vt_tray.nozzle_temp_max.empty() && !obj->vt_tray.nozzle_temp_min.empty())
-                    new_temp = (atoi(obj->vt_tray.nozzle_temp_min.c_str()) + atoi(obj->vt_tray.nozzle_temp_max.c_str())) / 2;
+                if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
+                    new_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
             }
             catch (...) {
                 ;
             }
-            obj->command_ams_switch(VIRTUAL_TRAY_ID, old_temp, new_temp);
+
+            if (obj->is_enable_np || obj->is_enable_ams_np) {
+                try {
+                    if (!curr_ams_id.empty() && !curr_can_id.empty()) {
+                        obj->command_ams_change_filament(true, curr_ams_id, "0", old_temp, new_temp);
+                    }
+                } catch (...) {}
+            } else {
+                obj->command_ams_change_filament(true, "254", "0", old_temp, new_temp);
+            }
         }
 
         std::map<std::string, Ams*>::iterator it = obj->amsList.find(curr_ams_id);
@@ -3552,24 +3562,32 @@ void StatusPanel::on_ams_load_curr()
         }
         AmsTray* curr_tray = obj->get_curr_tray();
         AmsTray* targ_tray = obj->get_ams_tray(curr_ams_id, curr_can_id);
+
+        int old_temp = -1;
+        int new_temp = -1;
+
         if (curr_tray && targ_tray) {
-            int old_temp = -1;
-            int new_temp = -1;
             try {
                 if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
                     old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
                 if (!targ_tray->nozzle_temp_max.empty() && !targ_tray->nozzle_temp_min.empty())
                     new_temp = (atoi(targ_tray->nozzle_temp_min.c_str()) + atoi(targ_tray->nozzle_temp_max.c_str())) / 2;
-            }
-            catch (...) {
+            } catch (...) {
                 ;
             }
-            int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
-            obj->command_ams_switch(tray_index, old_temp, new_temp);
         }
-        else {
-            int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
-            obj->command_ams_switch(tray_index, -1, -1);
+
+        int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
+
+        if (obj->is_enable_np) {
+            try {
+                if (!curr_ams_id.empty() && !curr_can_id.empty()) {
+                    obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp);
+                }
+            }
+            catch (...){}
+        } else {
+            obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp);
         }
     }
 }
@@ -3586,7 +3604,20 @@ void StatusPanel::on_ams_load_vams(wxCommandEvent& event) {
 
 void StatusPanel::on_ams_unload(SimpleEvent &event)
 {
-    if (obj) { obj->command_ams_switch(255); }
+    if (obj) {
+        std::string curr_ams_id = m_ams_control->GetCurentAms();
+        std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
+
+        if (obj->is_enable_np) {
+            try {
+                for (auto ext : obj->m_extder_data.extders) {
+                    if (ext.snow.ams_id == curr_ams_id && ext.snow.slot_id == curr_can_id) { obj->command_ams_change_filament(false, curr_ams_id, "255"); }
+                }
+            } catch (...) {}
+        } else {
+            obj->command_ams_change_filament(false, curr_ams_id, "255");
+        }
+    }
 }
 
 void StatusPanel::on_ams_filament_backup(SimpleEvent& event)

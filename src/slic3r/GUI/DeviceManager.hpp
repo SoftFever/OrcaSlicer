@@ -929,8 +929,8 @@ public:
     int command_set_nozzle(int temp);
     int command_set_chamber(int temp);
     // ams controls
-    int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
-    int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
+    //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
+    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210);
     int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_air_print_detect(bool air_print_detect);
@@ -1042,6 +1042,7 @@ public:
 
     /*for more extruder*/
     bool                        is_enable_np{ false };
+    bool                        is_enable_ams_np{ false };
 
     ExtderData                  m_extder_data;
 

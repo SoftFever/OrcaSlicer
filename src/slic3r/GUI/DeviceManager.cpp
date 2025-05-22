@@ -1868,45 +1868,71 @@ int MachineObject::command_set_chamber(int temp)
     return this->publish_json(j.dump(), 1);
 }
 
-int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp)
-{
-    BOOST_LOG_TRIVIAL(trace) << "ams_switch to " << tray_index << " with temp: " << old_temp << ", " << new_temp;
-    if (old_temp < 0) old_temp = FILAMENT_DEF_TEMP;
-    if (new_temp < 0) new_temp = FILAMENT_DEF_TEMP;
+//int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp)
+//{
+//    BOOST_LOG_TRIVIAL(trace) << "ams_switch to " << tray_index << " with temp: " << old_temp << ", " << new_temp;
+//    if (old_temp < 0) old_temp = FILAMENT_DEF_TEMP;
+//    if (new_temp < 0) new_temp = FILAMENT_DEF_TEMP;
+//
+//    std::string gcode = "";
+//    int result = 0;
+//
+//    //command
+//    if (is_support_command_ams_switch) {
+//        command_ams_change_filament(tray_index, old_temp, new_temp);
+//    }
+//    else {
+//        std::string gcode = "";
+//        if (tray_index == 255) {
+//            gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
+//        }
+//        else {
+//            // include VIRTUAL_TRAY_ID
+//            gcode = DeviceManager::load_gcode(printer_type, "ams_load.gcode");
+//            boost::replace_all(gcode, "[next_extruder]", std::to_string(tray_index));
+//            boost::replace_all(gcode, "[new_filament_temp]", std::to_string(new_temp));
+//        }
+//
+//        result = this->publish_gcode(gcode);
+//    }
+//
+//    return result;
+//}
 
-    std::string gcode = "";
-    int result = 0;
-
-    //command
-    if (is_support_command_ams_switch) {
-        command_ams_change_filament(tray_index, old_temp, new_temp);
-    }
-    else {
-        std::string gcode = "";
-        if (tray_index == 255) {
-            gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
-        }
-        else {
-            // include VIRTUAL_TRAY_ID
-            gcode = DeviceManager::load_gcode(printer_type, "ams_load.gcode");
-            boost::replace_all(gcode, "[next_extruder]", std::to_string(tray_index));
-            boost::replace_all(gcode, "[new_filament_temp]", std::to_string(new_temp));
-        }
-
-        result = this->publish_gcode(gcode);
-    }
-
-    return result;
-}
-
-int MachineObject::command_ams_change_filament(int tray_id, int old_temp, int new_temp)
+int MachineObject::command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp, int new_temp)
 {
     json j;
-    j["print"]["command"] = "ams_change_filament";
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["target"] = tray_id;
-    j["print"]["curr_temp"] = old_temp;
-    j["print"]["tar_temp"] = new_temp;
+    try {
+        auto tray_id = 0;
+        if (ams_id < "16") {
+            tray_id = atoi(ams_id.c_str()) * 4 + atoi(slot_id.c_str());
+        }
+        // TODO: Orca hack
+        if (ams_id == "254")
+            ams_id = "255";
+
+
+        j["print"]["command"]     = "ams_change_filament";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["curr_temp"]   = old_temp;
+        j["print"]["tar_temp"]    = new_temp;
+        j["print"]["ams_id"]      = atoi(ams_id.c_str());
+
+        if (!load) {
+            j["print"]["target"]  = 255;
+            j["print"]["slot_id"] = 255; // the new protocol to mark unload
+
+        } else {
+            if (tray_id == 0) {
+                j["print"]["target"]  = atoi(ams_id.c_str());
+            } else {
+                j["print"]["target"]  = tray_id;
+            }
+
+            j["print"]["slot_id"] = atoi(slot_id.c_str());
+        }
+    } catch (const std::exception &) {}
+
     return this->publish_json(j.dump());
 }
 
@@ -3308,6 +3334,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         if (jj.contains("flag3")) {
                             int flag3 = jj["flag3"].get<int>();
                             is_support_filament_setting_inprinting =  get_flag_bits(flag3, 3);
+                            is_enable_ams_np =  get_flag_bits(flag3, 9);
                         }
                     }
                     if (!key_field_only) {
