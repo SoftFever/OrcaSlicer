@@ -923,6 +923,8 @@ void AMSControl::ClearAms() {
     m_current_ams      = "";
     m_current_select   = "";
 
+    m_ams_generic_item_list.clear();
+    m_ams_extra_item_list.clear();
     m_ams_item_list.clear();
     m_sizer_prv->Clear();
 }
