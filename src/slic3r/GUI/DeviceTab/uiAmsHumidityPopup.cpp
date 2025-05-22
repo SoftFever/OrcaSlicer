@@ -44,7 +44,7 @@ void uiAmsPercentHumidityDryPopup::Create()
 
     m_close_btn = new ScalableButton(this, wxID_ANY, "hum_popup_close");
     m_close_btn->SetBackgroundColour(*wxWHITE);
-    m_close_btn->Bind(wxEVT_LEFT_UP, [this](auto& e) { Dismiss(); });
+    m_close_btn->Bind(wxEVT_LEFT_UP, [this](auto& e) { Dismiss(); e.Skip(); });
     title_sizer->AddStretchSpacer();
     title_sizer->Add(title, 0, wxALIGN_CENTER_HORIZONTAL);
     title_sizer->AddStretchSpacer();
