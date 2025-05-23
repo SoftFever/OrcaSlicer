@@ -464,17 +464,29 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         case EViewType::ThermalIndexMax:
         case EViewType::ThermalIndexMean:
         {
-            sprintf(buf, "%s%.1f", min.c_str(), m_curr_move.thermal_index_min);
+            if (m_curr_move.thermal_index_min < -100) 
+				sprintf(buf, "%snull", min.c_str());
+			else
+				sprintf(buf, "%s%.1f", min.c_str(), m_curr_move.thermal_index_min);
+
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
 
             ImGui::SameLine(startx2);
-            sprintf(buf, "%s%.1f", max.c_str(), m_curr_move.thermal_index_max);
+
+            if (m_curr_move.thermal_index_max < -100) 
+				sprintf(buf, "%snull", max.c_str());
+			else
+				sprintf(buf, "%s%.1f", max.c_str(), m_curr_move.thermal_index_max);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
 
             ImGui::SameLine(startx3);
-            sprintf(buf, "%s%.1f", mean.c_str(), m_curr_move.thermal_index_mean);
+
+            if (m_curr_move.thermal_index_mean < -100) 
+				sprintf(buf, "%snull", mean.c_str());
+			else
+				sprintf(buf, "%s%.1f", mean.c_str(), m_curr_move.thermal_index_mean);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
