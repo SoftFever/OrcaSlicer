@@ -314,7 +314,7 @@ void FanOperate::doRender(wxDC& dc)
 
     //txt
     dc.SetFont(::Label::Body_12);
-    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x898989)));
+    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#898989")));
     wxString text = wxString::Format("%d%%", m_current_speeds * 10);
     wxSize text_size = dc.GetTextExtent(text);
     auto text_width = size.x - m_bitmap_decrease.GetBmpWidth() * 2;
@@ -938,17 +938,17 @@ void FanControlPopupNew::paintEvent(wxPaintEvent& evt)
 
 void FanControlPopupNew::on_mode_changed(const wxMouseEvent &event)
 {
-    if (m_obj && m_obj->is_in_printing()) {
-        MessageDialog msg_wingow(nullptr, _L("The selected material only supports the current fan mode, and it can't be changed during printing."), "", wxICON_WARNING | wxOK);
-        msg_wingow.ShowModal();
-        return;
-    }
-
     size_t btn_list_size = m_mode_switch_btn_list.size();
     for (size_t i = 0; i < btn_list_size; ++i) {
         if (m_mode_switch_btn_list[i]->GetId() == event.GetId()) {
-            if (m_mode_switch_btn_list[i]->isSelected())
+            if (m_mode_switch_btn_list[i]->isSelected()) { return;}
+
+            if (m_obj && m_obj->is_in_printing()) {
+                MessageDialog msg_wingow(nullptr, _L("The selected material only supports the current fan mode, and it can't be changed during printing."), "", wxICON_WARNING | wxOK);
+                msg_wingow.ShowModal();
                 return;
+            }
+
             m_mode_switch_btn_list[i]->setSelected(true);
             command_control_air_duct(i);
         } else {
