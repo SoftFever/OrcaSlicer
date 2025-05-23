@@ -283,7 +283,7 @@ PrinterArch get_printer_arch_by_str(std::string arch_str)
     return PrinterArch::ARCH_CORE_XY;
 }
 
-void check_filaments_for_vt_slot(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, std::string &info)
+void check_filaments_for_vt_slot(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, wxString &info)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -301,12 +301,12 @@ void check_filaments_for_vt_slot(const std::string &tag_vendor, const std::strin
         wxString info_str = wxString::Format(_L("TPU is not supported by %s extruder for this printer."), extruder_name);
 
         ac           = "prohibition";
-        info         = info_str.ToUTF8().data();
+        info         = info_str;
         in_blacklist = true;
     }
 }
 
-bool check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, const std::string& filament_id, int ams_id, bool &in_blacklist, std::string &ac, std::string &info)
+bool check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, const std::string& filament_id, int ams_id, bool &in_blacklist, std::string &ac, wxString &info)
 {
    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
    if (!dev) {
@@ -7882,7 +7882,7 @@ void check_filaments_for_ams_slot(std::string model_id,
                                   std::string        tag_name,
                                   bool& in_blacklist,
                                   std::string& ac,
-                                  std::string& info)
+                                  wxString& info)
 {
     if (tag_name.empty())
     {
@@ -7949,7 +7949,7 @@ void check_filaments_for_ams_slot(std::string model_id,
 
             in_blacklist = true;
             ac = action;
-            info = blacklist_prompt[description].ToStdString();
+            info = blacklist_prompt[description];
             return;
         }
     }
@@ -7966,7 +7966,7 @@ void DeviceManager::check_filaments_in_blacklist(std::string model_id,
                                                  std::string        tag_name,
                                                  bool              &in_blacklist,
                                                  std::string       &ac,
-                                                 std::string       &info)
+                                                 wxString       &info)
 {
     if (ams_id < 0 || slot_id < 0) {
         return;
