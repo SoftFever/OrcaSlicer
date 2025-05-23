@@ -642,7 +642,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("bridge_no_support", !support_is_normal_tree);
     toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
-    for (auto el : { "support_interface_spacing", "support_interface_filament",
+    for (auto el : { "support_interface_filament",
         "support_interface_loop_pattern", "support_bottom_interface_spacing" })
         toggle_field(el, have_support_material && have_support_interface);
 
@@ -651,6 +651,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_support_ironing = can_ironing_support && config->opt_bool("support_ironing");
     for (auto el : {"support_ironing_pattern", "support_ironing_flow", "support_ironing_spacing" })
         toggle_line(el, has_support_ironing);
+    // Orca: Force solid support interface when using support ironing
+    toggle_field("support_interface_spacing", have_support_material && have_support_interface && !has_support_ironing);
 
     bool have_skirt_height = have_skirt &&
     (config->opt_int("skirt_height") > 1 || config->opt_enum<DraftShield>("draft_shield") != dsEnabled);

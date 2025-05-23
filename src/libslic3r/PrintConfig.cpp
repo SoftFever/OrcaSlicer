@@ -4843,7 +4843,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_interface_spacing", coFloat);
     def->label = L("Top interface spacing");
     def->category = L("Support");
-    def->tooltip = L("Spacing of interface lines. Zero means solid interface");
+    def->tooltip = L("Spacing of interface lines. Zero means solid interface.\n"
+                     "Force using solid interface when support ironing is enabled.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
