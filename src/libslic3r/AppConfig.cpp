@@ -408,8 +408,8 @@ void AppConfig::set_defaults()
         set_str("print", "timelapse", "1");
     }
 
-    if (get("jusprin_server", "server_url").empty()) {
-        set("jusprin_server", "server_url", "https://app.obico.io");
+    if (get("jusprin_server", "base_url").empty()) {
+        set("jusprin_server", "base_url", "https://app.obico.io");
     }
 
     // Remove legacy window positions/sizes

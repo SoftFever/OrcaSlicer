@@ -168,7 +168,7 @@ void JusPrinChatPanel::SendSlicingProgressEvent(float percentage, const std::str
 // Actions for preload.html only
 void JusPrinChatPanel::handle_init_server_url_and_redirect(const nlohmann::json& params) {
     bool isDeveloperMode = wxGetApp().app_config->get_bool("developer_mode");
-    wxString server_url = wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io");
+    wxString server_url = wxGetApp().app_config->get_with_default("jusprin_server", "base_url", "https://app.obico.io");
     wxString chat_server_url = server_url + "/jusprin";
     wxString strJS = wxString::Format(
         "var CHAT_SERVER_URL = '%s'; checkAndRedirectToChatServer(developerMode =%s);",
@@ -389,7 +389,7 @@ void JusPrinChatPanel::OnLoaded(wxWebViewEvent& evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": page loaded: %1% %2% %3%") % evt.GetURL() % evt.GetTarget() % evt.GetString();
 
-    wxString server_url = wxGetApp().app_config->get_with_default("jusprin_server", "server_url", "https://app.obico.io");
+    wxString server_url = wxGetApp().app_config->get_with_default("jusprin_server", "base_url", "https://app.obico.io");
     wxString chat_server_url = server_url + "/jusprin";
     if (evt.GetURL().Contains(chat_server_url)) {
         AdvertiseSupportedAction();
