@@ -587,7 +587,7 @@ void Sidebar::priv::flush_printer_sync(bool restart)
         *counter_sync_printer = 6;
         timer_sync_printer->Start(500);
     }
-    btn_sync_printer->SetBackgroundColorNormal((*counter_sync_printer & 1) ? 0xF8F8F8 : 0x00AE42);
+    btn_sync_printer->SetBackgroundColorNormal((*counter_sync_printer & 1) ? "#F8F8F8" :"#00AE42");
     if (--*counter_sync_printer <= 0)
         timer_sync_printer->Stop();
 }
@@ -1613,10 +1613,9 @@ Sidebar::Sidebar(Plater *parent)
         /*************************** 2. add printer content ************************/
         p->m_panel_printer_content = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
         p->m_panel_printer_content->SetBackgroundColour(wxColour(255, 255, 255));
-
-        StateColor panel_bd_col(std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Pressed), 
-                                std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Hovered),
-                                std::pair<wxColour, int>(wxColour(0xEEEEEE), StateColor::Normal));
+        StateColor panel_bd_col(std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Pressed),
+                                std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Hovered),
+                                std::pair<wxColour, int>(wxColour("#EEEEEE"), StateColor::Normal));
 
         p->panel_printer_preset = new StaticBox(p->m_panel_printer_content);
         p->panel_printer_preset->SetCornerRadius(8);
@@ -1748,13 +1747,13 @@ Sidebar::Sidebar(Plater *parent)
         btn_sync->SetToolTip(_L("Synchronize nozzle information and the number of AMS"));
         btn_sync->SetCornerRadius(8);
         StateColor btn_sync_bg_col(
-                std::pair<wxColour, int>(wxColour(0xCECECE), StateColor::Pressed),
-                std::pair<wxColour, int>(wxColour(0xF8F8F8), StateColor::Hovered),
-                std::pair<wxColour, int>(wxColour(0xF8F8F8), StateColor::Normal));
+                std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Pressed),
+                std::pair<wxColour, int>(wxColour("#F8F8F8"), StateColor::Hovered),
+                std::pair<wxColour, int>(wxColour("#F8F8F8"), StateColor::Normal));
         StateColor btn_sync_bd_col(
-                std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Pressed),
-                std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Hovered),
-                std::pair<wxColour, int>(wxColour(0xEEEEEE), StateColor::Normal));
+                std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Pressed),
+                std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Hovered),
+                std::pair<wxColour, int>(wxColour("#EEEEEE"), StateColor::Normal));
         btn_sync->SetBackgroundColor(btn_sync_bg_col);
         btn_sync->SetBorderColor(btn_sync_bd_col);
         btn_sync->SetCanFocus(false);

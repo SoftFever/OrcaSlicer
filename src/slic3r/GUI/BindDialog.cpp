@@ -475,7 +475,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_link_Terms_title->SetFont(Label::Head_13);
      m_link_Terms_title->SetMaxSize(wxSize(FromDIP(450), -1));
      m_link_Terms_title->Wrap(FromDIP(450));
-     m_link_Terms_title->SetForegroundColour(wxColour(0x009688));
+     m_link_Terms_title->SetForegroundColour(wxColour("#009688"));
      m_link_Terms_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
          wxString txt = _L("Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. "
                            "By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). "
@@ -496,7 +496,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_link_privacy_title->SetFont(Label::Head_13);
      m_link_privacy_title->SetMaxSize(wxSize(FromDIP(450), -1));
      m_link_privacy_title->Wrap(FromDIP(450));
-     m_link_privacy_title->SetForegroundColour(wxColour(0x009688));
+     m_link_privacy_title->SetForegroundColour(wxColour("#009688"));
      m_link_privacy_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
          std::string url;
          std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
@@ -536,7 +536,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_link_notice_title->SetFont(Label::Head_13);
      m_link_notice_title->SetMaxSize(wxSize(FromDIP(450), -1));
      m_link_notice_title->Wrap(FromDIP(450));
-     m_link_notice_title->SetForegroundColour(wxColour(0x009688));
+     m_link_notice_title->SetForegroundColour(wxColour("#009688"));
      m_link_notice_title->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
      m_link_notice_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
      m_link_notice_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
