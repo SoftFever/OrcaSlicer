@@ -92,7 +92,7 @@ bool PrinterWebView::Show(bool show)
 {
     if (show && !m_url_deferred.empty()) {
         m_browser->LoadURL(m_url_deferred);
-        m_url_deferred = *wxEmptyString;
+        m_url_deferred.clear();
     }
     return wxPanel::Show(show);
 }
