@@ -1902,14 +1902,14 @@ void GLGizmoMeasure::show_selection_ui()
     if (m_selected_wrong_feature_waring_tip) {
         if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
             if (m_assembly_mode == AssemblyMode::FACE_FACE) {
-                m_imgui->warning_text(_L("Warning:please select Plane's feature."));
+                m_imgui->warning_text(_L("Warning: please select Plane's feature."));
             } else if (m_assembly_mode == AssemblyMode::POINT_POINT) {
-                m_imgui->warning_text(_L("Warning:please select Point's or Circle's feature."));
+                m_imgui->warning_text(_L("Warning: please select Point's or Circle's feature."));
             }
         }
     }
     if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY && m_hit_different_volumes.size() == 1) {
-        m_imgui->warning_text(_L("Warning:please select two different mesh."));
+        m_imgui->warning_text(_L("Warning: please select two different meshes."));
     }
 }
 
@@ -2108,7 +2108,7 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
                 m_buffered_around_center = 0;
             }
             ImGui::SameLine(rotate_around_center_size + m_space_size + m_input_size_max + m_space_size / 2.0f);
-            m_imgui->text(_L("°"));
+            m_imgui->text("°");
         }
     }
 }

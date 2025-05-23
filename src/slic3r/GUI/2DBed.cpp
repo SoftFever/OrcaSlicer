@@ -15,7 +15,7 @@ namespace GUI {
 
 
 Bed_2D::Bed_2D(wxWindow* parent) : 
-wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(25 * wxGetApp().em_unit(), -1), wxTAB_TRAVERSAL)
+wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(32 * wxGetApp().em_unit(), -1), wxTAB_TRAVERSAL)
 {
 #ifdef __APPLE__
     m_user_drawn_background = false;
@@ -247,13 +247,13 @@ void Bed_2D::repaint(const std::vector<Vec2d>& shape)
 // convert G - code coordinates into pixels
 Point Bed_2D::to_pixels(const Vec2d& point, int height)
 {
-	auto p = point * m_scale_factor + m_shift;
+    Vec2d p = point * m_scale_factor + m_shift;
     return Point(p(0) + Border, height - p(1) + Border);
 }
 
 Point Bed_2D::to_pixels(const Point& point, int height)
 {
-	auto p = point * m_scale_factor + Point(m_shift);
+    Point p = point * m_scale_factor + Point(m_shift);
     return Point(p(0) + Border, height - p(1) + Border);
 }
 
