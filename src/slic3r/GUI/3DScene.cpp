@@ -1070,10 +1070,13 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
         glsafe(::glDisable(GL_BLEND));
 }
 
-bool GLVolumeCollection::check_wipe_tower_outside_state(const Slic3r::BuildVolume &build_volume) const
+bool GLVolumeCollection::check_wipe_tower_outside_state(const Slic3r::BuildVolume &build_volume, int plate_id) const
 {
     for (GLVolume *volume : this->volumes) {
         if (volume->is_wipe_tower) {
+            int wipe_tower_plate_id = volume->composite_id.object_id - 1000;
+            if (wipe_tower_plate_id != plate_id)
+                continue;
             const std::vector<Vec2d>& printable_area = build_volume.printable_area();
             Polygon printable_poly = Polygon::new_scale(printable_area);
 

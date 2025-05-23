@@ -3012,8 +3012,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
            // const bool objectLimited = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Limited);
 
-            bool show_read_wipe_tower = wxGetApp().plater()->get_partplate_list().get_selected_plate()->fff_print()->is_step_done(psWipeTower);
-            bool wipe_tower_outside = m_volumes.check_wipe_tower_outside_state(m_bed.build_volume());
+            PartPlate *cur_plate  = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+            bool show_read_wipe_tower = cur_plate->fff_print()->is_step_done(psWipeTower);
+            bool       wipe_tower_outside   = m_volumes.check_wipe_tower_outside_state(m_bed.build_volume(), wxGetApp().plater()->get_partplate_list().get_curr_plate_index());
             bool show_wipe_tower_outside_error = show_read_wipe_tower ? !wipe_tower_outside : false;
             _set_warning_notification(EWarning::PrimeTowerOutside, show_wipe_tower_outside_error);
 
@@ -3029,7 +3030,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             //if (printer_technology != ptSLA || !contained_min_one)
             //    _set_warning_notification(EWarning::SlaSupportsOutside, false);
 
-            PartPlate* cur_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
             bool tpu_valid = cur_plate->check_tpu_printable_status(wxGetApp().preset_bundle->full_config(), wxGetApp().preset_bundle->get_used_tpu_filaments(cur_plate->get_extruders(true)));
             _set_warning_notification(EWarning::TPUPrintableError, !tpu_valid);
 

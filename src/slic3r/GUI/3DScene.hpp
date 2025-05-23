@@ -535,7 +535,7 @@ public:
     // returns the containment state in the given out_state, if non-null
     bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state, ObjectFilamentResults* object_results) const;
     void reset_outside_state();
-    bool check_wipe_tower_outside_state(const Slic3r::BuildVolume &build_volume) const;
+    bool check_wipe_tower_outside_state(const Slic3r::BuildVolume &build_volume, int plate_id) const;
 
     void update_colors_by_extruder(const DynamicPrintConfig *config, bool is_update_alpha = true);
 
