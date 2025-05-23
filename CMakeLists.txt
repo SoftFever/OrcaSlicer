@@ -275,6 +275,10 @@ foreach (DIR ${PREFIX_PATH_CHECK})
     endif ()
 endforeach ()
 
+if (APPLE AND CMAKE_MACOSX_RPATH AND "${CMAKE_INSTALL_RPATH}" STREQUAL "")
+    set(CMAKE_INSTALL_RPATH ${CMAKE_PREFIX_PATH})
+endif ()
+
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
 message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
