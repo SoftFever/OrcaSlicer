@@ -525,7 +525,7 @@ wxBoxSizer *PreferencesDialog::create_item_text_input(wxString title, wxString t
     auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(200), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
-    input->GetTextCtrl()->SetValue(app_config->get_with_default(section, param, "https://app.obico.io/jusprin"));
+    input->GetTextCtrl()->SetValue(app_config->get_with_default(section, param, "https://app.obico.io"));
 
     auto second_title = new wxStaticText(parent, wxID_ANY, title2, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
     second_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
