@@ -2953,31 +2953,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     if (!current_print->is_step_done(psWipeTower) || !current_print->wipe_tower_data().wipe_tower_mesh_data) {
                         // update for wipe tower position
                         {
-                            bool     need_update                  = false;
-                            if (x + margin + wipe_tower_size(0) > plate_bbox_x_max_local_coord) {
-                                x           = plate_bbox_x_max_local_coord - wipe_tower_size(0) - margin;
-                                need_update = true;
-                            } else if (x < margin + plate_bbox_x_min_local_coord) {
-                                x           = margin + plate_bbox_x_min_local_coord;
-                                need_update = true;
-                            }
-                            if (need_update) {
-                                ConfigOptionFloat wt_x_opt(x);
-                                dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_id, 0);
-                                need_update = false;
-                            }
-
-                            if (y + margin + wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
-                                y           = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
-                                need_update = true;
-                            } else if (y < margin) {
-                                y           = margin;
-                                need_update = true;
-                            }
-                            if (need_update) {
-                                ConfigOptionFloat wt_y_opt(y);
-                                dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_id, 0);
-                            }
                             int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(1000 + plate_id, x + plate_origin(0), y + plate_origin(1),
                                                                                               (float) wipe_tower_size(0), (float) wipe_tower_size(1), (float) wipe_tower_size(2),
                                                                                               a,
@@ -2994,15 +2969,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                         BoundingBoxf3 plate_bbox        = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_build_volume(true);
                         BoundingBox   plate_bbox2d      = BoundingBox(scaled(Vec2f(plate_bbox.min[0], plate_bbox.min[1])), scaled(Vec2f(plate_bbox.max[0], plate_bbox.max[1])));
                         Vec2f         offset            = WipeTower::move_box_inside_box(tower_bottom_bbox, plate_bbox2d, scaled(margin));
-                        if (!is_approx(offset[0], 0.f)) {
-                            ConfigOptionFloat wt_x_opt(x + offset[0]);
-                            dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_id, 0);
-                        }
-                        if (!is_approx(offset[1], 0.f)) {
-                            ConfigOptionFloat wt_y_opt(y + offset[1]);
-                            dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_id, 0);
-                        }
-                        int volume_idx_wipe_tower_new = m_volumes.load_real_wipe_tower_preview(1000 + plate_id, x + plate_origin(0) + offset[0], y + plate_origin(1) + offset[1],
+                        int volume_idx_wipe_tower_new = m_volumes.load_real_wipe_tower_preview(1000 + plate_id, x + plate_origin(0), y + plate_origin(1),
                                                                                                current_print->wipe_tower_data().wipe_tower_mesh_data->real_wipe_tower_mesh,
                                                                                                current_print->wipe_tower_data().wipe_tower_mesh_data->real_brim_mesh,
                                                                                             true,a,/*!print->is_step_done(psWipeTower)*/ true, m_initialized);
@@ -3035,10 +3002,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     //BBS:exclude the assmble view
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
-        _set_warning_notification_if_needed(EWarning::GCodeConflict);
-        _set_warning_notification(EWarning::FilamentUnPrintableOnFirstLayer, false);
-        _set_warning_notification_if_needed(EWarning::MultiExtruderPrintableError);
-        _set_warning_notification_if_needed(EWarning::MultiExtruderHeightOutside);
+        _update_slice_error_status();
         // checks for geometry outside the print volume to render it accordingly
         if (!m_volumes.empty()) {
             ModelInstanceEPrintVolumeState state;
@@ -3048,8 +3012,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             const bool fullyOut = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Fully_Outside);
            // const bool objectLimited = (state == ModelInstanceEPrintVolumeState::ModelInstancePVS_Limited);
 
+            bool show_read_wipe_tower = wxGetApp().plater()->get_partplate_list().get_selected_plate()->fff_print()->is_step_done(psWipeTower);
             bool wipe_tower_outside = m_volumes.check_wipe_tower_outside_state(m_bed.build_volume());
-            _set_warning_notification(EWarning::PrimeTowerOutside, !wipe_tower_outside);
+            bool show_wipe_tower_outside_error = show_read_wipe_tower ? !wipe_tower_outside : false;
+            _set_warning_notification(EWarning::PrimeTowerOutside, show_wipe_tower_outside_error);
 
             auto clash_flag = construct_error_string(object_results, get_object_clashed_text());
             auto unprintable_flag= construct_extruder_unprintable_error(object_results, get_left_extruder_unprintable_text(), get_right_extruder_unprintable_text());
@@ -3073,7 +3039,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool mix_pla_and_petg = cur_plate->check_mixture_of_pla_and_petg(wxGetApp().preset_bundle->full_config());
             _set_warning_notification(EWarning::MixUsePLAAndPETG, !mix_pla_and_petg);
 
-            bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid && filament_printable;
+            bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid && filament_printable && !show_wipe_tower_outside_error;
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, model_fits));
             ppl.get_curr_plate()->update_slice_ready_status(model_fits);
         }
@@ -3165,13 +3131,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
 
     if (wxGetApp().is_editor()) {
         //BBS: always load shell at preview, do this in load_shells
-        //m_gcode_viewer.update_shells_color_by_extruder(m_config);
-        _set_warning_notification_if_needed(EWarning::ToolHeightOutside);
-        _set_warning_notification_if_needed(EWarning::ToolpathOutside);
-        _set_warning_notification_if_needed(EWarning::GCodeConflict);
-        _set_warning_notification_if_needed(EWarning::MultiExtruderPrintableError);
-        _set_warning_notification_if_needed(EWarning::MultiExtruderHeightOutside);
-        _set_warning_notification_if_needed(EWarning::FilamentUnPrintableOnFirstLayer);
+        _update_slice_error_status();
     }
 
     m_gcode_viewer.refresh(gcode_result, str_tool_colors);
@@ -6630,6 +6590,16 @@ void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned
 }
 
 //BBS: GUI refractor
+
+void GLCanvas3D::_update_slice_error_status()
+{
+    _set_warning_notification_if_needed(EWarning::ToolHeightOutside);
+    _set_warning_notification_if_needed(EWarning::ToolpathOutside);
+    _set_warning_notification_if_needed(EWarning::GCodeConflict);
+    _set_warning_notification_if_needed(EWarning::MultiExtruderPrintableError);
+    _set_warning_notification_if_needed(EWarning::MultiExtruderHeightOutside);
+    _set_warning_notification_if_needed(EWarning::FilamentUnPrintableOnFirstLayer);
+}
 
 void GLCanvas3D::_switch_toolbars_icon_filename()
 {
@@ -10133,7 +10103,8 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         text = _u8L("PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality.");
         break;
     case EWarning::PrimeTowerOutside:
-        text = _u8L("The prime tower extends beyond the plate boundary, which may cause part of the prime tower to lie outside the printable area after slicing.");
+        text  = _u8L("The prime tower extends beyond the plate boundary.");
+        error = ErrorType::SLICING_ERROR;
         break;
     }
     //BBS: this may happened when exit the app, plater is null

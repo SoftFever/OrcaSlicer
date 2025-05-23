@@ -1189,6 +1189,8 @@ public:
 private:
     bool _is_shown_on_screen() const;
 
+    void _update_slice_error_status();
+
     void _switch_toolbars_icon_filename();
     bool _init_toolbars();
     bool _init_main_toolbar();
