@@ -1,0 +1,18 @@
+{
+    "type": "process",
+    "name": "0.20mm Standard @BBL H2",
+    "inherits": "fdm_process_single_0.20",
+    "from": "system",
+    "setting_id": "GP131",
+    "instantiation": "true",
+    "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
+    "prime_tower_flat_ironing": "1",
+    "prime_tower_width": "60",
+    "smooth_coefficient": "4",
+    "travel_speed": [
+        "1000"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle"
+    ]
+}

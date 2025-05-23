@@ -1,0 +1,22 @@
+{
+    "type": "filament",
+    "name": "Generic PETG @BBL H2",
+    "inherits": "Generic PETG @base",
+    "from": "system",
+    "setting_id": "GFSG99_07",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

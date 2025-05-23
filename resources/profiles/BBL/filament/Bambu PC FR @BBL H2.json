@@ -1,0 +1,23 @@
+{
+    "type": "filament",
+    "name": "Bambu PC FR @BBL H2",
+    "inherits": "Bambu PC FR @base",
+    "from": "system",
+    "setting_id": "GFSC01_34",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
+    "fan_max_speed": [
+        "40"
+    ],
+    "slow_down_layer_time": [
+        "12"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

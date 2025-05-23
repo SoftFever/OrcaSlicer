@@ -1,0 +1,31 @@
+{
+    "type": "filament",
+    "name": "Bambu TPU 85A @BBL H2",
+    "inherits": "Bambu TPU 85A @base",
+    "from": "system",
+    "setting_id": "GFSU04_07",
+    "instantiation": "true",
+    "filament_deretraction_speed": [
+        "10"
+    ],
+    "filament_max_volumetric_speed": [
+        "3"
+    ],
+    "filament_retraction_length": [
+        "2"
+    ],
+    "filament_retraction_speed": [
+        "10"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

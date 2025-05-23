@@ -1,0 +1,19 @@
+{
+    "type": "filament",
+    "name": "Bambu PAHT-CF @BBL H2",
+    "inherits": "Bambu PAHT-CF @base",
+    "from": "system",
+    "setting_id": "GFSN04_08",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

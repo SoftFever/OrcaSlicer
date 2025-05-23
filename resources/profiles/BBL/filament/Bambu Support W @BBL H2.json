@@ -1,0 +1,29 @@
+{
+    "type": "filament",
+    "name": "Bambu Support W @BBL H2",
+    "inherits": "Bambu Support W @base",
+    "from": "system",
+    "setting_id": "GFSS00_07",
+    "instantiation": "true",
+    "description": "This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function.",
+    "additional_cooling_fan_speed": [
+        "75"
+    ],
+    "fan_max_speed": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "60"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

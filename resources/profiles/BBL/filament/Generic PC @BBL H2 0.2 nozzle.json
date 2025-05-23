@@ -1,0 +1,21 @@
+{
+    "type": "filament",
+    "name": "Generic PC @BBL H2 0.2 nozzle",
+    "inherits": "Generic PC @base",
+    "from": "system",
+    "setting_id": "GFSC99_12",
+    "instantiation": "true",
+    "description": "When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.2 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM145 P1"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

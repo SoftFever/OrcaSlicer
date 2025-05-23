@@ -1,0 +1,22 @@
+{
+    "type": "filament",
+    "name": "Overture PLA @BBL H2",
+    "inherits": "Overture PLA @base",
+    "from": "system",
+    "setting_id": "GFSL04_11",
+    "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "75"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

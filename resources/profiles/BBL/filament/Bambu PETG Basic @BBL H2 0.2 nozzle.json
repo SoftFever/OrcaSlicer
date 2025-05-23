@@ -1,0 +1,24 @@
+{
+    "type": "filament",
+    "name": "Bambu PETG Basic @BBL H2 0.2 nozzle",
+    "inherits": "Bambu PETG Basic @base",
+    "from": "system",
+    "setting_id": "GFSG00_11",
+    "instantiation": "true",
+    "description": "To get better transparent or translucent results with the corresponding filament, please refer to this wiki: Printing tips for transparent PETG.",
+    "filament_long_retractions_when_cut": [
+        "0"
+    ],
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "filament_retraction_distances_when_cut": [
+        "10"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.2 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
+    ]
+}

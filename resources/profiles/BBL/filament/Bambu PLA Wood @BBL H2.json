@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "name": "Bambu PLA Wood @BBL H2",
+    "inherits": "Bambu PLA Wood @base",
+    "from": "system",
+    "setting_id": "GFSA16_16",
+    "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "75"
+    ],
+    "fan_max_speed": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "60"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

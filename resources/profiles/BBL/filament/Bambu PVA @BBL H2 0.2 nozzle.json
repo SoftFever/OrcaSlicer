@@ -1,0 +1,23 @@
+{
+    "type": "filament",
+    "name": "Bambu PVA @BBL H2 0.2 nozzle",
+    "inherits": "Bambu PVA @base",
+    "from": "system",
+    "setting_id": "GFSS04_21",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "nozzle_temperature": [
+        "240"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "240"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.2 nozzle"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

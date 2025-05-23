@@ -1,0 +1,28 @@
+{
+    "type": "filament",
+    "name": "Bambu PA6-GF @BBL H2",
+    "inherits": "Bambu PA6-GF @base",
+    "from": "system",
+    "setting_id": "GFSN08_10",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
+    "filament_max_volumetric_speed": [
+        "10.5"
+    ],
+    "nozzle_temperature": [
+        "265"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "265"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

@@ -1,0 +1,40 @@
+{
+    "type": "filament",
+    "name": "Bambu PLA Dynamic @BBL H2",
+    "inherits": "Bambu PLA Dynamic @base",
+    "from": "system",
+    "setting_id": "GFSA13_11",
+    "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "75"
+    ],
+    "fan_max_speed": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "60"
+    ],
+    "filament_flow_ratio": [
+        "0.98"
+    ],
+    "filament_max_volumetric_speed": [
+        "21"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n;M106 P3 S0\n"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

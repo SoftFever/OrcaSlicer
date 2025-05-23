@@ -1,0 +1,26 @@
+{
+    "type": "filament",
+    "name": "Bambu PET-CF @BBL H2",
+    "inherits": "Bambu PET-CF @base",
+    "from": "system",
+    "setting_id": "GFST01_04",
+    "instantiation": "true",
+    "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
+    "chamber_temperatures": [
+        "60"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

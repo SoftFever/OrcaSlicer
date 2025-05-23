@@ -1,0 +1,37 @@
+{
+    "type": "filament",
+    "name": "Bambu TPU for AMS @BBL H2",
+    "inherits": "Bambu TPU for AMS @base",
+    "from": "system",
+    "setting_id": "GFSU02_11",
+    "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "100"
+    ],
+    "fan_max_speed": [
+        "60"
+    ],
+    "filament_deretraction_speed": [
+        "nil"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "filament_retraction_length": [
+        "0.4"
+    ],
+    "filament_retraction_speed": [
+        "nil"
+    ],
+    "slow_down_layer_time": [
+        "12"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

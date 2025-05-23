@@ -1,0 +1,26 @@
+{
+    "type": "filament",
+    "name": "Bambu PLA Aero @BBL H2",
+    "inherits": "Bambu PLA Aero @base",
+    "from": "system",
+    "setting_id": "GFSA11_07",
+    "instantiation": "true",
+    "description": "This filament is only used to print models with a low density usually, and some special parameters are required. To get better printing quality, please refer to this wiki: Instructions for printing RC model with foaming PLA (PLA Aero).",
+    "additional_cooling_fan_speed": [
+        "0"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.4 nozzle",
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

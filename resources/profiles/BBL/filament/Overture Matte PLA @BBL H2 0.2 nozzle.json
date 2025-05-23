@@ -1,0 +1,23 @@
+{
+    "type": "filament",
+    "name": "Overture Matte PLA @BBL H2 0.2 nozzle",
+    "inherits": "Overture Matte PLA @base",
+    "from": "system",
+    "setting_id": "GFSL05_12",
+    "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "75"
+    ],
+    "filament_max_volumetric_speed": [
+        "1.8"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.2 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

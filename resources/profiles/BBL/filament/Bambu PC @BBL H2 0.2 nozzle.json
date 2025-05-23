@@ -1,0 +1,29 @@
+{
+    "type": "filament",
+    "name": "Bambu PC @BBL H2 0.2 nozzle",
+    "inherits": "Bambu PC @base",
+    "from": "system",
+    "setting_id": "GFSC00_17",
+    "instantiation": "true",
+    "fan_max_speed": [
+        "40"
+    ],
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "nozzle_temperature": [
+        "260"
+    ],
+    "slow_down_layer_time": [
+        "12"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.2 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\nM145 P1"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ]
+}

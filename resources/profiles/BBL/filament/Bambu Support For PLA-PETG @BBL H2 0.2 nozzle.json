@@ -1,0 +1,26 @@
+{
+    "type": "filament",
+    "name": "Bambu Support For PLA/PETG @BBL H2 0.2 nozzle",
+    "inherits": "Bambu Support For PLA/PETG @base",
+    "from": "system",
+    "setting_id": "GFSS05_21",
+    "instantiation": "true",
+    "eng_plate_temp": [
+        "60"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "60"
+    ],
+    "filament_long_retractions_when_cut": [
+        "0"
+    ],
+    "filament_max_volumetric_speed": [
+        "0.5"
+    ],
+    "filament_retraction_distances_when_cut": [
+        "18"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2 0.2 nozzle"
+    ]
+}
