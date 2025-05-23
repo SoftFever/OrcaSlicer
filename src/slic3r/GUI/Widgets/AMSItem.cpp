@@ -1608,7 +1608,7 @@ void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
     }
 
     // left end
-    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END) {
+    if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END || m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_END_ONLY) {
         for (auto i = 0; i < prord_list.size(); i++) {
             std::vector<AMSPassRoadMode>::iterator iter = std::find(end_types.begin(), end_types.end(), prord_list[i]);
             if (iter != end_types.end()) m_pass_rode_mode.push_back(prord_list[i]);
@@ -2219,7 +2219,7 @@ void AmsItem::Update(AMSinfo info)
         }
     }
 
-    if (m_ams_model == AMSModel::GENERIC_AMS) {
+    if (m_ams_model != AMSModel::AMS_LITE) {
         for (auto i = 0; i < m_can_road_list.size(); i++) {
             AMSRoad* road = m_can_road_list[std::to_string(i)];
             if (road != nullptr) {

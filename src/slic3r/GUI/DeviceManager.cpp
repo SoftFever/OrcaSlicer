@@ -713,24 +713,44 @@ bool MachineObject::is_extrusion_cali_finished()
 
 void MachineObject::_parse_tray_now(std::string tray_now)
 {
-    m_tray_now = tray_now;
     if (tray_now.empty()) {
         return;
     } else {
         try {
             int tray_now_int = atoi(tray_now.c_str());
-            if (tray_now_int >= 0 && tray_now_int < 16) {
-                m_ams_id = std::to_string(tray_now_int >> 2);
-                m_tray_id = std::to_string(tray_now_int & 0x3);
-            }
-            else if (tray_now_int == 255) {
+
+            if (tray_now_int == 255) {
                 m_ams_id = "0";
                 m_tray_id = "0";
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = "";
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "";
+
+                if (m_tray_now == std::to_string(255)) {
+                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(255);
+                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "0";
+                }
+            }
+            else if (tray_now_int == 254) {
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(254);
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "0";
+            }
+            else {
+                if (tray_now_int >= 0x80 &&  tray_now_int <= 0x87) {
+                    m_ams_id = std::to_string(tray_now_int);
+                } else {
+                    m_ams_id = std::to_string(tray_now_int >> 2);
+                }
+
+                m_tray_id                                          = std::to_string(tray_now_int & 0x3);
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = m_ams_id;
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = m_tray_id;
             }
         }
         catch(...) {
         }
     }
+
+    m_tray_now = tray_now;
 }
 
 Ams *MachineObject::get_curr_Ams()
