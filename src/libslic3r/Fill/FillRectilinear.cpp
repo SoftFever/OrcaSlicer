@@ -2963,7 +2963,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    if (params.full_infill()) {
+    if (params.full_infill() || ((2 * this->spacing) < (params.density * params.anchor_length_max))) {
         if (!fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out))
             BOOST_LOG_TRIVIAL(error) << "FillRectilinear::fill_surface() fill_surface_by_lines() failed to fill a region.";
     } else {
