@@ -522,7 +522,7 @@ wxBoxSizer *PreferencesDialog::create_item_text_input(wxString title, wxString t
     input_title->SetToolTip(tooltip);
     input_title->Wrap(-1);
 
-    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(200), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get_with_default(section, param, "https://app.obico.io/jusprin"));
@@ -535,7 +535,7 @@ wxBoxSizer *PreferencesDialog::create_item_text_input(wxString title, wxString t
 
     sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
     sizer_input->Add(input_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
-    sizer_input->Add(input, 0, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_input->Add(input, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
     sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 3);
     sizer_input->Add(second_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
 
