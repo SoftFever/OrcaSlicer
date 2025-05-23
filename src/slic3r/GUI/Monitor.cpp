@@ -193,7 +193,7 @@ MonitorPanel::~MonitorPanel()
     //m_tabpanel->AddPage(m_media_file_panel, _L("Internal Storage"), "", false);
 
     m_upgrade_panel = new UpgradePanel(m_tabpanel);
-    m_tabpanel->AddPage(m_upgrade_panel, _L("Update"), "", false);
+    m_tabpanel->AddPage(m_upgrade_panel, _CTX(L_CONTEXT("Update", "Firmware"), "Firmware"), "", false);
 
     m_hms_panel = new HMSPanel(m_tabpanel);
     m_tabpanel->AddPage(m_hms_panel, _L("Assistant(HMS)"),    "", false);
