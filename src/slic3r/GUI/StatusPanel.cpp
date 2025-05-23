@@ -5605,6 +5605,7 @@ wxBoxSizer *ScoreDialog::get_score_sizer() {
 wxBoxSizer *ScoreDialog::get_star_sizer()
 {
     wxBoxSizer *static_score_star_sizer = new wxBoxSizer(wxHORIZONTAL);
+    static_score_star_sizer->AddSpacer(FromDIP(20));
     m_score_star.resize(5);
     for (int i = 0; i < m_score_star.size(); ++i) {
         if (!m_success_printed && m_star_count > 3) {
@@ -5620,6 +5621,8 @@ wxBoxSizer *ScoreDialog::get_star_sizer()
             m_score_star[i] = new ScalableButton(this, wxID_ANY, "score_star_dark", wxEmptyString, wxSize(FromDIP(26), FromDIP(26)), wxDefaultPosition,
                                                  wxBU_EXACTFIT | wxNO_BORDER, true, 26);
 
+        m_score_star[i]->SetMinSize(wxSize(FromDIP(26), FromDIP(26)));
+        m_score_star[i]->SetMaxSize(wxSize(FromDIP(26), FromDIP(26)));
         m_score_star[i]->Bind(wxEVT_LEFT_DOWN, [this, i](auto &e) {
             if (!m_success_printed && i >= 3) {
                 warning_text->Show();
@@ -5644,7 +5647,7 @@ wxBoxSizer *ScoreDialog::get_star_sizer()
                 m_score_star[k]->SetBitmap(dark_star.bmp());
             }
         });
-        static_score_star_sizer->Add(m_score_star[i], 0, wxEXPAND | wxLEFT, FromDIP(20));
+        static_score_star_sizer->Add(m_score_star[i], 1, wxEXPAND | wxLEFT, FromDIP(5));
     }
 
     return static_score_star_sizer;
@@ -5770,7 +5773,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
     m_button_ok = new Button(this, _L("Submit"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour(0xFFFFFE));
+    m_button_ok->SetTextColor(wxColour("#FFFFFE"));
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -5976,7 +5979,7 @@ wxBoxSizer *ScoreDialog::get_main_sizer(const std::vector<std::pair<wxString, st
     m_main_sizer->Add(0, 0, 0, wxBOTTOM, FromDIP(8));
 
     wxBoxSizer *static_score_star_sizer = get_star_sizer();
-    m_main_sizer->Add(static_score_star_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(20));
+    m_main_sizer->Add(static_score_star_sizer, 1, wxEXPAND | wxBOTTOM, FromDIP(20));
 
     m_main_sizer->Add(warning_text, 0, wxEXPAND | wxLEFT, FromDIP(24));
     m_main_sizer->Add(0, 0, 0, wxBOTTOM, FromDIP(8));
