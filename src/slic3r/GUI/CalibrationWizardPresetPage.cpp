@@ -320,7 +320,7 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
             std::string decimal_point;
             std::string expression = "^[-+]?[0-9]+([,.][0-9]+)?$";
             std::regex decimalRegex(expression);
-            int decimal_number;
+            int decimal_number = 0;
             if (std::regex_match(number, decimalRegex)) {
                 std::smatch match;
                 if (std::regex_search(number, match, decimalRegex)) {
