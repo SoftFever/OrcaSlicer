@@ -2462,8 +2462,8 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
-        
-       
+
+
     }else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
         if (m_required_data_plate_data_list.size() > 0) {
             source_model = m_required_data_plate_data_list[m_print_plate_idx]->printer_model_id;
@@ -2481,81 +2481,52 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
     return false;
 }
 
-bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type, std::string& nozzle_diameter)
+
+/**************************************************************//*
+ * @param tag_nozzle_type -- return the mismatch nozzle type
+ * @param tag_nozzle_diameter -- return the target nozzle_diameter but mismatch
+ * @return is same or not
+/*************************************************************/
+bool SelectMachineDialog::is_same_nozzle_diameters(float &tag_nozzle_diameter) const
 {
-    bool  is_same_nozzle_diameters = true;
-
-    float       preset_nozzle_diameters;
-    std::string preset_nozzle_type;
-
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return true;
+    if (!dev) return false;
 
     MachineObject* obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr) return true;
+    if (obj_ == nullptr) return false;
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
+    if (!opt_nozzle_diameters)
+    {
+        return false;
+    }
 
     try
     {
-        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-        auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
-
-        const ConfigOptionEnum<NozzleType>* nozzle_type = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<NozzleType>>("nozzle_type");
-
-        if (nozzle_type->value == NozzleType::ntHardenedSteel) {
-            preset_nozzle_type = "hardened_steel";
-        }
-        else if (nozzle_type->value == NozzleType::ntStainlessSteel) {
-            preset_nozzle_type = "stainless_steel";
-        }
-
-        tag_nozzle_type = obj_->m_extder_data.extders[0].type;
-
-        auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
-        if (opt_nozzle_diameters != nullptr) {
-            for (auto i = 0; i < extruders.size(); i++) {
-                auto extruder = extruders[i] - 1;
-                preset_nozzle_diameters = float(opt_nozzle_diameters->get_at(extruder));
-                if (preset_nozzle_diameters != obj_->m_extder_data.extders[0].diameter) {
-                    is_same_nozzle_diameters = false;
-                }
+        auto extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
+        for (auto i = 0; i < extruders.size(); i++) {
+            auto extruder = extruders[i] - 1;
+            tag_nozzle_diameter = float(opt_nozzle_diameters->get_at(extruder));
+            if (tag_nozzle_diameter != obj_->m_extder_data.extders[0].current_nozzle_diameter) {
+                return false;
             }
         }
-
     }
-    catch (...)
+    catch (const std::exception&)
     {
+        return false;
     }
 
-    //nozzle_type = preset_nozzle_type;
-    nozzle_diameter = wxString::Format("%.2f", preset_nozzle_diameters).ToStdString();
-
-    return is_same_nozzle_diameters;
+    return true;
 }
 
-bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::string& tag_nozzle_type)
+bool SelectMachineDialog::is_same_nozzle_type(const Extder& extruder, std::string& filament_type) const
 {
-    bool  is_same_nozzle_type = true;
-
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return true;
-
-    MachineObject* obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr) return true;
-
-
-    NozzleType nozzle_type = NozzleType::ntUndefine;
-
-    if (obj_->m_extder_data.extders[0].type == "stainless_steel") {
-        nozzle_type = NozzleType::ntStainlessSteel;
-    }
-    else if (obj_->m_extder_data.extders[0].type == "hardened_steel") {
-        nozzle_type = NozzleType::ntHardenedSteel;
-    }
-
-    auto printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(nozzle_type);
+    auto printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(extruder.current_nozzle_type);
 
     auto preset_bundle = wxGetApp().preset_bundle;
-    MaterialHash::iterator iter = m_materialList.begin();
+    MaterialHash::const_iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
         Material* item = iter->second;
         MaterialItem* m = item->item;
@@ -2564,18 +2535,13 @@ bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::s
         if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
             filament_type = m->m_material_name.ToStdString();
             BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch: filament = " << filament_type << " printer_nozzle_hrc = " << printer_nozzle_hrc;
-            is_same_nozzle_type = false;
-            tag_nozzle_type = "hardened_steel";
-            return is_same_nozzle_type;
-        }
-        else {
-            tag_nozzle_type = DeviceManager::nozzle_type_conver(obj_->m_extder_data.extders[0].type);
+            return false;
         }
 
         iter++;
     }
 
-    return is_same_nozzle_type;
+    return true;
 }
 
 bool SelectMachineDialog::is_same_printer_model()
@@ -2758,17 +2724,16 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_text.push_back(ConfirmBeforeSendInfo(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.")));
     }
 
-    std::string nozzle_diameter;
-    std::string filament_type;
-    std::string tag_nozzle_type;
-
-    if (!obj_->m_extder_data.extders[0].type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
-        if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
+    if (!obj_->m_extder_data.extders[0].current_nozzle_type != ntUndefine && (m_print_type == PrintFromType::FROM_NORMAL))
+    {
+        float nozzle_diameter = 0;
+        if (!is_same_nozzle_diameters(nozzle_diameter))
+        {
             has_slice_warnings = true;
             // is_printing_block  = true;  # Removed to allow nozzle overrides (to support non-standard nozzles)
             
-            wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
-            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->m_extder_data.extders[0].diameter, "");
+            wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %.1f %s"),nozzle_diameter, "");
+            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->m_extder_data.extders[0].current_nozzle_diameter, "");
 
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.") 
                 + "\n    " + nozzle_in_preset 
@@ -2776,12 +2741,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
                 + "\n",  ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
         
-        if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
+        std::string filament_type;
+        if (!is_same_nozzle_type(obj_->m_extder_data.extders[0], filament_type))
+        {
             has_slice_warnings = true;
             is_printing_block = true;
-            nozzle_diameter =  wxString::Format("%.1f", obj_->m_extder_data.extders[0].diameter).ToStdString();
 
-                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material (%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->m_extder_data.extders[0].type));
+                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material (%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->m_extder_data.extders[0].current_nozzle_type));
             confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
     }
@@ -2850,17 +2816,18 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     }
 }
 
-wxString SelectMachineDialog::format_steel_name(std::string name)
+wxString SelectMachineDialog::format_steel_name(NozzleType type)
 {
-    if (name == "hardened_steel") {
+    if (type == NozzleType::ntHardenedSteel) {
         return _L("Hardened Steel");
     }
-    else if (name == "stainless_steel") {
+    else if (type == NozzleType::ntStainlessSteel) {
         return _L("Stainless Steel");
     }
 
-    return wxEmptyString;
+    return _L("Unknown");
 }
+
 
 void SelectMachineDialog::Enable_Auto_Refill(bool enable)
 {

@@ -98,18 +98,14 @@ static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, cons
     try {
         std::string nozzle_type;
         const ConfigOptionEnum<NozzleType> * config_nozzle_type = full_config.option<ConfigOptionEnum<NozzleType>>("nozzle_type");
-        if (config_nozzle_type->value == NozzleType::ntHardenedSteel) {
-            nozzle_type = "hardened_steel";
-        } else if (config_nozzle_type->value == NozzleType::ntStainlessSteel) {
-            nozzle_type = "stainless_steel";
-        }
+        nozzle_type = NozzleTypeEumnToStr[config_nozzle_type->value];
 
         auto opt_nozzle_diameters = full_config.option<ConfigOptionFloats>("nozzle_diameter");
         if (opt_nozzle_diameters != nullptr) {
             float preset_nozzle_diameter = opt_nozzle_diameters->get_at(0);
-            if (preset_nozzle_diameter != obj->m_extder_data.extders[0].diameter) {
+            if (preset_nozzle_diameter != obj->m_extder_data.extders[0].current_nozzle_diameter) {
                 wxString nozzle_in_preset  = wxString::Format(_L("nozzle in preset: %s %s"), wxString::Format("%.1f", preset_nozzle_diameter).ToStdString(), to_wstring_name(nozzle_type));
-                wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj->m_extder_data.extders[0].diameter, DeviceManager::nozzle_type_conver(obj->m_extder_data.extders[0].diameter));
+                wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj->m_extder_data.extders[0].current_nozzle_diameter, to_wstring_name(NozzleTypeEumnToStr[obj->m_extder_data.extders[0].current_nozzle_type]));
 
                 error_msg = _L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?") + "\n    " + nozzle_in_preset +
                             "\n    " + nozzle_in_printer + "\n";
@@ -127,21 +123,15 @@ static bool is_same_nozzle_type(const DynamicPrintConfig &full_config, const Mac
     if (obj == nullptr)
         return true;
 
-    NozzleType nozzle_type = NozzleType::ntUndefine;
-
-    if (obj->m_extder_data.extders[0].type == "stainless_steel") {
-        nozzle_type = NozzleType::ntStainlessSteel;
-    } else if (obj->m_extder_data.extders[0].type == "hardened_steel") {
-        nozzle_type = NozzleType::ntHardenedSteel;
-    }
-
+    NozzleType nozzle_type = obj->m_extder_data.extders[0].current_nozzle_type;
     int printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(nozzle_type);
+
     if (full_config.has("required_nozzle_HRC")) {
         int filament_nozzle_hrc = full_config.opt_int("required_nozzle_HRC", 0);
         if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
             BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch:  printer_nozzle_hrc = " << printer_nozzle_hrc << ", filament_nozzle_hrc = " << filament_nozzle_hrc;
             std::string filament_type = full_config.opt_string("filament_type", 0);
-            error_msg = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, to_wstring_name(obj->m_extder_data.extders[0].type));
+            error_msg = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, to_wstring_name(NozzleTypeEumnToStr[obj->m_extder_data.extders[0].current_nozzle_type]));
             error_msg += "\n";
 
             MessageDialog msg_dlg(nullptr, error_msg, wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
@@ -174,7 +164,7 @@ static bool check_nozzle_diameter_and_type(const DynamicPrintConfig &full_config
     }
 
     // P1P/S
-    if (obj->m_extder_data.extders[0].type.empty())
+    if (obj->m_extder_data.extders[0].current_nozzle_type == NozzleType::ntUndefine)
         return true;
 
     if (!is_same_nozzle_diameters(full_config, obj, error_msg))

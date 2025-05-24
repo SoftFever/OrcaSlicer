@@ -1407,7 +1407,9 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
 
     //creat group
     int group_index = 0;
-    for (int filam : m_obj->filam_bak) {
+
+    const Extder& extder = m_obj->m_extder_data.extders[MAIN_NOZZLE_ID];
+    for (int filam : extder.filam_bak) {
          auto status_list = GetStatus(filam);
 
          std::map<std::string, wxColour> group_info;

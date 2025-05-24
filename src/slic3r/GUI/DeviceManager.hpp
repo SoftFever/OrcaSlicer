@@ -145,22 +145,49 @@ struct AmsSlot
     std::string slot_id;
 };
 
+struct Nozzle
+{
+    int   id;
+    NozzleType      nozzle_type;       // 0-stainless_steel 1-hardened_steel
+    float diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
+    int   max_temp = 0;
+    int   wear = 0;
+};
+
+struct NozzleData
+{
+    int extder_exist;  //0- none exist 1-exist
+    int cut_exist;
+    int state; //0-idle 1-checking
+    std::vector<Nozzle> nozzles;
+};
+
 struct Extder
 {
-    std::string type;  //0-hardened_steel 1-stainless_steel
-    float diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
-    int exist{0}; //0-Not Installed 1-Wrong extruder 2-No enablement 3-Enable
+    int id; // 0-right 1-left
+
     int ext_has_filament{0};
     int buffer_has_filament{0};
-    int flow_type{0};//0-common 1-high flow
+    int nozzle_exist{0};
 
-    int temp{0};
+    std::vector<int> filam_bak;// the refill filam
+
+    int  temp{0};
     int target_temp{0};
-    AmsSlot spre;   //tray_pre
-    AmsSlot snow;   //tray_now
-    AmsSlot star;   //tray_tar
-    int ams_stat{0}; ;
-    int rfid_stat{0}; ;
+
+    AmsSlot spre; // tray_pre
+    AmsSlot snow; // tray_now
+    AmsSlot star; // tray_tar
+    int     ams_stat{0};
+
+    int rfid_stat{0};
+
+    int nozzle_id;        // nozzle id now
+    int target_nozzle_id; // target nozzle id
+
+    //current nozzle
+    NozzleType     current_nozzle_type{NozzleType::ntUndefine};            // 0-hardened_steel 1-stainless_steel
+    float current_nozzle_diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
 };
 
 struct ExtderData
@@ -266,25 +293,27 @@ public:
 
 #define INVALID_AMS_TEMPERATURE std::numeric_limits<float>::min()
 
-class Ams {
+class Ams
+{
 public:
-    Ams(std::string ams_id, int nozzle_id, int type_id) {
-        id = ams_id;
+    Ams(std::string ams_id, int nozzle_id, int type_id)
+    {
+        id     = ams_id;
         nozzle = nozzle_id;
-        type = type_id;
+        type   = type_id;
     }
-    std::string   id;
-    int           left_dry_time = 0;
-    int           humidity = 5;
-    int           humidity_raw = -1;// the percentage, -1 means invalid. eg. 100 means 100%
-    float         current_temperature   = INVALID_AMS_TEMPERATURE; // the temperature
-    bool          startup_read_opt{true};
-    bool          tray_read_opt{false};
-    bool          is_exists{false};
-    std::map<std::string, AmsTray*> trayList;
+    std::string                      id;
+    int                              left_dry_time       = 0;
+    int                              humidity            = 5;
+    int                              humidity_raw        = -1;                      // the percentage, -1 means invalid. eg. 100 means 100%
+    float                            current_temperature = INVALID_AMS_TEMPERATURE; // the temperature
+    bool                             startup_read_opt{true};
+    bool                             tray_read_opt{false};
+    bool                             is_exists{false};
+    std::map<std::string, AmsTray *> trayList;
 
-    int           nozzle;
-    int           type{1}; //0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
+    int nozzle;
+    int type{1}; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
 };
 
 enum PrinterFirmwareType {
@@ -380,6 +409,7 @@ private:
 
     // type, time stamp, delay
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
+
 public:
 
     enum LIGHT_EFFECT {
@@ -506,9 +536,6 @@ public:
     std::string get_printer_thumbnail_img_str();
 
     std::string product_name;       // set by iot service, get /user/print
-
-    std::vector<int> filam_bak;
-
 
     std::string bind_user_name;
     std::string bind_user_id;
@@ -1045,6 +1072,7 @@ public:
     bool                        is_enable_ams_np{ false };
 
     ExtderData                  m_extder_data;
+    NozzleData                  m_nozzle_data;
 
     /*vi slot data*/
     AmsTray vt_tray;                        // virtual tray
@@ -1053,6 +1081,7 @@ public:
     /*for parse new info*/
     bool check_enable_np(const json& print) const;
     void parse_new_info(json print);
+    bool is_nozzle_data_invalid();
     int  get_flag_bits(std::string str, int start, int count = 1) const;
     int get_flag_bits(int num, int start, int count = 1, int base = 10) const;
 

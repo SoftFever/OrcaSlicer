@@ -542,7 +542,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
             select_index_info.tray_id = tray_id;
             select_index_info.ams_id = ams_id;
             select_index_info.slot_id = slot_id;
-            select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].diameter;
+            select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
             select_index_info.cali_idx = -1;
             select_index_info.filament_id     = selected_ams_id;
             CalibUtils::select_PA_calib_result(select_index_info);
@@ -666,7 +666,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             select_index_info.tray_id = vt_tray;
             select_index_info.ams_id = 255; // TODO: Orca hack
             select_index_info.slot_id = 0;
-            select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].diameter;
+            select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
 
             auto cali_select_id = m_comboBox_cali_result->GetSelection();
             if (m_pa_profile_items.size() > 0 && cali_select_id >= 0) {
@@ -707,7 +707,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             select_index_info.tray_id = cali_tray_id;
             select_index_info.ams_id = ams_id;
             select_index_info.slot_id = slot_id;
-            select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].diameter;
+            select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
 
             auto cali_select_id = m_comboBox_cali_result->GetSelection();
             if (m_pa_profile_items.size() > 0 && cali_select_id > 0) {
@@ -870,7 +870,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     std::set<std::string> filament_id_set;
     PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
     std::ostringstream    stream;
-    stream << std::fixed << std::setprecision(1) << obj->m_extder_data.extders[0].diameter;
+    stream << std::fixed << std::setprecision(1) << obj->m_extder_data.extders[0].current_nozzle_diameter;
     std::string nozzle_diameter_str = stream.str();
     std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(MachineObject::get_preset_printer_model_name(obj->printer_type), nozzle_diameter_str);
 
@@ -1036,7 +1036,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     if (preset_bundle) {
         std::ostringstream stream;
         if (obj)
-            stream << std::fixed << std::setprecision(1) << obj->m_extder_data.extders[0].diameter;
+            stream << std::fixed << std::setprecision(1) << obj->m_extder_data.extders[0].current_nozzle_diameter;
         std::string nozzle_diameter_str = stream.str();
         std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(MachineObject::get_preset_printer_model_name(obj->printer_type),
                                                                                                           nozzle_diameter_str);

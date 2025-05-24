@@ -620,10 +620,13 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
 
     has_ipcam = true; // default true
 
-    m_extder_data.current_extder_id = 0;
-    m_extder_data.target_extder_id = 0;
-    m_extder_data.total_extder_count = 1;
+    m_extder_data.current_extder_id     = MAIN_NOZZLE_ID;
+    m_extder_data.target_extder_id      = MAIN_NOZZLE_ID;
+    m_extder_data.total_extder_count    = 1;
     Extder nozzle;
+    nozzle.id               = MAIN_NOZZLE_ID;
+    nozzle.nozzle_id        = MAIN_NOZZLE_ID;
+    nozzle.target_nozzle_id = MAIN_NOZZLE_ID;
     m_extder_data.extders.push_back(nozzle);
 }
 
@@ -3342,8 +3345,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             home_flag = jj["home_flag"].get<int>();
                             parse_status(home_flag);
                         }
+
+                        /*the param is invalid in np for Yeshu*/
                         if (jj.contains("hw_switch_state")) {
                             hw_switch_state = jj["hw_switch_state"].get<int>();
+                            m_extder_data.extders[MAIN_NOZZLE_ID].ext_has_filament = hw_switch_state;
                         }
                         if (jj.contains("mc_print_line_number")) {
                             if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())
@@ -3516,14 +3522,14 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         if (jj.contains("nozzle_temper")) {
                             if (jj["nozzle_temper"].is_number()) {
                                 if (m_extder_data.extders.size() == 1) {
-                                    m_extder_data.extders[0].temp = jj["nozzle_temper"].get<float>();
+                                    m_extder_data.extders[MAIN_NOZZLE_ID].temp = jj["nozzle_temper"].get<float>();
                                 }
                             }
                         }
                         if (jj.contains("nozzle_target_temper")) {
                             if (jj["nozzle_target_temper"].is_number()) {
                                 if (m_extder_data.extders.size() == 1) {
-                                    m_extder_data.extders[0].target_temp = jj["nozzle_target_temper"].get<float>();
+                                    m_extder_data.extders[MAIN_NOZZLE_ID].target_temp = jj["nozzle_target_temper"].get<float>();
                                 }
                             }
                         }
@@ -3621,12 +3627,14 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (!key_field_only) {
                         /*get filam_bak*/
                         try {
+                            m_extder_data.extders[MAIN_NOZZLE_ID].filam_bak.clear();
+
                             if (jj.contains("filam_bak")) {
                                 is_support_show_filament_backup = true;
-                                filam_bak.clear();
                                 if (jj["filam_bak"].is_array()) {
                                     for (auto it = jj["filam_bak"].begin(); it != jj["filam_bak"].end(); it++) {
-                                        filam_bak.push_back(it.value().get<int>());
+                                        const auto& filam_bak_val = it.value().get<int>();
+                                        m_extder_data.extders[MAIN_NOZZLE_ID].filam_bak.push_back(filam_bak_val);
                                     }
                                 }
                             }
@@ -3708,8 +3716,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                                     }
 
-                                    if (nozzle_diameter == 0.0f) {m_extder_data.extders[0].diameter = 0.4f;}
-                                    else {m_extder_data.extders[0].diameter = round(nozzle_diameter * 10) / 10;}
+                                    if (nozzle_diameter == 0.0f) {m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter = 0.0f;}
+                                    else { m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter = round(nozzle_diameter * 10) / 10;}
                                 }
                             }
                         }
@@ -3726,7 +3734,12 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 else {
                                     if (jj["nozzle_type"].is_string()) {
                                         auto nozzle_type = jj["nozzle_type"].get<std::string>();
-                                        m_extder_data.extders[0].type = nozzle_type;
+                                        if (nozzle_type.empty()) {
+                                            m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type = NozzleType::ntUndefine;
+                                        }
+                                        else {
+                                            m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type = NozzleTypeStrToEumn[nozzle_type];
+                                        }
                                     }
                                 }
                             }
@@ -5550,53 +5563,134 @@ void MachineObject::parse_new_info(json print)
         }
 
         if (device.contains("nozzle")) {
-            json const& nozzle = device["nozzle"];
+            json const &nozzle = device["nozzle"];
 
-            m_extder_data = ExtderData();
-            m_extder_data.current_extder_id = get_flag_bits(nozzle["info"].get<int>(), 0, 3);
-            m_extder_data.target_extder_id = get_flag_bits(nozzle["info"].get<int>(), 4, 3);
-            m_extder_data.total_extder_count = get_flag_bits(nozzle["info"].get<int>(), 8, 3);
+            m_nozzle_data = NozzleData();
 
+            m_nozzle_data.extder_exist      = get_flag_bits(nozzle["exist"].get<int>(), 0, 16);
+            m_nozzle_data.cut_exist         = get_flag_bits(nozzle["exist"].get<int>(), 16, 16);
+            m_nozzle_data.state             = get_flag_bits(nozzle["state"].get<int>(), 0, 4);
 
-            for (int i = 0; i < m_extder_data.total_extder_count; i++) {
+            for (auto it = nozzle["info"].begin(); it != nozzle["info"].end(); it++) {
+                Nozzle nozzle_obj;
+                auto   njon = it.value();
+                std::string type = njon["type"].get<std::string>();
+                nozzle_obj.id           = njon["id"].get<int>();
 
-                Extder nozzle_obj;
-
-                std::string nozzle_id = std::to_string(i);
-                if (nozzle.contains(nozzle_id)) {
-                    auto njon = nozzle[nozzle_id].get<json>();
-
-                    nozzle_obj.type = DeviceManager::nozzle_type_conver(get_flag_bits(njon["info"].get<int>(), 0, 2));
-                    nozzle_obj.diameter = DeviceManager::nozzle_diameter_conver(get_flag_bits(njon["info"].get<int>(), 3, 3));
-                    nozzle_obj.ext_has_filament = get_flag_bits(njon["info"].get<int>(), 7);
-                    nozzle_obj.buffer_has_filament = get_flag_bits(njon["info"].get<int>(), 8);
-                    nozzle_obj.flow_type = get_flag_bits(njon["info"].get<int>(), 9, 2);
-                    nozzle_obj.temp = get_flag_bits(njon["temp"].get<int>(), 0, 15);
-                    nozzle_obj.target_temp = get_flag_bits(njon["temp"].get<int>(), 16, 15);
-
-                    AmsSlot spre;
-                    spre.ams_id = std::to_string(get_flag_bits(njon["spre"].get<int>(), 0, 8));
-                    spre.slot_id = std::to_string(get_flag_bits(njon["spre"].get<int>(), 8, 8));
-
-                    AmsSlot snow;
-                    snow.ams_id = std::to_string(get_flag_bits(njon["snow"].get<int>(), 0, 8));
-                    snow.slot_id = std::to_string(get_flag_bits(njon["snow"].get<int>(), 8, 8));
-
-                    AmsSlot star;
-                    star.ams_id = std::to_string(get_flag_bits(njon["star"].get<int>(), 0, 8));
-                    star.slot_id = std::to_string(get_flag_bits(njon["star"].get<int>(), 8, 8));
-
-                    nozzle_obj.spre = spre;
-                    nozzle_obj.snow = snow;
-                    nozzle_obj.star = star;
-                    nozzle_obj.ams_stat = get_flag_bits(njon["stat"].get<int>(), 0, 15);
-                    nozzle_obj.rfid_stat = get_flag_bits(njon["stat"].get<int>(), 16, 7);
+                if (type.length() >= 4) {
+                    if (type.substr(2, 2) == std::string("00")) {
+                        nozzle_obj.nozzle_type = NozzleType::ntStainlessSteel;
+                    } else if (type.substr(2, 2) == std::string("01")) {
+                        nozzle_obj.nozzle_type = NozzleType::ntHardenedSteel;
+                    }
+                } else {
+                    nozzle_obj.nozzle_type = NozzleType::ntUndefine;
                 }
 
-                m_extder_data.extders.push_back(nozzle_obj);
+                nozzle_obj.diameter     = njon["diameter"].get<float>();
+                nozzle_obj.max_temp     = njon["tm"].get<int>();
+                nozzle_obj.wear         = njon["wear"].get<int>();
+                if (nozzle_obj.diameter == 0.0f) {nozzle_obj.diameter = 0.4f;}
+                m_nozzle_data.nozzles.push_back(nozzle_obj);
             }
         }
+
+        if (device.contains("extruder")) {
+            json const& extruder = device["extruder"];
+
+            auto extder_data = ExtderData();
+            extder_data.total_extder_count        = get_flag_bits(extruder["state"].get<int>(), 0, 4);
+
+
+            extder_data.current_extder_id         = get_flag_bits(extruder["state"].get<int>(), 4, 4);
+            extder_data.target_extder_id          = get_flag_bits(extruder["state"].get<int>(), 8, 4);
+
+            for (auto it = extruder["info"].begin(); it != extruder["info"].end(); it++) {
+
+                Extder extder_obj;
+                auto   njon = it.value();
+
+                extder_obj.id                  = njon["id"].get<int>();
+
+                extder_obj.filam_bak.clear();
+                is_support_show_filament_backup = njon.contains("filam_bak");
+                if (is_support_show_filament_backup)
+                {
+                    const json& filam_bak_items = njon["filam_bak"];
+                    for (const auto& filam_bak_item : filam_bak_items)
+                    {
+                        const auto& filam_bak_val = filam_bak_item.get<int>();
+                        extder_obj.filam_bak.emplace_back(filam_bak_val);
+                    }
+                }
+
+                extder_obj.ext_has_filament    = get_flag_bits(njon["info"].get<int>(), 1);
+                extder_obj.buffer_has_filament = get_flag_bits(njon["info"].get<int>(), 2);
+                extder_obj.nozzle_exist        = get_flag_bits(njon["info"].get<int>(), 3);
+                extder_obj.temp                = get_flag_bits(njon["temp"].get<int>(), 0, 16);
+                extder_obj.target_temp         = get_flag_bits(njon["temp"].get<int>(), 16, 16);
+
+                AmsSlot spre;
+                spre.slot_id  = std::to_string(get_flag_bits(njon["spre"].get<int>(), 0, 8));
+                spre.ams_id = std::to_string(get_flag_bits(njon["spre"].get<int>(), 8, 8));
+
+                AmsSlot snow;
+                snow.slot_id = std::to_string(get_flag_bits(njon["snow"].get<int>(), 0, 8));
+                snow.ams_id = std::to_string(get_flag_bits(njon["snow"].get<int>(), 8, 8));
+
+                AmsSlot star;
+                star.slot_id  = std::to_string(get_flag_bits(njon["star"].get<int>(), 0, 8));
+                star.ams_id = std::to_string(get_flag_bits(njon["star"].get<int>(), 8, 8));
+
+                extder_obj.nozzle_id = njon["hnow"].get<int>();
+                extder_obj.target_nozzle_id =  njon["htar"].get<int>();
+
+                extder_obj.spre      = spre;
+                extder_obj.snow      = snow;
+                extder_obj.star      = star;
+                extder_obj.ams_stat  = get_flag_bits(njon["stat"].get<int>(), 0, 16);
+                extder_obj.rfid_stat = get_flag_bits(njon["stat"].get<int>(), 16, 16);
+
+                //current nozzle info
+                if (extder_obj.nozzle_id == 0xff) {
+                    extder_obj.current_nozzle_type = NozzleType::ntUndefine;
+                    extder_obj.current_nozzle_diameter = 0.4f;
+                } else {
+                    for (auto i = 0; i < m_nozzle_data.nozzles.size(); i++) {
+                        if (m_nozzle_data.nozzles[i].id == extder_obj.nozzle_id) {
+                            extder_obj.current_nozzle_type      = m_nozzle_data.nozzles[i].nozzle_type;
+                            extder_obj.current_nozzle_diameter  = m_nozzle_data.nozzles[i].diameter;
+                        }
+                    }
+                }
+                extder_data.extders.push_back(extder_obj);
+            }
+
+            if (extder_data.extders.size() <= 0) {
+                // def data
+                extder_data.current_extder_id  = 0;
+                extder_data.target_extder_id   = 0;
+                extder_data.total_extder_count = 1;
+                Extder nozzle;
+                extder_data.extders.push_back(nozzle);
+            }
+
+            m_extder_data = extder_data;
+        }
     }
+}
+
+bool MachineObject::is_nozzle_data_invalid()
+{
+    for (const auto &ext : m_extder_data.extders)
+    {
+        if (ext.current_nozzle_type == NozzleType::ntUndefine ||
+            ext.current_nozzle_diameter <= 0.0f) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 int MachineObject::get_flag_bits(std::string str, int start, int count) const
@@ -5705,7 +5799,7 @@ void MachineObject::update_printer_preset_name()
     auto               printer_model = MachineObject::get_preset_printer_model_name(this->printer_type);
     std::set<std::string> diameter_set;
     for (auto &nozzle : m_extder_data.extders) {
-        float diameter = nozzle.diameter;
+        float diameter = nozzle.current_nozzle_diameter;
         std::ostringstream stream;
         stream << std::fixed << std::setprecision(1) << diameter;
         std::string nozzle_diameter_str = stream.str();
@@ -5746,7 +5840,7 @@ void MachineObject::check_ams_filament_valid()
         if (ams->nozzle < 0 || ams->nozzle >= m_extder_data.extders.size()) {
             return;
         }
-        stream << std::fixed << std::setprecision(1) << m_extder_data.extders[ams->nozzle].diameter;
+        stream << std::fixed << std::setprecision(1) << m_extder_data.extders[ams->nozzle].current_nozzle_diameter;
         std::string nozzle_diameter_str = stream.str();
         assert(nozzle_diameter_str.size() == 3);
         if (m_nozzle_filament_data.find(nozzle_diameter_str) == m_nozzle_filament_data.end()) {
@@ -5808,7 +5902,7 @@ void MachineObject::check_ams_filament_valid()
             BOOST_LOG_TRIVIAL(error) << " vt_tray id map for nozzle id is not exist, index is: " << index << " nozzle count" << m_extder_data.total_extder_count;
             continue;
         }
-        auto diameter = m_extder_data.extders[index].diameter;
+        auto diameter = m_extder_data.extders[index].current_nozzle_diameter;
         std::ostringstream stream;
         stream << std::fixed << std::setprecision(1) << diameter;
         std::string nozzle_diameter_str = stream.str();
@@ -5840,7 +5934,7 @@ void MachineObject::check_ams_filament_valid()
                     std::string        preset_setting_id;
                     PresetBundle *     preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
                     std::ostringstream stream;
-                    stream << std::fixed << std::setprecision(1) << m_extder_data.extders[MAIN_NOZZLE_ID].diameter;
+                    stream << std::fixed << std::setprecision(1) << m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter;
                     std::string nozzle_diameter_str = stream.str();
                     bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(MachineObject::get_preset_printer_model_name(
                                                                                                                                this->printer_type),
