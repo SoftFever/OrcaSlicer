@@ -112,6 +112,7 @@ public:
     AMSModel m_is_none_ams_mode{AMSModel::EXT_AMS};
 
     void SetAmsModel(AMSModel mode, AMSModel ext_mode) {m_ams_model = mode; m_ext_model = ext_mode;};
+    void AmsSelectedSwitch(wxCommandEvent& event);
 
 	void SetActionState(bool button_status[]);
     void EnterNoneAMSMode();

@@ -585,7 +585,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
         delete info;
     });
-    
+    Bind(EVT_AMS_ON_SELECTED, &AMSControl::AmsSelectedSwitch, this);
 
     m_button_guide->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
         post_event(wxCommandEvent(EVT_AMS_GUIDE_WIKI));
@@ -631,6 +631,26 @@ std::string AMSControl::GetCurrentCan(std::string amsid)
         }
     }
     return current_can;
+}
+
+void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
+    std::string ams_id_selected = std::to_string(event.GetInt());
+    if (m_current_ams != ams_id_selected){
+        m_current_ams = ams_id_selected;
+    }
+    if (m_current_show_ams != ams_id_selected && m_current_show_ams != "") {
+        auto item = m_ams_item_list[m_current_show_ams];
+        if (!item) return;
+        try{
+            const auto& can_lib_list = item->get_can_lib_list();
+            for (auto can : can_lib_list) {
+                can.second->UnSelected();
+            }
+        }
+        catch (...){
+            ;
+        }
+    }
 }
 
 wxColour AMSControl::GetCanColour(std::string amsid, std::string canid)
