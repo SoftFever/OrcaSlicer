@@ -408,10 +408,6 @@ void AppConfig::set_defaults()
         set_str("print", "timelapse", "1");
     }
 
-    if (get("jusprin_server", "base_url").empty()) {
-        set_str("jusprin_server", "base_url", "https://app.obico.io");
-    }
-
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
     erase("app", "main_frame_pos");
