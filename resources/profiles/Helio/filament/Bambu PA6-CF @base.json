@@ -1,0 +1,48 @@
+{
+  "name": "Bambu PA6-CF @base",
+  "type": "filament",
+  "inherits": "fdm_filament_pa",
+  "instantiation": "false",
+  "filament_type": [
+    "PA6-CF"
+  ],
+  "fan_min_speed": [
+    "10"
+  ],
+  "filament_cost": [
+    "79.99"
+  ],
+  "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
+  "filament_density": [
+    "1.10"
+  ],
+  "filament_flow_ratio": [
+    "0.96"
+  ],
+  "nozzle_temperature": [
+    "275"
+  ],
+  "overhang_fan_speed": [
+    "40"
+  ],
+  "fan_max_speed": [
+    "30"
+  ],
+  "filament_id": "GFN05",
+  "nozzle_temperature_initial_layer": [
+    "275"
+  ],
+  "temperature_vitrification": [
+    "170"
+  ],
+  "filament_vendor": [
+    "Bambu Lab"
+  ],
+  "overhang_fan_threshold": [
+    "0%"
+  ],
+  "from": "system",
+  "fan_cooling_layer_time": [
+    "5"
+  ]
+}

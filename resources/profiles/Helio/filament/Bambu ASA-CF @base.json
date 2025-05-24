@@ -1,0 +1,62 @@
+{
+  "name": "Bambu ASA-CF @base",
+  "type": "filament",
+  "inherits": "fdm_filament_asa",
+  "instantiation": "false",
+  "slow_down_layer_time": [
+    "12"
+  ],
+  "filament_vendor": [
+    "Bambu Lab"
+  ],
+  "from": "system",
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ],
+  "filament_max_volumetric_speed": [
+    "18"
+  ],
+  "fan_max_speed": [
+    "25"
+  ],
+  "filament_density": [
+    "1.02"
+  ],
+  "nozzle_temperature": [
+    "275"
+  ],
+  "filament_id": "GFB51",
+  "hot_plate_temp": [
+    "100"
+  ],
+  "nozzle_temperature_range_low": [
+    "250"
+  ],
+  "nozzle_temperature_initial_layer": [
+    "275"
+  ],
+  "temperature_vitrification": [
+    "108"
+  ],
+  "filament_cost": [
+    "36.99"
+  ],
+  "eng_plate_temp": [
+    "100"
+  ],
+  "eng_plate_temp_initial_layer": [
+    "100"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "100"
+  ],
+  "filament_type": [
+    "ASA-CF"
+  ],
+  "textured_plate_temp": [
+    "100"
+  ],
+  "filament_flow_ratio": [
+    "0.9"
+  ]
+}

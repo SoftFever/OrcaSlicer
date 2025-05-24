@@ -1,0 +1,29 @@
+{
+  "name": "Bambu PC @Helio P1S",
+  "type": "filament",
+  "inherits": "Bambu PC @Helio X1C",
+  "instantiation": "true",
+  "eng_plate_temp": [
+    "100"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "100"
+  ],
+  "setting_id": "GFSC00_05",
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ],
+  "from": "system",
+  "eng_plate_temp_initial_layer": [
+    "100"
+  ],
+  "hot_plate_temp": [
+    "100"
+  ],
+  "textured_plate_temp": [
+    "100"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab P1S 0.4 nozzle"
+  ]
+}

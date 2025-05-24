@@ -1,0 +1,13 @@
+{
+  "name": "Bambu PAHT-CF @Helio P1P",
+  "type": "filament",
+  "inherits": "Bambu PAHT-CF @base",
+  "instantiation": "true",
+  "setting_id": "GFSN04_10",
+  "from": "system",
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.4 nozzle",
+    "Helio Bambu Lab P1P 0.6 nozzle",
+    "Helio Bambu Lab P1P 0.8 nozzle"
+  ]
+}

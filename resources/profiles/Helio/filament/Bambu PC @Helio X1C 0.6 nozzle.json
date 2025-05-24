@@ -1,0 +1,21 @@
+{
+  "name": "Bambu PC @Helio X1C 0.6 nozzle",
+  "type": "filament",
+  "inherits": "Bambu PC @base",
+  "instantiation": "true",
+  "slow_down_layer_time": [
+    "12"
+  ],
+  "from": "system",
+  "compatible_printers": [
+    "Helio Bambu Lab X1 Carbon 0.6 nozzle",
+    "Helio Bambu Lab X1 0.6 nozzle"
+  ],
+  "setting_id": "GFSC00_01",
+  "nozzle_temperature": [
+    "260"
+  ],
+  "fan_max_speed": [
+    "40"
+  ]
+}

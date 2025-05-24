@@ -1,0 +1,14 @@
+{
+  "name": "PolyLite ASA @Helio P1P 0.2 nozzle",
+  "type": "filament",
+  "inherits": "PolyLite ASA @Helio P1P",
+  "instantiation": "true",
+  "from": "system",
+  "setting_id": "GFSB61_05",
+  "filament_max_volumetric_speed": [
+    "2"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.2 nozzle"
+  ]
+}

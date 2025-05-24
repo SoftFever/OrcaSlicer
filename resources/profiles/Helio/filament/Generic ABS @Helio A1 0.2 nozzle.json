@@ -1,0 +1,32 @@
+{
+  "name": "Generic ABS @Helio A1 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Helio Generic ABS @base",
+  "instantiation": "true",
+  "fan_max_speed": [
+    "20"
+  ],
+  "setting_id": "GFSB99_06",
+  "hot_plate_temp": [
+    "100"
+  ],
+  "filament_max_volumetric_speed": [
+    "2"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ],
+  "from": "system",
+  "reduce_fan_stop_start_freq": [
+    "0"
+  ],
+  "textured_plate_temp": [
+    "100"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.2 nozzle"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "100"
+  ]
+}

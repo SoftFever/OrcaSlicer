@@ -1,0 +1,54 @@
+{
+  "name": "Bambu ASA @base",
+  "type": "filament",
+  "inherits": "fdm_filament_asa",
+  "instantiation": "false",
+  "eng_plate_temp": [
+    "100"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ],
+  "textured_plate_temp": [
+    "100"
+  ],
+  "filament_id": "GFB01",
+  "from": "system",
+  "hot_plate_temp": [
+    "100"
+  ],
+  "nozzle_temperature": [
+    "270"
+  ],
+  "filament_max_volumetric_speed": [
+    "18"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "100"
+  ],
+  "eng_plate_temp_initial_layer": [
+    "100"
+  ],
+  "description": "When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
+  "filament_density": [
+    "1.05"
+  ],
+  "slow_down_layer_time": [
+    "12"
+  ],
+  "filament_vendor": [
+    "Bambu Lab"
+  ],
+  "filament_flow_ratio": [
+    "0.95"
+  ],
+  "filament_cost": [
+    "31.99"
+  ],
+  "fan_max_speed": [
+    "35"
+  ],
+  "nozzle_temperature_initial_layer": [
+    "270"
+  ]
+}

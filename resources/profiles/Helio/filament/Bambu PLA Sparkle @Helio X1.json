@@ -1,0 +1,16 @@
+{
+  "name": "Bambu PLA Sparkle @Helio X1",
+  "type": "filament",
+  "inherits": "Bambu PLA Sparkle @base",
+  "instantiation": "true",
+  "from": "system",
+  "setting_id": "GFSA08_01",
+  "slow_down_layer_time": [
+    "8"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab X1 0.4 nozzle",
+    "Helio Bambu Lab X1 0.6 nozzle",
+    "Helio Bambu Lab X1 0.8 nozzle"
+  ]
+}

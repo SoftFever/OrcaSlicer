@@ -1,0 +1,13 @@
+{
+  "name": "Generic BVOH @Helio A1M",
+  "type": "filament",
+  "inherits": "Helio Generic BVOH @base",
+  "instantiation": "true",
+  "setting_id": "GFSS97_01",
+  "from": "system",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.4 nozzle",
+    "Helio Bambu Lab A1 mini 0.6 nozzle",
+    "Helio Bambu Lab A1 mini 0.8 nozzle"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "Generic PLA-CF @Helio A1M",
+  "type": "filament",
+  "inherits": "Helio Generic PLA-CF @base",
+  "instantiation": "true",
+  "setting_id": "GFSL98_00",
+  "fan_max_speed": [
+    "80"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "60"
+  ],
+  "hot_plate_temp": [
+    "60"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.4 nozzle",
+    "Helio Bambu Lab A1 mini 0.6 nozzle",
+    "Helio Bambu Lab A1 mini 0.8 nozzle"
+  ],
+  "fan_min_speed": [
+    "60"
+  ],
+  "slow_down_layer_time": [
+    "8"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "from": "system"
+}

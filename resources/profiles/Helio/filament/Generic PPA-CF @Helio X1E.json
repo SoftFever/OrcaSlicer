@@ -1,0 +1,25 @@
+{
+  "name": "Generic PPA-CF @Helio X1E",
+  "type": "filament",
+  "inherits": "Helio Generic PPA-CF @base",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Helio Bambu Lab X1E 0.4 nozzle",
+    "Helio Bambu Lab X1E 0.6 nozzle",
+    "Helio Bambu Lab X1E 0.8 nozzle"
+  ],
+  "fan_max_speed": [
+    "35"
+  ],
+  "filament_max_volumetric_speed": [
+    "6.5"
+  ],
+  "setting_id": "GFSN97_01",
+  "overhang_fan_threshold": [
+    "25%"
+  ],
+  "from": "system",
+  "chamber_temperatures": [
+    "60"
+  ]
+}

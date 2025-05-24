@@ -1,0 +1,13 @@
+{
+  "name": "0.24mm Optimal @Helio P1P 0.6 nozzle",
+  "type": "process",
+  "inherits": "fdm_process_helio_0.24_nozzle_0.6",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Bambu Lab P1P 0.6 nozzle"
+  ],
+  "description": "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer height, and results in less apparent layer lines and slight higher printing quality, but longer printing time.",
+  "from": "system",
+  "elefant_foot_compensation": "0.15",
+  "setting_id": "GP069"
+}

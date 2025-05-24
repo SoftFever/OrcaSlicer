@@ -1,0 +1,38 @@
+{
+  "name": "Bambu PC FR @Helio P1S 0.6 nozzle",
+  "type": "filament",
+  "inherits": "Bambu PC FR @base",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Helio Bambu Lab P1S 0.6 nozzle"
+  ],
+  "from": "system",
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ],
+  "setting_id": "GFSC01_06",
+  "eng_plate_temp_initial_layer": [
+    "100"
+  ],
+  "fan_max_speed": [
+    "40"
+  ],
+  "hot_plate_temp": [
+    "100"
+  ],
+  "eng_plate_temp": [
+    "100"
+  ],
+  "slow_down_layer_time": [
+    "12"
+  ],
+  "textured_plate_temp": [
+    "100"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "100"
+  ],
+  "nozzle_temperature": [
+    "260"
+  ]
+}

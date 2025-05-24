@@ -1,0 +1,20 @@
+{
+  "name": "Bambu PC FR @base",
+  "type": "filament",
+  "inherits": "fdm_filament_pc",
+  "instantiation": "false",
+  "filament_density": [
+    "1.19"
+  ],
+  "filament_flow_ratio": [
+    "0.94"
+  ],
+  "filament_id": "GFC01",
+  "filament_vendor": [
+    "Bambu Lab"
+  ],
+  "filament_cost": [
+    "0"
+  ],
+  "from": "system"
+}

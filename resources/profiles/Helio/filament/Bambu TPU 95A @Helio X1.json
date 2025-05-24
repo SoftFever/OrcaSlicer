@@ -1,0 +1,16 @@
+{
+  "name": "Bambu TPU 95A @Helio X1",
+  "type": "filament",
+  "inherits": "Bambu TPU 95A @base",
+  "instantiation": "true",
+  "from": "system",
+  "setting_id": "GFSU01",
+  "compatible_printers": [
+    "Helio Bambu Lab X1 0.4 nozzle",
+    "Helio Bambu Lab X1 0.6 nozzle",
+    "Helio Bambu Lab X1 0.8 nozzle"
+  ],
+  "filament_max_volumetric_speed": [
+    "3.6"
+  ]
+}

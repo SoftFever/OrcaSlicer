@@ -1,0 +1,14 @@
+{
+  "name": "Generic PLA High Speed @Helio A1M 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Generic PLA High Speed @Helio A1M",
+  "instantiation": "true",
+  "from": "system",
+  "setting_id": "GFSL95_07",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ],
+  "filament_max_volumetric_speed": [
+    "2"
+  ]
+}

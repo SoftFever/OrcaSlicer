@@ -1,0 +1,18 @@
+{
+  "name": "Bambu PC @base",
+  "inherits": "fdm_filament_pc",
+  "type": "filament",
+  "from": "system",
+  "filament_flow_ratio": [
+    "0.94"
+  ],
+  "filament_cost": [
+    "39.99"
+  ],
+  "instantiation": "false",
+  "filament_vendor": [
+    "Bambu Lab"
+  ],
+  "filament_id": "GFC00",
+  "helio_filament_id": "cd346e81-74f1-4ff6-9143-02752364e24f"
+}

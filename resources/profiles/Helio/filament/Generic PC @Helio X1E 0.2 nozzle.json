@@ -1,0 +1,14 @@
+{
+  "name": "Generic PC @Helio X1E 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Helio Generic PC @0.2 nozzle",
+  "instantiation": "true",
+  "setting_id": "GFSC99_05",
+  "from": "system",
+  "chamber_temperatures": [
+    "60"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab X1E 0.2 nozzle"
+  ]
+}

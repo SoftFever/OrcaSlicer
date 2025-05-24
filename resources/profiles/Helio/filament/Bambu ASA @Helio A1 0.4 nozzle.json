@@ -1,0 +1,20 @@
+{
+  "name": "Bambu ASA @Helio A1 0.4 nozzle",
+  "type": "filament",
+  "inherits": "Bambu ASA @base",
+  "instantiation": "true",
+  "chamber_temperatures": [
+    "60"
+  ],
+  "filament_long_retractions_when_cut": [
+    "1"
+  ],
+  "from": "system",
+  "setting_id": "GFSB01_09",
+  "filament_retraction_distances_when_cut": [
+    "18"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.4 nozzle"
+  ]
+}

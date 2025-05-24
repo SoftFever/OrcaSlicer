@@ -1,0 +1,14 @@
+{
+  "name": "Generic PETG HF @Helio P1P 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Helio Generic PETG HF @base",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.2 nozzle"
+  ],
+  "from": "system",
+  "filament_max_volumetric_speed": [
+    "1"
+  ],
+  "setting_id": "GFSG96_03"
+}

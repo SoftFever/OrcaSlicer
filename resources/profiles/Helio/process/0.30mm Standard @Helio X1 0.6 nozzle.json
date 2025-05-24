@@ -1,0 +1,13 @@
+{
+  "name": "0.30mm Standard @Helio X1 0.6 nozzle",
+  "type": "process",
+  "inherits": "fdm_process_helio_0.30_nozzle_0.6",
+  "instantiation": "true",
+  "from": "system",
+  "setting_id": "GP011",
+  "description": "It has a big layer height, and results in apparent layer lines and ordinary printing quality and printing time.",
+  "compatible_printers": [
+    "Bambu Lab X1 0.6 nozzle"
+  ],
+  "elefant_foot_compensation": "0.15"
+}

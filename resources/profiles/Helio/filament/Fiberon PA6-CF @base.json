@@ -1,0 +1,69 @@
+{
+  "name": "Fiberon PA6-CF @base",
+  "inherits": "fdm_filament_pa",
+  "type": "filament",
+  "textured_plate_temp": [
+    "40"
+  ],
+  "eng_plate_temp_initial_layer": [
+    "40"
+  ],
+  "filament_max_volumetric_speed": [
+    "14"
+  ],
+  "fan_max_speed": [
+    "100"
+  ],
+  "reduce_fan_stop_start_freq": [
+    "1"
+  ],
+  "nozzle_temperature": [
+    "300"
+  ],
+  "filament_density": [
+    "1.17"
+  ],
+  "temperature_vitrification": [
+    "215"
+  ],
+  "filament_flow_ratio": [
+    "0.95"
+  ],
+  "hot_plate_temp": [
+    "40"
+  ],
+  "instantiation": "false",
+  "filament_cost": [
+    "83.99"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "40"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "40"
+  ],
+  "from": "system",
+  "fan_cooling_layer_time": [
+    "15"
+  ],
+  "overhang_fan_speed": [
+    "100"
+  ],
+  "filament_vendor": [
+    "Polymaker"
+  ],
+  "eng_plate_temp": [
+    "40"
+  ],
+  "filament_type": [
+    "PA6-CF"
+  ],
+  "nozzle_temperature_initial_layer": [
+    "300"
+  ],
+  "nozzle_temperature_range_low": [
+    "280"
+  ],
+  "filament_id": "GFL50",
+  "helio_filament_id": "48b6ca4e-70f5-4bdd-8080-00ac60c3dd38"
+}

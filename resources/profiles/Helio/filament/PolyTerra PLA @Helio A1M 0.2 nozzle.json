@@ -1,0 +1,38 @@
+{
+  "name": "PolyTerra PLA @Helio A1M 0.2 nozzle",
+  "type": "filament",
+  "inherits": "PolyTerra PLA @base",
+  "instantiation": "true",
+  "fan_min_speed": [
+    "60"
+  ],
+  "fan_max_speed": [
+    "80"
+  ],
+  "from": "system",
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "60"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "slow_down_layer_time": [
+    "8"
+  ],
+  "setting_id": "GFSL01_01",
+  "filament_max_volumetric_speed": [
+    "1.8"
+  ],
+  "hot_plate_temp": [
+    "60"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ]
+}

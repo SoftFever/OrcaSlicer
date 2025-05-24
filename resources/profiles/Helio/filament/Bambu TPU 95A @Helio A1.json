@@ -1,0 +1,28 @@
+{
+  "name": "Bambu TPU 95A @Helio A1",
+  "type": "filament",
+  "inherits": "Bambu TPU 95A @base",
+  "instantiation": "true",
+  "textured_plate_temp": [
+    "45"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.4 nozzle",
+    "Helio Bambu Lab A1 0.6 nozzle",
+    "Helio Bambu Lab A1 0.8 nozzle"
+  ],
+  "filament_max_volumetric_speed": [
+    "3.6"
+  ],
+  "from": "system",
+  "textured_plate_temp_initial_layer": [
+    "45"
+  ],
+  "hot_plate_temp": [
+    "45"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "45"
+  ],
+  "setting_id": "GFSU01_01"
+}

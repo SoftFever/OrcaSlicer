@@ -1,0 +1,40 @@
+{
+  "name": "PolyLite PLA @Helio A1M",
+  "type": "filament",
+  "inherits": "PolyLite PLA @base",
+  "instantiation": "true",
+  "fan_max_speed": [
+    "80"
+  ],
+  "hot_plate_temp": [
+    "60"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "setting_id": "GFSL00_00",
+  "fan_min_speed": [
+    "60"
+  ],
+  "slow_down_layer_time": [
+    "8"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ],
+  "from": "system",
+  "filament_max_volumetric_speed": [
+    "15"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "60"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.4 nozzle",
+    "Helio Bambu Lab A1 mini 0.6 nozzle",
+    "Helio Bambu Lab A1 mini 0.8 nozzle"
+  ]
+}

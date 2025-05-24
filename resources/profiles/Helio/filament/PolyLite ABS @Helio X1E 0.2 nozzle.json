@@ -1,0 +1,11 @@
+{
+  "name": "PolyLite ABS @Helio X1E 0.2 nozzle",
+  "type": "filament",
+  "inherits": "PolyLite ABS @Helio X1C 0.2 nozzle",
+  "instantiation": "true",
+  "from": "system",
+  "compatible_printers": [
+    "Helio Bambu Lab X1E 0.2 nozzle"
+  ],
+  "setting_id": "GFSB60_03"
+}

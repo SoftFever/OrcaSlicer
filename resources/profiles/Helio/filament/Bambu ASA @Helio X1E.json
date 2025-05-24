@@ -1,0 +1,12 @@
+{
+  "name": "Bambu ASA @Helio X1E",
+  "type": "filament",
+  "inherits": "Bambu ASA @Helio X1C",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Helio Bambu Lab X1E 0.6 nozzle",
+    "Helio Bambu Lab X1E 0.8 nozzle"
+  ],
+  "setting_id": "GFSB01_05",
+  "from": "system"
+}

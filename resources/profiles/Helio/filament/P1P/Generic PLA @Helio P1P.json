@@ -1,0 +1,31 @@
+{
+  "name": "Generic PLA @Helio P1P",
+  "type": "filament",
+  "inherits": "Helio Generic PLA @base",
+  "instantiation": "true",
+  "from": "system",
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "setting_id": "GFSL99_10",
+  "hot_plate_temp_initial_layer": [
+    "65"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "fan_min_speed": [
+    "50"
+  ],
+  "hot_plate_temp": [
+    "65"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.4 nozzle",
+    "Helio Bambu Lab P1P 0.6 nozzle",
+    "Helio Bambu Lab P1P 0.8 nozzle"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ]
+}

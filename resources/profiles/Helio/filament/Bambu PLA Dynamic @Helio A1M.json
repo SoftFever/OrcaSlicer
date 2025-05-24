@@ -1,0 +1,46 @@
+{
+  "name": "Bambu PLA Dynamic @Helio A1M",
+  "type": "filament",
+  "inherits": "Bambu PLA Dynamic @base",
+  "instantiation": "true",
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "filament_vendor": [
+    "Bambu Lab"
+  ],
+  "filament_flow_ratio": [
+    "0.98"
+  ],
+  "from": "system",
+  "setting_id": "GFSA13_08",
+  "fan_min_speed": [
+    "60"
+  ],
+  "hot_plate_temp": [
+    "60"
+  ],
+  "fan_max_speed": [
+    "80"
+  ],
+  "filament_max_volumetric_speed": [
+    "21"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "60"
+  ],
+  "slow_down_layer_time": [
+    "6"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.4 nozzle",
+    "Helio Bambu Lab A1 mini 0.6 nozzle",
+    "Helio Bambu Lab A1 mini 0.8 nozzle"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ]
+}

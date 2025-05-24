@@ -1,0 +1,18 @@
+{
+  "name": "Generic HIPS @Helio X1C 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Helio Generic HIPS @base",
+  "instantiation": "true",
+  "setting_id": "GFSS98_01",
+  "compatible_printers": [
+    "Helio Bambu Lab X1 Carbon 0.2 nozzle",
+    "Helio Bambu Lab X1 0.2 nozzle",
+    "Helio Bambu Lab P1P 0.2 nozzle",
+    "Helio Bambu Lab P1S 0.2 nozzle",
+    "Helio Bambu Lab X1E 0.2 nozzle"
+  ],
+  "filament_max_volumetric_speed": [
+    "0.5"
+  ],
+  "from": "system"
+}

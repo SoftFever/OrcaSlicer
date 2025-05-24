@@ -1,0 +1,14 @@
+{
+  "name": "Bambu PETG-CF @Helio A1M 0.4 nozzle",
+  "type": "filament",
+  "inherits": "Bambu PETG-CF @Helio A1M",
+  "instantiation": "true",
+  "setting_id": "GFSG50_04",
+  "filament_max_volumetric_speed": [
+    "9"
+  ],
+  "from": "system",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.4 nozzle"
+  ]
+}

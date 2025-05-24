@@ -1,0 +1,26 @@
+{
+  "name": "Generic PETG @Helio A1 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Helio Generic PETG @base",
+  "instantiation": "true",
+  "hot_plate_temp_initial_layer": [
+    "80"
+  ],
+  "hot_plate_temp": [
+    "80"
+  ],
+  "filament_max_volumetric_speed": [
+    "1"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.2 nozzle"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "80"
+  ],
+  "from": "system",
+  "setting_id": "GFSG99_04",
+  "textured_plate_temp": [
+    "80"
+  ]
+}

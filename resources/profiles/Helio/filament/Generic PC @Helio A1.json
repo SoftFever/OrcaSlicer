@@ -1,0 +1,37 @@
+{
+  "name": "Generic PC @Helio A1",
+  "type": "filament",
+  "inherits": "Helio Generic PC @base",
+  "instantiation": "true",
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ],
+  "from": "system",
+  "eng_plate_temp": [
+    "100"
+  ],
+  "hot_plate_temp": [
+    "100"
+  ],
+  "textured_plate_temp": [
+    "100"
+  ],
+  "setting_id": "GFSC99_07",
+  "eng_plate_temp_initial_layer": [
+    "100"
+  ],
+  "fan_max_speed": [
+    "20"
+  ],
+  "reduce_fan_stop_start_freq": [
+    "0"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "100"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.4 nozzle",
+    "Helio Bambu Lab A1 0.6 nozzle",
+    "Helio Bambu Lab A1 0.8 nozzle"
+  ]
+}

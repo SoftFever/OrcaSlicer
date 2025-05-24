@@ -1,0 +1,28 @@
+{
+  "name": "Generic PLA Silk @Helio A1",
+  "type": "filament",
+  "inherits": "Helio Generic PLA Silk @base",
+  "instantiation": "true",
+  "setting_id": "GFSL96_01",
+  "fan_max_speed": [
+    "80"
+  ],
+  "from": "system",
+  "fan_min_speed": [
+    "60"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.4 nozzle",
+    "Helio Bambu Lab A1 0.6 nozzle",
+    "Helio Bambu Lab A1 0.8 nozzle"
+  ],
+  "filament_retraction_length": [
+    "0.5"
+  ],
+  "filament_max_volumetric_speed": [
+    "7.5"
+  ]
+}

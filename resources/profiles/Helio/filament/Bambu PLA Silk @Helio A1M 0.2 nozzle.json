@@ -1,0 +1,38 @@
+{
+  "name": "Bambu PLA Silk @Helio A1M 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu PLA Silk @base",
+  "instantiation": "true",
+  "textured_plate_temp_initial_layer": [
+    "60"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "hot_plate_temp": [
+    "60"
+  ],
+  "slow_down_layer_time": [
+    "8"
+  ],
+  "textured_plate_temp": [
+    "60"
+  ],
+  "fan_max_speed": [
+    "80"
+  ],
+  "filament_max_volumetric_speed": [
+    "2"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "60"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ],
+  "setting_id": "GFSA05_04",
+  "fan_min_speed": [
+    "60"
+  ],
+  "from": "system"
+}

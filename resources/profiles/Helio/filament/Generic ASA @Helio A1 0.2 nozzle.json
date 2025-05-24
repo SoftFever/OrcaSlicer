@@ -1,0 +1,26 @@
+{
+  "name": "Generic ASA @Helio A1 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Helio Generic ASA @base",
+  "instantiation": "true",
+  "setting_id": "GFSB98_03",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.2 nozzle"
+  ],
+  "filament_max_volumetric_speed": [
+    "2"
+  ],
+  "hot_plate_temp": [
+    "100"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "100"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ],
+  "textured_plate_temp": [
+    "100"
+  ],
+  "from": "system"
+}

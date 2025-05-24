@@ -1,0 +1,41 @@
+{
+  "name": "Bambu PETG HF @Helio A1M 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu PETG HF @base",
+  "instantiation": "true",
+  "fan_cooling_layer_time": [
+    "15"
+  ],
+  "filament_flow_ratio": [
+    "0.94"
+  ],
+  "fan_max_speed": [
+    "50"
+  ],
+  "nozzle_temperature": [
+    "240"
+  ],
+  "filament_max_volumetric_speed": [
+    "1"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ],
+  "setting_id": "GFSG02_07",
+  "fan_min_speed": [
+    "30"
+  ],
+  "slow_down_layer_time": [
+    "7"
+  ],
+  "filament_long_retractions_when_cut": [
+    "1"
+  ],
+  "overhang_fan_speed": [
+    "100"
+  ],
+  "from": "system",
+  "filament_retraction_distances_when_cut": [
+    "18"
+  ]
+}

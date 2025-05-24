@@ -1,0 +1,21 @@
+{
+  "name": "Helio AliZ PETG @P1-X1",
+  "type": "filament",
+  "inherits": "AliZ PETG @base",
+  "instantiation": "true",
+  "enable_pressure_advance": [
+    "1"
+  ],
+  "from": "system",
+  "pressure_advance": [
+    "0.026"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab X1 Carbon 0.4 nozzle",
+    "Helio Bambu Lab X1 0.4 nozzle",
+    "Helio Bambu Lab P1P 0.4 nozzle",
+    "Helio Bambu Lab P1S 0.4 nozzle",
+    "Helio Bambu Lab X1E 0.4 nozzle"
+  ],
+  "setting_id": "AliZPX1FSA04"
+}

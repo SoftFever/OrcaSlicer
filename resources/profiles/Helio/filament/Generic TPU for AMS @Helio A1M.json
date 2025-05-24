@@ -1,0 +1,28 @@
+{
+  "name": "Generic TPU for AMS @Helio A1M",
+  "type": "filament",
+  "inherits": "Helio Generic TPU for AMS @base",
+  "instantiation": "true",
+  "fan_cooling_layer_time": [
+    "40"
+  ],
+  "slow_down_layer_time": [
+    "10"
+  ],
+  "fan_min_speed": [
+    "10"
+  ],
+  "from": "system",
+  "setting_id": "GFSU98_03",
+  "overhang_fan_threshold": [
+    "25%"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.8 nozzle",
+    "Helio Bambu Lab A1 mini 0.6 nozzle",
+    "Helio Bambu Lab A1 mini 0.4 nozzle"
+  ],
+  "fan_max_speed": [
+    "50"
+  ]
+}

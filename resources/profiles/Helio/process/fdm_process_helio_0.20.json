@@ -1,0 +1,18 @@
+{
+  "name": "fdm_process_helio_0.20",
+  "type": "process",
+  "inherits": "fdm_process_helio_common",
+  "instantiation": "false",
+  "inner_wall_speed": "300",
+  "outer_wall_speed": "200",
+  "top_shell_layers": "5",
+  "top_shell_thickness": "1.0",
+  "bridge_flow": "1",
+  "sparse_infill_speed": "270",
+  "internal_solid_infill_speed": "250",
+  "gap_infill_speed": "250",
+  "from": "system",
+  "initial_layer_speed": "50",
+  "initial_layer_infill_speed": "105",
+  "elefant_foot_compensation": "0.15"
+}

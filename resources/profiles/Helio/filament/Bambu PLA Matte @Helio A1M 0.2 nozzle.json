@@ -1,0 +1,44 @@
+{
+  "name": "Bambu PLA Matte @Helio A1M 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu PLA Matte @base",
+  "instantiation": "true",
+  "slow_down_layer_time": [
+    "6"
+  ],
+  "fan_min_speed": [
+    "60"
+  ],
+  "filament_max_volumetric_speed": [
+    "2"
+  ],
+  "setting_id": "GFSA01_03",
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "filament_long_retractions_when_cut": [
+    "1"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "60"
+  ],
+  "fan_max_speed": [
+    "80"
+  ],
+  "from": "system",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ],
+  "filament_retraction_distances_when_cut": [
+    "18"
+  ],
+  "hot_plate_temp": [
+    "60"
+  ]
+}

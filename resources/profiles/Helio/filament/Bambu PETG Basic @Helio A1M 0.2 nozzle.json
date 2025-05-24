@@ -1,0 +1,20 @@
+{
+  "name": "Bambu PETG Basic @Helio A1M 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu PETG Basic @Helio X1C 0.2 nozzle",
+  "instantiation": "true",
+  "filament_flow_ratio": [
+    "0.94"
+  ],
+  "from": "system",
+  "setting_id": "GFSG00_04",
+  "filament_long_retractions_when_cut": [
+    "nil"
+  ],
+  "filament_retraction_distances_when_cut": [
+    "nil"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ]
+}

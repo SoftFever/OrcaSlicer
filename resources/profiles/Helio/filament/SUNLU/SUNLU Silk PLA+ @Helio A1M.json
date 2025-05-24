@@ -1,0 +1,37 @@
+{
+  "name": "SUNLU Silk PLA+ @Helio A1M",
+  "type": "filament",
+  "inherits": "SUNLU Silk PLA+ @base",
+  "instantiation": "true",
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "from": "system",
+  "hot_plate_temp": [
+    "60"
+  ],
+  "fan_min_speed": [
+    "60"
+  ],
+  "setting_id": "GFSNLS05_06",
+  "textured_plate_temp": [
+    "60"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "60"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.4 nozzle",
+    "Helio Bambu Lab A1 mini 0.6 nozzle",
+    "Helio Bambu Lab A1 mini 0.8 nozzle"
+  ],
+  "fan_max_speed": [
+    "80"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "60"
+  ],
+  "slow_down_layer_time": [
+    "8"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "PolyLite PETG @Helio P1P",
+  "type": "filament",
+  "inherits": "PolyLite PETG @base",
+  "instantiation": "true",
+  "textured_plate_temp": [
+    "80"
+  ],
+  "setting_id": "GFSG60_02",
+  "hot_plate_temp_initial_layer": [
+    "80"
+  ],
+  "nozzle_temperature_range_high": [
+    "270"
+  ],
+  "hot_plate_temp": [
+    "80"
+  ],
+  "from": "system",
+  "textured_plate_temp_initial_layer": [
+    "80"
+  ],
+  "filament_max_volumetric_speed": [
+    "11.5"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.4 nozzle",
+    "Helio Bambu Lab P1P 0.6 nozzle",
+    "Helio Bambu Lab P1P 0.8 nozzle"
+  ]
+}

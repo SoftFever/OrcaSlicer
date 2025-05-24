@@ -1,0 +1,13 @@
+{
+  "name": "Helio Bambu Lab X1",
+  "type": "machine_model",
+  "nozzle_diameter": "0.4;0.2;0.6;0.8",
+  "family": "Helio",
+  "machine_tech": "FFF",
+  "default_materials": "Bambu PLA Matte @Helio X1;Bambu PLA Basic @Helio X1;Bambu PLA-CF @Helio X1C;Bambu PETG-CF @Helio X1C;Bambu ABS @Helio X1C;Bambu PLA Silk @Helio X1;Bambu PAHT-CF @Helio X1C;Bambu Support For PLA @Helio X1C;Bambu Support For PA PET @Helio X1C;Helio Generic PLA;Generic PLA High Speed @Helio X1C;Helio Generic PETG;Bambu PETG HF @Helio X1C",
+  "bed_model": "bbl-3dp-X1.stl",
+  "url": "http://www.bambulab.com/Parameters/printer_model/Bambu Lab X1.json",
+  "model_id": "BL-P002",
+  "bed_texture": "bbl-3dp-logo.svg",
+  "default_bed_type": "Textured PEI Plate"
+}

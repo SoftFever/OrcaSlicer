@@ -1,0 +1,28 @@
+{
+  "name": "Generic PETG-CF @Helio A1",
+  "type": "filament",
+  "inherits": "Helio Generic PETG-CF @base",
+  "instantiation": "true",
+  "fan_min_speed": [
+    "5"
+  ],
+  "from": "system",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.4 nozzle",
+    "Helio Bambu Lab A1 0.6 nozzle",
+    "Helio Bambu Lab A1 0.8 nozzle"
+  ],
+  "filament_max_volumetric_speed": [
+    "8"
+  ],
+  "setting_id": "GFSG98_01",
+  "fan_max_speed": [
+    "40"
+  ],
+  "overhang_fan_speed": [
+    "100"
+  ],
+  "fan_cooling_layer_time": [
+    "30"
+  ]
+}

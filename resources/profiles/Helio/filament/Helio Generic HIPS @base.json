@@ -1,0 +1,11 @@
+{
+  "name": "Helio Generic HIPS @base",
+  "type": "filament",
+  "inherits": "fdm_filament_hips",
+  "instantiation": "false",
+  "from": "system",
+  "filament_is_support": [
+    "1"
+  ],
+  "filament_id": "GFS98"
+}

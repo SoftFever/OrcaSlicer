@@ -1,0 +1,22 @@
+{
+  "name": "Helio Generic PVA",
+  "type": "filament",
+  "inherits": "Helio Generic PVA @base",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Helio Bambu Lab X1 Carbon 0.4 nozzle",
+    "Helio Bambu Lab X1 0.4 nozzle",
+    "Helio Bambu Lab X1 Carbon 0.6 nozzle",
+    "Helio Bambu Lab X1 Carbon 0.8 nozzle",
+    "Helio Bambu Lab X1 0.6 nozzle",
+    "Helio Bambu Lab X1 0.8 nozzle",
+    "Helio Bambu Lab P1S 0.4 nozzle",
+    "Helio Bambu Lab P1S 0.6 nozzle",
+    "Helio Bambu Lab P1S 0.8 nozzle",
+    "Helio Bambu Lab X1E 0.4 nozzle",
+    "Helio Bambu Lab X1E 0.6 nozzle",
+    "Helio Bambu Lab X1E 0.8 nozzle"
+  ],
+  "from": "system",
+  "setting_id": "GFSS99"
+}

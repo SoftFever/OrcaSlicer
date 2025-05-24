@@ -1,0 +1,40 @@
+{
+  "name": "Bambu PC @Helio A1",
+  "type": "filament",
+  "inherits": "Bambu PC @base",
+  "instantiation": "true",
+  "textured_plate_temp_initial_layer": [
+    "100"
+  ],
+  "reduce_fan_stop_start_freq": [
+    "0"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ],
+  "fan_max_speed": [
+    "20"
+  ],
+  "from": "system",
+  "eng_plate_temp": [
+    "100"
+  ],
+  "eng_plate_temp_initial_layer": [
+    "100"
+  ],
+  "slow_down_layer_time": [
+    "12"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.4 nozzle",
+    "Helio Bambu Lab A1 0.6 nozzle",
+    "Helio Bambu Lab A1 0.8 nozzle"
+  ],
+  "setting_id": "GFSC00_14",
+  "hot_plate_temp": [
+    "100"
+  ],
+  "textured_plate_temp": [
+    "100"
+  ]
+}

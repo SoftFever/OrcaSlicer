@@ -1,0 +1,15 @@
+{
+  "name": "0.40mm Standard @Helio A1M 0.8 nozzle",
+  "type": "process",
+  "inherits": "0.40mm Standard @Helio P1P 0.8 nozzle",
+  "instantiation": "true",
+  "from": "system",
+  "default_acceleration": "6000",
+  "elefant_foot_compensation": "0",
+  "compatible_printers": [
+    "Bambu Lab A1 mini 0.8 nozzle"
+  ],
+  "travel_speed": "700",
+  "setting_id": "GP037",
+  "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time."
+}

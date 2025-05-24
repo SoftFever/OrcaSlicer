@@ -1,0 +1,13 @@
+{
+  "name": "Bambu TPU 95A HF @Helio X1C",
+  "type": "filament",
+  "inherits": "Bambu TPU 95A HF @base",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Helio Bambu Lab X1 Carbon 0.6 nozzle",
+    "Helio Bambu Lab X1 Carbon 0.4 nozzle",
+    "Helio Bambu Lab X1 Carbon 0.8 nozzle"
+  ],
+  "setting_id": "GFSU00_00",
+  "from": "system"
+}

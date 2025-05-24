@@ -1,0 +1,13 @@
+{
+  "name": "Bambu Support G @Helio A1",
+  "type": "filament",
+  "inherits": "Bambu Support G @base",
+  "instantiation": "true",
+  "setting_id": "GFSS01_01",
+  "from": "system",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.4 nozzle",
+    "Helio Bambu Lab A1 0.6 nozzle",
+    "Helio Bambu Lab A1 0.8 nozzle"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "Bambu PLA Metal @Helio A1M 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu PLA Metal @base",
+  "instantiation": "true",
+  "filament_max_volumetric_speed": [
+    "2"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ],
+  "fan_min_speed": [
+    "60"
+  ],
+  "slow_down_layer_time": [
+    "6"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ],
+  "fan_max_speed": [
+    "80"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "from": "system",
+  "setting_id": "GFSA02_03",
+  "hot_plate_temp": [
+    "60"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "60"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ]
+}

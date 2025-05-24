@@ -1,0 +1,15 @@
+{
+  "name": "0.20mm Standard @Helio A1M",
+  "type": "process",
+  "inherits": "0.20mm Standard @Helio P1P",
+  "instantiation": "true",
+  "elefant_foot_compensation": "0",
+  "from": "system",
+  "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
+  "compatible_printers": [
+    "Bambu Lab A1 mini 0.4 nozzle"
+  ],
+  "default_acceleration": "6000",
+  "travel_speed": "700",
+  "setting_id": "GP000"
+}

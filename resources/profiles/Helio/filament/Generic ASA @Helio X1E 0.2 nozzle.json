@@ -1,0 +1,11 @@
+{
+  "name": "Generic ASA @Helio X1E 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Helio Generic ASA @0.2 nozzle",
+  "instantiation": "true",
+  "setting_id": "GFSB98_01",
+  "compatible_printers": [
+    "Helio Bambu Lab X1E 0.2 nozzle"
+  ],
+  "from": "system"
+}

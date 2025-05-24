@@ -1,0 +1,41 @@
+{
+  "name": "Bambu Support W @Helio A1 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu Support W @base",
+  "instantiation": "true",
+  "setting_id": "GFSS00_04",
+  "nozzle_temperature_initial_layer": [
+    "240"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ],
+  "filament_max_volumetric_speed": [
+    "0.5"
+  ],
+  "hot_plate_temp": [
+    "65"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "65"
+  ],
+  "fan_max_speed": [
+    "80"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "from": "system",
+  "fan_min_speed": [
+    "60"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "nozzle_temperature": [
+    "240"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.2 nozzle"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "fdm_process_helio_0.28",
+  "type": "process",
+  "inherits": "fdm_process_helio_common",
+  "instantiation": "false",
+  "layer_height": "0.28",
+  "initial_layer_speed": "50",
+  "top_shell_thickness": "1.0",
+  "initial_layer_infill_speed": "105",
+  "sparse_infill_speed": "200",
+  "internal_solid_infill_speed": "200",
+  "outer_wall_speed": "200",
+  "top_surface_line_width": "0.45",
+  "elefant_foot_compensation": "0.15",
+  "gap_infill_speed": "200",
+  "support_threshold_angle": "40",
+  "from": "system",
+  "bridge_flow": "1",
+  "top_shell_layers": "4",
+  "inner_wall_speed": "200"
+}

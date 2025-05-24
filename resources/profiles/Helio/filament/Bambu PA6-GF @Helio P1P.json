@@ -1,0 +1,22 @@
+{
+  "name": "Bambu PA6-GF @Helio P1P",
+  "type": "filament",
+  "inherits": "Bambu PA6-GF @base",
+  "instantiation": "true",
+  "nozzle_temperature_initial_layer": [
+    "265"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.4 nozzle",
+    "Helio Bambu Lab P1P 0.6 nozzle",
+    "Helio Bambu Lab P1P 0.8 nozzle"
+  ],
+  "from": "system",
+  "nozzle_temperature": [
+    "265"
+  ],
+  "filament_max_volumetric_speed": [
+    "10.5"
+  ],
+  "setting_id": "GFSN08_01"
+}

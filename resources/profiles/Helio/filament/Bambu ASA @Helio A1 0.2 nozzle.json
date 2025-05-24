@@ -1,0 +1,20 @@
+{
+  "name": "Bambu ASA @Helio A1 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu ASA @base",
+  "instantiation": "true",
+  "filament_retraction_distances_when_cut": [
+    "18"
+  ],
+  "from": "system",
+  "filament_long_retractions_when_cut": [
+    "1"
+  ],
+  "filament_max_volumetric_speed": [
+    "2"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.2 nozzle"
+  ],
+  "setting_id": "GFSB01_10"
+}

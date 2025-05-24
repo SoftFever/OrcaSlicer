@@ -1,0 +1,43 @@
+{
+  "name": "Bambu PVA @Helio A1M",
+  "type": "filament",
+  "inherits": "Bambu PVA @base",
+  "instantiation": "true",
+  "fan_max_speed": [
+    "80"
+  ],
+  "nozzle_temperature_initial_layer": [
+    "240"
+  ],
+  "setting_id": "GFSS04_06",
+  "from": "system",
+  "fan_min_speed": [
+    "60"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "65"
+  ],
+  "nozzle_temperature": [
+    "240"
+  ],
+  "hot_plate_temp": [
+    "65"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.4 nozzle",
+    "Helio Bambu Lab A1 mini 0.6 nozzle",
+    "Helio Bambu Lab A1 mini 0.8 nozzle"
+  ],
+  "slow_down_layer_time": [
+    "8"
+  ]
+}

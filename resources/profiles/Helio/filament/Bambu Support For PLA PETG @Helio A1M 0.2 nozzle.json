@@ -1,0 +1,38 @@
+{
+  "name": "Bambu Support For PLA PETG @Helio A1M 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu Support For PLA PETG @base",
+  "instantiation": "true",
+  "filament_long_retractions_when_cut": [
+    "1"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "from": "system",
+  "eng_plate_temp_initial_layer": [
+    "65"
+  ],
+  "setting_id": "GFSS05_05",
+  "filament_max_volumetric_speed": [
+    "0.5"
+  ],
+  "filament_retraction_distances_when_cut": [
+    "18"
+  ],
+  "eng_plate_temp": [
+    "65"
+  ],
+  "hot_plate_temp": [
+    "65"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "65"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ]
+}

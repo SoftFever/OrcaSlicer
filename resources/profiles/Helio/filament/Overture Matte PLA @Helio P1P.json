@@ -1,0 +1,34 @@
+{
+  "name": "Overture Matte PLA @Helio P1P",
+  "type": "filament",
+  "inherits": "Overture Matte PLA @base",
+  "instantiation": "true",
+  "hot_plate_temp": [
+    "65"
+  ],
+  "from": "system",
+  "setting_id": "GFSL05_03",
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.4 nozzle",
+    "Helio Bambu Lab P1P 0.6 nozzle",
+    "Helio Bambu Lab P1P 0.8 nozzle"
+  ],
+  "fan_min_speed": [
+    "50"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "65"
+  ],
+  "slow_down_layer_time": [
+    "10"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Bambu Support W @Helio X1C 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu Support W @base",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Helio Bambu Lab X1 Carbon 0.2 nozzle",
+    "Helio Bambu Lab X1 0.2 nozzle",
+    "Helio Bambu Lab P1S 0.2 nozzle",
+    "Helio Bambu Lab X1E 0.2 nozzle"
+  ],
+  "nozzle_temperature": [
+    "240"
+  ],
+  "from": "system",
+  "filament_max_volumetric_speed": [
+    "0.5"
+  ],
+  "setting_id": "GFSS00_00",
+  "nozzle_temperature_initial_layer": [
+    "240"
+  ]
+}

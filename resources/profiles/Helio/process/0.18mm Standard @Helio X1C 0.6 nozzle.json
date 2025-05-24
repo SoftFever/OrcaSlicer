@@ -1,0 +1,18 @@
+{
+  "name": "0.18mm Standard @Helio X1C 0.6 nozzle",
+  "type": "process",
+  "inherits": "fdm_process_helio_0.18_nozzle_0.6",
+  "instantiation": "true",
+  "smooth_coefficient": "150",
+  "compatible_printers": [
+    "Bambu Lab X1 Carbon 0.6 nozzle",
+    "Bambu Lab X1 0.6 nozzle",
+    "Bambu Lab P1S 0.6 nozzle",
+    "Bambu Lab X1E 0.6 nozzle"
+  ],
+  "from": "system",
+  "overhang_totally_speed": "50",
+  "description": "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer height, and results in less apparent layer lines and higher printing quality, but longer printing time.",
+  "setting_id": "GP028",
+  "elefant_foot_compensation": "0.15"
+}

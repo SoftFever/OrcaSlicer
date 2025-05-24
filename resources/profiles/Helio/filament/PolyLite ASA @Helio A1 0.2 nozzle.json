@@ -1,0 +1,26 @@
+{
+  "name": "PolyLite ASA @Helio A1 0.2 nozzle",
+  "type": "filament",
+  "inherits": "PolyLite ASA @base",
+  "instantiation": "true",
+  "setting_id": "GFSB61_06",
+  "textured_plate_temp_initial_layer": [
+    "100"
+  ],
+  "textured_plate_temp": [
+    "100"
+  ],
+  "filament_max_volumetric_speed": [
+    "2"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.2 nozzle"
+  ],
+  "hot_plate_temp": [
+    "100"
+  ],
+  "from": "system",
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ]
+}

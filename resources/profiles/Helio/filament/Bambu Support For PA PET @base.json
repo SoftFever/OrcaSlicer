@@ -1,0 +1,36 @@
+{
+  "name": "Bambu Support For PA PET @base",
+  "type": "filament",
+  "inherits": "fdm_filament_pa",
+  "instantiation": "false",
+  "nozzle_temperature": [
+    "280"
+  ],
+  "required_nozzle_HRC": [
+    "3"
+  ],
+  "nozzle_temperature_initial_layer": [
+    "280"
+  ],
+  "filament_id": "GFS03",
+  "filament_density": [
+    "1.22"
+  ],
+  "slow_down_layer_time": [
+    "6"
+  ],
+  "filament_cost": [
+    "34.99"
+  ],
+  "from": "system",
+  "fan_cooling_layer_time": [
+    "10"
+  ],
+  "filament_vendor": [
+    "Bambu Lab"
+  ],
+  "filament_is_support": [
+    "1"
+  ],
+  "description": "This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function."
+}

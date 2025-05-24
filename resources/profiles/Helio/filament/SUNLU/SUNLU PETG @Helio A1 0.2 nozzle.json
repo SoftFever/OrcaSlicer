@@ -1,0 +1,17 @@
+{
+  "name": "SUNLU PETG @Helio A1 0.2 nozzle",
+  "type": "filament",
+  "inherits": "SUNLU PETG @base",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.2 nozzle"
+  ],
+  "setting_id": "GFSNLS08_03",
+  "filament_max_volumetric_speed": [
+    "1"
+  ],
+  "from": "system",
+  "filament_flow_ratio": [
+    "0.94"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "Generic PVA @Helio P1P",
+  "type": "filament",
+  "inherits": "Helio Generic PVA @base",
+  "instantiation": "true",
+  "hot_plate_temp": [
+    "65"
+  ],
+  "textured_plate_temp": [
+    "65"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.4 nozzle",
+    "Helio Bambu Lab P1P 0.6 nozzle",
+    "Helio Bambu Lab P1P 0.8 nozzle"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "65"
+  ],
+  "fan_min_speed": [
+    "50"
+  ],
+  "from": "system",
+  "setting_id": "GFSS99_10",
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ]
+}

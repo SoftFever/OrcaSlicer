@@ -1,0 +1,35 @@
+{
+  "name": "Bambu PETG-CF @Helio X1C 0.4 nozzle",
+  "type": "filament",
+  "inherits": "Bambu PETG-CF @base",
+  "instantiation": "true",
+  "from": "system",
+  "overhang_fan_speed": [
+    "100"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab X1 Carbon 0.4 nozzle",
+    "Helio Bambu Lab X1 0.4 nozzle",
+    "Helio Bambu Lab P1S 0.4 nozzle",
+    "Helio Bambu Lab X1E 0.4 nozzle"
+  ],
+  "fan_max_speed": [
+    "40"
+  ],
+  "fan_min_speed": [
+    "5"
+  ],
+  "filament_retraction_distances_when_cut": [
+    "18"
+  ],
+  "fan_cooling_layer_time": [
+    "30"
+  ],
+  "filament_long_retractions_when_cut": [
+    "1"
+  ],
+  "setting_id": "GFSG50_02",
+  "filament_max_volumetric_speed": [
+    "11.5"
+  ]
+}

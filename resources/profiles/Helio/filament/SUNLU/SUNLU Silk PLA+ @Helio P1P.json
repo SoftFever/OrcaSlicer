@@ -1,0 +1,28 @@
+{
+  "name": "SUNLU Silk PLA+ @Helio P1P",
+  "type": "filament",
+  "inherits": "SUNLU Silk PLA+ @base",
+  "instantiation": "true",
+  "from": "system",
+  "textured_plate_temp": [
+    "65"
+  ],
+  "setting_id": "GFSNLS05_02",
+  "hot_plate_temp_initial_layer": [
+    "65"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "slow_down_layer_time": [
+    "8"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.4 nozzle",
+    "Helio Bambu Lab P1P 0.6 nozzle",
+    "Helio Bambu Lab P1P 0.8 nozzle"
+  ],
+  "hot_plate_temp": [
+    "65"
+  ]
+}

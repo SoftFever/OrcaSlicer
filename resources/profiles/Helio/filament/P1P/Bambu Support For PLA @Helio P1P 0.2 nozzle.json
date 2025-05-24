@@ -1,0 +1,38 @@
+{
+  "name": "Bambu Support For PLA @Helio P1P 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu Support For PLA @base",
+  "instantiation": "true",
+  "hot_plate_temp_initial_layer": [
+    "65"
+  ],
+  "nozzle_temperature": [
+    "240"
+  ],
+  "from": "system",
+  "fan_min_speed": [
+    "50"
+  ],
+  "hot_plate_temp": [
+    "65"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "filament_max_volumetric_speed": [
+    "0.5"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.2 nozzle"
+  ],
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "setting_id": "GFSS02_11",
+  "textured_plate_temp": [
+    "65"
+  ],
+  "nozzle_temperature_initial_layer": [
+    "240"
+  ]
+}

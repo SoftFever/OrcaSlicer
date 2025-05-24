@@ -1,0 +1,14 @@
+{
+  "name": "PolyLite PETG @Helio A1M 0.2 nozzle",
+  "type": "filament",
+  "inherits": "PolyLite PETG @Helio A1M",
+  "instantiation": "true",
+  "from": "system",
+  "setting_id": "GFSG60_05",
+  "filament_max_volumetric_speed": [
+    "1"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ]
+}

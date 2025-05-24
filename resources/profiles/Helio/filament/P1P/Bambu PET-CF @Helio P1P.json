@@ -1,0 +1,19 @@
+{
+  "name": "Bambu PET-CF @Helio P1P",
+  "type": "filament",
+  "inherits": "Bambu PET-CF @base",
+  "instantiation": "true",
+  "setting_id": "GFST01_10",
+  "reduce_fan_stop_start_freq": [
+    "0"
+  ],
+  "from": "system",
+  "slow_down_min_speed": [
+    "20"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.4 nozzle",
+    "Helio Bambu Lab P1P 0.6 nozzle",
+    "Helio Bambu Lab P1P 0.8 nozzle"
+  ]
+}

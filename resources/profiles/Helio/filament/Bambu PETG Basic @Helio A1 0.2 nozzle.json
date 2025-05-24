@@ -1,0 +1,17 @@
+{
+  "name": "Bambu PETG Basic @Helio A1 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Bambu PETG Basic @base",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.2 nozzle"
+  ],
+  "setting_id": "GFSG00_07",
+  "filament_flow_ratio": [
+    "0.94"
+  ],
+  "filament_max_volumetric_speed": [
+    "1"
+  ],
+  "from": "system"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "fdm_filament_eva",
+  "type": "filament",
+  "inherits": "fdm_filament_common",
+  "instantiation": "false",
+  "supertack_plate_temp": [
+    "0"
+  ],
+  "supertack_plate_temp_initial_layer": [
+    "0"
+  ],
+  "from": "system",
+  "filament_type": [
+    "EVA"
+  ]
+}

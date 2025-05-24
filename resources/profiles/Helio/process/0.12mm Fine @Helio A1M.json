@@ -1,0 +1,15 @@
+{
+  "name": "0.12mm Fine @Helio A1M",
+  "type": "process",
+  "inherits": "fdm_process_helio_0.12",
+  "instantiation": "true",
+  "default_acceleration": "6000",
+  "travel_speed": "700",
+  "elefant_foot_compensation": "0",
+  "compatible_printers": [
+    "Bambu Lab A1 mini 0.4 nozzle"
+  ],
+  "from": "system",
+  "setting_id": "GP044",
+  "description": "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, and results in almost negligible layer lines and higher printing quality, but longer printing time."
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Generic PHA @Helio A1M",
+  "type": "filament",
+  "inherits": "Helio Generic PHA @base",
+  "instantiation": "true",
+  "description": "This is neither a commonly used filament, nor one of Bambu filaments, and it varies a lot from brand to brand. So, it's highly recommended to ask its vendor for suitable profile before printing and adjust some parameters according to its performances.",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.4 nozzle",
+    "Helio Bambu Lab A1 mini 0.6 nozzle",
+    "Helio Bambu Lab A1 mini 0.8 nozzle"
+  ],
+  "setting_id": "GFSR98_01",
+  "from": "system"
+}

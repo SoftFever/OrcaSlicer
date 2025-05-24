@@ -1,0 +1,37 @@
+{
+  "name": "eSUN PLA+ @Helio A1",
+  "type": "filament",
+  "inherits": "eSUN PLA+ @base",
+  "instantiation": "true",
+  "fan_cooling_layer_time": [
+    "80"
+  ],
+  "from": "system",
+  "textured_plate_temp": [
+    "65"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "65"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 0.4 nozzle",
+    "Helio Bambu Lab A1 0.6 nozzle",
+    "Helio Bambu Lab A1 0.8 nozzle"
+  ],
+  "fan_min_speed": [
+    "60"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "65"
+  ],
+  "slow_down_layer_time": [
+    "8"
+  ],
+  "setting_id": "GFSL03_05",
+  "fan_max_speed": [
+    "80"
+  ],
+  "hot_plate_temp": [
+    "65"
+  ]
+}

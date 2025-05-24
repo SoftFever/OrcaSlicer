@@ -1,0 +1,38 @@
+{
+  "name": "Generic PC @Helio P1P 0.2 nozzle",
+  "type": "filament",
+  "inherits": "Helio Generic PC @base",
+  "instantiation": "true",
+  "reduce_fan_stop_start_freq": [
+    "0"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.2 nozzle"
+  ],
+  "from": "system",
+  "textured_plate_temp": [
+    "100"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "100"
+  ],
+  "eng_plate_temp": [
+    "100"
+  ],
+  "eng_plate_temp_initial_layer": [
+    "100"
+  ],
+  "setting_id": "GFSC99_01",
+  "fan_max_speed": [
+    "20"
+  ],
+  "hot_plate_temp": [
+    "100"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "100"
+  ],
+  "filament_max_volumetric_speed": [
+    "1"
+  ]
+}

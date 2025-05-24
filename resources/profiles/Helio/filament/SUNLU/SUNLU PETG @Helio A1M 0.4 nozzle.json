@@ -1,0 +1,23 @@
+{
+  "name": "SUNLU PETG @Helio A1M 0.4 nozzle",
+  "type": "filament",
+  "inherits": "SUNLU PETG @Helio X1C",
+  "instantiation": "true",
+  "filament_long_retractions_when_cut": [
+    "nil"
+  ],
+  "from": "system",
+  "filament_flow_ratio": [
+    "0.94"
+  ],
+  "filament_retraction_distances_when_cut": [
+    "nil"
+  ],
+  "setting_id": "GFSNLS08_05",
+  "filament_max_volumetric_speed": [
+    "9"
+  ],
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.4 nozzle"
+  ]
+}

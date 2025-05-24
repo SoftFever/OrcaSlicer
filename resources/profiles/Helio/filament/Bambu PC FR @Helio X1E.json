@@ -1,0 +1,20 @@
+{
+  "name": "Bambu PC FR @Helio X1E",
+  "type": "filament",
+  "inherits": "Bambu PC FR @base",
+  "instantiation": "true",
+  "chamber_temperatures": [
+    "60"
+  ],
+  "fan_max_speed": [
+    "40"
+  ],
+  "setting_id": "GFSC01_10",
+  "from": "system",
+  "compatible_printers": [
+    "Helio Bambu Lab X1E 0.4 nozzle"
+  ],
+  "slow_down_layer_time": [
+    "12"
+  ]
+}
