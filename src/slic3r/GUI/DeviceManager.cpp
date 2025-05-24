@@ -117,7 +117,7 @@ wxString get_stage_string(int stage)
     case 17:
         return _L("Pause of front cover falling");
     case 18:
-        return _L("Calibrating the micro lida");
+        return _L("Calibrating the micro lidar");
     case 19:
         return _L("Calibrating extrusion flow");
     case 20:
@@ -3105,8 +3105,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                            "In order to avoid extruder clogging, it is not allowed to set the chamber temperature above 45\u2103.");
                             }
                             else if (jj["errno"].get<int>() == -4) {
-                                 text = _L("When you set the chamber temperature below 40\u2103, the chamber temperature control will not be activated. "
-                                           "And the target chamber temperature will automatically be set to 0\u2103.");
+                                 text = _L("When you set the chamber temperature below 40\u2103, the chamber temperature control will not be activated, "
+                                           "and the target chamber temperature will automatically be set to 0\u2103.");
                             }
                             if(!text.empty()){
 #if __WXOSX__

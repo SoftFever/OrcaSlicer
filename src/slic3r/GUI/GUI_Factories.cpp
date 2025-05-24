@@ -1064,10 +1064,10 @@ void MenuFactory::append_menu_items_convert_unit(wxMenu* menu)
     };
 
     std::vector<std::pair<ConversionType, wxString>> items = {
-        {ConversionType::CONV_FROM_INCH , _L("Convert from inch") },
-        {ConversionType::CONV_TO_INCH   , _L("Restore to inch") },
-        {ConversionType::CONV_FROM_METER, _L("Convert from meter") },
-        {ConversionType::CONV_TO_METER  , _L("Restore to meter") } };
+        {ConversionType::CONV_FROM_INCH , _L("Convert from inches") },
+        {ConversionType::CONV_TO_INCH   , _L("Restore to inches") },
+        {ConversionType::CONV_FROM_METER, _L("Convert from meters") },
+        {ConversionType::CONV_TO_METER  , _L("Restore to meters") } };
 
     for (auto item : items) {
         int menu_id = menu->FindItem(item.second);

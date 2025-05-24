@@ -252,11 +252,11 @@ MsgUpdateConfig::~MsgUpdateConfig() {}
 //MsgUpdateForced
 
 MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
-    MsgDialog(nullptr, _(L("Configuration incompatible")), _(L("the configuration package is incompatible with current application.")) + " ", wxOK | wxICON_ERROR)
+    MsgDialog(nullptr, _(L("Configuration incompatible")), _(L("the configuration package is incompatible with the current application.")) + " ", wxOK | wxICON_ERROR)
 {
 	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(
-		"The configuration package is incompatible with current application.\n"
-		"%s will update the configuration package, Otherwise it won't be able to start"
+		"The configuration package is incompatible with the current application.\n"
+		"%s will update the configuration package to allow the application to start."
 	)), SLIC3R_APP_FULL_NAME));
 	
 
@@ -317,7 +317,7 @@ MsgUpdateForced::~MsgUpdateForced() {}
 // MsgDataIncompatible
 
 MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, wxString> &incompats) :
-    MsgDialog(nullptr,  _(L("Configuration incompatible")), _(L("the Configuration package is incompatible with current APP.")), wxICON_ERROR)
+    MsgDialog(nullptr,  _(L("Configuration incompatible")), _(L("the configuration package is incompatible with the current application.")), wxICON_ERROR)
 {
     //TODO
 	//auto *text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(

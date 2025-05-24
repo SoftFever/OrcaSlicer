@@ -1024,7 +1024,7 @@ AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
     wxBoxSizer* sizer_main;
     sizer_main = new wxBoxSizer(wxVERTICAL);
 
-    text_title = new Label(this, Label::Head_14, _L("Config which AMS slot should be used for a filament used in the print job"));
+    text_title = new Label(this, Label::Head_14, _L("Configure which AMS slot should be used for a filament used in the print job."));
     text_title->SetSize(wxSize(FromDIP(350), -1));
     text_title->Wrap(FromDIP(350));
     sizer_main->Add(text_title, 0, wxALIGN_CENTER | wxTOP, 18);
@@ -1171,7 +1171,7 @@ void AmsIntroducePopup::set_mode(bool enable_ams)
 {
     if (enable_ams) {
         m_staticText_top->SetLabelText(_L("Enable AMS"));
-        m_staticText_bottom->SetLabelText(_L("Print with filaments in ams"));
+        m_staticText_bottom->SetLabelText(_L("Print with filaments in AMS"));
         m_img_enable_ams->Show();
         m_img_disable_ams->Hide();
     }
