@@ -12,6 +12,8 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Polygon.hpp"
 
+#include "Widgets/DialogButtons.hpp"
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 
@@ -143,7 +145,12 @@ void BedShapeDialog::build_dialog(const Pointfs& default_pt, const ConfigOptionS
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(m_panel, 1, wxEXPAND);
-	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
+
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
+    auto d_sizer = new wxBoxSizer(wxVERTICAL);
+    d_sizer->Add(dlg_btns, 0, wxEXPAND);
+
+    main_sizer->Add(d_sizer, 0, wxEXPAND);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
