@@ -1287,7 +1287,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
     auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
-    auto item_jusprin_server = create_item_text_input(_L("JusPrin server address"), "", page, _L("JusPrin server address"), "jusprin_server", "base_url", [](wxString value) { /* No additional actions needed */ });
+    auto item_jusprin_server = create_item_text_input(_L("JusPrin server:"), "", page, _L("JusPrin server:"), "jusprin_server", "base_url", [](wxString value) { /* No additional actions needed */ });
 
     sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
