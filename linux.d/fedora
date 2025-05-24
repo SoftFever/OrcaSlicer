@@ -22,7 +22,6 @@ REQUIRED_DEV_PACKAGES=(
     libtool
     m4
     mesa-libGLU-devel
-    mesa-libOSMesa-devel
     ninja-build
     openssl-devel
     perl-FindBin

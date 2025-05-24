@@ -123,7 +123,7 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
             - run `./DockerRun.sh`
                 - For most common errors, open `DockerRun.sh` and read the comments.  
     - Ubuntu 
-      - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
+      - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
       - run 'sudo ./BuildLinux.sh -u'
       - run './BuildLinux.sh -dsi'
 
