@@ -32,7 +32,6 @@ RUN apt-get update && apt-get install  -y \
     libgstreamer-plugins-good1.0-dev \
     libgtk-3-dev \
     libgtk-3-dev \
-    libosmesa6-dev \
     libsecret-1-dev \
     libsoup2.4-dev \
     libssl3 \
