@@ -409,7 +409,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("jusprin_server", "base_url").empty()) {
-        set("jusprin_server", "base_url", "https://app.obico.io");
+        set_str("jusprin_server", "base_url", "https://app.obico.io");
     }
 
     // Remove legacy window positions/sizes
