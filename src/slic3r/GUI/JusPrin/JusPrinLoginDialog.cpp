@@ -24,8 +24,16 @@ JusPrinLoginDialog::JusPrinLoginDialog()
     SetBackgroundColour(*wxWHITE);
 
     // Set up the URL for JusPrin login
-    m_jusprint_url = wxGetApp().app_config->get_with_default("jusprin_server", "auth_url",
-        "https://app.obico.io/accounts/login/?hide_navbar=true&next=/o/authorize/%3Fresponse_type%3Dtoken%26client_id%3DJusPrin");
+    wxString auth_url = wxGetApp().app_config->get("jusprin_server", "auth_url");
+    if (auth_url.IsEmpty()) {
+        // If auth_url not found, derive from base_url
+        wxString base_url = wxGetApp().app_config->get_with_default("jusprin_server", "base_url", "https://app.obico.io");
+        // Remove trailing slash if present
+        if (base_url.EndsWith("/")) {
+            base_url = base_url.Left(base_url.Length() - 1);
+        }
+        auth_url = base_url + "/accounts/login/?hide_navbar=true&next=/o/authorize/%3Fresponse_type%3Dtoken%26client_id%3DJusPrin";
+    }
     m_networkOk = false;
 
     // Create the webview
@@ -58,7 +66,7 @@ JusPrinLoginDialog::JusPrinLoginDialog()
     wxPoint tmpPT((screenwidth - pSize.x) / 2, MaxY);
     Move(tmpPT);
 
-    m_browser->LoadURL(m_jusprint_url);
+    m_browser->LoadURL(auth_url);
    //wxGetApp().UpdateDlgDarkUI(this);
 }
 
