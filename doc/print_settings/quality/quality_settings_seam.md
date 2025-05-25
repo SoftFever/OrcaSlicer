@@ -2,12 +2,12 @@
 
 Unless printed in spiral vase mode, every layer needs to begin somewhere and end somewhere. That start and end of the extrusion is what results in what visually looks like a seam on the perimeters. This section contains options to control the visual appearance of a seam.
 
-- **Seam Position**: Controls the placement of the seam. 
+- **Seam Position**: Controls the placement of the seam.
   1. **Aligned**: Will attempt to align the seam to a hidden internal facet of the model.
   2. **Nearest**: Will place the seam at the nearest starting point compared to where the nozzle stopped printing in the previous layer.
   3. **Back**: Will align the seam in a (mostly) straight line at the rear of the model.
   4. **Random**: Will randomize the placement of the seam between layers.
-  
+
   Typically, aligned or back work the best, especially in combination with seam painting. However, as seams create weak points and slight surface "bulges" or "divots," random seam placement may be optimal for parts that need higher strength as that weak point is spread to different locations between layers (e.g., a pin meant to fit through a hole).
 
 - **Staggered Inner Seams**: As the seam location forms a weak point in the print (it's a discontinuity in the extrusion process after all!), staggering the seam on the internal perimeters can help reduce stress points. This setting moves the start of the internal wall's seam around across layers as well as away from the external perimeter seam. This way, the internal and external seams don't all align at the same point and between them across layers, distributing those weak points further away from the seam location, hence making the part stronger. It can also help improve the water tightness of your model.

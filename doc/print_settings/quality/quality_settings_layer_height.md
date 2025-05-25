@@ -5,7 +5,7 @@ This setting controls how tall each printed layer will be. Typically, a smaller 
 ### Tips:
 1. **The optimal layer height depends on the size of your nozzle**. The set layer height must not be taller than 80% of the diameter of the nozzle, else there is little "squish" between the printed layer and the layer below, leading to weaker parts.
 
-2. While technically there is no limit to how small a layer height one can use, **typically most printers struggle to print reliably with a layer height that is smaller than 20% of the nozzle diameter**. This is because with smaller layer heights, less material is extruded per mm and, at some point, the tolerances of the extruder system result in variations in the flow to such an extent that visible artifacts occur, especially if printing at high speeds. 
+2. While technically there is no limit to how small a layer height one can use, **typically most printers struggle to print reliably with a layer height that is smaller than 20% of the nozzle diameter**. This is because with smaller layer heights, less material is extruded per mm and, at some point, the tolerances of the extruder system result in variations in the flow to such an extent that visible artifacts occur, especially if printing at high speeds.
 
 For example, it is not uncommon to see "fish scale" type patterns on external walls when printing with a 0.4 mm nozzle at 0.08 mm layer height at speeds of 200mm/sec+. If you observe that pattern, simply increase your layer height to 30% of your nozzle height and/or slow down the print speed considerably.
 
