@@ -234,7 +234,7 @@ void StateColor::append(unsigned long color, int states)
 {
     if ((color & 0xff000000) == 0)
         color |= 0xff000000;
-    wxColour cl; cl.SetRGBA(color & 0xff00ff00 | ((color & 0xff) << 16) | ((color >> 16) & 0xff));
+    wxColour cl; cl.SetRGBA((color & 0xff00ff00) | ((color & 0xff) << 16) | ((color >> 16) & 0xff));
     append(cl, states);
 }
 
