@@ -639,10 +639,10 @@ void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
         m_current_ams = ams_id_selected;
     }
     if (m_current_show_ams != ams_id_selected && m_current_show_ams != "") {
-        auto item = m_ams_item_list[m_current_show_ams];
-        if (!item) return;
+        auto iter = m_ams_item_list.find(m_current_show_ams);
+        if (iter == m_ams_item_list.end()) return;
         try{
-            const auto& can_lib_list = item->get_can_lib_list();
+            const auto& can_lib_list = iter->second->get_can_lib_list();
             for (auto can : can_lib_list) {
                 can.second->UnSelected();
             }
