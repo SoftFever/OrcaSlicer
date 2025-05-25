@@ -80,6 +80,7 @@ filament_vendors = [
     'Das Filament',
     'DO3D',
     'DOW',
+    'DREMC',
     'DSM',
     'Duramic',
     'ELEGOO',
