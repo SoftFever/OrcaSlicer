@@ -18,6 +18,7 @@ namespace Slic3r { namespace GUI {
 #define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(196))
 #define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(196))
 
+#define IS_GENERIC_AMS(model) (model != AMSModel::AMS_LITE && model != AMSModel::EXT_AMS)
 
 AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
     : wxSimplebook(parent, wxID_ANY, pos, size)
@@ -851,7 +852,7 @@ void AMSControl::UpdateStepCtrl(bool is_extrusion)
     m_filament_unload_step->DeleteAllItems();
     m_filament_vt_load_step->DeleteAllItems();
 
-    if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::GENERIC_AMS) {
+    if (IS_GENERIC_AMS(m_ams_model) || IS_GENERIC_AMS(m_ext_model)) {
         if (is_extrusion) {
             m_filament_load_step->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
             m_filament_load_step->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);
@@ -980,7 +981,7 @@ void AMSControl::show_noams_mode()
 
     if (m_ams_model == AMSModel::EXT_AMS) {
         EnterNoneAMSMode();
-    } else if(m_ams_model == AMSModel::GENERIC_AMS){
+    } else if (IS_GENERIC_AMS(m_ams_model)){
         EnterGenericAMSMode();
     } else if (m_ams_model == AMSModel::AMS_LITE) {
         EnterExtraAMSMode();
@@ -1090,7 +1091,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, bool is_reset)
             Layout();
         }
 		
-        if (m_ams_model == AMSModel::GENERIC_AMS){
+        if (IS_GENERIC_AMS(m_ams_model)) {
             m_ams_item_list = m_ams_generic_item_list;
         }
         else if (m_ams_model == AMSModel::AMS_LITE) {
@@ -1247,7 +1248,7 @@ void AMSControl::SwitchAms(std::string ams_id)
         AmsItem* item = ams_item.second;
         if (item->get_ams_id() == ams_id) {
 
-            if (m_ams_model == AMSModel::GENERIC_AMS) {
+            if (IS_GENERIC_AMS(m_ams_model)) {
                 m_simplebook_generic_ams->SetSelection(item->get_selection());
             }
             else if (m_ams_model == AMSModel::AMS_LITE) {
@@ -1385,7 +1386,7 @@ bool AMSControl::Enable(bool enable)
 
 void AMSControl::SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxColour col)
 {
-    if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::GENERIC_AMS ) {
+    if (IS_GENERIC_AMS(m_ams_model) || IS_GENERIC_AMS(m_ext_model)) {
         if (!on_off) {
             m_extruder->TurnOff();
             m_vams_extra_road->OnVamsLoading(false);
@@ -1459,7 +1460,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     m_last_tray_id = canid;
 
 
-    if (m_ams_model == AMSModel::GENERIC_AMS) {
+    if (IS_GENERIC_AMS(m_ams_model)) {
         if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
             ams->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             m_extruder->OnAmsLoading(false);

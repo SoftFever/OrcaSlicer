@@ -713,7 +713,7 @@ void AMSLib::on_left_down(wxMouseEvent &evt)
             auto top = 0;
             auto bottom = 0;
 
-            if (m_ams_model == AMSModel::GENERIC_AMS) {
+            if (m_ams_model == AMSModel::GENERIC_AMS || m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::N3S_AMS || m_ams_model == AMSModel::EXT_AMS) {
                 top = (size.y - FromDIP(15) - m_bitmap_editable_light.GetBmpSize().y);
                 bottom = size.y - FromDIP(15);
             }
@@ -766,11 +766,11 @@ void AMSLib::render(wxDC &dc)
 #endif
 
     // text
-    if (m_ams_model == AMSModel::GENERIC_AMS) {
-        render_generic_text(dc);
-    }
-    else if (m_ams_model == AMSModel::AMS_LITE) {
+    if (m_ams_model == AMSModel::AMS_LITE) {
         render_lite_text(dc);
+    }
+    else{
+        render_generic_text(dc);
     }
 }
 
@@ -983,11 +983,11 @@ void AMSLib::render_generic_text(wxDC &dc)
 
 void AMSLib::doRender(wxDC &dc)
 {
-    if (m_ams_model == AMSModel::GENERIC_AMS) {
-        render_generic_lib(dc);
-    }
-    else if (m_ams_model == AMSModel::AMS_LITE) {
+    if (m_ams_model == AMSModel::AMS_LITE) {
         render_lite_lib(dc);
+    }
+    else {
+        render_generic_lib(dc);
     }
 }
 
@@ -2143,7 +2143,7 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
 
     auto m_panel_road = new AMSRoad(amscan, wxID_ANY, caninfo, canindex, maxcan, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
-    if (m_ams_model == AMSModel::GENERIC_AMS) {
+    if (m_ams_model != AMSModel::AMS_LITE && m_ams_model != AMSModel::EXT_AMS) {
         //m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
         m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         //m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
@@ -2168,7 +2168,7 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
     amscan->Layout();
     amscan->Fit();
 
-    if (m_ams_model == AMSModel::GENERIC_AMS) {
+    if (m_ams_model != AMSModel::AMS_LITE && m_ams_model != AMSModel::EXT_AMS) {
          sizer->Add(amscan, 0, wxALL, 0);
     }
     else if (m_ams_model == AMSModel::AMS_LITE)
