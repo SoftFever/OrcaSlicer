@@ -3093,6 +3093,66 @@ Polylines FillQuarterCubic::fill_surface(const Surface* surface, const FillParam
     return polylines_out;
 }
 
+Polylines Fill2DHoneycomb::fill_surface(const Surface *surface, const FillParams &params)
+{
+    // the 2D honeycomb is generated based on a base pattern of an inverted Y with its junction at height zero
+    //     |
+    //     |
+    // 0 --+--
+    //    / \
+    // why inverted?
+    // it makes determining some of the properties easier
+    // and the two angled legs provide additional horizontal stiffness
+    // the additional horizontal stiffness is not required close to the bed (unless you don't have any kind of bottom or flange)
+
+    using namespace boost::math::float_constants;
+
+    // lets begin calculating some base properties of the honeycomb pattern
+    const float half_horizontal_period = .5f * (1*(2/3.f) + 2*(1/3.f)) * float(spacing) / params.density;
+    const float vertical_period = 3 * half_horizontal_period / tanf(degree * float(params.infill_overhang_angle));
+
+    // we want to align the base pattern with its knot on height 0
+    // therefore the double line part is 1/3 below and the single line is 2/3 above 0
+    const float vertical_thirds_float = 3 * float(z) / vertical_period;
+    const int vertical_thirds_int = vertical_thirds_float; // converstion to int does implicit floor wich is desired here
+    const bool single_line = (vertical_thirds_int + 1) % 3;
+
+    // the base pattern needs to be horizontally shifted by half every odd pattern layer
+    const bool odd_layer = ((vertical_thirds_int + 1) / 3) % 2;
+    const float horizontal_offset = odd_layer ? half_horizontal_period : 0;
+
+    Polylines polylines_out;
+
+    if (single_line)
+    {
+        FillParams multiline_params = params;
+        multiline_params.density *= 1 / (1*(2/3.) + 2*(1/3.));
+
+        if (!fill_surface_by_multilines(
+                surface, multiline_params,
+                { { half_pi, horizontal_offset } },
+                polylines_out))
+            BOOST_LOG_TRIVIAL(error) << "Fill2DHoneycomb::fill_surface() failed to fill a region.";
+    } else {
+        FillParams multiline_params = params;
+        multiline_params.density *= 2 / (1*(2/3.) + 2*(1/3.));
+
+        const float horizontal_position = (1 - (vertical_thirds_float - vertical_thirds_int)) * half_horizontal_period;
+
+        if (!fill_surface_by_multilines(
+                surface, multiline_params,
+                { { half_pi, -horizontal_position + horizontal_offset }, { half_pi, horizontal_position + horizontal_offset } },
+                polylines_out))
+            BOOST_LOG_TRIVIAL(error) << "Fill2DHoneycomb::fill_surface() failed to fill a region.";
+    }
+
+    if (this->layer_id % 2 == 1)
+        for (int i = 0; i < polylines_out.size(); i++)
+            std::reverse(polylines_out[i].begin(), polylines_out[i].end());
+
+    return polylines_out;
+}
+
 Polylines FillSupportBase::fill_surface(const Surface *surface, const FillParams &params)
 {
     assert(! params.full_infill());
