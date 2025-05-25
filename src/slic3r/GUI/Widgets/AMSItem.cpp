@@ -2373,6 +2373,14 @@ void AmsItem::SetAmsStep(std::string can_id)
         m_road_canid = can_id;
         Refresh();
     }
+    for (auto lib : m_can_lib_list){
+        if (lib.second->m_info.can_id == can_id){
+            lib.second->on_pass_road(true);
+        }
+        else{
+            lib.second->on_pass_road(false);
+        }
+    }
 }
 
 void AmsItem::PlayRridLoading(wxString canid)
@@ -2420,124 +2428,96 @@ void AmsItem::render(wxDC& dc)
 
 void AmsItem::doRender(wxDC& dc)
 {
+    wxSize     size = GetSize();
+
     //road for extra
     if (m_ams_model == AMSModel::AMS_LITE) {
-        wxSize     size = GetSize();
         dc.DrawBitmap(m_bitmap_extra_framework.bmp(), (size.x - m_bitmap_extra_framework.GetBmpSize().x) / 2, (size.y - m_bitmap_extra_framework.GetBmpSize().y) / 2);
 
-        auto end_top = size.x / 2 - FromDIP(99);
-        auto passroad_width = 6;
-
-        for (auto lib_it : m_can_lib_list) {
-            AMSLib* lib = lib_it.second;
-
-            if (m_road_canid.empty()) {
-                lib->on_pass_road(false);
-            }
-            else {
-                if (lib->m_info.can_id == m_road_canid) {
-                    m_road_colour = lib->m_info.material_colour;
-                    lib->on_pass_road(true);
-                }
-            }
-        }
-
-       
         // A1
         dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+        RenderLiteRoad(dc, size);
+    }
+}
 
-        try
-        {
-            auto a1_top = size.y / 2 - FromDIP(4);
-            auto a1_left = m_can_lib_list["0"]->GetScreenPosition().x + m_can_lib_list["0"]->GetSize().x / 2;
-            auto local_pos1 = GetScreenPosition().x + GetSize().x / 2;
-            a1_left = size.x / 2 + (a1_left - local_pos1);
-            dc.DrawLine(a1_left, FromDIP(30), a1_left, a1_top);
-            dc.DrawLine(a1_left, a1_top, end_top, a1_top);
+void AmsItem::RenderLiteRoad(wxDC& dc, wxSize size) {
+    auto end_top = size.x / 2 - FromDIP(99);
+    auto passroad_width = 6;
+    auto a1_top = size.y / 2 - FromDIP(4);
+    auto a2_top = size.y / 2 + FromDIP(8);
+    auto a3_top = size.y / 2 + FromDIP(4);
+    auto a4_top = size.y / 2;
+
+    try
+    {
+        auto a1_left = m_can_lib_list["0"]->GetScreenPosition().x + m_can_lib_list["0"]->GetSize().x / 2;
+        auto local_pos1 = GetScreenPosition().x + GetSize().x / 2;
+        a1_left = size.x / 2 + (a1_left - local_pos1);
+        dc.DrawLine(a1_left, FromDIP(30), a1_left, a1_top);
+        dc.DrawLine(a1_left, a1_top, end_top, a1_top);
+
+        // A2
+        auto a2_left = m_can_lib_list["1"]->GetScreenPosition().x + m_can_lib_list["1"]->GetSize().x / 2;
+        auto local_pos2 = GetScreenPosition().x + GetSize().x / 2;
+        a2_left = size.x / 2 + (a2_left - local_pos2);
+        dc.DrawLine(a2_left, FromDIP(160), a2_left, a2_top);
+        dc.DrawLine(a2_left, a2_top, end_top, a2_top);
+
+        // A3
+        auto a3_left = m_can_lib_list["2"]->GetScreenPosition().x + m_can_lib_list["2"]->GetSize().x / 2;
+        auto local_pos3 = GetScreenPosition().x + GetSize().x / 2;
+        a3_left = size.x / 2 + (a3_left - local_pos3);
+        dc.DrawLine(a3_left, FromDIP(160), a3_left, a3_top);
+        dc.DrawLine(a3_left, a3_top, end_top, a3_top);
 
 
-            // A2
-            auto a2_top = size.y / 2 + FromDIP(8);
-            auto a2_left = m_can_lib_list["1"]->GetScreenPosition().x + m_can_lib_list["1"]->GetSize().x / 2;
-            auto local_pos2 = GetScreenPosition().x + GetSize().x / 2;
-            a2_left = size.x / 2 + (a2_left - local_pos2);
-            dc.DrawLine(a2_left, FromDIP(160), a2_left, a2_top);
-            dc.DrawLine(a2_left, a2_top, end_top, a2_top);
+        //// A4
+        auto a4_left = m_can_lib_list["3"]->GetScreenPosition().x + m_can_lib_list["3"]->GetSize().x / 2;
+        auto local_pos4 = GetScreenPosition().x + GetSize().x / 2;
+        a4_left = size.x / 2 + (a4_left - local_pos4);
+        dc.DrawLine(a4_left, FromDIP(30), a4_left, a4_top);
+        dc.DrawLine(a4_left, a4_top, end_top, a4_top);
 
-            // A3
-            auto a3_top = size.y / 2 + FromDIP(4);
-            auto a3_left = m_can_lib_list["2"]->GetScreenPosition().x + m_can_lib_list["2"]->GetSize().x / 2;
-            auto local_pos3 = GetScreenPosition().x + GetSize().x / 2;
-            a3_left = size.x / 2 + (a3_left - local_pos3);
-            dc.DrawLine(a3_left, FromDIP(160), a3_left, a3_top);
-            dc.DrawLine(a3_left, a3_top, end_top, a3_top);
+        //to Extruder
+        dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
+        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+        dc.DrawLine(end_top, a1_top, end_top, size.y);
 
 
-            // A4
-            auto a4_top = size.y / 2;
-            auto a4_left = m_can_lib_list["3"]->GetScreenPosition().x + m_can_lib_list["3"]->GetSize().x / 2;
-            auto local_pos4 = GetScreenPosition().x + GetSize().x / 2;
-            a4_left = size.x / 2 + (a4_left - local_pos4);
-            dc.DrawLine(a4_left, FromDIP(30), a4_left, a4_top);
-            dc.DrawLine(a4_left, a4_top, end_top, a4_top);
-
-   
-            if (!m_road_canid.empty()) {
-                if (m_road_canid == "0") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                    dc.DrawLine(a1_left, FromDIP(30), a1_left, a1_top);
-                    dc.DrawLine(a1_left, a1_top, end_top, a1_top);
-                }
-
-                if (m_road_canid == "1") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                    dc.DrawLine(a2_left, FromDIP(160), a2_left, a2_top);
-                    dc.DrawLine(a2_left, a2_top, end_top, a2_top);
-                }
-
-                if (m_road_canid == "2") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                    dc.DrawLine(a3_left, FromDIP(160), a3_left, a3_top);
-                    dc.DrawLine(a3_left, a3_top, end_top, a3_top);
-                }
-
-                if (m_road_canid == "3") {
-                    dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                    dc.DrawLine(a4_left, FromDIP(30), a4_left, a4_top);
-                    dc.DrawLine(a4_left, a4_top, end_top, a4_top);
-                }
+        if (!m_road_canid.empty()) {
+            int can_idx = atoi(m_road_canid.c_str());
+            if (can_idx < 0 || can_idx >= m_info.cans.size()) {
+                return;
+            }
+            m_road_colour = m_info.cans[can_idx].material_colour;
+            dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
+            if (m_road_canid == "0") {
+                dc.DrawLine(a1_left, FromDIP(30), a1_left, a1_top);
+                dc.DrawLine(a1_left, a1_top, end_top, a1_top);
+                dc.DrawLine(end_top, a1_top, end_top, size.y);
             }
 
-            //to Extruder
-            dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
-            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+            if (m_road_canid == "1") {
+                dc.DrawLine(a2_left, FromDIP(160), a2_left, a2_top);
+                dc.DrawLine(a2_left, a2_top, end_top, a2_top);
+                dc.DrawLine(end_top, a2_top, end_top, size.y);
+            }
 
-            dc.DrawLine(end_top, a1_top, end_top, size.y);
+            if (m_road_canid == "2") {
+                dc.DrawLine(a3_left, FromDIP(160), a3_left, a3_top);
+                dc.DrawLine(a3_left, a3_top, end_top, a3_top);
+                dc.DrawLine(end_top, a3_top, end_top, size.y);
+            }
 
-            if (!m_road_canid.empty()) {
-                if (!m_road_canid.empty()) {
-                    if (m_road_canid == "0") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                        dc.DrawLine(end_top, a1_top, end_top, size.y);
-                    }
-                    else if (m_road_canid == "1") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                        dc.DrawLine(end_top, a2_top, end_top, size.y);
-                    }
-                    else if (m_road_canid == "2") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                        dc.DrawLine(end_top, a3_top, end_top, size.y);
-                    }
-                    else if (m_road_canid == "3") {
-                        dc.SetPen(wxPen(m_road_colour, passroad_width, wxPENSTYLE_SOLID));
-                        dc.DrawLine(end_top, a4_top, end_top, size.y);
-                    }
-                }
+            if (m_road_canid == "3") {
+                dc.DrawLine(a4_left, FromDIP(30), a4_left, a4_top);
+                dc.DrawLine(a4_left, a4_top, end_top, a4_top);
+                dc.DrawLine(end_top, a4_top, end_top, size.y);
             }
         }
-        catch (...){}
     }
+    catch (...) {}
 }
 
 void AmsItem::StopRridLoading(wxString canid)

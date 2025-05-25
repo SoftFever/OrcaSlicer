@@ -572,6 +572,7 @@ public:
     void     paintEvent(wxPaintEvent& evt);
     void     render(wxDC& dc);
     void     doRender(wxDC& dc);
+    void     RenderLiteRoad(wxDC& dc, wxSize size);
     wxColour GetTagColr(wxString canid);
     std::string GetCurrentCan();
 
