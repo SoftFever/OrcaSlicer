@@ -72,6 +72,12 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default Release)" FORCE)
 endif()
 
+if (DEFINED BBL_RELEASE_TO_PUBLIC)
+    add_compile_definitions("BBL_RELEASE_TO_PUBLIC=${BBL_RELEASE_TO_PUBLIC}")
+else ()
+    add_compile_definitions("BBL_RELEASE_TO_PUBLIC=$<CONFIG:Release>")
+endif ()
+
 find_package(Git)
 if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     # Check current Git commit hash
