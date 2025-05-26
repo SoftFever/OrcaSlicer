@@ -5,9 +5,19 @@
     "from": "system",
     "setting_id": "GFSS02_06",
     "instantiation": "true",
+    "fan_max_speed": [
+        "30"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
     ],
     "filament_flow_ratio": [
         "1",
@@ -28,6 +38,14 @@
     "filament_max_volumetric_speed": [
         "0.5",
         "0.5"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
@@ -76,10 +94,6 @@
     "filament_z_hop_types": [
         "nil",
         "nil"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
     ],
     "long_retractions_when_ec": [
         "1",
