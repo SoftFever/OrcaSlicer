@@ -155,6 +155,11 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_lan_passwd     = obj->get_access_code();
         m_device_busy    = obj->is_camera_busy_off();
         m_tutk_state     = obj->tutk_state;
+
+        if (DeviceManager::get_printer_series(obj->printer_type) == "series_o" && NetworkAgent::use_legacy_network) {
+            // Legacy plugin cannot support remote play for H2D, force using local mode
+            m_remote_proto = MachineObject::LVR_None;
+        }
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
