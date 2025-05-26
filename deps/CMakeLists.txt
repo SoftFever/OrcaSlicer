@@ -95,7 +95,7 @@ if (_is_multi)
 endif ()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    option(DEP_WX_GTK3 "Build wxWidgets against GTK3" OFF)
+    option(DEP_WX_GTK3 "Build wxWidgets against GTK3" ON)
 endif()
 
 set(IS_CROSS_COMPILE FALSE)
