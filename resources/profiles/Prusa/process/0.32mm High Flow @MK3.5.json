@@ -39,6 +39,7 @@
   "outer_wall_acceleration": "4000",
   "bridge_acceleration": "1500",
   "internal_solid_infill_acceleration": "3000",
+  "support_top_z_distance": "0.25",
   "compatible_printers": [
     "Prusa MK3.5 0.6 nozzle"
   ]
