@@ -2316,6 +2316,13 @@ int MachineObject::command_ams_control(std::string action)
     return -1;
 }
 
+int MachineObject::command_ams_drying_stop()
+{
+    json j;
+    j["print"]["command"] = "auto_stop_ams_dry";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    return this->publish_json(j.dump());
+}
 
 int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
 {

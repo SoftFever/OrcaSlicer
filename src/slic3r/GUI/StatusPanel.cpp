@@ -4731,6 +4731,10 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
                 obj->command_ams_control("resume");
                 break;
             }
+            case Slic3r::GUI::PrintErrorDialog::STOP_DRYING: {
+                obj->command_ams_drying_stop();
+                break;
+            }
             case Slic3r::GUI::PrintErrorDialog::ERROR_BUTTON_COUNT: break;
             default: break;
         }
