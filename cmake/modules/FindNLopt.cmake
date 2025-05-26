@@ -28,7 +28,7 @@ if(NOT NLopt_DIR)
 
 	set(NLopt_FOUND TRUE)
 
-	set(_NLopt_LIB_NAMES "nlopt")
+	set(_NLopt_LIB_NAMES "nlopt" "nloptd")
 	find_library(NLopt_LIBS
 		NAMES ${_NLopt_LIB_NAMES})
 	if(NOT NLopt_LIBS)
