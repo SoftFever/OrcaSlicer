@@ -283,29 +283,6 @@ PrinterArch get_printer_arch_by_str(std::string arch_str)
     return PrinterArch::ARCH_CORE_XY;
 }
 
-void check_filaments_for_vt_slot(const std::string &tag_vendor, const std::string &tag_type, int ams_id, bool &in_blacklist, std::string &ac, wxString &info)
-{
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev)
-        return;
-
-    MachineObject *obj = dev->get_selected_machine();
-    if (obj == nullptr)
-        return;
-
-    if (tag_type == "TPU" && ams_id != VIRTUAL_TRAY_MAIN_ID) {
-        wxString extruder_name = _L("left");
-        if (obj->is_main_extruder_on_left()) {
-            extruder_name = _L("right");
-        }
-        wxString info_str = wxString::Format(_L("TPU is not supported by %s extruder for this printer."), extruder_name);
-
-        ac           = "prohibition";
-        info         = info_str;
-        in_blacklist = true;
-    }
-}
-
 bool check_filaments_printable(const std::string &tag_vendor, const std::string &tag_type, const std::string& filament_id, int ams_id, bool &in_blacklist, std::string &ac, wxString &info)
 {
    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -7976,9 +7953,7 @@ void DeviceManager::check_filaments_in_blacklist(std::string model_id,
         return;
     }
 
-    if (DeviceManager::is_virtual_slot(ams_id)) {
-        check_filaments_for_vt_slot(tag_vendor, tag_type, ams_id, in_blacklist, ac, info);
-    } else {
+    if (!DeviceManager::is_virtual_slot(ams_id)) {
         check_filaments_for_ams_slot(model_id, tag_vendor, tag_type, ams_id, slot_id, tag_name, in_blacklist, ac, info);
     }
 }
