@@ -6843,6 +6843,8 @@ boost::bimaps::bimap<std::string, std::string> DeviceManager::get_all_model_id_w
     }
 
     for (wxString file : m_files) {
+        if (!file.Lower().ends_with(".json")) continue;
+
         std::string config_file = Slic3r::resources_dir() + "/printers/" + file.ToStdString();
         boost::nowide::ifstream json_file(config_file.c_str());
 
