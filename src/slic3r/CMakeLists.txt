@@ -440,6 +440,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ModelMall.cpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
+    GUI/SelectMachinePop.hpp
+    GUI/SelectMachinePop.cpp
     GUI/SendToPrinter.hpp
     GUI/SendToPrinter.cpp
     GUI/AmsMappingPopup.hpp
