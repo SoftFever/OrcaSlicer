@@ -1855,6 +1855,11 @@ void SendToPrinterDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     DeviceManager *dm = GUI::wxGetApp().getDeviceManager();
     MachineObject *obj = dm->get_selected_machine();
 
+    if (obj == nullptr) {
+        fs->SetUrl("0");
+        return;
+    }
+
     std::string dev_ver = obj->get_ota_version();
     std::string dev_id = obj->dev_id;
     int remote_proto = obj->get_file_remote();
