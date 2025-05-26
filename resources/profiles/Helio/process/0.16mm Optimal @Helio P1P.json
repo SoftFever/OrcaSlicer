@@ -3,10 +3,10 @@
   "type": "process",
   "inherits": "fdm_process_helio_0.16",
   "instantiation": "true",
-  "setting_id": "GP020",
   "from": "system",
-  "description": "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, and results in less apparent layer lines and higher printing quality, but longer printing time.",
+  "setting_id": "GP020",
   "compatible_printers": [
-    "Bambu Lab P1P 0.4 nozzle"
-  ]
+    "Helio Bambu Lab P1P 0.4 nozzle"
+  ],
+  "description": "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, and results in less apparent layer lines and higher printing quality, but longer printing time."
 }

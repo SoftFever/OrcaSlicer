@@ -3,13 +3,13 @@
   "type": "process",
   "inherits": "fdm_process_helio_0.32_nozzle_0.8",
   "instantiation": "true",
-  "elefant_foot_compensation": "0.075",
-  "description": "Compared with the default profile of a 0.8 mm nozzle, it has a slightly smaller layer height, and results in slightly less but still apparent layer lines and slightly higher printing quality, but longer printing time in some printing cases.",
-  "from": "system",
-  "setting_id": "GP093",
-  "default_acceleration": "6000",
   "travel_speed": "700",
+  "elefant_foot_compensation": "0.075",
+  "from": "system",
   "compatible_printers": [
-    "Bambu Lab A1 0.8 nozzle"
-  ]
+    "Helio Bambu Lab A1 0.8 nozzle"
+  ],
+  "setting_id": "GP093",
+  "description": "Compared with the default profile of a 0.8 mm nozzle, it has a slightly smaller layer height, and results in slightly less but still apparent layer lines and slightly higher printing quality, but longer printing time in some printing cases.",
+  "default_acceleration": "6000"
 }

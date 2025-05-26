@@ -3,14 +3,14 @@
   "type": "process",
   "inherits": "fdm_process_helio_0.06_nozzle_0.2",
   "instantiation": "true",
-  "compatible_printers": [
-    "Bambu Lab A1 mini 0.2 nozzle"
-  ],
   "from": "system",
-  "initial_layer_speed": "16",
-  "setting_id": "GP050",
+  "travel_speed": "700",
   "default_acceleration": "6000",
+  "setting_id": "GP050",
   "initial_layer_infill_speed": "28",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ],
   "description": "Compared with the default profile of 0.2 mm nozzle, it has a smaller layer height, and results in minimal layer lines and higher printing quality, but shorter printing time.",
-  "travel_speed": "700"
+  "initial_layer_speed": "16"
 }

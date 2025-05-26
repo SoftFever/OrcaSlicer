@@ -3,13 +3,13 @@
   "type": "process",
   "inherits": "fdm_process_helio_0.20",
   "instantiation": "true",
-  "description": "Compared with the default profile of a 0.4 mm nozzle, it has more wall loops and a higher sparse infill density. So, it results in higher strength of the prints, but more filament consumption and longer printing time.",
+  "sparse_infill_density": "25%",
   "from": "system",
+  "description": "Compared with the default profile of a 0.4 mm nozzle, it has more wall loops and a higher sparse infill density. So, it results in higher strength of the prints, but more filament consumption and longer printing time.",
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.4 nozzle"
+  ],
   "outer_wall_speed": "60",
   "wall_loops": "6",
-  "compatible_printers": [
-    "Bambu Lab P1P 0.4 nozzle"
-  ],
-  "setting_id": "GP021",
-  "sparse_infill_density": "25%"
+  "setting_id": "GP021"
 }

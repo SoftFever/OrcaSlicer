@@ -3,15 +3,15 @@
   "type": "process",
   "inherits": "fdm_process_helio_0.40_nozzle_0.8",
   "instantiation": "true",
+  "elefant_foot_compensation": "0.15",
   "overhang_totally_speed": "50",
-  "compatible_printers": [
-    "Bambu Lab X1 Carbon 0.8 nozzle",
-    "Bambu Lab P1S 0.8 nozzle",
-    "Bambu Lab X1E 0.8 nozzle"
-  ],
   "smooth_coefficient": "150",
   "from": "system",
   "setting_id": "GP009",
-  "elefant_foot_compensation": "0.15",
-  "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time."
+  "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
+  "compatible_printers": [
+    "Helio Bambu Lab X1 Carbon 0.8 nozzle",
+    "Helio Bambu Lab P1S 0.8 nozzle",
+    "Helio Bambu Lab X1E 0.8 nozzle"
+  ]
 }

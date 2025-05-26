@@ -3,13 +3,13 @@
   "type": "process",
   "inherits": "fdm_process_helio_0.30_nozzle_0.6",
   "instantiation": "true",
-  "compatible_printers": [
-    "Bambu Lab P1P 0.6 nozzle"
-  ],
-  "sparse_infill_density": "25%",
   "setting_id": "GP067",
   "wall_loops": "4",
-  "from": "system",
+  "elefant_foot_compensation": "0.15",
   "description": "Compared with the default profile of a 0.6 mm nozzle, it has more wall loops and a higher sparse infill density. So, it results in higher strength of the prints, but more filament consumption and longer printing time.",
-  "elefant_foot_compensation": "0.15"
+  "compatible_printers": [
+    "Helio Bambu Lab P1P 0.6 nozzle"
+  ],
+  "from": "system",
+  "sparse_infill_density": "25%"
 }

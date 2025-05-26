@@ -4,10 +4,10 @@
   "inherits": "fdm_process_helio_0.40_nozzle_0.8",
   "instantiation": "true",
   "compatible_printers": [
-    "Bambu Lab P1P 0.8 nozzle"
+    "Helio Bambu Lab P1P 0.8 nozzle"
   ],
-  "setting_id": "GP017",
+  "from": "system",
   "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
   "elefant_foot_compensation": "0.15",
-  "from": "system"
+  "setting_id": "GP017"
 }

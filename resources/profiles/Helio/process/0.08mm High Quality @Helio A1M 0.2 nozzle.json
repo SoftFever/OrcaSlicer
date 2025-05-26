@@ -3,17 +3,17 @@
   "type": "process",
   "inherits": "fdm_process_helio_0.08_nozzle_0.2",
   "instantiation": "true",
-  "setting_id": "GP120",
   "outer_wall_acceleration": "2000",
-  "compatible_printers": [
-    "Bambu Lab A1 mini 0.2 nozzle"
-  ],
-  "default_acceleration": "3000",
-  "from": "system",
-  "sparse_infill_pattern": "gyroid",
+  "setting_id": "GP120",
   "travel_speed": "700",
+  "default_acceleration": "3000",
+  "outer_wall_speed": "60",
   "description": "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer lines, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in almost invisible layer lines and much higher printing quality, but much longer printing time.",
   "initial_layer_infill_speed": "28",
-  "outer_wall_speed": "60",
-  "initial_layer_speed": "16"
+  "sparse_infill_pattern": "gyroid",
+  "initial_layer_speed": "16",
+  "from": "system",
+  "compatible_printers": [
+    "Helio Bambu Lab A1 mini 0.2 nozzle"
+  ]
 }
