@@ -1058,10 +1058,6 @@
             "sub_path": "filament/Bambu PLA Glow @base.json"
         },
         {
-            "name": "Bambu PLA Impact @base",
-            "sub_path": "filament/Bambu PLA Impact @base.json"
-        },
-        {
             "name": "Bambu PLA Lite @base",
             "sub_path": "filament/Bambu PLA Lite @base.json"
         },
@@ -2584,10 +2580,6 @@
         {
             "name": "Bambu PLA Glow @BBL X1E",
             "sub_path": "filament/Bambu PLA Glow @BBL X1E.json"
-        },
-        {
-            "name": "Bambu PLA Impact @BBL X1C",
-            "sub_path": "filament/Bambu PLA Impact @BBL X1C.json"
         },
         {
             "name": "Bambu PLA Lite @BBL A1",
