@@ -12324,6 +12324,7 @@ void Plater::load_gcode(const wxString& filename)
 
     // process gcode
     GCodeProcessor processor;
+    processor.init_filament_maps_and_nozzle_type_when_import_only_gcode();
     try
     {
         GCodeProcessor::s_IsBBLPrinter = wxGetApp().preset_bundle->is_bbl_vendor();

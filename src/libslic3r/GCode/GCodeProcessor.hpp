@@ -838,7 +838,7 @@ class Print;
 
     public:
         GCodeProcessor();
-
+        void init_filament_maps_and_nozzle_type_when_import_only_gcode();
         // check whether the gcode path meets the filament_map grouping requirements
         bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas,
                                               const std::vector<double>   &printable_heights,
