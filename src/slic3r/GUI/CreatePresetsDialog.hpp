@@ -10,6 +10,7 @@
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
+#include "Widgets/DialogButtons.hpp"
 #include "miniz.h"
 #include "ParamsDialog.hpp"
 
@@ -318,11 +319,8 @@ private:
     std::shared_ptr<PresetBundle>                                                     m_preset_bundle;
     ComboBox *                                                                        m_selected_printer  = nullptr;
     ComboBox *                                                                        m_selected_filament = nullptr;
-    Button *                                                                          m_ok_btn            = nullptr;
-    Button *                                                                          m_cancel_btn        = nullptr;
     std::unordered_map<wxString, std::shared_ptr<Preset>>                             filament_choice_to_filament_preset;
     std::unordered_map<std::string, std::vector<std::shared_ptr<Preset>>>             m_printer_compatible_filament_presets; // need be used when add presets
-
 };
 
 class EditFilamentPresetDialog;
