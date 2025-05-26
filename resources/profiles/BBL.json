@@ -520,10 +520,6 @@
             "sub_path": "process/0.18mm Standard @BBL X1C 0.6 nozzle.json"
         },
         {
-            "name": "0.20mm Bambu Support W @BBL X1C",
-            "sub_path": "process/0.20mm Bambu Support W @BBL X1C.json"
-        },
-        {
             "name": "0.20mm Standard @BBL A1",
             "sub_path": "process/0.20mm Standard @BBL A1.json"
         },
