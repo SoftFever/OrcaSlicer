@@ -1,4 +1,4 @@
-FOUND_GTK3=$(dpkg -l libgtk* | grep gtk-3 || echo '')
+#!/bin/bash
 
 REQUIRED_DEV_PACKAGES=(
     autoconf

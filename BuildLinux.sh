@@ -100,7 +100,7 @@ then
 fi
 source ./linux.d/${DISTRIBUTION}
 
-echo "FOUND_GTK3=${FOUND_GTK3}"
+echo "FOUND_GTK3_DEV=${FOUND_GTK3_DEV}"
 if [[ -z "${FOUND_GTK3_DEV}" ]]
 then
     echo "Error, you must install the dependencies before."
@@ -124,7 +124,6 @@ fi
 if [[ -n "${BUILD_DEPS}" ]]
 then
     echo "Configuring dependencies..."
-    BUILD_ARGS="-DDEP_WX_GTK3=ON"
     if [[ -n "${CLEAN_BUILD}" ]]
     then
         rm -fr deps/build
@@ -135,14 +134,7 @@ then
     fi
     if [[ -n "${BUILD_DEBUG}" ]]
     then
-        # have to build deps with debug & release or the cmake won't find everything it needs
-        if [ ! -d "deps/build/release" ]
-        then
-            mkdir deps/build/release
-        fi
-        cmake -S deps -B deps/build/release -G Ninja -DDESTDIR="${PWD}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${PWD}/deps/DL_CACHE" ${BUILD_ARGS}
-        cmake --build deps/build/release
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
+        BUILD_ARGS="-DCMAKE_BUILD_TYPE=Debug"
     fi
 
     echo "cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}"
@@ -158,23 +150,12 @@ then
     then
         rm -fr build
     fi
-    BUILD_ARGS=""
-    if [[ -n "${FOUND_GTK3_DEV}" ]]
-    then
-        BUILD_ARGS="-DSLIC3R_GTK=3"
-    fi
     if [[ -n "${BUILD_DEBUG}" ]]
     then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"
-    else
-        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
+        BUILD_ARGS="-DCMAKE_BUILD_TYPE=Debug"
     fi
-    echo -e "cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 -DORCA_TOOLS=ON ${BUILD_ARGS}"
-    cmake -S . -B build -G Ninja \
-        -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" \
-        -DSLIC3R_STATIC=1 \
-        -DORCA_TOOLS=ON \
-        ${BUILD_ARGS}
+    echo -e "cmake -S . -B build -G Ninja -DORCA_TOOLS=ON ${BUILD_ARGS}"
+    cmake -S . -B build -G Ninja -DORCA_TOOLS=ON ${BUILD_ARGS}
     echo "done"
     echo "Building OrcaSlicer ..."
     cmake --build build --target OrcaSlicer
