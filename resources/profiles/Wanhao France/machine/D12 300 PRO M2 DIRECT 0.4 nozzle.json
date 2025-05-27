@@ -17,9 +17,9 @@
     "extra_loading_move": "-2",
     "printable_area": [
         "0x0",
-        "330x0",
+        "300x0",
         "300x300",
-        "0x330"
+        "0x300"
     ],
     "printable_height": "400",
     "nozzle_type": "brass",
