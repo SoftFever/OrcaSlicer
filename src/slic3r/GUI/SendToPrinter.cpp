@@ -1247,8 +1247,6 @@ void SendToPrinterDialog::update_show_status()
     }
 
 
-
-
     /* check cloud machine connections */
     if (!obj_->is_lan_mode_printer()) {
         if (!agent->is_server_connected()) {
@@ -1258,7 +1256,7 @@ void SendToPrinterDialog::update_show_status()
         }
     }
 
-    if (!obj_->is_info_ready() || !obj_->is_online() || !obj_->is_connected()) {
+    if (!obj_->is_info_ready()) {
         if (is_timeout()) {
             show_status(PrintDialogStatus::PrintStatusReadingTimeout);
             return;
