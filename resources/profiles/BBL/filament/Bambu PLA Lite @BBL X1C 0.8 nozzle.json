@@ -11,6 +11,12 @@
     "filament_retraction_distances_when_cut": [
         "18"
     ],
+    "nozzle_temperature": [
+        "220"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "220"
+    ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.8 nozzle",
         "Bambu Lab P1S 0.8 nozzle",

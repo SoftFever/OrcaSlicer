@@ -26,6 +26,12 @@
     "hot_plate_temp_initial_layer": [
         "60"
     ],
+    "nozzle_temperature": [
+        "220"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "220"
+    ],
     "slow_down_layer_time": [
         "6"
     ],
