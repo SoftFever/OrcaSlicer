@@ -1330,7 +1330,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 
 void Sidebar::priv::update_sync_status(const MachineObject *obj)
 {
-    auto clear_all_sync_status = [this]() {
+    StateColor not_synced_colour(std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Normal));
+    auto clear_all_sync_status = [this, &not_synced_colour]() {
         panel_printer_preset->ShowBadge(false);
         panel_printer_bed->ShowBadge(false);
         left_extruder->ShowBadge(false);
@@ -1339,6 +1340,8 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         right_extruder->sync_ams(nullptr, {}, {});
         single_extruder->ShowBadge(false);
         single_extruder->sync_ams(nullptr, {}, {});
+        btn_sync_printer->SetBorderColor(not_synced_colour);
+        btn_sync_printer->SetIcon("printer_sync");
     };
 
     if (!obj || !obj->is_info_ready()) {
@@ -1485,7 +1488,6 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     }
 
     StateColor synced_colour(std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Normal));
-    StateColor not_synced_colour(std::pair<wxColour, int>(wxColour("#00AE42"), StateColor::Normal));
     bool all_extruder_synced = std::all_of(extruder_synced.begin(), extruder_synced.end(), [](bool value) { return value; });
     if (printer_synced && all_extruder_synced) {
         btn_sync_printer->SetBorderColor(synced_colour);
