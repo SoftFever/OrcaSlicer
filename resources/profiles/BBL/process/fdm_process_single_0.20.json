@@ -1,7 +1,7 @@
 {
     "type": "process",
-    "name": "fdm_process_bbl_0.20",
-    "inherits": "fdm_process_bbl_common",
+    "name": "fdm_process_single_0.20",
+    "inherits": "fdm_process_single_common",
     "from": "system",
     "instantiation": "false",
     "elefant_foot_compensation": "0.15",

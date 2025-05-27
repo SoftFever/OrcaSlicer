@@ -1,7 +1,7 @@
 {
     "type": "process",
-    "name": "fdm_process_bbl_0.48_nozzle_0.8",
-    "inherits": "fdm_process_bbl_common",
+    "name": "fdm_process_single_0.48_nozzle_0.8",
+    "inherits": "fdm_process_single_common",
     "from": "system",
     "instantiation": "false",
     "layer_height": "0.48",
