@@ -2152,20 +2152,26 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         {
             bool has_warning_msg = false;
             bool has_normal_msg = false;
-            if (confirm_text.size() > 1)
-            {
-                for (auto i = 0; i < confirm_text.size(); i++)
-                {
-                    confirm_text[i].text = wxString::Format("%d. %s", i + 1, confirm_text[i].text);
-                    if (confirm_text[i].level == ConfirmBeforeSendInfo::InfoLevel::Warning)
-                    {
-                        has_warning_msg = true;
-                    }
-                    else
-                    {
-                        has_normal_msg = true;
-                    }
-                }
+
+            if (confirm_text.size() > 1) {
+                  std::unordered_set<wxString>       seen_texts;
+                  std::vector<ConfirmBeforeSendInfo> unique_texts;
+
+                  for (const auto &item : confirm_text) {
+                      if (seen_texts.insert(item.text).second)
+                      {
+                          unique_texts.push_back(item);
+                      }
+                  }
+
+                  for (size_t i = 0; i < unique_texts.size(); ++i) {
+                      unique_texts[i].text = wxString::Format("%d. %s", i + 1, unique_texts[i].text);
+                      if (unique_texts[i].level == ConfirmBeforeSendInfo::InfoLevel::Warning)
+                          has_warning_msg = true;
+                      else
+                          has_normal_msg = true;
+                  }
+                  confirm_text.swap(unique_texts);
             }
 
             std::vector<ConfirmBeforeSendInfo> shown_infos;
