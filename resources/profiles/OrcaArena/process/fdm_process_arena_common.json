@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "name": "fdm_process_bbl_common",
+    "name": "fdm_process_arena_common",
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_process_common",

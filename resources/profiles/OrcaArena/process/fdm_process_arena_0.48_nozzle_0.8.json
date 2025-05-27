@@ -1,10 +1,10 @@
 {
   "type": "process",
-  "name": "fdm_process_bbl_0.56_nozzle_0.8",
+  "name": "fdm_process_arena_0.48_nozzle_0.8",
   "from": "system",
   "instantiation": "false",
-  "inherits": "fdm_process_bbl_common",
-  "layer_height": "0.56",
+  "inherits": "fdm_process_arena_common",
+  "layer_height": "0.48",
   "initial_layer_print_height": "0.4",
   "wall_loops": "2",
   "bottom_shell_layers": "3",
