@@ -5178,31 +5178,21 @@ double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_deg
 
 bool GCode::_needSAFC(const ExtrusionPath &path)
 {
-    return m_small_area_infill_flow_compensator && m_config.small_area_infill_flow_compensation.value && (
-            this->on_first_layer() &&
-            (                       
-                this->config().bottom_surface_pattern == InfillPattern::ipRectilinear ||
-                this->config().bottom_surface_pattern == InfillPattern::ipAlignedRectilinear ||
-                this->config().bottom_surface_pattern == InfillPattern::ipMonotonic ||
-                this->config().bottom_surface_pattern == InfillPattern::ipMonotonicLine
-            )
-            ||
-            path.role() == erSolidInfill &&
-            (                       
-                this->config().internal_solid_infill_pattern == InfillPattern::ipRectilinear ||
-                this->config().internal_solid_infill_pattern == InfillPattern::ipAlignedRectilinear ||
-                this->config().internal_solid_infill_pattern == InfillPattern::ipMonotonic ||
-                this->config().internal_solid_infill_pattern == InfillPattern::ipMonotonicLine
-            )
-            ||
-            path.role() == erTopSolidInfill &&
-            (                       
-                this->config().top_surface_pattern == InfillPattern::ipRectilinear ||
-                this->config().top_surface_pattern == InfillPattern::ipAlignedRectilinear ||
-                this->config().top_surface_pattern == InfillPattern::ipMonotonic ||
-                this->config().top_surface_pattern == InfillPattern::ipMonotonicLine
-            )
-           );
+    if (!m_small_area_infill_flow_compensator || !m_config.small_area_infill_flow_compensation.value)
+        return false;
+
+    static const InfillPattern supported_patterns[] = {
+        InfillPattern::ipRectilinear,
+        InfillPattern::ipAlignedRectilinear,
+        InfillPattern::ipMonotonic,
+        InfillPattern::ipMonotonicLine,
+    };
+
+    return std::any_of(std::begin(supported_patterns), std::end(supported_patterns), [&](const InfillPattern pattern) {
+        return this->on_first_layer() && this->config().bottom_surface_pattern == pattern ||
+               path.role() == erSolidInfill && this->config().internal_solid_infill_pattern == pattern ||
+               path.role() == erTopSolidInfill && this->config().top_surface_pattern == pattern;
+    });
 }
 
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)
