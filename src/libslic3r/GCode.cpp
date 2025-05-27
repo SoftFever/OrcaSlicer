@@ -5176,6 +5176,35 @@ double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_deg
     return speed_out;
 }
 
+bool GCode::_needSAFC(const ExtrusionPath &path)
+{
+    return m_small_area_infill_flow_compensator && m_config.small_area_infill_flow_compensation.value && (
+            this->on_first_layer() &&
+            (                       
+                this->config().bottom_surface_pattern == InfillPattern::ipRectilinear ||
+                this->config().bottom_surface_pattern == InfillPattern::ipAlignedRectilinear ||
+                this->config().bottom_surface_pattern == InfillPattern::ipMonotonic ||
+                this->config().bottom_surface_pattern == InfillPattern::ipMonotonicLine
+            )
+            ||
+            path.role() == erSolidInfill &&
+            (                       
+                this->config().internal_solid_infill_pattern == InfillPattern::ipRectilinear ||
+                this->config().internal_solid_infill_pattern == InfillPattern::ipAlignedRectilinear ||
+                this->config().internal_solid_infill_pattern == InfillPattern::ipMonotonic ||
+                this->config().internal_solid_infill_pattern == InfillPattern::ipMonotonicLine
+            )
+            ||
+            path.role() == erTopSolidInfill &&
+            (                       
+                this->config().top_surface_pattern == InfillPattern::ipRectilinear ||
+                this->config().top_surface_pattern == InfillPattern::ipAlignedRectilinear ||
+                this->config().top_surface_pattern == InfillPattern::ipMonotonic ||
+                this->config().top_surface_pattern == InfillPattern::ipMonotonicLine
+            )
+           );
+}
+
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)
 {
     std::string gcode;
@@ -5730,8 +5759,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         continue;
                     path_length += line_length;
                     auto dE = e_per_mm * line_length;
-                    if (!this->on_first_layer() && m_small_area_infill_flow_compensator
-                            && m_config.small_area_infill_flow_compensation.value) {
+                    if (_needSAFC(path)) {
                         auto oldE = dE;
                         dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
 
@@ -5772,8 +5800,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             if (line_length < EPSILON)
                                 continue;
                             auto dE = e_per_mm * line_length;
-                            if (!this->on_first_layer() && m_small_area_infill_flow_compensator
-                                    && m_config.small_area_infill_flow_compensation.value) {
+                            if (_needSAFC(path)) {
                                 auto oldE = dE;
                                 dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
 
@@ -5796,8 +5823,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             continue;
                         const Vec2d center_offset = this->point_to_gcode(arc.center) - this->point_to_gcode(arc.start_point);
                         auto dE = e_per_mm * arc_length;
-                        if (!this->on_first_layer() && m_small_area_infill_flow_compensator
-                                && m_config.small_area_infill_flow_compensation.value) {
+                        if (_needSAFC(path)) {
                             auto oldE = dE;
                             dE = m_small_area_infill_flow_compensator->modify_flow(arc_length, dE, path.role());
 
@@ -5951,8 +5977,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 last_set_speed = F;
             }
             auto dE = e_per_mm * line_length;
-            if (!this->on_first_layer() && m_small_area_infill_flow_compensator
-                     && m_config.small_area_infill_flow_compensation.value) {
+            if (_needSAFC(path)) {
                 auto oldE = dE;
                 dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
 
@@ -6333,7 +6358,8 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
         (the extruder might be already retracted fully or partially). We call these
         methods even if we performed wipe, since this will ensure the entire retraction
         length is honored in case wipe path was too short.  */
-    if (role != erTopSolidInfill || EXTRUDER_CONFIG(retract_on_top_layer))
+    if ((!this->on_first_layer()  || this->config().bottom_surface_pattern != InfillPattern::ipHilbertCurve) &&
+	    (role != erTopSolidInfill || this->config().top_surface_pattern    != InfillPattern::ipHilbertCurve))
         gcode += toolchange ? m_writer.retract_for_toolchange() : m_writer.retract();
 
     gcode += m_writer.reset_e();
