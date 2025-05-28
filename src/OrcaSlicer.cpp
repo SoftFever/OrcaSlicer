@@ -5489,7 +5489,7 @@ int CLI::run(int argc, char **argv)
                                                 std::string filament_type;
                                                 m_print_config.get_filament_type(filament_type, plate_filaments[f_index] - 1);
                                                 auto *filament_printable_status = dynamic_cast<const ConfigOptionInts *>(m_print_config.option("filament_printable"));
-                                                if (filament_printable_status) {
+                                                if (filament_printable_status && (filament_printable_status->values.size() >= plate_filaments[f_index])) {
                                                     int status = filament_printable_status->values.at(plate_filaments[f_index] - 1);
                                                     if (!(status >> (filament_extruder - 1) & 1)) {
                                                         BOOST_LOG_TRIVIAL(error)
