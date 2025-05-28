@@ -1184,7 +1184,7 @@ int CLI::run(int argc, char **argv)
     }
 
     global_begin_time = (long long)Slic3r::Utils::get_current_time_utc();
-    BOOST_LOG_TRIVIAL(warning) << boost::format("cli mode, Current OrcaSlicer Version %1%")%SLIC3R_VERSION;
+    BOOST_LOG_TRIVIAL(warning) << boost::format("cli mode, Current OrcaSlicer Version %1%")%SoftFever_VERSION;
 
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
@@ -1403,9 +1403,9 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :" << o->id().id << ", from bbl 3mf\n";
                     }*/
 
-                    Semver cli_ver = *Semver::parse(SLIC3R_VERSION);
+                    Semver cli_ver = *Semver::parse(SoftFever_VERSION);
                     if (!allow_newer_file && ((cli_ver.maj() != file_version.maj()) || (cli_ver.min() < file_version.min()))){
-                        BOOST_LOG_TRIVIAL(error) << boost::format("Version Check: File Version %1% not supported by current cli version %2%")%file_version.to_string() %SLIC3R_VERSION;
+                        BOOST_LOG_TRIVIAL(error) << boost::format("Version Check: File Version %1% not supported by current cli version %2%")%file_version.to_string() %SoftFever_VERSION;
                         record_exit_reson(outfile_dir, CLI_FILE_VERSION_NOT_SUPPORTED, 0, cli_errors[CLI_FILE_VERSION_NOT_SUPPORTED], sliced_info);
                         flush_and_exit(CLI_FILE_VERSION_NOT_SUPPORTED);
                     }
@@ -3081,7 +3081,7 @@ int CLI::run(int argc, char **argv)
         else {
             partplate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, false);
         }
-        partplate_list.set_shapes(current_printable_area, current_exclude_area, bed_texture, height_to_lid, height_to_rod);
+        partplate_list.set_shapes(make_counter_clockwise(current_printable_area), current_exclude_area, bed_texture, height_to_lid, height_to_rod);
         //plate_stride = partplate_list.plate_stride_x();
     }
 
@@ -4660,7 +4660,7 @@ int CLI::run(int argc, char **argv)
             //FIXME check for mixing the FFF / SLA parameters.
             // or better save fff_print_config vs. sla_print_config
             //m_print_config.save(m_config.opt_string("save"));
-            m_print_config.save_to_json(m_config.opt_string(opt_key), std::string("project_settings"), std::string("project"), std::string(SLIC3R_VERSION));
+            m_print_config.save_to_json(m_config.opt_string(opt_key), std::string("project_settings"), std::string("project"), std::string(SoftFever_VERSION));
         } else if (opt_key == "info") {
             // --info works on unrepaired model
             for (Model &model : m_models) {
@@ -6032,10 +6032,55 @@ bool CLI::setup(int argc, char **argv)
     return true;
 }
 
+void attach_console_on_demand(){
+#ifdef _WIN32
+    static bool console_attached = false;
+
+    if (!console_attached) {
+        // Try attaching to the parent console first
+        if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+            console_attached = true;
+        } else if (GetLastError() == ERROR_ACCESS_DENIED) {
+            // Already has a console (maybe attached by debugger)
+            console_attached = true;
+        } else {
+            // No parent console found, try allocating a new one
+            if (AllocConsole()) {
+                console_attached = true;
+            }
+        }
+
+        if (console_attached) {
+            FILE* fp = nullptr;
+            // Redirect standard C streams to the console
+            if (freopen_s(&fp, "CONOUT$", "w", stdout) == 0) {
+                setvbuf(stdout, NULL, _IONBF, 0); // Optional: Disable buffering
+            }
+            if (freopen_s(&fp, "CONOUT$", "w", stderr) == 0) {
+                setvbuf(stderr, NULL, _IONBF, 0); // Optional: Disable buffering
+            }
+            if (freopen_s(&fp, "CONIN$", "r", stdin) == 0) {
+                // Input redirection successful
+            }
+            // Sync C++ streams with C streams after redirection
+            std::ios::sync_with_stdio(true);
+            // Clear potential error states from C++ streams
+            std::cout.clear();
+            std::cerr.clear();
+            std::cin.clear();
+            boost::nowide::cout.clear();
+            boost::nowide::cerr.clear();
+            boost::nowide::cin.clear();
+        }
+    }
+#endif
+}
 void CLI::print_help(bool include_print_options, PrinterTechnology printer_technology) const
 {
+    attach_console_on_demand();
+
     boost::nowide::cout
-        << SLIC3R_APP_KEY <<"-"<< SLIC3R_VERSION << ":"
+        << SLIC3R_APP_KEY <<"-"<< SoftFever_VERSION << ":"
         << std::endl
         << "Usage: orca-slicer [ OPTIONS ] [ file.3mf/file.stl ... ]" << std::endl
         << std::endl
@@ -6060,6 +6105,9 @@ void CLI::print_help(bool include_print_options, PrinterTechnology printer_techn
             << std::endl
             << "Run --help-fff / --help-sla to see the full listing of print options." << std::endl;
     }*/
+    // flush the output buffer
+    boost::nowide::cout.flush();
+    boost::nowide::cerr.flush();
 }
 
 bool CLI::export_models(IO::ExportFormat format, std::string path_dir)
