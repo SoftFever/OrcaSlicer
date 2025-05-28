@@ -40,7 +40,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
     m_amswin                 = new wxWindow(this, wxID_ANY);
     m_amswin->SetBackgroundColour(*wxWHITE);
-    //m_amswin->SetBackgroundColour(wxColour(0x00CED1));
     m_amswin->SetSize(wxSize(FromDIP(578), -1));
     m_amswin->SetMinSize(wxSize(FromDIP(578), -1));
 
@@ -285,8 +284,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
                 wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
                 wxPoint popup_pos(img_pos.x - m_percent_humidity_dry_popup->GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
-                m_percent_humidity_dry_popup->Position(popup_pos, wxSize(0, 0));
-                m_percent_humidity_dry_popup->Popup();
+                m_percent_humidity_dry_popup->Move(popup_pos);
+                m_percent_humidity_dry_popup->ShowModal();
             }
             else
             {

@@ -29,7 +29,7 @@ struct uiAmsHumidityInfo
 /// Note: The popup of Ams Humidity with percentage and dry time
 /// Author: xin.zhang
 /// </summary>
-class uiAmsPercentHumidityDryPopup : public PopupWindow
+class uiAmsPercentHumidityDryPopup : public wxDialog
 {
 public:
     uiAmsPercentHumidityDryPopup(wxWindow *parent);
@@ -39,9 +39,6 @@ public:
     void Update(uiAmsHumidityInfo *info) { m_ams_id = info->ams_id; Update(info->humidity_level, info->humidity_percent, info->left_dry_time, info->current_temperature); };
 
     std::string get_owner_ams_id() const { return m_ams_id; }
-
-    virtual void OnDismiss() wxOVERRIDE {};
-    virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE { return true;};
 
     void msw_rescale();
 
@@ -65,7 +62,6 @@ private:
     ScalableBitmap idle_img;
 
     // Widgets
-    ScalableButton* m_close_btn;
     wxStaticBitmap* m_humidity_img;
 
     wxStaticBitmap* m_dry_state_img;

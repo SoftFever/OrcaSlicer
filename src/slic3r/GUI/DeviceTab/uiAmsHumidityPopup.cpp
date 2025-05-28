@@ -20,7 +20,7 @@
 namespace Slic3r { namespace GUI {
 
 uiAmsPercentHumidityDryPopup::uiAmsPercentHumidityDryPopup(wxWindow *parent)
-    : PopupWindow(parent, wxBORDER_NONE)
+    : wxDialog(parent, wxID_ANY, "")
 {
     Create();
 }
@@ -42,14 +42,9 @@ void uiAmsPercentHumidityDryPopup::Create()
     title->SetBackgroundColour(*wxWHITE);
     title->SetFont(Label::Head_18);
 
-    m_close_btn = new ScalableButton(this, wxID_ANY, "hum_popup_close");
-    m_close_btn->SetBackgroundColour(*wxWHITE);
-    m_close_btn->Bind(wxEVT_LEFT_UP, [this](auto& e) { Dismiss(); e.Skip(); });
     title_sizer->AddStretchSpacer();
     title_sizer->Add(title, 0, wxALIGN_CENTER_HORIZONTAL);
     title_sizer->AddStretchSpacer();
-    title_sizer->Add(m_close_btn, 0, wxALIGN_RIGHT, 0);
-    title_sizer->AddSpacer(FromDIP(10));
 
     // create humidity image
     m_humidity_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
@@ -173,7 +168,6 @@ void uiAmsPercentHumidityDryPopup::msw_rescale()
 {
     idle_img.msw_rescale();
     drying_img.msw_rescale();
-    m_close_btn->msw_rescale();
     UpdateContents();
 }
 
