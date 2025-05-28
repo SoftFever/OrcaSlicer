@@ -3039,7 +3039,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool mix_pla_and_petg = cur_plate->check_mixture_of_pla_and_petg(wxGetApp().preset_bundle->full_config());
             _set_warning_notification(EWarning::MixUsePLAAndPETG, !mix_pla_and_petg);
 
-            bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid && filament_printable && !show_wipe_tower_outside_error;
+            bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid && filament_printable;
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, model_fits));
             ppl.get_curr_plate()->update_slice_ready_status(model_fits);
         }
@@ -10104,7 +10104,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case EWarning::PrimeTowerOutside:
         text  = _u8L("The prime tower extends beyond the plate boundary.");
-        error = ErrorType::SLICING_ERROR;
         break;
     }
     //BBS: this may happened when exit the app, plater is null
