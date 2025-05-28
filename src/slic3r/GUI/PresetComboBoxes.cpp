@@ -1287,7 +1287,7 @@ void PlaterPresetComboBox::update()
 
     //BBS: add project embedded preset logic
     add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"), _L("Project"));
-    add_presets(nonsys_presets, selected_user_preset, L("User presets"), _L("User"));
+    add_presets(nonsys_presets, selected_user_preset, L("User presets"), _L("Custom"));
     // BBS: move system to the end
     add_presets(system_presets, selected_system_preset, L("System presets"), _L("System"));
     add_presets(uncompatible_presets, {}, L("Unsupported presets"), _L("Unsupported"));
