@@ -3,6 +3,7 @@
 #include "Layer.hpp"
 
 constexpr int FILTER_THRESHOLD = 5;
+constexpr int MAX_CANDIDATE_SIZE = 5;
 
 namespace Slic3r {
     void TimelapsePosPicker::init(const Print* print_, const Point& plate_offset)
@@ -210,7 +211,7 @@ namespace Slic3r {
             object_y_ranges.emplace_back(m_plate_height, m_plate_height);
 
         int lower_y_pos = -1, upper_y_pos =-1;
-        auto unscaled_curr_pos = unscale(ctx.curr_pos);
+        Point unscaled_curr_pos = {unscale_(ctx.curr_pos.x())-m_plate_offset.x(), unscale_(ctx.curr_pos.y()) - m_plate_offset.y()};
 
         for (size_t idx = 1; idx < object_y_ranges.size(); ++idx) {
             if (unscaled_curr_pos.y() >= object_y_ranges[idx - 1].second && unscaled_curr_pos.y() <= object_y_ranges[idx].first) {
@@ -354,31 +355,28 @@ namespace Slic3r {
      * @param safe_areas A collection of extended polygons defining the safe areas.
      * @return Point The nearest point within the safe areas or the default timelapse position if no safe areas exist.
      */
-    Point pick_pos_internal(const Point& curr_pos, const ExPolygons& safe_areas)
+    Point pick_pos_internal(const Point& curr_pos, const ExPolygons& safe_areas, const ExPolygons& path_collision_area, bool detect_path_collision)
     {
-        if (std::any_of(safe_areas.begin(), safe_areas.end(), [&curr_pos](const ExPolygon& p) { return p.contains(curr_pos);}))
+        struct CandidatePoint
+        {
+            double dist;
+            Point point;
+            bool operator<(const CandidatePoint& other) const {
+                return dist < other.dist;
+            }
+        };
+
+        if (std::any_of(safe_areas.begin(), safe_areas.end(), [&curr_pos](const ExPolygon& p) { return p.contains(curr_pos); }))
             return curr_pos;
 
         if (safe_areas.empty())
             return DefaultTimelapsePos;
 
+        std::priority_queue<CandidatePoint> max_heap;
+
         double min_distance = std::numeric_limits<double>::max();
-        Point nearest_point =DefaultTimelapsePos;
-#if 0
-        for (const auto& expoly : safe_areas) {
-            Polygons polys = to_polygons(expoly);
-            for (auto& poly : polys) {
-                auto nearest_point_ptr = poly.closest_point(curr_pos);
-                if (nearest_point_ptr) {
-                    double dist = (*nearest_point_ptr - curr_pos).cast<double>().norm();
-                    if (min_distance > dist) {
-                        min_distance = dist;
-                        nearest_point = *nearest_point_ptr;
-                    }
-                }
-            }
-        }
-#else
+        Point nearest_point = DefaultTimelapsePos;
+
         for (const auto& expoly : safe_areas) {
             Polygons polys = to_polygons(expoly);
             for (auto& poly : polys) {
@@ -386,15 +384,31 @@ namespace Slic3r {
                     Line line(poly.points[idx], poly.points[next_idx_modulo(idx, poly.points)]);
                     Point candidate;
                     double dist = line.distance_to_squared(curr_pos, &candidate);
-                    if (min_distance > dist) {
-                        min_distance = dist;
-                        nearest_point = candidate;
-                    }
+                    max_heap.push({ dist,candidate });
+                    if (max_heap.size() > MAX_CANDIDATE_SIZE)
+                        max_heap.pop();
                 }
             }
         }
-#endif
-        return nearest_point;
+
+        std::vector<Point> top_candidates;
+        while (!max_heap.empty()) {
+            top_candidates.push_back(max_heap.top().point);
+            max_heap.pop();
+        }
+        std::reverse(top_candidates.begin(), top_candidates.end());
+
+        for (auto& p : top_candidates) {
+            if (!detect_path_collision)
+                return p;
+
+            Polyline path(curr_pos, p);
+
+            if (intersection_pl({path}, path_collision_area).empty())
+                return p;
+        }
+
+        return DefaultTimelapsePos;
     }
 
     Point TimelapsePosPicker::pick_pos(const PosPickCtx& ctx)
@@ -419,7 +433,7 @@ namespace Slic3r {
         Point min_p{ instance_bbox.min.x(),instance_bbox.min.y() };
         Point max_p{ instance_bbox.max.x(),instance_bbox.max.y() };
 
-        return { scale_((min_p.x() + max_p.x()) / 2),scale_(min_p.y() + max_p.y() / 2) };
+        return { scale_((min_p.x() + max_p.x()) / 2),scale_((min_p.y() + max_p.y()) / 2) };
     }
 
     // scaled data
@@ -445,7 +459,7 @@ namespace Slic3r {
     {
         float height_gap = 0;
         if (ctx.curr_extruder_id != ctx.picture_extruder_id) {
-            if(m_liftable_extruder_id.has_value() && ctx.picture_extruder_id != m_liftable_extruder_id && m_extruder_height_gap.has_value())
+            if (m_liftable_extruder_id.has_value() && ctx.picture_extruder_id != m_liftable_extruder_id && m_extruder_height_gap.has_value())
                 height_gap = -*m_extruder_height_gap;
         }
 
@@ -455,16 +469,32 @@ namespace Slic3r {
         ExPolygons layer_slices = collect_object_slices_data(ctx.curr_layer, height_gap, object_list, by_object);
         Polygons camera_limit_areas = collect_limit_areas_for_camera(object_list);
         Polygons rod_limit_areas;
-        if (m_print_seq == PrintSequence::ByObject) {
-            rod_limit_areas = collect_limit_areas_for_rod(object_list,ctx);
+        if (by_object) {
+            rod_limit_areas = collect_limit_areas_for_rod(object_list, ctx);
         }
-        ExPolygons unplacable_area = union_ex(union_ex(layer_slices, camera_limit_areas),rod_limit_areas);
+        ExPolygons unplacable_area = union_ex(union_ex(layer_slices, camera_limit_areas), rod_limit_areas);
         ExPolygons extruder_printable_area = m_extruder_printable_area[ctx.picture_extruder_id];
 
         ExPolygons safe_area = diff_ex(extruder_printable_area, unplacable_area);
         safe_area = opening_ex(safe_area, scale_(FILTER_THRESHOLD));
-        Point objs_center = get_objects_center(object_list);
-        return pick_pos_internal(objs_center, safe_area);
+
+        Point center_p;
+        if (by_object && ctx.printed_objects && !ctx.printed_objects->empty())
+            center_p = get_object_center(ctx.printed_objects->back());
+        else
+            center_p = get_objects_center(object_list);
+
+        ExPolygons path_collision_area;
+        if (by_object) {
+            auto object_without_curr = ctx.printed_objects;
+            if (object_without_curr && !object_without_curr->empty())
+                object_without_curr->pop_back();
+
+            ExPolygons layer_slices_without_curr = collect_object_slices_data(ctx.curr_layer, height_gap, get_object_list(object_without_curr), by_object);
+            path_collision_area = union_ex(layer_slices_without_curr, rod_limit_areas);
+        }
+
+        return pick_pos_internal(center_p, safe_area,path_collision_area, by_object);
     }
 
     /**
@@ -499,6 +529,10 @@ namespace Slic3r {
 
     Point TimelapsePosPicker::pick_pos_for_all_layer(const PosPickCtx& ctx)
     {
+        bool by_object = m_print_seq == PrintSequence::ByObject;
+        if (by_object)
+            return DefaultTimelapsePos;
+
         float height_gap = 0;
         if (ctx.curr_extruder_id != ctx.picture_extruder_id) {
             if (m_liftable_extruder_id.has_value() && ctx.picture_extruder_id != m_liftable_extruder_id && m_extruder_height_gap.has_value())
@@ -509,8 +543,6 @@ namespace Slic3r {
         if (m_all_layer_pos)
             return *m_all_layer_pos;
 
-        bool by_object = m_print_seq == PrintSequence::ByObject;
-
         Polygons object_projections;
 
         auto object_list = get_object_list(std::nullopt);
@@ -518,10 +550,6 @@ namespace Slic3r {
         for (auto& obj : object_list) {
             for (auto& instance : obj->instances()) {
                 const auto& bbox = get_real_instance_bbox(instance);
-                if (m_print_seq == PrintSequence::ByObject && bbox.max.z() >= m_nozzle_height_to_rod) {
-                    m_all_layer_pos = DefaultTimelapsePos;
-                    return *m_all_layer_pos;
-                }
                 Point min_p{ scale_(bbox.min.x()),scale_(bbox.min.y()) };
                 Point max_p{ scale_(bbox.max.x()),scale_(bbox.max.y()) };
                 Polygon obj_proj{ { min_p.x(),min_p.y() },
@@ -549,7 +577,7 @@ namespace Slic3r {
 
         Point starting_pos = get_objects_center(object_list);
 
-        m_all_layer_pos = pick_pos_internal(starting_pos, safe_area);
+        m_all_layer_pos = pick_pos_internal(starting_pos, safe_area, {}, by_object);
         return *m_all_layer_pos;
     }
 
