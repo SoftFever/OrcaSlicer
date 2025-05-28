@@ -4888,11 +4888,11 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
         m_fan_control_popup = nullptr;
     }
 
-    if (!obj)
-        return;
-
-    if (!obj->is_enable_np)
+    if (!obj) { return; }
+    if (obj->m_air_duct_data.modes.empty())
+    {
         obj->converse_to_duct(true, obj->is_support_aux_fan, obj->is_support_chamber_fan);
+    }
 
     m_fan_control_popup = new FanControlPopupNew(this, obj, obj->m_air_duct_data);
 
