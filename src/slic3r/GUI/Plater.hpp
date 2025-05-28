@@ -603,6 +603,8 @@ public:
     int get_prepare_state();
     //BBS: add print job releated functions
     void get_print_job_data(PrintPrepareData* data);
+    void set_print_job_plate_idx(int plate_idx);
+
     int get_send_calibration_finished_event();
     int get_print_finished_event();
     int get_send_finished_event();

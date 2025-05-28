@@ -836,8 +836,10 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     // enter sending mode
     sending_mode();
 
-     if (wxGetApp().plater()->using_exported_file())
-         result =  0;
+    if (wxGetApp().plater()->using_exported_file()) {
+        m_plater->set_print_job_plate_idx(m_print_plate_idx);
+        result = 0;
+    }
      else {
          result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
              if (this->m_is_canceled) return;
