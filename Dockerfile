@@ -7,7 +7,7 @@ RUN apt-get update && \
 
 # Add a deb-src
 RUN echo deb-src http://archive.ubuntu.com/ubuntu \
-    $(cat /etc/*release | grep VERSION_CODENAME | cut -d= -f2) main universe>> /etc/apt/sources.list 
+    $(cat /etc/*release | grep VERSION_CODENAME | cut -d= -f2) main universe >> /etc/apt/sources.list 
 
 RUN apt-get update && apt-get install  -y \
     autoconf \
@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install  -y \
     libtool \
     libudev-dev \
     libwayland-dev \
-    libwebkit2gtk-4.0-dev \
+    libwebkit2gtk-4.1-dev \
     libxkbcommon-dev \
     locales \
     locales-all \
