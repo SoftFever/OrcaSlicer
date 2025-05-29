@@ -6404,19 +6404,19 @@ msgid "Choose Download Directory"
 msgstr "选择下载文件夹"
 
 msgid "Associate"
-msgstr ""
+msgstr "相关的"
 
 msgid "with OrcaSlicer so that Orca can open models from"
 msgstr ""
 
 msgid "Current Association: "
-msgstr ""
+msgstr "当前相关项"
 
 msgid "Current Instance"
-msgstr ""
+msgstr "当前实例"
 
 msgid "Current Instance Path: "
-msgstr ""
+msgstr "当前实例路径"
 
 msgid "General Settings"
 msgstr "通用设置"
