@@ -20,9 +20,6 @@
 > [!IMPORTANT]
 > After completing the calibration process, remember to create a new project in order to exit the calibration mode.
 
-> [!TIP]
-> @ItsDeidara has made a webpage to help with the calculation. Check it out if those equations give you a headache [here](https://orcalibrate.com/).
-
 # Flow rate
 > [!WARNING]
 > For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option.
