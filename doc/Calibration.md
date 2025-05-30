@@ -20,6 +20,9 @@
 > [!IMPORTANT]
 > After completing the calibration process, remember to create a new project in order to exit the calibration mode.
 
+> [!TIP]
+> @SoCuul Updated a site made by @ItsDeidara after it went down. Check it out if those equations give you a headache by going to [orcalibrate.socuul.dev](<https://orcalibrate.socuul.dev/>). Its source code is available at [github.com/SoCuul/Orca-Slicer-Assistant](<https://github.com/SoCuul/Orca-Slicer-Assistant/>) as well.
+
 # Flow rate
 > [!WARNING]
 > For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option.
