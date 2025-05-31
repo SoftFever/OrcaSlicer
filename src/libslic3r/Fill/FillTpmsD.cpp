@@ -1,3 +1,4 @@
+#include "../ClipperUtils.hpp"
 #include "FillTpmsD.hpp"
 #include <cmath>
 #include <algorithm>
@@ -138,8 +139,6 @@ private:
             }
         }
     }  
-
-
 
 };
 
@@ -340,7 +339,6 @@ using namespace std;
 
 // FIXME: needed to fix build on Mac on buildserver
 constexpr double FillTpmsD::PatternTolerance;
-
 
 float get_linearinterpolation(float a, float b, float c, float d, float x)
 {
