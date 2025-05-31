@@ -1,10 +1,6 @@
-#include "../ClipperUtils.hpp"
-#include "../ShortestPath.hpp"
-#include "../Surface.hpp"
 #include "FillTpmsD.hpp"
 #include <cmath>
 #include <algorithm>
-#include <iostream>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
@@ -12,9 +8,6 @@
 #include <tbb/parallel_for.h>
 //From Creality Print
 namespace Slic3r {
-
-
-
 
 using namespace std;
 struct myPoint
@@ -344,144 +337,10 @@ void process_block(int                                               i,
 
 using namespace std;
 
-static inline double f(double x, double z_sin, double z_cos, bool vertical, bool flip)
-{
-    if (vertical) {
-        double phase_offset = (z_cos < 0 ? M_PI : 0) + M_PI;
-        double a   = sin(x + phase_offset);
-        double b   = - z_cos;
-        double res = z_sin * cos(x + phase_offset + (flip ? M_PI : 0.));
-        double r   = sqrt(sqr(a) + sqr(b));
-        return asin(a/r) + asin(res/r) + M_PI;
-    }
-    else {
-        double phase_offset = z_sin < 0 ? M_PI : 0.;
-        double a   = cos(x + phase_offset);
-        double b   = - z_sin;
-        double res = z_cos * sin(x + phase_offset + (flip ? 0 : M_PI));
-        double r   = sqrt(sqr(a) + sqr(b));
-        return (asin(a/r) + asin(res/r) + 0.5 * M_PI);
-    }
-}
-
-static inline Polyline make_wave(
-    const std::vector<Vec2d>& one_period, double width, double height, double offset, double scaleFactor,
-    double z_cos, double z_sin, bool vertical, bool flip)
-{
-    std::vector<Vec2d> points = one_period;
-    double period = points.back()(0);
-    if (width != period) // do not extend if already truncated
-    {
-        points.reserve(one_period.size() * size_t(floor(width / period)));
-        points.pop_back();
-
-        size_t n = points.size();
-        do {
-            points.emplace_back(points[points.size()-n].x() + period, points[points.size()-n].y());
-        } while (points.back()(0) < width - EPSILON);
-
-        points.emplace_back(Vec2d(width, f(width, z_sin, z_cos, vertical, flip)));
-    }
-
-    // and construct the final polyline to return:
-    Polyline polyline;
-    polyline.points.reserve(points.size());
-    for (auto& point : points) {
-        point(1) += offset;
-        point(1) = std::clamp(double(point.y()), 0., height);
-        if (vertical)
-            std::swap(point(0), point(1));
-        polyline.points.emplace_back((point * scaleFactor).cast<coord_t>());
-    }
-
-    return polyline;
-}
-
-static std::vector<Vec2d> make_one_period(double width, double scaleFactor, double z_cos, double z_sin, bool vertical, bool flip, double tolerance)
-{
-    std::vector<Vec2d> points;
-    double dx = M_PI_2; // exact coordinates on main inflexion lobes
-    double limit = std::min(2*M_PI, width);
-    points.reserve(coord_t(ceil(limit / tolerance / 3)));
-
-    for (double x = 0.; x < limit - EPSILON; x += dx) {
-        points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
-    }
-    points.emplace_back(Vec2d(limit, f(limit, z_sin, z_cos, vertical, flip)));
-
-    // piecewise increase in resolution up to requested tolerance
-    for(;;)
-    {
-        size_t size = points.size();
-        for (unsigned int i = 1;i < size; ++i) {
-            auto& lp = points[i-1]; // left point
-            auto& rp = points[i];   // right point
-            double x = lp(0) + (rp(0) - lp(0)) / 2;
-            double y = f(x, z_sin, z_cos, vertical, flip);
-            Vec2d ip = {x, y};
-            if (std::abs(cross2(Vec2d(ip - lp), Vec2d(ip - rp))) > sqr(tolerance)) {
-                points.emplace_back(std::move(ip));
-            }
-        }
-
-        if (size == points.size())
-            break;
-        else
-        {
-            // insert new points in order
-            std::sort(points.begin(), points.end(),
-                      [](const Vec2d &lhs, const Vec2d &rhs) { return lhs(0) < rhs(0); });
-        }
-    }
-
-    return points;
-}
-
-static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double line_spacing, double width, double height)
-{
-    const double scaleFactor = scale_(line_spacing) / density_adjusted;
-
-    // tolerance in scaled units. clamp the maximum tolerance as there's
-    // no processing-speed benefit to do so beyond a certain point
-    const double tolerance = std::min(line_spacing / 2, FillTpmsD::PatternTolerance) / unscale<double>(scaleFactor);
-
-    //scale factor for 5% : 8 712 388
-    // 1z = 10^-6 mm ?
-    const double z     = gridZ / scaleFactor;
-    const double z_sin = sin(z);
-    const double z_cos = cos(z);
-
-    bool vertical = (std::abs(z_sin) <= std::abs(z_cos));
-    double lower_bound = 0.;
-    double upper_bound = height;
-    bool flip = true;
-    if (vertical) {
-        flip = false;
-        lower_bound = -M_PI;
-        upper_bound = width - M_PI_2;
-        std::swap(width,height);
-    }
-
-    std::vector<Vec2d> one_period_odd = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip, tolerance); // creates one period of the waves, so it doesn't have to be recalculated all the time
-    flip = !flip;                                                                   // even polylines are a bit shifted
-    std::vector<Vec2d> one_period_even = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip, tolerance);
-    Polylines result;
-
-    for (double y0 = lower_bound; y0 < upper_bound + EPSILON; y0 += M_PI) {
-        // creates odd polylines
-        result.emplace_back(make_wave(one_period_odd, width, height, y0, scaleFactor, z_cos, z_sin, vertical, flip));
-        // creates even polylines
-        y0 += M_PI;
-        if (y0 < upper_bound + EPSILON) {
-            result.emplace_back(make_wave(one_period_even, width, height, y0, scaleFactor, z_cos, z_sin, vertical, flip));
-        }
-    }
-
-    return result;
-}
 
 // FIXME: needed to fix build on Mac on buildserver
 constexpr double FillTpmsD::PatternTolerance;
+
 
 float get_linearinterpolation(float a, float b, float c, float d, float x)
 {
