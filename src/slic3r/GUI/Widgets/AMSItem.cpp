@@ -43,7 +43,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
     if (!ams) return false;
     this->ams_id = ams->id;
 
-    if (humidity_flag) {
+    if (ams->type == 1 || ams->type == 3 || ams->type == N3S_AMS) {
         this->ams_humidity = ams->humidity;
     }
     else{
