@@ -1083,6 +1083,7 @@ void AuxiliaryPanel::update_all_cover()
 
      wxBoxSizer *m_sizer_license = new wxBoxSizer(wxHORIZONTAL);
      auto m_text_license = new wxStaticText(this, wxID_ANY, _L("License"), wxDefaultPosition, wxSize(180, -1), 0);
+     m_text_license->SetForegroundColour(*wxBLACK);
      m_text_license->Wrap(-1);
      m_sizer_license->Add(m_text_license, 0, wxALIGN_CENTER, 0);
      m_combo_license = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(450), -1), 0, NULL, wxCB_READONLY);
