@@ -521,8 +521,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
     toggle_line("infill_combination_max_layer_height", have_combined_infill);
 
+    bool infill_anchor = config->opt_enum<InfillPattern>("sparse_infill_pattern") != ipLine;
+    toggle_field("infill_anchor_max",infill_anchor);
+
     // Only allow configuration of open anchors if the anchoring is enabled.
-    bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
+    bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0 && infill_anchor;
     toggle_field("infill_anchor", has_infill_anchors);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
