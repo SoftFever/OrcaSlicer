@@ -20,7 +20,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.5\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "支撐筆刷"
 
 msgid "Alt + Mouse wheel"
@@ -116,7 +116,7 @@ msgstr "選擇底面"
 
 #, boost-format
 msgid ""
-"Filament count exceeds the maximum number that painting tool supports. only "
+"Filament count exceeds the maximum number that painting tool supports. Only "
 "the first %1% filaments will be available in painting tool."
 msgstr "線材數量超過上色工具支援的最大值，僅前 %1% 個線材可在上色工具中使用。"
 
@@ -592,10 +592,10 @@ msgstr "顯示線框"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when process preview."
+msgid "Can't apply when processing preview."
 msgstr "處理預覽的過程中無法套用。"
 
-msgid "Operation already cancelling. Please wait few seconds."
+msgid "Operation already cancelling. Please wait a few seconds."
 msgstr "操作已在取消中，請稍後。"
 
 msgid "Face recognition"
@@ -1129,7 +1129,7 @@ msgstr "最終形狀包含自相交或多個具有相同座標的點。"
 msgid "Shape is marked as invisible (%1%)."
 msgstr "形狀被標記為隱形 (%1%)。"
 
-#. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
+#. TRN: The first placeholder is shape identifier, the second is text describing the problem.
 #, boost-format
 msgid "Fill of shape (%1%) contains unsupported: %2%."
 msgstr "形狀 (%1%) 的填充包含不支援的內容：%2%。"
@@ -1303,7 +1303,7 @@ msgid "Measure"
 msgstr "測量"
 
 msgid ""
-"Please confirm explosion ratio = 1,and please select at least one object"
+"Please confirm explosion ratio = 1, and please select at least one object."
 msgstr "請確認爆炸比例設為 1，並至少選擇一個物件"
 
 msgid "Please select at least one object."
@@ -1387,7 +1387,7 @@ msgstr "平行"
 msgid "Center coincidence"
 msgstr "中心重合"
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "特徵 1"
 
 msgid "Reverse rotation"
@@ -1870,16 +1870,16 @@ msgstr "將換料的廢料使用在物件的支撐"
 msgid "Edit in Parameter Table"
 msgstr "在參數表格中編輯"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "從英寸轉換"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "恢復到英寸"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "從公尺轉換"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "恢復到公尺"
 
 msgid "Assemble"
@@ -2184,12 +2184,12 @@ msgid "Selection conflicts"
 msgstr "選擇衝突"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second should also be an object."
 msgstr "如果第一個選擇的是物件，那麼第二個選擇的也必須是物件。"
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
-"object."
+"If the first selected item is a part, the second should be a part in the "
+"same object."
 msgstr "如果第一個選擇的是零件，那麼第二個選擇的也必須是同一個物件中的零件。"
 
 msgid "The type of the last solid object part is not to be changed."
@@ -2248,7 +2248,7 @@ msgstr "數值錯誤。"
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr "一個單元格僅能被複製到同一列的一個或多個單元格"
 
-msgid "multiple cells copy is not supported"
+msgid "Copying multiple cells is not supported."
 msgstr "不支援多個單元格的複製"
 
 msgid "Outside"
@@ -2611,7 +2611,7 @@ msgstr "上傳任務逾時，請排查網路狀態後重試。"
 msgid "Cloud service connection failed. Please try again."
 msgstr "雲端服務連接失敗，請重試。"
 
-msgid "Print file not found. please slice again."
+msgid "Print file not found. Please slice again."
 msgstr "未找到列印檔案，請重新切片。"
 
 msgid ""
@@ -2634,7 +2634,7 @@ msgid ""
 "again."
 msgstr "列印檔案過大，請調整檔案大小後重試。"
 
-msgid "Print file not found, Please slice it again and send it for printing."
+msgid "Print file not found, please slice it again and send it for printing."
 msgstr "未找到列印檔案，請重新切片後再傳送列印。"
 
 msgid ""
@@ -2725,7 +2725,7 @@ msgstr "下載失敗"
 msgid "Canceled"
 msgstr "已取消"
 
-msgid "Install successfully."
+msgid "Installed successfully"
 msgstr "安裝成功。"
 
 msgid "Installing"
@@ -2955,7 +2955,7 @@ msgstr ""
 "開或更換乾燥劑包時。吸收濕氣需要數小時，低溫會進一步減緩此過程。"
 
 msgid ""
-"Config which AMS slot should be used for a filament used in the print job"
+"Configure which AMS slot should be used for a filament used in the print job."
 msgstr "設定列印作業中所使用的線材應使用哪個 AMS 槽"
 
 msgid "Filament used in this print job"
@@ -2973,7 +2973,7 @@ msgstr "不使用 AMS"
 msgid "Print using materials mounted on the back of the case"
 msgstr "使用安裝在機箱背面的線材進行列印"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "使用 AMS 裡的線材列印"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3065,8 +3065,8 @@ msgid "AMS filament backup"
 msgstr "AMS 備用線材"
 
 msgid ""
-"AMS will continue to another spool with the same properties of filament "
-"automatically when current filament runs out"
+"AMS will continue to another spool with matching filament properties "
+"automatically when current filament runs out."
 msgstr "AMS 線材耗盡後將自動切換到屬性完全相同的線材"
 
 msgid "Air Printing Detection"
@@ -3201,7 +3201,7 @@ msgstr ""
 msgid "G-code file exported to %1%"
 msgstr "G-code 檔案已匯出為 %1%"
 
-msgid "Unknown error when export G-code."
+msgid "Unknown error when exporting G-code."
 msgstr "匯出 G-code 檔案發生未知錯誤。"
 
 #, boost-format
@@ -3380,7 +3380,7 @@ msgstr "使用AMS"
 msgid "Select Printers"
 msgstr "選擇列印設備"
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr "AMS 狀態"
 
 msgid "Printing Options"
@@ -3721,7 +3721,7 @@ msgstr "使用者暫停列印"
 msgid "Pause of front cover falling"
 msgstr "工具頭前蓋掉落暫停列印"
 
-msgid "Calibrating the micro lida"
+msgid "Calibrating the micro lidar"
 msgstr "校正微型雷射雷達"
 
 msgid "Calibrating extrusion flow"
@@ -3817,7 +3817,7 @@ msgstr ""
 
 msgid ""
 "When you set the chamber temperature below 40℃, the chamber temperature "
-"control will not be activated. And the target chamber temperature will "
+"control will not be activated, and the target chamber temperature will "
 "automatically be set to 0℃."
 msgstr ""
 "當機箱溫度設置低於 40℃時，機箱溫度控制將不會啟動，並且目標機箱溫度將自動設為 "
@@ -3854,7 +3854,7 @@ msgid ""
 msgstr "潮濕的 PVA 會變得柔軟並黏在 AMS 內，請在使用前注意乾燥。"
 
 msgid ""
-"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"CF/GF filaments are hard and brittle, it's easy to break or get stuck in "
 "AMS, please use with caution."
 msgstr "含 CF/GF 線材又硬又脆，在 AMS 中很容易斷裂或卡住，請謹慎使用。"
 
@@ -3927,7 +3927,7 @@ msgid "parameter name"
 msgstr "參數名稱"
 
 #, c-format, boost-format
-msgid "%s can't be percentage"
+msgid "%s can't be a percentage"
 msgstr "%s 不可以是百分比"
 
 #, c-format, boost-format
@@ -4327,7 +4327,7 @@ msgstr "偵測到超出列印高度的 G-code 路徑。"
 msgid "A G-code path goes beyond the plate boundaries."
 msgstr "偵測到超出熱床邊界的 G-code 路徑。"
 
-msgid "Only the object being edit is visible."
+msgid "Only the object being edited is visible."
 msgstr "只有正在編輯的物件是可見的。"
 
 msgid ""
@@ -4948,7 +4948,7 @@ msgstr "列印機目前正忙於下載。請待下載完成後再試一次。"
 msgid "Printer camera is malfunctioning."
 msgstr "列印設備攝影機故障。"
 
-msgid "Problem occurred. Please update the printer firmware and try again."
+msgid "A problem occurred. Please update the printer firmware and try again."
 msgstr "發生問題。請更新列印設備韌體後再試一次。"
 
 msgid ""
@@ -4965,7 +4965,7 @@ msgid "Connection Failed. Please check the network and try again"
 msgstr "連線失敗。請檢查網路並重試"
 
 msgid ""
-"Please check the network and try again, You can restart or update the "
+"Please check the network and try again. You can restart or update the "
 "printer if the issue persists."
 msgstr "請檢查網路並重試。如果問題持續，您可以重新啟動或更新列印設備。"
 
@@ -5364,9 +5364,6 @@ msgstr "送出"
 msgid "Please click on the star first."
 msgstr "請先點擊星星數量。"
 
-msgid "InFo"
-msgstr "資訊"
-
 msgid "Get oss config failed."
 msgstr "取得 oss 設定失敗。"
 
@@ -5409,7 +5406,7 @@ msgid "obtaining instance_id failed\n"
 msgstr "取得 instance_id 失敗\n"
 
 msgid ""
-"Your comment result cannot be uploaded due to some reasons. As follows:\n"
+"Your comment result cannot be uploaded due to the following reasons:\n"
 "\n"
 "  error code: "
 msgstr ""
@@ -5423,7 +5420,7 @@ msgstr "錯誤訊息："
 msgid ""
 "\n"
 "\n"
-"Would you like to redirect to the webpage for rating?"
+"Would you like to redirect to the webpage to give a rating?"
 msgstr ""
 "\n"
 "\n"
@@ -5431,7 +5428,7 @@ msgstr ""
 
 msgid ""
 "Some of your images failed to upload. Would you like to redirect to the "
-"webpage for rating?"
+"webpage to give a rating?"
 msgstr "您的部分圖片上傳失敗。 要重定導向評價網頁嗎？"
 
 msgid "You can select up to 16 images."
@@ -5612,7 +5609,7 @@ msgstr "錯誤："
 msgid "Warning:"
 msgstr "警告："
 
-msgid "Export successfully."
+msgid "Exported successfully"
 msgstr "匯出成功。"
 
 msgid "Model file downloaded."
@@ -5921,8 +5918,8 @@ msgstr "載入 3mf"
 
 #, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
+"The 3mf's version %s is newer than %s's version %s, found following "
+"unrecognized keys:"
 msgstr "該 3mf 的版本 %s 比 %s 的版本 %s 新，以下參數值無法識別："
 
 msgid "You'd better upgrade your software.\n"
@@ -5940,22 +5937,23 @@ msgstr "在 3mf 檔案中發現無效值："
 msgid "Please correct them in the param tabs"
 msgstr "請在參數設定頁更正它們"
 
-msgid "The 3mf has following modified G-codes in filament or printer presets:"
+msgid ""
+"The 3mf has the following modified G-code in filament or printer presets:"
 msgstr "該 3mf 檔案在耗材或列印機預設中具有以下修改過的 GCODE："
 
 msgid ""
-"Please confirm that these modified G-codes are safe to prevent any damage to "
-"the machine!"
+"Please confirm that all modified G-code is safe to prevent any damage to the "
+"machine!"
 msgstr "請確認這些修改過的 GCODE 是安全的，以防止對機器造成任何損壞！"
 
 msgid "Modified G-code"
 msgstr "已修改的 GCODE"
 
-msgid "The 3mf has following customized filament or printer presets:"
+msgid "The 3mf has the following customized filament or printer presets:"
 msgstr "該 3mf 檔案具有以下自訂的耗材或列印機預設："
 
 msgid ""
-"Please confirm that the G-codes within these presets are safe to prevent any "
+"Please confirm that the G-code within these presets is safe to prevent any "
 "damage to the machine!"
 msgstr "請確認這些預設中的 G-code 是安全的，以防止對機器造成損壞！"
 
@@ -6013,8 +6011,8 @@ msgid "The file does not contain any geometry data."
 msgstr "此檔案不包含任何幾何資料。"
 
 msgid ""
-"Your object appears to be too large, Do you want to scale it down to fit the "
-"heat bed automatically?"
+"Your object appears to be too large, do you want to scale it down to fit the "
+"print bed automatically?"
 msgstr "物件看起來太大，希望將物件自動縮小以適應列印板嗎？"
 
 msgid "Object too large"
@@ -6782,10 +6780,10 @@ msgstr "儲存"
 msgid "save debug settings"
 msgstr "儲存除錯設定"
 
-msgid "DEBUG settings have saved successfully!"
+msgid "DEBUG settings have been saved successfully!"
 msgstr "除錯模式生效!"
 
-msgid "Switch cloud environment, Please login again!"
+msgid "Cloud environment switched, please login again!"
 msgstr "切換雲端環境，請重新登入!"
 
 msgid "System presets"
@@ -6924,7 +6922,7 @@ msgstr "項目預設"
 msgid "Name is unavailable."
 msgstr "名稱不可用。"
 
-msgid "Overwrite a system profile is not allowed"
+msgid "Overwriting a system profile is not allowed."
 msgstr "不允許覆蓋系統預設"
 
 #, boost-format
@@ -6932,10 +6930,12 @@ msgid "Preset \"%1%\" already exists."
 msgstr "預設「%1%」已存在。"
 
 #, boost-format
-msgid "Preset \"%1%\" already exists and is incompatible with current printer."
+msgid ""
+"Preset \"%1%\" already exists and is incompatible with the current printer."
 msgstr "預設「%1%」已存在，並且和目前列印設備不相容。"
 
-msgid "Please note that saving action will replace this preset"
+#, fuzzy
+msgid "Please note that saving will overwrite this preset."
 msgstr "請注意這個預設會在儲存過程中被替換"
 
 msgid "The name cannot be the same as a preset alias name."
@@ -7279,7 +7279,7 @@ msgstr "登入失敗。請檢查 Pin碼。"
 msgid "Log in printer"
 msgstr "登入列印設備"
 
-msgid "Would you like to log in this printer with current account?"
+msgid "Would you like to log in to this printer with the current account?"
 msgstr "您想使用目前帳號登入這台列印設備嗎?"
 
 msgid "Check the reason"
@@ -7372,14 +7372,14 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr "點擊以將所有設定還原到最後一次儲存的版本。"
 
 msgid ""
-"Prime tower is required for smooth timelapse. There may be flaws on the "
+"A prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 "平滑模式的縮時錄影需要換料塔，否則列印物件上可能會有瑕疵。您是否要關閉換料"
 "塔？"
 
 msgid ""
-"Prime tower is required for smooth timelapse. There may be flaws on the "
+"A prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Do you want to enable prime tower?"
 msgstr ""
 "平滑模式的縮時錄影需要換料塔，否則列印物件上可能會有瑕疵。您是否要啟用換料"
@@ -7389,7 +7389,7 @@ msgid "Still print by object?"
 msgstr "持續逐件列印？"
 
 msgid ""
-"When using support material for the support interface, We recommend the "
+"When using support material for the support interface, we recommend the "
 "following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
 "disable independent support layer height"
@@ -7812,7 +7812,7 @@ msgstr "設定檔相依項目"
 msgid "Printable space"
 msgstr "可列印區域"
 
-#. TRN: First argument is parameter name, the second one is the value.
+#. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
 msgstr "參數 %1% 的值無效：%2%"
@@ -7853,7 +7853,7 @@ msgstr "換層前 G-code"
 msgid "Layer change G-code"
 msgstr "換層 G-code"
 
-msgid "Time lapse G-code"
+msgid "Timelapse G-code"
 msgstr "縮時錄影 G-code"
 
 msgid "Change filament G-code"
@@ -8169,7 +8169,7 @@ msgstr "發現新版本"
 msgid "Configuration update"
 msgstr "設定檔更新"
 
-msgid "A new configuration package available, Do you want to install it?"
+msgid "A new configuration package is available. Do you want to install it?"
 msgstr "有新的設定檔可用，是否要安裝？"
 
 msgid "Description:"
@@ -8178,13 +8178,13 @@ msgstr "描述："
 msgid "Configuration incompatible"
 msgstr "設定檔不相容"
 
-msgid "the configuration package is incompatible with current application."
+msgid "the configuration package is incompatible with the current application."
 msgstr "設定檔和目前的應用程式不相容。"
 
 #, c-format, boost-format
 msgid ""
-"The configuration package is incompatible with current application.\n"
-"%s will update the configuration package, Otherwise it won't be able to start"
+"The configuration package is incompatible with the current application.\n"
+"%s will update the configuration package to allow the application to start."
 msgstr ""
 "設定檔與目前的應用程式不相容。\n"
 "%s 將更新設定檔，否則應用程式將無法啟動"
@@ -8193,7 +8193,7 @@ msgstr ""
 msgid "Exit %s"
 msgstr "退出 %s"
 
-msgid "the Configuration package is incompatible with current APP."
+msgid "the Configuration package is incompatible with the current APP."
 msgstr "設定檔與目前(手機應用程式)?不相容。"
 
 msgid "Configuration updates"
@@ -8677,7 +8677,7 @@ msgid ""
 msgstr "按下『確定』後，下次啟動 Orca Slicer 時會更新網路外掛程式。"
 
 #, c-format, boost-format
-msgid "A new Network plug-in (%s) available, Do you want to install it?"
+msgid "A new Network plug-in (%s) is available. Do you want to install it?"
 msgstr "新版的網路外掛程式（%s）可用，是否要安裝？"
 
 msgid "New version of Orca Slicer"
@@ -8817,10 +8817,10 @@ msgstr "最新版本"
 msgid "Updating"
 msgstr "更新中"
 
-msgid "Updating failed"
+msgid "Update failed"
 msgstr "更新失敗"
 
-msgid "Updating successful"
+msgid "Update successful"
 msgstr "更新成功"
 
 msgid ""
@@ -9505,20 +9505,21 @@ msgstr "API 金鑰"
 msgid "HTTP digest"
 msgstr "HTTP 摘要"
 
-msgid "Avoid crossing wall"
+msgid "Avoid crossing walls"
 msgstr "避免跨越外牆"
 
-msgid "Detour and avoid to travel across wall which may cause blob on surface"
+msgid ""
+"Detour to avoid traveling across walls, which may cause blobs on the surface."
 msgstr "空駛時繞過外牆以避免在模型外觀表面產生斑點"
 
-msgid "Avoid crossing wall - Max detour length"
+msgid "Avoid crossing walls - Max detour length"
 msgstr "避免跨越外牆-最大繞行長度"
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-"detour distance is large than this value. Detour length could be specified "
+"detour distance is larger than this value. Detour length could be specified "
 "either as an absolute value or as percentage (for example 50%) of a direct "
-"travel path. Zero to disable"
+"travel path. Zero to disable."
 msgstr ""
 "避開穿越牆體時的最大繞行距離。若繞行距離超過此設定值，則不進行繞行。繞行距離"
 "可設為絕對值，或直接移動路徑的百分比（如 50%）。設為 0 以停用繞行功能"
@@ -10245,8 +10246,8 @@ msgid "No cooling for the first"
 msgstr "前Ｎ層關閉零件風扇"
 
 msgid ""
-"Close all cooling fan for the first certain layers. Cooling fan of the first "
-"layer used to be closed to get better build plate adhesion"
+"Turn off all cooling fans for the first few layers. This can be used to "
+"improve build plate adhesion."
 msgstr ""
 "對開始的一些層關閉所有的物件冷卻風扇。通常關閉首層冷卻用來獲得更好的首層黏附"
 
@@ -10434,7 +10435,7 @@ msgid ""
 "you print your models object by object."
 msgstr "在物件之間插入 G-code。此參數僅在逐次列印時生效"
 
-msgid "End G-code when finish the printing of this filament"
+msgid "End G-code when finishing the printing of this filament."
 msgstr "使用該線材列印結束時的結尾 G-code"
 
 msgid "Ensure vertical shell thickness"
@@ -10890,8 +10891,9 @@ msgid "Keep fan always on"
 msgstr "保持風扇永遠開啟"
 
 msgid ""
-"If enable this setting, part cooling fan will never be stopped and will run "
-"at least at minimum speed to reduce the frequency of starting and stopping"
+"Enabling this setting means that the part cooling fan will never stop "
+"completely and will run at least at minimum speed to reduce the frequency of "
+"starting and stopping."
 msgstr ""
 "如果勾選這個選項，物件冷卻風扇將不會停止，並且會以最小風扇轉速設定值運轉以減"
 "少風扇的頻繁開關"
@@ -11201,8 +11203,8 @@ msgstr "線材軟化溫度"
 
 msgid ""
 "The material softens at this temperature, so when the bed temperature is "
-"equal to or greater than it, it's highly recommended to open the front door "
-"and/or remove the upper glass to avoid clogging."
+"equal to or greater than this, it's highly recommended to open the front "
+"door and/or remove the upper glass to avoid clogging."
 msgstr ""
 "線材在此溫度下容易軟化，因此當熱床床溫等於或高於該溫度時，強烈建議打開前門和/"
 "或拆下上部玻璃以避免堵塞。"
@@ -11413,7 +11415,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhesive"
+"adhesion."
 msgstr "首層加速度。使用較低值可以改善和列印板的黏附"
 
 msgid "Enable accel_to_decel"
@@ -11987,7 +11989,7 @@ msgstr "分隔區域的互鎖深度"
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\" is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 "設定分隔區域的互鎖深度。如果「mmu_segmented_region_max_width」設定為 0，或者"
@@ -12270,7 +12272,7 @@ msgstr "最大行駛加速度（M204 T），僅適用於 Marlin 2"
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
-"is the maximum speed limitation of part cooling fan"
+"is the maximum speed for the part cooling fan."
 msgstr ""
 "啟用自動冷卻時，可能會提高物件冷卻風扇的轉速。這是物件冷卻風扇的最大速度限制"
 
@@ -12278,8 +12280,8 @@ msgid "Max"
 msgstr "最大"
 
 msgid ""
-"The largest printable layer height for extruder. Used tp limits the maximum "
-"layer hight when enable adaptive layer height"
+"The highest printable layer height for the extruder. Used to limit the "
+"maximum layer height when adaptive layer height is enabled."
 msgstr "擠出頭最大可列印的層高。用於限制開啟自適應層高時的最大層高"
 
 msgid "Extrusion rate smoothing"
@@ -12370,8 +12372,8 @@ msgid "Min"
 msgstr "最小"
 
 msgid ""
-"The lowest printable layer height for extruder. Used tp limits the minimum "
-"layer hight when enable adaptive layer height"
+"The lowest printable layer height for the extruder. Used to limit the "
+"minimum layer height when adaptive layer height is enabled."
 msgstr "擠出頭最小可列印的層高。用於限制開啟自適應層高時的最小層高"
 
 msgid "Min print speed"
@@ -12479,7 +12481,7 @@ msgstr "這個選項會降低未使用噴頭的溫度，以防止材料滲出。
 msgid "Filename format"
 msgstr "檔案名稱格式"
 
-msgid "User can self-define the project file name when export"
+msgid "Users can define the project file name when exporting."
 msgstr "使用者可以自訂匯出項目檔案的名稱"
 
 msgid "Make overhangs printable"
@@ -12691,7 +12693,7 @@ msgstr "Z 抬升高度"
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
 "clearance between nozzle and the print. It prevents nozzle from hitting the "
-"print when travel move. Using spiral line to lift z can prevent stringing"
+"print when travel move. Using spiral lines to lift Z can prevent stringing."
 msgstr ""
 "回抽完成之後，噴嘴輕微抬升，和列印物件之間產生一定間隙。這能夠避免空駛時噴嘴"
 "和列印物件剮蹭和碰撞。使用螺旋線抬升z能夠減少拉絲"
@@ -13250,7 +13252,7 @@ msgstr "起始 G-code"
 msgid "Start G-code when starting the entire print."
 msgstr "整個列印開始前的起始 G-code"
 
-msgid "Start G-code when start the printing of this filament"
+msgid "Start G-code when starting the printing of this filament."
 msgstr "開始使用這個線材列印的起始 G-code"
 
 msgid "Single Extruder Multi Material"
@@ -13352,9 +13354,9 @@ msgid "Enable support generation."
 msgstr "開啟支撐產生。"
 
 msgid ""
-"Normal (auto) and Tree (auto) is used to generate support automatically. If "
+"Normal (auto) and Tree (auto) are used to generate support automatically. If "
 "Normal (manual) or Tree (manual) is selected, only support enforcers are "
-"generated"
+"generated."
 msgstr ""
 "選擇「普通 (自動)」或「樹狀 (自動)」時，系統將自動產生支撐結構。若選擇「普通 "
 "(手動)」或「樹狀 (手動)」，則僅會產生手動設定的支撐區域"
@@ -14007,10 +14009,12 @@ msgstr ""
 msgid "X-Y hole compensation"
 msgstr "X-Y 孔洞尺寸補償"
 
+#, fuzzy
 msgid ""
-"Holes of object will be grown or shrunk in XY plane by the configured value. "
-"Positive value makes holes bigger. Negative value makes holes smaller. This "
-"function is used to adjust size slightly when the object has assembling issue"
+"Holes in objects will expand or contract in the XY plane by the configured "
+"value. Positive values make holes bigger, negative values make holes "
+"smaller. This function is used to adjust sizes slightly when the objects "
+"have assembling issues."
 msgstr ""
 "垂直的孔洞的尺寸將在 XY 方向收縮或拓展特定值。正值代表擴大孔洞。負值代表縮小"
 "孔洞。這個功能通常在模型有裝配問題時微調尺寸"
@@ -14018,11 +14022,12 @@ msgstr ""
 msgid "X-Y contour compensation"
 msgstr "X-Y 外輪廓尺寸補償"
 
+#, fuzzy
 msgid ""
-"Contour of object will be grown or shrunk in XY plane by the configured "
-"value. Positive value makes contour bigger. Negative value makes contour "
-"smaller. This function is used to adjust size slightly when the object has "
-"assembling issue"
+"Contours of objects will expand or contract in the XY plane by the "
+"configured value. Positive values make contours bigger, negative values make "
+"contours smaller. This function is used to adjust sizes slightly when the "
+"objects have assembling issues."
 msgstr ""
 "模型外輪廓的尺寸將在 XY 方向收縮或拓展特定值。正值代表擴大。負值代表縮小。這"
 "個功能通常在模型有裝配問題時微調尺寸"
@@ -14159,11 +14164,12 @@ msgstr ""
 msgid "Minimum feature size"
 msgstr "最小特徵尺寸"
 
+#, fuzzy
 msgid ""
 "Minimum thickness of thin features. Model features that are thinner than "
-"this value will not be printed, while features thicker than the Minimum "
-"feature size will be widened to the Minimum wall width. It's expressed as a "
-"percentage over nozzle diameter"
+"this value will not be printed, while features thicker than this value will "
+"be widened to the minimum wall width. It's expressed as a percentage over "
+"nozzle diameter."
 msgstr ""
 "薄壁特徵的最小厚度。比這個數值還薄的特徵將不被列印，而比最小特徵厚度還厚的特"
 "征將被加寬到牆最小寬度。參數值表示為相對噴嘴直徑的百分比"
@@ -14344,10 +14350,10 @@ msgstr "佈局選項"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "佈局選項：0 代表停用，1 代表啟用，其他則為自動模式"
 
-msgid "Repetions count"
+msgid "Repetition count"
 msgstr "重複次數"
 
-msgid "Repetions count of the whole model"
+msgid "Repetition count of the whole model."
 msgstr "整個模型的重複次數"
 
 msgid "Ensure on bed"
@@ -14434,7 +14440,7 @@ msgstr "若啟用，則檢查目前機器是否與列表中的機器向下相容
 msgid "downward machines settings"
 msgstr "相容機器設定"
 
-msgid "the machine settings list need to do downward checking"
+msgid "The machine settings list needs to do downward checking."
 msgstr "機器設定清單需執行向下相容性檢測"
 
 msgid "Load assemble list"
@@ -14487,24 +14493,24 @@ msgstr "載入耗材識別碼"
 msgid "Load filament ids for each object"
 msgstr "載入每個物件的耗材識別碼"
 
-msgid "Allow multiple color on one plate"
+msgid "Allow multiple colors on one plate"
 msgstr "允許同塊板上使用多色列印"
 
-msgid "If enabled, the arrange will allow multiple color on one plate"
+msgid "If enabled, Arrange will allow multiple colors on one plate."
 msgstr "若啟用，佈局將允許同一板上使用多色列印"
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotation when arranging"
 msgstr "允許在排列時進行旋轉調整"
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, Arrange will allow rotation when placing objects."
 msgstr "若啟用，物件排列時將允許旋轉調整"
 
-msgid "Avoid extrusion calibrate region when doing arrange"
+msgid "Avoid extrusion calibrate region when arranging"
 msgstr "在排列物件時避開擠出校正區域"
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, Arrange will avoid extrusion calibrate region when placing "
+"objects."
 msgstr "若啟用，物件排列時將避開擠出校正區域"
 
 msgid "Skip modified G-code in 3mf"
@@ -15066,7 +15072,7 @@ msgid ""
 "use. You only need to do the calibration in the following limited cases:\n"
 "1. If you introduce a new filament of different brands/models or the "
 "filament is damp;\n"
-"2. if the nozzle is worn out or replaced with a new one;\n"
+"2. If the nozzle is worn out or replaced with a new one;\n"
 "3. If the max volumetric speed or print temperature is changed in the "
 "filament setting."
 msgstr ""
@@ -15223,7 +15229,7 @@ msgstr "名稱不能超過40個字元。"
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to override the other results?"
+"want to overwrite the other results?"
 msgstr "同名的結果只能儲存一個，是否要覆蓋其他結果?"
 
 msgid "Please find the best line on your plate"
@@ -15627,7 +15633,7 @@ msgstr "取消選取"
 msgid "Show error message"
 msgstr "顯示錯誤資訊"
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr "已加入佇列"
 
 msgid "Uploading"
@@ -15832,7 +15838,7 @@ msgstr ""
 msgid ""
 "We would rename the presets as \"Vendor Type Serial @printer you "
 "selected\".\n"
-"To add preset for more printers, Please go to printer selection"
+"To add preset for more printers, please go to printer selection"
 msgstr ""
 "將會將預設名稱重新命名為「廠牌 型號 序號 @選擇的列印設備」。\n"
 "若要為更多列印設備新增預設，請前往列印設備選擇頁面"
@@ -15994,10 +16000,10 @@ msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
 msgstr "尚未選擇要更換噴嘴的列印設備，請選擇。"
 
-msgid "Create Printer Successful"
+msgid "Printer Created Successfully"
 msgstr "列印設備建立成功"
 
-msgid "Create Filament Successful"
+msgid "Filament Created Successfully"
 msgstr "線材建立成功"
 
 msgid "Printer Created"
@@ -17099,15 +17105,6 @@ msgstr ""
 #~ "對於「強壯樹」和「混合樹」的支撐樣式，我們推薦以下設定：至少 2 層界面層，"
 #~ "至少 0.1 毫米的頂部z距離或使用專用的支撐線材。"
 
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
-#~ "independent support layer height"
-#~ msgstr ""
-#~ "當使用專用的支撐線材時，我們推薦以下設定：\n"
-#~ "0 頂層z距離，0 界面間距，同心模式，並且停用獨立支撐層高"
-
 #~ msgid "Branch Diameter with double walls"
 #~ msgstr "分支雙層牆直徑"
 
@@ -17317,14 +17314,6 @@ msgstr ""
 #~ msgstr ""
 #~ "所有支撐界面列印期間強制風扇速度，高速可以減少支撐與物件的融合。\n"
 #~ "設定為 -1 以停用。"
-
-#~ msgid ""
-#~ "normal(auto) and tree(auto) is used to generate support automatically. If "
-#~ "normal(manual) or tree(manual) is selected, only support enforcers are "
-#~ "generated"
-#~ msgstr ""
-#~ "選擇『普通（自動）』或『樹狀（自動）』時，會自動產生支撐結構。若選擇『普通"
-#~ "（手動）』或『樹狀（手動）』，則僅產生支撐強化部分"
 
 #~ msgid ", ver: "
 #~ msgstr "，版本"

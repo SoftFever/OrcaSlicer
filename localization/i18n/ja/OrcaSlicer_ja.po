@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.2.2\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr "サポートペイント"
 
 msgid "Alt + Mouse wheel"
@@ -110,7 +110,7 @@ msgstr "底面選択"
 
 #, boost-format
 msgid ""
-"Filament count exceeds the maximum number that painting tool supports. only "
+"Filament count exceeds the maximum number that painting tool supports. Only "
 "the first %1% filaments will be available in painting tool."
 msgstr ""
 "使用するフィラメント数は多いです。最初%1%個のフィラメントを使用できます"
@@ -589,10 +589,10 @@ msgstr "ワイヤフレームを表示"
 msgid "%1%"
 msgstr "%1%"
 
-msgid "Can't apply when process preview."
+msgid "Can't apply when processing preview."
 msgstr "プレビュー処理中は適用できません"
 
-msgid "Operation already cancelling. Please wait few seconds."
+msgid "Operation already cancelling. Please wait a few seconds."
 msgstr "操作を取り消し中、少々お待ちください。"
 
 msgid "Face recognition"
@@ -1133,7 +1133,7 @@ msgstr "最終的な形状には、同じ座標を持つ複数の点の自己交
 msgid "Shape is marked as invisible (%1%)."
 msgstr "図形は非表示としてマークされています (%1%)"
 
-#. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
+#. TRN: The first placeholder is shape identifier, the second is text describing the problem.
 #, boost-format
 msgid "Fill of shape (%1%) contains unsupported: %2%."
 msgstr ""
@@ -1309,7 +1309,7 @@ msgid "Measure"
 msgstr ""
 
 msgid ""
-"Please confirm explosion ratio = 1,and please select at least one object"
+"Please confirm explosion ratio = 1, and please select at least one object."
 msgstr ""
 
 msgid "Please select at least one object."
@@ -1393,7 +1393,7 @@ msgstr "平行"
 msgid "Center coincidence"
 msgstr ""
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr "フィーチャー1"
 
 msgid "Reverse rotation"
@@ -1867,16 +1867,16 @@ msgstr "サポートにフラッシュ"
 msgid "Edit in Parameter Table"
 msgstr "パラメータテーブルで編集"
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr "インチから変換"
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr "インチ単位に復元"
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr "メートルから変換"
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr "メータル単位に復元"
 
 msgid "Assemble"
@@ -2178,14 +2178,14 @@ msgid "Selection conflicts"
 msgstr "選択の競合"
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second should also be an object."
 msgstr ""
 "最初に選択したのがオブジェクトの場合、次に選択できるのがオブジェクトのみで"
 "す。"
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
-"object."
+"If the first selected item is a part, the second should be a part in the "
+"same object."
 msgstr ""
 "最初に選択したがパーツの場合、次に選択できるのが同じオブジェクトのパーツ"
 
@@ -2245,7 +2245,7 @@ msgstr "無効な数値"
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr "一つのセルは、同じ列のセルにしかコピーできません"
 
-msgid "multiple cells copy is not supported"
+msgid "Copying multiple cells is not supported."
 msgstr "複数のセルのコピーには対応していません。"
 
 msgid "Outside"
@@ -2614,7 +2614,7 @@ msgstr ""
 msgid "Cloud service connection failed. Please try again."
 msgstr "クラウドサービス接続できませんでした、もう一度お試しください"
 
-msgid "Print file not found. please slice again."
+msgid "Print file not found. Please slice again."
 msgstr ""
 
 msgid ""
@@ -2637,7 +2637,7 @@ msgid ""
 "again."
 msgstr ""
 
-msgid "Print file not found, Please slice it again and send it for printing."
+msgid "Print file not found, please slice it again and send it for printing."
 msgstr ""
 
 msgid ""
@@ -2724,7 +2724,7 @@ msgstr "ダウンロード失敗"
 msgid "Canceled"
 msgstr "取消し済"
 
-msgid "Install successfully."
+msgid "Installed successfully"
 msgstr "インストール完了"
 
 msgid "Installing"
@@ -2951,7 +2951,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Config which AMS slot should be used for a filament used in the print job"
+"Configure which AMS slot should be used for a filament used in the print job."
 msgstr "造形用のフィラメントに対するAMSスロットを設定"
 
 msgid "Filament used in this print job"
@@ -2969,7 +2969,7 @@ msgstr "AMSを有効にしない"
 msgid "Print using materials mounted on the back of the case"
 msgstr "外部スプールホルダーのフィラメントで造形します"
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr "AMSのフィラメントで造形します"
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3058,8 +3058,8 @@ msgid "AMS filament backup"
 msgstr ""
 
 msgid ""
-"AMS will continue to another spool with the same properties of filament "
-"automatically when current filament runs out"
+"AMS will continue to another spool with matching filament properties "
+"automatically when current filament runs out."
 msgstr "使用中のフィラメントが切れた時に、同じ属性のフィラメントに切り替えます"
 
 msgid "Air Printing Detection"
@@ -3200,7 +3200,7 @@ msgstr ""
 msgid "G-code file exported to %1%"
 msgstr "Gコードファイルを%1%にエクスポートしました"
 
-msgid "Unknown error when export G-code."
+msgid "Unknown error when exporting G-code."
 msgstr "不明なエラー: G-codeエクスポート"
 
 #, boost-format
@@ -3381,7 +3381,7 @@ msgstr ""
 msgid "Select Printers"
 msgstr ""
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr ""
 
 msgid "Printing Options"
@@ -3704,7 +3704,7 @@ msgstr "ユーザにより一時停止"
 msgid "Pause of front cover falling"
 msgstr "フロントカバーの脱落により一時停止"
 
-msgid "Calibrating the micro lida"
+msgid "Calibrating the micro lidar"
 msgstr "ライダー キャリブレーション"
 
 msgid "Calibrating extrusion flow"
@@ -3796,7 +3796,7 @@ msgstr ""
 
 msgid ""
 "When you set the chamber temperature below 40℃, the chamber temperature "
-"control will not be activated. And the target chamber temperature will "
+"control will not be activated, and the target chamber temperature will "
 "automatically be set to 0℃."
 msgstr ""
 
@@ -3831,7 +3831,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"CF/GF filaments are hard and brittle, it's easy to break or get stuck in "
 "AMS, please use with caution."
 msgstr ""
 
@@ -3904,7 +3904,7 @@ msgid "parameter name"
 msgstr "パラメータ名"
 
 #, c-format, boost-format
-msgid "%s can't be percentage"
+msgid "%s can't be a percentage"
 msgstr "%s をパーセンテージにすることはできません"
 
 #, c-format, boost-format
@@ -4300,7 +4300,7 @@ msgstr ""
 msgid "A G-code path goes beyond the plate boundaries."
 msgstr "G-codeはプレートの境界を超えています。"
 
-msgid "Only the object being edit is visible."
+msgid "Only the object being edited is visible."
 msgstr "編集中のオブジェクトのみ表示されます"
 
 msgid ""
@@ -4916,7 +4916,7 @@ msgstr ""
 msgid "Printer camera is malfunctioning."
 msgstr ""
 
-msgid "Problem occurred. Please update the printer firmware and try again."
+msgid "A problem occurred. Please update the printer firmware and try again."
 msgstr ""
 
 msgid ""
@@ -4933,7 +4933,7 @@ msgid "Connection Failed. Please check the network and try again"
 msgstr ""
 
 msgid ""
-"Please check the network and try again, You can restart or update the "
+"Please check the network and try again. You can restart or update the "
 "printer if the issue persists."
 msgstr ""
 
@@ -5326,9 +5326,6 @@ msgstr ""
 msgid "Please click on the star first."
 msgstr ""
 
-msgid "InFo"
-msgstr ""
-
 msgid "Get oss config failed."
 msgstr ""
 
@@ -5369,7 +5366,7 @@ msgid "obtaining instance_id failed\n"
 msgstr ""
 
 msgid ""
-"Your comment result cannot be uploaded due to some reasons. As follows:\n"
+"Your comment result cannot be uploaded due to the following reasons:\n"
 "\n"
 "  error code: "
 msgstr ""
@@ -5380,12 +5377,12 @@ msgstr ""
 msgid ""
 "\n"
 "\n"
-"Would you like to redirect to the webpage for rating?"
+"Would you like to redirect to the webpage to give a rating?"
 msgstr ""
 
 msgid ""
 "Some of your images failed to upload. Would you like to redirect to the "
-"webpage for rating?"
+"webpage to give a rating?"
 msgstr ""
 
 msgid "You can select up to 16 images."
@@ -5564,7 +5561,7 @@ msgstr "エラー:"
 msgid "Warning:"
 msgstr "警告"
 
-msgid "Export successfully."
+msgid "Exported successfully"
 msgstr "エクスポートが成功しました。"
 
 msgid "Model file downloaded."
@@ -5872,8 +5869,8 @@ msgstr "3mfを読込み"
 
 #, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
+"The 3mf's version %s is newer than %s's version %s, found following "
+"unrecognized keys:"
 msgstr ""
 "3mfのバージョン %s は %sのバージョン %sより新しい為、下記のキーを認識できませ"
 "ん"
@@ -5894,22 +5891,23 @@ msgstr ""
 msgid "Please correct them in the param tabs"
 msgstr ""
 
-msgid "The 3mf has following modified G-codes in filament or printer presets:"
+msgid ""
+"The 3mf has the following modified G-code in filament or printer presets:"
 msgstr ""
 
 msgid ""
-"Please confirm that these modified G-codes are safe to prevent any damage to "
-"the machine!"
+"Please confirm that all modified G-code is safe to prevent any damage to the "
+"machine!"
 msgstr ""
 
 msgid "Modified G-code"
 msgstr ""
 
-msgid "The 3mf has following customized filament or printer presets:"
+msgid "The 3mf has the following customized filament or printer presets:"
 msgstr ""
 
 msgid ""
-"Please confirm that the G-codes within these presets are safe to prevent any "
+"Please confirm that the G-code within these presets is safe to prevent any "
 "damage to the machine!"
 msgstr ""
 
@@ -5968,8 +5966,8 @@ msgid "The file does not contain any geometry data."
 msgstr "このファイルにはジオメトリデータが含まれていません。"
 
 msgid ""
-"Your object appears to be too large, Do you want to scale it down to fit the "
-"heat bed automatically?"
+"Your object appears to be too large, do you want to scale it down to fit the "
+"print bed automatically?"
 msgstr "オブジェクトが大きすぎのようです、ベッドに合わせてスケールしますか？"
 
 msgid "Object too large"
@@ -6731,10 +6729,10 @@ msgstr "保存"
 msgid "save debug settings"
 msgstr "デバッグ設定を保存"
 
-msgid "DEBUG settings have saved successfully!"
+msgid "DEBUG settings have been saved successfully!"
 msgstr "デバッグ設定"
 
-msgid "Switch cloud environment, Please login again!"
+msgid "Cloud environment switched, please login again!"
 msgstr "クラウド環境を切り替えました、再度サインインしてください。"
 
 msgid "System presets"
@@ -6873,7 +6871,7 @@ msgstr "プロジェクト プリセット"
 msgid "Name is unavailable."
 msgstr "名称は使用できません"
 
-msgid "Overwrite a system profile is not allowed"
+msgid "Overwriting a system profile is not allowed."
 msgstr "システムプロファイルの上書きはできません"
 
 #, boost-format
@@ -6881,10 +6879,12 @@ msgid "Preset \"%1%\" already exists."
 msgstr "プリセット \"%1%\" は既に存在します。"
 
 #, boost-format
-msgid "Preset \"%1%\" already exists and is incompatible with current printer."
+msgid ""
+"Preset \"%1%\" already exists and is incompatible with the current printer."
 msgstr "プリセット\"%1%\"は既に存在し、また互換性がありません。"
 
-msgid "Please note that saving action will replace this preset"
+#, fuzzy
+msgid "Please note that saving will overwrite this preset."
 msgstr "注意：現在のプリセットを上書きされます。"
 
 msgid "The name cannot be the same as a preset alias name."
@@ -7215,7 +7215,7 @@ msgstr ""
 msgid "Log in printer"
 msgstr "プリンターを登録"
 
-msgid "Would you like to log in this printer with current account?"
+msgid "Would you like to log in to this printer with the current account?"
 msgstr "現在のアカウントでプリンターをサインインしますか？"
 
 msgid "Check the reason"
@@ -7298,14 +7298,14 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr "全ての変更をリセットします"
 
 msgid ""
-"Prime tower is required for smooth timelapse. There may be flaws on the "
+"A prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 "スムーズタイムラプスビデオを作成するにはプライムタワーが必要です。プライムタ"
 "ワーを有効にしますか？"
 
 msgid ""
-"Prime tower is required for smooth timelapse. There may be flaws on the "
+"A prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Do you want to enable prime tower?"
 msgstr ""
 "スムーズタイムラプスビデオを作成するにはプライムタワーが必要です。プライムタ"
@@ -7315,7 +7315,7 @@ msgid "Still print by object?"
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the "
+"When using support material for the support interface, we recommend the "
 "following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
 "disable independent support layer height"
@@ -7728,7 +7728,7 @@ msgstr "プロファイルの依存関係"
 msgid "Printable space"
 msgstr "造形可能領域"
 
-#. TRN: First argument is parameter name, the second one is the value.
+#. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
 msgstr "パラメータ %1% に無効な値が指定されました: %2%"
@@ -7769,7 +7769,7 @@ msgstr "積層変更前のG-code"
 msgid "Layer change G-code"
 msgstr "積層変更時のG-code"
 
-msgid "Time lapse G-code"
+msgid "Timelapse G-code"
 msgstr ""
 
 msgid "Change filament G-code"
@@ -8071,7 +8071,7 @@ msgstr "新しいバージョンが利用可能です"
 msgid "Configuration update"
 msgstr "構成の更新"
 
-msgid "A new configuration package available, Do you want to install it?"
+msgid "A new configuration package is available. Do you want to install it?"
 msgstr "新しい構成パッケージが利用できます。インストールしますか？"
 
 msgid "Description:"
@@ -8080,13 +8080,13 @@ msgstr "詳細:"
 msgid "Configuration incompatible"
 msgstr "構成ファイルは互換性がありません"
 
-msgid "the configuration package is incompatible with current application."
+msgid "the configuration package is incompatible with the current application."
 msgstr "構成パッケージが現在のアプリケーションと互換性がありません"
 
 #, c-format, boost-format
 msgid ""
-"The configuration package is incompatible with current application.\n"
-"%s will update the configuration package, Otherwise it won't be able to start"
+"The configuration package is incompatible with the current application.\n"
+"%s will update the configuration package to allow the application to start."
 msgstr ""
 "構成パッケージは現在のバージョンと互換性ありません。\n"
 "%sで構成パッケージを更新しアプリケーションを再起動します"
@@ -8095,7 +8095,7 @@ msgstr ""
 msgid "Exit %s"
 msgstr "%s を終了"
 
-msgid "the Configuration package is incompatible with current APP."
+msgid "the Configuration package is incompatible with the current APP."
 msgstr "構成パッケージは、このバージョンのOrca Slicerに適用できません"
 
 msgid "Configuration updates"
@@ -8572,7 +8572,7 @@ msgstr ""
 "が更新されます。"
 
 #, c-format, boost-format
-msgid "A new Network plug-in (%s) available, Do you want to install it?"
+msgid "A new Network plug-in (%s) is available. Do you want to install it?"
 msgstr "新しいプラグイン (%s) が発見しました、インストールしますか？"
 
 msgid "New version of Orca Slicer"
@@ -8708,10 +8708,10 @@ msgstr "最新バージョン"
 msgid "Updating"
 msgstr "更新中"
 
-msgid "Updating failed"
+msgid "Update failed"
 msgstr "更新は失敗しました"
 
-msgid "Updating successful"
+msgid "Update successful"
 msgstr "更新は成功しました"
 
 msgid ""
@@ -9405,20 +9405,21 @@ msgstr "APIキー"
 msgid "HTTP digest"
 msgstr "HTTP digest"
 
-msgid "Avoid crossing wall"
+msgid "Avoid crossing walls"
 msgstr "壁上の移動を迂回"
 
-msgid "Detour and avoid to travel across wall which may cause blob on surface"
+msgid ""
+"Detour to avoid traveling across walls, which may cause blobs on the surface."
 msgstr "移動する時に、壁面を迂回します。表面の仕上がりが良くなります。"
 
-msgid "Avoid crossing wall - Max detour length"
+msgid "Avoid crossing walls - Max detour length"
 msgstr "最大迂回距離"
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-"detour distance is large than this value. Detour length could be specified "
+"detour distance is larger than this value. Detour length could be specified "
 "either as an absolute value or as percentage (for example 50%) of a direct "
-"travel path. Zero to disable"
+"travel path. Zero to disable."
 msgstr ""
 "迂回距離上限: 移動距離がこの値以上になる場合迂回しません。値が0の場合無効にな"
 "ります。"
@@ -10059,8 +10060,8 @@ msgid "No cooling for the first"
 msgstr "冷却しない最初層数"
 
 msgid ""
-"Close all cooling fan for the first certain layers. Cooling fan of the first "
-"layer used to be closed to get better build plate adhesion"
+"Turn off all cooling fans for the first few layers. This can be used to "
+"improve build plate adhesion."
 msgstr ""
 "1層目をプリント時に全てのファンをオフにします。ベッドとの接着性を高めます"
 
@@ -10211,7 +10212,7 @@ msgid ""
 "you print your models object by object."
 msgstr ""
 
-msgid "End G-code when finish the printing of this filament"
+msgid "End G-code when finishing the printing of this filament."
 msgstr "このフィラメントを使用終わった時のG-codeを追加"
 
 msgid "Ensure vertical shell thickness"
@@ -10587,8 +10588,9 @@ msgid "Keep fan always on"
 msgstr "ファン常時ON"
 
 msgid ""
-"If enable this setting, part cooling fan will never be stopped and will run "
-"at least at minimum speed to reduce the frequency of starting and stopping"
+"Enabling this setting means that the part cooling fan will never stop "
+"completely and will run at least at minimum speed to reduce the frequency of "
+"starting and stopping."
 msgstr ""
 "この設定により、パーツ冷却ファンを停止しなく、最低速度で回転します。頻繁に回"
 "転・停止の頻度を減らします。"
@@ -10885,8 +10887,8 @@ msgstr ""
 
 msgid ""
 "The material softens at this temperature, so when the bed temperature is "
-"equal to or greater than it, it's highly recommended to open the front door "
-"and/or remove the upper glass to avoid clogging."
+"equal to or greater than this, it's highly recommended to open the front "
+"door and/or remove the upper glass to avoid clogging."
 msgstr ""
 
 msgid "Price"
@@ -11080,7 +11082,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhesive"
+"adhesion."
 msgstr ""
 "1層目の造形加速度です。遅くするとプレートとの接着を向上させることができます"
 
@@ -11601,7 +11603,7 @@ msgstr ""
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\" is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 "セグメント化された領域の連動深さ。mmu_segmented_region_max_width \"が0か、"
@@ -11879,15 +11881,15 @@ msgstr ""
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
-"is the maximum speed limitation of part cooling fan"
+"is the maximum speed for the part cooling fan."
 msgstr "自動冷却時に、パーツ冷却ファンの最大回転速度。"
 
 msgid "Max"
 msgstr "最大"
 
 msgid ""
-"The largest printable layer height for extruder. Used tp limits the maximum "
-"layer hight when enable adaptive layer height"
+"The highest printable layer height for the extruder. Used to limit the "
+"maximum layer height when adaptive layer height is enabled."
 msgstr ""
 "最大積層ピッチ：この値は「アダプティブ積層ピッチ」が有効時に積層ピッチの最大"
 "値です"
@@ -11966,8 +11968,8 @@ msgid "Min"
 msgstr "最小"
 
 msgid ""
-"The lowest printable layer height for extruder. Used tp limits the minimum "
-"layer hight when enable adaptive layer height"
+"The lowest printable layer height for the extruder. Used to limit the "
+"minimum layer height when adaptive layer height is enabled."
 msgstr ""
 "最小積層ピッチ：この値は「アダプティブ積層ピッチ」が有効時に積層ピッチの最小"
 "値です"
@@ -12083,7 +12085,7 @@ msgstr ""
 msgid "Filename format"
 msgstr "ファイル名形式"
 
-msgid "User can self-define the project file name when export"
+msgid "Users can define the project file name when exporting."
 msgstr "エクスポート時ファイル名を設定できます"
 
 msgid "Make overhangs printable"
@@ -12284,7 +12286,7 @@ msgstr ""
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
 "clearance between nozzle and the print. It prevents nozzle from hitting the "
-"print when travel move. Using spiral line to lift z can prevent stringing"
+"print when travel move. Using spiral lines to lift Z can prevent stringing."
 msgstr ""
 "リトラクション時に、ノズルを少し上げてから移動します。この動作でモデルとの衝"
 "突を回避できます。"
@@ -12799,7 +12801,7 @@ msgstr "スタートG-code"
 msgid "Start G-code when starting the entire print."
 msgstr "造形開始時のG-code"
 
-msgid "Start G-code when start the printing of this filament"
+msgid "Start G-code when starting the printing of this filament."
 msgstr "このフィラメントを使用開始時のG-code"
 
 msgid "Single Extruder Multi Material"
@@ -12900,9 +12902,9 @@ msgid "Enable support generation."
 msgstr "この設定によりサポート生成を有効になります。"
 
 msgid ""
-"Normal (auto) and Tree (auto) is used to generate support automatically. If "
+"Normal (auto) and Tree (auto) are used to generate support automatically. If "
 "Normal (manual) or Tree (manual) is selected, only support enforcers are "
-"generated"
+"generated."
 msgstr ""
 
 msgid "Normal (auto)"
@@ -13522,10 +13524,12 @@ msgstr ""
 msgid "X-Y hole compensation"
 msgstr "ホール補正 X-Y"
 
+#, fuzzy
 msgid ""
-"Holes of object will be grown or shrunk in XY plane by the configured value. "
-"Positive value makes holes bigger. Negative value makes holes smaller. This "
-"function is used to adjust size slightly when the object has assembling issue"
+"Holes in objects will expand or contract in the XY plane by the configured "
+"value. Positive values make holes bigger, negative values make holes "
+"smaller. This function is used to adjust sizes slightly when the objects "
+"have assembling issues."
 msgstr ""
 "オブジェクトの穴の大きさの調整値。正数は穴を大きくし、負数は穴を小さくしま"
 "す。この機能はパーツを組立てる為に、はめあいの微調査です。"
@@ -13533,11 +13537,12 @@ msgstr ""
 msgid "X-Y contour compensation"
 msgstr "輪郭補正 X-Y"
 
+#, fuzzy
 msgid ""
-"Contour of object will be grown or shrunk in XY plane by the configured "
-"value. Positive value makes contour bigger. Negative value makes contour "
-"smaller. This function is used to adjust size slightly when the object has "
-"assembling issue"
+"Contours of objects will expand or contract in the XY plane by the "
+"configured value. Positive values make contours bigger, negative values make "
+"contours smaller. This function is used to adjust sizes slightly when the "
+"objects have assembling issues."
 msgstr ""
 "オブジェクトの輪郭の大きさの調整値です。正数は大きくし、負数は小さくします。"
 "これがパーツを組み立てる為にはめあいの微調整です。"
@@ -13655,11 +13660,12 @@ msgstr "壁の層数"
 msgid "Minimum feature size"
 msgstr "最小サイズ"
 
+#, fuzzy
 msgid ""
 "Minimum thickness of thin features. Model features that are thinner than "
-"this value will not be printed, while features thicker than the Minimum "
-"feature size will be widened to the Minimum wall width. It's expressed as a "
-"percentage over nozzle diameter"
+"this value will not be printed, while features thicker than this value will "
+"be widened to the minimum wall width. It's expressed as a percentage over "
+"nozzle diameter."
 msgstr "小部分の厚さ下限。モデルに厚さがこの値以下になる部分を造形しません。"
 
 msgid "Minimum wall length"
@@ -13832,10 +13838,10 @@ msgstr "レイアウト設定"
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "レイアウト設定: 0: 無効　1: 有効　その他: 自動"
 
-msgid "Repetions count"
+msgid "Repetition count"
 msgstr ""
 
-msgid "Repetions count of the whole model"
+msgid "Repetition count of the whole model."
 msgstr ""
 
 msgid "Ensure on bed"
@@ -13923,7 +13929,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr ""
 
-msgid "the machine settings list need to do downward checking"
+msgid "The machine settings list needs to do downward checking."
 msgstr ""
 
 msgid "Load assemble list"
@@ -13977,24 +13983,24 @@ msgstr ""
 msgid "Load filament ids for each object"
 msgstr ""
 
-msgid "Allow multiple color on one plate"
+msgid "Allow multiple colors on one plate"
 msgstr ""
 
-msgid "If enabled, the arrange will allow multiple color on one plate"
+msgid "If enabled, Arrange will allow multiple colors on one plate."
 msgstr ""
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotation when arranging"
 msgstr ""
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, Arrange will allow rotation when placing objects."
 msgstr ""
 
-msgid "Avoid extrusion calibrate region when doing arrange"
+msgid "Avoid extrusion calibrate region when arranging"
 msgstr ""
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, Arrange will avoid extrusion calibrate region when placing "
+"objects."
 msgstr ""
 
 msgid "Skip modified G-code in 3mf"
@@ -14558,7 +14564,7 @@ msgid ""
 "use. You only need to do the calibration in the following limited cases:\n"
 "1. If you introduce a new filament of different brands/models or the "
 "filament is damp;\n"
-"2. if the nozzle is worn out or replaced with a new one;\n"
+"2. If the nozzle is worn out or replaced with a new one;\n"
 "3. If the max volumetric speed or print temperature is changed in the "
 "filament setting."
 msgstr ""
@@ -14691,7 +14697,7 @@ msgstr ""
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to override the other results?"
+"want to overwrite the other results?"
 msgstr ""
 
 msgid "Please find the best line on your plate"
@@ -15076,7 +15082,7 @@ msgstr ""
 msgid "Show error message"
 msgstr ""
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr ""
 
 msgid "Uploading"
@@ -15277,7 +15283,7 @@ msgstr ""
 msgid ""
 "We would rename the presets as \"Vendor Type Serial @printer you "
 "selected\".\n"
-"To add preset for more printers, Please go to printer selection"
+"To add preset for more printers, please go to printer selection"
 msgstr ""
 
 msgid "Create Printer/Nozzle"
@@ -15433,10 +15439,10 @@ msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
 
-msgid "Create Printer Successful"
+msgid "Printer Created Successfully"
 msgstr ""
 
-msgid "Create Filament Successful"
+msgid "Filament Created Successfully"
 msgstr ""
 
 msgid "Printer Created"
@@ -16525,9 +16531,9 @@ msgstr ""
 #~ msgstr "厚いブリッジ"
 
 #~ msgid ""
-#~ "normal(auto) and tree(auto) is used to generate support automatically. If "
-#~ "normal(manual) or tree(manual) is selected, only support enforcers are "
-#~ "generated"
+#~ "normal(auto) and tree(auto) are used to generate support automatically. "
+#~ "If normal(manual) or tree(manual) is selected, only support enforcers are "
+#~ "generated."
 #~ msgstr "通常 (自動) と ツリー (自動) では自動でサポートを作成します。"
 
 #~ msgid "Unselect"
@@ -16666,7 +16672,7 @@ msgstr ""
 #~ msgstr "初期化失敗 (カメラ無し)"
 
 #~ msgid ""
-#~ "Printer is busy downloading, Please wait for the downloading to finish."
+#~ "Printer is busy downloading, please wait for the download to finish."
 #~ msgstr "プリンターがダウンロード中、完了までお待ちください"
 
 #~ msgid "Initialize failed (Not accessible in LAN-only mode)!"
