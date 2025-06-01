@@ -19,9 +19,6 @@ public:
     // speed in default configuration (degrees)
     static constexpr float CorrectionAngle = -45.;
 
-    // Density adjustment to have a good %of weight.
-    static constexpr double DensityAdjust = 2.44;
-
     // Gyroid upper resolution tolerance (mm^-2)
     static constexpr double PatternTolerance = 0.2;
 
@@ -37,6 +34,5 @@ protected:
 
 } // namespace Slic3r
 
-//static std::vector<float> FillTpmsD::sin_table.reserve(FillTpmsD::TABLE_SIZE);
 
 #endif // slic3r_FillTpmsD_hpp_
