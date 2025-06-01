@@ -7911,11 +7911,11 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         m_render_preview = true;
 
     // places the toolbar on the top_left corner of the 3d scene
-#if ENABLE_RETINA_GL
-    float f_scale  = m_retina_helper->get_scale_factor();
-#else
-    float f_scale  = wxGetApp().em_unit() / 10; // ORCA add scaling support
-#endif
+    float f_scale = get_scale();
+    #ifdef WIN32
+        const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+        f_scale *= (float) dpi / (float) DPI_DEFAULT;
+    #endif // WIN32
     Size cnv_size = get_canvas_size();
     auto canvas_w = float(cnv_size.get_width());
     auto canvas_h = float(cnv_size.get_height());
@@ -7935,16 +7935,15 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     // Make sure the window does not overlap the 3d navigator
     auto window_height_max = canvas_h - y_offset;
     if (wxGetApp().show_3d_navigator()) {
-        float sc = get_scale();
-#ifdef WIN32
-        const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
-        sc *= (float) dpi / (float) DPI_DEFAULT;
-#endif // WIN32
-        window_height_max -= (128 * sc + 5);
+        window_height_max -= (128 * f_scale + 5);
     }
 
     // ORCA simplify and correct window size and margin calculations and get values from style
     ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f) * f_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,   ImVec2(4.0f, 4.0f) * f_scale);
+
     int item_count           = m_sel_plate_toolbar.m_items.size() + (m_sel_plate_toolbar.show_stats_item ? 1 : 0);
     float window_height_calc = (item_count * (button_height + (margin_size + button_margin) * 2.0f) + (item_count - 1) * ImGui::GetStyle().ItemSpacing.y + ImGui::GetStyle().WindowPadding.y * 2.0f);
     bool  show_scroll        = m_sel_plate_toolbar.is_display_scrollbar && (window_height_calc > window_height_max);
@@ -8180,7 +8179,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     }
     ImGui::SetWindowFontScale(1.0f);
     ImGui::PopStyleColor(8);
-    ImGui::PopStyleVar(5);
+    ImGui::PopStyleVar(7);
 
     if (ImGui::IsWindowHovered() || is_hovered) {
         m_sel_plate_toolbar.is_display_scrollbar = true;
@@ -9669,7 +9668,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the plate boundaries."); error = ErrorType::SLICING_ERROR; break;
     // BBS: remove _u8L() for SLA
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
-    case EWarning::SomethingNotShown:  text = _u8L("Only the object being edit is visible."); break;
+    case EWarning::SomethingNotShown:  text = _u8L("Only the object being edited is visible."); break;
     case EWarning::ObjectClashed:
         text = _u8L("An object is laid over the plate boundaries or exceeds the height limit.\n"
             "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
