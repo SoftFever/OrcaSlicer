@@ -19,20 +19,13 @@ public:
     // speed in default configuration (degrees)
     static constexpr float CorrectionAngle = -45.;
 
-    // Gyroid upper resolution tolerance (mm^-2)
-    static constexpr double PatternTolerance = 0.2;
-
-
-protected:
-
     void _fill_surface_single(const FillParams&              params,
-                                    unsigned int                   thickness_layers,
-                                    const std::pair<float, Point>& direction,
-                                    ExPolygon                      expolygon,
-                                    Polylines&                     polylines_out) override;
+                              unsigned int                   thickness_layers,
+                              const std::pair<float, Point>& direction,
+                              ExPolygon                      expolygon,
+                              Polylines&                     polylines_out) override;
 };
 
 } // namespace Slic3r
-
 
 #endif // slic3r_FillTpmsD_hpp_
