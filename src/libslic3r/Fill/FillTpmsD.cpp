@@ -337,49 +337,13 @@ void process_block(int                                               i,
 using namespace std;
 
 
-// FIXME: needed to fix build on Mac on buildserver
+
 constexpr double FillTpmsD::PatternTolerance;
 
 float get_linearinterpolation(float a, float b, float c, float d, float x)
 {
     float y = c - ((c - d) * (a - x) / (a - b));
     return y;
-}
-
-float getTby(int percent)
-{
-    int percent_phases[6];
-    percent_phases[0] = 1;
-    percent_phases[1] = 5;
-    percent_phases[2] = 10;
-    percent_phases[3] = 15;
-    percent_phases[4] = 20;
-    percent_phases[5] = 99;
-
-    float pi_phases[6];
-
-    pi_phases[0] = 11.8f * PI;
-    pi_phases[1] = 7 * PI;
-    pi_phases[2] = 5 * PI;
-    pi_phases[3] = 3.4545f * PI; // 3.523f * PI;
-    pi_phases[4] = 2 * PI;
-    pi_phases[5] = 1.0f * PI;
-
-    if (percent <= 0 || percent > 100) {
-        return -1;
-    }
-
-    for (int i = 0; i < 6; i++) {
-        if (percent == percent_phases[i]) {
-            return pi_phases[i];
-        }
-    }
-    for (int i = 0; i < 5; i++) {
-        if (percent > percent_phases[i] && percent < percent_phases[i + 1]) {
-            return get_linearinterpolation(percent_phases[i], percent_phases[i + 1], pi_phases[i], pi_phases[i + 1], percent);
-        }
-    }
-    return 0;
 }
 
 static float sin_table[360];
@@ -428,8 +392,8 @@ void FillTpmsD::_fill_surface_single(const FillParams&              params,
     if(std::abs(infill_angle) >= EPSILON)
         expolygon.rotate(-infill_angle);
 
-    float vari_T = getTby(int(params.density * 100));
-
+    float vari_T = 2.98 * spacing / params.density; // Infill density adjustment factor for TPMS-D
+   
     BoundingBox bb      = expolygon.contour.bounding_box();
     auto        cenpos  = unscale(bb.center());
     auto        boxsize = unscale(bb.size());
