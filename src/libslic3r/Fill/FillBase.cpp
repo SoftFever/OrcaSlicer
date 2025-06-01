@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <numeric>
 
+#include <cmath>
+#include <tbb/parallel_for.h>
 #include "../ClipperUtils.hpp"
 #include "../EdgeGrid.hpp"
 #include "../Geometry.hpp"
@@ -62,6 +64,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipSupportCubic:        return new FillAdaptive::Filler();
     case ipSupportBase:         return new FillSupportBase();  // simply line fill
     case ipLightning:           return new FillLightning::Filler();
+    
     // BBS: for internal solid infill only
     case ipConcentricInternal:  return new FillConcentricInternal();
     // BBS: for bottom and top surface only
@@ -2679,6 +2682,57 @@ void Fill::connect_base_support(Polylines &&infill_ordered, const Polygons &boun
         polygons_src.emplace_back(&polygon);
 
     connect_base_support(std::move(infill_ordered), polygons_src, bbox, polylines_out, spacing, params);
+}
+
+//Fill  Multiline 
+void multiline_fill(Polylines& polylines, const FillParams& params, float spacing)
+{
+    if (params.multiline > 1) {
+        Polylines all_polylines;
+
+        for (unsigned int line = 0; line < params.multiline; ++line) {
+            float offset = (line - (params.multiline - 1) / 2.0f) * spacing;
+            Polylines offset_polylines = polylines;
+
+            tbb::parallel_for(size_t(0), offset_polylines.size(), [&](size_t idx) {
+                Polyline& pl = offset_polylines[idx];
+                size_t n = pl.points.size();
+                if (n < 2)
+                    return;
+                std::vector<Point> new_points;
+                new_points.reserve(n);
+                for (size_t i = 0; i < n; ++i) {
+                    Vec2f tangent;
+                    if (i == 0)
+                        tangent = Vec2f(pl.points[1].x() - pl.points[0].x(), pl.points[1].y() - pl.points[0].y());
+                    else if (i == n - 1)
+                        tangent = Vec2f(pl.points[n - 1].x() - pl.points[n - 2].x(), pl.points[n - 1].y() - pl.points[n - 2].y());
+                    else
+                        tangent = Vec2f(pl.points[i + 1].x() - pl.points[i - 1].x(), pl.points[i + 1].y() - pl.points[i - 1].y());
+
+                    float len = std::sqrt(tangent.x() * tangent.x() + tangent.y() * tangent.y());
+                    if (len == 0)
+                        len = 1.0f;
+                    tangent /= len;
+                    Vec2f normal(-tangent.y(), tangent.x());
+
+                    Point p = pl.points[i];
+                    p.x() += scale_(normal.x() * offset);
+                    p.y() += scale_(normal.y() * offset);
+                    new_points.push_back(p);
+                }
+                pl.points = std::move(new_points);
+            });
+
+            append(all_polylines, offset_polylines);
+        }
+
+        polylines = all_polylines;
+
+        tbb::parallel_for(size_t(0), polylines.size(), [&](size_t i) {
+            polylines[i].simplify(scale_(0.05f));
+        });
+    }
 }
 
 } // namespace Slic3r
