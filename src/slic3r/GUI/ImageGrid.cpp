@@ -12,7 +12,7 @@
 
 wxDEFINE_EVENT(EVT_ITEM_ACTION, wxCommandEvent);
 
-BEGIN_EVENT_TABLE(Slic3r::GUI::ImageGrid, wxPanel)
+BEGIN_EVENT_TABLE(Slic3r::GUI::ImageGrid, wxWindow)
 
 EVT_MOTION(Slic3r::GUI::ImageGrid::mouseMoved)
 EVT_ENTER_WINDOW(Slic3r::GUI::ImageGrid::mouseEnterWindow)
