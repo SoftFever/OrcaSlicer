@@ -141,7 +141,7 @@ fi
 
 if [[ -n "${BUILD_DEPS}" ]] ; then
     echo "Configuring dependencies..."
-    BUILD_ARGS="-DDEP_WX_GTK3=ON"
+    BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON"
     if [[ -n "${CLEAN_BUILD}" ]]
     then
         rm -fr deps/build
@@ -170,9 +170,9 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     if [[ -n "${CLEAN_BUILD}" ]] ; then
         rm --force --recursive build
     fi
-    BUILD_ARGS=""
+    BUILD_ARGS="${ORCA_EXTRA_BUILD_ARGS}"
     if [[ -n "${FOUND_GTK3_DEV}" ]] ; then
-        BUILD_ARGS="-DSLIC3R_GTK=3"
+        BUILD_ARGS="${BUILD_ARGS} -DSLIC3R_GTK=3"
     fi
     if [[ -n "${BUILD_DEBUG}" ]] ; then
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"
