@@ -237,9 +237,11 @@ void AuFile::PaintBackground(wxDC &dc)
         dc.DrawText(m_add_file, pos);
     }
     else {
-        dc.SetPen(AUFILE_GREY200);
-        dc.SetBrush(AUFILE_GREY200);
-        dc.DrawRoundedRectangle(0, 0, size.x, size.y, AUFILE_ROUNDING);
+        // ORCA match look with add button
+        auto pen_width = FromDIP(2);
+        dc.SetPen(wxPen(AUFILE_GREY500, pen_width));
+        dc.SetBrush(StateColor::darkModeColorFor(AUFILE_GREY200));
+        dc.DrawRoundedRectangle(pen_width / 2, pen_width / 2, size.x - pen_width / 2, size.y - pen_width / 2, AUFILE_ROUNDING);
         dc.DrawBitmap(m_file_bitmap.bmp(), (size.x - m_file_bitmap.GetBmpWidth()) / 2, (size.y - m_file_bitmap.GetBmpHeight()) / 2);
     }
 }
@@ -251,12 +253,16 @@ void AuFile::PaintForeground(wxDC &dc)
     wxSize size = m_type == MODEL_PICTURE ? AUFILE_PICTURES_SIZE : AUFILE_SIZE;
 
     if (m_hover) {
-        if (m_type == AddFileButton) {
+
+        // ORCA add hover effect to borders
+        if (m_type == BILL_OF_MATERIALS || m_type == ASSEMBLY_GUIDE || m_type == OTHERS || m_type == MODEL_PICTURE || m_type == AddFileButton) {
             auto pen_width = FromDIP(2);
             dc.SetPen(wxPen(AUFILE_BRAND, pen_width));
-            dc.SetBrush(StateColor::darkModeColorFor(AUFILE_BRAND_TRANSPARENT));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
             dc.DrawRoundedRectangle(pen_width / 2, pen_width / 2, size.x - pen_width / 2, size.y - pen_width / 2, AUFILE_ROUNDING);
+        }
 
+        if (m_type == AddFileButton) {
             auto line_length = FromDIP(50);
             dc.DrawLine(wxPoint((size.x - line_length) / 2, size.y / 2), wxPoint((size.x + line_length) / 2, size.y / 2));
             dc.DrawLine(wxPoint(size.x / 2, (size.y - line_length) / 2), wxPoint(size.x / 2, (size.y + line_length) / 2));
