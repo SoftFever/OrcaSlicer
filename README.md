@@ -2,7 +2,7 @@
 <h1> <p "font-size:200px;"><img align="left" src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
 
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
-<br>Orca Slicer is an open source slicer for FDM printers. 
+<br>Orca Slicer is an open source slicer for FDM printers.
 
 ## Follow Us
 Stay connected with us:
@@ -11,12 +11,12 @@ Stay connected with us:
 
 Join our Discord community here:<br>
 <a href="https://discord.gg/P4VE9UY9gJ"><img src="https://img.shields.io/static/v1?message=Discord&logo=discord&label=&color=7289DA&logoColor=white&labelColor=&style=for-the-badge" height="35" alt="discord logo"/> </a>
- 
- <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3> 
+
+ <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3>
 
 The only official platforms for OrcaSlicer are **our GitHub project page**, <a href="https://orcaslicer.com/">**orcaslicer.com**</a>, the <a href="https://discord.gg/P4VE9UY9gJ">**official Discord channel**</a>, and the <a href="https://twitter.com/real_OrcaSlicer">**official Twitter/X account**</a>.
 
-Please be aware that "**orcaslicer.net**", "**orcaslicer.co**" or "**orca-slicer.com**" are NOT an official website for OrcaSlicer and may be potentially malicious. These sites appear to use AI-generated content, lacking genuine context and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised. 
+Please be aware that "**orcaslicer.net**", "**orcaslicer.co**" or "**orca-slicer.com**" are NOT an official website for OrcaSlicer and may be potentially malicious. These sites appear to use AI-generated content, lacking genuine context and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised.
 
 If you see the above sites in your searches, report them as spam or unsafe to the search engine. This small action will assist everyone.
 
@@ -33,28 +33,28 @@ Thank you for your vigilance and support in keeping our community safe!
 - Polyholes conversion support: [SuperSlicer Wiki: Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
 - Klipper support
 - More granular controls
-- Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)  
+- Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)
 
 # Wiki
 The wiki below aims to provide a detailed explanation of the slicer settings, including how to maximize their use and how to calibrate and set up your printer.
 
 Please note that the wiki is a work in progress. We appreciate your patience as we continue to develop and improve it!
 
-**[Access the wiki here](https://github.com/SoftFever/OrcaSlicer/wiki)**  
+**[Access the wiki here](https://github.com/SoftFever/OrcaSlicer/wiki)**
 
 # Download
 
 ### Stable Release
-📥 **[Download the Latest Stable Release](https://github.com/SoftFever/OrcaSlicer/releases/latest)**  
+📥 **[Download the Latest Stable Release](https://github.com/SoftFever/OrcaSlicer/releases/latest)**
 Visit our GitHub Releases page for the latest stable version of Orca Slicer, recommended for most users.
 
 ### Nightly Builds
-🌙 **[Download the Latest Nightly Build](https://github.com/SoftFever/OrcaSlicer/releases/tag/nightly-builds)**  
+🌙 **[Download the Latest Nightly Build](https://github.com/SoftFever/OrcaSlicer/releases/tag/nightly-builds)**
 Explore the latest developments in Orca Slicer with our nightly builds. Feedback on these versions is highly appreciated.
 
 
 # How to install
-**Windows**: 
+**Windows**:
 1.  Download the installer for your preferred version from the [releases page](https://github.com/SoftFever/OrcaSlicer/releases).
     - *For convenience there is also a portable build available.*
     - *If you have troubles to run the build, you might need to install following runtimes:*
@@ -66,36 +66,36 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
           -  This file may already be available on your computer if you've installed visual studio.  Check the following location: `%VCINSTALLDIR%Redist\MSVC\v142`
 
 **Mac**:
-1. Download the DMG for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.  
-2. Drag OrcaSlicer.app to Application folder. 
-3. *If you want to run a build from a PR, you also need to follow the instructions below:*  
+1. Download the DMG for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.
+2. Drag OrcaSlicer.app to Application folder.
+3. *If you want to run a build from a PR, you also need to follow the instructions below:*
     <details quarantine>
     - Option 1 (You only need to do this once. After that the app can be opened normally.):
       - Step 1: Hold _cmd_ and right click the app, from the context menu choose **Open**.
-      - Step 2: A warning window will pop up, click _Open_  
-      
-    - Option 2:  
+      - Step 2: A warning window will pop up, click _Open_
+
+    - Option 2:
       Execute this command in terminal: `xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app`
       ```console
           softfever@mac:~$ xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app
       ```
-    - Option 3:  
-        - Step 1: open the app, a warning window will pop up  
-            ![image](./SoftFever_doc/mac_cant_open.png)  
-        - Step 2: in `System Settings` -> `Privacy & Security`, click `Open Anyway`:  
-            ![image](./SoftFever_doc/mac_security_setting.png)  
+    - Option 3:
+        - Step 1: open the app, a warning window will pop up
+            ![image](./SoftFever_doc/mac_cant_open.png)
+        - Step 2: in `System Settings` -> `Privacy & Security`, click `Open Anyway`:
+            ![image](./SoftFever_doc/mac_security_setting.png)
     </details>
-    
+
 **Linux (Ubuntu)**:
- 1. If you run into trouble executing it, try this command in the terminal:  
+ 1. If you run into trouble executing it, try this command in the terminal:
     `chmod +x /path_to_appimage/OrcaSlicer_Linux.AppImage`
- 
+
 # How to Compile
 All updated build instructions for Windows, macOS, and Linux are now available on the official [OrcaSlicer Wiki - How to build](https://github.com/SoftFever/OrcaSlicer/wiki/How-to-build) page.
 
 Please refer to the wiki to ensure you're following the latest and most accurate steps for your platform.
 
-# Note: 
+# Note:
 If you're running Klipper, it's recommended to add the following configuration to your `printer.cfg` file.
 ```
 # Enable object exclusion
@@ -107,11 +107,11 @@ resolution: 0.1
 ```
 
 # Supports
-**Orca Slicer** is an open-source project and I'm deeply grateful to all my sponsors and backers.   
-Their generous support enables me to purchase filaments and other essential 3D printing materials for the project.   
+**Orca Slicer** is an open-source project and I'm deeply grateful to all my sponsors and backers.
+Their generous support enables me to purchase filaments and other essential 3D printing materials for the project.
 Thank you! :)
 
-### Sponsors:  
+### Sponsors:
 <table>
 <tr>
 <td>
@@ -127,10 +127,10 @@ Thank you! :)
 </tr>
 </table>
 
-### Backers:  
+### Backers:
 **Ko-fi supporters**: [Backers list](https://github.com/user-attachments/files/16147016/Supporters_638561417699952499.csv)
 
-## Support me  
+## Support me
 <a href="https://github.com/sponsors/SoftFever"><img src="https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86" width="130"></a>
 
 <a href="https://ko-fi.com/G2G5IP3CP"><img src="https://ko-fi.com/img/githubbutton_sm.svg" width="200"></a>
@@ -143,7 +143,7 @@ OrcaSlicer was originally forked from Bambu Studio, it was previously known as B
 
 [Bambu Studio](https://github.com/bambulab/BambuStudio) is forked from [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community.
 Orca Slicer incorporates a lot of features from [SuperSlicer](https://github.com/supermerill/SuperSlicer) by @supermerill
-Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr)  
+Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr)
 
 
 # License
