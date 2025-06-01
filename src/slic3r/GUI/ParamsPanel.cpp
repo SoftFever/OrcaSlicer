@@ -250,8 +250,8 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
 
 
-    //m_export_to_file = new Button( this, wxT("Export To File"), "");
-    //m_import_from_file = new Button( this, wxT("Import From File") );
+    //m_export_to_file = new Button( this, _L("Export To File"), "");
+    //m_import_from_file = new Button( this, _L("Import From File") );
 
     // Initialize the page.
 #if __WXOSX__
@@ -366,13 +366,13 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add( m_title_label, 0, wxALIGN_CENTER );
         m_mode_sizer->AddStretchSpacer(2);
         m_mode_sizer->Add(m_mode_region, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddStretchSpacer(1);
+        m_mode_sizer->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         m_mode_sizer->Add(m_tips_arrow, 0, wxALIGN_CENTER);
         m_mode_sizer->AddStretchSpacer(8);
         m_mode_sizer->Add( m_title_view, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         m_mode_sizer->Add(m_mode_view, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddStretchSpacer(2);
+        m_mode_sizer->AddSpacer(FromDIP(SidebarProps::ElementSpacing() * 6)); // ORCA using spacer prevents shaky mode_view when tips_arrow highlighting mode_region instead using AddStretchSpacer
         m_mode_sizer->Add(m_setting_btn, 0, wxALIGN_CENTER);
         m_mode_sizer->AddSpacer(FromDIP(SidebarProps::IconSpacing()));
         m_mode_sizer->Add(m_compare_btn, 0, wxALIGN_CENTER);

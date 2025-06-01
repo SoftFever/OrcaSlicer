@@ -508,7 +508,7 @@ void PrintJob::process(Ctl &ctl)
         else if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
 
             if (params.password.empty() || params.dev_ip.empty()) {
-                error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
+                error_text = wxString::Format(_L("Access code:%s IP address:%s"), params.password, params.dev_ip);
                 result = BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED;
             }
             else {
@@ -517,7 +517,7 @@ void PrintJob::process(Ctl &ctl)
                 is_try_lan_mode = true;
                 result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn, wait_fn);
                 if (result < 0) {
-                    error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
+                    error_text = wxString::Format(_L("Access code:%s IP address:%s"), params.password, params.dev_ip);
                     // try to send with cloud
                     BOOST_LOG_TRIVIAL(warning) << "print_job: use ftp send print failed";
                 }
