@@ -1556,8 +1556,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
         if (is_support_filament(interface_filament_id) && !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
                                                             m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced)) {
-            wxString msg_text = _L("When using support material for the support interface, We recommend the following settings:\n"
-                                   "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
+            wxString msg_text = _L("When using support material for the support interface, we recommend the following settings:\n"
+                                   "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
             msg_text += "\n\n" + _L("Change these settings automatically?\n"
                                     "Yes - Change these settings automatically\n"
                                     "No  - Do not change these settings for me");
