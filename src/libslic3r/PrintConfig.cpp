@@ -5273,7 +5273,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Top surface density");
     def->category = L("Strength");
     def->tooltip = L("Density of top surface layer. A value of 100% creates a fully solid, smooth top layer. "
-                       "Reducing this value results in a textured top surface, according to the chosen top surface pattern");
+                     "Reducing this value results in a textured top surface, according to the chosen top surface pattern. "
+                     "A value of 0% will result in only the walls on the top layer being created.");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
