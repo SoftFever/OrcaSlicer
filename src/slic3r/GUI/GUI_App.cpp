@@ -2584,7 +2584,7 @@ bool GUI_App::on_init_inner()
         bool debugger_attached = false;
 #if defined(__WINDOWS__)
         debugger_attached = IsDebuggerPresent();
-#elif defined(__WXOSX__)
+#elif defined(__WXOSX__) || defined(__linux__)
         debugger_attached = is_debugger_present();
 #endif
         if (debugger_attached) {
