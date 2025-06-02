@@ -34,50 +34,6 @@ float string_to_float(const std::string& str_value) {
     return value;
 }
 
-const int PRINTING_STAGE_COUNT = 36;
-std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
-    "printing",
-    "bed_leveling",
-    "heatbed_preheating",
-    "xy_mech_mode_sweep",
-    "change_material",
-    "m400_pause",
-    "filament_runout_pause",
-    "hotend_heating",
-    "extrude_compensation_scan",
-    "bed_scan",
-    "first_layer_scan",
-    "be_surface_typt_idetification",
-    "scanner_extrinsic_para_cali",
-    "toohead_homing",
-    "nozzle_tip_cleaning",
-    "extruder_temp_protect_cali",
-    "user_pause",
-    "toolhead_shell_off_pause",
-    "scanner_laser_para_cali",
-    "extruder_absolute_flow_cali",
-    "hotend_temperature_error_pause",   // 20
-    "heated_bed_temperature_error_pause",
-    "filament_unloading",
-    "skip_step_pause",
-    "filament_loading",
-    "motor_noise_calibration",
-    "ams_lost_pause",
-    "heat_break_fan_pause",
-    "chamber_temperature_control_error_pause",
-    "chamber_cooling",
-    "user_insert_gcode_pause",
-    "motor_noise_showoff",
-    "nozzle_filament_covered_detected_pause",
-    "cutter_error_pause",
-    "first_layer_error_pause",
-    "nozzle_clog_pause"
-    };
-
-
-
-
-
 wxString get_stage_string(int stage)
 {
     switch(stage) {
