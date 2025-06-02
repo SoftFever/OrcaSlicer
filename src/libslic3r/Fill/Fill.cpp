@@ -623,24 +623,24 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 params.lattice_angle_2 = region_config.lattice_angle_2;
 
 		        if (surface.is_solid()) {
-		            params.density = 100.f;
-					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
-					if (surface.is_solid_infill())
+                    if (surface.is_top()) {
+                        params.pattern = region_config.top_surface_pattern.value;
+                        params.density = float(region_config.top_surface_density); 
+                    } else if (surface.is_solid_infill()) {
                         params.pattern = region_config.internal_solid_infill_pattern.value;
-                    else if (surface.is_external() && ! is_bridge) {
-                        if(surface.is_top())
-                            params.pattern = region_config.top_surface_pattern.value;
-                        else
-                            params.pattern = region_config.bottom_surface_pattern.value;
-                    }
-                    else {
-                        if(region_config.top_surface_pattern == ipMonotonic || region_config.top_surface_pattern == ipMonotonicLine)
+                        params.density = 100.f;
+                    } else if (surface.is_external() && !is_bridge) {
+                        params.pattern = region_config.bottom_surface_pattern.value;
+                        params.density = 100.f;
+                    } else {
+                        if (region_config.top_surface_pattern == ipMonotonic || region_config.top_surface_pattern == ipMonotonicLine)
                             params.pattern = ipMonotonic;
                         else
                             params.pattern = ipRectilinear;
+                        params.density = 100.f;
                     }
-		        } else if (params.density <= 0)
-		            continue;
+                } else if (params.density <= 0)
+                    continue;
 
 				params.extrusion_role = erInternalInfill;
                 if (is_bridge) {
