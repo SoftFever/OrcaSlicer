@@ -88,7 +88,7 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(angle);
 		RETURN_COMPARE_NON_EQUAL(rotate_angle);
 		RETURN_COMPARE_NON_EQUAL(density);
-        RETURN_COMPARE_NON_EQUAL(multiline); 
+		RETURN_COMPARE_NON_EQUAL(multiline);
 //		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
 		RETURN_COMPARE_NON_EQUAL(anchor_length_max);

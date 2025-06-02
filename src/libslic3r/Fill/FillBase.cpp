@@ -64,7 +64,6 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipSupportCubic:        return new FillAdaptive::Filler();
     case ipSupportBase:         return new FillSupportBase();  // simply line fill
     case ipLightning:           return new FillLightning::Filler();
-    
     // BBS: for internal solid infill only
     case ipConcentricInternal:  return new FillConcentricInternal();
     // BBS: for bottom and top surface only
@@ -2710,7 +2709,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
                     else
                         tangent = Vec2f(pl.points[i + 1].x() - pl.points[i - 1].x(), pl.points[i + 1].y() - pl.points[i - 1].y());
 
-                    float len = std::sqrt(tangent.x() * tangent.x() + tangent.y() * tangent.y());
+                    float len = std::hypot(tangent.x() , tangent.y());
                     if (len == 0)
                         len = 1.0f;
                     tangent /= len;
