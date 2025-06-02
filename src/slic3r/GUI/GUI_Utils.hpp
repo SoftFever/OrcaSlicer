@@ -496,6 +496,8 @@ int get_dpi_for_window(const wxWindow *window);
 
 #ifdef __WXOSX__
 void dataview_remove_insets(wxDataViewCtrl* dv);
+
+bool is_debugger_present();
 #endif
 
 /// <summary>

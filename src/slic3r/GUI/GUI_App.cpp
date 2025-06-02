@@ -2582,8 +2582,10 @@ bool GUI_App::on_init_inner()
     // See https://github.com/bambulab/BambuStudio/issues/6726
     if (!NetworkAgent::use_legacy_network) {
         bool debugger_attached = false;
-#ifdef __WINDOWS__
+#if defined(__WINDOWS__)
         debugger_attached = IsDebuggerPresent();
+#elif defined(__WXOSX__)
+        debugger_attached = is_debugger_present();
 #endif
         if (debugger_attached) {
             NetworkAgent::use_legacy_network = true;
