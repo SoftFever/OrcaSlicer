@@ -4481,8 +4481,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 } else if (jj["command"].get<std::string>() == "ams_filament_setting" && !key_field_only) {
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
-                            auto err_code = jj["err_code"].get<int>();
-                            print_error = err_code;
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                            }
                         }
                     }
 
@@ -4622,8 +4624,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 } else if (jj["command"].get<std::string>() == "extrusion_cali_set") {
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
-                            auto err_code = jj["err_code"].get<int>();
-                            print_error   = err_code;
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                            }
                         }
                     }
 #ifdef CALI_DEBUG
@@ -4672,8 +4676,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 else if (jj["command"].get<std::string>() == "extrusion_cali_sel") {
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
-                            auto err_code = jj["err_code"].get<int>();
-                            print_error   = err_code;
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                            }
                         }
                     }
 
