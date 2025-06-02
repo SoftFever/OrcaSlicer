@@ -1780,6 +1780,8 @@ void GUI_App::init_networking_callbacks()
             CallAfter([this, dev_id, msg] {
                 if (m_is_closing)
                     return;
+                this->process_network_msg(dev_id, msg);
+
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
                     obj->is_ams_need_update = false;
@@ -1832,6 +1834,7 @@ void GUI_App::init_networking_callbacks()
                 if (m_is_closing)
                     return;
 
+                this->process_network_msg(dev_id, msg);
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (!obj || !obj->is_lan_mode_printer()) {
                     obj = m_device_manager->get_local_machine(dev_id);
@@ -4472,6 +4475,13 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
           } catch (...) {}
         })
         .perform();
+}
+
+void GUI_App::process_network_msg(std::string dev_id, std::string msg)
+{
+    if (dev_id.empty()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << msg;
+    }
 }
 
 //BBS pop up a dialog and download files
