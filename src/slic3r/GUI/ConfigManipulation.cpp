@@ -523,7 +523,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("infill_combination_max_layer_height", have_combined_infill);
 
     InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern"); //Toggle Fill Multiline
-    bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear ||
+    bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear || pattern == ipCrossHatch ||
                                                   pattern == ipCubic || pattern == ipStars || pattern == ipAlignedRectilinear || pattern == ipLightning;
     toggle_line("fill_multiline", have_multiline_infill_pattern);
 
