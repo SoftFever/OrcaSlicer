@@ -6402,19 +6402,19 @@ msgid "Choose Download Directory"
 msgstr "选择下载文件夹"
 
 msgid "Associate"
-msgstr ""
+msgstr "相关的"
 
 msgid "with OrcaSlicer so that Orca can open models from"
 msgstr ""
 
 msgid "Current Association: "
-msgstr ""
+msgstr "当前相关项"
 
 msgid "Current Instance"
-msgstr ""
+msgstr "当前实例"
 
 msgid "Current Instance Path: "
-msgstr ""
+msgstr "当前实例路径"
 
 msgid "General Settings"
 msgstr "通用设置"
@@ -6618,22 +6618,22 @@ msgid "Associate URLs to OrcaSlicer"
 msgstr ""
 
 msgid "Load All"
-msgstr ""
+msgstr "加载全部"
 
 msgid "Ask When Relevant"
-msgstr ""
+msgstr "当相关时查询"
 
 msgid "Always Ask"
-msgstr ""
+msgstr "总是提问"
 
 msgid "Load Geometry Only"
-msgstr ""
+msgstr "仅加载几何形状"
 
 msgid "Load Behaviour"
-msgstr ""
+msgstr "加载 交互项"
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
-msgstr ""
+msgstr "printter/filament/process 设置项文件能否以 .3mf后缀方式打开"
 
 msgid "Maximum recent projects"
 msgstr "近期项目的最大数量"
