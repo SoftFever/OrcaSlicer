@@ -20,13 +20,10 @@
 > [!IMPORTANT]
 > After completing the calibration process, remember to create a new project in order to exit the calibration mode.
 
-> [!TIP]
-> @ItsDeidara has made a webpage to help with the calculation. Check it out if those equations give you a headache [here](https://orcalibrate.com/).
-
 # Flow rate
 > [!WARNING]
 > For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option.
-> 
+>
 > ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)
 
 > [!IMPORTANT]
@@ -34,7 +31,7 @@
 
 ![flowrate](./images/flow-calibration.gif)
 
-Calibrating the flow rate involves a two-step process.  
+Calibrating the flow rate involves a two-step process.
 Steps
 1. Select the printer, filament, and process you would like to use for the test.
 2. Select `Pass 1` in the `Calibration` menu
@@ -45,11 +42,11 @@ Steps
 
 5. Update the flow ratio in the filament settings using the following equation: `FlowRatio_old*(100 + modifier)/100`. If your previous flow ratio was `0.98` and you selected the block with a flow rate modifier of `+5`, the new value should be calculated as follows: `0.98x(100+5)/100 = 1.029`.** Remember** to save the filament profile.
 6. Perform the `Pass 2` calibration. This process is similar to `Pass 1`, but a new project with ten blocks will be generated. The flow rate modifiers for this project will range from `-9 to 0`.
-7. Repeat steps 4. and 5. In this case, if your previous flow ratio was 1.029 and you selected the block with a flow rate modifier of -6, the new value should be calculated as follows: `1.029x(100-6)/100 = 0.96726`. **Remember** to save the filament profile.  
+7. Repeat steps 4. and 5. In this case, if your previous flow ratio was 1.029 and you selected the block with a flow rate modifier of -6, the new value should be calculated as follows: `1.029x(100-6)/100 = 0.96726`. **Remember** to save the filament profile.
 
 ![pass2](https://user-images.githubusercontent.com/103989404/210139072-f2fa91a6-4e3b-4d2a-81f2-c50155e1ff6d.jpg)
-![-6](https://user-images.githubusercontent.com/103989404/210139131-ee224146-b242-4c1c-ac96-35ef0ca591f1.jpg)  
-![image](./images/flowcalibration_update_flowrate.jpg)  
+![-6](https://user-images.githubusercontent.com/103989404/210139131-ee224146-b242-4c1c-ac96-35ef0ca591f1.jpg)
+![image](./images/flowcalibration_update_flowrate.jpg)
 
 # Pressure Advance
 
@@ -60,7 +57,7 @@ Orca Slicer includes three approaches for calibrating the pressure advance value
 
 > [!WARNING]
 > For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option when printings.
-> 
+>
 > ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)
 
 ### Line method
@@ -107,8 +104,8 @@ Next, Ellis' generator provided the ability to adjust specific printer, filament
 
 ### Tower method
 
-The tower method may take a bit more time to complete, but it does not rely on the quality of the first layer. 
-The PA value for this test will be increased by 0.002 for every 1 mm increase in height.  (**NOTE** 0.02 for Bowden)  
+The tower method may take a bit more time to complete, but it does not rely on the quality of the first layer.
+The PA value for this test will be increased by 0.002 for every 1 mm increase in height.  (**NOTE** 0.02 for Bowden)
 Steps:
  1. Select the printer, filament, and process you would like to use for the test.
  2. Examine each corner of the print and mark the height that yields the best overall result.
@@ -117,37 +114,37 @@ Steps:
 
 ![tower_measure](https://user-images.githubusercontent.com/103989404/210140232-885b549b-e3b8-46b9-a24c-5229c9182408.jpg)
 
-# Temp tower 
-![image](./images/temp_tower_test.gif)  
-Temp tower is a straightforward test. The temp tower is a vertical tower with multiple blocks, each printed at a different temperature. Once the print is complete, we can examine each block of the tower and determine the optimal temperature for the filament. The optimal temperature is the one that produces the highest quality print with the least amount of issues, such as stringing, layer adhesion, warping (overhang), and bridging.  
-![temp_tower](https://user-images.githubusercontent.com/103989404/221344534-40e1a629-450c-4ad5-a051-8e240e261a51.jpeg)  
+# Temp tower
+![image](./images/temp_tower_test.gif)
+Temp tower is a straightforward test. The temp tower is a vertical tower with multiple blocks, each printed at a different temperature. Once the print is complete, we can examine each block of the tower and determine the optimal temperature for the filament. The optimal temperature is the one that produces the highest quality print with the least amount of issues, such as stringing, layer adhesion, warping (overhang), and bridging.
+![temp_tower](https://user-images.githubusercontent.com/103989404/221344534-40e1a629-450c-4ad5-a051-8e240e261a51.jpeg)
 
 # Retraction test
-![image](./images/retraction_test.gif)  
-This test generates a retraction tower automatically. The retraction tower is a vertical structure with multiple notches, each printed at a different retraction length. After the print is complete, we can examine each section of the tower to determine the optimal retraction length for the filament. The optimal retraction length is the shortest one that produces the cleanest tower.  
-![image](./images/retraction_test_dlg.png)  
+![image](./images/retraction_test.gif)
+This test generates a retraction tower automatically. The retraction tower is a vertical structure with multiple notches, each printed at a different retraction length. After the print is complete, we can examine each section of the tower to determine the optimal retraction length for the filament. The optimal retraction length is the shortest one that produces the cleanest tower.
+![image](./images/retraction_test_dlg.png)
 In the dialog, you can select the start and end retraction length, as well as the retraction length increment step. The default values are 0mm for the start retraction length, 2mm for the end retraction length, and 0.1mm for the step. These values are suitable for most direct drive extruders. However, for Bowden extruders, you may want to increase the start and end retraction lengths to 1mm and 6mm, respectively, and set the step to 0.2mm.
 
 **Note**: When testing filaments such as PLA or ABS that have minimal oozing, the retraction settings can be highly effective. You may find that the retraction tower appears clean right from the start. In such situations, setting the retraction length to 0.2mm - 0.4mm using Orca Slicer should suffice.
-On the other hand, if there is still a lot of stringing at the top of the tower, it is recommended to dry your filament and ensure that your nozzle is properly installed without any leaks.  
-![image](./images/retraction_test_print.jpg)  
+On the other hand, if there is still a lot of stringing at the top of the tower, it is recommended to dry your filament and ensure that your nozzle is properly installed without any leaks.
+![image](./images/retraction_test_print.jpg)
 
 # Orca Tolerance Test
-This tolerance test is specifically designed to assess the dimensional accuracy of your printer and filament. The model comprises a base and a hexagon tester. The base contains six hexagon hole, each with a different tolerance: 0.0mm, 0.05mm, 0.1mm, 0.2mm, 0.3mm, and 0.4mm. The dimensions of the hexagon tester are illustrated in the image.  
-![image](./images/tolerance_hole.jpg) 
+This tolerance test is specifically designed to assess the dimensional accuracy of your printer and filament. The model comprises a base and a hexagon tester. The base contains six hexagon hole, each with a different tolerance: 0.0mm, 0.05mm, 0.1mm, 0.2mm, 0.3mm, and 0.4mm. The dimensions of the hexagon tester are illustrated in the image.
+![image](./images/tolerance_hole.jpg)
 
-You can assess the tolerance using either an M6 Allen key or the printed hexagon tester.  
-![image](./images/OrcaToleranceTes_m6.jpg)  
-![image](./images/OrcaToleranceTest_print.jpg)  
+You can assess the tolerance using either an M6 Allen key or the printed hexagon tester.
+![image](./images/OrcaToleranceTes_m6.jpg)
+![image](./images/OrcaToleranceTest_print.jpg)
 
 # Advanced Calibration
 
 ## Max Volumetric speed
 This is a test designed to calibrate the maximum volumetric speed of the specific filament. The generic or 3rd party filament types may not have the correct volumetric flow rate set in the filament. This test will help you to find the maximum volumetric speed of the filament.
 
-You will be promted to enter the settings for the test: start volumetric speed, end volumentric speed, and step. It is recommended to use the default values (5mm³/s start, 20mm³/s end, with a step of 0.5), unless you already have an idea of the lower or upper limit for your filament. Select "OK", slice the plate, and send it to the printer. 
+You will be promted to enter the settings for the test: start volumetric speed, end volumentric speed, and step. It is recommended to use the default values (5mm³/s start, 20mm³/s end, with a step of 0.5), unless you already have an idea of the lower or upper limit for your filament. Select "OK", slice the plate, and send it to the printer.
 
-Once printed, take note of where the layers begin to fail and where the quality begins to suffer. Pay attention to changes from matte to shiny as well. 
+Once printed, take note of where the layers begin to fail and where the quality begins to suffer. Pay attention to changes from matte to shiny as well.
 
 ![image](./images/vmf_measurement_point.jpg)
 
@@ -155,7 +152,7 @@ Using calipers or a ruler, measure the height of the print at that point. Use th
 
 ![image](./images/caliper_sample_mvf.jpg)
 
-You can also return to OrcaSlicer in the "Preview" tab, make sure the color scheme "flow" is selected. Scroll down to the layer height that you measured, and click on the toolhead slider. This will indicate the max flow level for your filmanet. 
+You can also return to OrcaSlicer in the "Preview" tab, make sure the color scheme "flow" is selected. Scroll down to the layer height that you measured, and click on the toolhead slider. This will indicate the max flow level for your filmanet.
 
 ![image](./images/max_volumetric_flow.jpg)
 
@@ -176,13 +173,15 @@ Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
 1. Pre-requisites:
    1. In OrcaSlicer, set:
       1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
-      2. Speed high enough to trigger ringing (e.g., 100 mm/s).
+      2. Speed high enough to trigger ringing (e.g., 200 mm/s).
+      > [!NOTE]
+      > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
       3. Jerk [Klipper Square Corner Velocity](https://www.klipper3d.org/Kinematics.html?h=square+corner+velocity#look-ahead) to 5 or a high value (e.g., 20).
    2. In printer settigs:
       1. Set the Shaper Type to ``MZV`` or ``EI``.
          ```
          SET_INPUT_SHAPER SHAPER_TYPE=MZV
-         ```  
+         ```
       2. Disable [Minimun Cruise Ratio](https://www.klipper3d.org/Kinematics.html#minimum-cruise-ratio) with:
             ```
             SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0
@@ -198,14 +197,14 @@ Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
    ![image](./images/InputShaping/IS_freq_klipper_slicer_measure.png)
 
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
-   
+
    **Note**: There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
 3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
 
    ![image](./images/InputShaping/IS_damp_menu.png)
 
    1. Measure the X and Y heights and read the damping set at that point in Orca Slicer.
-   
+
    ![image](./images/InputShaping/IS_damp_klipper_print_measure.jpg)
    ![image](./images/InputShaping/IS_damp_klipper_slicer_measure.png)
 
@@ -223,12 +222,14 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 1. Pre-requisites:
    1. In OrcaSlicer, set:
       1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
-      2. Speed high enough to trigger ringing (e.g., 100 mm/s).
-      3. Jerk
+      2. Speed high enough to trigger ringing (e.g., 200 mm/s).
+      > [!NOTE]
+      > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
+      4. Jerk
          1. If using [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-) use a high value (e.g., 20).
          2. If using [Junction Deviation](https://marlinfw.org/docs/features/junction_deviation.html) (new Marlin default mode) this test will use 0.25 (high enough to most printers).
    2. Use an opaque, high-gloss filament to make the ringing more visible.
-2. Print the Input Shaping Frequency test with a range of frequencies. 
+2. Print the Input Shaping Frequency test with a range of frequencies.
 
    ![image](./images/InputShaping/IS_freq_menu.png)
 
@@ -238,7 +239,7 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
    ![image](./images/InputShaping/IS_freq_marlin_slicer_measure.png)
 
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
-   
+
    **Note**: There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
 3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
 
@@ -287,20 +288,20 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
       2. Speed high enough to trigger ringing (e.g., 100 mm/s).
    3. Use an opaque, high-gloss filament to make the ringing more visible.
 2. You need to print the Junction Deviation test.
-   
+
    ![image](./images/JunctionDeviation/jd_first_menu.png)
 
    1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
-      
+
    ![image](./images/JunctionDeviation/jd_first_print_measure.jpg)
    ![image](./images/JunctionDeviation/jd_first_slicer_measure.png)
 
    2. It’s very likely that you’ll need to set values lower than 0.08 mm, as shown in the previous example. To determine a more accurate maximum JD value, you can print a new calibration tower with a maximum value set at the point where the corners start losing sharpness.
-   3. 
+   3.
    ![image](./images/JunctionDeviation/jd_second_menu.png)
 
    4. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
-      
+
    ![image](./images/JunctionDeviation/jd_second_print_measure.jpg)
    ![image](./images/JunctionDeviation/jd_second_slicer_measure.png)
 3. Save the settings
@@ -332,7 +333,7 @@ Because of the nature of these artifacts the methods to reduce them can be mecha
 
 
 ***
-*Credits:*  
+*Credits:*
 - *The Flowrate test and retraction test is inspired by [SuperSlicer](https://github.com/supermerill/SuperSlicer).*
 - *The PA Line method is inspired by [K-factor Calibration Pattern](https://marlinfw.org/tools/lin_advance/k-factor.html).*
 - *The PA Tower method is inspired by [Klipper](https://www.klipper3d.org/Pressure_Advance.html).*

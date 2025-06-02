@@ -1314,7 +1314,7 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
                 }
             } else if (curr_selected_type == m_create_type.base_filament_preset) {
                 m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\".\n"
-                                                    "To add preset for more printers, Please go to printer selection"));
+                                                    "To add preset for more printers, please go to printer selection"));
                 m_filament_preset_combobox->Hide();
                 if (_L("Select Type") != m_filament_type_combobox->GetLabel()) {
                     
@@ -3325,7 +3325,7 @@ wxString CreatePrinterPresetDialog::curr_create_printer_type()
 }
 
 CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, const SuccessType &create_success_type)
-    : DPIDialog(parent ? parent : nullptr, wxID_ANY, PRINTER == create_success_type ? _L("Create Printer Successful") : _L("Create Filament Successful"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, PRINTER == create_success_type ? _L("Printer Created Successfully") : _L("Filament Created Successfully"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(450), FromDIP(200)));

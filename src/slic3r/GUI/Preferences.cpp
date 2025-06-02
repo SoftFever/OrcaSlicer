@@ -1491,7 +1491,7 @@ wxWindow* PreferencesDialog::create_debug_page()
 
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box
-        MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
+        MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have been saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
         dialog.SetSize(400,-1);
         switch (dialog.ShowModal()) {
         case wxID_NO: {
@@ -1554,7 +1554,7 @@ wxWindow* PreferencesDialog::create_debug_page()
                     agent->set_country_code(country_code);
                 }
                 ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
-                confirm_dlg.update_text(_L("Switch cloud environment, Please login again!"));
+                confirm_dlg.update_text(_L("Cloud environment switched, please login again!"));
                 confirm_dlg.on_show();
             }
 

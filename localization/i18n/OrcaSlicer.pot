@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-msgid "Supports Painting"
+msgid "Support Painting"
 msgstr ""
 
 msgid "Alt + Mouse wheel"
@@ -114,7 +114,7 @@ msgstr ""
 
 #, possible-boost-format
 msgid ""
-"Filament count exceeds the maximum number that painting tool supports. only "
+"Filament count exceeds the maximum number that painting tool supports. Only "
 "the first %1% filaments will be available in painting tool."
 msgstr ""
 
@@ -587,10 +587,10 @@ msgstr ""
 msgid "%1%"
 msgstr ""
 
-msgid "Can't apply when process preview."
+msgid "Can't apply when processing preview."
 msgstr ""
 
-msgid "Operation already cancelling. Please wait few seconds."
+msgid "Operation already cancelling. Please wait a few seconds."
 msgstr ""
 
 msgid "Face recognition"
@@ -1117,7 +1117,7 @@ msgstr ""
 msgid "Shape is marked as invisible (%1%)."
 msgstr ""
 
-#. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
+#. TRN: The first placeholder is shape identifier, the second is text describing the problem.
 #, possible-boost-format
 msgid "Fill of shape (%1%) contains unsupported: %2%."
 msgstr ""
@@ -1289,7 +1289,7 @@ msgid "Measure"
 msgstr ""
 
 msgid ""
-"Please confirm explosion ratio = 1,and please select at least one object"
+"Please confirm explosion ratio = 1, and please select at least one object."
 msgstr ""
 
 msgid "Please select at least one object."
@@ -1371,7 +1371,7 @@ msgstr ""
 msgid "Center coincidence"
 msgstr ""
 
-msgid "Featue 1"
+msgid "Feature 1"
 msgstr ""
 
 msgid "Reverse rotation"
@@ -1838,16 +1838,16 @@ msgstr ""
 msgid "Edit in Parameter Table"
 msgstr ""
 
-msgid "Convert from inch"
+msgid "Convert from inches"
 msgstr ""
 
-msgid "Restore to inch"
+msgid "Restore to inches"
 msgstr ""
 
-msgid "Convert from meter"
+msgid "Convert from meters"
 msgstr ""
 
-msgid "Restore to meter"
+msgid "Restore to meters"
 msgstr ""
 
 msgid "Assemble"
@@ -2151,12 +2151,12 @@ msgid "Selection conflicts"
 msgstr ""
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second should also be an object."
 msgstr ""
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
-"object."
+"If the first selected item is a part, the second should be a part in the "
+"same object."
 msgstr ""
 
 msgid "The type of the last solid object part is not to be changed."
@@ -2217,7 +2217,7 @@ msgstr ""
 msgid "one cell can only be copied to one or multiple cells in the same column"
 msgstr ""
 
-msgid "multiple cells copy is not supported"
+msgid "Copying multiple cells is not supported."
 msgstr ""
 
 msgid "Outside"
@@ -2572,7 +2572,7 @@ msgstr ""
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 
-msgid "Print file not found. please slice again."
+msgid "Print file not found. Please slice again."
 msgstr ""
 
 msgid ""
@@ -2595,7 +2595,7 @@ msgid ""
 "again."
 msgstr ""
 
-msgid "Print file not found, Please slice it again and send it for printing."
+msgid "Print file not found, please slice it again and send it for printing."
 msgstr ""
 
 msgid ""
@@ -2682,7 +2682,7 @@ msgstr ""
 msgid "Canceled"
 msgstr ""
 
-msgid "Install successfully."
+msgid "Installed successfully"
 msgstr ""
 
 msgid "Installing"
@@ -2904,7 +2904,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Config which AMS slot should be used for a filament used in the print job"
+"Configure which AMS slot should be used for a filament used in the print job."
 msgstr ""
 
 msgid "Filament used in this print job"
@@ -2922,7 +2922,7 @@ msgstr ""
 msgid "Print using materials mounted on the back of the case"
 msgstr ""
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr ""
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3005,8 +3005,8 @@ msgid "AMS filament backup"
 msgstr ""
 
 msgid ""
-"AMS will continue to another spool with the same properties of filament "
-"automatically when current filament runs out"
+"AMS will continue to another spool with matching filament properties "
+"automatically when current filament runs out."
 msgstr ""
 
 msgid "Air Printing Detection"
@@ -3131,7 +3131,7 @@ msgstr ""
 msgid "G-code file exported to %1%"
 msgstr ""
 
-msgid "Unknown error when export G-code."
+msgid "Unknown error when exporting G-code."
 msgstr ""
 
 #, possible-boost-format
@@ -3307,7 +3307,7 @@ msgstr ""
 msgid "Select Printers"
 msgstr ""
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr ""
 
 msgid "Printing Options"
@@ -3603,7 +3603,7 @@ msgstr ""
 msgid "Pause of front cover falling"
 msgstr ""
 
-msgid "Calibrating the micro lida"
+msgid "Calibrating the micro lidar"
 msgstr ""
 
 msgid "Calibrating extrusion flow"
@@ -3695,7 +3695,7 @@ msgstr ""
 
 msgid ""
 "When you set the chamber temperature below 40℃, the chamber temperature "
-"control will not be activated. And the target chamber temperature will "
+"control will not be activated, and the target chamber temperature will "
 "automatically be set to 0℃."
 msgstr ""
 
@@ -3730,7 +3730,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"CF/GF filaments are hard and brittle, it's easy to break or get stuck in "
 "AMS, please use with caution."
 msgstr ""
 
@@ -3803,7 +3803,7 @@ msgid "parameter name"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "%s can't be percentage"
+msgid "%s can't be a percentage"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4197,7 +4197,7 @@ msgstr ""
 msgid "A G-code path goes beyond the plate boundaries."
 msgstr ""
 
-msgid "Only the object being edit is visible."
+msgid "Only the object being edited is visible."
 msgstr ""
 
 msgid ""
@@ -4806,7 +4806,7 @@ msgstr ""
 msgid "Printer camera is malfunctioning."
 msgstr ""
 
-msgid "Problem occurred. Please update the printer firmware and try again."
+msgid "A problem occurred. Please update the printer firmware and try again."
 msgstr ""
 
 msgid ""
@@ -4823,7 +4823,7 @@ msgid "Connection Failed. Please check the network and try again"
 msgstr ""
 
 msgid ""
-"Please check the network and try again, You can restart or update the "
+"Please check the network and try again. You can restart or update the "
 "printer if the issue persists."
 msgstr ""
 
@@ -5213,9 +5213,6 @@ msgstr ""
 msgid "Please click on the star first."
 msgstr ""
 
-msgid "InFo"
-msgstr ""
-
 msgid "Get oss config failed."
 msgstr ""
 
@@ -5256,7 +5253,7 @@ msgid "obtaining instance_id failed\n"
 msgstr ""
 
 msgid ""
-"Your comment result cannot be uploaded due to some reasons. As follows:\n"
+"Your comment result cannot be uploaded due to the following reasons:\n"
 "\n"
 "  error code: "
 msgstr ""
@@ -5267,12 +5264,12 @@ msgstr ""
 msgid ""
 "\n"
 "\n"
-"Would you like to redirect to the webpage for rating?"
+"Would you like to redirect to the webpage to give a rating?"
 msgstr ""
 
 msgid ""
 "Some of your images failed to upload. Would you like to redirect to the "
-"webpage for rating?"
+"webpage to give a rating?"
 msgstr ""
 
 msgid "You can select up to 16 images."
@@ -5454,7 +5451,7 @@ msgstr ""
 msgid "Warning:"
 msgstr ""
 
-msgid "Export successfully."
+msgid "Exported successfully"
 msgstr ""
 
 msgid "Model file downloaded."
@@ -5753,8 +5750,8 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
+"The 3mf's version %s is newer than %s's version %s, found following "
+"unrecognized keys:"
 msgstr ""
 
 msgid "You'd better upgrade your software.\n"
@@ -5772,22 +5769,23 @@ msgstr ""
 msgid "Please correct them in the param tabs"
 msgstr ""
 
-msgid "The 3mf has following modified G-codes in filament or printer presets:"
+msgid ""
+"The 3mf has the following modified G-code in filament or printer presets:"
 msgstr ""
 
 msgid ""
-"Please confirm that these modified G-codes are safe to prevent any damage to "
-"the machine!"
+"Please confirm that all modified G-code is safe to prevent any damage to the "
+"machine!"
 msgstr ""
 
 msgid "Modified G-code"
 msgstr ""
 
-msgid "The 3mf has following customized filament or printer presets:"
+msgid "The 3mf has the following customized filament or printer presets:"
 msgstr ""
 
 msgid ""
-"Please confirm that the G-codes within these presets are safe to prevent any "
+"Please confirm that the G-code within these presets is safe to prevent any "
 "damage to the machine!"
 msgstr ""
 
@@ -5841,8 +5839,8 @@ msgid "The file does not contain any geometry data."
 msgstr ""
 
 msgid ""
-"Your object appears to be too large, Do you want to scale it down to fit the "
-"heat bed automatically?"
+"Your object appears to be too large, do you want to scale it down to fit the "
+"print bed automatically?"
 msgstr ""
 
 msgid "Object too large"
@@ -6584,10 +6582,10 @@ msgstr ""
 msgid "save debug settings"
 msgstr ""
 
-msgid "DEBUG settings have saved successfully!"
+msgid "DEBUG settings have been saved successfully!"
 msgstr ""
 
-msgid "Switch cloud environment, Please login again!"
+msgid "Cloud environment switched, please login again!"
 msgstr ""
 
 msgid "System presets"
@@ -6726,7 +6724,7 @@ msgstr ""
 msgid "Name is unavailable."
 msgstr ""
 
-msgid "Overwrite a system profile is not allowed"
+msgid "Overwriting a system profile is not allowed."
 msgstr ""
 
 #, possible-boost-format
@@ -6734,10 +6732,11 @@ msgid "Preset \"%1%\" already exists."
 msgstr ""
 
 #, possible-boost-format
-msgid "Preset \"%1%\" already exists and is incompatible with current printer."
+msgid ""
+"Preset \"%1%\" already exists and is incompatible with the current printer."
 msgstr ""
 
-msgid "Please note that saving action will replace this preset"
+msgid "Please note that saving will overwrite this preset."
 msgstr ""
 
 msgid "The name cannot be the same as a preset alias name."
@@ -7064,7 +7063,7 @@ msgstr ""
 msgid "Log in printer"
 msgstr ""
 
-msgid "Would you like to log in this printer with current account?"
+msgid "Would you like to log in to this printer with the current account?"
 msgstr ""
 
 msgid "Check the reason"
@@ -7147,12 +7146,12 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required for smooth timelapse. There may be flaws on the "
+"A prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 
 msgid ""
-"Prime tower is required for smooth timelapse. There may be flaws on the "
+"A prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Do you want to enable prime tower?"
 msgstr ""
 
@@ -7160,7 +7159,7 @@ msgid "Still print by object?"
 msgstr ""
 
 msgid ""
-"When using support material for the support interface, We recommend the "
+"When using support material for the support interface, we recommend the "
 "following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
 "disable independent support layer height"
@@ -7549,7 +7548,7 @@ msgstr ""
 msgid "Printable space"
 msgstr ""
 
-#. TRN: First argument is parameter name, the second one is the value.
+#. TRN: The first argument is the parameter's name; the second argument is its value.
 #, possible-boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
 msgstr ""
@@ -7590,7 +7589,7 @@ msgstr ""
 msgid "Layer change G-code"
 msgstr ""
 
-msgid "Time lapse G-code"
+msgid "Timelapse G-code"
 msgstr ""
 
 msgid "Change filament G-code"
@@ -7885,7 +7884,7 @@ msgstr ""
 msgid "Configuration update"
 msgstr ""
 
-msgid "A new configuration package available, Do you want to install it?"
+msgid "A new configuration package is available. Do you want to install it?"
 msgstr ""
 
 msgid "Description:"
@@ -7894,20 +7893,20 @@ msgstr ""
 msgid "Configuration incompatible"
 msgstr ""
 
-msgid "the configuration package is incompatible with current application."
+msgid "the configuration package is incompatible with the current application."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"The configuration package is incompatible with current application.\n"
-"%s will update the configuration package, Otherwise it won't be able to start"
+"The configuration package is incompatible with the current application.\n"
+"%s will update the configuration package to allow the application to start."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Exit %s"
 msgstr ""
 
-msgid "the Configuration package is incompatible with current APP."
+msgid "the Configuration package is incompatible with the current APP."
 msgstr ""
 
 msgid "Configuration updates"
@@ -8371,7 +8370,7 @@ msgid ""
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "A new Network plug-in (%s) available, Do you want to install it?"
+msgid "A new Network plug-in (%s) is available. Do you want to install it?"
 msgstr ""
 
 msgid "New version of Orca Slicer"
@@ -8507,10 +8506,10 @@ msgstr ""
 msgid "Updating"
 msgstr ""
 
-msgid "Updating failed"
+msgid "Update failed"
 msgstr ""
 
-msgid "Updating successful"
+msgid "Update successful"
 msgstr ""
 
 msgid ""
@@ -9148,20 +9147,21 @@ msgstr ""
 msgid "HTTP digest"
 msgstr ""
 
-msgid "Avoid crossing wall"
+msgid "Avoid crossing walls"
 msgstr ""
 
-msgid "Detour and avoid to travel across wall which may cause blob on surface"
+msgid ""
+"Detour to avoid traveling across walls, which may cause blobs on the surface."
 msgstr ""
 
-msgid "Avoid crossing wall - Max detour length"
+msgid "Avoid crossing walls - Max detour length"
 msgstr ""
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-"detour distance is large than this value. Detour length could be specified "
+"detour distance is larger than this value. Detour length could be specified "
 "either as an absolute value or as percentage (for example 50%) of a direct "
-"travel path. Zero to disable"
+"travel path. Zero to disable."
 msgstr ""
 
 msgid "mm or %"
@@ -9766,8 +9766,8 @@ msgid "No cooling for the first"
 msgstr ""
 
 msgid ""
-"Close all cooling fan for the first certain layers. Cooling fan of the first "
-"layer used to be closed to get better build plate adhesion"
+"Turn off all cooling fans for the first few layers. This can be used to "
+"improve build plate adhesion."
 msgstr ""
 
 msgid "Don't support bridges"
@@ -9910,7 +9910,7 @@ msgid ""
 "you print your models object by object."
 msgstr ""
 
-msgid "End G-code when finish the printing of this filament"
+msgid "End G-code when finishing the printing of this filament."
 msgstr ""
 
 msgid "Ensure vertical shell thickness"
@@ -10278,8 +10278,9 @@ msgid "Keep fan always on"
 msgstr ""
 
 msgid ""
-"If enable this setting, part cooling fan will never be stopped and will run "
-"at least at minimum speed to reduce the frequency of starting and stopping"
+"Enabling this setting means that the part cooling fan will never stop "
+"completely and will run at least at minimum speed to reduce the frequency of "
+"starting and stopping."
 msgstr ""
 
 msgid "Don't slow down outer walls"
@@ -10546,8 +10547,8 @@ msgstr ""
 
 msgid ""
 "The material softens at this temperature, so when the bed temperature is "
-"equal to or greater than it, it's highly recommended to open the front door "
-"and/or remove the upper glass to avoid clogging."
+"equal to or greater than this, it's highly recommended to open the front "
+"door and/or remove the upper glass to avoid clogging."
 msgstr ""
 
 msgid "Price"
@@ -10739,7 +10740,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhesive"
+"adhesion."
 msgstr ""
 
 msgid "Enable accel_to_decel"
@@ -11243,7 +11244,7 @@ msgstr ""
 msgid ""
 "Interlocking depth of a segmented region. It will be ignored if "
 "\"mmu_segmented_region_max_width\" is zero or if "
-"\"mmu_segmented_region_interlocking_depth\"is bigger then "
+"\"mmu_segmented_region_interlocking_depth\" is bigger than "
 "\"mmu_segmented_region_max_width\". Zero disables this feature."
 msgstr ""
 
@@ -11504,15 +11505,15 @@ msgstr ""
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
-"is the maximum speed limitation of part cooling fan"
+"is the maximum speed for the part cooling fan."
 msgstr ""
 
 msgid "Max"
 msgstr ""
 
 msgid ""
-"The largest printable layer height for extruder. Used tp limits the maximum "
-"layer hight when enable adaptive layer height"
+"The highest printable layer height for the extruder. Used to limit the "
+"maximum layer height when adaptive layer height is enabled."
 msgstr ""
 
 msgid "Extrusion rate smoothing"
@@ -11589,8 +11590,8 @@ msgid "Min"
 msgstr ""
 
 msgid ""
-"The lowest printable layer height for extruder. Used tp limits the minimum "
-"layer hight when enable adaptive layer height"
+"The lowest printable layer height for the extruder. Used to limit the "
+"minimum layer height when adaptive layer height is enabled."
 msgstr ""
 
 msgid "Min print speed"
@@ -11689,7 +11690,7 @@ msgstr ""
 msgid "Filename format"
 msgstr ""
 
-msgid "User can self-define the project file name when export"
+msgid "Users can define the project file name when exporting."
 msgstr ""
 
 msgid "Make overhangs printable"
@@ -11877,7 +11878,7 @@ msgstr ""
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
 "clearance between nozzle and the print. It prevents nozzle from hitting the "
-"print when travel move. Using spiral line to lift z can prevent stringing"
+"print when travel move. Using spiral lines to lift Z can prevent stringing."
 msgstr ""
 
 msgid "Z-hop lower boundary"
@@ -12370,7 +12371,7 @@ msgstr ""
 msgid "Start G-code when starting the entire print."
 msgstr ""
 
-msgid "Start G-code when start the printing of this filament"
+msgid "Start G-code when starting the printing of this filament."
 msgstr ""
 
 msgid "Single Extruder Multi Material"
@@ -12460,9 +12461,9 @@ msgid "Enable support generation."
 msgstr ""
 
 msgid ""
-"Normal (auto) and Tree (auto) is used to generate support automatically. If "
+"Normal (auto) and Tree (auto) are used to generate support automatically. If "
 "Normal (manual) or Tree (manual) is selected, only support enforcers are "
-"generated"
+"generated."
 msgstr ""
 
 msgid "Normal (auto)"
@@ -13034,19 +13035,20 @@ msgid "X-Y hole compensation"
 msgstr ""
 
 msgid ""
-"Holes of object will be grown or shrunk in XY plane by the configured value. "
-"Positive value makes holes bigger. Negative value makes holes smaller. This "
-"function is used to adjust size slightly when the object has assembling issue"
+"Holes in objects will expand or contract in the XY plane by the configured "
+"value. Positive values make holes bigger, negative values make holes "
+"smaller. This function is used to adjust sizes slightly when the objects "
+"have assembling issues."
 msgstr ""
 
 msgid "X-Y contour compensation"
 msgstr ""
 
 msgid ""
-"Contour of object will be grown or shrunk in XY plane by the configured "
-"value. Positive value makes contour bigger. Negative value makes contour "
-"smaller. This function is used to adjust size slightly when the object has "
-"assembling issue"
+"Contours of objects will expand or contract in the XY plane by the "
+"configured value. Positive values make contours bigger, negative values make "
+"contours smaller. This function is used to adjust sizes slightly when the "
+"objects have assembling issues."
 msgstr ""
 
 msgid "Convert holes to polyholes"
@@ -13158,9 +13160,9 @@ msgstr ""
 
 msgid ""
 "Minimum thickness of thin features. Model features that are thinner than "
-"this value will not be printed, while features thicker than the Minimum "
-"feature size will be widened to the Minimum wall width. It's expressed as a "
-"percentage over nozzle diameter"
+"this value will not be printed, while features thicker than this value will "
+"be widened to the minimum wall width. It's expressed as a percentage over "
+"nozzle diameter."
 msgstr ""
 
 msgid "Minimum wall length"
@@ -13330,10 +13332,10 @@ msgstr ""
 msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr ""
 
-msgid "Repetions count"
+msgid "Repetition count"
 msgstr ""
 
-msgid "Repetions count of the whole model"
+msgid "Repetition count of the whole model."
 msgstr ""
 
 msgid "Ensure on bed"
@@ -13419,7 +13421,7 @@ msgstr ""
 msgid "downward machines settings"
 msgstr ""
 
-msgid "the machine settings list need to do downward checking"
+msgid "The machine settings list needs to do downward checking."
 msgstr ""
 
 msgid "Load assemble list"
@@ -13469,24 +13471,24 @@ msgstr ""
 msgid "Load filament ids for each object"
 msgstr ""
 
-msgid "Allow multiple color on one plate"
+msgid "Allow multiple colors on one plate"
 msgstr ""
 
-msgid "If enabled, the arrange will allow multiple color on one plate"
+msgid "If enabled, Arrange will allow multiple colors on one plate."
 msgstr ""
 
-msgid "Allow rotatations when arrange"
+msgid "Allow rotation when arranging"
 msgstr ""
 
-msgid "If enabled, the arrange will allow rotations when place object"
+msgid "If enabled, Arrange will allow rotation when placing objects."
 msgstr ""
 
-msgid "Avoid extrusion calibrate region when doing arrange"
+msgid "Avoid extrusion calibrate region when arranging"
 msgstr ""
 
 msgid ""
-"If enabled, the arrange will avoid extrusion calibrate region when place "
-"object"
+"If enabled, Arrange will avoid extrusion calibrate region when placing "
+"objects."
 msgstr ""
 
 msgid "Skip modified G-code in 3mf"
@@ -14023,7 +14025,7 @@ msgid ""
 "use. You only need to do the calibration in the following limited cases:\n"
 "1. If you introduce a new filament of different brands/models or the "
 "filament is damp;\n"
-"2. if the nozzle is worn out or replaced with a new one;\n"
+"2. If the nozzle is worn out or replaced with a new one;\n"
 "3. If the max volumetric speed or print temperature is changed in the "
 "filament setting."
 msgstr ""
@@ -14139,7 +14141,7 @@ msgstr ""
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to override the other results?"
+"want to overwrite the other results?"
 msgstr ""
 
 msgid "Please find the best line on your plate"
@@ -14522,7 +14524,7 @@ msgstr ""
 msgid "Show error message"
 msgstr ""
 
-msgid "Enqueued"
+msgid "Queued"
 msgstr ""
 
 msgid "Uploading"
@@ -14723,7 +14725,7 @@ msgstr ""
 msgid ""
 "We would rename the presets as \"Vendor Type Serial @printer you "
 "selected\".\n"
-"To add preset for more printers, Please go to printer selection"
+"To add preset for more printers, please go to printer selection"
 msgstr ""
 
 msgid "Create Printer/Nozzle"
@@ -14879,10 +14881,10 @@ msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
 
-msgid "Create Printer Successful"
+msgid "Printer Created Successfully"
 msgstr ""
 
-msgid "Create Filament Successful"
+msgid "Filament Created Successfully"
 msgstr ""
 
 msgid "Printer Created"
