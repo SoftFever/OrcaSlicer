@@ -1,38 +1,50 @@
 
 <h1> <p "font-size:200px;"><img align="left" src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
 
-[![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
-<br>Orca Slicer is an open source slicer for FDM printers.
+Orca Slicer is an open source Next-Gen Slicing Software for Precision 3D Prints.  
+Optimize your prints with ultra-fast slicing, intelligent support generation, and seamless printer compatibility—engineered for perfection.
 
-## Follow Us
-Stay connected with us:
+## Official links and community
 
-[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?logo=twitter&logoColor=white&style=flat)](https://twitter.com/real_OrcaSlicer)
+#### Official Website:
+<a href="https://orcaslicer.com/" style="font-size:2em;"><strong>orcaslicer.com</strong></a>
 
-Join our Discord community here:<br>
-<a href="https://discord.gg/P4VE9UY9gJ"><img src="https://img.shields.io/static/v1?message=Discord&logo=discord&label=&color=7289DA&logoColor=white&labelColor=&style=for-the-badge" height="35" alt="discord logo"/> </a>
+#### Github Repository:
+<a href="https://github.com/SoftFever/OrcaSlicer"><img src="https://img.shields.io/badge/OrcaSlicer-181717?style=flat&logo=github&logoColor=white" width="200" alt="GitHub Logo"/> </a>
 
- <h3>🚨🚨🚨Important Security Alert🚨🚨🚨</h3>
+#### Follow us:
+<a href="https://twitter.com/real_OrcaSlicer"><img src="https://img.shields.io/badge/real__OrcaSlicer-000000?style=flat&logo=x&logoColor=white" width="200" alt="X Logo"/> </a>
 
-The only official platforms for OrcaSlicer are **our GitHub project page**, <a href="https://orcaslicer.com/">**orcaslicer.com**</a>, the <a href="https://discord.gg/P4VE9UY9gJ">**official Discord channel**</a>, and the <a href="https://twitter.com/real_OrcaSlicer">**official Twitter/X account**</a>.
+#### Join our Discord community:
+<a href="https://discord.gg/P4VE9UY9gJ"><img src="https://img.shields.io/badge/-Discord-5865F2?style=flat&logo=discord&logoColor=fff" width="200" alt="discord logo"/> </a>
 
-Please be aware that "**orcaslicer.net**", "**orcaslicer.co**" or "**orca-slicer.com**" are NOT an official website for OrcaSlicer and may be potentially malicious. These sites appear to use AI-generated content, lacking genuine context and seems to exist solely to profit from advertisements. Worse, it may redirect download links to harmful sources. For your safety, avoid downloading OrcaSlicer from this site as the links may be compromised.
-
-If you see the above sites in your searches, report them as spam or unsafe to the search engine. This small action will assist everyone.
-
-We deeply value our OrcaSlicer community and appreciate all the social groups that support us. However, it is crucial to address the risk posed by any group that falsely claims to be official or misleads its members. If you encounter such a group or are part of one, please assist by encouraging the group owner to add a clear disclaimer or by alerting its members.
-
-
-
-Thank you for your vigilance and support in keeping our community safe!
+> [!CAUTION]
+> There are multiple unofficial and potentially malicious websites pretending to be related to OrcaSlicer. These sites may redirect you to dangerous downloads or contain misleading information.
+>
+> If you come across any of these in search results, please report them as unsafe or spam to help keep the community secure.
 
 # Main features
-- Auto-calibration for all printers
-- Sandwich (inner-outer-inner) mode - An improved version of the `External Perimeters First` mode
-- [Precise wall](https://github.com/SoftFever/OrcaSlicer/wiki/Precise-wall)
-- Polyholes conversion support: [SuperSlicer Wiki: Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
-- Klipper support
-- More granular controls
+
+- **Advanced Calibration Tools**  
+  Comprehensive suite: temperature towers, flow rate, retraction & more for optimal performance.
+- **Precise Wall and Seam Control**  
+  Adjust outer wall spacing and apply scarf seams to enhance print accuracy.
+- **Sandwich Mode and Polyholes Support**  
+  Use varied infill patterns and accurate hole shapes for improved clarity.
+- **Overhang and Support Optimization**  
+  Modify geometry for printable overhangs with precise support placement.
+- **Granular Controls and Customization**  
+  Fine-tune print speed, layer height, pressure, and temperature with precision.
+- **Network Printer Support**  
+  Seamless integration with Klipper, PrusaLink, and OctoPrint for remote control.
+- **Mouse Ear Brims & Adaptive Bed Mesh**  
+  Automatic brims and adaptive mesh calibration ensure consistent adhesion.
+- **User-Friendly Interface**  
+  Intuitive drag-and-drop design with pre-made profiles for popular printers.
+- **Open-Source & Community Driven**  
+  Regular updates fueled by continuous community contributions.
+- **Wide Printer Compatibility**  
+  Supports a broad range of printers: Bambu Lab, Prusa, Creality, Voron, and more.
 - Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)
 
 # Wiki
@@ -54,22 +66,34 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
 
 
 # How to install
-**Windows**:
-1.  Download the installer for your preferred version from the [releases page](https://github.com/SoftFever/OrcaSlicer/releases).
-    - *For convenience there is also a portable build available.*
-    - *If you have troubles to run the build, you might need to install following runtimes:*
-      - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)
-          - [Details of this runtime](https://aka.ms/webview2)
-          - [Alternative Download Link Hosted by Microsoft](https://go.microsoft.com/fwlink/p/?LinkId=2124703)
-      - [vcredist2019_x64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)
-          -  [Alternative Download Link Hosted by Microsoft](https://aka.ms/vs/17/release/vc_redist.x64.exe)
-          -  This file may already be available on your computer if you've installed visual studio.  Check the following location: `%VCINSTALLDIR%Redist\MSVC\v142`
+## Windows
+Download the **Windows Installer exe**  for your preferred version from the [releases page](https://github.com/SoftFever/OrcaSlicer/releases).
 
-**Mac**:
+ - *For convenience there is also a portable build available.*
+    <details>
+    <summary>Troubleshooting</summary>
+
+    - *If you have troubles to run the build, you might need to install following runtimes:*
+    - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)
+        - [Details of this runtime](https://aka.ms/webview2)
+        - [Alternative Download Link Hosted by Microsoft](https://go.microsoft.com/fwlink/p/?LinkId=2124703)
+    - [vcredist2019_x64](https://github.com/SoftFever/OrcaSlicer/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)
+        -  [Alternative Download Link Hosted by Microsoft](https://aka.ms/vs/17/release/vc_redist.x64.exe)
+        -  This file may already be available on your computer if you've installed visual studio.  Check the following location: `%VCINSTALLDIR%Redist\MSVC\v142`
+    </details>
+
+Windows Package Manager:
+```console
+winget install --id=SoftFever.OrcaSlicer --exact
+```
+
+## Mac:
 1. Download the DMG for your computer: `arm64` version for Apple Silicon and `x86_64` for Intel CPU.
 2. Drag OrcaSlicer.app to Application folder.
 3. *If you want to run a build from a PR, you also need to follow the instructions below:*
-    <details quarantine>
+    <details>
+    <summary>Run a build from a PR</summary>
+
     - Option 1 (You only need to do this once. After that the app can be opened normally.):
       - Step 1: Hold _cmd_ and right click the app, from the context menu choose **Open**.
       - Step 2: A warning window will pop up, click _Open_
@@ -86,7 +110,7 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
             ![image](./SoftFever_doc/mac_security_setting.png)
     </details>
 
-**Linux (Ubuntu)**:
+## Linux (Ubuntu):
  1. If you run into trouble executing it, try this command in the terminal:
     `chmod +x /path_to_appimage/OrcaSlicer_Linux.AppImage`
 
@@ -107,7 +131,7 @@ resolution: 0.1
 ```
 
 # Supports
-**Orca Slicer** is an open-source project and I'm deeply grateful to all my sponsors and backers.
+**Orca Slicer** is an open-source project and I'm deeply grateful to all my sponsors and backers.  
 Their generous support enables me to purchase filaments and other essential 3D printing materials for the project.
 Thank you! :)
 
@@ -131,29 +155,25 @@ Thank you! :)
 **Ko-fi supporters**: [Backers list](https://github.com/user-attachments/files/16147016/Supporters_638561417699952499.csv)
 
 ## Support me
-<a href="https://github.com/sponsors/SoftFever"><img src="https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86" width="130"></a>
-
-<a href="https://ko-fi.com/G2G5IP3CP"><img src="https://ko-fi.com/img/githubbutton_sm.svg" width="200"></a>
-
-[![PayPal](https://img.shields.io/badge/PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/softfever3d)
-
+<a href="https://github.com/sponsors/SoftFever"><img src="https://img.shields.io/badge/GitHub%20Sponsors-30363D?style=flat&logo=GitHub-Sponsors&logoColor=EA4AAA" height="50"></a>
+<a href="https://ko-fi.com/G2G5IP3CP"><img src="https://img.shields.io/badge/Support_me_on_Ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white" height="50"></a>
+<a href="https://paypal.me/softfever3d"><img src="https://img.shields.io/badge/PayPal-003087?style=flat&logo=paypal&logoColor=fff" height="50"></a>
 
 ## Some background
 OrcaSlicer was originally forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.
 
 [Bambu Studio](https://github.com/bambulab/BambuStudio) is forked from [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community.
 Orca Slicer incorporates a lot of features from [SuperSlicer](https://github.com/supermerill/SuperSlicer) by @supermerill
-Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr)
-
+Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr).
 
 # License
-Orca Slicer is licensed under the GNU Affero General Public License, version 3. Orca Slicer is based on Bambu Studio by BambuLab.
+**Orca Slicer** is licensed under the GNU Affero General Public License, version 3. Orca Slicer is based on Bambu Studio by BambuLab.
 
-Bambu Studio is licensed under the GNU Affero General Public License, version 3. Bambu Studio is based on PrusaSlicer by PrusaResearch.
+**Bambu Studio** is licensed under the GNU Affero General Public License, version 3. Bambu Studio is based on PrusaSlicer by PrusaResearch.
 
-PrusaSlicer is licensed under the GNU Affero General Public License, version 3. PrusaSlicer is owned by Prusa Research. PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci.
+**PrusaSlicer** is licensed under the GNU Affero General Public License, version 3. PrusaSlicer is owned by Prusa Research. PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci.
 
-Slic3r is licensed under the GNU Affero General Public License, version 3. Slic3r was created by Alessandro Ranellucci with the help of many other contributors.
+**Slic3r** is licensed under the GNU Affero General Public License, version 3. Slic3r was created by Alessandro Ranellucci with the help of many other contributors.
 
 The GNU Affero General Public License, version 3 ensures that if you use any part of this software in any way (even behind a web server), your software must be released under the same license.
 
