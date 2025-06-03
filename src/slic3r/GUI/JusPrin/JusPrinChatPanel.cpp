@@ -170,9 +170,12 @@ void JusPrinChatPanel::handle_init_server_url_and_redirect(const nlohmann::json&
     bool isDeveloperMode = wxGetApp().app_config->get_bool("developer_mode");
     wxString server_url = wxGetApp().app_config->get_with_default("jusprin_server", "base_url", "https://app.obico.io");
     wxString chat_server_url = server_url + "/jusprin";
+    wxString current_language = wxGetApp().current_language_code_safe();
+
     wxString strJS = wxString::Format(
-        "var CHAT_SERVER_URL = '%s'; checkAndRedirectToChatServer(developerMode =%s);",
+        "var CHAT_SERVER_URL = '%s'; var CURRENT_LANGUAGE = '%s'; checkAndRedirectToChatServer(developerMode =%s);",
         chat_server_url,
+        current_language,
         isDeveloperMode ? "true" : "false");
     WebView::RunScript(m_browser, strJS);
 }

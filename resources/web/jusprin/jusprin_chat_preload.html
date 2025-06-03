@@ -63,10 +63,17 @@
                 showError();
             }, 5000); // 5 second timeout
 
-            let pageUrl = CHAT_SERVER_URL + '/v1.0/embedded_chat/';
+            let pageUrl = CHAT_SERVER_URL + '/v0.4/embedded_chat/';
             if (developerMode) {
                 pageUrl += '?devmode=true';
             }
+
+            // Add language parameter to the URL if available
+            if (typeof CURRENT_LANGUAGE !== 'undefined' && CURRENT_LANGUAGE) {
+                const separator = pageUrl.includes('?') ? '&' : '?';
+                pageUrl += separator + 'lang=' + encodeURIComponent(CURRENT_LANGUAGE);
+            }
+
             fetch(pageUrl, {
                 method: 'HEAD',
                 mode: 'no-cors'
