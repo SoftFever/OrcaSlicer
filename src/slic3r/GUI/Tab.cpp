@@ -1497,7 +1497,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
         if (!boost::any_cast<bool>(value) && timelapse_enabled) {
-            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
+            MessageDialog dlg(wxGetApp().plater(), _L("A prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_NO) {
                 DynamicPrintConfig new_conf = *m_config;
@@ -1513,7 +1513,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "timelapse_type") {
         bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
         if (!wipe_tower_enabled && boost::any_cast<int>(value) == (int)TimelapseType::tlSmooth) {
-            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"),
+            MessageDialog dlg(wxGetApp().plater(), _L("A prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
                 DynamicPrintConfig new_conf = *m_config;
@@ -1556,9 +1556,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
         if (is_support_filament(interface_filament_id) && !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
                                                             m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced)) {
-            wxString msg_text = _L("When using support material for the support interface, We recommend the following settings:\n"
-                                   "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
+            wxString msg_text = _L("When using support material for the support interface, we recommend the following settings:\n"
+                                   "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
+            msg_text += "\n\n" + _L("Change these settings automatically?\n"
                                     "Yes - Change these settings automatically\n"
                                     "No  - Do not change these settings for me");
             MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
@@ -1613,7 +1613,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             } else {
                 wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, "
                                         "this may cause printing quality issues."));
-                msg_text += "\n\n" + _(L("Adjust to the set range automatically? \n"));
+                msg_text += "\n\n" + _(L("Adjust to the set range automatically?\n"));
                 MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
                 dialog.SetButtonLabel(wxID_YES, _L("Adjust"));
                 dialog.SetButtonLabel(wxID_NO, _L("Ignore"));
@@ -1650,8 +1650,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         unsigned char activate = boost::any_cast<unsigned char>(value);
         if (activate == 1) {
             MessageDialog dialog(wxGetApp().plater(),
-                _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
-                    "Although it can notably reduce flush,  it may also elevate the risk of nozzle clogs or other printing complications."), "", wxICON_WARNING | wxOK);
+                _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush. "
+                    "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
         }
     }
@@ -1660,8 +1660,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         unsigned char activate = boost::any_cast<unsigned char>(value);
         if (activate == 1) {
             MessageDialog dialog(wxGetApp().plater(), 
-            _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
-            "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
+                _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush. "
+                   "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications. "
+                   "Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
         }
     }
@@ -3849,7 +3850,7 @@ void TabPrinter::build_fff()
                         auto [thumbnails_list, errors] = GCodeThumbnails::make_and_check_thumbnail_list(val);
 
                         if (errors != enum_bitmask<ThumbnailError>()) {
-                            // TRN: First argument is parameter name, the second one is the value.
+                            // TRN: The first argument is the parameter's name; the second argument is its value.
                             std::string error_str = format(_u8L("Invalid value provided for parameter %1%: %2%"), "thumbnails", val);
                             error_str += GCodeThumbnails::get_error_string(errors);
                             InfoDialog(parent(), _L("G-code flavor is switched"), from_u8(error_str)).ShowModal();
@@ -3967,7 +3968,7 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
         
-        optgroup = page->new_optgroup(L("Time lapse G-code"), L"param_gcode", 0);
+        optgroup = page->new_optgroup(L("Timelapse G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup_title, opt_key, value);
         };

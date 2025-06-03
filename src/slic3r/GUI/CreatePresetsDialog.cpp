@@ -1103,8 +1103,8 @@ wxWindow *CreateFilamentPresetDialog::create_button_item()
         PresetBundle *preset_bundle        = wxGetApp().preset_bundle;
         if (preset_bundle->filaments.is_alias_exist(filament_preset_name)) {
             MessageDialog dlg(this,
-                              wxString::Format(_L("The Filament name %s you created already exists. \nIf you continue creating, the preset created will be displayed with its "
-                                                  "full name. Do you want to continue?"),
+                              wxString::Format(_L("The Filament name %s you created already exists.\n"
+                                                  "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"),
                                                from_u8(filament_preset_name)),
                               wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             if (wxID_YES != dlg.ShowModal()) { return; }
@@ -1281,7 +1281,8 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
                     m_filament_preset_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
                 }
             } else if (curr_selected_type == m_create_type.base_filament_preset) {
-                m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\". \nTo add preset for more printers, Please go to printer selection"));
+                m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\".\n"
+                                                    "To add preset for more printers, please go to printer selection"));
                 m_filament_preset_combobox->Hide();
                 if (_L("Select Type") != m_filament_type_combobox->GetLabel()) {
                     
@@ -3218,7 +3219,7 @@ wxString CreatePrinterPresetDialog::curr_create_printer_type()
 }
 
 CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, const SuccessType &create_success_type)
-    : DPIDialog(parent ? parent : nullptr, wxID_ANY, PRINTER == create_success_type ? _L("Create Printer Successful") : _L("Create Filament Successful"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, PRINTER == create_success_type ? _L("Printer Created Successfully") : _L("Filament Created Successfully"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(450), FromDIP(200)));
@@ -3253,8 +3254,9 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
         success_text = new wxStaticText(this, wxID_ANY, _L("Filament Created")); 
         wxString prompt_text = _L("Please go to filament setting to edit your presets if you need.\nPlease note that nozzle temperature, hot bed temperature, and maximum "
                                   "volumetric speed has a significant impact on printing quality. Please set them carefully.");
-        wxString sync_text = sync_user_preset_need_enabled ? _L("\n\nOrca has detected that your user presets synchronization function is not enabled, which may result in unsuccessful Filament settings on "
-                   "the Device page. \nClick \"Sync user presets\" to enable the synchronization function.") : "";
+        wxString sync_text = sync_user_preset_need_enabled ? _L("\n\nOrca has detected that your user presets synchronization function is not enabled, "
+                                                                "which may result in unsuccessful Filament settings on the Device page.\n"
+                                                                "Click \"Sync user presets\" to enable the synchronization function.") : "";
         next_step_text = new wxStaticText(this, wxID_ANY, prompt_text + sync_text); 
         break;
     }
@@ -3519,12 +3521,14 @@ wxBoxSizer *ExportConfigsDialog::create_export_config_item(wxWindow *parent)
 
     radioBoxSizer->Add(create_radio_item(m_exprot_type.preset_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxALL, 0);
     radioBoxSizer->Add(0, 0, 0, wxTOP, FromDIP(6));
-    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&&process presets that belongs to the printer. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&&process presets that belongs to the printer.\n"
+                                                                                                   "Can be shared with others."), wxDefaultPosition, wxDefaultSize);
     static_export_printer_preset_bundle_text->SetFont(Label::Body_12);
     static_export_printer_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
     radioBoxSizer->Add(static_export_printer_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
     radioBoxSizer->Add(create_radio_item(m_exprot_type.filament_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxTOP, FromDIP(10));
-    wxStaticText *static_export_filament_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("User's filament preset set. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_export_filament_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("User's filament preset set.\nCan be shared with others."),
+                                                                                                    wxDefaultPosition, wxDefaultSize);
     static_export_filament_preset_bundle_text->SetFont(Label::Body_12);
     static_export_filament_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
     radioBoxSizer->Add(static_export_filament_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
@@ -4376,7 +4380,8 @@ void EditFilamentPresetDialog::delete_preset()
         }
         wxString msg;
         if (is_base_preset) {
-            msg = _L("Are you sure to delete the selected preset? \nIf the preset corresponds to a filament currently in use on your printer, please reset the filament information for that slot.");
+            msg = _L("Are you sure to delete the selected preset?\n"
+                     "If the preset corresponds to a filament currently in use on your printer, please reset the filament information for that slot.");
         } else {
             msg = _L("Are you sure to delete the selected preset?");
         }

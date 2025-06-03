@@ -548,19 +548,11 @@ std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std:
 StringObjectException Print::sequential_print_clearance_valid(const Print &print, Polygons *polygons, std::vector<std::pair<Polygon, float>>* height_polygons)
 {
     StringObjectException single_object_exception;
-    auto print_config = print.config();
-    Pointfs excluse_area_points = print_config.bed_exclude_area.values;
-    Polygons exclude_polys;
-    Polygon exclude_poly;
+    const auto& print_config = print.config();
+    Polygons exclude_polys = get_bed_excluded_area(print_config);
     const Vec3d print_origin = print.get_plate_origin();
-    for (int i = 0; i < excluse_area_points.size(); i++) {
-        auto pt = excluse_area_points[i];
-        exclude_poly.points.emplace_back(scale_(pt.x() + print_origin.x()), scale_(pt.y() + print_origin.y()));
-        if (i % 4 == 3) {  // exclude areas are always rectangle
-            exclude_polys.push_back(exclude_poly);
-            exclude_poly.points.clear();
-        }
-    }
+    std::for_each(exclude_polys.begin(), exclude_polys.end(),
+                  [&print_origin](Polygon& p) { p.translate(scale_(print_origin.x()), scale_(print_origin.y())); });
 
     std::map<ObjectID, Polygon> map_model_object_to_convex_hull;
     struct print_instance_info
@@ -887,19 +879,11 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     if (print_instances_ordered.size() < 1)
         return {};
 
-    auto print_config = print.config();
-    Pointfs excluse_area_points = print_config.bed_exclude_area.values;
-    Polygons exclude_polys;
-    Polygon exclude_poly;
+    const auto& print_config = print.config();
+    Polygons exclude_polys = get_bed_excluded_area(print_config);
     const Vec3d print_origin = print.get_plate_origin();
-    for (int i = 0; i < excluse_area_points.size(); i++) {
-        auto pt = excluse_area_points[i];
-        exclude_poly.points.emplace_back(scale_(pt.x() + print_origin.x()), scale_(pt.y() + print_origin.y()));
-        if (i % 4 == 3) {  // exclude areas are always rectangle
-            exclude_polys.push_back(exclude_poly);
-            exclude_poly.points.clear();
-        }
-    }
+    std::for_each(exclude_polys.begin(), exclude_polys.end(),
+                  [&print_origin](Polygon& p) { p.translate(scale_(print_origin.x()), scale_(print_origin.y())); });
 
     std::map<const PrintInstance*, Polygon> map_model_object_to_convex_hull;
     // sequential_print_horizontal_clearance_valid
