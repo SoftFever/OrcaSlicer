@@ -2,11 +2,10 @@
 
 You can enable it in printer settings.
 
-
 Once enabled, you can select the bed type in the drop-down menu, corresponding bed temperature will be set automatically.
 You can set the bed temperature for each bed type in the filament settings as demonstrated in the following image.
-![multi_bed](./images/bed-types.gif)
 
+![multi_bed](./images/bed-types.gif)
 
 Orca also support `curr_bed_type` variable in custom G-code.
 For example, the following sample G-codes can detect the selected bed type and adjust the G-code offset accordingly for Klipper:

@@ -10,6 +10,7 @@ In contrast, using STEP files offers a higher-quality mesh that more accurately 
 ## Importing STEP files
 
 This setting determines how STEP files are converted into STL files and is displayed during the STEP file import process.
+
 If you don't see this when opening a STEP file, check [Don't show again](#Don't-show-again) below.
 
 ![image](./images/stl%20transformation/stl-transformation.png)

@@ -41,7 +41,9 @@ Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
 
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
 
-   **Note**: There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
+   > [!Warning]
+   > There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
+
 3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
 
    ![image](../../images/InputShaping/IS_damp_menu.png)
@@ -51,7 +53,9 @@ Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
    ![image](../../images/InputShaping/IS_damp_klipper_print_measure.jpg)
    ![image](../../images/InputShaping/IS_damp_klipper_slicer_measure.png)
 
-   **Note**: Not all Resonance Compensation modes support damping
+   > [!Important]
+   > Not all Resonance Compensation modes support damping.
+
 4. Restore your 3D Printer settings to avoid keep using high acceleration and jerk values.
 5. Save the settings
    1. You need to go to the printer settings and set the X and Y frequency and damp to the value you found in the previous step.
@@ -83,7 +87,9 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
 
-   **Note**: There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
+   > [!Warning]
+   > There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
+
 3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
 
    ![image](../../images/InputShaping/IS_damp_menu.png)

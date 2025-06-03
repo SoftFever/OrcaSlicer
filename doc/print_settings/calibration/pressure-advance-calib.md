@@ -61,7 +61,7 @@ Next, Ellis' generator provided the ability to adjust specific printer, filament
 
 The tower method may take a bit more time to complete, but it does not rely on the quality of the first layer.
 The PA value for this test will be increased by 0.002 for every 1 mm increase in height.  (**NOTE** 0.02 for Bowden)
-Steps:
+
  1. Select the printer, filament, and process you would like to use for the test.
  2. Examine each corner of the print and mark the height that yields the best overall result.
  3. I selected a height of 8 mm for this case, so the pressure advance value should be calculated as `PressureAdvanceStart+(PressureAdvanceStep x measured)` example: `0+(0.002 x 8) = 0.016`.

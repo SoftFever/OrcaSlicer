@@ -1,6 +1,9 @@
 # Adaptive Bed Mesh Support
+
 Orca Slicer introduces comprehensive support for adaptive bed meshing across a variety of firmware, including Marlin, Klipper, and RepRapFirmware (RRF).
+
 This feature allows users to seamlessly integrate adaptive bed mesh commands within the Machine Start G-code.
+
 The implementation is designed to be straightforward, requiring no additional plugins or alterations to firmware settings, thereby enhancing user experience and print quality directly from Orca Slicer.
 
 
@@ -13,7 +16,10 @@ The implementation is designed to be straightforward, requiring no additional pl
 
 `Probe point distance`: This option sets the preferred distance between probe points (grid size) for the X and Y directions, with the default being 50mm for both X and Y.
 
-`Mesh margin`: This option determines the additional distance by which the adaptive bed mesh area should be expanded in the XY directions. Note for Klipper users: Orca Slicer will adjust adaptive bed mesh area according to the margin. It is recommended to set the margin to 0 in Klipper config or pass 0 when calling BED_MESH_CALIBRATE command(please refer to the example below).
+`Mesh margin`: This option determines the additional distance by which the adaptive bed mesh area should be expanded in the XY directions.
+
+> [!NOTE]
+> Klipper users: Orca Slicer will adjust adaptive bed mesh area according to the margin. It is recommended to set the margin to 0 in Klipper config or pass 0 when calling BED_MESH_CALIBRATE command(please refer to the example below).
 
 ## Available g-code variables for Adaptive Bed Mesh Command
 `bed_mesh_probe_count`: Represents the probe count in the X and Y directions. This value is calculated based on the size of the adaptive bed mesh area and the distance between probe points.

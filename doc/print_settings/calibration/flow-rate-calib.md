@@ -13,7 +13,7 @@ The Flow Ratio determines how much filament is extruded and plays a key role in 
 ![flowrate](../../images/flow-calibration.gif)
 
 Calibrating the flow rate involves a two-step process.
-Steps
+
 1. Select the printer, filament, and process you would like to use for the test.
 2. Select `Pass 1` in the `Calibration` menu
 3. A new project consisting of nine blocks will be created, each with a different flow rate modifier. Slice and print the project.

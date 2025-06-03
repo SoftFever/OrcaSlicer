@@ -1,4 +1,4 @@
-<h1>Extrusion rate smoothing</h1>
+# Extrusion rate smoothing
 
 Extrusion rate smoothing (ERS), also known as pressure equalizer in Prusa Slicer, aims to **limit the rate of extrusion volume change to be below a user set threshold (the ERS value).** It aims to assist the printer firmware internal motion planners, pressure advance in achieving the desired nozzle flow and reducing deviations against the ideal flow.
 
@@ -8,7 +8,7 @@ This feature is especially helpful when printing at high accelerations and large
 
 ![Screenshot 2023-09-18 at 22 44 26](https://github.com/SoftFever/OrcaSlicer/assets/59056762/281b9c78-9f5c-428e-86b9-509de099a3e7)
 
-<h2>Theory</h2>
+## Theory
 
 Enabling this feature creates a small **speed "ramp"** by slowing down and ramping up print speeds prior to and after the features causing a sudden change in extrusion flow rate needs, such as overhangs and overhang perimeters.
 
@@ -141,13 +141,13 @@ Perform a test print with the above ERS settings as a starting point and adjust 
 
 If you're not noticing any artefacts, increase by 10%, but don’t go over the maximum values recommended above because then this feature would have no effect in your print.
 
-<h2>A note for Bowden printers using marlin without pressure advance. </h2>
+## A note for Bowden printers using marlin without pressure advance.
 If your printer is not equipped with pressure advance and, especially, if you are using a Bowden setup, you don’t have the benefit of pressure advance dynamically adjusting your flow.
 
 
 In this special case, ERS will be doing all the heavy lifting that pressure advance would typically perform. In this scenario a low value of 8-10mm3/sec is usually recommended, irrespective of your acceleration settings, to smooth out pressure changes in the extrusion system as much as possible without impacting print speed too much.
 
-<h2>A note on ERS Segment length </h2>
+## A note on ERS Segment length
 Ideally you want this value set to 1 to allow for the largest number of steps between each speed transition. However, this may result in a too large of a gcode, with too many commands sent to your MCU per second and it may not be able to keep up. It will also slow down the Orca slicer front end as the sliced model is more complex to render.
 
 
@@ -155,7 +155,7 @@ For Klipper printers, a segment length of 1 works OK as the RPI or similar have 
 
 Similarly, for a Bambu lab printer, a segment length of 1 works well. **However, if you do notice your printer stuttering or stalling** (which may be the case with the lower powered P1 series printers) **or getting "Timer too close" errors** in Klipper, **increase this value to 2 or 3**. This would reduce the effectiveness of the setting but will present a more manageable load to your printer.
 
-<h2>Limitations</h2>
+## Limitations
 
 **This feature can only work where speed changes are induced by the slicer** - for example when transitioning from fast to slow print moves when printing overhangs, bridges and from printing internal features to external features and vice versa.
 
@@ -163,7 +163,7 @@ However, it will not affect extruder behaviour when the printer is slowing down 
 
 In this case, the printer slows down and then accelerates independently of what the slicer has requested. In this case, the slicer is commanding a consistent speed; however, the printer is adjusting this to operate within its printer kinematic limits (SCV/Jerk) and accelerations. As the slicer is not aware of this slow down, it cannot apply pre-emptive extrusion rate smoothing to the feature and instead, the changes are governed by the printer firmware exclusively.
 
-<h2>Credits</h2>
+## Credits
 
 **Original feature authors and creators:** The Prusa Slicer team, including [@bubnikv](https://github.com/bubnikv), [@hejllukas](https://github.com/hejllukas)
 

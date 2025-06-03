@@ -1,6 +1,13 @@
 # Calibration Guide
 
-This guide offers a structured and comprehensive overview of the calibration process for Orca Slicer. It covers key aspects such as flow rate, pressure advance, temperature towers, retraction tests, and advanced calibration techniques. Each section includes step-by-step instructions and visuals to help you better understand and carry out each calibration effectively.
+This guide offers a structured and comprehensive overview of the calibration process for Orca Slicer.
+
+It covers key aspects such as flow rate, pressure advance, temperature towers, retraction tests, and advanced calibration techniques. Each section includes step-by-step instructions and visuals to help you better understand and carry out each calibration effectively.
+
+To access the calibration features, you can find them in the **Calibration** section of the Orca Slicer interface.
+
+![Calibration Button](../../images/calibration.png)
+
 
 > [!IMPORTANT]
 > After completing the calibration process, remember to create a new project in order to exit the calibration mode.
