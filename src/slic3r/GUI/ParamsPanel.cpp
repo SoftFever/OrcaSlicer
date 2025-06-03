@@ -250,8 +250,8 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
 
 
-    //m_export_to_file = new Button( this, wxT("Export To File"), "");
-    //m_import_from_file = new Button( this, wxT("Import From File") );
+    //m_export_to_file = new Button( this, _L("Export To File"), "");
+    //m_import_from_file = new Button( this, _L("Import From File") );
 
     // Initialize the page.
 #if __WXOSX__

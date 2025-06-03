@@ -49,9 +49,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Deprecate appimage
+          # Deprecate 20.04appimage
           # - os: ubuntu-20.04
-          # - os: ubuntu-24.04
+          - os: ubuntu-24.04
           - os: windows-latest
           - os: macos-14
             arch: arm64

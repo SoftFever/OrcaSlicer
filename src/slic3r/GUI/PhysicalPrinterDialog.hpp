@@ -12,7 +12,7 @@
 
 class wxTextCtrl;
 class wxStaticText;
-class Button; // ORCA replacing wxButtons
+class Button;
 class wxBoxSizer;
 
 namespace Slic3r {
@@ -29,12 +29,12 @@ class PhysicalPrinterDialog : public DPIDialog
     DynamicPrintConfig* m_config            { nullptr };
     ConfigOptionsGroup* m_optgroup          { nullptr };
 
-    Button*             m_printhost_browse_btn{nullptr};
-    Button*             m_printhost_test_btn{nullptr};
-    Button*             m_printhost_logout_btn{nullptr};
-    Button*             m_printhost_cafile_browse_btn{nullptr};
-    Button*             m_printhost_client_cert_browse_btn{nullptr};
-    Button*             m_printhost_port_browse_btn{nullptr};
+    Button*     m_printhost_browse_btn              {nullptr};
+    Button*     m_printhost_test_btn                {nullptr};
+    Button*     m_printhost_logout_btn              {nullptr};
+    Button*     m_printhost_cafile_browse_btn       {nullptr};
+    Button*     m_printhost_client_cert_browse_btn  {nullptr};
+    Button*     m_printhost_port_browse_btn         {nullptr};
 
     RoundedRectangle*   m_input_area                        {nullptr};
     wxStaticText*       m_valid_label                       {nullptr};

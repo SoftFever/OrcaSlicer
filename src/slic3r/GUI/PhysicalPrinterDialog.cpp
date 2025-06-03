@@ -478,7 +478,7 @@ void PhysicalPrinterDialog::update_preset_input() {
 
     const Preset *existing = m_presets->find_preset(m_preset_name, false);
     if (m_valid_type == Valid && existing && (existing->is_default || existing->is_system)) {
-        info_line = _L("Overwrite a system profile is not allowed");
+        info_line = _L("Overwriting a system profile is not allowed.");
         m_valid_type = NoValid;
     }
 
@@ -486,8 +486,8 @@ void PhysicalPrinterDialog::update_preset_input() {
         if (existing->is_compatible)
             info_line = from_u8((boost::format(_u8L("Preset \"%1%\" already exists.")) % m_preset_name).str());
         else
-            info_line = from_u8((boost::format(_u8L("Preset \"%1%\" already exists and is incompatible with current printer.")) % m_preset_name).str());
-        info_line += "\n" + _L("Please note that saving action will replace this preset");
+            info_line = from_u8((boost::format(_u8L("Preset \"%1%\" already exists and is incompatible with the current printer.")) % m_preset_name).str());
+        info_line += "\n" + _L("Please note that saving will overwrite this preset.");
         m_valid_type = Warning;
     }
 
