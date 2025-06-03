@@ -42,7 +42,7 @@ protected:
     wxBoxSizer *create_serial_item();
     wxBoxSizer *create_filament_preset_item();
     wxBoxSizer *create_filament_preset_for_printer_item();
-    wxWindow   *create_button_item();
+    wxWindow   *create_dialog_buttons();
 
 private:
     void          clear_filament_preset_map();
@@ -113,13 +113,13 @@ protected:
     wxBoxSizer *create_hot_bed_stl_item(wxWindow *parent);
     wxBoxSizer *create_hot_bed_svg_item(wxWindow *parent);
     wxBoxSizer *create_max_print_height_item(wxWindow *parent);
-    wxWindow   *create_page1_btns_item(wxWindow *parent);
+    wxWindow   *create_page1_dialog_buttons(wxWindow *parent);
     //Improt Presets Page2
     void create_printer_page2(wxWindow *parent);
     wxBoxSizer *create_printer_preset_item(wxWindow *parent);
     wxBoxSizer *create_presets_item(wxWindow *parent);
     wxBoxSizer *create_presets_template_item(wxWindow *parent);
-    wxWindow   *create_page2_btns_item(wxWindow *parent);
+    wxWindow   *create_page2_dialog_buttons(wxWindow *parent);
 
     void show_page1();
     void show_page2();
@@ -260,7 +260,7 @@ private:
     std::string initial_file_path(const wxString &path, const std::string &sub_file_path);
     std::string initial_file_name(const wxString &path, const std::string file_name);
     wxBoxSizer *create_export_config_item(wxWindow *parent);
-    wxWindow   *create_button_item(wxWindow *parent);
+    wxWindow   *create_dialog_buttons(wxWindow *parent);
     wxBoxSizer *create_select_printer(wxWindow *parent);
     wxBoxSizer *create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list);
     int         initial_zip_archive(mz_zip_archive &zip_archive, const std::string &file_path);
@@ -299,7 +299,7 @@ private:
     void        get_visible_printer_and_compatible_filament_presets();
     wxBoxSizer *create_selected_printer_preset_sizer();
     wxBoxSizer *create_selected_filament_preset_sizer();
-    wxWindow   *create_button_sizer();
+    wxWindow   *create_dialog_buttons();
 
 private:
     std::string                                                                       m_filament_id;
@@ -358,7 +358,7 @@ private:
     wxBoxSizer *create_filament_basic_info();
     wxBoxSizer *create_add_filament_btn();
     wxBoxSizer *create_preset_tree_sizer();
-    wxWindow   *create_button_sizer();
+    wxWindow   *create_dialog_buttons();
 
 private:
     PresetTree *                                                          m_preset_tree_creater = nullptr;
