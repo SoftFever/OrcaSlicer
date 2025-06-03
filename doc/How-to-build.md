@@ -35,7 +35,7 @@ You can run where cmake to check the active paths and rearrange your System Envi
 
 ### Tools Required
 - Xcode
-- CMake
+- CMake (version 3.31.x is mandatory — install via Homebrew with a specific version)
 - Git
 - gettext
 - libtool
@@ -45,10 +45,24 @@ You can run where cmake to check the active paths and rearrange your System Envi
 
 You can install most dependencies via Homebrew:
 ```sh
-brew install cmake gettext libtool automake autoconf texinfo
+brew install git gettext libtool automake autoconf texinfo
 ```
 
-If you've recently upgraded Xcode, be sure to open Xcode at least once and install the required macOS build support.
+Homebrew may install a newer CMake version (e.g. 3.29 or 4.x), which is not compatible. To install the required version 3.31.x:
+
+```sh
+brew install cmake@3.31
+brew link cmake@3.31 --force
+```
+
+After installation, confirm the correct version is being used:
+```sh
+cmake --version
+```
+
+Alternatively, you can download the correct version directly from [cmake.org](https://cmake.org/download/) and add it to your PATH.
+
+**⚠️ Note 1:** If you've recently upgraded Xcode, be sure to open Xcode at least once and install the required macOS build support.
 
 ### Instructions
 1. Clone the repository:
