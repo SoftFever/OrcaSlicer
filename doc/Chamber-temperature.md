@@ -13,11 +13,11 @@ If `Activate temperature control` is checked, OrcaSlicer will insert `M191` comm
 You can use chamber temperature variables in your `Machine G-code` to control the chamber temperature manually, if desired:
 
 - To set the chamber temperature to the value specified for the first filament:
-    ```
+    ```gcode
     M191 S{chamber_temperature[0]}
     ```
 - To set the chamber temperature to the highest value specified across all filaments:
-    ```
+    ```gcode
     M191 S{overall_chamber_temperature}
     ```
 
@@ -59,5 +59,4 @@ gcode:
         TEMPERATURE_WAIT SENSOR="heater_generic chamber_heater" MINIMUM={s-1} MAXIMUM={s+1}
         M117 Chamber at target temperature
     {% endif %}
-
 ```

@@ -46,8 +46,8 @@ If you add new file resource, add it to the list of files containing macro `L()`
 https://github.com/softfever/OrcaSlicer/blob/master/localization/i18n/list.txt.
 
 2.  Create template file(*.POT) with GNUgettext command:
-    ```
-        xgettext --keyword=L --add-comments=TRN --from-code=UTF-8 --debug -o OrcaSlicer.pot -f list.txt
+    ```pot
+    xgettext --keyword=L --add-comments=TRN --from-code=UTF-8 --debug -o OrcaSlicer.pot -f list.txt
     ```
 
     Use flag `--from-code=UTF-8` to specify that the source strings are in UTF-8 encoding
@@ -56,19 +56,19 @@ https://github.com/softfever/OrcaSlicer/blob/master/localization/i18n/list.txt.
 3.  Create PO- and MO-files for your project as described above.
 
 4.  To merge old PO-file with strings from created new POT-file use command:
-    ```
-        msgmerge -N -o new.po old.po new.pot
+    ```pot
+    msgmerge -N -o new.po old.po new.pot
     ```
     Use option `-N` to not using fuzzy matching when an exact match is not found.
 
 5.  To concatenate old PO-file with strings from new PO-file use command:
-    ```
-        msgcat -o new.po old.po
+    ```pot
+    msgcat -o new.po old.po
     ```
 
 6.  Create an English translation catalog with command:
-    ```
-        msgen -o new.po old.po
+    ```pot
+    msgen -o new.po old.po
     ```
     Notice, in this Catalog it will be totally same strings for initial text and translated.
 

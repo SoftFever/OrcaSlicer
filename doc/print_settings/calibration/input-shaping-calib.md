@@ -22,11 +22,11 @@ Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
       3. Jerk [Klipper Square Corner Velocity](https://www.klipper3d.org/Kinematics.html?h=square+corner+velocity#look-ahead) to 5 or a high value (e.g., 20).
    2. In printer settigs:
       1. Set the Shaper Type to ``MZV`` or ``EI``.
-         ```
+         ```gcode
          SET_INPUT_SHAPER SHAPER_TYPE=MZV
          ```
       2. Disable [Minimun Cruise Ratio](https://www.klipper3d.org/Kinematics.html#minimum-cruise-ratio) with:
-            ```
+            ```gcode
             SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0
             ```
    3. Use an opaque, high-gloss filament to make the ringing more visible.
