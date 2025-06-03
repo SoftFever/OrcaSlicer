@@ -623,14 +623,16 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 params.lattice_angle_2 = region_config.lattice_angle_2;
 
 		        if (surface.is_solid()) {
-                    if (surface.is_top()) {
-                        params.pattern = region_config.top_surface_pattern.value;
-                        params.density = float(region_config.top_surface_density); 
+                    if (surface.is_external() && !is_bridge) {
+                        if (surface.is_top()) {
+                            params.pattern = region_config.top_surface_pattern.value;
+                            params.density = float(region_config.top_surface_density);
+                        } else { // Surface is bottom
+                            params.pattern = region_config.bottom_surface_pattern.value;
+                            params.density = float(region_config.bottom_surface_density);
+                        }
                     } else if (surface.is_solid_infill()) {
                         params.pattern = region_config.internal_solid_infill_pattern.value;
-                        params.density = 100.f;
-                    } else if (surface.is_external() && !is_bridge) {
-                        params.pattern = region_config.bottom_surface_pattern.value;
                         params.density = 100.f;
                     } else {
                         if (region_config.top_surface_pattern == ipMonotonic || region_config.top_surface_pattern == ipMonotonicLine)

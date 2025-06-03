@@ -928,6 +928,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       internal_bridge_speed))
     ((ConfigOptionEnum<EnsureVerticalShellThickness>,   ensure_vertical_shell_thickness))
     ((ConfigOptionPercent,              top_surface_density))
+    ((ConfigOptionPercent,               bottom_surface_density))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))

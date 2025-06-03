@@ -5280,6 +5280,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->set_default_value(new ConfigOptionPercent(100));
 
+    def           = this->add("bottom_surface_density", coPercent);
+    def->label    = L("Bottom surface density");
+    def->category = L("Strength");
+    def->tooltip = L("Density of the bottom surface layer.\n"
+                     "WARNING: Lowering this value may negatively affect bed adhesion.\n");
+    def->sidetext = L("%");
+    def->min      = 10;
+    def->max      = 100;
+    def->set_default_value(new ConfigOptionPercent(100));
+
 
     def = this->add("travel_speed", coFloat);
     def->label = L("Travel");

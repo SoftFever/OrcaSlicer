@@ -1088,6 +1088,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "infill_anchor_max"
             || opt_key == "top_surface_line_width"
             || opt_key == "top_surface_density"
+            || opt_key == "bottom_surface_density"
             || opt_key == "initial_layer_line_width"
             || opt_key == "small_area_infill_flow_compensation"
             || opt_key == "lattice_angle_1"

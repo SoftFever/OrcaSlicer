@@ -2161,6 +2161,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
+        optgroup->append_single_option_line("bottom_surface_density");
         optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("top_bottom_infill_wall_overlap");
 
