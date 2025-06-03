@@ -171,6 +171,7 @@ void Button::SetStyle(const ButtonStyle style, const ButtonType type)
                                                     btn_regular;
 
     StateColor clr_bg = StateColor(
+        std::pair(wxColour(clr_arr[3]), (int)StateColor::NotHovered),
         std::pair(wxColour(clr_arr[0]), (int)StateColor::Disabled),
         std::pair(wxColour(clr_arr[1]), (int)StateColor::Pressed),
         std::pair(wxColour(clr_arr[2]), (int)StateColor::Hovered),
@@ -179,10 +180,8 @@ void Button::SetStyle(const ButtonStyle style, const ButtonType type)
     );
     this->SetBackgroundColor(clr_bg);
     StateColor clr_br = StateColor(
-        std::pair(wxColour(clr_arr[0]), (int)StateColor::Disabled),
-        std::pair(wxColour(clr_arr[1]), (int)StateColor::Pressed),
-        std::pair(wxColour(clr_arr[8]), (int)StateColor::Hovered), // brighter color on border to highlight focus
-        std::pair(wxColour(clr_arr[3]), (int)StateColor::Normal)
+        std::pair(wxColour(clr_arr[3]), (int)StateColor::NotFocused),
+        std::pair(wxColour(clr_arr[8]), (int)StateColor::Focused)
     );
     this->SetBorderColor(clr_br);
     this->SetTextColor(StateColor(
