@@ -988,7 +988,7 @@ void FanControlPopupNew::init_names() {
                                              "The system automatically adjusts the fan's switch and speed "
                                              "according to different printing materials.");
     label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L("Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air.");
-    label_text[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = _L("Heating mode is suitable for printeing ABS/ASA/PC/PA materials and circulates filters the chamber air.");
+    label_text[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = _L("Heating mode is suitable for printing ABS/ASA/PC/PA materials and circulates filters the chamber air.");
     label_text[AIR_DUCT::AIR_DUCT_EXHAUST] = _L("Exhaust");
     label_text[AIR_DUCT::AIR_DUCT_FULL_COOLING] = _L("Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled.");
     label_text[AIR_DUCT::AIR_DUCT_NUM] = _L("Num");
