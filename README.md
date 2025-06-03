@@ -1,5 +1,6 @@
-
 <h1> <p "font-size:200px;"><img align="left" src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
+
+[![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 
 Orca Slicer is an open source Next-Gen Slicing Software for Precision 3D Prints.  
 Optimize your prints with ultra-fast slicing, intelligent support generation, and seamless printer compatibility—engineered for perfection.
@@ -25,11 +26,11 @@ Optimize your prints with ultra-fast slicing, intelligent support generation, an
 
 # Main features
 
-- **Advanced Calibration Tools**  
+- **[Advanced Calibration Tools](https://github.com/SoftFever/OrcaSlicer/wiki/Calibration)**  
   Comprehensive suite: temperature towers, flow rate, retraction & more for optimal performance.
-- **Precise Wall and Seam Control**  
+- **[Precise Wall](https://github.com/SoftFever/OrcaSlicer/wiki/Precise-wall) and [Seam Control](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_seam)**  
   Adjust outer wall spacing and apply scarf seams to enhance print accuracy.
-- **Sandwich Mode and Polyholes Support**  
+- **Sandwich Mode and [SuperSlicer Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes) Support**  
   Use varied infill patterns and accurate hole shapes for improved clarity.
 - **Overhang and Support Optimization**  
   Modify geometry for printable overhangs with precise support placement.
@@ -56,12 +57,12 @@ Please note that the wiki is a work in progress. We appreciate your patience as 
 
 # Download
 
-### Stable Release
-📥 **[Download the Latest Stable Release](https://github.com/SoftFever/OrcaSlicer/releases/latest)**
+## Stable Release
+📥 **[Download the Latest Stable Release](https://github.com/SoftFever/OrcaSlicer/releases/latest)**  
 Visit our GitHub Releases page for the latest stable version of Orca Slicer, recommended for most users.
 
-### Nightly Builds
-🌙 **[Download the Latest Nightly Build](https://github.com/SoftFever/OrcaSlicer/releases/tag/nightly-builds)**
+## Nightly Builds
+🌙 **[Download the Latest Nightly Build](https://github.com/SoftFever/OrcaSlicer/releases/tag/nightly-builds)**  
 Explore the latest developments in Orca Slicer with our nightly builds. Feedback on these versions is highly appreciated.
 
 
@@ -83,7 +84,7 @@ Download the **Windows Installer exe**  for your preferred version from the [rel
     </details>
 
 Windows Package Manager:
-```console
+```shell
 winget install --id=SoftFever.OrcaSlicer --exact
 ```
 
@@ -92,19 +93,19 @@ winget install --id=SoftFever.OrcaSlicer --exact
 2. Drag OrcaSlicer.app to Application folder.
 3. *If you want to run a build from a PR, you also need to follow the instructions below:*
     <details>
-    <summary>Run a build from a PR</summary>
+    <summary>Quarantine</summary>
 
     - Option 1 (You only need to do this once. After that the app can be opened normally.):
       - Step 1: Hold _cmd_ and right click the app, from the context menu choose **Open**.
       - Step 2: A warning window will pop up, click _Open_
 
     - Option 2:
-      Execute this command in terminal: `xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app`
-      ```console
-          softfever@mac:~$ xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app
+      Execute this command in terminal:
+      ```shell
+      xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app`
       ```
     - Option 3:
-        - Step 1: open the app, a warning window will pop up
+        - Step 1: open the app, a warning window will pop up  
             ![image](./SoftFever_doc/mac_cant_open.png)
         - Step 2: in `System Settings` -> `Privacy & Security`, click `Open Anyway`:
             ![image](./SoftFever_doc/mac_security_setting.png)
@@ -121,7 +122,7 @@ Please refer to the wiki to ensure you're following the latest and most accurate
 
 # Note:
 If you're running Klipper, it's recommended to add the following configuration to your `printer.cfg` file.
-```
+```gcode
 # Enable object exclusion
 [exclude_object]
 
@@ -132,27 +133,27 @@ resolution: 0.1
 
 # Supports
 **Orca Slicer** is an open-source project and I'm deeply grateful to all my sponsors and backers.  
-Their generous support enables me to purchase filaments and other essential 3D printing materials for the project.
+Their generous support enables me to purchase filaments and other essential 3D printing materials for the project.  
 Thank you! :)
 
-### Sponsors:
+## Sponsors:
 <table>
 <tr>
 <td>
-<a href="https://qidi3d.com/">
-    <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="96" height="">
+<a href="https://qidi3d.com/" style="display:inline-block; border-radius:8px; background:#fff;">
+  <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="100" style="display:block;">
 </a>
 </td>
 <td>
-<a href="https://bigtree-tech.com/">
-    <img src="SoftFever_doc\sponsor_logos\BigTreeTech.png" alt="BIGTREE TECH" width="96" height="">
+<a href="https://bigtree-tech.com/" style="display:inline-block; border-radius:8px; background:#222;">
+    <img src="SoftFever_doc\sponsor_logos\BigTreeTech.png" alt="BIGTREE TECH" width="100" height="">
 </a>
 </td>
 </tr>
 </table>
 
-### Backers:
-**Ko-fi supporters**: [Backers list](https://github.com/user-attachments/files/16147016/Supporters_638561417699952499.csv)
+## Backers:
+**Ko-fi supporters** ☕: [Backers list](https://github.com/user-attachments/files/16147016/Supporters_638561417699952499.csv)
 
 ## Support me
 <a href="https://github.com/sponsors/SoftFever"><img src="https://img.shields.io/badge/GitHub%20Sponsors-30363D?style=flat&logo=GitHub-Sponsors&logoColor=EA4AAA" height="50"></a>
