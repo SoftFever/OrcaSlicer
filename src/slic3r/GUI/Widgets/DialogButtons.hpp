@@ -37,9 +37,8 @@ public:
 
     void SetAlertButton(wxString label);
 
-    void Refresh();
+    void DrawDialogButtons();
 
-    //virtual ~DialogButtons();
     ~DialogButtons();
 
 private:

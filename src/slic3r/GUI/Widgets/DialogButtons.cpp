@@ -31,7 +31,7 @@ DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_transla
     Layout();
     Fit();
 
-    Refresh();
+    DrawDialogButtons();
 }
 
 DialogButtons::~DialogButtons() {
@@ -39,7 +39,7 @@ DialogButtons::~DialogButtons() {
 }
 
 void DialogButtons::on_dpi_changed(wxDPIChangedEvent& event) {
-    Refresh();
+    DrawDialogButtons();
     event.Skip();
 }
 
@@ -159,7 +159,7 @@ void DialogButtons::SetAlertButton(wxString translated_label) {
     btn->SetTextColor(clr_tx);
 }
 
-void DialogButtons::Refresh() {
+void DialogButtons::DrawDialogButtons() {
     m_sizer->Clear();
     SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
     // we won't need color definations after button style management
