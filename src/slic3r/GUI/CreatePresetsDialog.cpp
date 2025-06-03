@@ -1010,12 +1010,13 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_for_printer_item(
     return vertical_sizer;
 }
 
-wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
+wxWindow *CreateFilamentPresetDialog::create_button_item()
 {
     auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
-    m_button_create = dlg_btns->GetOK();
-    m_button_create->SetLabel(_L("Create"));
-    m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+
+    auto btn_ok = dlg_btns->GetOK();
+    btn_ok->SetLabel(_L("Create"));
+    btn_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
         //get vendor name
         wxString vendor_str = m_filament_vendor_combobox->GetLabel();
         std::string vendor_name;
@@ -1173,15 +1174,11 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         EndModal(wxID_OK); 
         });
 
-    m_button_cancel = dlg_btns->GetCANCEL();
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+    dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
         EndModal(wxID_CANCEL); 
     });
 
-    auto d_sizer = new wxBoxSizer(wxVERTICAL);
-    d_sizer->Add(dlg_btns, 0, wxEXPAND);
-
-    return d_sizer;
+    return dlg_btns;
 }
 
 wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
@@ -2022,24 +2019,19 @@ wxBoxSizer *CreatePrinterPresetDialog::create_max_print_height_item(wxWindow *pa
     return horizontal_sizer;
 }
 
-wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
+wxWindow *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
 {
     auto dlg_btns = new DialogButtons(parent, {"OK", "Cancel"});
     
-    m_button_OK = dlg_btns->GetOK();
-    m_button_OK->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         if (!validate_input_valid()) return;
         data_init();
         show_page2();
     });
 
-    m_button_page1_cancel = dlg_btns->GetCANCEL();
-    m_button_page1_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+    dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
 
-    auto d_sizer = new wxBoxSizer(wxVERTICAL);
-    d_sizer->Add(dlg_btns, 0, wxEXPAND);
-
-    return d_sizer;
+    return dlg_btns;
 }
 static std::string last_directory = "";
 void CreatePrinterPresetDialog::load_texture() {
@@ -2582,16 +2574,15 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
     return vertical_sizer;
 }
 
-wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
+wxWindow *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
 {
     auto dlg_btns = new DialogButtons(parent, {"Back", "OK", "Cancel"});
 
-    m_button_page2_back = dlg_btns->GetBACK();
-    m_button_page2_back->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { show_page1(); });
+    dlg_btns->GetBACK()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { show_page1(); });
 
-    m_button_create = dlg_btns->GetOK();
-    m_button_create->SetLabel(_L("Create"));
-    m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    auto btn_ok = dlg_btns->GetOK();
+    btn_ok->SetLabel(_L("Create"));
+    btn_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
 
         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
         const wxString curr_selected_printer_type = curr_create_printer_type();
@@ -2836,13 +2827,9 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
         
         });
 
-    m_button_page2_cancel = dlg_btns->GetCANCEL();
-    m_button_page2_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+    dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
 
-    auto d_sizer = new wxBoxSizer(wxVERTICAL);
-    d_sizer->Add(dlg_btns, 0, wxEXPAND);
-
-    return d_sizer;
+    return dlg_btns;
 }
 
 void CreatePrinterPresetDialog::show_page1()
@@ -3279,52 +3266,27 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
 
     m_main_sizer->Add(horizontal_sizer, 0, wxALL, FromDIP(5));
 
-    wxBoxSizer *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    btn_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    switch (create_success_type) {
-    case PRINTER: 
-        m_button_ok = new Button(this, _L("Printer Setting"));
-        break;
-    case FILAMENT: m_button_ok = sync_user_preset_need_enabled ? new Button(this, _L("Sync user presets")) : new Button(this, _L("OK"));
-        break;
-    }
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    bool is_cancel_needed = PRINTER == create_success_type || sync_user_preset_need_enabled;
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(wxColour(*wxWHITE));
-    m_button_ok->SetTextColor(wxColour(*wxWHITE));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
-    btn_sizer->Add(m_button_ok, 0, wxRIGHT, FromDIP(10));
+    auto dlg_btns = new DialogButtons(this, is_cancel_needed ? std::vector<wxString>{"OK", "Cancel"} : std::vector<wxString>{"OK"});
 
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this, sync_user_preset_need_enabled](wxMouseEvent &e) {
+    if      (create_success_type == PRINTER) 
+        dlg_btns->GetOK()->SetLabel(_L("Printer Setting"));
+    else if (create_success_type == FILAMENT && sync_user_preset_need_enabled)
+        dlg_btns->GetOK()->SetLabel(_L("Sync user presets"));
+
+    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, [this, sync_user_preset_need_enabled](wxMouseEvent &e) {
         if (sync_user_preset_need_enabled) {
             wxGetApp().app_config->set("sync_user_preset", "true");
             wxGetApp().start_sync_user_preset();
         }
         EndModal(wxID_OK);
-        });
+    });
     
-    if (PRINTER == create_success_type || sync_user_preset_need_enabled) {
-        m_button_cancel = new Button(this, _L("Cancel"));
-        m_button_cancel->SetBackgroundColor(btn_bg_white);
-        m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-        m_button_cancel->SetTextColor(wxColour(38, 46, 48));
-        m_button_cancel->SetFont(Label::Body_12);
-        m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-        m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-        m_button_cancel->SetCornerRadius(FromDIP(12));
-        btn_sizer->Add(m_button_cancel, 0, wxRIGHT, FromDIP(10));
-        m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
-    }
+    if (is_cancel_needed)
+        dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
 
-    m_main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(15));
-    m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_main_sizer->Add(dlg_btns, 0, wxEXPAND);
 
     SetSizer(m_main_sizer);
     Layout();
@@ -4059,11 +4021,10 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_process_preset_to_f
     return ExportCase::EXPORT_SUCCESS;
 }
 
-wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
+wxWindow *ExportConfigsDialog::create_button_item(wxWindow* parent)
 {
     auto dlg_btns = new DialogButtons(parent, {"OK", "Cancel"});
-    m_button_ok = dlg_btns->GetOK();
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         if (!has_check_box_selected()) {
             MessageDialog dlg(this, _L("Please select at least one printer or filament."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
@@ -4100,13 +4061,9 @@ wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
         EndModal(wxID_OK);
         });
 
-    m_button_cancel = dlg_btns->GetCANCEL();
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+    dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
 
-    auto d_sizer = new wxBoxSizer(wxVERTICAL);
-    d_sizer->Add(dlg_btns, 0, wxEXPAND);
-
-    return d_sizer;
+    return dlg_btns;
 }
 
 wxBoxSizer *ExportConfigsDialog::create_select_printer(wxWindow *parent)
@@ -4592,12 +4549,11 @@ wxBoxSizer *EditFilamentPresetDialog::create_preset_tree_sizer()
     return filament_preset_tree_sizer;
 }
 
-wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
+wxWindow *EditFilamentPresetDialog::create_button_sizer()
 {
     auto dlg_btns = new DialogButtons(this, {"Delete", "OK"});
 
-    m_del_filament_btn = dlg_btns->GetButtonFromID(wxID_DELETE);
-    m_del_filament_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
+    dlg_btns->GetButtonFromID(wxID_DELETE)->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
         WarningDialog dlg(this, _L("All the filament presets belong to this filament would be deleted. \nIf you are using this filament on your printer, please reset the filament information for that slot."), _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
         int res = dlg.ShowModal();
         if (wxID_YES == res) {
@@ -4635,13 +4591,9 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
         e.Skip(); 
         }));
 
-    m_ok_btn = dlg_btns->GetOK();
-    m_ok_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
+    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
 
-    auto d_sizer = new wxBoxSizer(wxVERTICAL);
-    d_sizer->Add(dlg_btns, 0, wxEXPAND);
-
-    return d_sizer;
+    return dlg_btns;
 }
 
 CreatePresetForPrinterDialog::CreatePresetForPrinterDialog(wxWindow *parent, std::string filament_type, std::string filament_id, std::string filament_vendor, std::string filament_name)
@@ -4772,7 +4724,7 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_selected_filament_preset_sizer(
     return select_filament_preset_sizer;
 }
 
-wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
+wxWindow *CreatePresetForPrinterDialog::create_button_sizer()
 {
     auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
@@ -4821,10 +4773,7 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
         EndModal(wxID_CANCEL);
     });
 
-    auto d_sizer = new wxBoxSizer(wxVERTICAL);
-    d_sizer->Add(dlg_btns, 0, wxEXPAND);
-
-    return d_sizer;
+    return dlg_btns;
 }
 
 PresetTree::PresetTree(EditFilamentPresetDialog * dialog)

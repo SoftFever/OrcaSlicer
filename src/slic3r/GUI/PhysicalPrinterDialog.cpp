@@ -97,8 +97,6 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     build_printhost_settings(m_optgroup);
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    auto d_sizer = new wxBoxSizer(wxVERTICAL);
-    d_sizer->Add(dlg_btns, 0, wxEXPAND);
 
     btnOK = dlg_btns->GetOK();
     btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
@@ -108,7 +106,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     // topSizer->Add(label_top           , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
     topSizer->Add(input_sizer         , 0, wxEXPAND | wxALL, BORDER_W);
     topSizer->Add(m_optgroup->sizer   , 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
-    topSizer->Add(d_sizer, 0, wxEXPAND);
+    topSizer->Add(dlg_btns, 0, wxEXPAND);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->EndModal(wxID_NO);});
 
@@ -736,8 +734,6 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
         m_printhost_cafile_browse_btn->Rescale();
 
     m_optgroup->msw_rescale();
-
-    //msw_buttons_rescale(this, em, { wxID_OK, wxID_CANCEL });
 
     const wxSize& size = wxSize(45 * em, 35 * em);
     SetMinSize(size);

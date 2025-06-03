@@ -5,12 +5,12 @@
 namespace Slic3r { namespace GUI {
 
 // ORCA standardize dialog buttons
-DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& primary_btn_label /*Translated*/)
+DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& primary_btn_translated_label)
     : wxWindow(parent, wxID_ANY)
 {
     m_parent  = parent;
     m_sizer   = new wxBoxSizer(wxHORIZONTAL);
-    m_primary = primary_btn_label;
+    m_primary = primary_btn_translated_label;
     m_alert   = wxEmptyString;
     SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
 
@@ -27,7 +27,6 @@ DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_transla
 
     m_parent->Bind(wxEVT_DPI_CHANGED, &DialogButtons::on_dpi_changed, this);
 
-    //SetDoubleBuffered(true);
     SetSizer(m_sizer);
     Layout();
     Fit();
@@ -41,8 +40,6 @@ DialogButtons::~DialogButtons() {
 
 void DialogButtons::on_dpi_changed(wxDPIChangedEvent& event) {
     Refresh();
-    //m_sizer->Layout();
-    //m_parent->Layout();
     event.Skip();
 }
 
@@ -53,9 +50,9 @@ Button* DialogButtons::GetButtonFromID(wxStandardID id) {
     return nullptr;
 }
 
-Button* DialogButtons::GetButtonFromLabel(wxString label) {
+Button* DialogButtons::GetButtonFromLabel(wxString translated_label) {
     for (Button* btn : m_buttons)
-        if (btn->GetLabel() == label)
+        if (btn->GetLabel() == translated_label)
             return btn;
     return nullptr;
 }
@@ -81,21 +78,21 @@ Button* DialogButtons::GetCANCEL() {return GetButtonFromID(wxID_CANCEL)  ;}
 Button* DialogButtons::GetBACK()   {return GetButtonFromID(wxID_BACKWARD);}
 Button* DialogButtons::GetFORWARD(){return GetButtonFromID(wxID_FORWARD) ;}
 
-void DialogButtons::SetPrimaryButton(wxString label) {
+void DialogButtons::SetPrimaryButton(wxString translated_label) {
     // use _L("Create") translated text for custom buttons
     // use non existing button name to disable primary styled button
     Button* btn;
-    if(label.IsEmpty()){ // prefer standard primary buttons if label empty
+    if(translated_label.IsEmpty()){ // prefer standard primary buttons if label empty
         if(m_buttons.size() == 1)
             btn = m_buttons.front();
         else
             btn = PickFromList(m_primaryIDs);
     }else
-        btn = GetButtonFromLabel(label);
+        btn = GetButtonFromLabel(translated_label);
 
     if(btn == nullptr) return;
 
-    m_primary = label;
+    m_primary = translated_label;
 
     btn->SetFocus();
     // we won't need color definations after button style management
@@ -121,20 +118,20 @@ void DialogButtons::SetPrimaryButton(wxString label) {
     btn->SetTextColor(clr_tx);
 }
 
-void DialogButtons::SetAlertButton(wxString label) {
+void DialogButtons::SetAlertButton(wxString translated_label) {
     // use _L("Create") translated text for custom buttons
     // use non existing button name to disable alert styled button
     if(m_buttons.size() == 1)
         return;
     Button* btn;
-    if(label.IsEmpty()){ // prefer standard alert buttons if label empty
+    if(translated_label.IsEmpty()){ // prefer standard alert buttons if label empty
         btn = PickFromList(m_alertIDs);
     }else
-        btn = GetButtonFromLabel(label);
+        btn = GetButtonFromLabel(translated_label);
 
     if(btn == nullptr) return;
 
-    m_alert = label;
+    m_alert = translated_label;
 
     // we won't need color definations after button style management
     StateColor clr_bg = StateColor(
