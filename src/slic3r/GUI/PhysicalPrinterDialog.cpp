@@ -95,7 +95,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     build_printhost_settings(m_optgroup);
 
     Button* btnOK = new Button(this, _L("Confirm"));
-    btnOK->SetStyle("Confirm", "Choice");
+    btnOK->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
@@ -134,7 +134,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     auto create_sizer_with_btn = [](wxWindow* parent, Button** btn, const wxString& label) {
         *btn = new Button(parent, label);
-        (*btn)->SetStyle("Regular", "Parameter");
+        (*btn)->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(*btn);
@@ -232,7 +232,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     auto print_host_printers = [this, create_sizer_with_btn](wxWindow* parent) {
         auto sizer = create_sizer_with_btn(parent, &m_printhost_port_browse_btn, _(L("Refresh Printers")));
         Button* btn = m_printhost_port_browse_btn; // ORCA
-        btn->SetStyle("Regular", "Parameter");
+        btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
         btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) { update_printers(); });
         return sizer;
     };

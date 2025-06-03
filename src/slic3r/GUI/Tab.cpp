@@ -3550,7 +3550,7 @@ void TabFilament::build()
 
             // ORCA modernize button style
             Button* btn = new Button(parent, _(L("Set")) + " " + dots);
-            ramming_dialog_btn->SetStyle("Regular", "Parameter");
+            btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(btn);
@@ -5913,7 +5913,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 
     // ORCA modernize button style
     Button* btn = new Button(parent, _(L("Set")) + " " + dots);
-    btn->SetStyle("Regular", "Parameter");
+    btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
     deps.btn = btn;
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -6026,7 +6026,7 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
     // ORCA modernize button style
     Button* btn = new Button(parent, _(L("Set")) + " " + dots);
-    btn->SetStyle("Regular", "Parameter");
+    btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);

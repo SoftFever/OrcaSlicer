@@ -419,8 +419,8 @@ void EditGCodeDialog::on_dpi_changed(const wxRect&suggested_rect)
     const int& em = em_unit();
 
     //Orca: use custom buttons
-    m_button_list[wxOK]     ->SetType("Choice"); // Rescale Button
-    m_button_list[wxCANCEL] ->SetType("Choice"); // Rescale Button
+    m_button_list[wxOK]     ->Rescale();
+    m_button_list[wxCANCEL] ->Rescale();
 
     const wxSize& size = wxSize(45 * em, 35 * em);
     SetMinSize(size);
@@ -442,7 +442,7 @@ wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
 
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
-        ok_btn->SetStyle("Confirm", "Choice");
+        ok_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
         btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
@@ -450,7 +450,7 @@ wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
     }
     if (flags & wxCANCEL) {
         Button* cancel_btn = new Button(this, _L("Cancel"));
-        cancel_btn->SetStyle("Regular", "Choice");
+        cancel_btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
         cancel_btn->SetId(wxID_CANCEL);
         btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
         m_button_list[wxCANCEL] = cancel_btn;

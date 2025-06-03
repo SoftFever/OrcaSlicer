@@ -148,75 +148,75 @@ void Button::SetCenter(bool isCenter)
     this->isCenter = isCenter;
 }
 
-// Button Colors           bg-Disabled bg-Pressed bg-Hover   bg-Normal  bg-Enabled fg-Disabled fg-Normal fg-Hover  br-hover
-wxString btn_regular[9]  = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#262E30", "#262E30", "#009688"};
-wxString btn_confirm[9]  = {"#DFDFDF", "#009688", "#26A69A", "#009688", "#009688", "#6B6A6A", "#FEFEFE", "#262E30", "#3EE0D8"};
-wxString btn_alert[9]    = {"#DFDFDF", "#DFDFDF", "#CD1F00", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#CD1F00", "#FFFFFD", "#F43200"};
-wxString btn_disabled[9] = {"#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#6B6A6A", "#262E30", "#DFDFDF"};
+// Button Colors         BG  Disabled   Pressed    Hover      Normal     Enabled  FG  Disabled   Normal     Hover   BR  Hover
+wxString btn_regular[9]  = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF",   "#6B6A6A", "#262E30", "#262E30", "#009688"};
+wxString btn_confirm[9]  = {"#DFDFDF", "#009688", "#26A69A", "#009688", "#009688",   "#6B6A6A", "#FEFEFE", "#262E30", "#3EE0D8"};
+wxString btn_alert[9]    = {"#DFDFDF", "#DFDFDF", "#CD1F00", "#DFDFDF", "#DFDFDF",   "#6B6A6A", "#CD1F00", "#FFFFFD", "#F43200"};
+wxString btn_disabled[9] = {"#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF",   "#6B6A6A", "#6B6A6A", "#262E30", "#DFDFDF"};
 
-void Button::SetStyle(const wxString style /* Regular/Confirm/Alert/Disabled */, const wxString& type /* Choice/Window/Parameter/Compact */)
+void Button::SetStyle(const ButtonStyle style, const ButtonType type)
 {
-    // STYLES
-    //   Regular / Confirm / Alert / Disabled
-    // TYPES
-    //   Omited      FontSize:14   SemiRounded    Expanded / full size button. ex btn->SetStyle("Regular");
-    //   Compact     FontSize:10   FullyRounded   Use for less spaced areas
-    //   Window      FontSize:12   FullyRounded   Use for regular windows in windows
-    //   Choice      FontSize:14   SemiRounded    Use for dialog/window choice buttons
-    //   Parameter   FontSize:14   SemiRounded    Use for buttons that near parameter boxes
-    this->SetFont( type == "Compact" ? Label::Body_10 : 
-                   type == "Window"  ? Label::Body_12 : 
-                                       Label::Body_14
+    m_style = style;
+    m_type  = type;
+
+    this->SetFont( type == ButtonType::Compact ? Label::Body_10 :
+                   type == ButtonType::Window  ? Label::Body_12 :
+                                                 Label::Body_14
     );
-    auto clr_arr = style == "Regular"  ? btn_regular :
-                   style == "Confirm"  ? btn_confirm :
-                   style == "Alert"    ? btn_alert :
-                   style == "Disabled" ? btn_disabled :
-                                         btn_regular;
-    StateColor clr_bg = StateColor(std::pair(wxColour(clr_arr[0]), (int)StateColor::Disabled),
-                                   std::pair(wxColour(clr_arr[1]), (int)StateColor::Pressed),
-                                   std::pair(wxColour(clr_arr[2]), (int)StateColor::Hovered),
-                                   std::pair(wxColour(clr_arr[3]), (int)StateColor::Normal),
-                                   std::pair(wxColour(clr_arr[4]), (int)StateColor::Enabled)
+
+    auto clr_arr = style == ButtonStyle::Regular  ? btn_regular  :
+                   style == ButtonStyle::Confirm  ? btn_confirm  :
+                   style == ButtonStyle::Alert    ? btn_alert    :
+                   style == ButtonStyle::Disabled ? btn_disabled :
+                                                    btn_regular;
+
+    StateColor clr_bg = StateColor(
+        std::pair(wxColour(clr_arr[0]), (int)StateColor::Disabled),
+        std::pair(wxColour(clr_arr[1]), (int)StateColor::Pressed),
+        std::pair(wxColour(clr_arr[2]), (int)StateColor::Hovered),
+        std::pair(wxColour(clr_arr[3]), (int)StateColor::Normal),
+        std::pair(wxColour(clr_arr[4]), (int)StateColor::Enabled)
     );
     this->SetBackgroundColor(clr_bg);
-    StateColor clr_br = StateColor(std::pair(wxColour(clr_arr[0]), (int)StateColor::Disabled),
-                                   std::pair(wxColour(clr_arr[1]), (int)StateColor::Pressed),
-                                   std::pair(wxColour(clr_arr[8]), (int)StateColor::Hovered), // brighter color on border to highlight focus
-                                   std::pair(wxColour(clr_arr[3]), (int)StateColor::Normal)
+    StateColor clr_br = StateColor(
+        std::pair(wxColour(clr_arr[0]), (int)StateColor::Disabled),
+        std::pair(wxColour(clr_arr[1]), (int)StateColor::Pressed),
+        std::pair(wxColour(clr_arr[8]), (int)StateColor::Hovered), // brighter color on border to highlight focus
+        std::pair(wxColour(clr_arr[3]), (int)StateColor::Normal)
     );
     this->SetBorderColor(clr_br);
-    this->SetTextColor( StateColor(std::pair(wxColour(clr_arr[5]), (int)StateColor::Disabled),
-                                   std::pair(wxColour(clr_arr[7]), (int)StateColor::Hovered),
-                                   std::pair(wxColour(clr_arr[6]), (int)StateColor::Normal)
+    this->SetTextColor(StateColor(
+        std::pair(wxColour(clr_arr[5]), (int)StateColor::Disabled),
+        std::pair(wxColour(clr_arr[7]), (int)StateColor::Hovered),
+        std::pair(wxColour(clr_arr[6]), (int)StateColor::Normal)
     ));
     this->SetType(type);
 }
 
-void Button::SetType(const wxString type /* Choice/Window/Parameter/Compact */)
+void Button::SetType(const ButtonType type)
 {
-    // Function also rescales button
-    // Omited      FontSize:14   SemiRounded    Expanded / full size button. ex btn->SetStyle("Regular");
-    // Compact     FontSize:10   FullyRounded   Use for less spaced areas
-    // Window      FontSize:12   FullyRounded   Use for regular windows in windows
-    // Choice      FontSize:14   SemiRounded    Use for dialog/window choice buttons
-    // Parameter   FontSize:14   SemiRounded    Use for buttons that near parameter boxes
-    if        (type == "Compact") {
+    if      (type == ButtonType::Compact) {
         this->SetPaddingSize(FromDIP(wxSize(8,3)));
         this->SetCornerRadius(this->FromDIP(8));
-    } else if (type == "Window") {
+    }
+    else if (type == ButtonType::Window) {
         this->SetSize(FromDIP(wxSize(58,24)));
         this->SetMinSize(FromDIP(wxSize(58,24)));
         this->SetCornerRadius(this->FromDIP(12));
-    } else if (type == "Choice") {
+    }
+    else if (type == ButtonType::Choice) {
         this->SetMinSize(FromDIP(wxSize(100,32)));
         this->SetPaddingSize(FromDIP(wxSize(12,8)));
         this->SetCornerRadius(this->FromDIP(4));
-    } else if (type == "Parameter") {
+    }
+    else if (type == ButtonType::Parameter) {
         this->SetMinSize(FromDIP(wxSize(120,26)));
         this->SetSize(FromDIP(wxSize(120,26)));
         this->SetCornerRadius(this->FromDIP(4));
-    } else {
+    }
+    else if (type == ButtonType::Expanded) {
+        this->SetMinSize(FromDIP(wxSize(-1,32)));
+        this->SetPaddingSize(FromDIP(wxSize(12,8)));
         this->SetCornerRadius(this->FromDIP(4));
     }
     this->SetBorderWidth(this->FromDIP(1));
@@ -231,6 +231,12 @@ void Button::Rescale()
         this->inactive_icon.msw_rescale();
 
     messureSize();
+
+    // Requires C++17
+    std::optional<ButtonStyle> style;
+    std::optional<ButtonType> type;
+    if(style.has_value() && type.has_value())
+        SetStyle(m_style, m_type);
 }
 
 void Button::paintEvent(wxPaintEvent& evt)

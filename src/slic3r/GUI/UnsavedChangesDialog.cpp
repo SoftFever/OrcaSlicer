@@ -969,9 +969,9 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         *btn = new Button(this, _L(label));
 
         if (focus) { // ????
-            (*btn)->SetStyle("Confirm", "Choice");
+            (*btn)->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
         } else {
-            (*btn)->SetStyle("Regular", "Choice");
+            (*btn)->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
         }
 
         //(*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
@@ -1703,7 +1703,7 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     msw_buttons_rescale(this, em, { wxID_CANCEL, m_move_btn_id, m_continue_btn_id });
     for (auto btn : {m_transfer_btn, m_discard_btn, m_save_btn})
-        if (btn) btn->SetType("Choice"); // Rescale Button
+        if (btn) btn->Rescale();
 
     //m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
     const wxSize& size = wxSize(70 * em, 30 * em);
@@ -1935,7 +1935,7 @@ void DiffPresetDialog::create_buttons()
 
     // Transfer 
     m_transfer_btn = new Button(this, L("Transfer"));
-    m_transfer_btn->SetStyle("Confirm", "Choice");
+    m_transfer_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
 
     m_transfer_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Transfer);});
 
@@ -1971,14 +1971,14 @@ void DiffPresetDialog::create_buttons()
 
     // Cancel
     m_cancel_btn = new Button(this, L("Cancel"));
-    m_cancel_btn->SetStyle("Regular", "Choice");
+    m_cancel_btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Discard);});
 
     for (Button* btn : { m_transfer_btn, m_cancel_btn }) {
         btn->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { update_bottom_info(); Layout(); e.Skip(); });
         m_buttons->Add(btn, 1, wxLEFT, FromDIP(ButtonProps::ChoiceGap()));
-        btn->SetStyle("Regular", "Choice");
+        btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
     }
 
     m_buttons->Show(false);
@@ -2262,7 +2262,7 @@ void DiffPresetDialog::on_dpi_changed(const wxRect&)
 
     msw_buttons_rescale(this, em, {wxID_CANCEL});
     for (auto btn : {m_transfer_btn, m_cancel_btn})
-        if (btn) btn->SetType("Choice"); // Rescale Button
+        if (btn) btn->Rescale();
 
     const wxSize& size = wxSize(80 * em, 30 * em);
     SetMinSize(size);

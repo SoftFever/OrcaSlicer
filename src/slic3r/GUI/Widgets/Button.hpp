@@ -10,19 +10,19 @@ public:
     static int ChoiceGap();
 };
 
-enum class ButtonType{
-    None      = 0,
-    Compact   = 1,
-    Window    = 2,
-    Choice    = 3,
-    Parameter = 4,
-};
-
 enum class ButtonStyle{
     Regular   = 1,
     Confirm   = 2,
     Alert     = 3,
     Disabled  = 4,
+};
+
+enum class ButtonType{
+    Compact   = 1, // Font10  FullyRounded  For spaces with less areas
+    Window    = 2, // Font12  FullyRounded  For regular buttons in windows and not related with parameter boxes
+    Choice    = 3, // Font14  Semi-Rounded  For dialog/window choice buttons
+    Parameter = 4, // Font14  Semi-Rounded  For buttons that near parameter boxes
+    Expanded  = 5, // Font14  Semi-Rounded  For full length buttons. ex. buttons in static box
 };
 
 class Button : public StaticBox
@@ -62,11 +62,9 @@ public:
     
     void SetPaddingSize(const wxSize& size);
 
-    //void SetStyle(const ButtonStyle style = ButtonStyle::Regular, const ButtonType& type = ButtonType::None);
-    
-    void SetStyle(const wxString style /* Regular/Confirm/Alert/Disabled */, const wxString& type = "" /* Choice/Window/Parameter */);
-    
-    void SetType(const wxString size);
+    void SetStyle(const ButtonStyle style /*= ButtonStyle::Regular*/, const ButtonType type /*= ButtonType::None*/);
+
+    void SetType(const ButtonType type);
 
     void SetTextColor(StateColor const &color);
 
@@ -94,6 +92,9 @@ protected:
     bool AcceptsFocus() const override;
 
 private:
+    ButtonStyle m_style;
+    ButtonType  m_type;
+
     void paintEvent(wxPaintEvent& evt);
 
     void render(wxDC& dc);

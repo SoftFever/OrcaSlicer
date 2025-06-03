@@ -212,7 +212,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
 
     if (flags & wxRESET) {
         Button *calc_btn = new Button(this, _L("Auto-Calc"));
-        calc_btn->SetStyle("Confirm", "Choice");
+        calc_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
         calc_btn->SetFocus();
         calc_btn->SetId(wxID_RESET);
         btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
@@ -220,7 +220,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
     }
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
-        ok_btn->SetStyle("Confirm", "Choice");
+        ok_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
         btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
@@ -228,7 +228,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
     }
     if (flags & wxCANCEL) {
         Button* cancel_btn = new Button(this, _L("Cancel"));
-        cancel_btn->SetStyle("Regular", "Choice");
+        cancel_btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
         cancel_btn->SetId(wxID_CANCEL);
         btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
         m_button_list[wxCANCEL] = cancel_btn;
@@ -242,7 +242,7 @@ wxBoxSizer* WipingPanel::create_calc_btn_sizer(wxWindow* parent) {
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     Button* calc_btn = new Button(parent, _L("Re-calculate"));
-    calc_btn->SetStyle("Confirm", "Window");
+    calc_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
     calc_btn->SetFocus();
     btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
     calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { calc_flushing_volumes(); });
@@ -255,13 +255,13 @@ void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
     {
         if (button_item.first == wxRESET) 
         {
-            button_item.second->SetType("Choice"); // Rescale Button
+            button_item.second->Rescale();
         }
         if (button_item.first == wxOK) {
-            button_item.second->SetType("Choice"); // Rescale Button
+            button_item.second->Rescale();
         }
         if (button_item.first == wxCANCEL) {
-            button_item.second->SetType("Choice"); // Rescale Button
+            button_item.second->Rescale();
         }
     }
     m_panel_wiping->msw_rescale();

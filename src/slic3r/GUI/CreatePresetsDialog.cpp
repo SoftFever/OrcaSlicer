@@ -710,8 +710,8 @@ CreateFilamentPresetDialog::~CreateFilamentPresetDialog()
 
 void CreateFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
     
-    m_button_create->SetType("Choice"); // Rescale Button
-    m_button_cancel->SetType("Choice"); // Rescale Button
+    m_button_create->Rescale();
+    m_button_cancel->Rescale();
 
     Layout();
 }
@@ -1020,7 +1020,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
     m_button_create = new Button(this, _L("Create"));
-    m_button_create->SetStyle("Confirm", "Choice");
+    m_button_create->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     bSizer_button->Add(m_button_create, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
     m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
@@ -1182,7 +1182,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         });
 
     m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetStyle("Regular", "Choice");
+    m_button_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
     bSizer_button->Add(m_button_cancel, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
@@ -1606,11 +1606,11 @@ CreatePrinterPresetDialog::~CreatePrinterPresetDialog()
 }
 
 void CreatePrinterPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_button_OK->SetType("Choice");             // Rescale Button
-    m_button_create->SetType("Choice");         // Rescale Button
-    m_button_page1_cancel->SetType("Choice");   // Rescale Button
-    m_button_page2_cancel->SetType("Choice");   // Rescale Button
-    m_button_page2_back->SetType("Choice");     // Rescale Button
+    m_button_OK->Rescale();
+    m_button_create->Rescale();
+    m_button_page1_cancel->Rescale();
+    m_button_page2_cancel->Rescale();
+    m_button_page2_back->Rescale();
     Layout();
 }
 
@@ -1955,8 +1955,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_stl_item(wxWindow *parent)
     wxBoxSizer *hot_bed_stl_sizer = new wxBoxSizer(wxVERTICAL);
 
     m_button_bed_stl = new Button(parent, _L("Load..."));
-    m_button_bed_stl->SetStyle("Regular");
-    m_button_bed_stl->SetPaddingSize(wxSize(FromDIP(30), FromDIP(8))); // ????
+    m_button_bed_stl->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
     m_button_bed_stl->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e) { load_model_stl(); }));
 
     hot_bed_stl_sizer->Add(m_button_bed_stl, 0, wxEXPAND | wxALL, 0);
@@ -1982,8 +1981,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_svg_item(wxWindow *parent)
     wxBoxSizer *hot_bed_stl_sizer = new wxBoxSizer(wxVERTICAL);
 
     m_button_bed_svg = new Button(parent, _L("Load..."));
-    m_button_bed_svg->SetStyle("Regular");
-    m_button_bed_svg->SetPaddingSize(wxSize(FromDIP(30), FromDIP(8))); //????
+    m_button_bed_svg->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
     m_button_bed_svg->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_texture(); }));
 
     hot_bed_stl_sizer->Add(m_button_bed_svg, 0, wxEXPAND | wxALL, 0);
@@ -2022,7 +2020,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
     m_button_OK = new Button(parent, _L("OK"));
-    m_button_OK->SetStyle("Confirm", "Choice");
+    m_button_OK->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     bSizer_button->Add(m_button_OK, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
     m_button_OK->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
@@ -2032,7 +2030,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
         });
 
     m_button_page1_cancel = new Button(parent, _L("Cancel"));
-    m_button_page1_cancel->SetStyle("Regular", "Choice");
+    m_button_page1_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
     bSizer_button->Add(m_button_page1_cancel, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
     m_button_page1_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
@@ -2586,13 +2584,13 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
     m_button_page2_back = new Button(parent, _L("Back Page 1"));
-    m_button_page2_back->SetStyle("Regular", "Choice");
+    m_button_page2_back->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
     bSizer_button->Add(m_button_page2_back, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
     m_button_page2_back->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { show_page1(); });
 
     m_button_create = new Button(parent, _L("Create"));
-    m_button_create->SetStyle("Confirm", "Choice");
+    m_button_create->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     bSizer_button->Add(m_button_create, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
     m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
@@ -2841,7 +2839,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
         });
 
     m_button_page2_cancel = new Button(parent, _L("Cancel"));
-    m_button_page2_cancel->SetStyle("Regular", "Choice");
+    m_button_page2_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     bSizer_button->Add(m_button_page2_cancel, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
@@ -3295,7 +3293,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
         break;
     }
 
-    m_button_ok->SetStyle("Confirm", "Choice");
+    m_button_ok->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     btn_sizer->Add(m_button_ok, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this, sync_user_preset_need_enabled](wxMouseEvent &e) {
@@ -3308,7 +3306,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     
     if (PRINTER == create_success_type || sync_user_preset_need_enabled) {
         m_button_cancel = new Button(this, _L("Cancel"));
-        m_button_cancel->SetStyle("Regular", "Choice");
+        m_button_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
         btn_sizer->Add(m_button_cancel, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
         m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
     }
@@ -3325,8 +3323,8 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
 CreatePresetSuccessfulDialog::~CreatePresetSuccessfulDialog() {}
 
 void CreatePresetSuccessfulDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_button_ok->SetType("Choice");
-    m_button_cancel->SetType("Choice");
+    m_button_ok->Rescale();
+    m_button_cancel->Rescale();
     Layout();
 }
 
@@ -3408,8 +3406,8 @@ ExportConfigsDialog::~ExportConfigsDialog()
 }
 
 void ExportConfigsDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_button_ok->SetType("Choice");
-    m_button_cancel->SetType("Choice");
+    m_button_ok->Rescale();
+    m_button_cancel->Rescale();
     Layout();
 }
 
@@ -4061,7 +4059,7 @@ wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
     m_button_ok = new Button(this, _L("OK"));
-    m_button_ok->SetStyle("Confirm", "Choice");
+    m_button_ok->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     bSizer_button->Add(m_button_ok, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
@@ -4102,7 +4100,7 @@ wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
         });
 
     m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetStyle("Regular", "Choice");
+    m_button_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
     bSizer_button->Add(m_button_cancel, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
@@ -4304,9 +4302,9 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, Filamentinf
 EditFilamentPresetDialog::~EditFilamentPresetDialog() {}
 
 void EditFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_add_filament_btn->SetType("Window");
-    m_del_filament_btn->SetType("Choice");
-    m_ok_btn->SetType("Choice");
+    m_add_filament_btn->Rescale();
+    m_del_filament_btn->Rescale();
+    m_ok_btn->Rescale();
     Layout();
 }
 
@@ -4544,7 +4542,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_add_filament_btn()
 {
     wxBoxSizer *add_filament_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_add_filament_btn                 = new Button(this, _L("+ Add Preset"));
-    m_add_filament_btn->SetStyle("Regular", "Window");
+    m_add_filament_btn->SetStyle(ButtonStyle::Regular, ButtonType::Window);
 
     add_filament_btn_sizer->Add(m_add_filament_btn, 0, wxEXPAND | wxALL, FromDIP(10));
 
@@ -4588,14 +4586,14 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
     wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
 
     m_del_filament_btn = new Button(this, _L("Delete Filament"));
-    m_del_filament_btn->SetStyle("Alert", "Choice");
+    m_del_filament_btn->SetStyle(ButtonStyle::Alert, ButtonType::Choice);
 
     bSizer_button->Add(m_del_filament_btn, 0, wxLEFT | wxBOTTOM, FromDIP(ButtonProps::ChoiceGap()));
 
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
     m_ok_btn = new Button(this, _L("OK"));
-    m_ok_btn->SetStyle("Confirm", "Choice");
+    m_ok_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
 
     bSizer_button->Add(m_ok_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(ButtonProps::ChoiceGap()));
 
@@ -4685,8 +4683,8 @@ CreatePresetForPrinterDialog::CreatePresetForPrinterDialog(wxWindow *parent, std
 CreatePresetForPrinterDialog::~CreatePresetForPrinterDialog() {}
 
 void CreatePresetForPrinterDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_ok_btn->SetType("Choice"); //reapply size
-    m_cancel_btn->SetType("Choice"); // reapply size
+    m_ok_btn->Rescale();
+    m_cancel_btn->Rescale();
     Layout();
 }
 
@@ -4783,11 +4781,11 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
     m_ok_btn = new Button(this, _L("OK"));
-    m_ok_btn->SetStyle("Confirm", "Choice");
+    m_ok_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     bSizer_button->Add(m_ok_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(ButtonProps::ChoiceGap()));
 
     m_cancel_btn = new Button(this, _L("Cancel"));
-    m_cancel_btn->SetStyle("Regular", "Choice");
+    m_cancel_btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
     bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(ButtonProps::ChoiceGap()));
 
     m_ok_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
@@ -4907,17 +4905,17 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     sizer->Add(0, 0, 1, wxEXPAND, 0);
 
     Button *edit_preset_btn = new Button(panel, _L("Edit Preset")); 
-    edit_preset_btn->SetStyle("Regular", "Compact");
+    edit_preset_btn->SetStyle(ButtonStyle::Regular, ButtonType::Compact);
     //edit_preset_btn->Hide();
     sizer->Add(edit_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     sizer->Add(0, 0, 0, wxLEFT, 5);
 
     Button *del_preset_btn = new Button(panel, _L("Delete Preset"));
-    del_preset_btn->SetStyle("Regular", "Compact");
+    del_preset_btn->SetStyle(ButtonStyle::Regular, ButtonType::Compact);
     if (base_id_error) {
-        del_preset_btn->SetStyle("Confirm", "Compact"); // ????
+        del_preset_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact); // ????
     } else {
-        del_preset_btn->SetStyle("Regular", "Compact"); // ????
+        del_preset_btn->SetStyle(ButtonStyle::Regular, ButtonType::Compact); // ????
     }
     
     //del_preset_btn->Hide();
