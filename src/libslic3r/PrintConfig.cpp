@@ -4377,7 +4377,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Skirt loops");
     def->tooltip = L("Number of loops for the skirt. Zero means disabling skirt");
     def->min = 0;
-    def->max = 10;
+    def->max = 1000000;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
