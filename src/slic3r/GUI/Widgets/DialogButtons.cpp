@@ -28,10 +28,8 @@ DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_transla
     m_parent->Bind(wxEVT_DPI_CHANGED, &DialogButtons::on_dpi_changed, this);
 
     SetSizer(m_sizer);
-    Layout();
-    Fit();
 
-    DrawDialogButtons();
+    UpdateButtons();
 }
 
 DialogButtons::~DialogButtons() {
@@ -39,7 +37,7 @@ DialogButtons::~DialogButtons() {
 }
 
 void DialogButtons::on_dpi_changed(wxDPIChangedEvent& event) {
-    DrawDialogButtons();
+    UpdateButtons();
     event.Skip();
 }
 
@@ -159,7 +157,7 @@ void DialogButtons::SetAlertButton(wxString translated_label) {
     btn->SetTextColor(clr_tx);
 }
 
-void DialogButtons::DrawDialogButtons() {
+void DialogButtons::UpdateButtons() {
     m_sizer->Clear();
     SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
     // we won't need color definations after button style management
@@ -213,6 +211,9 @@ void DialogButtons::DrawDialogButtons() {
 
     SetPrimaryButton(m_primary);
     SetAlertButton(m_alert);
+
+    Layout();
+    Fit();
 }
 
 int DialogButtons::FromDIP(int d) {
