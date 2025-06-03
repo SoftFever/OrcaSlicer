@@ -4554,7 +4554,9 @@ wxWindow *EditFilamentPresetDialog::create_button_sizer()
     auto dlg_btns = new DialogButtons(this, {"Delete", "OK"});
 
     dlg_btns->GetButtonFromID(wxID_DELETE)->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
-        WarningDialog dlg(this, _L("All the filament presets belong to this filament would be deleted. \nIf you are using this filament on your printer, please reset the filament information for that slot."), _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
+        WarningDialog dlg(this, _L("All the filament presets belong to this filament would be deleted.\n"
+                                   "If you are using this filament on your printer, please reset the filament information for that slot."),
+                          _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
         int res = dlg.ShowModal();
         if (wxID_YES == res) {
             PresetBundle *preset_bundle = wxGetApp().preset_bundle;
