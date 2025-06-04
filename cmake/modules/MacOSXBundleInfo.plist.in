@@ -37,15 +37,6 @@
         <array>
           <string>orcaslicer</string>
         </array>
-      </dict>
-		<dict>
-        <key>CFBundleURLName</key>
-        <string>BambuStudio Downloads</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-          <string>bambustudioopen</string>
-        </array>
-      </dict>
     </array>
 	<key>CFBundleDocumentTypes</key>
 	<array>

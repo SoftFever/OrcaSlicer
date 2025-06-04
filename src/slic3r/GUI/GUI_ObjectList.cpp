@@ -557,7 +557,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         *non_manifold_edges = stats.open_edges;
 
     if (is_windows10() && !sidebar_info)
-        tooltip += "\n" + _L("Right click the icon to fix model object");
+        tooltip += "\n" + _L("Click the icon to repair model object");
 
     return { tooltip, get_warning_icon_name(stats) };
 }
@@ -4874,11 +4874,11 @@ bool ObjectList::check_last_selection(wxString& msg_str)
 
         if (m_selection_mode == smInstance) {
             msg_str = wxString::Format(_(L("Selection conflicts")) + "\n\n" +
-                _(L("If first selected item is an object, the second one should also be object.")) + "\n");
+                _(L("If the first selected item is an object, the second should also be an object.")) + "\n");
         }
         else {
             msg_str = wxString::Format(_(L("Selection conflicts")) + "\n\n" +
-                _(L("If first selected item is a part, the second one should be part in the same object.")) + "\n");
+                _(L("If the first selected item is a part, the second should be a part in the same object.")) + "\n");
         }
 
         // Unselect last selected item, if selection is without SHIFT

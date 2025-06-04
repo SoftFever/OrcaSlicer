@@ -306,7 +306,7 @@ void MediaPlayCtrl::Play()
 
     if (m_lan_proto <= MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto)) {
         Stop(m_lan_proto == MachineObject::LVL_None 
-            ? _L("Problem occurred. Please update the printer firmware and try again.")
+            ? _L("A problem occurred. Please update the printer firmware and try again.")
             : _L("LAN Only Liveview is off. Please turn on the liveview on printer screen."));
         return;
     }
@@ -378,7 +378,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
         else if (m_failed_code) {
             auto iter = error_messages.find(m_failed_code);
             auto msg2 = iter == error_messages.end()
-                ? _L("Please check the network and try again, You can restart or update the printer if the issue persists.")
+                ? _L("Please check the network and try again. You can restart or update the printer if the issue persists.")
                 : _L(iter->second.c_str());
             if (m_failed_code == 1) {
                 if (m_last_state == wxMEDIASTATE_PLAYING)
