@@ -15,11 +15,11 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
      winget install --id=Microsoft.VisualStudio.2022.Professional -e
      ```
    - Official download: [Visual Studio](https://visualstudio.microsoft.com/)
- - CMake (version > 3.14 and < 4.0; recommended: 3.31.6)
+ - CMake (version > 3.14 and < 4.0; recommended: 3.31.X)
    - ```shell
      winget install --id=Kitware.CMake -v "3.31.6" -e
      ```
-   - Github releases: [CMake 3.31.6](https://github.com/Kitware/CMake/releases/tag/v3.31.6)
+   - Github releases: [CMake 3.31.7](https://github.com/Kitware/CMake/releases/tag/v3.31.7)
  - Strawberry Perl.
    - ```shell
      winget install --id=StrawberryPerl.StrawberryPerl -e
@@ -45,6 +45,9 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
 
 ### Clone and Build
 
+  0. Make sure your Cmake Environment Variable is higher than Strawberry Perl Environment Variable.
+     - To check this, enter in your Environment Variables and look for `Path` in the System variables section.
+     - The CMake path `C:\Program Files\CMake\bin` should be before the Strawberry Perl path.
   1. Clone this repository:
      - If using GitHub Desktop clone the repository from the GUI.
      - If using the command line:
@@ -74,10 +77,18 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
 ### Tools needed:
  - Xcode
    - Official download: [Xcode](https://developer.apple.com/xcode/)
- - Cmake
-   - ```shell
-     brew install cmake
-     ```
+ - Cmake (version > 3.14 and < 4.0; recommended: 3.31.X)
+   - Homebrew currently only offers the latest version of CMake (e.g. **4.x**), which is not compatible. To install the required version **3.31.x**, follow these steps:
+    1. Download CMake from: [Github - CMake 3.31.7](https://github.com/Kitware/CMake/releases/tag/v3.31.7)
+    2. Install the application (drag it to `/Applications`).
+    3. Add the following line to your shell configuration file (`~/.zshrc` or `~/.bash_profile`):
+    ```shell
+    export PATH="/Applications/CMake.app/Contents/bin:$PATH"
+    ```
+    4. Restart the terminal and check the version and check if it is the one you just installed:
+    ```shell
+    cmake --version
+    ```
  - Git
    - ```shell
      brew install git
@@ -106,7 +117,7 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
 > [!Tip]
 > You can install most of them by running:
 > ```shell
-> brew install cmake gettext libtool automake autoconf texinfo
+> brew install gettext libtool automake autoconf texinfo
 > ```
 
 > [!IMPORTANT]
