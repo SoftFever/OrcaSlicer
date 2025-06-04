@@ -475,6 +475,8 @@ static std::string get_bed_temp_1st_layer_key(const BedType type)
     return "";
 }
 
+extern const std::vector<std::string> filament_extruder_override_keys;
+
 // for parse extruder_ams_count
 extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string> &strs);
 extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);

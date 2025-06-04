@@ -81,7 +81,16 @@ PresetBundle::PresetBundle()
     this->filaments.default_preset().compatible_printers_condition();
     this->filaments.default_preset().inherits();
     // Set all the nullable values to nils.
-    this->filaments.default_preset().config.null_nullables();
+    {
+        auto& default_config = this->filaments.default_preset().config;
+        for(const std::string& opt_key : default_config.keys()){
+            ConfigOption* opt = default_config.optptr(opt_key, false);
+            bool is_override_key = std::find(filament_extruder_override_keys.begin(),filament_extruder_override_keys.end(), opt_key) != filament_extruder_override_keys.end();
+            if(!is_override_key || !opt->nullable()) 
+                continue;
+            opt->deserialize("nil",ForwardCompatibilitySubstitutionRule::Disable);
+        }
+    }
 
     this->sla_materials.default_preset().config.optptr("sla_material_settings_id", true);
     this->sla_materials.default_preset().compatible_printers_condition();
@@ -902,6 +911,7 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         }
         if (inherit_preset) {
             new_config = inherit_preset->config;
+            new_config.apply(std::move(config));
         } else {
             // We support custom root preset now
             auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
@@ -913,8 +923,9 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
             // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
             const Preset &default_preset = collection->default_preset_for(config);
             new_config                   = default_preset.config;
+            new_config.apply(std::move(config));
+            extend_default_config_length(new_config, default_preset.config);
         }
-        new_config.apply(std::move(config));
 
         Preset &preset     = collection->load_preset(collection->path_from_name(name, inherit_preset == nullptr), name, std::move(new_config), false);
         if (key_values.find(BBL_JSON_KEY_FILAMENT_ID) != key_values.end())

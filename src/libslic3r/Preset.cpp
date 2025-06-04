@@ -152,6 +152,51 @@ static const std::unordered_map<std::string, std::string> pre_family_model_map {
     { "SL1",        "SL1" },
 }};
 
+
+// 中间版本兼容性处理，如果是nil值，先改成default值，再进行扩展
+void extend_default_config_length(DynamicPrintConfig& config, const DynamicPrintConfig& defaults)
+{
+    constexpr int default_param_length = 1;
+    int filament_variant_length = default_param_length;
+    int process_variant_length = default_param_length;
+    int machine_variant_length = default_param_length;
+
+    if(config.has("filament_extruder_variant"))
+        filament_variant_length = config.option<ConfigOptionStrings>("filament_extruder_variant")->size();
+    if(config.has("print_extruder_variant"))
+        process_variant_length = config.option<ConfigOptionStrings>("print_extruder_variant")->size();
+    if(config.has("printer_extruder_variant"))
+        machine_variant_length = config.option<ConfigOptionStrings>("printer_extruder_variant")->size();
+
+    auto replace_nil_and_resize = [&](const std::string & key, int length){
+        ConfigOption* raw_ptr = config.option(key);
+        ConfigOptionVectorBase* opt_vec = static_cast<ConfigOptionVectorBase *>(raw_ptr);
+        if(raw_ptr->is_nil() && defaults.has(key) && std::find(filament_extruder_override_keys.begin(), filament_extruder_override_keys.end(), key) == filament_extruder_override_keys.end()){
+            opt_vec->clear();
+            opt_vec->resize(length, defaults.option(key));
+        }
+        else{
+            opt_vec->resize(length, raw_ptr);
+        }
+    };
+
+    for(auto& key :config.keys()){
+        if(auto iter = print_options_with_variant.find(key); iter != print_options_with_variant.end()){
+            replace_nil_and_resize(key, process_variant_length);
+        }
+        else if(auto iter = filament_options_with_variant.find(key); iter != filament_options_with_variant.end()){
+            replace_nil_and_resize(key, filament_variant_length);
+        }
+        else if(auto iter = printer_options_with_variant_1.find(key); iter != printer_options_with_variant_1.end()){
+            replace_nil_and_resize(key, machine_variant_length);
+        }
+        else if(auto iter = printer_options_with_variant_2.find(key); iter != printer_options_with_variant_2.end()){
+            replace_nil_and_resize(key, machine_variant_length * 2);
+        }
+    }
+}
+
+
 VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem::path &path, bool load_all)
 {
     static const std::string printer_model_key = "printer_model:";
@@ -1265,6 +1310,7 @@ void PresetCollection::load_presets(
                         // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
                         preset.config = default_preset.config;
                         preset.config.apply(std::move(config));
+                        extend_default_config_length(preset.config, default_preset.config);
                     }
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " load preset: " << name << " and filament_id: " << preset.filament_id << " and base_id: " << preset.base_id;
 
@@ -1821,6 +1867,7 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             }
             // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
             new_config = default_preset.config;
+            extend_default_config_length(new_config, default_preset.config);
         }
         if (inherit_preset) {
             std::string extruder_id_name, extruder_variant_name;

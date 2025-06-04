@@ -54,6 +54,30 @@ namespace Slic3r {
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
 
+
+const std::vector<std::string> filament_extruder_override_keys = {
+    // floats
+    "filament_retraction_length", 
+    "filament_z_hop",
+    "filament_z_hop_types",
+    "filament_retract_lift_above",
+    "filament_retract_lift_below",
+    "filament_retract_lift_enforce",
+    "filament_retraction_speed",
+    "filament_deretraction_speed",
+    "filament_retract_restart_extra",
+    "filament_retraction_minimum_travel",
+    // BBS: floats
+    "filament_wipe_distance",
+    // bools
+    "filament_retract_when_changing_layer",
+    "filament_wipe",
+    // percents
+    "filament_retract_before_wipe",
+    "filament_long_retractions_when_cut",
+    "filament_retraction_distances_when_cut"
+};
+
 size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
 {
     if (filament_id < config.filament_map.size()) {
@@ -6408,21 +6432,12 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(85));
 
     // Declare retract values for filament profile, overriding the printer's extruder profile.
-    for (const char *opt_key : {
-        // floats
-        "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed", "retract_restart_extra", "retraction_minimum_travel",
-        // BBS: floats
-        "wipe_distance",
-        // bools
-        "retract_when_changing_layer", "wipe",
-        // percents
-        "retract_before_wipe",
-        "long_retractions_when_cut",
-        "retraction_distances_when_cut"
-        }) {
-        auto it_opt = options.find(opt_key);
+    for (auto& opt_key : filament_extruder_override_keys) {
+        const std::string filament_prefix = "filament_";
+        std::string extruder_raw_key = opt_key.substr(opt_key.find(filament_prefix) + filament_prefix.length());
+        auto it_opt = options.find(extruder_raw_key);
         assert(it_opt != options.end());
-        def = this->add_nullable(std::string("filament_") + opt_key, it_opt->second.type);
+        def = this->add_nullable(opt_key, it_opt->second.type);
         def->label 		= it_opt->second.label;
         def->full_label = it_opt->second.full_label;
         def->tooltip 	= it_opt->second.tooltip;
@@ -6433,10 +6448,10 @@ void PrintConfigDef::init_fff_params()
         def->min        = it_opt->second.min;
         def->max        = it_opt->second.max;
         //BBS: shown specific filament retract config because we hide the machine retract into comDevelop mode
-        if ((strcmp(opt_key, "retraction_length") == 0) ||
-            (strcmp(opt_key, "z_hop") == 0)||
-            (strcmp(opt_key, "long_retractions_when_cut") == 0)||
-            (strcmp(opt_key, "retraction_distances_when_cut") == 0))
+        if (opt_key =="filament_retraction_length"||
+            opt_key=="filament_z_hop" ||
+            opt_key== "filament_long_retractions_when_cut" ||
+            opt_key=="filament_retraction_distances_when_cut")
             def->mode       = comSimple;
         else
             def->mode       = comAdvanced;
@@ -7780,7 +7795,6 @@ size_t DynamicPrintConfig::get_parameter_size(const std::string& param_name, siz
         if (nozzle_volume_type_opt) {
             volume_type_size = nozzle_volume_type_opt->values.size();
         }
-        bool flag = (param_name == "nozzle_volume");
         if (printer_options_with_variant_1.count(param_name) > 0) {
             return extruder_nums * volume_type_size;
         }
