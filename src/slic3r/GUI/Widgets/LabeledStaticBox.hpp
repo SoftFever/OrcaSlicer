@@ -1,20 +1,19 @@
 #ifndef slic3r_GUI_LabeledStaticBox_hpp_
 #define slic3r_GUI_LabeledStaticBox_hpp_
 
-#include "libslic3r/Utils.hpp"
-#include <wx/settings.h>
-#include "slic3r/GUI/wxExtensions.hpp"
-#include "slic3r/GUI/Widgets/StateHandler.hpp"
-
-#include <wx/statbox.h>
-
-#include <wx/dcclient.h>
-#include <wx/dcgraph.h>
+#include <wx/window.h>
 #include <wx/dc.h>
+#include <wx/dcgraph.h>
+#include <wx/dcclient.h>
+#include <wx/dcbuffer.h>
+#include <wx/settings.h>
+#include <wx/statbox.h>
 #include <wx/pen.h>
 
-#include <wx/window.h>
+#include "libslic3r/Utils.hpp"
 
+#include "slic3r/GUI/wxExtensions.hpp"
+#include "slic3r/GUI/Widgets/StateHandler.hpp"
 
 class LabeledStaticBox : public wxStaticBox
 {
