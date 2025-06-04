@@ -321,7 +321,13 @@ Example:
 }
 ```
 
-## Run profile validator
+## Validate Profiles
+
+You can validate your profiles using both the **OrcaSlicer profile validator** and the **Python validation script**. These tools are designed to check different aspects of the profiles, so both should be executed and pass without errors to ensure full compatibility.
+
+**✅ Recommendation**: Always run **both** the OrcaSlicer validator and the Python script to ensure all aspects of the profiles are valid.
+
+### 1. OrcaSlicer Profile Validator
 
 You can run OrcaSlicer to verify if the filament you just added is available and usable. You can also use the [Orca profile validator](https://github.com/SoftFever/Orca_tools/releases/tag/1) tool to help debug any errors.
 
@@ -329,7 +335,7 @@ You can run OrcaSlicer to verify if the filament you just added is available and
 
 The process is the same if you want to add a new brand filament profile into the global library. You need to create a new file in the `resources\profiles\OrcaFilamentLibrary\filament\brand_name` folder. The only difference is that you should put the file into the brand's own subfolder.
 
-### Usage
+#### Usage
 
 ```
 -h [ --help ] help
@@ -338,13 +344,13 @@ The process is the same if you want to add a new brand filament profile into the
 -l [ --log_level ] arg (=2) Log level. Optional, default is 2 (warning). Higher values produce more detailed logs.
 ```
 
-### Example
+#### Example
 
 ```
 ./OrcaSlicer_profile_validator -p ~/codes/OrcaSlicer/resources/profiles -l 2 -v Custom
 ```
 
-### Sample result with errors
+#### Sample result with errors
 
 ```
 PS D:\codes\OrcaSlicer> ."D:/codes/OrcaSlicer/build/src/Release/OrcaSlicer_profile_validator.exe" --path d:\codes\OrcaSlicer\resources\profiles -l 2 -v Custom
@@ -353,11 +359,41 @@ PS D:\codes\OrcaSlicer> ."D:/codes/OrcaSlicer/build/src/Release/OrcaSlicer_profi
 Validation failed
 ```
 
-### Sample result with success
+#### Sample result with success
 
 ```
 PS D:\codes\OrcaSlicer\build\src\RelWithDebInfo> ."D:/codes/OrcaSlicer/build/src/Release/OrcaSlicer_profile_validator.exe" --path d:\codes\OrcaSlicer\resources\profiles -l 2 -v Custom
 Validation completed successfully
 ```
 
-**⚠️ NOTE 2**: Use `OrcaSlicer_profile_validator` on Ubuntu otherwise Use `OrcaSlicer_profile_validator.exe` on Windows
+**⚠️ NOTE 2**: Use `OrcaSlicer_profile_validator` on Ubuntu and `OrcaSlicer_profile_validator.exe` on Windows.
+
+---
+
+### 2. Python Profile Validation Script
+
+In addition to the Orca validator, you should run the `orca_extra_profile_check.py` script. This script performs additional checks like:
+
+- Validation of `compatible_printers` in filament profiles
+- Consistency of filament names
+- Validation of default materials in machine profiles (optional)
+
+#### Example command
+
+```bash
+python ./orca_extra_profile_check.py
+```
+
+You can also enable or disable specific checks:
+
+- `--vendor` (optional): checks only the specified vendor. If omitted, all vendors are checked.
+- `--check-filaments` (enabled by default): checks `compatible_printers` fields in filament profiles
+- `--check-materials`: checks default material names in machine profiles
+
+#### Sample usage with all checks enabled
+
+```bash
+python ./orca_extra_profile_check.py --vendor="vendor_name" --check-filaments --check-materials
+```
+
+The script will output the number of errors found and exit with a non-zero status code if any issues are detected.
