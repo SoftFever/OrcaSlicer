@@ -20,6 +20,8 @@
 #include "MsgDialog.hpp"
 #include "Plater.hpp"
 
+#include "Widgets/DialogButtons.hpp"
+
 #include "libslic3r/PlaceholderParser.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/Print.hpp"
@@ -98,10 +100,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
 
     m_param_description = new wxStaticText(this, wxID_ANY, wxEmptyString);
 
-    //Orca: use custom buttons
-    auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL);
-    for(auto btn : m_button_list)
-        wxGetApp().UpdateDarkUI(btn.second);
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -109,7 +108,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     topSizer->Add(grid_sizer          , 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_param_label       , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_param_description , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
-    topSizer->Add(btn_sizer                , 0, wxEXPAND | wxALL, border);
+    topSizer->Add(dlg_btns            , 0, wxEXPAND);
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
@@ -417,20 +416,6 @@ void EditGCodeDialog::bind_list_and_button()
 void EditGCodeDialog::on_dpi_changed(const wxRect&suggested_rect)
 {
     const int& em = em_unit();
-
-    //Orca: use custom buttons
-    for (auto button_item : m_button_list)
-    {
-        if (button_item.first == wxOK) {
-            button_item.second->SetMinSize(BTN_SIZE);
-            button_item.second->SetCornerRadius(FromDIP(12));
-        }
-        if (button_item.first == wxCANCEL) {
-            button_item.second->SetMinSize(BTN_SIZE);
-            button_item.second->SetCornerRadius(FromDIP(12));
-        }
-    }
-
     const wxSize& size = wxSize(45 * em, 35 * em);
     SetMinSize(size);
 
@@ -442,83 +427,6 @@ void EditGCodeDialog::on_sys_color_changed()
 {
     m_add_btn->msw_rescale();
 }
-
-//Orca
-wxBoxSizer* EditGCodeDialog::create_btn_sizer(long flags)
-{
-    auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    btn_sizer->AddStretchSpacer();
-
-    StateColor ok_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor ok_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor ok_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_bg(
-        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_bd_(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_text(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-
-
-    StateColor calc_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor calc_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-
-    if (flags & wxOK) {
-        Button* ok_btn = new Button(this, _L("OK"));
-        ok_btn->SetMinSize(BTN_SIZE);
-        ok_btn->SetCornerRadius(FromDIP(12));
-        ok_btn->SetBackgroundColor(ok_btn_bg);
-        ok_btn->SetBorderColor(ok_btn_bd);
-        ok_btn->SetTextColor(ok_btn_text);
-        ok_btn->SetFocus();
-        ok_btn->SetId(wxID_OK);
-        btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
-        m_button_list[wxOK] = ok_btn;
-    }
-    if (flags & wxCANCEL) {
-        Button* cancel_btn = new Button(this, _L("Cancel"));
-        cancel_btn->SetMinSize(BTN_SIZE);
-        cancel_btn->SetCornerRadius(FromDIP(12));
-        cancel_btn->SetBackgroundColor(cancel_btn_bg);
-        cancel_btn->SetBorderColor(cancel_btn_bd_);
-        cancel_btn->SetTextColor(cancel_btn_text);
-        cancel_btn->SetId(wxID_CANCEL);
-        btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP / 2);
-        m_button_list[wxCANCEL] = cancel_btn;
-    }
-
-    return btn_sizer;
-}
-
 
 const std::map<ParamType, std::string> ParamsInfo {
 //    Type                      BitmapName
