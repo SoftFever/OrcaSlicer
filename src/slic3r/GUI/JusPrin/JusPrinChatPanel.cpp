@@ -177,7 +177,7 @@ void JusPrinChatPanel::handle_init_server_url_and_redirect(const nlohmann::json&
         chat_server_url,
         current_language,
         isDeveloperMode ? "true" : "false");
-    WebView::RunScript(m_browser, strJS);
+    RunScriptInBrowser(strJS);
 }
 
 void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
