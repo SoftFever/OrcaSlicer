@@ -1266,10 +1266,6 @@
             "sub_path": "filament/Bambu PPA-CF @base.json"
         },
         {
-            "name": "Bambu PPA-GF @base",
-            "sub_path": "filament/Bambu PPA-GF @base.json"
-        },
-        {
             "name": "Generic PPA-CF @base",
             "sub_path": "filament/Generic PPA-CF @base.json"
         },
@@ -4480,18 +4476,6 @@
         {
             "name": "Bambu PPA-CF @BBL X1E",
             "sub_path": "filament/Bambu PPA-CF @BBL X1E.json"
-        },
-        {
-            "name": "Bambu PPA-GF @BBL H2D",
-            "sub_path": "filament/Bambu PPA-GF @BBL H2D.json"
-        },
-        {
-            "name": "Bambu PPA-GF @BBL X1C",
-            "sub_path": "filament/Bambu PPA-GF @BBL X1C.json"
-        },
-        {
-            "name": "Bambu PPA-GF @BBL X1E",
-            "sub_path": "filament/Bambu PPA-GF @BBL X1E.json"
         },
         {
             "name": "Generic PPA-CF @BBL H2D",
