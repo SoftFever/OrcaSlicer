@@ -423,7 +423,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
 
      auto m_sizer_status_text = new wxBoxSizer(wxHORIZONTAL);
-     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log in this printer with current account?"));
+     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log in to this printer with the current account?"));
      m_status_text->SetForegroundColour(wxColour(107, 107, 107));
      m_status_text->SetFont(::Label::Body_13);
      m_status_text->Wrap(-1);

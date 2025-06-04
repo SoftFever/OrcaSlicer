@@ -4,6 +4,7 @@
 #include "I18N.hpp"
 #include <wx/dcgraph.h>
 #include "MainFrame.hpp"
+#include "Widgets/DialogButtons.hpp"
 #include <string>
 
 namespace Slic3r { namespace GUI {
@@ -133,22 +134,13 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     sp_speed_sizer->Add(m_tiBMSpeeds , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     settings_sizer->Add(sp_speed_sizer, 0, wxLEFT, FromDIP(3));
 
-    settings_sizer->AddSpacer(FromDIP(5));
+    v_sizer->Add(settings_sizer);
+	v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
-    v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(5));
-    m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-		std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-		std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    auto dlg_btns = new DialogButtons(this, {"OK"});
+    v_sizer->Add(dlg_btns , 0, wxEXPAND);
 
-	m_btnStart->SetBackgroundColor(btn_bg_green);
-	m_btnStart->SetBorderColor(wxColour(0, 150, 136));
-	m_btnStart->SetTextColor(wxColour("#FFFFFE"));
-	m_btnStart->SetSize(wxSize(FromDIP(100), FromDIP(32)));
-	m_btnStart->SetMinSize(wxSize(FromDIP(100), FromDIP(32)));
-	m_btnStart->SetCornerRadius(FromDIP(3));
-	m_btnStart->Bind(wxEVT_BUTTON, &PA_Calibration_Dlg::on_start, this);
-	v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(10));
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &PA_Calibration_Dlg::on_start, this);
 
     PA_Calibration_Dlg::reset_params();
 
@@ -167,7 +159,6 @@ PA_Calibration_Dlg::~PA_Calibration_Dlg() {
     // Disconnect Events
     m_rbExtruderType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
     m_rbMethod->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PA_Calibration_Dlg::on_start), NULL, this);
 }
 
 void PA_Calibration_Dlg::reset_params() {
@@ -341,23 +332,15 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
 
     settings_sizer->AddSpacer(FromDIP(5));
 
-    v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(5));
-    m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
-    m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
-    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
-    m_btnStart->SetSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetMinSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetCornerRadius(FromDIP(3));
-    m_btnStart->Bind(wxEVT_BUTTON, &Temp_Calibration_Dlg::on_start, this);
-    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(10));
+    auto dlg_btns = new DialogButtons(this, {"OK"});
+    v_sizer->Add(dlg_btns , 0, wxEXPAND);
+
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Temp_Calibration_Dlg::on_start, this);
 
     m_rbFilamentType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(Temp_Calibration_Dlg::on_filament_type_changed), NULL, this);
-    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Temp_Calibration_Dlg::on_start), NULL, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -396,7 +379,6 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
 Temp_Calibration_Dlg::~Temp_Calibration_Dlg() {
     // Disconnect Events
     m_rbFilamentType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(Temp_Calibration_Dlg::on_filament_type_changed), NULL, this);
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Temp_Calibration_Dlg::on_start), NULL, this);
 }
 
 void Temp_Calibration_Dlg::on_start(wxCommandEvent& event) {
@@ -521,24 +503,13 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     vol_step_sizer->Add(m_tiStep     , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     settings_sizer->Add(vol_step_sizer, 0, wxLEFT, FromDIP(3));
 
-    settings_sizer->AddSpacer(FromDIP(5));
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
-    v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(5));
-    m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    auto dlg_btns = new DialogButtons(this, {"OK"});
+    v_sizer->Add(dlg_btns , 0, wxEXPAND);
 
-    m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
-    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
-    m_btnStart->SetSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetMinSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetCornerRadius(FromDIP(3));
-    m_btnStart->Bind(wxEVT_BUTTON, &MaxVolumetricSpeed_Test_Dlg::on_start, this);
-    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(10));
-
-    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MaxVolumetricSpeed_Test_Dlg::on_start), NULL, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &MaxVolumetricSpeed_Test_Dlg::on_start, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -548,7 +519,6 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
 
 MaxVolumetricSpeed_Test_Dlg::~MaxVolumetricSpeed_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MaxVolumetricSpeed_Test_Dlg::on_start), NULL, this);
 }
 
 void MaxVolumetricSpeed_Test_Dlg::on_start(wxCommandEvent& event) {
@@ -634,22 +604,13 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
 
     settings_sizer->AddSpacer(FromDIP(5));
 
-    v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(5));
-    m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
-    m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
-    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
-    m_btnStart->SetSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetMinSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetCornerRadius(FromDIP(3));
-    m_btnStart->Bind(wxEVT_BUTTON, &VFA_Test_Dlg::on_start, this);
-    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(10));
+    auto dlg_btns = new DialogButtons(this, {"OK"});
+    v_sizer->Add(dlg_btns , 0, wxEXPAND);
 
-    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(VFA_Test_Dlg::on_start), NULL, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &VFA_Test_Dlg::on_start, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -660,7 +621,6 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
 VFA_Test_Dlg::~VFA_Test_Dlg()
 {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(VFA_Test_Dlg::on_start), NULL, this);
 }
 
 void VFA_Test_Dlg::on_start(wxCommandEvent& event)
@@ -746,22 +706,13 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
 
     settings_sizer->AddSpacer(FromDIP(5));
 
-    v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(5));
-    m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
-    m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
-    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
-    m_btnStart->SetSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetMinSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetCornerRadius(FromDIP(3));
-    m_btnStart->Bind(wxEVT_BUTTON, &Retraction_Test_Dlg::on_start, this);
-    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(10));
+    auto dlg_btns = new DialogButtons(this, {"OK"});
+    v_sizer->Add(dlg_btns , 0, wxEXPAND);
 
-    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Retraction_Test_Dlg::on_start), NULL, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Retraction_Test_Dlg::on_start, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -771,7 +722,6 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
 
 Retraction_Test_Dlg::~Retraction_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Retraction_Test_Dlg::on_start), NULL, this);
 }
 
 void Retraction_Test_Dlg::on_start(wxCommandEvent& event) {
@@ -878,22 +828,13 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
 
     settings_sizer->AddSpacer(FromDIP(5));
 
-    v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(5));
-    m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
-    m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
-    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
-    m_btnStart->SetSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetMinSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetCornerRadius(FromDIP(3));
-    m_btnStart->Bind(wxEVT_BUTTON, &Input_Shaping_Freq_Test_Dlg::on_start, this);
-    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(10));
+    auto dlg_btns = new DialogButtons(this, {"OK"});
+    v_sizer->Add(dlg_btns , 0, wxEXPAND);
 
-    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Freq_Test_Dlg::on_start), NULL, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Input_Shaping_Freq_Test_Dlg::on_start, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -903,7 +844,6 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
 
 Input_Shaping_Freq_Test_Dlg::~Input_Shaping_Freq_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Freq_Test_Dlg::on_start), NULL, this);
 }
 
 void Input_Shaping_Freq_Test_Dlg::on_start(wxCommandEvent& event) {
@@ -1010,22 +950,13 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
 
     settings_sizer->AddSpacer(FromDIP(5));
 
-    v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(5));
-    m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
-    m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
-    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
-    m_btnStart->SetSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetMinSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetCornerRadius(FromDIP(3));
-    m_btnStart->Bind(wxEVT_BUTTON, &Input_Shaping_Damp_Test_Dlg::on_start, this);
-    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(10));
+    auto dlg_btns = new DialogButtons(this, {"OK"});
+    v_sizer->Add(dlg_btns , 0, wxEXPAND);
 
-    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Damp_Test_Dlg::on_start), NULL, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Input_Shaping_Damp_Test_Dlg::on_start, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -1035,7 +966,6 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
 
 Input_Shaping_Damp_Test_Dlg::~Input_Shaping_Damp_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Input_Shaping_Damp_Test_Dlg::on_start), NULL, this);
 }
 
 void Input_Shaping_Damp_Test_Dlg::on_start(wxCommandEvent& event) {
@@ -1135,24 +1065,13 @@ Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWin
     note_text->SetForegroundColour(wxColour(128, 128, 128));
     settings_sizer->Add(note_text, 0, wxALL, FromDIP(5));
 
-    settings_sizer->AddSpacer(FromDIP(5));
+    v_sizer->Add(settings_sizer);
+    v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
 
-    v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(5));
-    m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    auto dlg_btns = new DialogButtons(this, {"OK"});
+    v_sizer->Add(dlg_btns , 0, wxEXPAND);
 
-    m_btnStart->SetBackgroundColor(btn_bg_green);
-    m_btnStart->SetBorderColor(wxColour(0, 150, 136));
-    m_btnStart->SetTextColor(wxColour("#FFFFFE"));
-    m_btnStart->SetSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetMinSize(wxSize(FromDIP(100), FromDIP(32)));
-    m_btnStart->SetCornerRadius(FromDIP(3));
-    m_btnStart->Bind(wxEVT_BUTTON, &Junction_Deviation_Test_Dlg::on_start, this);
-    v_sizer->Add(m_btnStart, 0, wxALL | wxALIGN_RIGHT, FromDIP(10));
-
-    m_btnStart->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Junction_Deviation_Test_Dlg::on_start), NULL, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Junction_Deviation_Test_Dlg::on_start, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -1162,7 +1081,6 @@ Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWin
 
 Junction_Deviation_Test_Dlg::~Junction_Deviation_Test_Dlg() {
     // Disconnect Events
-    m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(Junction_Deviation_Test_Dlg::on_start), NULL, this);
 }
 
 void Junction_Deviation_Test_Dlg::on_start(wxCommandEvent& event) {

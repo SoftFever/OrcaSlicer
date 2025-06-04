@@ -25,7 +25,7 @@ static inline void show_notification_extruders_limit_exceeded()
         .plater()
         ->get_notification_manager()
         ->push_notification(NotificationType::MmSegmentationExceededExtrudersLimit, NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
-                            GUI::format(_L("Filament count exceeds the maximum number that painting tool supports. only the "
+                            GUI::format(_L("Filament count exceeds the maximum number that painting tool supports. Only the "
                                            "first %1% filaments will be available in painting tool."), GLGizmoMmuSegmentation::EXTRUDERS_LIMIT));
 }
 
