@@ -14,6 +14,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/Button.hpp
     GUI/Widgets/CheckBox.cpp
     GUI/Widgets/CheckBox.hpp
+    GUI/Widgets/DialogButtons.cpp
+    GUI/Widgets/DialogButtons.hpp
     GUI/Widgets/RadioBox.hpp
     GUI/Widgets/RadioBox.cpp
     GUI/Widgets/ProgressDialog.hpp
@@ -145,6 +147,8 @@ set(SLIC3R_GUI_SOURCES
     #GUI/Gizmos/GLGizmoFaceDetector.hpp
     GUI/Gizmos/GLGizmoMeasure.cpp
     GUI/Gizmos/GLGizmoMeasure.hpp
+    GUI/Gizmos/GLGizmoBrimEars.cpp
+    GUI/Gizmos/GLGizmoBrimEars.hpp
     GUI/Gizmos/GLGizmoAssembly.cpp
     GUI/Gizmos/GLGizmoAssembly.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
@@ -310,6 +314,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp
     GUI/SendSystemInfoDialog.hpp
+    GUI/StepMeshDialog.cpp
+    GUI/StepMeshDialog.hpp
     GUI/SurfaceDrag.cpp
     GUI/SurfaceDrag.hpp
     GUI/TextLines.cpp
@@ -567,6 +573,9 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/OAuthJob.hpp
     Utils/SimplyPrint.cpp
     Utils/SimplyPrint.hpp
+    Utils/ElegooLink.hpp
+    Utils/ElegooLink.cpp
+    Utils/WebSocketClient.hpp
 )
 
 if (WIN32)
@@ -588,6 +597,7 @@ if (APPLE)
             GUI/Mouse3DHandlerMac.mm
             GUI/InstanceCheckMac.mm
             GUI/InstanceCheckMac.h
+            GUI/GUI_UtilsMac.mm
             GUI/wxMediaCtrl2.mm
             GUI/wxMediaCtrl2.h
         )
@@ -616,7 +626,8 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal::cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+find_package(libnoise REQUIRED)
+target_link_libraries(libslic3r_gui libslic3r cereal::cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto noise::noise)
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)

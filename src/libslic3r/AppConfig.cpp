@@ -15,7 +15,6 @@
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
@@ -114,11 +113,6 @@ void AppConfig::set_defaults()
             set_bool("background_processing", false);
 #endif
 
-#ifdef SUPPORT_SHOW_DROP_PROJECT
-        if (get("show_drop_project_dialog").empty())
-            set_bool("show_drop_project_dialog", true);
-#endif
-
         if (get("drop_project_action").empty())
             set_bool("drop_project_action", true);
 
@@ -175,6 +169,9 @@ void AppConfig::set_defaults()
     if (get("use_perspective_camera").empty())
         set_bool("use_perspective_camera", true);
 
+    if (get("auto_perspective").empty())
+        set_bool("auto_perspective", false);
+
     if (get("use_free_camera").empty())
         set_bool("use_free_camera", false);
 
@@ -183,6 +180,9 @@ void AppConfig::set_defaults()
 
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
+
+    if (get("camera_orbit_mult").empty())
+        set("camera_orbit_mult", "1.0");
 
     if (get("zoom_to_mouse").empty())
         set_bool("zoom_to_mouse", false);
@@ -347,7 +347,11 @@ void AppConfig::set_defaults()
     if (get("mouse_wheel").empty()) {
         set("mouse_wheel", "0");
     }
-    
+
+    if (get(SETTING_PROJECT_LOAD_BEHAVIOUR).empty()) {
+        set(SETTING_PROJECT_LOAD_BEHAVIOUR, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT);
+    }
+
     if (get("max_recent_count").empty()) {
         set("max_recent_count", "18");
     }
@@ -405,6 +409,17 @@ void AppConfig::set_defaults()
     }
     if (get("print", "timelapse").empty()) {
         set_str("print", "timelapse", "1");
+    }
+
+    if (get("enable_step_mesh_setting").empty()) {
+        set_bool("enable_step_mesh_setting", true);
+    }
+    if (get("linear_defletion", "angle_defletion").empty()) {
+        set("linear_defletion", "0.003");
+        set("angle_defletion", "0.5");
+    }
+    if (get("is_split_compound").empty()) {
+        set_bool("is_split_compound", false);
     }
 
     // Remove legacy window positions/sizes
@@ -607,6 +622,19 @@ std::string AppConfig::load()
                 for (auto& j_model : it.value()) {
                     m_printer_settings[j_model["machine"].get<std::string>()] = j_model;
                 }
+            } else if (it.key() == "local_machines") {
+                for (auto m = it.value().begin(); m != it.value().end(); ++m) {
+                    const auto&    p = m.value();
+                    BBLocalMachine local_machine;
+                    local_machine.dev_id = m.key();
+                    if (p.contains("dev_name"))
+                        local_machine.dev_name = p["dev_name"].get<std::string>();
+                    if (p.contains("dev_ip"))
+                        local_machine.dev_ip = p["dev_ip"].get<std::string>();
+                    if (p.contains("printer_type"))
+                        local_machine.printer_type = p["printer_type"].get<std::string>();
+                    m_local_machines[local_machine.dev_id] = local_machine;
+                }
             } else {
                 if (it.value().is_object()) {
                     for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
@@ -783,6 +811,14 @@ void AppConfig::save()
     for (const auto& preset : m_printer_settings) {
         j["orca_presets"].push_back(preset.second);
     }
+    for (const auto& local_machine : m_local_machines) {
+        json m_json;
+        m_json["dev_name"]         = local_machine.second.dev_name;
+        m_json["dev_ip"]           = local_machine.second.dev_ip;
+        m_json["printer_type"]     = local_machine.second.printer_type;
+
+        j["local_machines"][local_machine.first] = m_json;
+    }
     boost::nowide::ofstream c;
     c.open(path_pid, std::ios::out | std::ios::trunc);
     c << std::setw(4) << j << std::endl;
@@ -791,7 +827,7 @@ void AppConfig::save()
     // WIN32 specific: The final "rename_file()" call is not safe in case of an application crash, there is no atomic "rename file" API
     // provided by Windows (sic!). Therefore we save a MD5 checksum to be able to verify file corruption. In addition,
     // we save the config file into a backup first before moving it to the final destination.
-    c << appconfig_md5_hash_line({j.dump(4)});
+    c << appconfig_md5_hash_line(j.dump(4));
 #endif
 
     c.close();

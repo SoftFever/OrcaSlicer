@@ -527,7 +527,8 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
-    void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "",wxString image_url="",std::vector<int> used_button=std::vector<int>());
+    void show_error_message(
+        MachineObject *obj, bool is_exist, wxString msg, std::string print_error_str = "", wxString image_url = "", std::vector<int> used_button = std::vector<int>());
     void error_info_reset();
     void show_recenter_dialog();
 

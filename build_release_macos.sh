@@ -39,7 +39,7 @@ while getopts ":dpa:snt:xbc:h" opt; do
         ;;
     h ) echo "Usage: ./build_release_macos.sh [-d]"
         echo "   -d: Build deps only"
-        echo "   -a: Set ARCHITECTURE (arm64 or x86_64)"
+        echo "   -a: Set ARCHITECTURE (arm64 or x86_64 or universal)"
         echo "   -s: Build slicer only"
         echo "   -n: Nightly build"
         echo "   -t: Specify minimum version of the target platform, default is 11.3"
@@ -57,8 +57,8 @@ done
 # Set defaults
 
 if [ -z "$ARCH" ]; then
-  ARCH="$(uname -m)"
-  export ARCH
+    ARCH="$(uname -m)"
+    export ARCH
 fi
 
 if [ -z "$BUILD_CONFIG" ]; then
@@ -107,10 +107,10 @@ echo
 # fi
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_BUILD_DIR="$PROJECT_DIR/build_$ARCH"
+PROJECT_BUILD_DIR="$PROJECT_DIR/build/$ARCH"
 DEPS_DIR="$PROJECT_DIR/deps"
-DEPS_BUILD_DIR="$DEPS_DIR/build_$ARCH"
-DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep_$ARCH"
+DEPS_BUILD_DIR="$DEPS_DIR/build/$ARCH"
+DEPS="$DEPS_BUILD_DIR/OrcaSlicer_deps"
 
 # Fix for Multi-config generators
 if [ "$SLICER_CMAKE_GENERATOR" == "Xcode" ]; then
@@ -120,89 +120,136 @@ else
 fi
 
 function build_deps() {
-    echo "Building deps..."
-    (
-        set -x
-        mkdir -p "$DEPS"
-        cd "$DEPS_BUILD_DIR"
-        if [ "1." != "$BUILD_ONLY". ]; then
-            cmake .. \
-                -G "${DEPS_CMAKE_GENERATOR}" \
-                -DDESTDIR="$DEPS" \
-                -DOPENSSL_ARCH="darwin64-${ARCH}-cc" \
-                -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
-                -DCMAKE_OSX_ARCHITECTURES:STRING="${ARCH}" \
-                -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
+    # iterate over two architectures: x86_64 and arm64
+    for _ARCH in x86_64 arm64; do
+        # if ARCH is universal or equal to _ARCH
+        if [ "$ARCH" == "universal" ] || [ "$ARCH" == "$_ARCH" ]; then
+
+            PROJECT_BUILD_DIR="$PROJECT_DIR/build/$_ARCH"
+            DEPS_BUILD_DIR="$DEPS_DIR/build/$_ARCH"
+            DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep"
+
+            echo "Building deps..."
+            (
+                set -x
+                mkdir -p "$DEPS"
+                cd "$DEPS_BUILD_DIR"
+                if [ "1." != "$BUILD_ONLY". ]; then
+                    cmake "${DEPS_DIR}" \
+                        -G "${DEPS_CMAKE_GENERATOR}" \
+                        -DDESTDIR="$DEPS" \
+                        -DOPENSSL_ARCH="darwin64-${_ARCH}-cc" \
+                        -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
+                        -DCMAKE_OSX_ARCHITECTURES:STRING="${_ARCH}" \
+                        -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
+                fi
+                cmake --build . --config "$BUILD_CONFIG" --target deps
+            )
         fi
-        cmake --build . --config "$BUILD_CONFIG" --target deps
-    )
+    done
 }
 
 function pack_deps() {
     echo "Packing deps..."
     (
         set -x
-        mkdir -p "$DEPS"
-        cd "$DEPS_BUILD_DIR"
-        tar -zcvf "OrcaSlicer_dep_mac_${ARCH}_$(date +"%Y%m%d").tar.gz" "OrcaSlicer_dep_$ARCH"
+        cd "$DEPS_DIR"
+        tar -zcvf "OrcaSlicer_dep_mac_${ARCH}_$(date +"%Y%m%d").tar.gz" "build"
     )
 }
 
 function build_slicer() {
-    echo "Building slicer..."
-    (
-        set -x
-        mkdir -p "$PROJECT_BUILD_DIR"
-        cd "$PROJECT_BUILD_DIR"
-        if [ "1." != "$BUILD_ONLY". ]; then
-            cmake .. \
-                -G "${SLICER_CMAKE_GENERATOR}" \
-                -DBBL_RELEASE_TO_PUBLIC=1 \
-                -DCMAKE_PREFIX_PATH="$DEPS/usr/local" \
-                -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" \
-                -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
-                -DCMAKE_MACOSX_RPATH=ON \
-                -DCMAKE_INSTALL_RPATH="${DEPS}/usr/local" \
-                -DCMAKE_MACOSX_BUNDLE=ON \
-                -DCMAKE_OSX_ARCHITECTURES="${ARCH}" \
-                -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
-        fi
-        cmake --build . --config "$BUILD_CONFIG" --target "$SLICER_BUILD_TARGET"
-    )
+    # iterate over two architectures: x86_64 and arm64
+    for _ARCH in x86_64 arm64; do
+        # if ARCH is universal or equal to _ARCH
+        if [ "$ARCH" == "universal" ] || [ "$ARCH" == "$_ARCH" ]; then
 
-    echo "Verify localization with gettext..."
-    (
-        cd "$PROJECT_DIR"
-        ./run_gettext.sh
-    )
+            PROJECT_BUILD_DIR="$PROJECT_DIR/build/$_ARCH"
+            DEPS_BUILD_DIR="$DEPS_DIR/build/$_ARCH"
+            DEPS="$DEPS_BUILD_DIR/OrcaSlicer_dep"
 
-    echo "Fix macOS app package..."
-    (
-        cd "$PROJECT_BUILD_DIR"
-        mkdir -p OrcaSlicer
-        cd OrcaSlicer
-        # remove previously built app
-        rm -rf ./OrcaSlicer.app
-        # fully copy newly built app
-        cp -pR "../src$BUILD_DIR_CONFIG_SUBDIR/OrcaSlicer.app" ./OrcaSlicer.app
-        # fix resources
-        resources_path=$(readlink ./OrcaSlicer.app/Contents/Resources)
-        rm ./OrcaSlicer.app/Contents/Resources
-        cp -R "$resources_path" ./OrcaSlicer.app/Contents/Resources
-        # delete .DS_Store file
-        find ./OrcaSlicer.app/ -name '.DS_Store' -delete
-    )
+            echo "Building slicer for $_ARCH..."
+            (
+                set -x
+            mkdir -p "$PROJECT_BUILD_DIR"
+            cd "$PROJECT_BUILD_DIR"
+            if [ "1." != "$BUILD_ONLY". ]; then
+                cmake "${PROJECT_DIR}" \
+                    -G "${SLICER_CMAKE_GENERATOR}" \
+                    -DBBL_RELEASE_TO_PUBLIC=1 \
+                    -DCMAKE_PREFIX_PATH="$DEPS/usr/local" \
+                    -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" \
+                    -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
+                    -DCMAKE_MACOSX_RPATH=ON \
+                    -DCMAKE_INSTALL_RPATH="${DEPS}/usr/local" \
+                    -DCMAKE_MACOSX_BUNDLE=ON \
+                    -DCMAKE_OSX_ARCHITECTURES="${_ARCH}" \
+                    -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
+            fi
+            cmake --build . --config "$BUILD_CONFIG" --target "$SLICER_BUILD_TARGET"
+        )
 
-    # extract version
-    # export ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
-    # ver="_V${ver//\"}"
-    # echo $PWD
-    # if [ "1." != "$NIGHTLY_BUILD". ];
-    # then
-    #     ver=${ver}_dev
-    # fi
+        echo "Verify localization with gettext..."
+        (
+            cd "$PROJECT_DIR"
+            ./run_gettext.sh
+        )
 
-    # zip -FSr OrcaSlicer${ver}_Mac_${ARCH}.zip OrcaSlicer.app
+        echo "Fix macOS app package..."
+        (
+            cd "$PROJECT_BUILD_DIR"
+            mkdir -p OrcaSlicer
+            cd OrcaSlicer
+            # remove previously built app
+            rm -rf ./OrcaSlicer.app
+            # fully copy newly built app
+            cp -pR "../src$BUILD_DIR_CONFIG_SUBDIR/OrcaSlicer.app" ./OrcaSlicer.app
+            # fix resources
+            resources_path=$(readlink ./OrcaSlicer.app/Contents/Resources)
+            rm ./OrcaSlicer.app/Contents/Resources
+            cp -R "$resources_path" ./OrcaSlicer.app/Contents/Resources
+            # delete .DS_Store file
+            find ./OrcaSlicer.app/ -name '.DS_Store' -delete
+        )
+
+        # extract version
+        # export ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+        # ver="_V${ver//\"}"
+        # echo $PWD
+        # if [ "1." != "$NIGHTLY_BUILD". ];
+        # then
+        #     ver=${ver}_dev
+        # fi
+
+        # zip -FSr OrcaSlicer${ver}_Mac_${_ARCH}.zip OrcaSlicer.app
+
+    fi
+    done
+}
+
+function build_universal() {
+    echo "Building universal binary..."
+
+    PROJECT_BUILD_DIR="$PROJECT_DIR/build/$ARCH"
+    
+    # Create universal binary
+    echo "Creating universal binary..."
+    # PROJECT_BUILD_DIR="$PROJECT_DIR/build_Universal"
+    mkdir -p "$PROJECT_BUILD_DIR/OrcaSlicer"
+    UNIVERSAL_APP="$PROJECT_BUILD_DIR/OrcaSlicer/OrcaSlicer.app"
+    rm -rf "$UNIVERSAL_APP"
+    cp -R "$PROJECT_DIR/build/arm64/OrcaSlicer/OrcaSlicer.app" "$UNIVERSAL_APP"
+    
+    # Get the binary path inside the .app bundle
+    BINARY_PATH="Contents/MacOS/OrcaSlicer"
+    
+    # Create universal binary using lipo
+    lipo -create \
+        "$PROJECT_DIR/build/x86_64/OrcaSlicer/OrcaSlicer.app/$BINARY_PATH" \
+        "$PROJECT_DIR/build/arm64/OrcaSlicer/OrcaSlicer.app/$BINARY_PATH" \
+        -output "$UNIVERSAL_APP/$BINARY_PATH"
+        
+    echo "Universal binary created at $UNIVERSAL_APP"
 }
 
 case "${BUILD_TARGET}" in
@@ -221,6 +268,10 @@ case "${BUILD_TARGET}" in
         exit 1
         ;;
 esac
+
+if [ "$ARCH" = "universal" ] && [ "$BUILD_TARGET" != "deps" ]; then
+    build_universal
+fi
 
 if [ "1." == "$PACK_DEPS". ]; then
     pack_deps

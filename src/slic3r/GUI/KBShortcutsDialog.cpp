@@ -201,7 +201,7 @@ void KBShortcutsDialog::fill_shortcuts()
 #else
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
 #endif // __APPLE
-            
+
             // Switch table page
             { ctrl + "Tab", L("Switch table page")},
             //DEL
@@ -222,8 +222,8 @@ void KBShortcutsDialog::fill_shortcuts()
             { "A", L("Arrange all objects") },
             { L("Shift+A"), L("Arrange objects on selected plates") },
 
-            //{ "R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project.") },
-            {L("Shift+R"), L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the current disk.")},
+            { "Q", L("Auto orients selected objects or all objects. If there are selected objects, it just orients the selected ones. Otherwise, it will orient all objects in the current project.") },
+            {L("Shift+Q"), L("Auto orients all objects on the active plate.")},
 
             {L("Shift+Tab"), L("Collapse/Expand the sidebar")},
             #ifdef __APPLE__
@@ -257,15 +257,19 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "Z", L("Undo")},
             {ctrl + "Y", L("Redo")},
             { "M", L("Gizmo move") },
-            { "S", L("Gizmo scale") },
             { "R", L("Gizmo rotate") },
+            { "S", L("Gizmo scale") },
+            { "F", L("Gizmo place face on bed") },
             { "C", L("Gizmo cut") },
-            { "F", L("Gizmo Place face on bed") },
+            { "B", L("Gizmo mesh boolean") },
             { "L", L("Gizmo SLA support points") },
             { "P", L("Gizmo FDM paint-on seam") },
-            { "T", L("Gizmo Text emboss / engrave")},
-            { "I", L("Zoom in")},
-            { "O", L("Zoom out")},
+            { "T", L("Gizmo text emboss/engrave") },
+            { "U", L("Gizmo measure") },
+            { "Y", L("Gizmo assemble") },
+            { "E", L("Gizmo brim ears") },
+            { "I", L("Zoom in") },
+            { "O", L("Zoom out") },
             { "Tab", L("Switch between Prepare/Preview") },
 
         };
@@ -286,7 +290,7 @@ void KBShortcutsDialog::fill_shortcuts()
 
         Shortcuts object_list_shortcuts = {
             {"1-9", L("Set extruder number for the objects and parts") },
-            {L("Del"), L("Delete objects, parts, modifiers  ")},
+            {L("Del"), L("Delete objects, parts, modifiers")},
             {L("Esc"), L("Deselect all")},
             {ctrl + "C", L("Copy to clipboard")},
             {ctrl + "V", L("Paste from clipboard")},
@@ -307,7 +311,7 @@ void KBShortcutsDialog::fill_shortcuts()
         { L("Arrow Left"),  L("Horizontal slider - Move active thumb Left")},
         { L("Arrow Right"), L("Horizontal slider - Move active thumb Right")},
         { "L", L("On/Off one layer mode of the vertical slider")},
-        { "C", L("On/Off g-code window")},
+        { "C", L("On/Off G-code window")},
         { "Tab", L("Switch between Prepare/Preview") },
         {L("Shift+Any arrow"), L("Move slider 5x faster")},
         {L("Shift+Mouse wheel"), L("Move slider 5x faster")},

@@ -1,5 +1,50 @@
 cmake_minimum_required(VERSION 3.13)
 
+# Verify that your CMake version is exactly 3.31.x series or lower on windows
+if ( ((MSVC) OR (WIN32)) AND (${CMAKE_VERSION} VERSION_GREATER_EQUAL "4.0") )
+    message(FATAL_ERROR "Only cmake versions between 3.13.x and 3.31.x is supported on windows. Detected version: ${CMAKE_VERSION}")
+endif()
+
+if (WIN32)
+    # Detect known CI environments
+    set(IS_CI FALSE)
+    if(DEFINED ENV{CI})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{GITHUB_ACTIONS})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{GITLAB_CI})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{TF_BUILD})
+        set(IS_CI TRUE)
+    elseif(DEFINED ENV{BUILD_NUMBER}) # Jenkins
+        set(IS_CI TRUE)
+    endif()
+
+    # Detect common misconfiguration (Strawberry Perl in PATH before CMake)
+    # We use ENV to check the PATH order
+    string(REPLACE "\\" "/" ENV_PATH "$ENV{PATH}")
+    string(FIND "${ENV_PATH}" "Strawberry/c/bin" STRAWBERRY_POS)
+    string(FIND "${ENV_PATH}" "Program Files/CMake/bin" CMAKE_POS)
+
+    if (STRAWBERRY_POS GREATER -1 AND CMAKE_POS GREATER -1 AND STRAWBERRY_POS LESS CMAKE_POS)
+        set(_warning_text "
+#############################################################
+Detected Strawberry Perl's 'c/bin' appearing before CMake in PATH.
+This is known to cause CMake to misbehave (e.g., missing modules).
+Please adjust your PATH so that:
+C:\\Program Files\\CMake\\bin
+appears before:
+C:\\Strawberry\\c\\bin
+You can do this in Environment Variables settings.
+#############################################################
+        ")
+
+        if(NOT IS_CI)
+            message(FATAL_ERROR "${_warning_text}")
+        endif()
+    endif()
+endif ()
+
 if (APPLE)
     # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
     if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
@@ -182,7 +227,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(NOT WIN32)
     # Add DEBUG flags to debug builds.
-    add_compile_options("$<$<CONFIG:DEBUG>:-DDEBUG>")
+    add_compile_definitions("$<IF:$<CONFIG:Debug>,DEBUG,NDEBUG>")
 endif()
 
 # To be able to link libslic3r with the Perl XS module.
@@ -309,7 +354,7 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-Wno-unknown-pragmas)
     endif()
 
-    # Bit of a hack for flatpak building: compress the debug info with zstd to save space in CI 
+    # Bit of a hack for flatpak building: compress the debug info with zstd to save space in CI
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 13.0)
         add_compile_options(-gz=zstd)
     endif()
@@ -430,7 +475,7 @@ endif()
 # set(Boost_COMPILER "-mgw81")
 # boost::process was introduced first in version 1.64.0,
 # boost::beast::detail::base64 was introduced first in version 1.66.0
-find_package(Boost 1.66 REQUIRED COMPONENTS system filesystem thread log log_setup locale regex chrono atomic date_time iostreams program_options)
+find_package(Boost 1.83.0 REQUIRED COMPONENTS system filesystem thread log log_setup locale regex chrono atomic date_time iostreams program_options nowide)
 
 add_library(boost_libs INTERFACE)
 add_library(boost_headeronly INTERFACE)
@@ -447,7 +492,7 @@ endif()
 function(slic3r_remap_configs targets from_Cfg to_Cfg)
     if(MSVC)
         string(TOUPPER ${from_Cfg} from_CFG)
-    
+
         foreach(tgt ${targets})
             if(TARGET ${tgt})
                 set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
@@ -574,7 +619,7 @@ add_custom_target(gettext_make_pot
     COMMAND xgettext --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --no-location --debug --boost
         -f "${BBL_L18N_DIR}/list.txt"
         -o "${BBL_L18N_DIR}/OrcaSlicer.pot"
-	COMMAND hintsToPot ${SLIC3R_RESOURCES_DIR} ${BBL_L18N_DIR}	
+	COMMAND hintsToPot ${SLIC3R_RESOURCES_DIR} ${BBL_L18N_DIR}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate pot file from strings in the source tree"
 )
@@ -734,7 +779,7 @@ function(orcaslicer_copy_dlls target config postfix output_dlls)
 
         PARENT_SCOPE
     )
-    
+
 endfunction()
 
 
@@ -774,7 +819,7 @@ endif()
 if (WIN32)
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "./resources")
     set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
-    include(InstallRequiredSystemLibraries) 
+    include(InstallRequiredSystemLibraries)
     install (PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ".")
 elseif (SLIC3R_FHS)
     # CMAKE_INSTALL_FULL_DATAROOTDIR: read-only architecture-independent data root (share)

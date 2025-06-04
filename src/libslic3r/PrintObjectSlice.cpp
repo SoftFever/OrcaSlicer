@@ -808,10 +808,11 @@ void PrintObject::slice()
     std::string warning = fix_slicing_errors(this, m_layers, [this](){ m_print->throw_if_canceled(); }, firstLayerReplacedBy);
     m_print->throw_if_canceled();
     //BBS: send warning message to slicing callback
-    if (!warning.empty()) {
-        BOOST_LOG_TRIVIAL(info) << warning;
-        this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingReplaceInitEmptyLayers);
-    }
+    // This warning is inaccurate, because the empty layers may have been replaced, or the model has supports.
+    //if (!warning.empty()) {
+    //    BOOST_LOG_TRIVIAL(info) << warning;
+    //    this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingReplaceInitEmptyLayers);
+    //}
 #endif
 
     // Detect and process holes that should be converted to polyholes
@@ -1048,7 +1049,7 @@ void PrintObject::slice_volumes()
             this->active_step_add_warning(
                 PrintStateBase::WarningLevel::CRITICAL,
                 L("An object's XY size compensation will not be used because it is also color-painted.\nXY Size "
-                  "compensation can not be combined with color-painting."));
+                  "compensation cannot be combined with color-painting."));
             BOOST_LOG_TRIVIAL(info) << "xy compensation will not work for object " << this->model_object()->name << " for multi filament.";
         }
 

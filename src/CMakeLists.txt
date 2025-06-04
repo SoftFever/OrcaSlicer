@@ -4,8 +4,6 @@ project(OrcaSlicer-native)
 add_subdirectory(build-utils)
 add_subdirectory(admesh)
 # add_subdirectory(avrdude)
-# boost/nowide
-add_subdirectory(boost)
 add_subdirectory(clipper)
 add_subdirectory(clipper2)
 add_subdirectory(miniz)
@@ -59,18 +57,11 @@ if (SLIC3R_GUI)
     include(${wxWidgets_USE_FILE})
 
     find_package(JPEG QUIET)
-    find_package(TIFF QUIET)
 
     string(REGEX MATCH "wxpng" WX_PNG_BUILTIN ${wxWidgets_LIBRARIES})
     if (PNG_FOUND AND NOT WX_PNG_BUILTIN)
         list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX png)
         list(APPEND wxWidgets_LIBRARIES ${PNG_LIBRARIES})
-    endif ()
-
-    string(REGEX MATCH "wxtiff" WX_TIFF_BUILTIN ${wxWidgets_LIBRARIES})
-    if (TIFF_FOUND AND NOT WX_TIFF_BUILTIN)
-        list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX tiff)
-        list(APPEND wxWidgets_LIBRARIES ${TIFF_LIBRARIES})
     endif ()
 
     string(REGEX MATCH "wxjpeg" WX_JPEG_BUILTIN ${wxWidgets_LIBRARIES})

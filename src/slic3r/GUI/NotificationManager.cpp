@@ -304,10 +304,10 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		bbl_render_left_sign(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
 		render_left_sign(imgui);
 		render_text(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
-		render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
         m_minimize_b_visible = false;
         if (m_multiline && m_lines_count > 3)
 			render_minimize_button(imgui, win_pos.x, win_pos.y);
+        render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y); // ORCA draw it after minimize button since its position related to minimize button
 	}
 	imgui.end();
 
@@ -1364,7 +1364,7 @@ void NotificationManager::URLDownloadNotification::render_pause_button_inner(ImG
 		button_text = m_is_dark ? (m_download_paused ? ImGui::PlayHoverDarkButton : ImGui::PauseHoverDarkButton) : (m_download_paused ? ImGui::PlayHoverButton : ImGui::PauseHoverButton);
 	}
 
-	ImVec2 button_pic_size = ImGui::CalcTextSize(boost::nowide::narrow(button_text).c_str());
+	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	ImGui::SetCursorPosX(win_size.x - m_line_height * 5.0f);
 	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
@@ -1405,7 +1405,7 @@ void NotificationManager::URLDownloadNotification::render_open_button_inner(ImGu
 		button_text = m_is_dark ? ImGui::OpenHoverDarkButton : ImGui::OpenHoverButton;
 	}
 
-	ImVec2 button_pic_size = ImGui::CalcTextSize(boost::nowide::narrow(button_text).c_str());
+	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	ImGui::SetCursorPosX(win_size.x - m_line_height * 5.0f);
 	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
@@ -2041,7 +2041,7 @@ void NotificationManager::set_simplify_suggestion_multiline(const ObjectID oid, 
 void NotificationManager::push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable)
 {
 	close_notification_of_type(NotificationType::ExportFinished);
-	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotificationLevel, on_removable ? 0 : 20,  _u8L("Export successfully.") + "\n" + path };
+	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotificationLevel, on_removable ? 0 : 20,  _u8L("Exported successfully") + "\n" + path };
 	push_notification_data(std::make_unique<NotificationManager::ExportFinishedNotification>(data, m_id_provider, m_evt_handler, on_removable, path, dir_path), 0);
 	set_slicing_progress_hidden();
 }
@@ -2932,7 +2932,8 @@ void NotificationManager::bbl_show_app_newversion_notification()
 
 void NotificationManager::bbl_show_need_support_on_notification()
 {
-    NotificationData data{NotificationType::BBLNeedSupportON, NotificationLevel::WarningNotificationLevel, 0,_u8L("Warning:") + "\n" + _u8L("Your model needs support ! Please make support material enable.")};
+    NotificationData data{NotificationType::BBLNeedSupportON, NotificationLevel::WarningNotificationLevel, 0,
+                          _u8L("Warning:") + "\n" + _u8L("Your model needs support! Please enable support material.")};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLNeedSupportON) {
@@ -2957,7 +2958,7 @@ void NotificationManager::bbl_close_need_support_on_notification()
 void NotificationManager::bbl_show_gcode_overlap_notification()
 {
     NotificationData data{NotificationType::BBLGcodeOverlap, NotificationLevel::WarningNotificationLevel, 0,
-                          _u8L("Warning:") + "\n" + _u8L("Gcode path overlap")};
+                          _u8L("Warning:") + "\n" + _u8L("G-code path overlap")};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLGcodeOverlap) {

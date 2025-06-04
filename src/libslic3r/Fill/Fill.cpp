@@ -64,6 +64,10 @@ struct SurfaceFillParams
 	float			top_surface_speed = 0;
 	float			solid_infill_speed = 0;
 
+    // Params for lattice infill angles
+    float lattice_angle_1 = 0.f;
+    float lattice_angle_2 = 0.f;
+
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
 #define RETURN_COMPARE_NON_EQUAL_TYPED(TYPE, KEY) if (TYPE(this->KEY) < TYPE(rhs.KEY)) return true; if (TYPE(this->KEY) > TYPE(rhs.KEY)) return false;
@@ -90,6 +94,8 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(sparse_infill_speed);
 		RETURN_COMPARE_NON_EQUAL(top_surface_speed);
 		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
+        RETURN_COMPARE_NON_EQUAL(lattice_angle_1);
+		RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
 
 		return false;
 	}
@@ -111,7 +117,9 @@ struct SurfaceFillParams
 				this->extrusion_role	== rhs.extrusion_role	&&
 				this->sparse_infill_speed	== rhs.sparse_infill_speed &&
 				this->top_surface_speed		== rhs.top_surface_speed &&
-				this->solid_infill_speed	== rhs.solid_infill_speed;
+				this->solid_infill_speed	== rhs.solid_infill_speed &&
+                this->lattice_angle_1		== rhs.lattice_angle_1 &&
+				this->lattice_angle_2	    == rhs.lattice_angle_2;
 	}
 };
 
@@ -611,6 +619,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
+                params.lattice_angle_1 = region_config.lattice_angle_1;
+                params.lattice_angle_2 = region_config.lattice_angle_2;
 
 		        if (surface.is_solid()) {
 		            params.density = 100.f;
@@ -953,6 +963,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.resolution        = resolution;
         params.use_arachne       = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipConcentricInternal;
         params.layer_height      = layerm->layer()->height;
+        params.lattice_angle_1   = surface_fill.params.lattice_angle_1; 
+        params.lattice_angle_2   = surface_fill.params.lattice_angle_2;
 
 		// BBS
 		params.flow = surface_fill.params.flow;
@@ -972,6 +984,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 				params.density = layerm->region().config().bridge_density.get_abs_value(1.0);
 				params.dont_adjust = true;
 			}
+            if(surface_fill.surface.is_internal_bridge()){
+                params.density = f->print_object_config->internal_bridge_density.get_abs_value(1.0);
+                params.dont_adjust = true;
+            }
 			// BBS: make fill
 			f->fill_surface_extrusion(&surface_fill.surface,
 				params,
@@ -1022,6 +1038,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipMonotonicLine:
         case ipAlignedRectilinear:
         case ipGrid:
+        case ip2DLattice:
         case ipTriangles:
         case ipStars:
         case ipCubic:
@@ -1076,6 +1093,8 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         params.resolution        = resolution;
         params.use_arachne       = false;
         params.layer_height      = layerm.layer()->height;
+        params.lattice_angle_1   = surface_fill.params.lattice_angle_1; 
+        params.lattice_angle_2   = surface_fill.params.lattice_angle_2; 
 
         for (ExPolygon &expoly : surface_fill.expolygons) {
             // Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
