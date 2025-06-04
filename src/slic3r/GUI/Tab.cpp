@@ -2378,6 +2378,7 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
 
         optgroup = page->new_optgroup(L("Special mode"), L"param_special");
         optgroup->append_single_option_line("slicing_mode");
+        optgroup->append_single_option_line("slicing_tolerance");
         optgroup->append_single_option_line("print_sequence", "sequent-print");
         optgroup->append_single_option_line("print_order");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
