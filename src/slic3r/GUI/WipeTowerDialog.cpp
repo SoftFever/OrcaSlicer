@@ -10,6 +10,7 @@
 #include "libslic3r/Color.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/StaticLine.hpp"
+#include "Widgets/DialogButtons.hpp"
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
@@ -66,12 +67,10 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_panel_ramming, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 5);
-    main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, 10);
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
+    main_sizer->Add(dlg_btns, 0, wxEXPAND);
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
-
-    update_ui(static_cast<wxButton*>(this->FindWindowById(wxID_OK, this)));
-    update_ui(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
 
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
 
