@@ -4899,14 +4899,21 @@ void Plater::priv::select_view(const std::string& direction)
 
 const VendorProfile::PrinterModel *Plater::get_curr_printer_model()
 {
-    auto                               bundle = wxGetApp().preset_bundle;
-    const Preset *                     curr   = &bundle->printers.get_selected_preset();
-    const VendorProfile::PrinterModel *pm     = PresetUtils::system_printer_model(*curr);
-    if (!pm) {
-        auto curr_parent = bundle->printers.get_selected_preset_parent();
-        pm               = PresetUtils::system_printer_model(*curr_parent);
+    auto bundle = wxGetApp().preset_bundle;
+    if (bundle) {
+        const Preset *curr = &bundle->printers.get_selected_preset();
+        if (curr) {
+            const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(*curr);
+            if (!pm) {
+                auto curr_parent = bundle->printers.get_selected_preset_parent();
+                if (curr_parent) {
+                    pm = PresetUtils::system_printer_model(*curr_parent);
+                }
+            }
+            return pm;
+        }
     }
-    return pm;
+    return nullptr;
 }
 
 wxColour Plater::get_next_color_for_filament()
