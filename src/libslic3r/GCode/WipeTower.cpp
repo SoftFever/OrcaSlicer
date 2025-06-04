@@ -1430,9 +1430,10 @@ TriangleMesh WipeTower::its_make_rib_tower(float width, float depth, float heigh
     Polygon      bottom = rib_section(width, depth, rib_length, rib_width, fillet_wall);
     Polygon      top    = rib_section(width, depth, std::sqrt(width * width + depth * depth), rib_width, fillet_wall);
     if (fillet_wall)
-    assert(bottom.points.size() == top.points.size());
+        assert(bottom.points.size() == top.points.size());
     int     offset       = bottom.points.size();
     res.its.vertices.reserve(offset * 2);
+    if (bottom.area() < scaled(EPSILON) || top.area() < scaled(EPSILON) || bottom.points.size() != top.points.size()) return res;
     auto    faces_bottom = Triangulation::triangulate(bottom);
     auto    faces_top    = Triangulation::triangulate(top);
     res.its.indices.reserve(offset * 2 + faces_bottom.size() + faces_top.size());
@@ -1455,6 +1456,7 @@ TriangleMesh WipeTower::its_make_rib_tower(float width, float depth, float heigh
 
 TriangleMesh WipeTower::its_make_rib_brim(const Polygon& brim, float layer_height) {
     TriangleMesh res;
+    if (brim.area() < scaled(EPSILON))return res;
     int          offset = brim.size();
     res.its.vertices.reserve(brim.size() * 2);
     auto    faces= Triangulation::triangulate(brim);
