@@ -188,7 +188,6 @@ public:
         STOP_BUZZER = 29,
 
         RETRY_PROBLEM_SOLVED = 34,
-        STOP_DRYING = 35,
 
         ERROR_BUTTON_COUNT
     };
