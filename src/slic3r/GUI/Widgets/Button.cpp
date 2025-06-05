@@ -156,9 +156,6 @@ wxString btn_disabled[9] = {"#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF
 
 void Button::SetStyle(const ButtonStyle style, const ButtonType type)
 {
-    m_style = style;
-    m_type  = type;
-
     this->SetFont( type == ButtonType::Compact ? Label::Body_10 :
                    type == ButtonType::Window  ? Label::Body_12 :
                                                  Label::Body_14
@@ -190,6 +187,10 @@ void Button::SetStyle(const ButtonStyle style, const ButtonType type)
         std::pair(wxColour(clr_arr[6]), (int)StateColor::Normal)
     ));
     this->SetType(type);
+
+    m_has_style = true;
+    m_style = style;
+    m_type  = type;
 }
 
 void Button::SetType(const ButtonType type)
@@ -231,10 +232,7 @@ void Button::Rescale()
 
     messureSize();
 
-    // Requires C++17
-    std::optional<ButtonStyle> style;
-    std::optional<ButtonType> type;
-    if(style.has_value() && type.has_value())
+    if(m_has_style)
         SetStyle(m_style, m_type);
 }
 

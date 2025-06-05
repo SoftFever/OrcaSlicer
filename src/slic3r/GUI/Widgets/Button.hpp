@@ -92,6 +92,7 @@ protected:
     bool AcceptsFocus() const override;
 
 private:
+    bool m_has_style = false;
     ButtonStyle m_style;
     ButtonType  m_type;
 
