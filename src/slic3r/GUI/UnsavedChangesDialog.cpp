@@ -968,14 +968,11 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
                                                                               bool focus, bool process_enable = true) {
         *btn = new Button(this, _L(label));
 
-        if (focus) { // ????
+        if (focus) {
             (*btn)->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
         } else {
             (*btn)->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
         }
-
-        //(*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
-        //(*btn)->SetMinSize(wxSize(-1,-1)); // ???? AutoFit?
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent &) {
             bool save_names_and_types = close_act == Action::Save || (close_act == Action::Transfer && ActionButtons::KEEP & m_buttons);
@@ -1978,7 +1975,6 @@ void DiffPresetDialog::create_buttons()
     for (Button* btn : { m_transfer_btn, m_cancel_btn }) {
         btn->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { update_bottom_info(); Layout(); e.Skip(); });
         m_buttons->Add(btn, 1, wxLEFT, FromDIP(ButtonProps::ChoiceGap()));
-        btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
     }
 
     m_buttons->Show(false);
@@ -2007,7 +2003,7 @@ void DiffPresetDialog::create_edit_sizer()
     // Create and fill edit sizer
     m_edit_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_edit_sizer->Add(m_use_for_transfer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-    m_edit_sizer->AddSpacer(em_unit() * 10);
+    m_edit_sizer->AddStretchSpacer();
     m_edit_sizer->Add(m_buttons, 1, wxLEFT, 5);
     m_edit_sizer->Show(false);
 }
