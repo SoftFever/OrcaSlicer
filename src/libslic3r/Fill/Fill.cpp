@@ -84,7 +84,7 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(angle);
 		RETURN_COMPARE_NON_EQUAL(rotate_angle);
 		RETURN_COMPARE_NON_EQUAL(density);
-        RETURN_COMPARE_NON_EQUAL(multiline); 
+		RETURN_COMPARE_NON_EQUAL(multiline);
 //		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
 		RETURN_COMPARE_NON_EQUAL(anchor_length_max);
@@ -112,8 +112,8 @@ struct SurfaceFillParams
 				this->bridge   			== rhs.bridge   		&&
 				this->bridge_angle 		== rhs.bridge_angle		&&
 				this->density   		== rhs.density   		&&
-                this->multiline         == rhs.multiline        &&
-               //				this->dont_adjust   	== rhs.dont_adjust 		&&
+				this->multiline         == rhs.multiline        &&
+//				this->dont_adjust   	== rhs.dont_adjust 		&&
 				this->anchor_length  	== rhs.anchor_length    &&
 				this->anchor_length_max == rhs.anchor_length_max &&
 				this->flow 				== rhs.flow 			&&
