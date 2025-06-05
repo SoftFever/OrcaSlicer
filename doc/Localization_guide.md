@@ -2,7 +2,7 @@
 
 The purpose of this guide is to describe how to contribute to the Orca Slicer translations. We use GNUgettext for extracting string resources from the project and PoEdit for editing translations.
 
-Those can be downloaded here: 
+Those can be downloaded here:
 -    https://sourceforge.net/directory/os:windows/?q=gnu+gettext GNUgettext package contains a set of tools to extract strings from the source code and to create the translation Catalog.
 -    https://poedit.net PoEdit provides good interface for the translators.
 
@@ -30,7 +30,7 @@ Notice. When the translation is complete you need to:
     - Click "Save file" button. OrcaSlicer_fr.mo will be created immediately
     - Bambu_Studio_fr.po needs to be copied into the sub-folder fr of https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n, and be pushed
 	- copy OrcaSlicer_xx.mo into resources/i18n/xx and rename it to OrcaSlicer.mo, then push the changed file.
-( name of folder "fr" means "French" - the translation language). 
+( name of folder "fr" means "French" - the translation language).
 
 ### Scenario 3. How do I add a new text resource when implementing a feature to Orca Slicer
 Each string resource in Orca Slicer available for translation needs to be explicitly marked using L() macro like this:
@@ -42,12 +42,12 @@ If you add new file resource, add it to the list of files containing macro `L()`
 
 ### Scenario 4. How do I use GNUgettext to localize my own application taking Orca Slicer as an example
 
-1.  For convenience create a list of files with this macro `L(s)`. We have 
+1.  For convenience create a list of files with this macro `L(s)`. We have
 https://github.com/softfever/OrcaSlicer/blob/master/localization/i18n/list.txt.
 
 2.  Create template file(*.POT) with GNUgettext command:
-    ```
-        xgettext --keyword=L --add-comments=TRN --from-code=UTF-8 --debug -o OrcaSlicer.pot -f list.txt
+    ```shell
+    xgettext --keyword=L --add-comments=TRN --from-code=UTF-8 --debug -o OrcaSlicer.pot -f list.txt
     ```
 
     Use flag `--from-code=UTF-8` to specify that the source strings are in UTF-8 encoding
@@ -56,19 +56,19 @@ https://github.com/softfever/OrcaSlicer/blob/master/localization/i18n/list.txt.
 3.  Create PO- and MO-files for your project as described above.
 
 4.  To merge old PO-file with strings from created new POT-file use command:
-    ```
-        msgmerge -N -o new.po old.po new.pot
+    ```shell
+    msgmerge -N -o new.po old.po new.pot
     ```
     Use option `-N` to not using fuzzy matching when an exact match is not found.
 
 5.  To concatenate old PO-file with strings from new PO-file use command:
-    ```
-        msgcat -o new.po old.po
+    ```shell
+    msgcat -o new.po old.po
     ```
 
 6.  Create an English translation catalog with command:
-    ```    
-        msgen -o new.po old.po
+    ```shell
+    msgen -o new.po old.po
     ```
     Notice, in this Catalog it will be totally same strings for initial text and translated.
 
@@ -85,8 +85,6 @@ When you have Catalog to translation open POT or PO file in PoEdit and start tra
 - If you see an encoding error (garbage characters instead of Unicode) somewhere in Orca Slicer, report it. It is likely not a problem of your translation, but a bug in the software.
 
 - See on which UI elements the translated phrase will be used. Especially if it's a button, it is very important to decide on the translation and not write alternative translations in parentheses, as this will significantly increase the width of the button, which is sometimes highly undesirable:
-
-![Long text on button](images/long_text_on_button.png)
 
 - If you decide to use autocorrect or any batch processing tool, the output requires very careful proofreading. It is very easy to make it do changes that break things big time.
 

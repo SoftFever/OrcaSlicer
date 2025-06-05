@@ -1,4 +1,4 @@
-WIP...
+# Seam
 
 ### Scarf joint seam
 WIP...
@@ -7,7 +7,11 @@ WIP...
 ![image](https://user-images.githubusercontent.com/103989404/215331359-236874c9-ca91-4dd4-b969-3cefc70ebe1b.png)
 
 ### Role-based wipe speed(auto)
+WIP...
+
 ### Wipe speed
+WIP...
+
 ### Wipe on loop(inward movement)
 ![image](https://user-images.githubusercontent.com/103989404/215334479-2687c518-1931-46a9-a363-7ae57a0aecf6.png)
 
