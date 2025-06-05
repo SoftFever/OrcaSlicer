@@ -886,25 +886,8 @@ Sidebar::Sidebar(Plater *parent)
     // add wiping dialog
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
     p->m_flushing_volume_btn = new Button(p->m_panel_filament_title, _L("Flushing volumes")); // ???? Match style with Global/Objects toggle on another commit
-    p->m_flushing_volume_btn->SetFont(Label::Body_10);
-    p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8), FromDIP(5)));
-    p->m_flushing_volume_btn->SetCornerRadius(FromDIP(12));
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Pressed), // ORCA
-                            std::pair<wxColour, int>(wxColour("#D4D4D4"), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Normal));
-    StateColor flush_br_col(std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour("#009688"), StateColor::Hovered), // Use orca color while its hovered / focused
-                            std::pair<wxColour, int>(wxColour("#D9D9D9"), StateColor::Normal));
-    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour("#262E30"), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour("#262E30"), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour("#262E30"), StateColor::Normal));
-    p->m_flushing_volume_btn->SetBackgroundColor(flush_bg_col);
-    p->m_flushing_volume_btn->SetBorderColor(flush_br_col);
-    p->m_flushing_volume_btn->SetTextColor(flush_fg_col);
-    p->m_flushing_volume_btn->SetFocus();
+    p->m_flushing_volume_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
     p->m_flushing_volume_btn->SetId(wxID_RESET);
-    p->m_flushing_volume_btn->Rescale();
-
     p->m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent &e)
         {
             auto& project_config = wxGetApp().preset_bundle->project_config;

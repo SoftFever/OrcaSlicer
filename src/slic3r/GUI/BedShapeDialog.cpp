@@ -396,8 +396,8 @@ wxPanel* BedShapePanel::init_model_panel()
         wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
-        wxStaticText* filename_lbl   = new wxStaticText(parent, wxID_ANY, _(NONE));
-        wxSizer*      filename_sizer = new wxBoxSizer(wxHORIZONTAL);
+        wxStaticText* filename_lbl = new wxStaticText(parent, wxID_ANY, _(NONE));
+        wxSizer* filename_sizer = new wxBoxSizer(wxHORIZONTAL);
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
         Button* remove_btn = new Button(parent, _L("Remove"));
