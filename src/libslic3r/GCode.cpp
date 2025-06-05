@@ -2415,7 +2415,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
         tool_ordering = print.tool_ordering();
-        tool_ordering.cal_most_used_extruder(print.config());
         tool_ordering.assign_custom_gcodes(print);
         if (tool_ordering.all_extruders().empty())
             // No object to print was found, cancel the G-code export.
@@ -2982,6 +2981,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 }
                 print.throw_if_canceled();
             }
+
+            tool_ordering.cal_most_used_extruder(print.config());
+
             // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
             // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
             // and export G-code into file.
@@ -6666,7 +6668,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
         //     if (used_external_mp_once) m_avoid_crossing_perimeters.reset_once_modifiers();
         // }
     }
-        
+
 
     // if needed, write the gcode_label_objects_end then gcode_label_objects_start
     m_writer.add_object_change_labels(gcode);
