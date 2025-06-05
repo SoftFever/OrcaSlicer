@@ -89,43 +89,11 @@ Explore the latest developments in Orca Slicer with our nightly builds. Feedback
 **Linux (Ubuntu)**:
  1. If you run into trouble executing it, try this command in the terminal:  
     `chmod +x /path_to_appimage/OrcaSlicer_Linux.AppImage`
-    
-# How to compile
-- Windows 64-bit  
-  - Tools needed: Visual Studio 2019, Cmake, git, git-lfs, Strawberry Perl.
-      - You will require cmake version 3.14 or later, which is available [on their website](https://cmake.org/download/).
-      - Strawberry Perl is [available on their GitHub repository](https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/).
-  - Run `build_release.bat` in `x64 Native Tools Command Prompt for VS 2019`
-  - Note: Don't forget to run `git lfs pull` after cloning the repository to download tools on Windows
+ 
+# How to Compile
+All updated build instructions for Windows, macOS, and Linux are now available on the official [OrcaSlicer Wiki - How to build](https://github.com/SoftFever/OrcaSlicer/wiki/How-to-build) page.
 
-- Mac 64-bit  
-  - Tools needed: Xcode, Cmake, git, gettext, libtool, automake, autoconf, texinfo
-      - You can install most of them by running `brew install cmake gettext libtool automake autoconf texinfo`
-      - If you haven't since upgrading Xcode, start Xcode and install macOS build support.
-  - run `build_release_macos.sh`
-  - open `build_arm64/OrcaSlicer/OrcaSlicer.app`
-  - To build and debug in Xcode:
-      - run `Xcode.app`
-      - open ``build_`arch`/OrcaSlicer.Xcodeproj``
-      - menu bar: Product => Scheme => OrcaSlicer
-      - menu bar: Product => Scheme => Edit Scheme...
-          - Run => Info tab => Build Configuration: `RelWithDebInfo`
-          - Run => Options tab => Document Versions: uncheck `Allow debugging when browsing versions`
-      - menu bar: Product => Run
-
-- Linux (All Distros)
-    - Docker
-        - Dependencies: Docker [Installation Instructions](https://www.docker.com/get-started/), git
-        - clone this repository `git clone https://github.com/SoftFever/OrcaSlicer`
-        - run `cd OrcaSlicer`
-        - run `./DockerBuild.sh`
-        - To run OrcaSlicer:
-            - run `./DockerRun.sh`
-                - For most common errors, open `DockerRun.sh` and read the comments.  
-    - Ubuntu 
-      - Dependencies **Will be auto installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
-      - run `sudo ./BuildLinux.sh -u`
-      - run `./BuildLinux.sh -dsi`
+Please refer to the wiki to ensure you're following the latest and most accurate steps for your platform.
 
 # Note: 
 If you're running Klipper, it's recommended to add the following configuration to your `printer.cfg` file.
