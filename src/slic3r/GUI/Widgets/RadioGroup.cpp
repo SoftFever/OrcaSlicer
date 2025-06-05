@@ -6,8 +6,6 @@ BEGIN_EVENT_TABLE(RadioGroup, wxPanel)
 
 EVT_TOGGLEBUTTON(wxID_ANY, RadioGroup::OnToggleClick)
 
-//EVT_KEY_DOWN(RadioGroup::OnKeyDown)
-
 END_EVENT_TABLE()
 
 /*
@@ -53,6 +51,11 @@ void RadioGroup::Create(
     int  cols       = (direction & wxHORIZONTAL) ? count : item_limit;
     wxFlexGridSizer* f_sizer = new wxFlexGridSizer(rows, cols, 0, 0);
 
+    AcceptsFocusFromKeyboard();
+    SetFocusIgnoringChildren();
+    Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {DrawFocus(); e.Skip();}));
+    Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {KillFocus(); e.Skip();}));
+
     for (int i = 0; i < item_count; ++i){
         auto rb = new wxBitmapToggleButton(this, wxID_ANY, m_off.bmp(), wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxNO_BORDER);
         rb->SetBitmapPressed(m_on.bmp());
@@ -62,16 +65,9 @@ void RadioGroup::Create(
         
         rb->SetSize(bmp_size);
         rb->SetMinSize(bmp_size);
+        rb->DisableFocusFromKeyboard();
+
         m_radioButtons.push_back(rb);
-        rb->Bind(wxEVT_SET_FOCUS,([this, i](wxFocusEvent e) {
-            DrawFocus(i);
-            e.Skip();
-        }));
-        rb->Bind(wxEVT_KILL_FOCUS,([this, i](wxFocusEvent e) {
-            KillFocus();
-            e.Skip();
-        }));
-        rb->Bind(wxEVT_KEY_DOWN, &RadioGroup::OnKeyDown, this);
 
         auto tx = new wxStaticText(this, wxID_ANY, " " + m_labels[i], wxDefaultPosition, wxDefaultSize);
         tx->SetForegroundColour(wxColour("#363636"));
@@ -110,6 +106,7 @@ void RadioGroup::OnToggleClick(wxCommandEvent& event)
     if (!sel)
         return;
 
+    SetFocus();
     int sel_index = -1;
     for (size_t i = 0; i < m_labels.size(); ++i){
         if (m_radioButtons[i] == sel){
@@ -118,15 +115,11 @@ void RadioGroup::OnToggleClick(wxCommandEvent& event)
         }
     }
     SetSelection(sel_index);
-
-    wxCommandEvent evt(wxEVT_COMMAND_RADIOBOX_SELECTED, GetId());
-    evt.SetInt(sel_index);
-    evt.SetString(m_labels[sel_index]);
-    GetEventHandler()->ProcessEvent(evt);
 }
 
 void RadioGroup::OnLabelClick(wxStaticText* sel)
 {
+    SetFocus();
     int sel_index = -1;
     for (size_t i = 0; i < m_labels.size(); ++i){
         if (m_labelButtons[i] == sel){
@@ -135,11 +128,6 @@ void RadioGroup::OnLabelClick(wxStaticText* sel)
         }
     }
     SetSelection(sel_index);
-
-    wxCommandEvent evt(wxEVT_COMMAND_RADIOBOX_SELECTED, GetId());
-    evt.SetInt(sel_index);
-    evt.SetString(m_labels[sel_index]);
-    GetEventHandler()->ProcessEvent(evt);
 }
 
 void RadioGroup::SetSelection(int index)
@@ -150,12 +138,14 @@ void RadioGroup::SetSelection(int index)
             auto rb = m_radioButtons[i];
             rb->SetValue(i == index);
             rb->SetBitmap(m_selectedIndex == i ? m_on.bmp() : m_off.bmp());
-            if(m_selectedIndex == i)
-                rb->AcceptsFocusFromKeyboard();
-            else
-                rb->DisableFocusFromKeyboard();
         }
-        Refresh();
+        if (HasFocus())
+            DrawFocus();
+
+        wxCommandEvent evt(wxEVT_COMMAND_RADIOBOX_SELECTED, GetId());
+        evt.SetInt(index);
+        evt.SetString(m_labels[index]);
+        GetEventHandler()->ProcessEvent(evt);
     }
 }
 
@@ -164,13 +154,11 @@ int RadioGroup::GetSelection()
     return m_selectedIndex; 
 }
 
-void RadioGroup::DrawFocus(int item)
+void RadioGroup::DrawFocus()
 {
-    auto rb = m_radioButtons[item];
-    auto tx = m_labelButtons[item];
     wxRect area = wxRect(
-        rb->GetRect().GetTopLeft(),
-        tx->GetRect().GetBottomRight()
+        m_radioButtons[m_selectedIndex]->GetRect().GetTopLeft(),
+        m_labelButtons[m_selectedIndex]->GetRect().GetBottomRight()
     );
     area.Inflate(1);
     area.y -= 3;
@@ -185,50 +173,16 @@ void RadioGroup::DrawFocus(int item)
 
 void RadioGroup::KillFocus()
 {
-    bool on_focus = false;
-    for (size_t i = 0; i < m_labels.size(); ++i){
-        if(m_radioButtons[i]->HasFocus()){
-            on_focus = true;
-            break;
-        }
-    }
-    if(!on_focus){
-        // this->Refresh();
-        wxClientDC dc(this);
-        dc.Clear();
-    }
+    wxClientDC dc(this);
+    dc.Clear();
 }
 
-void RadioGroup::OnKeyDown(wxKeyEvent& event)
+void RadioGroup::SelectNext(bool focus)
 {
-    //if (!dynamic_cast<wxBitmapToggleButton*>(event.GetEventObject())){
-    //    event.Skip();
-    //    return;
-    //}
-    int i = -1;
-    for (auto btn : m_radioButtons){
-        i++;
-        if(btn->HasFocus())
-            break;
-    }
-    int key = event.GetKeyCode();
-    int cnt = m_radioButtons.size();
-    if(key == WXK_LEFT || key == WXK_UP ){
-        int nav_to = i - 1 < 0 ? (cnt - 1) : i - 1;
-        SetSelection(nav_to);
-        m_radioButtons[nav_to]->SetFocus();
-    }
-    else if(key == WXK_RIGHT || key == WXK_DOWN ){
-        int nav_to = i + 1 > (cnt - 1) ? 0 : i + 1;
-        SetSelection(nav_to);
-        m_radioButtons[nav_to]->SetFocus();
-    }
-    else if (key == WXK_TAB){
-        event.Skip();
-        return;
-    }
-    event.StopPropagation();
-        //case WXK_RETURN:
-        //case WXK_SPACE:
+    SetSelection(m_selectedIndex + 1 > (m_radioButtons.size() - 1) ? 0 : m_selectedIndex + 1);
 }
 
+void RadioGroup::SelectPrevious(bool focus)
+{
+    SetSelection(m_selectedIndex - 1 < 0 ? (m_radioButtons.size() - 1) : m_selectedIndex - 1);
+}

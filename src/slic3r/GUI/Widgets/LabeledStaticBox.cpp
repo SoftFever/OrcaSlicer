@@ -68,6 +68,7 @@ bool LabeledStaticBox::Create(
     SetBackgroundColour(background_color.colorForStates(state_handler.states()));
     SetForegroundColour(      text_color.colorForStates(state_handler.states()));
     SetBorderColor(         border_color.colorForStates(state_handler.states()));
+    SetCanFocus(false);
     return true;
 }
 

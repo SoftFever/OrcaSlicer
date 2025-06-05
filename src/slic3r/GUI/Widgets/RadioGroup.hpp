@@ -44,17 +44,19 @@ public:
     int  GetSelection();
 
     void SetSelection(int index);
+
+    void SelectNext(bool focus = true);
+
+    void SelectPrevious(bool focus = true);
     
 private:
     void OnToggleClick(wxCommandEvent& event);
 
     void OnLabelClick(wxStaticText* sel);
 
-    void DrawFocus(int item);
+    void DrawFocus();
 
     void KillFocus();
-
-    void OnKeyDown(wxKeyEvent& event);
 
     wxDECLARE_EVENT_TABLE();
 };

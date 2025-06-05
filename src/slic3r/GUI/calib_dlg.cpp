@@ -149,6 +149,28 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     m_rbExtruderType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
     m_rbMethod->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     this->Connect(wxEVT_SHOW, wxShowEventHandler(PA_Calibration_Dlg::on_show));
+    this->Bind(wxEVT_CHAR_HOOK, ([this](wxKeyEvent&e){
+        int  k = e.GetKeyCode();
+        bool is_next  = (k == WXK_DOWN || k == WXK_RIGHT);
+        bool is_prev  = (k == WXK_LEFT || k == WXK_UP);
+        bool is_arrow = is_next || is_prev;
+
+        if (m_rbExtruderType->HasFocus())
+        {
+            if      (is_next) m_rbExtruderType->SelectNext();
+            else if (is_prev) m_rbExtruderType->SelectPrevious();
+            e.Skip(!is_arrow);
+        }
+        else if (m_rbMethod->HasFocus())
+        {
+            if      (is_next) m_rbMethod->SelectNext();
+            else if (is_prev) m_rbMethod->SelectPrevious();
+            e.Skip(!is_arrow);
+        }
+        else{
+            e.Skip();
+        }
+	}));
     
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -342,6 +364,22 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Temp_Calibration_Dlg::on_start, this);
 
     m_rbFilamentType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(Temp_Calibration_Dlg::on_filament_type_changed), NULL, this);
+    this->Bind(wxEVT_CHAR_HOOK, ([this](wxKeyEvent&e){
+        int  k = e.GetKeyCode();
+        bool is_next  = (k == WXK_DOWN || k == WXK_RIGHT);
+        bool is_prev  = (k == WXK_LEFT || k == WXK_UP);
+        bool is_arrow = is_next || is_prev;
+
+        if (m_rbFilamentType->HasFocus())
+        {
+            if      (is_next) m_rbFilamentType->SelectNext();
+            else if (is_prev) m_rbFilamentType->SelectPrevious();
+            e.Skip(!is_arrow);
+        }
+        else{
+            e.Skip();
+        }
+	}));
 
     wxGetApp().UpdateDlgDarkUI(this);
 
