@@ -2,20 +2,6 @@
 #include "Label.hpp"
 #include "StateColor.hpp"
 
-BEGIN_EVENT_TABLE(RadioGroup, wxPanel)
-
-EVT_TOGGLEBUTTON(wxID_ANY, RadioGroup::OnToggleClick)
-
-END_EVENT_TABLE()
-
-/*
-TODO
--select with Keyboard navigation
--m_on_hover
--Scaling
--disable - enable
-*/
-
 RadioGroup::RadioGroup(
         wxWindow* parent,
         const std::vector<wxString>& labels,
@@ -31,6 +17,7 @@ RadioGroup::RadioGroup(
           m_selectedIndex(0)
 {
     Create(parent, labels, direction, row_col_limit);
+    
 }
 
 void RadioGroup::Create(
@@ -57,39 +44,19 @@ void RadioGroup::Create(
     Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {KillFocus(); e.Skip();}));
 
     for (int i = 0; i < item_count; ++i){
-        auto rb = new wxBitmapToggleButton(this, wxID_ANY, m_off.bmp(), wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxNO_BORDER);
-        rb->SetBitmapPressed(m_on.bmp());
-        rb->SetBitmapHover(m_off_hover.bmp()); // only works on non selected items
-        rb->SetBitmapDisabled(m_disabled.bmp());
-        rb->SetBackgroundColour(bg);
-        
-        rb->SetSize(bmp_size);
-        rb->SetMinSize(bmp_size);
-        rb->DisableFocusFromKeyboard();
-
+        auto rb = new wxStaticBitmap(this, wxID_ANY, m_off.bmp(), wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxNO_BORDER);
         m_radioButtons.push_back(rb);
+        rb->Bind(wxEVT_LEFT_DOWN   ,([this, i](wxMouseEvent e) {OnClick(i)            ; e.Skip();}));
+        rb->Bind(wxEVT_ENTER_WINDOW,([this, i](wxMouseEvent e) {SetRadioIcon(i, true) ; e.Skip();}));
+        rb->Bind(wxEVT_LEAVE_WINDOW,([this, i](wxMouseEvent e) {SetRadioIcon(i, false); e.Skip();}));
 
         auto tx = new wxStaticText(this, wxID_ANY, " " + m_labels[i], wxDefaultPosition, wxDefaultSize);
         tx->SetForegroundColour(wxColour("#363636"));
         tx->SetFont(Label::Body_14);
         m_labelButtons.push_back(tx);
-        tx->Bind(wxEVT_LEFT_DOWN,([this, tx](wxMouseEvent e) {
-            if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
-            OnLabelClick(tx);
-            e.Skip();
-        }));
-        tx->Bind(wxEVT_LEFT_DCLICK,([this, tx](wxMouseEvent e) {
-            OnLabelClick(tx);
-            e.Skip();
-        }));
-        tx->Bind(wxEVT_ENTER_WINDOW,([this, i](wxMouseEvent e) {
-            m_radioButtons[i]->SetBitmap(m_selectedIndex == i ? m_on_hover.bmp() : m_off_hover.bmp());
-            e.Skip();
-        }));
-        tx->Bind(wxEVT_LEAVE_WINDOW,([this, i](wxMouseEvent e) {
-            m_radioButtons[i]->SetBitmap(m_selectedIndex == i ? m_on.bmp() : m_off.bmp());
-            e.Skip();
-        }));
+        tx->Bind(wxEVT_LEFT_DOWN   ,([this, i](wxMouseEvent e) {OnClick(i)            ; e.Skip();}));
+        tx->Bind(wxEVT_ENTER_WINDOW,([this, i](wxMouseEvent e) {SetRadioIcon(i, true) ; e.Skip();}));
+        tx->Bind(wxEVT_LEAVE_WINDOW,([this, i](wxMouseEvent e) {SetRadioIcon(i, false); e.Skip();}));
 
         wxBoxSizer* radio_sizer = new wxBoxSizer(wxHORIZONTAL);
         radio_sizer->Add(rb, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 1);
@@ -100,45 +67,18 @@ void RadioGroup::Create(
     SetSizer(f_sizer);
 }
 
-void RadioGroup::OnToggleClick(wxCommandEvent& event)
-{
-    wxBitmapToggleButton* sel = dynamic_cast<wxBitmapToggleButton*>(event.GetEventObject());
-    if (!sel)
-        return;
-
-    SetFocus();
-    int sel_index = -1;
-    for (size_t i = 0; i < m_labels.size(); ++i){
-        if (m_radioButtons[i] == sel){
-            sel_index = static_cast<int>(i);
-            break;
-        }
-    }
-    SetSelection(sel_index);
-}
-
-void RadioGroup::OnLabelClick(wxStaticText* sel)
+void RadioGroup::OnClick(int i)
 {
     SetFocus();
-    int sel_index = -1;
-    for (size_t i = 0; i < m_labels.size(); ++i){
-        if (m_labelButtons[i] == sel){
-            sel_index = static_cast<int>(i);
-            break;
-        }
-    }
-    SetSelection(sel_index);
+    SetSelection(i);
 }
 
 void RadioGroup::SetSelection(int index)
 {
     if (index >= 0 && index < static_cast<int>(m_labels.size())){
         m_selectedIndex = index;
-        for (size_t i = 0; i < m_labels.size(); ++i){
-            auto rb = m_radioButtons[i];
-            rb->SetValue(i == index);
-            rb->SetBitmap(m_selectedIndex == i ? m_on.bmp() : m_off.bmp());
-        }
+        for (size_t i = 0; i < m_labels.size(); ++i)
+            SetRadioIcon(i, HasFocus() && i == m_selectedIndex);
         if (HasFocus())
             DrawFocus();
 
@@ -185,4 +125,10 @@ void RadioGroup::SelectNext(bool focus)
 void RadioGroup::SelectPrevious(bool focus)
 {
     SetSelection(m_selectedIndex - 1 < 0 ? (m_radioButtons.size() - 1) : m_selectedIndex - 1);
+}
+
+void RadioGroup::SetRadioIcon(int i, bool hover)
+{
+    auto icon = m_selectedIndex == i ? (hover ? m_on_hover : m_on) : (hover ? m_off_hover : m_off);
+    m_radioButtons[i]->SetBitmap(icon.bmp());
 }

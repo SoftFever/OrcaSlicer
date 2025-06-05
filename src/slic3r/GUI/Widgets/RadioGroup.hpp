@@ -3,7 +3,6 @@
 
 #include "../wxExtensions.hpp"
 
-#include <wx/tglbtn.h>
 #include <wx/wx.h>
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
@@ -13,16 +12,6 @@
 
 class RadioGroup : public wxPanel
 {
-    std::vector<wxString>              m_labels;
-    std::vector<wxBitmapToggleButton*> m_radioButtons;
-    std::vector<wxStaticText*>         m_labelButtons;
-    
-    int m_selectedIndex;
-    ScalableBitmap m_on;
-    ScalableBitmap m_off;
-    ScalableBitmap m_on_hover;
-    ScalableBitmap m_off_hover;
-    ScalableBitmap m_disabled;
 
 public:
     RadioGroup();
@@ -50,15 +39,24 @@ public:
     void SelectPrevious(bool focus = true);
     
 private:
-    void OnToggleClick(wxCommandEvent& event);
+    std::vector<wxString>        m_labels;
+    std::vector<wxStaticBitmap*> m_radioButtons;
+    std::vector<wxStaticText*>   m_labelButtons;
 
-    void OnLabelClick(wxStaticText* sel);
+    int m_selectedIndex;
+    ScalableBitmap m_on;
+    ScalableBitmap m_off;
+    ScalableBitmap m_on_hover;
+    ScalableBitmap m_off_hover;
+    ScalableBitmap m_disabled;
+
+    void OnClick(int i);
 
     void DrawFocus();
 
     void KillFocus();
 
-    wxDECLARE_EVENT_TABLE();
+    void SetRadioIcon(int i, bool hover);
 };
 
 #endif // !slic3r_GUI_RADIOGROUP_hpp_
