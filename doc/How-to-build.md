@@ -77,7 +77,7 @@ cmake --version
    ```
 3. Open the application:
    ```sh
-   open build_arm64/OrcaSlicer/OrcaSlicer.app
+   open build/arm64/OrcaSlicer/OrcaSlicer.app  
    ```
 
 ### Debugging in Xcode
@@ -85,7 +85,7 @@ To build and debug directly in Xcode:
 
 1. Open the Xcode project:
    ```sh
-   open build_`arch`/OrcaSlicer.Xcodeproj
+   open build/arm64/OrcaSlicer.xcodeproj
    ```
 2. In the menu bar:
    - **Product > Scheme > OrcaSlicer**
