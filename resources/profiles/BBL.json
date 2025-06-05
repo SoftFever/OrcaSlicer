@@ -6480,6 +6480,26 @@
         {
             "name": "fdm_filament_dual_common",
             "sub_path": "filament/fdm_filament_dual_common.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL H2 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Translucent @BBL H2 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 85A @BBL H2 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU 85A @BBL H2 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 85A @BBL H2 0.8 nozzle",
+            "sub_path": "filament/Bambu TPU 85A @BBL H2 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL H2 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @BBL H2 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL H2 0.8 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @BBL H2 0.8 nozzle.json"
         }
     ],
     "machine_list": [

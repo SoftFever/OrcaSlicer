@@ -22,8 +22,5 @@
     ],
     "compatible_printers": [
         "Bambu Lab H2 0.2 nozzle"
-    ],
-    "filament_long_retractions_when_cut": [
-        "0"
     ]
 }

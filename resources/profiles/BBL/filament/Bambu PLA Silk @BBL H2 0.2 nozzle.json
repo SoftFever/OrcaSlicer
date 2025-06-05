@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSA05_09",
     "instantiation": "true",
-    "description": "To make the prints get higher gloss, please dry the filament before use, and set the outer wall speed to be 40 to 60 mm/s when slicing.",
     "additional_cooling_fan_speed": [
         "75"
     ],
@@ -18,7 +17,13 @@
     "filament_start_gcode": [
         "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
     ],
-    "filament_long_retractions_when_cut": [
-        "0"
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1"
+    ],
+    "pre_start_fan_time": [
+        "2"
     ]
 }

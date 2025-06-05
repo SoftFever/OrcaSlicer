@@ -1,15 +1,12 @@
 {
     "type": "filament",
-    "name": "Bambu PLA Metal @BBL H2 0.2 nozzle",
-    "inherits": "Bambu PLA Metal @base",
+    "name": "Bambu PETG Translucent @BBL H2 0.2 nozzle",
+    "inherits": "Bambu PETG Translucent @base",
     "from": "system",
-    "setting_id": "GFSA02_09",
+    "setting_id": "GFSG01_28",
     "instantiation": "true",
-    "additional_cooling_fan_speed": [
-        "75"
-    ],
-    "filament_max_volumetric_speed": [
-        "2"
+    "slow_down_layer_time": [
+        "8"
     ],
     "compatible_printers": [
         "Bambu Lab H2 0.2 nozzle"
@@ -17,10 +14,11 @@
     "filament_start_gcode": [
         "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
     ],
-    "filament_ramming_volumetric_speed": [
-        "-1"
-    ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "filament_id": "GFG01",
+    "filament_max_volumetric_speed": [
+        "1"
     ]
 }

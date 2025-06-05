@@ -8,20 +8,36 @@
     "additional_cooling_fan_speed": [
         "75"
     ],
-    "fan_max_speed": [
-        "80"
-    ],
     "fan_min_speed": [
-        "60"
-    ],
-    "slow_down_layer_time": [
-        "10"
+        "80"
     ],
     "compatible_printers": [
         "Bambu Lab H2 0.4 nozzle",
-        "Bambu Lab H2 0.6 nozzle"
+        "Bambu Lab H2 0.6 nozzle",
+        "Bambu Lab H2 0.8 nozzle"
     ],
     "filament_long_retractions_when_cut": [
-        "0"
+        "nil"
+    ],
+    "filament_retraction_distances_when_cut": [
+        "nil"
+    ],
+    "filament_retraction_length": [
+        "0.4"
+    ],
+    "filament_wipe_distance": [
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1"
+    ],
+    "pre_start_fan_time": [
+        "2"
+    ],
+    "filament_wipe": [
+        "1"
     ]
 }

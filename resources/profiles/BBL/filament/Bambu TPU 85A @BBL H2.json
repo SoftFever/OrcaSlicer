@@ -21,11 +21,21 @@
         "Spiral Lift"
     ],
     "compatible_printers": [
-        "Bambu Lab H2 0.4 nozzle",
-        "Bambu Lab H2 0.6 nozzle",
-        "Bambu Lab H2 0.8 nozzle"
+        "Bambu Lab H2 0.4 nozzle"
     ],
-    "filament_long_retractions_when_cut": [
-        "0"
+    "additional_cooling_fan_speed": [
+        "100"
+    ],
+    "filament_wipe_distance": [
+        "1"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "0.55"
+    ],
+    "pre_start_fan_time": [
+        "2"
+    ],
+    "filament_wipe": [
+        "1"
     ]
 }

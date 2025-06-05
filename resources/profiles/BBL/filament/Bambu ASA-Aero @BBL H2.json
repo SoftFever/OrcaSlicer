@@ -13,7 +13,10 @@
         "Bambu Lab H2 0.6 nozzle",
         "Bambu Lab H2 0.8 nozzle"
     ],
-    "filament_long_retractions_when_cut": [
+    "filament_max_volumetric_speed": [
+        "6"
+    ],
+    "filament_z_hop": [
         "0"
     ]
 }

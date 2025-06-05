@@ -1,15 +1,15 @@
 {
     "type": "filament",
-    "name": "Bambu TPU 90A @BBL H2",
-    "inherits": "Bambu TPU 90A @base",
+    "name": "Bambu TPU 85A @BBL H2 0.6 nozzle",
+    "inherits": "Bambu TPU 85A @base",
     "from": "system",
-    "setting_id": "GFSU03_11",
+    "setting_id": "GFSU04_8",
     "instantiation": "true",
     "filament_deretraction_speed": [
         "10"
     ],
     "filament_max_volumetric_speed": [
-        "4"
+        "3"
     ],
     "filament_retraction_length": [
         "2"
@@ -21,7 +21,7 @@
         "Spiral Lift"
     ],
     "compatible_printers": [
-        "Bambu Lab H2 0.4 nozzle"
+        "Bambu Lab H2 0.6 nozzle"
     ],
     "additional_cooling_fan_speed": [
         "100"
@@ -29,11 +29,15 @@
     "filament_wipe_distance": [
         "1"
     ],
-    "filament_ramming_volumetric_speed": [
-        "0.7"
-    ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "filament_id": "GFU04",
+    "slow_down_for_layer_cooling": [
+        "0"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "0.55"
     ],
     "filament_wipe": [
         "1"

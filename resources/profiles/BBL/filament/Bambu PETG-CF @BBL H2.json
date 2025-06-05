@@ -14,14 +14,8 @@
     "fan_min_speed": [
         "5"
     ],
-    "filament_long_retractions_when_cut": [
-        "0"
-    ],
     "filament_max_volumetric_speed": [
         "11.5"
-    ],
-    "filament_retraction_distances_when_cut": [
-        "10"
     ],
     "overhang_fan_speed": [
         "100"

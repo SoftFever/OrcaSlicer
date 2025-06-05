@@ -22,8 +22,5 @@
     ],
     "filament_start_gcode": [
         "; filament start gcode\nM145 P1"
-    ],
-    "filament_long_retractions_when_cut": [
-        "0"
     ]
 }

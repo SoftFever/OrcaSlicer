@@ -21,8 +21,5 @@
         "Bambu Lab H2 0.4 nozzle",
         "Bambu Lab H2 0.6 nozzle",
         "Bambu Lab H2 0.8 nozzle"
-    ],
-    "filament_long_retractions_when_cut": [
-        "0"
     ]
 }

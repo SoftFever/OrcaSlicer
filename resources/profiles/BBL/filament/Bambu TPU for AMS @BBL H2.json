@@ -23,15 +23,15 @@
     "filament_retraction_speed": [
         "nil"
     ],
-    "slow_down_layer_time": [
-        "12"
-    ],
     "compatible_printers": [
         "Bambu Lab H2 0.4 nozzle",
         "Bambu Lab H2 0.6 nozzle",
         "Bambu Lab H2 0.8 nozzle"
     ],
-    "filament_long_retractions_when_cut": [
-        "0"
+    "filament_ramming_volumetric_speed": [
+        "4.5"
+    ],
+    "pre_start_fan_time": [
+        "2"
     ]
 }

@@ -5,15 +5,8 @@
     "from": "system",
     "setting_id": "GFSG01_08",
     "instantiation": "true",
-    "description": "To get better transparent or translucent results with the corresponding filament, please refer to this wiki: Printing tips for transparent PETG.",
-    "filament_long_retractions_when_cut": [
-        "0"
-    ],
-    "filament_retraction_distances_when_cut": [
-        "10"
-    ],
     "filament_retraction_length": [
-        "0.3"
+        "0.4"
     ],
     "slow_down_layer_time": [
         "8"
@@ -25,5 +18,20 @@
     ],
     "filament_start_gcode": [
         "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
+    ],
+    "filament_wipe_distance": [
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1"
+    ],
+    "pre_start_fan_time": [
+        "2"
+    ],
+    "filament_wipe": [
+        "1"
     ]
 }

@@ -11,14 +11,8 @@
     "fan_min_speed": [
         "20"
     ],
-    "filament_long_retractions_when_cut": [
-        "0"
-    ],
     "filament_max_volumetric_speed": [
         "1"
-    ],
-    "filament_retraction_distances_when_cut": [
-        "10"
     ],
     "overhang_fan_speed": [
         "100"
@@ -34,5 +28,17 @@
     ],
     "filament_start_gcode": [
         "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
+    ],
+    "fan_max_speed": [
+        "60"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "245"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1"
+    ],
+    "pre_start_fan_time": [
+        "2"
     ]
 }
