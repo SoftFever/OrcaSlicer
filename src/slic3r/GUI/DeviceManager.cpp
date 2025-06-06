@@ -3689,10 +3689,20 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 if (jj["command"].get<std::string>() == "ams_change_filament") {
                     if (jj.contains("errno")) {
                         if (jj["errno"].is_number()) {
-                            if (jj["errno"].get<int>() == -2) {
-                                wxString text = _L("The current chamber temperature or the target chamber temperature exceeds 45\u2103. " /* 45°C */
-                                                   "In order to avoid extruder clogging, low temperature filament (PLA/PETG/TPU) is not allowed to be loaded.");
-                                GUI::wxGetApp().push_notification(this, text);
+                            if (jj.contains("soft_temp")) {
+                                int soft_temp = jj["soft_temp"].get<int>();
+                                if (jj["errno"].get<int>() == -2) {
+                                    wxString text = wxString::Format(_L("The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d\u2103. You may open the front door or enable fans to cool down."), soft_temp);
+                                    GUI::wxGetApp().push_notification(this, text);
+                                } else if (jj["errno"].get<int>() == -4) {
+                                    wxString text = wxString::Format(_L("AMS temperature is too high, which may cause the filament to soften. Please wait until the AMS temperature drops below %d\u2103."), soft_temp);
+                                    GUI::wxGetApp().push_notification(this, text);
+                                }
+                            } else {
+                                if (jj["errno"].get<int>() == -2) {
+                                    wxString text = _L("The current chamber temperature or the target chamber temperature exceeds 45\u2103. In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded.");
+                                    GUI::wxGetApp().push_notification(this, text);
+                                }
                             }
                         }
                     }
