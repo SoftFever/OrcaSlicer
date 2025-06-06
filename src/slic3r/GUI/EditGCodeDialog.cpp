@@ -819,6 +819,9 @@ ParamsViewCtrl::ParamsViewCtrl(wxWindow *parent, wxSize size)
 {
     wxGetApp().UpdateDVCDarkUI(this);
 
+    SetDoubleBuffered(true);
+    SetFont(wxGetApp().code_font());
+
     model = new ParamsModel();
     this->AssociateModel(model);
     model->SetAssociatedControl(this);
