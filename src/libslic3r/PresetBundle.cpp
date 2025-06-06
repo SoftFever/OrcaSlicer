@@ -924,7 +924,7 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
             const Preset &default_preset = collection->default_preset_for(config);
             new_config                   = default_preset.config;
             new_config.apply(std::move(config));
-            extend_default_config_length(new_config, default_preset.config);
+            extend_default_config_length(new_config, true, default_preset.config);
         }
 
         Preset &preset     = collection->load_preset(collection->path_from_name(name, inherit_preset == nullptr), name, std::move(new_config), false);
