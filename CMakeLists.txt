@@ -116,6 +116,7 @@ set(SLIC3R_GTK "3" CACHE STRING "GTK version to use with wxWidgets on Linux")
 set(IS_CROSS_COMPILE FALSE)
 
 if (APPLE)
+    list(LENGTH CMAKE_OSX_ARCHITECTURES _arch_len)
     if (_arch_len GREATER 1)
         message(FATAL_ERROR "OrcaSlicer only supports building for one architecture at a time. Please make sure only one architecture is specified in CMAKE_OSX_ARCHITECTURES")
     endif ()
