@@ -1,7 +1,7 @@
 #include "PrePrintChecker.hpp"
 #include "GUI_Utils.hpp"
 #include "I18N.hpp"
-
+#include <set>
 
 
 namespace Slic3r { namespace GUI {
