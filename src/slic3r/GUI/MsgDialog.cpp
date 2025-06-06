@@ -165,7 +165,7 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
 
     if (set_focus)
         btn->SetFocus();
-    btn_sizer->Add(btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
+    btn_sizer->Add(btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceButtonGap()));
     btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { EndModal(btn_id); });
 
     MsgButton *mb = new MsgButton;
@@ -472,11 +472,11 @@ DeleteConfirmDialog::DeleteConfirmDialog(wxWindow *parent, const wxString &title
 
     m_cancel_btn = new Button(this, _L("Cancel"));
     m_cancel_btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
-    bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(ButtonProps::ChoiceGap()));
+    bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(ButtonProps::ChoiceButtonGap()));
 
     m_del_btn = new Button(this, _L("Delete"));
     m_del_btn->SetStyle(ButtonStyle::Alert, ButtonType::Choice);
-    bSizer_button->Add(m_del_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(ButtonProps::ChoiceGap()));
+    bSizer_button->Add(m_del_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(ButtonProps::ChoiceButtonGap()));
 
     m_main_sizer->Add(bSizer_button, 0, wxEXPAND, 0);
     m_del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_OK); });
@@ -570,7 +570,7 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
     if (!file_version_newer) {
         m_update_btn = new Button(this, _L("Update"));
         m_update_btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
-        horizontal_sizer->Add(m_update_btn, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
+        horizontal_sizer->Add(m_update_btn, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceButtonGap()));
 
         m_update_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
             EndModal(wxID_OK);
@@ -591,7 +591,7 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
         m_later_btn = new Button(this, _L("OK"));
         m_later_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     }
-    horizontal_sizer->Add(m_later_btn, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceGap()));
+    horizontal_sizer->Add(m_later_btn, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceButtonGap()));
     m_later_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         EndModal(wxID_OK);
     });
@@ -674,7 +674,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     sizer_button->Add(checkbox, 0, wxALL, 5);
     sizer_button->Add(checkbox_title, 0, wxALL, 5);
     sizer_button->Add(0, 0, 1, wxEXPAND, 5);
-    sizer_button->Add(m_button_confirm, 0, wxALL, FromDIP(ButtonProps::ChoiceGap()));
+    sizer_button->Add(m_button_confirm, 0, wxALL, FromDIP(ButtonProps::ChoiceButtonGap()));
 
     sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     sizer_main->Add(0, 0, 0, wxTOP, 20);

@@ -409,5 +409,3 @@ WXLRESULT Button::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 #endif
 
 bool Button::AcceptsFocus() const { return canFocus; }
-
-int ButtonProps::ChoiceGap() { return 10; }

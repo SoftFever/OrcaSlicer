@@ -215,7 +215,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         calc_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
         calc_btn->SetFocus();
         calc_btn->SetId(wxID_RESET);
-        btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
+        btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceButtonGap()));
         m_button_list[wxRESET] = calc_btn;
     }
     if (flags & wxOK) {
@@ -223,14 +223,14 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         ok_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
-        btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
+        btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceButtonGap()));
         m_button_list[wxOK] = ok_btn;
     }
     if (flags & wxCANCEL) {
         Button* cancel_btn = new Button(this, _L("Cancel"));
         cancel_btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
         cancel_btn->SetId(wxID_CANCEL);
-        btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
+        btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceButtonGap()));
         m_button_list[wxCANCEL] = cancel_btn;
     }
 
@@ -244,7 +244,7 @@ wxBoxSizer* WipingPanel::create_calc_btn_sizer(wxWindow* parent) {
     Button* calc_btn = new Button(parent, _L("Re-calculate"));
     calc_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
     calc_btn->SetFocus();
-    btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceGap()));
+    btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::WindowButtonGap()));
     calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { calc_flushing_volumes(); });
 
     return btn_sizer;
@@ -300,7 +300,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
     main_sizer->Add(m_panel_wiping, 1, wxEXPAND | wxALL, 0);
 
     auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL);
-    main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxTOP | wxEXPAND, FromDIP(ButtonProps::ChoiceGap()));
+    main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxTOP | wxEXPAND, FromDIP(ButtonProps::ChoiceButtonGap()));
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
 

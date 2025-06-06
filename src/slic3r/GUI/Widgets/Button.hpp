@@ -7,7 +7,8 @@
 class ButtonProps
 {
 public:
-    static int ChoiceGap();
+    static int ChoiceButtonGap(){return 10;};
+    static int WindowButtonGap(){return 10;};
 };
 
 enum class ButtonStyle{
