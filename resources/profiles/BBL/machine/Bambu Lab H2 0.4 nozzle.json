@@ -16,9 +16,10 @@
     ],
     "default_print_profile": "0.20mm Standard @BBL H2",
     "enable_long_retraction_when_cut": "2",
+    "extruder_clearance_dist_to_rod": "56",
     "extruder_clearance_height_to_lid": "187",
     "extruder_clearance_height_to_rod": "33",
-    "extruder_clearance_max_radius": "77",
+    "extruder_clearance_max_radius": "81",
     "extruder_clearance_radius": "30",
     "fan_direction": "left",
     "machine_max_acceleration_z": [
