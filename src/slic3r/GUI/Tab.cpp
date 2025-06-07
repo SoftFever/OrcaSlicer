@@ -3547,25 +3547,10 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_stamping_loading_speed");
         optgroup->append_single_option_line("filament_stamping_distance");
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
+
             // ORCA modernize button style
             Button* btn = new Button(parent, _(L("Set")) + " " + dots);
-            btn->SetFont(Label::Body_14);
-            btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
-            btn->SetCornerRadius(FromDIP(4));
-            StateColor clr_bg = StateColor(
-                std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-                std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-                std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-                std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-                std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-            );
-            btn->SetBackgroundColor(clr_bg);
-            btn->SetBorderColor(clr_bg);
-            btn->SetTextColor(StateColor(
-                std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-                std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-                std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-            ));
+            btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(btn);
@@ -5926,30 +5911,9 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     deps.checkbox = new ::CheckBox(parent, wxID_ANY);
     wxGetApp().UpdateDarkUI(deps.checkbox, false, true);
 
-    deps.checkbox_title = new wxStaticText(parent, wxID_ANY, _L("All"));
-    deps.checkbox_title->SetFont(Label::Body_14);
-    deps.checkbox_title->SetForegroundColour(wxColour("#363636"));
-    wxGetApp().UpdateDarkUI(deps.checkbox_title, false, true);
-
     // ORCA modernize button style
     Button* btn = new Button(parent, _(L("Set")) + " " + dots);
-    btn->SetFont(Label::Body_14);
-    btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
-    btn->SetCornerRadius(FromDIP(4));
-    StateColor clr_bg = StateColor(
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-        std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-    );
-    btn->SetBackgroundColor(clr_bg);
-    btn->SetBorderColor(clr_bg);
-    btn->SetTextColor(StateColor(
-        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-        std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-        std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-    ));
+    btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
     deps.btn = btn;
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -6060,25 +6024,9 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 // Return a callback to create a TabPrinter widget to edit bed shape
 wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
-     // ORCA modernize button style
+    // ORCA modernize button style
     Button* btn = new Button(parent, _(L("Set")) + " " + dots);
-    btn->SetFont(Label::Body_14);
-    btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
-    btn->SetCornerRadius(FromDIP(4));
-    StateColor clr_bg = StateColor(
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-        std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-    );
-    btn->SetBackgroundColor(clr_bg);
-    btn->SetBorderColor(clr_bg);
-    btn->SetTextColor(StateColor(
-        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-        std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-        std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-    ));
+    btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
