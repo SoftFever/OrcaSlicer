@@ -37,6 +37,7 @@
         <array>
           <string>orcaslicer</string>
         </array>
+      </dict>
     </array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
