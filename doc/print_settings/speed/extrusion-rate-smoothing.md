@@ -25,7 +25,6 @@ In the above scenario, the printer (Bambu Lab X1 Carbon) was requested to slow d
 
 This parameter interacts with the below printer kinematic settings and physical limits:
 
-
 **1. The limits of the extruder system** - how fast can it change pressure in the nozzle
 
 **2. The configured pressure advance values** - that also affect pressure changes in the nozzle
@@ -34,10 +33,9 @@ This parameter interacts with the below printer kinematic settings and physical 
 
 **4. The pressure advance smooth time (klipper)** - higher smooth time means higher deviation from ideal extrusion, hence more opportunity for this feature to be useful.
 
-
-<h3>Acceleration vs. Extrusion rate smoothing</h3>
-A printer's motion system does not exactly follow the speed changes seen in the gcode preview screen of Orca slicer.
-
+<h3>Acceleration vs. Extrusion rate smoothing</h3>A printer's motion system does
+not exactly follow the speed changes seen in the gcode preview screen of Orca
+slicer.
 
 When a speed change is requested, the firmware look ahead planner calculates the slow down needed to achieve the target speed. The rate of slowdown is limited by the move's acceleration value.
 
@@ -69,7 +67,7 @@ So, continuing with the worked example, a 2k acceleration produces an extrusion 
 
 **Therefore, the acceleration values act as a meaningfull upper limit to this setting.** An indicative set of values has been provided later in this page.
 
-<h3>Pressure advance vs extrusion rate smoothing</h3>
+### Pressure advance vs extrusion rate smoothing
 
 Then we need to consider pressure advance and smooth time as factors that influence extrusion rate.
 
@@ -104,18 +102,21 @@ In the worked example above, **we need to set an Extrusion Rate smoothing value 
 **Firstly, this value needs to be lower than the extrusion rate changes resulting from the acceleration profile of the printer.** As, generally, the greatest impact is in external wall finish, use your external perimeter acceleration as a point of reference.
 
 **Below are some approximate ERS values for 0.42 line width and 0.16 layer height.**
+
 1. 30mm3/sec for 0.5k acceleration
 2. 60.5mm3/sec for 1k acceleration
 3. 121mm3/sec2 for 2k acceleration
 4. 242mm3/sec2 for 4k acceleration
 
 **Below are some approximate ERS values for 0.42 line width and 0.20 layer height.**
+
 1. 38mm3/sec for 0.5k acceleration
 2. 76mm3/sec for 1k acceleration
 3. 150mm3/sec2 for 2k acceleration
 4. 300mm3/sec2 for 4k acceleration
 
 **Below are some approximate ERS values for 0.45 line width and 0.16 layer height.**
+
 1. 32mm3/sec for 0.5k acceleration
 2. 65mm3/sec for 1k acceleration
 3. 129mm3/sec2 for 2k acceleration
@@ -124,6 +125,7 @@ In the worked example above, **we need to set an Extrusion Rate smoothing value 
 **So, your tuning starting point needs to be an ERS value that is less than this.** A good point experiment with test prints would be **a value of 60-80%** of the above maximum values. This will give some meaningful assistance to pressure advance, reducing the deviation introduced by pressure advance smooth time. The greater the smooth time, the greater the quality benefit will be.
 
 Therefore, for a **0.42 line width and 0.16 layer height**, the below are a recommended set of starting ERS values
+
 1. 18-25mm3/sec for 0.5k acceleration
 2. 35-50mm3/sec for 1k acceleration
 3. 70-100mm3/sec2 for 2k acceleration
@@ -142,14 +144,14 @@ Perform a test print with the above ERS settings as a starting point and adjust 
 If you're not noticing any artefacts, increase by 10%, but don’t go over the maximum values recommended above because then this feature would have no effect in your print.
 
 ## A note for Bowden printers using marlin without pressure advance.
-If your printer is not equipped with pressure advance and, especially, if you are using a Bowden setup, you don’t have the benefit of pressure advance dynamically adjusting your flow.
 
+If your printer is not equipped with pressure advance and, especially, if you are using a Bowden setup, you don’t have the benefit of pressure advance dynamically adjusting your flow.
 
 In this special case, ERS will be doing all the heavy lifting that pressure advance would typically perform. In this scenario a low value of 8-10mm3/sec is usually recommended, irrespective of your acceleration settings, to smooth out pressure changes in the extrusion system as much as possible without impacting print speed too much.
 
 ## A note on ERS Segment length
-Ideally you want this value set to 1 to allow for the largest number of steps between each speed transition. However, this may result in a too large of a gcode, with too many commands sent to your MCU per second and it may not be able to keep up. It will also slow down the Orca slicer front end as the sliced model is more complex to render.
 
+Ideally you want this value set to 1 to allow for the largest number of steps between each speed transition. However, this may result in a too large of a gcode, with too many commands sent to your MCU per second and it may not be able to keep up. It will also slow down the Orca slicer front end as the sliced model is more complex to render.
 
 For Klipper printers, a segment length of 1 works OK as the RPI or similar have enough computational power to handle the gcode command volume.
 
@@ -165,17 +167,16 @@ In this case, the printer slows down and then accelerates independently of what 
 
 ## Credits
 
-**Original feature authors and creators:** The Prusa Slicer team, including [@bubnikv](https://github.com/bubnikv), [@hejllukas](https://github.com/hejllukas)
+**Original feature authors and creators:** The Prusa Slicer team, including [@bubnikv](https://github.com/bubnikv), [@hejllukas](https://github.com/hejllukas).
 
 **Enhanced by:** [@MGunlogson](https://github.com/MGunlogson), introducing the feature to external perimeters, enhancing it by taking into account travel, retraction and implementing near-contiguous extrusions pressure equalizer adjustments.
 
-**Ported to Orca:** [@igiannakas](https://github.com/igiannakas)
+**Ported to Orca:** [@igiannakas](https://github.com/igiannakas).
 
-**Enhanced by:** [@noisyfox](https://github.com/Noisyfox), per object pressure equalization and fixing calculation logic bugs
+**Enhanced by:** [@noisyfox](https://github.com/Noisyfox), per object pressure equalization and fixing calculation logic bugs.
 
-**Wiki page:** [@igiannakas](https://github.com/igiannakas)
+**Wiki page:** [@igiannakas](https://github.com/igiannakas).
 
-**Overall Orca owner and assurance:** [@softfever](https://github.com/SoftFever)
+**Overall Orca owner and assurance:** [@softfever](https://github.com/SoftFever).
 
-**Community testing and feedback:** [@HakunMatat4](https://github.com/HakunMatat4), [@psiberfunk](https://github.com/psiberfunk), [@u3dreal](https://github.com/u3dreal) and more
-
+**Community testing and feedback:** [@HakunMatat4](https://github.com/HakunMatat4), [@psiberfunk](https://github.com/psiberfunk), [@u3dreal](https://github.com/u3dreal) and more.

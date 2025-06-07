@@ -5,30 +5,30 @@ During high-speed movements, vibrations can cause a phenomenon called "ringing,"
 - [Klipper](#klipper)
 - [Marlin](#marlin)
 
-
 ## Klipper
 
 ### Resonance Compensation
 
 The Klipper Resonance Compensation is a set of Input Shaping modes that can be used to reduce ringing and improve print quality.
-Ussualy the recommended values modes are ``MZV`` or ``EI`` for Delta printers.
+Ussualy the recommended values modes are `MZV` or `EI` for Delta printers.
 
 1. Pre-requisites:
    1. In OrcaSlicer, set:
       1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
       2. Speed high enough to trigger ringing (e.g., 100 mm/s).
-      > [!NOTE]
-      > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
+
+         > [!NOTE]
+         > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
       3. Jerk [Klipper Square Corner Velocity](https://www.klipper3d.org/Kinematics.html?h=square+corner+velocity#look-ahead) to 5 or a high value (e.g., 20).
    2. In printer settigs:
-      1. Set the Shaper Type to ``MZV`` or ``EI``.
+      1. Set the Shaper Type to `MZV` or `EI`.
          ```gcode
          SET_INPUT_SHAPER SHAPER_TYPE=MZV
          ```
       2. Disable [Minimun Cruise Ratio](https://www.klipper3d.org/Kinematics.html#minimum-cruise-ratio) with:
-            ```gcode
-            SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0
-            ```
+         ```gcode
+         SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0
+         ```
    3. Use an opaque, high-gloss filament to make the ringing more visible.
 2. Print the Input Shaping Frequency test with a range of frequencies.
 
@@ -70,8 +70,8 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
    1. In OrcaSlicer, set:
       1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
       2. Speed high enough to trigger ringing (e.g., 100 mm/s).
-      > [!NOTE]
-      > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
+         > [!NOTE]
+         > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
       3. Jerk
          1. If using [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-) use a high value (e.g., 20).
          2. If using [Junction Deviation](https://marlinfw.org/docs/features/junction_deviation.html) (new Marlin default mode) this test will use 0.25 (high enough to most printers).

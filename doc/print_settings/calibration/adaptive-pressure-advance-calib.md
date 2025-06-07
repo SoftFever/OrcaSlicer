@@ -15,7 +15,6 @@ This feature introduces the below options under the filament settings:
 
 <img width="452" alt="Adaptive PA settings" src="https://github.com/user-attachments/assets/68c46885-54c7-4123-afa0-762d3995185f">
 
-
 ## Pre-Requisites
 
 This feature has been tested with Klipper-based printers. While it may work with Marlin or Bambu lab printers, it is currently untested with them. It shouldn’t adversely affect the machine; however, the quality results from enabling it are not validated.
@@ -54,7 +53,6 @@ Solid infill should have no gaps, pinholes, or separation from the perimeters.
 ![337616471-9d949a67-c8b3-477e-9f06-c429d4e40be0](https://github.com/user-attachments/assets/3b8ddbff-47e7-48b5-9576-3d9e7fb24a9d)
 Compared to with this feature disabled, where the internal solid infill and external-internal perimeters show signs of separation and under extrusion, when PA is tuned for optimal external perimeter performance as shown below.
 ![337621601-eacc816d-cff0-42e4-965d-fb5c00d34205](https://github.com/user-attachments/assets/82edfd96-d870-48fe-91c7-012e8c0d9ed0)
-
 
 ## How to calibrate the adaptive pressure advance model
 
@@ -95,18 +93,19 @@ For this example, let’s assume that the baseline number of tests is adequate f
 We, therefore, need to run 12 PA tests as below:
 
 **Speed – Acceleration**
-  1. 50 – 1k
-  2. 100 – 1k
-  3. 150 – 1k
-  4. 200 – 1k
-  5. 50 – 2k
-  6. 100 – 2k
-  7. 150 – 2k
-  8. 200 – 2k
-  9. 50 – 4k
-  10. 100 – 4k
-  11. 150 – 4k
-  12. 200 – 4k
+
+1. 50 – 1k
+2. 100 – 1k
+3. 150 – 1k
+4. 200 – 1k
+5. 50 – 2k
+6. 100 – 2k
+7. 150 – 2k
+8. 200 – 2k
+9. 50 – 4k
+10. 100 – 4k
+11. 150 – 4k
+12. 200 – 4k
 
 ### Identifying the flow rates from the print speed
 
@@ -118,18 +117,16 @@ Test parameters needed to build adaptive PA table are printed on the test sample
 
 Test sample above was done with acceleration 12000 mm/s² and flow rate 27.13 mm³/s
 
-
 #### OrcaSlicer 2.1.0 and older.
 
 As mentioned earlier, **the print speed is used as a proxy to vary the extrusion flow rate**. Once your PA test is set up, change the gcode preview to “flow” and move the horizontal slider over one of the herringbone patterns and take note of the flow rate for different speeds.
 ![337939815-e358b960-cf96-41b5-8c7e-addde927933f](https://github.com/user-attachments/assets/21290435-6f2a-4a21-bcf0-28cd6ae1912a)
 
-
 ### Running the tests
 
 #### General tips
 
-It is recommended that the PA step is set to a small value, to allow you to make meaningful distinctions between the different tests – **therefore a PA step value of 0.001 is recommended.  **
+It is recommended that the PA step is set to a small value, to allow you to make meaningful distinctions between the different tests – **therefore a PA step value of 0.001 is recommended. **
 
 **Set the end PA to a value high enough to start showing perimeter separation for the lowest flow (print speed) and acceleration test.** For example, for a Voron 350 using Revo HF, the maximum value was set to 0.05 as that was sufficient to show perimeter separation even at the slowest flow rates and accelerations.
 
@@ -172,7 +169,6 @@ Concatenate the PA value, the flow value, and the acceleration value into the fi
 Remember to paste the values in the adaptive pressure advance measurements text box as shown below, and save your filament profile.
 
 <img width="452" alt="pa profile" src="https://github.com/user-attachments/assets/e6e61d1b-e422-4a6a-88ff-f55e10f79900">
-
 
 ### Tips
 

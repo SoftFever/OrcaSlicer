@@ -1,10 +1,13 @@
 # Guide: Develop Profiles for OrcaSlicer
 
 ## Introduction
+
 This guide will help you develop profiles for OrcaSlicer.
 
 ## High-level Overview
+
 OrcaSlicer uses JSON files to store profiles. There are four types of profiles:
+
 1. Printer model (type `machine_model`). Example: `Orca 3D Fuse1.json`
 2. Printer variant (type `machine`). Example: `Orca 3D Fuse1 0.2 nozzle.json`
 3. Filament (type `filament`). Example: `Generic PLA @Orca 3D Fuse1@.json`
@@ -15,6 +18,7 @@ Additionally, there is an overall meta file for each vendor (`Orca 3D.json`).
 For easier understanding, let's consider a scenario with a printer manufacturer called `Orca 3D`. The manufacturer offers one printer model called `Fuse 1`, which supports 0.2/0.4/0.6/0.8mm nozzles and common market filaments.
 
 In this case:
+
 - Vendor profile: `Orca 3D`
 - Printer profile: `Orca 3D Fuse1`
 - Printer variant profile: `Orca 3D Fuse1 0.4 nozzle`
@@ -23,6 +27,7 @@ In this case:
 
 The profile name should be same as the filename without the `.json` extension in principal.
 Naming conventions:
+
 1. Vendor profile: `vendor_name.json`
 2. Printer profile: `vendor_name` + `printer_name` + `.json`
 3. Printer variant profile: `vendor_name` + `printer_variant_name` + `.json` (where `printer_variant_name` typically includes `printer_name` + `nozzle_diameter`)
@@ -63,11 +68,13 @@ OrcaSlicer\resources\profiles_template\Template
 These templates can be used as a starting point for new printer, filament, and process profiles.
 
 ## Filament Profiles
+
 OrcaSlicer features a global filament library called `OrcaFilamentLibrary`, which is automatically available for all printers. It includes generic filaments like `Generic PLA @System` and `Generic ABS @System` etc.
 
 Printer vendors can override specific filaments in the global library for certain printer models by creating new filament profiles.
 
 Relationship diagram:
+
 ```mermaid
 graph TD;
     OrcaFilamentLibrary-->Orca_3D_filament;
@@ -79,6 +86,7 @@ graph TD;
 > Create new filament profiles only if you have truly specifically tuned the filament for the given printer. Otherwise, use the global library. The global library has a better chance to receive optimizations and updates from OrcaSlicer contributors, which will benefit users of all printers.
 
 ### Adding Filament Profiles to the Global Library
+
 In this section, we will discuss how to add a new filament profile into the global library.
 If you want to add a new generic profile into the global library, you need to create a new file in the `resources\profiles\OrcaFilamentLibrary\filament` folder. If a base type already exists in the global library, you can use this file as a base profile by inheriting it.
 The following sample JSON file shows how to create a new generic filament profile `Generic PLA-GF @System` in the global library.
@@ -126,6 +134,7 @@ The following sample JSON file shows how to create a new generic filament profil
 > If the filament is compatible with AMS, ensure that the `filament_id` value **does not exceed 8 characters** to maintain AMS compatibility.
 
 ### Adding Filament Profiles to Printer Vendor Library
+
 In this section, we will discuss how to add a new filament profile for a certain vendor.
 If you want to add a new filament profile, whether it's a brand new profile or a specialized version of a global filament profile for a given printer, you need to create a new file in the `resources\profiles\vendor_name\filament` folder. If a base type already exists in the global library, you can use this file as a base profile by inheriting it.
 Below is a sample JSON file showing how to create a specialized `Generic ABS` filament profile for the ToolChanger printer.
@@ -191,16 +200,16 @@ Please note that here we must leave the compatible_printers field non-empty, unl
 
 Process profiles define print quality and behavior. They follow a structure similar to filament profiles:
 
-* A common base file, e.g., `fdm_process_common.json`, acts as the parent.
-* Vendor-specific process profiles should inherit from the base using the `inherits` field.
-* Profiles are stored under:
+- A common base file, e.g., `fdm_process_common.json`, acts as the parent.
+- Vendor-specific process profiles should inherit from the base using the `inherits` field.
+- Profiles are stored under:
 
 ```shell
 resources\profiles\vendor_name\process\
 ```
 
-* **There are no global process profiles**.
-* Each process profile includes a `"compatible_printers"` field with an array of compatible printer variant names.
+- **There are no global process profiles**.
+- Each process profile includes a `"compatible_printers"` field with an array of compatible printer variant names.
 
 Example:
 
@@ -219,15 +228,15 @@ Example:
 
 ## Printer Model Profiles
 
-* Printer model profiles (type `machine_model`) describe the general printer information.
-* Example fields: `nozzle_diameter`, `bed_model`, `bed_texture`, `model_id`, etc.
-* Stored in:
+- Printer model profiles (type `machine_model`) describe the general printer information.
+- Example fields: `nozzle_diameter`, `bed_model`, `bed_texture`, `model_id`, etc.
+- Stored in:
 
 ```shell
 resources\profiles\vendor_name\machine\
 ```
 
-* Each vendor's folder may contain an image named:
+- Each vendor's folder may contain an image named:
 
 ```shell
 [machine_model_list.name]_cover.png
@@ -253,10 +262,10 @@ Example model profile:
 
 ## Printer Variant Profiles
 
-* Printer variants (type `machine`) define specific nozzle configurations and mechanical details.
-* Each variant must inherit from a common base like `fdm_machine_common.json`.
-* Must list the compatible nozzle diameter in the `nozzle_diameter` array.
-* Example fields include `printer_model`, `printer_variant`, `default_print_profile`, `printable_area`, etc.
+- Printer variants (type `machine`) define specific nozzle configurations and mechanical details.
+- Each variant must inherit from a common base like `fdm_machine_common.json`.
+- Must list the compatible nozzle diameter in the `nozzle_diameter` array.
+- Example fields include `printer_model`, `printer_variant`, `default_print_profile`, `printable_area`, etc.
 
 Example variant profile:
 
@@ -280,8 +289,8 @@ Example variant profile:
 
 ## Models
 
-* The `model` directory under the vendor folder is intended to behave similarly to `machine` profiles.
-* Used for additional printer-related 3D models or definitions, stored at:
+- The `model` directory under the vendor folder is intended to behave similarly to `machine` profiles.
+- Used for additional printer-related 3D models or definitions, stored at:
 
 ```
 resources\profiles\vendor_name\model\
@@ -331,7 +340,7 @@ Example:
 You can validate your profiles using both the **OrcaSlicer profile validator** and the **Python validation script**. These tools are designed to check different aspects of the profiles, so both should be executed and pass without errors to ensure full compatibility.
 
 > [!NOTE]
->**✅ Recommendation**: Always run **both** the OrcaSlicer validator and the Python script to ensure all aspects of the profiles are valid.
+> **✅ Recommendation**: Always run **both** the OrcaSlicer validator and the Python script to ensure all aspects of the profiles are valid.
 
 ### 1. OrcaSlicer Profile Validator
 

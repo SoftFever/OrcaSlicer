@@ -8,7 +8,6 @@ To access the calibration features, you can find them in the **Calibration** sec
 
 ![Calibration Button](../../images/calibration.png)
 
-
 > [!IMPORTANT]
 > After completing the calibration process, remember to create a new project in order to exit the calibration mode.
 
@@ -23,6 +22,7 @@ The recommended order for calibration is as follows:
    <img src="https://user-images.githubusercontent.com/103989404/210138585-98821729-b19e-4452-a08d-697f147d36f0.jpg" alt="Flow" height="200">
 
 3. **[Pressure Advance](pressure-advance-calib.md)**: Calibrate the pressure advance settings to improve print quality and reduce artifacts caused by pressure fluctuations in the nozzle.
+
    - **[Adaptative Pressure Advance](adaptive-pressure-advance-calib.md)**: This is an advanced calibration technique that can be used to further optimize the pressure advance settings for different print speeds and geometries.
 
    <img src="https://user-images.githubusercontent.com/103989404/210140231-e886b98d-280a-4464-9781-c74ed9b7d44e.jpg" alt="Pressure_Advance" height="200">
@@ -39,9 +39,9 @@ The recommended order for calibration is as follows:
 
    <img src="../../images/vmf_measurement_point.jpg" alt="Max_Volumetric_Speed" height="200">
 
-7.  **[Cornering](cornering-calib.md)**: Calibrate the Jerk/Junction Deviation settings to improve print quality and reduce artifacts caused by sharp corners and changes in direction.
+7. **[Cornering](cornering-calib.md)**: Calibrate the Jerk/Junction Deviation settings to improve print quality and reduce artifacts caused by sharp corners and changes in direction.
 
-      <img src="../../images/JunctionDeviation/jd_second_print_measure.jpg" alt="Cornering" height="200">
+     <img src="../../images/JunctionDeviation/jd_second_print_measure.jpg" alt="Cornering" height="200">
 
 8. **[Input Shaping](input-shaping-calib.md)**: This is an advanced calibration technique that can be used to reduce ringing and improve print quality by compensating for mechanical vibrations in the printer.
 
@@ -52,13 +52,14 @@ The recommended order for calibration is as follows:
 Vertical Fine Artifacts (VFA) are small artifacts that can occur on the surface of a 3D print, particularly in areas where there are sharp corners or changes in direction. These artifacts can be caused by a variety of factors, including mechanical vibrations, resonance, and other factors that can affect the quality of the print.
 Because of the nature of these artifacts the methods to reduce them can be mechanical such as changing motors, belts and pulleys or with advanced calibrations such as Jerk/[Juction Deviation](#junction-deviation) corrections or [Input Shaping](#input-shaping).
 
+---
 
-***
-*Credits:*
-- *The Flowrate test and retraction test is inspired by [SuperSlicer](https://github.com/supermerill/SuperSlicer).*
-- *The PA Line method is inspired by [K-factor Calibration Pattern](https://marlinfw.org/tools/lin_advance/k-factor.html).*
-- *The PA Tower method is inspired by [Klipper](https://www.klipper3d.org/Pressure_Advance.html).*
-- *The temp tower model is remixed from [Smart compact temperature calibration tower](https://www.thingiverse.com/thing:2729076).*
-- *The max flowrate test was inspired by Stefan (CNC Kitchen), and the model used in the test is a remix of his [Extrusion Test Structure](https://www.printables.com/model/342075-extrusion-test-structure).*
-- *ZV Input Shaping is inspired by [Marlin Input Shaping](https://marlinfw.org/docs/features/input_shaping.html) and [Ringing Tower 3D STL](https://marlinfw.org/assets/stl/ringing_tower.stl).*
-- *ChatGPT* ;)
+_Credits:_
+
+- _The Flowrate test and retraction test is inspired by [SuperSlicer](https://github.com/supermerill/SuperSlicer)._
+- _The PA Line method is inspired by [K-factor Calibration Pattern](https://marlinfw.org/tools/lin_advance/k-factor.html)._
+- _The PA Tower method is inspired by [Klipper](https://www.klipper3d.org/Pressure_Advance.html)._
+- _The temp tower model is remixed from [Smart compact temperature calibration tower](https://www.thingiverse.com/thing:2729076)._
+- _The max flowrate test was inspired by Stefan (CNC Kitchen), and the model used in the test is a remix of his [Extrusion Test Structure](https://www.printables.com/model/342075-extrusion-test-structure)._
+- _ZV Input Shaping is inspired by [Marlin Input Shaping](https://marlinfw.org/docs/features/input_shaping.html) and [Ringing Tower 3D STL](https://marlinfw.org/assets/stl/ringing_tower.stl)._
+- _ChatGPT_ ;)

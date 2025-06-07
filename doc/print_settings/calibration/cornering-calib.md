@@ -28,13 +28,15 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
    ![image](../../images/JunctionDeviation/jd_first_slicer_measure.png)
 
    2. It’s very likely that you’ll need to set values lower than 0.08 mm, as shown in the previous example. To determine a more accurate maximum JD value, you can print a new calibration tower with a maximum value set at the point where the corners start losing sharpness.
-   3.
+   3. Print the second Junction Deviation test with the new maximum value.
+
    ![image](../../images/JunctionDeviation/jd_second_menu.png)
 
    4. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
 
    ![image](../../images/JunctionDeviation/jd_second_print_measure.jpg)
    ![image](../../images/JunctionDeviation/jd_second_slicer_measure.png)
+
 3. Save the settings
    1. Set your Maximun Junction Deviation value in [Printer settings/Motion ability/Jerk limitation].
    2. Use the following G-code to set the mm:

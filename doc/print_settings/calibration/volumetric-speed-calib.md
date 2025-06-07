@@ -8,7 +8,7 @@ Once printed, take note of where the layers begin to fail and where the quality 
 
 ![image](../../images/vmf_measurement_point.jpg)
 
-Using calipers or a ruler, measure the height of the print at that point. Use the following calculation to determine the correct max flow value: `start + (height-measured * step)` . For example in the photo below, and using the default setting values, the print quality began to suffer at 19mm measured, so the calculation would be: `5 + (19 * 0.5)` , or `13mm³/s` using the default values. Enter your number into the  "Max volumetric speed" value in the filament settings.
+Using calipers or a ruler, measure the height of the print at that point. Use the following calculation to determine the correct max flow value: `start + (height-measured * step)` . For example in the photo below, and using the default setting values, the print quality began to suffer at 19mm measured, so the calculation would be: `5 + (19 * 0.5)` , or `13mm³/s` using the default values. Enter your number into the "Max volumetric speed" value in the filament settings.
 
 ![image](../../images/caliper_sample_mvf.jpg)
 
@@ -19,5 +19,5 @@ You can also return to OrcaSlicer in the "Preview" tab, make sure the color sche
 > [!NOTE]
 > You may also choose to conservatively reduce the flow by 5-10% to ensure print quality.
 
->  [!TIP]
+> [!TIP]
 > @ItsDeidara has made a html to help with the calculation. Check it out if those equations give you a headache [here](https://github.com/ItsDeidara/Orca-Slicer-Assistant).

@@ -7,26 +7,28 @@ If `Activate temperature control` is checked, OrcaSlicer will insert `M191` comm
 ![image](./images/activate_chamber_heater.jpg)
 
 > [!NOTE]
-> If the machine is equipped with an auxiliary fan, OrcaSlicer will automatically activate the fan during the heating period to help circulate air in the chamber.*
+> If the machine is equipped with an auxiliary fan, OrcaSlicer will automatically activate the fan during the heating period to help circulate air in the chamber.
 
 ## Using Chamber Temperature Variables in Machine G-code
+
 You can use chamber temperature variables in your `Machine G-code` to control the chamber temperature manually, if desired:
 
 - To set the chamber temperature to the value specified for the first filament:
-    ```gcode
-    M191 S{chamber_temperature[0]}
-    ```
+  ```gcode
+  M191 S{chamber_temperature[0]}
+  ```
 - To set the chamber temperature to the highest value specified across all filaments:
-    ```gcode
-    M191 S{overall_chamber_temperature}
-    ```
+  ```gcode
+  M191 S{overall_chamber_temperature}
+  ```
 
 ## Klipper
+
 If you are using Klipper, you can define these macros to control the active chamber heater.
 Bellow is a reference configuration for Klipper.
 
 > [!Important]
-> Don't forget to change the pin name/values to the actual values you are using in the configuration*
+> Don't forget to change the pin name/values to the actual values you are using in the configuration.
 
 ```gcode
 [heater_generic chamber_heater]

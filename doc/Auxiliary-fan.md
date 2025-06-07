@@ -6,7 +6,7 @@ If you are using Klipper, you can define a `M106` macro to control the both norm
 Below is a reference configuration for Klipper.
 
 > [!NOTE]
-> Don't forget to change the pin name to the actual pin name you are using in the configuration*
+> Don't forget to change the pin name to the actual pin name you are using in the configuration
 
 ```ini
 # instead of using [fan], we define the default part cooling fan with [fan_generic] here
