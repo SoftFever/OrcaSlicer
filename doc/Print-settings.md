@@ -1,4 +1,4 @@
-Print settings:
+# Print settings
 
 * [Seam](seam)
 * [Axiliary fan](auxiliary-fan)

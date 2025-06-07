@@ -1,3 +1,5 @@
+# Pellet Flow Coefficient
+
 Large format printers with print volumes in the order of 1m^3 generally use pellets for printing.
 The overall tech is very similar to FDM printing.
 It is FDM printing, but instead of filaments, it uses pellets.
@@ -15,7 +17,9 @@ for your own pellets for a particular printer model.
 We are translating the pellet_flow_coefficient into filament_diameter so that everything works just like it
 does already with very minor adjustments.
 
-filament_diameter = sqrt( (4 \* pellet_flow_coefficient) / PI )
+```math
+\text{filament\_diameter} = \sqrt{\frac{4 \times \text{pellet\_flow\_coefficient}}{\pi}}
+```
 
 sqrt just makes the relationship between flow_coefficient and volume linear.
 

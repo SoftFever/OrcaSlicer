@@ -1,10 +1,14 @@
+# Auxiliary Fan
+
 OrcaSlicer use `M106 P2` command to control auxiliary cooling fan.
 
-If you are using Klipper, you can define a `M106` macro to control the both normal part cooling fan and auxiliary fan and exhaust fan.  
-Below is a reference configuration for Klipper.   
-*Note: Don't forget to change the pin name to the actual pin name you are using in the configuration*
+If you are using Klipper, you can define a `M106` macro to control the both normal part cooling fan and auxiliary fan and exhaust fan.
+Below is a reference configuration for Klipper.
 
-```
+> [!NOTE]
+> Don't forget to change the pin name to the actual pin name you are using in the configuration
+
+```ini
 # instead of using [fan], we define the default part cooling fan with [fan_generic] here
 # this is the default part cooling fan
 [fan_generic fan0]
@@ -31,5 +35,4 @@ gcode:
     {% set fan = 'fan' + (params.P|int if params.P is defined else 0)|string %}
     {% set speed = (params.S|float / 255 if params.S is defined else 1.0) %}
     SET_FAN_SPEED FAN={fan} SPEED={speed}
-
 ```
