@@ -9,6 +9,7 @@
 #include "MsgDialog.hpp"
 #include "libslic3r/Color.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/DialogButtons.hpp"
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
@@ -331,14 +332,6 @@ void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
             button_item.second->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
             button_item.second->SetCornerRadius(FromDIP(12));
         }
-        if (button_item.first == wxOK) {
-            button_item.second->SetMinSize(BTN_SIZE);
-            button_item.second->SetCornerRadius(FromDIP(12));
-        }
-        if (button_item.first == wxCANCEL) {
-            button_item.second->SetMinSize(BTN_SIZE);
-            button_item.second->SetCornerRadius(FromDIP(12));
-        }
     }
     m_panel_wiping->msw_rescale();
     this->Refresh();
@@ -375,23 +368,18 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
     main_sizer->SetMinSize(wxSize(sizer_width, -1));
     main_sizer->Add(m_panel_wiping, 1, wxEXPAND | wxALL, 0);
 
-    auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL);
-    main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BTN_GAP);
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
+    main_sizer->Add(dlg_btns, 0, wxEXPAND);
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
 
-    if (this->FindWindowById(wxID_OK, this)) {
-        this->FindWindowById(wxID_OK, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {                 // if OK button is clicked..
-            m_output_matrix = m_panel_wiping->read_matrix_values();    // ..query wiping panel and save returned values
-            m_output_extruders = m_panel_wiping->read_extruders_values(); // so they can be recovered later by calling get_...()
-            EndModal(wxID_OK);
-            }, wxID_OK);
-    }
-    if (this->FindWindowById(wxID_CANCEL, this)) {
-        update_ui(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
-        this->FindWindowById(wxID_CANCEL, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxCANCEL); });
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {                 // if OK button is clicked..
+        m_output_matrix = m_panel_wiping->read_matrix_values();    // ..query wiping panel and save returned values
+        m_output_extruders = m_panel_wiping->read_extruders_values(); // so they can be recovered later by calling get_...()
+        EndModal(wxID_OK);
+    }, wxID_OK);
 
-    }
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxCANCEL); });
 
     /*
     if (this->FindWindowById(wxID_RESET, this)) {

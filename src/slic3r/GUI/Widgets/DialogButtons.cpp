@@ -205,6 +205,9 @@ void DialogButtons::UpdateButtons() {
 
     m_sizer->AddStretchSpacer();
 
+    if(m_sizer->IsEmpty()) // add left margin if no button on left. fixes no gap on small windows
+        m_sizer->AddSpacer(btn_gap);
+
     for (Button* btn : m_buttons) // Right aligned
         if(!on_left(btn->GetId()))
             m_sizer->Add(btn, 0, wxRIGHT | wxTOP | wxBOTTOM | wxALIGN_CENTER_VERTICAL, btn_gap);
