@@ -2329,7 +2329,7 @@ void MainFrame::init_menubar_as_editor()
 
         // Recent Project
         wxMenu* recent_projects_menu = new wxMenu();
-        wxMenuItem* recent_projects_submenu = append_submenu(fileMenu, recent_projects_menu, wxID_ANY, _L("Recent projects"), "");
+        wxMenuItem* recent_projects_submenu = append_submenu(fileMenu, recent_projects_menu, wxID_ANY, _L("Recent files"), "");
         m_recent_projects.UseMenu(recent_projects_menu);
         Bind(wxEVT_MENU, [this](wxCommandEvent& evt) {
             size_t file_id = evt.GetId() - wxID_FILE1;
