@@ -508,6 +508,72 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             outer_wall_volumetric_speed = filament_max_volumetric_speed;
         return outer_wall_volumetric_speed;
     }
+
+
+    // Parse the custom G-code, try to find mcode_set_temp_dont_wait and mcode_set_temp_and_wait or optionally G10 with temperature inside the custom G-code.
+    // Returns true if one of the temp commands are found, and try to parse the target temperature value into temp_out.
+    static bool custom_gcode_sets_temperature(const std::string &gcode, const int mcode_set_temp_dont_wait, const int mcode_set_temp_and_wait, const bool include_g10, int &temp_out)
+    {
+        temp_out = -1;
+        if (gcode.empty())
+            return false;
+
+        const char *ptr = gcode.data();
+        bool temp_set_by_gcode = false;
+        while (*ptr != 0) {
+            // Skip whitespaces.
+            for (; *ptr == ' ' || *ptr == '\t'; ++ ptr);
+            if (*ptr == 'M' || // Line starts with 'M'. It is a machine command.
+                (*ptr == 'G' && include_g10)) { // Only check for G10 if requested
+                bool is_gcode = *ptr == 'G';
+                ++ ptr;
+                // Parse the M or G code value.
+                char *endptr = nullptr;
+                int mgcode = int(strtol(ptr, &endptr, 10));
+                if (endptr != nullptr && endptr != ptr &&
+                    is_gcode ?
+                    // G10 found
+                    mgcode == 10 :
+                    // M104/M109 or M140/M190 found.
+                    (mgcode == mcode_set_temp_dont_wait || mgcode == mcode_set_temp_and_wait)) {
+                    ptr = endptr;
+                    if (! is_gcode)
+                        // Let the caller know that the custom M-code sets the temperature.
+                        temp_set_by_gcode = true;
+                    // Now try to parse the temperature value.
+                    // While not at the end of the line:
+                    while (strchr(";\r\n\0", *ptr) == nullptr) {
+                        // Skip whitespaces.
+                        for (; *ptr == ' ' || *ptr == '\t'; ++ ptr);
+                        if (*ptr == 'S') {
+                            // Skip whitespaces.
+                            for (++ ptr; *ptr == ' ' || *ptr == '\t'; ++ ptr);
+                            // Parse an int.
+                            endptr = nullptr;
+                            long temp_parsed = strtol(ptr, &endptr, 10);
+                            if (endptr > ptr) {
+                                ptr = endptr;
+                                temp_out = temp_parsed;
+                                // Let the caller know that the custom G-code sets the temperature
+                                // Only do this after successfully parsing temperature since G10
+                                // can be used for other reasons
+                                temp_set_by_gcode = true;
+                            }
+                        } else {
+                            // Skip this word.
+                            for (; strchr(" \t;\r\n\0", *ptr) == nullptr; ++ ptr);
+                        }
+                    }
+                }
+            }
+            // Skip the rest of the line.
+            for (; *ptr != 0 && *ptr != '\r' && *ptr != '\n'; ++ ptr);
+            // Skip the end of line indicators.
+            for (; *ptr == '\r' || *ptr == '\n'; ++ ptr);
+        }
+        return temp_set_by_gcode;
+    }
+
     // BBS
     // start_pos refers to the last position before the wipe_tower.
     // end_pos refers to the wipe tower's start_pos.
@@ -2727,8 +2793,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
     // Orca: set chamber temperature at the beginning of gcode file
-    if (activate_chamber_temp_control && max_chamber_temp > 0)
-        file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
+    if (activate_chamber_temp_control && max_chamber_temp > 0){
+        int temp_out =0;
+        if(!custom_gcode_sets_temperature(machine_start_gcode,141,191,false,temp_out))
+            file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
+    }
 
     // Write the custom start G-code
     file.writeln(machine_start_gcode);
@@ -3469,69 +3538,6 @@ PlaceholderParserIntegration &ppi = m_placeholder_parser_integration;
     }
 }
 
-// Parse the custom G-code, try to find mcode_set_temp_dont_wait and mcode_set_temp_and_wait or optionally G10 with temperature inside the custom G-code.
-// Returns true if one of the temp commands are found, and try to parse the target temperature value into temp_out.
-static bool custom_gcode_sets_temperature(const std::string &gcode, const int mcode_set_temp_dont_wait, const int mcode_set_temp_and_wait, const bool include_g10, int &temp_out)
-{
-    temp_out = -1;
-    if (gcode.empty())
-        return false;
-
-    const char *ptr = gcode.data();
-    bool temp_set_by_gcode = false;
-    while (*ptr != 0) {
-        // Skip whitespaces.
-        for (; *ptr == ' ' || *ptr == '\t'; ++ ptr);
-        if (*ptr == 'M' || // Line starts with 'M'. It is a machine command.
-            (*ptr == 'G' && include_g10)) { // Only check for G10 if requested
-            bool is_gcode = *ptr == 'G';
-            ++ ptr;
-            // Parse the M or G code value.
-            char *endptr = nullptr;
-            int mgcode = int(strtol(ptr, &endptr, 10));
-            if (endptr != nullptr && endptr != ptr &&
-                is_gcode ?
-                    // G10 found
-                    mgcode == 10 :
-                    // M104/M109 or M140/M190 found.
-                    (mgcode == mcode_set_temp_dont_wait || mgcode == mcode_set_temp_and_wait)) {
-                ptr = endptr;
-                if (! is_gcode)
-                    // Let the caller know that the custom M-code sets the temperature.
-                    temp_set_by_gcode = true;
-                // Now try to parse the temperature value.
-                // While not at the end of the line:
-                while (strchr(";\r\n\0", *ptr) == nullptr) {
-                    // Skip whitespaces.
-                    for (; *ptr == ' ' || *ptr == '\t'; ++ ptr);
-                    if (*ptr == 'S') {
-                        // Skip whitespaces.
-                        for (++ ptr; *ptr == ' ' || *ptr == '\t'; ++ ptr);
-                        // Parse an int.
-                        endptr = nullptr;
-                        long temp_parsed = strtol(ptr, &endptr, 10);
-                        if (endptr > ptr) {
-                            ptr = endptr;
-                            temp_out = temp_parsed;
-                            // Let the caller know that the custom G-code sets the temperature
-                            // Only do this after successfully parsing temperature since G10
-                            // can be used for other reasons
-                            temp_set_by_gcode = true;
-                        }
-                    } else {
-                        // Skip this word.
-                        for (; strchr(" \t;\r\n\0", *ptr) == nullptr; ++ ptr);
-                    }
-                }
-            }
-        }
-        // Skip the rest of the line.
-        for (; *ptr != 0 && *ptr != '\r' && *ptr != '\n'; ++ ptr);
-        // Skip the end of line indicators.
-        for (; *ptr == '\r' || *ptr == '\n'; ++ ptr);
-    }
-    return temp_set_by_gcode;
-}
 
 // Print the machine envelope G-code for the Marlin firmware based on the "machine_max_xxx" parameters.
 // Do not process this piece of G-code by the time estimator, it already knows the values through another sources.
