@@ -29,8 +29,10 @@ Naming conventions:
 4. Filament profile: `filament_vendor_name` + `filament_name` + " @" + `vendor_name` + `printer_name`/`printer_variant_name` + `.json`
 5. Process profile: `layer_height` + `preset_name` + " @" + `vendor_name` + `printer_name`/`printer_variant_name` + `.json` (`preset_name` typically includes "standard," "fine," "fast," "draft," etc.)
 
+## File Structure and Templates
 
-A typical file structure for a vendor:
+Profiles should be structured in the following way under the OrcaSlicer installation directory:
+
 ```
 resources\profiles\
     - Orca 3D.json
@@ -46,9 +48,17 @@ resources\profiles\
             - Generic PLA @Orca 3D Fuse1@.json
 ```
 
+**⚠️ NOTE 1**: Use short vendor names in filenames to avoid excessive length.
 
-**NOTE 1**: Use short vendor names in filenames to avoid excessive length.
-**NOTE 2**: Filament profiles are **optional**. Create them only if the vendor has specifically tuned profiles for the given printer. See [Filament profiles](#filament-profiles) for details.
+**⚠️ NOTE 2**: Filament profiles are **optional**. Create them only if the vendor has specifically tuned profiles for the given printer. See [Filament profiles](#filament-profiles) for details.
+
+Template files for profiles are available in:
+
+```
+OrcaSlicer\resources\profiles_template\Template
+```
+
+These templates can be used as a starting point for new printer, filament, and process profiles.
 
 ## Filament Profiles
 OrcaSlicer features a global filament library called `OrcaFilamentLibrary`, which is automatically available for all printers. It includes generic filaments like `Generic PLA @System` and `Generic ABS @System` etc.
@@ -107,9 +117,9 @@ The following sample JSON file shows how to create a new generic filament profil
 }
 ```
 
-3. The last step is to validate the newly added filament profiles. You can run OrcaSlicer to verify if the filament you just added is available and usable. You can also use the [Orca profile validator](https://github.com/SoftFever/Orca_tools/releases/tag/1) tool to help debug any errors. **NOTE**: You need to delete the `%appdata%/OrcaSlicer/system` folder to force OrcaSlicer to reload your lastest changes.
+3. The last step is to validate the newly added filament profiles. 
 
-The process is the same if you want to add a new brand filament profile into the global library. You need to create a new file in the `resources\profiles\OrcaFilamentLibrary\filament\brand_name` folder. The only difference is that you should put the file into the brand's own subfolder.`resources\profiles\OrcaFilamentLibrary\filament\brand_name`.
+**⚠️ NOTE 1**: If the filament is compatible with AMS, ensure that the `filament_id` value **does not exceed 8 characters** to maintain AMS compatibility.
 
 ### Adding Filament Profiles to Printer Vendor Library
 In this section, we will discuss how to add a new filament profile for a certain vendor.
@@ -170,11 +180,220 @@ Please note that here we must leave the compatible_printers field non-empty, unl
 }
 ```
 
-## Process Profiles
-WIP...
+**⚠️ NOTE 1**: If the filament is compatible with AMS, ensure that the `filament_id` value **does not exceed 8 characters** to maintain AMS compatibility.
 
-## Printer Profiles
-WIP...
+## Process Profiles
+
+Process profiles define print quality and behavior. They follow a structure similar to filament profiles:
+
+* A common base file, e.g., `fdm_process_common.json`, acts as the parent.
+* Vendor-specific process profiles should inherit from the base using the `inherits` field.
+* Profiles are stored under:
+
+```
+resources\profiles\vendor_name\process\
+```
+
+* **There are no global process profiles**.
+* Each process profile includes a `"compatible_printers"` field with an array of compatible printer variant names.
+
+Example:
+
+```json
+{
+  "type": "process",
+  "name": "0.10mm Standard @ExampleVendor Printer 0.2",
+  "inherits": "fdm_process_common",
+  "from": "system",
+  "instantiation": "true",
+  "compatible_printers": [
+    "ExampleVendor Printer 0.2 nozzle"
+  ]
+}
+```
+
+## Printer Model Profiles
+
+* Printer model profiles (type `machine_model`) describe the general printer information.
+* Example fields: `nozzle_diameter`, `bed_model`, `bed_texture`, `model_id`, etc.
+* Stored in:
+
+```
+resources\profiles\vendor_name\machine\
+```
+
+* Each vendor's folder may contain an image named:
+
+```
+[machine_model_list.name]_cover.png
+```
+
+This image will be used in the UI.
+
+Example model profile:
+
+```json
+{
+  "type": "machine_model",
+  "name": "Example M5",
+  "nozzle_diameter": "0.2;0.25;0.4;0.6",
+  "bed_model": "M5-Example-bed.stl",
+  "bed_texture": "M5-Example-texture.svg",
+  "model_id": "V1234",
+  "family": "Example",
+  "machine_tech": "FFF",
+  "default_materials": "Example Generic PLA;Example Generic PETG"
+}
+```
 
 ## Printer Variant Profiles
-WIP...
+
+* Printer variants (type `machine`) define specific nozzle configurations and mechanical details.
+* Each variant must inherit from a common base like `fdm_machine_common.json`.
+* Must list the compatible nozzle diameter in the `nozzle_diameter` array.
+* Example fields include `printer_model`, `printer_variant`, `default_print_profile`, `printable_area`, etc.
+
+Example variant profile:
+
+```json
+{
+  "type": "machine",
+  "name": "Example M5 0.2 nozzle",
+  "inherits": "fdm_machine_common",
+  "from": "system",
+  "setting_id": "GM001",
+  "instantiation": "true",
+  "nozzle_diameter": ["0.2"],
+  "printer_model": "Example M5",
+  "printer_variant": "0.2",
+  "default_filament_profile": ["Example Generic PLA"],
+  "default_print_profile": "0.10mm Standard 0.2mm nozzle @Example",
+  "printable_area": ["0x0", "235x0", "235x235", "0x235"],
+  "nozzle_type": "brass"
+}
+```
+
+## Models
+
+* The `model` directory under the vendor folder is intended to behave similarly to `machine` profiles.
+* Used for additional printer-related 3D models or definitions, stored at:
+
+```
+resources\profiles\vendor_name\model\
+```
+
+## Vendor Meta File
+
+Each vendor must include a JSON file in the `resources\profiles` directory, named `vendor_name.json`. This file lists all available models, variants, processes, and filaments:
+
+Example:
+
+```json
+{
+  "name": "ExampleVendor",
+  "version": "01.00.00.00",
+  "force_update": "1",
+  "description": "Example configuration",
+  "machine_model_list": [
+    {
+      "name": "Example M5",
+      "sub_path": "machine/Example M5.json"
+    }
+  ],
+  "machine_list": [
+    {
+      "name": "fdm_machine_common",
+      "sub_path": "machine/fdm_machine_common.json"
+    }
+  ],
+  "process_list": [
+    {
+      "name": "fdm_process_common",
+      "sub_path": "process/fdm_process_common.json"
+    }
+  ],
+  "filament_list": [
+    {
+      "name": "fdm_filament_common",
+      "sub_path": "filament/fdm_filament_common.json"
+    }
+  ]
+}
+```
+
+## Validate Profiles
+
+You can validate your profiles using both the **OrcaSlicer profile validator** and the **Python validation script**. These tools are designed to check different aspects of the profiles, so both should be executed and pass without errors to ensure full compatibility.
+
+**✅ Recommendation**: Always run **both** the OrcaSlicer validator and the Python script to ensure all aspects of the profiles are valid.
+
+### 1. OrcaSlicer Profile Validator
+
+You can run OrcaSlicer to verify if the filament you just added is available and usable. You can also use the [Orca profile validator](https://github.com/SoftFever/Orca_tools/releases/tag/1) tool to help debug any errors.
+
+**⚠️ NOTE 1**: You need to delete the `%appdata%/OrcaSlicer/system` folder to force OrcaSlicer to reload your latest changes.
+
+The process is the same if you want to add a new brand filament profile into the global library. You need to create a new file in the `resources\profiles\OrcaFilamentLibrary\filament\brand_name` folder. The only difference is that you should put the file into the brand's own subfolder.
+
+#### Usage
+
+```
+-h [ --help ] help
+-p [ --path ] arg profile folder
+-v [ --vendor ] arg Vendor name. Optional, all profiles present in the folder will be validated if not specified
+-l [ --log_level ] arg (=2) Log level. Optional, default is 2 (warning). Higher values produce more detailed logs.
+```
+
+#### Example
+
+```
+./OrcaSlicer_profile_validator -p ~/codes/OrcaSlicer/resources/profiles -l 2 -v Custom
+```
+
+#### Sample result with errors
+
+```
+PS D:\codes\OrcaSlicer> ."D:/codes/OrcaSlicer/build/src/Release/OrcaSlicer_profile_validator.exe" --path d:\codes\OrcaSlicer\resources\profiles -l 2 -v Custom
+[2024-02-28 21:23:06.102138] [0x0000a4e8] [error]   Slic3r::ConfigBase::load_from_json: parse d:\codes\OrcaSlicer\resources\profiles/Custom/machine/fdm_klipper_common.json got a nlohmann::detail::parse_error, reason = [json.exception.parse_error.101] parse error at line 9, column 38: syntax error while parsing object - unexpected string literal; expected '}'
+...
+Validation failed
+```
+
+#### Sample result with success
+
+```
+PS D:\codes\OrcaSlicer\build\src\RelWithDebInfo> ."D:/codes/OrcaSlicer/build/src/Release/OrcaSlicer_profile_validator.exe" --path d:\codes\OrcaSlicer\resources\profiles -l 2 -v Custom
+Validation completed successfully
+```
+
+**⚠️ NOTE 2**: Use `OrcaSlicer_profile_validator` on Ubuntu and `OrcaSlicer_profile_validator.exe` on Windows.
+
+---
+
+### 2. Python Profile Validation Script
+
+In addition to the Orca validator, you should run the `orca_extra_profile_check.py` script. This script performs additional checks like:
+
+- Validation of `compatible_printers` in filament profiles
+- Consistency of filament names
+- Validation of default materials in machine profiles (optional)
+
+#### Example command
+
+```bash
+python ./orca_extra_profile_check.py
+```
+
+You can also enable or disable specific checks:
+
+- `--vendor` (optional): checks only the specified vendor. If omitted, all vendors are checked.
+- `--check-filaments` (enabled by default): checks `compatible_printers` fields in filament profiles
+- `--check-materials`: checks default material names in machine profiles
+
+#### Sample usage with all checks enabled
+
+```bash
+python ./orca_extra_profile_check.py --vendor="vendor_name" --check-filaments --check-materials
+```
+
+The script will output the number of errors found and exit with a non-zero status code if any issues are detected.
