@@ -4,7 +4,7 @@
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
-BEGIN_EVENT_TABLE(SideButton, wxPanel)
+BEGIN_EVENT_TABLE(SideButton, wxWindow)
 EVT_LEFT_DOWN(SideButton::mouseDown)
 EVT_LEFT_UP(SideButton::mouseReleased)
 EVT_PAINT(SideButton::paintEvent)
