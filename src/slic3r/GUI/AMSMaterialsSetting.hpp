@@ -118,7 +118,7 @@ public:
     void on_picker_color(wxCommandEvent& color);
     MachineObject* obj{ nullptr };
     int            ams_id { 0 };        /* 0 ~ 3 */
-    int            tray_id { 0 };       /* 0 ~ 3 */
+    int            slot_id { 0 };        /* 0 ~ 3 */
 
     std::string    ams_filament_id;
     std::string    ams_setting_id;

@@ -498,6 +498,10 @@ int get_dpi_for_window(const wxWindow *window);
 void dataview_remove_insets(wxDataViewCtrl* dv);
 #endif
 
+#if defined(__WXOSX__) || defined(__linux__)
+bool is_debugger_present();
+#endif
+
 /// <summary>
 /// Make sure the given window fits inside current display
 /// </summary>
