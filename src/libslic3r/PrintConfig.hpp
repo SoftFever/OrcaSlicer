@@ -869,6 +869,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            min_feature_size))
     ((ConfigOptionPercent,            initial_layer_min_bead_width))
     ((ConfigOptionPercent,            min_bead_width))
+    ((ConfigOptionInt,                outer_perimeter_layer_divider))
 
     // Orca
     ((ConfigOptionFloat,              make_overhang_printable_angle))
