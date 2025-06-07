@@ -5,32 +5,16 @@
     "description": "Prusa configurations",
     "machine_model_list": [
         {
+            "name": "Prusa CORE One",
+            "sub_path": "machine/Prusa CORE One.json"
+        },
+        {
+            "name": "Prusa CORE One HF",
+            "sub_path": "machine/Prusa CORE One HF.json"
+        },
+        {
             "name": "MK4IS",
             "sub_path": "machine/Prusa MK4.json"
-        },
-        {
-            "name": "MINIIS",
-            "sub_path": "machine/Prusa MINIIS.json"
-        },
-        {
-            "name": "MK3S",
-            "sub_path": "machine/Prusa MK3S.json"
-        },
-        {
-            "name": "MINI",
-            "sub_path": "machine/Prusa MINI.json"
-        },
-        {
-            "name": "MK3.5",
-            "sub_path": "machine/Prusa MK3.5.json"
-        },
-        {
-            "name": "Prusa XL",
-            "sub_path": "machine/Prusa XL.json"
-        },
-        {
-            "name": "Prusa XL 5T",
-            "sub_path": "machine/Prusa XL 5T.json"
         },
         {
             "name": "MK4S",
@@ -41,12 +25,28 @@
             "sub_path": "machine/Prusa MK4S HF.json"
         },
         {
-            "name": "Prusa CORE One",
-            "sub_path": "machine/Prusa CORE One.json"
+            "name": "Prusa XL",
+            "sub_path": "machine/Prusa XL.json"
         },
         {
-            "name": "Prusa CORE One HF",
-            "sub_path": "machine/Prusa CORE One HF.json"
+            "name": "Prusa XL 5T",
+            "sub_path": "machine/Prusa XL 5T.json"
+        },
+        {
+            "name": "MK3.5",
+            "sub_path": "machine/Prusa MK3.5.json"
+        },
+        {
+            "name": "MK3S",
+            "sub_path": "machine/Prusa MK3S.json"
+        },
+        {
+            "name": "MINI",
+            "sub_path": "machine/Prusa MINI.json"
+        },
+        {
+            "name": "MINIIS",
+            "sub_path": "machine/Prusa MINIIS.json"
         }
     ],
     "process_list": [
