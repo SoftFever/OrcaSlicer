@@ -2285,7 +2285,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
 {
     bool  is_same_nozzle_diameters = true;
 
-    float       preset_nozzle_diameters;
+    float       preset_nozzle_diameters = 0.0;
     std::string preset_nozzle_type;
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
