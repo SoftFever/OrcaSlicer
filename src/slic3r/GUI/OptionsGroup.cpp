@@ -7,6 +7,7 @@
 #include "MsgDialog.hpp"
 #include "format.hpp"
 #include "Widgets/StaticLine.hpp"
+#include "Widgets/LabeledStaticBox.hpp"
 
 #include <utility>
 #include <wx/bookctrl.h>
@@ -470,14 +471,11 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 
 	try {
 		if (staticbox) {
-			wxStaticBox * stb = new wxStaticBox(m_parent, wxID_ANY, _(title));
-			if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
-            stb->SetBackgroundColour(m_parent->GetBackgroundColour());
-			stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
-			wxGetApp().UpdateDarkUI(stb);
-			// BBS: new layout
-			sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
+            // ORCA match style of wxStaticBox between platforms
+			LabeledStaticBox * stb = new LabeledStaticBox(m_parent, _(title));
+			//wxGetApp().UpdateDarkUI(stb);
 			this->stb = stb;
+			sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
 		}
 		else {
 			// BBS: new layout
