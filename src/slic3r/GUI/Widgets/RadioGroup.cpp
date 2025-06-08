@@ -8,7 +8,7 @@ RadioGroup::RadioGroup(
     long  direction,
     int row_col_limit
 )
-    : wxWindow(parent, wxID_ANY)
+    : wxPanel(parent, wxID_ANY)
     , m_on(       this, "radio_on"       , 18)
     , m_off(      this, "radio_off"      , 18)
     , m_on_hover( this, "radio_on_hover" , 18)
@@ -56,6 +56,19 @@ void RadioGroup::Create(
         );
         if (m_focused) // Required to take focus again since Refresh causing lossing focus
             SetFocus();
+    }));
+    // DPIDialog's uses wxEVT_CHAR_HOOK
+    Bind(wxEVT_CHAR_HOOK, ([this](wxKeyEvent&e){
+        int  k = e.GetKeyCode();
+        bool is_next = (k == WXK_DOWN || k == WXK_RIGHT);
+        bool is_prev = (k == WXK_LEFT || k == WXK_UP);
+        if(m_focused){
+            if      (is_next) SelectNext();
+            else if (is_prev) SelectPrevious();
+            e.Skip(!(is_next || is_prev));
+        }else{
+            e.Skip();
+        }
     }));
 
     for (int i = 0; i < item_count; ++i){

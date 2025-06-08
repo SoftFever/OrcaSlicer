@@ -10,7 +10,7 @@
 #include <vector>
 #include <string>
 
-class RadioGroup : public wxWindow
+class RadioGroup : public wxPanel
 {
 
 public:
@@ -56,6 +56,8 @@ private:
     void UpdateFocus(bool focus);
 
     void SetRadioIcon(int i, bool hover);
+
+    void OnKeyDown(wxKeyEvent& e);
 };
 
 #endif // !slic3r_GUI_RADIOGROUP_hpp_
