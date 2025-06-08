@@ -9,20 +9,21 @@ In contrast, using STEP files offers a higher-quality mesh that more accurately 
 
 ## Importing STEP files
 
-This setting determines how STEP files are converted into STL files and is displayed during the STEP file import process.  
+This setting determines how STEP files are converted into STL files and is displayed during the STEP file import process.
+
 If you don't see this when opening a STEP file, check [Don't show again](#Don't-show-again) below.
 
 ![image](./images/stl%20transformation/stl-transformation.png)
 
 ### Parameters:
 
-The transformation uses [Linear Deflection and Angular Deflection](https://dev.opencascade.org/doc/overview/html/occt_user_guides__mesh.html)  parameters to control the mesh quality.
+The transformation uses [Linear Deflection and Angular Deflection](https://dev.opencascade.org/doc/overview/html/occt_user_guides__mesh.html) parameters to control the mesh quality.
 A finer mesh will result in a more accurate representation of the original surface, but it will also increase the file size and processing time.
 
 ![image](./images/stl%20transformation/stl-transformation-params.png)
 
- - **Linear Deflection**: Specifies the maximum distance allowed between the original surface and its polygonal approximation. Lower values produce a mesh that more accurately follows the original curvature.
- - **Angular Deflection**: Defines the maximum allowable angle difference between the actual surface and its tessellated counterpart. Smaller angular deflection values yield a more precise mesh.
+- **Linear Deflection**: Specifies the maximum distance allowed between the original surface and its polygonal approximation. Lower values produce a mesh that more accurately follows the original curvature.
+- **Angular Deflection**: Defines the maximum allowable angle difference between the actual surface and its tessellated counterpart. Smaller angular deflection values yield a more precise mesh.
 
 #### Split compound and compsolid into multiple objects:
 
@@ -48,7 +49,6 @@ To access the Simplify Model option, right-click on the object to simplify in th
 ![image](./images/stl%20transformation/simplify-menu.png)
 
 It is recommended to enable the "Show Wireframe" option when running a simplification process to visually inspect the outcome. However, be cautious: overly aggressive simplification may lead to noticeable detail loss, increased ringing, or other printing issues.
-
 
 ### You can Simplify your model using the following options:
 
