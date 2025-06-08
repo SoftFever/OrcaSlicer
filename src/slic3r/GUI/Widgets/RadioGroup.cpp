@@ -15,6 +15,7 @@ RadioGroup::RadioGroup(
     , m_off_hover(this, "radio_off_hover", 18)
     , m_disabled( this, "radio_off_hover", 18)
     , m_selectedIndex(0)
+    , m_focused(false)
 {
     Create(parent, labels, direction, row_col_limit);
 }
@@ -40,14 +41,21 @@ void RadioGroup::Create(
     SetDoubleBuffered(true);
     AcceptsFocusFromKeyboard();
 
-    Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {UpdateFocus(true) ; e.Skip();}));
-    Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {UpdateFocus(false); e.Skip();}));
+    Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {m_focused = true ;Refresh(); e.Skip();}));
+    Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {m_focused = false;Refresh(); e.Skip();}));
     Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
         wxPaintDC dc(this);
         dc.Clear();
         dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#009688")), 1, wxPENSTYLE_SOLID));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRectangle(m_focus_rect);
+        dc.DrawRectangle(
+            m_focused ? wxRect(
+                m_radioButtons[GetSelection()]->GetRect().GetTopLeft()     - wxPoint(1, 3),
+                m_labelButtons[GetSelection()]->GetRect().GetBottomRight() + wxPoint(4, 1)
+            ) : wxRect(0,0,0,0)
+        );
+        if (m_focused) // Required to take focus again since Refresh causing lossing focus
+            SetFocus();
     }));
 
     for (int i = 0; i < item_count; ++i){
@@ -55,7 +63,12 @@ void RadioGroup::Create(
         m_radioButtons.push_back(rb);
         rb->Bind(wxEVT_LEFT_DOWN   ,([this, i](wxMouseEvent e) {OnClick(i)            ; e.Skip();}));
         rb->Bind(wxEVT_ENTER_WINDOW,([this, i](wxMouseEvent e) {SetRadioIcon(i, true) ; e.Skip();}));
-        rb->Bind(wxEVT_LEAVE_WINDOW,([this, i](wxMouseEvent e) {SetRadioIcon(i, false); e.Skip();}));
+        rb->Bind(wxEVT_LEAVE_WINDOW,([this, i](wxMouseEvent e) {
+            // prevent removing hover effect while switching between button and its text
+            if(wxFindWindowAtPoint(wxGetMousePosition())->GetId() != m_labelButtons[i]->GetId())
+                SetRadioIcon(i, false);
+            e.Skip();
+        }));
 
         auto tx = new wxStaticText(this, wxID_ANY, " " + m_labels[i], wxDefaultPosition, wxDefaultSize);
         tx->SetForegroundColour(wxColour("#363636"));
@@ -63,7 +76,12 @@ void RadioGroup::Create(
         m_labelButtons.push_back(tx);
         tx->Bind(wxEVT_LEFT_DOWN   ,([this, i](wxMouseEvent e) {OnClick(i)            ; e.Skip();}));
         tx->Bind(wxEVT_ENTER_WINDOW,([this, i](wxMouseEvent e) {SetRadioIcon(i, true) ; e.Skip();}));
-        tx->Bind(wxEVT_LEAVE_WINDOW,([this, i](wxMouseEvent e) {SetRadioIcon(i, false); e.Skip();}));
+        tx->Bind(wxEVT_LEAVE_WINDOW,([this, i](wxMouseEvent e) {
+            // prevent removing hover effect while switching between button and its text
+            if(wxFindWindowAtPoint(wxGetMousePosition())->GetId() != m_radioButtons[i]->GetId())
+                SetRadioIcon(i, false);
+            e.Skip();
+        }));
 
         wxBoxSizer* radio_sizer = new wxBoxSizer(wxHORIZONTAL);
         radio_sizer->Add(rb, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 1);
@@ -76,8 +94,7 @@ void RadioGroup::Create(
 
 void RadioGroup::OnClick(int i)
 {
-    if (!HasFocus())
-        SetFocus();
+    m_focused = true; // prevents 2 time refresh
     SetSelection(i);
 }
 
@@ -87,28 +104,19 @@ void RadioGroup::SetSelection(int index)
         m_selectedIndex = index;
         for (size_t i = 0; i < m_labels.size(); ++i)
             SetRadioIcon(i, HasFocus() && i == m_selectedIndex);
-        if (HasFocus())
-            UpdateFocus(true);
 
         wxCommandEvent evt(wxEVT_COMMAND_RADIOBOX_SELECTED, GetId());
         evt.SetInt(index);
         evt.SetString(m_labels[index]);
         GetEventHandler()->ProcessEvent(evt);
+
+        Refresh(); // refresh on every change
     }
 }
 
 int RadioGroup::GetSelection()
 { 
     return m_selectedIndex; 
-}
-
-void RadioGroup::UpdateFocus(bool focus)
-{
-    m_focus_rect = focus ? wxRect(
-        m_radioButtons[m_selectedIndex]->GetRect().GetTopLeft()     - wxPoint(1, 3),
-        m_labelButtons[m_selectedIndex]->GetRect().GetBottomRight() + wxPoint(4, 1)
-    ) : wxRect(0,0,0,0);
-    Refresh();
 }
 
 void RadioGroup::SelectNext(bool focus)

@@ -30,10 +30,6 @@ public:
         int row_col_limit = -1
     );
 
-    // make sure its focusable on linux
-    bool AcceptsFocus()             const override { return true; }
-    bool AcceptsFocusFromKeyboard() const override { return true; }
-    
     int  GetSelection();
 
     void SetSelection(int index);
@@ -41,14 +37,14 @@ public:
     void SelectNext(bool focus = true);
 
     void SelectPrevious(bool focus = true);
-    
+
 private:
     std::vector<wxString>        m_labels;
     std::vector<wxStaticBitmap*> m_radioButtons;
     std::vector<wxStaticText*>   m_labelButtons;
 
-    int    m_selectedIndex;
-    wxRect m_focus_rect;
+    int  m_selectedIndex;
+    bool m_focused;
     ScalableBitmap m_on;
     ScalableBitmap m_off;
     ScalableBitmap m_on_hover;
