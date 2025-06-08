@@ -6521,11 +6521,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     metadata_item_map[BBL_REGION_TAG]   = region_code;
                 }
 
-                std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
-                // keep only the date part of the string
-                date = date.substr(0, 10);
-                metadata_item_map[BBL_CREATION_DATE_TAG] = date;
-                metadata_item_map[BBL_MODIFICATION_TAG]  = date;
+                // Orca: PRIVACY: do not store creation & modification date in 3mf
+                metadata_item_map[BBL_CREATION_DATE_TAG] = "";
+                metadata_item_map[BBL_MODIFICATION_TAG]  = "";
                 //SoftFever: write BambuStudio tag to keep it compatible 
                 metadata_item_map[BBL_APPLICATION_TAG] = (boost::format("%1%-%2%") % "BambuStudio" % SoftFever_VERSION).str();
             }
