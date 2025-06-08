@@ -1,23 +1,36 @@
-OrcaSlicer use `M141/M191` command to control active chamber heater.  
+# Chamber Temperature Control
 
-If `Activate temperature control` is checked, OrcaSlicer will insert `M191` command at the beginning of the gcode(before `Machine G-code`).  
-![image](./images/activate_chamber_heater.jpg)  
-*Note: If the machine is equipped with an auxiliary fan, OrcaSlicer will automatically activate the fan during the heating period to help circulate air in the chamber.*  
+OrcaSlicer use `M141/M191` command to control active chamber heater.
 
+If `Activate temperature control` is checked, OrcaSlicer will insert `M191` command at the beginning of the gcode(before `Machine G-code`).
 
-There are two chamber temperature variables available that we can use in `Machine G-code` to control the chamber temperature, if you prefer:  
-To access the chamber temperature set in the first filament, use:  
-`M191 S{chamber_temperature[0]}`  
-To use the overall chamber temperature, which is the highest chamber temperature set across all filaments, use:    
-`M191 S{overall_chamber_temperature}`
+![image](./images/activate_chamber_heater.jpg)
 
+> [!NOTE]
+> If the machine is equipped with an auxiliary fan, OrcaSlicer will automatically activate the fan during the heating period to help circulate air in the chamber.
 
---------------------------Klipper--------------------------  
-If you are using Klipper, you can define these macros to control the active chamber heater.  
-Bellow is a reference configuration for Klipper.   
-*Note: Don't forget to change the pin name/values to the actual values you are using in the configuration*
+## Using Chamber Temperature Variables in Machine G-code
 
-```
+You can use chamber temperature variables in your `Machine G-code` to control the chamber temperature manually, if desired:
+
+- To set the chamber temperature to the value specified for the first filament:
+  ```gcode
+  M191 S{chamber_temperature[0]}
+  ```
+- To set the chamber temperature to the highest value specified across all filaments:
+  ```gcode
+  M191 S{overall_chamber_temperature}
+  ```
+
+## Klipper
+
+If you are using Klipper, you can define these macros to control the active chamber heater.
+Bellow is a reference configuration for Klipper.
+
+> [!Important]
+> Don't forget to change the pin name/values to the actual values you are using in the configuration.
+
+```gcode
 [heater_generic chamber_heater]
 heater_pin:PB10
 max_power:1.0
@@ -25,7 +38,7 @@ max_power:1.0
 sensor_type:NTC 100K MGB18-104F39050L32
 sensor_pin:PA1
 control = pid
-pid_Kp = 63.418 
+pid_Kp = 63.418
 pid_ki = 0.960
 pid_kd = 1244.716
 min_temp:0
@@ -48,5 +61,4 @@ gcode:
         TEMPERATURE_WAIT SENSOR="heater_generic chamber_heater" MINIMUM={s-1} MAXIMUM={s+1}
         M117 Chamber at target temperature
     {% endif %}
-
 ```
