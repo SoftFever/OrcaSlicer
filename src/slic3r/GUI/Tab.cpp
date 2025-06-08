@@ -2153,6 +2153,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("wall_loops");
         optgroup->append_single_option_line("alternate_extra_wall");
         optgroup->append_single_option_line("detect_thin_wall");
+        optgroup->append_single_option_line("staggered_perimeters");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
         optgroup->append_single_option_line("top_shell_layers");

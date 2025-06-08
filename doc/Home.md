@@ -54,3 +54,4 @@ The [Calibration Guide](./print_settings/calibration/Calibration.md) takes you t
 - [Localization and translation guide](Localization_guide)
 - [Developer Reference](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/developer-reference/Home.md)
 - [How to create profiles](./How-to-create-profiles)
+- [List of staggered perimiters known issues](./staggered-perimiters-known-issues.md)
