@@ -10,7 +10,7 @@
 #include <vector>
 #include <string>
 
-class RadioGroup : public wxPanel
+class RadioGroup : public wxWindow
 {
 
 public:
@@ -29,6 +29,10 @@ public:
         long direction = wxHORIZONTAL,
         int row_col_limit = -1
     );
+
+    // make sure its focusable on linux
+    bool AcceptsFocus()             const override { return true; }
+    bool AcceptsFocusFromKeyboard() const override { return true; }
     
     int  GetSelection();
 

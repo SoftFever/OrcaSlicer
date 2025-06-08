@@ -8,7 +8,7 @@ RadioGroup::RadioGroup(
     long  direction,
     int row_col_limit
 )
-    : wxPanel(parent)
+    : wxWindow(parent, wxID_ANY)
     , m_on(       this, "radio_on"       , 18)
     , m_off(      this, "radio_off"      , 18)
     , m_on_hover( this, "radio_on_hover" , 18)
@@ -39,7 +39,7 @@ void RadioGroup::Create(
 
     SetDoubleBuffered(true);
     AcceptsFocusFromKeyboard();
-    SetFocusIgnoringChildren();
+
     Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {UpdateFocus(true) ; e.Skip();}));
     Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {UpdateFocus(false); e.Skip();}));
     Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
@@ -76,7 +76,8 @@ void RadioGroup::Create(
 
 void RadioGroup::OnClick(int i)
 {
-    SetFocus();
+    if (!HasFocus())
+        SetFocus();
     SetSelection(i);
 }
 
