@@ -43,7 +43,8 @@ private:
     std::vector<wxStaticBitmap*> m_radioButtons;
     std::vector<wxStaticText*>   m_labelButtons;
 
-    int m_selectedIndex;
+    int    m_selectedIndex;
+    wxRect m_focus_rect;
     ScalableBitmap m_on;
     ScalableBitmap m_off;
     ScalableBitmap m_on_hover;
@@ -52,9 +53,7 @@ private:
 
     void OnClick(int i);
 
-    void DrawFocus();
-
-    void KillFocus();
+    void UpdateFocus(bool focus);
 
     void SetRadioIcon(int i, bool hover);
 };

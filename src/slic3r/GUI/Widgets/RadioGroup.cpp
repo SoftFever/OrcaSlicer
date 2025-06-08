@@ -3,28 +3,27 @@
 #include "StateColor.hpp"
 
 RadioGroup::RadioGroup(
-        wxWindow* parent,
-        const std::vector<wxString>& labels,
-        long  direction,
-        int row_col_limit
+    wxWindow* parent,
+    const std::vector<wxString>& labels,
+    long  direction,
+    int row_col_limit
 )
-        : wxPanel(parent),
-          m_on(       this, "radio_on"       , 18),
-          m_off(      this, "radio_off"      , 18),
-          m_on_hover( this, "radio_on_hover" , 18),
-          m_off_hover(this, "radio_off_hover", 18),
-          m_disabled( this, "radio_off_hover", 18),
-          m_selectedIndex(0)
+    : wxPanel(parent)
+    , m_on(       this, "radio_on"       , 18)
+    , m_off(      this, "radio_off"      , 18)
+    , m_on_hover( this, "radio_on_hover" , 18)
+    , m_off_hover(this, "radio_off_hover", 18)
+    , m_disabled( this, "radio_off_hover", 18)
+    , m_selectedIndex(0)
 {
     Create(parent, labels, direction, row_col_limit);
-    
 }
 
 void RadioGroup::Create(
-        wxWindow* parent,
-        const std::vector<wxString>& labels,
-        long  direction,   /* wxHORIZONTAL / wxVERTICAL */
-        int row_col_limit  /* sets column/row count depends on direction. creates new row if wxHORIZONTAL used after limit reached */
+    wxWindow* parent,
+    const std::vector<wxString>& labels,
+    long  direction,   /* wxHORIZONTAL / wxVERTICAL */
+    int row_col_limit  /* sets column/row count depends on direction. creates new row if wxHORIZONTAL used after limit reached */
 )
 {
     m_labels = labels;
@@ -38,10 +37,18 @@ void RadioGroup::Create(
     int  cols       = (direction & wxHORIZONTAL) ? count : item_limit;
     wxFlexGridSizer* f_sizer = new wxFlexGridSizer(rows, cols, 0, 0);
 
+    SetDoubleBuffered(true);
     AcceptsFocusFromKeyboard();
     SetFocusIgnoringChildren();
-    Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {DrawFocus(); e.Skip();}));
-    Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {KillFocus(); e.Skip();}));
+    Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {UpdateFocus(true) ; e.Skip();}));
+    Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {UpdateFocus(false); e.Skip();}));
+    Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
+        wxPaintDC dc(this);
+        dc.Clear();
+        dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#009688")), 1, wxPENSTYLE_SOLID));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRectangle(m_focus_rect);
+    }));
 
     for (int i = 0; i < item_count; ++i){
         auto rb = new wxStaticBitmap(this, wxID_ANY, m_off.bmp(), wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxNO_BORDER);
@@ -80,7 +87,7 @@ void RadioGroup::SetSelection(int index)
         for (size_t i = 0; i < m_labels.size(); ++i)
             SetRadioIcon(i, HasFocus() && i == m_selectedIndex);
         if (HasFocus())
-            DrawFocus();
+            UpdateFocus(true);
 
         wxCommandEvent evt(wxEVT_COMMAND_RADIOBOX_SELECTED, GetId());
         evt.SetInt(index);
@@ -94,27 +101,13 @@ int RadioGroup::GetSelection()
     return m_selectedIndex; 
 }
 
-void RadioGroup::DrawFocus()
+void RadioGroup::UpdateFocus(bool focus)
 {
-    wxRect area = wxRect(
-        m_radioButtons[m_selectedIndex]->GetRect().GetTopLeft(),
-        m_labelButtons[m_selectedIndex]->GetRect().GetBottomRight()
-    );
-    area.Inflate(1);
-    area.y -= 3;
-    area.height += 4;
-    area.width += 5;
-    wxClientDC dc(this);
-    dc.Clear();
-    dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#009688"))));
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRectangle(area); 
-}
-
-void RadioGroup::KillFocus()
-{
-    wxClientDC dc(this);
-    dc.Clear();
+    m_focus_rect = focus ? wxRect(
+        m_radioButtons[m_selectedIndex]->GetRect().GetTopLeft()     - wxPoint(1, 3),
+        m_labelButtons[m_selectedIndex]->GetRect().GetBottomRight() + wxPoint(4, 1)
+    ) : wxRect(0,0,0,0);
+    Refresh();
 }
 
 void RadioGroup::SelectNext(bool focus)
