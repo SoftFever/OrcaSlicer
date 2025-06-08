@@ -6509,7 +6509,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 metadata_item_map[BBL_MODEL_NAME_TAG]           = xml_escape(name);
                 metadata_item_map[BBL_ORIGIN_TAG]               = xml_escape(origin);
                 metadata_item_map[BBL_DESIGNER_TAG]             = xml_escape(user_name);
-                metadata_item_map[BBL_DESIGNER_USER_ID_TAG]     = user_id;
+                metadata_item_map[BBL_DESIGNER_USER_ID_TAG]     = ""; // Orca: PRIVACY: do not store BBL user id in 3mf
                 metadata_item_map[BBL_DESIGNER_COVER_FILE_TAG]  = xml_escape(design_cover);
                 metadata_item_map[BBL_DESCRIPTION_TAG]          = xml_escape(description);
                 metadata_item_map[BBL_COPYRIGHT_NORMATIVE_TAG]  = xml_escape(copyright);
