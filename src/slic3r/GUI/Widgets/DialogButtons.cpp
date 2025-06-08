@@ -92,7 +92,10 @@ void DialogButtons::SetPrimaryButton(wxString translated_label) {
 
     m_primary = translated_label;
 
-    btn->SetFocus();
+    // apply focus only if there is no focused element exist. this prevents stealing focus from input boxes
+    if(m_parent->FindFocus() == nullptr)
+        btn->SetFocus();
+
     // we won't need color definations after button style management
     StateColor clr_bg = StateColor(
         std::pair(wxColour("#009688"), (int)StateColor::NotHovered),
