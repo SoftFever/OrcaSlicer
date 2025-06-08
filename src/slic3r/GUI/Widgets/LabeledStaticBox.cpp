@@ -109,7 +109,7 @@ void LabeledStaticBox::SetFont(wxFont set_font)
 
 bool LabeledStaticBox::Enable(bool enable)
 {
-    bool result = this->Enable(enable);
+    bool result = this->wxStaticBox::Enable(enable);
     if (result) {
         wxCommandEvent e(EVT_ENABLE_CHANGED);
         e.SetEventObject(this);

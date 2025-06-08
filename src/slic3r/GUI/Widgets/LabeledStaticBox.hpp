@@ -44,7 +44,7 @@ public:
 
     void SetFont(wxFont set_font);
 
-    bool Enable(bool enable);
+    bool Enable(bool enable) override;
 
 private:
     void PickDC(wxDC& dc);
