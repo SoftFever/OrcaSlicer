@@ -47,18 +47,22 @@ public:
     bool Enable(bool enable);
 
 private:
-    void paintEvent(wxPaintEvent& evt);
+    void PickDC(wxDC& dc);
+    virtual void DrawBorderAndLabel(wxDC& dc);
 
 protected:
     StateHandler state_handler;
     StateColor   text_color;
     StateColor   border_color;
     StateColor   background_color;
-    int          border_width;
-    int          radius;
-    wxFont       font;
-
-    DECLARE_EVENT_TABLE()
+    int          m_border_width;
+    int          m_radius;
+    wxFont       m_font;
+    wxString     m_label;
+    int          m_label_height;
+    int          m_label_width;
+    float        m_scale;
+    wxPoint      m_pos;
 };
 
 #endif // !slic3r_GUI_LabeledStaticBox_hpp_
