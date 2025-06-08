@@ -6,7 +6,7 @@ namespace Slic3r { namespace GUI {
 
 // ORCA standardize dialog buttons
 DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& primary_btn_translated_label)
-    : wxWindow(parent, wxID_ANY)
+    : wxPanel(parent, wxID_ANY)
 {
     m_parent  = parent;
     m_sizer   = new wxBoxSizer(wxHORIZONTAL);

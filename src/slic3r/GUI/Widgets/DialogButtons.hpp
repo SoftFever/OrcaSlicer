@@ -13,7 +13,7 @@
 
 namespace Slic3r { namespace GUI {
 
-class DialogButtons  : public wxWindow{
+class DialogButtons  : public wxPanel{
 public:
 
     DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& primary_btn_label = "");
