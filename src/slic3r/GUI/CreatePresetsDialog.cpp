@@ -2579,7 +2579,9 @@ wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *paren
 {
     auto dlg_btns = new DialogButtons(parent, {"Back", "OK", "Cancel"});
 
-    dlg_btns->GetBACK()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { show_page1(); });
+    auto btn_back = dlg_btns->GetBACK(); // Back button automatically alings to left
+    btn_back->SetLabel(_L("return")); // no proper case translation
+    btn_back->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { show_page1(); });
 
     auto btn_ok = dlg_btns->GetOK();
     btn_ok->SetLabel(_L("Create"));
