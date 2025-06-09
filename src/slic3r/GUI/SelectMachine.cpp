@@ -1419,128 +1419,11 @@ void SelectMachineDialog::prepare(int print_plate_idx)
     m_print_plate_idx = print_plate_idx;
 }
 
-void SelectMachineDialog::update_ams_status_msg(vector<wxString> msg, bool is_error,bool is_single)
-{
-        auto colour = is_error ? wxColour("#D01B1B") : wxColour("#FF6F00");
-         m_statictext_ams_msg->SetForegroundColour(colour);
-
-        if (msg.empty()) {
-             if (!m_statictext_ams_msg->GetLabel().empty()) {
-                m_statictext_ams_msg->SetLabelList(std::vector<wxString>{}, colour);
-                m_statictext_ams_msg->Hide();
-                Layout();
-                Fit();
-             }
-        }
-        else {
-            if (m_statictext_ams_msg->GetLabelList() != msg) {
-                vector<wxString> TempMsg = {};
-
-                if (is_single)
-                    TempMsg = {msg[0]};
-                else
-                    TempMsg = msg;
-
-                m_statictext_ams_msg->SetLabelList(TempMsg, colour);
-                m_statictext_ams_msg->Show();
-                Layout();
-                Fit();
-            }
-        }
-}
-
-void SelectMachineDialog::update_priner_status_msg(vector<wxString> msg, bool is_error,bool is_single)
-{
-    auto colour = is_error ? wxColour("#D01B1B") : wxColour("#FF6F00");
-    m_text_printer_msg->SetForegroundColour(colour);
-
-    if (msg.empty()) {
-        if (!m_text_printer_msg->GetLabel().empty()) {
-            m_text_printer_msg->SetLabelList(std::vector<wxString>{}, colour);
-            m_text_printer_msg->Hide();
-            Layout();
-            Fit();
-        }
-    }
-    else {
-        if (m_text_printer_msg->GetLabelList() != msg) {
-            vector<wxString> TempMsg = {};
-
-            if (is_single)
-                TempMsg = {msg[0]};
-            else
-                TempMsg = msg;
-
-            m_text_printer_msg->SetLabelList(TempMsg, colour);
-            m_text_printer_msg->Show();
-            Layout();
-            Fit();
-         }
-    }
-}
-
-
-
-void SelectMachineDialog::update_printer_status_msg_tips(const wxString &msg_tips)
-{
-    if (msg_tips.empty()) {
-        if (!m_text_printer_msg_tips->GetLabel().empty()) {
-            m_text_printer_msg_tips->SetLabel(wxEmptyString);
-            m_text_printer_msg_tips->Hide();
-            Layout();
-            Fit();
-        }
-    } else {
-        auto str_new = msg_tips.utf8_string();
-        auto str_old = m_text_printer_msg_tips->GetLabel().utf8_string();
-
-        if (str_new != str_old) {
-            if (m_text_printer_msg_tips->GetLabel() != msg_tips) {
-                m_text_printer_msg_tips->SetLabel(msg_tips);
-                m_text_printer_msg_tips->SetMinSize(wxSize(FromDIP(420), -1));
-                m_text_printer_msg_tips->SetMaxSize(wxSize(FromDIP(420), -1));
-                m_text_printer_msg_tips->Wrap(FromDIP(420));
-                m_text_printer_msg_tips->Show();
-                Layout();
-                Fit();
-            }
-        }
-    }
-}
-
 void SelectMachineDialog::update_print_status_msg()
 {
-    //if (m_pre_print_checker.filamentList.size() <= 0) update_ams_status_msg(wxEmptyString, false);
-     if (m_pre_print_checker.filamentList.size() <= 0) update_ams_status_msg(std::vector<wxString>{}, false,false);
-     if (m_pre_print_checker.printerList.size() <= 0) update_priner_status_msg(std::vector<wxString>{}, false,false);
-
- //   for (const auto &info : m_pre_print_checker.filamentList) { update_ams_status_msg(info.msg, info.level == Error ? true : false); }
-
-    std::vector<wxString> filamentList_msgs;
-     bool                  has_filamen_error = false;
-    for (const auto &info : m_pre_print_checker.filamentList) {
-        filamentList_msgs.push_back(info.msg);
-        if (!has_filamen_error)
-            has_filamen_error = (info.level == Error);
-
-    }
-    update_ams_status_msg(filamentList_msgs, has_filamen_error, false);
-
-
-    std::vector<wxString> printerList_msgs;
-    bool                  has_printer_error = false;
-    for (const auto &info : m_pre_print_checker.printerList) {
-        printerList_msgs.push_back(info.msg);
-        if (!has_printer_error)
-            has_printer_error = (info.level == Error );
-
-        update_printer_status_msg_tips(info.tips);
-    }
-    update_priner_status_msg(printerList_msgs, has_printer_error, false);
-
+    m_statictext_ams_msg->UpdateInfos(m_pre_print_checker.filamentList);
+    m_text_printer_msg->UpdateInfos(m_pre_print_checker.printerList);
  }
-
-
 
 void SelectMachineDialog::update_print_error_info(int code, std::string msg, std::string extra)
 {
@@ -1565,7 +1448,7 @@ bool SelectMachineDialog::check_sdcard_for_timelpase(MachineObject* obj)
     return false;
 }
 
-void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxString> params)
+void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxString> params, wxString wiki_url)
 {
     wxString msg;
     wxString tips;
@@ -1766,7 +1649,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 
     /*enter perpare mode*/
     prepare_mode(false);
-    m_pre_print_checker.add(status, msg, tips);
+    m_pre_print_checker.add(status, msg, tips, wiki_url);
 
 }
 
@@ -2045,11 +1928,11 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         bool in_blacklist = false;
         std::string action;
         wxString info;
-        DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
-                                                    action, info);
-
+        wxString wiki_url;
+        DeviceManager::check_filaments_in_blacklist_url(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
+                                                        action, info, wiki_url);
         if (in_blacklist && action == "warning") {
-            confirm_text.push_back(ConfirmBeforeSendInfo(info));
+            confirm_text.push_back(ConfirmBeforeSendInfo(info, wiki_url));
             has_slice_warnings = true;
         }
     }
@@ -2183,7 +2066,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
             if (is_printing_block)
             {
-                shown_infos.emplace_back(ConfirmBeforeSendInfo(_L("Please fix the error above, otherwise printing cannot continue."), ConfirmBeforeSendInfo::InfoLevel::Warning));
+                shown_infos.emplace_back(ConfirmBeforeSendInfo(_L("Please fix the error above, otherwise printing cannot continue."), wxEmptyString, ConfirmBeforeSendInfo::InfoLevel::Warning));
             }
             else
             {
@@ -3490,17 +3373,18 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         bool        in_blacklist = false;
         std::string action;
         wxString info;
-        DeviceManager::check_filaments_in_blacklist(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
-                                                    action, info);
+        wxString wiki_url;
+        DeviceManager::check_filaments_in_blacklist_url(obj_->printer_type, filament_brand, filament_type, m_ams_mapping_result[i].filament_id, ams_id, slot_id, "", in_blacklist,
+                                                        action, info, wiki_url);
         if (in_blacklist) {
 
             std::vector<wxString> error_msg { info };
             if (action == "prohibition") {
-                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListError, error_msg);
+                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListError, error_msg, wiki_url);
                 return;
             }
             else if (action == "warning") {
-                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, error_msg);/** warning check **/
+                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, error_msg, wiki_url);/** warning check **/
               //  return;
             }
         }

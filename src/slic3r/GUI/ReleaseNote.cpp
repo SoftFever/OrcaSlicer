@@ -1305,14 +1305,30 @@ void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> tex
 
     auto height = 0;
     for (auto text : texts) {
-        auto label_item = new Label(m_vebview_release_note, text.text, LB_AUTO_WRAP);
-        if (enable_warning_clr && text.level == ConfirmBeforeSendInfo::InfoLevel::Warning) {
+
+        Label* label_item = nullptr;
+        if (text.wiki_url.empty())
+        {
+            label_item = new Label(m_vebview_release_note, text.text, LB_AUTO_WRAP);
+        }
+        else
+        {
+            label_item = new Label(m_vebview_release_note, text.text + " " + _L("Please refer to Wiki before use->"), LB_AUTO_WRAP);
+            label_item->Bind(wxEVT_LEFT_DOWN, [this, text](wxMouseEvent& e) { wxLaunchDefaultBrowser(text.wiki_url);});
+            label_item->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+            label_item->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+        }
+
+        if (enable_warning_clr && text.level == ConfirmBeforeSendInfo::InfoLevel::Warning)
+        {
             label_item->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
         }
+
         label_item->SetMaxSize(wxSize(FromDIP(494), -1));
         label_item->SetMinSize(wxSize(FromDIP(494), -1));
         label_item->Wrap(FromDIP(494));
         label_item->Layout();
+
         sizer_text_release_note->Add(label_item, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
         height += label_item->GetSize().y;
     }

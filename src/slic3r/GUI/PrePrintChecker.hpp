@@ -22,7 +22,15 @@ struct prePrintInfo
     prePrintInfoType  type;
     wxString msg;
     wxString tips;
+    wxString wiki_url;
     int index;
+
+public:
+    bool operator==(const prePrintInfo& other) const {
+        return level == other.level && type == other.type &&
+               msg == other.msg && tips == other.tips &&
+               wiki_url == other.wiki_url && index == other.index;
+    }
 };
 
 enum PrintDialogStatus : unsigned int {
@@ -119,7 +127,7 @@ public:
 public:
     void clear();
     /*auto merge*/
-    void add(PrintDialogStatus state, wxString msg, wxString tip);
+    void add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url);
     static ::std::string get_print_status_info(PrintDialogStatus status);
 
 	wxString get_pre_state_msg(PrintDialogStatus status);
@@ -164,17 +172,13 @@ class PrinterMsgPanel : public wxPanel
 public:
     PrinterMsgPanel(wxWindow *parent);
 
-     void SetLabelList(const std::vector<wxString> &texts, const wxColour &colour);
-
-	// void SetLabelSingle(const  wxString &texts,const wxColour& colour);
-
-     wxString GetLabel();
-     std::vector<wxString> GetLabelList();
+public:
+    void  UpdateInfos(const std::vector<prePrintInfo>& infos);
 
  private:
-    wxBoxSizer *         m_sizer = nullptr;
-    std::vector<Label *> m_labels;
-    std::vector<wxString> m_last_texts;
+    wxBoxSizer*  m_sizer = nullptr;
+    std::vector<prePrintInfo> m_infos;
+
 };
 
 

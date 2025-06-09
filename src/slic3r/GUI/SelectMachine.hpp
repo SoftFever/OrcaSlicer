@@ -429,7 +429,7 @@ public:
     void finish_mode();
 	void sync_ams_mapping_result(std::vector<FilamentInfo>& result);
     void prepare(int print_plate_idx);
-    void show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
+    void show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>(), wxString wiki_url = wxEmptyString);
     void sys_color_changed();
     void reset_timeout();
     void update_user_printer();
@@ -469,10 +469,6 @@ public:
     void Enable_Send_Button(bool en);
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_user_machine_list();
-    void     update_ams_status_msg(vector<wxString> msg, bool is_error, bool is_single);
-    void     update_priner_status_msg(vector<wxString> msg, bool is_error, bool is_single);
-    //void     update_priner_status_msg(vector<wxString> msg);
-    void update_printer_status_msg_tips(const wxString& msg_tips);
     void update_print_status_msg();
     void update_print_error_info(int code, std::string msg, std::string extra);
     bool has_timelapse_warning(wxString& msg);

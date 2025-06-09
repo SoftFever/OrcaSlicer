@@ -227,13 +227,15 @@ public:
 
 struct ConfirmBeforeSendInfo
 {
+public:
     enum InfoLevel {
         Normal = 0,
         Warning = 1
     };
     InfoLevel level;
     wxString text;
-    ConfirmBeforeSendInfo(wxString txt, InfoLevel lev = Normal) : text(txt), level(lev) {}
+    wxString wiki_url;
+    ConfirmBeforeSendInfo(const wxString& txt, const wxString& url = wxEmptyString, InfoLevel lev = Normal) : text(txt), wiki_url(url), level(lev){}
 };
 
 class ConfirmBeforeSendDialog : public DPIDialog

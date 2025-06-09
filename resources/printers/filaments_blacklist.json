@@ -5,22 +5,26 @@
     {
       "type": "TPU",
       "action": "prohibition",
-      "description": "TPU: not supported"
+      "slot": "ams",
+      "description": "TPU is not supported by AMS."
     },
     {
       "type": "PVA",
       "action": "warning",
-      "description": "PVA: flexible"
+      "slot": "ams",
+      "description": "Damp PVA will become flexible and get stuck inside AMS, please take care to dry it before use."
     },
     {
       "type_suffix": "CF",
       "action": "warning",
-      "description": "CF/GF: hard and brittle"
+      "slot": "ams",
+      "description": "CF/GF filaments are hard and brittle, it's easy to break or get stuck in AMS, please use with caution."
     },
     {
       "type_suffix": "GF",
       "action": "warning",
-      "description": "CF/GF: hard and brittle"
+	  "slot": "ams",
+      "description": "CF/GF filaments are hard and brittle, it's easy to break or get stuck in AMS, please use with caution."
     },
     {
       "vendor": "Bambu Lab",
@@ -28,7 +32,8 @@
       "name": "PLA Glow",
 	  "model_id":["N1","N2S"],
       "action": "warning",
-      "description": "PLA-Glow"
+      "slot": "ams",
+      "description": "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
     }
   ]
 }

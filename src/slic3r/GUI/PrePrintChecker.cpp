@@ -94,7 +94,7 @@ void PrePrintChecker::clear()
     filamentList.clear();
 }
 
-void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip)
+void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url)
 {
     prePrintInfo info;
 
@@ -124,12 +124,18 @@ void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip)
         info.tips = wxEmptyString;
     }
 
+    info.wiki_url = wiki_url;
+
     switch (info.type) {
     case prePrintInfoType::Filament:
-        filamentList.push_back(info);
+        if (std::find(filamentList.begin(), filamentList.end(), info) == filamentList.end()) {
+            filamentList.push_back(info);
+        }
         break;
     case prePrintInfoType::Printer:
-        printerList.push_back(info);
+        if (std::find(printerList.begin(), printerList.end(), info) == printerList.end()) {
+            printerList.push_back(info);
+        }
         break;
     default: break;
     }
@@ -171,66 +177,60 @@ PrinterMsgPanel::PrinterMsgPanel(wxWindow *parent)
     this->SetSizer(m_sizer);
 }
 
-void PrinterMsgPanel::SetLabelList(const std::vector<wxString> &texts, const wxColour &colour)
+static wxColour _GetLabelColour(const prePrintInfo& info)
 {
-    if (texts == m_last_texts)
-        return;
-
-    m_last_texts = texts;
-    m_labels.clear();
-    m_sizer->Clear(true);
-    std::set<wxString> unique_texts;
-
-    for (const wxString &text : texts) {
-        if (text.empty()) {
-            continue;
-        }
-        if (!unique_texts.insert(text).second) {
-            continue;
-        }
-        Label *label = new Label(this);
-        label->SetFont(::Label::Body_13);
-        label->SetForegroundColour(colour);
-        label->SetLabel(text);
-        label->Wrap(this->GetMinSize().GetWidth());
-        label->Show();
-        m_sizer->Add(label, 0, wxBOTTOM, FromDIP(4));
-        m_labels.push_back(label);
+    if (info.level == Error)
+    {
+        return wxColour("#D01B1B");
     }
+    else if (info.level == Warning)
+    {
+        return wxColour("#FF6F00");
+    }
+
+    return *wxBLACK; // Default colour for normal messages
+}
+
+void PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
+{
+    if (m_infos == infos)
+    {
+        return;
+    }
+    m_infos = infos;
+
+    m_sizer->Clear(true);
+    for (const prePrintInfo& info : infos)
+    {
+        if (!info.msg.empty())
+        {
+            Label* label = new Label(this);
+            label->SetFont(::Label::Body_13);
+            label->SetForegroundColour(_GetLabelColour(info));
+
+
+            if (info.wiki_url.empty())
+            {
+                label->SetLabel(info.msg);
+            }
+            else
+            {
+                label->SetLabel(info.msg + " " + _L("Please refer to Wiki before use->"));
+                label->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+                label->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+                label->Bind(wxEVT_LEFT_DOWN, [info](wxMouseEvent& event) { wxLaunchDefaultBrowser(info.wiki_url); });
+            }
+
+            label->Wrap(this->GetMinSize().GetWidth());
+            label->Show();
+            m_sizer->Add(label, 0, wxBOTTOM, FromDIP(4));
+        }
+    }
+
     this->Show();
     this->Layout();
     Fit();
 }
-
-//void PrinterMsgPanel::SetLabelSingle(const wxString &texts, const wxColour &colour)
-//{
-//    Label *label = new Label(this);
-//    label->SetMinSize(wxSize(FromDIP(420), -1));
-//    label->SetMaxSize(wxSize(FromDIP(420), -1));
-//    label->SetFont(::Label::Body_13);
-//    label->SetForegroundColour(colour);
-//    label->SetLabel(texts);
-//    label->Wrap(FromDIP(-1));
-//    label->Show();
-//    m_sizer->Add(label, 0, wxBOTTOM, FromDIP(4));
-//    m_labels.push_back(label);
-//    this->Layout();
-//    Fit();
-//}
-
-wxString PrinterMsgPanel::GetLabel() {
-    if (!m_labels.empty() && m_labels[0] != nullptr)
-         return m_labels[0]->GetLabel();
-    return wxEmptyString;
-}
-
-
-std::vector<wxString> PrinterMsgPanel::GetLabelList() {
-    if (m_last_texts.empty())
-        wxLogDebug(_L("No labels are currently stored."));
-    return m_last_texts;
-}
-
 
 
 }

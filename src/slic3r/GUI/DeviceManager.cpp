@@ -7859,30 +7859,22 @@ void DeviceManager::OnSelectedMachineLost() {
     GUI::wxGetApp().sidebar().load_ams_list(string(), nullptr);
 }
 
-// moved from tao.wang and zhimin.zeng
-void check_filaments_for_ams_slot(std::string model_id,
-                                  std::string tag_vendor,
-                                  std::string tag_type,
-                                  int                ams_id,
-                                  int                slot_id,
-                                  std::string        tag_name,
-                                  bool& in_blacklist,
-                                  std::string& ac,
-                                  wxString& info)
+
+void check_filaments(std::string model_id,
+                     std::string tag_vendor,
+                     std::string tag_type,
+                     int                ams_id,
+                     int                slot_id,
+                     std::string        tag_name,
+                     bool& in_blacklist,
+                     std::string& ac,
+                     wxString& info,
+                     wxString& wiki_url)
 {
     if (tag_name.empty())
     {
         tag_name = DeviceManager::get_filament_name_from_ams(ams_id, slot_id);
     }
-
-    std::unordered_map<std::string, wxString> blacklist_prompt =
-    {
-    {"TPU: not supported", _L("TPU is not supported by AMS.")},
-    {"Bambu CF: not supported",  _L("Bambu PET-CF/PA6-CF/PPA-CF/PPS-CF is not supported by AMS.")},
-    {"PVA: flexible", _L("Damp PVA will become flexible and get stuck inside AMS, please take care to dry it before use.")},
-    {"CF/GF: hard and brittle", _L("CF/GF filaments are hard and brittle, it's easy to break or get stuck in AMS, please use with caution.")},
-    {"PLA-Glow", _L("The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite.")}
-    };
 
     in_blacklist = false;
 
@@ -7896,6 +7888,7 @@ void check_filaments_for_ams_slot(std::string model_id,
             std::string type                   = filament_item.contains("type") ? filament_item["type"].get<std::string>() : "";
             std::string type_suffix            = filament_item.contains("type_suffix") ? filament_item["type_suffix"].get<std::string>() : "";
             std::string name                   = filament_item.contains("name") ? filament_item["name"].get<std::string>() : "";
+            std::string slot                   = filament_item.contains("slot") ? filament_item["slot"].get<std::string>() : "";
             std::vector<std::string> model_ids = filament_item.contains("model_id") ? filament_item["model_id"].get<std::vector<std::string>>() : std::vector<std::string>();
             std::string action                 = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
             std::string description            = filament_item.contains("description") ? filament_item["description"].get<std::string>() : "";
@@ -7929,14 +7922,35 @@ void check_filaments_for_ams_slot(std::string model_id,
             std::transform(name.begin(), name.end(), name.begin(), ::tolower);
             if (!name.empty() && (name != tag_name)) { continue;}
 
+            // check loc
+            if (!slot.empty()) {
+                bool is_virtual_slot = DeviceManager::is_virtual_slot(ams_id);
+                bool check_virtual_slot = (slot == "ext");
+                bool check_ams_slot = (slot == "ams");
+                if (is_virtual_slot && !check_virtual_slot) {
+                    continue;
+                }  else if (!is_virtual_slot && !check_ams_slot) {
+                    continue;
+                }
+            }
+
             if (GUI::wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
                 action = "warning";
             }
 
             in_blacklist = true;
             ac = action;
-            info = blacklist_prompt[description];
+            info = _L(description);
+            wiki_url = filament_item.contains("wiki") ? filament_item["wiki"].get<std::string>() : "";
             return;
+
+            // Using in description
+            L("TPU is not supported by AMS.");
+            L("Damp PVA will become flexible and get stuck inside AMS, please take care to dry it before use.");
+            L("The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite.");
+            L("CF/GF filaments are hard and brittle, it's easy to break or get stuck in AMS, please use with caution.");
+            L("PPS-CF is brittle and could break in bended PTFE tube above Toolhead.");
+            L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
         }
     }
 }
@@ -7954,17 +7968,23 @@ void DeviceManager::check_filaments_in_blacklist(std::string model_id,
                                                  std::string       &ac,
                                                  wxString       &info)
 {
-    if (ams_id < 0 || slot_id < 0) {
+    wxString wiki_url;
+    check_filaments_in_blacklist_url(model_id, tag_vendor, tag_type, filament_id, ams_id, slot_id, tag_name, in_blacklist, ac, info, wiki_url);
+}
+
+void DeviceManager::check_filaments_in_blacklist_url(std::string model_id, std::string tag_vendor, std::string tag_type, const std::string& filament_id, int ams_id, int slot_id, std::string tag_name, bool& in_blacklist, std::string& ac, wxString& info, wxString& wiki_url)
+{
+    if (ams_id < 0 || slot_id < 0)
+    {
         return;
     }
 
-    if (!check_filaments_printable(tag_vendor, tag_type, filament_id, ams_id, in_blacklist, ac, info)) {
+    if (!check_filaments_printable(tag_vendor, tag_type, filament_id, ams_id, in_blacklist, ac, info))
+    {
         return;
     }
 
-    if (!DeviceManager::is_virtual_slot(ams_id)) {
-        check_filaments_for_ams_slot(model_id, tag_vendor, tag_type, ams_id, slot_id, tag_name, in_blacklist, ac, info);
-    }
+    check_filaments(model_id, tag_vendor, tag_type, ams_id, slot_id, tag_name, in_blacklist, ac, info, wiki_url);
 }
 
 std::string DeviceManager::load_gcode(std::string type_str, std::string gcode_file)
