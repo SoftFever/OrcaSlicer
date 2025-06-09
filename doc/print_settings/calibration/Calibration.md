@@ -6,7 +6,7 @@ It covers key aspects such as flow rate, pressure advance, temperature towers, r
 
 To access the calibration features, you can find them in the **Calibration** section of the Orca Slicer interface.
 
-![Calibration Button](../../images/calibration.png)
+![Calibration Button](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/calibration.png?raw=true)
 
 > [!IMPORTANT]
 > After completing the calibration process, remember to create a new project in order to exit the calibration mode.
@@ -29,23 +29,23 @@ The recommended order for calibration is as follows:
 
 4. **[Retraction](retraction-calib.md)**: Calibrate the retraction settings to minimize stringing and improve print quality. Doing this after Flow and
 
-   <img src="../../images/retraction_test_print.jpg" alt="Retraction" height="200">
+   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/retraction_test_print.jpg?raw=true" alt="Retraction" height="200">
 
 5. **[Tolerance](tolerance-calib.md)**: Calibrate the tolerances of your printer to ensure that it can accurately reproduce the dimensions of the model being printed. This is important for achieving a good fit between parts and for ensuring that the final print meets the desired specifications.
 
-   <img src="../../images/Tolerance/OrcaToleranceTes_m6.jpg" alt="Tolerance" height="200">
+   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/OrcaToleranceTes_m6.jpg?raw=true" alt="Tolerance" height="200">
 
 6. **[Max Volumetric Speed](volumetric-speed-calib.md)**: Calibrate the maximum volumetric speed of the filament. This is important for ensuring that the printer can handle the flow rate of the filament without causing issues such as under-extrusion or over-extrusion.
 
-   <img src="../../images/vmf_measurement_point.jpg" alt="Max_Volumetric_Speed" height="200">
+   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/vmf_measurement_point.jpg?raw=true" alt="Max_Volumetric_Speed" height="200">
 
 7. **[Cornering](cornering-calib.md)**: Calibrate the Jerk/Junction Deviation settings to improve print quality and reduce artifacts caused by sharp corners and changes in direction.
 
-     <img src="../../images/JunctionDeviation/jd_second_print_measure.jpg" alt="Cornering" height="200">
+     <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_second_print_measure.jpg?raw=true" alt="Cornering" height="200">
 
 8. **[Input Shaping](input-shaping-calib.md)**: This is an advanced calibration technique that can be used to reduce ringing and improve print quality by compensating for mechanical vibrations in the printer.
 
-   <img src="../../images/InputShaping/IS_damp_marlin_print_measure.jpg" alt="Input_Shaping" height="200">
+   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_marlin_print_measure.jpg?raw=true" alt="Input_Shaping" height="200">
 
 ### VFA
 

@@ -106,9 +106,9 @@ winget install --id=SoftFever.OrcaSlicer --e
       ```
     - Option 3:
         - Step 1: open the app, a warning window will pop up  
-            ![image](./SoftFever_doc/mac_cant_open.png)
+            ![mac_cant_open](./SoftFever_doc/mac_cant_open.png)
         - Step 2: in `System Settings` -> `Privacy & Security`, click `Open Anyway`:
-            ![image](./SoftFever_doc/mac_security_setting.png)
+            ![mac_security_setting](./SoftFever_doc/mac_security_setting.png)
     </details>
 
 ## Linux (Ubuntu):

@@ -10,7 +10,7 @@ The Flow Ratio determines how much filament is extruded and plays a key role in 
 > [!IMPORTANT]
 > PASS 1 and PASS 2 follow the older flow ratio formula `FlowRatio_old*(100 + modifier)/100`. YOLO (Recommended) and YOLO (perfectist version) use a new system that is very simple `FlowRatio_old±modifier`.
 
-![flowrate](../../images/flow-calibration.gif)
+![flow-calibration](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/flow-calibration.gif?raw=true)
 
 Calibrating the flow rate involves a two-step process.
 
@@ -27,7 +27,7 @@ Calibrating the flow rate involves a two-step process.
 
 ![pass2](https://user-images.githubusercontent.com/103989404/210139072-f2fa91a6-4e3b-4d2a-81f2-c50155e1ff6d.jpg)
 ![-6](https://user-images.githubusercontent.com/103989404/210139131-ee224146-b242-4c1c-ac96-35ef0ca591f1.jpg)
-![image](../../images/flowcalibration_update_flowrate.png)
+![flowcalibration_update_flowrate](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/flowcalibration_update_flowrate.png?raw=true)
 
 > [!TIP]
 > @ItsDeidara has made a html to help with the calculation. Check it out if those equations give you a headache [here](https://github.com/ItsDeidara/Orca-Slicer-Assistant).
