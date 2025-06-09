@@ -54,3 +54,4 @@ The [Calibration Guide](Calibration) takes you through the key calibration tests
 - [Localization and translation guide](Localization_guide)
 - [Developer Reference](Developers-Home)
 - [How to create profiles](How-to-create-profiles)
+- [How to contribute to the wiki](How-to-wiki)

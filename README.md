@@ -49,11 +49,13 @@ Optimize your prints with ultra-fast slicing, intelligent support generation, an
 - Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)
 
 # Wiki
+
 The wiki below aims to provide a detailed explanation of the slicer settings, including how to maximize their use and how to calibrate and set up your printer.
 
 Please note that the wiki is a work in progress. We appreciate your patience as we continue to develop and improve it!
 
 **[Access the wiki here](https://github.com/SoftFever/OrcaSlicer/wiki)**
+**[Contribute to the wiki](https://github.com/SoftFever/OrcaSlicer/wiki/How-to-wiki)**
 
 # Download
 
