@@ -192,6 +192,7 @@ void DialogButtons::UpdateButtons() {
         btn->SetBackgroundColor(clr_bg);
         btn->SetBorderColor(clr_br);
         btn->SetTextColor(clr_tx);
+        btn->Raise(); //
         btn->Bind(wxEVT_KEY_DOWN, &DialogButtons::on_keydown, this);
     }
 
