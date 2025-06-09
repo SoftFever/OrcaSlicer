@@ -4507,8 +4507,8 @@ msgstr "Seleziona Piatto"
 msgid "Assembly Return"
 msgstr "Ritorna al montaggio"
 
-msgid "return"
-msgstr "indietro"
+msgid "Return"
+msgstr "Indietro"
 
 msgid "Paint Toolbar"
 msgstr "Barra strumenti di pittura"
