@@ -284,6 +284,7 @@ void PrintJob::process(Ctl &ctl)
 
                 std::regex pattern("_+");
                 params.project_name = std::regex_replace(mall_model_name, pattern, "_");
+                params.project_name = truncate_string(params.project_name, 100);
             }
             catch (...) {}
         }
