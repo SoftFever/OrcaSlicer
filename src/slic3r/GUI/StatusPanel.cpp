@@ -2631,10 +2631,16 @@ void StatusPanel::update(MachineObject *obj)
 #endif
 
     //m_machine_ctrl_panel->Freeze();
-    if (obj->is_in_printing() && !obj->can_resume())
+    if (obj->is_in_printing() && !obj->can_resume()) {
         show_printing_status(false, true);
-    else
+    } else {
         show_printing_status();
+    }
+
+    /*STUDIO-12573*/
+    if (!obj->is_fdm_type()) {
+        m_switch_lamp->Enable(false);
+    }
 
     update_temp_ctrl(obj);
     update_misc_ctrl(obj);
