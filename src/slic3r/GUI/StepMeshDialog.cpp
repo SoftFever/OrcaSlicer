@@ -271,8 +271,8 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
     );
     m_button_ok = new Button(this, _L("OK"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(StateColor::darkModeColorFor(wxColour("#009688"))); // ORCA
-    m_button_ok->SetTextColor(wxColour("#FDFFFD")); // ORCA
+    m_button_ok->SetBorderColor(*wxWHITE);
+    m_button_ok->SetTextColor(wxColour(0xFFFFFE));
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(BUTTON_SIZE);
     m_button_ok->SetMinSize(BUTTON_SIZE);
