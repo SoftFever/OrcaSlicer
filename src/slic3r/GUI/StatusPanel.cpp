@@ -2085,6 +2085,11 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent& e)
                     m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_left", this, load_img_size));
                 }
             }
+            else
+            {
+                //TODO
+                m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_right", this, load_img_size));
+            }
         }
     }
 
