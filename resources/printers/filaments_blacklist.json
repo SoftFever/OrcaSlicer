@@ -21,6 +21,20 @@
       "description": "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
     },
     {
+      "type": "PPS-CF",
+      "model_id":["O1S"],
+      "action": "warning",
+      "description": "PPS-CF is brittle and could break in bended PTFE tube above Toolhead.",
+      "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
+    },
+    {
+      "type": "PPA-CF",
+      "model_id":["O1S"],
+      "action": "warning",
+      "description": "PPA-CF is brittle and could break in bended PTFE tube above Toolhead.",
+      "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
+    },
+    {
       "type_suffix": "CF",
       "action": "warning",
       "slot": "ams",
