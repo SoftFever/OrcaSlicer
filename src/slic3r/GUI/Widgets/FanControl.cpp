@@ -938,20 +938,31 @@ void FanControlPopupNew::paintEvent(wxPaintEvent& evt)
 
 void FanControlPopupNew::on_mode_changed(const wxMouseEvent &event)
 {
-    size_t btn_list_size = m_mode_switch_btn_list.size();
-    for (size_t i = 0; i < btn_list_size; ++i) {
-        if (m_mode_switch_btn_list[i]->GetId() == event.GetId()) {
-            if (m_mode_switch_btn_list[i]->isSelected()) { return;}
+    /* go check*/
+    if (m_obj && m_obj->is_in_printing())
+    {
+        SendModeSwitchButton* btn = dynamic_cast<SendModeSwitchButton*> (event.GetEventObject());
+        if (btn && !btn->isSelected())
+        {
+            MessageDialog msg_wingow(nullptr, _L("The selected material only supports the current fan mode, and it can't be changed during printing."), "", wxICON_WARNING | wxOK);
+            msg_wingow.ShowModal();
+            return;
+        }
+    }
 
-            if (m_obj && m_obj->is_in_printing()) {
-                MessageDialog msg_wingow(nullptr, _L("The selected material only supports the current fan mode, and it can't be changed during printing."), "", wxICON_WARNING | wxOK);
-                msg_wingow.ShowModal();
-                return;
+    /* update buttons*/
+    for (size_t i = 0; i < m_mode_switch_btn_list.size(); ++i)
+    {
+        if (m_mode_switch_btn_list[i]->GetId() == event.GetId())
+        {
+            if (!m_mode_switch_btn_list[i]->isSelected())
+            {
+                m_mode_switch_btn_list[i]->setSelected(true);
+                command_control_air_duct(i);
             }
-
-            m_mode_switch_btn_list[i]->setSelected(true);
-            command_control_air_duct(i);
-        } else {
+        }
+        else
+        {
             m_mode_switch_btn_list[i]->setSelected(false);
         }
     }
