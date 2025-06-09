@@ -2,12 +2,13 @@
 
 Unless printed in spiral vase mode, every layer needs to begin somewhere and end somewhere. That start and end of the extrusion is what results in what visually looks like a seam on the perimeters. This section contains options to control the visual appearance of a seam.
 
-- **Seam Position**: Controls the placement of the seam. 
+- **Seam Position**: Controls the placement of the seam.
+
   1. **Aligned**: Will attempt to align the seam to a hidden internal facet of the model.
   2. **Nearest**: Will place the seam at the nearest starting point compared to where the nozzle stopped printing in the previous layer.
   3. **Back**: Will align the seam in a (mostly) straight line at the rear of the model.
   4. **Random**: Will randomize the placement of the seam between layers.
-  
+
   Typically, aligned or back work the best, especially in combination with seam painting. However, as seams create weak points and slight surface "bulges" or "divots," random seam placement may be optimal for parts that need higher strength as that weak point is spread to different locations between layers (e.g., a pin meant to fit through a hole).
 
 - **Staggered Inner Seams**: As the seam location forms a weak point in the print (it's a discontinuity in the extrusion process after all!), staggering the seam on the internal perimeters can help reduce stress points. This setting moves the start of the internal wall's seam around across layers as well as away from the external perimeter seam. This way, the internal and external seams don't all align at the same point and between them across layers, distributing those weak points further away from the seam location, hence making the part stronger. It can also help improve the water tightness of your model.
@@ -27,12 +28,14 @@ Unless printed in spiral vase mode, every layer needs to begin somewhere and end
   This is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order, as in these modes, it is more likely an external perimeter is printed immediately after a de-retraction move, which would cause slight extrusion variance at the start of a seam.
 
 ## Tips:
+
 With seams being inevitable when 3D printing using FFF, there are two distinct approaches on how to deal with them:
 
 1. **Try and hide the seam as much as possible**: This can be done by enabling scarf seam, which works very well, especially with simple models with limited overhang regions.
 2. **Try and make the seam as "clean" and "distinct" as possible**: This can be done by tuning the seam gap and enabling role-based wipe speed, wipe on loops, and wipe before the external loop.
 
 ## Troubleshooting Seam Performance:
+
 The section below will focus on troubleshooting traditional seams. For scarf seam troubleshooting, refer to the guide linked above.
 
 There are several factors that influence how clean the seam of your model is, with the biggest one being extrusion control after a travel move. As a seam defines the start and end of an extrusion, it is critical that:
@@ -44,8 +47,8 @@ However, due to mechanical and material tolerances, as well as the very nature o
 
 ![IMG_4059](https://github.com/user-attachments/assets/e60c3d24-9b21-4484-bcbe-614237a2fe09)
 
-
 ### Troubleshooting the Start of a Seam:
+
 Imagine the scenario where the toolhead finishes printing a layer line on one side of the bed, retracts, travels the whole distance of the bed to de-retract, and starts printing another part. Compare this to the scenario where the toolhead finishes printing an internal perimeter and only travels a few mm to start printing an external perimeter, without even retracting or de-retracting.
 
 The first scenario has much more opportunity for the filament to ooze outside the nozzle, resulting in a small blob forming at the start of the seam or, conversely, if too much material has leaked, a gap/under extrusion at the start of the seam.
@@ -65,6 +68,7 @@ So this is a trade-off between print speed and print quality. From experimental 
 In addition, larger nozzle diameters allow for more opportunity for material to leak compared to smaller diameter nozzles. A 0.2/0.25 mm nozzle will have significantly better seam performance than a 0.4, and that will have much better performance than a 0.6mm nozzle and so forth.
 
 ### Troubleshooting the End of a Seam:
+
 The end of a seam is much easier to get right, as the extrusion system is already at a pressure equilibrium while printing. It just needs to stop extruding at the right time and consistently.
 
 **If you are getting bulges at the seam**, the extruder is not stopping at the right time. The first thing to tune would be **pressure advance** – too low of a PA will result in the nozzle still being pressurized when finishing the print move, hence leaving a wider line at the end as it stops printing.
@@ -76,6 +80,7 @@ Furthermore, the printer mechanics have tolerances – the print head may be req
 Finally, the techniques of **wiping can help improve the visual continuity and consistency of a seam** (please note, these settings do not make the seam less visible, but rather make them more consistent!). Wiping on loops with a consistent speed helps tuck in the end of the seam, hiding the effects of retraction from view.
 
 ### The Role of Wall Ordering in Seam Appearance:
+
 The order of wall printing plays a significant role in the appearance of a seam. **Starting to print the external perimeter first after a long travel move will always result in more visible artifacts compared to printing the internal perimeters first and traveling just a few mm to print the external perimeter.**
 
 For optimal seam performance, printing with **inner-outer-inner wall order is typically best, followed by inner-outer**. It reduces the amount of traveling performed prior to printing the external perimeter and ensures the nozzle is having as consistent pressure as possible, compared to printing outer-inner.

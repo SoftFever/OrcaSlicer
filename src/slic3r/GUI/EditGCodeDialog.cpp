@@ -670,6 +670,7 @@ wxDataViewItem ParamsModel::Delete(const wxDataViewItem& item)
     ParamsNode* node = static_cast<ParamsNode*>(item.GetID());
     if (!node)      // happens if item.IsOk()==false
         return ret_item;
+    const bool is_item_enabled = node->IsEnabled();
 
     // first remove the node from the parent's array of children;
     // NOTE: m_group_nodes is only a vector of _pointers_
@@ -700,8 +701,12 @@ wxDataViewItem ParamsModel::Delete(const wxDataViewItem& item)
         ret_item = parent;
     }
 
-    // notify control
-    ItemDeleted(parent, item);
+    // Orca: notify enabled item only, because disabled items have already been removed from UI,
+    // so attempt to notify it cases a crash.
+    if (is_item_enabled) {
+        // notify control
+        ItemDeleted(parent, item);
+    }
     return ret_item;
 }
 

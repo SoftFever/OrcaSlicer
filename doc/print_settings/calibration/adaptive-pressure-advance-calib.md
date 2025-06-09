@@ -1,6 +1,6 @@
 # Adaptive Pressure Advance
 
-This feature aims to dynamically adjust the printer’s pressure advance to better match the conditions the toolhead is facing during a print. Specifically, to more closely align to the ideal values as flow rate, acceleration, and bridges are encountered.  
+This feature aims to dynamically adjust the printer’s pressure advance to better match the conditions the toolhead is facing during a print. Specifically, to more closely align to the ideal values as flow rate, acceleration, and bridges are encountered.
 This wiki page aims to explain how this feature works, the prerequisites required to get the most out of it as well as how to calibrate it and set it up.
 
 ## Settings Overview
@@ -45,11 +45,11 @@ Finally, if during calibration you notice that there is little to no variance be
 
 ### Expected results:
 
-With this feature enabled there should be absolutely no bulge in the corners, just the smooth rounding caused by the square corner velocity of your printer.  
+With this feature enabled there should be absolutely no bulge in the corners, just the smooth rounding caused by the square corner velocity of your printer.
 ![337601149-cbd96b75-a49f-4dde-ab5a-9bbaf96eae9c](https://github.com/user-attachments/assets/01234996-0528-4462-90c6-43828a246e41)
-In addition, seams should appear smooth with no bulging or under extrusion.  
+In addition, seams should appear smooth with no bulging or under extrusion.
 ![337601500-95e2350f-cffd-4af5-9c7a-e8f60870db7b](https://github.com/user-attachments/assets/46e16f2a-cf52-4862-ab06-12883b909615)
-Solid infill should have no gaps, pinholes, or separation from the perimeters.  
+Solid infill should have no gaps, pinholes, or separation from the perimeters.
 ![337616471-9d949a67-c8b3-477e-9f06-c429d4e40be0](https://github.com/user-attachments/assets/3b8ddbff-47e7-48b5-9576-3d9e7fb24a9d)
 Compared to with this feature disabled, where the internal solid infill and external-internal perimeters show signs of separation and under extrusion, when PA is tuned for optimal external perimeter performance as shown below.
 ![337621601-eacc816d-cff0-42e4-965d-fb5c00d34205](https://github.com/user-attachments/assets/82edfd96-d870-48fe-91c7-012e8c0d9ed0)
@@ -84,7 +84,7 @@ Similarly, if the maximum value recommended is 12k, run PA tests as below:
 1. **Accelerations:** 1k, 2k, 4k, 8k, 12k
 2. **Print speeds:** 50mm/sec, 100mm/sec, 150mm/sec, 200mm/sec.
 
-So, at worst case you will need to run 5x4 = 20 PA tests if your printer acceleration is on the upper end! In essence, you want enough granularity of data points to create a meaningful model while also not overdoing it with the number of tests. So, doubling the speed and acceleration is a good compromise to arrive at the optimal number of tests.  
+So, at worst case you will need to run 5x4 = 20 PA tests if your printer acceleration is on the upper end! In essence, you want enough granularity of data points to create a meaningful model while also not overdoing it with the number of tests. So, doubling the speed and acceleration is a good compromise to arrive at the optimal number of tests.
 For this example, let’s assume that the baseline number of tests is adequate for your printer:
 
 1. **Accelerations:** 1k, 2k, 4k
@@ -138,7 +138,7 @@ It is recommended that the PA step is set to a small value, to allow you to make
 
 PA pattern calibration configuration window have been changed to simplify test setup. Now all is needed is to fill list of accelerations and speeds into relevant fields of the calibration window:
 
-![PA pattern batch mode](./images/pa/pa-pattern-batch.png)
+![PA pattern batch mode](../../images/pa/pa-pattern-batch.png)
 
 Test patterns generated for each acceleration-speed pair and all parameters are set accordingly. No additional actions needed from user side. Just slice and print all plates generated.
 
@@ -149,6 +149,7 @@ Refer to [Calibration Guide](./Calibration) for more details on batch mode calib
 Setup your PA test as usual from the calibration menu in Orca slicer. Once setup, your PA test should look like the below:
 
 <img width="437" alt="PA calibration test 1" src="https://github.com/user-attachments/assets/1e6159fe-c3c5-4480-95a1-4383f1fae422">
+
 <img width="437" alt="Pa calibration test 2" src="https://github.com/user-attachments/assets/c360bb18-a97a-4f37-b5a3-bb0c67cac2b6">
 
 Now input your identified print speeds and accelerations in the fields above and run the PA tests.

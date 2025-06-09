@@ -552,6 +552,8 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 #ifdef _WIN32
             if (file.StartsWith('/'))
                 file = file.Mid(1);
+            else
+                file = "//" + file; // When file from network location
 #endif
             wxGetApp().plater()->load_files(wxArrayString{1, &file});
             evt.Veto();

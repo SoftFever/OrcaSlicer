@@ -4,7 +4,8 @@ This page deals with the explanation for 3 classes in the code.
 
 As the name might suggest this class deals with presets for various things. It defines an enum `Type` which basically tells you what kind of data the present contains. Below are a few explained and there corresponding UI elements
 
-#### Note: There is a lot of outdated and legacy code in the code base.
+> [!Warning]
+> There is a lot of outdated and legacy code in the code base.
 
 - `TYPE_PRINT`: Refers to a process preset. It's called 'Print' probably due to some legacy code.
 
@@ -30,7 +31,8 @@ This is a bundle containing a few types of `PresetCollection`. One bundle has pr
 
 each one of these contains a collection of processes, filaments and printers respectively.\
 
-#### Note: Printers, filaments and processes in the bundle don't all have to be compatible with each other. In fact all the saved presets are stored in one `PresetBundle`. The `PresetBundle` is loaded on start up. The list of filaments and processes shown for a particular printer is a subset of `filaments` and `prints` `PresetCollection`s.
+> [!IMPORTANT]
+> Printers, filaments and processes in the bundle don't all have to be compatible with each other. In fact all the saved presets are stored in one `PresetBundle`. The `PresetBundle` is loaded on start up. The list of filaments and processes shown for a particular printer is a subset of `filaments` and `prints` `PresetCollection`s.
 
 ## [`PresetCollection`](../../src/libslic3r/Preset.hpp)
 
