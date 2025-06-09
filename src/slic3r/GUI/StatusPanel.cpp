@@ -3571,6 +3571,8 @@ void StatusPanel::update_subtask(MachineObject *obj)
                         }
                         else if (obj->get_printer_arch() == PrinterArch::ARCH_I3)
                             png_path = (boost::format("%1%/images/fd_calibration_auto_i3.png") % resources_dir()).str();
+                        else if (obj->is_series_o())
+                            png_path = (boost::format("%1%/images/fd_calibration_auto_single_o.png") % resources_dir()).str();
                         else
                             png_path = (boost::format("%1%/images/fd_calibration_auto.png") % resources_dir()).str();
                     }

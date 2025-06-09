@@ -119,6 +119,8 @@ void CalibrationCaliPage::set_cali_img()
                 }
                 else if (curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
                     m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_i3", 400));
+                } else if (curr_obj->is_series_o()) {
+                    m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_single_o", 400));
                 }
                 else {
                     m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
