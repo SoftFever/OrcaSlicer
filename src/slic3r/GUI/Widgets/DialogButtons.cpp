@@ -73,8 +73,8 @@ Button* DialogButtons::GetAPPLY()  {return GetButtonFromID(wxID_APPLY)   ;}
 Button* DialogButtons::GetCONFIRM(){return GetButtonFromID(wxID_APPLY)   ;}
 Button* DialogButtons::GetNO()     {return GetButtonFromID(wxID_NO)      ;}
 Button* DialogButtons::GetCANCEL() {return GetButtonFromID(wxID_CANCEL)  ;}
-Button* DialogButtons::GetBACK()   {return GetButtonFromID(wxID_BACKWARD);}
-Button* DialogButtons::GetFORWARD(){return GetButtonFromID(wxID_FORWARD) ;}
+Button* DialogButtons::GetRETURN() {return GetButtonFromID(wxID_BACKWARD);} // gets Return button
+Button* DialogButtons::GetNEXT()   {return GetButtonFromID(wxID_FORWARD) ;}
 
 void DialogButtons::SetPrimaryButton(wxString translated_label) {
     // use _L("Create") translated text for custom buttons

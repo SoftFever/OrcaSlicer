@@ -2577,11 +2577,9 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
 
 wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *parent)
 {
-    auto dlg_btns = new DialogButtons(parent, {"Back", "OK", "Cancel"});
+    auto dlg_btns = new DialogButtons(parent, {"Return", "OK", "Cancel"});
 
-    auto btn_back = dlg_btns->GetBACK(); // Back button automatically alings to left
-    btn_back->SetLabel(_L("return")); // no proper case translation
-    btn_back->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { show_page1(); });
+    dlg_btns->GetRETURN()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { show_page1(); });
 
     auto btn_ok = dlg_btns->GetOK();
     btn_ok->SetLabel(_L("Create"));
