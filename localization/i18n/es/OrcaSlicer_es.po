@@ -4501,8 +4501,8 @@ msgstr "Seleccionr Bandeja"
 msgid "Assembly Return"
 msgstr "Volver a agrupar"
 
-msgid "return"
-msgstr "volver"
+msgid "Return"
+msgstr "Volver"
 
 msgid "Paint Toolbar"
 msgstr "Barra de herramientas de pintura"

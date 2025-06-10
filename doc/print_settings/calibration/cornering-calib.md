@@ -20,22 +20,22 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
    3. Use an opaque, high-gloss filament to make the ringing more visible.
 2. You need to print the Junction Deviation test.
 
-   ![image](../../images/JunctionDeviation/jd_first_menu.png)
+   ![jd_first_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_first_menu.png?raw=true)
 
    1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
 
-   ![image](../../images/JunctionDeviation/jd_first_print_measure.jpg)
-   ![image](../../images/JunctionDeviation/jd_first_slicer_measure.png)
+   ![jd_first_print_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_first_print_measure.jpg?raw=true)
+   ![jd_first_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_first_slicer_measure.png?raw=true)
 
    2. It’s very likely that you’ll need to set values lower than 0.08 mm, as shown in the previous example. To determine a more accurate maximum JD value, you can print a new calibration tower with a maximum value set at the point where the corners start losing sharpness.
    3. Print the second Junction Deviation test with the new maximum value.
 
-   ![image](../../images/JunctionDeviation/jd_second_menu.png)
+   ![jd_second_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_second_menu.png?raw=true)
 
    4. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
 
-   ![image](../../images/JunctionDeviation/jd_second_print_measure.jpg)
-   ![image](../../images/JunctionDeviation/jd_second_slicer_measure.png)
+   ![jd_second_print_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_second_print_measure.jpg?raw=true)
+   ![jd_second_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_second_slicer_measure.png?raw=true)
 
 3. Save the settings
    1. Set your Maximun Junction Deviation value in [Printer settings/Motion ability/Jerk limitation].

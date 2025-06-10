@@ -4381,7 +4381,7 @@ msgstr "Vybrat Podložku"
 msgid "Assembly Return"
 msgstr "Návrat k sestavení"
 
-msgid "return"
+msgid "Return"
 msgstr "Návrat"
 
 msgid "Paint Toolbar"

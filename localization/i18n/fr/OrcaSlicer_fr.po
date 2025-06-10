@@ -4508,8 +4508,8 @@ msgstr "Sélectionner le plateau"
 msgid "Assembly Return"
 msgstr "Retour d'assemblage"
 
-msgid "return"
-msgstr "retour"
+msgid "Return"
+msgstr "Retour"
 
 msgid "Paint Toolbar"
 msgstr "Barre d'outils de peinture"

@@ -4475,8 +4475,8 @@ msgstr "Seleccioneu Placar"
 msgid "Assembly Return"
 msgstr "Tornar a Agrupar"
 
-msgid "return"
-msgstr "tornar"
+msgid "Return"
+msgstr "Tornar"
 
 msgid "Paint Toolbar"
 msgstr "Barra d'eines de pintura"

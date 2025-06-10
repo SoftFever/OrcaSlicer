@@ -4221,7 +4221,7 @@ msgstr ""
 msgid "Assembly Return"
 msgstr ""
 
-msgid "return"
+msgid "Return"
 msgstr ""
 
 msgid "Paint Toolbar"

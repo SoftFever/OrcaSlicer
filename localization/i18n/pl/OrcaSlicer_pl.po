@@ -4463,8 +4463,8 @@ msgstr "Wybierz płytę"
 msgid "Assembly Return"
 msgstr "Powrót do montażu"
 
-msgid "return"
-msgstr "wróć"
+msgid "Return"
+msgstr "Wróć"
 
 msgid "Paint Toolbar"
 msgstr "Pasek narzędzi do malowania"

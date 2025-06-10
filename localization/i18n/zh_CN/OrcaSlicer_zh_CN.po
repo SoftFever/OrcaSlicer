@@ -4275,7 +4275,7 @@ msgstr "选择盘"
 msgid "Assembly Return"
 msgstr "退出装配体视图"
 
-msgid "return"
+msgid "Return"
 msgstr "返回"
 
 msgid "Paint Toolbar"

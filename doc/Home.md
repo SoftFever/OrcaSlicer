@@ -35,22 +35,22 @@ The below sections provide a detailed settings explanation as well as tips and t
 
 ## Printer Calibration
 
-The [Calibration Guide](./print_settings/calibration/Calibration.md) takes you through the key calibration tests in Orca - flow rate, pressure advance, print temperature, retraction, tolerances, etc.
+The [Calibration Guide](Calibration) takes you through the key calibration tests in Orca - flow rate, pressure advance, print temperature, retraction, tolerances, etc.
 
-- [Flow Rate](print_settings/calibration/flow-rate-calib.md)
-- [Pressure Advance](print_settings/calibration/pressure-advance-calib.md)
-- [Temperature](print_settings/calibration/temp-calib.md)
-- [Retraction](print_settings/calibration/retraction-calib.md)
-- [Tolerance](print_settings/calibration/tolerance-calib.md)
+- [Flow Rate](flow-rate-calib)
+- [Pressure Advance](pressure-advance-calib)
+- [Temperature](temp-calib)
+- [Retraction](retraction-calib)
+- [Tolerance](tolerance-calib)
 - Advanced:
-  - [Volumetric Speed](print_settings/calibration/volumetric-speed-calib.md)
-  - [Adaptive Pressure Advance Guide](print_settings/calibration/adaptive-pressure-advance-calib.md)
-  - [Input Shaping](print_settings/calibration/input-shaping-calib.md)
-  - [Cornering (Jerk & Junction Deviation)](print_settings/calibration/cornering-calib.md)
+  - [Volumetric Speed](volumetric-speed-calib)
+  - [Adaptive Pressure Advance Guide](adaptive-pressure-advance-calib)
+  - [Input Shaping](input-shaping-calib)
+  - [Cornering (Jerk & Junction Deviation)](cornering-calib)
 
 ## Developer Section
 
-- [How to build Orca Slicer](./How-to-build)
+- [How to build Orca Slicer](How-to-build)
 - [Localization and translation guide](Localization_guide)
-- [Developer Reference](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/developer-reference/Home.md)
-- [How to create profiles](./How-to-create-profiles)
+- [Developer Reference](Developers-Home)
+- [How to create profiles](How-to-create-profiles)

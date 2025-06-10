@@ -4376,7 +4376,7 @@ msgstr "Printbed selecteren"
 msgid "Assembly Return"
 msgstr "Montage terug"
 
-msgid "return"
+msgid "Return"
 msgstr "Terug"
 
 msgid "Paint Toolbar"

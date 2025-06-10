@@ -2,9 +2,9 @@
 
 OrcaSlicer use `M141/M191` command to control active chamber heater.
 
-If `Activate temperature control` is checked, OrcaSlicer will insert `M191` command at the beginning of the gcode(before `Machine G-code`).
+If your Filament's `Activate temperature control` and your printer `Support control chamber temperature` option are checked , OrcaSlicer will insert `M191` command at the beginning of the gcode (before `Machine G-code`).
 
-![image](./images/activate_chamber_heater.jpg)
+![activate_chamber_heater](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/activate_chamber_heater.png?raw=true)
 
 > [!NOTE]
 > If the machine is equipped with an auxiliary fan, OrcaSlicer will automatically activate the fan during the heating period to help circulate air in the chamber.

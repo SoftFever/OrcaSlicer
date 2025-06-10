@@ -4465,8 +4465,8 @@ msgstr "Вибрати пластину"
 msgid "Assembly Return"
 msgstr "Повернення збірки"
 
-msgid "return"
-msgstr "повернення"
+msgid "Return"
+msgstr "Повернення"
 
 msgid "Paint Toolbar"
 msgstr "Панель інструментів малювання"
