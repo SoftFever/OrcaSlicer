@@ -1313,9 +1313,22 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     PlateDataPtrs plate_data_list;
     partplate_list.store_to_3mf_structure(plate_data_list, true, 0);
 
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
     for (auto plate_data : plate_data_list) {
         plate_data->gcode_file      = temp_gcode_path;
         plate_data->is_sliced_valid = true;
+        plate_data->printer_model_id = obj_->printer_type;
         FilamentInfo& filament_info = plate_data->slice_filaments_info.front();
         filament_info.type          = full_config.opt_string("filament_type", 0);
     }
