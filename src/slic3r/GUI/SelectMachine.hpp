@@ -258,7 +258,7 @@ private:
     PinCodePanel*                     m_panel_ping_code{nullptr};
     PinCodePanel*                     m_panel_direct_connection{nullptr};
     wxWindow*                         m_placeholder_panel{nullptr};
-    Label*                            m_hyperlink{nullptr}; //wxHyperlinkCtrl*
+    wxHyperlinkCtrl*                  m_hyperlink{nullptr};
     Label*                            m_ping_code_text{nullptr};
     wxStaticBitmap*                   m_img_ping_code{nullptr};
     wxBoxSizer *                      m_sizer_body{nullptr};
@@ -421,7 +421,7 @@ protected:
     Label*                              m_st_txt_error_desc{nullptr};
     Label*                              m_st_txt_extra_info{nullptr};
     Label*                              m_ams_backup_tip{nullptr};
-    Label*                              m_link_network_state{ nullptr }; //wxHyperlinkCtrl*
+    wxHyperlinkCtrl*                    m_link_network_state{ nullptr };
     wxSimplebook*                       m_rename_switch_panel{nullptr};
     wxSimplebook*                       m_simplebook{nullptr};
     wxStaticText*                       m_rename_text{nullptr};
@@ -437,7 +437,7 @@ protected:
     wxTimer*                            m_refresh_timer{ nullptr };
     wxScrolledWindow*                   m_scrollable_view;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
-    Label*                              m_hyperlink{nullptr}; // wxHyperlinkCtrl*
+    wxHyperlinkCtrl*                    m_hyperlink{nullptr};
     ScalableBitmap *                    ams_editable{nullptr};
     ScalableBitmap *                    ams_editable_light{nullptr};
     wxStaticBitmap *                    timeimg{nullptr};
