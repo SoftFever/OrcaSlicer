@@ -4355,7 +4355,7 @@ msgstr "플레이트 선택"
 msgid "Assembly Return"
 msgstr "조립 되돌리기"
 
-msgid "return"
+msgid "Return"
 msgstr "돌아가기"
 
 msgid "Paint Toolbar"

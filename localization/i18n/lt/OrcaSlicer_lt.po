@@ -4459,8 +4459,8 @@ msgstr "Pasirinkti plokštę"
 msgid "Assembly Return"
 msgstr "Sugrąžinti surinkimą"
 
-msgid "return"
-msgstr "grąžinti"
+msgid "Return"
+msgstr "Grąžinti"
 
 msgid "Paint Toolbar"
 msgstr "Piešimo įrankių juosta"

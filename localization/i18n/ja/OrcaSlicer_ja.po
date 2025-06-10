@@ -4258,7 +4258,7 @@ msgstr "プレートを選択"
 msgid "Assembly Return"
 msgstr "戻る"
 
-msgid "return"
+msgid "Return"
 msgstr "戻る"
 
 msgid "Paint Toolbar"
