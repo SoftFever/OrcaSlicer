@@ -1121,9 +1121,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer* m_sizer_material_area = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* m_sizer_material_tips = new wxBoxSizer(wxHORIZONTAL);
 
-    enable_ams_mapping      = new ScalableBitmap(this, "enable_ams", 16);
-    img_amsmapping_tip = new wxStaticBitmap(m_scrollable_region, wxID_ANY, enable_ams_mapping->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    m_sizer_material_tips->Add(img_amsmapping_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
+    enable_ams_mapping = new ScalableBitmap(this, "enable_ams", 25); // ORCA match icon size
+    img_amsmapping_tip = new wxStaticBitmap(m_scrollable_region, wxID_ANY, enable_ams_mapping->bmp(), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
+    m_sizer_material_tips->Add(img_amsmapping_tip, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
 
     img_amsmapping_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
         wxPoint img_pos = img_amsmapping_tip->ClientToScreen(wxPoint(0, 0));
@@ -1146,8 +1146,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_material = new wxGridSizer(0, 4, 0, FromDIP(5));
 
 
-    m_sizer_material_area->Add(m_sizer_material_tips, 0, wxALIGN_CENTER|wxLEFT, FromDIP(8));
-    m_sizer_material_area->Add(m_sizer_material, 0, wxLEFT, FromDIP(15));
+    m_sizer_material_area->Add(m_sizer_material_tips, 0, wxALIGN_CENTER | wxEXPAND); // ORCA align button to left and allow big icon
+    m_sizer_material_area->Add(m_sizer_material, 0, wxLEFT, FromDIP(5));
 
     m_sizer_backup = new wxBoxSizer(wxHORIZONTAL);
     m_ams_backup_tip = new Label(this, _L("Auto Refill"));
@@ -4370,10 +4370,10 @@ void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
 
     char weight[64];
     if (wxGetApp().app_config->get("use_inches") == "1") {
-        ::sprintf(weight, "  %.2f oz", aprint_stats.total_weight * 0.035274);
+        ::sprintf(weight, "%.2f oz", aprint_stats.total_weight * 0.035274); // ORCA remove spacing begore text
     }
     else {
-        ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+        ::sprintf(weight, "%.2f g", aprint_stats.total_weight); // ORCA remove spacing begore text
     }
 
     m_stext_time->SetLabel(time);
@@ -4524,7 +4524,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         wxString   time;
         time = wxString::Format("%s", short_time(get_time_dhms(float_time)));
         char weight[64];
-        ::sprintf(weight, "  %.2f g", float_weight);
+        ::sprintf(weight, "%.2f g", float_weight); // ORCA remove spacing begore text
         m_stext_time->SetLabel(time);
         m_stext_weight->SetLabel(weight);
     }
