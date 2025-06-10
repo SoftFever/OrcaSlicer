@@ -662,18 +662,18 @@ void PrintConfigDef::init_fff_params()
     const int max_temp = 1500;
 
     def = this->add("reduce_crossing_wall", coBool);
-    def->label = L("Avoid crossing wall");
+    def->label = L("Avoid crossing walls");
     def->category = L("Quality");
-    def->tooltip = L("Detour and avoid to travel across wall which may cause blob on surface");
+    def->tooltip = L("Detour to avoid traveling across walls, which may cause blobs on the surface.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("max_travel_detour_distance", coFloatOrPercent);
-    def->label = L("Avoid crossing wall - Max detour length");
+    def->label = L("Avoid crossing walls - Max detour length");
     def->category = L("Quality");
     def->tooltip = L("Maximum detour distance for avoiding crossing wall. "
-                     "Don't detour if the detour distance is large than this value. "
-                     "Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable");
+                     "Don't detour if the detour distance is larger than this value. "
+                     "Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable.");
     def->sidetext = L("mm or %");
     def->min = 0;
     def->max_literal = 1000;
@@ -1453,8 +1453,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("close_fan_the_first_x_layers", coInts);
     def->label = L("No cooling for the first");
-    def->tooltip = L("Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed "
-                     "to get better build plate adhesion");
+    def->tooltip = L("Turn off all cooling fans for the first few layers. "
+                     "This can be used to improve build plate adhesion.");
     def->sidetext = L("layers");
     def->min = 0;
     def->max = 1000;
@@ -1572,7 +1572,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_end_gcode", coStrings);
     def->label = L("End G-code");
-    def->tooltip = L("End G-code when finish the printing of this filament");
+    def->tooltip = L("End G-code when finishing the printing of this filament.");
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
@@ -1940,8 +1940,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("reduce_fan_stop_start_freq", coBools);
     def->label = L("Keep fan always on");
-    def->tooltip = L("If enable this setting, part cooling fan will never be stopped and will run at least "
-                     "at minimum speed to reduce the frequency of starting and stopping");
+    def->tooltip = L("Enabling this setting means that the part cooling fan will never stop completely "
+                     "and will run at least at minimum speed to reduce the frequency of starting and stopping.");
     def->set_default_value(new ConfigOptionBools { false });
     
     def = this->add("dont_slow_down_outer_wall", coBools);
@@ -2291,7 +2291,8 @@ void PrintConfigDef::init_fff_params()
     // BBS
     def = this->add("temperature_vitrification", coInts);
     def->label = L("Softening temperature");
-    def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid clogging.");
+    def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than this, "
+                     "it's highly recommended to open the front door and/or remove the upper glass to avoid clogging.");
     def->sidetext = "°C"; // ORCA add side text
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
@@ -2544,7 +2545,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
-    def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhesive");
+    def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhesion.");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3177,8 +3178,8 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("mmu_segmented_region_interlocking_depth", coFloat);
     def->label    = L("Interlocking depth of a segmented region");
     def->tooltip  = L("Interlocking depth of a segmented region. It will be ignored if "
-                    "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\""
-                    "is bigger then \"mmu_segmented_region_max_width\". Zero disables this feature.");
+                    "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" "
+                    "is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature.");
     def->sidetext = L("mm"); 
     def->min      = 0;
     def->category = L("Advanced");
@@ -3330,7 +3331,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("time_lapse_gcode",coString);
-    def->label = L("Time lapse G-code");
+    def->label = L("Timelapse G-code");
     def->multiline = true;
     def->full_width = true;
     def->height =5;
@@ -3534,7 +3535,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fan_max_speed", coFloats);
     def->label = L("Fan speed");
     def->tooltip = L("Part cooling fan speed may be increased when auto cooling is enabled. "
-                     "This is the maximum speed limitation of part cooling fan");
+                     "This is the maximum speed for the part cooling fan.");
     def->sidetext = "%";
     def->min = 0;
     def->max = 100;
@@ -3543,8 +3544,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("max_layer_height", coFloats);
     def->label = L("Max");
-    def->tooltip = L("The largest printable layer height for extruder. Used tp limits "
-                     "the maximum layer hight when enable adaptive layer height");
+    def->tooltip = L("The highest printable layer height for the extruder. "
+                     "Used to limit the maximum layer height when enable adaptive layer height.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3612,8 +3613,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("min_layer_height", coFloats);
     def->label = L("Min");
-    def->tooltip = L("The lowest printable layer height for extruder. Used tp limits "
-                     "the minimum layer hight when enable adaptive layer height");
+    def->tooltip = L("The lowest printable layer height for the extruder. "
+                     "Used to limit the minimum layer height when enable adaptive layer height.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3758,7 +3759,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filename_format", coString);
     def->label = L("Filename format");
-    def->tooltip = L("User can self-define the project file name when export");
+    def->tooltip = L("Users can define the project file name when exporting.");
     def->full_width = true;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString("{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode"));
@@ -4019,7 +4020,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Z-hop height");
     def->tooltip = L("Whenever the retraction is done, the nozzle is lifted a little to create clearance between nozzle and the print. "
                      "It prevents nozzle from hitting the print when travel move. "
-                     "Using spiral line to lift z can prevent stringing");
+                     "Using spiral lines to lift Z can prevent stringing.");
     def->sidetext = L("mm");
     def->mode = comSimple;
     def->min = 0;
@@ -4388,7 +4389,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(50.0));
-    
+
     def = this->add("min_skirt_length", coFloat);
     def->label = L("Skirt minimum extrusion length");
     def->full_label = L("Skirt minimum extrusion length");
@@ -4559,7 +4560,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_start_gcode", coStrings);
     def->label = L("Start G-code");
-    def->tooltip = L("Start G-code when start the printing of this filament");
+    def->tooltip = L("Start G-code when starting the printing of this filament.");
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
@@ -4651,8 +4652,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_type", coEnum);
     def->label = L("Type");
     def->category = L("Support");
-    def->tooltip = L("Normal (auto) and Tree (auto) is used to generate support automatically. "
-                     "If Normal (manual) or Tree (manual) is selected, only support enforcers are generated");
+    def->tooltip = L("Normal (auto) and Tree (auto) are used to generate support automatically. "
+                     "If Normal (manual) or Tree (manual) is selected, only support enforcers are generated.");
     def->enum_keys_map = &ConfigOptionEnum<SupportType>::get_enum_values();
     def->enum_values.push_back("normal(auto)");
     def->enum_values.push_back("tree(auto)");
@@ -5488,9 +5489,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("xy_hole_compensation", coFloat);
     def->label = L("X-Y hole compensation");
     def->category = L("Quality");
-    def->tooltip = L("Holes of object will be grown or shrunk in XY plane by the configured value. "
-                     "Positive value makes holes bigger. Negative value makes holes smaller. "
-                     "This function is used to adjust size slightly when the object has assembling issue");
+    def->tooltip = L("Holes in objects will expand or contract in the XY plane by the configured value. "
+                     "Positive values make holes bigger, negative values make holes smaller. "
+                     "This function is used to adjust sizes slightly when the objects have assembling issues.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -5498,9 +5499,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("xy_contour_compensation", coFloat);
     def->label = L("X-Y contour compensation");
     def->category = L("Quality");
-    def->tooltip = L("Contour of object will be grown or shrunk in XY plane by the configured value. "
-                     "Positive value makes contour bigger. Negative value makes contour smaller. "
-                     "This function is used to adjust size slightly when the object has assembling issue");
+    def->tooltip = L("Contours of objects will expand or contract in the XY plane by the configured value. "
+                     "Positive values make contours bigger, negative values make contours smaller. "
+                     "This function is used to adjust sizes slightly when the objects have assembling issues.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -5632,10 +5633,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("min_feature_size", coPercent);
     def->label = L("Minimum feature size");
     def->category = L("Quality");
-    def->tooltip = L("Minimum thickness of thin features. Model features that are thinner than this value will "
-        "not be printed, while features thicker than the Minimum feature size will be widened to "
-        "the Minimum wall width. "
-        "It's expressed as a percentage over nozzle diameter");
+    def->tooltip = L("Minimum thickness of thin features. Model features that are thinner than this value will not be printed, "
+                     "while features thicker than than this value will be widened to the minimum wall width. "
+                     "It's expressed as a percentage over nozzle diameter.");
     def->sidetext = "%";
     def->mode = comAdvanced;
     def->min = 0;
@@ -7462,8 +7462,8 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("repetitions", coInt);
-    def->label = L("Repetions count");
-    def->tooltip = L("Repetions count of the whole model");
+    def->label = L("Repetition count");
+    def->tooltip = L("Repetition count of the whole model.");
     def->cli_params = "count";
     def->set_default_value(new ConfigOptionInt(1));
 
@@ -7607,10 +7607,10 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("downward_settings", coStrings);
     def->label = L("downward machines settings");
-    def->tooltip = L("the machine settings list need to do downward checking");
+    def->tooltip = L("The machine settings list needs to do downward checking.");
     def->cli_params = "\"machine1.json;machine2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
-    
+
     def = this->add("load_assemble_list", coString);
     def->label = L("Load assemble list");
     def->tooltip = L("Load assemble object list from config file");
@@ -7677,18 +7677,18 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->set_default_value(new ConfigOptionInts());
 
     def = this->add("allow_multicolor_oneplate", coBool);
-    def->label = L("Allow multiple color on one plate");
-    def->tooltip = L("If enabled, the arrange will allow multiple color on one plate");
+    def->label = L("Allow multiple colors on one plate");
+    def->tooltip = L("If enabled, Arrange will allow multiple colors on one plate.");
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("allow_rotations", coBool);
-    def->label = L("Allow rotatations when arrange");
-    def->tooltip = L("If enabled, the arrange will allow rotations when place object");
+    def->label = L("Allow rotation when arranging");
+    def->tooltip = L("If enabled, Arrange will allow rotation when placing objects.");
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("avoid_extrusion_cali_region", coBool);
-    def->label = L("Avoid extrusion calibrate region when doing arrange");
-    def->tooltip = L("If enabled, the arrange will avoid extrusion calibrate region when place object");
+    def->label = L("Avoid extrusion calibrate region when arranging");
+    def->tooltip = L("If enabled, Arrange will avoid extrusion calibrate region when placing objects.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("skip_modified_gcodes", coBool);
@@ -8154,22 +8154,27 @@ Points get_bed_shape(const PrintConfig &cfg)
 
 Points get_bed_shape(const SLAPrinterConfig &cfg) { return to_points(make_counter_clockwise(cfg.printable_area.values)); }
 
+Polygons get_bed_excluded_area(const PrintConfig& cfg)
+{
+    const Pointfs exclude_area_points = cfg.bed_exclude_area.values;
+
+    Polygon exclude_poly;
+    for (int i = 0; i < exclude_area_points.size(); i++) {
+        auto pt = exclude_area_points[i];
+        exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+    }
+
+    exclude_poly.make_counter_clockwise();
+
+    return {exclude_poly};
+}
+
 Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg)
 {
     Polygon bed_poly;
     bed_poly.points = get_bed_shape(cfg);
 
-    Points excluse_area_points = to_points(cfg.bed_exclude_area.values);
-    Polygons exclude_polys;
-    Polygon exclude_poly;
-    for (int i = 0; i < excluse_area_points.size(); i++) {
-        auto pt = excluse_area_points[i];
-        exclude_poly.points.emplace_back(pt);
-        if (i % 4 == 3) {  // exclude areas are always rectangle
-            exclude_polys.push_back(exclude_poly);
-            exclude_poly.points.clear();
-        }
-    }
+    Polygons exclude_polys = get_bed_excluded_area(cfg);
     auto tmp = diff({ bed_poly }, exclude_polys);
     if (!tmp.empty()) bed_poly = tmp[0];
     return bed_poly;
