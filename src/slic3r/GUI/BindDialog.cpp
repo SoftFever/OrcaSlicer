@@ -101,11 +101,8 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     m_status_text->SetForegroundColour(wxColour(38, 46, 48));
 
     m_link_show_ping_code_wiki = new wxStaticText(request_bind_panel, wxID_ANY, _L("Can't find Pin Code?"));
-    wxFont* font = &Label::Head_14; // ORCA apply underline to hypertext
-    font->SetUnderlined(true);
-    m_link_show_ping_code_wiki->SetFont(*font);
     m_link_show_ping_code_wiki->SetBackgroundColour(*wxWHITE);
-    m_link_show_ping_code_wiki->SetForegroundColour(wxColour("#009688")); // ORCA
+    m_link_show_ping_code_wiki->SetForegroundColour(wxColour(31, 142, 234));
 
     m_link_show_ping_code_wiki->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
     m_link_show_ping_code_wiki->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
