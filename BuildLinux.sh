@@ -84,6 +84,10 @@ then
     exit 0
 fi
 
+
+# cmake 4.x compatibility workaround
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 DISTRIBUTION=$(awk -F= '/^ID=/ {print $2}' /etc/os-release | tr -d '"')
 DISTRIBUTION_LIKE=$(awk -F= '/^ID_LIKE=/ {print $2}' /etc/os-release | tr -d '"')
 # Check for direct distribution match to Ubuntu/Debian
@@ -92,6 +96,8 @@ if [ "${DISTRIBUTION}" == "ubuntu" ] || [ "${DISTRIBUTION}" == "linuxmint" ]; th
 # Check if distribution is Debian/Ubuntu-like based on ID_LIKE
 elif [[ "${DISTRIBUTION_LIKE}" == *"debian"* ]] || [[ "${DISTRIBUTION_LIKE}" == *"ubuntu"* ]]; then
     DISTRIBUTION="debian"
+elif [[ "${DISTRIBUTION_LIKE}" == *"arch"* ]]; then
+    DISTRIBUTION="arch"
 fi
 if [ ! -f ./linux.d/${DISTRIBUTION} ]
 then
@@ -124,7 +130,7 @@ fi
 if [[ -n "${BUILD_DEPS}" ]]
 then
     echo "Configuring dependencies..."
-    BUILD_ARGS="-DDEP_WX_GTK3=ON"
+    BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON"
     if [[ -n "${CLEAN_BUILD}" ]]
     then
         rm -fr deps/build
@@ -158,10 +164,10 @@ then
     then
         rm -fr build
     fi
-    BUILD_ARGS=""
+    BUILD_ARGS="${ORCA_EXTRA_BUILD_ARGS}"
     if [[ -n "${FOUND_GTK3_DEV}" ]]
     then
-        BUILD_ARGS="-DSLIC3R_GTK=3"
+        BUILD_ARGS="${BUILD_ARGS} -DSLIC3R_GTK=3"
     fi
     if [[ -n "${BUILD_DEBUG}" ]]
     then

@@ -1375,7 +1375,7 @@ bool GLGizmosManager::is_in_editing_mode(bool error_notification) const
     /*if (m_current == SlaSupports && dynamic_cast<GLGizmoSlaSupports*>(get_current())->is_in_editing_mode()) {
         return true;
     } else*/ if (m_current == BrimEars) {
-        dynamic_cast<GLGizmoBrimEars*>(get_current())->save_model();
+        dynamic_cast<GLGizmoBrimEars *>(get_current())->update_model_object();
         return false;
     } else {
         return false;

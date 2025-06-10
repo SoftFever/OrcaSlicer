@@ -5,7 +5,7 @@
 
 #include <wx/dcgraph.h>
 
-BEGIN_EVENT_TABLE(SpinInput, wxPanel)
+BEGIN_EVENT_TABLE(SpinInput, StaticBox)
 
 EVT_KEY_DOWN(SpinInput::keyPressed)
 //EVT_MOUSEWHEEL(SpinInput::mouseWheelMoved)

@@ -1049,7 +1049,7 @@ void PrintObject::slice_volumes()
             this->active_step_add_warning(
                 PrintStateBase::WarningLevel::CRITICAL,
                 L("An object's XY size compensation will not be used because it is also color-painted.\nXY Size "
-                  "compensation can not be combined with color-painting."));
+                  "compensation cannot be combined with color-painting."));
             BOOST_LOG_TRIVIAL(info) << "xy compensation will not work for object " << this->model_object()->name << " for multi filament.";
         }
 
