@@ -65,6 +65,8 @@ Fill* Fill::new_from_type(const InfillPattern type)
     // Orca: Replace BBS implementation with Prusa implementation
     case ipMonotonicLine:       return new FillMonotonicLines();
     case ipZigZag:              return new FillZigZag();
+    case ipCrossZag:            return new FillCrossZag();
+    case ipLockedZag:           return new FillLockedZag();
     default: throw Slic3r::InvalidArgument("unknown type");
     }
 }
@@ -1552,6 +1554,18 @@ BoundaryInfillGraph create_boundary_infill_graph(const Polylines &infill_ordered
     }
 
     return out;
+}
+
+// The extended bounding box of the whole object that covers any rotation of every layer.
+BoundingBox Fill::extended_object_bounding_box() const
+{
+    BoundingBox out = bounding_box;
+    out.merge(Point(out.min.y(), out.min.x()));
+    out.merge(Point(out.max.y(), out.max.x()));
+
+    // The bounding box is scaled by sqrt(2.) to ensure that the bounding box
+    // covers any possible rotations.
+    return out.scaled(sqrt(2.));
 }
 
 void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Polygon*> &boundary_src, const BoundingBox &bbox, Polylines &polylines_out, const double spacing, const FillParams &params)
