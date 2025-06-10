@@ -8216,7 +8216,7 @@ void GLCanvas3D::_render_return_toolbar() const
 
     float font_size = ImGui::GetFontSize();
     ImVec2 real_size = ImVec2(font_size * 4, font_size * 1.7);
-    ImVec2 button_icon_size = ImVec2(font_size * .44, font_size * 1.1); // ORCA
+    ImVec2 button_icon_size = ImVec2(font_size * .55, font_size * 1.1); // ORCA
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     Size cnv_size = get_canvas_size();
