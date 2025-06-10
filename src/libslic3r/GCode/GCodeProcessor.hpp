@@ -797,6 +797,7 @@ class Print;
         size_t m_last_default_color_id;
         bool m_detect_layer_based_on_tag {false};
         int m_seams_count;
+        bool m_measure_g29_time {false};
         bool m_single_extruder_multi_material;
         float m_preheat_time;
         int m_preheat_steps;
@@ -1029,6 +1030,9 @@ class Print;
         void process_T(const GCodeReader::GCodeLine& line);
         void process_T(const std::string_view command);
         void process_M1020(const GCodeReader::GCodeLine &line);
+
+        void process_M622(const GCodeReader::GCodeLine &line);
+        void process_M623(const GCodeReader::GCodeLine &line);
 
         void process_filament_change(int id);
 

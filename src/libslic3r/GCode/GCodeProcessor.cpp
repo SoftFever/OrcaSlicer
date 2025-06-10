@@ -1641,7 +1641,9 @@ void GCodeProcessor::register_commands()
 
         {"VG1", [this](const GCodeReader::GCodeLine& line) { process_VG1(line); }},
         {"VM104", [this](const GCodeReader::GCodeLine& line) { process_VM104(line); }},
-        {"VM109", [this](const GCodeReader::GCodeLine& line) { process_VM109(line); }}
+        {"VM109", [this](const GCodeReader::GCodeLine& line) { process_VM109(line); }},
+        {"M622", [this](const GCodeReader::GCodeLine& line) { process_M622(line);}},
+        {"M623", [this](const GCodeReader::GCodeLine& line) { process_M623(line);}}
     };
 
     std::unordered_set<std::string>early_quit_commands = {
@@ -2128,7 +2130,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         if (machine_max_jerk_y != nullptr)
             m_time_processor.machine_limits.machine_max_jerk_y.values = machine_max_jerk_y->values;
 
-        const ConfigOptionFloats* machine_max_jerk_z = config.option<ConfigOptionFloats>("machine_max_jerkz");
+        const ConfigOptionFloats* machine_max_jerk_z = config.option<ConfigOptionFloats>("machine_max_jerk_z");
         if (machine_max_jerk_z != nullptr)
             m_time_processor.machine_limits.machine_max_jerk_z.values = machine_max_jerk_z->values;
 
@@ -4860,7 +4862,13 @@ void GCodeProcessor::process_G29(const GCodeReader::GCodeLine& line)
     //BBS: hardcode 260 seconds for G29
     //Todo: use a machine related setting when we have second kind of BBL printer
     const float value_s = 260.0;
-    simulate_st_synchronize(value_s);
+    if (s_IsBBLPrinter){
+        if(m_measure_g29_time)
+            simulate_st_synchronize(value_s);
+    }
+    else{
+        simulate_st_synchronize(value_s);
+    }
 }
 
 void GCodeProcessor::process_G10(const GCodeReader::GCodeLine& line)
@@ -5284,6 +5292,24 @@ void GCodeProcessor::process_M221(const GCodeReader::GCodeLine& line)
         }
     }
 }
+
+void GCodeProcessor::process_M622(const GCodeReader::GCodeLine& line)
+{
+    float value_j;
+    if(line.has_value('J',value_j)){
+        int interger_j = (int)(std::round(value_j));
+        if(interger_j == 1 && !m_measure_g29_time)
+            m_measure_g29_time = true;
+    }
+
+}
+
+void GCodeProcessor::process_M623(const GCodeReader::GCodeLine& line)
+{
+    if(m_measure_g29_time)
+        m_measure_g29_time = false;
+}
+
 
 void GCodeProcessor::process_M400(const GCodeReader::GCodeLine& line)
 {
