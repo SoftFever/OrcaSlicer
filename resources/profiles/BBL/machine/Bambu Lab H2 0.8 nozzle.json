@@ -10,6 +10,9 @@
     ],
     "printer_model": "Bambu Lab H2",
     "printer_variant": "0.8",
+    "default_filament_profile": [
+        "Bambu PLA Basic @BBL H2"
+    ],
     "default_print_profile": "0.40mm Standard @BBL H2 0.8 nozzle",
     "max_layer_height": [
         "0.56"
@@ -18,7 +21,6 @@
         "0.16"
     ],
     "retraction_length": [
-        "3",
         "3"
     ]
 }
