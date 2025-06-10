@@ -1353,9 +1353,9 @@ void SendToPrinterDialog::set_default()
 
     char weight[64];
     if (wxGetApp().app_config->get("use_inches") == "1") {
-        ::sprintf(weight, "  %.2f oz", aprint_stats.total_weight*0.035274);
+        ::sprintf(weight, "%.2f oz", aprint_stats.total_weight*0.035274); // ORCA remove spacing begore text
     }else{
-        ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+        ::sprintf(weight, "%.2f g", aprint_stats.total_weight); // ORCA remove spacing begore text
     }
 
     m_stext_time->SetLabel(time);
