@@ -5,7 +5,6 @@
     "from": "system",
     "setting_id": "GFSS00_08",
     "instantiation": "true",
-    "description": "This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function.",
     "additional_cooling_fan_speed": [
         "75"
     ],
@@ -16,12 +15,15 @@
         "60"
     ],
     "filament_max_volumetric_speed": [
+        "0.5",
         "0.5"
     ],
     "nozzle_temperature": [
+        "240",
         "240"
     ],
     "nozzle_temperature_initial_layer": [
+        "240",
         "240"
     ],
     "compatible_printers": [
@@ -31,6 +33,87 @@
         "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
     ],
     "filament_long_retractions_when_cut": [
+        "0",
+        "0"
+    ],
+    "filament_deretraction_speed": [
+        "nil",
+        "nil"
+    ],
+    "filament_flow_ratio": [
+        "1",
+        "1"
+    ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_retract_before_wipe": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_when_changing_layer": [
+        "nil",
+        "nil"
+    ],
+    "filament_retraction_distances_when_cut": [
+        "nil",
+        "nil"
+    ],
+    "filament_retraction_length": [
+        "nil",
+        "nil"
+    ],
+    "filament_retraction_minimum_travel": [
+        "nil",
+        "nil"
+    ],
+    "filament_retraction_speed": [
+        "nil",
+        "nil"
+    ],
+    "filament_wipe": [
+        "nil",
+        "nil"
+    ],
+    "filament_wipe_distance": [
+        "nil",
+        "nil"
+    ],
+    "filament_z_hop": [
+        "nil",
+        "nil"
+    ],
+    "filament_z_hop_types": [
+        "nil",
+        "nil"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
         "0"
     ]
 }
