@@ -27,7 +27,7 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
   winget install --id=GitHub.GitLFS -e
   ```
 
-> [!Tip]
+> [!TIP]
 > GitHub Desktop (optional): A GUI for Git and Git LFS, which already includes both tools.
 > ```shell
 > winget install --id=GitHub.GitHubDesktop -e
@@ -83,7 +83,7 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
 - autoconf
 - texinfo
 
-> [!Tip]
+> [!TIP]
 > You can install most of them by running:
 > ```shell
 > brew install gettext libtool automake autoconf texinfo
@@ -156,7 +156,7 @@ To build and debug directly in Xcode:
 git clone https://github.com/SoftFever/OrcaSlicer && cd OrcaSlicer && ./DockerBuild.sh && ./DockerRun.sh
 ```
 
-> [!Note]
+> [!NOTE]
 > To troubleshoot common Docker-related errors, refer to the comments in
 > ```shell
 > DockerRun.sh

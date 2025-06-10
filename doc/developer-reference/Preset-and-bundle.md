@@ -4,7 +4,7 @@ This page deals with the explanation for 3 classes in the code.
 
 As the name might suggest this class deals with presets for various things. It defines an enum `Type` which basically tells you what kind of data the present contains. Below are a few explained and there corresponding UI elements
 
-> [!Warning]
+> [!WARNING]
 > There is a lot of outdated and legacy code in the code base.
 
 - `TYPE_PRINT`: Refers to a process preset. It's called 'Print' probably due to some legacy code.

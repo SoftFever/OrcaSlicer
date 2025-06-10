@@ -82,7 +82,7 @@ graph TD;
     OrcaFilamentLibrary-->Vendor_B_filament;
 ```
 
-> [!Important]
+> [!IMPORTANT]
 > Create new filament profiles only if you have truly specifically tuned the filament for the given printer. Otherwise, use the global library. The global library has a better chance to receive optimizations and updates from OrcaSlicer contributors, which will benefit users of all printers.
 
 ### Adding Filament Profiles to the Global Library

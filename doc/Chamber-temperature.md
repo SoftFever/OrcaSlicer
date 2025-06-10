@@ -29,7 +29,7 @@ You can use chamber temperature variables in your `Machine G-code` to control th
 If you are using Klipper, you can define these macros to control the active chamber heater.
 Bellow is a reference configuration for Klipper.
 
-> [!Important]
+> [!IMPORTANT]
 > Don't forget to change the pin name/values to the actual values you are using in the configuration.
 
 ```gcode
