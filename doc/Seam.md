@@ -6,7 +6,7 @@ WIP...
 
 ### Seam gap
 
-![seam-gap](https://user-images.githubusercontent.com/103989404/215331359-236874c9-ca91-4dd4-b969-3cefc70ebe1b.png)
+![seam-gap](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-gap.png?raw=true)
 
 ### Role-based wipe speed(auto)
 
@@ -18,14 +18,15 @@ WIP...
 
 ### Wipe on loop(inward movement)
 
-![Wipe-on-loop](https://user-images.githubusercontent.com/103989404/215334479-2687c518-1931-46a9-a363-7ae57a0aecf6.png)
+![Wipe-on-loop](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-wipe-on-loop.png?raw=true)
 
 Use outer wall speed and acceleration instead of travel speed and acceleration.
 Added an option to disable this feature
 
 ### Support Cura style outer wall wipe(100% retract before wipe)
 
-![outer-wall-wipe](https://user-images.githubusercontent.com/103989404/215334900-97c75010-4752-45f1-a57c-f0b723a8cb3f.png)
-![wipe-on-loops-options](https://user-images.githubusercontent.com/103989404/215335212-3253061d-bb7b-4853-a86c-10ff54cc8df5.png)
+![seam-outer-wall-wipe](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-outer-wall-wipe.png?raw=true)
+
+![seam-wipe-on-loops-options](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-wipe-on-loops-options.png?raw=true)
 
 Extra length on restart

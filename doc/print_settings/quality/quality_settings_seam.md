@@ -45,7 +45,7 @@ There are several factors that influence how clean the seam of your model is, wi
 
 However, due to mechanical and material tolerances, as well as the very nature of 3D printing with FFF, that is not always possible. Hopefully with some tuning you'll be able to achieve prints like this!
 
-![IMG_4059](https://github.com/user-attachments/assets/e60c3d24-9b21-4484-bcbe-614237a2fe09)
+![quality-seam](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/quality-seam.jpg?raw=true)
 
 ### Troubleshooting the Start of a Seam:
 

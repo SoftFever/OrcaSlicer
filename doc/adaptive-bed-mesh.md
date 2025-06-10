@@ -6,7 +6,7 @@ This feature allows users to seamlessly integrate adaptive bed mesh commands wit
 
 The implementation is designed to be straightforward, requiring no additional plugins or alterations to firmware settings, thereby enhancing user experience and print quality directly from Orca Slicer.
 
-![Screenshot 2024-02-24 104601](https://github.com/SoftFever/OrcaSlicer/assets/103989404/8ab1f26f-987d-4419-942f-b1384270a164)
+![ABM-PrinterConfig](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Adaptative-Bed-Mesh/ABM-PrinterConfig.png?raw=true)
 
 ## Settings in Orca Slicer:
 
@@ -54,4 +54,4 @@ BED_MESH_CALIBRATE mesh_min={adaptive_bed_mesh_min[0]},{adaptive_bed_mesh_min[1]
 M557 X{adaptive_bed_mesh_min[0]}:{adaptive_bed_mesh_max[0]} Y{adaptive_bed_mesh_min[1]}:{adaptive_bed_mesh_max[1]} P{bed_mesh_probe_count[0]}:{bed_mesh_probe_count[1]}
 ```
 
-![Machine_G-code](https://github.com/SoftFever/OrcaSlicer/assets/103989404/ad4a8020-bec6-4361-abb9-4017ca77471f)
+![ABM-Machine-G-code](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Adaptative-Bed-Mesh/ABM-Machine-G-code.png?raw=true)
