@@ -264,11 +264,8 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
     m_checkbox->SetForegroundColour(StateColor::darkModeColorFor(FONT_COLOR));
     bSizer_button->Add(m_checkbox, 0, wxALIGN_LEFT);
     bSizer_button->AddStretchSpacer(1);
-    StateColor btn_bg_green( // ORCA match button color
-        std::pair<wxColour, int>(StateColor::darkModeColorFor(wxColour("#009688")), StateColor::Pressed),
-        std::pair<wxColour, int>(StateColor::darkModeColorFor(wxColour("#26A69A")), StateColor::Hovered),
-        std::pair<wxColour, int>(StateColor::darkModeColorFor(wxColour("#009688")), StateColor::Normal)
-    );
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
     m_button_ok = new Button(this, _L("OK"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
