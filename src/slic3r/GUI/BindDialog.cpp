@@ -101,6 +101,7 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     m_status_text->SetForegroundColour(wxColour(38, 46, 48));
 
     m_link_show_ping_code_wiki = new wxStaticText(request_bind_panel, wxID_ANY, _L("Can't find Pin Code?"));
+    m_link_show_ping_code_wiki->SetFont(Label::Body_14);
     m_link_show_ping_code_wiki->SetBackgroundColour(*wxWHITE);
     m_link_show_ping_code_wiki->SetForegroundColour(wxColour(31, 142, 234));
 
