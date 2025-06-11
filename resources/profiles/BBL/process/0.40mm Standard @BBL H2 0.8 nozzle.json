@@ -17,40 +17,40 @@
         "Bambu Lab H2 0.8 nozzle"
     ],
     "bridge_speed": [
+        "50",
+        "50"
+    ],
+    "initial_layer_infill_speed": [
+        "105",
+        "105"
+    ],
+    "initial_layer_speed": [
+        "50",
+        "50"
+    ],
+    "overhang_3_4_speed": [
         "30",
         "30"
     ],
-    "initial_layer_infill_speed": [
-        "55",
-        "55"
-    ],
-    "initial_layer_speed": [
-        "35",
-        "35"
-    ],
-    "overhang_3_4_speed": [
-        "25",
-        "25"
-    ],
     "overhang_4_4_speed": [
-        "5",
-        "5"
+        "10",
+        "10"
     ],
     "sparse_infill_speed": [
-        "100",
-        "100"
+        "350",
+        "600"
     ],
     "top_surface_speed": [
-        "150",
-        "150"
+        "200",
+        "200"
     ],
     "enable_overhang_speed": [
         "1",
         "1"
     ],
     "gap_infill_speed": [
-        "50",
-        "50"
+        "250",
+        "250"
     ],
     "initial_layer_acceleration": [
         "500",
@@ -61,12 +61,12 @@
         "0"
     ],
     "inner_wall_speed": [
-        "150",
-        "150"
+        "300",
+        "300"
     ],
     "internal_solid_infill_speed": [
-        "150",
-        "150"
+        "250",
+        "300"
     ],
     "outer_wall_acceleration": [
         "5000",
@@ -108,6 +108,34 @@
         "2000",
         "2000"
     ],
+    "enable_height_slowdown": [
+        "0",
+        "0"
+    ],
+    "slowdown_start_height": [
+        "0",
+        "0"
+    ],
+    "slowdown_start_speed": [
+        "1000",
+        "1000"
+    ],
+    "slowdown_start_acc": [
+        "100000",
+        "100000"
+    ],
+    "slowdown_end_height": [
+        "400",
+        "400"
+    ],
+    "slowdown_end_speed": [
+        "1000",
+        "1000"
+    ],
+    "slowdown_end_acc": [
+        "100000",
+        "100000"
+    ],
     "travel_speed_z": [
         "0",
         "0"
@@ -139,5 +167,6 @@
     "travel_acceleration": [
         "10000",
         "10000"
-    ]
+    ],
+    "smooth_coefficient": "4"
 }

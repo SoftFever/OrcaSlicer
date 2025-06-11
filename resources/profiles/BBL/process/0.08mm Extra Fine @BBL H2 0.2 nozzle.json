@@ -7,8 +7,8 @@
     "instantiation": "true",
     "description": "High quality profile for 0.2mm nozzle, prioritizing print quality.",
     "default_acceleration": [
-        "8000",
-        "8000"
+        "10000",
+        "10000"
     ],
     "initial_layer_speed": [
         "40",

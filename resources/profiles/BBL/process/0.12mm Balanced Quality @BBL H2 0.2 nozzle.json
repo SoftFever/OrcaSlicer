@@ -6,8 +6,8 @@
     "setting_id": "GP233",
     "instantiation": "true",
     "default_acceleration": [
-        "8000",
-        "8000"
+        "10000",
+        "10000"
     ],
     "initial_layer_speed": [
         "40",

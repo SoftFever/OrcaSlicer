@@ -34,15 +34,15 @@
     ],
     "internal_solid_infill_speed": [
         "250",
-        "250"
+        "300"
     ],
     "outer_wall_speed": [
         "200",
         "200"
     ],
     "sparse_infill_speed": [
-        "270",
-        "270"
+        "350",
+        "600"
     ],
     "bridge_speed": [
         "50",

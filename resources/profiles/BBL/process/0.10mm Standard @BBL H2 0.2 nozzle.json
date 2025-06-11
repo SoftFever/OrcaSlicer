@@ -139,5 +139,6 @@
     "travel_acceleration": [
         "10000",
         "10000"
-    ]
+    ],
+    "smooth_coefficient": "4"
 }

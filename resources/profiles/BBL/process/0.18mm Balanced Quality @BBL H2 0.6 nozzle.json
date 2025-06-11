@@ -11,8 +11,8 @@
         "50"
     ],
     "default_acceleration": [
-        "8000",
-        "8000"
+        "10000",
+        "10000"
     ],
     "gap_infill_speed": [
         "250",

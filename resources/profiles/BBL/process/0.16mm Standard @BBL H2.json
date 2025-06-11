@@ -7,8 +7,8 @@
     "instantiation": "true",
     "description": "Standard profile for 0.16mm layer height, prioritizing speed.",
     "default_acceleration": [
-        "8000",
-        "8000"
+        "10000",
+        "10000"
     ],
     "initial_layer_speed": [
         "50",
