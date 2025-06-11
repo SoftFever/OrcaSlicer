@@ -16,7 +16,7 @@ namespace Slic3r
 
 class WipeTowerWriter2;
 class PrintRegionConfig;
-enum WipeTowerWallType : int;
+
 class WipeTower2
 {
 public:
@@ -199,7 +199,7 @@ private:
     float  m_first_layer_speed  = 0.f;
     size_t m_first_layer_idx    = size_t(-1);
 
-	WipeTowerWallType m_wall_type;
+	int m_wall_type;
     bool   m_used_fillet                  = true;
     float  m_rib_width                    = 10;
     float  m_extra_rib_length             = 0;

@@ -5401,7 +5401,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->min = 0.;
     def->max = 90.;
-    def->set_default_value(new ConfigOptionFloat(0.));
+    def->set_default_value(new ConfigOptionFloat(30.0));
     
     def = this->add("wipe_tower_max_purge_speed", coFloat);
     def->label = L("Maximum wipe tower print speed");

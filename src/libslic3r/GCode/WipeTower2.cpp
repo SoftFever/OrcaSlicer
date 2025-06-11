@@ -1245,7 +1245,7 @@ WipeTower2::WipeTower2(const PrintConfig& config, const PrintRegionConfig& defau
     m_used_fillet(config.wipe_tower_fillet_wall), 
     m_rib_width(config.wipe_tower_rib_width), 
     m_extra_rib_length(config.wipe_tower_extra_rib_length),
-    m_wall_type(config.wipe_tower_wall_type)
+    m_wall_type((int)config.wipe_tower_wall_type)
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
@@ -2018,7 +2018,7 @@ WipeTower::ToolChangeResult WipeTower2::finish_layer()
     feedrate = first_layer ? m_first_layer_speed * 60.f : std::min(m_wipe_tower_max_purge_speed * 60.f, m_perimeter_speed * 60.f);
 
     Polygon poly;
-    if (m_wall_type == wtwCone) {
+    if (m_wall_type == (int)wtwCone) {
          WipeTower::box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)),
                                            m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
         // outer contour (always)
@@ -2026,7 +2026,7 @@ WipeTower::ToolChangeResult WipeTower2::finish_layer()
         poly = generate_support_cone_wall(writer, wt_box, feedrate, infill_cone, spacing);
     } else {
         WipeTower::box_coordinates wt_box(Vec2f(0.f, 0.f), m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
-        poly = generate_support_rib_wall(writer, wt_box, feedrate, first_layer, m_wall_type == wtwRib, true, false);
+        poly = generate_support_rib_wall(writer, wt_box, feedrate, first_layer, m_wall_type == (int)wtwRib, true, false);
     }
 
     // brim (first layer only)
