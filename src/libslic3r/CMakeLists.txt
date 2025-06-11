@@ -3,9 +3,6 @@ project(libslic3r)
 
 include(PrecompiledHeader)
 
-string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
-set(SLIC3R_BUILD_TIME ${COMPILE_TIME})
-
 if(NOT DEFINED ORCA_CHECK_GCODE_PLACEHOLDERS)
     set(ORCA_CHECK_GCODE_PLACEHOLDERS "0")
 endif()
@@ -80,7 +77,13 @@ set(lisbslic3r_sources
     ExtrusionEntityCollection.hpp
     ExtrusionSimulator.cpp
     ExtrusionSimulator.hpp
+    Feature/Interlocking/InterlockingGenerator.cpp
+    Feature/Interlocking/InterlockingGenerator.hpp
+    Feature/Interlocking/VoxelUtils.cpp
+    Feature/Interlocking/VoxelUtils.hpp
     FileParserError.hpp
+    Feature/FuzzySkin/FuzzySkin.cpp
+    Feature/FuzzySkin/FuzzySkin.hpp
     Fill/Fill.cpp
     Fill/Fill.hpp
     Fill/Fill3DHoneycomb.cpp
@@ -448,10 +451,6 @@ set(lisbslic3r_sources
     calib.cpp
     GCode/Thumbnails.cpp
     GCode/Thumbnails.hpp
-    Interlocking/InterlockingGenerator.hpp
-    Interlocking/InterlockingGenerator.cpp
-    Interlocking/VoxelUtils.hpp
-    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)

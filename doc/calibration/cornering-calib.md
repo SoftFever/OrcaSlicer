@@ -4,13 +4,17 @@ Cornering is a critical aspect of 3D printing that affects the quality and accur
 
 ## Jerk
 
-WIP... TODO: Jerk calibration not implemented yet.
+TODO: Jerk calibration not implemented yet.
 
 ## Junction Deviation
 
 Junction Deviation is the default method for controlling cornering speed in MarlinFW (Marlin2) printers.
 Higher values result in more aggressive cornering speeds, while lower values produce smoother, more controlled cornering.
 The default value in Marlin is typically set to 0.08mm, which may be too high for some printers, potentially causing ringing. Consider lowering this value to reduce ringing, but avoid setting it too low, as this could lead to excessively slow cornering speeds.
+
+```math
+JD = 0,4 \cdot \frac{\text{Jerk}^2}{\text{Accel.}}
+```
 
 1. Pre-requisites:
    1. Check if your printer has Junction Deviation enabled. You can do this by sending the command `M503` to your printer and looking for the line `Junction deviation: 0.25`.
@@ -38,23 +42,33 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
    ![jd_second_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_second_slicer_measure.png?raw=true)
 
 3. Save the settings
-   1. Set your Maximun Junction Deviation value in [Printer settings/Motion ability/Jerk limitation].
+   1. Set your Maximum Junction Deviation value in [Printer settings/Motion ability/Jerk limitation].
+
+   ![jd_printer_jerk_limitation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_printer_jerk_limitation.png?raw=true)
+
    2. Use the following G-code to set the mm:
+
    ```gcode
    M205 J#JunctionDeviationValue
    M500
    ```
+
    Example
+
    ```gcode
    M205 J0.012
    M500
    ```
+
    3. Recompile your MarlinFW
       1. In Configuration.h uncomment and set:
+
       ```cpp
       #define JUNCTION_DEVIATION_MM 0.012  // (mm) Distance from real junction edge
       ```
+
       2. Check Classic Jerk is disabled (commented).
+
       ```cpp
       //#define CLASSIC_JERK
       ```

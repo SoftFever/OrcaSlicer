@@ -16,4 +16,3 @@ Ramming is a technique used to push the filament through the nozzle to ensure th
 ## Manual filament change
 
 Manual filament change is a feature that allows the user to change the filament during the print. This can be useful for multi-material prints or when changing colors. The user can specify the position and timing of the filament change, as well as the speed and distance of the ramming process.
-WIP...
