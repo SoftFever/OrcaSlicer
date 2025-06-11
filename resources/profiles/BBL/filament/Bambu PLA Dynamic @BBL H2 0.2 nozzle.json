@@ -23,10 +23,10 @@
         "Bambu Lab H2 0.2 nozzle"
     ],
     "filament_start_gcode": [
-        "; filament start gcode\nM145 P0\nM142 P1 R35 S40 U0.3 V0.5"
+        "; filament start gcode\n"
     ],
     "filament_end_gcode": [
-        "; filament end gcode \n;M106 P3 S0\n"
+        "; filament end gcode \n"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",

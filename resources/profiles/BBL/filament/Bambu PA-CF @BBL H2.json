@@ -120,5 +120,11 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
     ]
 }
