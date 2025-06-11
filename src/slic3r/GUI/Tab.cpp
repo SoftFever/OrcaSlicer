@@ -3850,8 +3850,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
         
         optgroup = page->new_optgroup(L("Multi Filament"));
-        optgroup->append_single_option_line("filament_flush_temp", "", 0);
-        optgroup->append_single_option_line("filament_flush_volumetric_speed", "", 0);
+        // optgroup->append_single_option_line("filament_flush_temp", "", 0);
+        // optgroup->append_single_option_line("filament_flush_volumetric_speed", "", 0);
         optgroup->append_single_option_line("long_retractions_when_ec", "" , 0);
         optgroup->append_single_option_line("retraction_distances_when_ec", "" , 0);
 
