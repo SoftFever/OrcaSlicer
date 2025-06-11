@@ -1,5 +1,4 @@
 
-#import <wx/statbox.h>
 #import <wx/osx/cocoa/dataview.h>
 #import "GUI_Utils.hpp"
 

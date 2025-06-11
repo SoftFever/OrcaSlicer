@@ -18,6 +18,7 @@
 #include <wx/debug.h>
 #include <wx/settings.h>
 #include <wx/dataview.h>
+#include <wx/statbox.h>
 
 #include <chrono>
 
