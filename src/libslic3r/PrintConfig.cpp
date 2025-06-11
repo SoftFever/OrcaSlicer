@@ -445,6 +445,13 @@ static const t_config_enum_values s_keys_map_CounterboreHoleBridgingOption{
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CounterboreHoleBridgingOption)
 
+static const t_config_enum_values s_keys_map_WipeTowerWallType{
+    {"rectangle", wtwRectangle},
+    {"cone", wtwCone},
+    {"rib", wtwRib},
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WipeTowerWallType)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -5408,6 +5415,46 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->min = 10;
     def->set_default_value(new ConfigOptionFloat(90.));
+
+    def = this->add("wipe_tower_wall_type", coEnum);
+    def->label = L("Wall type");
+    def->tooltip = L("Wipe tower outer wall type.\n"
+                    "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+                    "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+                    "3. Rib: Adds four ribs to the tower wall for enhanced stability.");
+    def->enum_keys_map = &ConfigOptionEnum<WipeTowerWallType>::get_enum_values();
+    def->enum_values.emplace_back("rectangle");
+    def->enum_values.emplace_back("cone");
+    def->enum_values.emplace_back("rib");
+    def->enum_labels.emplace_back("Rectangle");
+    def->enum_labels.emplace_back("Cone");
+    def->enum_labels.emplace_back("Rib");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<WipeTowerWallType>(wtwRectangle));
+
+    def           = this->add("wipe_tower_extra_rib_length", coFloat);
+    def->label    = L("Extra rib length");
+    def->tooltip  = L("Positive values can increase the size of the rib wall, while negative values can reduce the size."
+                       "However, the size of the rib wall can not be smaller than that determined by the cleaning volume.");
+    def->sidetext = L("mm");
+    def->max      = 300;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def           = this->add("wipe_tower_rib_width", coFloat);
+    def->label    = L("Rib width");
+    def->tooltip  = L("Rib width");
+    def->sidetext = L("mm");
+    def->mode     = comAdvanced;
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloat(8));
+
+    def          = this->add("wipe_tower_fillet_wall", coBool);
+    def->label   = L("Fillet wall");
+    def->tooltip = L("The wall of prime tower will fillet.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
 
     def = this->add("wipe_tower_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
