@@ -1,4 +1,5 @@
 
+#import <wx/statbox.h>
 #import <wx/osx/cocoa/dataview.h>
 #import "GUI_Utils.hpp"
 
@@ -12,6 +13,12 @@ void dataview_remove_insets(wxDataViewCtrl* dv) {
     if (@available(macOS 11, *)) {
         [outlineview setStyle:NSTableViewStylePlain];
     }
+}
+
+void staticbox_remove_margin(wxStaticBox* sb) {
+    NSBox* nativeBox = (NSBox*)sb->GetHandle();
+    [nativeBox setBoxType:NSBoxCustom];
+    [nativeBox setBorderWidth:0];
 }
 
 }

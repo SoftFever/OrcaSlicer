@@ -1,6 +1,7 @@
 #include "LabeledStaticBox.hpp"
 #include "libslic3r/Utils.hpp"
 #include "../GUI.hpp"
+#include "../GUI_Utils.hpp"
 #include "Label.hpp"
 
 /*
@@ -53,6 +54,9 @@ bool LabeledStaticBox::Create(
     if (style & wxBORDER_NONE)
         m_border_width = 0;
     wxStaticBox::Create(parent, wxID_ANY, label, pos, size, style);
+#ifdef __WXOSX__
+    Slic3r::GUI::staticbox_remove_margin(this);
+#endif
 
     m_label = label;
     m_scale = FromDIP(100) / 100.f;
