@@ -3962,6 +3962,7 @@ void TabFilament::toggle_options()
       is_BBL_printer =
           wxGetApp().preset_bundle->is_bbl_vendor();
     }
+    bool is_multi_extruder = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->size() > 1;
 
     auto cfg = m_preset_bundle->printers.get_edited_preset().config;
     if (m_active_page->title() == L("Cooling")) {
@@ -4036,7 +4037,8 @@ void TabFilament::toggle_options()
         toggle_option("filament_multitool_ramming_flow", multitool_ramming);
 
         const int extruder_idx = 0; // m_variant_combo->GetSelection(); // TODO: Orca hack
-        toggle_line("retraction_distances_when_ec", m_config->opt_bool("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
+        toggle_line("long_retractions_when_ec", is_multi_extruder && is_BBL_printer, 256 + extruder_idx);
+        toggle_line("retraction_distances_when_ec", is_multi_extruder && is_BBL_printer && m_config->opt_bool("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
     }
 }
 
