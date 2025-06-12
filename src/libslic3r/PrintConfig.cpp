@@ -7789,27 +7789,29 @@ void  handle_legacy_sla(DynamicPrintConfig &config)
 
 size_t DynamicPrintConfig::get_parameter_size(const std::string& param_name, size_t extruder_nums)
 {
-    if (extruder_nums > 1) {
-        size_t volume_type_size = 2;
-        auto   nozzle_volume_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(this->option("nozzle_volume_type"));
-        if (nozzle_volume_type_opt) {
-            volume_type_size = nozzle_volume_type_opt->values.size();
-        }
-        if (printer_options_with_variant_1.count(param_name) > 0) {
-            return extruder_nums * volume_type_size;
-        }
-        else if (printer_options_with_variant_2.count(param_name) > 0) {
-            return extruder_nums * volume_type_size * 2;
-        }
-        else if (filament_options_with_variant.count(param_name) > 0) {
-            return extruder_nums * volume_type_size;
-        }
-        else if (print_options_with_variant.count(param_name) > 0) {
-            return extruder_nums * volume_type_size;
-        }
-        else {
-            return extruder_nums;
-        }
+    constexpr size_t default_param_length = 1;
+    size_t filament_variant_length = default_param_length;
+    size_t process_variant_length = default_param_length;
+    size_t machine_variant_length = default_param_length;
+
+    if (this->has("filament_extruder_variant"))
+        filament_variant_length = this->option<ConfigOptionStrings>("filament_extruder_variant")->size();
+    if (this->has("print_extruder_variant"))
+        process_variant_length = this->option<ConfigOptionStrings>("print_extruder_variant")->size();
+    if (this->has("printer_extruder_variant"))
+        machine_variant_length = this->option<ConfigOptionStrings>("printer_extruder_variant")->size();
+
+    if (printer_options_with_variant_1.count(param_name) > 0) {
+        return machine_variant_length;
+    }
+    else if (printer_options_with_variant_2.count(param_name) > 0) {
+        return machine_variant_length * 2;
+    }
+    else if (filament_options_with_variant.count(param_name) > 0) {
+        return filament_variant_length;
+    }
+    else if (print_options_with_variant.count(param_name) > 0) {
+        return process_variant_length;
     }
     return extruder_nums;
 }
