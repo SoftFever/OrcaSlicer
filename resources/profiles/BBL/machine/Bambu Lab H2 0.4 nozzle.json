@@ -158,12 +158,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-<<<<<<< HEAD   (c3dafa ENH:[filament/process] batch modify h2 process params)
-=======
-    "extruder_variant_list": [
-        "Direct Drive Standard,Direct Drive High Flow"
-    ],
->>>>>>> CHANGE (821d61 ENH:[Process/Filament]  update timelapse and layer change gc)
     "retract_before_wipe": [
         "0%",
         "0%"
