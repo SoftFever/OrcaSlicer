@@ -8,12 +8,12 @@ Orca Slicer includes three approaches for calibrating the pressure advance value
 > [Adaptive Pressure Advance Guide](adaptive-pressure-advance-calib)
 
 > [!WARNING]
-> **For Marlin:** Linear advance must be enabled in firmware (M900).  
+> **Marlin Printers:** Linear advance must be enabled in firmware (M900).  
 > **Not all printers have it enabled by default.**
 
 > [!WARNING]
-> **For Bambulab X1/X1C:** make sure you do not select the 'Flow calibration' option.
-> ![flow-rate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.jpg?raw=true)
+> **Bambulab Printers:** make sure you do not select the 'Flow calibration' option.
+> ![flow-rate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.png?raw=true)
 
 ## Line method
 
