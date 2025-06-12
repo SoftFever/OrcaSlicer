@@ -7,7 +7,8 @@ The Flow Ratio determines how much filament is extruded and plays a key role in 
 > ![flow-rate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.jpg?raw=true)
 
 > [!IMPORTANT]
-> PASS 1 and PASS 2 follow the older flow ratio formula `FlowRatio_old*(100 + modifier)/100`. YOLO (Recommended) and YOLO (perfectist version) use a new system that is very simple `FlowRatio_old±modifier`.
+> PASS 1 and PASS 2 follow the older flow ratio formula `FlowRatio_old*(100 + modifier)/100`.  
+> YOLO (Recommended) and YOLO (perfectist version) use a new system that is very simple `FlowRatio_old±modifier`.
 
 ![flow-calibration](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flow-calibration.gif?raw=true)
 

@@ -8,10 +8,11 @@ Orca Slicer includes three approaches for calibrating the pressure advance value
 > [Adaptive Pressure Advance Guide](adaptive-pressure-advance-calib)
 
 > [!WARNING]
-> For Marlin: Linear advance must be enabled in firmware (M900). **Not all printers have it enabled by default.**
+> **For Marlin:** Linear advance must be enabled in firmware (M900).  
+> **Not all printers have it enabled by default.**
 
 > [!WARNING]
-> For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option.
+> **For Bambulab X1/X1C:** make sure you do not select the 'Flow calibration' option.
 > ![flow-rate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.jpg?raw=true)
 
 ## Line method
@@ -46,7 +47,7 @@ Test configuration window allow user to generate one or more tests in a single p
 
 Once test generated, one or more small rectangular prisms could be found on the plate, one for each test case. This object serves a few purposes:
 
-1. The test pattern itself is added in as custom G-Code at each layer, same as you could do by hand actually. The rectangular prism gives us the layers in which to insert that G-Code. This also means that **you'll see the full test pattern when you move to the Preview pane**:
+1. The test pattern itself is added in as custom G-Code at each layer, same as you could do by hand actually. The rectangular prism gives us the layers in which to insert that G-Code. This also means that **you'll see the full test pattern when you move to the Preview pane:**
 
 ![PA pattern batch mode plater](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch-plater.png?raw=true)
 

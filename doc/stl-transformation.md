@@ -22,8 +22,8 @@ A finer mesh will result in a more accurate representation of the original surfa
 
 ![stl-transformation-params](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/STL-Transformation/stl-transformation-params.png?raw=true)
 
-- **Linear Deflection**: Specifies the maximum distance allowed between the original surface and its polygonal approximation. Lower values produce a mesh that more accurately follows the original curvature.
-- **Angular Deflection**: Defines the maximum allowable angle difference between the actual surface and its tessellated counterpart. Smaller angular deflection values yield a more precise mesh.
+- **Linear Deflection:** Specifies the maximum distance allowed between the original surface and its polygonal approximation. Lower values produce a mesh that more accurately follows the original curvature.
+- **Angular Deflection:** Defines the maximum allowable angle difference between the actual surface and its tessellated counterpart. Smaller angular deflection values yield a more precise mesh.
 
 #### Split compound and compsolid into multiple objects:
 

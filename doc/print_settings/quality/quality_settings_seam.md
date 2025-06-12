@@ -2,28 +2,28 @@
 
 Unless printed in spiral vase mode, every layer needs to begin somewhere and end somewhere. That start and end of the extrusion is what results in what visually looks like a seam on the perimeters. This section contains options to control the visual appearance of a seam.
 
-- **Seam Position**: Controls the placement of the seam.
+- **Seam Position:** Controls the placement of the seam.
 
-  1. **Aligned**: Will attempt to align the seam to a hidden internal facet of the model.
-  2. **Nearest**: Will place the seam at the nearest starting point compared to where the nozzle stopped printing in the previous layer.
-  3. **Back**: Will align the seam in a (mostly) straight line at the rear of the model.
-  4. **Random**: Will randomize the placement of the seam between layers.
+  1. **Aligned:** Will attempt to align the seam to a hidden internal facet of the model.
+  2. **Nearest:** Will place the seam at the nearest starting point compared to where the nozzle stopped printing in the previous layer.
+  3. **Back:** Will align the seam in a (mostly) straight line at the rear of the model.
+  4. **Random:** Will randomize the placement of the seam between layers.
 
   Typically, aligned or back work the best, especially in combination with seam painting. However, as seams create weak points and slight surface "bulges" or "divots," random seam placement may be optimal for parts that need higher strength as that weak point is spread to different locations between layers (e.g., a pin meant to fit through a hole).
 
-- **Staggered Inner Seams**: As the seam location forms a weak point in the print (it's a discontinuity in the extrusion process after all!), staggering the seam on the internal perimeters can help reduce stress points. This setting moves the start of the internal wall's seam around across layers as well as away from the external perimeter seam. This way, the internal and external seams don't all align at the same point and between them across layers, distributing those weak points further away from the seam location, hence making the part stronger. It can also help improve the water tightness of your model.
+- **Staggered Inner Seams:** As the seam location forms a weak point in the print (it's a discontinuity in the extrusion process after all!), staggering the seam on the internal perimeters can help reduce stress points. This setting moves the start of the internal wall's seam around across layers as well as away from the external perimeter seam. This way, the internal and external seams don't all align at the same point and between them across layers, distributing those weak points further away from the seam location, hence making the part stronger. It can also help improve the water tightness of your model.
 
-- **Seam Gap**: Controls the gap in mm or as a percentage of the nozzle size between the two ends of a loop starting and ending with a seam. A larger gap will reduce the bulging seen at the seam. A smaller gap reduces the visual appearance of a seam. For a well-tuned printer with pressure advance, a value of 0-15% is typically optimal.
+- **Seam Gap:** Controls the gap in mm or as a percentage of the nozzle size between the two ends of a loop starting and ending with a seam. A larger gap will reduce the bulging seen at the seam. A smaller gap reduces the visual appearance of a seam. For a well-tuned printer with pressure advance, a value of 0-15% is typically optimal.
 
-- **Scarf Seam**: Read more here: [Better Seams - An Orca Slicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
+- **Scarf Seam:** Read more here: [Better Seams - An Orca Slicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
 
-- **Role-Based Wipe Speed**: Controls the speed of a wipe motion, i.e., how fast the nozzle will move over a printed area to "clean" it before traveling to another area of the model. It is recommended to turn this option on, to ensure the nozzle performs the wipe motion with the same speed that the feature was printed with.
+- **Role-Based Wipe Speed:** Controls the speed of a wipe motion, i.e., how fast the nozzle will move over a printed area to "clean" it before traveling to another area of the model. It is recommended to turn this option on, to ensure the nozzle performs the wipe motion with the same speed that the feature was printed with.
 
-- **Wipe Speed**: If role-based wipe speed is disabled, set this field to the absolute wipe speed or as a percentage over the travel speed.
+- **Wipe Speed:** If role-based wipe speed is disabled, set this field to the absolute wipe speed or as a percentage over the travel speed.
 
-- **Wipe on Loops**: When finishing printing a "loop" (i.e., an extrusion that starts and ends at the same point), move the nozzle slightly inwards towards the part. That move aims to reduce seam unevenness by tucking in the end of the seam to the part. It also slightly cleans the nozzle before traveling to the next area of the model, reducing stringing.
+- **Wipe on Loops:** When finishing printing a "loop" (i.e., an extrusion that starts and ends at the same point), move the nozzle slightly inwards towards the part. That move aims to reduce seam unevenness by tucking in the end of the seam to the part. It also slightly cleans the nozzle before traveling to the next area of the model, reducing stringing.
 
-- **Wipe Before External Perimeters**: To minimize the visibility of potential over-extrusion at the start of an external perimeter, the de-retraction move is performed slightly on the inside of the model and, hence, the start of the external perimeter. That way, any potential over-extrusion is hidden from the outside surface.
+- **Wipe Before External Perimeters:** To minimize the visibility of potential over-extrusion at the start of an external perimeter, the de-retraction move is performed slightly on the inside of the model and, hence, the start of the external perimeter. That way, any potential over-extrusion is hidden from the outside surface.
 
   This is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order, as in these modes, it is more likely an external perimeter is printed immediately after a de-retraction move, which would cause slight extrusion variance at the start of a seam.
 
@@ -31,8 +31,8 @@ Unless printed in spiral vase mode, every layer needs to begin somewhere and end
 
 With seams being inevitable when 3D printing using FFF, there are two distinct approaches on how to deal with them:
 
-1. **Try and hide the seam as much as possible**: This can be done by enabling scarf seam, which works very well, especially with simple models with limited overhang regions.
-2. **Try and make the seam as "clean" and "distinct" as possible**: This can be done by tuning the seam gap and enabling role-based wipe speed, wipe on loops, and wipe before the external loop.
+1. **Try and hide the seam as much as possible:** This can be done by enabling scarf seam, which works very well, especially with simple models with limited overhang regions.
+2. **Try and make the seam as "clean" and "distinct" as possible:** This can be done by tuning the seam gap and enabling role-based wipe speed, wipe on loops, and wipe before the external loop.
 
 ## Troubleshooting Seam Performance:
 

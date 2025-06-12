@@ -2,21 +2,21 @@
 
 These settings control how wide the extruded lines are.
 
-- **Default**: The default line width in mm or as a percentage of the nozzle size.
+- **Default:** The default line width in mm or as a percentage of the nozzle size.
 
-- **First Layer**: The line width of the first layer. Typically, this is wider than the rest of the print, to promote better bed adhesion. See tips below for why.
+- **First Layer:** The line width of the first layer. Typically, this is wider than the rest of the print, to promote better bed adhesion. See tips below for why.
 
-- **Outer Wall**: The line width in mm or as a percentage of the nozzle size used when printing the model’s external wall perimeters.
+- **Outer Wall:** The line width in mm or as a percentage of the nozzle size used when printing the model’s external wall perimeters.
 
-- **Inner Wall**: The line width in mm or as a percentage of the nozzle size used when printing the model’s internal wall perimeters.
+- **Inner Wall:** The line width in mm or as a percentage of the nozzle size used when printing the model’s internal wall perimeters.
 
-- **Top Surface**: The line width in mm or as a percentage of the nozzle size used when printing the model’s top surface.
+- **Top Surface:** The line width in mm or as a percentage of the nozzle size used when printing the model’s top surface.
 
-- **Sparse Infill**: The line width in mm or as a percentage of the nozzle size used when printing the model’s sparse infill.
+- **Sparse Infill:** The line width in mm or as a percentage of the nozzle size used when printing the model’s sparse infill.
 
-- **Internal Solid Infill**: The line width in mm or as a percentage of the nozzle size used when printing the model’s internal solid infill.
+- **Internal Solid Infill:** The line width in mm or as a percentage of the nozzle size used when printing the model’s internal solid infill.
 
-- **Support**: The line width in mm or as a percentage of the nozzle size used when printing the model’s support structures.
+- **Support:** The line width in mm or as a percentage of the nozzle size used when printing the model’s support structures.
 
 ## Tips:
 

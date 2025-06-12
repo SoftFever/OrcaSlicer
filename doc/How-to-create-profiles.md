@@ -340,7 +340,7 @@ Example:
 You can validate your profiles using both the **OrcaSlicer profile validator** and the **Python validation script**. These tools are designed to check different aspects of the profiles, so both should be executed and pass without errors to ensure full compatibility.
 
 > [!NOTE]
-> **✅ Recommendation**: Always run **both** the OrcaSlicer validator and the Python script to ensure all aspects of the profiles are valid.
+> **✅ Recommendation:** Always run **both** the OrcaSlicer validator and the Python script to ensure all aspects of the profiles are valid.
 
 ### 1. OrcaSlicer Profile Validator
 
