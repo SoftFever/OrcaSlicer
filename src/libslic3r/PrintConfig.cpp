@@ -57,7 +57,7 @@ namespace Slic3r {
 
 const std::vector<std::string> filament_extruder_override_keys = {
     // floats
-    "filament_retraction_length", 
+    "filament_retraction_length",
     "filament_z_hop",
     "filament_z_hop_types",
     "filament_retract_lift_above",
@@ -2163,6 +2163,14 @@ void PrintConfigDef::init_fff_params()
     def->height = 13;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { "" });
+
+
+    def = this->add("filament_multi_colour", coStrings);
+    def->set_default_value(new ConfigOptionStrings{""});
+
+    // 0: gradient color, 1: default color(single or multi color)
+    def = this->add("filament_colour_type", coStrings);
+    def->set_default_value(new ConfigOptionStrings{"1"}); // Init as default color
 
     //bbs
     def          = this->add("required_nozzle_HRC", coInts);

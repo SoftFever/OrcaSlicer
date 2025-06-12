@@ -355,6 +355,8 @@ private:
     std::pair<PresetsConfigSubstitutions, std::string> load_system_presets_from_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
     // Merge one vendor's presets with the other vendor's presets, report duplicates.
     std::vector<std::string>    merge_presets(PresetBundle &&other);
+    // Update the multicolor information for filaments.
+    void update_filament_multi_color();
     // Update renamed_from and alias maps of system profiles.
     void 						update_system_maps();
 

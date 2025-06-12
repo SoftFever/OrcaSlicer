@@ -11,6 +11,7 @@
 #include "BitmapComboBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "GUI_Utils.hpp"
+#include "EncodedFilament.hpp"
 
 class wxString;
 class wxTextCtrl;
@@ -204,6 +205,10 @@ public:
     void msw_rescale() override;
     void OnSelect(wxCommandEvent& evt) override;
     void update_badge_according_flag();
+
+    FilamentColor get_cur_color_info();
+    void show_default_color_picker();
+    void sync_colour_config(const std::vector<std::string> &clrs, bool is_gradient);
 
 private:
     // BBS

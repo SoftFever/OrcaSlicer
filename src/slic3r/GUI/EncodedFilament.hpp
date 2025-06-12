@@ -161,7 +161,7 @@ private:
     /* loaded info*/
     std::string m_fila_path;
 
-    std::unordered_map<wxString, FilamentColorCodes*>* m_fila_id2colors_map; // 
+    std::unordered_map<wxString, FilamentColorCodes*>* m_fila_id2colors_map; //
 };
 
 // EncodedFilaColorsInfo class holds a mapping of filament codes to specific filamet type
@@ -201,7 +201,7 @@ public:
 public:
     wxString GetFilaCode() const { return m_owner->GetFilaCode(); }
     wxString GetFilaType() const { return m_owner->GetFilaType(); }
-    
+
 
     wxString         GetFilaColorCode() const { return m_fila_color_code; } // eg. Q01B00
     FilamentColor    GetFilaColor() const { return m_fila_color; }
