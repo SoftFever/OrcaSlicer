@@ -33,7 +33,7 @@ struct SurfaceFillParams
     coordf_t    	overlap = 0.;
     // Angle as provided by the region config, in radians.
     float       	angle = 0.f;
-    bool       	    rotate_angle = true;
+    float       	rotate_angle = 0.f;
     // Is bridging used for this fill? Bridging parameters may be used even if this->flow.bridge() is not set.
     bool 			bridge;
     // Non-negative for a bridge.
@@ -661,9 +661,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 if (params.extrusion_role == erInternalInfill) {
                     params.angle = float(Geometry::deg2rad(region_config.infill_direction.value));
                     params.rotate_angle = (params.pattern == ipRectilinear || params.pattern == ipLine);
+                    //params.rotate_angle = (params.pattern == ipRectilinear || params.pattern == ipLine); // Replaced original code to implement rotation on a specific angle
+                    params.rotate_angle = float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.value));
                 } else {
                     params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
-                    params.rotate_angle = region_config.rotate_solid_infill_direction;
+                    params.rotate_angle = float(Geometry::deg2rad(region_config.rotate_solid_infill_direction.value)); 
                 }
 
                 // Calculate the actual flow we'll be using for this infill.

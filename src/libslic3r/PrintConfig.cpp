@@ -2341,12 +2341,31 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
 
-    def = this->add("rotate_solid_infill_direction", coBool);
+    def = this->add("rotate_solid_infill_direction", coFloat);
     def->label = L("Rotate solid infill direction");
     def->category = L("Strength");
-    def->tooltip = L("Rotate the solid infill direction by 90° for each layer.");
+    def->tooltip = L("The angle for the solid infill pattern, which turned for each layer.\n"
+                     "Positive values for turn CCW, negative ones for turn CW.\n"
+                     "The default value is 90, which allows to rotate each layer even with complex patterns.\n");
+    def->sidetext = "°";
+    def->min = -360;
+    def->max = 360;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionFloat(90));
+
+    def = this->add("rotate_sparse_infill_direction", coFloat);
+    def->label = L("Rotate sparse infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("The angle for the sparse infill pattern, which turned for each layer.\n\n"
+                     "Attention! This is an experimental parameter for very trained users.\n"
+                     "Make sure that this infill can be printed! Otherwise, set it to 0 always.\n"
+                     "Strongly recommended to use a small rotation angle for loose оr large infills.\n"
+                     "Positive values for turn CCW, negative ones for turn CW.\n");
+    def->sidetext = "°";
+    def->min = -360;
+    def->max = 360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");

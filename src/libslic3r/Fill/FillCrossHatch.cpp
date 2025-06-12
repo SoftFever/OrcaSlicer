@@ -179,7 +179,7 @@ void FillCrossHatch ::_fill_surface_single(
     const FillParams &params, unsigned int thickness_layers, const std::pair<float, Point> &direction, ExPolygon expolygon, Polylines &polylines_out)
 {
     // rotate angle
-    auto infill_angle = float(this->angle);
+    auto infill_angle = float(this->angle + this->rotate_angle);
     if (std::abs(infill_angle) >= EPSILON) expolygon.rotate(-infill_angle);
 
     // get the rotated bounding box

@@ -196,7 +196,7 @@ void Fill3DHoneycomb::_fill_surface_single(
 {
     // no rotation is supported for this infill pattern
     // Support infill angle 
-    auto infill_angle   = float(this->angle);
+    auto infill_angle   = float(this->angle + direction.first);
     if (std::abs(infill_angle) >= EPSILON) expolygon.rotate(-infill_angle);
     BoundingBox bb = expolygon.contour.bounding_box();
 
