@@ -6,7 +6,7 @@ This test generates a retraction tower automatically. The retraction tower is a 
 
 ![retraction_test](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/retraction/retraction_test.gif?raw=true)
 
-![retraction_test_dlg](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/retraction/retraction_test_dlg.png?raw=true)
+![retraction_test_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/retraction/retraction_test_menu.png?raw=true)
 
 In the dialog, you can select the start and end retraction length, as well as the retraction length increment step. The default values are 0mm for the start retraction length, 2mm for the end retraction length, and 0.1mm for the step. These values are suitable for most direct drive extruders. However, for Bowden extruders, you may want to increase the start and end retraction lengths to 1mm and 6mm, respectively, and set the step to 0.2mm.
 

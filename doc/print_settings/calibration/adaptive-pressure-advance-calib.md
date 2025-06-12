@@ -155,7 +155,9 @@ Setup your PA test as usual from the calibration menu in Orca slicer. Once setup
 
 Now input your identified print speeds and accelerations in the fields above and run the PA tests.
 
-**IMPORTANT:** Make sure your acceleration values are all the same in all text boxes. Same for the print speed values and Jerk (XY) values. Make sure your Jerk value is set to the external perimeter jerk used in your print profiles.
+
+> [!IMPORTANT]
+> Make sure your acceleration values are all the same in all text boxes. Same for the print speed values and Jerk (XY) values. Make sure your Jerk value is set to the external perimeter jerk used in your print profiles.
 
 #### Test results processing
 
@@ -184,7 +186,7 @@ Concatenate the PA value, the flow value, and the acceleration value into the fi
 
 Remember to paste the values in the adaptive pressure advance measurements text box as shown below, and save your filament profile.
 
-![pa-profile](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-profile.png?raw=true)
+![apa-profile](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-profile.png?raw=true)
 
 ### Tips
 
