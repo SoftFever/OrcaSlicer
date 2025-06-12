@@ -640,7 +640,7 @@ void ObjColorPanel::draw_table()
 
     m_color_cluster_icon_list.clear();
     m_extruder_icon_list.clear();
-    float row_height ;
+    float row_height = 0.0;
     for (size_t ii = 0; ii < row; ii++) {
         wxPanel *row_panel = new wxPanel(m_scrolledWindow);
         row_panel->SetBackgroundColour(ii % 2 == 0 ? *wxWHITE : wxColour(238, 238, 238));

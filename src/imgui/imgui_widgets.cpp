@@ -268,7 +268,7 @@ void ImGui::Text(const char* fmt, ...)
 void ImGui::TextCentered(const char* text, ...)
 {
     va_list vaList;
-    va_start(vaList,&text);
+    va_start(vaList,text);
 
     float font_size = ImGui::GetFontSize() * strlen(text) / 2;
     ImGui::SameLine(ImGui::GetCursorPos().x / 2 - font_size + (font_size / 2));
@@ -6298,9 +6298,9 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
             RenderFrameBorder(bb.Min, bb.Max, rounding);
         else
         #ifdef __APPLE__
-           window->DrawList->AddRect(bb.Min - ImVec2(3, 3), bb.Max + ImVec2(3, 3), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,4.0f);; // Color button are often in need of some sort of border
+           window->DrawList->AddRect(bb.Min - ImVec2(3, 3), bb.Max + ImVec2(3, 3), GetColorU32(ImGuiCol_FrameBg), rounding * 2,0,4.0f);; // Color button are often in need of some sort of border
         #else
-            window->DrawList->AddRect(bb.Min - ImVec2(2, 2), bb.Max + ImVec2(2, 2), GetColorU32(ImGuiCol_FrameBg), rounding * 2,NULL,3.0f); // Color button are often in need of some sort of border
+            window->DrawList->AddRect(bb.Min - ImVec2(2, 2), bb.Max + ImVec2(2, 2), GetColorU32(ImGuiCol_FrameBg), rounding * 2,0,3.0f); // Color button are often in need of some sort of border
         #endif
     }
 

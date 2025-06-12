@@ -257,7 +257,7 @@ ColorRGBA complementary(const ColorRGBA& color)
 
 ColorRGB saturate(const ColorRGB& color, float factor)
 {
-	float h, s, v;
+	float h = 0.0, s = 0.0, v = 0.0;
 	RGBtoHSV(color.r(), color.g(), color.b(), h, s, v);
 	s = std::clamp(s * factor, 0.0f, 1.0f);
 	float r, g, b;
