@@ -338,11 +338,9 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
 
     auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
-    m_confirm = dlg_btns->GetOK();
-    m_confirm->Bind(wxEVT_BUTTON, &SavePresetDialog::accept, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &SavePresetDialog::accept, this);
 
-    m_cancel = dlg_btns->GetCANCEL();
-    m_cancel->Bind(wxEVT_BUTTON, &SavePresetDialog::on_select_cancel, this);
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, &SavePresetDialog::on_select_cancel, this);
 
     m_Sizer_main->Add(m_presets_sizer, 0, wxEXPAND | wxALL, BORDER_W);
     m_Sizer_main->Add(dlg_btns, 0, wxEXPAND);
@@ -467,16 +465,10 @@ void SavePresetDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     const int &em = em_unit();
 
-    msw_buttons_rescale(this, em, {wxID_OK, wxID_CANCEL});
-
     //for (Item *item : m_items) item->update_valid_bmp();
 
     // const wxSize& size = wxSize(45 * em, 35 * em);
     //SetMinSize(/*size*/ wxSize(100, 50));
-
-    m_confirm->SetMinSize(SAVE_PRESET_DIALOG_BUTTON_SIZE);
-    m_cancel->SetMinSize(SAVE_PRESET_DIALOG_BUTTON_SIZE);
-
 
     Fit();
     Refresh();
