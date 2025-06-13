@@ -12,8 +12,19 @@ The G-code path is generated after simplifying the contour of models to avoid to
 
 ## Arc fitting
 
-Enable this to get a G-code file which has G2 and G3 moves. The fitting tolerance is same as the resolution.
-Note: For Klipper machines, this option is recommended to be disabled.
+Enable this to get a G-code file which has [G2 and G3](https://marlinfw.org/docs/gcode/G002-G003.html) moves.
+
+After a model is sliced this feature will replace straight line segments with arcs where possible. This is particularly useful for curved surfaces, as it allows the printer to move in a more fluid manner, reducing the number of G-code commands and improving the overall print quality.
+
+This will result in a smaller G-code file for the same model, as arcs are used instead of many short line segments. This can improve print quality and reduce printing time, especially for curved surfaces.
+
+![arc-fitting](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/arc-fitting.svg?raw=true)
+
+> [!IMPORTANT]
+> This option is only available for machines that support G2 and G3 commands and may impact in CPU usage on the printer.
+
+> [!NOTE]
+> **Klipper machines**, this option is recommended to be disabled.
 Klipper does not benefit from arc commands as these are split again into line segments by the firmware. This results in a reduction in surface quality as line segments are converted to arcs by the slicer and then back to line segments by the firmware.
 
 ## X-Y Compensation
