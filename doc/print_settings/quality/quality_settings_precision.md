@@ -97,5 +97,5 @@ A polyhole is a technique used in FFF 3D printing to improve the accuracy of cir
 
 ![PolyHoles](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Precision/PolyHoles.png?raw=true)
 
-Original implementation: [SuperSlicer Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)  
-Idea and mathematics: [Hydraraptor](https://hydraraptor.blogspot.com/2011/02/polyholes.html)
+- Original implementation: [SuperSlicer Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
+- Idea and mathematics: [Hydraraptor](https://hydraraptor.blogspot.com/2011/02/polyholes.html)
