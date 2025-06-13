@@ -1361,7 +1361,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
             item->set_data(m_tag_material, tray_data.colour, tray_data.name, false, tray_data);
         }
         else {
-            item->set_data(m_tag_material, wxColour(0xEE, 0xEE, 0xEE), tray_data.name, false, tray_data, true);
+            item->set_data(m_tag_material, tray_data.colour, tray_data.name, false, tray_data, true);
             m_has_unmatch_filament = true;
         }
 
@@ -1624,7 +1624,7 @@ void MappingItem::doRender(wxDC &dc)
             }
         }
     }
-    else if (color.Alpha() == 0 && !m_unmatch) {
+    else if (color.Alpha() == 0) {
         dc.DrawBitmap(m_transparent_mapping_item.bmp(), 0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + get_remain_area_height());
     }
     else {
