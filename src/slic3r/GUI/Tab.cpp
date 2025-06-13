@@ -2180,6 +2180,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("solid_infill_direction");
         optgroup->append_single_option_line("rotate_solid_infill_direction");
         optgroup->append_single_option_line("rotate_sparse_infill_direction");
+        optgroup->append_single_option_line("rotate_sparse_infill_length");        
+        optgroup->append_single_option_line("sparse_infill_zigzag_angle");
+        optgroup->append_single_option_line("sparse_infill_zigzag_length");              
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("internal_bridge_angle"); // ORCA: Internal bridge angle override
         optgroup->append_single_option_line("minimum_sparse_infill_area");

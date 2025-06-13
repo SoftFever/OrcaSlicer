@@ -9920,6 +9920,9 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("solid_infill_direction", new ConfigOptionFloat(135));
         _obj->config.set_key_value("rotate_solid_infill_direction", new ConfigOptionFloat(90));
         _obj->config.set_key_value("rotate_sparse_infill_direction", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("rotate_sparse_infill_length", new ConfigOptionFloat(0));        
+        _obj->config.set_key_value("sparse_infill_zigzag_angle", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("sparse_infill_zigzag_length", new ConfigOptionFloat(0));            
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
         _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));

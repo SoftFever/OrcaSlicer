@@ -33,7 +33,7 @@ struct SurfaceFillParams
     coordf_t    	overlap = 0.;
     // Angle as provided by the region config, in radians.
     float       	angle = 0.f;
-    float       	rotate_angle = 0.f;
+    bool       	    rotate_angle = true;
     // Is bridging used for this fill? Bridging parameters may be used even if this->flow.bridge() is not set.
     bool 			bridge;
     // Non-negative for a bridge.
@@ -660,14 +660,23 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 params.bridge_angle = float(surface.bridge_angle);
                 if (params.extrusion_role == erInternalInfill) {
                     params.angle = float(Geometry::deg2rad(region_config.infill_direction.value));
-                    params.rotate_angle = (params.pattern == ipRectilinear || params.pattern == ipLine);
-                    //params.rotate_angle = (params.pattern == ipRectilinear || params.pattern == ipLine); // Replaced original code to implement rotation on a specific angle
-                    params.rotate_angle = float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.value));
+                    if  (region_config.rotate_sparse_infill_length.value) {
+                        params.angle += float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.value * layer.slice_z * 0.1 / region_config.rotate_sparse_infill_length.value ));
+                    } else {
+                        params.angle += float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.value * layer.id())); // sparse_infill_zigzag_length
+                    }
+                    if  (region_config.sparse_infill_zigzag_length.value) {
+                        params.angle += float(Geometry::deg2rad(region_config.sparse_infill_zigzag_angle.value * sin(M_PI * layer.slice_z * 0.1 / region_config.sparse_infill_zigzag_length.value)));
+                    } else {
+                        params.angle += ((layer.id() * surface.thickness_layers) & 1) ? float(Geometry::deg2rad(region_config.sparse_infill_zigzag_angle.value)) : 0.;
+                    }        
                 } else {
                     params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
-                    params.rotate_angle = float(Geometry::deg2rad(region_config.rotate_solid_infill_direction.value)); 
+                    params.angle += float(Geometry::deg2rad(region_config.rotate_solid_infill_direction.value) * layer.id());
                 }
-
+                params.angle += (((layer.id() * surface.thickness_layers) & 1) && (params.pattern == ipRectilinear || params.pattern == ipLine)) ? (M_PI_2) : 0.; // infill rotation by new method
+                params.rotate_angle = 0.; // disable infill rotation by old method
+                
                 // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
                 const bool is_thick_bridge = surface.is_bridge() && (surface.is_internal_bridge() ? object_config.thick_internal_bridges : object_config.thick_bridges);

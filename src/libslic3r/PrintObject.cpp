@@ -1073,6 +1073,9 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "solid_infill_direction"
             || opt_key == "rotate_solid_infill_direction"
             || opt_key == "rotate_sparse_infill_direction"
+            || opt_key == "rotate_sparse_infill_length"            
+            || opt_key == "sparse_infill_zigzag_angle"
+            || opt_key == "sparse_infill_zigzag_length"                    
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             || opt_key == "internal_bridge_angle" // ORCA: Internal bridge angle override
