@@ -29,6 +29,10 @@ Klipper does not benefit from arc commands as these are split again into line se
 
 ## X-Y Compensation
 
+Used to compensate external dimensions of the model.
+With this option you can compensate material expansion or shrinkage, which can occur due to various factors such as the type of filament used, temperature fluctuations, or printer calibration issues.
+
+Follow the [Calibration Guide](https://github.com/SoftFever/OrcaSlicer/wiki/Calibration) and [Filament Tolerance Calibration](https://github.com/SoftFever/OrcaSlicer/wiki/tolerance-calib) to determine the correct value for your printer and filament combination.
 
 ## Elephant foot compensation
 

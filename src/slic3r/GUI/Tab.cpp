@@ -2077,8 +2077,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("slice_closing_radius");
         optgroup->append_single_option_line("resolution");
         optgroup->append_single_option_line("enable_arc_fitting", "quality_settings_precision#arc-fitting");
-        optgroup->append_single_option_line("xy_hole_compensation", "xy-hole-contour-compensation");
-        optgroup->append_single_option_line("xy_contour_compensation", "xy-hole-contour-compensation");
+        optgroup->append_single_option_line("xy_hole_compensation", "quality_settings_precision#xy-compensation");
+        optgroup->append_single_option_line("xy_contour_compensation", "quality_settings_precision#xy-compensation");
         optgroup->append_single_option_line("elefant_foot_compensation");
         optgroup->append_single_option_line("elefant_foot_compensation_layers");
         optgroup->append_single_option_line("precise_outer_wall", "quality_settings_precision#precise-wall");
