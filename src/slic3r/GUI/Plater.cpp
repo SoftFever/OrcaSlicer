@@ -10885,9 +10885,9 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
 
     auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
-    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_ok, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &ProjectDropDialog::on_select_ok, this);
 
-    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_cancel, this);
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, &ProjectDropDialog::on_select_cancel, this);
 
     m_sizer_main->Add(dlg_btns, 0, wxEXPAND);
 
