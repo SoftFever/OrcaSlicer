@@ -82,7 +82,7 @@ graph TD;
     OrcaFilamentLibrary-->Vendor_B_filament;
 ```
 
-> [!Important]
+> [!IMPORTANT]
 > Create new filament profiles only if you have truly specifically tuned the filament for the given printer. Otherwise, use the global library. The global library has a better chance to receive optimizations and updates from OrcaSlicer contributors, which will benefit users of all printers.
 
 ### Adding Filament Profiles to the Global Library
@@ -340,7 +340,7 @@ Example:
 You can validate your profiles using both the **OrcaSlicer profile validator** and the **Python validation script**. These tools are designed to check different aspects of the profiles, so both should be executed and pass without errors to ensure full compatibility.
 
 > [!NOTE]
-> **✅ Recommendation**: Always run **both** the OrcaSlicer validator and the Python script to ensure all aspects of the profiles are valid.
+> **✅ Recommendation:** Always run **both** the OrcaSlicer validator and the Python script to ensure all aspects of the profiles are valid.
 
 ### 1. OrcaSlicer Profile Validator
 

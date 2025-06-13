@@ -14,6 +14,12 @@ void dataview_remove_insets(wxDataViewCtrl* dv) {
     }
 }
 
+void staticbox_remove_margin(wxStaticBox* sb) {
+    NSBox* nativeBox = (NSBox*)sb->GetHandle();
+    [nativeBox setBoxType:NSBoxCustom];
+    [nativeBox setBorderWidth:0];
+}
+
 }
 }
 

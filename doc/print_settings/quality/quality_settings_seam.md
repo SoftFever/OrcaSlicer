@@ -2,28 +2,74 @@
 
 Unless printed in spiral vase mode, every layer needs to begin somewhere and end somewhere. That start and end of the extrusion is what results in what visually looks like a seam on the perimeters. This section contains options to control the visual appearance of a seam.
 
-- **Seam Position**: Controls the placement of the seam.
+## Seam Position
 
-  1. **Aligned**: Will attempt to align the seam to a hidden internal facet of the model.
-  2. **Nearest**: Will place the seam at the nearest starting point compared to where the nozzle stopped printing in the previous layer.
-  3. **Back**: Will align the seam in a (mostly) straight line at the rear of the model.
-  4. **Random**: Will randomize the placement of the seam between layers.
+Controlling the position of seams can help improve the appearance and strength of the final print.
 
-  Typically, aligned or back work the best, especially in combination with seam painting. However, as seams create weak points and slight surface "bulges" or "divots," random seam placement may be optimal for parts that need higher strength as that weak point is spread to different locations between layers (e.g., a pin meant to fit through a hole).
+Typically, aligned or back work the best, especially in combination with seam painting. However, as seams create weak points and slight surface "bulges" or "divots", random seam placement may be optimal for parts that need higher strength as that weak point is spread to different locations between layers (e.g., a pin meant to fit through a hole).
 
-- **Staggered Inner Seams**: As the seam location forms a weak point in the print (it's a discontinuity in the extrusion process after all!), staggering the seam on the internal perimeters can help reduce stress points. This setting moves the start of the internal wall's seam around across layers as well as away from the external perimeter seam. This way, the internal and external seams don't all align at the same point and between them across layers, distributing those weak points further away from the seam location, hence making the part stronger. It can also help improve the water tightness of your model.
+### Aligned
 
-- **Seam Gap**: Controls the gap in mm or as a percentage of the nozzle size between the two ends of a loop starting and ending with a seam. A larger gap will reduce the bulging seen at the seam. A smaller gap reduces the visual appearance of a seam. For a well-tuned printer with pressure advance, a value of 0-15% is typically optimal.
+Will attempt to align the seam to a hidden internal facet of the model.
 
-- **Scarf Seam**: Read more here: [Better Seams - An Orca Slicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
+![seam-aligned](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-aligned.png?raw=true)
 
-- **Role-Based Wipe Speed**: Controls the speed of a wipe motion, i.e., how fast the nozzle will move over a printed area to "clean" it before traveling to another area of the model. It is recommended to turn this option on, to ensure the nozzle performs the wipe motion with the same speed that the feature was printed with.
+### Nearest
 
-- **Wipe Speed**: If role-based wipe speed is disabled, set this field to the absolute wipe speed or as a percentage over the travel speed.
+Will place the seam at the nearest starting point compared to where the nozzle stopped printing in the previous layer.
+This is optimized for speed, low travel, and acceptable strength.
 
-- **Wipe on Loops**: When finishing printing a "loop" (i.e., an extrusion that starts and ends at the same point), move the nozzle slightly inwards towards the part. That move aims to reduce seam unevenness by tucking in the end of the seam to the part. It also slightly cleans the nozzle before traveling to the next area of the model, reducing stringing.
+![seam-nearest](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-nearest.png?raw=true)
 
-- **Wipe Before External Perimeters**: To minimize the visibility of potential over-extrusion at the start of an external perimeter, the de-retraction move is performed slightly on the inside of the model and, hence, the start of the external perimeter. That way, any potential over-extrusion is hidden from the outside surface.
+### Back
+
+This option places the seam on the back side (Min Y point in that layer) of the object, away from the view. It is useful for objects that will be displayed with a specific orientation.
+
+![seam-back](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-back.png?raw=true)
+
+### Random
+
+This option places the seam randomly across the object, which can help to distribute the seam points and increase the overall strength of the print.
+
+![seam-random](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-random.png?raw=true)
+
+## Modifiers
+
+### Staggered inner seams
+
+As the seam location forms a weak point in the print (it's a discontinuity in the extrusion process after all!), staggering the seam on the internal perimeters can help reduce stress points. This setting moves the start of the internal wall's seam around across layers as well as away from the external perimeter seam. This way, the internal and external seams don't all align at the same point and between them across layers, distributing those weak points further away from the seam location, hence making the part stronger. It can also help improve the water tightness of your model.
+
+### Seam gap
+
+Controls the gap in mm or as a percentage of the nozzle size between the two ends of a loop starting and ending with a seam. A larger gap will reduce the bulging seen at the seam. A smaller gap reduces the visual appearance of a seam. For a well-tuned printer with pressure advance, a value of 0-15% is typically optimal.
+
+![seam-gap](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-gap.png?raw=true)
+
+### Scarf joint seam
+
+Read more here: [Better Seams - An Orca Slicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
+
+### Role-based wipe speed
+
+Controls the speed of a wipe motion, i.e., how fast the nozzle will move over a printed area to "clean" it before traveling to another area of the model. It is recommended to turn this option on, to ensure the nozzle performs the wipe motion with the same speed that the feature was printed with.
+
+### Wipe speed
+
+If role-based wipe speed is disabled, set this field to the absolute wipe speed or as a percentage over the travel speed.
+
+### Wipe on loop(inward movement)
+
+When finishing printing a "loop" (i.e., an extrusion that starts and ends at the same point), move the nozzle slightly inwards towards the part. That move aims to reduce seam unevenness by tucking in the end of the seam to the part. It also slightly cleans the nozzle before traveling to the next area of the model, reducing stringing.
+
+![seam-wipe-on-loop](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-wipe-on-loop.png?raw=true)
+
+![seam-outer-wall-wipe](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-outer-wall-wipe.png?raw=true)
+
+![seam-wipe-on-loops-options](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-wipe-on-loops-options.png?raw=true)
+
+### Wipe Before External
+
+To minimize the visibility of potential over-extrusion at the start of an external perimeter, the de-retraction move is performed slightly on the inside of the model and, hence, the start of the external perimeter. That way, any potential over-extrusion is hidden from the outside surface.
 
   This is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order, as in these modes, it is more likely an external perimeter is printed immediately after a de-retraction move, which would cause slight extrusion variance at the start of a seam.
 
@@ -31,8 +77,8 @@ Unless printed in spiral vase mode, every layer needs to begin somewhere and end
 
 With seams being inevitable when 3D printing using FFF, there are two distinct approaches on how to deal with them:
 
-1. **Try and hide the seam as much as possible**: This can be done by enabling scarf seam, which works very well, especially with simple models with limited overhang regions.
-2. **Try and make the seam as "clean" and "distinct" as possible**: This can be done by tuning the seam gap and enabling role-based wipe speed, wipe on loops, and wipe before the external loop.
+1. **Try and hide the seam as much as possible:** This can be done by enabling scarf seam, which works very well, especially with simple models with limited overhang regions.
+2. **Try and make the seam as "clean" and "distinct" as possible:** This can be done by tuning the seam gap and enabling role-based wipe speed, wipe on loops, and wipe before the external loop.
 
 ## Troubleshooting Seam Performance:
 
@@ -45,7 +91,7 @@ There are several factors that influence how clean the seam of your model is, wi
 
 However, due to mechanical and material tolerances, as well as the very nature of 3D printing with FFF, that is not always possible. Hopefully with some tuning you'll be able to achieve prints like this!
 
-![IMG_4059](https://github.com/user-attachments/assets/e60c3d24-9b21-4484-bcbe-614237a2fe09)
+![seam-quality](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-quality.jpg?raw=true)
 
 ### Troubleshooting the Start of a Seam:
 
