@@ -1,6 +1,6 @@
 {
 	"00.00.00.00": {
-		"display_name": "Bambu Lab H2",
+		"display_name": "Bambu Lab H2S",
 		"print": {
 			"ipcam": {
 				"resolution_supported": [ "1080p" ],
