@@ -125,4 +125,5 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
 ### Fixed-Time Motion
 
-TODO This calibration test is currently under development. See the [Marlin documentation](https://marlinfw.org/docs/gcode/M493.html) for more information.
+WIP...
+This calibration test is currently under development. See the [Marlin documentation](https://marlinfw.org/docs/gcode/M493.html) for more information.
