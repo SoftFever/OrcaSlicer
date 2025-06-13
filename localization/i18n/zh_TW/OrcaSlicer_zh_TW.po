@@ -4283,7 +4283,7 @@ msgstr "選擇列印板"
 msgid "Assembly Return"
 msgstr "退出組裝視角"
 
-msgid "return"
+msgid "Return"
 msgstr "返回"
 
 msgid "Paint Toolbar"
