@@ -646,14 +646,14 @@ PlateNameEditDialog::PlateNameEditDialog(wxWindow *parent, wxWindowID id, const 
 
     auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
-    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxMouseEvent &e) {
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         if (this->IsModal())
             EndModal(wxID_YES);
         else
             this->Close();
     });
 
-    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxMouseEvent &e) {
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         if (this->IsModal())
             EndModal(wxID_NO);
         else

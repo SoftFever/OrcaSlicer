@@ -10774,8 +10774,8 @@ public:
 
     void      select_radio(int index);
     void      on_select_radio(wxMouseEvent &event);
-    void      on_select_ok(wxMouseEvent &event);
-    void      on_select_cancel(wxMouseEvent &event);
+    void      on_select_ok(wxCommandEvent &event);
+    void      on_select_cancel(wxCommandEvent &event);
 
     int       get_select_radio(int groupid);
     int       get_action() const { return m_action; }
@@ -11033,7 +11033,7 @@ void ProjectDropDialog::on_select_radio(wxMouseEvent &event)
     }
 }
 
-void ProjectDropDialog::on_select_ok(wxMouseEvent &event)
+void ProjectDropDialog::on_select_ok(wxCommandEvent &event)
 {
     if (m_remember_choice) {
         LoadType load_type = static_cast<LoadType>(get_action());
@@ -11051,7 +11051,7 @@ void ProjectDropDialog::on_select_ok(wxMouseEvent &event)
     EndModal(wxID_OK);
 }
 
-void ProjectDropDialog::on_select_cancel(wxMouseEvent &event)
+void ProjectDropDialog::on_select_cancel(wxCommandEvent &event)
 {
     EndModal(wxID_CANCEL);
 }

@@ -28,9 +28,9 @@ SingleChoiceDialog::SingleChoiceDialog(const wxString &message, const wxString &
 
     auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
-    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_OK); });
 
-    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
 
     bSizer->Add(dlg_btns, 0, wxEXPAND);
 

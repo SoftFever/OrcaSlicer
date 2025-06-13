@@ -270,7 +270,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
 
     bSizer_button->Add(dlg_btns, 0, wxEXPAND);
 
-    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this, angle_input, linear_input](wxMouseEvent& e) {
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this, angle_input, linear_input](wxCommandEvent& e) {
         stop_task();
         if (validate_number_range(angle_input->GetTextCtrl()->GetValue(), 0.01, 1) &&
             validate_number_range(linear_input->GetTextCtrl()->GetValue(), 0.001, 0.1)) {
@@ -286,7 +286,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
         SetFocusIgnoringChildren();
     });
 
-    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxMouseEvent& e) {
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
         stop_task();
         EndModal(wxID_CANCEL);
     });
