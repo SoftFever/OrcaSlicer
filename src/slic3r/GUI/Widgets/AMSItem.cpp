@@ -2800,8 +2800,8 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
     for (int i = 1; i <= 5; i++) { ams_humidity_no_num_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_light", 16)); }
     for (int i = 1; i <= 5; i++) { ams_humidity_no_num_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_dark", 16)); }
 
-    ams_sun_img = ScalableBitmap(this, "ams_drying", 16);
-    ams_drying_img = ScalableBitmap(this, "ams_is_drying", 16);
+    ams_sun_img = ScalableBitmap(this, "ams_drying", 20);
+    ams_drying_img = ScalableBitmap(this, "ams_is_drying", 20);
 
     Bind(wxEVT_PAINT, &AMSHumidity::paintEvent, this);
     //wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_HUMIDITY_BK_COLOUR);
