@@ -7,11 +7,13 @@ There is no other calibration that can have such a big impact on the print quali
 
 Nozzle temperature is one of the most important settings to calibrate for a successful print. The temperature of the nozzle affects the viscosity of the filament, which in turn affects how well it flows through the nozzle and adheres to the print bed. If the temperature is too low, the filament may not flow properly, leading to under-extrusion, poor layer adhesion and stringing. If the temperature is too high, the filament may degrade, over-extrude and produce stringing.
 
-![temp_tower_test](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/temp_tower_test.gif?raw=true)
+![temp-tower_test](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Temp-calib/temp-tower_test.gif?raw=true)
+
+![temp-tower_test_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Temp-calib/temp-tower_test_menu.png?raw=true)
 
 Temp tower is a straightforward test. The temp tower is a vertical tower with multiple blocks, each printed at a different temperature. Once the print is complete, we can examine each block of the tower and determine the optimal temperature for the filament. The optimal temperature is the one that produces the highest quality print with the least amount of issues, such as stringing, layer adhesion, warping (overhang), and bridging.
 
-![temp_tower](https://user-images.githubusercontent.com/103989404/221344534-40e1a629-450c-4ad5-a051-8e240e261a51.jpeg)
+![temp-tower](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Temp-calib/temp-tower.jpg?raw=true)
 
 ## Bed temperature
 
