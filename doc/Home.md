@@ -22,8 +22,9 @@ The below sections provide a detailed settings explanation as well as tips and t
 - [Layer Height Settings](quality_settings_layer_height)
 - [Line Width Settings](quality_settings_line_width)
 - [Seam Settings](quality_settings_seam)
-- [Precise wall](Precise-wall)
-- [Precise Z height](precise-z-height)
+- [Precision](quality_settings_precision)
+  - [Precise Wall](quality_settings_precision#precise-wall)
+  - [Precise Z Height](quality_settings_precision#precise-z-height)
 - [STL Transformation](stl-transformation)
 
 ### Speed Settings
