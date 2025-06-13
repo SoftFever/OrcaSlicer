@@ -30,7 +30,7 @@ Optimize your prints with ultra-fast slicing, intelligent support generation, an
   Comprehensive suite: temperature towers, flow rate, retraction & more for optimal performance.
 - **[Precise Wall](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_precision#precise-wall) and [Seam Control](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_seam)**  
   Adjust outer wall spacing and apply scarf seams to enhance print accuracy.
-- **Sandwich Mode and [SuperSlicer Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes) Support**  
+- **Sandwich Mode and [Polyholes](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_precision#polyholes) Support**  
   Use varied infill patterns and accurate hole shapes for improved clarity.
 - **Overhang and Support Optimization**  
   Modify geometry for printable overhangs with precise support placement.

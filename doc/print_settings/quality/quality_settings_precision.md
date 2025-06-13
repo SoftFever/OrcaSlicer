@@ -64,3 +64,10 @@ By enabling this parameter, the layer height of the last five layers is adjusted
   ![PreciseZOn](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/PreciseZ/PreciseZOn.png?raw=true)
 
 ## Polyholes
+
+A polyhole is a technique used in FFF 3D printing to improve the accuracy of circular holes. Instead of modeling a perfect circle, the hole is represented as a polygon with a reduced number of flat sides. This simplification forces the slicer to treat each segment as a straight line, which prints more reliably. By carefully choosing the number of sides and ensuring the polygon sits on the outer boundary of the hole, you can produce openings that more closely match the intended diameter.
+
+![PolyHoles](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/PolyHoles.png?raw=true)
+
+Original implementation: [SuperSlicer Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)  
+Idea and mathematics: [Hydraraptor](https://hydraraptor.blogspot.com/2011/02/polyholes.html)
