@@ -8,12 +8,12 @@ Orca Slicer includes three approaches for calibrating the pressure advance value
 > [Adaptive Pressure Advance Guide](adaptive-pressure-advance-calib)
 
 > [!WARNING]
-> For Marlin: Linear advance must be enabled in firmware (M900). **Not all printers have it enabled by default.**
+> **Marlin Printers:** Linear advance must be enabled in firmware (M900).  
+> **Not all printers have it enabled by default.**
 
 > [!WARNING]
-> For Bambulab X1/X1C users, make sure you do not select the 'Flow calibration' option when printings.
->
-> ![uncheck](https://user-images.githubusercontent.com/103989404/221345187-3c317a46-4d85-4221-99b9-adb5c7f48026.jpeg)
+> **Bambulab Printers:** make sure you do not select the 'Flow calibration' option.
+> ![flow-rate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.png?raw=true)
 
 ## Line method
 
@@ -23,13 +23,15 @@ Steps:
 1. Select the printer, filament, and process you would like to use for the test.
 2. Print the project and check the result. You can select the value of the most even line and update your PA value in the filament settings.
 3. In this test, a PA value of `0.016` appears to be optimal.
-   ![pa_line](https://user-images.githubusercontent.com/103989404/210139630-8fd189e7-aa6e-4d03-90ab-84ab0e781f81.gif)
 
-   <img width="1003" alt="Screenshot 2022-12-31 at 12 11 10 PM" src="https://user-images.githubusercontent.com/103989404/210124449-dd828da8-a7e4-46b8-9fa2-8bed5605d9f6.png">
+   ![pa-line](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-line.gif?raw=true)
 
-   ![line_0 016](https://user-images.githubusercontent.com/103989404/210140046-dc5adf6a-42e8-48cd-950c-5e81558da967.jpg)
+   ![pa-lines](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-lines.png?raw=true)
+
+   ![pa-line-0-016](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-line-0-016.jpg?raw=true)
 
    ![pressure_advance_enable](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pressure_advance_enable.png?raw=true)
+
 ## Pattern method
 
 The pattern method is adapted from [Andrew Ellis' pattern method generator](https://ellis3dp.com/Pressure_Linear_Advance_Tool/), which was itself derived from the [Marlin pattern method](https://marlinfw.org/tools/lin_advance/k-factor.html) developed by [Sineos](https://github.com/Sineos/k-factorjs).
@@ -45,7 +47,7 @@ Test configuration window allow user to generate one or more tests in a single p
 
 Once test generated, one or more small rectangular prisms could be found on the plate, one for each test case. This object serves a few purposes:
 
-1. The test pattern itself is added in as custom G-Code at each layer, same as you could do by hand actually. The rectangular prism gives us the layers in which to insert that G-Code. This also means that **you'll see the full test pattern when you move to the Preview pane**:
+1. The test pattern itself is added in as custom G-Code at each layer, same as you could do by hand actually. The rectangular prism gives us the layers in which to insert that G-Code. This also means that **you'll see the full test pattern when you move to the Preview pane:**
 
 ![PA pattern batch mode plater](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch-plater.png?raw=true)
 
@@ -69,8 +71,8 @@ The PA value for this test will be increased by 0.002 for every 1 mm increase in
 1.  Select the printer, filament, and process you would like to use for the test.
 2.  Examine each corner of the print and mark the height that yields the best overall result.
 3.  I selected a height of 8 mm for this case, so the pressure advance value should be calculated as `PressureAdvanceStart+(PressureAdvanceStep x measured)` example: `0+(0.002 x 8) = 0.016`.
-   ![tower](https://user-images.githubusercontent.com/103989404/210140231-e886b98d-280a-4464-9781-c74ed9b7d44e.jpg)  
-   ![tower_measure](https://user-images.githubusercontent.com/103989404/210140232-885b549b-e3b8-46b9-a24c-5229c9182408.jpg)
+   ![pa-tower](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-tower.jpg?raw=true)
+   ![pa-tower-measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-tower-measure.jpg?raw=true)
 
 > [!TIP]
 > @ItsDeidara has made a html to help with the calculation. Check it out if those equations give you a headache [here](https://github.com/ItsDeidara/Orca-Slicer-Assistant).

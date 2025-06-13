@@ -17,9 +17,10 @@ Ussualy the recommended values modes are `MZV` or `EI` for Delta printers.
       1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
       2. Speed high enough to trigger ringing (e.g., 100 mm/s).
 
-         > [!NOTE]
-         > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
+> [!NOTE]
+> These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
       3. Jerk [Klipper Square Corner Velocity](https://www.klipper3d.org/Kinematics.html?h=square+corner+velocity#look-ahead) to 5 or a high value (e.g., 20).
+
    2. In printer settigs:
       1. Set the Shaper Type to `MZV` or `EI`.
          ```gcode
@@ -41,8 +42,8 @@ Ussualy the recommended values modes are `MZV` or `EI` for Delta printers.
 
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
 
-   > [!Warning]
-   > There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
+> [!WARNING]
+> There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
 
 3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
 
@@ -53,8 +54,8 @@ Ussualy the recommended values modes are `MZV` or `EI` for Delta printers.
    ![IS_damp_klipper_print_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_klipper_print_measure.jpg?raw=true)
    ![IS_damp_klipper_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_klipper_slicer_measure.png?raw=true)
 
-   > [!Important]
-   > Not all Resonance Compensation modes support damping.
+> [!IMPORTANT]
+> Not all Resonance Compensation modes support damping.
 
 4. Restore your 3D Printer settings to avoid keep using high acceleration and jerk values.
 5. Save the settings
@@ -70,8 +71,10 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
    1. In OrcaSlicer, set:
       1. Acceleration high enough to trigger ringing (e.g., 2000 mm/s²).
       2. Speed high enough to trigger ringing (e.g., 100 mm/s).
-         > [!NOTE]
-         > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
+
+> [!NOTE]
+> These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
+
       3. Jerk
          1. If using [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-) use a high value (e.g., 20).
          2. If using [Junction Deviation](https://marlinfw.org/docs/features/junction_deviation.html) (new Marlin default mode) this test will use 0.25 (high enough to most printers).
@@ -87,8 +90,8 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
    2. If not a clear result, you can measure a X and Y min and max acceptable heights and repeat the test with that min and max value.
 
-   > [!Warning]
-   > There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
+> [!WARNING]
+> There is a chance you will need to set higher than 60Hz frequencies. Some printers with very rigid frames and excellent mechanics may exhibit frequencies exceeding 100Hz.
 
 3. Print the Damping test setting your X and Y frequency to the value you found in the previous step.
 
@@ -122,4 +125,5 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
 ### Fixed-Time Motion
 
-TODO This calibration test is currently under development. See the [Marlin documentation](https://marlinfw.org/docs/gcode/M493.html) for more information.
+WIP...
+This calibration test is currently under development. See the [Marlin documentation](https://marlinfw.org/docs/gcode/M493.html) for more information.
