@@ -2125,7 +2125,7 @@ void TabPrint::build()
         option.opt.is_code = true;
         option.opt.height = 15;
         optgroup->append_single_option_line(option, "small-area-infill-flow-compensation");
-        
+
         optgroup = page->new_optgroup(L("Bridging"), L"param_bridge");
         optgroup->append_single_option_line("bridge_flow");
 	    optgroup->append_single_option_line("internal_bridge_flow");
@@ -2135,8 +2135,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("thick_internal_bridges");
         optgroup->append_single_option_line("enable_extra_bridge_layer");
         optgroup->append_single_option_line("dont_filter_internal_bridges");
-        optgroup->append_single_option_line("counterbore_hole_bridging","counterbore-hole-bridging");
-    
+        optgroup->append_single_option_line("counterbore_hole_bridging");
+
         optgroup = page->new_optgroup(L("Overhangs"), L"param_overhang");
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("make_overhang_printable");
@@ -2156,15 +2156,15 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
         optgroup->append_single_option_line("top_shell_layers");
         optgroup->append_single_option_line("top_shell_thickness");
-        optgroup->append_single_option_line("top_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
+        optgroup->append_single_option_line("top_surface_pattern");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
-        optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
+        optgroup->append_single_option_line("bottom_surface_pattern");
         optgroup->append_single_option_line("top_bottom_infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
-        optgroup->append_single_option_line("sparse_infill_density");
-        optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
+        optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
+        optgroup->append_single_option_line("sparse_infill_pattern", "strength_settings_infill#sparse-infill-pattern");
         optgroup->append_single_option_line("lattice_angle_1");
         optgroup->append_single_option_line("lattice_angle_2");
         optgroup->append_single_option_line("infill_overhang_angle");
@@ -2249,11 +2249,11 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_jerk");
         optgroup->append_single_option_line("travel_jerk");
         optgroup->append_single_option_line("default_junction_deviation");
-        
+
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "extrusion-rate-smoothing");
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "extrusion-rate-smoothing");
-        optgroup->append_single_option_line("extrusion_rate_smoothing_external_perimeter_only", "extrusion-rate-smoothing");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "speed_extrusion_rate_smoothing");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "speed_extrusion_rate_smoothing");
+        optgroup->append_single_option_line("extrusion_rate_smoothing_external_perimeter_only", "speed_extrusion_rate_smoothing");
 
     page = add_options_page(L("Support"), "custom-gcode_support"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Support"), L"param_support");
