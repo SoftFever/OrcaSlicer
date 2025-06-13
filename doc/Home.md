@@ -2,6 +2,7 @@
 
 Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki page aims to provide an detailed explanation of the slicer settings, how to get the most out of them as well as how to calibrate and setup your printer.
 
+- [Prepare](#prepare)
 - [Print Settings, Tips and Tricks](#print-settings-tips-and-tricks)
   - [Quality Settings](#quality-settings)
   - [Speed Settings](#speed-settings)
@@ -11,7 +12,14 @@ Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wik
 - [Developer Section](#developer-section)
 
 > [!NOTE]
-> The Wiki is **Work In Progress** so bear with us while we get it up and running!
+> The Wiki is **Work In Progress** so bear with us while we get it up and running!  
+> Please consider contributing to the wiki following the [How to contribute to the wiki](How-to-wiki) guide.
+
+## Prepare
+
+First steps to prepare your model/s for printing.
+
+- [STL Transformation](stl-transformation)
 
 ## Print Settings, Tips and Tricks
 
@@ -25,7 +33,14 @@ The below sections provide a detailed settings explanation as well as tips and t
 - [Precision](quality_settings_precision)
   - [Precise Wall](quality_settings_precision#precise-wall)
   - [Precise Z Height](quality_settings_precision#precise-z-height)
-- [STL Transformation](stl-transformation)
+  - [Slice gap closing radius](quality_settings_precision#slice-gap-closing-radius)
+  - [Resolution](quality_settings_precision#resolution)
+  - [Arc fitting](quality_settings_precision#arc-fitting)
+  - [X-Y Compensation](quality_settings_precision#x-y-compensation)
+  - [Elephant foot compensation](quality_settings_precision#elephant-foot-compensation)
+  - [Precise wall](quality_settings_precision#precise-wall)
+  - [Precise Z Height](quality_settings_precision#precise-z-height)
+  - [Polyholes](quality_settings_precision#polyholes)
 
 ### Speed Settings
 

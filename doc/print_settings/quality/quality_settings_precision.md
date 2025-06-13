@@ -1,6 +1,17 @@
 # Precision
 
-TODO: WIP
+This section covers the settings that affect the precision of your prints. These settings can help you achieve better dimensional accuracy, reduce artifacts, and improve overall print quality.
+
+- [Slice gap closing radius](#slice-gap-closing-radius)
+- [Resolution](#resolution)
+- [Arc fitting](#arc-fitting)
+- [X-Y Compensation](#x-y-compensation)
+- [Elephant foot compensation](#elephant-foot-compensation)
+- [Precise wall](#precise-wall)
+  - [Technical explanation](#technical-explanation)
+- [Precise Z Height](#precise-z-height)
+- [Polyholes](#polyholes)
+
 
 ## Slice gap closing radius
 
