@@ -10,6 +10,7 @@ When developing new features, please consider updating the wiki to reflect these
 
 - [Wiki Structure](#wiki-structure)
   - [Home](#home)
+    - [Index and Navigation](#index-and-navigation)
   - [File Naming and Organization](#file-naming-and-organization)
 - [Formatting and Style](#formatting-and-style)
   - [Markdown Formatting](#markdown-formatting)
@@ -29,7 +30,7 @@ When developing new features, please consider updating the wiki to reflect these
 
 ## Wiki Structure
 
-Each wiki page is a Markdown file located in the `doc` directory of the repository. The wiki is organized into various sections, each covering different areas of the project. Below are some of the primary sections:
+Each wiki page is a Markdown file located in the `doc` directory of the repository. The wiki is organized into various sections, each covering different areas of the project.
 
 ### Home
 
@@ -41,6 +42,27 @@ When creating a new page or section, be sure to link it from the Home page under
 - **Printer Calibration:** Step-by-step calibration tests in Orca Slicer, including how to interpret the results.
 - **Developer Section:** Information for developers and contributors on building Orca Slicer, localization, and developer resources.
 
+#### Index and Navigation
+
+Github Wiki uses the name of the files as identifiers for the pages. To link to a page, use the file name without the `.md` extension.
+If the file is inside a subdirectory, dont include the subdirectory in the link. Instead, link directly to the file from the Home page.
+
+For example, if you create a new page `doc/calibration/flow-rate-calib.md`, link it as follows:
+
+```markdown
+[Calibration Guide](Calibration)
+```
+
+For pages with extensive content, it's helpful to include a table of contents at the beginning. This allows users to quickly find and access different sections of the page.
+
+```markdown
+- [Wiki Structure](#wiki-structure)
+  - [Home](#home)
+    - [Index and Navigation](#index-and-navigation)
+  - [File Naming and Organization](#file-naming-and-organization)
+- [Formatting and Style](#formatting-and-style)
+```
+
 > [!NOTE]
 > If you're adding a new section, follow the existing structure and ensure it doesn't already fit within an existing category. Link it from the Home page accordingly.
 
@@ -48,6 +70,7 @@ When creating a new page or section, be sure to link it from the Home page under
 
 When creating new pages, follow these file naming conventions:
 
+- Use unique file names to avoid conflicts.
 - Use descriptive names that reflect the page's content.
 - Use kebab-case for filenames (e.g., `How-to-wiki.md`).
 - If the page belongs to a specific section, include the section name in the file name. For example, calibration pages should end with `-calib.md` (e.g., `flow-rate-calib.md`, `pressure-advance-calib.md`).
