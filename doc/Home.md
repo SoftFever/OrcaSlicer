@@ -6,7 +6,8 @@ Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wik
 - [Print Settings, Tips and Tricks](#print-settings-tips-and-tricks)
   - [Quality Settings](#quality-settings)
   - [Speed Settings](#speed-settings)
-  - [Multi material](#multi-material)
+  - [Strength Settings](#strength-settings)
+- [Material Settings](#material-settings)
   - [Printer Settings](#printer-settings)
 - [Printer Calibration](#printer-calibration)
 - [Developer Section](#developer-section)
@@ -44,11 +45,16 @@ The below sections provide a detailed settings explanation as well as tips and t
 
 ### Speed Settings
 
-- [Extrusion rate smoothing](extrusion-rate-smoothing)
+- [Extrusion rate smoothing](speed_extrusion_rate_smoothing)
 
-### Multi material
+### Strength Settings
+
+- [Infill](strength_settings_infill)
+
+## Material Settings
 
 - [Single Extruder Multimaterial](semm)
+- [Pellet Printers (pellet flow coefficient)](pellet-flow-coefficient)
 
 ### Printer Settings
 
@@ -57,8 +63,6 @@ The below sections provide a detailed settings explanation as well as tips and t
 - [Chamber temperature control](chamber-temperature)
 - [Adaptive Bed Mesh](adaptive-bed-mesh)
 - [Using different bed types in Orca](bed-types)
-- [Pellet Printers (pellet flow coefficient)](pellet-flow-coefficient)
-- [Fill Patterns](fill-patterns)
 
 ## Printer Calibration
 
@@ -77,8 +81,12 @@ The [Calibration Guide](Calibration) outlines Orca’s key calibration tests and
 
 ## Developer Section
 
+This is a documentation from someone exploring the code and is by no means complete or even completely accurate. Please edit the parts you might find inaccurate. This is probably going to be helpful nonetheless.
+
 - [How to build Orca Slicer](How-to-build)
 - [Localization and translation guide](Localization_guide)
-- [Developer Reference](Developers-Home)
 - [How to create profiles](How-to-create-profiles)
 - [How to contribute to the wiki](How-to-wiki)
+- [Preset, PresetBundle and PresetCollection](Preset-and-bundle)
+- [Plater, Sidebar, Tab, ComboBox](plater-sidebar-tab-combobox)
+- [Slicing Call Hierarchy](slicing-hierarchy)
