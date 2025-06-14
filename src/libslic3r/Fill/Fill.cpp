@@ -663,18 +663,18 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                     if  (region_config.rotate_sparse_infill_length.value) {
                         params.angle += float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.value * layer.slice_z * 0.1 / region_config.rotate_sparse_infill_length.value ));
                     } else {
-                        params.angle += float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.value * layer.id())); // sparse_infill_zigzag_length
+                        params.angle += float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.value * layer.id()));
                     }
                     if  (region_config.sparse_infill_zigzag_length.value) {
                         params.angle += float(Geometry::deg2rad(region_config.sparse_infill_zigzag_angle.value * sin(M_PI * layer.slice_z * 0.1 / region_config.sparse_infill_zigzag_length.value)));
                     } else {
                         params.angle += ((layer.id() * surface.thickness_layers) & 1) ? float(Geometry::deg2rad(region_config.sparse_infill_zigzag_angle.value)) : 0.;
                     }        
+                    params.angle += (((layer.id() * surface.thickness_layers) & 1) && (params.pattern == ipRectilinear || params.pattern == ipLine)) ? (M_PI_2) : 0.; // internal infill rotation by new method
                 } else {
                     params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
                     params.angle += float(Geometry::deg2rad(region_config.rotate_solid_infill_direction.value) * layer.id());
                 }
-                params.angle += (((layer.id() * surface.thickness_layers) & 1) && (params.pattern == ipRectilinear || params.pattern == ipLine)) ? (M_PI_2) : 0.; // infill rotation by new method
                 params.rotate_angle = 0.; // disable infill rotation by old method
                 
                 // Calculate the actual flow we'll be using for this infill.
@@ -688,8 +688,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 if (!params.bridge) {
                     if (params.extrusion_role == erInternalInfill)
                         params.sparse_infill_speed = region_config.sparse_infill_speed;
-                    else if (params.extrusion_role == erTopSolidInfill)
+                    else if (params.extrusion_role == erTopSolidInfill) {
                         params.top_surface_speed = region_config.top_surface_speed;
+                        params.angle = float(Geometry::deg2rad(region_config.top_infill_direction.value));
+                    } else if (params.extrusion_role == erBottomSurface) 
+                        params.angle = float(Geometry::deg2rad(region_config.bottom_infill_direction.value));
                     else if (params.extrusion_role == erSolidInfill)
                         params.solid_infill_speed = region_config.internal_solid_infill_speed;
                 }

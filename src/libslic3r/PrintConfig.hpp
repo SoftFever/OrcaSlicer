@@ -933,6 +933,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       outer_wall_line_width))
     ((ConfigOptionFloat,                outer_wall_speed))
     ((ConfigOptionFloat,                infill_direction))
+    ((ConfigOptionFloat,                top_infill_direction))
+    ((ConfigOptionFloat,                bottom_infill_direction))    
     ((ConfigOptionFloat,                solid_infill_direction))
     ((ConfigOptionFloat,                rotate_solid_infill_direction))
     ((ConfigOptionFloat,                rotate_sparse_infill_direction))   

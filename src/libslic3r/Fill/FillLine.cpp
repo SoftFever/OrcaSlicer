@@ -15,7 +15,6 @@ void FillLine::_fill_surface_single(
     Polylines                       &polylines_out)
 {
     // rotate polygons so that we can work with vertical lines here
-    //auto infill_angle = float(direction.first - ((this->layer_id & 1) ? float(M_PI/2.) : 0));
     expolygon.rotate(- direction.first);
 
     this->_min_spacing = scale_(this->spacing);

@@ -9917,6 +9917,8 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipArchimedeanChords));
         _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
+        _obj->config.set_key_value("top_infill_direction", new ConfigOptionFloat(0));          
+        _obj->config.set_key_value("bottom_infill_direction", new ConfigOptionFloat(0));       
         _obj->config.set_key_value("solid_infill_direction", new ConfigOptionFloat(135));
         _obj->config.set_key_value("rotate_solid_infill_direction", new ConfigOptionFloat(90));
         _obj->config.set_key_value("rotate_sparse_infill_direction", new ConfigOptionFloat(0));
