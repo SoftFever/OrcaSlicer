@@ -51,10 +51,8 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
 : wxDialog(parent, wxID_ANY, _(L("Ramming customization")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE/* | wxRESIZE_BORDER*/)
 {
     SetBackgroundColour(*wxWHITE);
-    update_ui(this);
     m_panel_ramming  = new RammingPanel(this,parameters);
     m_panel_ramming->Show(true);
-    this->Show();
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_panel_ramming, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 5);
@@ -69,8 +67,10 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
         m_output_data = m_panel_ramming->get_parameters();
         EndModal(wxID_OK);
         },wxID_OK);
+
+    wxGetApp().UpdateDlgDarkUI(this);
     this->Show();
-//    wxMessageDialog dlg(this, _(L("Ramming denotes the rapid extrusion just before a tool change in a single-extruder MM printer. Its purpose is to "
+
     Slic3r::GUI::MessageDialog dlg(this, _(L("Ramming denotes the rapid extrusion just before a tool change in a single-extruder MM printer. Its purpose is to "
         "properly shape the end of the unloaded filament so it does not prevent insertion of the new filament and can itself "
         "be reinserted later. This phase is important and different materials can require different extrusion speeds to get "
@@ -348,7 +348,7 @@ void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
 // Parent dialog for purging volume adjustments - it fathers WipingPanel widget (that contains all controls) and a button to toggle simple/advanced mode:
 WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours,
     const std::vector<int>&extra_flush_volume, float flush_multiplier)
-    : DPIDialog(parent ? parent : static_cast<wxWindow *>(wxGetApp().mainframe),
+    : GUI::DPIDialog(parent ? parent : static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
                 _(L("Flushing volumes for filament change")),
                 wxDefaultPosition,
