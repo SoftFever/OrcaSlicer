@@ -2326,7 +2326,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Angle for sparse infill pattern, which controls the start or main direction of line");
     def->sidetext = "°";
-    def->min = 0;
+    def->min = -360;
     def->max = 360;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
@@ -2336,17 +2336,90 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Angle for solid infill pattern, which controls the start or main direction of line");
     def->sidetext = "°";
-    def->min = 0;
+    def->min = -360;
     def->max = 360;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
 
-    def = this->add("rotate_solid_infill_direction", coBool);
-    def->label = L("Rotate solid infill direction");
+    def = this->add("top_infill_direction", coFloat);
+    def->label = L("Top infill direction");
     def->category = L("Strength");
-    def->tooltip = L("Rotate the solid infill direction by 90° for each layer.");
+    def->tooltip = L("Angle for top infill pattern, which controls the start or main direction of line");
+    def->sidetext = "°";
+    def->min = -360;
+    def->max = 360;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("bottom_infill_direction", coFloat);
+    def->label = L("Bottom infill direction");
+    def->category = L("Strength");
+    def->tooltip = L("Angle for bottom infill pattern, which controls the start or main direction of line");
+    def->sidetext = "°";
+    def->min = -360;
+    def->max = 360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("rotate_solid_infill_direction", coFloat);
+    def->label = L("  Rotate solid infill");
+    def->category = L("Strength");
+    def->tooltip = L("The angle for the solid infill pattern, which turned for each layer.\n"
+                     "Positive values for turn CCW, negative ones for turn CW.\n"
+                     "The default value is 90, which allows to rotate each layer even with complex patterns.\n");
+    def->sidetext = "°";
+    def->min = -360;
+    def->max = 360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(90));
+
+    def = this->add("rotate_sparse_infill_direction", coFloat);
+    def->label = L("  Rotate sparse infill");
+    def->category = L("Strength");
+    def->tooltip = L("The angle for the sparse infill pattern, which turned for each layer.\n\n"
+                     "Attention! This is an experimental parameter for very trained users. "
+                     "Make sure that this infill can be printed! Otherwise, set it to 0 always. "
+                     "Strongly recommended to use a small rotation angle for loose оr large infills.\n"
+                     "Positive values for turn CCW, negative ones for turn CW.\n");
+    def->sidetext = "°";
+    def->min = -360;
+    def->max = 360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("rotate_sparse_infill_length", coFloat);
+    def->label = L("  ... at the length of");
+    def->category = L("Strength");
+    def->tooltip = L("The length through which the rotation will take place at a given angle in the sparse infill.\n\n"
+                     "A zero value indicates that rotation will occur through each layer.\n");
+    def->sidetext = "cm";
+    def->min = 0;
+    def->max = 1000;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("sparse_infill_zigzag_angle", coFloat);
+    def->label = L("  Sparse infill zig-zag angle");
+    def->category = L("Strength");
+    def->tooltip = L("The angle for a sparse fill pattern in which part of the layers rotates relative to another one.\n\n"
+                     "Attention! This is an experimental parameter for very trained users. "
+                     "Make sure that this infill can be printed! Otherwise, set it to 0 always.");
+    def->sidetext = "°";
+    def->min = -360;
+    def->max = 360;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("sparse_infill_zigzag_length", coFloat);
+    def->label = L("  ... at the length of");
+    def->category = L("Strength");
+    def->tooltip = L("The length during which half of the zigzag period will deviate at a given angle in the sparse infill.\n\n"
+                     "A zero value indicates that rotation will occur through each layer.\n");
+    def->sidetext = "cm";
+    def->min = 0;
+    def->max = 1000;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");

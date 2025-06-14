@@ -156,7 +156,7 @@ protected:
         overlap(0.),
         // Initial angle is undefined.
         angle(FLT_MAX),
-        rotate_angle(true),
+        rotate_angle(true), 
         link_max_length(0),
         loop_clipping(0),
         // The initial bounding box is empty, therefore undefined.
@@ -179,7 +179,7 @@ protected:
         ThickPolylines& thick_polylines_out) {}
 
     virtual float _layer_angle(size_t idx) const { return (rotate_angle && (idx & 1)) ? float(M_PI/2.) : 0; }
-
+    
     virtual std::pair<float, Point> _infill_direction(const Surface *surface) const;
     
     // Orca: Dedicated function to calculate gap fill lines for the provided surface, according to the print object parameters
