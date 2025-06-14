@@ -14,6 +14,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/Button.hpp
     GUI/Widgets/CheckBox.cpp
     GUI/Widgets/CheckBox.hpp
+    GUI/Widgets/DialogButtons.cpp
+    GUI/Widgets/DialogButtons.hpp
     GUI/Widgets/RadioBox.hpp
     GUI/Widgets/RadioBox.cpp
     GUI/Widgets/ProgressDialog.hpp
@@ -36,6 +38,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/Scrollbar.hpp
     GUI/Widgets/ScrolledWindow.cpp
     GUI/Widgets/ScrolledWindow.hpp
+    GUI/Widgets/LabeledStaticBox.cpp
+    GUI/Widgets/LabeledStaticBox.hpp
     GUI/Widgets/StaticBox.cpp
     GUI/Widgets/StaticBox.hpp
     GUI/Widgets/ImageSwitchButton.cpp
@@ -70,6 +74,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/StepCtrl.hpp
     GUI/Widgets/ProgressBar.cpp
     GUI/Widgets/ProgressBar.hpp
+    GUI/Widgets/RadioGroup.cpp
+    GUI/Widgets/RadioGroup.hpp
     GUI/Widgets/SideTools.cpp
     GUI/Widgets/SideTools.hpp
     GUI/Widgets/WebView.cpp

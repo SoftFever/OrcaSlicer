@@ -4521,7 +4521,7 @@ msgstr "Выбор печатной пластины"
 msgid "Assembly Return"
 msgstr "Выйти из сборки"
 
-msgid "return"
+msgid "Return"
 msgstr "Назад"
 
 msgid "Paint Toolbar"

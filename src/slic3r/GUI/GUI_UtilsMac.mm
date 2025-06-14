@@ -15,6 +15,12 @@ void dataview_remove_insets(wxDataViewCtrl* dv) {
     }
 }
 
+void staticbox_remove_margin(wxStaticBox* sb) {
+    NSBox* nativeBox = (NSBox*)sb->GetHandle();
+    [nativeBox setBoxType:NSBoxCustom];
+    [nativeBox setBorderWidth:0];
+}
+
 bool is_debugger_present()
 // Returns true if the current process is being debugged (either
 // running under the debugger or has a debugger attached post facto).

@@ -4427,8 +4427,8 @@ msgstr "Plaka Seç"
 msgid "Assembly Return"
 msgstr "Montaj İptali"
 
-msgid "return"
-msgstr "geri dön"
+msgid "Return"
+msgstr "Geri dön"
 
 msgid "Paint Toolbar"
 msgstr "Boyama Araç Çubuğu"
