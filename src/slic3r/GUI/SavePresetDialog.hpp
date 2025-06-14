@@ -78,8 +78,6 @@ class SavePresetDialog : public DPIDialog
 
     std::vector<Item*>   m_items;
 
-    Button*             m_confirm           {nullptr};
-    Button*             m_cancel            {nullptr};
     wxBoxSizer*         m_presets_sizer     {nullptr};
     wxStaticText*       m_label             {nullptr};
     wxBoxSizer*         m_radio_sizer       {nullptr};  
