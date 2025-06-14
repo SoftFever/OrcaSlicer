@@ -8216,7 +8216,7 @@ void GLCanvas3D::_render_return_toolbar() const
 
     float font_size = ImGui::GetFontSize();
     ImVec2 real_size = ImVec2(font_size * 4, font_size * 1.7);
-    ImVec2 button_icon_size = ImVec2(font_size * 1.3, font_size * 1.3);
+    ImVec2 button_icon_size = ImVec2(font_size * .55, font_size * 1.1); // ORCA
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     Size cnv_size = get_canvas_size();
@@ -8232,12 +8232,13 @@ void GLCanvas3D::_render_return_toolbar() const
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
 #endif
 
+    ImVec4 fg_color = m_is_dark ? ImVec4(1.f, 1.f, 1.f, 0.88f) : ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, 1.f);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 18.0f);
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.149f, 0.180f, 0.188f, 0.3f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.149f, 0.180f, 0.188f, 0.15f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.149f, 0.180f, 0.188f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_Button,        ImGuiWrapper::to_ImVec4(decode_color_to_float_array(m_is_dark ? "#393C42" : "#FAFAFA" )));// ORCA Toolbar color
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGuiWrapper::to_ImVec4(decode_color_to_float_array(m_is_dark ? "#46484D" : "#F4F6F6" )));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImGuiWrapper::to_ImVec4(decode_color_to_float_array(m_is_dark ? "#55555A" : "#EFF1F2" )));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, fg_color);
 
     imgui.begin(_L("Assembly Return"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground
         | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
@@ -8249,7 +8250,7 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec2 uv1 = ImVec2(1.0f, 1.0f);
 
     ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-    ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ImVec4 tint_col = fg_color;
     ImVec2 margin = ImVec2(10.0f, 5.0f);
 
     if (ImGui::ImageTextButton(real_size,_utf8(L("Return")).c_str(), m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
@@ -8360,7 +8361,7 @@ void GLCanvas3D::_render_paint_toolbar() const
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(spacing, spacing));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, 0));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.f, 0.f, 0.f, 0.4f });
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::to_ImVec4(decode_color_to_float_array(m_is_dark ? "#393C42" : "#FAFAFA" ))); // ORCA Toolbar color
 
     imgui.set_next_window_pos(0.5f * canvas_w, 0, ImGuiCond_Always, 0.5f, 0.0f);
     float constraint_window_width = canvas_w - 2 * return_button_margin;
