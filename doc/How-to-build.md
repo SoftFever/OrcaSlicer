@@ -188,6 +188,6 @@ All required dependencies will be installed automatically by the provided shell 
 ### Instructions
 
 ```shell
-sudo ./BuildLinux.sh -u      # Install dependencies
-./BuildLinux.sh -dsi         # Build OrcaSlicer
+`./build_linux.sh -u`      # install dependencies
+`./build_linux.sh -disr`    # build OrcaSlicer
 ```

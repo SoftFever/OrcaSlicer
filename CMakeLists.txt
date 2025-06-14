@@ -108,6 +108,15 @@ set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
 set(IS_CROSS_COMPILE FALSE)
 
+option (COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." OFF)
+if (${COLORED_OUTPUT})
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options (-fdiagnostics-color=always)
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        add_compile_options (-fcolor-diagnostics)
+    endif ()
+endif ()
+
 if (APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
     set(CMAKE_FIND_APPBUNDLE LAST)
@@ -806,7 +815,7 @@ endif()
 
 if (NOT WIN32 AND NOT APPLE)
     set(SLIC3R_APP_CMD "orca-slicer")
-    configure_file(${LIBDIR}/platform/unix/build_appimage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_appimage.sh @ONLY)
+    configure_file(${LIBDIR}/platform/unix/build_appimage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_appimage.sh USE_SOURCE_PERMISSIONS @ONLY)
 endif()
 
 option(BUILD_BBS_TEST_TOOLS          "Build bbs test tools" OFF)
