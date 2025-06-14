@@ -2285,7 +2285,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
 {
     bool  is_same_nozzle_diameters = true;
 
-    float       preset_nozzle_diameters;
+    float       preset_nozzle_diameters = 0.0;
     std::string preset_nozzle_type;
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -2581,7 +2581,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             is_printing_block = true;
             nozzle_diameter =  wxString::Format("%.1f", obj_->nozzle_diameter).ToStdString();
 
-                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
+                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material (%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
             confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
     }

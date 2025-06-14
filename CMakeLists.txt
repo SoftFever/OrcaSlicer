@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
 # Verify that your CMake version is exactly 3.31.x series or lower on windows
-if(${CMAKE_VERSION} VERSION_LESS "3.13" OR ${CMAKE_VERSION} VERSION_GREATER_EQUAL "4.0")
-    message(FATAL_ERROR "Only CMake versions between 3.13.x and 3.31.x is supported. Detected version: ${CMAKE_VERSION}")
+if ( ((MSVC) OR (WIN32)) AND (${CMAKE_VERSION} VERSION_GREATER_EQUAL "4.0") )
+    message(FATAL_ERROR "Only cmake versions between 3.13.x and 3.31.x is supported on windows. Detected version: ${CMAKE_VERSION}")
 endif()
 
 if (WIN32)
@@ -44,7 +44,7 @@ You can do this in Environment Variables settings.
         endif()
     endif()
 endif ()
-    
+
 if (APPLE)
     # if CMAKE_OSX_DEPLOYMENT_TARGET is not set, set it to 11.3
     if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
@@ -264,7 +264,7 @@ if(WIN32)
     if(WIN10SDK_INCLUDE_PATH)
         message("Building with Win10 Netfabb STL fixing service support")
         add_definitions(-DHAS_WIN10SDK)
-        include_directories("${WIN10SDK_INCLUDE_PATH}")
+        include_directories(SYSTEM "${WIN10SDK_INCLUDE_PATH}")
     else()
         message("Building without Win10 Netfabb STL fixing service support")
     endif()
@@ -292,7 +292,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(Threads REQUIRED)
 
     find_package(DBus REQUIRED)
-    include_directories(${DBUS_INCLUDE_DIRS})
+    include_directories(SYSTEM ${DBUS_INCLUDE_DIRS})
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
@@ -354,7 +354,7 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-Wno-unknown-pragmas)
     endif()
 
-    # Bit of a hack for flatpak building: compress the debug info with zstd to save space in CI 
+    # Bit of a hack for flatpak building: compress the debug info with zstd to save space in CI
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 13.0)
         add_compile_options(-gz=zstd)
     endif()
@@ -401,11 +401,11 @@ message(STATUS "LIBDIR: ${LIBDIR}")
 message(STATUS "LIBDIR_BIN: ${LIBDIR_BIN}")
 
 # For the bundled boost libraries (boost::nowide)
-include_directories(${LIBDIR})
+include_directories(SYSTEM ${LIBDIR})
 # For generated header files
-include_directories(${LIBDIR_BIN}/platform)
+include_directories(SYSTEM ${LIBDIR_BIN}/platform)
 # For ligigl
-include_directories(${LIBDIR}/libigl)
+include_directories(SYSTEM ${LIBDIR}/libigl)
 
 if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
@@ -492,7 +492,7 @@ endif()
 function(slic3r_remap_configs targets from_Cfg to_Cfg)
     if(MSVC)
         string(TOUPPER ${from_Cfg} from_CFG)
-    
+
         foreach(tgt ${targets})
             if(TARGET ${tgt})
                 set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
@@ -501,7 +501,7 @@ function(slic3r_remap_configs targets from_Cfg to_Cfg)
     endif()
 endfunction()
 
-target_include_directories(boost_headeronly INTERFACE ${Boost_INCLUDE_DIRS})
+target_include_directories(boost_headeronly SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
 target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
 
 # Find and configure intel-tbb
@@ -511,7 +511,7 @@ endif()
 set(TBB_DEBUG 1)
 set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release "")
 find_package(TBB REQUIRED)
-# include_directories(${TBB_INCLUDE_DIRS})
+# include_directories(SYSTEM ${TBB_INCLUDE_DIRS})
 # add_definitions(${TBB_DEFINITIONS})
 # if(MSVC)
 #     # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
@@ -553,7 +553,7 @@ if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL)
         find_package(OpenSSL REQUIRED)
         message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
         message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
-        target_include_directories(libcurl INTERFACE ${OPENSSL_INCLUDE_DIR})
+        target_include_directories(libcurl SYSTEM INTERFACE ${OPENSSL_INCLUDE_DIR})
         target_link_libraries(libcurl INTERFACE ${OPENSSL_LIBRARIES})
     endif()
 endif()
@@ -619,7 +619,7 @@ add_custom_target(gettext_make_pot
     COMMAND xgettext --keyword=L --keyword=_L --keyword=_u8L --keyword=L_CONTEXT:1,2c --keyword=_L_PLURAL:1,2 --add-comments=TRN --from-code=UTF-8 --no-location --debug --boost
         -f "${BBL_L18N_DIR}/list.txt"
         -o "${BBL_L18N_DIR}/OrcaSlicer.pot"
-	COMMAND hintsToPot ${SLIC3R_RESOURCES_DIR} ${BBL_L18N_DIR}	
+	COMMAND hintsToPot ${SLIC3R_RESOURCES_DIR} ${BBL_L18N_DIR}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate pot file from strings in the source tree"
 )
@@ -779,7 +779,7 @@ function(orcaslicer_copy_dlls target config postfix output_dlls)
 
         PARENT_SCOPE
     )
-    
+
 endfunction()
 
 
@@ -819,7 +819,7 @@ endif()
 if (WIN32)
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "./resources")
     set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
-    include(InstallRequiredSystemLibraries) 
+    include(InstallRequiredSystemLibraries)
     install (PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ".")
 elseif (SLIC3R_FHS)
     # CMAKE_INSTALL_FULL_DATAROOTDIR: read-only architecture-independent data root (share)
