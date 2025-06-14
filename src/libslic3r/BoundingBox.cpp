@@ -53,6 +53,13 @@ BoundingBox BoundingBox::rotated(double angle, const Point &center) const
     return out;
 }
 
+BoundingBox BoundingBox::scaled(double factor) const
+{
+    BoundingBox out(*this);
+    out.scale(factor);
+    return out;
+}
+
 template <class PointClass> void
 BoundingBoxBase<PointClass>::scale(double factor)
 {
