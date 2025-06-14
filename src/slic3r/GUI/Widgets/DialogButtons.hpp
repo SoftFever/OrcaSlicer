@@ -13,7 +13,7 @@
 
 namespace Slic3r { namespace GUI {
 
-class DialogButtons  : public wxWindow{
+class DialogButtons  : public wxPanel{
 public:
 
     DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& primary_btn_label = "");
@@ -30,8 +30,8 @@ public:
     Button* GetCONFIRM();
     Button* GetNO();
     Button* GetCANCEL();
-    Button* GetBACK();
-    Button* GetFORWARD();
+    Button* GetRETURN();
+    Button* GetNEXT();
 
     void SetPrimaryButton(wxString label);
 
@@ -75,7 +75,7 @@ private:
         {"replace"    , wxID_REPLACE},
         {"replace all", wxID_REPLACE_ALL},
         // Navigation
-        {"back"       , wxID_BACKWARD},
+        {"return"     , wxID_BACKWARD}, // use return instead back. back mostly used as side of object in translations
         {"next"       , wxID_FORWARD},
         // Alert / Negative
         {"remove"     , wxID_REMOVE},
