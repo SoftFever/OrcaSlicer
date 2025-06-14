@@ -4323,8 +4323,8 @@ msgstr "Tálca kiválasztása"
 msgid "Assembly Return"
 msgstr "Vissza az összeszereléshez"
 
-msgid "return"
-msgstr "vissza"
+msgid "Return"
+msgstr "Vissza"
 
 msgid "Paint Toolbar"
 msgstr "Festés eszköztár"

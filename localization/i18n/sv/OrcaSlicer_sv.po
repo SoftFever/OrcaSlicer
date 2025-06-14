@@ -4321,8 +4321,8 @@ msgstr "Välj Byggplatta"
 msgid "Assembly Return"
 msgstr "Monterings retur"
 
-msgid "return"
-msgstr "tillbaka"
+msgid "Return"
+msgstr "Tillbaka"
 
 msgid "Paint Toolbar"
 msgstr "Färgläggningsverktyg"
