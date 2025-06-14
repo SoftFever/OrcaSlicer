@@ -3099,15 +3099,15 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.4));
 
     //Orca TODO: make it support all sparse infill patterns and multiple  rotate step
-    def           = this->add("infill_rotate_step", coFloat);
+    def           = this->add("infill_rotate_steps", coFloat);
     def->label    = L("Infill rotate step");
     def->category = L("Strength");
     def->tooltip  = L("This parameter adds a slight rotation to each layer of infill to create a cross cross texture.");
     def->sidetext = L("°");
     def->min      = 0;
     def->max      = 360;
-    def->mode     = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats({0}));
 
     def           = this->add("skeleton_infill_density", coPercent);
     def->label    = L("Skeleton infill density");

@@ -67,11 +67,11 @@ struct SurfaceFillParams
     // Params for lattice infill angles
     float lattice_angle_1 = 0.f;
     float lattice_angle_2 = 0.f;
-    float           infill_shift_step          = 0;// param for cross zag
-    float           infill_rotate_step         = 0; // param for zig zag to get cross texture
-    float           infill_lock_depth          = 0;
-    float           skin_infill_depth          = 0;
-    bool            symmetric_infill_y_axis = false;
+    float infill_shift_step          = 0;// param for cross zag
+    std::vector<float> infill_rotate_steps         = {0,90}; // param for zig zag to get cross texture
+    float infill_lock_depth          = 0;
+    float skin_infill_depth          = 0;
+    bool symmetric_infill_y_axis = false;
 
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
@@ -102,7 +102,7 @@ struct SurfaceFillParams
         RETURN_COMPARE_NON_EQUAL(lattice_angle_1);
 		RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
 		RETURN_COMPARE_NON_EQUAL(infill_shift_step);
-		RETURN_COMPARE_NON_EQUAL(infill_rotate_step);
+		RETURN_COMPARE_NON_EQUAL(infill_rotate_steps);
 		RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
 		RETURN_COMPARE_NON_EQUAL(infill_lock_depth);
 		RETURN_COMPARE_NON_EQUAL(skin_infill_depth);
@@ -130,7 +130,7 @@ struct SurfaceFillParams
                 this->lattice_angle_1		== rhs.lattice_angle_1 &&
 				this->lattice_angle_2	    == rhs.lattice_angle_2 &&
 				this->infill_shift_step             == rhs.infill_shift_step &&
-				this->infill_rotate_step            == rhs.infill_rotate_step &&
+				this->infill_rotate_steps            == rhs.infill_rotate_steps &&
 				this->symmetric_infill_y_axis	== rhs.symmetric_infill_y_axis &&
 				this->infill_lock_depth      ==  rhs.infill_lock_depth &&
 				this->skin_infill_depth      ==  rhs.skin_infill_depth;
@@ -653,6 +653,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 		        params.density       = float(region_config.sparse_infill_density);
                 params.lattice_angle_1 = region_config.lattice_angle_1;
                 params.lattice_angle_2 = region_config.lattice_angle_2;
+                params.infill_rotate_steps.clear();
+                for (auto angle_deg : region_config.infill_rotate_steps.values) {
+                    params.infill_rotate_steps.push_back(angle_deg * M_PI / 180.0);
+                }
                 if (params.pattern == ipLockedZag) {
                     params.infill_lock_depth = scale_(region_config.infill_lock_depth);
                     params.skin_infill_depth = scale_(region_config.skin_infill_depth);
@@ -661,7 +665,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                     params.infill_shift_step       = scale_(region_config.infill_shift_step);
                     params.symmetric_infill_y_axis = region_config.symmetric_infill_y_axis;
                 } else if (params.pattern == ipZigZag) {
-                    params.infill_rotate_step      = region_config.infill_rotate_step * M_PI / 360;
+
+                    
                     params.symmetric_infill_y_axis = region_config.symmetric_infill_y_axis;
                 }
 
@@ -990,7 +995,9 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->layer_id = this->id();
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
-        f->rotate_angle = surface_fill.params.rotate_angle;
+        // Orca TODO: handle lagacy rotate_angle
+        auto rotate_angle_idx = f->layer_id % surface_fill.params.infill_rotate_steps.size();
+        f->rotate_angle = surface_fill.params.infill_rotate_steps[rotate_angle_idx];
         f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
         f->print_config        = &this->object()->print()->config();
         f->print_object_config = &this->object()->config();

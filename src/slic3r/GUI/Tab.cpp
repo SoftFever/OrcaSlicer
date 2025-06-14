@@ -2218,7 +2218,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_shift_step");
 
         //Orca TODO: hide it for now, make it support all sparse infill patterns and multiple rotate step
-        // optgroup->append_single_option_line("infill_rotate_step");
+        optgroup->append_single_option_line("infill_rotate_steps");
         optgroup->append_single_option_line("lattice_angle_1");
         optgroup->append_single_option_line("lattice_angle_2");
         optgroup->append_single_option_line("infill_anchor_max");
