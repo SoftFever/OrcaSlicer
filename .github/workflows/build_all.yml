@@ -64,7 +64,7 @@ jobs:
   flatpak:
     name: "Flatpak"
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-46
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-47
       options: --privileged
       volumes:
         - /usr/local/lib/android:/usr/local/lib/android
