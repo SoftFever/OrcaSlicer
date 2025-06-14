@@ -53,15 +53,6 @@ RammingDialog::RammingDialog(wxWindow* parent,const std::string& parameters)
     SetBackgroundColour(*wxWHITE);
     update_ui(this);
     m_panel_ramming  = new RammingPanel(this,parameters);
-
-    // Not found another way of getting the background colours of RammingDialog, RammingPanel and Chart correct than setting
-    // them all explicitely. Reading the parent colour yielded colour that didn't really match it, no wxSYS_COLOUR_... matched
-    // colour used for the dialog. Same issue (and "solution") here : https://forums.wxwidgets.org/viewtopic.php?f=1&t=39608
-    // Whoever can fix this, feel free to do so.
-#ifndef _WIN32
-    this->           SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK));
-    m_panel_ramming->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK));
-#endif
     m_panel_ramming->Show(true);
     this->Show();
 
@@ -121,11 +112,7 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
 		buttons.push_back(std::make_pair(x, y));
 
 	m_chart = new Chart(this, wxRect(scale(10),scale(10),scale(480),scale(360)), buttons, ramming_speed_size, 0.25f, scale(10));
-#ifdef _WIN32
     update_ui(m_chart);
-#else
-    m_chart->SetBackgroundColour(parent->GetBackgroundColour()); // see comment in RammingDialog constructor
-#endif
  	sizer_chart->Add(m_chart, 0, wxALL, 5);
 
     m_widget_time                             = new SpinInput(this, wxEmptyString, _L("ms") , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 5000 , 3000, 500);
