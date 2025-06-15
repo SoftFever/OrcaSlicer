@@ -15,6 +15,10 @@ public:
     Fill* clone() const override { return new Fill3DHoneycomb(*this); };
     ~Fill3DHoneycomb() override {}
 
+	// require bridge flow since most of this pattern hangs in air
+    bool use_bridge_flow() const override { return true; }
+    bool is_self_crossing() override { return false; }
+
 protected:
 	void _fill_surface_single(
 	    const FillParams                &params, 
