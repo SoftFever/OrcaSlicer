@@ -16,6 +16,9 @@ public:
     ~FillCrossHatch() override {}
 
 protected:
+
+    float _layer_angle(size_t idx) const override { return 0.f; };
+	
 	void _fill_surface_single(
 	    const FillParams                &params, 
 	    unsigned int                     thickness_layers,

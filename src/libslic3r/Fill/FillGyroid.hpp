@@ -13,6 +13,7 @@ public:
     FillGyroid() {}
     Fill* clone() const override { return new FillGyroid(*this); }
 
+    
     // require bridge flow since most of this pattern hangs in air
     bool use_bridge_flow() const override { return false; }
 
@@ -28,6 +29,8 @@ public:
 
 
 protected:
+    float _layer_angle(size_t idx) const override { return 0.f; };
+
     void _fill_surface_single(
         const FillParams                &params, 
         unsigned int                     thickness_layers,
