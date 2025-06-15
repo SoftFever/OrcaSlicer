@@ -2325,8 +2325,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Sparse infill direction");
     def->category = L("Strength");
     def->tooltip = L("Angle for sparse infill pattern, which controls the start or main direction of line.");
-    def->sidetext = "° or %";
-    def->min = -360;
+    def->sidetext = "°";
+    def->min = 0;
     def->max = 360;
     def->max_literal = 10;
     def->mode = comAdvanced;
@@ -2336,8 +2336,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Solid infill direction");
     def->category = L("Strength");
     def->tooltip = L("Angle for solid infill pattern, which controls the start or main direction of line.");
-    def->sidetext = "° or %";
-    def->min = -360;
+    def->sidetext = "°";
+    def->min = 0;
     def->max = 360;
     def->max_literal = 10;
     def->mode = comAdvanced;
