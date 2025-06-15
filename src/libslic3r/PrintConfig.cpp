@@ -2324,8 +2324,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("infill_direction", coFloatOrPercent);
     def->label = L("Sparse infill direction");
     def->category = L("Strength");
-    def->tooltip = L("Angle for sparse infill pattern, which controls the start or main direction of line" ".\n"
-                     "If expressed as a %, it will be computed a sector of the full turn 360°" ".\n");
+    def->tooltip = L("Angle for sparse infill pattern, which controls the start or main direction of line" ".\n" "If expressed as a %, it will be computed a sector of the full turn 360°" ".\n");
     def->sidetext = "° or %";
     def->min = -360;
     def->max = 360;
@@ -2336,8 +2335,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("solid_infill_direction", coFloatOrPercent);
     def->label = L("Solid infill direction");
     def->category = L("Strength");
-    def->tooltip = L("Angle for solid infill pattern, which controls the start or main direction of line" ".\n"
-                    "If expressed as a %, it will be computed a sector of the full turn 360°" ".\n");
+    def->tooltip = L("Angle for solid infill pattern, which controls the start or main direction of line" ".\n" "If expressed as a %, it will be computed a sector of the full turn 360°" ".\n");
     def->sidetext = "° or %";
     def->min = -360;
     def->max = 360;
