@@ -32,7 +32,6 @@ RUN apt-get update && apt-get install  -y \
     libgstreamer-plugins-good1.0-dev \
     libgtk-3-dev \
     libgtk-3-dev \
-    libosmesa6-dev \
     libsecret-1-dev \
     libsoup2.4-dev \
     libssl3 \
@@ -65,17 +64,17 @@ WORKDIR OrcaSlicer
 
 # These can run together, but we run them seperate for podman caching
 # Update System dependencies
-RUN ./BuildLinux.sh -u
+RUN ./build_linux.sh -u
 
 # Build dependencies in ./deps
-RUN ./BuildLinux.sh -dr
+RUN ./build_linux.sh -dr
 
 # Build slic3r
-RUN ./BuildLinux.sh -sr
+RUN ./build_linux.sh -sr
 
 # Build AppImage
 ENV container podman
-RUN ./BuildLinux.sh -ir
+RUN ./build_linux.sh -ir
 
 # It's easier to run Orca Slicer as the same username,
 # UID and GID as your workstation.  Since we bind mount

@@ -145,7 +145,7 @@ endif(UNIX)
 ##################################################
 
 # LIBDIR is defined in the main xs CMake file:
-target_include_directories(${qhull_STATIC} BEFORE PUBLIC ${LIBDIR}/qhull/src)
+target_include_directories(${qhull_STATIC} SYSTEM BEFORE PUBLIC ${LIBDIR}/qhull/src)
 target_link_libraries(qhull INTERFACE ${qhull_STATIC})
 
 endif()
