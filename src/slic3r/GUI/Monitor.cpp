@@ -181,7 +181,7 @@ MonitorPanel::~MonitorPanel()
         auto page = m_tabpanel->GetCurrentPage();
         if (page == m_media_file_panel) {
             auto title = m_tabpanel->GetPageText(m_tabpanel->GetSelection());
-            m_media_file_panel->SwitchStorage(title == _L("SD Card"));
+            m_media_file_panel->SwitchStorage(title == _L("Storage"));
         }
         page->SetFocus();
     }, m_tabpanel->GetId());
@@ -191,7 +191,7 @@ MonitorPanel::~MonitorPanel()
     m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
 
     m_media_file_panel = new MediaFilePanel(m_tabpanel);
-    m_tabpanel->AddPage(m_media_file_panel, _L("SD Card"), "", false);
+    m_tabpanel->AddPage(m_media_file_panel, _L("Storage"), "", false);
     //m_tabpanel->AddPage(m_media_file_panel, _L("Internal Storage"), "", false);
 
     m_upgrade_panel = new UpgradePanel(m_tabpanel);
@@ -297,8 +297,12 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     update_all();
 
     MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_)
+    if (obj_) {
+        obj_->last_cali_version = -1;
+        obj_->reset_pa_cali_history_result();
+        obj_->reset_pa_cali_result();
         GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
+    }
 
     Layout();
     Refresh();
@@ -372,7 +376,7 @@ void MonitorPanel::update_all()
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
     m_media_file_panel->SetMachineObject(obj);
     m_side_tools->update_status(obj);
-    
+
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
         m_hms_panel->clear_hms_tag();
@@ -450,7 +454,7 @@ bool MonitorPanel::Show(bool show)
             if (obj == nullptr) {
                 dev->load_last_machine();
                 obj = dev->get_selected_machine();
-                if (obj) 
+                if (obj)
                     GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
             } else {
                 obj->reset_update_time();
@@ -499,7 +503,7 @@ void MonitorPanel::show_status(int status)
 
     BOOST_LOG_TRIVIAL(info) << "monitor: show_status = " << status;
 
-   
+
 #if !BBL_RELEASE_TO_PUBLIC
     m_upgrade_panel->update(nullptr);
 #endif
@@ -514,15 +518,15 @@ Freeze();
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();
         m_tabpanel->Layout();
-    } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) 
-        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) 
-        || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0) 
-        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) ) 
+    } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+        || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) )
     {
 
-        if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) 
-            || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0) 
-            || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)) 
+        if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0)
+            || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+            || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0))
         {
             set_default();
         }

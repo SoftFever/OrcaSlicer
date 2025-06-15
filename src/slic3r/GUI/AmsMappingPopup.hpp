@@ -60,6 +60,9 @@ struct TrayData
     std::string     filament_type;
     wxColour        colour;
     std::vector<wxColour> material_cols = std::vector<wxColour>();
+
+    int             ams_id = 0;
+    int             slot_id = 0;
 };
 
 class MaterialItem: public wxPanel
@@ -116,6 +119,9 @@ public:
     ScalableBitmap m_transparent_mapping_item;
     bool     m_unmatch{false};
 
+    int     m_ams_id{255};
+    int     m_slot_id{255};
+
     void msw_rescale();
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
@@ -150,6 +156,9 @@ public:
     int         m_current_filament_id;
     std::string m_tag_material;
     wxBoxSizer *m_sizer_main{nullptr}; 
+    wxBoxSizer *m_sizer_ams{nullptr}; 
+    wxBoxSizer *m_sizer_ams_left{nullptr}; 
+    wxBoxSizer *m_sizer_ams_right{nullptr}; 
     wxBoxSizer *m_sizer_list{nullptr}; 
     wxWindow   *m_parent_item{nullptr}; 
 

@@ -1,7 +1,7 @@
 {
     "type": "process",
     "name": "0.40mm Standard @BBL A1 0.8 nozzle",
-    "inherits": "fdm_process_bbl_0.40_nozzle_0.8",
+    "inherits": "fdm_process_single_0.40_nozzle_0.8",
     "from": "system",
     "setting_id": "GP098",
     "instantiation": "true",
