@@ -45,6 +45,10 @@ WIP...
 ![infill-top-gyroid](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-gyroid.png?raw=true)
 ![infill-iso-gyroid](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-gyroid.png?raw=true)
 
+### TPMS-D
+![infill-top-tpms-d](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-tpms-d.png?raw=true)
+![infill-iso-tpms-d](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-tpms-d.png?raw=true)
+
 ### Honeycomb
 ![infill-top-honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-honeycomb.png?raw=true)
 ![infill-iso-honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-honeycomb.png?raw=true)
@@ -94,6 +98,6 @@ WIP...
 > - Primitive Cube: 66mm x 66mm x 66mm
 > - Layer Height: 0.2mm
 > - Infill Density: 15%
-> - Layer Count: 329
+> - Layer View: Any good example for the pattern
 > - Wall loops: 3 (Hide in isometric view)
 > - Anchor: Off
