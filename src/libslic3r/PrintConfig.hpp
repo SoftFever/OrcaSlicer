@@ -937,7 +937,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 rotate_solid_infill_direction))
     ((ConfigOptionBool,                 symmetric_infill_y_axis))
     ((ConfigOptionFloat,                infill_shift_step))
-    ((ConfigOptionFloats,               infill_rotate_steps))
+    ((ConfigOptionString,               sparse_infill_rotate_template))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
     ((ConfigOptionFloat,                lattice_angle_1))

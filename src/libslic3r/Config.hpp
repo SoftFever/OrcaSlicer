@@ -675,6 +675,13 @@ public:
         }
         return true;
     }
+    static bool validate_string(const std::string &str)
+    {
+        // should only have number and commas
+        return std::all_of(str.begin(), str.end(), [](char c) {
+            return std::isdigit(c) || c == ','|| std::isspace(c);
+        });
+    }
 
     ConfigOptionFloatsTempl& operator=(const ConfigOption *opt)
     {
