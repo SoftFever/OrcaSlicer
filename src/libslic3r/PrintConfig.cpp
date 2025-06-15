@@ -146,6 +146,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "triangles",          ipTriangles },
     { "tri-hexagon",        ipStars },
     { "gyroid",             ipGyroid },
+    { "tpmsd",              ipTpmsD },//TpmsD from CrealityPrint
     { "honeycomb",          ipHoneycomb },
     { "adaptivecubic",      ipAdaptiveCubic },
     { "monotonic",          ipMonotonic },
@@ -158,7 +159,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "supportcubic",       ipSupportCubic },
     { "lightning",          ipLightning },
     { "crosshatch",         ipCrossHatch},
-    { "quartercubic",       ipQuarterCubic}
+    { "quartercubic",       ipQuarterCubic},
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -2385,6 +2386,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("triangles");
     def->enum_values.push_back("tri-hexagon");
     def->enum_values.push_back("gyroid");
+    def->enum_values.push_back("tpmsd");
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("adaptivecubic");
     def->enum_values.push_back("alignedrectilinear");
@@ -2405,6 +2407,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Triangles"));
     def->enum_labels.push_back(L("Tri-hexagon"));
     def->enum_labels.push_back(L("Gyroid"));
+    def->enum_labels.push_back(L("TPMS-D"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Adaptive Cubic"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
