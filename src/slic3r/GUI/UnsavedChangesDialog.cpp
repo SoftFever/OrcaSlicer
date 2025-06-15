@@ -953,6 +953,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
     auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto checkbox       = new ::CheckBox(this, _L("Remember my choice."));
+    checkbox->SetId(wxID_APPLY);
     checkbox_sizer->Add(checkbox, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
 
     m_sizer_button->Add(checkbox_sizer, 0, wxLEFT, FromDIP(22));

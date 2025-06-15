@@ -729,10 +729,9 @@ void ElegooPrintHostSendDialog::init() {
                                     wxDefaultPosition, wxDefaultSize, 0);
     uploadandprint_sizer = new wxBoxSizer(wxVERTICAL);
     {
-        auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
         auto checkbox       = new ::CheckBox(this, _L("Upload and Print"));
         checkbox->SetValue(post_upload_action == PrintHostPostUploadAction::StartPrint);
-        checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+        checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) {
             if (e.IsChecked()) {
                 post_upload_action = PrintHostPostUploadAction::StartPrint;
             } else {
@@ -741,9 +740,8 @@ void ElegooPrintHostSendDialog::init() {
             refresh();
             e.Skip();
         });
-        checkbox_sizer->Add(checkbox, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
 
-        content_sizer->Add(checkbox_sizer);
+        content_sizer->Add(checkbox, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
         content_sizer->AddSpacer(VERT_SPACING);
     }
 
@@ -751,7 +749,7 @@ void ElegooPrintHostSendDialog::init() {
         auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
         auto checkbox       = new ::CheckBox(this, _L("Time-lapse"));
         checkbox->SetValue(m_timeLapse == 1);
-        checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+        checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) {
             m_timeLapse = e.IsChecked() ? 1 : 0;
             e.Skip();
         });
@@ -766,7 +764,7 @@ void ElegooPrintHostSendDialog::init() {
         auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
         auto checkbox       = new ::CheckBox(this, _L("Heated Bed Leveling"));
         checkbox->SetValue(m_heatedBedLeveling == 1);
-        checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+        checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) {
             m_heatedBedLeveling = e.IsChecked() ? 1 : 0;
             e.Skip();
         });

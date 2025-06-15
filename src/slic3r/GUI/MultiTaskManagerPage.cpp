@@ -926,7 +926,7 @@ CloudTaskManagerPage::CloudTaskManagerPage(wxWindow* parent)
     //m_table_head_sizer->AddSpacer(FromDIP(TASK_LEFT_PADDING_LEFT));
     m_table_head_sizer->Add(m_select_checkbox, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_select_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+    m_select_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) {
         if (m_select_checkbox->GetValue()) {
             for (auto it = m_task_items.begin(); it != m_task_items.end(); it++) {
 

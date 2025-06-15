@@ -574,12 +574,12 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      sizer_agreement->Add(sizere_notice_body, 1, wxEXPAND, 0);
      
 
-     m_checkbox_privacy->Bind(wxEVT_TOGGLEBUTTON, [this, m_checkbox_privacy](auto& e) {
+     m_checkbox_privacy->Bind(wxEVT_CHECKBOX, [this, m_checkbox_privacy](auto& e) {
          m_allow_privacy = m_checkbox_privacy->GetValue();
          m_button_bind->Enable(m_allow_privacy);
          e.Skip();
      });
-     m_checkbox_notice->Bind(wxEVT_TOGGLEBUTTON, [this, m_checkbox_notice](auto& e) {
+     m_checkbox_notice->Bind(wxEVT_CHECKBOX, [this, m_checkbox_notice](auto& e) {
          m_allow_notice = m_checkbox_notice->GetValue();
          e.Skip();
      });

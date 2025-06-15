@@ -778,16 +778,10 @@ wxBoxSizer* SendMultiMachinePage::create_item_checkbox(wxString title, wxWindow*
 
     checkbox->SetValue((app_config->get("print", param) == "1") ? true : false);
 
-    m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
-
-    // NEEDFIX
-    //auto size = checkbox_title->GetTextExtent(title);
-    //checkbox_title->SetMinSize(wxSize(size.x + FromDIP(5), -1));
-    //checkbox_title->Wrap(-1);
-    //m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
+    m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER | wxALL, 3);
 
     // save
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent& e) {
+    checkbox->Bind(wxEVT_CHECKBOX, [this, checkbox, param](wxCommandEvent& e) {
         app_config->set_str("print", param, checkbox->GetValue() ? std::string("1") : std::string("0"));
         app_config->save();
         e.Skip();
@@ -1123,7 +1117,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_table_head_sizer->AddSpacer(FromDIP(SEND_LEFT_PADDING_LEFT));
     m_table_head_sizer->Add(m_select_checkbox, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_select_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+    m_select_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) {
         if (m_select_checkbox->GetValue()) {
             for (auto it = m_device_items.begin(); it != m_device_items.end(); it++) {
                 
