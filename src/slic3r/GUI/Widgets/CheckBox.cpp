@@ -66,7 +66,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         Refresh();
         e.Skip();
     }));
-            
+
     Bind(wxEVT_PAINT,([this](wxPaintEvent e) { // without this it makes glitches on sidebar
 
         wxPaintDC dc(this);

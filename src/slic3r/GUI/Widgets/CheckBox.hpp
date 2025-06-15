@@ -40,7 +40,10 @@ public:
     bool Enable(bool enable = true) override {
         m_enabled = enable;
         Refresh();
-        enable ? AcceptsFocusFromKeyboard() : DisableFocusFromKeyboard();
+        if (enable)
+            AcceptsFocusFromKeyboard();
+        else
+            DisableFocusFromKeyboard();
 
         bool result = m_check->Enable(enable);
         if(m_has_text)
