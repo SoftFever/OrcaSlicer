@@ -165,6 +165,7 @@ public:
     GCode() :
     	m_origin(Vec2d::Zero()),
         m_enable_loop_clipping(true),
+        m_resonance_avoidance(true),
         m_enable_cooling_markers(false),
         m_enable_extrusion_role_markers(false),
         m_last_processor_extrusion_role(erNone),
@@ -506,6 +507,8 @@ private:
     AvoidCrossingPerimeters             m_avoid_crossing_perimeters;
     RetractWhenCrossingPerimeters       m_retract_when_crossing_perimeters;
     bool                                m_enable_loop_clipping;
+    //resonance avoidance
+    bool                                m_resonance_avoidance; 
     // If enabled, the G-code generator will put following comments at the ends
     // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _OVERHANG_FAN_START, _OVERHANG_FAN_END
     // Those comments are received and consumed (removed from the G-code) by the CoolingBuffer.pm Perl module.
