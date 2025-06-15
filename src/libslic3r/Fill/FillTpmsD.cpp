@@ -321,7 +321,7 @@ void drawContour(double                                            contourValue,
         for (myPoint& pt : p) {
             repltmp.points.push_back(Slic3r::Point(pt.x, pt.y));
         }
-        repltmp.simplify(scale_(0.05f));
+        repltmp.simplify(scale_(0.05f)); // Simplify the polylines after merging
         repls.push_back(repltmp);
     }
 }
@@ -372,7 +372,7 @@ void FillTpmsD::_fill_surface_single(const FillParams&              params,
     if (std::abs(infill_angle) >= EPSILON)
         expolygon.rotate(-infill_angle);
 
-    float vari_T = 2.98 * spacing / params.density; // Infill density adjustment factor for TPMS-D
+    float vari_T = 2.98 * spacing * params.multiline / params.density; // Infill density adjustment factor for TPMS-D
 
     BoundingBox bb      = expolygon.contour.bounding_box();
     auto        cenpos  = unscale(bb.center());
@@ -380,7 +380,7 @@ void FillTpmsD::_fill_surface_single(const FillParams&              params,
     float       xlen    = boxsize.x();
     float       ylen    = boxsize.y();
 
-    float delta    = 0.25f;
+    float delta    = 0.25f; //adjust precision
     float myperiod = 2 * PI / vari_T;
     float c_z      = myperiod * this->z;
     float cos_z    = get_cos(c_z);
@@ -425,6 +425,9 @@ void FillTpmsD::_fill_surface_single(const FillParams&              params,
 
     Polylines polylines;
     MarchingSquares::drawContour(0, j, i, data, posxy, polylines);
+
+    // Apply multiline offset if needed
+    multiline_fill(polylines, params, spacing);
 
     polylines = intersection_pl(polylines, expolygon);
 
