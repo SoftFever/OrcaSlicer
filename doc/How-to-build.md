@@ -172,7 +172,6 @@ All required dependencies will be installed automatically by the provided shell 
 - libgstreamerd-3-dev
 - libsecret-1-dev
 - libwebkit2gtk-4.0-dev
-- libosmesa6-dev
 - libssl-dev
 - libcurl4-openssl-dev
 - eglexternalplatform-dev
@@ -188,6 +187,6 @@ All required dependencies will be installed automatically by the provided shell 
 ### Instructions
 
 ```shell
-sudo ./BuildLinux.sh -u      # Install dependencies
-./BuildLinux.sh -dsi         # Build OrcaSlicer
+`./build_linux.sh -u`      # install dependencies
+`./build_linux.sh -disr`    # build OrcaSlicer
 ```
