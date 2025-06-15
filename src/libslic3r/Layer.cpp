@@ -384,6 +384,7 @@ coordf_t Layer::get_sparse_infill_max_void_area()
             case ip2DLattice:
             case ipLine:
             case ipGyroid:
+            case ipTpmsD:
             case ipAlignedRectilinear:
             case ipOctagramSpiral:
             case ipHilbertCurve:

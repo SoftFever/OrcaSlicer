@@ -25,7 +25,7 @@ on:
      - '**/CMakeLists.txt'
      - 'version.inc'
      - ".github/workflows/build_*.yml"
-     - 'BuildLinux.sh'
+     - 'build_linux.sh'
      - 'build_release_vs2022.bat'
      - 'build_release_macos.sh'
      - 'flatpak/**'
@@ -49,9 +49,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Deprecate appimage
+          # Deprecate 20.04appimage
           # - os: ubuntu-20.04
-          # - os: ubuntu-24.04
+          - os: ubuntu-24.04
           - os: windows-latest
           - os: macos-14
             arch: arm64
@@ -64,7 +64,7 @@ jobs:
   flatpak:
     name: "Flatpak"
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-46
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-47
       options: --privileged
       volumes:
         - /usr/local/lib/android:/usr/local/lib/android

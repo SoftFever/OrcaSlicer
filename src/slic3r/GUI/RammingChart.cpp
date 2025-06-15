@@ -14,20 +14,22 @@ wxDEFINE_EVENT(EVT_WIPE_TOWER_CHART_CHANGED, wxCommandEvent);
 void Chart::draw() {
     wxAutoBufferedPaintDC dc(this); // unbuffered DC caused flickering on win
 
+    // scaling button and tick line from text size gives better result compared to dc.GetContentScale
+    int text_width, text_height;
+    dc.GetTextExtent("m",&text_width,&text_height);
+    side       = text_width;
+    int tick_w = text_width / 2;
+
     dc.SetBrush(GetBackgroundColour());
     dc.SetPen(GetBackgroundColour());
     dc.DrawRectangle(GetClientRect());  // otherwise the background would end up black on windows
 
-#ifdef _WIN32
-    dc.SetPen(wxPen(GetForegroundColour()));
-    dc.SetBrush(wxBrush(Slic3r::GUI::wxGetApp().get_highlight_default_clr()));
-#else
-    dc.SetPen(*wxBLACK_PEN);
-    dc.SetBrush(*wxWHITE_BRUSH);
-#endif
+    dc.SetPen(    wxPen(StateColor::darkModeColorFor(wxColour("#DBDBDB")), 1)); // input box border color
+    dc.SetBrush(wxBrush(StateColor::darkModeColorFor(wxColour("#F1F1F1")))); // sidebar titlebar bg color
     dc.DrawRectangle(m_rect);
     
     if (visible_area.m_width < 0.499) {
+        dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#FF6F00"))); // Use orange color for warning
         dc.DrawText(_(L("NO RAMMING AT ALL")),wxPoint(m_rect.GetLeft()+m_rect.GetWidth()/2-legend_side,m_rect.GetBottom()-m_rect.GetHeight()/2));
         return;
     }
@@ -35,15 +37,11 @@ void Chart::draw() {
     
     if (!m_line_to_draw.empty()) {
         for (unsigned int i=0;i<m_line_to_draw.size()-2;++i) {
-            int color = 510*((m_rect.GetBottom()-(m_line_to_draw)[i])/double(m_rect.GetHeight()));
-            dc.SetPen( wxPen( wxColor(std::min(255,color),255-std::max(color-255,0),0), 1 ) );
+            int color = 444*((m_rect.GetBottom()-(m_line_to_draw)[i])/double(m_rect.GetHeight()));
+            dc.SetPen( wxPen( wxColor(std::min(222,color), 222-std::max(color-222,0), 60), 1) ); // adding blue color sligtly gives a bit more modern look instead using raw red & green
             dc.DrawLine(m_rect.GetLeft()+1+i,(m_line_to_draw)[i],m_rect.GetLeft()+1+i,m_rect.GetBottom());        
         }
-#ifdef _WIN32
-        dc.SetPen(wxPen(GetForegroundColour()));
-#else
-        dc.SetPen( wxPen( wxColor(0,0,0), 1 ) );
-#endif
+        dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#363636")), 1));
         for (unsigned int i=0;i<m_line_to_draw.size()-2;++i) {
             if (splines)
                 dc.DrawLine(m_rect.GetLeft()+i,(m_line_to_draw)[i],m_rect.GetLeft()+i+1,(m_line_to_draw)[i+1]);
@@ -55,16 +53,14 @@ void Chart::draw() {
     }
     
     // draw draggable buttons
-    dc.SetBrush(*wxBLUE_BRUSH);
-#ifdef _WIN32
-        dc.SetPen(wxPen(GetForegroundColour()));
-#else
-        dc.SetPen( wxPen( wxColor(0,0,0), 1 ) );
-#endif
+    dc.SetBrush(StateColor::darkModeColorFor(wxColour("#009688"))); // orca color for draggable circles
+    dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#363636")), 1));
     for (auto& button : m_buttons)
         //dc.DrawRectangle(math_to_screen(button.get_pos())-wxPoint(side/2.,side/2.), wxSize(side,side));
         dc.DrawCircle(math_to_screen(button.get_pos()),side/2.);
         //dc.DrawRectangle(math_to_screen(button.get_pos()-wxPoint2DDouble(0.125,0))-wxPoint(0,5),wxSize(50,10));
+
+    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#363636"))); // Label color
 
     // draw x-axis:
     float last_mark = -10000;
@@ -72,8 +68,10 @@ void Chart::draw() {
         int x = math_to_screen(wxPoint2DDouble(math_x,visible_area.m_y)).x;
         int y = m_rect.GetBottom();
         if (x-last_mark < legend_side) continue;
-        dc.DrawLine(x,y+3,x,y-3);
-        dc.DrawText(wxString().Format(wxT("%.1f"), math_x),wxPoint(x-scale_unit,y+0.5*scale_unit));
+        dc.DrawLine(x,y+tick_w+1,x,y-tick_w); // +1 for border; make sure drawn on both size
+        auto label = math_x == 0 ? "0" : wxString().Format(wxT("%.1f") , math_x); // prefer "0" to match text with Y "0"
+        dc.GetTextExtent(label,&text_width,&text_height);// center text with lines
+        dc.DrawText(label ,wxPoint(x - text_width * .5, y + .8 * scale_unit));
         last_mark = x;
     }
     
@@ -83,17 +81,17 @@ void Chart::draw() {
         int y = math_to_screen(wxPoint2DDouble(visible_area.m_x,math_y)).y;
         int x = m_rect.GetLeft();
         if (last_mark-y < legend_side) continue;    
-        dc.DrawLine(x-3,y,x+3,y);
-        dc.DrawText(wxString()<<math_y,wxPoint(x-2*scale_unit,y-0.5*scale_unit));
+        dc.DrawLine(x-tick_w,y,x+tick_w+1,y); // +1 for border; make sure drawn on both size
+        auto label = wxString()<<math_y;
+        dc.GetTextExtent(label,&text_width,&text_height);// center text with lines & make it right aligned
+        dc.DrawText(label ,wxPoint(x - scale_unit - text_width, y - .5 * text_height + 1));
         last_mark = y;
     }
     
     // axis labels:
     wxString label = _(L("Time")) + " ("+_(L("s"))+")";
-    int text_width = 0;
-    int text_height = 0;
     dc.GetTextExtent(label,&text_width,&text_height);
-    dc.DrawText(label,wxPoint(0.5*(m_rect.GetRight()+m_rect.GetLeft())-text_width/2.f, m_rect.GetBottom()+0.5*legend_side));
+    dc.DrawText(label,wxPoint(0.5*(m_rect.GetRight()+m_rect.GetLeft())-text_width/2.f, m_rect.GetBottom()+0.6*legend_side));
     label = _(L("Volumetric speed")) + " (" + _(L("mm³/s")) + ")";
     dc.GetTextExtent(label,&text_width,&text_height);
     dc.DrawRotatedText(label,wxPoint(0,0.5*(m_rect.GetBottom()+m_rect.GetTop())+text_width/2.f),90);
@@ -124,9 +122,13 @@ void Chart::mouse_clicked(wxMouseEvent& event) {
     
     
 void Chart::mouse_moved(wxMouseEvent& event) {
-    if (!event.Dragging() || !m_dragged) return;
     wxPoint pos = event.GetPosition();    
     wxRect rect = m_rect;
+    if (!event.Dragging() || !m_dragged){
+        // change cursor while button hovered && drag
+        SetCursor((which_button_is_clicked(pos) != -1) ? wxCursor(wxCURSOR_SIZENS) : wxNullCursor);
+        return;
+    }
     rect.Deflate(side/2.);
     if (!(rect.Contains(pos))) {  // the mouse left chart area
         mouse_left_window(event);

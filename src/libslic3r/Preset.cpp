@@ -830,7 +830,9 @@ static std::vector<std::string> s_Preset_print_options {
      "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
      "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max","initial_layer_min_bead_width",
      "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size" ,"notes",
-     "wipe_tower_cone_angle", "wipe_tower_extra_spacing","wipe_tower_max_purge_speed", "wipe_tower_filament", "wiping_volumes_extruders","wipe_tower_bridging", "wipe_tower_extra_flow","single_extruder_multi_material_priming",
+     "wipe_tower_cone_angle", "wipe_tower_extra_spacing","wipe_tower_max_purge_speed", 
+     "wipe_tower_wall_type", "wipe_tower_extra_rib_length", "wipe_tower_rib_width", "wipe_tower_fillet_wall",
+     "wipe_tower_filament", "wiping_volumes_extruders","wipe_tower_bridging", "wipe_tower_extra_flow","single_extruder_multi_material_priming",
      "wipe_tower_rotation_angle", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic", "tree_support_branch_angle_organic",
      "hole_to_polyhole", "hole_to_polyhole_threshold", "hole_to_polyhole_twisted", "mmu_segmented_region_max_width", "mmu_segmented_region_interlocking_depth",
      "small_area_infill_flow_compensation", "small_area_infill_flow_compensation_model",
@@ -2540,7 +2542,7 @@ const std::string& PresetCollection::get_suffix_modified() {
 }
 
 // Return a preset by its name. If the preset is active, a temporary copy is returned.
-// If a preset is not found by its name, null is returned.
+// If a preset was not found by its name, null is returned.
 Preset* PresetCollection::find_preset(const std::string &name, bool first_visible_if_not_found, bool real, bool only_from_library)
 {
     Preset key(m_type, name, false);
