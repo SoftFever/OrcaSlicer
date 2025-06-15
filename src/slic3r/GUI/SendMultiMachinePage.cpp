@@ -774,21 +774,17 @@ wxBoxSizer* SendMultiMachinePage::create_item_checkbox(wxString title, wxWindow*
 {
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
-    auto checkbox = new ::CheckBox(parent);
+    auto checkbox = new ::CheckBox(parent, title);
 
     checkbox->SetValue((app_config->get("print", param) == "1") ? true : false);
 
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
-    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
 
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
-    checkbox_title->SetFont(::Label::Body_13);
-
-    auto size = checkbox_title->GetTextExtent(title);
-    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(5), -1));
-    checkbox_title->Wrap(-1);
-    m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
+    // NEEDFIX
+    //auto size = checkbox_title->GetTextExtent(title);
+    //checkbox_title->SetMinSize(wxSize(size.x + FromDIP(5), -1));
+    //checkbox_title->Wrap(-1);
+    //m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
 
     // save
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent& e) {
@@ -1123,7 +1119,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_table_head_panel->SetBackgroundColour(TABLE_HEAR_NORMAL_COLOUR);
     m_table_head_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_select_checkbox = new CheckBox(m_table_head_panel, wxID_ANY);
+    m_select_checkbox = new CheckBox(m_table_head_panel);
     m_table_head_sizer->AddSpacer(FromDIP(SEND_LEFT_PADDING_LEFT));
     m_table_head_sizer->Add(m_select_checkbox, 0, wxALIGN_CENTER_VERTICAL, 0);
 

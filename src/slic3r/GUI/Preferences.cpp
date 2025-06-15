@@ -669,25 +669,14 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
 
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
-    auto checkbox = new ::CheckBox(parent);
+    auto checkbox = new ::CheckBox(parent, title);
     checkbox->SetValue((app_config->get(param) == "1") ? true : false);
     m_dark_mode_ckeckbox = checkbox;
 
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
-    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
-
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
-    checkbox_title->SetFont(::Label::Body_13);
-
-    auto size = checkbox_title->GetTextExtent(title);
-    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(40), -1));
-    checkbox_title->Wrap(-1);
-    m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
-
 
     //// save config
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent& e) {
+    checkbox->Bind(wxEVT_CHECKBOX, [this, checkbox, param](wxCommandEvent& e) {
         app_config->set(param, checkbox->GetValue() ? "1" : "0");
         app_config->save();
         wxGetApp().Update_dark_mode_flag();
@@ -726,24 +715,13 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
-    auto checkbox = new ::CheckBox(parent);
+    auto checkbox = new ::CheckBox(parent, title);
     checkbox->SetValue(app_config->get_bool(param));
 
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
-    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
-
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
-    checkbox_title->SetFont(::Label::Body_13);
-
-    auto size = checkbox_title->GetTextExtent(title);
-    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(5), -1));
-    checkbox_title->Wrap(-1);
-    m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
-
 
      //// save config
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
+    checkbox->Bind(wxEVT_CHECKBOX, [this, checkbox, param](wxCommandEvent &e) {
         app_config->set_bool(param, checkbox->GetValue());
         app_config->save();
 
@@ -970,23 +948,12 @@ wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wx
     h_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
     // build checkbox
-    auto checkbox = new ::CheckBox(parent);
+    auto checkbox = new ::CheckBox(parent, title);
     checkbox->SetToolTip(tooltip);
     checkbox->SetValue(reg_to_current_instance); // If registered to the current instance, checkbox should be checked
     checkbox->Enable(!reg_to_current_instance); // Since unregistering isn't supported, checkbox is disabled when checked
 
     h_sizer->Add(checkbox, 0, wxALIGN_CENTER, 0);
-    h_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
-
-    // build text next to checkbox
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title);
-    checkbox_title->SetToolTip(tooltip);
-    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
-    checkbox_title->SetFont(::Label::Body_13);
-    auto size = checkbox_title->GetTextExtent(title);
-    checkbox_title->SetMinSize({ size.x + FromDIP(5), -1 });
-    checkbox_title->Wrap(-1);
-    h_sizer->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
 
     auto* v_sizer = new wxBoxSizer(wxVERTICAL);
     v_sizer->Add(h_sizer);
@@ -1025,7 +992,7 @@ wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wx
 
     v_sizer->Add(registered_instance_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 60);
 
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [=](wxCommandEvent& e) {
+    checkbox->Bind(wxEVT_CHECKBOX, [=](wxCommandEvent& e) {
         wxGetApp().associate_url(url_prefix.ToStdWstring());
         checkbox->Disable();
         update_current_association_str();

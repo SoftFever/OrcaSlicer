@@ -3,53 +3,105 @@
 
 #include "../wxExtensions.hpp"
 
-#include <wx/tglbtn.h>
+#include "Label.hpp"
 
-class CheckBox : public wxBitmapToggleButton
+#include "StateColor.hpp"
+
+#include <string>
+#include <wx/wx.h>
+#include <wx/dcclient.h>
+#include <wx/dcgraph.h>
+#include <wx/tglbtn.h> // to keep wxEVT_TOGGLEBUTTON
+#include <wx/gdicmn.h> // Added for wxGCDC
+
+class CheckBox : public wxPanel
 {
 public:
-	CheckBox(wxWindow * parent, int id = wxID_ANY);
+	CheckBox(wxWindow* parent, wxString label = wxEmptyString);
 
 public:
-	void SetValue(bool value) override;
+	void SetValue(bool value);
 
-	void SetHalfChecked(bool value = true);
+    void SetHalfChecked(bool value = true){
+        m_half_checked = value;
+        Refresh();
+    };
+
+    bool GetValue(){return m_value;};
+
+    bool IsChecked() const {return m_value;};
+
+    wxStaticText* GetTextCtrl(){return m_text;};
 
 	void Rescale();
 
-#ifdef __WXOSX__
-    virtual bool Enable(bool enable = true) wxOVERRIDE;
-#endif
+    void SetTooltip(wxString label);
 
-protected:
-#ifdef __WXMSW__
-    virtual State GetNormalState() const wxOVERRIDE;
-#endif
-    
-#ifdef __WXOSX__
-    virtual wxBitmap DoGetBitmap(State which) const wxOVERRIDE;
-    
-    void updateBitmap(wxEvent & evt);
-    
-    bool m_disable = false;
-    bool m_hover = false;
-    bool m_focus = false;
-#endif
-    
-private:
-	void update();
+    bool Enable(bool enable = true) override {
+        m_enabled = enable;
+        Refresh();
+        enable ? AcceptsFocusFromKeyboard() : DisableFocusFromKeyboard();
+
+        bool result = m_check->Enable(enable);
+        if(m_has_text)
+            m_text->Enable(enable);
+        if (result)
+            wxCommandEvent e(wxEVT_ACTIVATE);
+        UpdateIcon();
+        return result;
+
+    };
+
+    bool Disable(){return Enable(false);};
+
+    bool IsEnabled(){return m_enabled;};
 
 private:
+
+    class FocusRect : public wxPanel {
+    public:
+        FocusRect(wxWindow* parent, wxStaticText* target);
+        void UpdatePosition();
+
+    private:
+        wxStaticText* m_target;
+    };
+
+    void UpdateIcon();
+
+    void OnClick();
+
+    void DrawFocusBorder();
+
+    wxWindow* GetScrollParent(wxWindow *pWindow);
+
     ScalableBitmap m_on;
-    ScalableBitmap m_half;
     ScalableBitmap m_off;
+    ScalableBitmap m_half;
+    ScalableBitmap m_on_hover;
+    ScalableBitmap m_off_hover;
+    ScalableBitmap m_half_hover;
     ScalableBitmap m_on_disabled;
-    ScalableBitmap m_half_disabled;
     ScalableBitmap m_off_disabled;
+    ScalableBitmap m_half_disabled;
     ScalableBitmap m_on_focused;
-    ScalableBitmap m_half_focused;
     ScalableBitmap m_off_focused;
+    ScalableBitmap m_half_focused;
+    ScalableBitmap m_on_hvrfcs;
+    ScalableBitmap m_off_hvrfcs;
+    ScalableBitmap m_half_hvrfcs;
     bool m_half_checked = false;
+    bool m_focused      = false;
+    bool m_value        = false;
+    bool m_enabled      = true;
+    bool m_hovered      = false;
+    bool m_has_text     = false;
+    wxString        m_label;
+    wxStaticBitmap* m_check = nullptr;
+    wxStaticText*   m_text  = nullptr;
+    wxFont          m_font;
+    FocusRect*      m_focus_rect;
+    wxColour        m_bg_track;
 };
 
 #endif // !slic3r_GUI_CheckBox_hpp_

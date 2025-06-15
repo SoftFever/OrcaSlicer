@@ -109,20 +109,14 @@ void PrintHostSendDialog::init()
 
     txt_filename->SetValue(recent_path);
 
-    auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto checkbox       = new ::CheckBox(this, wxID_APPLY);
+    auto checkbox       = new ::CheckBox(this, _L("Switch to Device tab after upload."));
     checkbox->SetValue(m_switch_to_device_tab);
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
         m_switch_to_device_tab = e.IsChecked();
         e.Skip();
     });
-    checkbox_sizer->Add(checkbox, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
 
-    auto checkbox_text = new wxStaticText(this, wxID_ANY, _L("Switch to Device tab after upload."), wxDefaultPosition, wxDefaultSize, 0);
-    checkbox_sizer->Add(checkbox_text, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
-    checkbox_text->SetFont(::Label::Body_13);
-    checkbox_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
-    content_sizer->Add(checkbox_sizer);
+    content_sizer->Add(checkbox, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     content_sizer->AddSpacer(VERT_SPACING);
 
     if (size_t extension_start = recent_path.find_last_of('.'); extension_start != std::string::npos)
@@ -719,7 +713,7 @@ void ElegooPrintHostSendDialog::init() {
 
     {
         auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto checkbox       = new ::CheckBox(this, wxID_APPLY);
+        auto checkbox       = new ::CheckBox(this, _L("Switch to Device tab after upload."));
         checkbox->SetValue(m_switch_to_device_tab);
         checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
             m_switch_to_device_tab = e.IsChecked();
@@ -727,10 +721,6 @@ void ElegooPrintHostSendDialog::init() {
         });
         checkbox_sizer->Add(checkbox, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
 
-        auto checkbox_text = new wxStaticText(this, wxID_ANY, _L("Switch to Device tab after upload."), wxDefaultPosition, wxDefaultSize, 0);
-        checkbox_sizer->Add(checkbox_text, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
-        checkbox_text->SetFont(::Label::Body_13);
-        checkbox_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
         content_sizer->Add(checkbox_sizer);
         content_sizer->AddSpacer(VERT_SPACING);
     }
@@ -740,7 +730,7 @@ void ElegooPrintHostSendDialog::init() {
     uploadandprint_sizer = new wxBoxSizer(wxVERTICAL);
     {
         auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto checkbox       = new ::CheckBox(this);
+        auto checkbox       = new ::CheckBox(this, _L("Upload and Print"));
         checkbox->SetValue(post_upload_action == PrintHostPostUploadAction::StartPrint);
         checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
             if (e.IsChecked()) {
@@ -753,17 +743,13 @@ void ElegooPrintHostSendDialog::init() {
         });
         checkbox_sizer->Add(checkbox, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
 
-        auto checkbox_text = new wxStaticText(this, wxID_ANY, _L("Upload and Print"), wxDefaultPosition, wxDefaultSize, 0);
-        checkbox_sizer->Add(checkbox_text, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
-        checkbox_text->SetFont(::Label::Body_13);
-        checkbox_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
         content_sizer->Add(checkbox_sizer);
         content_sizer->AddSpacer(VERT_SPACING);
     }
 
     {
         auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto checkbox       = new ::CheckBox(this);
+        auto checkbox       = new ::CheckBox(this, _L("Time-lapse"));
         checkbox->SetValue(m_timeLapse == 1);
         checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
             m_timeLapse = e.IsChecked() ? 1 : 0;
@@ -772,17 +758,13 @@ void ElegooPrintHostSendDialog::init() {
         checkbox_sizer->AddSpacer(16);
         checkbox_sizer->Add(checkbox, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
 
-        auto checkbox_text = new wxStaticText(this, wxID_ANY, _L("Time-lapse"), wxDefaultPosition, wxDefaultSize, 0);
-        checkbox_sizer->Add(checkbox_text, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
-        checkbox_text->SetFont(::Label::Body_13);
-        checkbox_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
         uploadandprint_sizer->Add(checkbox_sizer);
         uploadandprint_sizer->AddSpacer(VERT_SPACING);
     }
 
     {
         auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-        auto checkbox       = new ::CheckBox(this);
+        auto checkbox       = new ::CheckBox(this, _L("Heated Bed Leveling"));
         checkbox->SetValue(m_heatedBedLeveling == 1);
         checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
             m_heatedBedLeveling = e.IsChecked() ? 1 : 0;
@@ -791,10 +773,6 @@ void ElegooPrintHostSendDialog::init() {
         checkbox_sizer->AddSpacer(16);
         checkbox_sizer->Add(checkbox, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
 
-        auto checkbox_text = new wxStaticText(this, wxID_ANY, _L("Heated Bed Leveling"), wxDefaultPosition, wxDefaultSize, 0);
-        checkbox_sizer->Add(checkbox_text, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
-        checkbox_text->SetFont(::Label::Body_13);
-        checkbox_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
         uploadandprint_sizer->Add(checkbox_sizer);
         uploadandprint_sizer->AddSpacer(VERT_SPACING);
     }
