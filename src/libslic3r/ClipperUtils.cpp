@@ -94,10 +94,10 @@ template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_
     }
 
     // Never produce just a single point output polygon.
-    if (!out.empty())
-        if(get_entire_polygons){
+    if (!out.empty()) {
+        if (get_entire_polygons) {
             out=src;
-        }else{
+        } else {
             if (int sides_next = sides(out.front());
             // The last point is inside. Take it.
             sides_this == 0 ||
@@ -106,7 +106,7 @@ template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_
             (sides_prev & sides_this & sides_next) == 0)
             out.emplace_back(src.back());
         }
-
+    }
 }
 
 void clip_clipper_polygon_with_subject_bbox(const Points &src, const BoundingBox &bbox, Points &out, const bool get_entire_polygons) { clip_clipper_polygon_with_subject_bbox_templ(src, bbox, out, get_entire_polygons); }
