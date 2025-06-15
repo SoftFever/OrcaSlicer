@@ -28,16 +28,12 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
 {
     if (parent)
         SetBackgroundColour(parent->GetBackgroundColour());
-    else{
-        auto scroll_parent = GetScrollParent(this);
-        if(scroll_parent)
-            SetBackgroundColour(scroll_parent->GetBackgroundColour());
-    }
+    else if (auto sParent = GetScrollParent(this))
+        SetBackgroundColour(sParent->GetBackgroundColour());
 
-    //LoadIcons();
     m_label = label;
 
-    Bind(wxEVT_CHECKBOX,([this](wxCommandEvent e) {
+    Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) {
         // Crashes if all checkboxes not uses wxEVT_CHECKBOX event
         //SetValue(e.GetInt());
         //e.SetEventObject(this);
@@ -48,8 +44,8 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
 
     AcceptsFocusFromKeyboard();
     SetCanFocus(true);
-    Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {
-        m_focused = true ;
+    Bind(wxEVT_SET_FOCUS, ([this](wxFocusEvent e) {
+        m_focused = true;
         UpdateIcon();
         if(m_has_text){
             m_focus_rect->Show();
@@ -58,7 +54,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         Refresh();
         e.Skip();
     }));
-    Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {
+    Bind(wxEVT_KILL_FOCUS, ([this](wxFocusEvent e) {
         m_focused = false;
         UpdateIcon();
         if(m_has_text)
@@ -67,8 +63,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         e.Skip();
     }));
 
-    Bind(wxEVT_PAINT,([this](wxPaintEvent e) { // without this it makes glitches on sidebar
-
+    Bind(wxEVT_PAINT, ([this](wxPaintEvent e) { // without this it makes glitches on sidebar
         wxPaintDC dc(this);
         dc.Clear();
         /* kept this solution if FocusRect solution not works
@@ -96,7 +91,6 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         if (m_focused)
             SetFocus(); // Required to take focus again since Refresh causing lossing focus
     }));
-            
 
     // DPIDialog's uses wxEVT_CHAR_HOOK
     Bind(wxEVT_CHAR_HOOK, ([this](wxKeyEvent&e){
@@ -104,15 +98,13 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         if(m_focused && k == WXK_SPACE){
             SetValue(!m_value);
             e.Skip(false);
-        }else{
+        }else
             e.Skip();
-        }
     }));
 
     auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_check = new wxStaticBitmap(this, wxID_ANY, m_off.bmp(), wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxNO_BORDER);
-    m_check->SetCanFocus(false);
     m_check->Bind(wxEVT_LEFT_DOWN   ,([this](wxMouseEvent e) {
         if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
         OnClick();
@@ -142,7 +134,6 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         m_text = new wxStaticText(this, wxID_ANY, "  " + label); // use spacing instead margin to capture all events
         m_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
         m_text->SetFont(m_font);
-        m_text->SetCanFocus(false);
         m_text->Bind(wxEVT_LEFT_DOWN   ,([this](wxMouseEvent e) {
             if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
             OnClick();
@@ -165,16 +156,9 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
             UpdateIcon();
             e.Skip();
         }));
-        /*
-        m_text->Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
-            //wxPaintDC dc(this);
-            //dc.Clear();
-            e.Skip();
-            if (m_focused)
-                DrawFocusBorder();
-        }));
-        */
+
         m_focus_rect = new FocusRect(this, m_text);
+
         h_sizer->Add(m_text, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, FromDIP(4));
         h_sizer->AddSpacer(FromDIP(10));
     }
@@ -182,7 +166,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
     SetSizerAndFit(h_sizer);
     Layout();
 
-	Refresh();
+    Refresh();
 }
 
 /*
@@ -191,7 +175,8 @@ void CheckBox::DrawFocusBorder() {
 
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#009688")), 1, wxPENSTYLE_SOLID));
-    dc.DrawRectangle(wxRect(
+    dc.DrawRectangle(
+        wxRect(
             m_text->GetRect().GetTopLeft()     + wxPoint(4, -3),
             m_text->GetRect().GetBottomRight() + wxPoint(4, 1)
         )
@@ -218,7 +203,7 @@ void CheckBox::Rescale()
     m_half_hvrfcs.msw_rescale();
 
     m_check->SetSize(m_on.GetBmpSize());
-	Refresh();
+    Refresh();
 }
 
 void CheckBox::OnClick()
@@ -293,8 +278,8 @@ void CheckBox::SetValue(bool value){
 }
 
 CheckBox::FocusRect::FocusRect(wxWindow* parent, wxStaticText* target)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTRANSPARENT_WINDOW),
-      m_target(target) {
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTRANSPARENT_WINDOW)
+    , m_target(target) {
     SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
     #ifdef __WXMSW__
         SetBackgroundColour(wxColour(0, 0, 0, 0));
@@ -327,8 +312,8 @@ CheckBox::FocusRect::FocusRect(wxWindow* parent, wxStaticText* target)
 
 void CheckBox::FocusRect::UpdatePosition() {
     if (m_target) {
-        SetPosition(m_target->GetPosition() + wxPoint(3, -3));
-        SetSize(    m_target->GetSize()     + wxSize(0, 5));
+        SetPosition(m_target->GetPosition() + wxPoint( 3, -3));
+        SetSize(    m_target->GetSize()     + wxSize(  0,  5));
     }
     Raise(); // ensure stays on top
 }

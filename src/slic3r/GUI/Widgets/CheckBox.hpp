@@ -17,10 +17,10 @@
 class CheckBox : public wxPanel
 {
 public:
-	CheckBox(wxWindow* parent, wxString label = wxEmptyString);
+    CheckBox(wxWindow* parent, wxString label = wxEmptyString);
 
 public:
-	void SetValue(bool value);
+    void SetValue(bool value);
 
     void SetHalfChecked(bool value = true){
         m_half_checked = value;
@@ -33,29 +33,24 @@ public:
 
     wxStaticText* GetTextCtrl(){return m_text;};
 
-	void Rescale();
+    void Rescale();
 
     void SetTooltip(wxString label);
 
     bool Enable(bool enable = true) override {
         m_enabled = enable;
-        Refresh();
-        if (enable)
-            AcceptsFocusFromKeyboard();
-        else
-            DisableFocusFromKeyboard();
 
-        bool result = m_check->Enable(enable);
+        m_check->Enable(enable);
         if(m_has_text)
             m_text->Enable(enable);
-        if (result)
-            wxCommandEvent e(wxEVT_ACTIVATE);
-        UpdateIcon();
-        return result;
 
+        bool result = wxPanel::Enable(enable);
+        UpdateIcon();
+        Refresh();
+        return result;
     };
 
-    bool Disable(){return Enable(false);};
+    bool Disable() {return CheckBox::Enable(false);};
 
     bool IsEnabled(){return m_enabled;};
 
