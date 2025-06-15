@@ -2323,10 +2323,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_brim_width");
         optgroup->append_single_option_line("wipe_tower_rotation_angle");
         optgroup->append_single_option_line("wipe_tower_bridging");
-        optgroup->append_single_option_line("wipe_tower_cone_angle");
         optgroup->append_single_option_line("wipe_tower_extra_spacing");
         optgroup->append_single_option_line("wipe_tower_extra_flow");
         optgroup->append_single_option_line("wipe_tower_max_purge_speed");
+        optgroup->append_single_option_line("wipe_tower_wall_type");
+        optgroup->append_single_option_line("wipe_tower_cone_angle");
+        optgroup->append_single_option_line("wipe_tower_extra_rib_length");
+        optgroup->append_single_option_line("wipe_tower_rib_width");
+        optgroup->append_single_option_line("wipe_tower_fillet_wall");
         optgroup->append_single_option_line("wipe_tower_no_sparse_layers");
         optgroup->append_single_option_line("single_extruder_multi_material_priming");
 
