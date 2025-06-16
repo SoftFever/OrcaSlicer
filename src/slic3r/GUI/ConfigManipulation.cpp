@@ -822,6 +822,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool lattice_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ip2DLattice;
     for (auto el : { "lattice_angle_1", "lattice_angle_2"})
         toggle_line(el, lattice_options);
+
+    const auto _sparse_infill_pattern = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value;
+    bool       show_sparse_infill_rotate_template = _sparse_infill_pattern == ipRectilinear || _sparse_infill_pattern == ipLine ||
+                                              _sparse_infill_pattern == ipZigZag || _sparse_infill_pattern == ipCrossZag ||
+                                              _sparse_infill_pattern == ipLockedZag;
+
+    toggle_line("sparse_infill_rotate_template", show_sparse_infill_rotate_template);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

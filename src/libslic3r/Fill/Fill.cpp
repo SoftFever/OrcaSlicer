@@ -33,7 +33,6 @@ struct SurfaceFillParams
     coordf_t    	overlap = 0.;
     // Angle as provided by the region config, in radians.
     float       	angle = 0.f;
-    bool       	    rotate_angle = true;
     // Is bridging used for this fill? Bridging parameters may be used even if this->flow.bridge() is not set.
     bool 			bridge;
     // Non-negative for a bridge.
@@ -84,7 +83,6 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(spacing);
 		RETURN_COMPARE_NON_EQUAL(overlap);
 		RETURN_COMPARE_NON_EQUAL(angle);
-		RETURN_COMPARE_NON_EQUAL(rotate_angle);
 		RETURN_COMPARE_NON_EQUAL(density);
 //		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
@@ -111,7 +109,6 @@ struct SurfaceFillParams
 				this->spacing 			== rhs.spacing 			&&
 				this->overlap 			== rhs.overlap 			&&
 				this->angle   			== rhs.angle   			&&
-				this->rotate_angle   	== rhs.rotate_angle   			&&
 				this->bridge   			== rhs.bridge   		&&
 				this->bridge_angle 		== rhs.bridge_angle		&&
 				this->density   		== rhs.density   		&&
@@ -696,7 +693,6 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 params.bridge_angle = float(surface.bridge_angle);
                 if (params.extrusion_role == erInternalInfill) {
                     params.angle = float(Geometry::deg2rad(region_config.infill_direction.value));
-                    params.rotate_angle = (params.pattern == ipRectilinear || params.pattern == ipLine || params.pattern == ipZigZag || params.pattern == ipCrossZag || params.pattern == ipLockedZag);
                 } else {
                     params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
                 }
@@ -1036,7 +1032,6 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.no_extrusion_overlap = surface_fill.params.overlap;
         auto &region_config = layerm->region().config();
 
-        // Orca TODO: handle lagacy rotate_angle
         ConfigOptionFloats rotate_angles;
         rotate_angles.deserialize( surface_fill.params.extrusion_role == erInternalInfill  ? region_config.sparse_infill_rotate_template.value : region_config.solid_infill_rotate_template.value);  
         auto rotate_angle_idx = f->layer_id % rotate_angles.size();
