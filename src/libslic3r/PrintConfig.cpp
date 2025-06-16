@@ -2344,13 +2344,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
 
-    def = this->add("rotate_solid_infill_direction", coBool);
-    def->label = L("Rotate solid infill direction");
-    def->category = L("Strength");
-    def->tooltip = L("Rotate the solid infill direction by 90° for each layer.");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
-
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
     def->category = L("Strength");
@@ -6647,33 +6640,31 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         else if (value == "0"){
             value = "ensure_moderate";
         }
-    }
-    else if (opt_key == "sparse_infill_anchor") {
+    } else if (opt_key == "rotate_solid_infill_direction") {
+        opt_key = "solid_infill_rotate_template";
+        if (value == "1") {
+            value = "0,90";
+        } else if (value == "0") {
+            value = "0";
+        }
+    } else if (opt_key == "sparse_infill_anchor") {
         opt_key = "infill_anchor";
-    } 
-    else if (opt_key == "sparse_infill_anchor_max") {
+    } else if (opt_key == "sparse_infill_anchor_max") {
         opt_key = "infill_anchor_max";
-    }
-    else if (opt_key == "chamber_temperatures") {
+    } else if (opt_key == "chamber_temperatures") {
         opt_key = "chamber_temperature";
-    }
-    else if (opt_key == "thumbnail_size") {
+    } else if (opt_key == "thumbnail_size") {
         opt_key = "thumbnails";
-    }
-    else if (opt_key == "top_one_wall_type" && value != "none") {
+    } else if (opt_key == "top_one_wall_type" && value != "none") {
         opt_key = "only_one_wall_top";
         value = "1";
-    }
-    else if (opt_key == "initial_layer_flow_ratio") {
+    } else if (opt_key == "initial_layer_flow_ratio") {
         opt_key = "bottom_solid_infill_flow_ratio";
-    }
-    else if(opt_key == "ironing_direction") {
+    } else if (opt_key == "ironing_direction") {
         opt_key = "ironing_angle";
-    }
-    else if(opt_key == "counterbole_hole_bridging") {
+    } else if (opt_key == "counterbole_hole_bridging") {
         opt_key = "counterbore_hole_bridging";
-    }
-    else if (opt_key == "draft_shield" && value == "limited") {
+    } else if (opt_key == "draft_shield" && value == "limited") {
         value = "disabled";
     } else if (opt_key == "overhang_speed_classic") {
         value = "0";

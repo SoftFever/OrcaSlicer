@@ -699,7 +699,6 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                     params.rotate_angle = (params.pattern == ipRectilinear || params.pattern == ipLine || params.pattern == ipZigZag || params.pattern == ipCrossZag || params.pattern == ipLockedZag);
                 } else {
                     params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
-                    params.rotate_angle = region_config.rotate_solid_infill_direction;
                 }
 
                 // Calculate the actual flow we'll be using for this infill.
@@ -879,7 +878,6 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 	            params.density 		 = 100.f;
 		        params.extrusion_role = erSolidInfill;
 		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().solid_infill_direction.value));
-                params.rotate_angle  = layerm.region().config().rotate_solid_infill_direction;
 		        // calculate the actual flow we'll be using for this infill
 				params.flow = layerm.flow(frSolidInfill);
 		        params.spacing = params.flow.spacing();
