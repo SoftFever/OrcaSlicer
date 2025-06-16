@@ -1049,13 +1049,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       scarf_joint_speed))
     ((ConfigOptionFloat,                scarf_joint_flow_ratio))
     ((ConfigOptionPercent,              scarf_overhang_threshold))
-
-        //resonance avoidance ported from qidi slicer
-    ((ConfigOptionBool,                resonance_avoidance))
-    ((ConfigOptionFloat,               min_resonance_avoidance_speed))
-    ((ConfigOptionFloat,               max_resonance_avoidance_speed))
-
-
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1090,6 +1083,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,               machine_min_travel_rate))
     // M205 S... [mm/sec]
     ((ConfigOptionFloats,               machine_min_extruding_rate))
+
+    //resonance avoidance ported from qidi slicer
+    ((ConfigOptionBool,                 resonance_avoidance))
+    ((ConfigOptionFloat,                min_resonance_avoidance_speed))
+    ((ConfigOptionFloat,                max_resonance_avoidance_speed))
 )
 
 // This object is mapped to Perl as Slic3r::Config::GCode.

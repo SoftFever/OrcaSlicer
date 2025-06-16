@@ -1332,31 +1332,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
-     // resonance avoidance ported over from qidi slicer
-    def          = this->add("resonance_avoidance", coBool);
-    def->label   = L("Resonance avoidance");
-    def->tooltip = L("By reducing the speed of the outer wall to avoid the resonance zone of the printer, ringing on the surface of the "
-                     "model are avoided.\n"
-                     "Please turn this option off when testing ringing.");
-    def->mode    = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
-
-    def           = this->add("min_resonance_avoidance_speed", coFloat);
-    def->label    = L("Min");
-    def->tooltip  = L("Minimum speed of resonance avoidance.");
-    def->sidetext = L("mm/s");
-    def->min      = 0;
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(70));
-
-    def           = this->add("max_resonance_avoidance_speed", coFloat);
-    def->label    = L("Max");
-    def->tooltip  = L("Maximum speed of resonance avoidance.");
-    def->sidetext = L("mm/s");
-    def->min      = 0;
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(120));
-
     def = this->add("compatible_printers", coStrings);
     def->label = L("Select printers");
     def->mode = comAdvanced;
@@ -3578,6 +3553,31 @@ void PrintConfigDef::init_fff_params()
     def->readonly = false;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 0., 0. });
+
+    // resonance avoidance ported over from qidi slicer
+    def          = this->add("resonance_avoidance", coBool);
+    def->label   = L("Resonance avoidance");
+    def->tooltip = L("By reducing the speed of the outer wall to avoid the resonance zone of the printer, ringing on the surface of the "
+                     "model are avoided.\n"
+                     "Please turn this option off when testing ringing.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def           = this->add("min_resonance_avoidance_speed", coFloat);
+    def->label    = L("Min");
+    def->tooltip  = L("Minimum speed of resonance avoidance.");
+    def->sidetext = L("mm/s");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(70));
+
+    def           = this->add("max_resonance_avoidance_speed", coFloat);
+    def->label    = L("Max");
+    def->tooltip  = L("Maximum speed of resonance avoidance.");
+    def->sidetext = L("mm/s");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(120));
 
     def = this->add("fan_max_speed", coFloats);
     def->label = L("Fan speed");

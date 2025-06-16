@@ -2206,23 +2206,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_interface_speed");
         optgroup = page->new_optgroup(L("Overhang speed"), L"param_overhang_speed", 15);
         optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang");
-        optgroup->append_separator();
-//resonance avoidance ported over from qidi slicer
-        optgroup = page->new_optgroup(L("Resonance Avoidance"));
-        optgroup->append_single_option_line("resonance_avoidance");
 
-        // Resonance‑avoidance speed inputs
-        {
-        Line resonance_line = {L("Resonance Avoidance Speed"), L("")};
-        resonance_line.append_option(optgroup->get_option("min_resonance_avoidance_speed"));
-        resonance_line.append_option(optgroup->get_option("max_resonance_avoidance_speed"));
-        optgroup->append_line(resonance_line);
-        }
         // Orca: DEPRECATED
         // optgroup->append_single_option_line("overhang_speed_classic", "slow-down-for-overhang");
-        optgroup = page->new_optgroup(L("Slow down for curled perimeters"));
         optgroup->append_single_option_line("slowdown_for_curled_perimeters");
-        optgroup = page->new_optgroup(L("Overhang Speeds"));
         Line line = { L("Overhang speed"), L("This is the speed for various overhang degrees. Overhang degrees are expressed as a percentage of line width. 0 speed means no slowing down for the overhang degree range and wall speed is used") };
         line.label_path = "slow-down-for-overhang";
         line.append_option(optgroup->get_option("overhang_1_4_speed"));
@@ -4180,6 +4167,12 @@ PageShp TabPrinter::build_kinematics_page()
     }
     auto optgroup = page->new_optgroup(L("Advanced"), "param_advanced");
     optgroup->append_single_option_line("emit_machine_limits_to_gcode");
+    
+    // resonance avoidance ported over from qidi slicer
+    optgroup = page->new_optgroup(L("Resonance Avoidance"));
+    optgroup->append_single_option_line("resonance_avoidance");
+    optgroup->append_single_option_line("min_resonance_avoidance_speed");
+    optgroup->append_single_option_line("max_resonance_avoidance_speed");
 
     const std::vector<std::string> speed_axes{
         "machine_max_speed_x",
