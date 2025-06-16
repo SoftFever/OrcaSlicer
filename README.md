@@ -1,7 +1,5 @@
 <h1> <p "font-size:200px;"><img align="left" src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
 
-This Fork has been modified to have the option to use resonance avoidance based on the changes made by qidi for qidi slicer. 
-
 [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 
 Orca Slicer is an open source Next-Gen Slicing Software for Precision 3D Prints.  
