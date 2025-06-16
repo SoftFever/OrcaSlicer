@@ -1040,7 +1040,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
         // Orca TODO: handle lagacy rotate_angle
         ConfigOptionFloats rotate_angles;
-        rotate_angles.deserialize(region_config.sparse_infill_rotate_template.value);  
+        rotate_angles.deserialize( surface_fill.params.extrusion_role == erInternalInfill  ? region_config.sparse_infill_rotate_template.value : region_config.solid_infill_rotate_template.value);  
         auto rotate_angle_idx = f->layer_id % rotate_angles.size();
         f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
 

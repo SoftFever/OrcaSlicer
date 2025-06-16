@@ -2217,8 +2217,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("symmetric_infill_y_axis");
         optgroup->append_single_option_line("infill_shift_step");
 
-        //Orca TODO: hide it for now, make it support all sparse infill patterns and multiple rotate step
-        optgroup->append_single_option_line("sparse_infill_rotate_template");
         optgroup->append_single_option_line("lattice_angle_1");
         optgroup->append_single_option_line("lattice_angle_2");
         optgroup->append_single_option_line("infill_anchor_max");
@@ -2230,7 +2228,9 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("infill_direction");
+        optgroup->append_single_option_line("sparse_infill_rotate_template");
         optgroup->append_single_option_line("solid_infill_direction");
+        optgroup->append_single_option_line("solid_infill_rotate_template");
         optgroup->append_single_option_line("rotate_solid_infill_direction");
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("internal_bridge_angle"); // ORCA: Internal bridge angle override
