@@ -150,7 +150,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retraction_minimum_travel",
         "retract_before_wipe",
         "retract_when_changing_layer",
-        "retract_on_top_layer",
         "retraction_length",
         "retract_length_toolchange",
         "z_hop",
@@ -1039,7 +1038,7 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
         filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
 
     if (!check_multi_filaments_compatibility(filament_types))
-        return { L("Cannot print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing") };
+        return {L("Cannot print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing.")};
 
     return {std::string()};
 }
@@ -1209,7 +1208,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
             double gap_layers = slicing_params.gap_object_support / slicing_params.layer_height;
             if (gap_layers - (int)gap_layers > EPSILON) {
-                return  { L("The prime tower requires \"support gap\" to be multiple of layer height"), object };
+                return {L("The prime tower requires \"support gap\" to be multiple of layer height."), object};
             }
         }
 #endif
@@ -1222,14 +1221,14 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 const SlicingParameters &slicing_params = object->slicing_parameters();
                 if (std::abs(slicing_params.first_print_layer_height - slicing_params0.first_print_layer_height) > EPSILON ||
                     std::abs(slicing_params.layer_height             - slicing_params0.layer_height            ) > EPSILON)
-                    return {L("The prime tower requires that all objects have the same layer heights"), object, "initial_layer_print_height"};
+                    return {L("The prime tower requires that all objects have the same layer heights."), object, "initial_layer_print_height"};
                 if (slicing_params.raft_layers() != slicing_params0.raft_layers())
-                    return {L("The prime tower requires that all objects are printed over the same number of raft layers"), object, "raft_layers"};
+                    return {L("The prime tower requires that all objects are printed over the same number of raft layers."), object, "raft_layers"};
                 // BBS: support gap can be multiple of object layer height, remove _L()
 #if 0
                 if (slicing_params0.gap_object_support != slicing_params.gap_object_support ||
                     slicing_params0.gap_support_object != slicing_params.gap_support_object)
-                    return  {L("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance"), object};
+                    return {L("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance."), object};
 #endif
                 if (!equal_layering(slicing_params, slicing_params0))
                     return  { L("The prime tower requires that all objects are sliced with the same layer heights."), object };
@@ -1264,7 +1263,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                         //if (i % 2 == 0 && layer_height_profiles[tallest_object_idx][i] > layer_height_profiles[idx_object][layer_height_profiles[idx_object].size() - 2])
                         //    break;
                         if (std::abs(layer_height_profiles[idx_object][i] - layer_height_profiles[tallest_object_idx][i]) > eps)
-                            return {L("The prime tower is only supported if all objects have the same variable layer height")};
+                            return {L("The prime tower is only supported if all objects have the same variable layer height.")};
                         ++i;
                     }
                 }
@@ -1373,12 +1372,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 first_layer_min_nozzle_diameter = min_nozzle_diameter;
             }
             if (initial_layer_print_height > first_layer_min_nozzle_diameter)
-                return  {L("Layer height cannot exceed nozzle diameter"), object, "initial_layer_print_height"};
+                return {L("Layer height cannot exceed nozzle diameter."), object, "initial_layer_print_height"};
 
             // validate layer_height
             double layer_height = object->config().layer_height.value;
             if (layer_height > min_nozzle_diameter)
-                return  {L("Layer height cannot exceed nozzle diameter"), object, "layer_height"};
+                return {L("Layer height cannot exceed nozzle diameter."), object, "layer_height"};
 
             // Validate extrusion widths.
             std::string err_msg;

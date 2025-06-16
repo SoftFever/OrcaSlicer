@@ -58,7 +58,7 @@ enum AuthorizationType {
 };
 
 enum InfillPattern : int {
-    ipConcentric, ipRectilinear, ipGrid, ip2DLattice, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
+    ipConcentric, ipRectilinear, ipGrid, ip2DLattice, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipTpmsD, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
     ipLightning, ipCrossHatch, ipQuarterCubic,
     ipCount,
@@ -1062,8 +1062,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       scarf_joint_speed))
     ((ConfigOptionFloat,                scarf_joint_flow_ratio))
     ((ConfigOptionPercent,              scarf_overhang_threshold))
-
-
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1098,6 +1096,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,               machine_min_travel_rate))
     // M205 S... [mm/sec]
     ((ConfigOptionFloats,               machine_min_extruding_rate))
+
+    //resonance avoidance ported from qidi slicer
+    ((ConfigOptionBool,                 resonance_avoidance))
+    ((ConfigOptionFloat,                min_resonance_avoidance_speed))
+    ((ConfigOptionFloat,                max_resonance_avoidance_speed))
 )
 
 // This object is mapped to Perl as Slic3r::Config::GCode.
@@ -1308,7 +1311,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              resolution))
     ((ConfigOptionFloats,             retraction_minimum_travel))
     ((ConfigOptionBools,              retract_when_changing_layer))
-    ((ConfigOptionBools,              retract_on_top_layer))
     ((ConfigOptionFloat,              skirt_distance))
     ((ConfigOptionInt,                skirt_height))
     ((ConfigOptionInt,                skirt_loops))

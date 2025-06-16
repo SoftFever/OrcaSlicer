@@ -750,7 +750,7 @@ void PressureAdvanceWizard::on_cali_save()
                 CalibUtils::set_PA_calib_result({ new_pa_cali_result }, false);
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else if (curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
@@ -817,7 +817,7 @@ void PressureAdvanceWizard::on_cali_save()
 
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else {
@@ -1170,7 +1170,7 @@ void FlowRateWizard::on_cali_save()
                 }
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
@@ -1216,7 +1216,7 @@ void FlowRateWizard::on_cali_save()
                 return;
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else {
@@ -1499,7 +1499,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
         return;
     }
 
-    MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset"), wxEmptyString, wxOK);
+    MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset."), wxEmptyString, wxOK);
     msg_dlg.ShowModal();
     show_step(start_step);
 }
