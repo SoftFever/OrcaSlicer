@@ -3561,7 +3561,7 @@ void PrintConfigDef::init_fff_params()
                      "model are avoided.\n"
                      "Please turn this option off when testing ringing.");
     def->mode    = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def           = this->add("min_resonance_avoidance_speed", coFloat);
     def->label    = L("Min");
