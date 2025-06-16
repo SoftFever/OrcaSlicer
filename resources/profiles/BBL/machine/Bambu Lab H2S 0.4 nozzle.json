@@ -213,5 +213,9 @@
     "wipe": [
         "1",
         "1"
+    ],
+    "z_hop_types": [
+        "Auto Lift",
+        "Auto Lift"
     ]
 }
