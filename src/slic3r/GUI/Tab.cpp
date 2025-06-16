@@ -2206,6 +2206,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_interface_speed");
         optgroup = page->new_optgroup(L("Overhang speed"), L"param_overhang_speed", 15);
         optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang");
+
         // Orca: DEPRECATED
         // optgroup->append_single_option_line("overhang_speed_classic", "slow-down-for-overhang");
         optgroup->append_single_option_line("slowdown_for_curled_perimeters");
@@ -4166,6 +4167,17 @@ PageShp TabPrinter::build_kinematics_page()
     }
     auto optgroup = page->new_optgroup(L("Advanced"), "param_advanced");
     optgroup->append_single_option_line("emit_machine_limits_to_gcode");
+    
+    // resonance avoidance ported over from qidi slicer
+    optgroup = page->new_optgroup(L("Resonance Avoidance"));
+    optgroup->append_single_option_line("resonance_avoidance");
+    // Resonance‑avoidance speed inputs
+    {
+        Line resonance_line = {L("Resonance Avoidance Speed"), L("")};
+        resonance_line.append_option(optgroup->get_option("min_resonance_avoidance_speed"));
+        resonance_line.append_option(optgroup->get_option("max_resonance_avoidance_speed"));
+        optgroup->append_line(resonance_line);
+    }
 
     const std::vector<std::string> speed_axes{
         "machine_max_speed_x",
@@ -4708,6 +4720,10 @@ void TabPrinter::toggle_options()
         for (int i = 0; i < max_field; ++i)
             toggle_option("machine_max_junction_deviation", gcf == gcfMarlinFirmware, i);
         toggle_line("machine_max_junction_deviation", gcf == gcfMarlinFirmware);
+
+        bool resonance_avoidance = m_config->opt_bool("resonance_avoidance");
+        toggle_option("min_resonance_avoidance_speed", resonance_avoidance);
+        toggle_option("max_resonance_avoidance_speed", resonance_avoidance);
     }
 }
 
