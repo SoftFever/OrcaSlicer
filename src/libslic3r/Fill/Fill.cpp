@@ -669,19 +669,19 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 if (params.extrusion_role == erInternalInfill) {
                     params.angle += float(Geometry::deg2rad(region_config.infill_direction.get_abs_value(360))); 
                     if  (region_config.rotate_sparse_infill_height.value) {
-                        params.angle += float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.get_abs_value(360) * layer.slice_z * 0.1 / region_config.rotate_sparse_infill_height.get_abs_value(layer.object()->height() * 0.0000001)));
+                        params.angle += float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.get_abs_value(360) * layer.print_z * 0.1 / region_config.rotate_sparse_infill_height.get_abs_value(layer.object()->height() * 0.0000001)));
                     } else {
-                        params.angle += float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.get_abs_value(360) * layer.id())); // probably slice_z/layers_height for combined infill 
+                        params.angle += float(Geometry::deg2rad(region_config.rotate_sparse_infill_direction.get_abs_value(360) * layer.id())); // probably print_z/layers_height for combined infill 
                     }
                     if  (region_config.sparse_infill_zigzag_height.value) {
-                        params.angle += float(Geometry::deg2rad(region_config.sparse_infill_zigzag_angle.get_abs_value(360) * sin(M_PI * layer.slice_z * 0.2 / region_config.sparse_infill_zigzag_height.get_abs_value(layer.object()->height() * 0.0000001))));
+                        params.angle += float(Geometry::deg2rad(region_config.sparse_infill_zigzag_angle.get_abs_value(360) * sin(M_PI * layer.print_z * 0.2 / region_config.sparse_infill_zigzag_height.get_abs_value(layer.object()->height() * 0.0000001))));
                     } else {
                         params.angle += ((layer.id() * surface.thickness_layers) & 1) ? float(Geometry::deg2rad(region_config.sparse_infill_zigzag_angle.get_abs_value(360))) : 0.;
                     }        
                     params.angle += (((layer.id() * surface.thickness_layers) & 1) && (params.pattern == ipRectilinear || params.pattern == ipLine)) ? (M_PI_2) : 0.; // internal infill rotation by new method
                 } else {
                     params.angle += float(Geometry::deg2rad(region_config.solid_infill_direction.get_abs_value(360)));
-                    params.angle += float(Geometry::deg2rad(region_config.rotate_solid_infill_direction.get_abs_value(360)) * layer.id()); // probably slice_z/layers_height for combined infill 
+                    params.angle += float(Geometry::deg2rad(region_config.rotate_solid_infill_direction.get_abs_value(360)) * layer.id()); // probably print_z/layers_height for combined infill 
                 }
                 params.rotate_angle = 0.; // disable infill rotation by old method
                 
