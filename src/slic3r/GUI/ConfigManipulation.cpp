@@ -62,7 +62,7 @@ void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrint
     wxString msg_text;
     bool     need_check = false;
     if (temperature_range_low < 190 || temperature_range_high > 300) {
-        msg_text += _L("The recommended minimum temperature is less than 190 degree or the recommended maximum temperature is greater than 300 degree.\n");
+        msg_text += _L("The recommended minimum temperature is less than 190°C or the recommended maximum temperature is greater than 300°C.\n");
         need_check = true;
     }
     if (temperature_range_low > temperature_range_high) {
@@ -160,7 +160,8 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
         auto iter = recommend_temp_map.find(filament_type);
         if (iter!=recommend_temp_map.end()) {
             if (iter->second < config->option<ConfigOptionInts>("chamber_temperatures")->get_at(0)) {
-                wxString msg_text = wxString::Format(_L("Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"), iter->second);
+                wxString msg_text = wxString::Format(_L("Current chamber temperature is higher than the material's safe temperature, this may result in material softening and clogging. "
+                                                        "The maximum safe temperature for the material is %d"), iter->second);
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
                 is_msg_dlg_already_exist = true;
                 dialog.ShowModal();
@@ -325,7 +326,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         wxString msg_text = _(L("Alternate extra wall does't work well when ensure vertical shell thickness is set to All."));
 
         if (is_global_config)
-            msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+            msg_text += "\n\n" + _(L("Change these settings automatically?\n"
                                      "Yes - Change ensure vertical shell thickness to Moderate and enable alternate extra wall\n"
                                      "No  - Don't use alternate extra wall"));
 
@@ -520,8 +521,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
     toggle_line("infill_combination_max_layer_height", have_combined_infill);
 
+    bool infill_anchor = config->opt_enum<InfillPattern>("sparse_infill_pattern") != ipLine;
+    toggle_field("infill_anchor_max",infill_anchor);
+
     // Only allow configuration of open anchors if the anchoring is enabled.
-    bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
+    bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0 && infill_anchor;
     toggle_field("infill_anchor", has_infill_anchors);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
@@ -628,9 +632,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // non-organic tree support use max_bridge_length instead of bridge_no_support
     toggle_line("max_bridge_length", support_is_normal_tree);
     toggle_line("bridge_no_support", !support_is_normal_tree);
-
-    // This is only supported for auto normal tree
-    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_normal_tree);
+    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
     for (auto el : { "support_interface_spacing", "support_interface_filament",
         "support_interface_loop_pattern", "support_bottom_interface_spacing" })
@@ -684,9 +686,18 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle",
                     "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed",
+                    "wipe_tower_wall_type",
+                    "wipe_tower_extra_rib_length","wipe_tower_rib_width","wipe_tower_fillet_wall",
                     "wipe_tower_bridging", "wipe_tower_extra_flow",
                     "wipe_tower_no_sparse_layers"})
       toggle_line(el, have_prime_tower && !is_BBL_Printer);
+
+    WipeTowerWallType wipe_tower_wall_type = config->opt_enum<WipeTowerWallType>("wipe_tower_wall_type");
+    toggle_line("wipe_tower_cone_angle", have_prime_tower && !is_BBL_Printer && wipe_tower_wall_type == WipeTowerWallType::wtwCone);
+    toggle_line("wipe_tower_extra_rib_length", have_prime_tower && !is_BBL_Printer && wipe_tower_wall_type == WipeTowerWallType::wtwRib);
+    toggle_line("wipe_tower_rib_width", have_prime_tower && !is_BBL_Printer && wipe_tower_wall_type == WipeTowerWallType::wtwRib);
+    toggle_line("wipe_tower_fillet_wall", have_prime_tower && !is_BBL_Printer && wipe_tower_wall_type == WipeTowerWallType::wtwRib);
+    
 
     toggle_line("single_extruder_multi_material_priming", !bSEMM && have_prime_tower && !is_BBL_Printer);
 
@@ -879,7 +890,7 @@ int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
         msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
     }
     if (!is_object_config)
-        msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+        msg_text += "\n\n" + _(L("Change these settings automatically?\n"
             "Yes - Change these settings and enable spiral mode automatically\n"
             "No  - Give up using spiral mode this time"));
 

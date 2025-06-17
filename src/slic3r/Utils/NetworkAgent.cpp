@@ -1181,7 +1181,7 @@ std::string NetworkAgent::request_setting_id(std::string name, std::map<std::str
 
 int NetworkAgent::put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code)
 {
-    int ret;
+    int ret = 0;
     if (network_agent && put_setting_ptr) {
         ret = put_setting_ptr(network_agent, setting_id, name, values_map, http_code);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, setting_id=%2%, name=%3%, http_code=%4%, ret=%5%")
@@ -1341,7 +1341,7 @@ int NetworkAgent::get_subtask_info(std::string subtask_id, std::string* task_jso
 
 int NetworkAgent::get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string* slice_json)
 {
-    int ret;
+    int ret = 0;
     if (network_agent && get_slice_info_ptr) {
         ret = get_slice_info_ptr(network_agent, project_id, profile_id, plate_index, slice_json);
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, project_id=%2%, profile_id=%3%, plate_index=%4%, slice_json=%5%")
@@ -1352,7 +1352,7 @@ int NetworkAgent::get_slice_info(std::string project_id, std::string profile_id,
 
 int NetworkAgent::query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body)
 {
-    int ret;
+    int ret = 0;
     if (network_agent && query_bind_status_ptr) {
         ret = query_bind_status_ptr(network_agent, query_list, http_code, http_body);
         if (ret)
