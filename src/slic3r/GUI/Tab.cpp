@@ -2207,6 +2207,8 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
+        optgroup->append_single_option_line("infill_direction");
+        optgroup->append_single_option_line("sparse_infill_rotate_template");
         optgroup->append_single_option_line("skin_infill_density");
         optgroup->append_single_option_line("skeleton_infill_density");
         optgroup->append_single_option_line("infill_lock_depth");
@@ -2222,15 +2224,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_anchor_max");
         optgroup->append_single_option_line("infill_anchor");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
+        optgroup->append_single_option_line("solid_infill_direction");
+        optgroup->append_single_option_line("solid_infill_rotate_template");
         optgroup->append_single_option_line("gap_fill_target");
         optgroup->append_single_option_line("filter_out_gap_fill");
         optgroup->append_single_option_line("infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("infill_direction");
-        optgroup->append_single_option_line("sparse_infill_rotate_template");
-        optgroup->append_single_option_line("solid_infill_direction");
-        optgroup->append_single_option_line("solid_infill_rotate_template");
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("internal_bridge_angle"); // ORCA: Internal bridge angle override
         optgroup->append_single_option_line("minimum_sparse_infill_area");

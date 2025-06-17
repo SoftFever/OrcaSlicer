@@ -823,12 +823,21 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "lattice_angle_1", "lattice_angle_2"})
         toggle_line(el, lattice_options);
 
+    //Orca: hide rotate template for solid infill if not support
     const auto _sparse_infill_pattern = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value;
     bool       show_sparse_infill_rotate_template = _sparse_infill_pattern == ipRectilinear || _sparse_infill_pattern == ipLine ||
                                               _sparse_infill_pattern == ipZigZag || _sparse_infill_pattern == ipCrossZag ||
                                               _sparse_infill_pattern == ipLockedZag;
 
     toggle_line("sparse_infill_rotate_template", show_sparse_infill_rotate_template);
+
+    //Orca: hide rotate template for solid infill if not support
+    const auto _solid_infill_pattern = config->option<ConfigOptionEnum<InfillPattern>>("internal_solid_infill_pattern")->value;
+    bool       show_solid_infill_rotate_template = _solid_infill_pattern == ipRectilinear || _solid_infill_pattern == ipMonotonic ||
+                                              _solid_infill_pattern == ipMonotonicLine || _solid_infill_pattern == ipAlignedRectilinear;
+
+    toggle_line("solid_infill_rotate_template", show_solid_infill_rotate_template);
+
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
