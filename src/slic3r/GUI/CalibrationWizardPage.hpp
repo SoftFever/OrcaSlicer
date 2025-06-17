@@ -311,9 +311,6 @@ public:
 
     virtual void set_cali_method(CalibrationMethod method) {
         m_cali_method = method;
-        if (method == CalibrationMethod::CALI_METHOD_MANUAL) {
-            set_cali_filament_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
-        }
     }
 
     virtual void msw_rescale();
