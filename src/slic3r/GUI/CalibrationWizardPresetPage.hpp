@@ -289,6 +289,7 @@ protected:
 
     // m_selection_panel widgets
     ComboBox*       m_comboBox_nozzle_dia;
+    ComboBox*       m_comboBox_nozzle_volume;
     ComboBox*       m_comboBox_bed_type;
     ComboBox*       m_comboBox_process;
     Label*          m_nozzle_diameter_tips{nullptr};

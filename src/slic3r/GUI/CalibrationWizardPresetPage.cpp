@@ -642,6 +642,19 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
         single_nozzle_sizer->Add(m_nozzle_diameter_tips, 0, wxALL, 0);
         single_nozzle_sizer->AddSpacer(PRESET_GAP);
 
+        auto nozzle_volume_type_text = new Label(m_single_nozzle_info_panel, _L("Nozzle Flow"));
+        nozzle_volume_type_text->SetFont(Label::Head_14);
+        nozzle_volume_type_text->Wrap(-1);
+
+        m_comboBox_nozzle_volume = new ComboBox(m_single_nozzle_info_panel, wxID_ANY, "", wxDefaultPosition, CALIBRATION_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+        m_comboBox_nozzle_volume->Disable();
+
+        single_nozzle_sizer->Add(nozzle_volume_type_text, 0, wxALL, 0);
+        single_nozzle_sizer->AddSpacer(FromDIP(5));
+        single_nozzle_sizer->Add(m_comboBox_nozzle_volume, 0, wxALL, 0);
+        single_nozzle_sizer->AddSpacer(FromDIP(5));
+        single_nozzle_sizer->AddSpacer(PRESET_GAP);
+
         m_single_nozzle_info_panel->SetSizer(single_nozzle_sizer);
         panel_sizer->Add(m_single_nozzle_info_panel);
     }
@@ -788,12 +801,24 @@ float nozzle_diameter_list[NOZZLE_LIST_COUNT] = {0.2, 0.4, 0.6, 0.8 };
 
 void CalibrationPresetPage::init_selection_values()
 {
-    // init nozzle diameter
-    m_comboBox_nozzle_dia->Clear();
-    for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-        m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
+    // init nozzle diameter and nozzle volume
+    {
+        m_comboBox_nozzle_dia->Clear();
+        for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
+            m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
+        }
+        m_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+
+        m_comboBox_nozzle_volume->Clear();
+        const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
+        if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
+            for (auto item : nozzle_volume_type_def->enum_labels) {
+                m_comboBox_nozzle_volume->AppendString(_L(item));
+            }
+        }
+
+        m_comboBox_nozzle_volume->SetSelection(int(NozzleVolumeType::nvtStandard));
     }
-    m_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
 
     Preset* cur_printer_preset = get_printer_preset(curr_obj, 0.4);
 
@@ -948,11 +973,16 @@ float CalibrationPresetPage::get_nozzle_diameter(int extruder_id) const
 
 NozzleVolumeType CalibrationPresetPage::get_nozzle_volume_type(int extruder_id) const
 {
-    if (extruder_id == LEFT_EXTRUDER_ID) {
-        return NozzleVolumeType(m_left_comboBox_nozzle_volume->GetSelection());
-    }
-    else if (extruder_id == RIGHT_EXTRUDER_ID) {
-        return NozzleVolumeType(m_right_comboBox_nozzle_volume->GetSelection());
+    if (curr_obj) {
+        if (curr_obj->is_multi_extruders()) {
+            if (extruder_id == LEFT_EXTRUDER_ID) {
+                return NozzleVolumeType(m_left_comboBox_nozzle_volume->GetSelection());
+            } else if (extruder_id == RIGHT_EXTRUDER_ID) {
+                return NozzleVolumeType(m_right_comboBox_nozzle_volume->GetSelection());
+            }
+        }
+        else
+            return NozzleVolumeType(m_comboBox_nozzle_volume->GetSelection());
     }
     return NozzleVolumeType::nvtStandard;
 }
@@ -2139,6 +2169,13 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
         m_filament_list_panel->Hide();
     }
     else {
+
+        if ((obj->m_extder_data.extders.size() > 0) && (obj->m_extder_data.extders[0].current_nozzle_flow_type != NozzleFlowType::NONE_FLOWTYPE)) {
+            m_comboBox_nozzle_volume->SetSelection(obj->m_extder_data.extders[0].current_nozzle_flow_type - 1);
+        } else {
+            m_comboBox_nozzle_volume->SetSelection(0);
+        }
+
         m_single_nozzle_info_panel->Show();
         m_multi_nozzle_info_panel->Hide();
         m_multi_exutrder_filament_list_panel->Hide();
