@@ -657,6 +657,11 @@ public:
     {
         if (! append)
             this->values.clear();
+
+        if (str.empty()) {
+            this->values.push_back(0);
+            return true;
+        }
         std::istringstream is(str);
         std::string item_str;
         while (std::getline(is, item_str, ',')) {
