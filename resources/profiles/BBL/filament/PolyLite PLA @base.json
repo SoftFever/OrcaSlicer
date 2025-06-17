@@ -2,7 +2,7 @@
   "name": "PolyLite PLA @base",
   "inherits": "fdm_filament_pla",
   "type": "filament",
-  "instantiation": "false",
+  "instantiation": "true",
   "filament_cost": [
     "25.4"
   ],

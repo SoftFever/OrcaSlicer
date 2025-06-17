@@ -32,7 +32,7 @@
   "eng_plate_temp_initial_layer": [
     "70"
   ],
-  "instantiation": "false",
+  "instantiation": "true",
   "fan_min_speed": [
     "0"
   ],
@@ -89,5 +89,13 @@
     "800"
   ],
   "filament_id": "GFL54",
-  "helio_filament_id": "ece87ec4-3fc3-49f5-82f3-e644c7a9e61d"
+  "helio_filament_id": "ece87ec4-3fc3-49f5-82f3-e644c7a9e61d",
+  "compatible_printers": [
+    "Bambu Lab H2D 0.4 nozzle",
+    "Bambu Lab H2D 0.6 nozzle",
+    "Bambu Lab H2D 0.8 nozzle",
+    "Bambu Lab X1E 0.4 nozzle",
+    "Bambu Lab X1E 0.6 nozzle",
+    "Bambu Lab X1E 0.8 nozzle"
+  ]
 }

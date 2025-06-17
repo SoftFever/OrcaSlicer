@@ -33,10 +33,18 @@
   "fan_max_speed": [
     "30"
   ],
-  "instantiation": "false",
+  "instantiation": "true",
   "filament_density": [
     "1.06"
   ],
   "filament_id": "GFL53",
-  "helio_filament_id": "b94227a0-2757-4fd1-8d8c-1847e6adb486"
+  "helio_filament_id": "b94227a0-2757-4fd1-8d8c-1847e6adb486",
+  "compatible_printers": [
+    "Bambu Lab H2D 0.4 nozzle",
+    "Bambu Lab H2D 0.6 nozzle",
+    "Bambu Lab H2D 0.8 nozzle",
+    "Bambu Lab X1E 0.4 nozzle",
+    "Bambu Lab X1E 0.6 nozzle",
+    "Bambu Lab X1E 0.8 nozzle"
+  ]
 }

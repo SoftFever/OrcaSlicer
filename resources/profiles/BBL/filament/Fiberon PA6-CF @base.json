@@ -11,7 +11,7 @@
   "filament_max_volumetric_speed": [
     "14"
   ],
-  "instantiation": "false",
+  "instantiation": "true",
   "filament_type": [
     "PA6-CF"
   ],
@@ -65,5 +65,13 @@
     "Polymaker"
   ],
   "filament_id": "GFL50",
-  "helio_filament_id": "48b6ca4e-70f5-4bdd-8080-00ac60c3dd38"
+  "helio_filament_id": "48b6ca4e-70f5-4bdd-8080-00ac60c3dd38",
+  "compatible_printers": [
+    "Bambu Lab H2D 0.4 nozzle",
+    "Bambu Lab H2D 0.6 nozzle",
+    "Bambu Lab H2D 0.8 nozzle",
+    "Bambu Lab X1E 0.4 nozzle",
+    "Bambu Lab X1E 0.6 nozzle",
+    "Bambu Lab X1E 0.8 nozzle"
+  ]
 }

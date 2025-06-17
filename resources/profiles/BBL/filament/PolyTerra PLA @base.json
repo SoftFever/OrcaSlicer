@@ -9,7 +9,7 @@
   "filament_flow_ratio": [
     "0.98"
   ],
-  "instantiation": "false",
+  "instantiation": "true",
   "filament_vendor": [
     "Polymaker"
   ],

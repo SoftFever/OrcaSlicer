@@ -44,7 +44,7 @@
   "textured_plate_temp": [
     "40"
   ],
-  "instantiation": "false",
+  "instantiation": "true",
   "filament_density": [
     "1.2"
   ],
@@ -68,5 +68,13 @@
   ],
   "from": "system",
   "filament_id": "GFL51",
-  "helio_filament_id": "50ad47e9-370d-41ac-a3a9-b63e9925e823"
+  "helio_filament_id": "50ad47e9-370d-41ac-a3a9-b63e9925e823",
+  "compatible_printers": [
+    "Bambu Lab H2D 0.4 nozzle",
+    "Bambu Lab H2D 0.6 nozzle",
+    "Bambu Lab H2D 0.8 nozzle",
+    "Bambu Lab X1E 0.4 nozzle",
+    "Bambu Lab X1E 0.6 nozzle",
+    "Bambu Lab X1E 0.8 nozzle"
+  ]
 }

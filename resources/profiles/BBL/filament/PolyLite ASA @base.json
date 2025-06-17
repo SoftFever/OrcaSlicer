@@ -33,7 +33,7 @@
   "filament_density": [
     "1.02"
   ],
-  "instantiation": "false",
+  "instantiation": "true",
   "hot_plate_temp_initial_layer": [
     "100"
   ],
