@@ -57,6 +57,10 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
      ```shell
      build_release_vs2022.bat
      ```
+
+> [!NOTE]
+> If you encounter issues, you can try to uninstall ZLIB from your Vcpkg library.
+
 3. If successful, you will find the VS 2022 solution file in:
    ```shell
    build\OrcaSlicer.sln
@@ -65,7 +69,7 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
 > [!IMPORTANT]
 > Make sure that CMake version 3.31.x is actually being used. Run `cmake --version` and verify it returns a **3.31.x** version.
 > If you see an older version (e.g. 3.29), it's likely due to another copy in your system's PATH (e.g. from Strawberry Perl).
-> You can run where cmake to check the active paths and rearrange your System Environment Variables > PATH, ensuring the correct CMake (e.g. C:\Program Files\CMake\bin) appears before others like C:\Strawberry\c\bin.
+> You can run where cmake to check the active paths and rearrange your **System Environment Variables** > PATH, ensuring the correct CMake (e.g. C:\Program Files\CMake\bin) appears before others like C:\Strawberry\c\bin.
 
 > [!NOTE]
 > If the build fails, try deleting the `build/` and `deps/build/` directories to clear any cached build data. Rebuilding after a clean-up is usually sufficient to resolve most issues.

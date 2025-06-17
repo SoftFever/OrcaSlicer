@@ -1,6 +1,9 @@
 # Application Structure Overview
 
-### !! incomplete, possibly inaccurate, being updated with new info !!
+WIP...
+
+> [!WARNING]
+> !! incomplete, possibly inaccurate, being updated with new info !!
 
 ## [`Plater`](https://github.com/SoftFever/OrcaSlicer/blob/main/src/slic3r/GUI/Plater.hpp)
 
