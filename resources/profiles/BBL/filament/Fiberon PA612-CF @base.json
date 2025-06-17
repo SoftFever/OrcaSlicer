@@ -1,41 +1,42 @@
 {
-    "type": "filament",
-    "name": "Fiberon PA612-CF @base",
-    "inherits": "fdm_filament_pa",
-    "from": "system",
-    "filament_id": "GFL53",
-    "instantiation": "false",
-    "fan_cooling_layer_time": [
-        "5"
-    ],
-    "fan_max_speed": [
-        "30"
-    ],
-    "fan_min_speed": [
-        "10"
-    ],
-    "filament_cost": [
-        "94.99"
-    ],
-    "filament_density": [
-        "1.06"
-    ],
-    "filament_flow_ratio": [
-        "0.96"
-    ],
-    "filament_vendor": [
-        "Polymaker"
-    ],
-    "full_fan_speed_layer": [
-        "2"
-    ],
-    "overhang_fan_speed": [
-        "40"
-    ],
-    "overhang_fan_threshold": [
-        "0%"
-    ],
-    "temperature_vitrification": [
-        "180"
-    ]
+  "name": "Fiberon PA612-CF @base",
+  "inherits": "fdm_filament_pa",
+  "type": "filament",
+  "temperature_vitrification": [
+    "180"
+  ],
+  "fan_min_speed": [
+    "10"
+  ],
+  "from": "system",
+  "filament_flow_ratio": [
+    "0.96"
+  ],
+  "full_fan_speed_layer": [
+    "2"
+  ],
+  "filament_vendor": [
+    "Polymaker"
+  ],
+  "fan_cooling_layer_time": [
+    "5"
+  ],
+  "overhang_fan_speed": [
+    "40"
+  ],
+  "overhang_fan_threshold": [
+    "0%"
+  ],
+  "filament_cost": [
+    "94.99"
+  ],
+  "fan_max_speed": [
+    "30"
+  ],
+  "instantiation": "false",
+  "filament_density": [
+    "1.06"
+  ],
+  "filament_id": "GFL53",
+  "helio_filament_id": "b94227a0-2757-4fd1-8d8c-1847e6adb486"
 }

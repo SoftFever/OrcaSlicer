@@ -58,5 +58,8 @@
     ],
     "textured_plate_temp_initial_layer": [
         "100"
+    ],
+    "impact_strength_z": [
+        "9.4"
     ]
 }

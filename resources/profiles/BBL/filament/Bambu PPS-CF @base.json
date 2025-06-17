@@ -35,5 +35,6 @@
     ],
     "temperature_vitrification": [
         "220"
-    ]
+    ],
+    "impact_strength_z":["2.8"]
 }

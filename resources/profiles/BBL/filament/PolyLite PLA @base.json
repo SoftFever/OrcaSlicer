@@ -1,17 +1,18 @@
 {
-    "type": "filament",
-    "name": "PolyLite PLA @base",
-    "inherits": "fdm_filament_pla",
-    "from": "system",
-    "filament_id": "GFL00",
-    "instantiation": "false",
-    "filament_cost": [
-        "25.4"
-    ],
-    "filament_flow_ratio": [
-        "0.95"
-    ],
-    "filament_vendor": [
-        "Polymaker"
-    ]
+  "name": "PolyLite PLA @base",
+  "inherits": "fdm_filament_pla",
+  "type": "filament",
+  "instantiation": "false",
+  "filament_cost": [
+    "25.4"
+  ],
+  "filament_flow_ratio": [
+    "0.95"
+  ],
+  "filament_vendor": [
+    "Polymaker"
+  ],
+  "from": "system",
+  "filament_id": "GFL00",
+  "helio_filament_id": "84103a9c-efd7-4ec1-9a17-d443c4d1c2fb"
 }

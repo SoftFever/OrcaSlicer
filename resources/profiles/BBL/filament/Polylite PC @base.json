@@ -1,0 +1,21 @@
+{
+  "name": "Polylite PC @base",
+  "inherits": "fdm_filament_pc",
+  "type": "filament",
+  "instantiation": "true",
+  "filament_cost": [
+    "39.99"
+  ],
+  "from": "system",
+  "filament_vendor": [
+    "Bambu Lab"
+  ],
+  "impact_strength_z": [
+    "9.0"
+  ],
+  "filament_flow_ratio": [
+    "0.94"
+  ],
+  "helio_filament_id": "54ef480a-5285-4d0f-be87-77f58f99bf6a",
+  "filament_id": "GFC001"
+}

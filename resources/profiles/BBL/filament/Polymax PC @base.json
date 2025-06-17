@@ -1,0 +1,21 @@
+{
+  "name": "Polymax PC @base",
+  "inherits": "fdm_filament_pc",
+  "type": "filament",
+  "impact_strength_z": [
+    "9.0"
+  ],
+  "filament_vendor": [
+    "Bambu Lab"
+  ],
+  "from": "system",
+  "filament_flow_ratio": [
+    "0.94"
+  ],
+  "instantiation": "true",
+  "filament_cost": [
+    "39.99"
+  ],
+  "helio_filament_id": "f8f22425-a04e-4673-9329-56cbdd96205e",
+  "filament_id": "GFC0012"
+}

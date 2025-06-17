@@ -1,0 +1,36 @@
+{
+  "name": "PolyFlex TPU 90 @BBL A1M",
+  "inherits": "PolyFlex TPU 90 @base",
+  "type": "filament",
+  "textured_plate_temp": [
+    "30"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "30"
+  ],
+  "setting_id": "GFSU03_051",
+  "compatible_printers": [
+    "Bambu Lab A1 mini 0.6 nozzle",
+    "Bambu Lab A1 mini 0.8 nozzle",
+    "Bambu Lab A1 mini 0.4 nozzle"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "30"
+  ],
+  "filament_density": [
+    "1.22"
+  ],
+  "from": "system",
+  "instantiation": "true",
+  "helio_filament_id": "655949f2-5948-4c7e-aa1f-0312fabbc3e2",
+  "hot_plate_temp": [
+    "30"
+  ],
+  "impact_strength_z": [
+    "88.7"
+  ],
+  "filament_id": "GFU031",
+  "nozzle_temperature_range_high": [
+    "250"
+  ]
+}

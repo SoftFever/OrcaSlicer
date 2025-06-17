@@ -20,5 +20,7 @@
         "0.04"
     ],
     "default_print_profile": "0.10mm Standard @BBL A1 0.2 nozzle",
-    "upward_compatible_machine": []
+    "upward_compatible_machine": [
+        "Bambu Lab H2D 0.2 nozzle"
+    ]
 }

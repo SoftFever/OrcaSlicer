@@ -1,20 +1,21 @@
 {
-    "type": "filament",
-    "name": "PolyTerra PLA @base",
-    "inherits": "fdm_filament_pla",
-    "from": "system",
-    "filament_id": "GFL01",
-    "instantiation": "false",
-    "filament_cost": [
-        "25.4"
-    ],
-    "filament_density": [
-        "1.31"
-    ],
-    "filament_flow_ratio": [
-        "0.98"
-    ],
-    "filament_vendor": [
-        "Polymaker"
-    ]
+  "name": "PolyTerra PLA @base",
+  "inherits": "fdm_filament_pla",
+  "type": "filament",
+  "filament_cost": [
+    "25.4"
+  ],
+  "from": "system",
+  "filament_flow_ratio": [
+    "0.98"
+  ],
+  "instantiation": "false",
+  "filament_vendor": [
+    "Polymaker"
+  ],
+  "filament_density": [
+    "1.31"
+  ],
+  "filament_id": "GFL01",
+  "helio_filament_id": "af814e56-0d57-4971-af2f-08ce2c687d83"
 }

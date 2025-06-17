@@ -1,0 +1,24 @@
+{
+  "name": "PolyFlex TPU 90 @BBL X1C",
+  "inherits": "PolyFlex TPU 90 @base",
+  "type": "filament",
+  "compatible_printers": [
+    "Bambu Lab X1 0.4 nozzle",
+    "Bambu Lab X1 0.6 nozzle",
+    "Bambu Lab X1 0.8 nozzle",
+    "Bambu Lab X1 Carbon 0.4 nozzle",
+    "Bambu Lab X1 Carbon 0.6 nozzle",
+    "Bambu Lab X1 Carbon 0.8 nozzle",
+    "Bambu Lab X1E 0.4 nozzle",
+    "Bambu Lab X1E 0.6 nozzle",
+    "Bambu Lab X1E 0.8 nozzle",
+    "Bambu Lab P1S 0.4 nozzle",
+    "Bambu Lab P1S 0.6 nozzle",
+    "Bambu Lab P1S 0.8 nozzle"
+  ],
+  "instantiation": "true",
+  "from": "system",
+  "description": "This filament is too soft and not compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",
+  "helio_filament_id": "655949f2-5948-4c7e-aa1f-0312fabbc3e2",
+  "setting_id": "GFSU03_001"
+}

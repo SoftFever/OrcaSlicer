@@ -18,6 +18,7 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "impact_strength_z":["16.8"],
     "filament_scarf_seam_type": [
         "none"
     ],

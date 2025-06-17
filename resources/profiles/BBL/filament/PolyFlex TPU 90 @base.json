@@ -1,0 +1,34 @@
+{
+  "name": "PolyFlex TPU 90 @base",
+  "inherits": "fdm_filament_tpu",
+  "type": "filament",
+  "nozzle_temperature_range_high": [
+    "240"
+  ],
+  "filament_max_volumetric_speed": [
+    "2.8"
+  ],
+  "instantiation": "true",
+  "impact_strength_z": [
+    "87.3"
+  ],
+  "filament_cost": [
+    "59.99"
+  ],
+  "helio_filament_id": "655949f2-5948-4c7e-aa1f-0312fabbc3e2",
+  "from": "system",
+  "filament_vendor": [
+    "Bambu Lab"
+  ],
+  "nozzle_temperature": [
+    "225"
+  ],
+  "nozzle_temperature_initial_layer": [
+    "225"
+  ],
+  "description": "This filament is too soft and not compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",
+  "filament_id": "GFU031",
+  "slow_down_layer_time": [
+    "14"
+  ]
+}

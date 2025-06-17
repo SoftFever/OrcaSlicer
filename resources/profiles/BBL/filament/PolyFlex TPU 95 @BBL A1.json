@@ -1,0 +1,29 @@
+{
+  "name": "PolyFlex TPU 95 @BBL A1",
+  "inherits": "PolyFlex TPU 95 @base",
+  "type": "filament",
+  "textured_plate_temp_initial_layer": [
+    "45"
+  ],
+  "from": "system",
+  "instantiation": "true",
+  "compatible_printers": [
+    "Bambu Lab A1 0.4 nozzle",
+    "Bambu Lab A1 0.6 nozzle",
+    "Bambu Lab A1 0.8 nozzle"
+  ],
+  "hot_plate_temp": [
+    "45"
+  ],
+  "textured_plate_temp": [
+    "45"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "45"
+  ],
+  "filament_max_volumetric_speed": [
+    "3.6"
+  ],
+  "filament_id": "GFU0111",
+  "setting_id": "GFSU01_01"
+}
