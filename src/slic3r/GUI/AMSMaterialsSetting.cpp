@@ -1242,9 +1242,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         PACalibResult default_item;
         default_item.cali_idx = -1;
         default_item.filament_id = ams_filament_id;
-        std::vector<std::string> machine_list = {"N1", "N2S", "C11", "C12", "C13", "BL-P001", "BL-P002"};
-        auto iter = std::find(machine_list.begin(), machine_list.end(), obj->printer_type);
-        if (iter == machine_list.end()) {
+        if (obj->is_support_auto_flow_calibration) {
             default_item.k_value = -1;
             default_item.n_coef  = -1;
         }
