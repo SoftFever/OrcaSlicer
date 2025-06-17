@@ -30,7 +30,6 @@
     "filament_type": [
         "TPU"
     ],
-    "from": "User",
     "nozzle_temperature": [
         "230"
     ],
