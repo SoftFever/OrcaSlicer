@@ -5681,6 +5681,7 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
 
             if (!m_agent) return;
             if (!slice_info) return;
+            if (!get_slice_info_thread) return;/*STUDIO-12264*/
             if (get_slice_info_thread->interruption_requested()) { return;}
 
             if (plate_idx >= 0) {
