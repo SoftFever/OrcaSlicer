@@ -2344,11 +2344,12 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(45., false));
 
     def = this->add("top_infill_direction", coFloatOrPercent);
-    def->label = L("Top infill direction");
+    def->label =    L("Top infill direction");
     def->category = L("Strength");
-    def->tooltip = L("Angle for top infill pattern, which controls the start or main direction of line" ".\n"
-                    "If expressed as a %, it will be computed a sector of the full turn 360°" ".\n");
-    def->sidetext = "° or %";
+    def->tooltip =  _(L("Angle for top infill pattern, which controls the start or main direction of line.")) + "\n" +
+                    _(L("If expressed as a %, it will be computed a sector of the full turn 360°.")) + "\n" +
+                    _(L("Positive values for turn CCW, negative ones for turn CW."));
+    def->sidetext = L("° or %");
     def->min = -360;
     def->max = 360;
     def->max_literal = 10;
@@ -2356,24 +2357,32 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(45., false));
 
     def = this->add("bottom_infill_direction", coFloatOrPercent);
-    def->label = L("Bottom infill direction");
+    def->label =    L("Bottom infill direction");
     def->category = L("Strength");
-    def->tooltip = L("Angle for bottom infill pattern, which controls the start or main direction of line" ".\n"
-                    "If expressed as a %, it will be computed a sector of the full turn 360°" ".\n");
-    def->sidetext = "° or %";
+    def->tooltip =  _(L("Angle for bottom infill pattern, which controls the start or main direction of line.")) + "\n" +
+                    _(L("If expressed as a %, it will be computed a sector of the full turn 360°.")) + "\n" +
+                    _(L("Positive values for turn CCW, negative ones for turn CW."));
+    def->sidetext = L("° or %");
     def->min = -360;
     def->max = 360;
     def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(45., false));
 
-    def = this->add("rotate_solid_infill_direction", coFloatOrPercent);
-    def->label = L("  Rotate solid infill");
+    def = this->add("apply_model_direction", coBool);
+    def->label = L("Apply model direction to infill");
     def->category = L("Strength");
-    def->tooltip = L("The angle for the solid infill pattern, which turned for each layer" ".\n"
-                     "Positive values for turn CCW, negative ones for turn CW" ".\n"
-                     "The default value is 90, which allows to rotate each layer even with complex patterns" ".\n");
-    def->sidetext = "° or %";
+    def->tooltip = L("Takes into account an angle of model rotation on the bed and places the infills in accordance with this direction.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("rotate_solid_infill_direction", coFloatOrPercent);
+    def->label = "  " + _(L("Rotate solid infill"));
+    def->category = L("Strength");
+    def->tooltip =  _(L("The angle for the solid infill pattern, which turned for each layer.")) + "\n" +
+                    _(L("The default value is 90, which allows to rotate each layer even with complex patterns.")) + "\n" +
+                    _(L("Positive values for turn CCW, negative ones for turn CW."));
+    def->sidetext = L("° or %");
     def->min = -360;
     def->max = 360;
     def->max_literal = 10;
@@ -2381,15 +2390,15 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(90., false));
 
     def = this->add("rotate_sparse_infill_direction", coFloatOrPercent);
-    def->label = L("  Rotate sparse infill");
+    def->label = "  " + _(L("Rotate sparse infill"));
     def->category = L("Strength");
-    def->tooltip = L("The angle for the sparse infill pattern, which turned for each layer" ".\n"
-                     "Attention! This is an experimental parameter for very trained users" ". "
-                     "Make sure that this infill can be printed! Otherwise, set it to 0 always" ". "
-                     "Strongly recommended to use a small rotation angle for loose оr large infills" ".\n"
-                     "If expressed as a %, it will be computed a sector of the full turn 360°" ".\n"
-                     "Positive values for turn CCW, negative ones for turn CW" ".\n");
-    def->sidetext = "° or %";
+    def->tooltip =  _(L("The angle for the sparse infill pattern, which turned for each layer.")) + "\n" +
+                    _(L("Attention! This is an experimental parameter for very trained users. "
+                        "Make sure that this infill can be printed! Otherwise, set it to 0 always. "
+                        "Strongly recommended to use a small rotation angle for loose оr large infills.")) + "\n" +
+                     _(L("If expressed as a %, it will be computed a sector of the full turn 360°.")) + "\n" +
+                     _(L("Positive values for turn CCW, negative ones for turn CW."));
+    def->sidetext = L("° or %");
     def->min = -360;
     def->max = 360;
     def->max_literal = 10;
@@ -2397,13 +2406,12 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("rotate_sparse_infill_height", coFloatOrPercent);
-    def->label = L("  ... at a height range of");
+    def->label = "  ... " + _(L("at a height range of"));
     def->category = L("Strength");
-    def->tooltip = L("The length through which the rotation will take place at a given angle in the sparse infill" ".\n"
-                     "If expressed as a %, it will be computed over the model height" ".\n"
-                     "A zero value indicates that rotation will occur through each layer" ".\n");
-    def->sidetext = "cm or %";
-    //def->ratio_over = "";
+    def->tooltip = _(L("The range of height through which the rotation will take place at a given angle in the sparse infill.")) + "\n" +
+                   _(L("If expressed as a %, it will be computed of model height.")) + "\n" +
+                   _(L("A zero value indicates that rotation will occur through each layer."));
+    def->sidetext = L("cm or %");
     def->min = 0;
     def->max = 1000;
     def->max_literal = 10;
@@ -2411,13 +2419,14 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("sparse_infill_zigzag_angle", coFloatOrPercent);
-    def->label = L("  Sparse infill zig-zag angle");
+    def->label = "  " + _(L("Sparse infill zig-zag angle"));
     def->category = L("Strength");
-    def->tooltip = L("The angle for a sparse fill pattern in which part of the layers rotates relative to another one" ".\n"
-                     "Attention! This is an experimental parameter for very trained users" ". "
-                     "If expressed as a %, it will be computed a sector of the full turn 360°" ".\n"
-                     "Make sure that this infill can be printed! Otherwise, set it to 0 always" ".\n");
-    def->sidetext = "° or %";
+    def->tooltip = _(L("The angle for a sparse infill pattern in which part of the layers rotates relative to another one.")) + "\n" +
+                   _(L("Attention! This is an experimental parameter for very trained users. "
+                       "Make sure that this infill can be printed! Otherwise, set it to 0 always. "
+                       "Strongly recommended to use a small rotation angle for loose оr large infills.")) + "\n" +
+                   _(L("If expressed as a %, it will be computed a sector of the full turn 360°."));
+    def->sidetext = L("° or %");
     def->min = -360;
     def->max = 360;
     def->max_literal = 10;
@@ -2425,14 +2434,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("sparse_infill_zigzag_height", coFloatOrPercent);
-    def->label = L("  ... at a height range of");
+    def->label = "  ... " + _(L("at a height range of"));
     def->category = L("Strength");
-    def->tooltip = L("The length during which full of the zigzag period will deviate at a given angle in the sparse infill" ".\n"
-                     "If expressed as a %, it will be computed over the model height" ".\n"
-                     "A zero value indicates that rotation will occur through each layer" ".\n");
-    def->sidetext = "cm or %";
-    //def->ratio_over = "";
-    def->min = 0;
+    def->tooltip = _(L("The range of height during which full of the zigzag period will deviate at a given angle in the sparse infill.")) + "\n" +
+                   _(L("If expressed as a %, it will be computed of model height.")) + "\n" +
+                   _(L("A zero value indicates that rotation will occur through each layer."));
+    def->sidetext = L("cm or %");
+     def->min = 0;
     def->max = 1000;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));

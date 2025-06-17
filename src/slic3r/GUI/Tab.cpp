@@ -2198,20 +2198,21 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+        optgroup->append_single_option_line("apply_model_direction");
         optgroup->append_single_option_line("top_infill_direction");
         optgroup->append_single_option_line("bottom_infill_direction");
-        optgroup->append_separator();        
+        //optgroup->append_separator();
         optgroup->append_single_option_line("infill_direction");
         optgroup->append_single_option_line("rotate_sparse_infill_direction");
-        optgroup->append_single_option_line("rotate_sparse_infill_height");        
+        optgroup->append_single_option_line("rotate_sparse_infill_height");
         optgroup->append_single_option_line("sparse_infill_zigzag_angle");
         optgroup->append_single_option_line("sparse_infill_zigzag_height");
         optgroup->append_single_option_line("minimum_sparse_infill_area");
-        optgroup->append_separator();
+        //optgroup->append_separator();
         optgroup->append_single_option_line("solid_infill_direction");
         optgroup->append_single_option_line("rotate_solid_infill_direction");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
-        optgroup->append_separator();
+        //optgroup->append_separator();
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("internal_bridge_angle"); // ORCA: Internal bridge angle override
         optgroup->append_single_option_line("infill_combination");
