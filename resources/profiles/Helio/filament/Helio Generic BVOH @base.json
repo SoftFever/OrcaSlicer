@@ -1,8 +1,0 @@
-{
-  "name": "Helio Generic BVOH @base",
-  "type": "filament",
-  "inherits": "fdm_filament_bvoh",
-  "instantiation": "false",
-  "from": "system",
-  "filament_id": "GFS97"
-}

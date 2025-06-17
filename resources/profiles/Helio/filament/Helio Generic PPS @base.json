@@ -1,8 +1,0 @@
-{
-  "name": "Helio Generic PPS @base",
-  "type": "filament",
-  "inherits": "fdm_filament_pps",
-  "instantiation": "false",
-  "filament_id": "GFT97",
-  "from": "system"
-}

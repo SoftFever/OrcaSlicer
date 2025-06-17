@@ -1,8 +1,0 @@
-{
-  "name": "Helio Generic PHA @base",
-  "type": "filament",
-  "inherits": "fdm_filament_pha",
-  "instantiation": "false",
-  "filament_id": "GFR98",
-  "from": "system"
-}
