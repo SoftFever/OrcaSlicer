@@ -31,6 +31,7 @@
   "overhang_1_4_speed": "60",
   "internal_solid_infill_acceleration": "2500",
   "sparse_infill_acceleration": "2500",
+  "support_top_z_distance": "0.1",
   "compatible_printers": [
     "Prusa MINIIS 0.25 nozzle"
   ]

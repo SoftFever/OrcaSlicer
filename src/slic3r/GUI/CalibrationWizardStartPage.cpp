@@ -92,10 +92,11 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_page_caption, 0, wxEXPAND, 0);
     create_when(parent,
         _L("When do you need Flow Dynamics Calibration"),
-        _L("We now have added the auto-calibration for different filaments, which is fully automated and the result will be saved into the printer for future use. You only need to do the calibration in the following limited cases:\
-\n1. If you introduce a new filament of different brands/models or the filament is damp;\
-\n2. if the nozzle is worn out or replaced with a new one;\
-\n3. If the max volumetric speed or print temperature is changed in the filament setting."));
+        _L("We now have added the auto-calibration for different filaments, which is fully automated and the result will be saved into the printer for future use. "
+           "You only need to do the calibration in the following limited cases:\n"
+           "1. If you introduce a new filament of different brands/models or the filament is damp;\n"
+           "2. If the nozzle is worn out or replaced with a new one;\n"
+           "3. If the max volumetric speed or print temperature is changed in the filament setting."));
 
     m_top_sizer->Add(m_when_title);
     m_top_sizer->Add(m_when_content);
@@ -216,11 +217,11 @@ void CalibrationFlowRateStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_page_caption, 0, wxEXPAND, 0);
     create_when(parent,
         _L("When to use Flow Rate Calibration"),
-        _L("After using Flow Dynamics Calibration, there might still be some extrusion issues, such as:\
-\n1. Over-Extrusion: Excess material on your printed object, forming blobs or zits, or the layers seem thicker than expected and not uniform.\
-\n2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the top layer of the model, even when printing slowly.\
-\n3. Poor Surface Quality: The surface of your prints seems rough or uneven.\
-\n4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as they should be."));
+        _L("After using Flow Dynamics Calibration, there might still be some extrusion issues, such as:\n"
+           "1. Over-Extrusion: Excess material on your printed object, forming blobs or zits, or the layers seem thicker than expected and not uniform\n"
+           "2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the top layer of the model, even when printing slowly\n"
+           "3. Poor Surface Quality: The surface of your prints seems rough or uneven\n"
+           "4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as they should be"));
 
     m_top_sizer->Add(m_when_title);
     m_top_sizer->Add(m_when_content);
