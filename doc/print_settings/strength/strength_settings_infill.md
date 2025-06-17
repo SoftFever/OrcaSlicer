@@ -13,6 +13,37 @@ Not all patters interpret density the same way, so the actual material usage may
 Infill patterns determine how material is distributed within a print. Different patterns can affect strength, flexibility, and print speed.
 There is no one-size-fits-all solution, as the best pattern depends on the specific print and its requirements.
 
+> [!NOTE]
+> You can download a quick resume table [infill_desc_calculator.xlsx](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/print_settings/strength/infill_desc_calculator.xlsx?raw=true) used to calculate the values above.
+
+### Concentric
+
+Fills the area with progressively smaller versions of the outer contour, creating a concentric pattern. Ideal for 100% infill or flexible prints.
+
+- **Horizontal Strength (X-Y):** Low
+- **Vertical Strength (Z):** Normal
+- **Density Calculation:** Total infill material usage
+- **Material Usage:** Normal
+- **Time:** Normal
+- **Material/Time (Higher better):** Normal-High
+
+![infill-top-concentric](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-concentric.png?raw=true)
+![infill-iso-concentric](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-concentric.png?raw=true)
+
+### Rectilinear
+
+Parallel lines spaced according to infill density. Each layer is printed perpendicular to the previous, resulting in low vertical bonding.
+
+- **Horizontal Strength (X-Y):** Normal-Low
+- **Vertical Strength (Z):** Low
+- **Density Calculation:** Total infill material usage
+- **Material Usage:** Normal
+- **Time:** Normal
+- **Material/Time (Higher better):** Normal
+
+![infill-top-rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-rectilinear.png?raw=true)
+![infill-iso-rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-rectilinear.png?raw=true)
+
 ### Grid
 
 Two-layer pattern of perpendicular lines, forming a grid. Overlapping points may cause noise or artifacts.
@@ -280,6 +311,3 @@ Similar to [Gyroid](#gyroid) but with linear patterns, creating weak points at i
 
 ![infill-top-quarter-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-quarter-cubic.png?raw=true)
 ![infill-iso-quarter-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-quarter-cubic.png?raw=true)
-
-> [!NOTE]
-> infill_desc_calculator.xlsx was used to calculate the values above.
