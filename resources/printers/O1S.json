@@ -14,6 +14,7 @@
 					"remote": "tutk"
 				},
 				"file": {
+					"local": "local",
 					"remote": "tutk",
 					"model_download": "enabled"
 				}
