@@ -8767,6 +8767,10 @@ msgstr "Ancho de línea de Moldeado de Extremo"
 msgid "Ramming line spacing"
 msgstr "Separación de línea de moldeado de extremo"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr "Para un flujo constante, mantén pulsado %1% mientras arrastras."
+
 msgid "Auto-Calc"
 msgstr "Calculado automático"
 

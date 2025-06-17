@@ -8713,6 +8713,10 @@ msgstr "Szerokość linii wyciskania"
 msgid "Ramming line spacing"
 msgstr "Odstęp linii wyciskania"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr "Aby uzyskać stałe natężenie przepływu, przytrzymaj %1% podczas przeciągania."
+
 msgid "Auto-Calc"
 msgstr "Auto-obliczenia"
 
