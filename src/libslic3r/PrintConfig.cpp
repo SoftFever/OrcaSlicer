@@ -1263,15 +1263,15 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Gridify Anti-warping");
     def->full_label = L("Enable Gridify");
     def->category = L("Quality");
-    def->tooltip = L("Split object into grids to avoid wrapping");
+    def->tooltip = L("Split object into grids to avoid wrapping.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("gridify_angle", coFloat);
     def->label = L("Gridify pattern direction");
     def->category = L("Quality");
-    def->tooltip = L("Angle for gridify pattern");
-    def->sidetext = L("°");
+    def->tooltip = L("Angle for gridify pattern.");
+    def->sidetext = "°";
     def->min = 0;
     def->max = 90;
     def->mode = comAdvanced;
@@ -1288,7 +1288,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("gridify_gap_layers", coInt);
     def->label = L("Gridify pattern layers");
     def->category = L("Quality");
-    def->tooltip = L("The number of layers the grid pattern repeats before shifting position");
+    def->tooltip = L("The number of layers the grid pattern repeats before shifting position.");
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt{3});
@@ -1304,7 +1304,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("gridify_inset", coFloat);
     def->label = L("Gridify inset");
     def->category = L("Quality");
-    def->tooltip = L("The distance to keep from the edges. A value of 0 create holes on walls");
+    def->tooltip = L("The distance to keep from the edges. A value of 0 create holes on walls.");
     def->sidetext = L("mm");
     def->min = 0.f;
     def->mode = comAdvanced;
