@@ -3,9 +3,7 @@
   "from": "system",
   "setting_id": "GP001",
   "instantiation": "true",
-  "compatible_printers": [
-    "Flashforge Guider 3 Ultra 0.4 Nozzle"
-  ],
+  "compatible_printers": ["Flashforge Guider 3 Ultra 0.4 Nozzle"],
   "bridge_flow": "0.96",
   "bridge_speed": "20",
   "infill_wall_overlap": "25%",
@@ -20,7 +18,8 @@
   "support_interface_spacing": "0.18",
   "support_line_width": "0.4",
   "support_speed": "80",
-  "version": "2.0.2.0",
   "filename_format": "{input_filename_base}.gcode",
-  "post_process": ""
+  "post_process": "",
+  "prime_tower_brim_width": "5",
+  "version": "2.1.1.0"
 }

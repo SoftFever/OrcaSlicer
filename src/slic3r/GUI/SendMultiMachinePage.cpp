@@ -1210,7 +1210,7 @@ wxPanel* SendMultiMachinePage::create_page()
 
     //m_table_head_sizer->Add(m_task_status, 0, wxALIGN_CENTER_VERTICAL, 0);
 
-    m_ams = new Button(m_table_head_panel, _L("Ams Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE, false);
+    m_ams = new Button(m_table_head_panel, _L("AMS Status"), "toolbar_double_directional_arrow", wxNO_BORDER, ICON_SIZE, false);
     m_ams->SetBackgroundColor(head_bg);
     m_ams->SetCornerRadius(0);
     m_ams->SetFont(TABLE_HEAD_FONT);
@@ -1314,8 +1314,8 @@ wxPanel* SendMultiMachinePage::create_page()
 
     // add send option
     wxBoxSizer* title_send_option = create_item_title(_L("Send Options"), main_page, "");
-    wxBoxSizer* max_printer_send = create_item_input(_L("Send to"), _L("printers at the same time.(It depends on how many devices can undergo heating at the same time.)"), main_page, "", "max_send");
-    wxBoxSizer* delay_time = create_item_input(_L("Wait"), _L("minute each batch.(It depends on how long it takes to complete the heating.)"), main_page, "", "sending_interval");
+    wxBoxSizer* max_printer_send = create_item_input(_L("Send to"), _L("printers at the same time. (It depends on how many devices can undergo heating at the same time.)"), main_page, "", "max_send");
+    wxBoxSizer* delay_time = create_item_input(_L("Wait"), _L("minute each batch. (It depends on how long it takes to complete the heating.)"), main_page, "", "sending_interval");
     sizer->Add(title_send_option, 0, wxEXPAND, 0);
     sizer->Add(max_printer_send, 0, wxLEFT, FromDIP(20));
     sizer->AddSpacer(FromDIP(3));

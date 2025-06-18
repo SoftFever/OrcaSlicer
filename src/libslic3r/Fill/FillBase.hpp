@@ -69,6 +69,10 @@ struct FillParams
     // Layer height for Concentric infill with Arachne.
     coordf_t    layer_height    { 0.f };
 
+    // For 2D lattice
+    coordf_t    lattice_angle_1    { 0.f };
+    coordf_t    lattice_angle_2    { 0.f };
+
     // BBS
     Flow            flow;
     ExtrusionRole   extrusion_role{ ExtrusionRole(0) };
@@ -186,6 +190,8 @@ public:
     static void connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const double spacing, const FillParams &params);
     static void connect_infill(Polylines &&infill_ordered, const Polygons &boundary, const BoundingBox& bbox, Polylines &polylines_out, const double spacing, const FillParams &params);
     static void connect_infill(Polylines &&infill_ordered, const std::vector<const Polygon*> &boundary, const BoundingBox &bbox, Polylines &polylines_out, double spacing, const FillParams &params);
+
+    static void chain_or_connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const double spacing, const FillParams &params);
 
     static void connect_base_support(Polylines &&infill_ordered, const std::vector<const Polygon*> &boundary_src, const BoundingBox &bbox, Polylines &polylines_out, const double spacing, const FillParams &params);
     static void connect_base_support(Polylines &&infill_ordered, const Polygons &boundary_src, const BoundingBox &bbox, Polylines &polylines_out, const double spacing, const FillParams &params);

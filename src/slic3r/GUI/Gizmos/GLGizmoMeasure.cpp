@@ -39,7 +39,7 @@ std::string GLGizmoMeasure::surface_feature_type_as_string(Measure::SurfaceFeatu
     switch (type)
     {
     default:
-    case Measure::SurfaceFeatureType::Undef:  { return ("No feature"); }
+    case Measure::SurfaceFeatureType::Undef:  { return _u8L("No feature"); }
     case Measure::SurfaceFeatureType::Point:  { return _u8L("Vertex"); }
     case Measure::SurfaceFeatureType::Edge:   { return _u8L("Edge"); }
     case Measure::SurfaceFeatureType::Circle: { return _u8L("Circle"); }
@@ -480,7 +480,7 @@ std::string GLGizmoMeasure::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
         if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-            return _u8L("Measure") + ":\n" + _u8L("Please confirm explosion ratio = 1,and please select at least one object");
+            return _u8L("Measure") + ":\n" + _u8L("Please confirm explosion ratio = 1, and please select at least one object.");
         }
         else {
             return _u8L("Measure") + ":\n" + _u8L("Please select at least one object.");
@@ -1902,14 +1902,14 @@ void GLGizmoMeasure::show_selection_ui()
     if (m_selected_wrong_feature_waring_tip) {
         if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
             if (m_assembly_mode == AssemblyMode::FACE_FACE) {
-                m_imgui->warning_text(_L("Warning:please select Plane's feature."));
+                m_imgui->warning_text(_L("Warning: please select Plane's feature."));
             } else if (m_assembly_mode == AssemblyMode::POINT_POINT) {
-                m_imgui->warning_text(_L("Warning:please select Point's or Circle's feature."));
+                m_imgui->warning_text(_L("Warning: please select Point's or Circle's feature."));
             }
         }
     }
     if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY && m_hit_different_volumes.size() == 1) {
-        m_imgui->warning_text(_L("Warning:please select two different mesh."));
+        m_imgui->warning_text(_L("Warning: please select two different meshes."));
     }
 }
 
@@ -2080,7 +2080,7 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
         m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Plane &&
         m_selected_features.second.feature->get_type() == Measure::SurfaceFeatureType::Plane) {
         auto &action                         = m_assembly_action;
-        auto  feature_text_size              = m_imgui->calc_button_size(_L("Featue 1")).x + m_imgui->calc_button_size(":").x;
+        auto  feature_text_size              = m_imgui->calc_button_size(_L("Feature 1")).x + m_imgui->calc_button_size(":").x;
         auto  set_to_reverse_rotation_size   = m_imgui->calc_button_size(_L("Reverse rotation")).x;
         auto  rotate_around_center_size      = m_imgui->calc_button_size(_L("Rotate around center:")).x;
         auto  parallel_distance_size         = m_imgui->calc_button_size(_L("Parallel distance:")).x;
@@ -2108,7 +2108,7 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
                 m_buffered_around_center = 0;
             }
             ImGui::SameLine(rotate_around_center_size + m_space_size + m_input_size_max + m_space_size / 2.0f);
-            m_imgui->text(_L("°"));
+            m_imgui->text("°");
         }
     }
 }
@@ -2470,11 +2470,11 @@ void GLGizmoMeasure::set_distance(bool same_model_object, const Vec3d &displacem
         selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
         m_pending_scale ++;
         if (same_model_object == false) {
-            auto object_displacement = v->get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
+            Vec3d object_displacement = v->get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
             v->set_instance_transformation(v->get_instance_transformation().get_matrix() * Geometry::translation_transform(object_displacement));
         } else {
             Geometry::Transformation tran(v->world_matrix());
-            auto                     local_displacement = tran.get_matrix_no_offset().inverse() * displacement;
+            Vec3d                     local_displacement = tran.get_matrix_no_offset().inverse() * displacement;
             v->set_volume_transformation(v->get_volume_transformation().get_matrix() * Geometry::translation_transform(local_displacement));
         }
         wxGetApp().plater()->canvas3D()->do_move("");
@@ -2647,7 +2647,7 @@ void GLGizmoMeasure::set_parallel_distance(bool same_model_object, float dist)
         const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
         Vec3d proj_pt2;
         Measure::get_point_projection_to_plane(pt2, pt1, normal1, proj_pt2);
-        auto new_pt2 = proj_pt2 + normal1 * dist;
+        Vec3d new_pt2 = proj_pt2 + normal1 * dist;
 
         Vec3d displacement = new_pt2 - pt2;
 

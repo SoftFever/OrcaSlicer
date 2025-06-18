@@ -170,6 +170,7 @@ const std::string BBS_MODEL_CONFIG_RELS_FILE = "Metadata/_rels/model_settings.co
 const std::string SLICE_INFO_CONFIG_FILE = "Metadata/slice_info.config";
 const std::string BBS_LAYER_HEIGHTS_PROFILE_FILE = "Metadata/layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/layer_config_ranges.xml";
+const std::string BRIM_EAR_POINTS_FILE = "Metadata/brim_ear_points.txt";
 /*const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
 const std::string SLA_DRAIN_HOLES_FILE = "Metadata/Slic3r_PE_sla_drain_holes.txt";*/
 const std::string CUSTOM_GCODE_PER_PRINT_Z_FILE = "Metadata/custom_gcode_per_layer.xml";
@@ -807,10 +808,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //typedef std::map<Id, ComponentsList> IdToAliasesMap;
         typedef std::vector<Instance> InstancesList;
         typedef std::map<int, ObjectMetadata> IdToMetadataMap;
+        typedef std::map<int, CutObjectInfo>  IdToCutObjectInfoMap;
         //typedef std::map<Id, Geometry> IdToGeometryMap;
         typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
         typedef std::map<int, t_layer_config_ranges> IdToLayerConfigRangesMap;
-        typedef std::map<int, CutObjectInfo>         IdToCutObjectInfoMap;
+        typedef std::map<int, BrimPoints>             IdToBrimPointsMap;
         /*typedef std::map<int, std::vector<sla::SupportPoint>> IdToSlaSupportPointsMap;
         typedef std::map<int, std::vector<sla::DrainHole>> IdToSlaDrainHolesMap;*/
         using PathToEmbossShapeFileMap = std::map<std::string, std::shared_ptr<std::string>>;
@@ -1000,9 +1002,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //IdToGeometryMap m_orig_geometries; // backup & restore
         CurrentConfig m_curr_config;
         IdToMetadataMap m_objects_metadata;
-        IdToCutObjectInfoMap m_cut_object_infos;
+        IdToCutObjectInfoMap       m_cut_object_infos;
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
         IdToLayerConfigRangesMap m_layer_config_ranges;
+        IdToBrimPointsMap m_brim_ear_points;
         /*IdToSlaSupportPointsMap m_sla_support_points;
         IdToSlaDrainHolesMap    m_sla_drain_holes;*/
         PathToEmbossShapeFileMap m_path_to_emboss_shape_files;
@@ -1064,11 +1067,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _extract_xml_from_archive(mz_zip_archive& archive, std::string const & path, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
         bool _extract_xml_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
-        void _extract_cut_information_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, ConfigSubstitutionContext& config_substitutions);
+        void _extract_cut_information_from_archive(mz_zip_archive &archive, const mz_zip_archive_file_stat &stat, ConfigSubstitutionContext &config_substitutions);
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_layer_config_ranges_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, ConfigSubstitutionContext& config_substitutions);
         void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_sla_drain_holes_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        void _extract_brim_ear_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
         void _extract_custom_gcode_per_print_z_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
 
@@ -1270,6 +1274,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_objects_metadata.clear();
         m_layer_heights_profiles.clear();
         m_layer_config_ranges.clear();
+        m_brim_ear_points.clear();
         //m_sla_support_points.clear();
         m_curr_metadata_name.clear();
         m_curr_characters.clear();
@@ -1759,6 +1764,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     // extract slic3r layer config ranges file
                     _extract_layer_config_ranges_from_archive(archive, stat, config_substitutions);
                 }
+                else if (boost::algorithm::iequals(name, BRIM_EAR_POINTS_FILE)) {
+                    // extract slic3r config file
+                    _extract_brim_ear_points_from_archive(archive, stat);
+                }
                 //BBS: disable SLA related files currently
                 /*else if (boost::algorithm::iequals(name, SLA_SUPPORT_POINTS_FILE)) {
                     // extract sla support points file
@@ -1941,6 +1950,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             IdToLayerConfigRangesMap::iterator obj_layer_config_ranges = m_layer_config_ranges.find(object.second + 1);
             if (obj_layer_config_ranges != m_layer_config_ranges.end())
                 model_object->layer_config_ranges = std::move(obj_layer_config_ranges->second);
+
+            IdToBrimPointsMap::iterator obj_brim_points = m_brim_ear_points.find(object.second + 1);
+            if (obj_brim_points != m_brim_ear_points.end())
+                model_object->brim_points = std::move(obj_brim_points->second);
 
             // m_sla_support_points are indexed by a 1 based model object index.
             /*IdToSlaSupportPointsMap::iterator obj_sla_support_points = m_sla_support_points.find(object.second + 1);
@@ -2759,6 +2772,77 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 if (!config_ranges.empty())
                     m_layer_config_ranges.insert({ obj_idx, std::move(config_ranges) });
+            }
+        }
+    }
+
+    void _BBS_3MF_Importer::_extract_brim_ear_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    {
+        if (stat.m_uncomp_size > 0) {
+            std::string buffer((size_t)stat.m_uncomp_size, 0);
+            mz_bool res = mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+            if (res == 0) {
+                add_error("Error while reading brim ear points data to buffer");
+                return;
+            }
+
+            if (buffer.back() == '\n')
+                buffer.pop_back();
+
+            std::vector<std::string> objects;
+            boost::split(objects, buffer, boost::is_any_of("\n"), boost::token_compress_off);
+
+            // Info on format versioning - see bbs_3mf.hpp
+            int version = 0;
+            std::string key("brim_points_format_version=");
+            if (!objects.empty() && objects[0].find(key) != std::string::npos) {
+                objects[0].erase(objects[0].begin(), objects[0].begin() + long(key.size())); // removes the string
+                version = std::stoi(objects[0]);
+                objects.erase(objects.begin()); // pop the header
+            }
+
+            for (const std::string& object : objects) {
+                std::vector<std::string> object_data;
+                boost::split(object_data, object, boost::is_any_of("|"), boost::token_compress_off);
+
+                if (object_data.size() != 2) {
+                    add_error("Error while reading object data");
+                    continue;
+                }
+
+                std::vector<std::string> object_data_id;
+                boost::split(object_data_id, object_data[0], boost::is_any_of("="), boost::token_compress_off);
+                if (object_data_id.size() != 2) {
+                    add_error("Error while reading object id");
+                    continue;
+                }
+
+                int object_id = std::atoi(object_data_id[1].c_str());
+                if (object_id == 0) {
+                    add_error("Found invalid object id");
+                    continue;
+                }
+
+                IdToBrimPointsMap::iterator object_item = m_brim_ear_points.find(object_id);
+                if (object_item != m_brim_ear_points.end()) {
+                    add_error("Found duplicated brim ear points");
+                    continue;
+                }
+
+                std::vector<std::string> object_data_points;
+                boost::split(object_data_points, object_data[1], boost::is_any_of(" "), boost::token_compress_off);
+
+                std::vector<BrimPoint> brim_ear_points;
+                if (version == 0) {
+                    for (unsigned int i=0; i<object_data_points.size(); i+=4)
+                    brim_ear_points.emplace_back(float(std::atof(object_data_points[i+0].c_str())),
+                                                    float(std::atof(object_data_points[i+1].c_str())),
+                                                    float(std::atof(object_data_points[i+2].c_str())),
+                                                    float(std::atof(object_data_points[i+3].c_str())));
+                }
+
+                if (!brim_ear_points.empty())
+                    m_brim_ear_points.insert({ object_id, brim_ear_points });
             }
         }
     }
@@ -5504,9 +5588,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //BBS: change volume to seperate objects
         bool _add_mesh_to_object_stream(std::function<bool(std::string &, bool)> const &flush, ObjectData const &object_data) const;
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items) const;
-        bool _add_cut_information_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_layer_config_ranges_file_to_archive(mz_zip_archive& archive, Model& model);
+        bool _add_brim_ear_points_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_sla_drain_holes_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config);
@@ -5515,6 +5599,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //BBS: add project embedded preset files
         bool _add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const ObjectToObjectDataMap &objects_data, int export_plate_idx = -1, bool save_gcode = true, bool use_loaded_id = false);
+        bool _add_cut_information_file_to_archive(mz_zip_archive &archive, Model &model);
         bool _add_slice_info_config_file_to_archive(mz_zip_archive &archive, const Model &model, PlateDataPtrs &plate_data_list, const ObjectToObjectDataMap &objects_data, const DynamicPrintConfig& config);
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
@@ -5910,6 +5995,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             // All layer height profiles of all ModelObjects are stored here, indexed by 1 based index of the ModelObject in Model.
             // The index differes from the index of an object ID of an object instance of a 3MF file!
             if (!_add_layer_config_ranges_file_to_archive(archive, model)) {
+                close_zip_writer(&archive);
+                return false;
+            }
+
+            if (!_add_brim_ear_points_file_to_archive(archive, model)) {
                 close_zip_writer(&archive);
                 return false;
             }
@@ -7156,6 +7246,40 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
 
+        return true;
+    }
+
+    bool _BBS_3MF_Exporter::_add_brim_ear_points_file_to_archive(mz_zip_archive& archive, Model& model)
+    {
+        std::string out = "";
+        char buffer[1024];
+
+        unsigned int count = 0;
+        for (const ModelObject* object : model.objects) {
+            ++count;
+            const BrimPoints& brim_points = object->brim_points;
+            if (!brim_points.empty()) {
+                sprintf(buffer, "object_id=%d|", count);
+                out += buffer;
+
+                // Store the layer height profile as a single space separated list.
+                for (size_t i = 0; i < brim_points.size(); ++i) {
+                    sprintf(buffer, (i==0 ? "%f %f %f %f" : " %f %f %f %f"),  brim_points[i].pos(0), brim_points[i].pos(1), brim_points[i].pos(2), brim_points[i].head_front_radius);
+                    out += buffer;
+                }
+                out += "\n";
+            }
+        }
+
+        if (!out.empty()) {
+            // Adds version header at the beginning:
+            out = std::string("brim_points_format_version=") + std::to_string(brim_points_format_version) + std::string("\n") + out;
+
+            if (!mz_zip_writer_add_mem(&archive, BRIM_EAR_POINTS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION)) {
+                add_error("Unable to add brim ear points file to archive");
+                return false;
+            }
+        }
         return true;
     }
 

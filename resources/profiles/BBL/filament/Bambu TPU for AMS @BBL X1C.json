@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSU02_00",
     "instantiation": "true",
+    "fan_max_speed": [
+        "40"
+    ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",
         "Bambu Lab X1 Carbon 0.6 nozzle",

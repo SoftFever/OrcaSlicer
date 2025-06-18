@@ -333,12 +333,12 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     sizer_percent_icon->Add(0, 0, 1, wxEXPAND, 0);
 
 
-    m_staticText_progress_percent = new wxStaticText(penel_text, wxID_ANY, L("0"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_percent = new wxStaticText(penel_text, wxID_ANY, "0", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_progress_percent->SetFont(::Label::Head_18);
     m_staticText_progress_percent->SetMaxSize(wxSize(-1, FromDIP(20)));
     m_staticText_progress_percent->SetForegroundColour(wxColour(0, 150, 136));
 
-    m_staticText_progress_percent_icon = new wxStaticText(penel_text, wxID_ANY, L("%"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_percent_icon = new wxStaticText(penel_text, wxID_ANY, "%", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_progress_percent_icon->SetFont(::Label::Body_11);
     m_staticText_progress_percent_icon->SetMaxSize(wxSize(-1, FromDIP(13)));
     m_staticText_progress_percent_icon->SetForegroundColour(wxColour(0, 150, 136));
@@ -1267,7 +1267,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
 
     /* create speed control */
     m_switch_speed = new ImageSwitchButton(parent, m_bitmap_speed_active, m_bitmap_speed);
-    m_switch_speed->SetLabels(_L("100%"), _L("100%"));
+    m_switch_speed->SetLabels("100%", "100%");
     m_switch_speed->SetMinSize(MISC_BUTTON_2FAN_SIZE);
     m_switch_speed->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
     m_switch_speed->SetPadding(FromDIP(3));
@@ -1400,7 +1400,7 @@ void StatusBasePanel::reset_temp_misc_control()
     m_tempCtrl_bed->Enable(true);
 
     // reset misc control
-    m_switch_speed->SetLabels(_L("100%"), _L("100%"));
+    m_switch_speed->SetLabels("100%", "100%");
     m_switch_speed->SetValue(false);
     m_switch_lamp->SetLabels(_L("Lamp"), _L("Lamp"));
     m_switch_lamp->SetValue(false);
@@ -2176,9 +2176,9 @@ void StatusPanel::show_recenter_dialog() {
         obj->command_go_home();
 }
 
-void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::string print_error_str, wxString image_url, std::vector<int> used_button)
+void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString msg, std::string print_error_str, wxString image_url, std::vector<int> used_button)
 {
-    if (msg.IsEmpty()) {
+    if (is_exist && msg.IsEmpty()) {
         error_info_reset();
     } else {
         m_project_task_panel->show_error_msg(msg);
@@ -2190,7 +2190,7 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             }
 
             m_print_error_dlg->update_title_style(_L("Error"), used_button, this);
-            m_print_error_dlg->update_text_image(msg, image_url);
+            m_print_error_dlg->update_text_image(msg, print_error_str, image_url);
             m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
                 if (obj) {
                     obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
@@ -2212,6 +2212,11 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             auto it_resume = std::find(message_containing_resume.begin(), message_containing_resume.end(), print_error_str);
 
             BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
+
+            wxDateTime now = wxDateTime::Now();
+            wxString show_time = now.Format("%H%M%d");
+            wxString error_code_msg = wxString::Format("%S\n[%S %S]", msg, print_error_str, show_time);
+
             if (m_print_error_dlg_no_action == nullptr) {
                 m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
             }
@@ -2231,7 +2236,7 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
             else {
                 m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
             }
-            m_print_error_dlg_no_action->update_text(msg);
+            m_print_error_dlg_no_action->update_text(error_code_msg);
             m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
                 if (obj) {
                     obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
@@ -2254,7 +2259,7 @@ void StatusPanel::update_error_message()
 {
     if (obj->print_error <= 0) {
         before_error_code = obj->print_error;
-        show_error_message(obj, wxEmptyString);
+        show_error_message(obj, true, wxEmptyString);
         return;
     } else if (before_error_code != obj->print_error && obj->print_error != skip_print_error) {
         before_error_code = obj->print_error;
@@ -2263,27 +2268,17 @@ void StatusPanel::update_error_message()
             char buf[32];
             ::sprintf(buf, "%08X", obj->print_error);
             std::string print_error_str = std::string(buf);
-            if (print_error_str.size() > 4) {
-                print_error_str.insert(4, " ");
-            }
+            if (print_error_str.size() > 4) { print_error_str.insert(4, " "); }
 
-            wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error);
+            wxString error_msg;
+            bool is_errocode_exist = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error, error_msg);
             std::vector<int> used_button;
-            wxString error_image_url = wxGetApp().get_hms_query()->query_print_error_url_action(obj->print_error,obj->dev_id, used_button);
+            wxString error_image_url = wxGetApp().get_hms_query()->query_print_error_url_action(obj->print_error, obj->dev_id, used_button);
             // special case
-            if (print_error_str == "0300 8003" || print_error_str == "0300 8002" || print_error_str == "0300 800A")
+            if (print_error_str == "0300 8003" || print_error_str == "0300 8002" || print_error_str == "0300 800A") {
                 used_button.emplace_back(PrintErrorDialog::PrintErrorButton::JUMP_TO_LIVEVIEW);
-            if (!error_msg.IsEmpty()) {
-                wxDateTime now = wxDateTime::Now();
-                wxString show_time = now.Format("%Y-%m-%d %H:%M:%S");
-
-                error_msg = wxString::Format("%s\n[%s %s]",
-                    error_msg,
-                    print_error_str, show_time);
-                show_error_message(obj, error_msg, print_error_str,error_image_url,used_button);
-            } else {
-                BOOST_LOG_TRIVIAL(info) << "show print error! error_msg is empty, print error = " << obj->print_error;
             }
+            show_error_message(obj, is_errocode_exist, error_msg, print_error_str, error_image_url, used_button);
         }
     }
 }
@@ -3127,6 +3122,20 @@ void StatusPanel::update_subtask(MachineObject *obj)
             } else {
                  m_project_task_panel->enable_pause_resume_button(true, "pause");
             }
+
+            // update printing stage
+            m_project_task_panel->update_left_time(obj->mc_left_time);
+            if (obj->subtask_) {
+                m_project_task_panel->update_stage_value(obj->get_curr_stage(), obj->subtask_->task_progress);
+                m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
+                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
+
+            } else {
+                m_project_task_panel->update_stage_value(obj->get_curr_stage(), 0);
+                m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
+                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
+            }
+
             if (obj->is_printing_finished()) {
                 obj->update_model_task();
                 m_project_task_panel->enable_abort_button(false);
@@ -3171,19 +3180,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_project_task_panel->market_scoring_hide();
                 m_project_task_panel->get_request_failed_panel()->Hide();
             }
-            // update printing stage
-            
-            m_project_task_panel->update_left_time(obj->mc_left_time);
-            if (obj->subtask_) {
-                m_project_task_panel->update_stage_value(obj->get_curr_stage(), obj->subtask_->task_progress);
-                m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
-                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
-
-            } else {
-                m_project_task_panel->update_stage_value(obj->get_curr_stage(), 0);
-                m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
-                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
-            }
         }
 
         m_project_task_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
@@ -3207,7 +3203,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
         reset_printing_values();
     }
 
-    this->Layout();
+    Layout();
 }
 
 void StatusPanel::update_cloud_subtask(MachineObject *obj)
@@ -3385,7 +3381,7 @@ void StatusPanel::axis_ctrl_e_hint(bool up_down)
 {
     if (ctrl_e_hint_dlg == nullptr) {
         ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX | wxCAPTION, true);
-        ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170 degree before loading or unloading filament."));
+        ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170°C before loading or unloading filament."));
         ctrl_e_hint_dlg->show_again_config_text = std::string("not_show_ectrl_hint");
     }
     if (up_down) {
@@ -4883,7 +4879,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
         m_upload_status_code = StatusCode::UPLOAD_PROGRESS;
 
         if (m_star_count == 0) {
-            MessageDialog dlg(this, _L("Please click on the star first."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("InFo"), wxOK);
+            MessageDialog dlg(this, _L("Please click on the star first."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxOK);
             dlg.ShowModal();
             return;
         }
@@ -4946,7 +4942,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                         ++it;
                         break;
                     case BAMBU_NETWORK_ERR_OPEN_FILE_FAILED:
-                        error_info += need_upload.second + _L(" can not be opened\n").ToUTF8().data() + "\n";
+                        error_info += need_upload.second + _L(" cannot be opened\n").ToUTF8().data() + "\n";
                         m_upload_status_code = StatusCode::UPLOAD_IMG_FAILED;
                         ++it;
                         break;
@@ -4986,8 +4982,9 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                 if (!error_info.empty()) { BOOST_LOG_TRIVIAL(info) << error_info; }
 
                 dlg_info = new MessageDialog(this,
-                                             _L("Your comment result cannot be uploaded due to some reasons. As follows:\n\n  error code: ") + std::to_string(http_code) +
-                                                 "\n  " + _L("error message: ") + http_error + _L("\n\nWould you like to redirect to the webpage for rating?"),
+                                             _L("Your comment result cannot be uploaded due to the following reasons:\n\n  error code: ") +
+                                             std::to_string(http_code) + "\n  " + _L("error message: ") + http_error +
+                                             _L("\n\nWould you like to redirect to the webpage to give a rating?"),
                                              wxString(_L("info")), wxOK | wxNO | wxCENTER);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed and http error" << http_error;
                 if (dlg_info->ShowModal() == wxID_OK) {
@@ -4998,7 +4995,8 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                 break;
             }
         } else if (m_upload_status_code == StatusCode::UPLOAD_IMG_FAILED) {
-            MessageDialog *dlg_info = new MessageDialog(this, _L("Some of your images failed to upload. Would you like to redirect to the webpage for rating?"),
+            MessageDialog *dlg_info = new MessageDialog(this,
+                                                        _L("Some of your images failed to upload. Would you like to redirect to the webpage to give a rating?"),
                                                         wxString(_L("info")), wxOK | wxNO | wxCENTER);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed or get oss config failed";
             if (dlg_info->ShowModal() == wxID_OK) {
@@ -5067,7 +5065,7 @@ wxBoxSizer *ScoreDialog::get_main_sizer(const std::vector<std::pair<wxString, st
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(32));
 
-    warning_text = new wxStaticText(this, wxID_ANY, _L("At least one successful print record of this print profile is required \nto give a positive rating(4 or 5stars)."));
+    warning_text = new wxStaticText(this, wxID_ANY, _L("At least one successful print record of this print profile is required \nto give a positive rating (4 or 5 stars)."));
     warning_text->SetForegroundColour(*wxRED);
     warning_text->SetFont(::Label::Body_13);
 

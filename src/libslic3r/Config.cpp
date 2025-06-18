@@ -19,7 +19,7 @@
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/nowide/cenv.hpp>
+#include <boost/nowide/cstdlib.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -839,8 +839,9 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             }
             else if (!load_inherits_to_config && boost::iequals(it.key(), BBL_JSON_KEY_INHERITS)) {
                 key_values.emplace(BBL_JSON_KEY_INHERITS, it.value());
-            }
-            else {
+            } else if (boost::iequals(it.key(), ORCA_JSON_KEY_RENAMED_FROM)) {
+                key_values.emplace(ORCA_JSON_KEY_RENAMED_FROM, it.value());
+            } else {
                 t_config_option_key opt_key = it.key();
                 std::string value_str;
 

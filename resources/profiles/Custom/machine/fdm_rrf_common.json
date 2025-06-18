@@ -124,7 +124,7 @@
         "1"
     ],
     "default_filament_profile": [
-        "My Generic ABS"
+        "Generic PLA @System"
     ],
     "default_print_profile": "0.20mm Standard @MyRRF",
     "bed_exclude_area": [

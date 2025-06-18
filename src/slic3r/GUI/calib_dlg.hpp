@@ -41,7 +41,8 @@ protected:
 	TextInput* m_tiEndPA;
 	TextInput* m_tiPAStep;
 	CheckBox* m_cbPrintNum;
-	Button* m_btnStart;
+	TextInput* m_tiBMAccels;
+	TextInput* m_tiBMSpeeds;
 
 	Plater* m_plater;
 };
@@ -63,7 +64,6 @@ protected:
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiStep;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 
@@ -82,7 +82,6 @@ protected:
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiStep;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 
@@ -99,7 +98,6 @@ protected:
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiStep;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 
@@ -119,10 +117,65 @@ protected:
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiStep;
-    Button* m_btnStart;
     Plater* m_plater;
 };
 
-}} // namespace Slic3r::GUI
+class Input_Shaping_Freq_Test_Dlg : public DPIDialog
+{
+public:
+    Input_Shaping_Freq_Test_Dlg (wxWindow* parent, wxWindowID id, Plater* plater);
+    ~Input_Shaping_Freq_Test_Dlg ();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    
+protected:
 
+    virtual void on_start(wxCommandEvent& event);
+    Calib_Params m_params;
+
+    wxRadioBox* m_rbModel;
+    TextInput* m_tiFreqStartX;
+    TextInput* m_tiFreqEndX;
+    TextInput* m_tiFreqStartY;
+    TextInput* m_tiFreqEndY;
+    TextInput* m_tiDampingFactor;
+    Plater* m_plater;
+};
+
+class Input_Shaping_Damp_Test_Dlg : public DPIDialog
+{
+public:
+    Input_Shaping_Damp_Test_Dlg (wxWindow* parent, wxWindowID id, Plater* plater);
+    ~Input_Shaping_Damp_Test_Dlg ();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    
+protected:
+
+    virtual void on_start(wxCommandEvent& event);
+    Calib_Params m_params;
+
+    wxRadioBox* m_rbModel;
+    TextInput* m_tiFreqX;
+    TextInput* m_tiFreqY;
+    TextInput* m_tiDampingFactorStart;
+    TextInput* m_tiDampingFactorEnd;
+    Plater* m_plater;
+};
+
+class Junction_Deviation_Test_Dlg : public DPIDialog
+{
+public:
+    Junction_Deviation_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~Junction_Deviation_Test_Dlg();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    
+protected:
+    virtual void on_start(wxCommandEvent& event);
+    Calib_Params m_params;
+
+    wxRadioBox* m_rbModel;
+    TextInput* m_tiJDStart;
+    TextInput* m_tiJDEnd;
+    Plater* m_plater;
+};
+}} // namespace Slic3r::GUI
 #endif
