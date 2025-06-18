@@ -644,7 +644,6 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            continue;
 
 				params.extrusion_role = erInternalInfill;
-                
                 if (is_bridge) {
                     if (surface.is_internal_bridge())
                         params.extrusion_role = erInternalBridgeInfill;
