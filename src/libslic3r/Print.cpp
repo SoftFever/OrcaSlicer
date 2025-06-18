@@ -529,7 +529,7 @@ bool Print::has_brim() const
 }
 
 //BBS
-std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, std::vector<Points> &objects_instances_shift)
+std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, VecOfPoints &objects_instances_shift)
 {
     std::vector<size_t> idx_of_object_sorted;
     size_t              idx = 0;
@@ -2450,9 +2450,9 @@ Polygons Print::first_layer_islands() const
     return islands;
 }
 
-std::vector<Point> Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existance) const
+Points Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existance) const
 {
-    std::vector<Point> corners;
+    Points corners;
     if (check_wipe_tower_existance && (!has_wipe_tower() || m_wipe_tower_data.tool_changes.empty()))
         return corners;
     {
