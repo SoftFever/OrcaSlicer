@@ -106,7 +106,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     }},
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},
                     {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
-                    {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"lattice_angle_1", "",1},{"lattice_angle_2", "",1},{"infill_anchor", "",1},{"infill_anchor_max", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
+                    {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"lattice_angle_1", "",1},{"lattice_angle_2", "",1},{"infill_overhang_angle", "",1},{"infill_anchor", "",1},{"infill_anchor_max", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
         {"infill_combination", "",1}, {"infill_combination_max_layer_height", "",1}, {"infill_wall_overlap", "",1},{"top_bottom_infill_wall_overlap", "",1}, {"solid_infill_direction", "",1}, {"rotate_solid_infill_direction", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1}, {"internal_bridge_angle", "",1}, {"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
@@ -1064,10 +1064,10 @@ void MenuFactory::append_menu_items_convert_unit(wxMenu* menu)
     };
 
     std::vector<std::pair<ConversionType, wxString>> items = {
-        {ConversionType::CONV_FROM_INCH , _L("Convert from inch") },
-        {ConversionType::CONV_TO_INCH   , _L("Restore to inch") },
-        {ConversionType::CONV_FROM_METER, _L("Convert from meter") },
-        {ConversionType::CONV_TO_METER  , _L("Restore to meter") } };
+        {ConversionType::CONV_FROM_INCH , _L("Convert from inches") },
+        {ConversionType::CONV_TO_INCH   , _L("Restore to inches") },
+        {ConversionType::CONV_FROM_METER, _L("Convert from meters") },
+        {ConversionType::CONV_TO_METER  , _L("Restore to meters") } };
 
     for (auto item : items) {
         int menu_id = menu->FindItem(item.second);

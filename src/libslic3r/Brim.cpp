@@ -587,9 +587,9 @@ double getadhesionCoeff(const PrintObject* printObject)
     }
     double adhesionCoeff = 1;
     for (const ModelVolume* modelVolume : objectVolumes) {
-        for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++)
+        for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++) {
             if (modelVolume->extruder_id() == *iter) {
-                if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
+                if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end()) {
                     if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG" ||
                         Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                         adhesionCoeff = 2;
@@ -597,11 +597,13 @@ double getadhesionCoeff(const PrintObject* printObject)
                     else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
                         adhesionCoeff = 0.5;
                     }
+                }
             }
+        }
     }
 
     return adhesionCoeff;
-    /*
+   /*
    def->enum_values.push_back("PLA");
    def->enum_values.push_back("PET");
    def->enum_values.push_back("ABS");
@@ -1653,7 +1655,7 @@ ExtrusionEntityCollection makeBrimInfill(const ExPolygons& singleBrimArea, const
         Polylines              loops_pl = to_polylines(loops);
         loops_pl_by_levels.assign(loops_pl.size(), Polylines());
         tbb::parallel_for(tbb::blocked_range<size_t>(0, loops_pl.size()),
-            [&loops_pl_by_levels, &loops_pl, &islands_area](const tbb::blocked_range<size_t>& range) {
+            [&loops_pl_by_levels, &loops_pl /*, &islands_area*/](const tbb::blocked_range<size_t>& range) {
                 for (size_t i = range.begin(); i < range.end(); ++i) {
                     loops_pl_by_levels[i] = chain_polylines({ std::move(loops_pl[i]) });
                     //loops_pl_by_levels[i] = chain_polylines(intersection_pl({ std::move(loops_pl[i]) }, islands_area));

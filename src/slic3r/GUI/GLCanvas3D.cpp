@@ -3511,7 +3511,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     m_dirty = true;
 #endif
                 } else if ((evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_RETURN) ||
-                    evt.ShiftDown() && evt.AltDown() && keyCode == WXK_RETURN) {
+                    (evt.ShiftDown() && evt.AltDown() && keyCode == WXK_RETURN)) {
                     wxGetApp().plater()->toggle_show_wireframe();
                     m_dirty = true;
                 }
@@ -6640,8 +6640,8 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); };
     item.left.render_callback = GLToolbarItem::Default_Render_Callback;
     item.visible = true;
-    item.visibility_callback = [this]()->bool { return true; };
-    item.enabling_callback = [this]()->bool {
+    item.visibility_callback = []()->bool { return true; };
+    item.enabling_callback = []()->bool {
         return wxGetApp().plater()->has_assmeble_view();
     };
     if (!m_assemble_view_toolbar.add_item(item))
@@ -6690,7 +6690,7 @@ bool GLCanvas3D::_init_separator_toolbar()
     sperate_item.name = "start_seperator";
     sperate_item.icon_filename = "seperator.svg";
     sperate_item.sprite_id = 0;
-    sperate_item.left.action_callback = [this]() {};
+    sperate_item.left.action_callback = []() {};
     sperate_item.visibility_callback = []()->bool { return true; };
     sperate_item.enabling_callback = []()->bool { return false; };
     if (!m_separator_toolbar.add_item(sperate_item))
@@ -7407,7 +7407,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             }*/
             const Camera& camera = wxGetApp().plater()->get_camera();
             //BBS:add assemble view related logic
-            m_volumes.render(type, false, camera.get_view_matrix(), camera.get_projection_matrix(), cvn_size, [this, canvas_type](const GLVolume& volume) {
+            m_volumes.render(type, false, camera.get_view_matrix(), camera.get_projection_matrix(), cvn_size, [canvas_type](const GLVolume& volume) {
                 if (canvas_type == ECanvasType::CanvasAssembleView) {
                     return !volume.is_modifier;
                 }
@@ -7783,7 +7783,7 @@ void GLCanvas3D::_render_gizmos_overlay()
 //     m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);
     const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
     m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
-#endif /* __WXMSW__ */
+#endif */ /* __WXMSW__ */
     m_gizmos.render_overlay();
 
     if (m_gizmo_highlighter.m_render_arrow)
@@ -7911,11 +7911,11 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         m_render_preview = true;
 
     // places the toolbar on the top_left corner of the 3d scene
-#if ENABLE_RETINA_GL
-    float f_scale  = m_retina_helper->get_scale_factor();
-#else
-    float f_scale  = wxGetApp().em_unit() / 10; // ORCA add scaling support
-#endif
+    float f_scale = get_scale();
+    #ifdef WIN32
+        const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+        f_scale *= (float) dpi / (float) DPI_DEFAULT;
+    #endif // WIN32
     Size cnv_size = get_canvas_size();
     auto canvas_w = float(cnv_size.get_width());
     auto canvas_h = float(cnv_size.get_height());
@@ -7935,16 +7935,15 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     // Make sure the window does not overlap the 3d navigator
     auto window_height_max = canvas_h - y_offset;
     if (wxGetApp().show_3d_navigator()) {
-        float sc = get_scale();
-#ifdef WIN32
-        const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
-        sc *= (float) dpi / (float) DPI_DEFAULT;
-#endif // WIN32
-        window_height_max -= (128 * sc + 5);
+        window_height_max -= (128 * f_scale + 5);
     }
 
     // ORCA simplify and correct window size and margin calculations and get values from style
     ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f) * f_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,   ImVec2(4.0f, 4.0f) * f_scale);
+
     int item_count           = m_sel_plate_toolbar.m_items.size() + (m_sel_plate_toolbar.show_stats_item ? 1 : 0);
     float window_height_calc = (item_count * (button_height + (margin_size + button_margin) * 2.0f) + (item_count - 1) * ImGui::GetStyle().ItemSpacing.y + ImGui::GetStyle().WindowPadding.y * 2.0f);
     bool  show_scroll        = m_sel_plate_toolbar.is_display_scrollbar && (window_height_calc > window_height_max);
@@ -8180,7 +8179,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     }
     ImGui::SetWindowFontScale(1.0f);
     ImGui::PopStyleColor(8);
-    ImGui::PopStyleVar(5);
+    ImGui::PopStyleVar(7);
 
     if (ImGui::IsWindowHovered() || is_hovered) {
         m_sel_plate_toolbar.is_display_scrollbar = true;
@@ -8253,7 +8252,7 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec2 margin = ImVec2(10.0f, 5.0f);
 
-    if (ImGui::ImageTextButton(real_size,_utf8(L("return")).c_str(), m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
+    if (ImGui::ImageTextButton(real_size,_utf8(L("Return")).c_str(), m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
         if (m_canvas != nullptr)
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
         const_cast<GLGizmosManager*>(&m_gizmos)->reset_all_states();
@@ -8475,7 +8474,7 @@ float GLCanvas3D::_show_assembly_tooltip_information(float caption_max, float x,
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip2(ImVec2(x, y));
-        auto draw_text_with_caption = [this, &imgui, & caption_max](const wxString &caption, const wxString &text) {
+        auto draw_text_with_caption = [&imgui, & caption_max](const wxString &caption, const wxString &text) {
             imgui->text_colored(ImGuiWrapper::COL_ACTIVE, caption);
             ImGui::SameLine(caption_max);
             imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
@@ -9669,7 +9668,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the plate boundaries."); error = ErrorType::SLICING_ERROR; break;
     // BBS: remove _u8L() for SLA
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
-    case EWarning::SomethingNotShown:  text = _u8L("Only the object being edit is visible."); break;
+    case EWarning::SomethingNotShown:  text = _u8L("Only the object being edited is visible."); break;
     case EWarning::ObjectClashed:
         text = _u8L("An object is laid over the plate boundaries or exceeds the height limit.\n"
             "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");

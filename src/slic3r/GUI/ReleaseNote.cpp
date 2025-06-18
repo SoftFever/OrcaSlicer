@@ -239,7 +239,7 @@ void UpdatePluginDialog::update_info(std::string json_path)
     version = from_u8(version_str);
     description = from_u8(description_str);
 
-    m_text_up_info->SetLabel(wxString::Format(_L("A new Network plug-in (%s) available, Do you want to install it?"), version));
+    m_text_up_info->SetLabel(wxString::Format(_L("A new Network plug-in (%s) is available. Do you want to install it?"), version));
     m_text_up_info->SetMinSize(wxSize(FromDIP(260), -1));
     m_text_up_info->SetMaxSize(wxSize(FromDIP(260), -1));
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
@@ -2091,7 +2091,7 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
     bool invalid_access_code = true;
 
     for (char c : str_access_code) {
-        if (!('0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z')) {
+        if (!(('0' <= c && c <= '9') || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z'))) {
             invalid_access_code = false;
             return;
         }

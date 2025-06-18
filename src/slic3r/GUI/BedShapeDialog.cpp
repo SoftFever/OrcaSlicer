@@ -12,6 +12,9 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Polygon.hpp"
 
+#include "Widgets/LabeledStaticBox.hpp"
+#include "Widgets/DialogButtons.hpp"
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 
@@ -143,7 +146,10 @@ void BedShapeDialog::build_dialog(const Pointfs& default_pt, const ConfigOptionS
 
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(m_panel, 1, wxEXPAND);
-	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
+
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
+
+    main_sizer->Add(dlg_btns, 0, wxEXPAND);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -184,9 +190,9 @@ void BedShapePanel::build_panel(const Pointfs& default_pt, const std::string& cu
     m_custom_texture = custom_texture.empty() ? NONE : custom_texture;
     m_custom_model = custom_model.empty() ? NONE : custom_model;
 
-    auto sbsizer = new wxStaticBoxSizer(wxVERTICAL, this, _L("Shape"));
-    sbsizer->GetStaticBox()->SetFont(wxGetApp().bold_font());
-    wxGetApp().UpdateDarkUI(sbsizer->GetStaticBox());
+    // ORCA match style of wxStaticBox between platforms
+    LabeledStaticBox* stb = new LabeledStaticBox(this, _L("Shape"));
+    auto sbsizer = new wxStaticBoxSizer(stb, wxVERTICAL);
 
 	// shape options 
     m_shape_options_book = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
