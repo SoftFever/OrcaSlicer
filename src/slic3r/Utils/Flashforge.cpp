@@ -58,7 +58,7 @@ bool Flashforge::test(wxString& msg) const
     return res;
 }
 
-wxString Flashforge::get_test_ok_msg() const { return _(L("Serial connection to Flashforge works correctly.")); }
+wxString Flashforge::get_test_ok_msg() const { return _(L("Serial connection to Flashforge is working correctly.")); }
 
 wxString Flashforge::get_test_failed_msg(wxString& msg) const
 {

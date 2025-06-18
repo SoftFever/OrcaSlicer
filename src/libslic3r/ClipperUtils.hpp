@@ -661,6 +661,8 @@ Polygons  variable_offset_outer(const ExPolygon &expoly, const std::vector<std::
 ExPolygons variable_offset_outer_ex(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);
 ExPolygons variable_offset_inner_ex(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);
 
+Pointfs make_counter_clockwise(const Pointfs& pointfs);
+
 } // namespace Slic3r
 
 #endif // slic3r_ClipperUtils_hpp_

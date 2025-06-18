@@ -83,15 +83,49 @@ class wxRenderer : public wxDelegateRendererNative
 {
 public:
     wxRenderer() : wxDelegateRendererNative(wxRendererNative::Get()) {}
-    virtual void DrawItemSelectionRect(wxWindow *win,
-                                       wxDC& dc,
-                                       const wxRect& rect,
-                                       int flags = 0) wxOVERRIDE
-        { GetGeneric().DrawItemSelectionRect(win, dc, rect, flags); }
+    virtual void DrawItemSelectionRect(wxWindow *win, wxDC& dc, const wxRect& rect, int flags = 0) override
+    {   // ORCA draw selection background to improve consistency between platforms
+        dc.SetBrush(StateColor::darkModeColorFor(wxColour("#BFE1DE")));
+        dc.DrawRectangle(rect);
+        //GetGeneric().DrawItemSelectionRect(win, dc, rect, flags);
+    }
+    virtual void DrawFocusRect(        wxWindow *win, wxDC& dc, const wxRect& rect, int flags = 0) override
+    {   // ORCA draw focus rectangle to improve consistency between platforms
+        dc.SetPen(  StateColor::darkModeColorFor(wxColour("#009688")));
+        dc.DrawRectangle(rect);
+    }
+    virtual void DrawTreeItemButton(   wxWindow *win, wxDC& dc, const wxRect& rect, int flags = 0) override
+    {   // ORCA draw custom triangle to improve consistency between platforms
+        dc.SetPen(  StateColor::darkModeColorFor(wxColour("#7C8282")));
+        dc.SetBrush(StateColor::darkModeColorFor(wxColour("#7C8282")));
+        bool expanded = (flags == wxCONTROL_EXPANDED || flags == (wxCONTROL_CURRENT | wxCONTROL_EXPANDED));
+        wxRect r = rect;
+        // stretch rectangle depends on orientation
+        r.Deflate((expanded ? wxSize(4, 6) : wxSize(6, 4)) * (wxGetApp().em_unit() * .1));
+        wxPoint triangle[3];
+        triangle[0] = wxPoint(r.x, r.y);
+        triangle[1] = triangle[0] + wxPoint(r.width, expanded ? 0 :r.height/2);
+        triangle[2] = triangle[0] + wxPoint(expanded ? r.width/2 : 0, r.height);
+        dc.DrawPolygon(3, &triangle[0]);
+    }
+    virtual void DrawItemText(
+        wxWindow* win,
+        wxDC& dc,
+        const wxString& text,
+        const wxRect& rect,
+        int align = wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL,
+        int flags = 0, // wxCONTROL_SELECTED wxCONTROL_FOCUSED wxCONTROL_DISABLED 
+        wxEllipsizeMode ellipsizeMode = wxELLIPSIZE_END
+    ) override
+    {   // ORCA draw custom text to improve consistency between platforms
+        //dc.SetFont(win->GetFont()); Without SetFont it pulls font from window
+        dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#262E30"))); // use same color for selected / non-selected
+        dc.DrawText(text,wxPoint(rect.x, rect.y));
+    }
 };
 
 ObjectList::ObjectList(wxWindow* parent) :
-    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
+    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE | wxNO_BORDER | wxDV_NO_HEADER) // ORCA: Remove border and header
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
 
@@ -103,7 +137,6 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     SetFont(Label::sysFont(13));
 #ifdef __WXMSW__
-    GenericGetHeader()->SetFont(Label::sysFont(13));
     static auto render = new wxRenderer;
     wxRendererNative::Set(render);
 #endif
@@ -289,18 +322,12 @@ ObjectList::ObjectList(wxWindow* parent) :
              } else {
                  m_last_size = this->GetSize();
              }
-#ifdef __WXGTK__
-        // On GTK, the EnsureVisible call is postponed to Idle processing (see wxDataViewCtrl::m_ensureVisibleDefered).
-        // So the postponed EnsureVisible() call is planned for an item, which may not exist at the Idle processing time, if this wxEVT_SIZE
-        // event is succeeded by a delete of the currently active item. We are trying our luck by postponing the wxEVT_SIZE triggered EnsureVisible(),
-        // which seems to be working as of now.
-        this->CallAfter([this](){ ensure_current_item_visible(); });
-#else
+
         update_name_column_width();
 
         // BBS
         this->CallAfter([this]() { ensure_current_item_visible(); });
-#endif
+
         e.Skip();
     }));
     m_last_size = this->GetSize();
@@ -390,7 +417,7 @@ void ObjectList::create_objects_ctrl()
     AppendColumn(name_col);
 
     // column PrintableProperty (Icon) of the view control:
-    AppendBitmapColumn(" ", colPrint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, 3*em,
+    AppendBitmapColumn(" ", colPrint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colPrint]*em,
         wxALIGN_CENTER_HORIZONTAL, 0);
 
     // column Extruder of the view control:
@@ -426,11 +453,11 @@ void ObjectList::create_objects_ctrl()
 
     // For some reason under OSX on 4K(5K) monitors in wxDataViewColumn constructor doesn't set width of column.
     // Therefore, force set column width.
-    if (wxOSX)
-    {
+#ifdef __WXOSX__
+        dataview_remove_insets(this);
         for (int cn = colName; cn < colCount; cn++)
             GetColumn(cn)->SetWidth(m_columns_width[cn] * em);
-    }
+#endif
 }
 
 void ObjectList::get_selected_item_indexes(int& obj_idx, int& vol_idx, const wxDataViewItem& input_item/* = wxDataViewItem(nullptr)*/)
@@ -530,7 +557,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         *non_manifold_edges = stats.open_edges;
 
     if (is_windows10() && !sidebar_info)
-        tooltip += "\n" + _L("Right click the icon to fix model object");
+        tooltip += "\n" + _L("Click the icon to repair model object");
 
     return { tooltip, get_warning_icon_name(stats) };
 }
@@ -831,7 +858,8 @@ void ObjectList::update_objects_list_filament_column(size_t filaments_count)
     // set show/hide for this column
     set_filament_column_hidden(filaments_count == 1);
     //a workaround for a wrong last column width updating under OSX
-    GetColumn(colEditing)->SetWidth(25);
+    auto em = em_unit(this);
+    GetColumn(colEditing)->SetWidth(m_columns_width[colEditing]*em);
 
     m_prevent_update_filament_in_config = false;
 }
@@ -859,7 +887,7 @@ void ObjectList::update_name_column_width() const
         }
     }
 
-    GetColumn(colName)->SetWidth(client_size.x - (others_width)*em);
+    GetColumn(colName)->SetWidth(max(0, client_size.x - (others_width)*em));
 }
 
 void ObjectList::set_filament_column_hidden(const bool hide) const
@@ -2434,7 +2462,7 @@ bool ObjectList::del_from_cut_object(bool is_cut_connector, bool is_model_part/*
 
     InfoDialog dialog(wxGetApp().plater(), title,
                       (_L("This action will break a cut correspondence.\n"
-                         "After that model consistency can't be guaranteed .\n"
+                         "After that model consistency can't be guaranteed.\n"
                          "\n"
                          "To manipulate with solid parts or negative volumes you have to invalidate cut information first.") + msg_end ),
                       false, buttons_style | wxCANCEL_DEFAULT | wxICON_WARNING);
@@ -4846,11 +4874,11 @@ bool ObjectList::check_last_selection(wxString& msg_str)
 
         if (m_selection_mode == smInstance) {
             msg_str = wxString::Format(_(L("Selection conflicts")) + "\n\n" +
-                _(L("If first selected item is an object, the second one should also be object.")) + "\n");
+                _(L("If the first selected item is an object, the second should also be an object.")) + "\n");
         }
         else {
             msg_str = wxString::Format(_(L("Selection conflicts")) + "\n\n" +
-                _(L("If first selected item is a part, the second one should be part in the same object.")) + "\n");
+                _(L("If the first selected item is a part, the second should be a part in the same object.")) + "\n");
         }
 
         // Unselect last selected item, if selection is without SHIFT
@@ -5470,14 +5498,8 @@ void ObjectList::msw_rescale()
 
     const int em = wxGetApp().em_unit();
 
-    GetColumn(colName    )->SetWidth(20 * em);
-    GetColumn(colPrint   )->SetWidth( 3 * em);
-    GetColumn(colFilament)->SetWidth( 5 * em);
-    // BBS
-    GetColumn(colSupportPaint)->SetWidth(3 * em);
-    GetColumn(colColorPaint)->SetWidth(3 * em);
-    GetColumn(colSinking)->SetWidth(3 * em);
-    GetColumn(colEditing )->SetWidth( 3 * em);
+    for (int cn = colName; cn < colCount; cn++)
+        GetColumn(cn)->SetWidth(m_columns_width[cn] * em);
 
     // rescale/update existing items with bitmaps
     m_objects_model->Rescale();

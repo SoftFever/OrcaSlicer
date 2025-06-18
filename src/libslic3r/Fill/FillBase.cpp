@@ -16,6 +16,7 @@
 #include "FillHoneycomb.hpp"
 #include "Fill3DHoneycomb.hpp"
 #include "FillGyroid.hpp"
+#include "FillTpmsD.hpp"
 #include "FillPlanePath.hpp"
 #include "FillLine.hpp"
 #include "FillRectilinear.hpp"
@@ -39,8 +40,10 @@ Fill* Fill::new_from_type(const InfillPattern type)
     switch (type) {
     case ipConcentric:          return new FillConcentric();
     case ipHoneycomb:           return new FillHoneycomb();
+    case ip2DHoneycomb:         return new Fill2DHoneycomb();
     case ip3DHoneycomb:         return new Fill3DHoneycomb();
     case ipGyroid:              return new FillGyroid();
+    case ipTpmsD:               return new FillTpmsD();//from creality print
     case ipRectilinear:         return new FillRectilinear();
     case ipAlignedRectilinear:  return new FillAlignedRectilinear();
     case ipCrossHatch:          return new FillCrossHatch();
@@ -1785,6 +1788,18 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
 	for (Polyline &pl : infill_ordered)
 		if (! pl.empty())
 			polylines_out.emplace_back(std::move(pl));
+}
+
+void Fill::chain_or_connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const double spacing, const FillParams &params)
+{
+    if (!infill_ordered.empty()) {
+        if (params.dont_connect()) {
+            if (infill_ordered.size() > 1)
+                infill_ordered = chain_polylines(std::move(infill_ordered));
+            append(polylines_out, std::move(infill_ordered));
+        } else
+            connect_infill(std::move(infill_ordered), boundary, polylines_out, spacing, params);
+    }
 }
 
 // Extend the infill lines along the perimeters, this is mainly useful for grid aligned support, where a perimeter line may be nearly

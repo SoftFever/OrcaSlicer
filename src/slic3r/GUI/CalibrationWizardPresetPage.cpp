@@ -320,7 +320,7 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
             std::string decimal_point;
             std::string expression = "^[-+]?[0-9]+([,.][0-9]+)?$";
             std::regex decimalRegex(expression);
-            int decimal_number;
+            int decimal_number = 0;
             if (std::regex_match(number, decimalRegex)) {
                 std::smatch match;
                 if (std::regex_search(number, match, decimalRegex)) {
@@ -601,7 +601,7 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
 {
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_filament_list_tips = new Label(parent, _L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"));
+    m_filament_list_tips = new Label(parent, _L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family (Brand = Bambu, Family = Basic, Matte)"));
     m_filament_list_tips->Hide();
     m_filament_list_tips->SetFont(Label::Body_13);
     m_filament_list_tips->SetForegroundColour(wxColour(145, 145, 145));
@@ -1074,7 +1074,7 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*> 
     }
 
     if (!Print::check_multi_filaments_compatibility(filament_types)) {
-        error_tips = _u8L("Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing");
+        error_tips = _u8L("Cannot print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing");
         return false;
     }
 
