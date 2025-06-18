@@ -21,6 +21,8 @@ if (TARGET OpenVDB::openvdb)
     set(OpenVDBUtils_SOURCES OpenVDBUtils.cpp OpenVDBUtils.hpp)
 endif()
 
+option(BUILD_SHARED_LIBS "Build shared libs" OFF)
+
 set(lisbslic3r_sources
     ArcFitter.cpp
     ArcFitter.hpp
@@ -52,8 +54,6 @@ set(lisbslic3r_sources
     clipper.hpp
     ClipperUtils.cpp
     ClipperUtils.hpp
-    Clipper2Utils.cpp
-    Clipper2Utils.hpp
     ClipperZUtils.hpp
     Color.cpp
     Color.hpp
@@ -101,6 +101,8 @@ set(lisbslic3r_sources
     Fill/FillHoneycomb.hpp
     Fill/FillGyroid.cpp
     Fill/FillGyroid.hpp
+    Fill/FillTpmsD.cpp
+    Fill/FillTpmsD.hpp
     Fill/FillPlanePath.cpp
     Fill/FillPlanePath.hpp
     Fill/FillLine.cpp
@@ -513,7 +515,7 @@ encoding_check(libslic3r)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r SYSTEM PUBLIC ${EXPAT_INCLUDE_DIRS})
 
 # Find the OCCT and related libraries
 set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
@@ -571,7 +573,6 @@ target_link_libraries(libslic3r
     PNG::PNG
     ZLIB::ZLIB
     ${OCCT_LIBS}
-    Clipper2
     mcut
     JPEG::JPEG
     qoi
