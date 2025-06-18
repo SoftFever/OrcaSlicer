@@ -377,6 +377,22 @@
             "sub_path": "filament/Overture/Overture ABS Basic @base.json"
         },
         {
+            "name": "Valment PLA @base",
+            "sub_path": "filament/Valment/Valment PLA @base.json"
+        },
+        {
+            "name": "Valment PLA Silk @base",
+            "sub_path": "filament/Valment/Valment PLA Silk @base.json"
+        },
+        {
+            "name": "Valment PLA-CF @base",
+            "sub_path": "filament/Valment/Valment PLA-CF @base.json"
+        },
+        {
+            "name": "Valment PLA Galaxy @base",
+            "sub_path": "filament/Valment/Valment PLA Galaxy @base.json"
+        },
+        {
             "name": "PolyLite PLA @base",
             "sub_path": "filament/Polymaker/PolyLite PLA @base.json"
         },
@@ -699,6 +715,22 @@
 		{
             "name": "Overture ABS Basic @System",
             "sub_path": "filament/Overture/Overture ABS Basic @System.json"
+        },
+        {
+            "name": "Valment PLA @System",
+            "sub_path": "filament/Valment/Valment PLA @System.json"
+        },
+        {
+            "name": "Valment PLA Silk @System",
+            "sub_path": "filament/Valment/Valment PLA Silk @System.json"
+        },
+        {
+            "name": "Valment PLA-CF @System",
+            "sub_path": "filament/Valment/Valment PLA-CF @System.json"
+        },
+        {
+            "name": "Valment PLA Galaxy @System",
+            "sub_path": "filament/Valment/Valment PLA Galaxy @System.json"
         },
         {
             "name": "PolyLite Dual PLA @System",
