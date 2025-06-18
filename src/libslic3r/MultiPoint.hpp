@@ -134,7 +134,7 @@ public:
 };
 
 extern BoundingBox get_extents(const MultiPoint &mp);
-extern BoundingBox get_extents_rotated(const std::vector<Point> &points, double angle);
+extern BoundingBox get_extents_rotated(const Points &points, double angle);
 extern BoundingBox get_extents_rotated(const MultiPoint &mp, double angle);
 
 inline double length(const Points &pts) {

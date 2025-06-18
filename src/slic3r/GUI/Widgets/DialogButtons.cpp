@@ -6,7 +6,7 @@ namespace Slic3r { namespace GUI {
 
 // ORCA standardize dialog buttons
 DialogButtons::DialogButtons(wxWindow* parent, std::vector<wxString> non_translated_labels, const wxString& primary_btn_translated_label)
-    : wxWindow(parent, wxID_ANY)
+    : wxPanel(parent, wxID_ANY)
 {
     m_parent  = parent;
     m_sizer   = new wxBoxSizer(wxHORIZONTAL);
@@ -73,8 +73,8 @@ Button* DialogButtons::GetAPPLY()  {return GetButtonFromID(wxID_APPLY)   ;}
 Button* DialogButtons::GetCONFIRM(){return GetButtonFromID(wxID_APPLY)   ;}
 Button* DialogButtons::GetNO()     {return GetButtonFromID(wxID_NO)      ;}
 Button* DialogButtons::GetCANCEL() {return GetButtonFromID(wxID_CANCEL)  ;}
-Button* DialogButtons::GetBACK()   {return GetButtonFromID(wxID_BACKWARD);}
-Button* DialogButtons::GetFORWARD(){return GetButtonFromID(wxID_FORWARD) ;}
+Button* DialogButtons::GetRETURN() {return GetButtonFromID(wxID_BACKWARD);} // gets Return button
+Button* DialogButtons::GetNEXT()   {return GetButtonFromID(wxID_FORWARD) ;}
 
 void DialogButtons::SetPrimaryButton(wxString translated_label) {
     // use _L("Create") translated text for custom buttons
@@ -92,7 +92,10 @@ void DialogButtons::SetPrimaryButton(wxString translated_label) {
 
     m_primary = translated_label;
 
-    btn->SetFocus();
+    // apply focus only if there is no focused element exist. this prevents stealing focus from input boxes
+    if(m_parent->FindFocus() == nullptr)
+        btn->SetFocus();
+ 
     btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
 }
 
@@ -118,6 +121,7 @@ void DialogButtons::UpdateButtons() {
     m_sizer->Clear();
     SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
 
+    // Apply standard style to all
     for (Button* btn : m_buttons) {
         btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
         btn->Bind(wxEVT_KEY_DOWN, &DialogButtons::on_keydown, this);
@@ -135,6 +139,9 @@ void DialogButtons::UpdateButtons() {
             m_sizer->Add(btn, 0,  wxLEFT | wxTOP | wxBOTTOM | wxALIGN_CENTER_VERTICAL, btn_gap);
 
     m_sizer->AddStretchSpacer();
+
+    if(m_sizer->IsEmpty()) // add left margin if no button on left. fixes no gap on small windows
+        m_sizer->AddSpacer(btn_gap);
 
     for (Button* btn : m_buttons) // Right aligned
         if(!on_left(btn->GetId()))

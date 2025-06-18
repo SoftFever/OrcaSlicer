@@ -2091,7 +2091,7 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
     bool invalid_access_code = true;
 
     for (char c : str_access_code) {
-        if (!('0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z')) {
+        if (!(('0' <= c && c <= '9') || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z'))) {
             invalid_access_code = false;
             return;
         }
