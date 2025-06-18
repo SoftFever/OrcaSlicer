@@ -31,8 +31,8 @@ PublishDialog::PublishDialog(Plater *plater)
     , m_plater(plater)
 {
 
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    //std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    //SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     this->SetSize(wxSize(FromDIP(540),FromDIP(400)));
 

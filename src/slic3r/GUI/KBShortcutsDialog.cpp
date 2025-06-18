@@ -25,8 +25,8 @@ KBShortcutsDialog::KBShortcutsDialog()
     const wxFont& bold_font = wxGetApp().bold_font();
     SetFont(font);
 
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    //std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    //SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
     this->SetBackgroundColour(wxColour(255, 255, 255));

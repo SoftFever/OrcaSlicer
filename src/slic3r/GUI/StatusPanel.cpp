@@ -4687,8 +4687,8 @@ void ScoreDialog::init() {
 
     fail_image = wxImage(Slic3r::resources_dir() + "/images/oss_picture_load_failed.png", wxBITMAP_TYPE_ANY);
     // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicer.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    //std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    //SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 }
 
 wxBoxSizer *ScoreDialog::get_score_sizer() { 
