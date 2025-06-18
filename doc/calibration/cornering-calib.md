@@ -52,9 +52,9 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
    3. Recompile your MarlinFW
       1. In Configuration.h uncomment and set:
       ```cpp
-            #define JUNCTION_DEVIATION_MM 0.012  // (mm) Distance from real junction edge
+      #define JUNCTION_DEVIATION_MM 0.012  // (mm) Distance from real junction edge
       ```
       2. Check Classic Jerk is disabled (commented).
       ```cpp
-         //#define CLASSIC_JERK
+      //#define CLASSIC_JERK
       ```
