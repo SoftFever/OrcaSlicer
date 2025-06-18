@@ -7,7 +7,6 @@
 #include "PrintConfig.hpp"
 #include "ShortestPath.hpp"
 #include "VariableWidth.hpp"
-#include "CurveAnalyzer.hpp"
 #include "Arachne/WallToolPaths.hpp"
 #include "Geometry/ConvexHull.hpp"
 #include "ExPolygonCollection.hpp"
@@ -24,8 +23,6 @@
 #include "libnoise/noise.h"
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
-static const double min_degree_gap = 0.1;
-static const int max_overhang_degree = overhang_sampling_number - 1;
 //BBS: when the width of expolygon is smaller than
 //ext_perimeter_width + ext_perimeter_spacing  * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE),
 //we think it's small detail area and will generate smaller line width for it
@@ -437,8 +434,6 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                 extrusion_paths_append(
                     paths,
                     std::move(inside_polines),
-                    0,
-                    int(0),
                     role,
                     extrusion_mm3_per_mm,
                     extrusion_width,
@@ -448,7 +443,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // outside the grown lower slices (thus where the distance between
             // the loop centerline and original lower slices is >= half nozzle diameter
             if (remain_polines.size() != 0) {
-                extrusion_paths_append(paths, std::move(remain_polines), overhang_sampling_number - 1, int(0),
+                extrusion_paths_append(paths, std::move(remain_polines),
                                        erOverhangPerimeter, perimeter_generator.mm3_per_mm_overhang(),
                                        perimeter_generator.overhang_flow.width(),
                                        perimeter_generator.overhang_flow.height());
@@ -468,8 +463,6 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             ExtrusionPath path(role);
             //BBS.
             path.polyline = polygon.split_at_first_point();
-            path.overhang_degree = 0;
-            path.curve_degree = 0;
             path.mm3_per_mm = extrusion_mm3_per_mm;
             path.width = extrusion_width;
             path.height     = (float)perimeter_generator.layer_height;
@@ -606,90 +599,6 @@ struct PerimeterGeneratorArachneExtrusion
     // Indicates if closed ExtrusionLine is a contour or a hole. Used it only when ExtrusionLine is a closed loop.
     bool is_contour = false;
 };
-
-
-static void smooth_overhang_level(ExtrusionPaths &paths)
-{
-    const double threshold_length = scale_(0.8);
-    const double       filter_range     = scale_(6.5);
-
-    // 0.save old overhang series first which is input of filter
-    const int path_num = paths.size();
-    if (path_num < 2)
-        // don't need to do filting if only has one path in vector
-        return;
-    std::vector<int> old_overhang_series;
-    old_overhang_series.reserve(path_num);
-    for (int i = 0; i < path_num; i++) old_overhang_series.push_back(paths[i].get_overhang_degree());
-
-    for (int i = 0; i < path_num;) {
-        if ((paths[i].role() != erPerimeter && paths[i].role() != erExternalPerimeter)) {
-            i++;
-            continue;
-        }
-
-        double current_length          = paths[i].length();
-        int    current_overhang_degree = old_overhang_series[i];
-        double total_lens              = current_length;
-        int    pt                      = i + 1;
-
-        for (; pt < path_num; pt++) {
-            if (paths[pt].get_overhang_degree() != current_overhang_degree || (paths[pt].role() != erPerimeter && paths[pt].role() != erExternalPerimeter)) {
-                break;
-            }
-            total_lens += paths[pt].length();
-        }
-
-        if (total_lens < threshold_length) {
-            double left_total_length  = (filter_range - total_lens) / 2;
-            double right_total_length = left_total_length;
-
-            double                              temp_length;
-            int                                 j = i - 1;
-            int                                 index;
-            std::vector<std::pair<double, int>> neighbor_path;
-            while (left_total_length > 0) {
-                index = (j < 0) ? path_num - 1 : j;
-                if (paths[index].role() == erOverhangPerimeter) break;
-                temp_length = paths[index].length();
-                if (temp_length > left_total_length)
-                    neighbor_path.emplace_back(std::pair<double, int>(left_total_length, old_overhang_series[index]));
-                else
-                    neighbor_path.emplace_back(std::pair<double, int>(temp_length, old_overhang_series[index]));
-                left_total_length -= temp_length;
-                j = index;
-                j--;
-            }
-
-            j = pt;
-            while (right_total_length > 0) {
-                index = j % path_num;
-                if (paths[index].role() == erOverhangPerimeter) break;
-                temp_length = paths[index].length();
-                if (temp_length > right_total_length)
-                    neighbor_path.emplace_back(std::pair<double, int>(right_total_length, old_overhang_series[index]));
-                else
-                    neighbor_path.emplace_back(std::pair<double, int>(temp_length, old_overhang_series[index]));
-                right_total_length -= temp_length;
-                j++;
-            }
-
-            double sum        = 0;
-            double length_sum = 0;
-            for (auto it = neighbor_path.begin(); it != neighbor_path.end(); it++) {
-                sum += (it->first * it->second);
-                length_sum += it->first;
-            }
-
-            double average_overhang = (double) (total_lens * current_overhang_degree + sum) / (length_sum + total_lens);
-
-            for (int idx=i; idx<pt;idx++)
-                paths[idx].set_overhang_degree((int) average_overhang);
-        }
-
-        i = pt;
-    }
-}
 
 static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& perimeter_generator, std::vector<PerimeterGeneratorArachneExtrusion>& pg_extrusions,
     bool &steep_overhang_contour, bool &steep_overhang_hole)
@@ -891,11 +800,6 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 }
 
                 chain_and_reorder_extrusion_paths(paths, &start_point);
-
-                if (perimeter_generator.config->enable_overhang_speed && !perimeter_generator.has_fuzzy_skin) {
-                    // BBS: filter the speed
-                    smooth_overhang_level(paths);
-                }
 
                 if (overhangs_reverse) {
                     for (const ExtrusionPath& path : paths) {

@@ -4781,7 +4781,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     const auto speed_for_path = [&speed, &small_peri_speed](const ExtrusionPath& path) {
         // don't apply small perimeter setting for overhangs/bridges/non-perimeters
-        const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0 && (path.get_overhang_degree() == 0 || path.get_overhang_degree() > 5);
+        const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0;
         return is_small_peri ? small_peri_speed : speed;
     };
 
@@ -5680,11 +5680,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 if (enable_overhang_bridge_fan) {
                     // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
                     // perimeter
-                    int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
-                    : overhang_fan_threshold - 1;
                     if ((overhang_fan_threshold == Overhang_threshold_none && is_external_perimeter(path.role())) ||
-                        (path.get_overhang_degree() > overhang_threshold ||
-                         (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter))) { // ORCA: Add support for separate internal bridge fan speed control
+                        (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter)) { // ORCA: Add support for separate internal bridge fan speed control
                         if (!m_is_overhang_fan_on) {
                             gcode += ";_OVERHANG_FAN_START\n";
                             m_is_overhang_fan_on = true;
