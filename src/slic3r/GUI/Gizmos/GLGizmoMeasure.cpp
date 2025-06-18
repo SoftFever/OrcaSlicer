@@ -1940,14 +1940,14 @@ void GLGizmoMeasure::show_distance_xyz_ui()
             m_imgui->disabled_begin(!m_can_set_xyz_distance);
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            m_imgui->text_colored(ImGuiWrapper::COL_RED, "X:");
+            m_imgui->text_colored(ImGuiWrapper::to_ImVec4(ColorRGBA::X()), "X:"); // ORCA match axis color
             ImGui::TableSetColumnIndex(1);
             ImGui::PushItemWidth(m_input_size_max);
             ImGui::BBLInputDouble("##measure_distance_x", &m_buffered_distance[0], 0.0f, 0.0f, "%.2f");
 
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            m_imgui->text_colored(ImGuiWrapper::COL_GREEN, "Y:");
+            m_imgui->text_colored(ImGuiWrapper::to_ImVec4(ColorRGBA::Y()), "Y:"); // ORCA match axis color
             ImGui::TableSetColumnIndex(1);
             ImGui::BBLInputDouble("##measure_distance_y", &m_buffered_distance[1], 0.0f, 0.0f, "%.2f");
             m_imgui->disabled_end();
@@ -1955,7 +1955,7 @@ void GLGizmoMeasure::show_distance_xyz_ui()
             m_imgui->disabled_begin(!(m_same_model_object && m_can_set_xyz_distance));
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            m_imgui->text_colored(ImGuiWrapper::COL_BLUE, "Z:");
+            m_imgui->text_colored(ImGuiWrapper::to_ImVec4(ColorRGBA::Z()), "Z:"); // ORCA match axis color
             ImGui::TableSetColumnIndex(1);
             ImGui::BBLInputDouble("##measure_distance_z", &m_buffered_distance[2], 0.0f, 0.0f, "%.2f");
             m_imgui->disabled_end();
