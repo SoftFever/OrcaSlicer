@@ -9,8 +9,16 @@
             "sub_path": "machine/D12 230 PRO M2 MONO DUAL.json"
         },
         {
+            "name": "Wanhao D12 230 PRO M2 MONO DUAL PoopTool",
+            "sub_path": "machine/D12 230 PRO M2 MONO DUAL PoopTool.json"
+        },
+        {
             "name": "Wanhao D12 230 PRO SMARTPAD MONO DUAL",
             "sub_path": "machine/D12 230 PRO SMARTPAD MONO DUAL.json"
+        },
+        {
+            "name": "Wanhao D12 230 PRO SMARTPAD MONO DUAL PoopTool",
+            "sub_path": "machine/D12 230 PRO SMARTPAD MONO DUAL PoopTool.json"
         },
         {
             "name": "Wanhao D12 230 PRO M2 DIRECT",
@@ -69,6 +77,10 @@
         {
             "name": "0.20mm Standard @Wanhao-D12-230",
             "sub_path": "process/0.20mm Standard @Wanhao-D12-230.json"
+        },
+        {
+            "name": "0.20mm Standard @Wanhao-D12-230 PoopTool.json",
+            "sub_path": "process/0.20mm Standard @Wanhao-D12-230 PoopTool.json"
         },
         {
             "name": "0.24mm Standard @Wanhao-D12-230",
@@ -171,12 +183,22 @@
             "sub_path": "machine/D12 230 PRO M2 MONO DUAL 0.4 nozzle.json"
         },
         {
+            "name": "D12 230 PRO M2 MONO DUAL 0.4 nozzle PoopTool",
+            "sub_path": "machine/D12 230 PRO M2 MONO DUAL 0.4 nozzle PoopTool.json"
+        },
+        {
             "name": "D12 230 PRO M2 DIRECT 0.4 nozzle",
             "sub_path": "machine/D12 230 PRO M2 DIRECT 0.4 nozzle.json"
         },
         {
             "name": "D12 230 PRO SMARTPAD MONO DUAL 0.4 nozzle",
             "sub_path": "machine/D12 230 PRO SMARTPAD MONO DUAL 0.4 nozzle.json"
+
+        },
+        {
+            "name": "D12 230 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool",
+            "sub_path": "machine/D12 230 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool.json"
+
         },
         {
             "name": "D12 230 PRO SMARTPAD DIRECT 0.4 nozzle",
