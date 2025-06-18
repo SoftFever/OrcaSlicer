@@ -156,7 +156,7 @@ protected:
         overlap(0.),
         // Initial angle is undefined.
         angle(FLT_MAX),
-        rotate_angle(true), 
+        rotate_angle(true),
         link_max_length(0),
         loop_clipping(0),
         // The initial bounding box is empty, therefore undefined.
