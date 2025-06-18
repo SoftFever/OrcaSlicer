@@ -34,7 +34,7 @@ As most settings in 3D printing, experience is the best way to determine which p
 | [Adaptive Cubic](#adaptive-cubic)           | Normal-High  | Normal-High | Low            | Low         |
 | [Aligned Rectilinear](#aligned-rectilinear) | Normal-Low   | Normal      | Normal         | Normal      |
 | [2D Honeycomb](#2d-honeycomb)               | Normal-Low   | Normal-Low  | Normal         | Normal-Low  |
-| [3D Honeycomb](#3d-honeycomb)               | Normal       | Normal-High | Normal-Low     | High        |
+| [3D Honeycomb](#3d-honeycomb)               | Normal-High  | Normal-High | Normal-Low     | High        |
 | [Hilbert Curve](#hilbert-curve)             | Low          | Normal      | Normal         | High        |
 | [Archimedean Chords](#archimedean-chords)   | Low          | Normal      | Normal         | Normal-Low  |
 | [Octagram Spiral](#octagram-spiral)         | Low          | Normal      | Normal         | Normal-High |
@@ -233,7 +233,7 @@ Vertical Honeycomb pattern. Acceptable torsional stiffness. Developed for low de
 
 This infill tries to generate a printable honeycomb structure by printing squares and octagons mantaining a vertical angle high enough to mantian contact with the previous layer.
 
-- **Horizontal Strength (X-Y):** Normal
+- **Horizontal Strength (X-Y):** Normal-High
 - **Vertical Strength (Z):** Normal-High
 - **Density Calculation:** Unknown
 - **Material Usage:** Normal-Low
