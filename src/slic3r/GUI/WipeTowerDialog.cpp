@@ -15,6 +15,7 @@
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
+#include "Widgets/Label.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::GUI;
@@ -116,6 +117,15 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
     update_ui(m_chart);
  	sizer_chart->Add(m_chart, 0, wxALL, 5);
 
+    std::string ctrl_str = GUI::shortkey_ctrl_prefix();
+    if (!ctrl_str.empty() && ctrl_str.back() == '+')
+        ctrl_str.pop_back();
+    auto hold_ctrl_label = new Label(this, format_wxstr(_L("For constant flow rate, hold %1% while dragging."), ctrl_str), LB_AUTO_WRAP);
+    hold_ctrl_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
+    hold_ctrl_label->SetFont(Label::Body_14);
+    hold_ctrl_label->Wrap(scale(470));
+    sizer_chart->Add(hold_ctrl_label, 0, wxALIGN_LEFT | wxALL, 5);
+
     m_widget_time                             = new SpinInput(this, wxEmptyString, _L("ms") , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 5000 , 3000, 250);
     m_widget_volume                           = new SpinInput(this, wxEmptyString, _L("mm³"), wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 10000, 0   );
     m_widget_ramming_line_width_multiplicator = new SpinInput(this, wxEmptyString, _L("%")  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 300  , 100 );
@@ -157,15 +167,6 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
     add_title(_L("Ramming line"));
     add_spin( _L("Width")  , m_widget_ramming_line_width_multiplicator);
     add_spin( _L("Spacing"), m_widget_ramming_step_multiplicator      );
-
-    sizer_param->AddSpacer(60);
-    
-    std::string ctrl_str = GUI::shortkey_ctrl_prefix();
-    if (!ctrl_str.empty() && ctrl_str.back() == '+')
-        ctrl_str.pop_back();
-    auto hold_ctrl_label = new wxStaticText(this, wxID_ANY, format_wxstr(_L("For constant flow rate, hold %1% while dragging."), ctrl_str));
-    hold_ctrl_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
-    sizer_param->Add(hold_ctrl_label, 0, wxALIGN_CENTER_VERTICAL);
 
     m_widget_time->SetValue(int(m_chart->get_time() * 1000));
     m_widget_volume->SetValue(m_chart->get_volume());
