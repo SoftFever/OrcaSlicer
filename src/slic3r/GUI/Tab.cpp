@@ -2238,6 +2238,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_interface_speed");
         optgroup = page->new_optgroup(L("Overhang speed"), L"param_overhang_speed", 15);
         optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang");
+
         // Orca: DEPRECATED
         // optgroup->append_single_option_line("overhang_speed_classic", "slow-down-for-overhang");
         optgroup->append_single_option_line("slowdown_for_curled_perimeters");
@@ -2355,10 +2356,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_brim_width");
         optgroup->append_single_option_line("wipe_tower_rotation_angle");
         optgroup->append_single_option_line("wipe_tower_bridging");
-        optgroup->append_single_option_line("wipe_tower_cone_angle");
         optgroup->append_single_option_line("wipe_tower_extra_spacing");
         optgroup->append_single_option_line("wipe_tower_extra_flow");
         optgroup->append_single_option_line("wipe_tower_max_purge_speed");
+        optgroup->append_single_option_line("wipe_tower_wall_type");
+        optgroup->append_single_option_line("wipe_tower_cone_angle");
+        optgroup->append_single_option_line("wipe_tower_extra_rib_length");
+        optgroup->append_single_option_line("wipe_tower_rib_width");
+        optgroup->append_single_option_line("wipe_tower_fillet_wall");
         optgroup->append_single_option_line("wipe_tower_no_sparse_layers");
         optgroup->append_single_option_line("single_extruder_multi_material_priming");
 
@@ -4194,6 +4199,17 @@ PageShp TabPrinter::build_kinematics_page()
     }
     auto optgroup = page->new_optgroup(L("Advanced"), "param_advanced");
     optgroup->append_single_option_line("emit_machine_limits_to_gcode");
+    
+    // resonance avoidance ported over from qidi slicer
+    optgroup = page->new_optgroup(L("Resonance Avoidance"));
+    optgroup->append_single_option_line("resonance_avoidance");
+    // Resonance‑avoidance speed inputs
+    {
+        Line resonance_line = {L("Resonance Avoidance Speed"), L("")};
+        resonance_line.append_option(optgroup->get_option("min_resonance_avoidance_speed"));
+        resonance_line.append_option(optgroup->get_option("max_resonance_avoidance_speed"));
+        optgroup->append_line(resonance_line);
+    }
 
     const std::vector<std::string> speed_axes{
         "machine_max_speed_x",
@@ -4452,7 +4468,6 @@ if (is_marlin_flavor)
                 optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
                 optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
                 optgroup->append_single_option_line("retract_when_changing_layer", "", extruder_idx);
-                optgroup->append_single_option_line("retract_on_top_layer", "", extruder_idx);
                 optgroup->append_single_option_line("wipe", "", extruder_idx);
                 optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
                 optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
@@ -4672,7 +4687,7 @@ void TabPrinter::toggle_options()
         // user can customize other retraction options if retraction is enabled
         //BBS
         bool retraction = have_retract_length || use_firmware_retraction;
-        std::vector<std::string> vec = {"z_hop", "retract_when_changing_layer", "retract_on_top_layer"};
+        std::vector<std::string> vec = {"z_hop", "retract_when_changing_layer"};
         for (auto el : vec)
             toggle_option(el, retraction, i);
 
@@ -4737,6 +4752,10 @@ void TabPrinter::toggle_options()
         for (int i = 0; i < max_field; ++i)
             toggle_option("machine_max_junction_deviation", gcf == gcfMarlinFirmware, i);
         toggle_line("machine_max_junction_deviation", gcf == gcfMarlinFirmware);
+
+        bool resonance_avoidance = m_config->opt_bool("resonance_avoidance");
+        toggle_option("min_resonance_avoidance_speed", resonance_avoidance);
+        toggle_option("max_resonance_avoidance_speed", resonance_avoidance);
     }
 }
 

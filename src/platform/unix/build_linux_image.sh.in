@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export ROOT=$(echo $ROOT | grep . || pwd)
 export NCORES=`nproc --all`
@@ -8,7 +8,7 @@ while getopts ":ih" opt; do
     i )
         export BUILD_IMAGE="1"
         ;;
-    h ) echo "Usage: ./BuildLinuxImage.sh [-i]"
+    h ) echo "Usage: ./build_linux_image.sh [-i]"
         echo "   -i: Generate Appimage (optional)"
         exit 0
         ;;
@@ -67,9 +67,9 @@ EOF
 
     chmod ug+x @SLIC3R_APP_CMD@
     cp -f @SLIC3R_APP_CMD@ package/@SLIC3R_APP_CMD@
-    pushd package
+    pushd package > /dev/null
     tar -cvf ../@SLIC3R_APP_KEY@.tar .  &>/dev/null
-    popd
+    popd > /dev/null
 #} &> $ROOT/Build.log # Capture all command output
 echo "done"
 
@@ -77,10 +77,10 @@ if [[ -n "$BUILD_IMAGE" ]]
 then
 echo -n "Creating Appimage for distribution..."
 #{
-    pushd package
+    pushd package > /dev/null
     chmod +x ../build_appimage.sh
     ../build_appimage.sh
-    popd
+    popd > /dev/null
     mv package/"@SLIC3R_APP_KEY@_Linux_V@SoftFever_VERSION@.AppImage" "@SLIC3R_APP_KEY@_Linux_V@SoftFever_VERSION@.AppImage"
 #} &> $ROOT/Build.log # Capture all command output
 echo "done"
