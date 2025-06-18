@@ -3358,9 +3358,9 @@ void PrintObject::get_certain_layers(float start, float end, std::vector<LayerPt
     out.emplace_back(std::move(out_temp));
 };
 
-std::vector<Point> PrintObject::get_instances_shift_without_plate_offset()
+Points PrintObject::get_instances_shift_without_plate_offset()
 {
-    std::vector<Point> out;
+    Points out;
     out.reserve(m_instances.size());
     for (const auto& instance : m_instances)
         out.push_back(instance.shift_without_plate_offset());

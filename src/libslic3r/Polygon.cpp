@@ -437,11 +437,8 @@ bool has_duplicate_points(const Polygons &polys)
 {
 #if 1
     // Check globally.
-    size_t cnt = 0;
-    for (const Polygon &poly : polys)
-        cnt += poly.points.size();
-    std::vector<Point> allpts;
-    allpts.reserve(cnt);
+    Points allpts;
+    allpts.reserve(count_points(polys));
     for (const Polygon &poly : polys)
         allpts.insert(allpts.end(), poly.points.begin(), poly.points.end());
     return has_duplicate_points(std::move(allpts));
