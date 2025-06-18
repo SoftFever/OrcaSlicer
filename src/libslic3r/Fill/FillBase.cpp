@@ -2,7 +2,6 @@
 #include <numeric>
 
 #include <cmath>
-#include <tbb/parallel_for.h>
 #include "../ClipperUtils.hpp"
 #include "../EdgeGrid.hpp"
 #include "../Geometry.hpp"
@@ -27,7 +26,6 @@
 // BBS: new infill pattern header
 #include "FillConcentricInternal.hpp"
 #include "FillCrossHatch.hpp"
-
 // #define INFILL_DEBUG_OUTPUT
 
 namespace Slic3r {
@@ -2687,18 +2685,24 @@ void Fill::connect_base_support(Polylines &&infill_ordered, const Polygons &boun
 void multiline_fill(Polylines& polylines, const FillParams& params, float spacing)
 {
     if (params.multiline > 1) {
+        const int n_lines = params.multiline;
+        const int n_polylines = static_cast<int>(polylines.size());
         Polylines all_polylines;
+        all_polylines.reserve(n_lines * n_polylines);
 
-        for (unsigned int line = 0; line < params.multiline; ++line) {
-            float offset = (line - (params.multiline - 1) / 2.0f) * spacing;
-            Polylines offset_polylines = polylines;
+        const float center = (n_lines - 1) / 2.0f;
 
-            tbb::parallel_for(size_t(0), offset_polylines.size(), [&](size_t idx) {
-                Polyline& pl = offset_polylines[idx];
-                size_t n = pl.points.size();
-                if (n < 2)
-                    return;
-                std::vector<Point> new_points;
+        for (int line = 0; line < n_lines; ++line) {
+            float offset = (static_cast<float>(line) - center) * spacing;
+
+            for (const Polyline& pl : polylines) {
+                const size_t n = pl.points.size();
+                if (n < 2) {
+                    all_polylines.emplace_back(pl);  
+                    continue;
+                }
+
+                Points new_points;
                 new_points.reserve(n);
                 for (size_t i = 0; i < n; ++i) {
                     Vec2f tangent;
@@ -2709,7 +2713,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
                     else
                         tangent = Vec2f(pl.points[i + 1].x() - pl.points[i - 1].x(), pl.points[i + 1].y() - pl.points[i - 1].y());
 
-                    float len = std::hypot(tangent.x() , tangent.y());
+                    float len = std::hypot(tangent.x(), tangent.y());
                     if (len == 0)
                         len = 1.0f;
                     tangent /= len;
@@ -2720,17 +2724,14 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
                     p.y() += scale_(normal.y() * offset);
                     new_points.push_back(p);
                 }
-                pl.points = std::move(new_points);
-            });
 
-            append(all_polylines, offset_polylines);
+                all_polylines.emplace_back(std::move(new_points));
+            }
         }
+        polylines = std::move(all_polylines);
 
-        polylines = all_polylines;
-
-        tbb::parallel_for(size_t(0), polylines.size(), [&](size_t i) {
-            polylines[i].simplify(scale_(0.05f));
-        });
+        for (Polyline& pl : polylines)
+            pl.simplify(scale_(0.05f));
     }
 }
 

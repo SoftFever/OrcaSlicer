@@ -3138,6 +3138,7 @@ Polylines Fill2DHoneycomb::fill_surface(const Surface *surface, const FillParams
     const float horizontal_offset = odd_layer ? half_horizontal_period : 0;
 
     Polylines polylines_out;
+    set_multiline_to_1(const_cast<FillParams&>(params)); // set multiline to 1 to avoid overlapping lines
 
     if (single_line)
     {
