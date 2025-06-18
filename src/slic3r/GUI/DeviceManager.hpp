@@ -1205,7 +1205,9 @@ public:
     int command_stop_buzzer();
 
     /* temp*/
+    bool m_support_mqtt_bet_ctrl = false;
     int command_set_bed(int temp);
+
     int command_set_nozzle(int temp);
     int command_set_nozzle_new(int nozzle_id, int temp);
     int command_set_chamber(int temp);
@@ -1245,6 +1247,7 @@ public:
     int command_nozzle_blob_detect(bool nozzle_blob_detect);
 
     // axis string is X, Y, Z, E
+    bool m_support_mqtt_axis_control = false;
     int command_axis_control(std::string axis, double unit = 1.0f, double input_val = 1.0f, int speed = 3000);
 
     int command_extruder_control(int nozzle_id, double val);

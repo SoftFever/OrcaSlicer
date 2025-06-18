@@ -2140,6 +2140,15 @@ int MachineObject::command_stop_buzzer()
 
 int MachineObject::command_set_bed(int temp)
 {
+    if (m_support_mqtt_bet_ctrl)
+    {
+        json j;
+        j["print"]["command"] = "set_bed_temp";
+        j["print"]["temp"] = temp;
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        return this->publish_json(j.dump());
+    }
+
     std::string gcode_str = (boost::format("M140 S%1%\n") % temp).str();
     return this->publish_gcode(gcode_str);
 }
@@ -2522,6 +2531,17 @@ int MachineObject::command_ams_air_print_detect(bool air_print_detect)
 
 int MachineObject::command_axis_control(std::string axis, double unit, double input_val, int speed)
 {
+    if (m_support_mqtt_axis_control)
+    {
+        json j;
+        j["print"]["command"] = "xyz_ctrl";
+        j["print"]["axis"] = axis;
+        j["print"]["dir"] = input_val > 0 ? 1 : -1;
+        j["print"]["mode"] = (std::abs(input_val) >= 10) ? 1 : 0;
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        return this->publish_json(j.dump());
+    }
+
     double value = input_val;
     if (!is_core_xy()) {
         if ( axis.compare("Y") == 0
@@ -6265,6 +6285,8 @@ void MachineObject::parse_new_info(json print)
         is_support_internal_timelapse = get_flag_bits(fun, 28);
         is_support_command_homing = get_flag_bits(fun, 32);
         is_support_brtc = get_flag_bits(fun, 31);
+        m_support_mqtt_axis_control = get_flag_bits(fun, 38);
+        m_support_mqtt_bet_ctrl = get_flag_bits(fun, 39);
     }
 
     /*aux*/
