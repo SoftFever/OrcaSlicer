@@ -20,294 +20,286 @@ There is no one-size-fits-all solution, as the best pattern depends on the speci
 
 Fills the area with progressively smaller versions of the outer contour, creating a concentric pattern. Ideal for 100% infill or flexible prints.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 0,75
+- **Vertical Strength (Z):** 1,075
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
 - **Time:** Normal
 - **Material/Time (Higher better):** Normal-High
 
 ![infill-top-concentric](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-concentric.png?raw=true)
-![infill-iso-concentric](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-concentric.png?raw=true)
 
 ### Rectilinear
 
 Parallel lines spaced according to infill density. Each layer is printed perpendicular to the previous, resulting in low vertical bonding.
 
-- **Horizontal Strength (X-Y):** Normal-Low
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** 0,925
+- **Vertical Strength (Z):** 0,75
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
 - **Time:** Normal
-- **Material/Time (Higher better):** Normal
+- **Material/Time (Higher better):** Normal-High
 
 ![infill-top-rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-rectilinear.png?raw=true)
-![infill-iso-rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-rectilinear.png?raw=true)
 
 ### Grid
 
 Two-layer pattern of perpendicular lines, forming a grid. Overlapping points may cause noise or artifacts.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 1,6
+- **Vertical Strength (Z):** 1,6
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
 - **Time:** Normal
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-grid](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-grid.png?raw=true)
-![infill-iso-grid](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-grid.png?raw=true)
 
 ### 2D Lattice
 
-Aesthetic, low-strength pattern with good flexibility.
+Low-strength pattern with good flexibility. Angle 1 and angle 2 TBD.
 
-- **Horizontal Strength (X-Y):** Normal
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** 0,925
+- **Vertical Strength (Z):** 0,75
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
 - **Time:** Normal
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-2d-lattice](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-2d-lattice.png?raw=true)
-![infill-iso-2d-lattice](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-2d-lattice.png?raw=true)
 
 ### Line
 
 Similar to [rectilinear](#rectilinear), but each line is slightly rotated to improve print speed.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** 0,75
+- **Vertical Strength (Z):** 0,75
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
-- **Time:** Normal
+- **Time:** Normal-Low
 - **Material/Time (Higher better):** Normal-High
 
 ![infill-top-line](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-line.png?raw=true)
-![infill-iso-line](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-line.png?raw=true)
 
 ### Cubic
 
 3D cube pattern with corners facing down, distributing force in all directions. Triangles in the horizontal plane provide good X-Y strength.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 1,6
+- **Vertical Strength (Z):** 1,6
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
-- **Time:** Normal
+- **Time:** Normal-Low
 - **Material/Time (Higher better):** Normal-High
 
 ![infill-top-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-cubic.png?raw=true)
-![infill-iso-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-cubic.png?raw=true)
 
 ### Triangles
 
 Triangle-based grid, offering strong X-Y strength but with triple overlaps at intersections.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 1,6
+- **Vertical Strength (Z):** 1,075
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
-- **Time:** Normal
+- **Time:** Normal-Low
 - **Material/Time (Higher better):** Normal-High
 
 ![infill-top-triangles](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-triangles.png?raw=true)
-![infill-iso-triangles](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-triangles.png?raw=true)
 
 ### Tri-hexagon
 
 Similar to the [triangles](#triangles) pattern but offset to prevent triple overlaps at intersections. This design combines triangles and hexagons, providing excellent X-Y strength.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** Normal-High
+- **Horizontal Strength (X-Y):** 1,6
+- **Vertical Strength (Z):** 1,25
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
 - **Time:** Normal-Low
 - **Material/Time (Higher better):** Normal-High
 
 ![infill-top-tri-hexagon](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-tri-hexagon.png?raw=true)
-![infill-iso-tri-hexagon](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-tri-hexagon.png?raw=true)
 
 ### Gyroid
 
 Mathematical, isotropic surface providing equal strength in all directions. Excellent for strong, flexible prints and resin filling due to its interconnected structure.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 1,6
+- **Vertical Strength (Z):** 1,6
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
-- **Time:** High
+- **Time:** Normal-High
 - **Material/Time (Higher better):** Low
 
 ![infill-top-gyroid](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-gyroid.png?raw=true)
-![infill-iso-gyroid](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-gyroid.png?raw=true)
 
 ### TPMS-D
 
 Triply Periodic Minimal Surface - D. Hybrid between [Cross Hatch](#cross-hatch) and [Gyroid](#gyroid), combining rigidity and smooth transitions. Isotropic and strong in all directions.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 1,6
+- **Vertical Strength (Z):** 1,6
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
 - **Time:** High
 - **Material/Time (Higher better):** Low
 
 ![infill-top-tpms-d](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-tpms-d.png?raw=true)
-![infill-iso-tpms-d](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-tpms-d.png?raw=true)
 
 ### Honeycomb
 
 Hexagonal pattern balancing strength and material use. Double walls in each hexagon increase material consumption.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 1,6
+- **Vertical Strength (Z):** 1,6
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** High
-- **Time:** Ultra High
+- **Time:** Ultra-High
 - **Material/Time (Higher better):** Extra Low
 
 ![infill-top-honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-honeycomb.png?raw=true)
-![infill-iso-honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-honeycomb.png?raw=true)
 
 ### Adaptive Cubic
 
 [Cubic](#cubic) pattern with adaptive density: denser near walls, sparser in the center. Saves material and time while maintaining strength, ideal for large prints.
 
-- **Horizontal Strength (X-Y):** Normal-High
-- **Vertical Strength (Z):** Normal-High
+- **Horizontal Strength (X-Y):** 1,25
+- **Vertical Strength (Z):** 1,25
 - **Density Calculation:** Cubic reduced in the center
 - **Material Usage:** Low
 - **Time:** Low
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-adaptive-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-adaptive-cubic.png?raw=true)
-![infill-iso-adaptive-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-adaptive-cubic.png?raw=true)
 
 ### Aligned Rectilinear
 
 Parallel lines spaced by the infill spacing, each layer printed in the same direction as the previous layer. Good horizontal strength perpendicular to the lines, but terrible in parallel direction.
 Recommended with layer anchoring to improve not perpendicular strength.
 
-- **Horizontal Strength (X-Y):** Normal-Low
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 0,925
+- **Vertical Strength (Z):** 1,075
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
 - **Time:** Normal
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-aligned-rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-aligned-rectilinear.png?raw=true)
-![infill-iso-aligned-rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-aligned-rectilinear.png?raw=true)
+
+### 2D Honeycomb
+
+Vertical Honeycomb pattern. Acceptable torsional stiffness. Developed for low densities structures like wings. Improve over [2D Lattice](#2d-lattice) offers same performance with lower densities.This infill includes a Overhang angle parameter to improve interlayer point of contact and reduce the risk of delamination.
+
+- **Horizontal Strength (X-Y):** 0,925
+- **Vertical Strength (Z):** 0,925
+- **Density Calculation:** Total infill material usage
+- **Material Usage:** Normal
+- **Time:** Normal-Low
+- **Material/Time (Higher better):** Normal
+
+![infill-top-2d-honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-2d-honeycomb.png?raw=true)
 
 ### 3D Honeycomb
 
 This infill tries to generate a printable honeycomb structure by printing squares and octagons mantaining a vertical angle high enough to mantian contact with the previous layer.
 
-- **Horizontal Strength (X-Y):** Normal
-- **Vertical Strength (Z):** Normal-High
+- **Horizontal Strength (X-Y):** 1,075
+- **Vertical Strength (Z):** 1,25
 - **Density Calculation:** Unknown
 - **Material Usage:** Normal-Low
 - **Time:** High
 - **Material/Time (Higher better):** Extra Low
 
 ![infill-top-3d-honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-3d-honeycomb.png?raw=true)
-![infill-iso-3d-honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-3d-honeycomb.png?raw=true)
 
 ### Hilbert Curve
 
-Hilbert Curve is a space-filling curve that can be used to create a continuous infill pattern. It is known for its aesthetic appeal and ability to fill space efficiently.
-Print speed is very low due to the complexity of the path, which can lead to longer print times. It is not recommended for structural parts but can be used for aesthetic purposes.
+Hilbert Curve is a space-filling curve that can be used to create a continuous infill pattern. It is known for its Esthetic appeal and ability to fill space efficiently.
+Print speed is very low due to the complexity of the path, which can lead to longer print times. It is not recommended for structural parts but can be used for Esthetic purposes.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 0,75
+- **Vertical Strength (Z):** 1,075
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
-- **Time:** Extra High
+- **Time:** High
 - **Material/Time (Higher better):** Extra Low
 
 ![infill-top-hilbert-curve](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-hilbert-curve.png?raw=true)
-![infill-iso-hilbert-curve](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-hilbert-curve.png?raw=true)
 
 ### Archimedean Chords
 
 Spiral pattern that fills the area with concentric arcs, creating a smooth and continuous infill. Can be filled with resin thanks to its interconnected hollow structure, which allows the resin to flow through it and cure properly.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 0,75
+- **Vertical Strength (Z):** 1,075
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
-- **Time:** Normal
+- **Time:** Normal-Low
 - **Material/Time (Higher better):** Normal-High
 
 ![infill-top-archimedean-chords](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-archimedean-chords.png?raw=true)
-![infill-iso-archimedean-chords](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-archimedean-chords.png?raw=true)
 
 ### Octagram Spiral
 
-Aesthetic pattern with low strength and high print time.
+Esthetic pattern with low strength and high print time.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 0,75
+- **Vertical Strength (Z):** 1,075
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
-- **Time:** High
+- **Time:** Normal-High
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-octagram-spiral](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-octagram-spiral.png?raw=true)
-![infill-iso-octagram-spiral](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-octagram-spiral.png?raw=true)
 
 ### Support Cubic
 
 Support |Cubic is a variation of the [Cubic](#cubic) infill pattern that is specifically designed for support top layers. Will use more material than Lightning infill but will provide better strength. Nevertheless, it is still a low-density infill pattern.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** 0,75
+- **Vertical Strength (Z):** 0,75
 - **Density Calculation:** before top shell layers
-- **Material Usage:** Extra Low
-- **Time:** Extra Low
+- **Material Usage:** Extra-Low
+- **Time:** Extra-Low
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-support-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-support-cubic.png?raw=true)
-![infill-iso-support-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-support-cubic.png?raw=true)
 
 ### Lightning
 
 Ultra-fast, ultra-low material infill. Designed for speed and efficiency, ideal for quick prints or non-structural prototypes.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** 0,75
+- **Vertical Strength (Z):** 0,75
 - **Density Calculation:** before top shell layers
-- **Material Usage:** Ultra Low
-- **Time:** Ultra Low
+- **Material Usage:** Ultra-Low
+- **Time:** Ultra-Low
 - **Material/Time (Higher better):** Extra Low
 
 ![infill-top-lightning](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-lightning.png?raw=true)
-![infill-iso-lightning](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-lightning.png?raw=true)
 
 ### Cross Hatch
 
 Similar to [Gyroid](#gyroid) but with linear patterns, creating weak points at internal corners.
 
-- **Horizontal Strength (X-Y):** Normal-High
-- **Vertical Strength (Z):** Normal-High
+- **Horizontal Strength (X-Y):** 1,25
+- **Vertical Strength (Z):** 1,25
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
-- **Time:** High
+- **Time:** Normal-High
 - **Material/Time (Higher better):** Low
 
 ![infill-top-cross-hatch](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-cross-hatch.png?raw=true)
-![infill-iso-cross-hatch](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-cross-hatch.png?raw=true)
 
 ### Quarter Cubic
 
 [Cubic](#cubic) pattern with extra internal divisions, improving X-Y strength.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 1,6
+- **Vertical Strength (Z):** 1,6
 - **Density Calculation:** Total infill material usage
 - **Material Usage:** Normal
-- **Time:** Normal
+- **Time:** Normal-Low
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-quarter-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-quarter-cubic.png?raw=true)
-![infill-iso-quarter-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-iso-quarter-cubic.png?raw=true)
