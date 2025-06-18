@@ -2190,6 +2190,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
         optgroup->append_single_option_line("lattice_angle_1");
         optgroup->append_single_option_line("lattice_angle_2");
+        optgroup->append_single_option_line("infill_overhang_angle");
         optgroup->append_single_option_line("infill_anchor_max");
         optgroup->append_single_option_line("infill_anchor");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
@@ -2426,6 +2427,7 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
 
         optgroup->append_single_option_line("fuzzy_skin");
+        optgroup->append_single_option_line("fuzzy_skin_mode");
         optgroup->append_single_option_line("fuzzy_skin_noise_type");
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
