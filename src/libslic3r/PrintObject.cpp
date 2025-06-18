@@ -1090,7 +1090,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "initial_layer_line_width"
             || opt_key == "small_area_infill_flow_compensation"
             || opt_key == "lattice_angle_1"
-            || opt_key == "lattice_angle_2") {
+            || opt_key == "lattice_angle_2"
+            || opt_key == "infill_overhang_angle") {
             steps.emplace_back(posInfill);
         } else if (opt_key == "sparse_infill_pattern") {
             steps.emplace_back(posPrepareInfill);
@@ -3769,7 +3770,8 @@ void PrintObject::combine_infill()
                   infill_pattern == ipGrid          ||
                   infill_pattern == ip2DLattice     ||
                   infill_pattern == ipLine          ||
-                  infill_pattern == ipHoneycomb) ? 1.5f : 0.5f) *
+                  infill_pattern == ipHoneycomb     ||
+                  infill_pattern == ip2DHoneycomb) ? 1.5f : 0.5f) *
                     layerms.back()->flow(frSolidInfill).scaled_width();
             for (ExPolygon &expoly : intersection)
                 polygons_append(intersection_with_clearance, offset(expoly, clearance_offset));

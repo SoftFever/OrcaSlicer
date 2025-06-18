@@ -132,6 +132,14 @@ protected:
     float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
+class Fill2DHoneycomb : public FillAlignedRectilinear
+{
+public:
+    Fill* clone() const override { return new Fill2DHoneycomb(*this); }
+    ~Fill2DHoneycomb() override = default;
+    Polylines fill_surface(const Surface *surface, const FillParams &params) override;
+};
+
 
 class FillSupportBase : public FillRectilinear
 {

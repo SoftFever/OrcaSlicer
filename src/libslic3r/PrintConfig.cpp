@@ -152,6 +152,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "monotonic",          ipMonotonic },
     { "monotonicline",      ipMonotonicLine },
     { "alignedrectilinear", ipAlignedRectilinear },
+    { "2dhoneycomb",        ip2DHoneycomb },
     { "3dhoneycomb",        ip3DHoneycomb },
     { "hilbertcurve",       ipHilbertCurve },
     { "archimedeanchords",  ipArchimedeanChords },
@@ -2390,6 +2391,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("adaptivecubic");
     def->enum_values.push_back("alignedrectilinear");
+    def->enum_values.push_back("2dhoneycomb");
     def->enum_values.push_back("3dhoneycomb");
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
@@ -2411,6 +2413,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Adaptive Cubic"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
+    def->enum_labels.push_back(L("2D Honeycomb"));
     def->enum_labels.push_back(L("3D Honeycomb"));
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
@@ -2440,6 +2443,16 @@ void PrintConfigDef::init_fff_params()
     def->max      = 75;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
+
+    def           = this->add("infill_overhang_angle", coFloat);
+    def->label    = L("Infill overhang angle");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of the infill angled lines. 60° will result in a pure honeycomb.");
+    def->sidetext = L("°");
+    def->min      = 15;
+    def->max      = 75;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(60));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
     def->label = L("Sparse infill anchor length");
