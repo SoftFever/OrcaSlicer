@@ -38,27 +38,28 @@
 namespace Slic3r { 
 namespace GUI {
 
-    static const std::vector<std::string> filament_vendors = 
+  static const std::vector<std::string> filament_vendors = 
     {"3Dgenius",               "3DJake",                 "3DXTECH",                "3D BEST-Q",              "3D Hero",
      "3D-Fuel",                "Aceaddity",              "AddNorth",               "Amazon Basics",          "AMOLEN",
      "Ankermake",              "Anycubic",               "Atomic",                 "AzureFilm",              "BASF",
      "Bblife",                 "BCN3D",                  "Beyond Plastic",         "California Filament",    "Capricorn",
      "CC3D",                   "colorFabb",              "Comgrow",                "Cookiecad",              "Creality",
-     "CERPRiSE",               "Das Filament",           "DO3D",                   "DOW",                    "DSM",
-     "Duramic",                "ELEGOO",                 "Eryone",                 "Essentium",              "eSUN",
-     "Extrudr",                "Fiberforce",             "Fiberlogy",              "FilaCube",               "Filamentive",
-     "Fillamentum",            "FLASHFORGE",             "Formfutura",             "Francofil",              "FusRock",
-     "FilamentOne",            "Fil X",                  "GEEETECH",               "Giantarm",               "Gizmo Dorks",
-     "GreenGate3D",            "HATCHBOX",               "Hello3D",                "IC3D",                   "IEMAI",
-     "IIID Max",               "INLAND",                 "iProspect",              "iSANMATE",               "Justmaker",
-     "Keene Village Plastics", "Kexcelled",              "LDO",                    "MakerBot",               "MatterHackers",
-     "MIKA3D",                 "NinjaTek",               "Nobufil",                "Novamaker",              "OVERTURE",
-     "OVVNYXE",                "Polymaker",              "Priline",                "Printed Solid",          "Protopasta",
-     "Prusament",              "Push Plastic",           "R3D",                    "Re-pet3D",               "Recreus",
-     "Regen",                  "RatRig",                 "Sain SMART",             "SliceWorx",              "Snapmaker",
-     "SnoLabs",                "Spectrum",               "SUNLU",                  "TTYT3D",                 "Tianse",
-     "UltiMaker",              "Valment",                "Verbatim",               "VO3D",                   "Voxelab",
-     "VOXELPLA",               "YOOPAI",                 "Yousu",                  "Ziro",                   "Zyltech"};
+     "CERPRiSE",               "Das Filament",           "DO3D",                   "DOW",                    "DREMC",
+     "DSM",                    "Duramic",                "ELEGOO",                 "Eryone",                 "Essentium",
+     "eSUN",                   "Extrudr",                "Fiberforce",             "Fiberlogy",              "FilaCube",
+     "Filamentive",            "Fillamentum",            "FLASHFORGE",            "Formfutura",             "Francofil",
+     "FusRock",                "FilamentOne",            "Fil X",                  "GEEETECH",               "Giantarm",
+     "Gizmo Dorks",            "GreenGate3D",            "HATCHBOX",               "Hello3D",                "IC3D",
+     "IEMAI",                  "IIID Max",               "INLAND",                 "iProspect",              "iSANMATE",
+     "Justmaker",             "Keene Village Plastics",  "Kexcelled",              "LDO",                    "MakerBot",
+     "MatterHackers",         "MIKA3D",                  "NinjaTek",               "Nobufil",                "Novamaker",
+     "OVERTURE",              "OVVNYXE",                 "Polymaker",              "Priline",                "Printed Solid",
+     "Protopasta",            "Prusament",               "Push Plastic",           "R3D",                    "Re-pet3D",
+     "Recreus",               "Regen",                   "RatRig",                 "Sain SMART",             "SliceWorx",
+     "Snapmaker",             "SnoLabs",                 "Spectrum",               "SUNLU",                  "TTYT3D",
+     "Tianse",                "UltiMaker",               "Valment",                "Verbatim",               "VO3D",
+     "Voxelab",               "VOXELPLA",                "YOOPAI",                 "Yousu",                  "Ziro", 
+     "Zyltech"};
      
 static const std::vector<std::string> filament_types = {"PLA",    "rPLA",  "PLA+",      "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",   "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PVB",       "PC",        "PCABS", "PCTG",   "PCCF",   "PHA",    "PP",     "PEI",    "PET",
@@ -124,8 +125,8 @@ static const std::unordered_map<std::string, std::vector<std::string>> printer_m
      {"Orca Arena Printer",{"Orca Arena X1 Carbon"}},
      {"Peopoly",           {"Peopoly Magneto X"}},
      {"Positron 3D",       {"The Positron"}},
-     {"Prusa",             {"MK4IS",       "MINIIS",      "MK3S",        "MINI",        "MK3.5",
-                            "Prusa XL",    "Prusa XL 5T", "MK4S",        "MK4S HF"}},
+     {"Prusa",             {"Prusa CORE One", "Prusa CORE One HF", "MK4IS", "MK4S", "MK4S HF",
+                            "Prusa XL", "Prusa XL 5T", "MK3.5", "MK3S", "MINI", "MINIIS"}},
      {"Qidi",              {"Qidi X-Plus 4",  "Qidi Q1 Pro",    "Qidi X-Max 3",   "Qidi X-Plus 3",  "Qidi X-Smart 3",
                             "Qidi X-Plus",    "Qidi X-Max",     "Qidi X-CF Pro"}},
      {"Raise3D",           {"Raise3D Pro3",      "Raise3D Pro3 Plus"}},
@@ -778,7 +779,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     m_filament_custom_vendor_input->SetSize(NAME_OPTION_COMBOBOX_SIZE);
     textInputSizer->Add(m_filament_custom_vendor_input, 0, wxEXPAND | wxALL, 0);
     m_filament_custom_vendor_input->GetTextCtrl()->SetHint(_L("Input Custom Vendor"));
-    m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) {
             event.Skip(false);
@@ -888,7 +889,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     m_filament_serial_input   = new TextInput(this, "", "", "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
     m_filament_serial_input->GetTextCtrl()->SetMaxLength(50);
     comboBoxSizer->Add(m_filament_serial_input, 0, wxEXPAND | wxALL, 0);
-    m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) {
             event.Skip(false);
@@ -1016,7 +1017,7 @@ wxWindow *CreateFilamentPresetDialog::create_dialog_buttons()
 
     auto btn_ok = dlg_btns->GetOK();
     btn_ok->SetLabel(_L("Create"));
-    btn_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+    btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { 
         //get vendor name
         wxString vendor_str = m_filament_vendor_combobox->GetLabel();
         std::string vendor_name;
@@ -1174,7 +1175,7 @@ wxWindow *CreateFilamentPresetDialog::create_dialog_buttons()
         EndModal(wxID_OK); 
         });
 
-    dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { 
         EndModal(wxID_CANCEL); 
     });
 
@@ -1750,7 +1751,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
 
     m_custom_vendor_text_ctrl                      = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
     m_custom_vendor_text_ctrl->SetHint(_L("Input Custom Vendor"));
-    m_custom_vendor_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_custom_vendor_text_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
@@ -1762,7 +1763,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_custom_vendor_text_ctrl->Hide();
     m_custom_model_text_ctrl = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
     m_custom_model_text_ctrl->SetHint(_L("Input Custom Model"));
-    m_custom_model_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_custom_model_text_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
@@ -2024,13 +2025,13 @@ wxWindow *CreatePrinterPresetDialog::create_page1_dialog_buttons(wxWindow *paren
 {
     auto dlg_btns = new DialogButtons(parent, {"OK", "Cancel"});
     
-    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         if (!validate_input_valid()) return;
         data_init();
         show_page2();
     });
 
-    dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
 
     return dlg_btns;
 }
@@ -2577,13 +2578,13 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
 
 wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *parent)
 {
-    auto dlg_btns = new DialogButtons(parent, {"Back", "OK", "Cancel"});
+    auto dlg_btns = new DialogButtons(parent, {"Return", "OK", "Cancel"});
 
-    dlg_btns->GetBACK()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { show_page1(); });
+    dlg_btns->GetRETURN()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { show_page1(); });
 
     auto btn_ok = dlg_btns->GetOK();
     btn_ok->SetLabel(_L("Create"));
-    btn_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
 
         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
         const wxString curr_selected_printer_type = curr_create_printer_type();
@@ -2828,7 +2829,7 @@ wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *paren
         
         });
 
-    dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
 
     return dlg_btns;
 }
@@ -3242,8 +3243,8 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     horizontal_sizer->Add(success_bitmap_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
 
     wxBoxSizer *success_text_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *success_text;
-    wxStaticText *next_step_text;
+    wxStaticText *success_text = nullptr;
+    wxStaticText *next_step_text = nullptr;
     bool          sync_user_preset_need_enabled = wxGetApp().getAgent() && wxGetApp().app_config->get("sync_user_preset") == "false";
     switch (create_success_type) {
     case PRINTER: 
@@ -3277,7 +3278,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     else if (create_success_type == FILAMENT && sync_user_preset_need_enabled)
         dlg_btns->GetOK()->SetLabel(_L("Sync user presets"));
 
-    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, [this, sync_user_preset_need_enabled](wxMouseEvent &e) {
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this, sync_user_preset_need_enabled](wxCommandEvent &e) {
         if (sync_user_preset_need_enabled) {
             wxGetApp().app_config->set("sync_user_preset", "true");
             wxGetApp().start_sync_user_preset();
@@ -3286,7 +3287,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     });
     
     if (is_cancel_needed)
-        dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+        dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
 
     m_main_sizer->Add(dlg_btns, 0, wxEXPAND);
 
@@ -4028,7 +4029,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_process_preset_to_f
 wxWindow *ExportConfigsDialog::create_dialog_buttons(wxWindow* parent)
 {
     auto dlg_btns = new DialogButtons(parent, {"OK", "Cancel"});
-    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         if (!has_check_box_selected()) {
             MessageDialog dlg(this, _L("Please select at least one printer or filament."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
@@ -4065,7 +4066,7 @@ wxWindow *ExportConfigsDialog::create_dialog_buttons(wxWindow* parent)
         EndModal(wxID_OK);
         });
 
-    dlg_btns->GetCANCEL()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
 
     return dlg_btns;
 }
@@ -4598,7 +4599,7 @@ wxWindow *EditFilamentPresetDialog::create_dialog_buttons()
         e.Skip(); 
         }));
 
-    dlg_btns->GetOK()->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_OK); });
 
     return dlg_btns;
 }

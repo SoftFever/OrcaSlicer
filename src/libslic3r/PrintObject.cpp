@@ -1090,7 +1090,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "initial_layer_line_width"
             || opt_key == "small_area_infill_flow_compensation"
             || opt_key == "lattice_angle_1"
-            || opt_key == "lattice_angle_2") {
+            || opt_key == "lattice_angle_2"
+            || opt_key == "infill_overhang_angle") {
             steps.emplace_back(posInfill);
         } else if (opt_key == "sparse_infill_pattern") {
             steps.emplace_back(posPrepareInfill);
@@ -1382,24 +1383,26 @@ void PrintObject::detect_surfaces_type()
                     if (! top.empty() && ! bottom.empty()) {
                         const auto cracks = intersection_ex(top, bottom);
                         if (!cracks.empty()) {
-                            const float small_crack_threshold = -layerm->flow(frExternalPerimeter).scaled_width() * 1.5;
-                            
-                            for (const auto& crack : cracks) {
-                                if (offset_ex(crack, small_crack_threshold).empty()) {
-                                    // For small cracks, if it's part of a large bottom surface, then it should be added to bottom as well
-                                    if (std::any_of(bottom.begin(), bottom.end(), [&crack, small_crack_threshold](const Surface& s) {
-                                            const auto& se = s.expolygon;
-                                            return diff_ex(crack, se, ApplySafetyOffset::Yes).empty()
-                                                && se.area() > crack.area() * 2
-                                                && !offset_ex(diff_ex(se, crack), small_crack_threshold).empty();
-                                    })) continue;
+                            if (lower_layer) { // Only detect small cracks for non-first layer, because first layer should always be bottom
+                                const float small_crack_threshold = -layerm->flow(frExternalPerimeter).scaled_width() * 1.5;
+                                
+                                for (const auto& crack : cracks) {
+                                    if (offset_ex(crack, small_crack_threshold).empty()) {
+                                        // For small cracks, if it's part of a large bottom surface, then it should be added to bottom as well
+                                        if (std::any_of(bottom.begin(), bottom.end(), [&crack, small_crack_threshold](const Surface& s) {
+                                                const auto& se = s.expolygon;
+                                                return diff_ex(crack, se, ApplySafetyOffset::Yes).empty()
+                                                    && se.area() > crack.area() * 2
+                                                    && !offset_ex(diff_ex(se, crack), small_crack_threshold).empty();
+                                        })) continue;
 
-                                    // Crack too small, leave it as part of the top surface, remove it from bottom surfaces
-                                    Surfaces bot_tmp;
-                                    for (auto& b : bottom) {
-                                        surfaces_append(bot_tmp, diff_ex(b.expolygon, offset_ex(crack, -small_crack_threshold)), b.surface_type);
+                                        // Crack too small, leave it as part of the top surface, remove it from bottom surfaces
+                                        Surfaces bot_tmp;
+                                        for (auto& b : bottom) {
+                                            surfaces_append(bot_tmp, diff_ex(b.expolygon, offset_ex(crack, -small_crack_threshold)), b.surface_type);
+                                        }
+                                        bottom = std::move(bot_tmp);
                                     }
-                                    bottom = std::move(bot_tmp);
                                 }
                             }
 
@@ -3767,7 +3770,8 @@ void PrintObject::combine_infill()
                   infill_pattern == ipGrid          ||
                   infill_pattern == ip2DLattice     ||
                   infill_pattern == ipLine          ||
-                  infill_pattern == ipHoneycomb) ? 1.5f : 0.5f) *
+                  infill_pattern == ipHoneycomb     ||
+                  infill_pattern == ip2DHoneycomb) ? 1.5f : 0.5f) *
                     layerms.back()->flow(frSolidInfill).scaled_width();
             for (ExPolygon &expoly : intersection)
                 polygons_append(intersection_with_clearance, offset(expoly, clearance_offset));

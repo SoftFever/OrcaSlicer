@@ -5,37 +5,38 @@ OrcaSlicer primarily relies on STL meshes for slicing, but STL files may come wi
 Typically, STL files feature a low polygon count, which can adversely affect print quality.
 In contrast, using STEP files offers a higher-quality mesh that more accurately represents the original design. However, be aware that both high-polygon STL and STEP files can increase slicing time.
 
-![image](./images/stl%20transformation/stl-transformation-smooth-rough.png)
+![stl-transformation-smooth-rough](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/STL-Transformation/stl-transformation-smooth-rough.png?raw=true)
 
 ## Importing STEP files
 
-This setting determines how STEP files are converted into STL files and is displayed during the STEP file import process.  
+This setting determines how STEP files are converted into STL files and is displayed during the STEP file import process.
+
 If you don't see this when opening a STEP file, check [Don't show again](#Don't-show-again) below.
 
-![image](./images/stl%20transformation/stl-transformation.png)
+![stl-transformation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/STL-Transformation/stl-transformation.png?raw=true)
 
 ### Parameters:
 
-The transformation uses [Linear Deflection and Angular Deflection](https://dev.opencascade.org/doc/overview/html/occt_user_guides__mesh.html)  parameters to control the mesh quality.
+The transformation uses [Linear Deflection and Angular Deflection](https://dev.opencascade.org/doc/overview/html/occt_user_guides__mesh.html) parameters to control the mesh quality.
 A finer mesh will result in a more accurate representation of the original surface, but it will also increase the file size and processing time.
 
-![image](./images/stl%20transformation/stl-transformation-params.png)
+![stl-transformation-params](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/STL-Transformation/stl-transformation-params.png?raw=true)
 
- - **Linear Deflection**: Specifies the maximum distance allowed between the original surface and its polygonal approximation. Lower values produce a mesh that more accurately follows the original curvature.
- - **Angular Deflection**: Defines the maximum allowable angle difference between the actual surface and its tessellated counterpart. Smaller angular deflection values yield a more precise mesh.
+- **Linear Deflection:** Specifies the maximum distance allowed between the original surface and its polygonal approximation. Lower values produce a mesh that more accurately follows the original curvature.
+- **Angular Deflection:** Defines the maximum allowable angle difference between the actual surface and its tessellated counterpart. Smaller angular deflection values yield a more precise mesh.
 
 #### Split compound and compsolid into multiple objects:
 
 Enabling this option will split the imported 3D file into separate objects. This is especially useful for adjusting individual object positions, tweaking print settings, or optimizing the model through simplification.
 
-![image](./images/stl%20transformation/stl-transformation-split.png)
+![stl-transformation-split](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/STL-Transformation/stl-transformation-split.png?raw=true)
 
 #### Don't show again
 
 This option will hide the STL transformation dialog when opening a STEP file.
 To restore the dialog, go to "Preferences" (Ctrl + P) > "Show the STEP mesh parameter setting dialog".
 
-![image](./images/stl%20transformation/stl-transformation-enable.png)
+![stl-transformation-enable](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/STL-Transformation/stl-transformation-enable.png?raw=true)
 
 ## Simplify model
 
@@ -45,10 +46,9 @@ This function is especially useful for improving the performance of the slicer o
 
 To access the Simplify Model option, right-click on the object to simplify in the "Prepare" menu.
 
-![image](./images/stl%20transformation/simplify-menu.png)
+![simplify-menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/STL-Transformation/simplify-menu.png?raw=true)
 
 It is recommended to enable the "Show Wireframe" option when running a simplification process to visually inspect the outcome. However, be cautious: overly aggressive simplification may lead to noticeable detail loss, increased ringing, or other printing issues.
-
 
 ### You can Simplify your model using the following options:
 
