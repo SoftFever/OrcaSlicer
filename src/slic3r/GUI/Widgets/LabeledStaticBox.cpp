@@ -4,12 +4,6 @@
 #include "../GUI_Utils.hpp"
 #include "Label.hpp"
 
-/*
-Fix label overflowing to inner frame
-Fix use elypsis if text too long
-setmin size
-*/
-
 LabeledStaticBox::LabeledStaticBox()
     : state_handler(this)
 {
@@ -63,10 +57,8 @@ bool LabeledStaticBox::Create(
     m_pos   = this->GetPosition();
 
     int tW,tH,descent,externalLeading;
-    GetTextExtent("Yy", &tW, &tH, &descent, &externalLeading, &m_font);
-    m_label_height = tH - externalLeading;
-
     GetTextExtent(m_label, &tW, &tH, &descent, &externalLeading, &m_font);
+    m_label_height = tH - externalLeading;
     m_label_width = tW;
 
     Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
@@ -174,7 +166,6 @@ void LabeledStaticBox::DrawBorderAndLabel(wxDC& dc)
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(background_color.colorForStates(0)));
         dc.DrawRectangle(wxRect(7 * m_scale,0 , m_label_width + 7 * m_scale, m_label_height)); // text background
-        // NEEDFIX if text lenght > client size 
         dc.SetTextForeground(text_color.colorForStates(state_handler.states()));
         dc.DrawText(m_label, wxPoint(10 * m_scale, 0));
     }
