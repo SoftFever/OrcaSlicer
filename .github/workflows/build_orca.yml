@@ -243,13 +243,13 @@ jobs:
           ${{ env.apt-cmd }} install -y autoconf build-essential cmake curl eglexternalplatform-dev \
           extra-cmake-modules file git libcairo2-dev libcurl4-openssl-dev libdbus-1-dev libglew-dev libglu1-mesa-dev \
           libglu1-mesa-dev libgstreamer1.0-dev libgstreamerd-3-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev \
-          libgtk-3-dev libgtk-3-dev libmspack-dev libosmesa6-dev libsecret-1-dev libsoup2.4-dev libssl-dev libudev-dev libwayland-dev \
+          libgtk-3-dev libgtk-3-dev libmspack-dev libsecret-1-dev libsoup2.4-dev libssl-dev libudev-dev libwayland-dev \
           libwebkit2gtk-${{ env.webkit-ver }}-dev libxkbcommon-dev locales locales-all m4 pkgconf sudo wayland-protocols wget ${{ env.libfuse2-pkg }}
 
-      - name: Install dependencies from BuildLinux.sh
+      - name: Install dependencies from build_linux.sh
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
-        run: sudo ./BuildLinux.sh -ur
+        run: sudo ./build_linux.sh -ur
 
       - name: Fix permissions
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
@@ -262,7 +262,7 @@ jobs:
         env:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         run: |
-          ./BuildLinux.sh -isr
+          ./build_linux.sh -isr
           mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
           chmod +x ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
 

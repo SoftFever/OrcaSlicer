@@ -95,6 +95,9 @@
     "z_hop": [
         "0.2"
     ],
+    "fan_speedup_time": "0.2",
+    "fan_speedup_overhangs": "1",
+    "fan_kickstart": "0",
     "host_type": "prusalink",
     "printable_height": "180",
     "machine_end_gcode": "{if max_layer_z < max_print_height}G1 Z{z_offset+min(max_layer_z+2, max_print_height)} F720 ; Move print head up{endif}\nG1 X170 Y170 F4200 ; park print head\n{if max_layer_z < max_print_height}G1 Z{z_offset+min(max_layer_z+50, max_print_height)} F720 ; Move print head further up{endif}\nG4 ; wait\nM104 S0 ; turn off temperature\nM140 S0 ; turn off heatbed\nM107 ; turn off fan\nM221 S100 ; reset flow\nM572 S0 ; reset PA\nM569 S1 X Y ; reset to stealthchop for X Y\nM84 ; disable motors\n; max_layer_z = [max_layer_z]",
