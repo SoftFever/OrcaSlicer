@@ -224,6 +224,17 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+    if (config->opt_float("support_ironing_spacing") < 0.05)
+    {
+        const wxString msg_text = _(L("Too small ironing spacing.\nReset to 0.1"));
+        MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("support_ironing_spacing", new ConfigOptionFloat(0.1));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 
     if (config->option<ConfigOptionFloat>("initial_layer_print_height")->value < EPSILON)
     {
@@ -634,9 +645,17 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("bridge_no_support", !support_is_normal_tree);
     toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
-    for (auto el : { "support_interface_spacing", "support_interface_filament",
+    for (auto el : { "support_interface_filament",
         "support_interface_loop_pattern", "support_bottom_interface_spacing" })
         toggle_field(el, have_support_material && have_support_interface);
+
+    bool can_ironing_support = have_raft || (have_support_material && config->opt_int("support_interface_top_layers") > 0);
+    toggle_field("support_ironing", can_ironing_support);
+    bool has_support_ironing = can_ironing_support && config->opt_bool("support_ironing");
+    for (auto el : {"support_ironing_pattern", "support_ironing_flow", "support_ironing_spacing" })
+        toggle_line(el, has_support_ironing);
+    // Orca: Force solid support interface when using support ironing
+    toggle_field("support_interface_spacing", have_support_material && have_support_interface && !has_support_ironing);
 
     bool have_skirt_height = have_skirt &&
     (config->opt_int("skirt_height") > 1 || config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
@@ -656,8 +675,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field(el, have_support_material && !(support_is_normal_tree && !have_raft));
 
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
-    for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_speed", "ironing_angle", "ironing_inset"})
+    for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_angle", "ironing_inset"})
         toggle_line(el, has_ironing);
+    
+    toggle_line("ironing_speed", has_ironing || has_support_ironing);
 
     bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     // for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
