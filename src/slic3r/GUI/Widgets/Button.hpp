@@ -12,18 +12,18 @@ public:
 };
 
 enum class ButtonStyle{
-    Regular   = 1,
-    Confirm   = 2,
-    Alert     = 3,
-    Disabled  = 4,
+    Regular,
+    Confirm,
+    Alert,
+    Disabled,
 };
 
 enum class ButtonType{
-    Compact   = 1, // Font10  FullyRounded  For spaces with less areas
-    Window    = 2, // Font12  FullyRounded  For regular buttons in windows and not related with parameter boxes
-    Choice    = 3, // Font14  Semi-Rounded  For dialog/window choice buttons
-    Parameter = 4, // Font14  Semi-Rounded  For buttons that near parameter boxes
-    Expanded  = 5, // Font14  Semi-Rounded  For full length buttons. ex. buttons in static box
+    Compact  , // Font10  FullyRounded  For spaces with less areas
+    Window   , // Font12  FullyRounded  For regular buttons in windows and not related with parameter boxes
+    Choice   , // Font14  Semi-Rounded  For dialog/window choice buttons
+    Parameter, // Font14  Semi-Rounded  For buttons that near parameter boxes
+    Expanded , // Font14  Semi-Rounded  For full length buttons. ex. buttons in static box
 };
 
 class Button : public StaticBox

@@ -33,8 +33,8 @@ static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 #define ROW_BEG_PADDING         FromDIP(20)
 #define EDIT_BOXES_GAP          FromDIP(30)
 #define ROW_END_PADDING         FromDIP(21)
-//#define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
-//#define BTN_GAP                 FromDIP(20)
+#define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
+#define BTN_GAP                 FromDIP(20)
 #define TEXT_BEG_PADDING        FromDIP(30)
 #define MAX_FLUSH_VALUE         2147483520
 #define MIN_WIPING_DIALOG_WIDTH FromDIP(300)
