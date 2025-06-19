@@ -135,7 +135,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     m_optgroup->append_single_option_line("host_type");
 
-    auto create_sizer_with_btn = [](wxWindow* parent, Button** btn, const wxString& label) {
+    auto create_sizer_with_btn = [](wxWindow* parent, Button** btn, const std::string& icon_name, const wxString& label) {
         *btn = new Button(parent, label);
         (*btn)->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
@@ -146,7 +146,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     auto printhost_browse = [=](wxWindow* parent) 
     {
-        auto sizer = create_sizer_with_btn(parent, &m_printhost_browse_btn, _L("Browse") + " " + dots);
+        auto sizer = create_sizer_with_btn(parent, &m_printhost_browse_btn, "printer_host_browser", _L("Browse") + " " + dots);
         m_printhost_browse_btn->Bind(wxEVT_BUTTON, [=](wxCommandEvent& e) {
             BonjourDialog dialog(this, Preset::printer_technology(*m_config));
             if (dialog.show_and_lookup()) {
@@ -159,7 +159,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     };
 
     auto print_host_test = [=](wxWindow* parent) {
-        auto sizer = create_sizer_with_btn(parent, &m_printhost_test_btn, _L("Test"));
+        auto sizer = create_sizer_with_btn(parent, &m_printhost_test_btn, "printer_host_test", _L("Test"));
 
         m_printhost_test_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
@@ -210,7 +210,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     };
 
     auto print_host_logout = [&](wxWindow* parent) {
-        auto sizer = create_sizer_with_btn(parent, &m_printhost_logout_btn, _L("Log Out"));
+        auto sizer = create_sizer_with_btn(parent, &m_printhost_logout_btn, "", _L("Log Out"));
 
         m_printhost_logout_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
@@ -233,7 +233,8 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     };
 
     auto print_host_printers = [this, create_sizer_with_btn](wxWindow* parent) {
-        auto sizer = create_sizer_with_btn(parent, &m_printhost_port_browse_btn, _(L("Refresh Printers")));
+        //add_scaled_button(parent, &m_printhost_port_browse_btn, "browse", _(L("Refresh Printers")), wxBU_LEFT | wxBU_EXACTFIT);
+        auto sizer = create_sizer_with_btn(parent, &m_printhost_port_browse_btn, "monitor_signal_strong", _L("Refresh") + " " + dots);
         Button* btn = m_printhost_port_browse_btn; // ORCA
         btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
         btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) { update_printers(); });
@@ -286,7 +287,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         Line cafile_line = m_optgroup->create_single_option_line(option);
 
         auto printhost_cafile_browse = [=](wxWindow* parent) {
-            auto sizer = create_sizer_with_btn(parent, &m_printhost_cafile_browse_btn, _L("Browse") + " " + dots);
+            auto sizer = create_sizer_with_btn(parent, &m_printhost_cafile_browse_btn, "monitor_signal_strong", _L("Browse") + " " + dots);
             m_printhost_cafile_browse_btn->Bind(wxEVT_BUTTON, [this, m_optgroup](wxCommandEvent e) {
                 static const auto filemasks = _L("Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*");
                 wxFileDialog openFileDialog(this, _L("Open CA certificate file"), "", "", filemasks, wxFD_OPEN | wxFD_FILE_MUST_EXIST);

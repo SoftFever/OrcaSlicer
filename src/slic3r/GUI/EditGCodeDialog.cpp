@@ -23,8 +23,8 @@
 
 #include "libslic3r/Preset.hpp"
 
-//#define BTN_GAP  FromDIP(20)
-//#define BTN_SIZE wxSize(FromDIP(58), FromDIP(24))
+#define BTN_GAP  FromDIP(20)
+#define BTN_SIZE wxSize(FromDIP(58), FromDIP(24))
 
 namespace Slic3r {
 namespace GUI {

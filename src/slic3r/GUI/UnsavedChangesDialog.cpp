@@ -969,11 +969,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
                                                                               bool focus, bool process_enable = true) {
         *btn = new Button(this, _L(label));
 
-        if (focus) {
-            (*btn)->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
-        } else {
-            (*btn)->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
-        }
+        (*btn)->SetStyle(focus ? ButtonStyle::Confirm : ButtonStyle::Regular, ButtonType::Choice);
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent &) {
             bool save_names_and_types = close_act == Action::Save || (close_act == Action::Transfer && ActionButtons::KEEP & m_buttons);
@@ -1699,7 +1695,7 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     int em = em_unit();
 
-    msw_buttons_rescale(this, em, { wxID_CANCEL, m_move_btn_id, m_continue_btn_id });
+    //msw_buttons_rescale(this, em, { wxID_CANCEL, m_move_btn_id, m_continue_btn_id });
     for (auto btn : {m_transfer_btn, m_discard_btn, m_save_btn})
         if (btn) btn->Rescale();
 

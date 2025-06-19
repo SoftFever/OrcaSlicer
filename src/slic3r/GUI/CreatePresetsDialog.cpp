@@ -4824,11 +4824,10 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     sizer->Add(0, 0, 0, wxLEFT, 5);
 
     Button *del_preset_btn = new Button(panel, _L("Delete Preset"));
-    del_preset_btn->SetStyle(ButtonStyle::Regular, ButtonType::Compact);
     if (base_id_error) {
-        del_preset_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact); // ????
+        del_preset_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
     } else {
-        del_preset_btn->SetStyle(ButtonStyle::Regular, ButtonType::Compact); // ????
+        del_preset_btn->SetStyle(ButtonStyle::Alert,   ButtonType::Compact);
     }
     
     //del_preset_btn->Hide();

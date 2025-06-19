@@ -109,6 +109,7 @@ void MsgDialog::on_dpi_changed(const wxRect &suggested_rect)
 
          while (i != m_buttons.end()) {
              MsgButton *bd   = i->second;
+             /* ORCA not required since all buttons has same size and Rescale re applies its style
              wxSize     bsize;
 
 
@@ -120,6 +121,8 @@ void MsgDialog::on_dpi_changed(const wxRect &suggested_rect)
              }
 
              bd->buttondata->button->SetMinSize(bsize);
+             */
+             bd->buttondata->button->Rescale();
              i++;
          }
      }
@@ -137,23 +140,25 @@ void MsgDialog::SetButtonLabel(wxWindowID btn_id, const wxString& label, bool se
 Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
 {
     Button* btn = new Button(this, label, "", 0, 0, btn_id);
+    /* ORCA not required since all buttons has same size and Rescale re applies its style
     ButtonSizeType type;
 
     if (label.length() < 5) {
         type = ButtonSizeNormal;
-        //btn->SetMinSize(MSG_DIALOG_BUTTON_SIZE); // ?????
+        btn->SetMinSize(MSG_DIALOG_BUTTON_SIZE); // ?????
     }
     else if (label.length() >= 5 && label.length() < 8) {
         type = ButtonSizeMiddle;
-        //btn->SetMinSize(MSG_DIALOG_MIDDLE_BUTTON_SIZE);
+        btn->SetMinSize(MSG_DIALOG_MIDDLE_BUTTON_SIZE);
     } 
     else if (label.length() >= 8 && label.length() < 12) {
         type = ButtonSizeMiddle;
-        //btn->SetMinSize(MSG_DIALOG_LONG_BUTTON_SIZE);
+        btn->SetMinSize(MSG_DIALOG_LONG_BUTTON_SIZE);
     } else {
         type = ButtonSizeLong;
-        //btn->SetMinSize(MSG_DIALOG_LONGER_BUTTON_SIZE);
+        btn->SetMinSize(MSG_DIALOG_LONGER_BUTTON_SIZE);
     }
+    */
 
     if (btn_id == wxID_OK || btn_id == wxID_YES) {
         btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
@@ -172,7 +177,7 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     ButtonData *bd = new ButtonData;
 
     bd->button = btn;
-    bd->type   = type;
+    //bd->type   = type;
 
     mb->id        = wxString::Format("%d", m_buttons.size());
     mb->buttondata = bd;

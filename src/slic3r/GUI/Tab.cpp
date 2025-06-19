@@ -5931,6 +5931,11 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     deps.checkbox = new ::CheckBox(parent, wxID_ANY);
     wxGetApp().UpdateDarkUI(deps.checkbox, false, true);
 
+    deps.checkbox_title = new wxStaticText(parent, wxID_ANY, _L("All"));
+    deps.checkbox_title->SetFont(Label::Body_14);
+    deps.checkbox_title->SetForegroundColour(wxColour("#363636"));
+    wxGetApp().UpdateDarkUI(deps.checkbox_title, false, true);
+
     // ORCA modernize button style
     Button* btn = new Button(parent, _(L("Set")) + " " + dots);
     btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);

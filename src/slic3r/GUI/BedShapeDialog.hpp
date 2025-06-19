@@ -8,7 +8,6 @@
 #include "I18N.hpp"
 
 #include <libslic3r/BuildVolume.hpp>
-#include <slic3r/GUI/Widgets/Button.hpp>
 
 #include "Widgets/ComboBox.hpp"
 
@@ -108,7 +107,6 @@ public:
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
-    std::unordered_map<int, Button*> m_button_list; // ??? solve that without list. use sizer items as list and check their types to prevent errors
 };
 
 } // GUI

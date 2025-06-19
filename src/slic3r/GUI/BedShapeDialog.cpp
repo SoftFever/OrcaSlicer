@@ -327,9 +327,6 @@ wxPanel* BedShapePanel::init_texture_panel()
         wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
 
-        wxGetApp().UpdateDarkUI(load_btn); // ???? required?
-        wxGetApp().UpdateDarkUI(remove_btn); // ???? required?
-
         wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(filename_sizer, 1, wxEXPAND);
         sizer->Add(load_sizer, 1, wxEXPAND);
@@ -406,9 +403,6 @@ wxPanel* BedShapePanel::init_model_panel()
 
         wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
-
-        wxGetApp().UpdateDarkUI(load_btn); // ???? Required
-        wxGetApp().UpdateDarkUI(remove_btn); // ????
 
         wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(filename_sizer, 1, wxEXPAND);
