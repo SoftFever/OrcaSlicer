@@ -32,6 +32,14 @@
         {
             "name": "Z-Bolt S800 Dual",
             "sub_path": "machine/Z-Bolt S800 Dual.json"
+        },
+        {
+            "name": "Z-Bolt S1000",
+            "sub_path": "machine/Z-Bolt S1000.json"
+        },
+        {
+            "name": "Z-Bolt S1000 Dual",
+            "sub_path": "machine/Z-Bolt S1000 Dual.json"
         }
     ],
     "process_list": [
@@ -602,6 +610,30 @@
         {
             "name": "Z-Bolt S800 Dual 0.8 nozzle",
             "sub_path": "machine/Z-Bolt S800 Dual 0.8 nozzle.json"
+        },
+        {
+            "name": "Z-Bolt S1000 0.4 nozzle",
+            "sub_path": "machine/Z-Bolt S1000 0.4 nozzle.json"
+        },
+        {
+            "name": "Z-Bolt S1000 0.6 nozzle",
+            "sub_path": "machine/Z-Bolt S1000 0.6 nozzle.json"
+        },
+        {
+            "name": "Z-Bolt S1000 0.8 nozzle",
+            "sub_path": "machine/Z-Bolt S1000 0.8 nozzle.json"
+        },
+        {
+            "name": "Z-Bolt S1000 Dual 0.4 nozzle",
+            "sub_path": "machine/Z-Bolt S1000 Dual 0.4 nozzle.json"
+        },
+        {
+            "name": "Z-Bolt S1000 Dual 0.6 nozzle",
+            "sub_path": "machine/Z-Bolt S1000 Dual 0.6 nozzle.json"
+        },
+        {
+            "name": "Z-Bolt S1000 Dual 0.8 nozzle",
+            "sub_path": "machine/Z-Bolt S1000 Dual 0.8 nozzle.json"
         }
     ]
 }
