@@ -95,6 +95,39 @@ void Chart::draw() {
     label = _(L("Volumetric speed")) + " (" + _(L("mm³/s")) + ")";
     dc.GetTextExtent(label,&text_width,&text_height);
     dc.DrawRotatedText(label,wxPoint(0,0.5*(m_rect.GetBottom()+m_rect.GetTop())+text_width/2.f),90);
+
+    // draw a label with the value above each button
+    for (auto& button : m_buttons) {
+        if (!visible_area.Contains(button.get_pos()))
+            continue; 
+        
+        wxPoint button_screen_pos = math_to_screen(button.get_pos());
+        wxString value_label = wxString().Format(wxT("%.1f"), button.get_pos().m_y);
+
+        int label_width, label_height;
+        dc.GetTextExtent(value_label, &label_width, &label_height);
+
+        const int padding = 4;
+        // Calculate label x position
+        int label_x = button_screen_pos.x - (label_width/2); // centered with button
+        label_x = std::clamp(label_x, m_rect.GetLeft() + (padding*2), m_rect.GetRight() - label_width - (padding*2)); // adjust to fit within chart bounds
+        
+        // Calculate label y position
+        int label_y = button_screen_pos.y - (side/2) - label_height - (padding*2); // above button
+        if (label_y - (padding*2) < m_rect.GetTop()) { // move below the button if there isn't enough space
+            label_y = button_screen_pos.y + (side/2) + (padding*2); 
+        }
+        
+        // Draw label background
+        dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#DBDBDB")), 1));
+        dc.SetBrush(wxBrush(StateColor::darkModeColorFor(wxColor("#F1F1F1"))));
+        wxRect label_rect(label_x - padding, label_y - padding, label_width + (2*padding), label_height + padding);
+        dc.DrawRoundedRectangle(label_rect, 2);
+        
+        // Draw the label text
+        dc.SetTextForeground(StateColor::darkModeColorFor("#363636")); 
+        dc.DrawText(value_label, wxPoint(label_x, label_y));
+    }
 }
 
 void Chart::mouse_right_button_clicked(wxMouseEvent& event) {
