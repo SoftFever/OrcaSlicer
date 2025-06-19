@@ -172,19 +172,19 @@ void Button::SetStyle(const ButtonStyle style, const ButtonType type)
         this->SetMinSize(FromDIP(wxSize(100,32)));
         this->SetPaddingSize(FromDIP(wxSize(12,8)));
         this->SetCornerRadius(this->FromDIP(4));
-        //this->SetFont(Label::Body_14);
+        this->SetFont(Label::Body_14);
     }
     else if (type == ButtonType::Parameter) {
         this->SetMinSize(FromDIP(wxSize(120,26)));
         this->SetSize(FromDIP(wxSize(120,26)));
         this->SetCornerRadius(this->FromDIP(4));
-        //this->SetFont(Label::Body_14);
+        this->SetFont(Label::Body_14);
     }
     else if (type == ButtonType::Expanded) {
         this->SetMinSize(FromDIP(wxSize(-1,32)));
         this->SetPaddingSize(FromDIP(wxSize(12,8)));
         this->SetCornerRadius(this->FromDIP(4));
-        //this->SetFont(Label::Body_14);
+        this->SetFont(Label::Body_14);
     }
 
     this->SetBorderWidth(this->FromDIP(1));
