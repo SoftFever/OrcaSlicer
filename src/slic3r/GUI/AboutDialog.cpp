@@ -216,9 +216,6 @@ AboutDialog::AboutDialog()
     SetFont(wxGetApp().normal_font());
 	SetBackgroundColour(*wxWHITE);
 
-    //std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    //SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     wxPanel* m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(125)), wxTAB_TRAVERSAL);
 
     wxBoxSizer *panel_versizer = new wxBoxSizer(wxVERTICAL);
