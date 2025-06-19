@@ -31,7 +31,6 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
     //m_og->activate();
     LabeledStaticBox* stb = new LabeledStaticBox(parent);
     stb->SetCornerRadius(0);
-    stb->SetDoubleBuffered(true);
     m_og->stb = stb;
     m_og->sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
     m_og->sizer->Clear(true);
