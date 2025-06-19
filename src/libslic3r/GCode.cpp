@@ -5196,7 +5196,6 @@ double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_deg
     upper_speed_bound = upper_speed_bound == 0 ? normal_speed : upper_speed_bound;
 
     double speed_out = lower_speed_bound + (upper_speed_bound - lower_speed_bound) * (path_degree - lower_degree_bound);
-   
     return speed_out;
 }
 
