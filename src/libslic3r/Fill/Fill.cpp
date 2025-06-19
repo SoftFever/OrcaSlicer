@@ -14,6 +14,7 @@
 #include "FillRectilinear.hpp"
 #include "FillLightning.hpp"
 #include "FillConcentricInternal.hpp"
+#include "FillTpmsD.hpp"
 #include "FillConcentric.hpp"
 #include "libslic3r.h"
 
@@ -68,6 +69,9 @@ struct SurfaceFillParams
     float lattice_angle_1 = 0.f;
     float lattice_angle_2 = 0.f;
 
+    // Params for 2D honeycomb
+    float infill_overhang_angle = 60.f;
+
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
 #define RETURN_COMPARE_NON_EQUAL_TYPED(TYPE, KEY) if (TYPE(this->KEY) < TYPE(rhs.KEY)) return true; if (TYPE(this->KEY) > TYPE(rhs.KEY)) return false;
@@ -96,31 +100,33 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
         RETURN_COMPARE_NON_EQUAL(lattice_angle_1);
 		RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
+		RETURN_COMPARE_NON_EQUAL(infill_overhang_angle);
 
 		return false;
 	}
 
-	bool operator==(const SurfaceFillParams &rhs) const {
-		return  this->extruder 			== rhs.extruder 		&&
-				this->pattern 			== rhs.pattern 			&&
-				this->spacing 			== rhs.spacing 			&&
-				this->overlap 			== rhs.overlap 			&&
-				this->angle   			== rhs.angle   			&&
-				this->rotate_angle   	== rhs.rotate_angle   			&&
-				this->bridge   			== rhs.bridge   		&&
-				this->bridge_angle 		== rhs.bridge_angle		&&
-				this->density   		== rhs.density   		&&
-//				this->dont_adjust   	== rhs.dont_adjust 		&&
-				this->anchor_length  	== rhs.anchor_length    &&
-				this->anchor_length_max == rhs.anchor_length_max &&
-				this->flow 				== rhs.flow 			&&
-				this->extrusion_role	== rhs.extrusion_role	&&
-				this->sparse_infill_speed	== rhs.sparse_infill_speed &&
-				this->top_surface_speed		== rhs.top_surface_speed &&
-				this->solid_infill_speed	== rhs.solid_infill_speed &&
-                this->lattice_angle_1		== rhs.lattice_angle_1 &&
-				this->lattice_angle_2	    == rhs.lattice_angle_2;
-	}
+    bool operator==(const SurfaceFillParams &rhs) const {
+        return  this->extruder              == rhs.extruder             &&
+                this->pattern               == rhs.pattern              &&
+                this->spacing               == rhs.spacing              &&
+                this->overlap               == rhs.overlap              &&
+                this->angle                 == rhs.angle                &&
+                this->rotate_angle          == rhs.rotate_angle         &&
+                this->bridge                == rhs.bridge               &&
+                this->bridge_angle          == rhs.bridge_angle         &&
+                this->density               == rhs.density              &&
+//              this->dont_adjust           == rhs.dont_adjust          &&
+                this->anchor_length         == rhs.anchor_length        &&
+                this->anchor_length_max     == rhs.anchor_length_max    &&
+                this->flow                  == rhs.flow                 &&
+                this->extrusion_role        == rhs.extrusion_role       &&
+                this->sparse_infill_speed   == rhs.sparse_infill_speed  &&
+                this->top_surface_speed     == rhs.top_surface_speed    &&
+                this->solid_infill_speed    == rhs.solid_infill_speed   &&
+                this->lattice_angle_1       == rhs.lattice_angle_1      &&
+                this->lattice_angle_2       == rhs.lattice_angle_2      &&
+                this->infill_overhang_angle == rhs.infill_overhang_angle;
+    }
 };
 
 struct SurfaceFill {
@@ -621,6 +627,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.density       = float(region_config.sparse_infill_density);
                 params.lattice_angle_1 = region_config.lattice_angle_1;
                 params.lattice_angle_2 = region_config.lattice_angle_2;
+                params.infill_overhang_angle = region_config.infill_overhang_angle;
 
 		        if (surface.is_solid()) {
 		            params.density = 100.f;
@@ -965,6 +972,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         params.layer_height      = layerm->layer()->height;
         params.lattice_angle_1   = surface_fill.params.lattice_angle_1; 
         params.lattice_angle_2   = surface_fill.params.lattice_angle_2;
+        params.infill_overhang_angle   = surface_fill.params.infill_overhang_angle;
 
 		// BBS
 		params.flow = surface_fill.params.flow;
@@ -1045,8 +1053,10 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipLine:
         case ipConcentric:
         case ipHoneycomb:
+        case ip2DHoneycomb:
         case ip3DHoneycomb:
         case ipGyroid:
+        case ipTpmsD:
         case ipHilbertCurve:
         case ipArchimedeanChords:
         case ipOctagramSpiral: break;
@@ -1095,6 +1105,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         params.layer_height      = layerm.layer()->height;
         params.lattice_angle_1   = surface_fill.params.lattice_angle_1; 
         params.lattice_angle_2   = surface_fill.params.lattice_angle_2; 
+        params.infill_overhang_angle   = surface_fill.params.infill_overhang_angle;
 
         for (ExPolygon &expoly : surface_fill.expolygons) {
             // Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
