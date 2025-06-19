@@ -787,6 +787,7 @@ static std::vector<std::string> s_Preset_print_options {
     "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall", "overhang_reverse", "overhang_reverse_threshold","overhang_reverse_internal_only", "wall_direction",
     "seam_position", "staggered_inner_seams", "wall_sequence", "is_infill_first", "sparse_infill_density", "sparse_infill_pattern", "lattice_angle_1", "lattice_angle_2", "infill_overhang_angle", "top_surface_pattern", "bottom_surface_pattern",
     "infill_direction", "solid_infill_direction", "rotate_solid_infill_direction",  "counterbore_hole_bridging",
+    "top_infill_direction", "bottom_infill_direction", "apply_model_direction", "rotate_sparse_infill_direction", "rotate_sparse_infill_height", "sparse_infill_zigzag_angle", "sparse_infill_zigzag_height",    
     "minimum_sparse_infill_area", "reduce_infill_retraction","internal_solid_infill_pattern","gap_fill_target",
     "ironing_type", "ironing_pattern", "ironing_flow", "ironing_speed", "ironing_spacing", "ironing_angle", "ironing_inset",
     "support_ironing", "support_ironing_pattern", "support_ironing_flow", "support_ironing_spacing",
