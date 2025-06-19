@@ -5204,7 +5204,7 @@ void PrintConfigDef::init_fff_params()
 
     def                = this->add("support_ironing_pattern", coEnum);
     def->label         = L("Support Ironing Pattern");
-    def->tooltip       = L("The pattern that will be used when ironing");
+    def->tooltip       = L("The pattern that will be used when ironing.");
     def->category      = L("Support");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("concentric");
@@ -5218,8 +5218,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Support Ironing flow");
     def->category = L("Support");
     def->tooltip = L("The amount of material to extrude during ironing. Relative to flow of normal support interface layer height. "
-                     "Too high value results in overextrusion on the surface");
-    def->sidetext = L("%");
+                     "Too high value results in overextrusion on the surface.");
+    def->sidetext = "%";
     def->ratio_over = "layer_height";
     def->min = 0;
     def->max = 100;
@@ -5229,7 +5229,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_ironing_spacing", coFloat);
     def->label = L("Support Ironing line spacing");
     def->category = L("Support");
-    def->tooltip = L("The distance between the lines of ironing");
+    def->tooltip = L("The distance between the lines of ironing.");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 1;
