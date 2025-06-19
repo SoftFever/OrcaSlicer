@@ -2,24 +2,24 @@
 
 These settings control how wide the extruded lines are.
 
-- **Default**: The default line width in mm or as a percentage of the nozzle size.
-  
-- **First Layer**: The line width of the first layer. Typically, this is wider than the rest of the print, to promote better bed adhesion. See tips below for why.
-  
-- **Outer Wall**: The line width in mm or as a percentage of the nozzle size used when printing the model’s external wall perimeters.
-  
-- **Inner Wall**: The line width in mm or as a percentage of the nozzle size used when printing the model’s internal wall perimeters.
-  
-- **Top Surface**: The line width in mm or as a percentage of the nozzle size used when printing the model’s top surface.
-  
-- **Sparse Infill**: The line width in mm or as a percentage of the nozzle size used when printing the model’s sparse infill.
-  
-- **Internal Solid Infill**: The line width in mm or as a percentage of the nozzle size used when printing the model’s internal solid infill.
-  
-- **Support**: The line width in mm or as a percentage of the nozzle size used when printing the model’s support structures.
+- **Default:** The default line width in mm or as a percentage of the nozzle size.
 
+- **First Layer:** The line width of the first layer. Typically, this is wider than the rest of the print, to promote better bed adhesion. See tips below for why.
+
+- **Outer Wall:** The line width in mm or as a percentage of the nozzle size used when printing the model’s external wall perimeters.
+
+- **Inner Wall:** The line width in mm or as a percentage of the nozzle size used when printing the model’s internal wall perimeters.
+
+- **Top Surface:** The line width in mm or as a percentage of the nozzle size used when printing the model’s top surface.
+
+- **Sparse Infill:** The line width in mm or as a percentage of the nozzle size used when printing the model’s sparse infill.
+
+- **Internal Solid Infill:** The line width in mm or as a percentage of the nozzle size used when printing the model’s internal solid infill.
+
+- **Support:** The line width in mm or as a percentage of the nozzle size used when printing the model’s support structures.
 
 ## Tips:
+
 1. **Typically, the line width will be anything from 100% up to 150% of the nozzle width**. Due to the way the slicer’s flow math works, a 100% line width will attempt to extrude slightly “smaller” than the nozzle size and when squished onto the layer below will match the nozzle orifice. You can read more on the flow math here: [Flow Math](https://manual.slic3r.org/advanced/flow-math).
 
 2. **For most cases, the minimum acceptable recommended line width is 105% of the nozzle diameter**, typically reserved for the outer walls, where greater precision is required. A wider line is less precise than a thinner line.
