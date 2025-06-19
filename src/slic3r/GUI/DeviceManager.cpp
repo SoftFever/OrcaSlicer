@@ -6344,6 +6344,7 @@ void MachineObject::parse_new_info(json print)
                         }
                     }
 
+                    if (AIR_DUCT(mode.id) == AIR_DUCT::AIR_DUCT_EXHAUST) { continue; } /*STUDIO-12796*/
                     m_air_duct_data.modes[mode.id] = mode;
                 }
             }
