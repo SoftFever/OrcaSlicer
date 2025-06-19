@@ -5173,6 +5173,7 @@ double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_deg
     upper_speed_bound = upper_speed_bound == 0 ? normal_speed : upper_speed_bound;
 
     double speed_out = lower_speed_bound + (upper_speed_bound - lower_speed_bound) * (path_degree - lower_degree_bound);
+   
     return speed_out;
 }
 
@@ -5299,6 +5300,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value) {
                 double new_speed = 0;
                 new_speed = get_overhang_degree_corr_speed(speed, path.overhang_degree);
+
+                // CAP the speed to the max volumetric speed
+                new_speed = std::min(new_speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm);
+
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
 
@@ -5310,6 +5315,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value ) {
                 double new_speed = 0;
                 new_speed = get_overhang_degree_corr_speed(speed, path.overhang_degree);
+
+                // CAP the speed to the max volumetric speed
+                new_speed = std::min(new_speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm);
+
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
             if (sloped) {
