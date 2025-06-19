@@ -17,13 +17,13 @@
 #include <wx/dialog.h>
 #include <curl/curl.h>
 #include <wx/webrequest.h>
-#include <wx/hyperlink.h>
 #include "wxExtensions.hpp"
 #include "Widgets/StepCtrl.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/HyperLink.hpp"
 #include "Jobs/BindJob.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarBind.hpp"
@@ -73,7 +73,6 @@ private:
     wxHyperlinkCtrl* m_link_network_state{ nullptr };
     wxString        m_result_info;
     wxString        m_result_extra;
-    wxString        m_ping_code_wiki;
     bool            m_show_error_info_state = true;
 
     int             m_result_code;
@@ -114,7 +113,6 @@ private:
     Label*          m_st_txt_error_code{ nullptr };
     Label*          m_st_txt_error_desc{ nullptr };
     Label*          m_st_txt_extra_info{ nullptr };
-    wxHyperlinkCtrl* m_link_network_state{ nullptr };
     wxString        m_result_info;
     wxString        m_result_extra;
     bool            m_show_error_info_state = true;

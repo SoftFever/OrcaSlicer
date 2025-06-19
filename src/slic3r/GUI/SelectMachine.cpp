@@ -641,8 +641,7 @@ void SelectMachinePopup::update_other_devices()
     m_placeholder_panel = new wxWindow(m_scrolledWindow, wxID_ANY, wxDefaultPosition, wxSize(-1,FromDIP(26)));
     wxBoxSizer* placeholder_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_hyperlink = new wxHyperlinkCtrl(m_placeholder_panel, wxID_ANY, _L("Can't find my devices?"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-    m_hyperlink->SetNormalColour(StateColor::darkModeColorFor("#009789"));
+    m_hyperlink = new HyperLink(m_placeholder_panel, _L("Can't find my devices?"), HyperLink::For(HyperLinkType::BBL_FailedConnect));
     placeholder_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
 
 
@@ -1246,11 +1245,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(12));
 
-    auto hyperlink_sizer = new wxBoxSizer( wxHORIZONTAL );
-    m_hyperlink = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Click here if you can't connect to the printer"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    m_hyperlink = new HyperLink(m_panel_prepare, _L("Click here if you can't connect to the printer"), HyperLink::For(HyperLinkType::BBL_FailedConnect));
 
-    hyperlink_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
-    m_sizer_prepare->Add(hyperlink_sizer, 0, wxALIGN_CENTER | wxALL, 5);
+    m_sizer_prepare->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 10);
 
     m_button_ensure = new Button(m_panel_prepare, _L("Send"));
     m_button_ensure->SetBackgroundColor(m_btn_bg_enable);
@@ -1371,11 +1368,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
 
 
-    m_link_network_state = new wxHyperlinkCtrl(m_sw_print_failed_info, wxID_ANY,_L("Check the status of current system services"),"");
-    m_link_network_state->SetFont(::Label::Body_12);
-    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check();});
-    m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND);});
-    m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW);});
+    m_link_network_state = new HyperLink(m_sw_print_failed_info, _L("Check the status of current system services"), HyperLink::For(HyperLinkType::BBL_NetworkCheck));
 
     sizer_print_failed_info->Add(m_link_network_state, 0, wxLEFT, 5);
     sizer_print_failed_info->Add(sizer_error_code, 0, wxLEFT, 5);
