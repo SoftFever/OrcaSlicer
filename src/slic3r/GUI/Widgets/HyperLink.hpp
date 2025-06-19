@@ -12,6 +12,7 @@ namespace GUI {
 
 enum class HyperLinkType{
     Releases,
+
     Wiki_STL_Transformation,
     Wiki_Calib_Temp,
     Wiki_Calib_FlowRate,
@@ -58,7 +59,6 @@ public:
         // WIKI
         else if (link == HyperLinkType::Wiki_STL_Transformation)
             url = "https://github.com/SoftFever/OrcaSlicer/wiki/stl-transformation";
-
         else if (link == HyperLinkType::Wiki_Calib_Temp)
             url = "https://github.com/SoftFever/OrcaSlicer/wiki/temp-calib";
         else if (link == HyperLinkType::Wiki_Calib_FlowRate)
@@ -72,9 +72,8 @@ public:
         else if (link == HyperLinkType::Wiki_Calib_JunctionDeviation)
             url = "https://github.com/SoftFever/OrcaSlicer/wiki/cornering-calib";
         else if (link == HyperLinkType::Wiki_Calib_MaxVolumetricSpeed)
-            url = "https://github.com/SoftFever/OrcaSlicer/wiki/cornering-calib";
-        
-        
+            url = "https://github.com/SoftFever/OrcaSlicer/wiki/volumetric-speed-calib";
+
         // BBL
         else if (link == HyperLinkType::BBL_NetworkCheck){
             if (country == "CN")
