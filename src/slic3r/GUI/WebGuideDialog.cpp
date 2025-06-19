@@ -373,7 +373,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
     try {
         wxString strInput = evt.GetString();
         BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;OnRecv:" << strInput.c_str();
-        json     j        = json::parse(strInput);
+        json     j        = json::parse(strInput.utf8_string());
 
         wxString strCmd = j["command"];
         BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Command:" << strCmd;
@@ -1212,6 +1212,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             json pm = json::parse(contents);
             // wxLogMessage("GUIDE: json_path2  loaded");
 
+            OneModel["name"]      = pm["name"];
             OneModel["vendor"]    = strVendor;
             std::string NozzleOpt = pm["nozzle_diameter"];
             StringReplace(NozzleOpt, " ", "");

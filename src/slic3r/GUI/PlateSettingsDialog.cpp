@@ -1,5 +1,6 @@
 #include "PlateSettingsDialog.hpp"
 #include "MsgDialog.hpp"
+#include "Widgets/DialogButtons.hpp"
 
 namespace Slic3r { namespace GUI {
 static constexpr int MIN_LAYER_VALUE = 2;
@@ -54,8 +55,8 @@ LayerNumberTextInput::LayerNumberTextInput(wxWindow* parent, int layer_number, w
         // value should not be less than MIN_LAYER_VALUE, and should not be greater than MAX_LAYER_VALUE
         gui_value = std::clamp(gui_value, MIN_LAYER_VALUE, MAX_LAYER_VALUE);
 
-        int begin_value;
-        int end_value;
+        int begin_value = 0;
+        int end_value = 0;
         LayerNumberTextInput* end_layer_input = nullptr;
         if (this->m_type == Type::Begin) {
             begin_value = gui_value;
@@ -382,8 +383,8 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
     auto plate_name_txt = new wxStaticText(this, wxID_ANY, _L("Plate name"));
     plate_name_txt->SetFont(Label::Body_14);
     m_ti_plate_name = new TextInput(this, wxString::FromDouble(0.0), "", "", wxDefaultPosition, wxSize(FromDIP(240),-1), wxTE_PROCESS_ENTER);
-    top_sizer->Add(plate_name_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT |wxALL, FromDIP(5));
-    top_sizer->Add(m_ti_plate_name, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT |wxALL, FromDIP(5));
+    top_sizer->Add(plate_name_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxTOP | wxBOTTOM, FromDIP(5));
+    top_sizer->Add(m_ti_plate_name, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxTOP | wxBOTTOM, FromDIP(5));
 
     m_bed_type_choice = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(240), -1), 0,
                                      NULL, wxCB_READONLY);
@@ -458,23 +459,9 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
     m_sizer_main->AddSpacer(FromDIP(5));
     m_sizer_main->Add(m_other_layers_seq_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
 
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
-    auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
-    m_button_ok = new Button(this, _L("OK"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour("#FFFFFE"));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
-    m_button_ok->Bind(wxEVT_BUTTON, [this](auto& e) {
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](auto& e) {
         wxCommandEvent evt(EVT_SET_BED_TYPE_CONFIRM, GetId());
         static_cast<wxEvtHandler*>(m_other_layers_seq_panel)->ProcessEvent(evt);
         GetEventHandler()->ProcessEvent(evt);
@@ -486,26 +473,15 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
             this->Close();
         });
 
-    m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
-    m_button_cancel->Bind(wxEVT_BUTTON, [this](auto& e) {
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](auto& e) {
         if (this->IsModal())
             EndModal(wxID_NO);
         else
             this->Close();
         });
 
-    sizer_button->AddStretchSpacer();
-    sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
-    sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
-    sizer_button->Add(FromDIP(30),0, 0, 0);
-
-    m_sizer_main->Add(sizer_button, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(20));
+    m_sizer_main->AddSpacer(FromDIP(20));
+    m_sizer_main->Add(dlg_btns, 0, wxEXPAND);
 
     SetSizer(m_sizer_main);
     Layout();
@@ -620,8 +596,6 @@ wxString PlateSettingsDialog::to_print_sequence_name(PrintSequence print_seq) {
 
 void PlateSettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-    m_button_ok->Rescale();
-    m_button_cancel->Rescale();
 }
 
 wxString PlateSettingsDialog::get_plate_name() const {
@@ -670,48 +644,23 @@ PlateNameEditDialog::PlateNameEditDialog(wxWindow *parent, wxWindowID id, const 
 
     m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxALL, FromDIP(30));
 
-    auto       sizer_button = new wxBoxSizer(wxHORIZONTAL);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
-    m_button_ok = new Button(this, _L("OK"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour("#FFFFFE"));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         if (this->IsModal())
             EndModal(wxID_YES);
         else
             this->Close();
     });
 
-    m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         if (this->IsModal())
             EndModal(wxID_NO);
         else
             this->Close();
     });
 
-    sizer_button->AddStretchSpacer();
-    sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
-    sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
-    sizer_button->Add(FromDIP(30), 0, 0, 0);
-
-    m_sizer_main->Add(sizer_button, 0, wxEXPAND, FromDIP(20));
+    m_sizer_main->Add(dlg_btns, 0, wxEXPAND, FromDIP(20));
 
     SetSizer(m_sizer_main);
     Layout();
@@ -726,8 +675,6 @@ PlateNameEditDialog::~PlateNameEditDialog() {}
 
 void PlateNameEditDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    m_button_ok->Rescale();
-    m_button_cancel->Rescale();
 }
 
 

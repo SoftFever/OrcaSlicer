@@ -1090,9 +1090,9 @@ void ObjectGrid::paste_data( wxTextDataObject& text_data )
 		
     }
     else {
-        wxLogWarning(_L("multiple cells copy is not supported"));
+        wxLogWarning(_L("Copying multiple cells is not supported."));
         /*if ((src_col_cnt != 1) || (dst_left_col != src_left_col))
-            wxLogWarning(_L("multiple columns copy is not supported"));
+            wxLogWarning(_L("Copying multiple columns is not supported."));
         else {
             split(buf, string_array);
             int count = string_array.GetCount();

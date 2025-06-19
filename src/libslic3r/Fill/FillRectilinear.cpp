@@ -2928,7 +2928,7 @@ void make_fill_lines(const ExPolygonWithOffset &poly_with_offset, Point refpt, d
 
 bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
 {
-    assert(sweep_params.size() > 1);
+    assert(sweep_params.size() >= 1);
     assert(! params.full_infill());
     params.density /= double(sweep_params.size());
     assert(params.density > 0.0001f && params.density <= 1.f);
@@ -2948,12 +2948,14 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
         make_fill_lines(ExPolygonWithOffset(poly_with_offset_base, - angle), rotate_vector.second.rotated(-angle), angle, line_width + coord_t(SCALED_EPSILON), line_spacing, coord_t(scale_(sweep.pattern_shift)), fill_lines);
     }
 
-    if (params.dont_connect() || fill_lines.size() <= 1) {
-        if (fill_lines.size() > 1)
-            fill_lines = chain_polylines(std::move(fill_lines));
-        append(polylines_out, std::move(fill_lines));
-    } else
-        connect_infill(std::move(fill_lines), poly_with_offset_base.polygons_outer, get_extents(surface->expolygon.contour), polylines_out, this->spacing, params);
+    if (!fill_lines.empty()) {
+        if (params.dont_connect()) {
+            if (fill_lines.size() > 1)
+                fill_lines = chain_polylines(std::move(fill_lines));
+            append(polylines_out, std::move(fill_lines));
+        } else
+            connect_infill(std::move(fill_lines), poly_with_offset_base.polygons_outer, get_extents(surface->expolygon.contour), polylines_out, this->spacing, params);
+    }
 
     return true;
 }
@@ -2961,8 +2963,13 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    if (! fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "FillRectilinear::fill_surface() failed to fill a region.";
+    if (params.full_infill()) {
+        if (!fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out))
+            BOOST_LOG_TRIVIAL(error) << "FillRectilinear::fill_surface() fill_surface_by_lines() failed to fill a region.";
+    } else {
+        if (!fill_surface_by_multilines(surface, params, {{0.f, 0.f}}, polylines_out))
+            BOOST_LOG_TRIVIAL(error) << "FillRectilinear::fill_surface() fill_surface_by_multilines() failed to fill a region.";
+    }
     return polylines_out;
 }
 
@@ -3082,6 +3089,66 @@ Polylines FillQuarterCubic::fill_surface(const Surface* surface, const FillParam
             {{0.f, dx1}, {0.f, -dx1}, {float(M_PI / 2.), dx2}, {float(M_PI / 2.), -dx2}},
             polylines_out))
         BOOST_LOG_TRIVIAL(error) << "FillQuarterCubic::fill_surface() failed to fill a region.";
+
+    return polylines_out;
+}
+
+Polylines Fill2DHoneycomb::fill_surface(const Surface *surface, const FillParams &params)
+{
+    // the 2D honeycomb is generated based on a base pattern of an inverted Y with its junction at height zero
+    //     |
+    //     |
+    // 0 --+--
+    //    / \
+    // why inverted?
+    // it makes determining some of the properties easier
+    // and the two angled legs provide additional horizontal stiffness
+    // the additional horizontal stiffness is not required close to the bed (unless you don't have any kind of bottom or flange)
+
+    using namespace boost::math::float_constants;
+
+    // lets begin calculating some base properties of the honeycomb pattern
+    const float half_horizontal_period = .5f * (1*(2/3.f) + 2*(1/3.f)) * float(spacing) / params.density;
+    const float vertical_period = 3 * half_horizontal_period / tanf(degree * float(params.infill_overhang_angle));
+
+    // we want to align the base pattern with its knot on height 0
+    // therefore the double line part is 1/3 below and the single line is 2/3 above 0
+    const float vertical_thirds_float = 3 * float(z) / vertical_period;
+    const int vertical_thirds_int = vertical_thirds_float; // converstion to int does implicit floor wich is desired here
+    const bool single_line = (vertical_thirds_int + 1) % 3;
+
+    // the base pattern needs to be horizontally shifted by half every odd pattern layer
+    const bool odd_layer = ((vertical_thirds_int + 1) / 3) % 2;
+    const float horizontal_offset = odd_layer ? half_horizontal_period : 0;
+
+    Polylines polylines_out;
+
+    if (single_line)
+    {
+        FillParams multiline_params = params;
+        multiline_params.density *= 1 / (1*(2/3.) + 2*(1/3.));
+
+        if (!fill_surface_by_multilines(
+                surface, multiline_params,
+                { { half_pi, horizontal_offset } },
+                polylines_out))
+            BOOST_LOG_TRIVIAL(error) << "Fill2DHoneycomb::fill_surface() failed to fill a region.";
+    } else {
+        FillParams multiline_params = params;
+        multiline_params.density *= 2 / (1*(2/3.) + 2*(1/3.));
+
+        const float horizontal_position = (1 - (vertical_thirds_float - vertical_thirds_int)) * half_horizontal_period;
+
+        if (!fill_surface_by_multilines(
+                surface, multiline_params,
+                { { half_pi, -horizontal_position + horizontal_offset }, { half_pi, horizontal_position + horizontal_offset } },
+                polylines_out))
+            BOOST_LOG_TRIVIAL(error) << "Fill2DHoneycomb::fill_surface() failed to fill a region.";
+    }
+
+    if (this->layer_id % 2 == 1)
+        for (int i = 0; i < polylines_out.size(); i++)
+            std::reverse(polylines_out[i].begin(), polylines_out[i].end());
 
     return polylines_out;
 }

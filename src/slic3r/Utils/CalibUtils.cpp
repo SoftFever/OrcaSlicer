@@ -882,6 +882,7 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     print_config.set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+    print_config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -990,7 +991,7 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
 
 bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &full_config, const Calib_Params &params, wxString &error_message)
 {
-    Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;
+    Pointfs bedfs         = make_counter_clockwise(full_config.opt<ConfigOptionPoints>("printable_area")->values);
     double  print_height  = full_config.opt_float("printable_height");
     double  current_width = bedfs[2].x() - bedfs[0].x();
     double  current_depth = bedfs[2].y() - bedfs[0].y();

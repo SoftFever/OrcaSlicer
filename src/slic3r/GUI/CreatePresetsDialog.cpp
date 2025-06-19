@@ -38,27 +38,28 @@
 namespace Slic3r { 
 namespace GUI {
 
-    static const std::vector<std::string> filament_vendors = 
+  static const std::vector<std::string> filament_vendors = 
     {"3Dgenius",               "3DJake",                 "3DXTECH",                "3D BEST-Q",              "3D Hero",
      "3D-Fuel",                "Aceaddity",              "AddNorth",               "Amazon Basics",          "AMOLEN",
      "Ankermake",              "Anycubic",               "Atomic",                 "AzureFilm",              "BASF",
      "Bblife",                 "BCN3D",                  "Beyond Plastic",         "California Filament",    "Capricorn",
      "CC3D",                   "colorFabb",              "Comgrow",                "Cookiecad",              "Creality",
-     "CERPRiSE",               "Das Filament",           "DO3D",                   "DOW",                    "DSM",
-     "Duramic",                "ELEGOO",                 "Eryone",                 "Essentium",              "eSUN",
-     "Extrudr",                "Fiberforce",             "Fiberlogy",              "FilaCube",               "Filamentive",
-     "Fillamentum",            "FLASHFORGE",             "Formfutura",             "Francofil",              "FusRock",
-     "FilamentOne",            "Fil X",                  "GEEETECH",               "Giantarm",               "Gizmo Dorks",
-     "GreenGate3D",            "HATCHBOX",               "Hello3D",                "IC3D",                   "IEMAI",
-     "IIID Max",               "INLAND",                 "iProspect",              "iSANMATE",               "Justmaker",
-     "Keene Village Plastics", "Kexcelled",              "LDO",                    "MakerBot",               "MatterHackers",
-     "MIKA3D",                 "NinjaTek",               "Nobufil",                "Novamaker",              "OVERTURE",
-     "OVVNYXE",                "Polymaker",              "Priline",                "Printed Solid",          "Protopasta",
-     "Prusament",              "Push Plastic",           "R3D",                    "Re-pet3D",               "Recreus",
-     "Regen",                  "RatRig",                 "Sain SMART",             "SliceWorx",              "Snapmaker",
-     "SnoLabs",                "Spectrum",               "SUNLU",                  "TTYT3D",                 "Tianse",
-     "UltiMaker",              "Valment",                "Verbatim",               "VO3D",                   "Voxelab",
-     "VOXELPLA",               "YOOPAI",                 "Yousu",                  "Ziro",                   "Zyltech"};
+     "CERPRiSE",               "Das Filament",           "DO3D",                   "DOW",                    "DREMC",
+     "DSM",                    "Duramic",                "ELEGOO",                 "Eryone",                 "Essentium",
+     "eSUN",                   "Extrudr",                "Fiberforce",             "Fiberlogy",              "FilaCube",
+     "Filamentive",            "Fillamentum",            "FLASHFORGE",            "Formfutura",             "Francofil",
+     "FusRock",                "FilamentOne",            "Fil X",                  "GEEETECH",               "Giantarm",
+     "Gizmo Dorks",            "GreenGate3D",            "HATCHBOX",               "Hello3D",                "IC3D",
+     "IEMAI",                  "IIID Max",               "INLAND",                 "iProspect",              "iSANMATE",
+     "Justmaker",             "Keene Village Plastics",  "Kexcelled",              "LDO",                    "MakerBot",
+     "MatterHackers",         "MIKA3D",                  "NinjaTek",               "Nobufil",                "Novamaker",
+     "OVERTURE",              "OVVNYXE",                 "Polymaker",              "Priline",                "Printed Solid",
+     "Protopasta",            "Prusament",               "Push Plastic",           "R3D",                    "Re-pet3D",
+     "Recreus",               "Regen",                   "RatRig",                 "Sain SMART",             "SliceWorx",
+     "Snapmaker",             "SnoLabs",                 "Spectrum",               "SUNLU",                  "TTYT3D",
+     "Tianse",                "UltiMaker",               "Valment",                "Verbatim",               "VO3D",
+     "Voxelab",               "VOXELPLA",                "YOOPAI",                 "Yousu",                  "Ziro", 
+     "Zyltech"};
      
 static const std::vector<std::string> filament_types = {"PLA",    "rPLA",  "PLA+",      "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",   "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PVB",       "PC",        "PCABS", "PCTG",   "PCCF",   "PHA",    "PP",     "PEI",    "PET",
@@ -67,55 +68,96 @@ static const std::vector<std::string> filament_types = {"PLA",    "rPLA",  "PLA+
 
 static const std::vector<std::string> printer_vendors = 
     {"Anker",              "Anycubic",           "Artillery",          "Bambulab",           "BIQU",
-     "Comgrow",            "Creality",           "Custom Printer",     "Elegoo",             "Flashforge",
-     "FLSun",              "FlyingBear",         "Folgertech",         "InfiMech",           "Kingroon",
-     "Orca Arena Printer", "Peopoly",            "Prusa",              "Qidi",               "Raise3D",
-     "RatRig",             "SecKit",             "Snapmaker",          "Sovol",              "Tronxy",
-     "TwoTrees",           "UltiMaker",          "Vivedino",           "Voron",              "Voxelab",
-     "Vzbot",              "Wanhao"};
+     "Blocks",             "Chuanying",          "Co Print",           "Comgrow",            "CONSTRUCT3D",
+     "Creality",           "DeltaMaker",         "Dremel",             "Elegoo",             "Flashforge",
+     "FLSun",              "FlyingBear",         "Folgertech",         "Geeetech",           "Ginger Additive",
+     "InfiMech",           "Kingroon",           "Lulzbot",            "MagicMaker",         "Mellow",
+     "Orca Arena Printer", "Peopoly",            "Positron 3D",        "Prusa",              "Qidi",
+     "Raise3D",            "RatRig",             "RolohaunDesign",     "SecKit",             "Snapmaker",
+     "Sovol",              "Thinker X400",       "Tronxy",             "TwoTrees",           "UltiMaker",
+     "Vivedino",           "Volumic",            "Voron",              "Voxelab",            "Vzbot",
+     "Wanhao",             "Z-Bolt"};
 
 static const std::unordered_map<std::string, std::vector<std::string>> printer_model_map =
-    {{"Anker",          {"Anker M5", "Anker M5 All-Metal Hot End", "Anker M5C"}},
-     {"Anycubic",       {"Kossel Linear Plus", "Kossel Pulley(Linear)", "Mega Zero", "i3 Mega", "Predator"}},
-     {"Artillery",      {"sidewinder X1",   "Genius", "Hornet"}},
-     {"BIBO",           {"BIBO2 Touch"}},
-     {"BIQU",           {"BX"}},
-     {"Creality ENDER", {"Ender-3",         "Ender-3 BLTouch",  "Ender-3 Pro",      "Ender-3 Neo",      
-                        "Ender-3 V2 Neo",   "Ender-3 S1 Plus",  "Ender-3 Max", "Ender-3 Max Neo",
-                        "Ender-4",          "Ender-5 Pro",      "Ender-5 Pro",      
-                        "Ender-7",          "Ender-2",          "Ender-2 Pro"}},
-     {"Creality CR",    {"CR-5 Pro",        "CR-5 Pro H",       "CR-10 SMART", "CR-10 SMART Pro",   "CR-10 Mini",
-                        "CR-10",            "CR-10 v3",         "CR-10 S",     "CR-10 v2",          "CR-10 v2",
-                        "CR-10 S Pro",      "CR-10 S Pro v2",   "CR-10 S4",         "CR-10 S5",         "CR-20",       "CR-20 Pro",         "CR-200B",
-                        "CR-8"}},
-     {"Creality SERMOON",{"Sermoon-D1",     "Sermoon-V1",       "Sermoon-V1 Pro"}},
-     {"FLSun",          {"FLSun QQs Pro",   "FLSun Q5"}},
-     {"gCreate",        {"gMax 1.5XT Plus", "gMax 2",           "gMax 2 Pro",       "gMax 2 Dual 2in1", "gMax 2 Dual Chimera"}},
-     {"Geeetech",       {"Thunder",         "Thunder Pro",      "Mizar s",          "Mizar Pro",        "Mizar",        "Mizar Max",
-                        "Mizar M",          "A10 Pro",          "A10 M",            "A10 T",            "A20",          "A20 M",
-                        "A20T",             "A30 Pro",          "A30 M",            "A30 T",            "E180",         "Me Ducer",
-                        "Me creator",       "Me Creator2",      "GiantArmD200",     "l3 ProB",          "l3 Prow",      "l3 ProC"}},
-     {"INAT",           {"Proton X Rail",   "Proton x Rod",     "Proton XE-750"}},
-     {"Infinity3D",     {"DEV-200",         "DEV-350"}},
-     {"Jubilee",        {"Jubilee"}},
-     {"LNL3D",          {"D3 v2",           "D3 Vulcan",        "D5",               "D6"}},
-     {"LulzBot",        {"Mini Aero",       "Taz6 Aero"}},
-     {"MakerGear",      {"Micro",           "M2(V4 Hotend)",    "M2 Dual",          "M3-single Extruder", "M3-Independent Dual Rev.0", "M3-Independent Dual Rev.0(Duplication Mode)",
-                        "M3-Independent Dual Rev.1",            "M3-Independent Dual Rev.1(Duplication Mode)", "ultra One", "Ultra One (DuplicationMode)"}},
-     {"Original Prusa", {"MK4", "SL1S SPEED", "MMU3"}},
-     {"Papapiu",        {"N1s"}},
-     {"Print4Taste",    {"mycusini 2.0"}},
-     {"RatRig",         {"V-core-3 300mm",  "V-Core-3 400mm",   "V-Core-3 500mm", "V-Minion"}},
-     {"Rigid3D",        {"Zero2",           "Zero3"}},
-     {"Snapmaker",      {"A250",            "A350"}},
-     {"Sovol",          {"SV06",            "SV06 PLUS",        "SV05",             "SV04",             "SV03 / SV03 BLTOUCH",      "SVO2 / SV02 BLTOUCH",      "SVO1 / SV01 BLToUCH", "SV01 PRO"}},
-     {"TriLAB",         {"AzteQ Industrial","AzteQ Dynamic",    "DeltiQ 2",         "DeltiQ 2 Plus",    "DeltiQ 2 + FlexPrint 2",   "DeltiQ 2 Plus + FlexPrint 2", "DeltiQ 2 +FlexPrint",
-                        "DeltiQ 2 Plus + FlexPrint",            "DeltiQ M",         "DeltiQ L",         "DeltiQ XL"}},
-     {"Trimaker",       {"Nebula cloud",    "Nebula",           "Cosmos ll"}},
-     {"Ultimaker",      {"Ultimaker 2"}},
-     {"Voron",          {"v2 250mm3",        "v2 300mm3",        "v2 350mm3",        "v1 250mm3",        "v1 300mm3", "v1 350mm3",
-                        "Zero 120mm3",      "Switchwire"}},
-     {"Zonestar",       {"Z5",              "Z6",               "Z5x",              "Z8",               "Z9"}}};
+    {{"Anker",             {"Anker M5",                   "Anker M5 All-Metal Hot End", "Anker M5C"}},
+     {"Anycubic",          {"Anycubic i3 Mega S",    "Anycubic Chiron",       "Anycubic Vyper",        "Anycubic Kobra",        "Anycubic Kobra Max",
+                            "Anycubic Kobra Plus",   "Anycubic 4Max Pro",     "Anycubic 4Max Pro 2",   "Anycubic Kobra 2",      "Anycubic Kobra 2 Plus",
+                            "Anycubic Kobra 2 Max",  "Anycubic Kobra 2 Pro",  "Anycubic Kobra 2 Neo",  "Anycubic Kobra 3",      "Anycubic Kobra S1"}},
+     {"Artillery",         {"Artillery Sidewinder X1",      "Artillery Genius",             "Artillery Genius Pro",         "Artillery Sidewinder X2",      "Artillery Hornet",
+                            "Artillery Sidewinder X3 Pro",  "Artillery Sidewinder X3 Plus", "Artillery Sidewinder X4 Pro",  "Artillery Sidewinder X4 Plus"}},
+     {"Bambulab",          {"Bambu Lab X1 Carbon", "Bambu Lab X1",        "Bambu Lab X1E",       "Bambu Lab P1P",       "Bambu Lab P1S",
+                            "Bambu Lab A1 mini",   "Bambu Lab A1"}},
+     {"BIQU",              {"BIQU B1",      "BIQU BX",      "BIQU Hurakan"}},
+     {"Blocks",            {"BLOCKS Pro S100", "BLOCKS RD50 V2",  "BLOCKS RF50"}},
+     {"Chuanying",         {"Chuanying X1"}},
+     {"Co Print",          {"Co Print ChromaSet"}},
+     {"Comgrow",           {"Comgrow T300", "Comgrow T500"}},
+     {"CONSTRUCT3D",       {"Construct 1 XL", "Construct 1"}},
+     {"Creality",          {"Creality CR-10 V2",           "Creality CR-10 Max",          "Creality CR-10 SE",           "Creality CR-6 SE",            "Creality CR-6 Max",
+                            "Creality CR-M4",              "Creality Ender-3 V2",         "Creality Ender-3 V2 Neo",     "Creality Ender-3 S1",         "Creality Ender-3",
+                            "Creality Ender-3 Pro",        "Creality Ender-3 S1 Pro",     "Creality Ender-3 S1 Plus",    "Creality Ender-3 V3 SE",      "Creality Ender-3 V3 KE",
+                            "Creality Ender-3 V3",         "Creality Ender-3 V3 Plus",    "Creality Ender-5",            "Creality Ender-5 Max",        "Creality Ender-5 Plus",
+                            "Creality Ender-5 Pro (2019)", "Creality Ender-5S",           "Creality Ender-5 S1",         "Creality Ender-6",            "Creality Sermoon V1",
+                            "Creality K1",                 "Creality K1C",                "Creality K1 Max",             "Creality K1 SE",              "Creality K2 Plus",
+                            "Creality Hi"}},
+     {"DeltaMaker",        {"DeltaMaker 2",   "DeltaMaker 2T",  "DeltaMaker 2XT"}},
+     {"Dremel",            {"Dremel 3D20", "Dremel 3D40", "Dremel 3D45"}},
+     {"Elegoo",            {"Elegoo Centauri Carbon",  "Elegoo Centauri",         "Elegoo Neptune",          "Elegoo Neptune X",        "Elegoo Neptune 2",
+                            "Elegoo Neptune 2S",       "Elegoo Neptune 2D",       "Elegoo Neptune 3",        "Elegoo Neptune 3 Pro",    "Elegoo Neptune 3 Plus",
+                            "Elegoo Neptune 3 Max",    "Elegoo Neptune 4 Pro",    "Elegoo Neptune 4",        "Elegoo Neptune 4 Max",    "Elegoo Neptune 4 Plus",
+                            "Elegoo OrangeStorm Giga"}},
+     {"Flashforge",        {"Flashforge Adventurer 5M",       "Flashforge Adventurer 5M Pro",   "Flashforge AD5X",                "Flashforge Adventurer 3 Series", "Flashforge Adventurer 4 Series",
+                            "Flashforge Guider 3 Ultra",      "Flashforge Guider 2s"}},
+     {"FLSun",             {"FLSun Q5",               "FLSun QQ-S Pro",         "FLSun Super Racer (SR)", "FLSun V400",             "FLSun T1",
+                            "FLSun S1"}},
+     {"FlyingBear",        {"FlyingBear Reborn3", "FlyingBear S1",      "FlyingBear Ghost 6"}},
+     {"Folgertech",        {"Folgertech i3",   "Folgertech FT-5", "Folgertech FT-6"}},
+     {"Geeetech",          {"Geeetech Thunder",   "Geeetech Mizar M",   "Geeetech Mizar S",   "Geeetech Mizar Pro", "Geeetech Mizar Max",
+                            "Geeetech Mizar",     "Geeetech A10 Pro",   "Geeetech A10 M",     "Geeetech A10 T",     "Geeetech A20",
+                            "Geeetech A20 M",     "Geeetech A20 T",     "Geeetech A30 Pro",   "Geeetech A30 M",     "Geeetech A30 T",
+                            "Geeetech M1"}},
+     {"Ginger Additive",   {"ginger G1"}},
+     {"InfiMech",          {"InfiMech TX",                       "InfiMech TX Hardened Steel Nozzle"}},
+     {"Kingroon",          {"Kingroon KP3S PRO S1", "Kingroon KP3S PRO V2", "Kingroon KP3S 3.0",    "Kingroon KP3S V1",     "Kingroon KLP1"}},
+     {"Lulzbot",           {"Lulzbot Taz 6",        "Lulzbot Taz 4 or 5",   "Lulzbot Taz Pro Dual", "Lulzbot Taz Pro S"}},
+     {"MagicMaker",        {"MM hqs hj",   "MM hqs SF",   "MM hj SK",    "MM BoneKing", "MM slb"}},
+     {"Mellow",            {"M1"}},
+     {"Orca Arena Printer",{"Orca Arena X1 Carbon"}},
+     {"Peopoly",           {"Peopoly Magneto X"}},
+     {"Positron 3D",       {"The Positron"}},
+     {"Prusa",             {"Prusa CORE One", "Prusa CORE One HF", "MK4IS", "MK4S", "MK4S HF",
+                            "Prusa XL", "Prusa XL 5T", "MK3.5", "MK3S", "MINI", "MINIIS"}},
+     {"Qidi",              {"Qidi X-Plus 4",  "Qidi Q1 Pro",    "Qidi X-Max 3",   "Qidi X-Plus 3",  "Qidi X-Smart 3",
+                            "Qidi X-Plus",    "Qidi X-Max",     "Qidi X-CF Pro"}},
+     {"Raise3D",           {"Raise3D Pro3",      "Raise3D Pro3 Plus"}},
+     {"RatRig",            {"RatRig V-Core 3 200",                  "RatRig V-Core 3 300",                  "RatRig V-Core 3 400",                  "RatRig V-Core 3 500",                  "RatRig V-Minion",
+                            "RatRig V-Cast",                        "RatRig V-Core 4 300",                  "RatRig V-Core 4 400",                  "RatRig V-Core 4 500",                  "RatRig V-Core 4 HYBRID 300",
+                            "RatRig V-Core 4 HYBRID 400",           "RatRig V-Core 4 HYBRID 500",           "RatRig V-Core 4 IDEX 300",             "RatRig V-Core 4 IDEX 300 COPY MODE",   "RatRig V-Core 4 IDEX 300 MIRROR MODE",
+                            "RatRig V-Core 4 IDEX 400",             "RatRig V-Core 4 IDEX 400 COPY MODE",   "RatRig V-Core 4 IDEX 400 MIRROR MODE", "RatRig V-Core 4 IDEX 500",             "RatRig V-Core 4 IDEX 500 COPY MODE",
+                            "RatRig V-Core 4 IDEX 500 MIRROR MODE"}},
+     {"RolohaunDesign",    {"Rook MK1 LDO"}},
+     {"SecKit",            {"SecKit SK-Tank", "Seckit Go3"}},
+     {"Snapmaker",         {"Snapmaker J1",                 "Snapmaker A250",               "Snapmaker A350",               "Snapmaker A250 Dual",          "Snapmaker A350 Dual",
+                            "Snapmaker A250 QSKit",         "Snapmaker A350 QSKit",         "Snapmaker A250 BKit",          "Snapmaker A350 BKit",          "Snapmaker A250 QS+B Kit",
+                            "Snapmaker A350 QS+B Kit",      "Snapmaker A250 Dual QSKit",    "Snapmaker A350 Dual QSKit",    "Snapmaker A250 Dual BKit",     "Snapmaker A350 Dual BKit",
+                            "Snapmaker A250 Dual QS+B Kit", "Snapmaker A350 Dual QS+B Kit", "Snapmaker Artisan"}},
+     {"Sovol",             {"Sovol SV01 Pro",      "Sovol SV02",          "Sovol SV05",          "Sovol SV06",          "Sovol SV06 Plus",
+                            "Sovol SV06 ACE",      "Sovol SV06 Plus ACE", "Sovol SV07",          "Sovol SV07 Plus",     "Sovol SV08"}},
+     {"Thinker X400",      {"Thinker X400"}},
+     {"Tronxy",            {"Tronxy X5SA 400 Marlin Firmware"}},
+     {"TwoTrees",          {"TwoTrees SP-5 Klipper", "TwoTrees SK1"}},
+     {"UltiMaker",         {"UltiMaker 2"}},
+     {"Vivedino",          {"Troodon 2.0 - RRF",     "Troodon 2.0 - Klipper"}},
+     {"Volumic",           {"EXO42 Performance", "EXO65 Performance", "SH65 Performance",  "EXO42",             "EXO65",           
+                            "SH65",              "VS30SC2",           "VS30SC",            "VS30ULTRA",         "VS30MK3",         
+                            "VS30MK2",           "VS20MK2"}},
+     {"Voron",             {"Voron 2.4 250",        "Voron 2.4 300",        "Voron 2.4 350",        "Voron Trident 250",    "Voron Trident 300",
+                            "Voron Trident 350",    "Voron 0.1",            "Voron Switchwire 250"}},
+     {"Voxelab",           {"Voxelab Aquila X2"}},
+     {"Vzbot",             {"Vzbot 235 AWD", "Vzbot 330 AWD"}},
+     {"Wanhao",            {"Wanhao D12-300"}},
+     {"Z-Bolt",            {"Z-Bolt S300",      "Z-Bolt S300 Dual", "Z-Bolt S400",      "Z-Bolt S400 Dual", "Z-Bolt S600",
+                            "Z-Bolt S600 Dual"}}};
 
 static std::vector<std::string>               nozzle_diameter_vec = {"0.4", "0.15", "0.2", "0.25", "0.3", "0.35", "0.5", "0.6", "0.75", "0.8", "1.0", "1.2"};
 static std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.15", 0.15}, {"0.2", 0.2},   {"0.25", 0.25}, {"0.3", 0.3},
@@ -643,7 +685,7 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
     m_scrolled_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
     m_scrolled_preset_panel->SetSizerAndFit(m_scrolled_sizer);
     m_main_sizer->Add(m_scrolled_preset_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
-    m_main_sizer->Add(create_button_item(), 0, wxEXPAND | wxALL, FromDIP(10));
+    m_main_sizer->Add(create_dialog_buttons(), 0, wxEXPAND);
 
     get_all_visible_printer_name();
     select_curr_radiobox(m_create_type_btns, 0);
@@ -668,14 +710,6 @@ CreateFilamentPresetDialog::~CreateFilamentPresetDialog()
 }
 
 void CreateFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    
-    m_button_create->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_create->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_create->SetCornerRadius(FromDIP(12));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
-
     Layout();
 }
 
@@ -745,7 +779,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     m_filament_custom_vendor_input->SetSize(NAME_OPTION_COMBOBOX_SIZE);
     textInputSizer->Add(m_filament_custom_vendor_input, 0, wxEXPAND | wxALL, 0);
     m_filament_custom_vendor_input->GetTextCtrl()->SetHint(_L("Input Custom Vendor"));
-    m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) {
             event.Skip(false);
@@ -855,7 +889,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     m_filament_serial_input   = new TextInput(this, "", "", "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
     m_filament_serial_input->GetTextCtrl()->SetMaxLength(50);
     comboBoxSizer->Add(m_filament_serial_input, 0, wxEXPAND | wxALL, 0);
-    m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) {
             event.Skip(false);
@@ -977,25 +1011,13 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_for_printer_item(
     return vertical_sizer;
 }
 
-wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
+wxWindow *CreateFilamentPresetDialog::create_dialog_buttons()
 {
-    wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
-    bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    m_button_create = new Button(this, _L("Create"));
-    m_button_create->SetBackgroundColor(btn_bg_green);
-    m_button_create->SetBorderColor(*wxWHITE);
-    m_button_create->SetTextColor(wxColour(0xFFFFFE));
-    m_button_create->SetFont(Label::Body_12);
-    m_button_create->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_create->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_create->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_create, 0, wxRIGHT, FromDIP(10));
-
-    m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+    auto btn_ok = dlg_btns->GetOK();
+    btn_ok->SetLabel(_L("Create"));
+    btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { 
         //get vendor name
         wxString vendor_str = m_filament_vendor_combobox->GetLabel();
         std::string vendor_name;
@@ -1018,7 +1040,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             } else {
                 vendor_name = into_u8(m_filament_custom_vendor_input->GetTextCtrl()->GetValue());
                 if (vendor_name == "Bambu" || vendor_name == "Generic") {
-                    MessageDialog dlg(this, _L("\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                    MessageDialog dlg(this, _L("\"Bambu\" or \"Generic\" cannot be used as a Vendor for custom filaments."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
                     dlg.ShowModal();
                     return;
@@ -1065,7 +1087,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             return;
         }
         if (m_can_not_find_vendor_checkbox->GetValue() && str_is_all_digit(vendor_name)) {
-            MessageDialog dlg(this, _L("The vendor can not be a number. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            MessageDialog dlg(this, _L("The vendor cannot be a number. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
@@ -1082,8 +1104,8 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         PresetBundle *preset_bundle        = wxGetApp().preset_bundle;
         if (preset_bundle->filaments.is_alias_exist(filament_preset_name)) {
             MessageDialog dlg(this,
-                              wxString::Format(_L("The Filament name %s you created already exists. \nIf you continue creating, the preset created will be displayed with its "
-                                                  "full name. Do you want to continue?"),
+                              wxString::Format(_L("The Filament name %s you created already exists.\n"
+                                                  "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"),
                                                from_u8(filament_preset_name)),
                               wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             if (wxID_YES != dlg.ShowModal()) { return; }
@@ -1153,23 +1175,11 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         EndModal(wxID_OK); 
         });
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
-    m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_cancel, 0, wxRIGHT, FromDIP(10));
-
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { 
         EndModal(wxID_CANCEL); 
-        });
+    });
 
-    return bSizer_button;
+    return dlg_btns;
 }
 
 wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
@@ -1272,7 +1282,8 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
                     m_filament_preset_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
                 }
             } else if (curr_selected_type == m_create_type.base_filament_preset) {
-                m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\". \nTo add preset for more printers, Please go to printer selection"));
+                m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\".\n"
+                                                    "To add preset for more printers, please go to printer selection"));
                 m_filament_preset_combobox->Hide();
                 if (_L("Select Type") != m_filament_type_combobox->GetLabel()) {
                     
@@ -1556,7 +1567,7 @@ CreatePrinterPresetDialog::CreatePrinterPresetDialog(wxWindow *parent)
 
     page_sizer->Add(m_page1, 1, wxEXPAND, 0);
     page_sizer->Add(m_page2, 1, wxEXPAND, 0);
-    m_main_sizer->Add(page_sizer, 0, wxEXPAND | wxRIGHT, FromDIP(10));
+    m_main_sizer->Add(page_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(5)); // ORCA use equal border for both sides
     select_curr_radiobox(m_create_type_btns, 0);
     select_curr_radiobox(m_create_presets_btns, 0);
 
@@ -1585,21 +1596,6 @@ CreatePrinterPresetDialog::~CreatePrinterPresetDialog()
 }
 
 void CreatePrinterPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_button_OK->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_OK->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_OK->SetCornerRadius(FromDIP(12));
-    m_button_create->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_create->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_create->SetCornerRadius(FromDIP(12));
-    m_button_page1_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page1_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page1_cancel->SetCornerRadius(FromDIP(12));
-    m_button_page2_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page2_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page2_cancel->SetCornerRadius(FromDIP(12));
-    m_button_page2_back->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page2_back->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page2_back->SetCornerRadius(FromDIP(12));
     Layout();
 }
 
@@ -1660,7 +1656,7 @@ void CreatePrinterPresetDialog::create_printer_page1(wxWindow *parent)
     m_printer_info_sizer->Add(create_max_print_height_item(m_printer_info_panel), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_printer_info_panel->SetSizer(m_printer_info_sizer);
     m_page1_sizer->Add(m_printer_info_panel, 0, wxEXPAND, 0);
-    m_page1_sizer->Add(create_page1_btns_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_page1_dialog_buttons(parent), 0, wxEXPAND);
 
     parent->SetSizerAndFit(m_page1_sizer);
     Layout();
@@ -1704,6 +1700,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_select_vendor->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     wxArrayString printer_vendor;
     for (const std::string &vendor : printer_vendors) { 
+        assert(printer_model_map.find(vendor) != printer_model_map.end());
         printer_vendor.Add(vendor); 
     }
     m_select_vendor->Set(printer_vendor);
@@ -1724,7 +1721,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
                 m_select_model->SetLabelColor(*wxBLACK);
             }
         } else {
-            MessageDialog dlg(this, _L("The model is not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+            MessageDialog dlg(this, _L("The model was not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
         }
         e.Skip();
@@ -1754,7 +1751,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
 
     m_custom_vendor_text_ctrl                      = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
     m_custom_vendor_text_ctrl->SetHint(_L("Input Custom Vendor"));
-    m_custom_vendor_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_custom_vendor_text_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
@@ -1766,7 +1763,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_custom_vendor_text_ctrl->Hide();
     m_custom_model_text_ctrl = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
     m_custom_model_text_ctrl->SetHint(_L("Input Custom Model"));
-    m_custom_model_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_custom_model_text_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
@@ -2024,45 +2021,19 @@ wxBoxSizer *CreatePrinterPresetDialog::create_max_print_height_item(wxWindow *pa
     return horizontal_sizer;
 }
 
-wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
+wxWindow *CreatePrinterPresetDialog::create_page1_dialog_buttons(wxWindow *parent)
 {
-    wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
-    bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
-
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    m_button_OK = new Button(parent, _L("OK"));
-    m_button_OK->SetBackgroundColor(btn_bg_green);
-    m_button_OK->SetBorderColor(*wxWHITE);
-    m_button_OK->SetTextColor(wxColour(0xFFFFFE));
-    m_button_OK->SetFont(Label::Body_12);
-    m_button_OK->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_OK->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_OK->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_OK, 0, wxRIGHT, FromDIP(10));
-
-    m_button_OK->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    auto dlg_btns = new DialogButtons(parent, {"OK", "Cancel"});
+    
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         if (!validate_input_valid()) return;
         data_init();
         show_page2();
-        });
+    });
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
 
-    m_button_page1_cancel = new Button(parent, _L("Cancel"));
-    m_button_page1_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_page1_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_page1_cancel->SetFont(Label::Body_12);
-    m_button_page1_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page1_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page1_cancel->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_page1_cancel, 0, wxRIGHT, FromDIP(10));
-
-    m_button_page1_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
-
-    return bSizer_button;
+    return dlg_btns;
 }
 static std::string last_directory = "";
 void CreatePrinterPresetDialog::load_texture() {
@@ -2145,8 +2116,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
         }
     }
     if (m_printer_preset_vendor_selected.id.empty() || m_printer_preset_model_selected.id.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "selected id is not find";
-        MessageDialog dlg(this, _L("Preset path is not find, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        BOOST_LOG_TRIVIAL(info) << "selected id was not found";
+        MessageDialog dlg(this, _L("Preset path was not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return false;
     }
@@ -2166,8 +2137,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
         }
 
         if (preset_path.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "Preset path is not find";
-            MessageDialog dlg(this, _L("Preset path is not find, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            BOOST_LOG_TRIVIAL(info) << "Preset path was not found";
+            MessageDialog dlg(this, _L("Preset path was not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return false;
@@ -2204,7 +2175,7 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
         varient = model_varient.substr(index_at + 3, index_nozzle - index_at - 4);
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "get nozzle failed";
-        MessageDialog dlg(this, _L("The nozzle diameter is not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        MessageDialog dlg(this, _L("The nozzle diameter was not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return false;
     }
@@ -2215,7 +2186,7 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
     if (temp_printer_preset) {
         m_printer_preset = new Preset(*temp_printer_preset);
     } else {
-        MessageDialog dlg(this, _L("The printer preset is not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        MessageDialog dlg(this, _L("The printer preset was not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return false;
     }
@@ -2230,8 +2201,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
             preset_path = (boost::filesystem::path(Slic3r::resources_dir()) / PRESET_PROFILES_TEMOLATE_DIR).string();
         }
         if (preset_path.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "Preset path is not find";
-            MessageDialog dlg(this, _L("Preset path is not find, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            BOOST_LOG_TRIVIAL(info) << "Preset path was not found";
+            MessageDialog dlg(this, _L("Preset path was not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return false;
@@ -2455,7 +2426,7 @@ void CreatePrinterPresetDialog::create_printer_page2(wxWindow *parent)
     m_page2_sizer->Add(create_printer_preset_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_page2_sizer->Add(create_presets_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_page2_sizer->Add(create_presets_template_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    m_page2_sizer->Add(create_page2_btns_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page2_sizer->Add(create_page2_dialog_buttons(parent), 0, wxEXPAND);
 
     parent->SetSizerAndFit(m_page2_sizer);
     Layout();
@@ -2605,39 +2576,15 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
     return vertical_sizer;
 }
 
-wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
+wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *parent)
 {
-    wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
-    bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
+    auto dlg_btns = new DialogButtons(parent, {"Return", "OK", "Cancel"});
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    dlg_btns->GetRETURN()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { show_page1(); });
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
-    m_button_page2_back = new Button(parent, _L("Back Page 1"));
-    m_button_page2_back->SetBackgroundColor(btn_bg_white);
-    m_button_page2_back->SetBorderColor(wxColour(38, 46, 48));
-    m_button_page2_back->SetFont(Label::Body_12);
-    m_button_page2_back->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page2_back->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page2_back->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_page2_back, 0, wxRIGHT, FromDIP(10));
-
-    m_button_page2_back->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { show_page1(); });
-
-    m_button_create = new Button(parent, _L("Create"));
-    m_button_create->SetBackgroundColor(btn_bg_green);
-    m_button_create->SetBorderColor(*wxWHITE);
-    m_button_create->SetTextColor(wxColour(0xFFFFFE));
-    m_button_create->SetFont(Label::Body_12);
-    m_button_create->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_create->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_create->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_create, 0, wxRIGHT, FromDIP(10));
-
-    m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    auto btn_ok = dlg_btns->GetOK();
+    btn_ok->SetLabel(_L("Create"));
+    btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
 
         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
         const wxString curr_selected_printer_type = curr_create_printer_type();
@@ -2882,18 +2829,9 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
         
         });
 
-    m_button_page2_cancel = new Button(parent, _L("Cancel"));
-    m_button_page2_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_page2_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_page2_cancel->SetFont(Label::Body_12);
-    m_button_page2_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page2_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_page2_cancel->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_page2_cancel, 0, wxRIGHT, FromDIP(10));
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
 
-    m_button_page2_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
-
-    return bSizer_button;
+    return dlg_btns;
 }
 
 void CreatePrinterPresetDialog::show_page1()
@@ -2942,7 +2880,7 @@ bool CreatePrinterPresetDialog::data_init()
         if (iterator != vendors.end()) {
             m_printer_preset_vendor_selected = iterator->second;
         } else {
-            MessageDialog dlg(this, _L("Vendor is not find, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+            MessageDialog dlg(this, _L("Vendor was not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
         }
@@ -3282,7 +3220,7 @@ wxString CreatePrinterPresetDialog::curr_create_printer_type()
 }
 
 CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, const SuccessType &create_success_type)
-    : DPIDialog(parent ? parent : nullptr, wxID_ANY, PRINTER == create_success_type ? _L("Create Printer Successful") : _L("Create Filament Successful"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, PRINTER == create_success_type ? _L("Printer Created Successfully") : _L("Filament Created Successfully"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(450), FromDIP(200)));
@@ -3305,8 +3243,8 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     horizontal_sizer->Add(success_bitmap_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
 
     wxBoxSizer *success_text_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *success_text;
-    wxStaticText *next_step_text;
+    wxStaticText *success_text = nullptr;
+    wxStaticText *next_step_text = nullptr;
     bool          sync_user_preset_need_enabled = wxGetApp().getAgent() && wxGetApp().app_config->get("sync_user_preset") == "false";
     switch (create_success_type) {
     case PRINTER: 
@@ -3317,8 +3255,9 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
         success_text = new wxStaticText(this, wxID_ANY, _L("Filament Created")); 
         wxString prompt_text = _L("Please go to filament setting to edit your presets if you need.\nPlease note that nozzle temperature, hot bed temperature, and maximum "
                                   "volumetric speed has a significant impact on printing quality. Please set them carefully.");
-        wxString sync_text = sync_user_preset_need_enabled ? _L("\n\nOrca has detected that your user presets synchronization function is not enabled, which may result in unsuccessful Filament settings on "
-                   "the Device page. \nClick \"Sync user presets\" to enable the synchronization function.") : "";
+        wxString sync_text = sync_user_preset_need_enabled ? _L("\n\nOrca has detected that your user presets synchronization function is not enabled, "
+                                                                "which may result in unsuccessful Filament settings on the Device page.\n"
+                                                                "Click \"Sync user presets\" to enable the synchronization function.") : "";
         next_step_text = new wxStaticText(this, wxID_ANY, prompt_text + sync_text); 
         break;
     }
@@ -3330,52 +3269,27 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
 
     m_main_sizer->Add(horizontal_sizer, 0, wxALL, FromDIP(5));
 
-    wxBoxSizer *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    btn_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    switch (create_success_type) {
-    case PRINTER: 
-        m_button_ok = new Button(this, _L("Printer Setting"));
-        break;
-    case FILAMENT: m_button_ok = sync_user_preset_need_enabled ? new Button(this, _L("Sync user presets")) : new Button(this, _L("OK"));
-        break;
-    }
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    bool is_cancel_needed = PRINTER == create_success_type || sync_user_preset_need_enabled;
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(wxColour(*wxWHITE));
-    m_button_ok->SetTextColor(wxColour(*wxWHITE));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
-    btn_sizer->Add(m_button_ok, 0, wxRIGHT, FromDIP(10));
+    auto dlg_btns = new DialogButtons(this, is_cancel_needed ? std::vector<wxString>{"OK", "Cancel"} : std::vector<wxString>{"OK"});
 
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this, sync_user_preset_need_enabled](wxMouseEvent &e) {
+    if      (create_success_type == PRINTER) 
+        dlg_btns->GetOK()->SetLabel(_L("Printer Setting"));
+    else if (create_success_type == FILAMENT && sync_user_preset_need_enabled)
+        dlg_btns->GetOK()->SetLabel(_L("Sync user presets"));
+
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this, sync_user_preset_need_enabled](wxCommandEvent &e) {
         if (sync_user_preset_need_enabled) {
             wxGetApp().app_config->set("sync_user_preset", "true");
             wxGetApp().start_sync_user_preset();
         }
         EndModal(wxID_OK);
-        });
+    });
     
-    if (PRINTER == create_success_type || sync_user_preset_need_enabled) {
-        m_button_cancel = new Button(this, _L("Cancel"));
-        m_button_cancel->SetBackgroundColor(btn_bg_white);
-        m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-        m_button_cancel->SetTextColor(wxColour(38, 46, 48));
-        m_button_cancel->SetFont(Label::Body_12);
-        m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-        m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-        m_button_cancel->SetCornerRadius(FromDIP(12));
-        btn_sizer->Add(m_button_cancel, 0, wxRIGHT, FromDIP(10));
-        m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
-    }
+    if (is_cancel_needed)
+        dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
 
-    m_main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(15));
-    m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_main_sizer->Add(dlg_btns, 0, wxEXPAND);
 
     SetSizer(m_main_sizer);
     Layout();
@@ -3386,12 +3300,6 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
 CreatePresetSuccessfulDialog::~CreatePresetSuccessfulDialog() {}
 
 void CreatePresetSuccessfulDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
     Layout();
 }
 
@@ -3419,7 +3327,7 @@ ExportConfigsDialog::ExportConfigsDialog(wxWindow *parent)
 
     m_main_sizer->Add(create_export_config_item(this), 0, wxEXPAND | wxALL, FromDIP(5));
     m_main_sizer->Add(create_select_printer(this), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    m_main_sizer->Add(create_button_item(this), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_main_sizer->Add(create_dialog_buttons(this), 0, wxEXPAND);
 
     data_init();
 
@@ -3473,12 +3381,6 @@ ExportConfigsDialog::~ExportConfigsDialog()
 }
 
 void ExportConfigsDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
     Layout();
 }
 
@@ -3572,8 +3474,8 @@ std::string ExportConfigsDialog::initial_file_name(const wxString &path, const s
             }
             catch(...) {
                 MessageDialog dlg(this,
-                                  _L(wxString::Format("The file: %s \nmay have been opened by another program. \nPlease close it and try again.",
-                                                      encode_path(printer_export_path.string().c_str()))),
+                                  wxString::Format(_L("The file: %s \nmay have been opened by another program. \nPlease close it and try again."),
+                                                      encode_path(printer_export_path.string().c_str())),
                                   wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
                 dlg.ShowModal();
                 return "initial_failed";
@@ -3620,12 +3522,14 @@ wxBoxSizer *ExportConfigsDialog::create_export_config_item(wxWindow *parent)
 
     radioBoxSizer->Add(create_radio_item(m_exprot_type.preset_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxALL, 0);
     radioBoxSizer->Add(0, 0, 0, wxTOP, FromDIP(6));
-    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&&process presets that belongs to the printer. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&&process presets that belongs to the printer.\n"
+                                                                                                   "Can be shared with others."), wxDefaultPosition, wxDefaultSize);
     static_export_printer_preset_bundle_text->SetFont(Label::Body_12);
     static_export_printer_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
     radioBoxSizer->Add(static_export_printer_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
     radioBoxSizer->Add(create_radio_item(m_exprot_type.filament_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxTOP, FromDIP(10));
-    wxStaticText *static_export_filament_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("User's filament preset set. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_export_filament_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("User's filament preset set.\nCan be shared with others."),
+                                                                                                    wxDefaultPosition, wxDefaultSize);
     static_export_filament_preset_bundle_text->SetFont(Label::Body_12);
     static_export_filament_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
     radioBoxSizer->Add(static_export_filament_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
@@ -4122,25 +4026,10 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_process_preset_to_f
     return ExportCase::EXPORT_SUCCESS;
 }
 
-wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
+wxWindow *ExportConfigsDialog::create_dialog_buttons(wxWindow* parent)
 {
-    wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
-    bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
-
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    m_button_ok = new Button(this, _L("OK"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour(0xFFFFFE));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_ok, 0, wxRIGHT, FromDIP(10));
-
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+    auto dlg_btns = new DialogButtons(parent, {"OK", "Cancel"});
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         if (!has_check_box_selected()) {
             MessageDialog dlg(this, _L("Please select at least one printer or filament."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
@@ -4177,21 +4066,9 @@ wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
         EndModal(wxID_OK);
         });
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
 
-    m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_cancel, 0, wxRIGHT, FromDIP(10));
-
-    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
-
-    return bSizer_button;
+    return dlg_btns;
 }
 
 wxBoxSizer *ExportConfigsDialog::create_select_printer(wxWindow *parent)
@@ -4376,7 +4253,7 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, Filamentinf
     m_note_text = new wxStaticText(this, wxID_ANY, _L("Note: If the only preset under this filament is deleted, the filament will be deleted after exiting the dialog."));
     m_main_sizer->Add(m_note_text, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     m_note_text->Hide();
-    m_main_sizer->Add(create_button_sizer(), 0, wxEXPAND | wxALL, 0);
+    m_main_sizer->Add(create_dialog_buttons(), 0, wxEXPAND);
 
     update_preset_tree();
 
@@ -4388,13 +4265,6 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, Filamentinf
 EditFilamentPresetDialog::~EditFilamentPresetDialog() {}
 
 void EditFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    /*m_add_filament_btn->Rescale();
-    m_del_filament_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_del_filament_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_del_filament_btn->SetCornerRadius(FromDIP(12));
-    m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetCornerRadius(FromDIP(12));*/ 
     Layout();
 }
 
@@ -4499,7 +4369,7 @@ void EditFilamentPresetDialog::delete_preset()
                 }
             wxString msg;
             if (count > 0) {
-                msg = _L("Presets inherited by other presets can not be deleted");
+                msg = _L("Presets inherited by other presets cannot be deleted");
                 msg += "\n";
                 msg += _L_PLURAL("The following presets inherits this preset.", "The following preset inherits this preset.", count);
                 wxString title = _L("Delete Preset");
@@ -4511,7 +4381,8 @@ void EditFilamentPresetDialog::delete_preset()
         }
         wxString msg;
         if (is_base_preset) {
-            msg = _L("Are you sure to delete the selected preset? \nIf the preset corresponds to a filament currently in use on your printer, please reset the filament information for that slot.");
+            msg = _L("Are you sure to delete the selected preset?\n"
+                     "If the preset corresponds to a filament currently in use on your printer, please reset the filament information for that slot.");
         } else {
             msg = _L("Are you sure to delete the selected preset?");
         }
@@ -4684,40 +4555,14 @@ wxBoxSizer *EditFilamentPresetDialog::create_preset_tree_sizer()
     return filament_preset_tree_sizer;
 }
 
-wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
+wxWindow *EditFilamentPresetDialog::create_dialog_buttons()
 {
-    wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
+    auto dlg_btns = new DialogButtons(this, {"Delete", "OK"});
 
-    m_del_filament_btn = new Button(this, _L("Delete Filament"));
-    m_del_filament_btn->SetBackgroundColor(*wxRED);
-    m_del_filament_btn->SetBorderColor(*wxWHITE);
-    m_del_filament_btn->SetTextColor(wxColour(0xFFFFFE));
-    m_del_filament_btn->SetFont(Label::Body_12);
-    m_del_filament_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_del_filament_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_del_filament_btn->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_del_filament_btn, 0, wxLEFT | wxBOTTOM, FromDIP(10));
-
-    bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
-
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    m_ok_btn = new Button(this, _L("OK"));
-    m_ok_btn->SetBackgroundColor(btn_bg_green);
-    m_ok_btn->SetBorderColor(*wxWHITE);
-    m_ok_btn->SetTextColor(wxColour(0xFFFFFE));
-    m_ok_btn->SetFont(Label::Body_12);
-    m_ok_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_ok_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
-
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
-    m_del_filament_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
-        WarningDialog dlg(this, _L("All the filament presets belong to this filament would be deleted. \nIf you are using this filament on your printer, please reset the filament information for that slot."), _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
+    dlg_btns->GetButtonFromID(wxID_DELETE)->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
+        WarningDialog dlg(this, _L("All the filament presets belong to this filament would be deleted.\n"
+                                   "If you are using this filament on your printer, please reset the filament information for that slot."),
+                          _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
         int res = dlg.ShowModal();
         if (wxID_YES == res) {
             PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -4754,10 +4599,9 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
         e.Skip(); 
         }));
 
-    m_ok_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_OK); });
 
-    return bSizer_button;
-
+    return dlg_btns;
 }
 
 CreatePresetForPrinterDialog::CreatePresetForPrinterDialog(wxWindow *parent, std::string filament_type, std::string filament_id, std::string filament_vendor, std::string filament_name)
@@ -4788,7 +4632,7 @@ CreatePresetForPrinterDialog::CreatePresetForPrinterDialog(wxWindow *parent, std
 
     main_sizer->Add(create_selected_printer_preset_sizer(), 0, wxALL, FromDIP(10));
     main_sizer->Add(create_selected_filament_preset_sizer(), 0, wxALL, FromDIP(10));
-    main_sizer->Add(create_button_sizer(), 0, wxEXPAND | wxALL, FromDIP(10));
+    main_sizer->Add(create_dialog_buttons(), 0, wxEXPAND);
 
     this->SetSizer(main_sizer);
     this->Layout();
@@ -4799,12 +4643,6 @@ CreatePresetForPrinterDialog::CreatePresetForPrinterDialog(wxWindow *parent, std
 CreatePresetForPrinterDialog::~CreatePresetForPrinterDialog() {}
 
 void CreatePresetForPrinterDialog::on_dpi_changed(const wxRect &suggested_rect) {
-    m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetCornerRadius(FromDIP(12));
-    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetCornerRadius(FromDIP(12));
     Layout();
 }
 
@@ -4894,38 +4732,10 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_selected_filament_preset_sizer(
     return select_filament_preset_sizer;
 }
 
-wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
+wxWindow *CreatePresetForPrinterDialog::create_dialog_buttons()
 {
-    wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
-
-    bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
-
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    m_ok_btn = new Button(this, _L("OK"));
-    m_ok_btn->SetBackgroundColor(btn_bg_green);
-    m_ok_btn->SetBorderColor(*wxWHITE);
-    m_ok_btn->SetTextColor(wxColour(0xFFFFFE));
-    m_ok_btn->SetFont(Label::Body_12);
-    m_ok_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_ok_btn->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_ok_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
-
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
-    m_cancel_btn = new Button(this, _L("Cancel"));
-    m_cancel_btn->SetBackgroundColor(btn_bg_white);
-    m_cancel_btn->SetBorderColor(wxColour(38, 46, 48));
-    m_cancel_btn->SetFont(Label::Body_12);
-    m_cancel_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
-
-    m_ok_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         wxString selected_printer_name  = m_selected_printer->GetStringSelection();
         std::string printer_name = into_u8(selected_printer_name);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " add preset: get compatible printer name:";
@@ -4966,10 +4776,12 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
         }
 
         EndModal(wxID_OK);
-        });
-    m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
-    
-    return bSizer_button;
+    });
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        EndModal(wxID_CANCEL);
+    });
+
+    return dlg_btns;
 }
 
 PresetTree::PresetTree(EditFilamentPresetDialog * dialog)

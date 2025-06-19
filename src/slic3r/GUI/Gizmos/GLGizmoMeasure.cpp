@@ -480,7 +480,7 @@ std::string GLGizmoMeasure::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
         if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-            return _u8L("Measure") + ":\n" + _u8L("Please confirm explosion ratio = 1,and please select at least one object");
+            return _u8L("Measure") + ":\n" + _u8L("Please confirm explosion ratio = 1, and please select at least one object.");
         }
         else {
             return _u8L("Measure") + ":\n" + _u8L("Please select at least one object.");
@@ -1817,7 +1817,7 @@ void GLGizmoMeasure::show_selection_ui()
             return text;
         };
 
-        float selection_cap_length;
+        float selection_cap_length = 0;
         if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
             if (m_assembly_mode == AssemblyMode::FACE_FACE) {
                 selection_cap_length = ImGui::CalcTextSize((_u8L("Selection") + " 1" + _u8L(" (Moving)")).c_str()).x * 1.2;
@@ -1902,14 +1902,14 @@ void GLGizmoMeasure::show_selection_ui()
     if (m_selected_wrong_feature_waring_tip) {
         if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
             if (m_assembly_mode == AssemblyMode::FACE_FACE) {
-                m_imgui->warning_text(_L("Warning:please select Plane's feature."));
+                m_imgui->warning_text(_L("Warning: please select Plane's feature."));
             } else if (m_assembly_mode == AssemblyMode::POINT_POINT) {
-                m_imgui->warning_text(_L("Warning:please select Point's or Circle's feature."));
+                m_imgui->warning_text(_L("Warning: please select Point's or Circle's feature."));
             }
         }
     }
     if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY && m_hit_different_volumes.size() == 1) {
-        m_imgui->warning_text(_L("Warning:please select two different mesh."));
+        m_imgui->warning_text(_L("Warning: please select two different meshes."));
     }
 }
 
@@ -2080,7 +2080,7 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
         m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Plane &&
         m_selected_features.second.feature->get_type() == Measure::SurfaceFeatureType::Plane) {
         auto &action                         = m_assembly_action;
-        auto  feature_text_size              = m_imgui->calc_button_size(_L("Featue 1")).x + m_imgui->calc_button_size(":").x;
+        auto  feature_text_size              = m_imgui->calc_button_size(_L("Feature 1")).x + m_imgui->calc_button_size(":").x;
         auto  set_to_reverse_rotation_size   = m_imgui->calc_button_size(_L("Reverse rotation")).x;
         auto  rotate_around_center_size      = m_imgui->calc_button_size(_L("Rotate around center:")).x;
         auto  parallel_distance_size         = m_imgui->calc_button_size(_L("Parallel distance:")).x;
@@ -2108,7 +2108,7 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
                 m_buffered_around_center = 0;
             }
             ImGui::SameLine(rotate_around_center_size + m_space_size + m_input_size_max + m_space_size / 2.0f);
-            m_imgui->text(_L("°"));
+            m_imgui->text("°");
         }
     }
 }

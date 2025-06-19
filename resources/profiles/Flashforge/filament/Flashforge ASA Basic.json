@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "Flashforge ASA Basic",
+    "inherits": "Flashforge Generic ASA",
+    "from": "system",
+    "filament_settings_id": [
+        "Flashforge ASA Basic"
+    ],
+    "setting_id": "GFSA04_05",
+    "instantiation": "true",
+    "is_custom_defined": "0",
+    "version": "2.1.1.0"
+}
