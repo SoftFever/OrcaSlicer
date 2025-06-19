@@ -5707,10 +5707,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     };
     auto apply_role_based_fan_speed = [
         &path, &append_role_based_fan_marker,
-        supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed)
+        supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed),
+        ironing_fan_speed        = EXTRUDER_CONFIG(ironing_fan_speed)
     ] {
         append_role_based_fan_marker(erSupportMaterialInterface, "_SUPP_INTERFACE"sv,
                                      supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface);
+        append_role_based_fan_marker(erIroning, "_IRONING"sv,
+                                     ironing_fan_speed >= 0 && path.role() == erIroning);
     };
 
     if (!variable_speed) {
