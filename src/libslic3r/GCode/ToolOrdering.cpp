@@ -596,8 +596,35 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         }
         unsigned int extruder_support   = object.config().support_filament.value;
         unsigned int extruder_interface = object.config().support_interface_filament.value;
-        if (has_support)
-            layer_tools.extruders.push_back(extruder_support);
+        if (has_support) {
+            if (extruder_support > 0 || !has_interface)
+                layer_tools.extruders.push_back(extruder_support);
+            else {
+                auto all_extruders     = object.print()->extruders();
+                auto get_next_extruder = [&](int current_extruder, const std::vector<unsigned int> &extruders) {
+                    std::vector<float> flush_matrix(
+                        cast<float>(get_flush_volumes_matrix(object.print()->config().flush_volumes_matrix.values, 0, object.print()->config().nozzle_diameter.values.size())));
+                    const unsigned int number_of_extruders = (unsigned int) (sqrt(flush_matrix.size()) + EPSILON);
+                    // Extract purging volumes for each extruder pair:
+                    std::vector<std::vector<float>> wipe_volumes;
+                    for (unsigned int i = 0; i < number_of_extruders; ++i)
+                        wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
+                    unsigned int next_extruder = current_extruder;
+                    current_extruder           = std::max(current_extruder, 0);
+                    float min_flush            = std::numeric_limits<float>::max();
+                    for (auto extruder_id : extruders) {
+                        if (object.print()->config().filament_soluble.get_at(extruder_id) || extruder_id == current_extruder) continue;
+                        if (wipe_volumes[current_extruder][extruder_id] < min_flush) {
+                            next_extruder = extruder_id;
+                            min_flush     = wipe_volumes[current_extruder][extruder_id];
+                        }
+                    }
+                    return next_extruder;
+                };
+                bool interface_not_for_body = object.config().support_interface_not_for_body && extruder_interface != 0;
+                layer_tools.extruders.push_back(get_next_extruder(interface_not_for_body ? extruder_interface - 1 : -1, all_extruders) + 1);
+            }
+        }
         if (has_interface)
             layer_tools.extruders.push_back(extruder_interface);
         if (has_support || has_interface) {
