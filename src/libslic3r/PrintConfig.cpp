@@ -152,6 +152,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "monotonic",          ipMonotonic },
     { "monotonicline",      ipMonotonicLine },
     { "alignedrectilinear", ipAlignedRectilinear },
+    { "2dhoneycomb",        ip2DHoneycomb },
     { "3dhoneycomb",        ip3DHoneycomb },
     { "hilbertcurve",       ipHilbertCurve },
     { "archimedeanchords",  ipArchimedeanChords },
@@ -2386,6 +2387,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("adaptivecubic");
     def->enum_values.push_back("alignedrectilinear");
+    def->enum_values.push_back("2dhoneycomb");
     def->enum_values.push_back("3dhoneycomb");
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
@@ -2410,6 +2412,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Adaptive Cubic"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
+    def->enum_labels.push_back(L("2D Honeycomb"));
     def->enum_labels.push_back(L("3D Honeycomb"));
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
@@ -2442,6 +2445,16 @@ void PrintConfigDef::init_fff_params()
     def->max      = 75;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
+
+    def           = this->add("infill_overhang_angle", coFloat);
+    def->label    = L("Infill overhang angle");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of the infill angled lines. 60° will result in a pure honeycomb.");
+    def->sidetext = L("°");
+    def->min      = 15;
+    def->max      = 75;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(60));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
     def->label = L("Sparse infill anchor length");
@@ -4993,7 +5006,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_interface_spacing", coFloat);
     def->label = L("Top interface spacing");
     def->category = L("Support");
-    def->tooltip = L("Spacing of interface lines. Zero means solid interface.");
+    def->tooltip = L("Spacing of interface lines. Zero means solid interface.\n"
+                     "Force using solid interface when support ironing is enabled.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -5288,6 +5302,48 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This setting specifies whether to add infill inside large hollows of tree support.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+    
+    def = this->add("support_ironing", coBool);
+    def->label = L("Ironing Support Interface");
+    def->category = L("Support");
+    def->tooltip = L("Ironing is using small flow to print on same height of support interface again to make it more smooth. "
+                     "This setting controls whether support interface being ironed. When enabled, support interface will be extruded as solid too.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def                = this->add("support_ironing_pattern", coEnum);
+    def->label         = L("Support Ironing Pattern");
+    def->tooltip       = L("The pattern that will be used when ironing.");
+    def->category      = L("Support");
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_values.push_back("concentric");
+    def->enum_values.push_back("zig-zag");
+    def->enum_labels.push_back(L("Concentric"));
+    def->enum_labels.push_back(L("Rectilinear"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+    
+    def = this->add("support_ironing_flow", coPercent);
+    def->label = L("Support Ironing flow");
+    def->category = L("Support");
+    def->tooltip = L("The amount of material to extrude during ironing. Relative to flow of normal support interface layer height. "
+                     "Too high value results in overextrusion on the surface.");
+    def->sidetext = "%";
+    def->ratio_over = "layer_height";
+    def->min = 0;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(10));
+
+    def = this->add("support_ironing_spacing", coFloat);
+    def->label = L("Support Ironing line spacing");
+    def->category = L("Support");
+    def->tooltip = L("The distance between the lines of ironing.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.1));
 
     def = this->add("activate_chamber_temp_control",coBools);
     def->label = L("Activate temperature control");
