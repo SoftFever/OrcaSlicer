@@ -42,6 +42,7 @@ The below sections provide a detailed settings explanation as well as tips and t
   - [Precise wall](quality_settings_precision#precise-wall)
   - [Precise Z Height](quality_settings_precision#precise-z-height)
   - [Polyholes](quality_settings_precision#polyholes)
+- [Wall generator](quality_settings_wall_generator)
 
 ### Speed Settings
 
