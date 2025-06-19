@@ -33,8 +33,9 @@ This parameter interacts with the below printer kinematic settings and physical 
 
 **4. The pressure advance smooth time (klipper)** - higher smooth time means higher deviation from ideal extrusion, hence more opportunity for this feature to be useful.
 
-<h3>Acceleration vs. Extrusion rate smoothing</h3>A printer's motion system does
-not exactly follow the speed changes seen in the gcode preview screen of Orca
+### Acceleration vs. Extrusion rate smoothing
+
+A printer's motion system does not exactly follow the speed changes seen in the gcode preview screen of Orca
 slicer.
 
 When a speed change is requested, the firmware look ahead planner calculates the slow down needed to achieve the target speed. The rate of slowdown is limited by the move's acceleration value.
@@ -98,15 +99,15 @@ The trade-off is extrusion accuracy. There is a deviation between the requested 
 
 **2. Decreasing Smooth Time:** Makes the Pressure Advance adjustments more immediate, which can improve the responsiveness of pressure compensation but may also reintroduce abrupt changes in flow rate, potentially leading to the issues mentioned above.
 
-In essence, p**ressure advance smooth time creates an intentional deviation from the ideal extruder rotation** and, therefore, extrusion amount, to allow the printer's extruder to perform within its mechanical limits. Typically, this value is set to 0.04sec, which means that when Pressure Advance adjusts the extruder's flow rate to compensate for changes in pressure within the hot end, these adjustments are spread out over a period of 0.04 seconds.
+In essence, **pressure advance smooth time creates an intentional deviation from the ideal extruder rotation** and, therefore, extrusion amount, to allow the printer's extruder to perform within its mechanical limits. Typically, this value is set to 0.04sec, which means that when Pressure Advance adjusts the extruder's flow rate to compensate for changes in pressure within the hot end, these adjustments are spread out over a period of 0.04 seconds.
 
-There is a great example of pressure advance smooth time induced deviations [here](https://klipper.discourse.group/t/pressure-advance-smooth-time-skews-pressure-advance/13451) that is worth a read to get more insight in this trade-off.
+There is a great example of pressure advance smooth time induced deviations in [this Klipper forum post](https://klipper.discourse.group/t/pressure-advance-smooth-time-skews-pressure-advance/13451) that is worth a read to get more insight in this trade-off.
 
 In the worked example above, **we need to set an Extrusion Rate smoothing value enough to decrease the error introduced by pressure advance smooth time against the produced output flow.** The lower the extrusion rate smoothing value, the lower the changes in flow over time hence the lower the absolute deviation from the ideal extrusion caused by the smooth time algorithm. However, going too low will result in a material decrease in overall print speed, as the print speed will be materially reduced to achieve low extrusion deviations between features, for no real benefit after a point.
 
 **The best way to find what the lower beneficial limit is through experimentation.** Print an object with sharp overhangs that are slowed down because off the overhang print speed settings and observe for extrusion inconsistencies.
 
-<h2>Finding the ideal Extrusion Rate smoothing value</h2>
+## Finding the ideal Extrusion Rate smoothing value
 
 **Firstly, this value needs to be lower than the extrusion rate changes resulting from the acceleration profile of the printer.** As, generally, the greatest impact is in external wall finish, use your external perimeter acceleration as a point of reference.
 
@@ -152,7 +153,7 @@ Perform a test print with the above ERS settings as a starting point and adjust 
 
 If you're not noticing any artefacts, increase by 10%, but don’t go over the maximum values recommended above because then this feature would have no effect in your print.
 
-## A note for Bowden printers using marlin without pressure advance.
+## A note for Bowden printers using marlin without pressure advance
 
 If your printer is not equipped with pressure advance and, especially, if you are using a Bowden setup, you don’t have the benefit of pressure advance dynamically adjusting your flow.
 
