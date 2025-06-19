@@ -5761,18 +5761,21 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             gcode += ";_OVERHANG_FAN_END\n";
                         }
                     }
-                    if (path.role() == erInternalBridgeInfill) { // ORCA: Add support for separate internal bridge fan speed control
+
+                    // ORCA: Add support for separate internal bridge fan speed control
+                    if (path.role() == erInternalBridgeInfill) {
                         if (!m_is_internal_bridge_fan_on) {
                             gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
                             m_is_internal_bridge_fan_on = true;
                         }
                     } else {
                         if (m_is_internal_bridge_fan_on) {
-                            m_is_internal_bridge_fan_on = false;
                             gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
+                            m_is_internal_bridge_fan_on = false;
                         }
                     }
                 }
+
                 if (supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
                     if (!m_is_supp_interface_fan_on) {
                         gcode += ";_SUPP_INTERFACE_FAN_START\n";
@@ -5928,20 +5931,21 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         }
                     }
                     pre_fan_enabled = cur_fan_enabled;
-                }
-                // ORCA: Add support for separate internal bridge fan speed control
-                if (path.role() == erInternalBridgeInfill) {
-                    if (!m_is_internal_bridge_fan_on) {
-                        gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
-                        m_is_internal_bridge_fan_on = true;
+
+                    // ORCA: Add support for separate internal bridge fan speed control
+                    if (path.role() == erInternalBridgeInfill) {
+                        if (!m_is_internal_bridge_fan_on) {
+                            gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
+                            m_is_internal_bridge_fan_on = true;
+                        }
+                    } else {
+                        if (m_is_internal_bridge_fan_on) {
+                            gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
+                            m_is_internal_bridge_fan_on = false;
+                        }
                     }
-                } else {
-                    if (m_is_internal_bridge_fan_on) {
-                        gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
-                        m_is_internal_bridge_fan_on = false;
-                    }
                 }
-                
+
                 if (supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
                     if (!m_is_supp_interface_fan_on) {
                         gcode += ";_SUPP_INTERFACE_FAN_START\n";
