@@ -11354,7 +11354,8 @@ void Plater::add_file()
                 p->set_project_name(from_u8(full_path.stem().string()));
             }
             wxGetApp().mainframe->update_title();
-            wxGetApp().mainframe->add_to_recent_projects(paths[0].wstring());
+            if (wxGetApp().app_config->get("recent_models") == "true")
+                wxGetApp().mainframe->add_to_recent_projects(paths[0].wstring());
         }
         break;
     }
@@ -11376,8 +11377,9 @@ void Plater::add_file()
                 p->set_project_name(from_u8(full_path.stem().string()));
             }
             wxGetApp().mainframe->update_title();
-            for (auto &path : paths)
-                wxGetApp().mainframe->add_to_recent_projects(path.wstring());
+            if (wxGetApp().app_config->get("recent_models") == "true")
+                for (auto &path : paths)
+                    wxGetApp().mainframe->add_to_recent_projects(path.wstring());
         }
         break;
     }
@@ -11397,8 +11399,9 @@ void Plater::add_file()
         load_files(tmf_file, LoadStrategy::LoadModel);
         if (!load_files(other_file, LoadStrategy::LoadModel, false).empty()) {
             wxGetApp().mainframe->update_title();
-            for (auto &file : other_file)
-                wxGetApp().mainframe->add_to_recent_projects(file.wstring());
+            if (wxGetApp().app_config->get("recent_models") == "true")
+                for (auto &file : other_file)
+                    wxGetApp().mainframe->add_to_recent_projects(file.wstring());
         }
         break;
     default:break;

@@ -1273,6 +1273,9 @@ wxWindow* PreferencesDialog::create_general_page()
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
     });
+
+    auto item_recent_models = create_item_checkbox(_L("Add model files (stl/step) to recent file list."), page, _L("Add model files (stl/step) to recent file list."), 50, "recent_models");
+
     auto item_save_choise = create_item_button(_L("Clear my choice on the unsaved projects."), _L("Clear"), page, L"", _L("Clear my choice on the unsaved projects."), []() {
         wxGetApp().app_config->set("save_project_choise", "");
     });
@@ -1347,6 +1350,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_project_load_behaviour, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_recent_models, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
