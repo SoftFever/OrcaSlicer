@@ -109,7 +109,6 @@ public:
                wxString k = wxEmptyString, wxString n = wxEmptyString);
 
     void post_select_event(int index);
-    void msw_rescale();
     void set_color(wxColour color);
     void set_empty_color(wxColour color);
     void set_colors(std::vector<wxColour> colors);

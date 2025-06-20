@@ -5287,7 +5287,6 @@ void StatusPanel::on_sys_color_changed()
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
     m_ams_control->msw_rescale();
     if (m_print_error_dlg) { m_print_error_dlg->msw_rescale(); }
-    if (m_filament_setting_dlg) {m_filament_setting_dlg->msw_rescale();}
     rescale_camera_icons();
 }
 

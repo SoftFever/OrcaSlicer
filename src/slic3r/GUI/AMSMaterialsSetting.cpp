@@ -1075,11 +1075,6 @@ void AMSMaterialsSetting::post_select_event(int index) {
     wxPostEvent(m_comboBox_filament, event);
 }
 
-void AMSMaterialsSetting::msw_rescale()
-{
-    m_clr_picker->msw_rescale();
-}
-
 void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
 {
     m_pa_cali_select_id = evt.GetSelection();
@@ -1334,7 +1329,7 @@ void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
     m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     m_input_k_val->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
-    //m_clr_picker->msw_rescale();
+    m_clr_picker->msw_rescale();
     degree->msw_rescale();
     bitmap_max_degree->SetBitmap(degree->bmp());
     bitmap_min_degree->SetBitmap(degree->bmp());
@@ -1368,6 +1363,7 @@ void ColorPicker::msw_rescale()
 {
     m_bitmap_border = create_scaled_bitmap("color_picker_border", nullptr, 25);
     m_bitmap_border_dark = create_scaled_bitmap("color_picker_border_dark", nullptr, 25);
+    m_bitmap_transparent = create_scaled_bitmap("transparent_color_picker", nullptr, 25);
 
     Refresh();
 }
@@ -1422,7 +1418,10 @@ void ColorPicker::doRender(wxDC& dc)
     if (m_selected) radius -= FromDIP(1);
 
     if (alpha == 0) {
-        dc.DrawBitmap(m_bitmap_transparent, 0, 0);
+        wxSize bmp_size = m_bitmap_transparent.GetSize();
+        int center_x = (size.x - bmp_size.x) / 2;
+        int center_y = (size.y - bmp_size.y) / 2;
+        dc.DrawBitmap(m_bitmap_transparent, center_x, center_y);
     }
     else if (alpha != 254 && alpha != 255) {
         if (transparent_changed) {
@@ -1438,7 +1437,11 @@ void ColorPicker::doRender(wxDC& dc)
             replace.push_back(fill_replace);
             m_bitmap_transparent = ScalableBitmap(this, "transparent_color_picker", 25, false, false, true, replace).bmp();
             transparent_changed = false;
-            dc.DrawBitmap(m_bitmap_transparent, 0, 0);
+
+            wxSize bmp_size = m_bitmap_transparent.GetSize();
+            int center_x = (size.x - bmp_size.x) / 2;
+            int center_y = (size.y - bmp_size.y) / 2;
+            dc.DrawBitmap(m_bitmap_transparent, center_x, center_y);
         }
     }
     else {
