@@ -59,8 +59,6 @@ set(lisbslic3r_sources
     Color.hpp
     Config.cpp
     Config.hpp
-    CurveAnalyzer.cpp
-    CurveAnalyzer.hpp
     EdgeGrid.cpp
     EdgeGrid.hpp
     ElephantFootCompensation.cpp
