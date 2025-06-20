@@ -352,7 +352,7 @@ def main():
     parser.add_argument("--vendor", type=str, help="Specify a single vendor to check")
     parser.add_argument("--check-filaments", action="store_true", help="Check 'compatible_printers' in filament profiles")
     parser.add_argument("--check-materials", action="store_true", help="Check default materials in machine profiles")
-    parser.add_argument("--check-obsolete-keys", action="store_true", help="Warn if obsolete keys are found in filament profiles")
+    parser.add_argument("--check-obsolete-keys", action="store_true", help="Warn if obsolete keys are found in profiles")
     args = parser.parse_args()
 
     print_info("Checking profiles ...")
