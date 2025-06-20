@@ -155,13 +155,14 @@ def check_machine_default_materials(profiles_dir, vendor_name):
         
     Returns:
         int: Number of missing filament references found
+        int: the number of warnings found (0 or 1)
     """
     error_count = 0
     machine_dir = profiles_dir / vendor_name / "machine"
     
     if not machine_dir.exists():
-        print_error(f"No machine profiles found for vendor: {vendor_name}")
-        return 0
+        print_warning(f"No machine profiles found for vendor: {vendor_name}")
+        return 0, 1
         
     # Load available filament profiles
     vendor_filaments = load_available_filament_profiles(profiles_dir, vendor_name)
@@ -204,31 +205,39 @@ def check_machine_default_materials(profiles_dir, vendor_name):
             print_error(f"Error processing machine profile {file_path}: {e}")
             error_count += 1
             
-    return error_count
+    return error_count, 0
 
 def check_filament_name_consistency(profiles_dir, vendor_name):
     """
     Make sure filament profile names match in both vendor json and subpath files.
     Filament profiles work only if the name in <vendor>.json matches the name in sub_path file,
     or if it's one of the sub_path file's `renamed_from`.
+
+    Parameters:
+        profiles_dir (Path): Base profiles directory
+        vendor_name (str): Vendor name
+
+    Returns:
+        int: Number of errors found
+        int: Number of warnings found (0 or 1)
     """
     error_count = 0
     vendor_dir = profiles_dir / vendor_name
     vendor_file = profiles_dir / (vendor_name + ".json")
     
     if not vendor_file.exists():
-        print_error(f"No profiles found for vendor: {vendor_name} at {vendor_file}")
-        return 0
+        print_warning(f"No profiles found for vendor: {vendor_name} at {vendor_file}")
+        return 0, 1
     
     try:
         with open(vendor_file, 'r', encoding='UTF-8') as fp:
             data = json.load(fp)
     except Exception as e:
         print_error(f"Error loading vendor profile {vendor_file}: {e}")
-        return 1
+        return 1, 0
 
     if 'filament_list' not in data:
-        return 0
+        return 0, 0
     
     for child in data['filament_list']:
         name_in_vendor = child['name']
@@ -261,7 +270,7 @@ def check_filament_name_consistency(profiles_dir, vendor_name):
         print_error(f"Filament name mismatch: required '{name_in_vendor}' in {vendor_file.relative_to(profiles_dir)} but found '{name_in_sub}' in {sub_file.relative_to(profiles_dir)}, and none of its `renamed_from` matches the required name either")
         error_count += 1
     
-    return error_count
+    return error_count, 0
 
 def check_filament_id(vendor, vendor_folder):
     """
@@ -360,10 +369,16 @@ def main():
         if args.check_filaments or not (args.check_materials and not args.check_filaments):
             errors_found += check_filament_compatible_printers(vendor_path / "filament")
         if args.check_materials:
-            errors_found += check_machine_default_materials(profiles_dir, vendor_name)
+            new_errors, new_warnings = check_machine_default_materials(profiles_dir, vendor_name)
+            errors_found += new_errors
+            warnings_found += new_warnings
+        errors_found += new_errors
+        warnings_found += new_warnings
         if args.check_obsolete_keys:
             warnings_found += check_obsolete_keys(profiles_dir, vendor_name)
-        errors_found += check_filament_name_consistency(profiles_dir, vendor_name)
+        new_errors, new_warnings = check_filament_name_consistency(profiles_dir, vendor_name)
+        errors_found += new_errors
+        warnings_found += new_warnings
         errors_found += check_filament_id(vendor_name, vendor_path / "filament")
         checked_vendor_count += 1
 
