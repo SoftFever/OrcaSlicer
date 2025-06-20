@@ -401,11 +401,15 @@ In addition to the Orca validator, you should run the `orca_extra_profile_check.
 python ./orca_extra_profile_check.py
 ```
 
+
 You can also enable or disable specific checks:
 
+- `--help`: displays help information
 - `--vendor` (optional): checks only the specified vendor. If omitted, all vendors are checked.
 - `--check-filaments` (enabled by default): checks `compatible_printers` fields in filament profiles
 - `--check-materials`: checks default material names in machine profiles
+- `--check-obsolete-keys`: checks for obsolete keys in profiles
+
 
 #### Sample usage with all checks enabled
 
