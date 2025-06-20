@@ -64,7 +64,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 - [Chamber temperature control](chamber-temperature)
 - [Adaptive Bed Mesh](adaptive-bed-mesh)
 - [Using different bed types in Orca](bed-types)
-- [Pellet Printers](print_settings/Pellet-modded-printer)
+- [Pellet Printers](Pellet-modded-printer)
 - [Fill Patterns](fill-patterns)
 
 ## Printer Calibration
