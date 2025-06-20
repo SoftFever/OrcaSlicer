@@ -164,7 +164,7 @@ git clone https://github.com/SoftFever/OrcaSlicer && cd OrcaSlicer && ./DockerBu
 The `DockerRun.sh` script includes several commented-out options that can help resolve common issues. Here's a breakdown of what they do:
 
 - `xhost +local:docker`: If you encounter an "Authorization required, but no authorization protocol specified" error, run this command in your terminal before executing DockerRun.sh. This grants Docker containers permission to interact with your X display server.
--`-h $HOSTNAME`: Forces the container's hostname to match your workstation's hostname. This can be useful in certain network configurations.
+- `-h $HOSTNAME`: Forces the container's hostname to match your workstation's hostname. This can be useful in certain network configurations.
 - `-v /tmp/.X11-unix:/tmp/.X11-unix`: Helps resolve problems with the X display by mounting the X11 Unix socket into the container.
 - `--net=host`: Uses the host's network stack, which is beneficial for printer Wi-Fi connectivity and D-Bus communication.
 - `--ipc host`: Addresses potential permission issues with X installations that prevent communication with shared memory sockets.
