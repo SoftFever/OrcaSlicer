@@ -222,6 +222,7 @@ void ObjectLayers::update_layers_list()
     // only call sizer->Clear(true) via CallAfter, otherwise crash happens in Linux when press enter in Height Range
     // because an element cannot be destroyed while there are pending events for this element.(https://github.com/wxWidgets/Phoenix/issues/1854)
     wxGetApp().CallAfter([this, type, objects_ctrl, range]() {
+        m_og->ctrl_parent()->Freeze();
         // Delete all controls from options group
         m_grid_sizer->Clear(true);
 
@@ -232,8 +233,9 @@ void ObjectLayers::update_layers_list()
         else
             create_layer(range, nullptr, nullptr);
 
+        m_og->ctrl_parent()->Thaw();
         m_parent->Layout();
-        });
+     });
 }
 
 void ObjectLayers::update_scene_from_editor_selection() const
