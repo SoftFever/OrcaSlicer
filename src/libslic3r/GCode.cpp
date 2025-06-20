@@ -4325,10 +4325,16 @@ LayerResult GCode::process_layer(
 
                     ExtrusionRole support_extrusion_role = instance_to_print.object_by_extruder.support_extrusion_role;
                     bool is_overridden = support_extrusion_role == erSupportMaterialInterface ? support_intf_overridden : support_overridden;
-                    if (is_overridden == (print_wipe_extrusions != 0))
+                    if (is_overridden == (print_wipe_extrusions != 0)) {
                         gcode += this->extrude_support(
                             // support_extrusion_role is erSupportMaterial, erSupportTransition, erSupportMaterialInterface or erMixed for all extrusion paths.
-                            instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, support_extrusion_role));
+                            *instance_to_print.object_by_extruder.support, support_extrusion_role);
+
+                        // Make sure ironing is the last
+                        if (support_extrusion_role == erMixed || support_extrusion_role == erSupportMaterialInterface) {
+                            gcode += this->extrude_support(*instance_to_print.object_by_extruder.support, erIroning);
+                        }
+                    }
 
                     m_layer = layer_to_print.layer();
                     m_object_layer_over_raft = object_layer_over_raft;
@@ -5036,21 +5042,37 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
     return gcode;
 }
 
-std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fills)
+std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fills, const ExtrusionRole support_extrusion_role)
 {
     static constexpr const char *support_label            = "support material";
     static constexpr const char *support_interface_label  = "support material interface";
-    const char* support_transition_label = "support transition";
+    static constexpr const char* support_transition_label = "support transition";
+    static constexpr const char* support_ironing_label    = "support ironing";
 
     std::string gcode;
     if (! support_fills.entities.empty()) {
+
+        ExtrusionEntitiesPtr extrusions;
+        extrusions.reserve(support_fills.entities.size());
+        for (ExtrusionEntity* ee : support_fills.entities) {
+            const auto role = ee->role();
+            if ((role == support_extrusion_role) || (support_extrusion_role == erMixed && role != erIroning)) {
+                extrusions.emplace_back(ee);
+            }
+        }
+        if (extrusions.empty())
+            return gcode;
+
+        chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+
         const double  support_speed            = m_config.support_speed.value;
         const double  support_interface_speed  = m_config.get_abs_value("support_interface_speed");
-        for (const ExtrusionEntity *ee : support_fills.entities) {
+        for (const ExtrusionEntity *ee : extrusions) {
             ExtrusionRole role = ee->role();
-            assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition);
+            assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition || role == erIroning);
             const char* label = (role == erSupportMaterial) ? support_label :
-                ((role == erSupportMaterialInterface) ? support_interface_label : support_transition_label);
+                ((role == erSupportMaterialInterface) ? support_interface_label : 
+                ((role == erIroning) ? support_ironing_label : support_transition_label));
             // BBS
             //const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
             const double speed = -1.0;
@@ -5067,7 +5089,7 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
                 gcode += this->extrude_loop(*loop, label, speed);
             }
             else if (collection) {
-                gcode += extrude_support(*collection);
+                gcode += extrude_support(*collection, support_extrusion_role);
             }
             else {
                 throw Slic3r::InvalidArgument("Unknown extrusion type");
