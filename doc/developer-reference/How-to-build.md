@@ -160,11 +160,22 @@ To build and debug directly in Xcode:
 git clone https://github.com/SoftFever/OrcaSlicer && cd OrcaSlicer && ./DockerBuild.sh && ./DockerRun.sh
 ```
 
-> [!NOTE]
-> To troubleshoot common Docker-related errors, refer to the comments in
-> ```shell
-> DockerRun.sh
-> ```
+### Troubleshooting
+The `DockerRun.sh` script includes several commented-out options that can help resolve common issues. Here's a breakdown of what they do:
+
+- `xhost +local:docker`: If you encounter an "Authorization required, but no authorization protocol specified" error, run this command in your terminal before executing DockerRun.sh. This grants Docker containers permission to interact with your X display server.
+-`-h $HOSTNAME`: Forces the container's hostname to match your workstation's hostname. This can be useful in certain network configurations.
+- `-v /tmp/.X11-unix:/tmp/.X11-unix`: Helps resolve problems with the X display by mounting the X11 Unix socket into the container.
+- `--net=host`: Uses the host's network stack, which is beneficial for printer Wi-Fi connectivity and D-Bus communication.
+- `--ipc host`: Addresses potential permission issues with X installations that prevent communication with shared memory sockets.
+- `-u $USER`: Runs the container as your workstation's username, helping to maintain consistent file permissions.
+- `-v $HOME`:/home/$USER: Mounts your home directory into the container, allowing you to easily load and save files.
+- `-e DISPLAY=$DISPLAY`: Passes your X display number to the container, enabling the graphical interface.
+- `--privileged=true`: Grants the container elevated privileges, which may be necessary for libGL and D-Bus functionalities.
+- `-ti`: Attaches a TTY to the container, enabling command-line interaction with OrcaSlicer.
+- `--rm`: Automatically removes the container once it exits, keeping your system clean.
+- `orcaslicer $*`: Passes any additional parameters from the `DockerRun.sh` script directly to the OrcaSlicer executable within the container.
+By uncommenting and using these options as needed, you can often resolve issues related to display authorization, networking, and file permissions.
 
 ## Ubuntu
 
