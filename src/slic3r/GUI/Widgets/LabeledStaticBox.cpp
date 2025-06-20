@@ -57,9 +57,10 @@ bool LabeledStaticBox::Create(
     m_pos   = this->GetPosition();
 
     int tW,tH,descent,externalLeading;
-    GetTextExtent(m_label, &tW, &tH, &descent, &externalLeading, &m_font);
+    // empty label sets m_label_height as 0 that causes extra spacing at top
+    GetTextExtent(m_label.IsEmpty() ? "Orca" : m_label, &tW, &tH, &descent, &externalLeading, &m_font);
     m_label_height = tH - externalLeading;
-    m_label_width = tW;
+    m_label_width  = tW;
 
     Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
         wxPaintDC dc(this);

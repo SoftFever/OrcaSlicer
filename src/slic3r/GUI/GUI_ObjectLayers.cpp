@@ -7,6 +7,7 @@
 #include "libslic3r/Model.hpp"
 #include "GLCanvas3D.hpp"
 #include "Plater.hpp"
+
 #include "Widgets/LabeledStaticBox.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -28,13 +29,11 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
     m_grid_sizer->AddGrowableCol(1);
     m_grid_sizer->AddGrowableCol(3);
 
-    //m_og->activate();
-    LabeledStaticBox* stb = new LabeledStaticBox(parent);
-    stb->SetCornerRadius(0);
-    m_og->stb = stb;
-    m_og->sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
+    m_og->activate();
     m_og->sizer->Clear(true);
     m_og->sizer->Add(m_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxOSX ? 0 : 5);
+    if (auto stb = dynamic_cast<LabeledStaticBox*>(m_og->stb))
+        stb->SetCornerRadius(0);
 
     m_bmp_delete    = ScalableBitmap(parent, "delete");
     m_bmp_add       = ScalableBitmap(parent, "add");
@@ -79,7 +78,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
     };
 
     // Add text
-    auto head_text = new wxStaticText(m_og->stb, wxID_ANY, _L("Height Range"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    auto head_text = new wxStaticText(m_og->ctrl_parent(), wxID_ANY, _L("Height Range"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     head_text->SetBackgroundStyle(wxBG_STYLE_PAINT);
     head_text->SetFont(wxGetApp().normal_font());
     m_grid_sizer->Add(head_text, 0, wxALIGN_CENTER_VERTICAL);
@@ -110,7 +109,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
 
     m_grid_sizer->Add(editor, 1, wxEXPAND);
 
-    auto middle_text = new wxStaticText(m_og->stb, wxID_ANY, _L("to"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    auto middle_text = new wxStaticText(m_og->ctrl_parent(), wxID_ANY, _L("to"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     middle_text->SetBackgroundStyle(wxBG_STYLE_PAINT);
     middle_text->SetFont(wxGetApp().normal_font());
     m_grid_sizer->Add(middle_text, 0, wxALIGN_CENTER_VERTICAL);
@@ -140,7 +139,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
     m_grid_sizer->Add(editor, 1, wxEXPAND);
 
     auto sizer2 = new wxBoxSizer(wxHORIZONTAL);
-    auto unit_text = new wxStaticText(m_og->stb, wxID_ANY, _L("mm"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    auto unit_text = new wxStaticText(m_og->ctrl_parent(), wxID_ANY, _L("mm"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     unit_text->SetBackgroundStyle(wxBG_STYLE_PAINT);
     unit_text->SetFont(wxGetApp().normal_font());
     sizer2->Add(unit_text, 0, wxALIGN_CENTER_VERTICAL);
@@ -175,12 +174,12 @@ void ObjectLayers::create_layers_list()
 {
     for (const auto &layer : m_object->layer_config_ranges) {
         const t_layer_height_range& range = layer.first;
-        auto del_btn = new PlusMinusButton(m_og->stb, m_bmp_delete, range); 
+        auto del_btn = new PlusMinusButton(m_og->ctrl_parent(), m_bmp_delete, range); 
         del_btn->DisableFocusFromKeyboard();
         del_btn->SetBackgroundColour(m_parent->GetBackgroundColour());
         del_btn->SetToolTip(_L("Remove height range"));
 
-        auto add_btn = new PlusMinusButton(m_og->stb, m_bmp_add, range); 
+        auto add_btn = new PlusMinusButton(m_og->ctrl_parent(), m_bmp_add, range); 
         add_btn->DisableFocusFromKeyboard();
         add_btn->SetBackgroundColour(m_parent->GetBackgroundColour());
         wxString tooltip = wxGetApp().obj_list()->can_add_new_range_after_current(range);
@@ -345,7 +344,7 @@ LayerRangeEditor::LayerRangeEditor( ObjectLayers* parent,
     m_valid_value(value),
     m_type(type),
     m_set_focus_data(set_focus_data_fn),
-    wxTextCtrl(parent->m_og->stb, wxID_ANY, value, wxDefaultPosition, 
+    wxTextCtrl(parent->m_og->ctrl_parent(), wxID_ANY, value, wxDefaultPosition, 
                wxSize(em_unit(parent->m_parent), wxDefaultCoord), wxTE_PROCESS_ENTER
 #ifdef _WIN32
         | wxBORDER_SIMPLE
