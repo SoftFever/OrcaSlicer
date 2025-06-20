@@ -65,8 +65,6 @@ public:
 
     void SetStyle(const ButtonStyle style /*= ButtonStyle::Regular*/, const ButtonType type /*= ButtonType::None*/);
 
-    void SetType(const ButtonType type);
-
     void SetTextColor(StateColor const &color);
 
     void SetTextColorNormal(wxColor const &color);
