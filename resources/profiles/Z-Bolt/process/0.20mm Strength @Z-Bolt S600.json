@@ -13,6 +13,8 @@
     "wall_loops": "6",
     "compatible_printers": [
         "Z-Bolt S600 0.4 nozzle",
-        "Z-Bolt S600 Dual 0.4 nozzle"
+        "Z-Bolt S600 Dual 0.4 nozzle",
+        "Z-Bolt S1000 0.4 nozzle",
+        "Z-Bolt S1000 Dual 0.4 nozzle"
     ]
 }
