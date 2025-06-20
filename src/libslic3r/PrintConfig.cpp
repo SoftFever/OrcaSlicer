@@ -1158,14 +1158,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
-    // Orca: deprecated
-    def = this->add("overhang_speed_classic", coBool);
-    def->label = L("Classic mode");
-    def->category = L("Speed");
-    def->tooltip = L("Enable this option to use classic mode.");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool{ false });
-
     def = this->add("enable_overhang_speed", coBool);
     def->label = L("Slow down for overhang");
     def->category = L("Speed");
@@ -6704,8 +6696,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     else if (opt_key == "draft_shield" && value == "limited") {
         value = "disabled";
-    } else if (opt_key == "overhang_speed_classic") {
-        value = "0";
     }
 
     // Ignore the following obsolete configuration keys:
@@ -6724,7 +6714,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "retraction_distance_when_cut",
         "extruder_type",
         "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill","filament_load_time","filament_unload_time",
-        "smooth_coefficient", "overhang_totally_speed", "silent_mode"
+        "smooth_coefficient", "overhang_totally_speed", "silent_mode",
+        "overhang_speed_classic",
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
