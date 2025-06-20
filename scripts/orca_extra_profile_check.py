@@ -352,7 +352,7 @@ def main():
     parser.add_argument("--vendor", type=str, help="Specify a single vendor to check")
     parser.add_argument("--check-filaments", action="store_true", help="Check 'compatible_printers' in filament profiles")
     parser.add_argument("--check-materials", action="store_true", help="Check default materials in machine profiles")
-    parser.add_argument("--check-obsolete-keys", action="store_true", help="Warn if obsolete keys are found in profiles")
+    parser.add_argument("--check-obsolete-keys", action="store_true", help="Warn if obsolete keys are found in filament profiles")
     args = parser.parse_args()
 
     print_info("Checking profiles ...")
@@ -366,19 +366,22 @@ def main():
     def run_checks(vendor_name):
         nonlocal errors_found, warnings_found, checked_vendor_count
         vendor_path = profiles_dir / vendor_name
+
         if args.check_filaments or not (args.check_materials and not args.check_filaments):
             errors_found += check_filament_compatible_printers(vendor_path / "filament")
+
         if args.check_materials:
             new_errors, new_warnings = check_machine_default_materials(profiles_dir, vendor_name)
             errors_found += new_errors
             warnings_found += new_warnings
-        errors_found += new_errors
-        warnings_found += new_warnings
+
         if args.check_obsolete_keys:
             warnings_found += check_obsolete_keys(profiles_dir, vendor_name)
+
         new_errors, new_warnings = check_filament_name_consistency(profiles_dir, vendor_name)
         errors_found += new_errors
         warnings_found += new_warnings
+
         errors_found += check_filament_id(vendor_name, vendor_path / "filament")
         checked_vendor_count += 1
 
