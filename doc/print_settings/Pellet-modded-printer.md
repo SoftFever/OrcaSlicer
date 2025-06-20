@@ -1,4 +1,4 @@
-# Pellet modded printer
+# Pellet printer
 Pellet 3D printers, commonly used for large prints (usually larger than 1m³), are based on a technology similar to FDM printing. However, instead of using filaments, these printers use pellets as the printing material.
 The use of pellets requires a different extrusion management compared to traditional filament printers, due to:
 

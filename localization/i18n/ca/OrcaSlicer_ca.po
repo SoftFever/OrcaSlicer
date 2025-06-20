@@ -12785,7 +12785,7 @@ msgstr "Amb quin tipus de Codi-G és compatible la impressora."
 msgid "Klipper"
 msgstr "Klipper"
 
-msgid "Pellet Modded Printer"
+msgid "Pellet Printer"
 msgstr "Impressora modificada de pellets"
 
 msgid "Enable this option if your printer uses pellets instead of filaments."

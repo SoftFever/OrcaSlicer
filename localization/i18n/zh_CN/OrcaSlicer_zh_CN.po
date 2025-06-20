@@ -11623,7 +11623,7 @@ msgstr "打印机兼容的G-code风格'"
 msgid "Klipper"
 msgstr ""
 
-msgid "Pellet Modded Printer"
+msgid "Pellet Printer"
 msgstr ""
 
 msgid "Enable this option if your printer uses pellets instead of filaments."

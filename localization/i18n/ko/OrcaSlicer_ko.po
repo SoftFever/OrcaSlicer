@@ -12230,7 +12230,7 @@ msgstr "프린터와 호환되는 Gcode 종류"
 msgid "Klipper"
 msgstr "Klipper"
 
-msgid "Pellet Modded Printer"
+msgid "Pellet Printer"
 msgstr "펠릿 프린터"
 
 msgid "Enable this option if your printer uses pellets instead of filaments."

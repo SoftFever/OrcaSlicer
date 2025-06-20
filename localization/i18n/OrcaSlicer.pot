@@ -11120,7 +11120,7 @@ msgstr ""
 msgid "Klipper"
 msgstr ""
 
-msgid "Pellet Modded Printer"
+msgid "Pellet Printer"
 msgstr ""
 
 msgid "Enable this option if your printer uses pellets instead of filaments."
