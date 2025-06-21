@@ -12,11 +12,6 @@
 
 namespace Slic3r {
 
-    namespace ClipperLib {
-        class PolyNode;
-        using PolyNodes = std::vector<PolyNode*>;
-    }
-
 namespace Geometry {
 
 // Generic result of an orientation predicate.
