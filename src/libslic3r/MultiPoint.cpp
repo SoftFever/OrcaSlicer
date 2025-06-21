@@ -507,4 +507,11 @@ BoundingBox get_extents_rotated(const MultiPoint &mp, double angle)
     return get_extents_rotated(mp.points, angle);
 }
 
+void MultiPoint::symmetric_y(const coord_t &x_axis)
+{
+    for (Point &pt : points) {
+        pt(0) = 2 * x_axis - pt(0);
+    }
+}
+
 }

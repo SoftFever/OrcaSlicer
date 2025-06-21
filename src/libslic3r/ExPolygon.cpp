@@ -146,6 +146,13 @@ Point ExPolygon::point_projection(const Point &point) const
     }
 }
 
+void ExPolygon::symmetric_y(const coord_t &y_axis)
+{
+    this->contour.symmetric_y(y_axis);
+    for (Polygon &hole : holes)
+        hole.symmetric_y(y_axis);
+}
+
 bool ExPolygon::overlaps(const ExPolygon &other) const
 {
     if (this->empty() || other.empty())

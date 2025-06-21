@@ -430,6 +430,16 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 str = str_out;
                 set_value(str, true);
             }
+        } else if (m_opt.opt_key == "sparse_infill_rotate_template" || m_opt.opt_key == "solid_infill_rotate_template") {
+            if (!ConfigOptionFloats::validate_string(str.utf8_string())) {
+                show_error(m_parent, format_wxstr(_L("This parameter expects a comma-delimited list of numbers. E.g, \"0,90\".")));
+                wxString old_value(boost::any_cast<std::string>(m_value));
+                this->set_value(old_value, true); // Revert to previous value
+            } else {
+                // Valid string, so update m_value with the new string from the control.
+                m_value = into_u8(str);
+            }
+            break;
         }
 
         m_value = into_u8(str);

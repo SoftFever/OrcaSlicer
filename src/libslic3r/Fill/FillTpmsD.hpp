@@ -24,6 +24,9 @@ public:
                               const std::pair<float, Point>& direction,
                               ExPolygon                      expolygon,
                               Polylines&                     polylines_out) override;
+
+    bool is_self_crossing() override { return false; }
+
 };
 
 } // namespace Slic3r

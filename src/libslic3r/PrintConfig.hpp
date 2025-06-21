@@ -60,7 +60,7 @@ enum AuthorizationType {
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ip2DLattice, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipTpmsD, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip2DHoneycomb, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-    ipLightning, ipCrossHatch, ipQuarterCubic,
+    ipLightning, ipCrossHatch, ipQuarterCubic, ipZigZag, ipCrossZag, ipLockedZag,
     ipCount,
 };
 
@@ -946,7 +946,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                outer_wall_speed))
     ((ConfigOptionFloat,                infill_direction))
     ((ConfigOptionFloat,                solid_infill_direction))
-    ((ConfigOptionBool,                 rotate_solid_infill_direction))
+    ((ConfigOptionString,               solid_infill_rotate_template))
+    ((ConfigOptionBool,                 symmetric_infill_y_axis))
+    ((ConfigOptionFloat,                infill_shift_step))
+    ((ConfigOptionString,               sparse_infill_rotate_template))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
     ((ConfigOptionFloat,                lattice_angle_1))
@@ -966,7 +969,12 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,              infill_wall_overlap))
     ((ConfigOptionPercent,              top_bottom_infill_wall_overlap))
     ((ConfigOptionFloat,                sparse_infill_speed))
-    //BBS
+    ((ConfigOptionPercent, skeleton_infill_density))
+    ((ConfigOptionPercent, skin_infill_density))
+    ((ConfigOptionFloat, infill_lock_depth))
+    ((ConfigOptionFloat, skin_infill_depth))
+    ((ConfigOptionFloatOrPercent, skin_infill_line_width))
+    ((ConfigOptionFloatOrPercent, skeleton_infill_line_width))
     ((ConfigOptionBool, infill_combination))
     // Orca:
     ((ConfigOptionFloatOrPercent,                infill_combination_max_layer_height))
