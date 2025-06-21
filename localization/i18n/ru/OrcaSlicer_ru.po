@@ -8851,6 +8851,10 @@ msgstr "Ширина линии при рэмминге"
 msgid "Ramming line spacing"
 msgstr "Расстояние между линиями при рэмминге"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr "Для постоянного объёмного расхода удерживайте нажатой клавишу %1% при перетаскивании."
+
 msgid "Auto-Calc"
 msgstr "Авторасчёт"
 

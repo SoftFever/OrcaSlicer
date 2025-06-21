@@ -8488,6 +8488,10 @@ msgstr "Šířka linky při rapidní extruzi"
 msgid "Ramming line spacing"
 msgstr "Rozestup linek při rapidní extruzi"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr "Pro konstantní průtok stiskněte %1% při přetahování."
+
 msgid "Auto-Calc"
 msgstr "Automatický výpočet"
 
