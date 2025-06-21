@@ -49,7 +49,7 @@ void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter para
         def.min = 0;
         def.max = 214700;
         def.width = 10; // increase width for large scale printers with 4 digit values
-        def.sidetext = L("mm");
+        def.sidetext = "mm";	// milimeters, don't need translation
         def.label = get_option_label(param);
         def.tooltip = L("Size in X and Y of the rectangular plate.");
         key = "rect_size";
@@ -60,7 +60,7 @@ void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter para
         def.min = -107350;
         def.max = 107350;
         def.width = 10; // increase width for large scale printers with 4 digit values
-        def.sidetext = L("mm");
+        def.sidetext = "mm";	// milimeters, don't need translation
         def.label = get_option_label(param);
         def.tooltip = L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
         key = "rect_origin";
@@ -69,7 +69,7 @@ void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter para
         def.type = coFloat;
         def.set_default_value(new ConfigOptionFloat(200));
         def.width = 10; // match size
-        def.sidetext = L("mm");
+        def.sidetext = "mm";	// milimeters, don't need translation
         def.label = get_option_label(param);
         def.tooltip = L("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
         key = "diameter";
