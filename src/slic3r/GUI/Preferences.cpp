@@ -1070,9 +1070,6 @@ void PreferencesDialog::create()
     app_config             = get_app_config();
     m_backup_interval_time = app_config->get("backup_interval");
 
-    // set icon for dialog
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
     SetSizeHints(wxDefaultSize, wxDefaultSize);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
