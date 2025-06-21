@@ -294,6 +294,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
+    int    fill_multiline        = config->option<ConfigOptionInt>("fill_multiline")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
     if (!is_plate_config &&
@@ -532,6 +533,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
     toggle_line("infill_combination_max_layer_height", have_combined_infill);
 
+    InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern"); //Toggle Fill Multiline
+    bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear || pattern == ipTpmsD || pattern == ipCrossHatch || 
+                                                  pattern == ipCubic || pattern == ipStars || pattern == ipAlignedRectilinear || pattern == ipLightning || pattern == ip3DHoneycomb;                            
+    toggle_line("fill_multiline", have_multiline_infill_pattern);
+    
+    // Hide infill anchor max if sparse_infill_pattern is not line or if sparse_infill_pattern is line but infill_anchor_max is 0.
     bool infill_anchor = config->opt_enum<InfillPattern>("sparse_infill_pattern") != ipLine;
     toggle_field("infill_anchor_max",infill_anchor);
 
