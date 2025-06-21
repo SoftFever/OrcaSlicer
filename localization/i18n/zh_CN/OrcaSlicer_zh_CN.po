@@ -213,7 +213,7 @@ msgid "in"
 msgstr "在"
 
 msgid "mm"
-msgstr "mm"
+msgstr "毫米"
 
 msgid "Position"
 msgstr "位置"
@@ -428,7 +428,7 @@ msgid "Space"
 msgstr "间隔"
 
 msgid "Space proportion related to radius"
-msgstr ""
+msgstr "涉及半径相关的空间比例"
 
 msgid "Confirm connectors"
 msgstr "确认"
@@ -743,10 +743,10 @@ msgid "Too small, enlarged font height inside text input."
 msgstr "文字输入里面的字体高度太小，放大了。"
 
 msgid "Text doesn't show current horizontal alignment."
-msgstr ""
+msgstr "文本未显示当前水平方式对齐"
 
 msgid "Revert font changes."
-msgstr "还原字体更改。"
+msgstr "恢复字体更改。"
 
 #, boost-format
 msgid "Font \"%1%\" can't be selected."
@@ -1080,10 +1080,10 @@ msgid "SVG move"
 msgstr "移动SVG图形"
 
 msgid "Enter SVG gizmo"
-msgstr ""
+msgstr "进入 SVG 工具箱"
 
 msgid "Leave SVG gizmo"
-msgstr ""
+msgstr "离开 SVG 工具箱"
 
 msgid "SVG actions"
 msgstr ""
@@ -1115,12 +1115,12 @@ msgid "Undefined stroke type"
 msgstr "未定义的描边类型"
 
 msgid "Path can't be healed from self-intersection and multiple points."
-msgstr ""
+msgstr "无法从自交和多交点中修复路径"
 
 msgid ""
 "Final shape contains self-intersection or multiple points with same "
 "coordinate."
-msgstr ""
+msgstr "最终形状存在自相交或存在多个坐标相同的点。"
 
 #, boost-format
 msgid "Shape is marked as invisible (%1%)."
@@ -1250,7 +1250,7 @@ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "SVG文件不包含路径以进行浮雕操作 (%1%)。"
 
 msgid "No feature"
-msgstr ""
+msgstr "无特征"
 
 msgid "Vertex"
 msgstr "顶点"
@@ -1988,7 +1988,7 @@ msgid "Reload All"
 msgstr "重新加载全部"
 
 msgid "reload all from disk"
-msgstr ""
+msgstr "从磁盘重新加载全部内容"
 
 msgid "Auto Rotate"
 msgstr "自动朝向"
@@ -2012,7 +2012,7 @@ msgid "Center"
 msgstr "居中"
 
 msgid "Drop"
-msgstr ""
+msgstr "丢弃"
 
 msgid "Edit Process Settings"
 msgstr "编辑工艺参数"
@@ -15349,16 +15349,16 @@ msgid ""
 msgstr ""
 
 msgid "Time-lapse"
-msgstr ""
+msgstr "延时的"
 
 msgid "Heated Bed Leveling"
-msgstr ""
+msgstr "热床等级"
 
 msgid "Textured Build Plate (Side A)"
-msgstr ""
+msgstr "纹理构建盘(A 面)"
 
 msgid "Smooth Build Plate (Side B)"
-msgstr ""
+msgstr "平滑构建盘(B 面)"
 
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "无法对所选部件执行布尔运算"
