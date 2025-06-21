@@ -12579,7 +12579,7 @@ msgstr "Yazıcının ne tür bir gcode ile uyumlu olduğu"
 msgid "Klipper"
 msgstr "Klipper"
 
-msgid "Pellet Modded Printer"
+msgid "Pellet Printer"
 msgstr "Pelet modlu yazıcı"
 
 msgid "Enable this option if your printer uses pellets instead of filaments."
