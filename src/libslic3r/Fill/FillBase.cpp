@@ -301,7 +301,7 @@ std::pair<float, Point> Fill::_infill_direction(const Surface *surface) const
         out_angle = float(surface->bridge_angle);
     } else if (this->layer_id != size_t(-1)) {
         // alternate fill direction
-        out_angle += this->_layer_angle(this->layer_id / surface->thickness_layers);
+        out_angle += this->rotate_angle * this->layer_id + (surface->surface_type == stInternal ? (-this->_layer_angle(this->layer_id / surface->thickness_layers)) : 0); //disabling the old solid infill rotation method so that it will rotate every time then layer changed
     } else {
 //    	printf("Layer_ID undefined!\n");
     }

@@ -1592,6 +1592,28 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
     
+    if(opt_key == "sparse_infill_pattern"){
+        bool _is_rotate = m_config->get_abs_value("rotate_sparse_infill_direction") || m_config->get_abs_value("rotate_sparse_infill_height");
+        bool _is_zigzag = m_config->get_abs_value("sparse_infill_zigzag_angle") || m_config->get_abs_value("sparse_infill_zigzag_height");
+        if(_is_rotate || _is_zigzag){
+            wxString msg_text = _(
+                L("The rotation values of the current infill are set! When switching this infill to another one, an unpredictable result may occur."));
+            msg_text += "\n\n" + _(L("Are you sure you want to reset this values?"));
+            MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+            dialog.SetButtonLabel(wxID_YES, _L("Yes"));
+            dialog.SetButtonLabel(wxID_NO, _L("No"));
+            if (dialog.ShowModal() == wxID_YES) {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("rotate_sparse_infill_direction", new ConfigOptionFloatOrPercent(0, false));
+                new_conf.set_key_value("rotate_sparse_infill_height", new ConfigOptionFloatOrPercent(0, false));
+                new_conf.set_key_value("sparse_infill_zigzag_angle", new ConfigOptionFloatOrPercent(0, false));
+                new_conf.set_key_value("sparse_infill_zigzag_height", new ConfigOptionFloatOrPercent(0, false));
+                m_config_manipulation.apply(m_config, &new_conf);
+                wxGetApp().plater()->update();
+            }
+        }
+    }
+
     if(opt_key=="layer_height"){
         auto min_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("min_layer_height")->values;
         auto max_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("max_layer_height")->values;
@@ -2176,15 +2198,22 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+        optgroup->append_single_option_line("apply_model_direction");
+        optgroup->append_single_option_line("top_infill_direction");
+        optgroup->append_single_option_line("bottom_infill_direction");        
         optgroup->append_single_option_line("infill_direction");
+        optgroup->append_single_option_line("rotate_sparse_infill_direction");
+        optgroup->append_single_option_line("rotate_sparse_infill_height");
+        optgroup->append_single_option_line("sparse_infill_zigzag_angle");
+        optgroup->append_single_option_line("sparse_infill_zigzag_height");
+        optgroup->append_single_option_line("minimum_sparse_infill_area");
         optgroup->append_single_option_line("solid_infill_direction");
         optgroup->append_single_option_line("rotate_solid_infill_direction");
+        optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("internal_bridge_angle"); // ORCA: Internal bridge angle override
-        optgroup->append_single_option_line("minimum_sparse_infill_area");
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("infill_combination_max_layer_height");
-        optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness");
 
     page = add_options_page(L("Speed"), "custom-gcode_speed"); // ORCA: icon only visible on placeholders
