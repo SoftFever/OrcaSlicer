@@ -686,7 +686,7 @@ endif ()
 
 find_path(SPNAV_INCLUDE_DIR spnav.h)
 if (SPNAV_INCLUDE_DIR)
-    find_library(HAVE_SPNAV spnav)
+    find_library(HAVE_SPNAV NAMES libspnav.a spnav) # Force linking libspnav statically
     if (HAVE_SPNAV)
         add_definitions(-DHAVE_SPNAV)
         add_library(libspnav STATIC IMPORTED)
