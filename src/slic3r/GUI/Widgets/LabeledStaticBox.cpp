@@ -171,3 +171,10 @@ void LabeledStaticBox::DrawBorderAndLabel(wxDC& dc)
         dc.DrawText(m_label, wxPoint(10 * m_scale, 0));
     }
 }
+
+void LabeledStaticBox::GetBordersForSizer(int* borderTop, int* borderOther) const {
+    wxStaticBox::GetBordersForSizer(borderTop, borderOther);
+#ifdef __WXOSX__
+    *borderOther = 5; // Make sure macOS uses the same border padding as other platforms
+#endif
+}

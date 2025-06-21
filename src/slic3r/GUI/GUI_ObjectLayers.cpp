@@ -31,7 +31,7 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
 
     m_og->activate();
     m_og->sizer->Clear(true);
-    m_og->sizer->Add(m_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxOSX ? 0 : 5);
+    m_og->sizer->Add(m_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
     if (auto stb = dynamic_cast<LabeledStaticBox*>(m_og->stb))
         stb->SetCornerRadius(0);
 
