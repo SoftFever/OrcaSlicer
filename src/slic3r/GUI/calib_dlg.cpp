@@ -5,6 +5,7 @@
 #include <wx/dcgraph.h>
 #include "MainFrame.hpp"
 #include "Widgets/DialogButtons.hpp"
+#include "Widgets/HyperLink.hpp"
 #include <string>
 
 namespace Slic3r { namespace GUI {
@@ -139,7 +140,12 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    v_sizer->Add(dlg_btns , 0, wxEXPAND);
+
+    auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_sizer->Add(new HyperLink(this, _L("Show Wiki"), HyperLink::For(HyperLinkType::Wiki_Calib_PA)), 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
+    bottom_sizer->AddStretchSpacer();
+    bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(bottom_sizer, 0, wxEXPAND);
 
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &PA_Calibration_Dlg::on_start, this);
 
@@ -337,7 +343,12 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    v_sizer->Add(dlg_btns , 0, wxEXPAND);
+
+    auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_sizer->Add(new HyperLink(this, _L("Show Wiki"), HyperLink::For(HyperLinkType::Wiki_Calib_Temp)), 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
+    bottom_sizer->AddStretchSpacer();
+    bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(bottom_sizer, 0, wxEXPAND);
 
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Temp_Calibration_Dlg::on_start, this);
 
@@ -508,7 +519,12 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    v_sizer->Add(dlg_btns , 0, wxEXPAND);
+
+    auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_sizer->Add(new HyperLink(this, _L("Show Wiki"), HyperLink::For(HyperLinkType::Wiki_Calib_MaxVolumetricSpeed)), 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
+    bottom_sizer->AddStretchSpacer();
+    bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(bottom_sizer, 0, wxEXPAND);
 
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &MaxVolumetricSpeed_Test_Dlg::on_start, this);
 
@@ -711,7 +727,12 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    v_sizer->Add(dlg_btns , 0, wxEXPAND);
+
+    auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_sizer->Add(new HyperLink(this, _L("Show Wiki"), HyperLink::For(HyperLinkType::Wiki_Calib_Retraction)), 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
+    bottom_sizer->AddStretchSpacer();
+    bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(bottom_sizer, 0, wxEXPAND);
 
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Retraction_Test_Dlg::on_start, this);
 
@@ -833,7 +854,12 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    v_sizer->Add(dlg_btns , 0, wxEXPAND);
+
+    auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_sizer->Add(new HyperLink(this, _L("Show Wiki"), HyperLink::For(HyperLinkType::Wiki_Calib_InputShaping)), 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
+    bottom_sizer->AddStretchSpacer();
+    bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(bottom_sizer, 0, wxEXPAND);
 
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Input_Shaping_Freq_Test_Dlg::on_start, this);
 
@@ -955,7 +981,12 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    v_sizer->Add(dlg_btns , 0, wxEXPAND);
+
+    auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_sizer->Add(new HyperLink(this, _L("Show Wiki"), HyperLink::For(HyperLinkType::Wiki_Calib_InputShaping)), 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
+    bottom_sizer->AddStretchSpacer();
+    bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(bottom_sizer, 0, wxEXPAND);
 
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Input_Shaping_Damp_Test_Dlg::on_start, this);
 
@@ -1070,7 +1101,12 @@ Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
-    v_sizer->Add(dlg_btns , 0, wxEXPAND);
+
+    auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_sizer->Add(new HyperLink(this, _L("Show Wiki"), HyperLink::For(HyperLinkType::Wiki_Calib_JunctionDeviation)), 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
+    bottom_sizer->AddStretchSpacer();
+    bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
+    v_sizer->Add(bottom_sizer, 0, wxEXPAND);
 
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Junction_Deviation_Test_Dlg::on_start, this);
 

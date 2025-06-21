@@ -14,6 +14,7 @@
 #include "Widgets/Button.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/TextInput.hpp"
+#include "Widgets/HyperLink.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarSend.hpp"
 #include "libslic3r/Semver.hpp"
@@ -420,9 +421,9 @@ public:
 
 private:
     Label* m_text_basic;
-    wxHyperlinkCtrl* m_link_server_state;
+    HyperLink* m_link_server_state;
     Label* m_text_proposal;
-    wxHyperlinkCtrl* m_text_wiki;
+    HyperLink* m_text_wiki;
     Button *         m_button_confirm;
 
 public:

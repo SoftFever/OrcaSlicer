@@ -2848,8 +2848,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_calibration_err_panel->SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
     wxBoxSizer *sizer_err_calibration_h = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizer_err_calibration_v = new wxBoxSizer(wxVERTICAL);
-    m_hyperlink = new wxHyperlinkCtrl(m_calibration_err_panel, wxID_ANY, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-    m_hyperlink->SetVisitedColour(wxColour(31, 142, 234));
+    m_hyperlink = new HyperLink(m_calibration_err_panel);
     auto m_tip_calibration_err = new wxStaticText(m_calibration_err_panel, wxID_ANY, _L("A problem occurred during calibration. Click to view the solution."), wxDefaultPosition,
                                                   wxDefaultSize, 0);
     m_tip_calibration_err->SetFont(::Label::Body_14);
