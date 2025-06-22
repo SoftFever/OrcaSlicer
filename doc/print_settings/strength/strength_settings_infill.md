@@ -9,6 +9,18 @@ Higher density increases strength but also material usage and print time. Lower 
 
 Nevertheless, **not all patterns interpret density the same way**, so the actual material usage may vary. You can see each pattern's material usage in the [Sparse Infill Pattern](#sparse-infill-pattern) section.
 
+## Infill Wall Overlap
+
+Infill area is enlarged slightly to overlap with wall for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough surfaces.
+
+- **Infill Wall Overlap Off**
+
+![InfillWallOverlapOff](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillWallOverlapOff.svg)
+
+- **Infill Wall Overlap On**
+
+![InfillWallOverlapOn](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillWallOverlapOn.svg)
+
 ## Sparse Infill Pattern
 
 Infill patterns determine how material is distributed within a print. Different patterns can affect strength, flexibility, and print speed using the same density setting.
