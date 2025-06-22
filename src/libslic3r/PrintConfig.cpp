@@ -5473,7 +5473,7 @@ void PrintConfigDef::init_fff_params()
                      "Reducing this value results in a textured top surface, according to the chosen top surface pattern. "
                      "A value of 0% will result in only the walls on the top layer being created. "
                      "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.");
-    def->sidetext = L("%");
+    def->sidetext = ("%");
     def->min = 0;
     def->max = 100;
     def->set_default_value(new ConfigOptionPercent(100));
@@ -5484,7 +5484,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Density of the bottom surface layer. "
                      "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.\n"
                      "WARNING: Lowering this value may negatively affect bed adhesion.");
-    def->sidetext = L("%");
+    def->sidetext = ("%");
     def->min      = 10;
     def->max      = 100;
     def->set_default_value(new ConfigOptionPercent(100));
