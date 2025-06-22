@@ -46,7 +46,6 @@ The below sections provide a detailed settings explanation as well as tips and t
 
 ![process-quality](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-quality.png?raw=true)
 
-
 - [Layer Height Settings](quality_settings_layer_height)
 - [Line Width Settings](quality_settings_line_width)
 - [Seam Settings](quality_settings_seam)
