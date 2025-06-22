@@ -33,6 +33,9 @@ Infill is the internal structure of a 3D print, providing strength and support. 
   - [Lightning](#lightning)
   - [Cross Hatch](#cross-hatch)
   - [Quarter Cubic](#quarter-cubic)
+  - [Zig Zag](#zig-zag)
+  - [Coss Zag](#coss-zag)
+  - [Locked Zag](#locked-zag)
 
 ## Sparse infill density
 
@@ -126,30 +129,33 @@ There is no one-size-fits-all solution, as the best pattern depends on the speci
 Many patterns may look similar and have similar overall specifications, but they can behave very differently in practice.
 As most settings in 3D printing, experience is the best way to determine which pattern works best for your specific needs.
 
-| Infill                                      | X-Y Strength | Z Strength  | Material Usage | Print Time  |
-|---------------------------------------------|--------------|-------------|----------------|-------------|
-| [Concentric](#concentric)                   | Low          | Normal      | Normal         | Normal      |
-| [Rectilinear](#rectilinear)                 | Normal-Low   | Low         | Normal         | Normal      |
-| [Grid](#grid)                               | High         | High        | Normal         | Normal      |
-| [2D Lattice](#2d-lattice)                   | Normal-Low   | Low         | Normal         | Normal      |
-| [Line](#line)                               | Low          | Low         | Normal         | Normal-Low  |
-| [Cubic](#cubic)                             | High         | High        | Normal         | Normal-Low  |
-| [Triangles](#triangles)                     | High         | Normal      | Normal         | Normal-Low  |
-| [Tri-hexagon](#tri-hexagon)                 | High         | Normal-High | Normal         | Normal-Low  |
-| [Gyroid](#gyroid)                           | High         | High        | Normal         | Normal-High |
-| [TPMS-D](#tpms-d)                           | High         | High        | Normal         | High        |
-| [Honeycomb](#honeycomb)                     | High         | High        | High           | Ultra-High  |
-| [Adaptive Cubic](#adaptive-cubic)           | Normal-High  | Normal-High | Low            | Low         |
-| [Aligned Rectilinear](#aligned-rectilinear) | Normal-Low   | Normal      | Normal         | Normal      |
-| [2D Honeycomb](#2d-honeycomb)               | Normal-Low   | Normal-Low  | Normal         | Normal-Low  |
-| [3D Honeycomb](#3d-honeycomb)               | Normal-High  | Normal-High | Normal-Low     | High        |
-| [Hilbert Curve](#hilbert-curve)             | Low          | Normal      | Normal         | High        |
-| [Archimedean Chords](#archimedean-chords)   | Low          | Normal      | Normal         | Normal-Low  |
-| [Octagram Spiral](#octagram-spiral)         | Low          | Normal      | Normal         | Normal-High |
-| [Support Cubic](#support-cubic)             | Low          | Low         | Extra-Low      | Extra-Low   |
-| [Lightning](#lightning)                     | Low          | Low         | Ultra-Low      | Ultra-Low   |
-| [Cross Hatch](#cross-hatch)                 | Normal-High  | Normal-High | Normal         | Normal-High |
-| [Quarter Cubic](#quarter-cubic)             | High         | High        | Normal         | Normal-Low  |
+| Pattern                                       | X-Y Strength | Z Strength  | Material Usage | Print Time  |
+|-----------------------------------------------|--------------|-------------|----------------|-------------|
+| [Concentric](#concentric)                     | Low          | Normal      | Normal         | Normal      |
+| [Rectilinear](#rectilinear)                   | Normal-Low   | Low         | Normal         | Normal-Low  |
+| [Grid](#grid)                                 | High         | High        | Normal         | Normal-Low  |
+| [2D   Lattice](#2d-lattice)                   | Normal-Low   | Low         | Normal         | Normal-Low  |
+| [Line](#line)                                 | Low          | Low         | Normal         | Normal-Low  |
+| [Cubic](#cubic)                               | High         | High        | Normal         | Normal-Low  |
+| [Triangles](#triangles)                       | High         | Normal      | Normal         | Normal-Low  |
+| [Tri-hexagon](#tri-hexagon)                   | High         | Normal-High | Normal         | Normal-Low  |
+| [Gyroid](#gyroid)                             | High         | High        | Normal         | Normal-High |
+| [TPMS-D](#tpms-d)                             | High         | High        | Normal         | High        |
+| [Honeycomb](#honeycomb)                       | High         | High        | High           | Ultra-High  |
+| [Adaptive   Cubic](#adaptive-cubic)           | Normal-High  | Normal-High | Low            | Low         |
+| [Aligned   Rectilinear](#aligned-rectilinear) | Normal-Low   | Normal      | Normal         | Normal-Low  |
+| [2D   Honeycomb](#2d-honeycomb)               | Normal-Low   | Normal-Low  | Normal         | Normal-Low  |
+| [3D Honeycomb](#3d-honeycomb)                 | Normal-High  | Normal-High | Normal-Low     | High        |
+| [Hilbert   Curve](#hilbert-curve)             | Low          | Normal      | Normal         | High        |
+| [Archimedean   Chords](#archimedean-chords)   | Low          | Normal      | Normal         | Normal-Low  |
+| [Octagram   Spiral](#octagram-spiral)         | Low          | Normal      | Normal         | Normal      |
+| [Support Cubic](#support-cubic)               | Low          | Low         | Extra-Low      | Extra-Low   |
+| [Lightning](#lightning)                       | Low          | Low         | Ultra-Low      | Ultra-Low   |
+| [Cross Hatch](#cross-hatch)                   | Normal-High  | Normal-High | Normal         | Normal-High |
+| [Quarter   Cubic](#quarter-cubic)             | High         | High        | Normal         | Normal-Low  |
+| [Zig Zag](#zig-zag)                           | Normal-Low   | Low         | Normal         | Normal      |
+| [Coss   Zag](#coss-zag)                       | Normal       | Low         | Normal         | Normal      |
+| [Locked Zag](#locked-zag)                     | Normal-Low   | Normal-Low  | Normal-High    | Extra-High  |
 
 > [!NOTE]
 > You can download [infill_desc_calculator.xlsx](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/print_settings/strength/infill_desc_calculator.xlsx?raw=true) used to calculate the values above.
@@ -169,14 +175,14 @@ Fills the area with progressively smaller versions of the outer contour, creatin
 
 ### Rectilinear
 
-Parallel lines spaced according to infill density. Each layer is printed perpendicular to the previous, resulting in low vertical bonding.
+Parallel lines spaced according to infill density. Each layer is printed perpendicular to the previous, resulting in low vertical bonding. Considere using new [Zig Zag](#zig-zag) infill instead.
 
 - **Horizontal Strength (X-Y):** Normal-Low
 - **Vertical Strength (Z):** Low
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
-- **Print Time:** Normal
-- **Material/Time (Higher better):** Normal-High
+- **Print Time:** Normal-Low
+- **Material/Time (Higher better):** Normal
 
 ![infill-top-rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-rectilinear.png?raw=true)
 
@@ -188,7 +194,7 @@ Two-layer pattern of perpendicular lines, forming a grid. Overlapping points may
 - **Vertical Strength (Z):** High
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
-- **Print Time:** Normal
+- **Print Time:** Normal-Low
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-grid](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-grid.png?raw=true)
@@ -201,7 +207,7 @@ Low-strength pattern with good flexibility. Angle 1 and angle 2 TBD.
 - **Vertical Strength (Z):** Low
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
-- **Print Time:** Normal
+- **Print Time:** Normal-Low
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-2d-lattice](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-2d-lattice.png?raw=true)
@@ -267,7 +273,7 @@ Mathematical, isotropic surface providing equal strength in all directions. Exce
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-High
-- **Material/Time (Higher better):** Low
+- **Material/Time (Higher better):** Normal-Low
 
 ![infill-top-gyroid](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-gyroid.png?raw=true)
 
@@ -280,7 +286,7 @@ Triply Periodic Minimal Surface - D. Hybrid between [Cross Hatch](#cross-hatch) 
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** High
-- **Material/Time (Higher better):** Low
+- **Material/Time (Higher better):** Normal-Low
 
 ![infill-top-tpms-d](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-tpms-d.png?raw=true)
 
@@ -293,7 +299,7 @@ Hexagonal pattern balancing strength and material use. Double walls in each hexa
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** High
 - **Print Time:** Ultra-High
-- **Material/Time (Higher better):** Extra Low
+- **Material/Time (Higher better):** Low
 
 ![infill-top-honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-honeycomb.png?raw=true)
 
@@ -319,7 +325,7 @@ Recommended with layer anchoring to improve not perpendicular strength.
 - **Vertical Strength (Z):** Normal
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
-- **Print Time:** Normal
+- **Print Time:** Normal-Low
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-aligned-rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-aligned-rectilinear.png?raw=true)
@@ -346,7 +352,7 @@ This infill tries to generate a printable honeycomb structure by printing square
 - **Density Calculation:** Unknown
 - **Material Usage:** Normal-Low
 - **Print Time:** High
-- **Material/Time (Higher better):** Extra Low
+- **Material/Time (Higher better):** Low
 
 ![infill-top-3d-honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-3d-honeycomb.png?raw=true)
 
@@ -360,7 +366,7 @@ Print speed is very low due to the complexity of the path, which can lead to lon
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** High
-- **Material/Time (Higher better):** Extra Low
+- **Material/Time (Higher better):** Low
 
 ![infill-top-hilbert-curve](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-hilbert-curve.png?raw=true)
 
@@ -385,8 +391,8 @@ Esthetic pattern with low strength and high print time.
 - **Vertical Strength (Z):** Normal
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
-- **Print Time:** Normal-High
-- **Material/Time (Higher better):** Normal
+- **Print Time:** Normal
+- **Material/Time (Higher better):** Normal-Low
 
 ![infill-top-octagram-spiral](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-octagram-spiral.png?raw=true)
 
@@ -412,7 +418,7 @@ Ultra-fast, ultra-low material infill. Designed for speed and efficiency, ideal 
 - **Density Calculation:** % of layer before top shell layers
 - **Material Usage:** Ultra-Low
 - **Print Time:** Ultra-Low
-- **Material/Time (Higher better):** Extra Low
+- **Material/Time (Higher better):** Low
 
 ![infill-top-lightning](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-lightning.png?raw=true)
 
@@ -425,7 +431,7 @@ Similar to [Gyroid](#gyroid) but with linear patterns, creating weak points at i
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-High
-- **Material/Time (Higher better):** Low
+- **Material/Time (Higher better):** Normal-Low
 
 ![infill-top-cross-hatch](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-cross-hatch.png?raw=true)
 
@@ -441,3 +447,42 @@ Similar to [Gyroid](#gyroid) but with linear patterns, creating weak points at i
 - **Material/Time (Higher better):** Normal
 
 ![infill-top-quarter-cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-quarter-cubic.png?raw=true)
+
+### Zig Zag
+
+Similar to [rectilinear](#rectilinear) with consistent pattern between layers. Allows you to add a Symmetric infil Y axis for models with two symmetric parts.
+
+- **Horizontal Strength (X-Y):** Normal-Low
+- **Vertical Strength (Z):** Low
+- **Density Calculation:**  % of  total infill volume
+- **Material Usage:** Normal
+- **Print Time:** Normal
+- **Material/Time (Higher better):** Normal
+
+![infill-top-zig-zag](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-zig-zag.png?raw=true)
+
+### Coss Zag
+
+Similar to [Zig Zag](#zig-zag) but displacing each lager with Infill shift step parammeter.
+
+- **Horizontal Strength (X-Y):** Normal
+- **Vertical Strength (Z):** Low
+- **Density Calculation:**  % of  total infill volume
+- **Material Usage:** Normal
+- **Print Time:** Normal
+- **Material/Time (Higher better):** Normal
+
+![infill-top-coss-zag](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-coss-zag.png?raw=true)
+
+### Locked Zag
+
+Adaptative version of [Zig Zag](#zig-zag) adding an external skin texture to interlock layers and a low material skeleton.
+
+- **Horizontal Strength (X-Y):** Normal-Low
+- **Vertical Strength (Z):** Normal-Low
+- **Density Calculation:** Same as [Zig Zag](#zig-zag) but increasing near walls
+- **Material Usage:** Normal-High
+- **Print Time:** Extra-High
+- **Material/Time (Higher better):** Low
+
+![infill-top-locked-zag](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-locked-zag.png?raw=true)
