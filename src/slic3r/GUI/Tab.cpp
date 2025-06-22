@@ -2222,12 +2222,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("lattice_angle_1");
         optgroup->append_single_option_line("lattice_angle_2");
         optgroup->append_single_option_line("infill_overhang_angle");
-        optgroup->append_single_option_line("infill_anchor_max");
-        optgroup->append_single_option_line("infill_anchor");
+        optgroup->append_single_option_line("infill_anchor_max", "strength_settings_infill#anchor");
+        optgroup->append_single_option_line("infill_anchor", "strength_settings_infill#anchor");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
         optgroup->append_single_option_line("solid_infill_direction");
         optgroup->append_single_option_line("solid_infill_rotate_template");
-        optgroup->append_single_option_line("gap_fill_target");
+        optgroup->append_single_option_line("gap_fill_target", "strength_settings_infill#apply-gap-fill");
         optgroup->append_single_option_line("filter_out_gap_fill");
         optgroup->append_single_option_line("infill_wall_overlap", "strength_settings_infill#infill-wall-overlap");
 

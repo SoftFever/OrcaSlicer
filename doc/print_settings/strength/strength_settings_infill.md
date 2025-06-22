@@ -2,6 +2,34 @@
 
 Infill is the internal structure of a 3D print, providing strength and support. It can be adjusted to balance material usage, print time, and part strength.
 
+- [Sparse infill density](#sparse-infill-density)
+- [Infill Wall Overlap](#infill-wall-overlap)
+- [Apply gap fill](#apply-gap-fill)
+- [Anchor](#anchor)
+- [Sparse Infill Pattern](#sparse-infill-pattern)
+  - [Concentric](#concentric)
+  - [Rectilinear](#rectilinear)
+  - [Grid](#grid)
+  - [2D Lattice](#2d-lattice)
+  - [Line](#line)
+  - [Cubic](#cubic)
+  - [Triangles](#triangles)
+  - [Tri-hexagon](#tri-hexagon)
+  - [Gyroid](#gyroid)
+  - [TPMS-D](#tpms-d)
+  - [Honeycomb](#honeycomb)
+  - [Adaptive Cubic](#adaptive-cubic)
+  - [Aligned Rectilinear](#aligned-rectilinear)
+  - [2D Honeycomb](#2d-honeycomb)
+  - [3D Honeycomb](#3d-honeycomb)
+  - [Hilbert Curve](#hilbert-curve)
+  - [Archimedean Chords](#archimedean-chords)
+  - [Octagram Spiral](#octagram-spiral)
+  - [Support Cubic](#support-cubic)
+  - [Lightning](#lightning)
+  - [Cross Hatch](#cross-hatch)
+  - [Quarter Cubic](#quarter-cubic)
+
 ## Sparse infill density
 
 Density usually should be calculated as a % of the total infill volume, not the total print volume.
@@ -15,11 +43,39 @@ Infill area is enlarged slightly to overlap with wall for better bonding. The pe
 
 - **Infill Wall Overlap Off**
 
-![InfillWallOverlapOff](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillWallOverlapOff.svg)
+![InfillWallOverlapOff](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillWallOverlapOff.svg?raw=true)
 
 - **Infill Wall Overlap On**
 
-![InfillWallOverlapOn](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillWallOverlapOn.svg)
+![InfillWallOverlapOn](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillWallOverlapOn.svg?raw=true)
+
+## Apply gap fill
+
+Enables gap fill for the selected solid surfaces. The minimum gap length that will be filled can be controlled from the filter out tiny gaps option.
+
+1. **Everywhere:** Applies gap fill to top, bottom and internal solid surfaces for maximum strength.
+2. **Top and Bottom surfaces:** Applies gap fill to top and bottom surfaces only, balancing print speed, reducing potential over extrusion in the solid infill and making sure the top and bottom surfaces have no pinhole gaps.
+3. **Nowhere:** Disables gap fill for all solid infill areas.
+
+Note that if using the [classic perimeter generator](quality_settings_wall_generator#classic), gap fill may also be generated between perimeters, if a full width line cannot fit between them.
+That perimeter gap fill is not controlled by this setting.
+
+If you would like all gap fill, including the classic perimeter generated one, removed, set the filter out tiny gaps value to a large number, like 999999.
+
+However this is not advised, as gap fill between perimeters is contributing to the model's strength. For models where excessive gap fill is generated between perimeters, a better option would be to switch to the [arachne wall generator](quality_settings_wall_generator#arachne) and use this option to control whether the cosmetic top and bottom surface gap fill is generated.
+
+## Anchor
+
+Connect an infill line to an internal perimeter with a short segment of an additional perimeter. If expressed as percentage (example: 15%) it is calculated over infill extrusion width.
+OrcaSlicer tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment shorter than this parameter is found, the infill line is connected to a perimeter segment at just one side and the length of the perimeter segment taken is limited to infill_anchor, but no longer than this parameter. If set to 0, the old algorithm for infill connection will be used, it should create the same result as with 1000 & 0.
+
+- **Anchor Off**
+
+![InfillAnchorOff](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillAnchorOff.png?raw=true)
+
+- **Anchor On**
+
+![InfillAnchorOn](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillAnchorOn.png?raw=true)
 
 ## Sparse Infill Pattern
 
