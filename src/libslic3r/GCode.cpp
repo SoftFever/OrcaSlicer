@@ -3904,7 +3904,7 @@ LayerResult GCode::process_layer(
         if (layer_to_print.object_layer) {
             const auto& regions = layer_to_print.object_layer->regions();
             const bool  enable_overhang_speed = std::any_of(regions.begin(), regions.end(), [](const LayerRegion* r) {
-                return r->has_extrusions() && r->region().config().enable_overhang_speed && !r->region().config().overhang_speed_classic;
+                return r->has_extrusions() && r->region().config().enable_overhang_speed;
             });
             if (enable_overhang_speed) {
                 m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object,
@@ -4787,7 +4787,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     const auto speed_for_path = [&speed, &small_peri_speed](const ExtrusionPath& path) {
         // don't apply small perimeter setting for overhangs/bridges/non-perimeters
-        const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0 && (path.get_overhang_degree() == 0 || path.get_overhang_degree() > 5);
+        const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0;
         return is_small_peri ? small_peri_speed : speed;
     };
 
@@ -5166,39 +5166,6 @@ void GCode::GCodeOutputStream::write_format(const char* format, ...)
     va_end(args);
 }
 
-static std::map<int, std::string> overhang_speed_key_map =
-{
-    {1, "overhang_1_4_speed"},
-    {2, "overhang_2_4_speed"},
-    {3, "overhang_3_4_speed"},
-    {4, "overhang_4_4_speed"},
-    {5, "bridge_speed"},
-};
-
-double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_degree) {
-
-    //BBS: protection: overhang degree is float, make sure it not excess degree range
-    if (path_degree <= 0)
-        return normal_speed;
-
-    if (path_degree >= 5 )
-        return m_config.get_abs_value(overhang_speed_key_map[5].c_str());
-
-    int lower_degree_bound = int(path_degree);
-    if (path_degree==lower_degree_bound)
-        return m_config.get_abs_value(overhang_speed_key_map[lower_degree_bound].c_str());
-    int upper_degree_bound = lower_degree_bound + 1;
-
-    double lower_speed_bound = lower_degree_bound == 0 ? normal_speed : m_config.get_abs_value(overhang_speed_key_map[lower_degree_bound].c_str());
-    double upper_speed_bound = upper_degree_bound == 0 ? normal_speed : m_config.get_abs_value(overhang_speed_key_map[upper_degree_bound].c_str());
-
-    lower_speed_bound = lower_speed_bound == 0 ? normal_speed : lower_speed_bound;
-    upper_speed_bound = upper_speed_bound == 0 ? normal_speed : upper_speed_bound;
-
-    double speed_out = lower_speed_bound + (upper_speed_bound - lower_speed_bound) * (path_degree - lower_degree_bound);
-    return speed_out;
-}
-
 bool GCode::_needSAFC(const ExtrusionPath &path)
 {
     if (!m_small_area_infill_flow_compensator || !m_config.small_area_infill_flow_compensation.value)
@@ -5338,22 +5305,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (speed == -1) {
         if (path.role() == erPerimeter) {
             speed = m_config.get_abs_value("inner_wall_speed");
-            if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value) {
-                double new_speed = 0;
-                new_speed = get_overhang_degree_corr_speed(speed, path.overhang_degree);
-                speed = new_speed == 0.0 ? speed : new_speed;
-            }
-
             if (sloped) {
                 speed = std::min(speed, m_config.scarf_joint_speed.get_abs_value(m_config.get_abs_value("inner_wall_speed")));
             }
         } else if (path.role() == erExternalPerimeter) {
             speed = m_config.get_abs_value("outer_wall_speed");
-            if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value ) {
-                double new_speed = 0;
-                new_speed = get_overhang_degree_corr_speed(speed, path.overhang_degree);
-                speed = new_speed == 0.0 ? speed : new_speed;
-            }
             if (sloped) {
                 speed = std::min(speed, m_config.scarf_joint_speed.get_abs_value(m_config.get_abs_value("outer_wall_speed")));
             }
@@ -5461,7 +5417,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     bool variable_speed = false;
     std::vector<ProcessedPoint> new_points {};
 
-    if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic && !this->on_first_layer() &&
+    if (m_config.enable_overhang_speed && !this->on_first_layer() &&
         (is_bridge(path.role()) || is_perimeter(path.role()))) {
             bool is_external = is_external_perimeter(path.role());
             double ref_speed   = is_external ? m_config.get_abs_value("outer_wall_speed") : m_config.get_abs_value("inner_wall_speed");
@@ -5746,11 +5702,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 if (enable_overhang_bridge_fan) {
                     // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
                     // perimeter
-                    int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
-                    : overhang_fan_threshold - 1;
                     if ((overhang_fan_threshold == Overhang_threshold_none && is_external_perimeter(path.role())) ||
-                        (path.get_overhang_degree() > overhang_threshold ||
-                         (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter))) { // ORCA: Add support for separate internal bridge fan speed control
+                        (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter)) { // ORCA: Add support for separate internal bridge fan speed control
                         if (!m_is_overhang_fan_on) {
                             gcode += ";_OVERHANG_FAN_START\n";
                             m_is_overhang_fan_on = true;

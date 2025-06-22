@@ -323,10 +323,6 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     SetBackgroundColour(SAVE_PRESET_DIALOG_DEF_COLOUR);
     SetFont(wxGetApp().normal_font());
 
-    // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     if (suffix.empty()) suffix = _CTX_utf8(L_CONTEXT("Copy", "PresetName"), "PresetName");
 
     wxBoxSizer *m_Sizer_main = new wxBoxSizer(wxVERTICAL);
