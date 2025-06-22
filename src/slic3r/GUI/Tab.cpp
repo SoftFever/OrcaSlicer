@@ -2302,9 +2302,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("default_junction_deviation");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "speed_extrusion_rate_smoothing");
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "speed_extrusion_rate_smoothing");
-        optgroup->append_single_option_line("extrusion_rate_smoothing_external_perimeter_only", "speed_extrusion_rate_smoothing");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "speed_settings_extrusion_rate_smoothing");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length", "speed_settings_extrusion_rate_smoothing");
+        optgroup->append_single_option_line("extrusion_rate_smoothing_external_perimeter_only", "speed_settings_extrusion_rate_smoothing");
 
     page = add_options_page(L("Support"), "custom-gcode_support"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Support"), L"param_support");
