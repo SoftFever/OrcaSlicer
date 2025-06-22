@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 project(OrcaSlicer-native)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 add_subdirectory(build-utils)
 add_subdirectory(admesh)
 # add_subdirectory(avrdude)
 add_subdirectory(clipper)
-add_subdirectory(clipper2)
 add_subdirectory(miniz)
 add_subdirectory(minilzo)
 add_subdirectory(glu-libtess)

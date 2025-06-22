@@ -686,11 +686,9 @@ endif ()
 
 find_path(SPNAV_INCLUDE_DIR spnav.h)
 if (SPNAV_INCLUDE_DIR)
-    find_library(HAVE_SPNAV spnav)
-    if (HAVE_SPNAV)
+    find_library(SPNAV_LIB NAMES libspnav.a) # Force linking libspnav statically
+    if (SPNAV_LIB)
         add_definitions(-DHAVE_SPNAV)
-        add_library(libspnav SHARED IMPORTED)
-        target_link_libraries(libspnav INTERFACE spnav)
         message(STATUS "SPNAV library found")
     else()
         message(STATUS "SPNAV library NOT found, Spacenavd not supported")
