@@ -136,7 +136,7 @@ void CheckList::SelectAll(bool value)
 void CheckList::SelectVisible(bool value)
 {
     auto filter = m_filter_ctrl->GetValue().Lower();
-    if((!value && filter != "::unsel") || (value && filter != "::sel"))
+    if((!value && filter == "::unsel") || (value && filter == "::sel"))
         m_filter_ctrl->SetValue("");
     for (size_t i = 0; i < m_list_size; ++i)
         if(m_checks[i]->IsShown())
