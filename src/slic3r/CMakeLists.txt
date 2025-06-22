@@ -38,6 +38,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/Scrollbar.hpp
     GUI/Widgets/ScrolledWindow.cpp
     GUI/Widgets/ScrolledWindow.hpp
+    GUI/Widgets/LabeledStaticBox.cpp
+    GUI/Widgets/LabeledStaticBox.hpp
     GUI/Widgets/StaticBox.cpp
     GUI/Widgets/StaticBox.hpp
     GUI/Widgets/ImageSwitchButton.cpp
@@ -70,6 +72,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/StepCtrl.hpp
     GUI/Widgets/ProgressBar.cpp
     GUI/Widgets/ProgressBar.hpp
+    GUI/Widgets/RadioGroup.cpp
+    GUI/Widgets/RadioGroup.hpp
     GUI/Widgets/SideTools.cpp
     GUI/Widgets/SideTools.hpp
     GUI/Widgets/WebView.cpp
@@ -619,7 +623,7 @@ add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 target_include_directories(libslic3r_gui PRIVATE Utils)
 
 if (WIN32)
-    target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/WebView2/include)
+    target_include_directories(libslic3r_gui SYSTEM PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/WebView2/include)
 endif()
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
@@ -636,9 +640,9 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)
     FIND_LIBRARY(WAYLAND_CLIENT_LIBRARIES NAMES wayland-client)
     find_package(CURL REQUIRED)
-    target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES} OSMesa)
     target_link_libraries(libslic3r_gui
         OpenGL::EGL
+        ${DBUS_LIBRARIES}
         ${WAYLAND_SERVER_LIBRARIES}
         ${WAYLAND_EGL_LIBRARIES}
         ${WAYLAND_CLIENT_LIBRARIES}
@@ -654,8 +658,8 @@ if (SLIC3R_STATIC)
     target_compile_definitions(libslic3r_gui PUBLIC -DwxDEBUG_LEVEL=0)
 endif()
 
-if (HAVE_SPNAV)
-    target_link_libraries(libslic3r_gui spnav)
+if (SPNAV_LIB)
+    target_link_libraries(libslic3r_gui ${SPNAV_LIB})
 endif()
 
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL AND UNIX AND NOT APPLE)

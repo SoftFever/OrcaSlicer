@@ -19,6 +19,7 @@ public:
         wxWindow(parent,wxID_ANY,rect.GetTopLeft(),rect.GetSize()),
         scale_unit(scale_unit), legend_side(5*scale_unit)
     {
+        SetBackgroundColour(*wxWHITE);
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         m_rect = wxRect(wxPoint(legend_side,0),rect.GetSize()-wxSize(legend_side,legend_side));
         visible_area = wxRect2DDouble(0.0, 0.0, sampling*ramming_speed_size, 20.);
@@ -46,8 +47,8 @@ public:
     void mouse_right_button_clicked(wxMouseEvent& event);
     void mouse_moved(wxMouseEvent& event);
     void mouse_double_clicked(wxMouseEvent& event);
-    void mouse_left_window(wxMouseEvent&) { m_dragged = nullptr; }        
-    void mouse_released(wxMouseEvent&)    { m_dragged = nullptr; }
+    void mouse_left_window(wxMouseEvent&) { m_dragged = nullptr; SetCursor(wxNullCursor);}        
+    void mouse_released(wxMouseEvent&)    { m_dragged = nullptr; SetCursor(wxNullCursor);}
     void paint_event(wxPaintEvent&) { draw(); }
     DECLARE_EVENT_TABLE()
     
@@ -58,7 +59,7 @@ private:
     static const bool fixed_x = true;
     static const bool splines = true;
     static const bool manual_points_manipulation = false;
-    static const int side = 10; // side of draggable button
+    int side = 10; // side of draggable button
 
     const int scale_unit;
     int legend_side;
