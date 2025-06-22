@@ -6075,8 +6075,9 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
         if (dlg.ShowModal() == wxID_OK) {
             selections.Clear();
             selections = dlg.GetSelections();
-            for (auto idx : selections)
-                value.push_back(presets[idx].ToUTF8().data());
+            if(selections.GetCount() != presets.GetCount()) // leave list empty if all items checked to check "All" checkbox. also fixes unnecessary config change
+                for (auto idx : selections)
+                    value.push_back(presets[idx].ToUTF8().data());
             if (value.empty()) {
                 deps.checkbox->SetValue(1);
                 deps.btn->Disable();
