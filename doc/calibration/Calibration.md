@@ -25,7 +25,7 @@ The recommended order for calibration is as follows:
 
    - **[Adaptative Pressure Advance](adaptive-pressure-advance-calib):** This is an advanced calibration technique that can be used to further optimize the pressure advance settings for different print speeds and geometries.
 
-   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa-tower.jpg?raw=true" alt="pa-tower" height="200">
+   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-tower.jpg?raw=true" alt="pa-tower" height="200">
 
 2. **[Retraction](retraction-calib):** Calibrate the retraction settings to minimize stringing and improve print quality. Doing this after Flow and
 
