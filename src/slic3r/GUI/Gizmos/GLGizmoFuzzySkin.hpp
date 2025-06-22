@@ -18,6 +18,9 @@ protected:
     void        on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
 
+    // BBS
+    void render_triangles(const Selection& selection) const override;
+
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
     std::string get_gizmo_entering_text() const override { return _u8L("Entering Paint-on fuzzy skin"); }
