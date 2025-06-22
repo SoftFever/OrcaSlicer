@@ -2138,14 +2138,14 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Wall generator"), L"param_wall_generator");
         optgroup->append_single_option_line("wall_generator", "quality_settings_wall-generator");
-        optgroup->append_single_option_line("wall_transition_angle");
-        optgroup->append_single_option_line("wall_transition_filter_deviation");
-        optgroup->append_single_option_line("wall_transition_length");
-        optgroup->append_single_option_line("wall_distribution_count");
-        optgroup->append_single_option_line("initial_layer_min_bead_width");
-        optgroup->append_single_option_line("min_bead_width");
-        optgroup->append_single_option_line("min_feature_size");
-        optgroup->append_single_option_line("min_length_factor");
+        optgroup->append_single_option_line("wall_transition_angle", "quality_settings_wall-generator#arachne");
+        optgroup->append_single_option_line("wall_transition_filter_deviation", "quality_settings_wall-generator#arachne");
+        optgroup->append_single_option_line("wall_transition_length", "quality_settings_wall-generator#arachne");
+        optgroup->append_single_option_line("wall_distribution_count", "quality_settings_wall-generator#arachne");
+        optgroup->append_single_option_line("initial_layer_min_bead_width", "quality_settings_wall-generator#arachne");
+        optgroup->append_single_option_line("min_bead_width", "quality_settings_wall-generator#arachne");
+        optgroup->append_single_option_line("min_feature_size", "quality_settings_wall-generator#arachne");
+        optgroup->append_single_option_line("min_length_factor", "quality_settings_wall-generator#arachne");
 
         optgroup = page->new_optgroup(L("Walls and surfaces"), L"param_wall_surface");
         optgroup->append_single_option_line("wall_sequence");
