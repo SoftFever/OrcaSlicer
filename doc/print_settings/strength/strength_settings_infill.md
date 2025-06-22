@@ -6,6 +6,7 @@ Infill is the internal structure of a 3D print, providing strength and support. 
 - [Infill Wall Overlap](#infill-wall-overlap)
 - [Apply gap fill](#apply-gap-fill)
 - [Anchor](#anchor)
+- [Internal Solid Infill](#internal-solid-infill)
 - [Sparse Infill Pattern](#sparse-infill-pattern)
   - [Concentric](#concentric)
   - [Rectilinear](#rectilinear)
@@ -76,6 +77,10 @@ OrcaSlicer tries to connect two close infill lines to a short perimeter segment.
 - **Anchor On**
 
 ![InfillAnchorOn](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillAnchorOn.png?raw=true)
+
+## Internal Solid Infill
+
+Line pattern of internal solid infill. If the [detect narrow internal solid infill](strength_settings_advanced#detect-narrow-internal-solid-infill) be enabled, the concentric pattern will be used for the small area.
 
 ## Sparse Infill Pattern
 
