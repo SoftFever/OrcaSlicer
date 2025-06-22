@@ -161,6 +161,9 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "lightning",          ipLightning },
     { "crosshatch",         ipCrossHatch},
     { "quartercubic",       ipQuarterCubic},
+    { "zigzag",             ipZigZag },
+    { "crosszag",           ipCrossZag },
+    { "lockedzag",          ipLockedZag }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -2348,13 +2351,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(45));
 
-    def = this->add("rotate_solid_infill_direction", coBool);
-    def->label = L("Rotate solid infill direction");
-    def->category = L("Strength");
-    def->tooltip = L("Rotate the solid infill direction by 90° for each layer.");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
-
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
     def->category = L("Strength");
@@ -2392,6 +2388,9 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("crosshatch");
     def->enum_values.push_back("quartercubic");
+    def->enum_values.push_back("zigzag");
+    def->enum_values.push_back("crosszag");
+    def->enum_values.push_back("lockedzag");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -2414,6 +2413,9 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Cross Hatch"));
     def->enum_labels.push_back(L("Quarter Cubic"));
+    def->enum_labels.push_back(L("Zig Zag"));
+    def->enum_labels.push_back(L("Cross Zag"));
+    def->enum_labels.push_back(L("Locked Zag"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
     def           = this->add("lattice_angle_1", coFloat);
@@ -3098,6 +3100,113 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Automatically Combine sparse infill of several layers to print together to reduce time. Wall is still printed "
                      "with original layer height.");
     def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("infill_shift_step", coFloat);
+    def->label    = L("Infill shift step");
+    def->category = L("Strength");
+    def->tooltip  = L("This parameter adds a slight displacement to each layer of infill to create a cross texture.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 10;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.4));
+
+    //Orca
+    def           = this->add("sparse_infill_rotate_template", coString);
+    def->label    = L("Sparse infill rotatation template");
+    def->category = L("Strength");
+    def->tooltip  = L("This parameter adds a rotation of sparse infill direction to each layer according to the specified template. "
+                      "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
+                      "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
+                      "If there are more layers than angles, the angles will be repeated. Note that not all all sparse infill patterns support rotation.");
+    def->sidetext = L("°");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionString("0,90"));
+
+    //Orca
+    def           = this->add("solid_infill_rotate_template", coString);
+    def->label    = L("Solid infill rotatation template");
+    def->category = L("Strength");
+    def->tooltip  = L("This parameter adds a rotation of solid infill direction to each layer according to the specified template. "
+                      "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
+                      "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
+                      "If there are more layers than angles, the angles will be repeated. Note that not all all solid infill patterns support rotation.");
+    def->sidetext = L("°");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionString("0,90"));
+
+
+    def           = this->add("skeleton_infill_density", coPercent);
+    def->label    = L("Skeleton infill density");
+    def->category = L("Strength");
+    def->tooltip  = L("The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section."
+                      "When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections."
+                      "default is as same as infill density.");
+    def->sidetext = "%";
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(25));
+
+    def           = this->add("skin_infill_density", coPercent);
+    def->label    = L("Skin infill density");
+    def->category = L("Strength");
+    def->tooltip  = L("The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section."
+                      "When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions."
+                     "default is as same as infill density.");
+    def->sidetext = "%";
+    def->min  = 0;
+    def->max  = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(25));
+
+    def           = this->add("skin_infill_depth", coFloat);
+    def->label    = L("Skin infill depth");
+    def->category = L("Strength");
+    def->tooltip  = L("The parameter sets the depth of skin.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(2.0));
+
+    def           = this->add("infill_lock_depth", coFloat);
+    def->label    = L("Infill lock depth");
+    def->category = L("Strength");
+    def->tooltip  = L("The parameter sets the overlapping depth between the interior and skin.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.0));
+
+    def           = this->add("skin_infill_line_width", coFloatOrPercent);
+    def->label    = L("Skin line width");
+    def->category = L("Strength");
+    def->tooltip  = L("Adjust the line width of the selected skin paths.");
+    def->sidetext = L("mm");
+    def->ratio_over = "nozzle_diameter";
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(0.4, false));
+
+    def           = this->add("skeleton_infill_line_width", coFloatOrPercent);
+    def->label    = L("Skeleton line width");
+    def->category = L("Strength");
+    def->tooltip  = L("Adjust the line width of the selected skeleton paths.");
+    def->sidetext = L("mm");
+    def->ratio_over = "nozzle_diameter";
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(0.4, false));
+
+    def           = this->add("symmetric_infill_y_axis", coBool);
+    def->label    = L("Symmetric infill y axis");
+    def->category = L("Strength");
+    def->tooltip  = L("If the model has two parts that are symmetric about the y-axis,"
+                      " and you want these parts to have symmetric textures, please click this option on one of the parts.");
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     // Orca: max layer height for combined infill
@@ -6681,33 +6790,31 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         else if (value == "0"){
             value = "ensure_moderate";
         }
-    }
-    else if (opt_key == "sparse_infill_anchor") {
+    } else if (opt_key == "rotate_solid_infill_direction") {
+        opt_key = "solid_infill_rotate_template";
+        if (value == "1") {
+            value = "0,90";
+        } else if (value == "0") {
+            value = "0";
+        }
+    } else if (opt_key == "sparse_infill_anchor") {
         opt_key = "infill_anchor";
-    } 
-    else if (opt_key == "sparse_infill_anchor_max") {
+    } else if (opt_key == "sparse_infill_anchor_max") {
         opt_key = "infill_anchor_max";
-    }
-    else if (opt_key == "chamber_temperatures") {
+    } else if (opt_key == "chamber_temperatures") {
         opt_key = "chamber_temperature";
-    }
-    else if (opt_key == "thumbnail_size") {
+    } else if (opt_key == "thumbnail_size") {
         opt_key = "thumbnails";
-    }
-    else if (opt_key == "top_one_wall_type" && value != "none") {
+    } else if (opt_key == "top_one_wall_type" && value != "none") {
         opt_key = "only_one_wall_top";
         value = "1";
-    }
-    else if (opt_key == "initial_layer_flow_ratio") {
+    } else if (opt_key == "initial_layer_flow_ratio") {
         opt_key = "bottom_solid_infill_flow_ratio";
-    }
-    else if(opt_key == "ironing_direction") {
+    } else if (opt_key == "ironing_direction") {
         opt_key = "ironing_angle";
-    }
-    else if(opt_key == "counterbole_hole_bridging") {
+    } else if (opt_key == "counterbole_hole_bridging") {
         opt_key = "counterbore_hole_bridging";
-    }
-    else if (opt_key == "draft_shield" && value == "limited") {
+    } else if (opt_key == "draft_shield" && value == "limited") {
         value = "disabled";
     }
 
@@ -7328,7 +7435,9 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
             "internal_solid_infill_line_width",
             "top_surface_line_width",
             "support_line_width",
-            "initial_layer_line_width" };
+            "initial_layer_line_width",
+            "skin_infill_line_width",
+            "skeleton_infill_line_width"};
         for (size_t i = 0; i < sizeof(widths) / sizeof(widths[i]); ++ i) {
             std::string key(widths[i]);
             if (cfg.get_abs_value(key, max_nozzle_diameter) > 2.5 * max_nozzle_diameter) {
