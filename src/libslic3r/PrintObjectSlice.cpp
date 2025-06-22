@@ -1,16 +1,16 @@
+#include <boost/log/trivial.hpp>
+
+#include <tbb/parallel_for.h>
+
+#include "ClipperUtils.hpp"
 #include "ElephantFootCompensation.hpp"
 #include "I18N.hpp"
 #include "Layer.hpp"
 #include "MultiMaterialSegmentation.hpp"
 #include "Print.hpp"
-#include "ClipperUtils.hpp"
-#include "Interlocking/InterlockingGenerator.hpp"
 //BBS
 #include "ShortestPath.hpp"
-
-#include <boost/log/trivial.hpp>
-
-#include <tbb/parallel_for.h>
+#include "libslic3r/Feature/Interlocking/InterlockingGenerator.hpp"
 
 //! macro used to mark string used at localization, return same string
 #define L(s) Slic3r::I18N::translate(s)
