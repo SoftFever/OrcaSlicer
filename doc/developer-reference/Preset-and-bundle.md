@@ -9,7 +9,7 @@ As the name might suggest this class deals with presets for various things. It d
 
 - `TYPE_PRINT`: Refers to a process preset. It's called 'Print' probably due to some legacy code.
 
-![process-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process-preset.png?raw=true)
+![process-preset-full](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process-preset-full.png?raw=true)
 
 - `TYPE_FILAMENT`: As the name suggests this preset is for filaments
 
