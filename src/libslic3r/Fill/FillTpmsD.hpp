@@ -25,20 +25,20 @@ public:
     // speed in default configuration (degrees)
     static constexpr float CorrectionAngle = -45.;
 
+    void _fill_surface_single(const FillParams&              params,
+                              unsigned int                   thickness_layers,
+                              const std::pair<float, Point>& direction,
+                              ExPolygon                      expolygon,
+                              Polylines&                     polylines_out) override;
+
+    bool is_self_crossing() override { return false; }
+
     // Density adjustment to have a good %of weight.
     static constexpr double DensityAdjust = 2.1;
 
     // Gyroid upper resolution tolerance (mm^-2)
     static constexpr double PatternTolerance = 0.1;
 
-
-protected:
-    void _fill_surface_single(
-        const FillParams                &params, 
-        unsigned int                     thickness_layers,
-        const std::pair<float, Point>   &direction, 
-        ExPolygon                        expolygon,
-        Polylines                       &polylines_out) override;
 };
 
 } // namespace Slic3r

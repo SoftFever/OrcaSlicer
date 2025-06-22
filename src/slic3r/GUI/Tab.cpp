@@ -1470,6 +1470,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+    if (opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
+        update_wiping_button_visibility();
+
 
     if (opt_key == "pellet_flow_coefficient") 
     {
@@ -1480,6 +1483,44 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "filament_diameter") {
         double double_value = Preset::convert_filament_diameter_to_pellet_flow(boost::any_cast<double>(value));
         m_config->set_key_value("pellet_flow_coefficient", new ConfigOptionFloats{double_value});
+    }
+    
+
+    if (opt_key == "single_extruder_multi_material"  ){
+        const auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
+        wxGetApp().sidebar().show_SEMM_buttons(bSEMM);
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+    }
+
+    if(opt_key == "purge_in_prime_tower")
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+
+
+    if (opt_key == "enable_prime_tower") {
+        auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+        bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
+        if (!boost::any_cast<bool>(value) && timelapse_enabled) {
+            MessageDialog dlg(wxGetApp().plater(), _L("A prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
+                              _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+            if (dlg.ShowModal() == wxID_NO) {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+            wxGetApp().plater()->update();
+        }
+        bool is_precise_z_height = m_config->option<ConfigOptionBool>("precise_z_height")->value;
+        if (boost::any_cast<bool>(value) && is_precise_z_height) {
+            MessageDialog dlg(wxGetApp().plater(), _L("Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"),
+                _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+            if (dlg.ShowModal() == wxID_NO) {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(false));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+            wxGetApp().plater()->update();
+        }
+        update_wiping_button_visibility();
     }
     
 
@@ -2165,20 +2206,30 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
         optgroup->append_single_option_line("sparse_infill_pattern", "strength_settings_infill#sparse-infill-pattern");
+        optgroup->append_single_option_line("infill_direction");
+        optgroup->append_single_option_line("sparse_infill_rotate_template");
+        optgroup->append_single_option_line("skin_infill_density");
+        optgroup->append_single_option_line("skeleton_infill_density");
+        optgroup->append_single_option_line("infill_lock_depth");
+        optgroup->append_single_option_line("skin_infill_depth");
+        optgroup->append_single_option_line("skin_infill_line_width", "parameter/line-width");
+        optgroup->append_single_option_line("skeleton_infill_line_width", "parameter/line-width");
+        optgroup->append_single_option_line("symmetric_infill_y_axis");
+        optgroup->append_single_option_line("infill_shift_step");
+
         optgroup->append_single_option_line("lattice_angle_1");
         optgroup->append_single_option_line("lattice_angle_2");
         optgroup->append_single_option_line("infill_overhang_angle");
         optgroup->append_single_option_line("infill_anchor_max");
         optgroup->append_single_option_line("infill_anchor");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
+        optgroup->append_single_option_line("solid_infill_direction");
+        optgroup->append_single_option_line("solid_infill_rotate_template");
         optgroup->append_single_option_line("gap_fill_target");
         optgroup->append_single_option_line("filter_out_gap_fill");
         optgroup->append_single_option_line("infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("infill_direction");
-        optgroup->append_single_option_line("solid_infill_direction");
-        optgroup->append_single_option_line("rotate_solid_infill_direction");
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("internal_bridge_angle"); // ORCA: Internal bridge angle override
         optgroup->append_single_option_line("minimum_sparse_infill_area");
