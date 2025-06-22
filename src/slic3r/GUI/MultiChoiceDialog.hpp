@@ -38,20 +38,25 @@ public:
 private:
     void ShowMenu(wxMouseEvent &e);
 
-    wxScrolledWindow* m_scroll_area;
+    std::vector<wxCheckBox*> m_checks;
+    int               m_list_size;
+    bool              m_first_load;
+    wxBoxSizer*       w_sizer;
+
     wxPanel*          f_bar;
+    wxBoxSizer*       f_sizer;
     TextInput*        m_filter_box;
     wxTextCtrl*       m_filter_ctrl;
-    wxStaticText*     m_no_items;
-    wxBoxSizer*       f_sizer;
     wxBoxSizer*       fb_sizer;
-    wxBoxSizer*       s_sizer;
-    wxBoxSizer*       w_sizer;
-    wxFont            m_font;
-    int               m_list_size;
-    std::vector<wxCheckBox*> m_checks;
     wxStaticBitmap*   m_menu_button;
-    bool              m_first_load;
+
+    wxScrolledWindow* m_scroll_area;
+    wxBoxSizer*       s_sizer;
+
+    wxStaticText*     m_info;
+    wxString          m_info_nonsel;
+    wxString          m_info_allsel;
+    wxString          m_info_empty;
 
     ScalableBitmap    m_cb_on;
     ScalableBitmap    m_cb_off;

@@ -6070,6 +6070,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
                         break;
                     }
         dlg.SetSelections(selections);
+        dlg.SetSize(FromDIP(wxSize(360, 480)));
         std::vector<std::string> value;
         // Show the dialog.
         if (dlg.ShowModal() == wxID_OK) {
