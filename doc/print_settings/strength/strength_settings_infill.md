@@ -3,6 +3,9 @@
 Infill is the internal structure of a 3D print, providing strength and support. It can be adjusted to balance material usage, print time, and part strength.
 
 - [Sparse infill density](#sparse-infill-density)
+- [Direction and Rotation](#direction-and-rotation)
+  - [Direction](#direction)
+  - [Rotation](#rotation)
 - [Infill Wall Overlap](#infill-wall-overlap)
 - [Apply gap fill](#apply-gap-fill)
 - [Anchor](#anchor)
@@ -37,6 +40,38 @@ Density usually should be calculated as a % of the total infill volume, not the 
 Higher density increases strength but also material usage and print time. Lower density saves material and time but reduces strength.
 
 Nevertheless, **not all patterns interpret density the same way**, so the actual material usage may vary. You can see each pattern's material usage in the [Sparse Infill Pattern](#sparse-infill-pattern) section.
+
+## Direction and Rotation
+
+### Direction
+
+Controls the direction of the infill lines to optimize or strengthen the print.
+
+### Rotation
+
+This parameter adds a rotation to the sparse infill direction for each layer according to the specified template. The template is a comma-separated list of angles in degrees.
+
+For example:
+
+```c++
+0,90
+```
+
+The first layer uses 0°, the second uses 90°, and the pattern repeats for subsequent layers.
+
+Other examples:
+
+```c++
+0,45,90
+```
+
+```c++
+0,60,120,180
+```
+
+If there are more layers than angles, the sequence repeats.
+> [!NOTE]
+> Not all sparse infill patterns support rotation.
 
 ## Infill Wall Overlap
 
