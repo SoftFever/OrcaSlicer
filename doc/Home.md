@@ -11,7 +11,7 @@ Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wik
   - [Speed Settings](#speed-settings)
   - [Support Settings](#support-settings)
   - [Multimaterial Settings](#multimaterial-settings)
-  - [Other Settings](#other-settings)
+  - [Others Settings](#others-settings)
 - [Calibrations](#calibrations)
 - [Developer Section](#developer-section)
 
@@ -44,7 +44,8 @@ The below sections provide a detailed settings explanation as well as tips and t
 
 ### Quality Settings
 
-![process-quality](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/process/process-quality.png?raw=true)
+![process-quality](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-quality.png?raw=true)
+
 
 - [Layer Height Settings](quality_settings_layer_height)
 - [Line Width Settings](quality_settings_line_width)
@@ -64,31 +65,31 @@ The below sections provide a detailed settings explanation as well as tips and t
 
 ### Strength Settings
 
-![process-strength](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/process/process-strength.png?raw=true)
+![process-strength](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-strength.png?raw=true)
 
 - [Infill](strength_settings_infill)
 
 ### Speed Settings
 
-![process-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/process/process-speed.png?raw=true)
+![process-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-speed.png?raw=true)
 
 - [Extrusion rate smoothing](speed_extrusion_rate_smoothing)
 
 ### Support Settings
 
-![process-support](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/process/process-support.png?raw=true)
+![process-support](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-support.png?raw=true)
 
 WIP...
 
 ### Multimaterial Settings
 
-![process-multimaterial](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/process/process-multimaterial.png?raw=true)
+![process-multimaterial](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-multimaterial.png?raw=true)
 
 WIP...
 
-### Other Settings
+### Others Settings
 
-![process-other](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/process/process-other.png?raw=true)
+![process-others](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-others.png?raw=true)
 
 WIP...
 
