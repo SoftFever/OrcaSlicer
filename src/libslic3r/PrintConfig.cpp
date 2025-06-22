@@ -5362,7 +5362,8 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Density of top surface layer. A value of 100% creates a fully solid, smooth top layer. "
                      "Reducing this value results in a textured top surface, according to the chosen top surface pattern. "
-                     "A value of 0% will result in only the walls on the top layer being created.");
+                     "A value of 0% will result in only the walls on the top layer being created. "
+                     "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
@@ -5371,8 +5372,9 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("bottom_surface_density", coPercent);
     def->label    = L("Bottom surface density");
     def->category = L("Strength");
-    def->tooltip = L("Density of the bottom surface layer.\n"
-                     "WARNING: Lowering this value may negatively affect bed adhesion.\n");
+    def->tooltip = L("Density of the bottom surface layer. "
+                     "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.\n"
+                     "WARNING: Lowering this value may negatively affect bed adhesion.");
     def->sidetext = L("%");
     def->min      = 10;
     def->max      = 100;
