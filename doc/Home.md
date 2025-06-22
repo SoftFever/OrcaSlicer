@@ -72,6 +72,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 
 ![process-strength](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-strength.png?raw=true)
 
+- [Top and Bottom Shells](strength_settings_top_bottom_shells)
 - [Infill](strength_settings_infill)
 
 ### Speed Settings

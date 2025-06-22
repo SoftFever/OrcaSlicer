@@ -1522,7 +1522,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
         update_wiping_button_visibility();
     }
-    
+
 
     if (opt_key == "single_extruder_multi_material"  ){
         const auto bSEMM = m_config->opt_bool("single_extruder_multi_material");
@@ -2195,15 +2195,15 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_thin_wall");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
-        optgroup->append_single_option_line("top_shell_layers");
-        optgroup->append_single_option_line("top_shell_thickness");
-        optgroup->append_single_option_line("top_surface_density");
-        optgroup->append_single_option_line("top_surface_pattern");
-        optgroup->append_single_option_line("bottom_shell_layers");
-        optgroup->append_single_option_line("bottom_shell_thickness");
-        optgroup->append_single_option_line("bottom_surface_density");  
-        optgroup->append_single_option_line("bottom_surface_pattern");
-        optgroup->append_single_option_line("top_bottom_infill_wall_overlap");
+        optgroup->append_single_option_line("top_shell_layers", "strength_top-bottom_shells");
+        optgroup->append_single_option_line("top_shell_thickness", "strength_top-bottom_shells");
+		optgroup->append_single_option_line("top_surface_density", "strength_top-bottom_shells");
+        optgroup->append_single_option_line("top_surface_pattern", "strength_top-bottom_shells");
+        optgroup->append_single_option_line("bottom_shell_layers", "strength_top-bottom_shells");
+        optgroup->append_single_option_line("bottom_shell_thickness", "strength_top-bottom_shells");
+		optgroup->append_single_option_line("bottom_surface_density", "strength_top-bottom_shells");
+        optgroup->append_single_option_line("bottom_surface_pattern", "strength_top-bottom_shells");
+        optgroup->append_single_option_line("top_bottom_infill_wall_overlap", "strength_top-bottom_shells");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
