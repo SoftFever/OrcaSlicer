@@ -482,6 +482,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp
     GUI/KBShortcutsDialog.cpp
+    GUI/MultiChoiceDialog.hpp
+    GUI/MultiChoiceDialog.cpp
     GUI/MultiMachine.hpp
     GUI/MultiMachine.cpp
     GUI/MultiMachinePage.hpp
