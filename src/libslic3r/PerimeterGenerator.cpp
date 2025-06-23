@@ -19,7 +19,6 @@
 #include <thread>
 #include "libslic3r/AABBTreeLines.hpp"
 #include "Print.hpp"
-#include "Algorithm/LineSplit.hpp"
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
 //BBS: when the width of expolygon is smaller than
@@ -27,9 +26,9 @@ static const double narrow_loop_length_threshold = 10;
 //we think it's small detail area and will generate smaller line width for it
 static constexpr double SMALLER_EXT_INSET_OVERLAP_TOLERANCE = 0.22;
 
-//#define DEBUG_FUZZY
-
 namespace Slic3r {
+    
+using namespace Slic3r::Feature::FuzzySkin;
 
 // Hierarchy of perimeters.
 class PerimeterGeneratorLoop {
@@ -101,12 +100,9 @@ static bool detect_steep_overhang(const PrintRegionConfig *config,
 static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls,
     bool &steep_overhang_contour, bool &steep_overhang_hole)
 {
-    using namespace Slic3r::Feature::FuzzySkin;
-
     // loops is an arrayref of ::Loop objects
     // turn each one into an ExtrusionLoop object
     ExtrusionEntityCollection   coll;
-    Polygon                     fuzzified;
     
     // Detect steep overhangs
     bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
@@ -150,99 +146,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             extrusion_mm3_per_mm = perimeter_generator.mm3_per_mm();
             extrusion_width = perimeter_generator.perimeter_flow.width();
         }
-        const Polygon& polygon = *([&perimeter_generator, &loop, &fuzzified]() ->const Polygon* {
-            const auto& regions = perimeter_generator.regions_by_fuzzify;
-            if (regions.size() == 1) { // optimization
-                const auto& config  = regions.begin()->first;
-                const bool fuzzify = should_fuzzify(config, perimeter_generator.layer_id, loop.depth, loop.is_contour);
-                if (!fuzzify) {
-                    return &loop.polygon;
-                }
 
-                fuzzified = loop.polygon;
-                fuzzy_polyline(fuzzified.points, true, perimeter_generator.slice_z, config);
-                return &fuzzified;
-            }
-
-            // Find all affective regions
-            std::vector<std::pair<const FuzzySkinConfig&, const ExPolygons&>> fuzzified_regions;
-            fuzzified_regions.reserve(regions.size());
-            for (const auto & region : regions) {
-                if (should_fuzzify(region.first, perimeter_generator.layer_id, loop.depth, loop.is_contour)) {
-                    fuzzified_regions.emplace_back(region.first, region.second);
-                }
-            }
-            if (fuzzified_regions.empty()) {
-                return &loop.polygon;
-            }
-
-#ifdef DEBUG_FUZZY
-            {
-                int i = 0;
-                for (const auto & r : fuzzified_regions) {
-                    BoundingBox bbox = get_extents(perimeter_generator.slices->surfaces);
-                    bbox.offset(scale_(1.));
-                    ::Slic3r::SVG svg(debug_out_path("fuzzy_traverse_loops_%d_%d_%d_region_%d.svg", perimeter_generator.layer_id, loop.is_contour ? 0 : 1, loop.depth, i).c_str(), bbox);
-                    svg.draw_outline(perimeter_generator.slices->surfaces);
-                    svg.draw_outline(loop.polygon, "green");
-                    svg.draw(r.second, "red", 0.5);
-                    svg.draw_outline(r.second, "red");
-                    svg.Close();
-                    i++;
-                }
-            }
-#endif
-
-            // Split the loops into lines with different config, and fuzzy them separately
-            fuzzified = loop.polygon;
-            for (const auto& r : fuzzified_regions) {
-                const auto splitted = Algorithm::split_line(fuzzified, r.second, true);
-                if (splitted.empty()) {
-                    // No intersection, skip
-                    continue;
-                }
-
-                // Fuzzy splitted polygon
-                if (std::all_of(splitted.begin(), splitted.end(), [](const Algorithm::SplitLineJunction& j) { return j.clipped; })) {
-                    // The entire polygon is fuzzified
-                    fuzzy_polyline(fuzzified.points, true, perimeter_generator.slice_z, r.first);
-                } else {
-                    Points segment;
-                    segment.reserve(splitted.size());
-                    fuzzified.points.clear();
-
-                    const auto slice_z = perimeter_generator.slice_z;
-                    const auto fuzzy_current_segment = [&segment, &fuzzified, &r, slice_z]() {
-                        fuzzified.points.push_back(segment.front());
-                        const auto back = segment.back();
-                        fuzzy_polyline(segment, false, slice_z, r.first);
-                        fuzzified.points.insert(fuzzified.points.end(), segment.begin(), segment.end());
-                        fuzzified.points.push_back(back);
-                        segment.clear();
-                    };
-
-                    for (const auto& p : splitted) {
-                        if (p.clipped) {
-                            segment.push_back(p.p);
-                        } else {
-                            if (segment.empty()) {
-                                fuzzified.points.push_back(p.p);
-                            } else {
-                                segment.push_back(p.p);
-                                fuzzy_current_segment();
-                            }
-                        }
-                    }
-                    if (!segment.empty()) {
-                        // Close the loop
-                        segment.push_back(splitted.front().p);
-                        fuzzy_current_segment();
-                    }
-                }
-            }
-
-            return &fuzzified;
-        }());
+        // Apply fuzzy skin if it is enabled for at least some part of the polygon.
+        const Polygon polygon = apply_fuzzy_skin(loop.polygon, perimeter_generator, loop.depth, loop.is_contour);
 
         ExtrusionPaths paths;
         if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
@@ -451,10 +357,6 @@ struct PerimeterGeneratorArachneExtrusion
 static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& perimeter_generator, std::vector<PerimeterGeneratorArachneExtrusion>& pg_extrusions,
     bool &steep_overhang_contour, bool &steep_overhang_hole)
 {
-    using namespace Slic3r::Feature::FuzzySkin;
-
-    const auto slice_z = perimeter_generator.slice_z;
-
     // Detect steep overhangs
     bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
                              perimeter_generator.layer_id % 2 == 1;  // Only calculate overhang degree on even (from GUI POV) layers
@@ -468,77 +370,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         const bool    is_external = extrusion->inset_idx == 0;
         ExtrusionRole role = is_external ? erExternalPerimeter : erPerimeter;
 
-        const auto& regions = perimeter_generator.regions_by_fuzzify;
         const bool  is_contour = !extrusion->is_closed || pg_extrusion.is_contour;
-        if (regions.size() == 1) { // optimization
-            const auto& config = regions.begin()->first;
-            const bool  fuzzify = should_fuzzify(config, perimeter_generator.layer_id, extrusion->inset_idx, is_contour);
-            if (fuzzify)
-                fuzzy_extrusion_line(extrusion->junctions, slice_z, config);
-        } else {
-            // Find all affective regions
-            std::vector<std::pair<const FuzzySkinConfig&, const ExPolygons&>> fuzzified_regions;
-            fuzzified_regions.reserve(regions.size());
-            for (const auto& region : regions) {
-                if (should_fuzzify(region.first, perimeter_generator.layer_id, extrusion->inset_idx, is_contour)) {
-                    fuzzified_regions.emplace_back(region.first, region.second);
-                }
-            }
-            if (!fuzzified_regions.empty()) {
-                // Split the loops into lines with different config, and fuzzy them separately
-                for (const auto& r : fuzzified_regions) {
-                    const auto splitted = Algorithm::split_line(*extrusion, r.second, false);
-                    if (splitted.empty()) {
-                        // No intersection, skip
-                        continue;
-                    }
-
-                    // Fuzzy splitted extrusion
-                    if (std::all_of(splitted.begin(), splitted.end(), [](const Algorithm::SplitLineJunction& j) { return j.clipped; })) {
-                        // The entire polygon is fuzzified
-                        fuzzy_extrusion_line(extrusion->junctions, slice_z, r.first);
-                    } else {
-                        const auto current_ext = extrusion->junctions;
-                        std::vector<Arachne::ExtrusionJunction> segment;
-                        segment.reserve(current_ext.size());
-                        extrusion->junctions.clear();
-
-                        const auto fuzzy_current_segment = [&segment, &extrusion, &r, slice_z]() {
-                            extrusion->junctions.push_back(segment.front());
-                            const auto back = segment.back();
-                            fuzzy_extrusion_line(segment, slice_z, r.first);
-                            extrusion->junctions.insert(extrusion->junctions.end(), segment.begin(), segment.end());
-                            extrusion->junctions.push_back(back);
-                            segment.clear();
-                        };
-
-                        const auto to_ex_junction = [&current_ext](const Algorithm::SplitLineJunction& j) -> Arachne::ExtrusionJunction {
-                            Arachne::ExtrusionJunction res = current_ext[j.get_src_index()];
-                            if (!j.is_src()) {
-                                res.p = j.p;
-                            }
-                            return res;
-                        };
-
-                        for (const auto& p : splitted) {
-                            if (p.clipped) {
-                                segment.push_back(to_ex_junction(p));
-                            } else {
-                                if (segment.empty()) {
-                                    extrusion->junctions.push_back(to_ex_junction(p));
-                                } else {
-                                    segment.push_back(to_ex_junction(p));
-                                    fuzzy_current_segment();
-                                }
-                            }
-                        }
-                        if (!segment.empty()) {
-                            fuzzy_current_segment();
-                        }
-                    }
-                }
-            }
-        }
+        apply_fuzzy_skin(extrusion, perimeter_generator, is_contour);
 
         ExtrusionPaths paths;
         // detect overhanging/bridging perimeters
@@ -1277,48 +1110,6 @@ static void reorient_perimeters(ExtrusionEntityCollection &entities, bool steep_
                 }
             }
         }
-    }
-}
-
-static void group_region_by_fuzzify(PerimeterGenerator& g)
-{
-    g.regions_by_fuzzify.clear();
-    g.has_fuzzy_skin = false;
-    g.has_fuzzy_hole = false;
-
-    std::unordered_map<FuzzySkinConfig, SurfacesPtr> regions;
-    for (auto region : *g.compatible_regions) {
-        const auto& region_config = region->region().config();
-        const FuzzySkinConfig cfg{
-            region_config.fuzzy_skin,
-            scaled<coord_t>(region_config.fuzzy_skin_thickness.value),
-            scaled<coord_t>(region_config.fuzzy_skin_point_distance.value),
-            region_config.fuzzy_skin_first_layer,
-            region_config.fuzzy_skin_noise_type,
-            region_config.fuzzy_skin_scale,
-            region_config.fuzzy_skin_octaves,
-            region_config.fuzzy_skin_persistence
-        };
-        auto& surfaces = regions[cfg];
-        for (const auto& surface : region->slices.surfaces) {
-            surfaces.push_back(&surface);
-        }
-
-        if (cfg.type != FuzzySkinType::None) {
-            g.has_fuzzy_skin = true;
-            if (cfg.type != FuzzySkinType::External) {
-                g.has_fuzzy_hole = true;
-            }
-        }
-    }
-
-    if (regions.size() == 1) { // optimization
-        g.regions_by_fuzzify[regions.begin()->first] = {};
-        return;
-    }
-
-    for (auto& it : regions) {
-        g.regions_by_fuzzify[it.first] = offset_ex(it.second, ClipperSafetyOffset);
     }
 }
 
