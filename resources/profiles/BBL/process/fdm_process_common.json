@@ -74,5 +74,5 @@
     "scarf_angle_threshold": "155",
     "infill_shift_step": "0.4",
     "infill_rotate_step": "0",
-    "symmetric_infill_y_axis": "false"
+    "symmetric_infill_y_axis": "0"
 }
