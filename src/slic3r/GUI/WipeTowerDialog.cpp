@@ -117,14 +117,19 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
     update_ui(m_chart);
  	sizer_chart->Add(m_chart, 0, wxALL, 5);
 
+    // Create help text for constant flow rate dragging
     std::string ctrl_str = GUI::shortkey_ctrl_prefix();
-    if (!ctrl_str.empty() && ctrl_str.back() == '+')
-        ctrl_str.pop_back();
-    auto hold_ctrl_label = new Label(this, format_wxstr(_L("For constant flow rate, hold %1% while dragging."), ctrl_str), LB_AUTO_WRAP);
-    hold_ctrl_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
-    hold_ctrl_label->SetFont(Label::Body_14);
-    hold_ctrl_label->Wrap(scale(470));
-    sizer_chart->Add(hold_ctrl_label, 0, wxALIGN_LEFT | wxALL, 5);
+    if (!ctrl_str.empty() && ctrl_str.back() == '+') 
+        ctrl_str.pop_back(); // Remove trailing '+'
+    wxString message = format_wxstr(_L("For constant flow rate, hold %1% while dragging."), ctrl_str);
+    Label* label = new Label(this, wxEmptyString);
+    label->SetFont(Label::Body_14);
+    label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
+    wxClientDC dc(label);
+    wxString multiline_message;
+    label->split_lines(dc, scale(470), message, multiline_message);
+    label->SetLabel(multiline_message);
+    sizer_chart->Add(label, 0, wxEXPAND | wxALL, 5);
 
     m_widget_time                             = new SpinInput(this, wxEmptyString, _L("ms") , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 5000 , 3000, 250);
     m_widget_volume                           = new SpinInput(this, wxEmptyString, _L("mm³"), wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 10000, 0   );
