@@ -123,10 +123,10 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
         ctrl_str.pop_back(); // Remove trailing '+'
     wxString message = format_wxstr(_L("For constant flow rate, hold %1% while dragging."), ctrl_str);
     Label* label = new Label(this, wxEmptyString);
-    label->SetFont(Label::Body_14);
-    label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
     wxClientDC dc(label);
     wxString multiline_message;
+    label->SetFont(Label::Body_14);
+    label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
     label->split_lines(dc, scale(470), message, multiline_message);
     label->SetLabel(multiline_message);
     sizer_chart->Add(label, 0, wxEXPAND | wxALL, 5);
