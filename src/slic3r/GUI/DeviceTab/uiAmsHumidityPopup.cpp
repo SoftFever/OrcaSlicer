@@ -151,7 +151,23 @@ void uiAmsPercentHumidityDryPopup::UpdateContents()
 
     if (m_left_dry_time > 0)
     {
-        const wxString& time_str = wxString::Format(_L("%d : %d"), m_left_dry_time / 60, m_left_dry_time % 60);
+        wxString display_hour_str;
+        int left_hours = m_left_dry_time / 60;
+        if (left_hours < 10) {
+            display_hour_str = wxString::Format("0%d", left_hours);
+        } else {
+            display_hour_str = wxString::Format("%d", left_hours);
+        }
+
+        wxString display_min_str;
+        int left_minutes = m_left_dry_time % 60;
+        if (left_minutes < 10) {
+            display_min_str = wxString::Format("0%d", left_minutes);
+        } else {
+            display_min_str = wxString::Format("%d", left_minutes);
+        }
+
+        const wxString& time_str = wxString::Format("%s : %s", display_hour_str, display_min_str);
         left_dry_time_label->SetLabel(time_str);
     }
     else
