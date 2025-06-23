@@ -52,7 +52,7 @@ void RadioGroup::Create(
     Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {m_focused = true ; Refresh(); e.Skip();}));
     Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {m_focused = false; Refresh(); e.Skip();}));
     Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
-        if (m_focused) // Required to take focus again since Refresh causing lossing focus
+        if (m_focused && !HasFocus()) // Required to take focus again since Refresh causing losing focus
             SetFocus();
         // call darkModeColorFor one time instead calling each control rendered
         m_text_color  = StateColor::darkModeColorFor(wxColour(m_enabled ? "#363636" : "#6B6B6B"));
