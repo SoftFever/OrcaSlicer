@@ -244,7 +244,7 @@ void GLGizmoFuzzySkin::on_render_input_window(float x, float y, float bottom_lim
             if (mv->is_model_part()) {
                 ++idx;
                 m_triangle_selectors[idx]->reset();
-                m_triangle_selectors[idx]->request_update_render_data();
+                m_triangle_selectors[idx]->request_update_render_data(true);
             }
 
         update_model_object();
