@@ -8233,10 +8233,13 @@ void GLCanvas3D::_render_return_toolbar() const
 #endif
 
     ImVec4 fg_color = m_is_dark ? ImVec4(1.f, 1.f, 1.f, 0.88f) : ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, 1.f);
+    ImVec4 bg_color = m_is_dark ? ImGuiWrapper::COL_TOOLBAR_BG_DARK : ImGuiWrapper::COL_TOOLBAR_BG;
+    ImVec4 bg_color_hover = bg_color +  (m_is_dark ? ImVec4(.03f, .03f, .03f, 0) : ImVec4(-.02f, -.02f, -.02f, 0));
+
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 18.0f);
-    ImGui::PushStyleColor(ImGuiCol_Button,        ImGuiWrapper::to_ImVec4(decode_color_to_float_array(m_is_dark ? "#393C42" : "#FAFAFA" )));// ORCA Toolbar color
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGuiWrapper::to_ImVec4(decode_color_to_float_array(m_is_dark ? "#46484D" : "#F4F6F6" )));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImGuiWrapper::to_ImVec4(decode_color_to_float_array(m_is_dark ? "#55555A" : "#EFF1F2" )));
+    ImGui::PushStyleColor(ImGuiCol_Button,        bg_color); // ORCA Toolbar color
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, bg_color_hover);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  bg_color);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, fg_color);
 
@@ -8250,7 +8253,7 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec2 uv1 = ImVec2(1.0f, 1.0f);
 
     ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-    ImVec4 tint_col = fg_color;
+    ImVec4 tint_col = fg_color; // icon color
     ImVec2 margin = ImVec2(10.0f, 5.0f);
 
     if (ImGui::ImageTextButton(real_size,_utf8(L("Return")).c_str(), m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
@@ -8361,7 +8364,7 @@ void GLCanvas3D::_render_paint_toolbar() const
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(spacing, spacing));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, 0));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::to_ImVec4(decode_color_to_float_array(m_is_dark ? "#393C42" : "#FAFAFA" ))); // ORCA Toolbar color
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark ? ImGuiWrapper::COL_TOOLBAR_BG_DARK : ImGuiWrapper::COL_TOOLBAR_BG); // ORCA Toolbar color
 
     imgui.set_next_window_pos(0.5f * canvas_w, 0, ImGuiCond_Always, 0.5f, 0.0f);
     float constraint_window_width = canvas_w - 2 * return_button_margin;
