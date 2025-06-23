@@ -713,10 +713,10 @@ void NotificationManager::PopNotification::render_hypertext(ImGuiWrapper& imgui,
 
 	//hover color
     ImVec4 HyperColor = m_HyperTextColor;//ImVec4(150.f / 255.f, 100.f / 255.f, 0.f / 255.f, 1)
-    if (m_data.level == NotificationLevel::SeriousWarningNotificationLevel)
-		HyperColor = ImVec4(0.f, 0.f, 0.f, 0.4f);
-	if (m_data.level == NotificationLevel::ErrorNotificationLevel)
-		HyperColor = ImVec4(135.f / 255.f, 43 / 255.f, 43 / 255.f, 1);
+    if (m_data.level == NotificationLevel::SeriousWarningNotificationLevel) 
+		HyperColor = ImVec4(0.f, 0.f, 0.f, 0.4f); 
+	if (m_data.level == NotificationLevel::ErrorNotificationLevel) 
+		HyperColor = ImVec4(135.f / 255.f, 43 / 255.f, 43 / 255.f, 1); 
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly)) 
 	{ 
 		HyperColor.y += 0.1f; 
