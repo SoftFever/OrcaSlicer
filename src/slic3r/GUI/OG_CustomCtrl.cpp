@@ -719,7 +719,12 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
     const std::vector<Option>& option_set = og_line.get_options();
 
     const ConfigOptionMode& line_mode = option_set.front().opt.mode;
+    // Check mode ovverride
+    const std::vector<std::string>& hide_configs = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("hide_config", true)->values;
+ 
     is_visible = og_line.toggle_visible && line_mode <= mode;
+    if (std::find(hide_configs.begin(), hide_configs.end(), option_set.front().opt.opt_key) != hide_configs.end()) 
+        is_visible = false;
 
     if (draw_just_act_buttons)
         return;

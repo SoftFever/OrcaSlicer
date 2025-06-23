@@ -6698,6 +6698,13 @@ void PrintConfigDef::init_sla_params()
     def->enum_labels.push_back(" ");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SLAMaterialSpeed>(slamsFast));
+
+    
+    def          = this->add("hide_config", coStrings);
+    def->label   = L("TODO");
+    def->tooltip = "TODO";
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings{""});
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
