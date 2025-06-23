@@ -168,6 +168,10 @@ void FillGyroid::_fill_surface_single(
     // align bounding box to a multiple of our grid module
     bb.merge(align_to_grid(bb.min, Point(2*M_PI*distance, 2*M_PI*distance)));
 
+    // Expand the bounding box to avoid artifacts at the edges
+    coord_t expand = 10 * (scale_(this->spacing));
+    bb.offset(expand); 
+
     // generate pattern
     Polylines polylines = make_gyroid_waves(
         scale_(this->z),

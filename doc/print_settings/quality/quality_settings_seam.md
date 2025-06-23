@@ -73,14 +73,14 @@ To minimize the visibility of potential over-extrusion at the start of an extern
 
   This is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order, as in these modes, it is more likely an external perimeter is printed immediately after a de-retraction move, which would cause slight extrusion variance at the start of a seam.
 
-## Tips:
+## Tips
 
 With seams being inevitable when 3D printing using FFF, there are two distinct approaches on how to deal with them:
 
 1. **Try and hide the seam as much as possible:** This can be done by enabling scarf seam, which works very well, especially with simple models with limited overhang regions.
 2. **Try and make the seam as "clean" and "distinct" as possible:** This can be done by tuning the seam gap and enabling role-based wipe speed, wipe on loops, and wipe before the external loop.
 
-## Troubleshooting Seam Performance:
+## Troubleshooting Seam Performance
 
 The section below will focus on troubleshooting traditional seams. For scarf seam troubleshooting, refer to the guide linked above.
 
@@ -93,7 +93,7 @@ However, due to mechanical and material tolerances, as well as the very nature o
 
 ![seam-quality](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-quality.jpg?raw=true)
 
-### Troubleshooting the Start of a Seam:
+### Troubleshooting the Start of a Seam
 
 Imagine the scenario where the toolhead finishes printing a layer line on one side of the bed, retracts, travels the whole distance of the bed to de-retract, and starts printing another part. Compare this to the scenario where the toolhead finishes printing an internal perimeter and only travels a few mm to start printing an external perimeter, without even retracting or de-retracting.
 
@@ -113,7 +113,7 @@ So this is a trade-off between print speed and print quality. From experimental 
 
 In addition, larger nozzle diameters allow for more opportunity for material to leak compared to smaller diameter nozzles. A 0.2/0.25 mm nozzle will have significantly better seam performance than a 0.4, and that will have much better performance than a 0.6mm nozzle and so forth.
 
-### Troubleshooting the End of a Seam:
+### Troubleshooting the End of a Seam
 
 The end of a seam is much easier to get right, as the extrusion system is already at a pressure equilibrium while printing. It just needs to stop extruding at the right time and consistently.
 
@@ -125,7 +125,7 @@ Furthermore, the printer mechanics have tolerances – the print head may be req
 
 Finally, the techniques of **wiping can help improve the visual continuity and consistency of a seam** (please note, these settings do not make the seam less visible, but rather make them more consistent!). Wiping on loops with a consistent speed helps tuck in the end of the seam, hiding the effects of retraction from view.
 
-### The Role of Wall Ordering in Seam Appearance:
+### The Role of Wall Ordering in Seam Appearance
 
 The order of wall printing plays a significant role in the appearance of a seam. **Starting to print the external perimeter first after a long travel move will always result in more visible artifacts compared to printing the internal perimeters first and traveling just a few mm to print the external perimeter.**
 

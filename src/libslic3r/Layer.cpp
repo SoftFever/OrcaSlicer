@@ -387,6 +387,7 @@ coordf_t Layer::get_sparse_infill_max_void_area()
             case ipAlignedRectilinear:
             case ipOctagramSpiral:
             case ipHilbertCurve:
+            case ip2DHoneycomb:
             case ip3DHoneycomb:
             case ipArchimedeanChords:
                 max_void_area = std::max(max_void_area, spacing * spacing);
