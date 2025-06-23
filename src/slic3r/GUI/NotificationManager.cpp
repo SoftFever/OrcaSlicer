@@ -147,8 +147,8 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	, m_evt_handler         (evt_handler)
 	, m_notification_start  (GLCanvas3D::timestamp_now())
 {
-    m_ErrorColor  = ImVec4(225 / 255.f, 71  / 255.f, 71 / 255.f, 1); // ORCA
-    m_WarnColor   = ImVec4(245 / 255.f, 155 / 255.f, 22 / 255.f, 1); // ORCA
+    m_ErrorColor  = ImGuiWrapper::to_ImVec4(decode_color_to_float_array("#E14747")); // ORCA
+    m_WarnColor   = ImGuiWrapper::to_ImVec4(decode_color_to_float_array("#F59B16")); // ORCA
     m_NormalColor = ImVec4(0, 0.588, 0.533, 1);
 
 	m_CurrentColor = m_NormalColor;   //Default
