@@ -5466,6 +5466,30 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.6));
 
+    def = this->add("top_surface_density", coPercent);
+    def->label = L("Top surface density");
+    def->category = L("Strength");
+    def->tooltip = L("Density of top surface layer. A value of 100% creates a fully solid, smooth top layer. "
+                     "Reducing this value results in a textured top surface, according to the chosen top surface pattern. "
+                     "A value of 0% will result in only the walls on the top layer being created. "
+                     "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.");
+    def->sidetext = ("%");
+    def->min = 0;
+    def->max = 100;
+    def->set_default_value(new ConfigOptionPercent(100));
+
+    def           = this->add("bottom_surface_density", coPercent);
+    def->label    = L("Bottom surface density");
+    def->category = L("Strength");
+    def->tooltip = L("Density of the bottom surface layer. "
+                     "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.\n"
+                     "WARNING: Lowering this value may negatively affect bed adhesion.");
+    def->sidetext = ("%");
+    def->min      = 10;
+    def->max      = 100;
+    def->set_default_value(new ConfigOptionPercent(100));
+
+
     def = this->add("travel_speed", coFloat);
     def->label = L("Travel");
     def->tooltip = L("Speed of travel which is faster and without extrusion.");
