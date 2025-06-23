@@ -120,8 +120,9 @@ void Chart::draw() {
         
         // Draw label background
         dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#DBDBDB")), 1));
-        dc.SetBrush(wxBrush(StateColor::darkModeColorFor(wxColor("#F1F1F1"))));
-        wxRect label_rect(label_x - padding, label_y - padding, label_width + (2*padding), label_height + padding);
+        wxColour bg_color = StateColor::darkModeColorFor(wxColour("#F1F1F1"));
+        dc.SetBrush(wxBrush(wxColour(bg_color.Red(), bg_color.Green(), bg_color.Blue(), 204))); // 80% opacity
+        wxRect label_rect(label_x - padding, label_y - padding, label_width + (2*padding), label_height + (2*padding));
         dc.DrawRoundedRectangle(label_rect, 2);
         
         // Draw the label text
