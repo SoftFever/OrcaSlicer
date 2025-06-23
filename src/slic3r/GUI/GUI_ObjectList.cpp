@@ -5582,8 +5582,8 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
         ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
         if (node->HasColorPainting()) {
             GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
-            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
-                gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmSegmentation)
+                gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmSegmentation);
             else
                 gizmos_mgr.reset_all_states();
         }
