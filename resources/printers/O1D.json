@@ -20,6 +20,10 @@
 				}
 			},
 			"nozzle_temp_range": [ 0, 350 ],
+			"nozzle_replace_wiki": {
+				"zh": "https://wiki.bambulab.com/zh/h2/maintenance/replace-hotend",
+				"en": "https://wiki.bambulab.com/en/h2/maintenance/replace-hotend"
+			},
 			"bed_temp_range": [ 0, 120 ],
 			"support_motor_noise_cali": false,
 			"support_tunnel_mqtt": true,

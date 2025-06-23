@@ -6885,6 +6885,23 @@ void MachineObject::command_set_save_remote_print_file_to_storage(bool save)
     }
 }
 
+wxString MachineObject::get_nozzle_replace_url() const
+{
+    const wxString& strLanguage = GUI::wxGetApp().app_config->get("language");
+    const wxString& lan_code = strLanguage.BeforeFirst('_');
+
+    const json& link_map = DeviceManager::get_json_from_config(printer_type, "print", "nozzle_replace_wiki");
+    if (link_map.contains(lan_code.ToStdString())) {
+        return link_map[lan_code.ToStdString()].get<wxString>();
+    }
+
+    if (link_map.contains("en")){
+        return link_map["en"].get<wxString>();
+    }/*retry with en*/
+
+    return "https://wiki.bambulab.com/en/h2/maintenance/replace-hotend";
+}
+
 bool DeviceManager::EnableMultiMachine = false;
 bool DeviceManager::key_field_only = false;
 

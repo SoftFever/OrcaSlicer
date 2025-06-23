@@ -32,6 +32,7 @@ protected:
     Label*    nozzle_flow_type_label;
     ComboBox* nozzle_flow_type_checkbox;
     Label    *change_nozzle_tips;
+    Label* m_wiki_link;
 
     ComboBox* multiple_left_nozzle_type_checkbox;
     ComboBox *multiple_left_nozzle_diameter_checkbox;
@@ -42,6 +43,7 @@ protected:
     ComboBox *multiple_right_nozzle_flow_checkbox;
 
     Label *multiple_change_nozzle_tips;
+    Label* multiple_wiki_link;
 
     wxPanel *single_panel;
     wxPanel *multiple_panel;
@@ -56,6 +58,7 @@ public:
 
 private:
     void  EnableEditing(bool enable);
+    void  OnWikiClicked(wxMouseEvent& e);
 
     wxString GetString(NozzleType nozzle_type) const;
     wxString GetString(NozzleFlowType nozzle_flow_type) const;

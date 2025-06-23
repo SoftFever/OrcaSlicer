@@ -815,6 +815,7 @@ public:
     [[nodiscard]] bool is_nozzle_flow_type_supported() const { return is_enable_np; };
     [[nodiscard]] NozzleFlowType get_nozzle_flow_type(int extruder_id) const;
     [[nodiscard]] const Extder& get_current_extruder() const;
+    [[nodiscard]] wxString get_nozzle_replace_url() const;
 
     //new fan data
     AirDuctData m_air_duct_data;
@@ -1494,6 +1495,32 @@ public:
         }
         catch (...) {}
         return T();
+    }
+
+    static json get_json_from_config(const std::string& type_str, const std::string& key1, const std::string& key2 = std::string()) {
+        std::string config_file = Slic3r::resources_dir() + "/printers/" + type_str + ".json";
+        boost::nowide::ifstream json_file(config_file.c_str());
+        try {
+            json jj;
+            if (json_file.is_open()) {
+                json_file >> jj;
+                if (jj.contains("00.00.00.00")) {
+                    json const& printer = jj["00.00.00.00"];
+                    if (printer.contains(key1)) {
+                        json const& key1_item = printer[key1];
+                        if (key2.empty()) {
+                            return key1_item;
+                        }
+
+                        if (key1_item.contains(key2)) {
+                            return key1_item[key2];
+                        }
+                    }
+                }
+            }
+        }
+        catch (...) {}
+        return json();
     }
 
     static std::string parse_printer_type(std::string type_str);

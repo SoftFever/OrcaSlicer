@@ -9,6 +9,10 @@
 				}
 			},
 			"nozzle_temp_range": [ 0, 300 ],
+			"nozzle_replace_wiki": {
+				"zh": "https://wiki.bambulab.com/zh/p1/maintenance/complete-hot-end-assembly",
+				"en": "https://wiki.bambulab.com/en/p1/maintenance/complete-hot-end-assembly"
+			},
 			"support_motor_noise_cali": false,
 			"support_tunnel_mqtt": false,
 			"support_mqtt_alive": false,

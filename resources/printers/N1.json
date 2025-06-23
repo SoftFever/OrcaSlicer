@@ -10,6 +10,10 @@
 				}
 			},
 			"nozzle_temp_range": [ 0, 300 ],
+			"nozzle_replace_wiki": {
+				"zh": "https://wiki.bambulab.com/zh/a1-mini/maintenance/hotend-heating-assembly-replacement",
+				"en": "https://wiki.bambulab.com/en/a1-mini/maintenance/hotend-heating-assembly-replacement"
+			},
 			"support_motor_noise_cali": true,
 			"support_tunnel_mqtt": true,
 			"support_mqtt_alive": true,

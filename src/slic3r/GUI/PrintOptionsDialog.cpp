@@ -621,9 +621,20 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     line_sizer_nozzle_flowtype->Add(0, 0, 1, wxEXPAND, 5);
     line_sizer_nozzle_flowtype->Add(nozzle_flow_type_checkbox, 0, wxALIGN_CENTER, 5);
 
+    wxSizer* h_tips_sizer = new wxBoxSizer(wxHORIZONTAL);
     change_nozzle_tips = new Label(single_panel, _L("Please change the nozzle settings on the printer."));
     change_nozzle_tips->SetFont(Label::Body_13);
     change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+
+    m_wiki_link = new Label(single_panel, _L("View wiki"));
+    m_wiki_link->SetFont(Label::Body_13);
+    m_wiki_link->SetForegroundColour(wxColour(0, 174, 66));
+    m_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    m_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    m_wiki_link->Bind(wxEVT_LEFT_DOWN, &PrinterPartsDialog::OnWikiClicked, this);
+
+    h_tips_sizer->Add(change_nozzle_tips, 0, wxLEFT);
+    h_tips_sizer->Add(m_wiki_link, 0,  wxLEFT, FromDIP(5));
 
     single_sizer->Add(single_line, 0, wxEXPAND, 0);
     single_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
@@ -633,7 +644,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     single_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     single_sizer->Add(line_sizer_nozzle_flowtype, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
     single_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    single_sizer->Add(change_nozzle_tips, 0, wxLEFT, FromDIP(24));
+    single_sizer->Add(h_tips_sizer, 0, wxLEFT, FromDIP(10));
     single_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
 
     single_panel->SetSizer(single_sizer);
@@ -716,6 +727,17 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_change_nozzle_tips->SetFont(Label::Body_13);
     multiple_change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
+    multiple_wiki_link = new Label(multiple_panel, _L("View wiki"));
+    multiple_wiki_link->SetFont(Label::Body_13);
+    multiple_wiki_link->SetForegroundColour(wxColour(0, 174, 66));
+    multiple_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    multiple_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    multiple_wiki_link->Bind(wxEVT_LEFT_DOWN, &PrinterPartsDialog::OnWikiClicked, this);
+
+    wxSizer* multiple_change_tips_sizer = new wxBoxSizer(wxHORIZONTAL);
+    multiple_change_tips_sizer->Add(multiple_change_nozzle_tips, 0, wxLEFT);
+    multiple_change_tips_sizer->Add(multiple_wiki_link, 0, wxLEFT, FromDIP(5));
+
     multiple_sizer->Add(multi_line, 0, wxEXPAND, 0);
     multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     multiple_sizer->Add(leftTitle, 0, wxLEFT, FromDIP(18));
@@ -724,7 +746,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_sizer->Add(rightTitle, 0, wxLEFT, FromDIP(18));
     multiple_sizer->Add(multiple_right_line_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(18));
     multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
-    multiple_sizer->Add(multiple_change_nozzle_tips, 0, wxLEFT, FromDIP(18));
+    multiple_sizer->Add(multiple_change_tips_sizer, 0, wxLEFT, FromDIP(10));
     multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
 
     multiple_panel->SetSizer(multiple_sizer);
@@ -839,5 +861,17 @@ wxString PrinterPartsDialog::GetString(NozzleFlowType nozzle_flow_type) const {
 
     return wxEmptyString;
 }
+
+void PrinterPartsDialog::OnWikiClicked(wxMouseEvent& e)
+{
+    if (!obj) { return; }
+
+    const wxString& url = obj->get_nozzle_replace_url();
+    if (!url.IsEmpty()) {
+        wxLaunchDefaultBrowser(url);
+    } else {
+        wxMessageBox(_L("No wiki link available for this printer."), _L("Error"), wxOK | wxICON_ERROR, this);
+    }
+}// PrinterPartsDialog::OnWikiClicked
 
 }} // namespace Slic3r::GUI
