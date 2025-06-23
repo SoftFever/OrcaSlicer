@@ -1069,10 +1069,12 @@ private:
         assert(this->supported_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
     }
     ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull, ModelVolumeType type = ModelVolumeType::MODEL_PART) :
 		m_mesh(new TriangleMesh(std::move(mesh))), m_convex_hull(new TriangleMesh(std::move(convex_hull))), m_type(type), object(object) {
@@ -1081,10 +1083,12 @@ private:
         assert(this->supported_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
+        assert(this->fuzzy_skin_facets.id().valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
         assert(this->id() != this->seam_facets.id());
         assert(this->id() != this->mmu_segmentation_facets.id());
+        assert(this->id() != this->fuzzy_skin_facets.id());
 	}
 
     // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
