@@ -12660,7 +12660,7 @@ msgstr "Con qué tipo de G-Code es compatible la impresora."
 msgid "Klipper"
 msgstr "Klipper"
 
-msgid "Pellet Printer"
+msgid "Pellet Modded Printer"
 msgstr "Impresora Modificada para Pellets"
 
 msgid "Enable this option if your printer uses pellets instead of filaments."

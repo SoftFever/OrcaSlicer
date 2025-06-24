@@ -12913,7 +12913,7 @@ msgstr "Выбор типа G-кода совместимым с вашим пр
 msgid "Klipper"
 msgstr "Klipper"
 
-msgid "Pellet Printer"
+msgid "Pellet Modded Printer"
 msgstr "Гранульная модификация принтера"
 
 msgid "Enable this option if your printer uses pellets instead of filaments."

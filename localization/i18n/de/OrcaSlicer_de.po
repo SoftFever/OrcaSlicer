@@ -12882,7 +12882,7 @@ msgstr "Mit welcher Art von G-Code ist der Drucker kompatibel."
 msgid "Klipper"
 msgstr "Klipper"
 
-msgid "Pellet Printer"
+msgid "Pellet Modded Printer"
 msgstr "Pellet-Modifizierter Drucker"
 
 msgid "Enable this option if your printer uses pellets instead of filaments."

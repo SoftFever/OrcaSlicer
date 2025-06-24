@@ -11697,7 +11697,7 @@ msgstr "Vilken typ av G-kod är skrivaren kompatibel med"
 msgid "Klipper"
 msgstr ""
 
-msgid "Pellet Printer"
+msgid "Pellet Modded Printer"
 msgstr ""
 
 msgid "Enable this option if your printer uses pellets instead of filaments."

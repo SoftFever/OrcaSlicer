@@ -11934,7 +11934,7 @@ msgstr "S jakým typem gkódu je tiskárna kompatibilní"
 msgid "Klipper"
 msgstr "Klipper"
 
-msgid "Pellet Printer"
+msgid "Pellet Modded Printer"
 msgstr ""
 
 msgid "Enable this option if your printer uses pellets instead of filaments."

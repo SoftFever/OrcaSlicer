@@ -12708,7 +12708,7 @@ msgstr "З яким gcode сумісний принтер"
 msgid "Klipper"
 msgstr "Klipper"
 
-msgid "Pellet Printer"
+msgid "Pellet Modded Printer"
 msgstr "Принтер модифікований гранулами"
 
 msgid "Enable this option if your printer uses pellets instead of filaments."

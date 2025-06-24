@@ -11836,7 +11836,7 @@ msgstr "列印設備相容的 G-code 樣式"
 msgid "Klipper"
 msgstr "Klipper"
 
-msgid "Pellet Printer"
+msgid "Pellet Modded Printer"
 msgstr "顆粒改裝列印機"
 
 msgid "Enable this option if your printer uses pellets instead of filaments."
