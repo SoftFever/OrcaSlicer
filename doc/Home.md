@@ -91,3 +91,4 @@ This is a documentation from someone exploring the code and is by no means compl
 - [Preset, PresetBundle and PresetCollection](Preset-and-bundle)
 - [Plater, Sidebar, Tab, ComboBox](plater-sidebar-tab-combobox)
 - [Slicing Call Hierarchy](slicing-hierarchy)
+- [List of staggered perimiters known issues](./staggered-perimiters-known-issues.md)
