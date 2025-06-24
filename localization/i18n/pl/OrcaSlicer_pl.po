@@ -6848,6 +6848,12 @@ msgstr "Używanie wolnego widoku kamery"
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr "Przełącza pomiędzy wolnym a ograniczonym widokiem kamery."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Zamień przyciski przesuwania i obracania myszy"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Jeśli włączone, zamienia funkcje przesuwania i obracania lewym i prawym przyciskiem myszy."
+
 msgid "Reverse mouse zoom"
 msgstr "Odwrócone przybliżanie myszką"
 

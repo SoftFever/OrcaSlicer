@@ -22,7 +22,6 @@ LabeledStaticBox::LabeledStaticBox()
         std::make_pair(0xDBDBDB, (int) StateColor::Normal),
         std::make_pair(0xDBDBDB, (int) StateColor::Disabled)
     );
-
 }
 
 LabeledStaticBox::LabeledStaticBox(

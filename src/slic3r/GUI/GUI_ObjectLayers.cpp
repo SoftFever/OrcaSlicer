@@ -144,7 +144,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
     unit_text->SetFont(wxGetApp().normal_font());
     sizer2->Add(unit_text, 0, wxALIGN_CENTER_VERTICAL);
 
-    m_grid_sizer->Add(sizer2);
+    m_grid_sizer->Add(sizer2, 0, wxALIGN_CENTER_VERTICAL);
 
     // BBS
     // Add control for the "Layer height"
@@ -187,8 +187,10 @@ void ObjectLayers::create_layers_list()
         add_btn->Enable(tooltip.IsEmpty());
 
         auto sizer = create_layer(range, del_btn, add_btn);
-        sizer->Add(del_btn, 0, wxRIGHT | wxLEFT, em_unit(m_parent));
-        sizer->Add(add_btn);
+        auto b_sizer = new wxBoxSizer(wxHORIZONTAL);
+        b_sizer->Add(del_btn, 0, wxRIGHT | wxLEFT, em_unit(m_parent));
+        b_sizer->Add(add_btn);
+        sizer->Add(b_sizer, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, m_parent->FromDIP(1)); // aligns +/- buttons vertically since we got 1px gap on bottom of icons
 
         del_btn->Bind(wxEVT_BUTTON, [del_btn](wxEvent &) {
             wxGetApp().obj_list()->del_layer_range(del_btn->range);
@@ -223,6 +225,7 @@ void ObjectLayers::update_layers_list()
     // because an element cannot be destroyed while there are pending events for this element.(https://github.com/wxWidgets/Phoenix/issues/1854)
     wxGetApp().CallAfter([this, type, objects_ctrl, range]() {
         m_og->ctrl_parent()->Freeze();
+
         // Delete all controls from options group
         m_grid_sizer->Clear(true);
 
@@ -234,8 +237,9 @@ void ObjectLayers::update_layers_list()
             create_layer(range, nullptr, nullptr);
 
         m_og->ctrl_parent()->Thaw();
+
         m_parent->Layout();
-     });
+    });
 }
 
 void ObjectLayers::update_scene_from_editor_selection() const
