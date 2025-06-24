@@ -38,23 +38,33 @@ The default value in Marlin is typically set to 0.08mm, which may be too high fo
    ![jd_second_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_second_slicer_measure.png?raw=true)
 
 3. Save the settings
-   1. Set your Maximun Junction Deviation value in [Printer settings/Motion ability/Jerk limitation].
+   1. Set your Maximum Junction Deviation value in [Printer settings/Motion ability/Jerk limitation].
+
+   ![jd_printer_jerk_limitation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_printer_jerk_limitation.png?raw=true)
+
    2. Use the following G-code to set the mm:
+
    ```gcode
    M205 J#JunctionDeviationValue
    M500
    ```
+
    Example
+
    ```gcode
    M205 J0.012
    M500
    ```
+
    3. Recompile your MarlinFW
       1. In Configuration.h uncomment and set:
+
       ```cpp
       #define JUNCTION_DEVIATION_MM 0.012  // (mm) Distance from real junction edge
       ```
+
       2. Check Classic Jerk is disabled (commented).
+
       ```cpp
       //#define CLASSIC_JERK
       ```
