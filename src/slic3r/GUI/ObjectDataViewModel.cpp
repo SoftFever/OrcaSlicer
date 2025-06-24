@@ -72,7 +72,7 @@ const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
             { InfoItemType::MmSegmentation,     {L("Color painting"),          "mmu_segmentation"},  },
             //{ InfoItemType::Sinking,             {L("Sinking"),                 "objlist_sinking"}, },
             { InfoItemType::CutConnectors,       {L("Cut connectors"),          "cut_connectors" },    },
-            { InfoItemType::FuzzySkin,           {L("Paint-on fuzzy skin"),     "fuzzy_skin_painting" }, },
+            { InfoItemType::FuzzySkin,           {L("Paint-on fuzzy skin"),     "objlist_fuzzy_skin_paint" }, },
 };
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   parent,
