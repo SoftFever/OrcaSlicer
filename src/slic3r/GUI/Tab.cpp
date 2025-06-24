@@ -1154,8 +1154,6 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
     if (m_active_page)
         m_active_page->update_visibility(m_mode, true);
 
-    //update_label_colours(); // ORCA update tab colors after using revert button
-
     // BBS: restore all pages in preset, update_dirty also update combobox
     update_dirty();
 
