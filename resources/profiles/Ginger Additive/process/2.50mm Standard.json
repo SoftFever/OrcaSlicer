@@ -71,5 +71,7 @@
   "xy_contour_compensation": "0",
   "xy_hole_compensation": "0",
   "instantiation": "true",
+  "skin_infill_line_width": "5.0",
+  "skeleton_infill_line_width": "5.0",
   "compatible_printers": ["Ginger G1 5.0 nozzle"]
 }
