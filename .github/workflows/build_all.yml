@@ -37,11 +37,6 @@ on:
         type: boolean
         default: false
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-  
-
 jobs:
   build_all:
     name: Build All
@@ -49,8 +44,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Deprecate 20.04appimage
-          # - os: ubuntu-20.04
+          - os: ubuntu-22.04
           - os: ubuntu-24.04
           - os: windows-latest
           - os: macos-14
@@ -75,9 +69,13 @@ jobs:
       matrix:
         variant:
           - arch: x86_64
+            runner: ubuntu-22.04
+          - arch: x86_64
             runner: ubuntu-24.04
           - arch: aarch64
             runner: ubuntu-24.04-arm
+          - arch: aarch64
+            runner: ubuntu-22.04-arm
     runs-on: ${{ matrix.variant.runner }}
     env:
       date:
@@ -110,15 +108,15 @@ jobs:
     - name: Upload artifacts Flatpak
       uses: actions/upload-artifact@v4
       with:
-        name: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
+        name: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}_${{ matrix.variant.runner }}.flatpak
         path: '/__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak'
     - name: Deploy Flatpak to nightly release
-      if: ${{github.ref == 'refs/heads/main'}}
+      if: ${{ (github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
       uses: WebFreak001/deploy-nightly@v3.2.0
       with:
-        upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
-        release_id: 137995723
-        asset_path: /__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
-        asset_name: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
+        upload_url: https://uploads.github.com/repos/NanashiTheNameless/OrcaSlicer/releases/205149129/assets{?name,label}
+        release_id: 205149129
+        asset_path: '/__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak'
+        asset_name: OrcaSlicer-Linux-flatpak_${{ matrix.variant.arch }}_${{ matrix.variant.runner }}.flatpak
         asset_content_type: application/octet-stream
         max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted

@@ -1,9 +1,9 @@
 name: Check locale
 
-on: 
+on:
     pull_request:
-      branches: 
-       - main 
+      branches:
+       - main
       paths:
        - 'localization/**'
        - ".github/workflows/check_locale.yml"
@@ -12,11 +12,11 @@ jobs:
   check_translation:
     name: Check translation
     runs-on: ubuntu-latest
-    steps:  
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install gettext 
+      - name: Install gettext
         run: |
           sudo apt-get update
           sudo apt-get install -y gettext

@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       logLevel:
-        description: 'Log level'     
+        description: 'Log level'
         required: true
         default: 'warning'
 
@@ -25,7 +25,7 @@ jobs:
   publish_docs_to_wiki:
     name: Publish docs to Wiki
     runs-on: ubuntu-latest
-    steps:  
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -42,5 +42,5 @@ jobs:
           rsync -av --delete doc/ tmp_wiki/ --exclude .git
           cd tmp_wiki
           git add .
-          git commit -m "Updated Wiki content" 
+          git commit -m "Updated Wiki content"
           git push origin master

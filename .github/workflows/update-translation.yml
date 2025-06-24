@@ -1,5 +1,5 @@
 name: Update Translation Catalog
-on: 
+on:
   # schedule:
   #   - cron: 0 0 * * 1
   workflow_dispatch:
@@ -8,7 +8,7 @@ jobs:
   update_translation:
     name: Update translation
     runs-on: ubuntu-latest
-    steps:  
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
