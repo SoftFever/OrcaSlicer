@@ -166,7 +166,7 @@ void LabeledStaticBox::DrawBorderAndLabel(wxDC& dc)
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(background_color.colorForStates(0)));
         dc.DrawRectangle(wxRect(7 * m_scale,0 , m_label_width + 7 * m_scale, m_label_height)); // text background
-        // NEEDFIX if text lenght > client size
+        // NEEDFIX if text lenght > client size 
         dc.SetTextForeground(text_color.colorForStates(state_handler.states()));
         dc.DrawText(m_label, wxPoint(10 * m_scale, 0));
     }
