@@ -63,7 +63,7 @@
   "travel_acceleration": "2500",
   "travel_jerk": "7",
   "travel_speed": "250",
-  "version": "0.0.0.0",
+  "version": "0.0.0.1",
   "wall_generator": "arachne",
   "wall_loops": "1",
   "wipe_on_loops": "1",
