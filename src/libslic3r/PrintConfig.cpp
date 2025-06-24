@@ -2360,6 +2360,39 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 100;
     def->set_default_value(new ConfigOptionPercent(20));
+        
+    def           = this->add("apply_model_direction", coBool);
+    def->label    = L("Apply model direction");
+    def->category = L("Strength");
+    def->tooltip  = L("Takes into account an angle of model rotation on the bed and places the surfaces and infills with accordance this direction.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def           = this->add("top_surface_direction", coFloatOrPercent);
+    def->label    = L("Top surface direction");
+    def->category = L("Strength");
+    def->tooltip  = _(L("Direction for top surface pattern.")) + "\n" +
+                    _(L("If expressed as a %, it will be computed a sector of the full turn 360°.")) + "\n" +
+                    _(L("Positive values for turn CCW, negative ones for turn CW."));
+    def->sidetext    = L("° or %");
+    def->min         = -360;
+    def->max         = 360;
+    def->max_literal = 10;
+    def->mode        = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
+
+    def           = this->add("bottom_surface_direction", coFloatOrPercent);
+    def->label    = L("Bottom surfase direction");
+    def->category = L("Strength");
+    def->tooltip  = _(L("Direction for bottom surface pattern.")) + "\n" +
+                    _(L("If expressed as a %, it will be computed a sector of the full turn 360°.")) + "\n" +
+                    _(L("Positive values for turn CCW, negative ones for turn CW."));
+    def->sidetext    = L("° or %");
+    def->min         = -360;
+    def->max         = 360;
+    def->max_literal = 10;
+    def->mode        = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("sparse_infill_pattern", coEnum);
     def->label = L("Sparse infill pattern");

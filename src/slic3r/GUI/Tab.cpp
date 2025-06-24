@@ -2198,10 +2198,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_shell_layers");
         optgroup->append_single_option_line("top_shell_thickness");
         optgroup->append_single_option_line("top_surface_density");
+        optgroup->append_single_option_line("top_surface_direction");
         optgroup->append_single_option_line("top_surface_pattern");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
         optgroup->append_single_option_line("bottom_surface_density");  
+        optgroup->append_single_option_line("bottom_surface_direction");    
         optgroup->append_single_option_line("bottom_surface_pattern");
         optgroup->append_single_option_line("top_bottom_infill_wall_overlap");
 
@@ -2228,10 +2230,11 @@ void TabPrint::build()
         optgroup->append_single_option_line("solid_infill_direction");
         optgroup->append_single_option_line("solid_infill_rotate_template");
         optgroup->append_single_option_line("gap_fill_target");
-        optgroup->append_single_option_line("filter_out_gap_fill");
+        optgroup->append_single_option_line("filter_out_gap_fill"); 
         optgroup->append_single_option_line("infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+        optgroup->append_single_option_line("apply_model_direction");
         optgroup->append_single_option_line("bridge_angle");
         optgroup->append_single_option_line("internal_bridge_angle"); // ORCA: Internal bridge angle override
         optgroup->append_single_option_line("minimum_sparse_infill_area");
