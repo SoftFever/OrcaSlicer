@@ -70,6 +70,7 @@ orcaslicer_add_cmake_project(OpenCV
        -DWITH_ADE=OFF
        -DBUILD_opencv_world=ON
        -DWITH_PROTOBUF=OFF
+       -DWITH_CAROTENE=OFF
        -DWITH_WIN32UI=OFF
        -DHAVE_WIN32UI=FALSE
 )
