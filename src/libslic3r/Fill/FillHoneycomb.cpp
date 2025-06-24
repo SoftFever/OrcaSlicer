@@ -7,9 +7,9 @@
 namespace Slic3r {
 
 void FillHoneycomb::_fill_surface_single(
-    const FillParams                &params, 
+    const FillParams                &params,
     unsigned int                     thickness_layers,
-    const std::pair<float, Point>   &direction, 
+    const std::pair<float, Point>   &direction,
     ExPolygon                        expolygon,
     Polylines                       &polylines_out)
 {
@@ -36,14 +36,14 @@ void FillHoneycomb::_fill_surface_single(
     {
         // adjust actual bounding box to the nearest multiple of our hex pattern
         // and align it so that it matches across layers
-        
+
         BoundingBox bounding_box = expolygon.contour.bounding_box();
         {
             // rotate bounding box according to infill direction
             Polygon bb_polygon = bounding_box.polygon();
             bb_polygon.rotate(direction.first, m.hex_center);
             bounding_box = bb_polygon.bounding_box();
-            
+
             // extend bounding box so that our pattern will be aligned with other layers
             // $bounding_box->[X1] and [Y1] represent the displacement between new bounding box offset and old one
             // The infill is not aligned to the object bounding box, but to a world coordinate system. Supposedly good enough.
@@ -69,12 +69,13 @@ void FillHoneycomb::_fill_surface_single(
                 x += m.distance;
             }
             p.rotate(-direction.first, m.hex_center);
+            p.simplify(params.resolution);
             all_polylines.push_back(p);
         }
     }
     // Apply multiline offset if needed
     multiline_fill(all_polylines, params, spacing);
-    
+
     all_polylines = intersection_pl(std::move(all_polylines), expolygon);
     chain_or_connect_infill(std::move(all_polylines), expolygon, polylines_out, this->spacing, params);
 }

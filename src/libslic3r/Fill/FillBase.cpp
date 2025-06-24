@@ -190,22 +190,22 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
 // Orca: Dedicated function to calculate gap fill lines for the provided surface, according to the print object parameters
 // and append them to the out ExtrusionEntityCollection.
 void Fill::_create_gap_fill(const Surface* surface, const FillParams& params, ExtrusionEntityCollection* out){
-    
+
     //Orca: just to be safe, check against null pointer for the print object config and if NULL return.
     if (this->print_object_config == nullptr) return;
-    
+
     // Orca: Enable gap fill as per the user preference. Return early if gap fill is to not be applied.
     if ((this->print_object_config->gap_fill_target.value == gftNowhere) ||
         (surface->surface_type == stInternalSolid && this->print_object_config->gap_fill_target.value != gftEverywhere))
         return;
-    
+
     Flow new_flow = params.flow;
     ExPolygons unextruded_areas;
     unextruded_areas = diff_ex(this->no_overlap_expolygons, union_ex(out->polygons_covered_by_spacing(10)));
     ExPolygons gapfill_areas = union_ex(unextruded_areas);
     if (!this->no_overlap_expolygons.empty())
         gapfill_areas = intersection_ex(gapfill_areas, this->no_overlap_expolygons);
-    
+
     if (gapfill_areas.size() > 0 && params.density >= 1) {
         double min = 0.2 * new_flow.scaled_spacing() * (1 - INSET_OVERLAP_TOLERANCE);
         double max = 2. * new_flow.scaled_spacing();
@@ -222,20 +222,20 @@ void Fill::_create_gap_fill(const Surface* surface, const FillParams& params, Ex
         std::vector<Points::size_type> order2 = chain_points(ordering_points);
         for (size_t i : order2)
             gaps_ex_sorted.emplace_back(std::move(gaps_ex[i]));
-        
+
         ThickPolylines polylines;
         for (ExPolygon& ex : gaps_ex_sorted) {
             //BBS: Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
             ex.douglas_peucker(SCALED_RESOLUTION * 0.1);
             ex.medial_axis(min, max, &polylines);
         }
-        
+
         if (!polylines.empty() && !is_bridge(params.extrusion_role)) {
             polylines.erase(std::remove_if(polylines.begin(), polylines.end(),
                                            [&](const ThickPolyline& p) {
                 return p.length() < scale_(params.config->filter_out_gap_fill.value);
             }), polylines.end());
-            
+
             ExtrusionEntityCollection gap_fill;
             variable_width(polylines, erGapFill, params.flow, gap_fill.entities);
             auto gap = std::move(gap_fill.entities);
@@ -2696,7 +2696,7 @@ void Fill::connect_base_support(Polylines &&infill_ordered, const Polygons &boun
     connect_base_support(std::move(infill_ordered), polygons_src, bbox, polylines_out, spacing, params);
 }
 
-//Fill  Multiline 
+//Fill  Multiline
 void multiline_fill(Polylines& polylines, const FillParams& params, float spacing)
 {
     if (params.multiline > 1) {
@@ -2713,7 +2713,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
             for (const Polyline& pl : polylines) {
                 const size_t n = pl.points.size();
                 if (n < 2) {
-                    all_polylines.emplace_back(pl);  
+                    all_polylines.emplace_back(pl);
                     continue;
                 }
 
@@ -2744,9 +2744,6 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
             }
         }
         polylines = std::move(all_polylines);
-
-        for (Polyline& pl : polylines)
-            pl.simplify(scale_(0.05f));
     }
 }
 
