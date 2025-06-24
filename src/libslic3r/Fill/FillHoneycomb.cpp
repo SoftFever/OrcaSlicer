@@ -69,7 +69,7 @@ void FillHoneycomb::_fill_surface_single(
                 x += m.distance;
             }
             p.rotate(-direction.first, m.hex_center);
-            p.simplify(params.resolution);
+            p.simplify(5 * spacing); // simplify to 5x line width
             all_polylines.push_back(p);
         }
     }

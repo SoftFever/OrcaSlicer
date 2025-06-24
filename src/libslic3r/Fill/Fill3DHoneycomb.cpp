@@ -261,13 +261,14 @@ void Fill3DHoneycomb::_fill_surface_single(
 	       bb.size()(1),
 	       !params.dont_adjust);
 
-    // Apply multiline offset if needed
-    multiline_fill(polylines, params, spacing);
-
     // move pattern in place
     for (Polyline &pl : polylines){
       pl.translate(bb.min);
+      pl.simplify(5 * spacing); // simplify to 5x line width
     }
+
+    // Apply multiline offset if needed
+    multiline_fill(polylines, params, spacing);
 
     // clip pattern to boundaries, chain the clipped polylines
     polylines = intersection_pl(polylines, to_polygons(expolygon));
