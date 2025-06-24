@@ -2923,10 +2923,10 @@ void GUI_App::init_label_colours()
 {
     bool is_dark_mode = dark_mode();
     m_color_label_modified = is_dark_mode ? wxColour("#F1754E") : wxColour("#F1754E");
-    m_color_label_sys      = is_dark_mode ? wxColour("#B2B3B5") : wxColour("#363636");
+    m_color_label_sys      = is_dark_mode ? wxColour("#CCCCCC") : wxColour("#363636");
 
 #if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
-    m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys; // wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    m_color_label_default           = is_dark_mode ? wxColour("#ADADD8") : wxColour("#464A84"); // ORCA text color for modified preset value
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_default       = is_dark_mode ? wxColour("#36363B") : wxColour("#F1F1F1"); // ORCA row highlighting
     m_color_hovered_btn_label       = is_dark_mode ? wxColour(255, 255, 254) : wxColour(0,0,0);

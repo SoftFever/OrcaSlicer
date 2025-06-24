@@ -733,13 +733,20 @@ void Tab::update_label_colours()
             if (translate_category(page->title(), m_type) != title)
                 continue;
 
-            const wxColor *clr = !page->m_is_nonsys_values ? &m_sys_label_clr :
-                page->m_is_modified_values ? &m_modified_label_clr :
-                (m_type < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
+            bool is_modified = (page->m_is_modified_values || m_type >= Preset::TYPE_COUNT);
 
-            m_tabctrl->SetItemTextColour(cur_item, clr == &m_modified_label_clr ? *clr : StateColor(
-                        std::make_pair(0x6B6B6C, (int) StateColor::NotChecked),
-                        std::make_pair(*clr, (int) StateColor::Normal)));
+            const wxColour *checked_clr;
+            if(!page->m_is_nonsys_values && !page->m_is_modified_values)
+                checked_clr = (m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr);
+            else
+                checked_clr = is_modified ? &m_modified_label_clr : &m_default_text_clr;
+
+            const wxColour *not_checked_clr = is_modified ? &m_modified_label_clr : &wxColour("#6B6B6C");
+
+            m_tabctrl->SetItemTextColour(cur_item, StateColor(
+                std::make_pair(*not_checked_clr, (int) StateColor::NotChecked),
+                std::make_pair(*checked_clr    , (int) StateColor::Normal))
+            );
             break;
         }
         cur_item = m_tabctrl->GetNextVisible(cur_item);
@@ -1049,13 +1056,20 @@ void Tab::update_changed_tree_ui()
                 }
             }
 
-            const wxColor *clr = sys_page ? (m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr) :
-                                 (modified_page || m_type >= Preset::TYPE_COUNT) ? &m_modified_label_clr : &m_default_text_clr;
+            bool is_modified = (modified_page || m_type >= Preset::TYPE_COUNT);
 
-            if (page->set_item_colour(clr))
-                m_tabctrl->SetItemTextColour(cur_item, clr == &m_modified_label_clr ? *clr : StateColor(
-                        std::make_pair(0x6B6B6C, (int) StateColor::NotChecked),
-                        std::make_pair(*clr, (int) StateColor::Normal)));
+            const wxColour *checked_clr;
+            if(sys_page && !modified_page)
+                checked_clr = (m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr);
+            else
+                checked_clr = is_modified ? &m_modified_label_clr : &m_default_text_clr;
+
+            const wxColour *not_checked_clr = is_modified ? &m_modified_label_clr : &wxColour("#6B6B6C");
+
+            m_tabctrl->SetItemTextColour(cur_item, StateColor(
+                std::make_pair(*not_checked_clr, (int) StateColor::NotChecked),
+                std::make_pair(*checked_clr    , (int) StateColor::Normal))
+            );
 
             page->m_is_nonsys_values = !sys_page;
             page->m_is_modified_values = modified_page;
@@ -1138,6 +1152,8 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
     update();
     if (m_active_page)
         m_active_page->update_visibility(m_mode, true);
+
+    //update_label_colours(); // ORCA update tab colors after using revert button
 
     // BBS: restore all pages in preset, update_dirty also update combobox
     update_dirty();
@@ -4969,7 +4985,7 @@ void Tab::rebuild_page_tree()
             m_tabctrl->SetItemText(curr_item, translate_category(p->title(), m_type));
         }
         m_tabctrl->SetItemTextColour(curr_item, p->get_item_colour() == m_modified_label_clr ? p->get_item_colour() : StateColor(
-                        std::make_pair(0x6B6B6C, (int) StateColor::NotChecked),
+                        std::make_pair(wxColour("#6B6B6C"), (int) StateColor::NotChecked),
                         std::make_pair(p->get_item_colour(), (int) StateColor::Normal)));
         if (translate_category(p->title(), m_type) == selected)
             item = curr_item;
