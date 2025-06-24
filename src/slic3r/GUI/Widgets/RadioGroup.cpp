@@ -52,6 +52,7 @@ void RadioGroup::Create(
     Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {m_focused = true ; Refresh(); e.Skip();}));
     Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {m_focused = false; Refresh(); e.Skip();}));
     Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
+        // HasFocus for wxPanel not working properly on linux
         //if (m_focused && !HasFocus()) // Required to take focus again since Refresh causing losing focus
         //    SetFocus();
         // call darkModeColorFor one time instead calling each control rendered
@@ -111,9 +112,12 @@ void RadioGroup::Create(
             dc.SetTextForeground(m_text_color);
             dc.DrawText(m_labels[i], text_start);
 
-            dc.SetPen((m_focused && m_selectedIndex == i) ? wxPen(m_focus_color, 1, wxPENSTYLE_SOLID) : *wxTRANSPARENT_PEN);
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.DrawRectangle(wxPoint(0,0), tx->GetSize() - rect_end);
+            if(m_focused && m_selectedIndex == i){
+                dc.SetPen(wxPen(m_focus_color, 1, wxPENSTYLE_SOLID));
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                dc.DrawRectangle(wxPoint(0,0), tx->GetSize() - rect_end);
+            }
+
         }));
 
         wxBoxSizer* radio_sizer = new wxBoxSizer(wxHORIZONTAL);
