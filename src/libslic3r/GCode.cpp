@@ -5422,6 +5422,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     
     bool variable_speed = false;
     std::vector<ProcessedPoint> new_points {};
+    auto enable_overhang_bridge_fan = EXTRUDER_CONFIG(enable_overhang_bridge_fan);
 
     if (m_config.enable_overhang_speed && !this->on_first_layer() &&
         (is_bridge(path.role()) || is_perimeter(path.role()))) {
@@ -5480,7 +5481,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
                                                                               ref_speed, speed, m_config.slowdown_for_curled_perimeters);
             }
-            variable_speed = std::any_of(new_points.begin(), new_points.end(),
+            variable_speed = (enable_overhang_bridge_fan && m_config.enable_overhang_speed) || std::any_of(new_points.begin(), new_points.end(),
                                          [speed](const ProcessedPoint &p) { return fabs(double(p.speed) - speed) > 1; }); // Ignore small speed variations (under 1mm/sec)
     }
 
@@ -5606,7 +5607,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
 
     auto overhang_fan_threshold = EXTRUDER_CONFIG(overhang_fan_threshold);
-    auto enable_overhang_bridge_fan = EXTRUDER_CONFIG(enable_overhang_bridge_fan);
 
     //    { "0%", Overhang_threshold_none },
     //    { "10%", Overhang_threshold_1_4 },
