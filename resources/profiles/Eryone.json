@@ -17,6 +17,18 @@
         {
             "name": "0.20mm Standard @Thinker X400",
             "sub_path": "process/0.20mm Standard @Thinker X400.json"
+        },
+        {
+            "name": "0.12mm Standard @Thinker X400",
+            "sub_path": "process/0.12mm Standard @Thinker X400.json"
+        },
+        {
+            "name": "0.16mm Standard @Thinker X400",
+            "sub_path": "process/0.16mm Standard @Thinker X400.json"
+        },
+        {
+            "name": "0.24mm Standard @Thinker X400",
+            "sub_path": "process/0.24mm Standard @Thinker X400.json"
         }
     ],
     "filament_list": [
