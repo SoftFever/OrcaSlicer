@@ -103,9 +103,9 @@ public:
 	const ConfigOptionsGroupShp	get_optgroup(const wxString& title) const;
 
 	bool set_item_colour(StateColor clr) {
-		if (m_item_color.colorForStates(0) != clr.colorForStates(0) || // StateColor::State::Normal
-            m_item_color.colorForStates(2) != clr.colorForStates(2)    // StateColor::State::Checked
-            ) {
+		if (m_item_color.colorForStates(StateColor::Normal)     != clr.colorForStates(StateColor::Normal) ||
+            m_item_color.colorForStates(StateColor::NotChecked) != clr.colorForStates(StateColor::NotChecked)
+        ) {
 			m_item_color = clr;
 			return true;
 		}
