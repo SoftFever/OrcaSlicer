@@ -1985,6 +1985,20 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
     assert(to_del_flament_id < old_filament_count);
     filament_presets.erase(filament_presets.begin() + to_del_flament_id);
 
+    // update edited_preset
+    {
+        Preset& edited_preset = filaments.get_edited_preset();
+        bool    edited_preset_deleted = true;
+        for (std::string filament_preset_name : filament_presets) {
+            if (filament_preset_name == edited_preset.name) {
+                edited_preset_deleted = false;
+            }
+        }
+        if (edited_preset_deleted) {
+            filaments.select_preset_by_name(filament_presets.front(), false);
+        }
+    }
+
     ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
     ConfigOptionInts* filament_map = project_config.option<ConfigOptionInts>("filament_map");
 
