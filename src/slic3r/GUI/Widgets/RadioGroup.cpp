@@ -49,8 +49,8 @@ void RadioGroup::Create(
     SetDoubleBuffered(true);
     AcceptsFocusFromKeyboard();
 
-    Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {m_focused = true ; Refresh();}));// e.Skip();}));
-    Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {m_focused = false; Refresh();}));// e.Skip();}));
+    Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {m_focused = true ; Refresh(); e.Skip();}));
+    Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {m_focused = false; Refresh(); e.Skip();}));
     Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
         //if (m_focused && !HasFocus()) // Required to take focus again since Refresh causing losing focus
         //    SetFocus();
