@@ -4455,6 +4455,37 @@ int CLI::run(int argc, char **argv)
 
                     BOOST_LOG_TRIVIAL(debug) << boost::format("plate %1%: no arrange, directly translate object %2%  by {%3%, %4%}") % (i+1) % mo->name %plate_origin(0) %plate_origin(1);
                 }
+
+                bool is_seq_print = false;
+                get_print_sequence(cur_plate, m_print_config, is_seq_print);
+
+                if (!is_seq_print && assemble_plate.filaments_count > 1)
+                {
+                    //prepare the wipe tower
+                    auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+                    // set the default position, the same with print config(left top)
+                    float x = WIPE_TOWER_DEFAULT_X_POS;
+                    float y = WIPE_TOWER_DEFAULT_Y_POS;
+                    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+                        x = I3_WIPE_TOWER_DEFAULT_X_POS;
+                        y = I3_WIPE_TOWER_DEFAULT_Y_POS;
+                    }
+                    if (x < WIPE_TOWER_MARGIN) {
+                        x = WIPE_TOWER_MARGIN;
+                    }
+                    if (y < WIPE_TOWER_MARGIN) {
+                        y = WIPE_TOWER_MARGIN;
+                    }
+
+                    //create the options using default if neccessary
+                    ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                    ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+                    ConfigOptionFloat wt_x_opt(x);
+                    ConfigOptionFloat wt_y_opt(y);
+
+                    wipe_x_option->set_at(&wt_x_opt, i, 0);
+                    wipe_y_option->set_at(&wt_y_opt, i, 0);
+                }
             }
         }
 
