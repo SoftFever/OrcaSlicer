@@ -109,6 +109,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/DragCanvas.hpp
     GUI/EditGCodeDialog.cpp
     GUI/EditGCodeDialog.hpp
+    GUI/EncodedFilament.hpp
+    GUI/EncodedFilament.cpp
     GUI/ExtraRenderers.cpp
     GUI/ExtraRenderers.hpp
     GUI/ExtrusionCalibration.cpp

@@ -9,6 +9,8 @@
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
 #include "../Utils/ColorSpaceConvert.hpp"
+#include "EncodedFilament.hpp"
+
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
@@ -178,6 +180,11 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     m_clr_picker->Bind(wxEVT_LEFT_DOWN, &AMSMaterialsSetting::on_clr_picker, this);
     m_sizer_colour->Add(m_clr_picker, 0, 0, 0);
+    m_clr_name = new Label(parent, wxEmptyString);
+    m_clr_name->SetForegroundColour(*wxBLACK);
+    m_clr_name->SetBackgroundColour(*wxWHITE);
+    m_clr_name->SetFont(Label::Body_13);
+    m_sizer_colour->Add(m_clr_name, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
 
     wxBoxSizer* m_sizer_temperature = new wxBoxSizer(wxHORIZONTAL);
     m_title_temperature = new wxStaticText(parent, wxID_ANY, _L("Nozzle\nTemperature"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
@@ -724,18 +731,34 @@ void AMSMaterialsSetting::set_color(wxColour color)
     //m_clrData->SetColour(color);
     m_clr_picker->is_empty(false);
     m_clr_picker->set_color(color);
+
+    FilamentColor fila_color;
+    fila_color.m_colors.insert(color);
+    fila_color.EndSet(m_clr_picker->ctype);
+    auto clr_query = GUI::wxGetApp().get_filament_color_code_query();
+    m_clr_name->SetLabelText(clr_query->GetFilaColorName(ams_filament_id, fila_color));
 }
 
 void AMSMaterialsSetting::set_empty_color(wxColour color)
 {
     m_clr_picker->is_empty(true);
     m_clr_picker->set_color(color);
+    m_clr_name->SetLabelText(wxEmptyString);
 }
 
 void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
 {
     //m_clrData->SetColour(color);
     m_clr_picker->set_colors(colors);
+
+    if (!colors.empty())
+    {
+        FilamentColor fila_color;
+        for (const auto& clr : colors) { fila_color.m_colors.insert(clr); }
+        fila_color.EndSet(m_clr_picker->ctype);
+        auto clr_query = GUI::wxGetApp().get_filament_color_code_query();
+        m_clr_name->SetLabelText(clr_query->GetFilaColorName(ams_filament_id, fila_color));
+    }
 }
 
 void AMSMaterialsSetting::set_ctype(int ctype)
