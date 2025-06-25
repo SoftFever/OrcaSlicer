@@ -25,6 +25,7 @@ CloneDialog::CloneDialog(wxWindow *parent)
     f_sizer->Add(m_count_spin, 0, wxALIGN_CENTER_VERTICAL);
 
     auto arrange_label = new wxStaticText(this, wxID_ANY, _L("Auto arrange plate after cloning") + ":", wxDefaultPosition, wxDefaultSize, 0);
+    arrange_label->Wrap(FromDIP(300));
     m_arrange_cb = new ::CheckBox(this);
     m_arrange_cb->SetValue(m_config->get("auto_arrange") == "true");
     f_sizer->Add(arrange_label, 0, wxEXPAND | wxALIGN_CENTER_VERTICAL);
@@ -32,12 +33,14 @@ CloneDialog::CloneDialog(wxWindow *parent)
 
     v_sizer->Add(f_sizer, 1, wxEXPAND | wxALL, FromDIP(10));
 
+    auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_progress = new ProgressBar(this, wxID_ANY, 100);
     m_progress->SetHeight(FromDIP(8));
+    m_progress->SetMaxSize(wxSize(-1, FromDIP(8)));
     m_progress->SetProgressForedColour(StateColor::darkModeColorFor(wxColour("#DFDFDF")));
     m_progress->SetDoubleBuffered(true);
     m_progress->Hide();
-    v_sizer->Add(m_progress, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    bottom_sizer->Add(m_progress, 2, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     // used next button to get automatic left alignment
     // will add a left_align_first_n parameter to DialogButtons. current method not good
@@ -93,11 +96,14 @@ CloneDialog::CloneDialog(wxWindow *parent)
 
     dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         m_cancel_process = true;
-        m_plater->Thaw();
+        if(m_plater->IsFrozen())
+            m_plater->Thaw();
         EndModal(wxID_CANCEL);
     });
 
-    v_sizer->Add(dlg_btns, 0, wxEXPAND);
+    bottom_sizer->Add(dlg_btns, 1, wxEXPAND);
+
+    v_sizer->Add(bottom_sizer, 0, wxEXPAND);
 
     this->SetSizer(v_sizer);
     this->Layout();
