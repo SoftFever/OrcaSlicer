@@ -2523,7 +2523,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     }
 
     bool light_on = obj->chamber_light != MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF;
-    BOOST_LOG_TRIVIAL(trace) << "light: " << light_on ? "on" : "off";
+    BOOST_LOG_TRIVIAL(trace) << "light: " << (light_on ? "on" : "off");
     if (m_switch_lamp_timeout > 0)
         m_switch_lamp_timeout--;
     else {
@@ -3596,7 +3596,7 @@ void StatusPanel::on_ams_setting_click(SimpleEvent &event)
         m_ams_setting_dlg->update_ams_img(DeviceManager::get_printer_ams_img(obj->printer_type));
         std::string ams_id = m_ams_control->GetCurentShowAms();
         if (obj->amsList.size() == 0) {
-            /* wxString txt = _L("AMS settings are not supported for external spool");
+            /* wxString txt = _L("AMS settings are not supported for external spool.");
              MessageDialog msg_dlg(nullptr, txt, wxEmptyString, wxICON_WARNING | wxOK);
              msg_dlg.ShowModal();*/
             return;
@@ -3624,7 +3624,7 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
         std::string ams_id = m_ams_control->GetCurentAms();
         std::string tray_id = m_ams_control->GetCurrentCan(ams_id);
         if (tray_id.empty() && ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) != 0) {
-            wxString txt = _L("Please select an AMS slot before calibration");
+            wxString txt = _L("Please select an AMS slot before calibration.");
             MessageDialog msg_dlg(nullptr, txt, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             return;
@@ -4686,9 +4686,6 @@ void ScoreDialog::init() {
     SetMinSize(wxSize(FromDIP(540), FromDIP(380)));
 
     fail_image = wxImage(Slic3r::resources_dir() + "/images/oss_picture_load_failed.png", wxBITMAP_TYPE_ANY);
-    // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicer.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 }
 
 wxBoxSizer *ScoreDialog::get_score_sizer() { 
