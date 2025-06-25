@@ -25,9 +25,8 @@ private:
     CheckBox*    m_arrange_cb;
     Plater*      m_plater;
     ProgressBar* m_progress;
-    wxWindow*    m_parent;
+    AppConfig*   m_config;
     bool         m_cancel_process;
-    //AppConfig* m_config;
 
     void on_dpi_changed(const wxRect &suggested_rect) override {}
 
