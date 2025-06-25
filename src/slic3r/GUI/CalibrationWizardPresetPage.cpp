@@ -313,7 +313,7 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
         m_title_texts[i]->Wrap(-1);
         m_title_texts[i]->SetFont(::Label::Body_14);
         item_sizer->Add(m_title_texts[i], 0, wxALL, 0);
-        m_value_inputs[i] = new TextInput(parent, wxEmptyString, wxString::FromUTF8("°C"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
+        m_value_inputs[i] = new TextInput(parent, wxEmptyString, wxString::FromUTF8("\u2103" /* °C */), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
         m_value_inputs[i]->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         m_value_inputs[i]->GetTextCtrl()->Bind(wxEVT_TEXT, [this, i](wxCommandEvent& event) {
             std::string number = m_value_inputs[i]->GetTextCtrl()->GetValue().ToStdString();
@@ -392,7 +392,7 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
     auto nozzle_temp_sizer = new wxBoxSizer(wxVERTICAL);
     auto nozzle_temp_text = new Label(parent, _L("Nozzle temperature"));
     nozzle_temp_text->SetFont(Label::Body_12);
-    m_nozzle_temp = new TextInput(parent, wxEmptyString, wxString::FromUTF8("°C"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+    m_nozzle_temp = new TextInput(parent, wxEmptyString, wxString::FromUTF8("\u2103" /* °C */), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
     m_nozzle_temp->SetBorderWidth(0);
     nozzle_temp_sizer->Add(nozzle_temp_text, 0, wxALIGN_LEFT);
     nozzle_temp_sizer->Add(m_nozzle_temp, 0, wxEXPAND);
@@ -439,7 +439,7 @@ void CaliPresetTipsPanel::set_params(int nozzle_temp, int bed_temp, float max_vo
     m_nozzle_temp->GetTextCtrl()->SetValue(text_nozzle_temp);
 
     std::string bed_temp_text = bed_temp==0 ? "-": std::to_string(bed_temp);
-    m_bed_temp->SetLabel(wxString::FromUTF8(bed_temp_text + "°C"));
+    m_bed_temp->SetLabel(wxString::FromUTF8(bed_temp_text + "\u2103" /* °C */));
 
     wxString flow_val_text = wxString::Format("%0.2f", max_volumetric);
     m_max_volumetric_speed->GetTextCtrl()->SetValue(flow_val_text);
