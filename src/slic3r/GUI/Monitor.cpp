@@ -440,23 +440,6 @@ bool MonitorPanel::Show(bool show)
     return wxPanel::Show(show);
 }
 
-void MonitorPanel::update_side_panel()
-{
-    Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
-
-    auto is_next_machine = false;
-    if (!dev->get_first_online_user_machine().empty()) {
-        wxCommandEvent* event = new wxCommandEvent(wxEVT_COMMAND_CHOICE_SELECTED);
-        event->SetString(dev->get_first_online_user_machine());
-        wxQueueEvent(this, event);
-        is_next_machine = true;
-        return;
-    }
-
-    if (!is_next_machine) { m_side_tools->set_none_printer_mode(); }
-}
-
 void MonitorPanel::show_status(int status)
 {
     if (!m_initialized) return;

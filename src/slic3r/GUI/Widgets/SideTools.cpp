@@ -57,7 +57,7 @@ void SideToolsPanel::on_timer(wxTimerEvent &event)
 
 void SideToolsPanel::set_current_printer_name(std::string dev_name)
 {
-     if (m_dev_name == from_u8(dev_name)) return;
+     if (m_dev_name == from_u8(dev_name) && !m_none_printer) return;
 
      m_none_printer = false;
      m_dev_name     = from_u8(dev_name);
@@ -66,7 +66,7 @@ void SideToolsPanel::set_current_printer_name(std::string dev_name)
 
 void SideToolsPanel::set_current_printer_signal(WifiSignal sign)
 {
-     if (last_printer_signal == sign) return;
+     if (last_printer_signal == sign && !m_none_printer) return;
 
      last_printer_signal = sign;
      m_none_printer = false;

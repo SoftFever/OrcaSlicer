@@ -144,7 +144,6 @@ public:
     void update_hms_tag();
     bool Show(bool show);
 
-	void update_side_panel();
     void show_status(int status);
 
     std::string get_string_from_tab(PrinterTab tab);
