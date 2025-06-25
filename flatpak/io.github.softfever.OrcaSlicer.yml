@@ -1,6 +1,6 @@
 app-id: io.github.softfever.OrcaSlicer
 runtime: org.gnome.Platform
-runtime-version: "46"
+runtime-version: "47"
 sdk: org.gnome.Sdk
 command: entrypoint
 separate-locales: true
@@ -36,29 +36,6 @@ modules:
         url: https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-1.22.8.tar.xz
         sha256: e305b9f07f52743ca481da0a4e0c76c35efd60adaf1b0694eb3bb021e2137e39
 
-  # For libOSMesa
-  - name: mesa
-    buildsystem: meson
-    config-opts:
-      - -Dosmesa=classic
-      - -Ddri-drivers=[]
-      - -Dgallium-drivers=[]
-      - -Dvulkan-drivers=[]
-      - -Dplatforms=[]
-    build-options:
-      arch:
-        aarch64:
-          config-opts:
-            - -Dlibunwind=disabled
-    cleanup:
-      - /share/drirc.d
-      - /include
-      - "*.a"
-    sources:
-      - type: archive
-        url: https://archive.mesa3d.org/older-versions/20.x/mesa-20.2.6.tar.xz
-        sha256: f12ca3c6c622f11cd79ad66b4220f04514fa96f795062fe92a37339ab19885db
-
   - name: glu
     config-opts:
       - --disable-static
@@ -84,9 +61,9 @@ modules:
   - name: libspnav
     sources:
       - type: archive
-        url: https://github.com/FreeSpacenav/libspnav/releases/download/v1.1/libspnav-1.1.tar.gz
-        sha256: 04b297f68a10db4fa40edf68d7f823ba7b9d0442f2b665181889abe2cea42759
- 
+        url: https://github.com/FreeSpacenav/libspnav/releases/download/v1.2/libspnav-1.2.tar.gz
+        sha256: 093747e7e03b232e08ff77f1ad7f48552c06ac5236316a5012db4269951c39db
+
   - name: orca_wxwidgets
     buildsystem: simple
     build-commands:
@@ -115,7 +92,7 @@ modules:
           -DwxUSE_LIBPNG=sys \
           -DwxUSE_ZLIB=sys \
           -DwxUSE_LIBJPEG=sys \
-          -DwxUSE_LIBTIFF=sys \
+          -DwxUSE_LIBTIFF=OFF \
           -DwxUSE_EXPAT=sys \
           -DBUILD_SHARED_LIBS:BOOL=ON \
           -DCMAKE_INSTALL_PREFIX:STRING=/app \
@@ -195,11 +172,17 @@ modules:
         dest: external-packages/GMP
         sha256: eae9326beb4158c386e39a356818031bd28f3124cf915f8c5b1dc4c7a36b4d7c
 
+      # curl
+      - type: file
+        url: https://github.com/curl/curl/archive/refs/tags/curl-7_75_0.zip
+        dest: external-packages/CURL
+        sha256: a63ae025bb0a14f119e73250f2c923f4bf89aa93b8d4fafa4a9f5353a96a765a
+
       # MPFR
       - type: file
-        url: https://www.mpfr.org/mpfr-current/mpfr-4.2.1.tar.bz2
+        url: https://www.mpfr.org/mpfr-4.2.2/mpfr-4.2.2.tar.bz2
         dest: external-packages/MPFR
-        sha256: b9df93635b20e4089c29623b19420c4ac848a1b29df1cfd59f26cab0d2666aa0
+        sha256: 9ad62c7dc910303cd384ff8f1f4767a655124980bb6d8650fe62c815a231bb7b
 
       # NLopt
       - type: file
@@ -230,6 +213,12 @@ modules:
         url: https://github.com/AcademySoftwareFoundation/openexr/archive/refs/tags/v2.5.5.zip
         dest: external-packages/OpenEXR
         sha256: 0307a3d7e1fa1e77e9d84d7e9a8694583fbbbfd50bdc6884e2c96b8ef6b902de
+
+      # OpenSSL
+      - type: file
+        url: https://github.com/openssl/openssl/archive/OpenSSL_1_1_1w.tar.gz
+        dest: external-packages/OpenSSL
+        sha256: 2130e8c2fb3b79d1086186f78e59e8bc8d1a6aedf17ab3907f4cb9ae20918c41
 
       # OpenVDB
       - type: file

@@ -14,7 +14,7 @@ static auto check_gcode_failed_str = _u8L("Abnormal print file data. Please slic
 static auto printjob_cancel_str         = _u8L("Task canceled.");
 static auto timeout_to_upload_str       = _u8L("Upload task timed out. Please check the network status and try again.");
 static auto failed_in_cloud_service_str = _u8L("Cloud service connection failed. Please try again.");
-static auto file_is_not_exists_str      = _u8L("Print file not found. please slice again.");
+static auto file_is_not_exists_str      = _u8L("Print file not found. Please slice again.");
 static auto file_over_size_str = _u8L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again.");
 static auto print_canceled_str    = _u8L("Task canceled.");
 static auto send_print_failed_str = _u8L("Failed to send the print job. Please try again.");
@@ -22,7 +22,7 @@ static auto upload_ftp_failed_str = _u8L("Failed to upload file to ftp. Please t
 
 static auto desc_network_error     = _u8L("Check the current status of the bambu server by clicking on the link above.");
 static auto desc_file_too_large    = _u8L("The size of the print file is too large. Please adjust the file size and try again.");
-static auto desc_fail_not_exist    = _u8L("Print file not found, Please slice it again and send it for printing.");
+static auto desc_fail_not_exist    = _u8L("Print file not found, please slice it again and send it for printing.");
 static auto desc_upload_ftp_failed = _u8L("Failed to upload print file to FTP. Please check the network status and try again.");
 
 static auto sending_over_lan_str   = _u8L("Sending print job over LAN");
@@ -194,18 +194,18 @@ void SendJob::process(Ctl &ctl)
         &msg, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
                         if (stage == SendingPrintJobStage::PrintingStageCreate) {
                             if (this->connection_type == "lan") {
-                                msg = _u8L("Sending gcode file over LAN");
+                                msg = _u8L("Sending G-code file over LAN");
                             } else {
-                                msg = _u8L("Sending gcode file to sdcard");
+                                msg = _u8L("Sending G-code file to SD card");
                             }
                         }
                         else if (stage == SendingPrintJobStage::PrintingStageUpload) {
                             if (code >= 0 && code <= 100 && !info.empty()) {
 							    if (this->connection_type == "lan") {
-                                    msg = _u8L("Sending gcode file over LAN");
+                                    msg = _u8L("Sending G-code file over LAN");
 							    }
 							    else {
-                                    msg = _u8L("Sending gcode file to sdcard");
+                                    msg = _u8L("Sending G-code file to SD card");
 							    }
                                 if (!info.empty()) {
                                     msg += format("(%s)", info);
@@ -217,10 +217,10 @@ void SendJob::process(Ctl &ctl)
 						}
 						else {
 							if (this->connection_type == "lan") {
-                                msg = _u8L("Sending gcode file over LAN");
+                                msg = _u8L("Sending G-code file over LAN");
 							}
 							else {
-                                msg = _u8L("Sending gcode file over LAN");
+                                msg = _u8L("Sending G-code file over LAN");
 							}
 						}
 
@@ -273,7 +273,7 @@ void SendJob::process(Ctl &ctl)
             && this->has_sdcard) {
             // try to send local with record
             BOOST_LOG_TRIVIAL(info) << "send_job: try to send gcode to printer";
-            ctl.update_status(curr_percent, _u8L("Sending gcode file over LAN"));
+            ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
             result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn, nullptr);
             if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
                 params.comments = "upload_failed";
@@ -283,15 +283,15 @@ void SendJob::process(Ctl &ctl)
             if (result < 0) {
                 // try to send with cloud
                 BOOST_LOG_TRIVIAL(info) << "send_job: try to send gcode file to printer";
-                ctl.update_status(curr_percent, _u8L("Sending gcode file over LAN"));
+                ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
             }
         } else {
             BOOST_LOG_TRIVIAL(info) << "send_job: try to send gcode file to printer";
-            ctl.update_status(curr_percent, _u8L("Sending gcode file over LAN"));
+            ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
         }
     } else {
         if (this->has_sdcard) {
-            ctl.update_status(curr_percent, _u8L("Sending gcode file over LAN"));
+            ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
             result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn, nullptr);
         } else {
             ctl.update_status(curr_percent, _u8L("An SD card needs to be inserted before sending to printer."));

@@ -3,7 +3,7 @@
     "name": "Fiberon PETG-rCF @base",
     "inherits": "fdm_filament_pet",
     "from": "system",
-    "filament_id": "GFL55",
+    "filament_id": "OGFL55",
     "instantiation": "false",
     "cool_plate_temp": [
         "0"

@@ -201,7 +201,7 @@ bool CalibrationWizard::save_preset(const std::string &old_preset_name, const st
     PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
     Preset* preset = filament_presets->find_preset(old_preset_name);
     if (!preset) {
-        message = wxString::Format(_L("The selected preset: %s is not found."), old_preset_name);
+        message = wxString::Format(_L("The selected preset: %s was not found."), old_preset_name);
         return false;
     }
 
@@ -663,7 +663,7 @@ void PressureAdvanceWizard::on_cali_start()
             if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1 && curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
                 MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold 16 history results per nozzle. "
                     "You can delete the existing historical results and then start calibration. "
-                    "Or you can continue the calibration, but you cannot create new calibration historical results. \n"
+                    "Or you can continue the calibration, but you cannot create new calibration historical results.\n"
                     "Do you still want to continue the calibration?"), MAX_PA_HISTORY_RESULTS_NUMS), wxEmptyString, wxICON_WARNING | wxYES | wxCANCEL);
                 if (msg_dlg.ShowModal() != wxID_YES) {
                     return;
@@ -725,7 +725,7 @@ void PressureAdvanceWizard::on_cali_save()
                 CalibUtils::set_PA_calib_result({ new_pa_cali_result }, false);
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else if (curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
@@ -792,7 +792,7 @@ void PressureAdvanceWizard::on_cali_save()
 
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else {
@@ -1142,7 +1142,7 @@ void FlowRateWizard::on_cali_save()
                 }
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
@@ -1188,7 +1188,7 @@ void FlowRateWizard::on_cali_save()
                 return;
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else {
@@ -1469,7 +1469,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
         return;
     }
 
-    MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset"), wxEmptyString, wxOK);
+    MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset."), wxEmptyString, wxOK);
     msg_dlg.ShowModal();
     show_step(start_step);
 }
