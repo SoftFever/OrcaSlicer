@@ -3388,11 +3388,15 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
         else
             last_utc_time = last_update_time;
 
+#if !BBL_RELEASE_TO_PUBLIC
+        BOOST_LOG_TRIVIAL(info) << "parse_json: dev_id=" << dev_id << ", tunnel is=" << tunnel << ", merged playload=" << j.dump();
+#else
         if (Slic3r::get_logging_level() < level_string_to_boost("trace")) {
-            BOOST_LOG_TRIVIAL(info) << "parse_json: dev_id=" << dev_id << ", origin playload=" << j_pre.dump(0);
+            BOOST_LOG_TRIVIAL(info) << "parse_json: dev_id=" << dev_id << ", origin playload=" << j_pre.dump();
         } else {
-            BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", tunnel is=" << tunnel << ", merged playload=" << j.dump(0);
+            BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", tunnel is=" << tunnel << ", merged playload=" << j.dump();
         }
+#endif
 
         // Parse version info first, as if version arrive or change, 'print' need parse again with new compatible settings
         try {
