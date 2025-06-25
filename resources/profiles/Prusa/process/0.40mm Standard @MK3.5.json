@@ -21,6 +21,7 @@
   "bottom_shell_thickness": "0.8",
   "bottom_shell_layers": "3",
   "initial_layer_speed": "30",
+  "initial_layer_infill_speed": "55",
   "outer_wall_speed": "40",
   "inner_wall_speed": "40",
   "bridge_speed": "22",
@@ -40,6 +41,7 @@
   "inner_wall_acceleration": "2000",
   "outer_wall_acceleration": "1500",
   "bridge_acceleration": "1000",
+  "support_top_z_distance": "0.25",
   "compatible_printers": [
     "Prusa MK3.5 0.8 nozzle"
   ]

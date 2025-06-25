@@ -57,6 +57,12 @@ std::string get_calib_mode_name(CalibMode cali_mode, int stage)
         return "vfa_tower_calib_mode";
     case CalibMode::Calib_Retraction_tower:
         return "retration_tower_calib_mode";
+    case CalibMode::Calib_Input_shaping_freq:
+        return "input_shaping_freq_calib_mode";
+    case CalibMode::Calib_Input_shaping_damp:
+        return "input_shaping_damp_calib_mode";
+    case CalibMode::Calib_Junction_Deviation:
+        return "junction_deviation_calib_mode";
     default:
         assert(false);
         return "";
@@ -196,6 +202,12 @@ CalibMode CalibUtils::get_calib_mode_by_name(const std::string name, int& cali_s
         return CalibMode::Calib_VFA_Tower;
     else if (name == "retration_tower_calib_mode")
         return CalibMode::Calib_Retraction_tower;
+    else if (name == "input_shaping_freq_calib_mode")
+        return CalibMode::Calib_Input_shaping_freq;
+    else if (name == "input_shaping_damp_calib_mode")
+        return CalibMode::Calib_Input_shaping_damp;
+    else if (name == "junction_deviation_calib_mode")
+        return CalibMode::Calib_Junction_Deviation;
     return CalibMode::Calib_None;
 }
 
@@ -303,7 +315,7 @@ static void read_model_from_file(const std::string& input_file, Model& model)
     std::vector<Preset *> project_presets;
 
     model = Model::read_from_file(input_file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets,
-        &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, nullptr, nullptr, plate_to_slice);
+        &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, plate_to_slice);
 
     model.add_default_instances();
     for (auto object : model.objects)
@@ -870,6 +882,7 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     print_config.set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+    print_config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -978,7 +991,7 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
 
 bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &full_config, const Calib_Params &params, wxString &error_message)
 {
-    Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;
+    Pointfs bedfs         = make_counter_clockwise(full_config.opt<ConfigOptionPoints>("printable_area")->values);
     double  print_height  = full_config.opt_float("printable_height");
     double  current_width = bedfs[2].x() - bedfs[0].x();
     double  current_depth = bedfs[2].y() - bedfs[0].y();

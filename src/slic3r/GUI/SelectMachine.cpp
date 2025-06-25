@@ -976,10 +976,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     // font
     SetFont(wxGetApp().normal_font());
 
-    // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     Freeze();
     SetBackgroundColour(m_colour_def_color);
 
@@ -2285,7 +2281,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
 {
     bool  is_same_nozzle_diameters = true;
 
-    float       preset_nozzle_diameters;
+    float       preset_nozzle_diameters = 0.0;
     std::string preset_nozzle_type;
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -2440,7 +2436,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
     if (!is_same_printer_type && (m_print_type == PrintFromType::FROM_NORMAL)) {
-        confirm_text.push_back(ConfirmBeforeSendInfo(_L("The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing.")));
+        confirm_text.push_back(ConfirmBeforeSendInfo(_L("The printer type selected when generating G-code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing.")));
         has_slice_warnings = true;
     }
 
@@ -2581,7 +2577,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             is_printing_block = true;
             nozzle_diameter =  wxString::Format("%.1f", obj_->nozzle_diameter).ToStdString();
 
-                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
+                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material (%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
             confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
     }
@@ -4666,9 +4662,6 @@ void SelectMachineDialog::update_lan_machine_list()
 EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Modifying the device name"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     SetBackgroundColour(*wxWHITE);
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
     auto        m_line_top   = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);

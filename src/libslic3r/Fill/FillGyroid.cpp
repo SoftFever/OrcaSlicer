@@ -168,6 +168,10 @@ void FillGyroid::_fill_surface_single(
     // align bounding box to a multiple of our grid module
     bb.merge(align_to_grid(bb.min, Point(2*M_PI*distance, 2*M_PI*distance)));
 
+    // Expand the bounding box to avoid artifacts at the edges
+    coord_t expand = 10 * (scale_(this->spacing));
+    bb.offset(expand); 
+
     // generate pattern
     Polylines polylines = make_gyroid_waves(
         scale_(this->z),
@@ -194,10 +198,7 @@ void FillGyroid::_fill_surface_single(
 	if (! polylines.empty()) {
 		// connect lines
 		size_t polylines_out_first_idx = polylines_out.size();
-		if (params.dont_connect())
-        	append(polylines_out, chain_polylines(polylines));
-        else
-            this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
+        chain_or_connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
 
 	    // new paths must be rotated back
         if (std::abs(infill_angle) >= EPSILON) {

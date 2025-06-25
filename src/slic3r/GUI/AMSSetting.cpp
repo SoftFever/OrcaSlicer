@@ -67,7 +67,7 @@ void AMSSetting::create()
 
     // tip line2
     m_tip_Insert_material_line2 = new Label(m_panel_Insert_material,
-        _L("Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed.")
+        _L("Note: if a new filament is inserted during printing, the AMS will not automatically read any information until printing is completed.")
     );
     m_tip_Insert_material_line2->SetFont(::Label::Body_13);
     m_tip_Insert_material_line2->SetForegroundColour(AMS_SETTING_GREY700);
@@ -114,7 +114,7 @@ void AMSSetting::create()
     m_sizer_starting_tip_inline = new wxBoxSizer(wxVERTICAL);
 
     m_tip_starting_line1 = new Label(m_panel_body,
-        _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools.")
+        _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll the filament spools.")
     );
     m_tip_starting_line1->SetFont(::Label::Body_13);
     m_tip_starting_line1->SetForegroundColour(AMS_SETTING_GREY700);
@@ -183,7 +183,7 @@ void AMSSetting::create()
     m_sizer_switch_filament_inline = new wxBoxSizer(wxVERTICAL);
 
     m_tip_switch_filament_line1 = new Label(m_panel_body,
-        _L("AMS will continue to another spool with the same properties of filament automatically when current filament runs out")
+        _L("AMS will continue to another spool with matching filament properties automatically when current filament runs out.")
     );
     m_tip_switch_filament_line1->SetFont(::Label::Body_13);
     m_tip_switch_filament_line1->SetForegroundColour(AMS_SETTING_GREY700);
@@ -191,7 +191,7 @@ void AMSSetting::create()
     m_tip_switch_filament_line1->Wrap(AMS_SETTING_BODY_WIDTH);
     m_sizer_switch_filament_inline->Add(m_tip_switch_filament_line1, 0, wxEXPAND, 0);
     m_sizer_switch_filament_tip->Add(m_sizer_switch_filament_inline, 1, wxALIGN_CENTER, 0);
-    
+
 
 
     // checkbox area 5

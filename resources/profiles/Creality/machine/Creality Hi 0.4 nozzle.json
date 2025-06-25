@@ -131,6 +131,7 @@
         "2"
     ],
     "single_extruder_multi_material": "1",
+    "machine_load_filament_time": "105",
     "machine_pause_gcode": "PAUSE",
     "change_filament_gcode": "G2 Z{z_after_toolchange + 0.4} I0.86 J0.86 P1 F10000 ; spiral lift a little from second lift\nG1 X260 Y180 F30000\nG1 Z{z_after_toolchange} F600",
     "default_filament_profile": [
