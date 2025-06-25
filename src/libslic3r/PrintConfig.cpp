@@ -3189,7 +3189,7 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "nozzle_diameter";
     def->min      = 0;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def           = this->add("skeleton_infill_line_width", coFloatOrPercent);
     def->label    = L("Skeleton line width");
@@ -3199,7 +3199,7 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "nozzle_diameter";
     def->min      = 0;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def           = this->add("symmetric_infill_y_axis", coBool);
     def->label    = L("Symmetric infill y axis");
