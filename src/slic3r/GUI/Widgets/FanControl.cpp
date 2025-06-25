@@ -777,7 +777,7 @@ void FanControlPopupNew::update_fan_data(MachineObject *obj)
         return;
     }
 
-    if (obj->is_enable_np) {
+    if (!obj->m_air_duct_data.modes.empty()) {
         update_fan_data(obj->m_air_duct_data);
     } else {
         int cooling_fan_speed = round(obj->cooling_fan_speed / float(25.5));
