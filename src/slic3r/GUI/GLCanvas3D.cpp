@@ -3511,7 +3511,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     m_dirty = true;
 #endif
                 } else if ((evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_RETURN) ||
-                    evt.ShiftDown() && evt.AltDown() && keyCode == WXK_RETURN) {
+                    (evt.ShiftDown() && evt.AltDown() && keyCode == WXK_RETURN)) {
                     wxGetApp().plater()->toggle_show_wireframe();
                     m_dirty = true;
                 }
@@ -4104,6 +4104,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     bool any_gizmo_active = m_gizmos.get_current() != nullptr;
+    bool swapMouseButtons = wxGetApp().app_config->get_bool("swap_mouse_buttons");
 
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos)) {
         m_mouse.drag.move_requires_threshold = false;
@@ -4305,7 +4306,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_dirty = true;
         }
     }
-    else if (evt.Dragging() || is_camera_rotate(evt) || is_camera_pan(evt)) {
+    else if (evt.Dragging() || is_camera_rotate(evt, swapMouseButtons) || is_camera_pan(evt, swapMouseButtons)) {
         m_mouse.dragging = true;
 
         if (m_layers_editing.state != LayersEditing::Unknown && layer_editing_object_idx != -1) {
@@ -4315,10 +4316,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
         // do not process the dragging if the left mouse was set down in another canvas
-        else if (is_camera_rotate(evt)) {
+        else if (is_camera_rotate(evt, swapMouseButtons)) {
             // Orca: Sphere rotation for painting view
-            // if dragging over blank area with left button, rotate
-            if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
+            // if dragging over blank area with left button or button functions swapped then rotate
+            if ((any_gizmo_active || swapMouseButtons || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
                 Camera& camera = wxGetApp().plater()->get_camera();
                 auto mult_pref = wxGetApp().app_config->get("camera_orbit_mult");
                 const double mult = mult_pref.empty() ? 1.0 : std::stod(mult_pref);
@@ -4381,15 +4382,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         }
                     }
                 }
-                camera.auto_type(Camera::EType::Perspective);
 
+                camera.auto_type(Camera::EType::Perspective);
                 m_dirty = true;
+                m_mouse.ignore_right_up = true;  // will be reset on button up event even if not right button is pressed
             }
+
             m_camera_movement = true;
             m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
         }
-        else if (is_camera_pan(evt)) {
-            // If dragging over blank area with right button, pan.
+        else if (is_camera_pan(evt, swapMouseButtons)) {
+            // if dragging with right button or if button functions swapped and dragging with left button over blank area then pan
             if (m_mouse.is_start_position_2D_defined()) {
                 // get point in model space at Z = 0
                 float z = 0.0f;
@@ -4407,7 +4410,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                 camera.set_target(camera.get_target() + orig - cur_pos);
                 m_dirty = true;
-                m_mouse.ignore_right_up = true;
+                m_mouse.ignore_right_up = true;  // will be reset on button up event even if not right button is pressed
             }
 
             m_camera_movement = true;
@@ -4415,10 +4418,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if ((evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) ||
-               (m_camera_movement && !is_camera_rotate(evt) && !is_camera_pan(evt))) {
+               (m_camera_movement && !is_camera_rotate(evt, swapMouseButtons) && !is_camera_pan(evt, swapMouseButtons))) {
         m_mouse.position = pos.cast<double>();
 
-        if (evt.LeftUp()) {
+        if (swapMouseButtons ? evt.RightUp() : evt.LeftUp()) {
             m_rotation_center(0) = m_rotation_center(1) = m_rotation_center(2) = 0.f;
         }
 
@@ -4603,21 +4606,21 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
     m_is_touchpad_navigation = wxGetApp().app_config->get_bool("camera_navigation_style");
 }
 
-bool GLCanvas3D::is_camera_rotate(const wxMouseEvent& evt) const
+bool GLCanvas3D::is_camera_rotate(const wxMouseEvent& evt, const bool buttonsSwapped) const
 {
     if (m_is_touchpad_navigation) {
         return evt.Moving() && evt.AltDown() && !evt.ShiftDown();
     } else {
-        return evt.Dragging() && evt.LeftIsDown();
+        return evt.Dragging() && (buttonsSwapped ? evt.RightIsDown() : evt.LeftIsDown());
     }
 }
 
-bool GLCanvas3D::is_camera_pan(const wxMouseEvent& evt) const
+bool GLCanvas3D::is_camera_pan(const wxMouseEvent& evt, const bool buttonsSwapped) const
 {
     if (m_is_touchpad_navigation) {
         return evt.Moving() && evt.ShiftDown() && !evt.AltDown();
     } else {
-        return evt.Dragging() && (evt.MiddleIsDown() || evt.RightIsDown());
+        return evt.Dragging() && (evt.MiddleIsDown() || (buttonsSwapped ? evt.LeftIsDown() : evt.RightIsDown()));
     }
 }
 
@@ -6640,8 +6643,8 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); };
     item.left.render_callback = GLToolbarItem::Default_Render_Callback;
     item.visible = true;
-    item.visibility_callback = [this]()->bool { return true; };
-    item.enabling_callback = [this]()->bool {
+    item.visibility_callback = []()->bool { return true; };
+    item.enabling_callback = []()->bool {
         return wxGetApp().plater()->has_assmeble_view();
     };
     if (!m_assemble_view_toolbar.add_item(item))
@@ -6690,7 +6693,7 @@ bool GLCanvas3D::_init_separator_toolbar()
     sperate_item.name = "start_seperator";
     sperate_item.icon_filename = "seperator.svg";
     sperate_item.sprite_id = 0;
-    sperate_item.left.action_callback = [this]() {};
+    sperate_item.left.action_callback = []() {};
     sperate_item.visibility_callback = []()->bool { return true; };
     sperate_item.enabling_callback = []()->bool { return false; };
     if (!m_separator_toolbar.add_item(sperate_item))
@@ -7407,7 +7410,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             }*/
             const Camera& camera = wxGetApp().plater()->get_camera();
             //BBS:add assemble view related logic
-            m_volumes.render(type, false, camera.get_view_matrix(), camera.get_projection_matrix(), cvn_size, [this, canvas_type](const GLVolume& volume) {
+            m_volumes.render(type, false, camera.get_view_matrix(), camera.get_projection_matrix(), cvn_size, [canvas_type](const GLVolume& volume) {
                 if (canvas_type == ECanvasType::CanvasAssembleView) {
                     return !volume.is_modifier;
                 }
@@ -7783,7 +7786,7 @@ void GLCanvas3D::_render_gizmos_overlay()
 //     m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);
     const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
     m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
-#endif /* __WXMSW__ */
+#endif */ /* __WXMSW__ */
     m_gizmos.render_overlay();
 
     if (m_gizmo_highlighter.m_render_arrow)
@@ -8252,7 +8255,7 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec2 margin = ImVec2(10.0f, 5.0f);
 
-    if (ImGui::ImageTextButton(real_size,_utf8(L("return")).c_str(), m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
+    if (ImGui::ImageTextButton(real_size,_utf8(L("Return")).c_str(), m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
         if (m_canvas != nullptr)
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
         const_cast<GLGizmosManager*>(&m_gizmos)->reset_all_states();
@@ -8474,7 +8477,7 @@ float GLCanvas3D::_show_assembly_tooltip_information(float caption_max, float x,
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip2(ImVec2(x, y));
-        auto draw_text_with_caption = [this, &imgui, & caption_max](const wxString &caption, const wxString &text) {
+        auto draw_text_with_caption = [&imgui, & caption_max](const wxString &caption, const wxString &text) {
             imgui->text_colored(ImGuiWrapper::COL_ACTIVE, caption);
             ImGui::SameLine(caption_max);
             imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);

@@ -2828,7 +2828,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "brim_width", "wall_loops", "wall_filament", "sparse_infill_density", "sparse_infill_filament", "top_shell_layers",
         "enable_support", "support_filament", "support_interface_filament",
         "support_top_z_distance", "support_bottom_z_distance", "raft_layers",
-        "wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_extra_flow", "wipe_tower_max_purge_speed", "wipe_tower_filament",
+        "wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_extra_flow", "wipe_tower_max_purge_speed",
+        "wipe_tower_wall_type", "wipe_tower_extra_rib_length","wipe_tower_rib_width","wipe_tower_fillet_wall",
+        "wipe_tower_filament",
         "best_object_pos"
         }))
     , sidebar(new Sidebar(q))
@@ -3668,7 +3670,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     bool dlg_cont = true;
     bool is_user_cancel = false;
     bool translate_old = false;
-    int current_width, current_depth, current_height;
+    int current_width = 0, current_depth = 0, current_height = 0;
 
     if (input_files.empty()) { return std::vector<size_t>(); }
     
@@ -9081,7 +9083,7 @@ void Plater::load_project(wxString const& filename2,
 
     // if res is empty no data has been loaded
     if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << load_restore ? originfile : filename;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << (load_restore ? originfile : filename);
         p->set_project_filename(load_restore ? originfile : filename);
         if (load_restore && originfile.IsEmpty()) {
         p->set_project_name(_L("Untitled"));
@@ -9616,7 +9618,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
         speeds.assign({speed});
         const auto msg{_L("INFO:") + "\n" +
-                       _L("No speeds provided for calibration. Use default optimal speed ") + std::to_string(long(speed)) + _L("mm/s")};
+                       _L("No speeds provided for calibration. Use default optimal speed ") + std::to_string(long(speed)) + "mm/s"};
         get_notification_manager()->push_notification(msg.ToStdString());
     } else if (speeds.size() == 1) {
         // If we have single value provided, set speed using global configuration.
@@ -9918,7 +9920,6 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("solid_infill_direction", new ConfigOptionFloat(135));
-        _obj->config.set_key_value("rotate_solid_infill_direction", new ConfigOptionBool(true));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
         _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));
@@ -10754,7 +10755,6 @@ public:
 WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
 
 #define PROJECT_DROP_DIALOG_SELECT_PLANE_SIZE wxSize(FromDIP(350), FromDIP(120))
-#define PROJECT_DROP_DIALOG_BUTTON_SIZE wxSize(FromDIP(60), FromDIP(24))
 
 class ProjectDropDialog : public DPIDialog
 {
@@ -10772,14 +10772,11 @@ public:
     wxStaticText *m_fname_f;
     wxStaticText *m_fname_s;
     StaticBox * m_panel_select;
-    Button *    m_confirm;
-    Button *    m_cancel;
-
 
     void      select_radio(int index);
     void      on_select_radio(wxMouseEvent &event);
-    void      on_select_ok(wxMouseEvent &event);
-    void      on_select_cancel(wxMouseEvent &event);
+    void      on_select_ok(wxCommandEvent &event);
+    void      on_select_cancel(wxCommandEvent &event);
 
     int       get_select_radio(int groupid);
     int       get_action() const { return m_action; }
@@ -10878,7 +10875,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 10);
 
-    wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
+    // wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
     // Orca: hide the "Don't show again" checkbox, people keeps accidentally checked this then forgot
     // wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
     //
@@ -10886,34 +10883,14 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     // m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
     //
     // m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
-    m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 5);
 
-    wxBoxSizer *m_sizer_right  = new wxBoxSizer(wxHORIZONTAL);
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
-    m_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &ProjectDropDialog::on_select_ok, this);
 
-    m_confirm->SetBackgroundColor(btn_bg_green);
-    m_confirm->SetBorderColor(wxColour(0, 150, 136));
-    m_confirm->SetTextColor(wxColour("#FFFFFE"));
-    m_confirm->SetSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
-    m_confirm->SetMinSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
-    m_confirm->SetCornerRadius(FromDIP(12));
-    m_confirm->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_ok, this);
-    m_sizer_right->Add(m_confirm, 0, wxALL, 5);
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, &ProjectDropDialog::on_select_cancel, this);
 
-    m_cancel = new Button(this, _L("Cancel"));
-    m_cancel->SetTextColor(wxColour(107, 107, 107));
-    m_cancel->SetSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
-    m_cancel->SetMinSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
-    m_cancel->SetCornerRadius(FromDIP(12));
-    m_cancel->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_cancel, this);
-    m_sizer_right->Add(m_cancel, 0, wxALL, 5);
-
-    m_sizer_bottom->Add( m_sizer_right, 0, wxEXPAND, 5 );
-    m_sizer_main->Add(m_sizer_bottom, 0, wxEXPAND | wxLEFT | wxRIGHT, 40);
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 20);
+    m_sizer_main->Add(dlg_btns, 0, wxEXPAND);
 
     SetSizer(m_sizer_main);
     Layout();
@@ -11057,7 +11034,7 @@ void ProjectDropDialog::on_select_radio(wxMouseEvent &event)
     }
 }
 
-void ProjectDropDialog::on_select_ok(wxMouseEvent &event)
+void ProjectDropDialog::on_select_ok(wxCommandEvent &event)
 {
     if (m_remember_choice) {
         LoadType load_type = static_cast<LoadType>(get_action());
@@ -11075,15 +11052,13 @@ void ProjectDropDialog::on_select_ok(wxMouseEvent &event)
     EndModal(wxID_OK);
 }
 
-void ProjectDropDialog::on_select_cancel(wxMouseEvent &event)
+void ProjectDropDialog::on_select_cancel(wxCommandEvent &event)
 {
     EndModal(wxID_CANCEL);
 }
 
 void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-    m_confirm->SetMinSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
-    m_cancel->SetMinSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
     Fit();
     Refresh();
 }

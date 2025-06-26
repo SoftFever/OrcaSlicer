@@ -15,16 +15,13 @@
 #include "format.hpp"
 #include "Tab.hpp"
 #include "wxExtensions.hpp"
-#include "BitmapCache.hpp"
 #include "ExtraRenderers.hpp"
 #include "MsgDialog.hpp"
 #include "Plater.hpp"
 
 #include "Widgets/DialogButtons.hpp"
 
-#include "libslic3r/PlaceholderParser.hpp"
 #include "libslic3r/Preset.hpp"
-#include "libslic3r/Print.hpp"
 
 #define BTN_GAP  FromDIP(20)
 #define BTN_SIZE wxSize(FromDIP(58), FromDIP(24))
@@ -61,7 +58,7 @@ EditGCodeDialog::EditGCodeDialog(wxWindow* parent, const std::string& key, const
     m_search_bar->SetForegroundColour(*wxBLACK);
     wxGetApp().UpdateDarkUI(m_search_bar);
 
-    m_search_bar->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {
+    m_search_bar->Bind(wxEVT_SET_FOCUS, [](wxFocusEvent&) {
 //        this->on_search_update();
     });
     m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
@@ -256,9 +253,9 @@ wxDataViewItem EditGCodeDialog::add_presets_placeholders()
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     const auto& tab_list    = wxGetApp().tabs_list;
 
-    Tab* tab_print;
-    Tab* tab_filament;
-    Tab* tab_printer;
+    Tab* tab_print = nullptr;
+    Tab* tab_filament = nullptr;
+    Tab* tab_printer = nullptr;
     for (const auto tab : tab_list) {
         if (tab->m_type == Preset::TYPE_PRINT)
             tab_print = tab;
@@ -670,6 +667,7 @@ wxDataViewItem ParamsModel::Delete(const wxDataViewItem& item)
     ParamsNode* node = static_cast<ParamsNode*>(item.GetID());
     if (!node)      // happens if item.IsOk()==false
         return ret_item;
+    const bool is_item_enabled = node->IsEnabled();
 
     // first remove the node from the parent's array of children;
     // NOTE: m_group_nodes is only a vector of _pointers_
@@ -700,8 +698,12 @@ wxDataViewItem ParamsModel::Delete(const wxDataViewItem& item)
         ret_item = parent;
     }
 
-    // notify control
-    ItemDeleted(parent, item);
+    // Orca: notify enabled item only, because disabled items have already been removed from UI,
+    // so attempt to notify it cases a crash.
+    if (is_item_enabled) {
+        // notify control
+        ItemDeleted(parent, item);
+    }
     return ret_item;
 }
 

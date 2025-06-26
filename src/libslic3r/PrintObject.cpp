@@ -1016,6 +1016,10 @@ bool PrintObject::invalidate_state_by_config_options(
             //|| opt_key == "independent_support_layer_height" // BBS
             || opt_key == "support_threshold_angle"
             || opt_key == "support_threshold_overlap"
+            || opt_key == "support_ironing"
+            || opt_key == "support_ironing_pattern"
+            || opt_key == "support_ironing_flow"
+            || opt_key == "support_ironing_spacing"
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
             || opt_key == "raft_first_layer_expansion"
@@ -1069,9 +1073,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "sparse_infill_filament"
             || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width"
+            || opt_key == "skin_infill_line_width"
+            || opt_key == "skeleton_infill_line_width"
             || opt_key == "infill_direction"
             || opt_key == "solid_infill_direction"
-            || opt_key == "rotate_solid_infill_direction"
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             || opt_key == "internal_bridge_angle" // ORCA: Internal bridge angle override
@@ -1087,12 +1092,23 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "infill_anchor"
             || opt_key == "infill_anchor_max"
             || opt_key == "top_surface_line_width"
+            || opt_key == "top_surface_density"
+            || opt_key == "bottom_surface_density"
             || opt_key == "initial_layer_line_width"
             || opt_key == "small_area_infill_flow_compensation"
             || opt_key == "lattice_angle_1"
-            || opt_key == "lattice_angle_2") {
+            || opt_key == "lattice_angle_2"
+            || opt_key == "infill_overhang_angle") {
             steps.emplace_back(posInfill);
-        } else if (opt_key == "sparse_infill_pattern") {
+        } else if (opt_key == "sparse_infill_pattern"
+                   || opt_key == "symmetric_infill_y_axis"
+                   || opt_key == "infill_shift_step"
+                   || opt_key == "sparse_infill_rotate_template"
+                   || opt_key == "solid_infill_rotate_template"
+                   || opt_key == "skeleton_infill_density"
+                   || opt_key == "skin_infill_density"
+                   || opt_key == "infill_lock_depth"
+                   || opt_key == "skin_infill_depth") {
             steps.emplace_back(posPrepareInfill);
         } else if (opt_key == "sparse_infill_density") {
             // One likely wants to reslice only when switching between zero infill to simulate boolean difference (subtracting volumes),
@@ -1128,8 +1144,7 @@ bool PrintObject::invalidate_state_by_config_options(
             //BBS
             || opt_key == "enable_overhang_speed"
             || opt_key == "detect_thin_wall"
-            || opt_key == "precise_outer_wall"
-            || opt_key == "overhang_speed_classic") {
+            || opt_key == "precise_outer_wall") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow" || opt_key == "internal_bridge_flow") {
@@ -1382,24 +1397,26 @@ void PrintObject::detect_surfaces_type()
                     if (! top.empty() && ! bottom.empty()) {
                         const auto cracks = intersection_ex(top, bottom);
                         if (!cracks.empty()) {
-                            const float small_crack_threshold = -layerm->flow(frExternalPerimeter).scaled_width() * 1.5;
-                            
-                            for (const auto& crack : cracks) {
-                                if (offset_ex(crack, small_crack_threshold).empty()) {
-                                    // For small cracks, if it's part of a large bottom surface, then it should be added to bottom as well
-                                    if (std::any_of(bottom.begin(), bottom.end(), [&crack, small_crack_threshold](const Surface& s) {
-                                            const auto& se = s.expolygon;
-                                            return diff_ex(crack, se, ApplySafetyOffset::Yes).empty()
-                                                && se.area() > crack.area() * 2
-                                                && !offset_ex(diff_ex(se, crack), small_crack_threshold).empty();
-                                    })) continue;
+                            if (lower_layer) { // Only detect small cracks for non-first layer, because first layer should always be bottom
+                                const float small_crack_threshold = -layerm->flow(frExternalPerimeter).scaled_width() * 1.5;
+                                
+                                for (const auto& crack : cracks) {
+                                    if (offset_ex(crack, small_crack_threshold).empty()) {
+                                        // For small cracks, if it's part of a large bottom surface, then it should be added to bottom as well
+                                        if (std::any_of(bottom.begin(), bottom.end(), [&crack, small_crack_threshold](const Surface& s) {
+                                                const auto& se = s.expolygon;
+                                                return diff_ex(crack, se, ApplySafetyOffset::Yes).empty()
+                                                    && se.area() > crack.area() * 2
+                                                    && !offset_ex(diff_ex(se, crack), small_crack_threshold).empty();
+                                        })) continue;
 
-                                    // Crack too small, leave it as part of the top surface, remove it from bottom surfaces
-                                    Surfaces bot_tmp;
-                                    for (auto& b : bottom) {
-                                        surfaces_append(bot_tmp, diff_ex(b.expolygon, offset_ex(crack, -small_crack_threshold)), b.surface_type);
+                                        // Crack too small, leave it as part of the top surface, remove it from bottom surfaces
+                                        Surfaces bot_tmp;
+                                        for (auto& b : bottom) {
+                                            surfaces_append(bot_tmp, diff_ex(b.expolygon, offset_ex(crack, -small_crack_threshold)), b.surface_type);
+                                        }
+                                        bottom = std::move(bot_tmp);
                                     }
-                                    bottom = std::move(bot_tmp);
                                 }
                             }
 
@@ -3355,9 +3372,9 @@ void PrintObject::get_certain_layers(float start, float end, std::vector<LayerPt
     out.emplace_back(std::move(out_temp));
 };
 
-std::vector<Point> PrintObject::get_instances_shift_without_plate_offset()
+Points PrintObject::get_instances_shift_without_plate_offset()
 {
-    std::vector<Point> out;
+    Points out;
     out.reserve(m_instances.size());
     for (const auto& instance : m_instances)
         out.push_back(instance.shift_without_plate_offset());
@@ -3767,7 +3784,8 @@ void PrintObject::combine_infill()
                   infill_pattern == ipGrid          ||
                   infill_pattern == ip2DLattice     ||
                   infill_pattern == ipLine          ||
-                  infill_pattern == ipHoneycomb) ? 1.5f : 0.5f) *
+                  infill_pattern == ipHoneycomb     ||
+                  infill_pattern == ip2DHoneycomb) ? 1.5f : 0.5f) *
                     layerms.back()->flow(frSolidInfill).scaled_width();
             for (ExPolygon &expoly : intersection)
                 polygons_append(intersection_with_clearance, offset(expoly, clearance_offset));

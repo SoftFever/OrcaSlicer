@@ -150,7 +150,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retraction_minimum_travel",
         "retract_before_wipe",
         "retract_when_changing_layer",
-        "retract_on_top_layer",
         "retraction_length",
         "retract_length_toolchange",
         "z_hop",
@@ -304,6 +303,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "wipe_tower_cone_angle"
             || opt_key == "wipe_tower_extra_spacing"
             || opt_key == "wipe_tower_max_purge_speed"
+            || opt_key == "wipe_tower_wall_type"
+            || opt_key == "wipe_tower_extra_rib_length"
+            || opt_key == "wipe_tower_rib_width"
+            || opt_key == "wipe_tower_fillet_wall"
             || opt_key == "wipe_tower_filament"
             || opt_key == "wiping_volumes_extruders"
             || opt_key == "enable_filament_ramming"
@@ -526,7 +529,7 @@ bool Print::has_brim() const
 }
 
 //BBS
-std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, std::vector<Points> &objects_instances_shift)
+std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, VecOfPoints &objects_instances_shift)
 {
     std::vector<size_t> idx_of_object_sorted;
     size_t              idx = 0;
@@ -1035,7 +1038,7 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
         filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
 
     if (!check_multi_filaments_compatibility(filament_types))
-        return { L("Cannot print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing") };
+        return {L("Cannot print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing.")};
 
     return {std::string()};
 }
@@ -1205,7 +1208,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
             double gap_layers = slicing_params.gap_object_support / slicing_params.layer_height;
             if (gap_layers - (int)gap_layers > EPSILON) {
-                return  { L("The prime tower requires \"support gap\" to be multiple of layer height"), object };
+                return {L("The prime tower requires \"support gap\" to be multiple of layer height."), object};
             }
         }
 #endif
@@ -1218,14 +1221,14 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 const SlicingParameters &slicing_params = object->slicing_parameters();
                 if (std::abs(slicing_params.first_print_layer_height - slicing_params0.first_print_layer_height) > EPSILON ||
                     std::abs(slicing_params.layer_height             - slicing_params0.layer_height            ) > EPSILON)
-                    return {L("The prime tower requires that all objects have the same layer heights"), object, "initial_layer_print_height"};
+                    return {L("The prime tower requires that all objects have the same layer heights."), object, "initial_layer_print_height"};
                 if (slicing_params.raft_layers() != slicing_params0.raft_layers())
-                    return {L("The prime tower requires that all objects are printed over the same number of raft layers"), object, "raft_layers"};
+                    return {L("The prime tower requires that all objects are printed over the same number of raft layers."), object, "raft_layers"};
                 // BBS: support gap can be multiple of object layer height, remove _L()
 #if 0
                 if (slicing_params0.gap_object_support != slicing_params.gap_object_support ||
                     slicing_params0.gap_support_object != slicing_params.gap_support_object)
-                    return  {L("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance"), object};
+                    return {L("The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance."), object};
 #endif
                 if (!equal_layering(slicing_params, slicing_params0))
                     return  { L("The prime tower requires that all objects are sliced with the same layer heights."), object };
@@ -1260,7 +1263,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                         //if (i % 2 == 0 && layer_height_profiles[tallest_object_idx][i] > layer_height_profiles[idx_object][layer_height_profiles[idx_object].size() - 2])
                         //    break;
                         if (std::abs(layer_height_profiles[idx_object][i] - layer_height_profiles[tallest_object_idx][i]) > eps)
-                            return {L("The prime tower is only supported if all objects have the same variable layer height")};
+                            return {L("The prime tower is only supported if all objects have the same variable layer height.")};
                         ++i;
                     }
                 }
@@ -1369,12 +1372,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 first_layer_min_nozzle_diameter = min_nozzle_diameter;
             }
             if (initial_layer_print_height > first_layer_min_nozzle_diameter)
-                return  {L("Layer height cannot exceed nozzle diameter"), object, "initial_layer_print_height"};
+                return {L("Layer height cannot exceed nozzle diameter."), object, "initial_layer_print_height"};
 
             // validate layer_height
             double layer_height = object->config().layer_height.value;
             if (layer_height > min_nozzle_diameter)
-                return  {L("Layer height cannot exceed nozzle diameter"), object, "layer_height"};
+                return {L("Layer height cannot exceed nozzle diameter."), object, "layer_height"};
 
             // Validate extrusion widths.
             std::string err_msg;
@@ -1384,7 +1387,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 if (!validate_extrusion_width(object->config(), "support_line_width", layer_height, err_msg))
                     return {err_msg, object, "support_line_width"};
             }
-            for (const char *opt_key : { "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width", "top_surface_line_width" })
+            for (const char *opt_key : { "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width", "top_surface_line_width","skin_infill_line_width" ,"skeleton_infill_line_width"})
 				for (const PrintRegion &region : object->all_regions())
                     if (!validate_extrusion_width(region.config(), opt_key, layer_height, err_msg))
 		            	return  {err_msg, object, opt_key};
@@ -2447,9 +2450,9 @@ Polygons Print::first_layer_islands() const
     return islands;
 }
 
-std::vector<Point> Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existance) const
+Points Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existance) const
 {
-    std::vector<Point> corners;
+    Points corners;
     if (check_wipe_tower_existance && (!has_wipe_tower() || m_wipe_tower_data.tool_changes.empty()))
         return corners;
     {
@@ -3165,8 +3168,6 @@ const std::string PrintStatistics::TotalFilamentUsedWipeTowerValueMask = "; tota
 #define JSON_EXTRUSION_TYPE_LOOP               "loop"
 #define JSON_EXTRUSION_TYPE_COLLECTION         "collection"
 #define JSON_EXTRUSION_POLYLINE                "polyline"
-#define JSON_EXTRUSION_OVERHANG_DEGREE         "overhang_degree"
-#define JSON_EXTRUSION_CURVE_DEGREE            "curve_degree"
 #define JSON_EXTRUSION_MM3_PER_MM              "mm3_per_mm"
 #define JSON_EXTRUSION_WIDTH                   "width"
 #define JSON_EXTRUSION_HEIGHT                  "height"
@@ -3260,8 +3261,6 @@ static void to_json(json& j, const Polyline& poly_line) {
 
 static void to_json(json& j, const ExtrusionPath& extrusion_path) {
     j[JSON_EXTRUSION_POLYLINE] = extrusion_path.polyline;
-    j[JSON_EXTRUSION_OVERHANG_DEGREE] = extrusion_path.overhang_degree;
-    j[JSON_EXTRUSION_CURVE_DEGREE] = extrusion_path.curve_degree;
     j[JSON_EXTRUSION_MM3_PER_MM] = extrusion_path.mm3_per_mm;
     j[JSON_EXTRUSION_WIDTH] = extrusion_path.width;
     j[JSON_EXTRUSION_HEIGHT] = extrusion_path.height;
@@ -3538,8 +3537,6 @@ static void from_json(const json& j, Polyline& poly_line) {
 
 static void from_json(const json& j, ExtrusionPath& extrusion_path) {
     extrusion_path.polyline               =    j[JSON_EXTRUSION_POLYLINE];
-    extrusion_path.overhang_degree        =    j[JSON_EXTRUSION_OVERHANG_DEGREE];
-    extrusion_path.curve_degree           =    j[JSON_EXTRUSION_CURVE_DEGREE];
     extrusion_path.mm3_per_mm             =    j[JSON_EXTRUSION_MM3_PER_MM];
     extrusion_path.width                  =    j[JSON_EXTRUSION_WIDTH];
     extrusion_path.height                 =    j[JSON_EXTRUSION_HEIGHT];
