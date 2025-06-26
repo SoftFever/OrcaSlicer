@@ -1,18 +1,15 @@
 {
     "type": "filament",
-    "name": "Bambu PLA Matte @BBL H2D 0.8 nozzle",
-    "inherits": "Bambu PLA Matte @base",
+    "name": "Bambu PETG HF @BBL H2D 0.8 nozzle",
+    "inherits": "Bambu PETG HF @base",
     "from": "system",
-    "setting_id": "GFSA01_14",
+    "setting_id": "GFSG02_29",
     "instantiation": "true",
-    "additional_cooling_fan_speed": [
-        "75"
-    ],
-    "fan_max_speed": [
-        "80"
+    "fan_cooling_layer_time": [
+        "20"
     ],
     "fan_min_speed": [
-        "60"
+        "20"
     ],
     "filament_deretraction_speed": [
         "nil",
@@ -23,8 +20,8 @@
         "Direct Drive High Flow"
     ],
     "filament_flow_ratio": [
-        "0.98",
-        "0.98"
+        "0.95",
+        "0.95"
     ],
     "filament_flush_temp": [
         "0",
@@ -91,8 +88,8 @@
         "1"
     ],
     "filament_z_hop": [
-        "nil",
-        "nil"
+        "0.2",
+        "0.2"
     ],
     "filament_z_hop_types": [
         "Spiral Lift",
@@ -103,12 +100,15 @@
         "1"
     ],
     "nozzle_temperature": [
-        "220",
-        "220"
+        "245",
+        "245"
     ],
     "nozzle_temperature_initial_layer": [
-        "220",
-        "220"
+        "245",
+        "245"
+    ],
+    "overhang_fan_speed": [
+        "100"
     ],
     "pre_start_fan_time": [
         "2"
@@ -116,6 +116,12 @@
     "retraction_distances_when_ec": [
         "10",
         "10"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "slow_down_min_speed": [
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.8 nozzle"
@@ -125,5 +131,9 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
+    ],
+    "filament_extruder_id": [
+        "1",
+        "1"
     ]
 }

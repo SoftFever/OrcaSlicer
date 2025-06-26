@@ -1,12 +1,24 @@
 {
     "type": "filament",
-    "name": "Bambu PLA Matte @BBL H2D 0.8 nozzle",
+    "name": "Bambu PLA Matte @BBL H2D 0.6 nozzle",
     "inherits": "Bambu PLA Matte @base",
     "from": "system",
-    "setting_id": "GFSA01_14",
+    "setting_id": "GFSA01_27",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
         "75"
+    ],
+    "counter_coef_2": [
+        "0.06"
+    ],
+    "counter_coef_3": [
+        "-0.32"
+    ],
+    "counter_limit_max": [
+        "0.05"
+    ],
+    "counter_limit_min": [
+        "-0.4"
     ],
     "fan_max_speed": [
         "80"
@@ -39,8 +51,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "35",
-        "45"
+        "30",
+        "40"
     ],
     "filament_pre_cooling_temperature": [
         "0",
@@ -98,6 +110,12 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
+    "hole_coef_2": [
+        "-0.0081"
+    ],
+    "hole_coef_3": [
+        "0.18"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -118,12 +136,16 @@
         "10"
     ],
     "compatible_printers": [
-        "Bambu Lab H2D 0.8 nozzle"
+        "Bambu Lab H2D 0.6 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
+    ],
+    "filament_extruder_id": [
+        "1",
+        "1"
     ]
 }

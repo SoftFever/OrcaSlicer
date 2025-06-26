@@ -29,8 +29,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "18",
-        "18"
+        "25",
+        "40"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
@@ -101,8 +101,7 @@
         "10"
     ],
     "compatible_printers": [
-        "Bambu Lab H2D 0.6 nozzle",
-        "Bambu Lab H2D 0.8 nozzle"
+        "Bambu Lab H2D 0.6 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"
