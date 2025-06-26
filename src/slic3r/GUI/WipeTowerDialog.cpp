@@ -115,10 +115,10 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
     update_ui(m_chart);
  	sizer_chart->Add(m_chart, 0, wxALL, 5);
 
-    m_widget_time                             = new SpinInput(this, wxEmptyString, _L("ms") , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 5000 , 3000, 500);
-    m_widget_volume                           = new SpinInput(this, wxEmptyString, _L("mm³"), wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 10000, 0   );
-    m_widget_ramming_line_width_multiplicator = new SpinInput(this, wxEmptyString, _L("%")  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 200  , 100 );
-    m_widget_ramming_step_multiplicator       = new SpinInput(this, wxEmptyString, _L("%")  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 200  , 100 );
+    m_widget_time                             = new SpinInput(this, wxEmptyString, "ms" , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 5000 , 3000, 500);
+    m_widget_volume                           = new SpinInput(this, wxEmptyString, "mm³", wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 10000, 0   );
+    m_widget_ramming_line_width_multiplicator = new SpinInput(this, wxEmptyString, "%"  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 200  , 100 );
+    m_widget_ramming_step_multiplicator       = new SpinInput(this, wxEmptyString, "%"  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 200  , 100 );
 
     auto add_title = [this, sizer_param](wxString label){
         auto title = new StaticLine(this, 0, label);
@@ -355,9 +355,6 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
                 wxDefaultSize,
                 wxDEFAULT_DIALOG_STYLE /* | wxRESIZE_BORDER*/)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % Slic3r::resources_dir()).str();
-    SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
