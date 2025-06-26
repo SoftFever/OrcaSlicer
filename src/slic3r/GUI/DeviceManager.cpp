@@ -2777,6 +2777,9 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
             j["print"]["filaments"][i]["nozzle_temp"]          = calib_data.calib_datas[i].nozzle_temp;
             j["print"]["filaments"][i]["def_flow_ratio"]       = std::to_string(calib_data.calib_datas[i].flow_rate);
             j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(calib_data.calib_datas[i].max_volumetric_speed);
+            j["print"]["filaments"][i]["extruder_id"]          = calib_data.calib_datas[i].extruder_id;
+            j["print"]["filaments"][i]["ams_id"]               = calib_data.calib_datas[i].ams_id;
+            j["print"]["filaments"][i]["slot_id"]              = calib_data.calib_datas[i].slot_id;
 
             if (i > 0)
                 filament_ids += ",";
