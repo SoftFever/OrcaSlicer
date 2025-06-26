@@ -5592,7 +5592,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         typedef std::vector<BuildItem> BuildItemsList;
         typedef std::map<ModelObject const *, ObjectData> ObjectToObjectDataMap;
 
-        bool m_fullpath_sources{ true };
+        bool m_fullpath_sources{ false };
         bool m_zip64 { true };
         bool m_production_ext { false };    // save with Production Extention
         bool m_skip_static{ false };        // not save mesh and other big static contents
@@ -7592,7 +7592,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                             // stores volume's source data
                             {
-                                std::string input_file = xml_escape(m_fullpath_sources ? volume->source.input_file : boost::filesystem::path(volume->source.input_file).filename().string());
+                            #if defined(__linux__) || defined(__LINUX__) || defined(__APPLE__)
+                                std::string translated_input = volume->source.input_file;
+                                std::replace(translated_input.begin(), translated_input.end(), '\\', '/');
+
+                                boost::filesystem::path file_path(translated_input);
+                            #else
+                                boost::filesystem::path file_path(volume->source.input_file);
+                            #endif
+
+                                std::string input_file = xml_escape(m_fullpath_sources ? volume->source.input_file : file_path.filename().string());
                                 //std::string prefix = std::string("      <") + METADATA_TAG + " " + KEY_ATTR + "=\"";
                                 std::string prefix = std::string("      <") + METADATA_TAG + " " + KEY_ATTR + "=\"";
                                 if (! volume->source.input_file.empty()) {
