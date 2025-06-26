@@ -34,7 +34,7 @@ Optimize your prints with ultra-fast slicing, intelligent support generation, an
   Use varied infill patterns and accurate hole shapes for improved clarity.
 - **Overhang and Support Optimization**  
   Modify geometry for printable overhangs with precise support placement.
-- **Granular Controls and Customization**  
+- **[Granular Controls](https://github.com/SoftFever/OrcaSlicer/wiki#process-settings) and Customization**  
   Fine-tune print speed, layer height, pressure, and temperature with precision.
 - **Network Printer Support**  
   Seamless integration with Klipper, PrusaLink, and OctoPrint for remote control.
@@ -42,11 +42,11 @@ Optimize your prints with ultra-fast slicing, intelligent support generation, an
   Automatic brims and adaptive mesh calibration ensure consistent adhesion.
 - **User-Friendly Interface**  
   Intuitive drag-and-drop design with pre-made profiles for popular printers.
-- **Open-Source & Community Driven**  
+- **[Open-Source](https://github.com/SoftFever/OrcaSlicer) & [Community Driven](https://discord.gg/P4VE9UY9gJ)**  
   Regular updates fueled by continuous community contributions.
 - **Wide Printer Compatibility**  
   Supports a broad range of printers: Bambu Lab, Prusa, Creality, Voron, and more.
-- Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)
+- Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/).
 
 # Wiki
 
