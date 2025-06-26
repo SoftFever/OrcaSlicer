@@ -979,6 +979,7 @@ void PrintingTaskPanel::msw_rescale()
     //m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
     m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
     m_gauge_progress->Rescale();
+    m_button_pause_resume->msw_rescale();
     m_button_abort->msw_rescale();
     m_bitmap_thumbnail->SetSize(TASK_THUMBNAIL_SIZE);
 }
