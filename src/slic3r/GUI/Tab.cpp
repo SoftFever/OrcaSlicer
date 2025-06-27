@@ -2165,7 +2165,7 @@ void TabPrint::build()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = 15;
-        optgroup->append_single_option_line(option, "small-area-infill-flow-compensation", "quality_settings_wall_and_surfaces#small-area-infill-flow-compensation");
+        optgroup->append_single_option_line(option, "quality_settings_wall_and_surfaces#small-area-infill-flow-compensation");
 
         optgroup = page->new_optgroup(L("Bridging"), L"param_bridge");
         optgroup->append_single_option_line("bridge_flow");
@@ -2195,15 +2195,15 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_thin_wall");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
-        optgroup->append_single_option_line("top_shell_layers", "strength_top-bottom_shells");
-        optgroup->append_single_option_line("top_shell_thickness", "strength_top-bottom_shells");
-        optgroup->append_single_option_line("top_surface_density", "strength_top-bottom_shells");
-        optgroup->append_single_option_line("top_surface_pattern", "strength_top-bottom_shells");
-        optgroup->append_single_option_line("bottom_shell_layers", "strength_top-bottom_shells");
-        optgroup->append_single_option_line("bottom_shell_thickness", "strength_top-bottom_shells");
-        optgroup->append_single_option_line("bottom_surface_density", "strength_top-bottom_shells");
-        optgroup->append_single_option_line("bottom_surface_pattern", "strength_top-bottom_shells");
-        optgroup->append_single_option_line("top_bottom_infill_wall_overlap", "strength_top-bottom_shells");
+        optgroup->append_single_option_line("top_shell_layers", "strength_settings_top_bottom_shells");
+        optgroup->append_single_option_line("top_shell_thickness", "strength_settings_top_bottom_shells");
+        optgroup->append_single_option_line("top_surface_density", "strength_settings_top_bottom_shells");
+        optgroup->append_single_option_line("top_surface_pattern", "strength_settings_top_bottom_shells");
+        optgroup->append_single_option_line("bottom_shell_layers", "strength_settings_top_bottom_shells");
+        optgroup->append_single_option_line("bottom_shell_thickness", "strength_settings_top_bottom_shells");
+        optgroup->append_single_option_line("bottom_surface_density", "strength_settings_top_bottom_shells");
+        optgroup->append_single_option_line("bottom_surface_pattern", "strength_settings_top_bottom_shells");
+        optgroup->append_single_option_line("top_bottom_infill_wall_overlap", "strength_settings_top_bottom_shells");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
