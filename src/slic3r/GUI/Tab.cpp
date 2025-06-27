@@ -2243,10 +2243,10 @@ void TabPrint::build()
 
     page = add_options_page(L("Speed"), "custom-gcode_speed"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);
-        optgroup->append_single_option_line("initial_layer_speed");
-        optgroup->append_single_option_line("initial_layer_infill_speed");
-        optgroup->append_single_option_line("initial_layer_travel_speed");
-        optgroup->append_single_option_line("slow_down_layers");
+    optgroup->append_single_option_line("initial_layer_speed", "speed_settings_initial_layer_speed#initial-layer");
+        optgroup->append_single_option_line("initial_layer_infill_speed", "speed_settings_initial_layer_speed#initial-layer-infill");
+        optgroup->append_single_option_line("initial_layer_travel_speed", "speed_settings_initial_layer_speed#initial-layer-travel-speed");
+        optgroup->append_single_option_line("slow_down_layers", "speed_settings_initial_layer_speed#number-of-slow-layers");
         optgroup = page->new_optgroup(L("Other layers speed"), L"param_speed", 15);
         optgroup->append_single_option_line("outer_wall_speed");
         optgroup->append_single_option_line("inner_wall_speed");
