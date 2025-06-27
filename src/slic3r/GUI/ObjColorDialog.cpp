@@ -146,9 +146,6 @@ ObjColorDialog::ObjColorDialog(wxWindow *                      parent,
     , m_filament_ids(filament_ids)
     , m_first_extruder_id(first_extruder_id)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % Slic3r::resources_dir()).str();
-    SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 

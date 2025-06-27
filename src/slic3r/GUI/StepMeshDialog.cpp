@@ -82,10 +82,6 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
 
     Bind(wxEVT_THREAD_DONE, &StepMeshDialog::on_task_done, this);
 
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico")
-                             % Slic3r::resources_dir()).str();
-    SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     SetBackgroundColour(*wxWHITE);
 
     wxBoxSizer* bSizer = new wxBoxSizer(wxVERTICAL);

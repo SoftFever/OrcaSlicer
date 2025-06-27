@@ -71,5 +71,8 @@
     "compatible_printers": [],
     "smooth_coefficient": "80",
     "overhang_totally_speed": "19",
-    "scarf_angle_threshold": "155"
+    "scarf_angle_threshold": "155",
+    "infill_shift_step": "0.4",
+    "infill_rotate_step": "0",
+    "symmetric_infill_y_axis": "0"
 }

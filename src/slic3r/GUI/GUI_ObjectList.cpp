@@ -22,6 +22,7 @@
 #include "MsgDialog.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "SingleChoiceDialog.hpp"
+#include "StepMeshDialog.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
@@ -2031,15 +2032,49 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())),
             _L("Loading file") + ": " + from_path(boost::filesystem::path(input_file).filename()));
         dlg.Fit();
-
+        
+        bool is_user_cancel = false;
         Model model;
         try {
-            model = Model::read_from_file(input_file, nullptr, nullptr, LoadStrategy::LoadModel);
+            if (boost::iends_with(input_file, ".stp") ||
+                boost::iends_with(input_file, ".step")) {
+                double linear  = string_to_double_decimal_point(wxGetApp().app_config->get("linear_defletion"));
+                if (linear <= 0) linear = 0.003;
+                double angle = string_to_double_decimal_point(wxGetApp().app_config->get("angle_defletion"));
+                if (angle <= 0) angle = 0.5;
+                bool split_compound = wxGetApp().app_config->get_bool("is_split_compound");
+                model = Model::read_from_step(
+                    input_file, LoadStrategy::LoadModel, nullptr, nullptr,
+                    [this, &is_user_cancel, &linear, &angle, &split_compound](Slic3r::Step& file, double& linear_value,
+                                                                                     double& angle_value, bool& is_split) -> int {
+                        if (wxGetApp().app_config->get_bool("enable_step_mesh_setting")) {
+                            StepMeshDialog mesh_dlg(nullptr, file, linear, angle);
+                            if (mesh_dlg.ShowModal() == wxID_OK) {
+                                linear_value = mesh_dlg.get_linear_defletion();
+                                angle_value  = mesh_dlg.get_angle_defletion();
+                                is_split     = mesh_dlg.get_split_compound_value();
+                                return 1;
+                            }
+                        } else {
+                            linear_value = linear;
+                            angle_value  = angle;
+                            is_split     = split_compound;
+                            return 1;
+                        }
+                        is_user_cancel = true;
+                        return -1;
+                    },
+                    linear, angle, split_compound);
+            } else {
+                model = Model::read_from_file(input_file, nullptr, nullptr, LoadStrategy::LoadModel);
+            }
         }
         catch (std::exception&) {
-            // auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
-            auto msg = _L("Error!") + " " + _L("Failed to get the model data in the current file.");
-            show_error(parent, msg);
+            if (!is_user_cancel) {
+                // auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
+                auto msg = _L("Error!") + " " + _L("Failed to get the model data in the current file.");
+                show_error(parent, msg);
+            }
             return;
         }
 
