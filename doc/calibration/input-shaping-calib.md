@@ -3,7 +3,10 @@
 During high-speed movements, vibrations can cause a phenomenon called "ringing," where periodic ripples appear on the print surface. Input Shaping provides an effective solution by counteracting these vibrations, improving print quality and reducing wear on components without needing to significantly lower print speeds.
 
 - [Klipper](#klipper)
+  - [Resonance Compensation](#resonance-compensation)
 - [Marlin](#marlin)
+  - [ZV Input Shaping](#zv-input-shaping)
+  - [Fixed-Time Motion](#fixed-time-motion)
 
 ## Klipper
 
@@ -125,5 +128,4 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
 ### Fixed-Time Motion
 
-WIP...
-This calibration test is currently under development. See the [Marlin documentation](https://marlinfw.org/docs/gcode/M493.html) for more information.
+TODO: This calibration test is currently under development. See the [Marlin documentation](https://marlinfw.org/docs/gcode/M493.html) for more information.

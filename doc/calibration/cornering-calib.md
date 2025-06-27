@@ -4,7 +4,7 @@ Cornering is a critical aspect of 3D printing that affects the quality and accur
 
 ## Jerk
 
-WIP... TODO: Jerk calibration not implemented yet.
+TODO: Jerk calibration not implemented yet.
 
 ## Junction Deviation
 
