@@ -2340,25 +2340,25 @@ void TabPrint::build()
 
         // Support
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
-        optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
-        optgroup->append_single_option_line("tree_support_wall_count");
-        optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
-        optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
-        optgroup->append_single_option_line("support_angle");
-        optgroup->append_single_option_line("support_interface_top_layers", "support#base-pattern");
-        optgroup->append_single_option_line("support_interface_bottom_layers", "support#base-pattern");
-        optgroup->append_single_option_line("support_interface_pattern", "support#base-pattern");
-        optgroup->append_single_option_line("support_interface_spacing", "support#base-pattern");
-        optgroup->append_single_option_line("support_bottom_interface_spacing");
-        optgroup->append_single_option_line("support_expansion", "support#base-pattern");
-        //optgroup->append_single_option_line("support_interface_loop_pattern");
+        optgroup->append_single_option_line("support_top_z_distance", "support_settings_advanced#z-distance");
+        optgroup->append_single_option_line("support_bottom_z_distance", "support_settings_advanced#z-distance");
+        optgroup->append_single_option_line("tree_support_wall_count", "support_settings_advanced#support-wall-loops");
+        optgroup->append_single_option_line("support_base_pattern", "support_settings_advanced#base-pattern");
+        optgroup->append_single_option_line("support_base_pattern_spacing", "support_settings_advanced#base-pattern-spacing");
+        optgroup->append_single_option_line("support_angle", "support_settings_advanced#pattern-angle");
+        optgroup->append_single_option_line("support_interface_top_layers", "support_settings_advanced#interface-layers");
+        optgroup->append_single_option_line("support_interface_bottom_layers", "support_settings_advanced#interface-layers");
+        optgroup->append_single_option_line("support_interface_pattern", "support_settings_advanced#interface-pattern");
+        optgroup->append_single_option_line("support_interface_spacing", "support_settings_advanced#interface-spacing");
+        optgroup->append_single_option_line("support_bottom_interface_spacing", "support_settings_advanced#interface-spacing");
+        optgroup->append_single_option_line("support_expansion", "support_settings_advanced#normal-support-expansion");
+        //optgroup->append_single_option_line("support_interface_loop_pattern", "support_settings_advanced");
 
-        optgroup->append_single_option_line("support_object_xy_distance", "support");
-        optgroup->append_single_option_line("support_object_first_layer_gap", "support");
-        optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
-        optgroup->append_single_option_line("max_bridge_length", "support#tree-support-only-options");
-        optgroup->append_single_option_line("independent_support_layer_height", "support");
+        optgroup->append_single_option_line("support_object_xy_distance", "support_settings_advanced#supportobject-xy-distance");
+        optgroup->append_single_option_line("support_object_first_layer_gap", "support_settings_advanced#supportobject-first-layer-gap");
+        optgroup->append_single_option_line("bridge_no_support", "support_settings_advanced#dont-support-bridges");
+        optgroup->append_single_option_line("max_bridge_length", "support_settings_advanced");
+        optgroup->append_single_option_line("independent_support_layer_height", "support_settings_advanced#independent-support-layer-height");
 
         optgroup = page->new_optgroup(L("Tree supports"), L"param_support_tree");
         optgroup->append_single_option_line("tree_support_tip_diameter");
