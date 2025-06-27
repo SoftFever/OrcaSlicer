@@ -1056,9 +1056,21 @@ public:
 
     int nozzle_setting_hold_count = 0;
 
+    //refine printer
     bool xcam_ai_monitoring{ false };
+    bool xcam_disable_ai_detection_display{false};
+    bool xcam_spaghetti_detection{false};
+    bool xcam_purgechutepileup_detection{false};
+    bool xcam_nozzleclumping_detection{false};
+    bool xcam_airprinting_detection{false};
+
     time_t xcam_ai_monitoring_hold_start = 0;
     std::string xcam_ai_monitoring_sensitivity;
+    std::string xcam_spaghetti_detection_sensitivity;
+    std::string xcam_purgechutepileup_detection_sensitivity;
+    std::string xcam_nozzleclumping_detection_sensitivity;
+    std::string xcam_airprinting_detection_sensitivity;
+
     bool xcam_buildplate_marker_detector{ false };
     time_t  xcam_buildplate_marker_hold_start = 0;
     bool xcam_auto_recovery_step_loss{ false };
@@ -1119,6 +1131,12 @@ public:
     bool is_support_internal_timelapse { false };// fun[28], support timelapse without SD card
     bool is_support_command_homing { false };// fun[32]
     bool is_support_brtc{false};                 // fun[31], support tcp and upload protocol
+
+      // refine printer function options
+    bool is_support_spaghetti_detection{false};
+    bool is_support_purgechutepileup_detection{false};
+    bool is_support_nozzleclumping_detection{false};
+    bool is_support_airprinting_detection{false};
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
@@ -1299,7 +1317,14 @@ public:
     int command_ipcam_timelapse(bool on_off);
     int command_ipcam_resolution_set(std::string resolution);
     int command_xcam_control(std::string module_name, bool on_off, std::string lvl = "");
+
+    //refine printer
     int command_xcam_control_ai_monitoring(bool on_off, std::string lvl);
+    int command_xcam_control_spaghetti_detection(bool on_off, std::string lvl);
+    int command_xcam_control_purgechutepileup_detection(bool on_off, std::string lvl);
+    int command_xcam_control_nozzleclumping_detection(bool on_off, std::string lvl);
+    int command_xcam_control_airprinting_detection(bool on_off, std::string lvl);
+
     int command_xcam_control_first_layer_inspector(bool on_off, bool print_halt);
     int command_xcam_control_buildplate_marker_detector(bool on_off);
     int command_xcam_control_auto_recovery_step_loss(bool on_off);

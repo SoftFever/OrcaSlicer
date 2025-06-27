@@ -70,8 +70,13 @@ class PrintOptionsDialog : public DPIDialog
 {
 protected:
     // settings
+    wxScrolledWindow* m_scrollwindow;
     CheckBox* m_cb_first_layer;
-    CheckBox* m_cb_ai_monitoring;
+    CheckBox *        m_cb_ai_monitoring;
+    CheckBox* m_cb_spaghetti_detection;
+    CheckBox* m_cb_purgechutepileup_detection;
+    CheckBox* m_cb_nozzleclumping_detection;
+    CheckBox* m_cb_airprinting_detection;
     CheckBox* m_cb_plate_mark;
     CheckBox* m_cb_auto_recovery;
     CheckBox* m_cb_open_door;
@@ -80,9 +85,31 @@ protected:
     CheckBox* m_cb_filament_tangle;
     CheckBox* m_cb_nozzle_blob;
     Label* text_first_layer;
-    Label* text_ai_monitoring;
-    Label* text_ai_monitoring_caption;
-    ComboBox* ai_monitoring_level_list;
+    Label* text_ai_detections;
+    Label* text_ai_detections_caption;
+
+    Label *           text_ai_monitoring;
+    Label *           text_ai_monitoring_caption;
+    Label* text_spaghetti_detection;
+    Label* text_spaghetti_detection_caption0;
+    Label* text_spaghetti_detection_caption1;
+    Label*  text_purgechutepileup_detection;
+    Label*  text_purgechutepileup_detection_caption0;
+    Label* text_purgechutepileup_detection_caption1;
+
+    Label* text_nozzleclumping_detection;
+    Label* text_nozzleclumping_detection_caption0;
+    Label* text_nozzleclumping_detection_caption1;
+
+    Label *text_airprinting_detection;
+    Label *text_airprinting_detection_caption0;
+    Label *text_airprinting_detection_caption1;
+
+    ComboBox *   ai_monitoring_level_list;
+    ComboBox *spaghetti_detection_level_list;
+    ComboBox* purgechutepileup_detection_level_list;
+    ComboBox* nozzleclumping_detection_level_list;
+    ComboBox* airprinting_detection_level_list;
     Label* text_plate_mark;
     Label* text_plate_mark_caption;
     Label* text_auto_recovery;
@@ -109,7 +136,13 @@ public:
     PrintOptionsDialog(wxWindow* parent);
     ~PrintOptionsDialog();
     void on_dpi_changed(const wxRect &suggested_rect) override;
+
     void update_ai_monitor_status();
+     //refine printer function options
+    void update_spaghetti_detection_status();
+    void update_purgechutepileup_detection_status();
+    void update_nozzleclumping_detection_status();
+    void update_airprinting_detection_status();
 
     MachineObject *obj { nullptr };
 
@@ -127,7 +160,12 @@ public:
     };
     wxString sensitivity_level_to_label_string(enum AiMonitorSensitivityLevel level);
     std::string sensitivity_level_to_msg_string(enum AiMonitorSensitivityLevel level);
-    void set_ai_monitor_sensitivity(wxCommandEvent& evt);
+
+    void set_ai_monitor_sensitivity(wxCommandEvent &evt);
+    void set_spaghetti_detection_sensitivity(wxCommandEvent& evt);
+    void set_purgechutepileup_detection_sensitivity(wxCommandEvent &evt);
+    void set_nozzleclumping_detection_sensitivity(wxCommandEvent &evt);
+    void set_airprinting_detection_sensitivity(wxCommandEvent &evt);
 
 private:
     void UpdateOptionOpenDoorCheck(MachineObject *obj);

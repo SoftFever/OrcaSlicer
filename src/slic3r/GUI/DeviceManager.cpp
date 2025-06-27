@@ -2852,6 +2852,10 @@ int MachineObject::command_xcam_control(std::string module_name, bool on_off, st
     if (!lvl.empty()) {
         j["xcam"]["halt_print_sensitivity"] = lvl;
     }
+
+   // int           cfg = 123;
+   // get_flag_bits(cfg, 11, 2);
+
     BOOST_LOG_TRIVIAL(info) << "command:xcam_control_set" << ", module_name:" << module_name << ", control:" << on_off << ", halt_print_sensitivity:" << lvl;
     return this->publish_json(j.dump());
 }
@@ -2865,6 +2869,49 @@ int MachineObject::command_xcam_control_ai_monitoring(bool on_off, std::string l
     xcam_ai_monitoring_sensitivity = lvl;
     return command_xcam_control("printing_monitor", on_off, lvl);
 }
+
+// refine printer function options
+int MachineObject::command_xcam_control_spaghetti_detection(bool on_off, std::string lvl)
+{
+    bool print_halt = (lvl == "never_halt") ? false : true;
+
+    xcam_spaghetti_detection       = on_off;
+    xcam_ai_monitoring_hold_start  = time(nullptr);
+    xcam_spaghetti_detection_sensitivity = lvl;
+    return command_xcam_control("spaghetti_detector", on_off, lvl);
+}
+
+int MachineObject::command_xcam_control_purgechutepileup_detection(bool on_off, std::string lvl)
+{
+    bool print_halt = (lvl == "never_halt") ? false : true;
+
+    xcam_purgechutepileup_detection = on_off;
+    xcam_ai_monitoring_hold_start  = time(nullptr);
+    xcam_purgechutepileup_detection_sensitivity = lvl;
+    return command_xcam_control("pileup_detector", on_off, lvl);
+}
+
+int MachineObject::command_xcam_control_nozzleclumping_detection(bool on_off, std::string lvl)
+{
+    bool print_halt = (lvl == "never_halt") ? false : true;
+
+    xcam_nozzleclumping_detection  = on_off;
+    xcam_ai_monitoring_hold_start  = time(nullptr);
+    xcam_nozzleclumping_detection_sensitivity = lvl;
+    return command_xcam_control("clump_detector", on_off, lvl);
+}
+
+
+int MachineObject::command_xcam_control_airprinting_detection(bool on_off, std::string lvl)
+{
+    bool print_halt = (lvl == "never_halt") ? false : true;
+
+    xcam_airprinting_detection     = on_off;
+    xcam_ai_monitoring_hold_start  = time(nullptr);
+    xcam_airprinting_detection_sensitivity = lvl;
+    return command_xcam_control("airprint_detector", on_off, lvl);
+}
+
 
 int MachineObject::command_xcam_control_buildplate_marker_detector(bool on_off)
 {
@@ -4405,7 +4452,49 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         try {
                             if (jj.contains("xcam")) {
                                 if (time(nullptr) - xcam_ai_monitoring_hold_start > HOLD_TIME_3SEC) {
-                                    if (jj["xcam"].contains("printing_monitor")) {
+
+                                    if (jj["xcam"].contains("cfg")) {
+                                        xcam_disable_ai_detection_display = true;
+                                       //  std::string cfg    = jj["xcam"]["cfg"].get<std::string>();
+
+                                        int cfg                  = jj["xcam"]["cfg"].get<int>();
+                                         xcam_spaghetti_detection = get_flag_bits(cfg,7);
+                                         switch (get_flag_bits(cfg, 8, 2)) {
+                                             case 0: xcam_spaghetti_detection_sensitivity = "low"; break;
+                                             case 1: xcam_spaghetti_detection_sensitivity = "medium"; break;
+                                             case 2: xcam_spaghetti_detection_sensitivity = "high"; break;
+                                             default: break;
+                                         }
+
+                                         xcam_purgechutepileup_detection = get_flag_bits(cfg, 10);
+                                         switch (get_flag_bits(cfg, 11, 2)) {
+
+                                         case 0: xcam_purgechutepileup_detection_sensitivity = "low"; break;
+                                         case 1: xcam_purgechutepileup_detection_sensitivity = "medium"; break;
+                                         case 2: xcam_purgechutepileup_detection_sensitivity = "high"; break;
+                                         default: break;
+                                         }
+
+                                         xcam_nozzleclumping_detection = get_flag_bits(cfg, 13);
+                                         switch (get_flag_bits(cfg, 14, 2)) {
+
+                                         case 0: xcam_nozzleclumping_detection_sensitivity = "low"; break;
+                                         case 1: xcam_nozzleclumping_detection_sensitivity = "medium"; break;
+                                         case 2: xcam_nozzleclumping_detection_sensitivity = "high"; break;
+                                         default: break;
+                                         }
+
+                                         xcam_airprinting_detection    = get_flag_bits(cfg, 16);
+                                         switch (get_flag_bits(cfg, 17, 2)) {
+
+                                         case 0: xcam_airprinting_detection_sensitivity = "low"; break;
+                                         case 1: xcam_airprinting_detection_sensitivity = "medium"; break;
+                                         case 2: xcam_airprinting_detection_sensitivity = "high"; break;
+                                         default: break;
+                                         }
+
+                                    }
+                                    else if (jj["xcam"].contains("printing_monitor")) {
                                         // new protocol
                                         xcam_ai_monitoring = jj["xcam"]["printing_monitor"].get<bool>();
                                     } else {
@@ -4418,9 +4507,11 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                             }
                                         }
                                     }
+
                                     if (jj["xcam"].contains("halt_print_sensitivity")) {
                                         xcam_ai_monitoring_sensitivity = jj["xcam"]["halt_print_sensitivity"].get<std::string>();
                                     }
+
                                 }
 
                                 if (time(nullptr) - xcam_first_layer_hold_start > HOLD_TIME_3SEC) {
@@ -6295,6 +6386,12 @@ void MachineObject::parse_new_info(json print)
         is_support_brtc = get_flag_bits(fun, 31);
         m_support_mqtt_axis_control = get_flag_bits(fun, 38);
         m_support_mqtt_bet_ctrl = get_flag_bits(fun, 39);
+
+        is_support_spaghetti_detection = get_flag_bits(fun, 42);
+        is_support_purgechutepileup_detection = get_flag_bits(fun, 43);
+        is_support_nozzleclumping_detection = get_flag_bits(fun, 44);
+        is_support_airprinting_detection = get_flag_bits(fun, 45);
+
         m_air_duct_data.m_support_cooling_filter = get_flag_bits(fun, 46);
     }
 
