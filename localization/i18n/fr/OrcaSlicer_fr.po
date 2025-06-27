@@ -6935,6 +6935,12 @@ msgstr ""
 "Si activée, utilise la caméra libre. Si désactivée, utilise la caméra "
 "contrainte."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Échanger les boutons de panoramique et de rotation de la souris"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Si cette option est activée, les fonctions de panoramique et de rotation des boutons gauche et droit de la souris sont échangées."
+
 msgid "Reverse mouse zoom"
 msgstr "Inverser le zoom de la souris"
 

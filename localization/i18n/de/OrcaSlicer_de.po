@@ -6939,6 +6939,12 @@ msgstr "Freie Kamera verwenden"
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr "Wenn aktiviert, wird die freie Kamera verwendet."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Schwenk- und Dreh-Maustasten vertauschen"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Wenn aktiviert, werden die Schwenk- und Drehfunktionen der linken und rechten Maustaste vertauscht."
+
 msgid "Reverse mouse zoom"
 msgstr "Maus-Zoom umkehren"
 

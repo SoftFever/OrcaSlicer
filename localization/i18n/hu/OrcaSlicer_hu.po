@@ -6614,6 +6614,12 @@ msgstr ""
 "Ha engedélyezve van, szabad kamerát használ. Ha nincs engedélyezve, akkor "
 "kötött kamerát használ."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Felcserélt pásztázás és forgatás egérgombok"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Ha engedélyezve van, felcseréli a bal és jobb egérgomb pásztázási és forgatási funkcióit."
+
 msgid "Reverse mouse zoom"
 msgstr ""
 
