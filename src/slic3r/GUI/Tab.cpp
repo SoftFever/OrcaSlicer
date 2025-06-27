@@ -2407,9 +2407,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("preheat_steps", "multimaterial_settings_ooze_prevention");
 
         optgroup = page->new_optgroup(L("Flush options"), L"param_flush");
-        optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");
-        optgroup->append_single_option_line("flush_into_objects", "reduce-wasting-during-filament-change#wipe-into-object");
-        optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change#wipe-into-support-enabled-by-default");
+        optgroup->append_single_option_line("flush_into_infill", "multimaterial_settings_flush_options#flush-into-objects-infill");
+        optgroup->append_single_option_line("flush_into_objects", "multimaterial_settings_flush_options");
+        optgroup->append_single_option_line("flush_into_support", "multimaterial_settings_flush_options#flush-into-objects-support");
         optgroup = page->new_optgroup(L("Advanced"), L"advanced");
         optgroup->append_single_option_line("interlocking_beam");
         optgroup->append_single_option_line("interface_shells");
