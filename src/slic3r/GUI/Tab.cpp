@@ -2115,8 +2115,8 @@ void TabPrint::build()
 
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
-        optgroup->append_single_option_line("slice_closing_radius");
-        optgroup->append_single_option_line("resolution");
+        optgroup->append_single_option_line("slice_closing_radius", "quality_settings_precision#slice-gap-closing-radius");
+        optgroup->append_single_option_line("resolution", "quality_settings_precision#resolution");
         optgroup->append_single_option_line("enable_arc_fitting", "quality_settings_precision#arc-fitting");
         optgroup->append_single_option_line("xy_hole_compensation", "quality_settings_precision#xy-compensation");
         optgroup->append_single_option_line("xy_contour_compensation", "quality_settings_precision#xy-compensation");
@@ -2124,17 +2124,17 @@ void TabPrint::build()
         optgroup->append_single_option_line("elefant_foot_compensation_layers", "quality_settings_precision#elefant-foot-compensation");
         optgroup->append_single_option_line("precise_outer_wall", "quality_settings_precision#precise-wall");
         optgroup->append_single_option_line("precise_z_height", "quality_settings_precision#precise-z-height");
-        optgroup->append_single_option_line("hole_to_polyhole");
-        optgroup->append_single_option_line("hole_to_polyhole_threshold");
-        optgroup->append_single_option_line("hole_to_polyhole_twisted");
+        optgroup->append_single_option_line("hole_to_polyhole", "quality_settings_precision#polyholes");
+        optgroup->append_single_option_line("hole_to_polyhole_threshold", "quality_settings_precision#polyholes");
+        optgroup->append_single_option_line("hole_to_polyhole_twisted", "quality_settings_precision#polyholes");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
-        optgroup->append_single_option_line("ironing_type", "parameter/ironing");
-        optgroup->append_single_option_line("ironing_pattern");
-        optgroup->append_single_option_line("ironing_flow");
-        optgroup->append_single_option_line("ironing_spacing");
-        optgroup->append_single_option_line("ironing_inset");
-        optgroup->append_single_option_line("ironing_angle");
+        optgroup->append_single_option_line("ironing_type", "quality_settings_ironing#type");
+        optgroup->append_single_option_line("ironing_pattern", "quality_settings_ironing#pattern");
+        optgroup->append_single_option_line("ironing_flow", "quality_settings_ironing#flow");
+        optgroup->append_single_option_line("ironing_spacing", "quality_settings_ironing#spacing");
+        optgroup->append_single_option_line("ironing_inset", "quality_settings_ironing#inset");
+        optgroup->append_single_option_line("ironing_angle", "quality_settings_ironing#angle");
 
         optgroup = page->new_optgroup(L("Wall generator"), L"param_wall_generator");
         optgroup->append_single_option_line("wall_generator", "quality_settings_wall_generator");
