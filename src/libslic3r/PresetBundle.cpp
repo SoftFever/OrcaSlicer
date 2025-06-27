@@ -2906,6 +2906,32 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
     return ConfigSubstitutions{};
 }
 
+
+//some filament presets split from one to sperate ones
+//following map recording these filament presets
+//for example: previously ''Bambu PLA Basic @BBL H2D 0.6 nozzle' was saved in ''Bambu PLA Basic @BBL H2D' with 0.4
+static std::map<std::string, std::map<std::string, std::string>> filament_preset_convert = {
+{"Bambu Lab H2D 0.6 nozzle", {{"Bambu PLA Basic @BBL H2D", "Bambu PLA Basic @BBL H2D 0.6 nozzle"},
+                              {"Bambu PLA Matte @BBL H2D", "Bambu PLA Matte @BBL H2D 0.6 nozzle"},
+                              {"Bambu ABS @BBL H2D", "Bambu ABS @BBL H2D 0.6 nozzle"}}},
+{"Bambu Lab H2D 0.8 nozzle", {{"Bambu PETG HF @BBL H2D 0.6 nozzle", "Bambu PETG HF @BBL H2D 0.8 nozzle"},
+                              {"Bambu ASA @BBL H2D 0.6 nozzle", "Bambu ASA @BBL H2D 0.8 nozzle"}}}
+};
+
+//convert the old filament preset to new one after split
+static void convert_filament_preset_name(std::string& machine_name, std::string& filament_name)
+{
+    auto machine_iter = filament_preset_convert.find(machine_name);
+    if (machine_iter != filament_preset_convert.end())
+    {
+        std::map<std::string, std::string>& filament_maps = machine_iter->second;
+        auto filament_iter = filament_maps.find(filament_name);
+        if (filament_iter != filament_maps.end())
+        {
+            filament_name = filament_iter->second;
+        }
+    }
+}
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
 // is_external == false on if called from ConfigWizard
 void PresetBundle::load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config, Semver file_version, bool selected)
@@ -3079,6 +3105,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         auto old_filament_profile_names = config.option<ConfigOptionStrings>("filament_settings_id", true);
         old_filament_profile_names->values.resize(num_filaments, std::string());
 
+        auto old_machine_profile_name = config.option<ConfigOptionString>("printer_settings_id", true);
+
         if (num_filaments <= 1) {
             // Split the "compatible_printers_condition" and "inherits" values from the cummulative vectors to separate filament presets.
             inherits                      = inherits_values[1];
@@ -3100,8 +3128,13 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             std::string filament_id = filament_ids[0];
             //BBS: add config related logs
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load single filament preset from filament_settings_id");
-            if (is_external)
+            if (is_external) {
+                if (inherits.empty())
+                    convert_filament_preset_name(old_machine_profile_name->value, old_filament_profile_names->values.front());
+                else
+                    convert_filament_preset_name(old_machine_profile_name->value, inherits);
                 loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config, filament_different_keys_set, PresetCollection::LoadAndSelect::Always, file_version, filament_id).first;
+            }
             else {
                 // called from Config Wizard.
 				loaded= &this->filaments.load_preset(this->filaments.path_from_name(name, inherits.empty()), name, config, true, file_version);
@@ -3166,6 +3199,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 std::string filament_id = filament_ids[i];
 
                 // Load all filament presets, but only select the first one in the preset dialog.
+                std::string& filament_inherit = cfg.opt_string("inherits", true);
+                if (filament_inherit.empty() && (i < int(old_filament_profile_names->values.size())))
+                    convert_filament_preset_name(old_machine_profile_name->value, old_filament_profile_names->values[i]);
+                else
+                    convert_filament_preset_name(old_machine_profile_name->value, filament_inherit);
                 auto [loaded, modified] = this->filaments.load_external_preset(name_or_path, name,
                     (i < int(old_filament_profile_names->values.size())) ? old_filament_profile_names->values[i] : "",
                     std::move(cfg),
