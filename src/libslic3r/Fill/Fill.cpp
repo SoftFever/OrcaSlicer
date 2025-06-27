@@ -650,6 +650,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 params.lattice_angle_1 = region_config.lattice_angle_1;
                 params.lattice_angle_2 = region_config.lattice_angle_2;
                 params.infill_overhang_angle = region_config.infill_overhang_angle;
+                params.angle        = 0.;
                 if (params.pattern == ipLockedZag) {
                     params.infill_lock_depth = scale_(region_config.infill_lock_depth);
                     params.skin_infill_depth = scale_(region_config.skin_infill_depth);
@@ -698,10 +699,15 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                     }
                 }
                 params.bridge_angle = float(surface.bridge_angle);
+                
+                if (region_config.apply_model_direction) {
+                    auto m = layer.object()->trafo().matrix();
+                    params.angle += atan2((float) m(1, 0), (float) m(0, 0));
+                }
                 if (params.extrusion_role == erInternalInfill) {
-                    params.angle = float(Geometry::deg2rad(region_config.infill_direction.value));
+                    params.angle += float(Geometry::deg2rad(region_config.infill_direction.value));
                 } else {
-                    params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
+                    params.angle += float(Geometry::deg2rad(region_config.solid_infill_direction.value));
                 }
 
                 // Calculate the actual flow we'll be using for this infill.
@@ -715,8 +721,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 if (!params.bridge) {
                     if (params.extrusion_role == erInternalInfill)
                         params.sparse_infill_speed = region_config.sparse_infill_speed;
-                    else if (params.extrusion_role == erTopSolidInfill)
+                    else if (params.extrusion_role == erTopSolidInfill) {
+                        params.angle += float(Geometry::deg2rad(region_config.top_surface_direction.get_abs_value(360)));
                         params.top_surface_speed = region_config.top_surface_speed;
+                    } else if (params.extrusion_role == erBottomSurface)
+                        params.angle += float(Geometry::deg2rad(region_config.bottom_surface_direction.get_abs_value(360)));
                     else if (params.extrusion_role == erSolidInfill)
                         params.solid_infill_speed = region_config.internal_solid_infill_speed;
                 }
@@ -1041,9 +1050,32 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         auto &region_config = layerm->region().config();
 
         ConfigOptionFloats rotate_angles;
-        rotate_angles.deserialize( surface_fill.params.extrusion_role == erInternalInfill  ? region_config.sparse_infill_rotate_template.value : region_config.solid_infill_rotate_template.value);
-        auto rotate_angle_idx = f->layer_id % rotate_angles.size();
-        f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
+        std::string v(region_config.sparse_infill_rotate_template.value);
+        if (regex_search(v, std::regex("[+\\-]"))) {
+            std::vector<std::string> tk; 
+            std::regex  del("[\\s,]+");
+            std::sregex_token_iterator it(v.begin(), v.end(), del, -1);
+            std::sregex_token_iterator end;
+            while (it != end) 
+                tk.push_back(*it++);
+            int t = 0;
+            float angle = 0;
+            std::string s;
+            for (int i = 0; i < f->layer_id; i++) {
+                s = tk[t];
+                if (s[0] == '+' || s[0] == '-')     
+                    angle += strtof(s.data(), NULL);
+                else
+                    angle = strtof(s.data(), NULL);
+                if (++t >= tk.size())
+                   t = 0;
+            }
+            f->rotate_angle = Geometry::deg2rad(angle);
+        } else {
+            rotate_angles.deserialize( surface_fill.params.extrusion_role == erInternalInfill  ? region_config.sparse_infill_rotate_template.value : region_config.solid_infill_rotate_template.value);
+            auto rotate_angle_idx = f->layer_id % rotate_angles.size();
+            f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
+        }
 
 		params.config = &region_config;
         params.pattern = surface_fill.params.pattern;
