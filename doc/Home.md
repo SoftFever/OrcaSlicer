@@ -79,7 +79,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 
 ![process-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-speed.png?raw=true)
 
-- [Extrusion rate smoothing](speed_settings_extrusion_rate_smoothing)
+- [Extrusion rate smoothing](speed_settings_advanced)
 
 ### Support Settings
 
