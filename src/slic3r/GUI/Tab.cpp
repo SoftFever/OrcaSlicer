@@ -2168,15 +2168,15 @@ void TabPrint::build()
         optgroup->append_single_option_line(option, "quality_settings_wall_and_surfaces#small-area-infill-flow-compensation");
 
         optgroup = page->new_optgroup(L("Bridging"), L"param_bridge");
-        optgroup->append_single_option_line("bridge_flow");
-	    optgroup->append_single_option_line("internal_bridge_flow");
-        optgroup->append_single_option_line("bridge_density");
-        optgroup->append_single_option_line("internal_bridge_density");
-        optgroup->append_single_option_line("thick_bridges");
-        optgroup->append_single_option_line("thick_internal_bridges");
-        optgroup->append_single_option_line("enable_extra_bridge_layer");
-        optgroup->append_single_option_line("dont_filter_internal_bridges");
-        optgroup->append_single_option_line("counterbore_hole_bridging");
+        optgroup->append_single_option_line("bridge_flow", "quality_settings_bridging#flow-ratio");
+	    optgroup->append_single_option_line("internal_bridge_flow", "quality_settings_bridging#flow-ratio");
+        optgroup->append_single_option_line("bridge_density", "quality_settings_bridging#bridge-density");
+        optgroup->append_single_option_line("internal_bridge_density", "quality_settings_bridging#bridge-density");
+        optgroup->append_single_option_line("thick_bridges", "quality_settings_bridging#thick-bridges");
+        optgroup->append_single_option_line("thick_internal_bridges", "quality_settings_bridging#thick-bridges");
+        optgroup->append_single_option_line("enable_extra_bridge_layer", "quality_settings_bridging#extra-bridge-layers");
+        optgroup->append_single_option_line("dont_filter_internal_bridges", "quality_settings_bridging#filter-out-small-internal-bridges");
+        optgroup->append_single_option_line("counterbore_hole_bridging", "quality_settings_bridging#bridge-counterbore-hole");
 
         optgroup = page->new_optgroup(L("Overhangs"), L"param_overhang");
         optgroup->append_single_option_line("detect_overhang_wall");
