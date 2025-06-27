@@ -3152,8 +3152,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("This parameter adds a rotation of sparse infill direction to each layer according to the specified template. "
                       "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
                       "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
-                      "If the instruction is an unsigned number between 0 and 360, the rotation will be absolute CCW when viewed from above the bed. "
-                      "If the instruction contains a number with a [+] or [-] sign, the rotation will be relative to the previous angle, CCW or CW respectively. "  
                       "If there are more layers than angles, the angles will be repeated. Note that not all all sparse infill patterns support rotation.");
     def->sidetext = "°";
     def->mode     = comAdvanced;
@@ -3166,8 +3164,6 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("This parameter adds a rotation of solid infill direction to each layer according to the specified template. "
                       "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
                       "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
-                      "If the instruction is an unsigned number between 0 and 360, the rotation will be absolute CCW when viewed from above the bed. "
-                      "If the instruction contains a number with a [+] or [-] sign, the rotation will be relative to the previous angle, CCW or CW respectively. "  
                       "If there are more layers than angles, the angles will be repeated. Note that not all all solid infill patterns support rotation.");
     def->sidetext = "°";
     def->mode     = comAdvanced;
