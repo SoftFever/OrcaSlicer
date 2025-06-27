@@ -6835,6 +6835,12 @@ msgstr ""
 "Jei įjungta, naudoti laisvą kamerą. Jei neįjungta, naudoti stacionarią "
 "kamerą."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Sukeisti judėjimą ir sukimąsi pelės mygtuko"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Jei įjungta, sukeičia kairiojo ir dešiniojo pelės mygtukų panoraminio ir pasukimo funkcijas."
+
 msgid "Reverse mouse zoom"
 msgstr "Apversti pelės didinimą"
 

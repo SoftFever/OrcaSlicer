@@ -6519,6 +6519,12 @@ msgstr "使用自由视角"
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr "如果启用，使用自由视角。如果未启用，使用约束视角。"
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "交换鼠标按钮的平移与旋转功能"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "启用后，将左键和右键的平移与旋转功能对调"
+
 msgid "Reverse mouse zoom"
 msgstr "反转鼠标缩放"
 
