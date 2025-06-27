@@ -31,41 +31,6 @@ struct FilamentColorHasher
     }
 };
 
-struct FilamentColor
-{
-    enum class ColorType : char
-    {
-        SINGLE_CLR = 0, // single color filament
-        MULTI_CLR,  // multi-color filament
-        GRADIENT_CLR,    // gradient filament
-    };
-
-    ColorType m_color_type = ColorType::SINGLE_CLR; // default to single color
-    std::unordered_set<wxColour, FilamentColorHasher> m_colors;
-
-public:
-    size_t ColorCount() const noexcept { return m_colors.size(); }
-
-    void EndSet(int ctype)
-    {
-        if (m_colors.size() < 2)
-        {
-            m_color_type = ColorType::SINGLE_CLR;
-        }
-        else
-        {
-            if (ctype == 0)
-            {
-                m_color_type = ColorType::GRADIENT_CLR;
-            }
-            else
-            {
-                m_color_type = ColorType::MULTI_CLR;
-            }
-        }
-    }
-};
-
 // Represents a color in HSV format
 struct ColourHSV
 {
@@ -101,56 +66,69 @@ inline ColourHSV wxColourToHSV(const wxColour& c)
     return { h, s, v };
 }
 
-// Compare function for EncodedFilaColor
-struct EncodedFilaColorEqual
+struct FilamentColor
 {
-    bool operator()(const FilamentColor& lhs, const FilamentColor& rhs) const noexcept
+    enum class ColorType : char
     {
-        if (lhs.ColorCount() != rhs.ColorCount()) { return lhs.ColorCount() < rhs.ColorCount(); };
+        SINGLE_CLR = 0, // single color filament
+        MULTI_CLR,  // multi-color filament
+        GRADIENT_CLR,    // gradient filament
+    };
 
-        if (lhs.ColorCount() == 1)
+    ColorType m_color_type = ColorType::SINGLE_CLR; // default to single color
+    std::unordered_set<wxColour, FilamentColorHasher> m_colors;
+
+public:
+    size_t ColorCount() const noexcept { return m_colors.size(); }
+
+    void EndSet(int ctype)
+    {
+        if (m_colors.size() < 2)
         {
-            ColourHSV ha = wxColourToHSV(*lhs.m_colors.begin());
-            ColourHSV hb = wxColourToHSV(*rhs.m_colors.begin());
+            m_color_type = ColorType::SINGLE_CLR;
+        }
+        else
+        {
+            if (ctype == 0)
+            {
+                m_color_type = ColorType::GRADIENT_CLR;
+            }
+            else
+            {
+                m_color_type = ColorType::MULTI_CLR;
+            }
+        }
+    }
+
+public:
+    bool operator<(const FilamentColor& other) const { 
+        if (ColorCount() != other.ColorCount()) { return ColorCount() < other.ColorCount(); };
+        if (m_color_type != other.m_color_type) { return m_color_type < other.m_color_type; }
+        if (m_colors == other.m_colors) { return false;}
+
+        // Compare colors in HSV format
+        auto lhs_it = m_colors.begin();
+        auto rhs_it = other.m_colors.begin();
+        while ((lhs_it != m_colors.end()))
+        {
+            ColourHSV ha = wxColourToHSV(*lhs_it);
+            ColourHSV hb = wxColourToHSV(*rhs_it);
             if (ha.h != hb.h) return ha.h < hb.h;
             if (ha.s != hb.s) return ha.s < hb.s;
             if (ha.v != hb.v) return ha.v < hb.v;
-        }
 
-        if (lhs.m_color_type != rhs.m_color_type)
-        {
-            return lhs.m_color_type < rhs.m_color_type;
+            lhs_it++;
+            rhs_it++;
         }
 
         return false;
     }
+};
 
-private:
-    double hue(const wxColour& colour) const
-    {
-        double r_norm = colour.Red() / 255.0;
-        double g_norm = colour.Green() / 255.0;
-        double b_norm = colour.Blue() / 255.0;
-
-        double max_val = std::max({ r_norm, g_norm, b_norm });
-        double min_val = std::min({ r_norm, g_norm, b_norm });
-        double delta = max_val - min_val;
-
-        if (delta == 0) return 0;
-
-        double h;
-        if (max_val == r_norm) {
-            h = std::fmod(((g_norm - b_norm) / delta), 6.0);
-        } else if (max_val == g_norm) {
-            h = ((b_norm - r_norm) / delta) + 2;
-        } else {
-            h = ((r_norm - g_norm) / delta) + 4;
-        }
-
-        h *= 60;
-        if (h < 0) h += 360;
-        return h;
-    }
+// Compare function for EncodedFilaColor
+struct EncodedFilaColorEqual
+{
+    bool operator()(const FilamentColor& lhs, const FilamentColor& rhs) const noexcept { return lhs < rhs; }
 };
 using FilamentColor2CodeMap = std::map<FilamentColor, FilamentColorCode*, EncodedFilaColorEqual>;
 
