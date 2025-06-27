@@ -893,7 +893,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 
 
             m_plater->get_print_job_data(&print_data);
-            std::string project_name = m_current_project_name.utf8_string() + ".3mf";
+            std::string project_name = m_current_project_name.utf8_string() + ".gcode.3mf";
 
             std::string _3mf_path;
             if (wxGetApp().plater()->using_exported_file())
