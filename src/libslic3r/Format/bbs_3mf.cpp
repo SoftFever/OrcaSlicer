@@ -3891,7 +3891,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     }
 
     // Definition of read/write method for EmbossShape
-    static void to_xml(std::stringstream &stream, const EmbossShape &es, const ModelVolume &volume, mz_zip_archive &archive);
+    static void                       to_xml(std::stringstream &stream, const EmbossShape &es, const ModelVolume &volume, mz_zip_archive &archive,bool export_full_path);
     static std::optional<EmbossShape> read_emboss_shape(const char **attributes, unsigned int num_attributes);
 
     bool _BBS_3MF_Importer::_handle_start_shape_configuration(const char **attributes, unsigned int num_attributes)
@@ -7518,6 +7518,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
+    boost::filesystem::path get_dealed_platform_path(std::string path_str) {
+#if defined(__linux__) || defined(__LINUX__) || defined(__APPLE__)
+        std::string translated_input = path_str;
+        std::replace(translated_input.begin(), translated_input.end(), '\\', '/');
+
+        boost::filesystem::path file_path(translated_input);
+#else
+        boost::filesystem::path file_path(path_str);
+#endif
+        return file_path;
+    }
+
     bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const ObjectToObjectDataMap &objects_data, const DynamicPrintConfig& config, int export_plate_idx, bool save_gcode, bool use_loaded_id)
     {
         std::stringstream stream;
@@ -7592,15 +7604,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                             // stores volume's source data
                             {
-                            #if defined(__linux__) || defined(__LINUX__) || defined(__APPLE__)
-                                std::string translated_input = volume->source.input_file;
-                                std::replace(translated_input.begin(), translated_input.end(), '\\', '/');
-
-                                boost::filesystem::path file_path(translated_input);
-                            #else
-                                boost::filesystem::path file_path(volume->source.input_file);
-                            #endif
-
+                                auto file_path =get_dealed_platform_path(volume->source.input_file);
                                 std::string input_file = xml_escape(m_fullpath_sources ? volume->source.input_file : file_path.filename().string());
                                 //std::string prefix = std::string("      <") + METADATA_TAG + " " + KEY_ATTR + "=\"";
                                 std::string prefix = std::string("      <") + METADATA_TAG + " " + KEY_ATTR + "=\"";
@@ -7624,9 +7628,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                 stream << "      <" << METADATA_TAG << " "<< KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
                             }
 
-                            if (const std::optional<EmbossShape> &es = volume->emboss_shape;
-                                es.has_value())
-                                to_xml(stream, *es, *volume, archive);
+                            if (const std::optional<EmbossShape> &es = volume->emboss_shape; es.has_value()) {
+                                to_xml(stream, *es, *volume, archive, m_fullpath_sources);
+                            }
                     
                             if (const std::optional<TextConfiguration> &tc = volume->text_configuration;
                                 tc.has_value())
@@ -8964,18 +8968,21 @@ Transform3d create_fix(const std::optional<Transform3d> &prev, const ModelVolume
     return *prev * fix_trmat;
 }
 
-bool to_xml(std::stringstream &stream, const EmbossShape::SvgFile &svg, const ModelVolume &volume, mz_zip_archive &archive){
+bool to_xml(std::stringstream &stream, const EmbossShape::SvgFile &svg, const ModelVolume &volume, mz_zip_archive &archive, bool export_full_path)
+{
     if (svg.path_in_3mf.empty())
         return true; // EmbossedText OR unwanted store .svg file into .3mf (protection of copyRight)
 
-    if (!svg.path.empty())
-        stream << SVG_FILE_PATH_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(svg.path) << "\" ";
+    if (!svg.path.empty()) {
+        auto file_path =get_dealed_platform_path(svg.path);
+        std::string input_file = xml_escape(export_full_path ? svg.path : file_path.filename().string());
+        stream << SVG_FILE_PATH_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(input_file) << "\" ";
+    }
     stream << SVG_FILE_PATH_IN_3MF_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(svg.path_in_3mf) << "\" ";
 
     std::shared_ptr<std::string> file_data = svg.file_data;
-    assert(file_data != nullptr); 
-    if (file_data == nullptr && !svg.path.empty())
-        file_data = read_from_disk(svg.path);
+    assert(file_data != nullptr);
+    if (file_data == nullptr && !svg.path.empty()) file_data = read_from_disk(svg.path);
     if (file_data == nullptr) {
         BOOST_LOG_TRIVIAL(warning) << "Can't write svg file no filedata";
         return false;
@@ -8988,13 +8995,14 @@ bool to_xml(std::stringstream &stream, const EmbossShape::SvgFile &svg, const Mo
 
 } // namespace
 
-void to_xml(std::stringstream &stream, const EmbossShape &es, const ModelVolume &volume, mz_zip_archive &archive)
+void to_xml(std::stringstream &stream, const EmbossShape &es, const ModelVolume &volume, mz_zip_archive &archive, bool export_full_path)
 {
     stream << "   <" << SHAPE_TAG << " ";
     if (es.svg_file.has_value())
-        if(!to_xml(stream, *es.svg_file, volume, archive))
+        if (!to_xml(stream, *es.svg_file, volume, archive, export_full_path)) {
             BOOST_LOG_TRIVIAL(warning) << "Can't write svg file defiden embossed shape into 3mf";
-    
+        }
+
     stream << SHAPE_SCALE_ATTR << "=\"" << es.scale << "\" ";
 
     if (!es.final_shape.is_healed)
