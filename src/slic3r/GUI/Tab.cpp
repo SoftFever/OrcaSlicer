@@ -2293,14 +2293,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("accel_to_decel_factor", "speed_settings_acceleration");
 
         optgroup = page->new_optgroup(L("Jerk(XY)"), L"param_jerk", 15);
-        optgroup->append_single_option_line("default_jerk");
-        optgroup->append_single_option_line("outer_wall_jerk");
-        optgroup->append_single_option_line("inner_wall_jerk");
-        optgroup->append_single_option_line("infill_jerk");
-        optgroup->append_single_option_line("top_surface_jerk");
-        optgroup->append_single_option_line("initial_layer_jerk");
-        optgroup->append_single_option_line("travel_jerk");
-        optgroup->append_single_option_line("default_junction_deviation");
+        optgroup->append_single_option_line("default_jerk", "speed_settings_jerk_xy#default");
+        optgroup->append_single_option_line("outer_wall_jerk", "speed_settings_jerk_xy#outer-wall");
+        optgroup->append_single_option_line("inner_wall_jerk", "speed_settings_jerk_xy#inner-wall");
+        optgroup->append_single_option_line("infill_jerk", "speed_settings_jerk_xy#infill");
+        optgroup->append_single_option_line("top_surface_jerk", "speed_settings_jerk_xy#top-surface");
+        optgroup->append_single_option_line("initial_layer_jerk", "speed_settings_jerk_xy#initial-layer");
+        optgroup->append_single_option_line("travel_jerk", "speed_settings_jerk_xy#travel");
+        optgroup->append_single_option_line("default_junction_deviation", "speed_settings_jerk_xy#junction-deviation");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope", "speed_settings_advanced");
