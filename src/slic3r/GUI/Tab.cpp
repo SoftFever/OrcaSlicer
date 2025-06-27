@@ -2331,10 +2331,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_interface_not_for_body", "support_settings_filament#avoid-interface-filament-for-base");
 
         optgroup = page->new_optgroup(L("Support ironing"), L"param_ironing");
-        optgroup->append_single_option_line("support_ironing");
-        optgroup->append_single_option_line("support_ironing_pattern");
-        optgroup->append_single_option_line("support_ironing_flow");
-        optgroup->append_single_option_line("support_ironing_spacing");
+        optgroup->append_single_option_line("support_ironing", "support_settings_ironing");
+        optgroup->append_single_option_line("support_ironing_pattern", "support_settings_ironing#pattern");
+        optgroup->append_single_option_line("support_ironing_flow", "support_settings_ironing#flow");
+        optgroup->append_single_option_line("support_ironing_spacing", "support_settings_ironing#line-spacing");
 
         //optgroup = page->new_optgroup(L("Options for support material and raft"));
 
