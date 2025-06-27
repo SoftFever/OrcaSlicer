@@ -3155,7 +3155,7 @@ void PrintConfigDef::init_fff_params()
                       "If the instruction is an unsigned number between 0 and 360, the rotation will be absolute CCW when viewed from above the bed. "
                       "If the instruction contains a number with a [+] or [-] sign, the rotation will be relative to the previous angle, CCW or CW respectively. "  
                       "If there are more layers than angles, the angles will be repeated. Note that not all all sparse infill patterns support rotation.");
-    def->sidetext = "°";
+    def->sidetext = L("°");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString("0,90"));
 
@@ -3169,7 +3169,7 @@ void PrintConfigDef::init_fff_params()
                       "If the instruction is an unsigned number between 0 and 360, the rotation will be absolute CCW when viewed from above the bed. "
                       "If the instruction contains a number with a [+] or [-] sign, the rotation will be relative to the previous angle, CCW or CW respectively. "  
                       "If there are more layers than angles, the angles will be repeated. Note that not all all solid infill patterns support rotation.");
-    def->sidetext = "°";
+    def->sidetext = L("°");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString("0,90"));
 
