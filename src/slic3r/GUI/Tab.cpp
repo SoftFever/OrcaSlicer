@@ -2401,10 +2401,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("wipe_tower_filament");
 
         optgroup = page->new_optgroup(L("Ooze prevention"), L"param_ooze_prevention");
-        optgroup->append_single_option_line("ooze_prevention");
-        optgroup->append_single_option_line("standby_temperature_delta");
-        optgroup->append_single_option_line("preheat_time");
-        optgroup->append_single_option_line("preheat_steps");
+        optgroup->append_single_option_line("ooze_prevention", "multimaterial_settings_ooze_prevention");
+        optgroup->append_single_option_line("standby_temperature_delta", "multimaterial_settings_ooze_prevention");
+        optgroup->append_single_option_line("preheat_time", "multimaterial_settings_ooze_prevention");
+        optgroup->append_single_option_line("preheat_steps", "multimaterial_settings_ooze_prevention");
 
         optgroup = page->new_optgroup(L("Flush options"), L"param_flush");
         optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");
