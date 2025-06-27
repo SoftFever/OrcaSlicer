@@ -6489,11 +6489,17 @@ msgstr ""
 "チェックすると、フリーカメラが使用されます。 そうでない場合は、拘束カメラを使"
 "用します。"
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "パンと回転のマウスボタンを入れ替える"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "有効にすると、マウスの左ボタンと右ボタンのパン機能と回転機能が入れ替わります。"
+
 msgid "Reverse mouse zoom"
-msgstr ""
+msgstr "マウスの逆ズーム"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
+msgstr "有効にすると、マウス ホイールによるズームの方向が反転します。"
 
 msgid "Show splash screen"
 msgstr "スプラッシュ画面を表示する"
