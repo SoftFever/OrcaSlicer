@@ -2198,13 +2198,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_shell_layers");
         optgroup->append_single_option_line("top_shell_thickness");
         optgroup->append_single_option_line("top_surface_density");
-        optgroup->append_single_option_line("top_surface_direction");
         optgroup->append_single_option_line("top_surface_pattern");
+        optgroup->append_single_option_line("top_surface_direction");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
         optgroup->append_single_option_line("bottom_surface_density");  
-        optgroup->append_single_option_line("bottom_surface_direction");    
         optgroup->append_single_option_line("bottom_surface_pattern");
+        optgroup->append_single_option_line("bottom_surface_direction");    
         optgroup->append_single_option_line("top_bottom_infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");

@@ -1050,9 +1050,32 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         auto &region_config = layerm->region().config();
 
         ConfigOptionFloats rotate_angles;
-        rotate_angles.deserialize( surface_fill.params.extrusion_role == erInternalInfill  ? region_config.sparse_infill_rotate_template.value : region_config.solid_infill_rotate_template.value);
-        auto rotate_angle_idx = f->layer_id % rotate_angles.size();
-        f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
+        std::string v(region_config.sparse_infill_rotate_template.value);
+        if (regex_search(v, std::regex("[+\\-]"))) {
+            std::vector<std::string> tk; 
+            std::regex  del("[\\s,]+");
+            std::sregex_token_iterator it(v.begin(), v.end(), del, -1);
+            std::sregex_token_iterator end;
+            while (it != end) 
+                tk.push_back(*it++);
+            int t = 0;
+            float angle = 0;
+            std::string s;
+            for (int i = 0; i < f->layer_id; i++) {
+                s = tk[t];
+                if (s[0] == '+' || s[0] == '-')     
+                    angle += strtof(s.data(), NULL);
+                else
+                    angle = strtof(s.data(), NULL);
+                if (++t >= tk.size())
+                   t = 0;
+            }
+            f->rotate_angle = Geometry::deg2rad(angle);
+        } else {
+            rotate_angles.deserialize( surface_fill.params.extrusion_role == erInternalInfill  ? region_config.sparse_infill_rotate_template.value : region_config.solid_infill_rotate_template.value);
+            auto rotate_angle_idx = f->layer_id % rotate_angles.size();
+            f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
+        }
 
 		params.config = &region_config;
         params.pattern = surface_fill.params.pattern;
