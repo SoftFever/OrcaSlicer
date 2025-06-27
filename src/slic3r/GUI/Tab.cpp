@@ -2361,19 +2361,19 @@ void TabPrint::build()
         optgroup->append_single_option_line("independent_support_layer_height", "support_settings_advanced#independent-support-layer-height");
 
         optgroup = page->new_optgroup(L("Tree supports"), L"param_support_tree");
-        optgroup->append_single_option_line("tree_support_tip_diameter");
-        optgroup->append_single_option_line("tree_support_branch_distance", "support#tree-support-only-options");
-        optgroup->append_single_option_line("tree_support_branch_distance_organic", "support#tree-support-only-options");
-        optgroup->append_single_option_line("tree_support_top_rate");
-        optgroup->append_single_option_line("tree_support_branch_diameter", "support#tree-support-only-options");
-        optgroup->append_single_option_line("tree_support_branch_diameter_organic", "support#tree-support-only-options");
-        optgroup->append_single_option_line("tree_support_branch_diameter_angle");
-        optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
-        optgroup->append_single_option_line("tree_support_branch_angle_organic", "support#tree-support-only-options");
-        optgroup->append_single_option_line("tree_support_angle_slow");
-        optgroup->append_single_option_line("tree_support_adaptive_layer_height");
-        optgroup->append_single_option_line("tree_support_auto_brim");
-        optgroup->append_single_option_line("tree_support_brim_width");
+        optgroup->append_single_option_line("tree_support_tip_diameter", "support_settings_tree#tip-diameter");
+        optgroup->append_single_option_line("tree_support_branch_distance", "support_settings_tree#branch-distance");
+        optgroup->append_single_option_line("tree_support_branch_distance_organic", "support_settings_tree#branch-distance");
+        optgroup->append_single_option_line("tree_support_top_rate", "support_settings_tree#branch-density");
+        optgroup->append_single_option_line("tree_support_branch_diameter", "support_settings_tree#branch-diameter");
+        optgroup->append_single_option_line("tree_support_branch_diameter_organic", "support_settings_tree#branch-diameter");
+        optgroup->append_single_option_line("tree_support_branch_diameter_angle", "support_settings_tree#branch-diameter-angle");
+        optgroup->append_single_option_line("tree_support_branch_angle", "support_settings_tree#branch-angle");
+        optgroup->append_single_option_line("tree_support_branch_angle_organic", "support_settings_tree#branch-angle");
+        optgroup->append_single_option_line("tree_support_angle_slow", "support_settings_tree#preferred-branch-angle");
+        optgroup->append_single_option_line("tree_support_adaptive_layer_height", "support_settings_tree");
+        optgroup->append_single_option_line("tree_support_auto_brim", "support_settings_tree");
+        optgroup->append_single_option_line("tree_support_brim_width", "support_settings_tree");
 
     page = add_options_page(L("Multimaterial"), "custom-gcode_multi_material"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
