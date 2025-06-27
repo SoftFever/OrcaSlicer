@@ -2326,9 +2326,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("raft_contact_distance", "support_settings_raft");
 
         optgroup = page->new_optgroup(L("Support filament"), L"param_support_filament");
-        optgroup->append_single_option_line("support_filament", "support#support-filament");
-        optgroup->append_single_option_line("support_interface_filament", "support#support-filament");
-        optgroup->append_single_option_line("support_interface_not_for_body", "support#support-filament");
+        optgroup->append_single_option_line("support_filament", "support_settings_filament#base");
+        optgroup->append_single_option_line("support_interface_filament", "support_settings_filament#interface");
+        optgroup->append_single_option_line("support_interface_not_for_body", "support_settings_filament#avoid-interface-filament-for-base");
 
         optgroup = page->new_optgroup(L("Support ironing"), L"param_ironing");
         optgroup->append_single_option_line("support_ironing");
