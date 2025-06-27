@@ -354,7 +354,7 @@ void Tab::create_preset_tab()
     // Colors for ui "decoration"
     m_sys_label_clr			= wxGetApp().get_label_clr_sys();
     m_modified_label_clr	= wxGetApp().get_label_clr_modified();
-    m_default_text_clr      = wxGetApp().get_label_clr_default();
+    m_user_label_clr        = wxGetApp().get_label_clr_user();
 
     m_main_sizer = new wxBoxSizer( wxVERTICAL );
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
@@ -691,11 +691,11 @@ void Tab::OnActivate()
 
 void Tab::update_label_colours()
 {
-    m_default_text_clr = wxGetApp().get_label_clr_default();
     if (m_sys_label_clr == wxGetApp().get_label_clr_sys() && m_modified_label_clr == wxGetApp().get_label_clr_modified())
         return;
     m_sys_label_clr = wxGetApp().get_label_clr_sys();
     m_modified_label_clr = wxGetApp().get_label_clr_modified();
+    m_user_label_clr = wxGetApp().get_label_clr_user();
 
     //update options "decoration"
     for (const auto& opt : m_options_list)
@@ -706,7 +706,7 @@ void Tab::update_label_colours()
         if ((opt.second & osSystemValue) == 0) {
             // value is equal to last saved
             if ((opt.second & osInitValue) != 0)
-                color = &m_default_text_clr;
+                color = &m_user_label_clr;
             // value is modified
             else
                 color = &m_modified_label_clr;
@@ -742,7 +742,7 @@ void Tab::update_label_colours()
                     , (int) StateColor::NotChecked
                 ),
                 std::make_pair(
-                    is_modified ? m_modified_label_clr : (sys_page && !m_is_default_preset) ? m_sys_label_clr : m_default_text_clr
+                    is_modified ? m_modified_label_clr : m_sys_label_clr //(sys_page && !m_is_default_preset) ? m_sys_label_clr : m_default_text_clr
                     , (int) StateColor::Normal
                 )
             );
@@ -778,7 +778,7 @@ void Tab::decorate()
         const ScalableBitmap* sys_icon  = &m_bmp_value_lock;
         const ScalableBitmap* icon      = &m_bmp_value_revert;
 
-        const wxColour* color = m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr;
+        const wxColour* color = m_is_default_preset ? &m_user_label_clr : &m_sys_label_clr;
 
         const wxString* sys_tt  = &m_tt_value_lock;
         const wxString* tt      = &m_tt_value_revert;
@@ -790,7 +790,7 @@ void Tab::decorate()
             sys_tt = m_tt_non_system;
             // value is equal to last saved
             if ((opt.second & osInitValue) != 0)
-                color = &m_default_text_clr;
+                color = &m_user_label_clr;
             // value is modified
             else
                 color = &m_modified_label_clr;
@@ -825,7 +825,7 @@ void Tab::decorate()
                 sys_tt          = m_tt_non_system;
 
                 if (!modified_page)
-                    color = &m_default_text_clr;
+                    color = &m_user_label_clr;
                 else
                     color = &m_modified_label_clr;
             }
@@ -1064,7 +1064,7 @@ void Tab::update_changed_tree_ui()
                     , (int) StateColor::NotChecked
                 ),
                 std::make_pair(
-                    is_modified ? m_modified_label_clr : (sys_page && !m_is_default_preset) ? m_sys_label_clr : m_default_text_clr
+                    is_modified ? m_modified_label_clr : m_sys_label_clr //(sys_page && !m_is_default_preset) ? m_sys_label_clr : m_default_text_clr
                     , (int) StateColor::Normal
                 )
             );
@@ -6005,7 +6005,7 @@ void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::strin
     line.set_undo_to_sys_bitmap(&m_bmp_white_bullet);
     line.set_undo_tooltip(&m_tt_white_bullet);
     line.set_undo_to_sys_tooltip(&m_tt_white_bullet);
-    line.set_label_colour(&m_default_text_clr);
+    line.set_label_colour(&m_sys_label_clr);
 
     optgroup->append_line(line);
 }
@@ -6321,8 +6321,8 @@ Page::Page(wxWindow* parent, const wxString& title, int iconID, wxPanel* tab_own
     m_vsizer = (wxBoxSizer*)parent->GetSizer();
     m_page_title = NULL;
     m_item_color = StateColor(
-        std::make_pair(wxColour("#6B6B6C")               , (int) StateColor::NotChecked),
-        std::make_pair(wxGetApp().get_label_clr_default(), (int) StateColor::Normal)
+        std::make_pair(wxColour("#6B6B6C")           , (int) StateColor::NotChecked),
+        std::make_pair(wxGetApp().get_label_clr_sys(), (int) StateColor::Normal)
     );
 }
 
