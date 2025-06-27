@@ -12,10 +12,9 @@ This section covers the settings that affect the precision of your prints. These
 - [Precise Z Height](#precise-z-height)
 - [Polyholes](#polyholes)
 
-
 ## Slice gap closing radius
 
-Cracks smaller than 2x gap closing radiusCracks smaller than 2x gap closing radius are being filled during the triangle mesh slicing. The gap closing operation may reduce the final print resolution, therefore it is advisable to keep the value reasonably low.
+Cracks smaller than 2x gap closing radius are being filled during the triangle mesh slicing. The gap closing operation may reduce the final print resolution, therefore it is advisable to keep the value reasonably low.
 
 ## Resolution
 
