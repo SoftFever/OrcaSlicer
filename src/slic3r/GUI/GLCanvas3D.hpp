@@ -393,6 +393,7 @@ class GLCanvas3D
         FilamentUnPrintableOnFirstLayer,
         MixUsePLAAndPETG,
         PrimeTowerOutside,
+        NozzleFilamentIncompatible,
     };
 
     class RenderStats

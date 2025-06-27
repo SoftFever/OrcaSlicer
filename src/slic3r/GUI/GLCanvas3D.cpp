@@ -137,6 +137,11 @@ std::string& get_right_extruder_unprintable_text() {
     return right_unprintable_text;
 }
 
+std::string& get_nozzle_filament_incompatible_text() {
+    static std::string nozzle_filament_incompatible_text;
+    return nozzle_filament_incompatible_text;
+}
+
 static std::string format_number(float value)
 {
     std::ostringstream oss;
@@ -3030,14 +3035,18 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             //if (printer_technology != ptSLA || !contained_min_one)
             //    _set_warning_notification(EWarning::SlaSupportsOutside, false);
 
-            bool tpu_valid = cur_plate->check_tpu_printable_status(wxGetApp().preset_bundle->full_config(), wxGetApp().preset_bundle->get_used_tpu_filaments(cur_plate->get_extruders(true)));
+            auto full_config_temp = wxGetApp().preset_bundle->full_config();
+            bool tpu_valid = cur_plate->check_tpu_printable_status(full_config_temp, wxGetApp().preset_bundle->get_used_tpu_filaments(cur_plate->get_extruders(true)));
             _set_warning_notification(EWarning::TPUPrintableError, !tpu_valid);
 
-            bool filament_printable = cur_plate->check_filament_printable(wxGetApp().preset_bundle->full_config(), filament_printable_error_msg);
+            bool filament_printable = cur_plate->check_filament_printable(full_config_temp, filament_printable_error_msg);
             _set_warning_notification(EWarning::FilamentPrintableError, !filament_printable);
 
-            bool mix_pla_and_petg = cur_plate->check_mixture_of_pla_and_petg(wxGetApp().preset_bundle->full_config());
+            bool mix_pla_and_petg = cur_plate->check_mixture_of_pla_and_petg(full_config_temp);
             _set_warning_notification(EWarning::MixUsePLAAndPETG, !mix_pla_and_petg);
+
+            bool filament_nozzle_compatible = cur_plate->check_compatible_of_nozzle_and_filament(full_config_temp, wxGetApp().preset_bundle->filament_presets, get_nozzle_filament_incompatible_text());
+            _set_warning_notification(EWarning::NozzleFilamentIncompatible, !filament_nozzle_compatible);
 
             bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid && filament_printable;
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, model_fits));
@@ -3056,6 +3065,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::PrimeTowerOutside, false);
            _set_warning_notification(EWarning::MultiExtruderPrintableError,false);
            _set_warning_notification(EWarning::MultiExtruderHeightOutside,false);
+           _set_warning_notification(EWarning::NozzleFilamentIncompatible,false);
+
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
     }
@@ -10105,6 +10116,10 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::PrimeTowerOutside:
         text  = _u8L("The prime tower extends beyond the plate boundary.");
         break;
+    case EWarning::NozzleFilamentIncompatible: {
+        text = _u8L(get_nozzle_filament_incompatible_text());
+        break;
+    }
     }
     //BBS: this may happened when exit the app, plater is null
     if (!wxGetApp().plater())
@@ -10128,6 +10143,14 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             }
             else
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLMixUsePLAAndPETG, NotificationLevel::WarningNotificationLevel);
+        }
+        else if (warning == EWarning::NozzleFilamentIncompatible){
+            if(state){
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLNozzleFilamentIncompatible, NotificationLevel::WarningNotificationLevel, text);
+            }
+            else{
+                notification_manager.close_slicing_customize_error_notification(NotificationType::BBLNozzleFilamentIncompatible, NotificationLevel::WarningNotificationLevel);
+            }
         }
         else {
             if (state)

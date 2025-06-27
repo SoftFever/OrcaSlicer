@@ -2710,6 +2710,47 @@ int Print::get_hrc_by_nozzle_type(const NozzleType&type)
     return 0;
 }
 
+std::vector<std::string> Print::get_incompatible_filaments_by_nozzle(const float nozzle_diameter, const std::optional<NozzleVolumeType> nozzle_volume_type)
+{
+    static std::map<std::string, std::map<std::string, std::vector<std::string>>> incompatible_filaments;
+    if(incompatible_filaments.empty()){
+        fs::path file_path = fs::path(resources_dir()) / "info" / "nozzle_incompatibles.json";
+        boost::nowide::ifstream in(file_path.string());
+        json j;
+        try {
+            j = json::parse(in);
+            for(auto& [volume_type, diameter_list] : j["incompatible_nozzles"].items()) {
+                for(auto& [diameter, filaments]: diameter_list.items()){
+                    incompatible_filaments[volume_type][diameter] = filaments.get<std::vector<std::string>>();
+                }
+            }
+        }
+        catch(const json::parse_error& err){
+            in.close();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
+
+            incompatible_filaments[get_nozzle_volume_type_string(NozzleVolumeType::nvtHighFlow)] = {};
+            incompatible_filaments[get_nozzle_volume_type_string(NozzleVolumeType::nvtStandard)] = {};
+        }
+    }
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(1) << nozzle_diameter;
+    std::string diameter_str = oss.str();
+
+    if(nozzle_volume_type.has_value()){
+        return incompatible_filaments[get_nozzle_volume_type_string(nozzle_volume_type.value())][diameter_str];
+    }
+
+    std::vector<std::string> incompatible_filaments_list;
+    for(auto& [volume_type, diameter_list] : incompatible_filaments){
+        auto iter = diameter_list.find(diameter_str);
+        if(iter != diameter_list.end()){
+            append(incompatible_filaments_list, iter->second);
+        }
+    }
+    return incompatible_filaments_list;
+}
+
 void Print::finalize_first_layer_convex_hull()
 {
     append(m_first_layer_convex_hull.points, m_skirt_convex_hull);

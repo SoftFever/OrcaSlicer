@@ -159,6 +159,7 @@ enum class NotificationType
     BBLSliceMultiExtruderHeightOutside,
 	BBLBedFilamentIncompatible,
     BBLMixUsePLAAndPETG,
+	BBLNozzleFilamentIncompatible,
     NotificationTypeCount
 
 };

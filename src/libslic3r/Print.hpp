@@ -1080,6 +1080,7 @@ public:
     Vec2d translate_to_print_space(const Point &point) const;
     static FilamentTempType get_filament_temp_type(const std::string& filament_type);
     static int get_hrc_by_nozzle_type(const NozzleType& type);
+    static std::vector<std::string> get_incompatible_filaments_by_nozzle(const float nozzle_diameter, const std::optional<NozzleVolumeType> nozzle_volume_type = std::nullopt);
     static FilamentCompatibilityType check_multi_filaments_compatibility(const std::vector<std::string>& filament_types);
     // similar to check_multi_filaments_compatibility, but the input is int, and may be negative (means unset)
     static bool is_filaments_compatible(const std::vector<int>& types);
