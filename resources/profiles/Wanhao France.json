@@ -37,12 +37,20 @@
             "sub_path": "machine/D12 300 PRO M2 MONO DUAL.json"
         },
         {
+            "name": "Wanhao D12 300 PRO M2 MONO DUAL PoopTool",
+            "sub_path": "machine/D12 300 PRO M2 MONO DUAL PoopTool.json"
+        },
+        {
             "name": "Wanhao D12 300 PRO MAX SMARTPAD DIRECT",
             "sub_path": "machine/D12 300 PRO SMARTPAD DIRECT.json"
         },
         {
             "name": "Wanhao D12 300 PRO SMARTPAD MONO DUAL",
             "sub_path": "machine/D12 300 PRO SMARTPAD MONO DUAL.json"
+        },
+        {
+            "name": "Wanhao D12 300 PRO SMARTPAD MONO DUAL PoopTool",
+            "sub_path": "machine/D12 300 PRO SMARTPAD MONO DUAL PoopTool.json"
         },
         {
             "name": "Wanhao D12 500 PRO MAX M2 DIRECT",
@@ -53,12 +61,20 @@
             "sub_path": "machine/D12 500 PRO M2 MONO DUAL.json"
         },
         {
+            "name": "Wanhao D12 500 PRO M2 MONO DUAL PoopTool",
+            "sub_path": "machine/D12 500 PRO M2 MONO DUAL PoopTool.json"
+        },
+        {
             "name": "Wanhao D12 500 PRO MAX SMARTPAD DIRECT",
             "sub_path": "machine/D12 500 PRO SMARTPAD DIRECT.json"
         },
         {
             "name": "Wanhao D12 500 PRO SMARTPAD MONO DUAL",
             "sub_path": "machine/D12 500 PRO SMARTPAD MONO DUAL.json"
+        },
+        {
+            "name": "Wanhao D12 500 PRO SMARTPAD MONO DUAL PoopTool",
+            "sub_path": "machine/D12 500 PRO SMARTPAD MONO DUAL PoopTool.json"
         }
     ],
     "process_list": [
@@ -99,6 +115,10 @@
             "sub_path": "process/0.20mm Standard @Wanhao-D12-300.json"
         },
         {
+            "name": "0.20mm Standard @Wanhao-D12-300 PoopTool.json",
+            "sub_path": "process/0.20mm Standard @Wanhao-D12-300 PoopTool.json"
+        },
+        {
             "name": "0.24mm Standard @Wanhao-D12-300",
             "sub_path": "process/0.24mm Standard @Wanhao-D12-300.json"
         },
@@ -113,6 +133,10 @@
         {
             "name": "0.20mm Standard @Wanhao-D12-500",
             "sub_path": "process/0.20mm Standard @Wanhao-D12-500.json"
+        },
+        {
+            "name": "0.20mm Standard @Wanhao-D12-500 PoopTool.json",
+            "sub_path": "process/0.20mm Standard @Wanhao-D12-500 PoopTool.json"
         },
         {
             "name": "0.24mm Standard @Wanhao-D12-500",
@@ -198,7 +222,6 @@
         {
             "name": "D12 230 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool",
             "sub_path": "machine/D12 230 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool.json"
-
         },
         {
             "name": "D12 230 PRO SMARTPAD DIRECT 0.4 nozzle",
@@ -209,12 +232,20 @@
             "sub_path": "machine/D12 300 PRO M2 MONO DUAL 0.4 nozzle.json"
         },
         {
+            "name": "D12 300 PRO M2 MONO DUAL 0.4 nozzle PoopTool",
+            "sub_path": "machine/D12 300 PRO M2 MONO DUAL 0.4 nozzle PoopTool.json"
+        },
+        {
             "name": "D12 300 PRO M2 DIRECT 0.4 nozzle",
             "sub_path": "machine/D12 300 PRO M2 DIRECT 0.4 nozzle.json"
         },
         {
             "name": "D12 300 PRO SMARTPAD MONO DUAL 0.4 nozzle",
             "sub_path": "machine/D12 300 PRO SMARTPAD MONO DUAL 0.4 nozzle.json"
+        },
+        {
+            "name": "D12 300 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool",
+            "sub_path": "machine/D12 300 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool.json"
         },
         {
             "name": "D12 300 PRO SMARTPAD DIRECT 0.4 nozzle",
@@ -225,12 +256,20 @@
             "sub_path": "machine/D12 500 PRO M2 MONO DUAL 0.4 nozzle.json"
         },
         {
+            "name": "D12 500 PRO M2 MONO DUAL 0.4 nozzle PoopTool",
+            "sub_path": "machine/D12 500 PRO M2 MONO DUAL 0.4 nozzle PoopTool.json"
+        },
+        {
             "name": "D12 500 PRO M2 DIRECT 0.4 nozzle",
             "sub_path": "machine/D12 500 PRO M2 DIRECT 0.4 nozzle.json"
         },
         {
             "name": "D12 500 PRO SMARTPAD MONO DUAL 0.4 nozzle",
             "sub_path": "machine/D12 500 PRO SMARTPAD MONO DUAL 0.4 nozzle.json"
+        },
+        {
+            "name": "D12 500 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool",
+            "sub_path": "machine/D12 500 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool.json"
         },
         {
             "name": "D12 500 PRO SMARTPAD DIRECT 0.4 nozzle",
