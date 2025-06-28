@@ -553,7 +553,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("infill_combination", !not_combine_infill_pattern);
 
     if (not_combine_infill_pattern == true){
-        config->set("infill_combination", ConfigOptionBool(false));
+      DynamicPrintConfig new_conf = *config;
+      new_conf.set_key_value("infill_combination", new ConfigOptionBool(false));
+      apply(config, &new_conf); 
     }
 
     // Hide infill anchor max if sparse_infill_pattern is not line or if sparse_infill_pattern is line but infill_anchor_max is 0.
