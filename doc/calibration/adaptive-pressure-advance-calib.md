@@ -121,7 +121,7 @@ Test sample above was done with acceleration 12000 mm/s² and flow rate 27.13 mm
 
 As mentioned earlier, **the print speed is used as a proxy to vary the extrusion flow rate**. Once your PA test is set up, change the gcode preview to “flow” and move the horizontal slider over one of the herringbone patterns and take note of the flow rate for different speeds.
 
-![apa-test210](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-test210.jpg?raw=true)
+![apa-test210](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-test210.png?raw=true)
 
 ### Running the tests
 
