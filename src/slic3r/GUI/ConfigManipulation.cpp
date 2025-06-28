@@ -550,7 +550,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // Avoid combining stacked infill patterns
     bool          not_combine_infill_pattern = pattern == ipLine || pattern == ipRectilinear || pattern == ipZigZag || pattern == ipCrossZag || pattern == ipLockedZag ;
 
-    toggle_line("infill_combination", !not_combine_infill_pattern);
+    toggle_field("infill_combination", !not_combine_infill_pattern);
 
     if (not_combine_infill_pattern == true){
         config->set("infill_combination", ConfigOptionBool(false));
