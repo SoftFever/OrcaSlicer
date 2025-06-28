@@ -279,7 +279,7 @@ Mathematical, isotropic surface providing equal strength in all directions. Exce
 
 ### TPMS-D
 
-Triply Periodic Minimal Surface - D. Hybrid between [Cross Hatch](#cross-hatch) and [Gyroid](#gyroid), combining rigidity and smooth transitions. Isotropic and strong in all directions. This geometry is faster to slice than Gyroid, but slower than Cross Hatch.
+Triply Periodic Minimal Surface (Schwarz Diamond). Hybrid between [Cross Hatch](#cross-hatch) and [Gyroid](#gyroid), combining rigidity and smooth transitions. Isotropic and strong in all directions. This geometry is faster to slice than Gyroid, but slower than Cross Hatch.
 
 - **Horizontal Strength (X-Y):** High
 - **Vertical Strength (Z):** High
