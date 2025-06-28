@@ -2364,8 +2364,7 @@ void PrintConfigDef::init_fff_params()
     // Infill multiline
     def             = this->add("fill_multiline", coInt);
     def->label      = L("Fill Multiline");
-    def->full_label = L("Fill Multiline");
-    def->tooltip    = L("Using multiple lines for the infill pattern, if supported by infill pattern");
+    def->tooltip    = L("Using multiple lines for the infill pattern, if supported by infill pattern.");
     def->min = 1;
     def->max = 5; // Maximum number of lines for infill pattern
     def->set_default_value(new ConfigOptionInt(1));
