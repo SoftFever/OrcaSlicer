@@ -435,7 +435,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             if (!ConfigOptionFloats::validate_string(ustr)) {
                 string      v;
                 std::smatch match;
-                std::regex const pattern(u8"[+\\-]?\\d+");
+                std::regex const pattern(u8"[#][\\d]+|[+\\-]?[\\d.]+[%]?[#*\/]?[\\d]*[@]?[+\\-]?[\\d.]*[%\'\"]?");
                 while (std::regex_search(ustr, match, pattern)) {
                     for (auto x : match) v += x.str() + ", ";
                     ustr = match.suffix().str();
