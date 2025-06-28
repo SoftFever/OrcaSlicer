@@ -1404,8 +1404,7 @@ FilamentColor PlaterPresetComboBox::get_cur_color_info()
     std::vector<std::string> filament_color_type = Slic3r::GUI::wxGetApp().plater()->get_filament_color_render_type();
     std::string filament_color_info = filaments_multi_color[m_filament_idx];
     std::vector<std::string> colors;
-    boost::split(colors, filament_color_info, boost::is_any_of(" "));
-
+    colors = Slic3r::split_string(filament_color_info, ' ');
     FilamentColor fila_color;
     for (const std::string& color_str : colors) {
         if (!color_str.empty()) {

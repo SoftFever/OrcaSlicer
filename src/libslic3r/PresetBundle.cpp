@@ -2225,20 +2225,20 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     ConfigOptionInts *   filament_map = project_config.option<ConfigOptionInts>("filament_map");
     if (use_map) {
         auto check_has_merge_info = [](std::map<int, AMSMapInfo> &maps, MergeFilamentInfo &merge_info, int exist_colors_size) {
-            std::map<int, bool> done;
-            for (int i = 0; i < maps.size(); i++) {
+            std::set<int> done;
+            for (auto it_i = maps.begin(); it_i != maps.end(); ++it_i) {
                 std::vector<int> same_ams;
-                same_ams.emplace_back(i);
-                for (size_t j = i + 1; j < maps.size(); j++) {
-                    if (done.find(j) != done.end()) {
+                same_ams.emplace_back(it_i->first);
+                for (auto it_j = std::next(it_i); it_j != maps.end(); ++it_j) {
+                    if (done.find(it_j->first) != done.end()) {
                         continue;
                     }
-                    if (maps[i].slot_id == "" || maps[i].ams_id == ""){//reserve
+                    if (it_i->second.slot_id == "" || it_i->second.ams_id == ""){
                         continue;
                     }
-                    if (maps[i].slot_id == maps[j].slot_id && maps[i].ams_id == maps[j].ams_id) {
-                        same_ams.emplace_back(j);
-                        done[j] =true;
+                    if (it_i->second.slot_id == it_j->second.slot_id && it_i->second.ams_id == it_j->second.ams_id) {
+                        same_ams.emplace_back(it_j->first);
+                        done.insert(it_j->first);
                     }
                 }
                 if (same_ams.size() > 1) {
