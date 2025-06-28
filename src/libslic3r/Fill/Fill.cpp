@@ -120,7 +120,7 @@ struct SurfaceFillParams
 				this->bridge   			== rhs.bridge   		&&
 				this->bridge_angle 		== rhs.bridge_angle		&&
 				this->density   		== rhs.density   		&&
-                this->multiline             == rhs.multiline    &&
+				this->multiline             == rhs.multiline    &&
 //				this->dont_adjust   	== rhs.dont_adjust 		&&
 				this->anchor_length  	== rhs.anchor_length    &&
 				this->anchor_length_max == rhs.anchor_length_max &&

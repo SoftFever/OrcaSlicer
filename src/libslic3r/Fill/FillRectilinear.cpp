@@ -3000,11 +3000,6 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
     return true;
 }
 
-void set_multiline_to_1(FillParams& params)// set multiline to 1 to avoid overlapping lines
-{
-    params.multiline = 1; 
-}
-
 Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
@@ -3058,7 +3053,6 @@ Polylines FillGrid::fill_surface(const Surface *surface, const FillParams &param
 Polylines Fill2DLattice::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    set_multiline_to_1(const_cast<FillParams&>(params)); // set multiline to 1 to avoid overlapping lines
     coordf_t dx1 = tan(Geometry::deg2rad(params.lattice_angle_1)) * z;
     coordf_t dx2 = tan(Geometry::deg2rad(params.lattice_angle_2)) * z;
     if (! this->fill_surface_by_multilines(
@@ -3075,7 +3069,6 @@ Polylines Fill2DLattice::fill_surface(const Surface *surface, const FillParams &
 
 Polylines FillTriangles::fill_surface(const Surface *surface, const FillParams &params){
     Polylines polylines_out;
-    set_multiline_to_1(const_cast<FillParams&>(params)); // set multiline to 1 to avoid overlapping lines
     if (! this->fill_surface_by_multilines(
             surface, params,
             { { 0.f, 0.f }, { float(M_PI / 3.), 0.f }, { float(2. * M_PI / 3.), 0. } },
@@ -3110,7 +3103,6 @@ Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &para
 Polylines FillQuarterCubic::fill_surface(const Surface* surface, const FillParams& params)
 {
     using namespace boost::math::float_constants;
-    set_multiline_to_1(const_cast<FillParams&>(params)); // set multiline to 1 to avoid overlapping lines
     Polylines polylines_out;
 
     coord_t line_width = coord_t(scale_(this->spacing));
@@ -3169,7 +3161,6 @@ Polylines Fill2DHoneycomb::fill_surface(const Surface *surface, const FillParams
     const float horizontal_offset = odd_layer ? half_horizontal_period : 0;
 
     Polylines polylines_out;
-    set_multiline_to_1(const_cast<FillParams&>(params)); // set multiline to 1 to avoid overlapping lines
 
     if (single_line)
     {
