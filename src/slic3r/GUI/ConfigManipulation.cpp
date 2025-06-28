@@ -546,6 +546,17 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
     toggle_line("infill_combination_max_layer_height", have_combined_infill);
 
+    InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
+    // Avoid combining stacked infill patterns
+    bool          not_combine_infill_pattern = pattern == ipLine || pattern == ipRectilinear || pattern == ipZigZag || pattern == ipCrossZag || pattern == ipLockedZag ;
+
+    toggle_line("infill_combination", !not_combine_infill_pattern);
+
+    if (not_combine_infill_pattern == true){
+        config->set("infill_combination", ConfigOptionBool(false));
+    }
+
+    // Hide infill anchor max if sparse_infill_pattern is not line or if sparse_infill_pattern is line but infill_anchor_max is 0.
     bool infill_anchor = config->opt_enum<InfillPattern>("sparse_infill_pattern") != ipLine;
     toggle_field("infill_anchor_max",infill_anchor);
 
