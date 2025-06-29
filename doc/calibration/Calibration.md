@@ -23,7 +23,7 @@ The recommended order for calibration is as follows:
 
 1. **[Pressure Advance](pressure-advance-calib):** Calibrate the pressure advance settings to improve print quality and reduce artifacts caused by pressure fluctuations in the nozzle.
 
-   - **[Adaptative Pressure Advance](adaptive-pressure-advance-calib):** This is an advanced calibration technique that can be used to further optimize the pressure advance settings for different print speeds and geometries.
+   - **[Adaptive Pressure Advance](adaptive-pressure-advance-calib):** This is an advanced calibration technique that can be used to further optimize the pressure advance settings for different print speeds and geometries.
 
    <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-tower.jpg?raw=true" alt="pa-tower" height="200">
 
@@ -37,7 +37,7 @@ The recommended order for calibration is as follows:
 
 4. **[Max Volumetric Speed](volumetric-speed-calib):** Calibrate the maximum volumetric speed of the filament. This is important for ensuring that the printer can handle the flow rate of the filament without causing issues such as under-extrusion or over-extrusion.
 
-   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/vmf_measurement_point.jpg?raw=true" alt="Max_Volumetric_Speed" height="200">
+   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/MVF/mvf_measurement_point.jpg?raw=true" alt="Max_Volumetric_Speed" height="200">
 
 5. **[Cornering](cornering-calib):** Calibrate the Jerk/Junction Deviation settings to improve print quality and reduce artifacts caused by sharp corners and changes in direction.
 
