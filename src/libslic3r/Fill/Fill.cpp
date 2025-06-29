@@ -964,6 +964,96 @@ void export_group_fills_to_svg(const char *path, const std::vector<SurfaceFill> 
 }
 #endif
 
+double Layer::get_template_angle(std::string v) {
+    std::vector<std::string>   tk;
+    std::regex                 del("[\\s,]+");
+    std::sregex_token_iterator it(v.begin(), v.end(), del, -1);
+    std::sregex_token_iterator end;
+    while (it != end)
+        tk.push_back(*it++);
+    int               t = 0, ls = 0;
+    double            angle = 0, addangle, heightlimit = 0;
+    char*             cs;
+    std::vector<bool> stop(tk.size());
+
+    for (int i = 0; i < this->id(); i++) {
+        if (ls > 0)
+            ls--;
+        else if (this->object()->get_layer(i)->bottom_z() >= heightlimit) {
+            if (!stop[t]) {
+                addangle = strtod(tk[t].data(), &cs);
+                if (tk[t][0] == '#') {                          // multiply layers without other parameters
+                    ls       = strtol(&cs[1], &cs, 0);
+                    addangle = 0;
+                    if (cs[0] == '/')                           // a one-time instruction
+                        stop[t] = true;
+                } else {
+                    if (cs[0] == '%') {                         // percentage of angles
+                        addangle *= 3.6;
+                        cs = &cs[1];
+                    }
+
+                    if (tk[t][0] != '+' && tk[t][0] != '-') {   // absolute/relative
+                        angle    = addangle;
+                        addangle = 0.;
+                    }
+
+                    if (cs[0] == '/') {                         // cycle + divider
+                        ls = strtol(&cs[1], &cs, 0);
+                        if (!ls)
+                            stop[t] = true;                     // a one-time instruction
+                        else
+                            addangle /= ls;
+                    }
+
+                    if (cs[0] == '#') {                         // multiply layers
+                        ls = strtol(&cs[1], &cs, 0);
+                        angle += addangle;
+                        addangle = 0.;
+                    } else if (cs[0] == '*') {                  // cycle + multiplexor
+                        ls = strtol(&cs[1], &cs, 0);
+                    }
+
+                    if (cs[0] == '@') {                         // height dependences
+                        heightlimit = strtod(&cs[1], &cs) * 10.;
+                        if (cs[0] == '%')                       // value in the percents of height
+                            heightlimit *= this->object()->height() * 1e-9;
+                        else if (cs[0] == '/')                  // another check for one-time instruction 
+                            stop[t] = true;
+                        else if (cs[0] == '\'')                 // value in the feet 
+                            heightlimit *= 12 * 2.54;
+                        else if (cs[0] == '\"')                 // value in the inches
+                            heightlimit *= 2.54;
+                        else if (cs[0] == 'c' || cs[1] == 'm')  // value in the centimeters. just for calculate last char of instruction
+                            cs = &cs[1];
+                        else if (cs[0] == 'm') 
+                            if (cs[1] == 'm') {                 // value in the millimeters
+                                heightlimit *= 0.1;
+                                cs = &cs[1];
+                            } else                              // value in the meters
+                                heightlimit *= 100;
+                        addangle /= heightlimit / this->height;
+                        heightlimit += this->object()->get_layer(i)->bottom_z();
+                        cs = &cs[1];
+                    }
+
+                    if (cs[0] == '/')                           // a one-time instruction
+                        stop[t] = true;
+                    if (ls == 1) {                              // a one-time instruction
+                        stop[t] = true;
+                        ls      = 0;
+                    }
+                }
+            }
+            if (++t >= tk.size())
+                t = 0;
+        }
+        angle += addangle;
+    }
+    return angle;
+}; 
+
+
 // friend to Layer
 void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator)
 {
@@ -1050,65 +1140,12 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         auto &region_config = layerm->region().config();
 
         ConfigOptionFloats rotate_angles;
-        std::string v(region_config.sparse_infill_rotate_template.value);
-        if (regex_search(v, std::regex("[+\\-%#*\/]"))) {
-            std::vector<std::string> tk; 
-            std::regex  del("[\\s,]+");
-            std::sregex_token_iterator it(v.begin(), v.end(), del, -1);
-            std::sregex_token_iterator end;
-            while (it != end) 
-                tk.push_back(*it++);
-            int t = 0, ls = 0;
-            double angle = 0, addangle, heightlimit = 0;
-            char* cs;
-            for (int i = 0; i < f->layer_id; i++) {
-                if (ls) ls--;
-                else if (this->object()->get_layer(i)->bottom_z() >= heightlimit) {
-                    
-                    addangle = strtod(tk[t].data(), &cs);
-                   
-                    if (tk[t][0] == '#') { // multiply layers without other parameters
-                        ls = strtol(&cs[1], &cs, 0);
-                        addangle = 0;
-                    } else {
-                        if (cs[0] == '%') { //percentage of angles
-                            addangle *= 3.6;
-                            cs = &cs[1]; }
-
-                        if (tk[t][0] != '+' && tk[t][0] != '-') { // absolute/relative
-                            angle = addangle;
-                            addangle = 0.; }
-
-                        if (cs[0] == '/') { // cycle + divider
-                            ls = strtol(&cs[1], &cs, 0);
-                            addangle /= ls;
-                        } else if (cs[0] == '#') { // multiply layers
-                            ls = strtol(&cs[1], &cs, 0);
-                            angle += addangle;
-                            addangle = 0.;
-                        } else if (cs[0] == '*')  // cycle + multiplexor
-                            ls = strtol(&cs[1], &cs, 0);
-
-                        if (cs[0] == '@') { // height dependences
-                            heightlimit = strtod(&cs[1], &cs) * 10.;
-                            if (cs[0] == '%')
-                                heightlimit *= this->object()->height() * 1e-9;
-                            else if (cs[0] == '\'')
-                                heightlimit *= 12 * 2.54;
-                            else if (cs[0] == '\"')
-                                heightlimit *= 2.54;
-                            addangle /= heightlimit / params.layer_height;
-                            heightlimit += this->object()->get_layer(i)->bottom_z();
-                        }
-                    }
-                    if (++t >= tk.size())
-                       t = 0;
-                }
-                angle += addangle;
-            }
-            f->rotate_angle = Geometry::deg2rad((float)angle);
+        std::string        v(surface_fill.params.extrusion_role == erInternalInfill ? region_config.sparse_infill_rotate_template.value :
+                                                                                      region_config.solid_infill_rotate_template.value);
+        if (regex_search(v, std::regex("[+\\-%#*\/@\'\"]"))) {
+            f->rotate_angle = Geometry::deg2rad(get_template_angle(v));
         } else {
-            rotate_angles.deserialize( surface_fill.params.extrusion_role == erInternalInfill  ? region_config.sparse_infill_rotate_template.value : region_config.solid_infill_rotate_template.value);
+            rotate_angles.deserialize(v);
             auto rotate_angle_idx = f->layer_id % rotate_angles.size();
             f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
         }
