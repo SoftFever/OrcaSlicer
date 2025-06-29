@@ -8,6 +8,7 @@
 #include "libslic3r/Preset.hpp"
 #include "GUI_Utils.hpp"
 #include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/Button.hpp"
 
 class wxTextCtrl;
 class wxStaticText;
