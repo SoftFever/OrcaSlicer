@@ -11,6 +11,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/DialogButtons.hpp"
+#include "Widgets/HyperLink.hpp"
 #include "miniz.h"
 #include "ParamsDialog.hpp"
 

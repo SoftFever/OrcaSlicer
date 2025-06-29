@@ -14,6 +14,7 @@
 #include <wx/statline.h>
 #include <wx/simplebook.h>
 #include "Widgets/Button.hpp"
+#include "Widgets/HyperLink.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarSend.hpp"
 #include "Jobs/Worker.hpp"

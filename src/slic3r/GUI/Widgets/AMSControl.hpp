@@ -629,7 +629,7 @@ protected:
     Button *m_button_retry = {nullptr};
     wxWindow* m_button_area = {nullptr};
 
-    wxHyperlinkCtrl *m_hyperlink = {nullptr};
+    HyperLink* m_hyperlink = {nullptr};
     AmsHumidityTipPopup m_Humidity_tip_popup;
 
     std::string m_last_ams_id;
