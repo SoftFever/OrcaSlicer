@@ -53,6 +53,7 @@ struct FillParams
 
     // Fill density, fraction in <0, 1>
     float       density 		{ 0.f };
+    int   multiline{1};
 
     // Length of an infill anchor along the perimeter.
     // 1000mm is roughly the maximum length line that fits into a 32bit coord_t.
@@ -223,7 +224,8 @@ public:
 
     static coord_t  _adjust_solid_spacing(const coord_t width, const coord_t distance);
 };
-
+   //Fill  Multiline 
+   void multiline_fill(Polylines& polylines, const FillParams& params, float spacing);
 } // namespace Slic3r
 
 #endif // slic3r_FillBase_hpp_
