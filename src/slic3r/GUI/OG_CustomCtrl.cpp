@@ -716,15 +716,27 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
 {
     if (og_line.is_separator())
         return;
-    const std::vector<Option>& option_set = og_line.get_options();
 
-    const ConfigOptionMode& line_mode = option_set.front().opt.mode;
-    // Check mode ovverride
-    const std::vector<std::string>& hide_configs = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("hide_config", true)->values;
- 
-    is_visible = og_line.toggle_visible && line_mode <= mode;
-    if (std::find(hide_configs.begin(), hide_configs.end(), option_set.front().opt.opt_key) != hide_configs.end()) 
+    const std::vector<Option>& option_set = og_line.get_options();
+    const std::string& opt_key = option_set.front().opt.opt_key;
+    ConfigOptionMode line_mode = option_set.front().opt.mode;
+    
+    const auto& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    const std::vector<std::string>& hide_configs            = config.option<ConfigOptionStrings>("hide_config", true)->values;
+    const std::vector<std::string>& force_simple_configs    = config.option<ConfigOptionStrings>("force_simple_config", true)->values;
+    const std::vector<std::string>& force_advanced_configs  = config.option<ConfigOptionStrings>("force_advanced_config", true)->values;
+
+    is_visible = og_line.toggle_visible;
+    if (std::find(hide_configs.begin(), hide_configs.end(), opt_key) != hide_configs.end()) {
         is_visible = false;
+    } else {
+        if (std::find(force_simple_configs.begin(), force_simple_configs.end(), opt_key) != force_simple_configs.end()) {
+            line_mode = comSimple;
+        } else if (std::find(force_advanced_configs.begin(), force_advanced_configs.end(), opt_key) != force_advanced_configs.end()) {
+            line_mode = comAdvanced;
+        }
+        is_visible = is_visible && (line_mode <= mode);
+    }
 
     if (draw_just_act_buttons)
         return;
