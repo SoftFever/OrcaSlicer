@@ -1,8 +1,31 @@
+<!--
 # How to Build
+-->
+
+This wiki page provides detailed instructions for building OrcaSlicer from source on different operating systems, including Windows, macOS, and Linux. 
+It includes tool requirements, setup commands, and build steps for each platform. Whether you're a contributor or just want a custom build, 
+this guide will help you compile OrcaSlicer successfully.
+
+- [Windows 64-bit](#windows-64-bit)
+  - [Tools Required](#tools-required)
+  - [Instructions](#instructions)
+- [macOS 64-bit](#macos-64-bit)
+  - [Tools Required](#tools-required-1)
+  - [Instructions](#instructions-1)
+  - [Debugging in Xcode](#debugging-in-xcode)
+- [Linux](#linux)
+  - [Using Docker (Recommended)](#using-docker-recommended)
+    - [Dependencies](#dependencies)
+    - [Instructions](#instructions-2)
+  - [Troubleshooting](#troubleshooting)
+- [Ubuntu](#ubuntu)
+  - [Dependencies](#dependencies-1)
+  - [Instructions](#instructions-3)
+- [Portable User Configuration](#portable-user-configuration)
 
 ## Windows 64-bit
 
-This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Windows 64-bit.
+how to building with your Visual Studio 2022 on Windows 64-bit.
 
 ### Tools Required
 
@@ -74,7 +97,9 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
 > [!NOTE]
 > If the build fails, try deleting the `build/` and `deps/build/` directories to clear any cached build data. Rebuilding after a clean-up is usually sufficient to resolve most issues.
 
-## macOS 64-bit
+## MacOS 64-bit
+
+how to building with your Visual Studio 2022 on MacOS 64-bit.
 
 ### Tools Required
 
@@ -147,6 +172,8 @@ To build and debug directly in Xcode:
 
 ## Linux
 
+how to building with your Visual Studio 2022 on Linux.
+
 ### Using Docker (Recommended)
 
 #### Dependencies
@@ -205,3 +232,21 @@ All required dependencies will be installed automatically by the provided shell 
 `./build_linux.sh -u`      # install dependencies
 `./build_linux.sh -disr`    # build OrcaSlicer
 ```
+
+## Portable User Configuration
+
+If you want OrcaSlicer to use a custom user configuration folder (e.g., for a portable installation), you can simply place a folder named `data_dir` next to the OrcaSlicer executable. OrcaSlicer will automatically use this folder as its configuration directory.
+
+This allows for multiple self-contained installations with separate user data.
+
+> [!TIP]
+> This feature is especially useful if you want to run OrcaSlicer from a USB stick or keep different profiles isolated.
+
+### Example folder structure
+
+```
+OrcaSlicer.exe
+data_dir/
+```
+
+You don’t need to recompile or modify any settings — this works out of the box as long as `data_dir` exists in the same folder as the executable.
