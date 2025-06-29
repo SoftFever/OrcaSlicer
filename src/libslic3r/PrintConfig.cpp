@@ -3119,7 +3119,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("This parameter adds a rotation of sparse infill direction to each layer according to the specified template. "
                       "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
                       "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
-                      "If there are more layers than angles, the angles will be repeated. Note that not all all sparse infill patterns support rotation.");
+                      "If there are more layers than angles, the angles will be repeated. Note that not all sparse infill patterns support rotation.");
     def->sidetext = L("°");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString("0,90"));
@@ -3131,7 +3131,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("This parameter adds a rotation of solid infill direction to each layer according to the specified template. "
                       "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
                       "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
-                      "If there are more layers than angles, the angles will be repeated. Note that not all all solid infill patterns support rotation.");
+                      "If there are more layers than angles, the angles will be repeated. Note that not all solid infill patterns support rotation.");
     def->sidetext = L("°");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString("0,90"));
@@ -3189,7 +3189,7 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "nozzle_diameter";
     def->min      = 0;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0.4, false));
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def           = this->add("skeleton_infill_line_width", coFloatOrPercent);
     def->label    = L("Skeleton line width");
@@ -3199,7 +3199,7 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "nozzle_diameter";
     def->min      = 0;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0.4, false));
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def           = this->add("symmetric_infill_y_axis", coBool);
     def->label    = L("Symmetric infill y axis");
