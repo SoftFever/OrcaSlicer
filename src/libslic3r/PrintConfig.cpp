@@ -2747,7 +2747,7 @@ void PrintConfigDef::init_fff_params()
         def             = this->add("multi_zone_" + zone_str + "_initial_layer", coInts);
         def->label      = L("Initial layer");
         def->full_label = L("Initial layer Zone " + zone_str + " temperature");
-        def->tooltip    = L("Zone " + zone_str + " temperature to print initial layer when using this filament");
+        def->tooltip    = L("Zone " + zone_str + " temperature to print initial layer when using this filament.");
         def->sidetext   = L("°C");
         def->min        = 0;
         def->max        = max_temp;
@@ -2755,7 +2755,7 @@ void PrintConfigDef::init_fff_params()
 
         def             = this->add("multi_zone_" + zone_str + "_temperature", coInts);
         def->label      = L("Other layers");
-        def->tooltip    = L("Zone " + zone_str + " temperature for layers after the initial one");
+        def->tooltip    = L("Zone " + zone_str + " temperature for layers after the initial one.");
         def->sidetext   = L("°C");
         def->full_label = L("Zone " + zone_str + " temperature");
         def->min        = 0;
@@ -3103,13 +3103,13 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("multi_zone", coBool);
     def->label   = L("Multi heating zone");
-    def->tooltip = L("Enable this option if your printer uses multi heating zone");
+    def->tooltip = L("Enable this option if your printer uses multi heating zone.");
     def->mode    = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
     def          = this->add("multi_zone_number", coInt);
     def->label   = L("Zones");
-    def->tooltip = L("Number of heating zones");
+    def->tooltip = L("Number of heating zones.");
     def->mode    = comSimple;
     def->min     = 1;
     def->max     = 10;
@@ -3117,19 +3117,19 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("use_extruder_rotation_volume", coBool);
     def->label   = L("Use extruder rotation volume");
-    def->tooltip = L("Enable extruder rotation volume in material settings");
+    def->tooltip = L("Enable extruder rotation volume in material settings.");
     def->mode    = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
     def          = this->add("active_feeder_motor_name", coStrings);
     def->label   = L("Active feeder motor name");
-    def->tooltip = "Name that identify the feeder motor";
+    def->tooltip = "Name that identify the feeder motor.";
     def->mode    = comSimple;
     def->set_default_value(new ConfigOptionStrings{""});
 
     def          = this->add("use_active_pellet_feeding", coBool);
     def->label   = L("Use forded pellet feeding");
-    def->tooltip = L("Enable this option if your printer has active pellet feeding");
+    def->tooltip = L("Enable this option if your printer has active pellet feeding.");
     def->mode    = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
