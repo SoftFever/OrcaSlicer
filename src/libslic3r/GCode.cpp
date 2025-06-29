@@ -5704,10 +5704,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     // perimeter
                     if ((overhang_fan_threshold == Overhang_threshold_none && is_external_perimeter(path.role())) ||
                         (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter)) { // ORCA: Add support for separate internal bridge fan speed control
-                        if (!m_is_overhang_fan_on) {
-                            gcode += ";_OVERHANG_FAN_START\n";
-                            m_is_overhang_fan_on = true;
+                        if (is_bridge(path.role())) {
+                            if (path.role() == erOverhangPerimeter)
+                                gcode += ";_OVERHANG_FAN_START@100\n";
+                            else
+                                gcode += ";_OVERHANG_FAN_START@-1\n";
                         }
+                        m_is_overhang_fan_on = true;
                     } else {
                         if (m_is_overhang_fan_on) {
                             m_is_overhang_fan_on = false;
@@ -5869,11 +5872,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             if (m_enable_cooling_markers) {
                 if (enable_overhang_bridge_fan) {
                     cur_fan_enabled = check_overhang_fan(processed_point.overlap, path.role());
+                    float overlap = is_bridge(path.role()) && path.role() != erOverhangPerimeter ? 1.01 : std::max(std::abs(processed_point.overlap), std::abs(pre_processed_point.overlap));
                     if (pre_fan_enabled && cur_fan_enabled) {
-                        if (!m_is_overhang_fan_on) {
-                            gcode += ";_OVERHANG_FAN_START\n";
-                            m_is_overhang_fan_on = true;
-                        }
+                        gcode += ";_OVERHANG_FAN_START@" + std::to_string(int(100 - overlap*100))+"\n";
+                        m_is_overhang_fan_on = true;
                     } else {
                         if (m_is_overhang_fan_on) {
                             m_is_overhang_fan_on = false;
