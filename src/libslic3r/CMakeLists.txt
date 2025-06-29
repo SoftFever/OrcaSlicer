@@ -80,7 +80,13 @@ set(lisbslic3r_sources
     ExtrusionEntityCollection.hpp
     ExtrusionSimulator.cpp
     ExtrusionSimulator.hpp
+    Feature/Interlocking/InterlockingGenerator.cpp
+    Feature/Interlocking/InterlockingGenerator.hpp
+    Feature/Interlocking/VoxelUtils.cpp
+    Feature/Interlocking/VoxelUtils.hpp
     FileParserError.hpp
+    Feature/FuzzySkin/FuzzySkin.cpp
+    Feature/FuzzySkin/FuzzySkin.hpp
     Fill/Fill.cpp
     Fill/Fill.hpp
     Fill/Fill3DHoneycomb.cpp
@@ -448,10 +454,6 @@ set(lisbslic3r_sources
     calib.cpp
     GCode/Thumbnails.cpp
     GCode/Thumbnails.hpp
-    Interlocking/InterlockingGenerator.hpp
-    Interlocking/InterlockingGenerator.cpp
-    Interlocking/VoxelUtils.hpp
-    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)

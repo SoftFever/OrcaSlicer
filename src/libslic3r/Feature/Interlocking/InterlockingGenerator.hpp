@@ -4,7 +4,7 @@
 #ifndef INTERLOCKING_GENERATOR_HPP
 #define INTERLOCKING_GENERATOR_HPP
 
-#include "../Print.hpp"
+#include "libslic3r/Print.hpp"
 #include "VoxelUtils.hpp"
 
 namespace Slic3r {
