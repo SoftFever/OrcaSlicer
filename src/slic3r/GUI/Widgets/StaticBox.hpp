@@ -31,6 +31,8 @@ public:
 
     void SetBorderColorNormal(wxColor const &color);
 
+    void SetBorderStyle(wxPenStyle style);
+
     void SetBackgroundColor(StateColor const &color);
 
     void SetBackgroundColorNormal(wxColor const &color);
@@ -53,6 +55,7 @@ protected:
 protected:
     double radius;
     int border_width = 1;
+    wxPenStyle border_style = wxPENSTYLE_SOLID;
     StateHandler state_handler;
     StateColor   border_color;
     StateColor   background_color;

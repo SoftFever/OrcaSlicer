@@ -5,6 +5,8 @@
 #include "MainFrame.hpp"
 #include "EncodedFilament.hpp"
 #include "Widgets/Label.hpp"
+#include "Widgets/Button.hpp"
+#include "Widgets/StateColor.hpp"
 #include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -70,9 +72,7 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
     }
 
     // "More colours" button (always present)
-    m_more_btn = new wxButton(this, wxID_ANY, "+ " + _L("More Colors"),
-                          wxDefaultPosition, wxSize(-1, FromDIP(36)), 0);
-    m_more_btn->SetBackgroundColour(wxColour(248, 248, 248)); // Light gray background
+    CreateMoreInfoButton();
     main_sizer->Add(m_more_btn, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(8));
     main_sizer->AddSpacer(FromDIP(8));
 
@@ -112,6 +112,7 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
     Bind(wxEVT_CREATE, &FilamentPickerDialog::OnWindowCreate, this);
 #endif
 
+    wxGetApp().UpdateDlgDarkUI(this);
     Layout();
     // Set window transparency
     SetTransparent(255);
@@ -317,7 +318,7 @@ wxScrolledWindow* FilamentPickerDialog::CreateColorGrid()
 
             if (btn) {
                 // Remove any default background and borders
-                btn->SetBackgroundColour(*wxWHITE);
+                btn->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
                 // Set tooltip with filament information
                 wxString tooltip = wxString::Format("%s", color_code->GetFilaColorName());
@@ -412,7 +413,7 @@ void FilamentPickerDialog::UpdateButtonStates(wxBitmapButton* selected_btn)
 {
     // Reset selected button appearance
     if (m_currently_selected_btn) {
-        m_currently_selected_btn->SetBackgroundColour(*wxWHITE);  // Restore white background
+        m_currently_selected_btn->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
         m_currently_selected_btn->Unbind(wxEVT_PAINT, &FilamentPickerDialog::OnButtonPaint, this);
         m_currently_selected_btn->Refresh();
     }
@@ -424,6 +425,22 @@ void FilamentPickerDialog::UpdateButtonStates(wxBitmapButton* selected_btn)
     }
 
     m_currently_selected_btn = selected_btn;
+}
+
+void FilamentPickerDialog::CreateMoreInfoButton()
+{
+    m_more_btn = new Button(this, "+ " + _L("More Colors"));
+    m_more_btn->SetMinSize(wxSize(-1, FromDIP(36)));
+
+    StateColor btn_bg(
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal)
+    );
+
+
+    m_more_btn->SetBackgroundColor(btn_bg);
+    m_more_btn->SetBorderStyle(wxPENSTYLE_SHORT_DASH);
+    m_more_btn->SetCornerRadius(FromDIP(0));
 }
 
 wxBoxSizer* FilamentPickerDialog::CreateButtonPanel()
@@ -460,7 +477,7 @@ wxBoxSizer* FilamentPickerDialog::CreateButtonPanel()
 
     // Create Cancel button using project's Button class
     m_cancel_btn = new Button(this, _L("Cancel"), "", 0, 0, wxID_CANCEL);
-    m_cancel_btn->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
+    m_cancel_btn->SetMinSize(wxSize(FromDIP(55), FromDIP(24)));
     m_cancel_btn->SetCornerRadius(FromDIP(12));
     m_cancel_btn->SetBackgroundColor(btn_bg_white);
     m_cancel_btn->SetBorderColor(btn_bd_white);
@@ -470,7 +487,7 @@ wxBoxSizer* FilamentPickerDialog::CreateButtonPanel()
 
     // Create OK button using project's Button class
     m_ok_btn = new Button(this, _L("OK"), "", 0, 0, wxID_OK);
-    m_ok_btn->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
+    m_ok_btn->SetMinSize(wxSize(FromDIP(55), FromDIP(24)));
     m_ok_btn->SetCornerRadius(FromDIP(12));
     m_ok_btn->SetBackgroundColor(btn_bg_green);
     m_ok_btn->SetBorderColor(btn_bd_green);

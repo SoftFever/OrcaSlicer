@@ -45,6 +45,7 @@ private:
     wxBoxSizer* CreatePreviewPanel(const FilamentColor& fila_color, const std::string& fila_type);
     wxScrolledWindow* CreateColorGrid();
     wxBoxSizer* CreateSeparatorLine();
+    void CreateMoreInfoButton();
     wxBoxSizer* CreateButtonPanel();
     void BindEvents();
 
@@ -64,7 +65,7 @@ private:
     wxStaticText* m_label_preview_color{nullptr};
     wxStaticText* m_label_preview_idx{nullptr};
     wxStaticText* m_label_preview_type{nullptr};
-    wxButton* m_more_btn{nullptr};
+    Button* m_more_btn{nullptr};
     Button* m_ok_btn{nullptr};
     Button* m_cancel_btn{nullptr};
     wxString* m_cur_color_name{nullptr};

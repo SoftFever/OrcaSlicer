@@ -823,6 +823,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
     if (m_type == Preset::TYPE_FILAMENT) {
         int em = wxGetApp().em_unit();
         clr_picker = new wxBitmapButton(parent, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), wxBU_EXACTFIT | wxBU_AUTODRAW | wxBORDER_NONE);
+        clr_picker->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
         clr_picker->SetToolTip(_L("Click to select filament color"));
         clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             m_clrData.SetColour(clr_picker->GetBackgroundColour());
@@ -1744,8 +1745,7 @@ void TabPresetComboBox::update_dirty()
 GUI::CalibrateFilamentComboBox::CalibrateFilamentComboBox(wxWindow *parent)
 : PlaterPresetComboBox(parent, Preset::TYPE_FILAMENT)
 {
-    clr_picker->SetBackgroundColour(*wxWHITE);
-    clr_picker->SetBitmap(*get_extruder_color_icon("#FFFFFFFF", "", FromDIP(20), FromDIP(20)));
+    clr_picker->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     clr_picker->SetToolTip("");
     clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {});
 }
@@ -1936,4 +1936,11 @@ void GUI::CalibrateFilamentComboBox::OnSelect(wxCommandEvent &evt)
     wxPostEvent(m_parent, e);
 }
 
+void PlaterPresetComboBox::sys_color_changed()
+{
+    PresetComboBox::sys_color_changed();
+    if (clr_picker) {
+        clr_picker->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    }
+}
 } // namespace Slic3r
