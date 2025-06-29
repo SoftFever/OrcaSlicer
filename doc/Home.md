@@ -81,13 +81,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 
 - [Extrusion rate smoothing](speed_settings_extrusion_rate_smoothing)
 
-- [Air filtration/Exhaust fan handling](air-filtration)
-- [Auxiliary fan handling](Auxiliary-fan)
-- [Chamber temperature control](chamber-temperature)
-- [Adaptive Bed Mesh](adaptive-bed-mesh)
-- [Using different bed types in Orca](bed-types)
-- [Pellet Printers](Pellet-modded-printer)
-- [Fill Patterns](fill-patterns)
+### Support Settings
 
 ![process-support](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-support.png?raw=true)
 
