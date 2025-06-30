@@ -141,10 +141,7 @@ wxString FilamentColorCode::GetFilaColorName() const
     const wxString& strLanguage = Slic3r::GUI::wxGetApp().app_config->get("language");
     const wxString& lang_code = strLanguage.BeforeFirst('_');
     auto it = m_fila_color_names.find(lang_code);
-    if (it != m_fila_color_names.end())
-    { 
-        return it->second;
-    }
+    if (it != m_fila_color_names.end() && !it->second.empty()) {  return it->second; }
 
     it = m_fila_color_names.find("en");// retry with English as fallback
     return (it != m_fila_color_names.end()) ? it->second : "Unknown";
@@ -156,18 +153,6 @@ FilamentColorCode::FilamentColorCode(const wxString& color_code, FilamentColorCo
       m_fila_color(std::move(color)),
       m_fila_color_names(std::move(name_map))
 {
-    if (m_owner)
-    {
-        m_owner->AddColorCode(this);
-    }
-}
-
-FilamentColorCode::~FilamentColorCode()
-{
-    if (m_owner)
-    {
-        m_owner->RemoveColorCode(this);
-    }
 }
 
 void FilamentColorCode::Debug(const char* prefix)
@@ -187,11 +172,9 @@ FilamentColorCodes::FilamentColorCodes(const wxString& fila_id, const wxString& 
 
 FilamentColorCodes::~FilamentColorCodes()
 {
-    while (!m_fila_colors_map->empty()) // Ensure all color codes are removed before deleting the map
-    {
-        delete m_fila_colors_map->begin()->second; // Delete the first color code
-    }
+    for (auto iter : *m_fila_colors_map) { delete iter.second; }
 
+    m_fila_colors_map->clear();
     delete m_fila_colors_map;
 }
 
@@ -204,11 +187,6 @@ Slic3r::FilamentColorCode* FilamentColorCodes::GetColorCode(const FilamentColor&
 void FilamentColorCodes::AddColorCode(FilamentColorCode* code)
 {
     m_fila_colors_map->emplace(code->GetFilaColor(), code);
-}
-
-void FilamentColorCodes::RemoveColorCode(FilamentColorCode* code)
-{
-    m_fila_colors_map->erase(code->GetFilaColor());
 }
 
 void FilamentColorCodes::Debug(const char* prefix)

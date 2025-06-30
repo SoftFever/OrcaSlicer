@@ -20,17 +20,6 @@ class FilamentColorCode;
 class FilamentColorCodes;
 class FilamentColorCodeQuery;
 
-// Hasher
-struct FilamentColorHasher
-{
-    std::size_t operator()(const wxColour& c) const noexcept {
-        return (static_cast<std::size_t>(c.Red())   << 24) ^
-               (static_cast<std::size_t>(c.Green()) << 16) ^
-               (static_cast<std::size_t>(c.Blue())  << 8) ^
-               (static_cast<std::size_t>(c.Alpha()));
-    }
-};
-
 // Represents a color in HSV format
 struct ColourHSV
 {
@@ -66,6 +55,19 @@ inline ColourHSV wxColourToHSV(const wxColour& c)
     return { h, s, v };
 }
 
+// FilamentColorSorter
+struct wxColorSorter
+{
+    std::size_t operator()(const wxColour& lhs_it, const wxColour& rhs_it) const noexcept {
+        ColourHSV ha = wxColourToHSV(lhs_it);
+        ColourHSV hb = wxColourToHSV(rhs_it);
+        if (ha.h != hb.h) return ha.h < hb.h;
+        if (ha.s != hb.s) return ha.s < hb.s;
+        if (ha.v != hb.v) return ha.v < hb.v;
+        return false;
+    }
+};
+
 struct FilamentColor
 {
     enum class ColorType : char
@@ -76,7 +78,7 @@ struct FilamentColor
     };
 
     ColorType m_color_type = ColorType::SINGLE_CLR; // default to single color
-    std::unordered_set<wxColour, FilamentColorHasher> m_colors;
+    std::set<wxColour, wxColorSorter> m_colors;
 
 public:
     size_t ColorCount() const noexcept { return m_colors.size(); }
@@ -182,7 +184,6 @@ public:
 
 public:
     void AddColorCode(FilamentColorCode* code);
-    void RemoveColorCode(FilamentColorCode* code);
 
 private:
     wxString m_fila_id;//eg. 54600
@@ -196,7 +197,7 @@ class FilamentColorCode
 public:
     FilamentColorCode() = delete;
     FilamentColorCode(const wxString& color_code, FilamentColorCodes* owner, FilamentColor&& color, std::unordered_map<wxString, wxString>&& name_map);
-    ~FilamentColorCode();
+    ~FilamentColorCode() {};
 
 public:
     wxString GetFilaCode() const { return m_owner->GetFilaCode(); }
