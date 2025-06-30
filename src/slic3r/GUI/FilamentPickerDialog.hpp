@@ -49,6 +49,11 @@ private:
     wxBoxSizer* CreateButtonPanel();
     void BindEvents();
 
+    // Preview panel helper methods
+    void CreateColorBitmap(const FilamentColor& fila_color);
+    wxBoxSizer* CreateInfoSection();
+    void SetupLabelsContent(const FilamentColor& fila_color, const std::string& fila_type);
+
     // UI update methods
     void UpdatePreview(const FilamentColorCode& filament);
     void UpdateButtonStates(wxBitmapButton* selected_btn);

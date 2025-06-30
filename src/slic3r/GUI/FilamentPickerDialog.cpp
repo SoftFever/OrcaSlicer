@@ -192,72 +192,104 @@ wxBoxSizer* FilamentPickerDialog::CreatePreviewPanel(const FilamentColor& fila_c
 {
     wxBoxSizer *preview_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    // Bitmap preview box UI
-    m_color_demo = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap,
-                                     wxDefaultPosition, COLOR_DEMO_SIZE, 0);
-
+    // Create color preview bitmap
+    CreateColorBitmap(fila_color);
     preview_sizer->Add(m_color_demo, 0, wxALIGN_CENTER_VERTICAL, 0);
     preview_sizer->AddSpacer(FromDIP(12));
 
+    // Create info labels section
+    wxBoxSizer *label_sizer = CreateInfoSection();
+    SetupLabelsContent(fila_color, fila_type);
+    preview_sizer->Add(label_sizer, 1, wxALIGN_CENTER_VERTICAL, 0);
 
-    // Basic info box UI
-    wxBoxSizer *label_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticBox *basic_info_box = new wxStaticBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition);
-    wxStaticBoxSizer *basic_info_sizer = new wxStaticBoxSizer(basic_info_box, wxHORIZONTAL);
-    basic_info_sizer->SetMinSize(wxSize(-1, -1));  // Set minimal margins
-    // Color name
-    m_label_preview_color = new wxStaticText(this, wxID_ANY, _L("Custom Color"));
-    wxFont cfont = m_label_preview_color->GetFont();
-    cfont.SetWeight(wxFONTWEIGHT_BOLD);
-    cfont.SetPointSize(FromDIP(8));
-    m_label_preview_color->SetFont(cfont);
-    // Color index
-    m_label_preview_idx = new wxStaticText(this, wxID_ANY, _L(""));
-    m_label_preview_idx->SetFont(cfont);
-    // Filament type
-    m_label_preview_type = new wxStaticText(this, wxID_ANY, _L(""));
-    m_label_preview_type->SetForegroundColour(wxColour(128, 128, 128));
+    return preview_sizer;
+}
 
-    // Add labels to sizer
-    basic_info_sizer->Add(m_label_preview_color, 0, wxALIGN_CENTER_VERTICAL, 0);
-    basic_info_sizer->AddSpacer(FromDIP(8));
-    basic_info_sizer->Add(m_label_preview_idx, 0, wxALIGN_CENTER_VERTICAL, 0);
+void FilamentPickerDialog::CreateColorBitmap(const FilamentColor &fila_color)
+{
+    m_color_demo = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, COLOR_DEMO_SIZE, 0);
 
-    label_sizer->Add(basic_info_sizer, 0, wxTOP, FromDIP(-6));
-    label_sizer->AddSpacer(FromDIP(2));
-    label_sizer->Add(m_label_preview_type, 0, wxEXPAND | wxLEFT, FromDIP(6));
-
-    preview_sizer->Add(label_sizer, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
-
-    // Bitmap preview content
+    // Generate bitmap content
     std::vector<wxColour> wx_colors(fila_color.m_colors.begin(), fila_color.m_colors.end());
     wxBitmap init_bmp = create_filament_bitmap(wx_colors, COLOR_DEMO_SIZE,
                                              fila_color.m_color_type == FilamentColor::ColorType::GRADIENT_CLR);
     m_color_demo->SetBitmap(init_bmp);
+}
 
-    // Basic info content
+wxBoxSizer* FilamentPickerDialog::CreateInfoSection()
+{
+    wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    // Create the container box
+    wxStaticBox *info_box = new wxStaticBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition);
+    info_box->SetSize(wxSize(FromDIP(240), FromDIP(24)));
+    info_box->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    wxStaticBoxSizer *box_sizer = new wxStaticBoxSizer(info_box, wxHORIZONTAL);
+
+    // Create labels
+    m_label_preview_color = new wxStaticText(this, wxID_ANY, _L("Custom Color"));
+    m_label_preview_idx = new wxStaticText(this, wxID_ANY, _L(""));
+    m_label_preview_type = new wxStaticText(this, wxID_ANY, _L(""));
+
+    // Setup fonts
+    wxFont bold_font = m_label_preview_color->GetFont();
+    bold_font.SetWeight(wxFONTWEIGHT_BOLD);
+#ifdef __WXMSW__
+    bold_font.SetPointSize(FromDIP(9));
+#endif
+    m_label_preview_color->SetFont(bold_font);
+    m_label_preview_idx->SetFont(bold_font);
+
+    m_label_preview_type->SetForegroundColour(wxColour(128, 128, 128));
+    m_label_preview_type->SetSize(wxSize(FromDIP(240), FromDIP(16)));
+#ifdef __WXMSW__
+    wxFont type_font = m_label_preview_type->GetFont();
+    type_font.SetPointSize(FromDIP(8));
+    m_label_preview_type->SetFont(type_font);
+#endif
+
+    // Layout with platform-specific spacing
+#ifdef __WXMSW__
+    int spacer = FromDIP(2), vPadding = FromDIP(0), gap1 = FromDIP(-6), gap2 = FromDIP(4);
+#else
+    int spacer = FromDIP(0), vPadding = FromDIP(-1), gap1 = FromDIP(0), gap2 = FromDIP(2);
+#endif
+
+    box_sizer->AddSpacer(spacer);
+    box_sizer->Add(m_label_preview_color, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, vPadding);
+    box_sizer->AddSpacer(FromDIP(2));
+    box_sizer->Add(m_label_preview_idx, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, vPadding);
+    box_sizer->AddSpacer(spacer);
+
+    main_sizer->Add(box_sizer, 0, wxALIGN_CENTER_VERTICAL | wxTOP, gap1);
+    main_sizer->AddSpacer(gap2);
+    main_sizer->Add(m_label_preview_type, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
+
+    return main_sizer;
+}
+
+void FilamentPickerDialog::SetupLabelsContent(const FilamentColor &fila_color, const std::string &fila_type)
+{
     m_label_preview_type->SetLabel(fila_type);
     if (m_cur_color_name && !m_cur_color_name->IsEmpty()) {
         m_label_preview_color->SetLabel(*m_cur_color_name);
 
         // Try to get additional color code information
         if (m_current_color_codes) {
-            FilamentColorCode* color_code = m_current_color_codes->GetColorCode(fila_color);
+            FilamentColorCode *color_code = m_current_color_codes->GetColorCode(fila_color);
             if (color_code) {
                 m_label_preview_idx->SetLabel(wxString::Format("(%s)", color_code->GetFilaColorCode()));
                 m_label_preview_type->SetLabel(color_code->GetFilaType());
             }
         }
     }
-
-    return preview_sizer;
 }
 
 wxBoxSizer* FilamentPickerDialog::CreateSeparatorLine()
 {
     wxBoxSizer *line_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxPanel* separator_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(1)));
-    separator_line->SetBackgroundColour(wxColour(220, 220, 220));
+    separator_line->SetBackgroundColour(wxColour(238,238,238));
     wxStaticText* line_text = new wxStaticText(this, wxID_ANY, _L("Official Filament"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     line_text->SetForegroundColour(wxColour(128, 128, 128));
     line_sizer->Add(line_text, 0, wxEXPAND, 0);
