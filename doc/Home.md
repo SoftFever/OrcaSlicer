@@ -75,32 +75,53 @@ The below sections provide a detailed settings explanation as well as tips and t
 
 ![process-strength](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-strength.png?raw=true)
 
+- [Walls](strength_settings_walls)
 - [Top and Bottom Shells](strength_settings_top_bottom_shells)
 - [Infill](strength_settings_infill)
+- [Advanced](strength_settings_advanced)
 
 ### Speed Settings
 
 ![process-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-speed.png?raw=true)
 
-- [Extrusion rate smoothing](speed_settings_advanced)
+- [Initial Layer Speed](speed_settings_initial_layer_speed)
+- [Other Layers Speed](speed_settings_other_layers_speed)
+- [Overhang Speed](speed_settings_overhang_speed)
+- [Travel Speed](speed_settings_travel)
+- [Acceleration](speed_settings_acceleration)
+- [Jerk (XY)](speed_settings_jerk_xy)
+- [Advanced / Extrusion rate smoothing](speed_settings_advanced)
 
 ### Support Settings
 
 ![process-support](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-support.png?raw=true)
 
-WIP...
+- [Support](support_settings_support)
+- [Raft](support_settings_raft)
+- [Support Filament](support_settings_filament)
+- [Support Ironing](support_settings_ironing)
+- [Advanced](support_settings_advanced)
+- [Tree Supports](support_settings_tree)
 
 ### Multimaterial Settings
 
 ![process-multimaterial](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-multimaterial.png?raw=true)
 
-WIP...
+- [Prime Tower](multimaterial_settings_prime_tower)
+- [Ooze Prevention](multimaterial_settings_ooze_prevention)
+- [Flush Options](multimaterial_settings_flush_options)
+- [Advanced](multimaterial_settings_advanced)
 
 ### Others Settings
 
 ![process-others](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-others.png?raw=true)
 
-WIP...
+[Skirt](others_settings_skirt)
+[Brim](others_settings_brim)
+[Special Mode](others_settings_special_mode)
+[G-Code Output](others_settings_g_code_output)
+[Post Processing Scripts](others_settings_post_processing_scripts)
+[Notes](others_settings_notes)
 
 ## Calibrations
 
