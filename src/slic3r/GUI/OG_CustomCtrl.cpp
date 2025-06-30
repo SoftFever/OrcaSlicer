@@ -712,20 +712,39 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
     correct_items_positions();
 }
 
+static std::vector<std::string> split_trimmed(const std::string& str, char delimiter = ',')
+{
+    std::vector<std::string> result;
+    std::istringstream       ss(str);
+    std::string              token;
+    while (std::getline(ss, token, delimiter)) {
+        // Trim leading/trailing whitespace
+        token.erase(token.begin(), std::find_if(token.begin(), token.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+        token.erase(std::find_if(token.rbegin(), token.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), token.end());
+        if (!token.empty())
+            result.push_back(token);
+    }
+    return result;
+}
+
 void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
 {
     if (og_line.is_separator())
         return;
 
     const std::vector<Option>& option_set = og_line.get_options();
-    const std::string& opt_key = option_set.front().opt.opt_key;
-    ConfigOptionMode line_mode = option_set.front().opt.mode;
-    
-    const std::vector<std::string>& hide_configs            = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("hide_config", true)->values;
-    const std::vector<std::string>& force_simple_configs    = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("force_simple_config", true)->values;
-    const std::vector<std::string>& force_advanced_configs  = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("force_advanced_config", true)->values;
+    const std::string&         opt_key    = option_set.front().opt.opt_key;
+    ConfigOptionMode           line_mode  = option_set.front().opt.mode;
+
+    std::vector<std::string> hide_configs = split_trimmed(
+        wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("hide_config", true)->value);
+    std::vector<std::string> force_simple_configs = split_trimmed(
+        wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("force_simple_config", true)->value);
+    std::vector<std::string> force_advanced_configs = split_trimmed(
+        wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("force_advanced_config", true)->value);
 
     is_visible = og_line.toggle_visible;
+
     if (std::find(hide_configs.begin(), hide_configs.end(), opt_key) != hide_configs.end()) {
         is_visible = false;
     } else {
