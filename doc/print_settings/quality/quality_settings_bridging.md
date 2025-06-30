@@ -2,6 +2,13 @@
 
 "Bridging" is a 3D printing technique that allows you to print structures across gaps or voids without direct support underneath. OrcaSlicer provides several parameters to optimize bridge quality, minimizing filament sag and improving the appearance of top layers.
 
+- [Flow ratio](#flow-ratio)
+- [Bridge density](#bridge-density)
+- [Thick bridges](#thick-bridges)
+- [Extra bridge layers](#extra-bridge-layers)
+- [Filter out small internal bridges](#filter-out-small-internal-bridges)
+- [Bridge Counterbore hole](#bridge-counterbore-hole)
+
 ## Flow ratio
 
 Decrease this value slightly (for example 0.9) to reduce the amount of material for bridge, to improve sag.
