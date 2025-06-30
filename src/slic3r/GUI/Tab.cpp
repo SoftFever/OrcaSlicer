@@ -2423,15 +2423,15 @@ void TabPrint::build()
 
 page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Skirt"), L"param_skirt");
-        optgroup->append_single_option_line("skirt_loops");
-        optgroup->append_single_option_line("skirt_type");
-        optgroup->append_single_option_line("min_skirt_length");
-        optgroup->append_single_option_line("skirt_distance");
-        optgroup->append_single_option_line("skirt_start_angle");
-        optgroup->append_single_option_line("skirt_speed");
-        optgroup->append_single_option_line("skirt_height");
-        optgroup->append_single_option_line("draft_shield");
-        optgroup->append_single_option_line("single_loop_draft_shield");
+optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops");
+        optgroup->append_single_option_line("skirt_type", "others_settings_skirt#type");
+        optgroup->append_single_option_line("min_skirt_length", "others_settings_skirt#minimum-extrusion-length");
+        optgroup->append_single_option_line("skirt_distance", "others_settings_skirt#distance");
+        optgroup->append_single_option_line("skirt_start_angle", "others_settings_skirt#start-point");
+        optgroup->append_single_option_line("skirt_speed", "others_settings_skirt#speed");
+        optgroup->append_single_option_line("skirt_height", "others_settings_skirt#height");
+        optgroup->append_single_option_line("draft_shield", "others_settings_skirt#shield");
+        optgroup->append_single_option_line("single_loop_draft_shield", "others_settings_skirt#single-loop-after-first-layer");
 
         optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
