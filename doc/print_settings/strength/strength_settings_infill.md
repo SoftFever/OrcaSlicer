@@ -48,7 +48,7 @@ Nevertheless, **not all patterns interpret density the same way**, so the actual
 
 ## Fill Multiline
 
-This setting generates your selected [infill pattern](#sparse-infill-pattern) using multiple parallel lines, maintaining both the defined [infill density](#sparse-infill-density) and the overall material usage.
+This setting allows you to generate your selected [infill pattern](#sparse-infill-pattern) using multiple parallel lines while preserving both the defined [infill density](#sparse-infill-density) and the overall material usage.
 
 ![infill-multiline-1-5](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-1-5.gif?raw=true)
 
@@ -62,17 +62,25 @@ This setting generates your selected [infill pattern](#sparse-infill-pattern) us
 >| 40%                | 2            | 40%          | 80%                   |
 >| 10%                | 3            | 10%          | 30%                   |
 >| 25%                | 3            | 25%          | 75%                   |
->| 40%                | 3            | 40%          | 120%*                 |
+>| 40%                | 3            | 40%          | 120% *                |
 >| 10%                | 5            | 10%          | 50%                   |
->| 25%                | 5            | 25%          | 125%*                 |
->| 40%                | 5            | 40%          | 200%*                 |
+>| 25%                | 5            | 25%          | 125% *                |
+>| 40%                | 5            | 40%          | 200% *                |
 >
 > *Other slicers may limit the result to 100%.
 
 ### Use cases
 
-- Increasing the number of lines to 2 or 3 can improve strength and print speed while keeping material usage constant.
-- For prints that require heat resistance, this setting helps reduce deformation risk by generating wider insulating air gaps between lines and improving structural rigidity through the use of multiple infill lines.
+- Increasing the number of lines (e.g., 2 or 3) can improve part strength and print speed without increasing material usage.
+- Fire-retardant applications: Some flame-resistant materials (like PolyMax PC-FR) require a minimum printed wall/infill thickness—often 1.5–3 mm—to comply with standards. Since infill contributes to overall part thickness, using multiple lines helps achieve the necessary thickness without switching to a large nozzle or printing with 100% infill. This is especially useful for high-temperature materials like PC, which are prone to warping when fully solid.
+- Creating aesthetically pleasing infill patterns (like [Grid](#grid) or [Honeycomb](#honeycomb)) with multiple line widths—without relying on CAD modeling or being limited to a single extrusion width.
+
+![infill-multiline-esthetic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-esthetic.gif?raw=true)
+
+> [!WARNING]
+> For self intersecting infills (e.g. [Cubic](#cubic), [Grid](#grid)) multiline count greater than 3 may cause layer shift, extruder clog or other issues due to overlapping of lines on intersection points.
+>
+> ![infill-multiline-overlapping](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-overlapping.png?raw=true)
 
 ## Direction and Rotation
 
