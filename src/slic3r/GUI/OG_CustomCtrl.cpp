@@ -721,10 +721,9 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
     const std::string& opt_key = option_set.front().opt.opt_key;
     ConfigOptionMode line_mode = option_set.front().opt.mode;
     
-    const auto& config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    const std::vector<std::string>& hide_configs            = config.option<ConfigOptionStrings>("hide_config", true)->values;
-    const std::vector<std::string>& force_simple_configs    = config.option<ConfigOptionStrings>("force_simple_config", true)->values;
-    const std::vector<std::string>& force_advanced_configs  = config.option<ConfigOptionStrings>("force_advanced_config", true)->values;
+    const std::vector<std::string>& hide_configs            = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("hide_config", true)->values;
+    const std::vector<std::string>& force_simple_configs    = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("force_simple_config", true)->values;
+    const std::vector<std::string>& force_advanced_configs  = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("force_advanced_config", true)->values;
 
     is_visible = og_line.toggle_visible;
     if (std::find(hide_configs.begin(), hide_configs.end(), opt_key) != hide_configs.end()) {
