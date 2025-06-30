@@ -2472,20 +2472,20 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
         option.opt.is_code = true;
         option.opt.multiline = true;
         // option.opt.height = 5;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "others_settings_g_code_output#filename-format");
 
         optgroup = page->new_optgroup(L("Post-processing Scripts"), L"param_gcode", 0);
         option = optgroup->get_option("post_process");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = 15;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "others_settings_post_processing_scripts");
 
         optgroup = page->new_optgroup(L("Notes"), "note", 0);
         option = optgroup->get_option("notes");
         option.opt.full_width = true;
         option.opt.height = 25;//250;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "others_settings_notes");
 
     // Orca: hide the dependencies tab for process for now. The UI is not ready yet.
     // page = add_options_page(L("Dependencies"), "param_profile_dependencies"); // icons ready
