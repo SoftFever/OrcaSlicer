@@ -116,7 +116,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     wxBoxSizer *cali_right_sizer_h = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *cali_right_sizer_v = new wxBoxSizer(wxVERTICAL);
 
-    auto cali_right_panel = new StaticBox(body_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(182), FromDIP(160)));
+    auto cali_right_panel = new StaticBox(body_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(182), FromDIP(200)));
     cali_right_panel->SetBackgroundColor(BG_COLOR);
     cali_right_panel->SetBorderColor(BG_COLOR);
 
@@ -256,12 +256,14 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         if (obj->is_calibration_done()) {
             m_calibration_btn->Enable();
             m_calibration_btn->SetLabel(_L("Completed"));
+
         } else {
             // RUNNING && IDLE
             m_calibration_btn->Disable();
             m_calibration_btn->SetLabel(_L("Calibrating"));
+
         }
-        auto size = wxSize(CALI_FLOW_CONTENT_WIDTH, obj->stage_list_info.size() * FromDIP(44));
+        auto size = wxSize(CALI_FLOW_CONTENT_WIDTH, obj->stage_list_info.size() * FromDIP(35));
         if (m_calibration_flow->GetSize().y != size.y) {
             m_calibration_flow->SetSize(size);
             m_calibration_flow->SetMinSize(size);
@@ -269,6 +271,7 @@ void CalibrationDialog::update_cali(MachineObject *obj)
             m_calibration_flow->Refresh();
 
             Layout();
+
         }
         if (is_stage_list_info_changed(obj)) {
             // change items if stage_list_info changed
