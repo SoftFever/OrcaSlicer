@@ -3,6 +3,8 @@
 Infill is the internal structure of a 3D print, providing strength and support. It can be adjusted to balance material usage, print time, and part strength.
 
 - [Sparse infill density](#sparse-infill-density)
+- [Fill Multiline](#fill-multiline)
+  - [Use cases](#use-cases)
 - [Direction and Rotation](#direction-and-rotation)
   - [Direction](#direction)
   - [Rotation](#rotation)
@@ -43,6 +45,34 @@ Density usually should be calculated as a % of the total infill volume, not the 
 Higher density increases strength but also material usage and print time. Lower density saves material and time but reduces strength.
 
 Nevertheless, **not all patterns interpret density the same way**, so the actual material usage may vary. You can see each pattern's material usage in the [Sparse Infill Pattern](#sparse-infill-pattern) section.
+
+## Fill Multiline
+
+This setting generates your selected [infill pattern](#sparse-infill-pattern) using multiple parallel lines, maintaining both the defined [infill density](#sparse-infill-density) and the overall material usage.
+
+![infill-multiline-1-5](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-1-5.gif?raw=true)
+
+> [!NOTE]
+> Orca's approach is different from other slicers that simply multiply the number of lines and material usage, generating a denser infill than expected.
+>
+>| Infill   Density % | Infill Lines | Orca Density | Other Slicers Density |
+>|--------------------|--------------|--------------|-----------------------|
+>| 10%                | 2            | 10%          | 20%                   |
+>| 25%                | 2            | 25%          | 50%                   |
+>| 40%                | 2            | 40%          | 80%                   |
+>| 10%                | 3            | 10%          | 30%                   |
+>| 25%                | 3            | 25%          | 75%                   |
+>| 40%                | 3            | 40%          | 120%*                 |
+>| 10%                | 5            | 10%          | 50%                   |
+>| 25%                | 5            | 25%          | 125%*                 |
+>| 40%                | 5            | 40%          | 200%*                 |
+>
+> *Other slicers may limit the result to 100%.
+
+### Use cases
+
+- Increasing the number of lines to 2 or 3 can improve strength and print speed while keeping material usage constant.
+- For prints that require heat resistance, this setting helps reduce deformation risk by generating wider insulating air gaps between lines and improving structural rigidity through the use of multiple infill lines.
 
 ## Direction and Rotation
 
