@@ -81,8 +81,17 @@ void FilamentColorCodeQuery::LoadFromLocal()
                 if (json_data_item.contains("fila_color"))
                 {
                     const auto& fila_color_strs = json_data_item["fila_color"].get<std::vector<wxString>>();
-                    for (const auto& color_str : fila_color_strs) { fila_color.m_colors.emplace(wxColour(color_str)); }
+                    for (const auto& color_str : fila_color_strs) {
+                        if (color_str.size() > 3) /* Skip the value like "#0"*/{
+                            fila_color.m_colors.emplace(wxColour(color_str));
+                        }
+                    }
                 }
+                
+                if (fila_color.m_colors.empty()) {
+                    BOOST_LOG_TRIVIAL(warning) << "FilamentColorCodeQuery::LoadFromLocal: No colors found for fila_color_code: " << fila_color_code;
+                    continue; // Skip if no colors are defined
+                };
 
                 const wxString& fila_color_type = json_data_item.contains("fila_color_type") ? wxString::FromUTF8(json_data_item["fila_color_type"].get<std::string>()) : wxString();
                 if (fila_color_type == wxString::FromUTF8("单色")) {

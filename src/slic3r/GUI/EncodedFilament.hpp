@@ -64,6 +64,7 @@ struct wxColorSorter
         if (ha.h != hb.h) return ha.h < hb.h;
         if (ha.s != hb.s) return ha.s < hb.s;
         if (ha.v != hb.v) return ha.v < hb.v;
+        if (lhs_it.Alpha() != rhs_it.Alpha()) return lhs_it.Alpha() < rhs_it.Alpha();
         return false;
     }
 };
@@ -118,6 +119,10 @@ public:
             if (ha.h != hb.h) return ha.h < hb.h;
             if (ha.s != hb.s) return ha.s < hb.s;
             if (ha.v != hb.v) return ha.v < hb.v;
+
+            int lhs_alpha = lhs_it->Alpha();
+            int rhs_alpha = rhs_it->Alpha();
+            if (lhs_alpha != rhs_alpha) return lhs_alpha < rhs_alpha;
 
             lhs_it++;
             rhs_it++;
