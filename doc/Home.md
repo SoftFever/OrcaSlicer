@@ -66,7 +66,10 @@ The below sections provide a detailed settings explanation as well as tips and t
   - [Precise wall](quality_settings_precision#precise-wall)
   - [Precise Z Height](quality_settings_precision#precise-z-height)
   - [Polyholes](quality_settings_precision#polyholes)
+- [Ironing](quality_settings_ironing)
 - [Wall generator](quality_settings_wall_generator)
+- [Walls and surfaces](quality_settings_wall_and_surfaces)
+- [Bridging](quality_settings_bridging)
 
 ### Strength Settings
 
