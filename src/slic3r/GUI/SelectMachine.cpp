@@ -1892,8 +1892,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
                 continue;
             }
 
-            const auto& mapped_fila_id = obj_->get_filament_id(mapping_info.ams_id, mapping_info.slot_id);
-            if (!mapped_fila_id.empty() && (mapped_fila_id != mapping_info.filament_id)) {
+            const auto& mapped_fila_type = obj_->get_filament_type(mapping_info.ams_id, mapping_info.slot_id);
+            if (!mapped_fila_type.empty() && (mapped_fila_type != mapping_info.type)) {
                 confirm_text.push_back(ConfirmBeforeSendInfo(_L("The filament type setting of external spool is different from the filament in the slicing file.")));
                 has_slice_warnings = true;
                 break;

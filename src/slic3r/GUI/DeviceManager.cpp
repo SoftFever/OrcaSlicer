@@ -903,6 +903,10 @@ std::string MachineObject::get_filament_id(std::string ams_id, std::string tray_
     return this->get_tray(ams_id, tray_id).setting_id;
 }
 
+std::string MachineObject::get_filament_type(const std::string& ams_id, const std::string& tray_id) const {
+    return this->get_tray(ams_id, tray_id).type;
+}
+
 void MachineObject::_parse_ams_status(int ams_status)
 {
     ams_status_sub = ams_status & 0xFF;
