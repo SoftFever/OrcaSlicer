@@ -289,6 +289,7 @@ private:
     bool                                m_is_canceled{ false };
     bool                                m_is_rename_mode{ false };
     bool                                m_check_flag {false};
+    bool                                m_ext_change_assist{ false };
     PrintPageMode                       m_print_page_mode{PrintPageMode::PrintPageModePrepare};
     std::string                         m_print_error_msg;
     std::string                         m_print_error_extra;
@@ -369,6 +370,8 @@ protected:
     Label*                              m_stext_weight{ nullptr };
     PrinterMsgPanel *                   m_statictext_ams_msg{nullptr};
     Label*                              m_txt_change_filament_times{ nullptr };
+    CheckBox*                           m_check_ext_change_assist{ nullptr };
+    Label*                              m_label_ext_change_assist{ nullptr };
 
     PrinterInfoBox*                     m_printer_box { nullptr};
     PrinterMsgPanel *                   m_text_printer_msg{nullptr};
@@ -509,6 +512,9 @@ private:
     void load_option_vals(MachineObject* obj);
     void save_option_vals();
     void save_option_vals(MachineObject *obj);
+
+    // enbale or disable external change assist
+    bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
 };
 
 class PrinterInfoBox : public StaticBox

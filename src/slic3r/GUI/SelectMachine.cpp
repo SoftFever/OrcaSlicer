@@ -12,6 +12,8 @@
 #include "Widgets/ProgressDialog.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
+#include "Widgets/CheckBox.hpp"
+#include "Widgets/Label.hpp"
 #include "ConnectPrinter.hpp"
 #include "Jobs/BoostThreadWorker.hpp"
 #include "Jobs/PlaterWorker.hpp"
@@ -421,6 +423,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_statictext_ams_msg->Hide();
 
     /*ams mapping suggestions*/
+
     m_link_edit_nozzle = new Label(m_scroll_area, wxEmptyString);
     m_link_edit_nozzle->SetFont(::Label::Body_13);
     m_link_edit_nozzle->SetForegroundColour(0x00ae42);
@@ -442,6 +445,24 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         evt.SetInt(1); // 1 means from gcode viewer
         wxPostEvent(plater, evt);
     });
+
+    m_check_ext_change_assist = new CheckBox(m_scroll_area, wxID_ANY);
+    m_check_ext_change_assist->SetValue(false);
+    m_check_ext_change_assist->SetBackgroundColour(*wxWHITE);
+    m_check_ext_change_assist->SetToolTip(_L("Manually change external spool during printing for multi-color printing"));
+    m_check_ext_change_assist->Hide();
+    m_label_ext_change_assist = new Label(m_scroll_area, _L("Multi-color with external"));
+    m_label_ext_change_assist->Wrap(-1);
+    m_label_ext_change_assist->SetMaxSize(wxSize(FromDIP(200), -1));
+    m_label_ext_change_assist->SetFont(::Label::Body_13);
+    m_label_ext_change_assist->SetBackgroundColour(*wxWHITE);
+    m_label_ext_change_assist->SetToolTip(_L("Manually change external spool during printing for multi-color printing"));
+
+    wxSizer* suggestion_sizer = new wxBoxSizer(wxHORIZONTAL);
+    suggestion_sizer->Add(m_link_edit_nozzle, 0, wxLEFT, 0);
+    suggestion_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    suggestion_sizer->Add(m_check_ext_change_assist, 0, wxRIGHT, FromDIP(10));
+    suggestion_sizer->Add(m_label_ext_change_assist, 0, wxRIGHT, 0);
 
     m_mapping_sugs_sizer = new wxBoxSizer(wxHORIZONTAL);
     //auto m_img_mapping_sugs = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
@@ -518,7 +539,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_checkbox_list["bed_leveling"]  = option_auto_bed_level;
     m_checkbox_list["flow_cali"]     = option_flow_dynamics_cali;
     m_checkbox_list["nozzle_offset_cali"] = option_nozzle_offset_cali_cali;
-
     for (auto print_opt : m_checkbox_list_order) {
         print_opt->Bind(EVT_SWITCH_PRINT_OPTION, [this](auto &e) { save_option_vals(); });
     }
@@ -686,7 +706,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_scroll_sizer->Add(m_mapping_sugs_sizer, 0, wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(m_change_filament_times_sizer, 0,wxLEFT|wxRIGHT, FromDIP(15));
-    m_scroll_sizer->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(15));
+    // m_scroll_sizer->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(15));
+    m_scroll_sizer->Add(suggestion_sizer, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(15));
     m_scroll_sizer->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_scroll_sizer->Add(m_options_other, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
@@ -760,6 +781,11 @@ void SelectMachineDialog::init_bind()
             set_default_from_sdcard();
             Layout();
         }
+    });
+
+    m_check_ext_change_assist->Bind(wxEVT_TOGGLEBUTTON, [this](auto &e) {
+        m_ext_change_assist = e.IsChecked();
+        e.Skip();
     });
 }
 
@@ -1383,7 +1409,7 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data, wxString& error_
                 {
                     pos = _L("left nozzle");
                 }
-                else if ((target_machine_nozzle_id == MAIN_NOZZLE_ID))
+                else if(target_machine_nozzle_id == MAIN_NOZZLE_ID)
                 {
                     pos = _L("right nozzle");
                 }
@@ -1888,8 +1914,10 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     }
 
     if (main_external_spool_filas.size() > 1 || deputy_external_spool_filas.size() > 1) {
-        confirm_text.push_back(ConfirmBeforeSendInfo(_L("More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing.")));
-        has_slice_warnings = true;
+        if(!m_ext_change_assist ){
+            confirm_text.push_back(ConfirmBeforeSendInfo(_L("More than one filament types have been mapped to the same external spool, which may cause printing issues. The printer won't pause during printing.")));
+            has_slice_warnings = true;
+        }
     } else {
         //check filaments type in external spool
         for (const auto& mapping_info : m_ams_mapping_result) {
@@ -2228,6 +2256,16 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
     update_options_layout();
 }
 
+bool SelectMachineDialog::is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result) {
+    std::map<std::string, int> v_ams_map;
+    v_ams_map[VIRTUAL_AMS_MAIN_ID_STR] = 0;
+    v_ams_map[VIRTUAL_AMS_DEPUTY_ID_STR] = 0;
+    for(auto info : m_ams_mapping_result){
+        v_ams_map[info.ams_id]++;
+    }
+    return (v_ams_map[VIRTUAL_AMS_MAIN_ID_STR] > 1) || (v_ams_map[VIRTUAL_AMS_DEPUTY_ID_STR] > 1);
+}
+
 void SelectMachineDialog::load_option_vals(MachineObject *obj)
 {
     if (m_is_in_sending_mode) { return;}
@@ -2491,6 +2529,7 @@ void SelectMachineDialog::on_send_print()
         false,
         timelapse_option,
         true,
+        m_ext_change_assist,
         m_checkbox_list["bed_leveling"]->getValueInt(),
         m_checkbox_list["flow_cali"]->getValueInt(),
         m_checkbox_list["nozzle_offset_cali"]->getValueInt()
@@ -3211,6 +3250,22 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     if (m_ams_mapping_result.empty()) {
         do_ams_mapping(obj_, true);
         update_filament_change_count();
+    }
+
+    /* multi color external change assist*/
+    if(obj_->is_support_ext_change_assist && !m_check_ext_change_assist->IsShown()){
+        m_check_ext_change_assist->Show(true);
+        m_label_ext_change_assist->Show(true);
+    }else if(!obj_->is_support_ext_change_assist &&m_check_ext_change_assist->IsShown()){
+        m_check_ext_change_assist->Hide();
+        m_label_ext_change_assist->Hide();
+    }
+    /*check external change assist*/
+    if(!m_ams_mapping_result.empty() && is_enable_external_change_assist(m_ams_mapping_result)){
+        m_check_ext_change_assist->Enable(true);
+    }else{
+        m_check_ext_change_assist->SetValue(false);
+        m_check_ext_change_assist->Enable(false);
     }
 
      /*reading done*/

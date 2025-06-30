@@ -6397,6 +6397,7 @@ void MachineObject::parse_new_info(json print)
         is_support_airprinting_detection = get_flag_bits(fun, 45);
 
         m_air_duct_data.m_support_cooling_filter = get_flag_bits(fun, 46);
+        is_support_ext_change_assist = get_flag_bits(fun, 48);
     }
 
     /*aux*/
