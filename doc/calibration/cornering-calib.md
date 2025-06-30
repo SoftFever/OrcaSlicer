@@ -12,6 +12,10 @@ Junction Deviation is the default method for controlling cornering speed in Marl
 Higher values result in more aggressive cornering speeds, while lower values produce smoother, more controlled cornering.
 The default value in Marlin is typically set to 0.08mm, which may be too high for some printers, potentially causing ringing. Consider lowering this value to reduce ringing, but avoid setting it too low, as this could lead to excessively slow cornering speeds.
 
+```math
+JD = 0,4 \cdot \frac{\text{Jerk}^2}{\text{Accel.}}
+```
+
 1. Pre-requisites:
    1. Check if your printer has Junction Deviation enabled. You can do this by sending the command `M503` to your printer and looking for the line `Junction deviation: 0.25`.
    2. In OrcaSlicer, set:
