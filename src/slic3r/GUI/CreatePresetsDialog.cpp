@@ -634,7 +634,7 @@ static void adjust_dialog_in_screen(DPIDialog* dialog) {
 }
 
 CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
-	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Create Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTRE)
+	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Create Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTRE | wxRESIZE_BORDER)
 {
     m_create_type.base_filament = _L("Create Based on Current Filament");
     m_create_type.base_filament_preset = _L("Copy Current Filament Preset ");
