@@ -262,13 +262,6 @@ AboutDialog::AboutDialog()
         vesizer->Add(version, 0, wxRIGHT | wxALIGN_RIGHT, FromDIP(20));
         vesizer->AddSpacer(FromDIP(5));
         vesizer->Add(credits_string, 0, wxRIGHT | wxALIGN_RIGHT, FromDIP(20));
-        // #if BBL_INTERNAL_TESTING
-//         wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
-//         wxStaticText* build_time_text = new wxStaticText(this, wxID_ANY, build_time, wxDefaultPosition, wxDefaultSize);
-//         build_time_text->SetForegroundColour(wxColour("#FFFFFE"));
-//         build_time_text->SetBackgroundColour(wxColour("#00AF42"));
-//         vesizer->Add(build_time_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
-// #endif
         vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
     }
 
