@@ -2441,25 +2441,25 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
         optgroup->append_single_option_line("brim_ears_detection_length", "others_settings_brim#ear-detection-radius");
 
         optgroup = page->new_optgroup(L("Special mode"), L"param_special");
-        optgroup->append_single_option_line("slicing_mode");
-        optgroup->append_single_option_line("print_sequence", "sequent-print");
-        optgroup->append_single_option_line("print_order");
-        optgroup->append_single_option_line("spiral_mode", "spiral-vase");
-        optgroup->append_single_option_line("spiral_mode_smooth", "spiral-vase#smooth");
-        optgroup->append_single_option_line("spiral_mode_max_xy_smoothing", "spiral-vase#max-xy-smoothing");
-        optgroup->append_single_option_line("spiral_starting_flow_ratio", "spiral-vase#starting-flow-ratio");
-        optgroup->append_single_option_line("spiral_finishing_flow_ratio", "spiral-vase#finishing-flow-ratio");
+        optgroup->append_single_option_line("slicing_mode", "others_settings_special_mode#slicing-mode");
+        optgroup->append_single_option_line("print_sequence", "others_settings_special_mode#print-sequence");
+        optgroup->append_single_option_line("print_order", "others_settings_special_mode#intra-layer-order");
+        optgroup->append_single_option_line("spiral_mode", "others_settings_special_mode#spiral-vase");
+        optgroup->append_single_option_line("spiral_mode_smooth", "others_settings_special_mode#smooth-spiral");
+        optgroup->append_single_option_line("spiral_mode_max_xy_smoothing", "others_settings_special_mode#max-xy-smoothing");
+        optgroup->append_single_option_line("spiral_starting_flow_ratio", "others_settings_special_mode#spiral-starting-flow-ratio");
+        optgroup->append_single_option_line("spiral_finishing_flow_ratio", "others_settings_special_mode#spiral-finishing-flow-ratio");
 
-        optgroup->append_single_option_line("timelapse_type", "Timelapse");
+        optgroup->append_single_option_line("timelapse_type", "others_settings_special_mode");
 
-        optgroup->append_single_option_line("fuzzy_skin");
-        optgroup->append_single_option_line("fuzzy_skin_noise_type");
-        optgroup->append_single_option_line("fuzzy_skin_point_distance");
-        optgroup->append_single_option_line("fuzzy_skin_thickness");
-        optgroup->append_single_option_line("fuzzy_skin_scale");
-        optgroup->append_single_option_line("fuzzy_skin_octaves");
-        optgroup->append_single_option_line("fuzzy_skin_persistence");
-        optgroup->append_single_option_line("fuzzy_skin_first_layer");
+        optgroup->append_single_option_line("fuzzy_skin", "others_settings_special_mode#fuzzy-skin");
+        optgroup->append_single_option_line("fuzzy_skin_noise_type", "others_settings_special_mode#fuzzy-skin-mode");
+        optgroup->append_single_option_line("fuzzy_skin_point_distance", "others_settings_special_mode#point-distance");
+        optgroup->append_single_option_line("fuzzy_skin_thickness", "others_settings_special_mode#skin-thickness");
+        optgroup->append_single_option_line("fuzzy_skin_scale", "others_settings_special_mode#skin-feature-size");
+        optgroup->append_single_option_line("fuzzy_skin_octaves", "others_settings_special_mode#skin-noise-octaves");
+        optgroup->append_single_option_line("fuzzy_skin_persistence", "others_settings_special_mode#skin-noise-persistence");
+        optgroup->append_single_option_line("fuzzy_skin_first_layer", "others_settings_special_mode#apply-fuzzy-skin-to-first-layer");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction");
