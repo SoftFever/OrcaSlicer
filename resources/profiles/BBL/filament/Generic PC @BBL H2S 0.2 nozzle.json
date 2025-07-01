@@ -16,8 +16,8 @@
         "; filament start gcode\n"
     ],
     "filament_long_retractions_when_cut": [
-        "0",
-        "0"
+        "nil",
+        "nil"
     ],
     "filament_flow_ratio": [
         "0.94",
@@ -109,5 +109,11 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
+    ],
+    "chamber_temperatures": [
+        "60"
+    ],
+    "slow_down_layer_time": [
+        "12"
     ]
 }

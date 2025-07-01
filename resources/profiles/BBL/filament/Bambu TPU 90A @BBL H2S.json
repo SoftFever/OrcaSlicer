@@ -10,7 +10,7 @@
         "10"
     ],
     "filament_max_volumetric_speed": [
-        "4",
+        "5.6",
         "4"
     ],
     "filament_retraction_length": [
@@ -115,5 +115,8 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
+    ],
+    "slow_down_min_speed": [
+        "30"
     ]
 }

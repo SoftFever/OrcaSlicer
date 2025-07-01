@@ -17,7 +17,7 @@
         "Bambu Lab H2S 0.8 nozzle"
     ],
     "bridge_speed": [
-        "50",
+        "30",
         "50"
     ],
     "initial_layer_infill_speed": [
@@ -49,7 +49,7 @@
         "1"
     ],
     "gap_infill_speed": [
-        "250",
+        "50",
         "250"
     ],
     "initial_layer_acceleration": [

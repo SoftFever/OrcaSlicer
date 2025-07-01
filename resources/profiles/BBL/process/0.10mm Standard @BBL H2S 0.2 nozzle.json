@@ -65,7 +65,7 @@
         "5000"
     ],
     "overhang_1_4_speed": [
-        "0",
+        "60",
         "0"
     ],
     "overhang_2_4_speed": [
@@ -108,6 +108,14 @@
         "2000",
         "2000"
     ],
+    "default_acceleration": [
+        "10000",
+        "10000"
+    ],
+    "outer_wall_speed": [
+        "100",
+        "120"
+    ],
     "travel_speed_z": [
         "0",
         "0"
@@ -116,14 +124,7 @@
         "80%",
         "80%"
     ],
-    "default_acceleration": [
-        "10000",
-        "10000"
-    ],
-    "outer_wall_speed": [
-        "120",
-        "120"
-    ],
+
     "overhang_totally_speed": [
         "10",
         "10"

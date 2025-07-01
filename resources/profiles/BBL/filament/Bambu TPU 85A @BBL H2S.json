@@ -115,5 +115,8 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
+    ],
+    "slow_down_min_speed": [
+        "30"
     ]
 }

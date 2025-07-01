@@ -9,8 +9,8 @@
         "60"
     ],
     "filament_max_volumetric_speed": [
-        "16",
-        "16"
+        "20",
+        "30"
     ],
     "filament_z_hop_types": [
         "Spiral Lift",
@@ -20,9 +20,7 @@
         "100"
     ],
     "compatible_printers": [
-        "Bambu Lab H2S 0.4 nozzle",
-        "Bambu Lab H2S 0.6 nozzle",
-        "Bambu Lab H2S 0.8 nozzle"
+        "Bambu Lab H2S 0.4 nozzle"
     ],
     "filament_retraction_length": [
         "0.4",

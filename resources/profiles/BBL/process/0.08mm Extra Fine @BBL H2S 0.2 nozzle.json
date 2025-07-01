@@ -109,7 +109,7 @@
         "5000"
     ],
     "outer_wall_speed": [
-        "120",
+        "100",
         "120"
     ],
     "overhang_2_4_speed": [
@@ -169,5 +169,6 @@
         "80%",
         "80%"
     ],
-    "prime_tower_flat_ironing": "1"
+    "prime_tower_flat_ironing": "1",
+    "sparse_infill_pattern": "gyroid"
 }

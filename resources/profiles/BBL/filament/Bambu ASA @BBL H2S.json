@@ -16,9 +16,7 @@
         "100"
     ],
     "compatible_printers": [
-        "Bambu Lab H2S 0.4 nozzle",
-        "Bambu Lab H2S 0.6 nozzle",
-        "Bambu Lab H2S 0.8 nozzle"
+        "Bambu Lab H2S 0.4 nozzle"
     ],
     "filament_retraction_length": [
         "0.4",
@@ -44,8 +42,8 @@
         "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "18",
-        "18"
+        "20",
+        "30"
     ],
     "nozzle_temperature": [
         "270",

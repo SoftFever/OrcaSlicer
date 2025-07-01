@@ -14,15 +14,15 @@
         "; filament start gcode\n"
     ],
     "filament_long_retractions_when_cut": [
-        "0",
-        "0"
+        "nil",
+        "nil"
     ],
     "filament_max_volumetric_speed": [
         "3.2",
         "3.2"
     ],
     "filament_retraction_length": [
-        "0.4",
+        "nil",
         "0.4"
     ],
     "nozzle_temperature": [
@@ -111,5 +111,8 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
+    ],
+    "additional_cooling_fan_speed": [
+        "100"
     ]
 }

@@ -13,8 +13,8 @@
         "7.5"
     ],
     "filament_retraction_length": [
-        "0.5",
-        "0.5"
+        "0.4",
+        "0.4"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.4 nozzle",
@@ -25,8 +25,8 @@
         "; filament start gcode\n"
     ],
     "filament_long_retractions_when_cut": [
-        "0",
-        "0"
+        "nil",
+        "nil"
     ],
     "filament_flow_ratio": [
         "0.98",
@@ -77,20 +77,20 @@
         "nil"
     ],
     "filament_wipe": [
-        "nil",
-        "nil"
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil",
-        "nil"
+        "1",
+        "1"
     ],
     "filament_z_hop": [
         "nil",
         "nil"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil"
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
@@ -114,5 +114,8 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
+    ],
+    "slow_down_layer_time": [
+        "10"
     ]
 }

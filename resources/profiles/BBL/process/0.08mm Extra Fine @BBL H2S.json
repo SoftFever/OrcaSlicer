@@ -10,15 +10,15 @@
         "4000"
     ],
     "gap_infill_speed": [
-        "50",
+        "210",
         "50"
     ],
     "initial_layer_infill_speed": [
-        "70",
+        "105",
         "70"
     ],
     "initial_layer_speed": [
-        "40",
+        "50",
         "40"
     ],
     "inner_wall_speed": [
@@ -26,7 +26,7 @@
         "120"
     ],
     "internal_solid_infill_speed": [
-        "120",
+        "150",
         "120"
     ],
     "outer_wall_acceleration": [
@@ -53,11 +53,11 @@
     "prime_tower_width": "60",
     "sparse_infill_pattern": "gyroid",
     "sparse_infill_speed": [
-        "100",
+        "150",
         "100"
     ],
     "top_surface_speed": [
-        "120",
+        "150",
         "120"
     ],
     "compatible_printers": [

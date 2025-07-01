@@ -14,7 +14,7 @@
         "; filament start gcode\n"
     ],
     "filament_long_retractions_when_cut": [
-        "0",
+        "nil",
         "0"
     ],
     "filament_flow_ratio": [

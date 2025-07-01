@@ -29,7 +29,7 @@
         "; filament start gcode\n"
     ],
     "filament_long_retractions_when_cut": [
-        "0",
+        "nil",
         "0"
     ],
     "filament_max_volumetric_speed": [
@@ -126,5 +126,8 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
+    ],
+    "additional_cooling_fan_speed": [
+        "100"
     ]
 }

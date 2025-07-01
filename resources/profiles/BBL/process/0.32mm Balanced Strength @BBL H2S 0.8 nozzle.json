@@ -7,7 +7,7 @@
     "instantiation": "true",
     "description": "Strength profile for 0.8mm nozzle, prioritizing strength.",
     "bridge_speed": [
-        "50",
+        "30",
         "50"
     ],
     "default_acceleration": [
@@ -15,7 +15,7 @@
         "10000"
     ],
     "gap_infill_speed": [
-        "250",
+        "50",
         "250"
     ],
     "initial_layer_infill_speed": [
