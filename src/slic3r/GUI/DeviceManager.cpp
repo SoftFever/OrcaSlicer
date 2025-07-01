@@ -50,11 +50,11 @@ wxString get_stage_string(int stage)
     case 5:
         return _L("M400 pause");
     case 6:
-        return _L("Paused due to filament runout");
+        return _L("Paused (filament ran out)");
     case 7:
-        return _L("Heating hotend");
+        return _L("Heating nozzle");
     case 8:
-        return _L("Calibrating extrusion");
+        return _L("Calibrating dynamic flow");
     case 9:
         return _L("Scanning bed surface");
     case 10:
@@ -70,51 +70,51 @@ wxString get_stage_string(int stage)
     case 15:
         return _L("Checking extruder temperature");
     case 16:
-        return _L("Printing was paused by the user");
+        return _L("Paused by the user");
     case 17:
-        return _L("Pause of front cover falling");
+        return _L("Pause (front cover fall off)");
     case 18:
         return _L("Calibrating the micro lidar");
     case 19:
-        return _L("Calibrating extrusion flow");
+        return _L("Calibrating flow ratio");
     case 20:
-        return _L("Paused due to nozzle temperature malfunction");
+        return _L("Pause (nozzle temperature malfunction)");
     case 21:
-        return _L("Paused due to heat bed temperature malfunction");
+        return _L("Pause (heatbed temperature malfunction)");
     case 22:
         return _L("Filament unloading");
     case 23:
-        return _L("Skip step pause");
+        return _L("Pause (step loss)");
     case 24:
         return _L("Filament loading");
     case 25:
         return _L("Motor noise cancellation");
     case 26:
-        return _L("Paused due to AMS lost");
+        return _L("Pause (AMS offline)");
     case 27:
-        return _L("Paused due to low speed of the heat break fan");
+        return _L("Pause (low speed of the heatbreak fan)");
     case 28:
-        return _L("Paused due to chamber temperature control error");
+        return _L("Pause (chamber temperature control problem)");
     case 29:
         return _L("Cooling chamber");
     case 30:
-        return _L("Paused by the G-code inserted by user");
+        return _L("Pause (G-code inserted by user)");
     case 31:
         return _L("Motor noise showoff");
     case 32:
-        return _L("Nozzle filament covered detected pause");
+        return _L("Pause (nozzle clumping)");
     case 33:
-        return _L("Cutter error pause");
+        return _L("Pause (cutter error)");
     case 34:
-        return _L("First layer error pause");
+        return _L("Pause (first layer error)");
     case 35:
-        return _L("Nozzle clog pause");
+        return _L("Pause (nozzle clog)");
     case 36:
-        return _L("Check printer absolute accuracy before calibration");
+        return _L("Measuring motion percision");
     case 37:
-        return _L("Absolute accuracy calibration");
+        return _L("Enhancing motion percision");
     case 38:
-        return _L("Check printer absolute accuracy after calibration");
+        return _L("Measure motion accuracy");
     case 39:
         return _L("Nozzle offset calibration");
     case 40:
@@ -128,9 +128,9 @@ wxString get_stage_string(int stage)
     case 44:
         return _L("Auto Check: Platform");
     case 45:
-        return _L("Confirming birdeye camera position");
+        return _L("Confirming BirdsEye Camera location");
     case 46:
-        return _L("Calibrating birdeye camera");
+        return _L("Calibrating BirdsEye Camera");
     case 47:
         return _L("Auto bed leveling -phase 1");
     case 48:
@@ -138,11 +138,21 @@ wxString get_stage_string(int stage)
     case 49:
         return _L("Heating chamber");
     case 50:
-        return _L("Heated bed cooling");
+        return _L("Cooling heatbed");
     case 51:
         return _L("Printing calibration lines");
+    case 52:
+        return _L("Auto Check: Material");
+    case 53:
+        return _L("Live View Camera Calibration");
+    case 54:
+        return _L("Waiting for heatbed to reach target temperature");
+    case 55:
+        return _L("Auto Check: Material Position");
+    case 56:
+        return _L("Cutting Module Offset Calibration");
     default:
-        ;
+        BOOST_LOG_TRIVIAL(info) << "stage = " << stage;
     }
     return "";
 }
