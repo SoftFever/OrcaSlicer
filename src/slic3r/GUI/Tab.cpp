@@ -2395,10 +2395,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("single_extruder_multi_material_priming", "multimaterial_settings_prime_tower");
 
         optgroup = page->new_optgroup(L("Filament for Features"), L"param_filament_for_features");
-        optgroup->append_single_option_line("wall_filament");
-        optgroup->append_single_option_line("sparse_infill_filament");
-        optgroup->append_single_option_line("solid_infill_filament");
-        optgroup->append_single_option_line("wipe_tower_filament");
+        optgroup->append_single_option_line("wall_filament", "multimaterial_settings_filament_for_features#walls");
+        optgroup->append_single_option_line("sparse_infill_filament", "multimaterial_settings_filament_for_features#infill");
+        optgroup->append_single_option_line("solid_infill_filament", "multimaterial_settings_filament_for_features#solid-infill");
+        optgroup->append_single_option_line("wipe_tower_filament", "multimaterial_settings_filament_for_features#wipe-tower");
 
         optgroup = page->new_optgroup(L("Ooze prevention"), L"param_ooze_prevention");
         optgroup->append_single_option_line("ooze_prevention", "multimaterial_settings_ooze_prevention");

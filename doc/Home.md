@@ -108,6 +108,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 ![process-multimaterial](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-multimaterial.png?raw=true)
 
 - [Prime Tower](multimaterial_settings_prime_tower)
+- [Filament for Features](multimaterial_settings_filament_for_features)
 - [Ooze Prevention](multimaterial_settings_ooze_prevention)
 - [Flush Options](multimaterial_settings_flush_options)
 - [Advanced](multimaterial_settings_advanced)
