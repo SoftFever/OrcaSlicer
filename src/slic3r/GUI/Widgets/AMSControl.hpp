@@ -138,7 +138,9 @@ public:
     void SetAmsModel(AMSModel mode, AMSModel ext_mode) {m_ams_model = mode; m_ext_model = ext_mode;};
     void AmsSelectedSwitch(wxCommandEvent& event);
 
-	void SetActionState(bool button_status[]);
+    void EnableLoadFilamentBtn(bool enable, const std::string& ams_id, const std::string& can_id, const wxString& tips);
+    void EnableUnLoadFilamentBtn(bool enable, const std::string& ams_id, const std::string& can_id,const wxString& tips);
+
     void EnterNoneAMSMode();
     void EnterGenericAMSMode();
     void EnterExtraAMSMode();

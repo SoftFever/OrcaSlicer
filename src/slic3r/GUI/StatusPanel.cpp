@@ -3488,15 +3488,12 @@ void StatusPanel::update_ams_insert_material(MachineObject* obj) {
 
 void StatusPanel::update_ams_control_state(std::string ams_id, std::string slot_id)
 {
-    // set default value to true
-    bool enable[ACTION_BTN_COUNT];
-    enable[ACTION_BTN_LOAD] = true;
-    enable[ACTION_BTN_UNLOAD] = true;
+    wxString load_error_info, unload_error_info;
 
     if (obj->is_in_printing() && !obj->can_resume()) {
         if (!obj->can_resume() || obj->is_in_extrusion_cali()) {
-            enable[ACTION_BTN_LOAD]   = false;
-            enable[ACTION_BTN_UNLOAD] = false;
+            load_error_info = _L("The printer is busy on other print job");
+            unload_error_info = _L("The printer is busy on other print job");
         }
     } else {
         /*switch now*/
@@ -3509,38 +3506,45 @@ void StatusPanel::update_ams_control_state(std::string ams_id, std::string slot_
         }
 
         if (in_switch_filament) {
-            enable[ACTION_BTN_LOAD]   = false;
-            enable[ACTION_BTN_UNLOAD] = false;
+            load_error_info = _L("Current extruder is busy changing filament");
+            unload_error_info = _L("Current extruder is busy changing filament");
         }
 
         if (ams_id.empty() || slot_id.empty()) {
-            enable[ACTION_BTN_LOAD]   = false;
-            enable[ACTION_BTN_UNLOAD] = false;
+            load_error_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
+            unload_error_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
         } else if (ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
             for (auto ext : obj->m_extder_data.extders) {
-                if (ext.snow.ams_id == ams_id && ext.snow.slot_id == slot_id) { enable[ACTION_BTN_LOAD] = false; }
+                if (ext.snow.ams_id == ams_id && ext.snow.slot_id == slot_id) {
+                    load_error_info = _L("Current slot has alread been loaded");
+                }
             }
         } else {
             for (auto ext : obj->m_extder_data.extders) {
-                if (ext.snow.ams_id == ams_id && ext.snow.slot_id == slot_id) { enable[ACTION_BTN_LOAD] = false; }
+                if (ext.snow.ams_id == ams_id && ext.snow.slot_id == slot_id) {
+                    load_error_info = _L("Current slot has alread been loaded");
+                }
             }
 
             /*empty*/
             std::map<std::string, Ams *>::iterator it = obj->amsList.find(ams_id);
             if (it == obj->amsList.end()) {
-                enable[ACTION_BTN_LOAD] = false;
-
+                load_error_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
             } else {
                 auto tray_it = it->second->trayList.find(slot_id);
+                if (tray_it == it->second->trayList.end()) { 
+                    load_error_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
+                }
 
-                if (tray_it == it->second->trayList.end()) { enable[ACTION_BTN_LOAD] = false; }
-
-                if (!tray_it->second->is_exists) { enable[ACTION_BTN_LOAD] = false; }
+                if (!tray_it->second->is_exists) {
+                    load_error_info = _L("The selected slot is empty.");
+                }
             }
         }
     }
 
-    m_ams_control->SetActionState(enable);
+    m_ams_control->EnableLoadFilamentBtn(load_error_info.empty(), ams_id, slot_id, load_error_info);
+    m_ams_control->EnableUnLoadFilamentBtn(unload_error_info.empty(), ams_id, slot_id,unload_error_info);
 }
 
 void StatusPanel::update_cali(MachineObject *obj)

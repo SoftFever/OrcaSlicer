@@ -186,6 +186,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extruder_feed->SetTextColor(btn_text_green);
     m_button_extruder_feed->SetMinSize(wxSize(FromDIP(80),FromDIP(34)));
     m_button_extruder_feed->SetMaxSize(wxSize(FromDIP(80),FromDIP(34)));
+    m_button_extruder_feed->EnableTooltipEvenDisabled();
 
 
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_extruder_feed->SetFont(Label::Body_9);
@@ -206,6 +207,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extruder_back->SetFont(Label::Body_13);
     m_button_extruder_back->SetMinSize(wxSize(FromDIP(80), FromDIP(34)));
     m_button_extruder_back->SetMaxSize(wxSize(FromDIP(80), FromDIP(34)));
+    m_button_extruder_back->EnableTooltipEvenDisabled();
 
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_extruder_back->SetFont(Label::Body_9);
@@ -406,13 +408,22 @@ wxColour AMSControl::GetCanColour(std::string amsid, std::string canid)
     return col;
 }
 
-void AMSControl::SetActionState(bool button_status[])
+void AMSControl::EnableLoadFilamentBtn(bool enable, const std::string& ams_id, const std::string& can_id,const wxString& tips)
 {
-    if (button_status[ActionButton::ACTION_BTN_LOAD]) m_button_extruder_feed->Enable();
-    else m_button_extruder_feed->Disable();
+    m_button_extruder_feed->Enable(enable);
+    if (m_button_extruder_feed->GetToolTipText() != tips) {
+        BOOST_LOG_TRIVIAL(info) << "ams_id=" << ams_id << ", can_id=" << can_id << "  Set Load Filament Button ToolTip : " << tips.ToUTF8();
+        m_button_extruder_feed->SetToolTip(tips);
+    }
+}
 
-    if (button_status[ActionButton::ACTION_BTN_UNLOAD]) m_button_extruder_back->Enable();
-    else m_button_extruder_back->Disable();
+void AMSControl::EnableUnLoadFilamentBtn(bool enable, const std::string& ams_id, const std::string& can_id,const wxString& tips)
+{
+    m_button_extruder_back->Enable(enable);
+    if (m_button_extruder_back->GetToolTipText() != tips) {
+        BOOST_LOG_TRIVIAL(info) << "ams_id=" << ams_id << ", can_id=" << can_id << "  Set Unload Filament Button ToolTip : " << tips.ToUTF8();
+        m_button_extruder_back->SetToolTip(tips);
+    }
 }
 
 void AMSControl::EnterNoneAMSMode()
