@@ -1,5 +1,3 @@
 # Ooze prevention
 
-WIP...
-
-CHECK WHAT ENABLES THIS SETTING
+This option will drop the temperature of the inactive extruders to prevent oozing.
