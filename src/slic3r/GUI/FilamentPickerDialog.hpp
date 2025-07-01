@@ -56,6 +56,7 @@ private:
 
     // UI update methods
     void UpdatePreview(const FilamentColorCode& filament);
+    void UpdateCustomColorPreview(const wxColour& custom_color);
     void UpdateButtonStates(wxBitmapButton* selected_btn);
 
     // Shaped window methods
@@ -64,6 +65,7 @@ private:
 
     // Data loading
     bool LoadFilamentData(const wxString& fila_id);
+    wxColourData GetSingleColorData();
 
     // UI elements
     wxStaticBitmap* m_color_demo{nullptr};

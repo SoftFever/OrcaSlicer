@@ -1421,13 +1421,11 @@ FilamentColor PlaterPresetComboBox::get_cur_color_info()
 
 void PlaterPresetComboBox::show_default_color_picker()
 {
-    wxColourDialog dialog(this, &m_clrData);
-    dialog.SetTitle(_L("Please choose the filament colour"));
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        m_clrData = dialog.GetColourData();
-        std::vector<std::string> color = {m_clrData.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString()};
-        this->sync_colour_config(color, false);
+    wxColourData data = show_sys_picker_dialog(this, m_clrData);
+    if(m_clrData.GetColour() != data.GetColour()) {
+        std::vector<std::string> color = {data.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString()};
+        m_clrData.SetColour(data.GetColour());
+        sync_colour_config(color, false);
     }
 }
 

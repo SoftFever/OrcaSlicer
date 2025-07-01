@@ -581,6 +581,19 @@ std::vector<std::vector<std::string>> read_color_pack(std::vector<std::string> c
     return color_info;
 }
 
+wxColourData show_sys_picker_dialog(wxWindow *parent, const wxColourData &clr_data)
+{
+    wxColourData data;
+    data.SetChooseFull(true);
+    data.SetColour(clr_data.GetColour());
+    wxColourDialog dialog(parent, &data);
+    dialog.SetTitle(_L("Please choose the filament colour"));
+    if (dialog.ShowModal() == wxID_OK) {
+        data = dialog.GetColourData();
+    }
+    return data;
+}
+
 wxBitmap *get_extruder_color_icon(std::vector<std::string> colors, bool is_gradient, std::string label, int icon_width, int icon_height){
 
     static Slic3r::GUI::BitmapCache bmp_cache;
@@ -750,7 +763,6 @@ void apply_extruder_selector(Slic3r::GUI::BitmapComboBox** ctrl,
     }
     (*ctrl)->SetSelection(0);
 }
-
 
 // ----------------------------------------------------------------------------
 // LockButton

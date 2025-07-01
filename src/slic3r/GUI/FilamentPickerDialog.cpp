@@ -7,6 +7,7 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/StateColor.hpp"
+#include "wxExtensions.hpp"
 #include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -283,6 +284,14 @@ void FilamentPickerDialog::SetupLabelsContent(const FilamentColor &fila_color, c
             }
         }
     }
+    else{
+        if (fila_color.ColorCount() == 1) {
+            m_label_preview_color->SetLabel(fila_color.m_colors.begin()->GetAsString(wxC2S_HTML_SYNTAX));
+        }
+        else{
+            m_label_preview_color->SetLabel(_L("Multiple Color"));
+        }
+    }
 }
 
 wxBoxSizer* FilamentPickerDialog::CreateSeparatorLine()
@@ -441,6 +450,28 @@ void FilamentPickerDialog::UpdatePreview(const FilamentColorCode& color_code)
     Layout();
 }
 
+void FilamentPickerDialog::UpdateCustomColorPreview(const wxColour& custom_color)
+{
+    std::vector<wxColour> wx_colors = {custom_color};
+
+    // Update preview bitmap
+    wxBitmap bmp = create_filament_bitmap(wx_colors, COLOR_DEMO_SIZE, false);
+
+    if (bmp.IsOk()) {
+        BOOST_LOG_TRIVIAL(debug) << "Custom color bitmap created successfully: " << bmp.GetWidth() << "x" << bmp.GetHeight();
+        m_color_demo->SetBitmap(bmp);
+        m_color_demo->SetBackgroundColour(custom_color);
+        m_color_demo->Refresh();
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "Failed to create custom color bitmap";
+    }
+
+    // Update preview labels for custom color
+    m_label_preview_color->SetLabel(custom_color.GetAsString(wxC2S_HTML_SYNTAX));
+    m_label_preview_idx->SetLabel(_L(""));
+    Layout();
+}
+
 void FilamentPickerDialog::UpdateButtonStates(wxBitmapButton* selected_btn)
 {
     // Reset selected button appearance
@@ -530,6 +561,16 @@ wxBoxSizer* FilamentPickerDialog::CreateButtonPanel()
     return btn_sizer;
 }
 
+wxColourData FilamentPickerDialog::GetSingleColorData()
+{
+    wxColourData data;
+    data.SetChooseFull(true);
+    if (m_current_filament_color.ColorCount() > 0) {
+        data.SetColour(*m_current_filament_color.m_colors.begin());
+    }
+    return data;
+}
+
 void FilamentPickerDialog::BindEvents()
 {
     // Bind mouse events
@@ -555,10 +596,23 @@ void FilamentPickerDialog::BindEvents()
     // Bind more colors button event
     if (m_more_btn) {
         m_more_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-            auto parent = dynamic_cast<PlaterPresetComboBox*>(GetParent());
-            if (parent) {
-                parent->show_default_color_picker();
-                EndModal(wxID_CANCEL);
+            wxColourData original_data = GetSingleColorData();
+            wxColourData result = show_sys_picker_dialog(this, original_data);
+
+            // Check if user actually selected a different color
+            if (result.GetColour() != original_data.GetColour()) {
+                wxColour selected_color = result.GetColour();
+
+                // Update m_current_filament_color with the selected color
+                m_current_filament_color.m_colors.clear();
+                m_current_filament_color.m_colors.insert(selected_color);
+                m_current_filament_color.m_color_type = FilamentColor::ColorType::SINGLE_CLR;
+
+                // Update preview
+                UpdateCustomColorPreview(selected_color);
+
+                // Clear currently selected button since custom color selected
+                UpdateButtonStates(nullptr);
             }
         });
     }

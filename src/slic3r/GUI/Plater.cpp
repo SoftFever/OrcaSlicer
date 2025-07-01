@@ -5826,7 +5826,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                     }
                                     // If there is no multi-color data or color is not match, use single color as default value
                                     for (size_t i = 0; i < filament_count; i++) {
-                                        std::vector<std::string> colors = Slic3r::split_string(filament_multi_color->values[i], ',');
+                                        std::vector<std::string> colors = Slic3r::split_string(filament_multi_color->values[i], ' ');
                                         if (i >= filament_multi_color->values.size() || colors.empty() || colors[0] != filament_color->values[i] ) {
                                             filament_multi_color->values[i] = filament_color->values[i];
                                         }
