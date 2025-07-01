@@ -39,12 +39,4 @@ Add solid infill near sloping surfaces to guarantee the vertical shell thickness
 - **None**: No solid infill will be added anywhere. Caution: Use this option carefully if your model has sloped surfaces.
 - **Critical Only**: Avoid adding solid infill for walls.
 - **Moderate**: Add solid infill for heavily sloping surfaces only.
-- **All**: Add solid infill for all suitable sloping surfaces.
-
-Default value is All.
-"None: No solid infill will be added anywhere. Caution: Use this option "
-"carefully if your model has sloped surfaces\n"
-"Critical Only: Avoid adding solid infill for walls\n"
-"Moderate: Add solid infill for heavily sloping surfaces only\n"
-"All: Add solid infill for all suitable sloping surfaces\n"
-"Default value is All.
+- **All (default)**: Add solid infill for all suitable sloping surfaces.
