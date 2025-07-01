@@ -1,7 +1,5 @@
 # Acceleration
 
-WIP...
-
 ## Normal printing
 
 The default acceleration of both normal printing and travel except initial layer.
