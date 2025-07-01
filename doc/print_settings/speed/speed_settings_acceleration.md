@@ -1,8 +1,12 @@
 # Acceleration
 
+Acceleration in 3D printing is usually set on the printer's firmware settings.  
+This setting will try to override the acceleration when [normal printing acceleration](#normal-printing) value is different than 0.
+Orca will limit the acceleration to not exceed the acceleration set in the Printer's Motion Ability settings.
+
 ## Normal printing
 
-The default acceleration of both normal printing and travel except initial layer.
+The default acceleration of both normal printing and travel.
 
 ## Outer wall
 
