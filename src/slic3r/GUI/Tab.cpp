@@ -3573,7 +3573,9 @@ void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* print
                                             // "filament_seam_gap"
                                         };
 
-    const int extruder_idx = m_variant_combo->GetSelection(); // #ys_FIXME
+    const int selection = 0; //m_variant_combo->GetSelection(); // TODO: Orca hack
+    auto opt = dynamic_cast<ConfigOptionVectorBase *>(m_config->option("filament_retraction_length"));
+    const int extruder_idx = selection < 0 || selection >= static_cast<int>(opt->size()) ? 0 : selection;
 
     const bool have_retract_length = dynamic_cast<ConfigOptionVectorBase *>(m_config->option("filament_retraction_length"))->is_nil(extruder_idx) ||
                                      m_config->opt_float("filament_retraction_length", extruder_idx) > 0;
