@@ -1,3 +1,3 @@
 # Notes
 
-WIP...
+You can put your notes regarding the filament here.
