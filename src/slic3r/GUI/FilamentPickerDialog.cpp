@@ -227,10 +227,18 @@ wxBoxSizer* FilamentPickerDialog::CreateInfoSection()
     info_box->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     wxStaticBoxSizer *box_sizer = new wxStaticBoxSizer(info_box, wxHORIZONTAL);
 
-    // Create labels
-    m_label_preview_color = new wxStaticText(this, wxID_ANY, _L("Custom Color"));
-    m_label_preview_idx = new wxStaticText(this, wxID_ANY, _L(""));
-    m_label_preview_type = new wxStaticText(this, wxID_ANY, _L(""));
+    // Create labels with ellipsize style for text overflow
+    m_label_preview_color = new wxStaticText(this, wxID_ANY, _L("Custom Color"),
+                                           wxDefaultPosition, wxDefaultSize,
+                                           wxST_ELLIPSIZE_END);
+    m_label_preview_idx = new wxStaticText(this, wxID_ANY, _L(""),
+                                         wxDefaultPosition, wxDefaultSize); // No size limit, no ellipsis
+    m_label_preview_type = new wxStaticText(this, wxID_ANY, _L(""),
+                                          wxDefaultPosition, wxSize(FromDIP(220), FromDIP(16)),
+                                          wxST_ELLIPSIZE_END);
+
+    // Set maximum width for color label to enable proper ellipsis behavior
+    m_label_preview_color->SetMaxSize(wxSize(FromDIP(160), -1));
 
     // Setup fonts
     wxFont bold_font = m_label_preview_color->GetFont();
@@ -242,7 +250,6 @@ wxBoxSizer* FilamentPickerDialog::CreateInfoSection()
     m_label_preview_idx->SetFont(bold_font);
 
     m_label_preview_type->SetForegroundColour(wxColour(128, 128, 128));
-    m_label_preview_type->SetSize(wxSize(FromDIP(240), FromDIP(16)));
 #ifdef __WXMSW__
     wxFont type_font = m_label_preview_type->GetFont();
     type_font.SetPointSize(FromDIP(8));
@@ -271,7 +278,7 @@ wxBoxSizer* FilamentPickerDialog::CreateInfoSection()
 
 void FilamentPickerDialog::SetupLabelsContent(const FilamentColor &fila_color, const std::string &fila_type)
 {
-    m_label_preview_type->SetLabel(fila_type);
+    m_label_preview_type->SetLabel(from_u8(fila_type));
     if (m_cur_color_name && !m_cur_color_name->IsEmpty()) {
         m_label_preview_color->SetLabel(*m_cur_color_name);
 
@@ -280,7 +287,6 @@ void FilamentPickerDialog::SetupLabelsContent(const FilamentColor &fila_color, c
             FilamentColorCode *color_code = m_current_color_codes->GetColorCode(fila_color);
             if (color_code) {
                 m_label_preview_idx->SetLabel(wxString::Format("(%s)", color_code->GetFilaColorCode()));
-                m_label_preview_type->SetLabel(color_code->GetFilaType());
             }
         }
     }
@@ -446,7 +452,6 @@ void FilamentPickerDialog::UpdatePreview(const FilamentColorCode& color_code)
     // Update preview labels
     m_label_preview_color->SetLabel(color_code.GetFilaColorName());
     m_label_preview_idx->SetLabel(wxString::Format("(%s)", color_code.GetFilaColorCode()));
-    m_label_preview_type->SetLabel(color_code.GetFilaType());
     Layout();
 }
 
