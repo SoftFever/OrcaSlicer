@@ -111,7 +111,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
-          path: ./scripts/orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
+          path: ./orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
 
       - name: Deploy profiles to nightly release
         if: ${{ github.ref == 'refs/heads/main' }}
