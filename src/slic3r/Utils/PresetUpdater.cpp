@@ -665,7 +665,7 @@ void PresetUpdater::priv::sync_config()
     AppConfig *app_config = GUI::wxGetApp().app_config;
 
     std::string profile_update_url;
-    if (SoftFever_VERSION.find(".dev") != std::string::npos) {
+    if (std::string(SoftFever_VERSION).find("-dev") != std::string::npos) {
         profile_update_url = app_config->profile_update_url() + "/nightly-builds";
     } else {
         profile_update_url = app_config->profile_update_url() + "/" + SoftFever_VERSION;
