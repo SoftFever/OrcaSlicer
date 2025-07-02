@@ -126,7 +126,7 @@ jobs:
     name: Generate and Upload Profiles Package (Release)
     if: ${{github.ref == 'refs/heads/main'}}
     runs-on: ubuntu-latest
-    needs: build_all
+    # needs: build_all
     steps:
       - uses: actions/checkout@v4
 
