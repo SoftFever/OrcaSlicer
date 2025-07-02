@@ -664,7 +664,7 @@ void PresetUpdater::priv::sync_config()
     }
     AppConfig *app_config = GUI::wxGetApp().app_config;
 
-    auto profile_update_url = app_config->profile_update_url() + "/" + SoftFever_VERSION;
+    auto profile_update_url = app_config->profile_update_url() + "/" + "nightly-builds";
     // parse the assets section and get the latest asset by comparing the name
 
     Http::get(profile_update_url)
