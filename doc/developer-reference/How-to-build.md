@@ -1,33 +1,33 @@
-<!--
 # How to Build
--->
 
-This wiki page provides detailed instructions for building OrcaSlicer from source on different operating systems, including Windows, macOS, and Linux. 
-It includes tool requirements, setup commands, and build steps for each platform. Whether you're a contributor or just want a custom build, 
-this guide will help you compile OrcaSlicer successfully.
+This wiki page provides detailed instructions for building OrcaSlicer from source on different operating systems, including Windows, macOS, and Linux.  
+It includes tool requirements, setup commands, and build steps for each platform.
+
+Whether you're a contributor or just want a custom build, this guide will help you compile OrcaSlicer successfully.
 
 - [Windows 64-bit](#windows-64-bit)
-  - [Tools Required](#tools-required)
-  - [Instructions](#instructions)
-- [macOS 64-bit](#macos-64-bit)
-  - [Tools Required](#tools-required-1)
-  - [Instructions](#instructions-1)
+  - [Windows Tools Required](#windows-tools-required)
+  - [Windows Instructions](#windows-instructions)
+- [MacOS 64-bit](#macos-64-bit)
+  - [MacOS Tools Required](#macos-tools-required)
+  - [MacOS Instructions](#macos-instructions)
   - [Debugging in Xcode](#debugging-in-xcode)
 - [Linux](#linux)
   - [Using Docker (Recommended)](#using-docker-recommended)
-    - [Dependencies](#dependencies)
-    - [Instructions](#instructions-2)
+    - [Docker Dependencies](#docker-dependencies)
+    - [Docker Instructions](#docker-instructions)
   - [Troubleshooting](#troubleshooting)
 - [Ubuntu](#ubuntu)
-  - [Dependencies](#dependencies-1)
-  - [Instructions](#instructions-3)
+  - [Ubuntu Dependencies](#ubuntu-dependencies)
+  - [Ubuntu Instructions](#ubuntu-instructions)
 - [Portable User Configuration](#portable-user-configuration)
+  - [Example folder structure](#example-folder-structure)
 
 ## Windows 64-bit
 
-how to building with your Visual Studio 2022 on Windows 64-bit.
+How to building with Visual Studio 2022 on Windows 64-bit.
 
-### Tools Required
+### Windows Tools Required
 
 - [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or Visual Studio 2019
   ```shell
@@ -56,7 +56,7 @@ how to building with your Visual Studio 2022 on Windows 64-bit.
 > winget install --id=GitHub.GitHubDesktop -e
 > ```
 
-### Instructions
+### Windows Instructions
 
 1. Clone the repository:
    - If using GitHub Desktop clone the repository from the GUI.
@@ -99,9 +99,9 @@ how to building with your Visual Studio 2022 on Windows 64-bit.
 
 ## MacOS 64-bit
 
-how to building with your Visual Studio 2022 on MacOS 64-bit.
+How to building with Xcode on MacOS 64-bit.
 
-### Tools Required
+### MacOS Tools Required
 
 - Xcode
 - CMake (version 3.31.x is mandatory)
@@ -139,7 +139,7 @@ cmake --version
 > [!IMPORTANT]
 > If you've recently upgraded Xcode, be sure to open Xcode at least once and install the required macOS build support.
 
-### Instructions
+### MacOS Instructions
 
 1. Clone the repository:
    ```shell
@@ -172,16 +172,18 @@ To build and debug directly in Xcode:
 
 ## Linux
 
-how to building with your Visual Studio 2022 on Linux.
+Linux instructions are available in two formats: using Docker (recommended) or building directly on your system.
 
 ### Using Docker (Recommended)
 
-#### Dependencies
+How to build and run OrcaSlicer using Docker.
+
+#### Docker Dependencies
 
 - Docker
 - Git
 
-#### Instructions
+#### Docker Instructions
 
 ```shell
 git clone https://github.com/SoftFever/OrcaSlicer && cd OrcaSlicer && ./DockerBuild.sh && ./DockerRun.sh
@@ -206,7 +208,9 @@ By uncommenting and using these options as needed, you can often resolve issues 
 
 ## Ubuntu
 
-### Dependencies
+How to build OrcaSlicer on Ubuntu.
+
+### Ubuntu Dependencies
 
 All required dependencies will be installed automatically by the provided shell script, including:
 
@@ -226,7 +230,7 @@ All required dependencies will be installed automatically by the provided shell 
 - git
 - texinfo
 
-### Instructions
+### Ubuntu Instructions
 
 ```shell
 `./build_linux.sh -u`      # install dependencies
@@ -244,7 +248,7 @@ This allows for multiple self-contained installations with separate user data.
 
 ### Example folder structure
 
-```
+```shell
 OrcaSlicer.exe
 data_dir/
 ```
