@@ -2361,6 +2361,14 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->set_default_value(new ConfigOptionPercent(20));
 
+    // Infill multiline
+    def             = this->add("fill_multiline", coInt);
+    def->label      = L("Fill Multiline");
+    def->tooltip    = L("Using multiple lines for the infill pattern, if supported by infill pattern.");
+    def->min = 1;
+    def->max = 5; // Maximum number of lines for infill pattern
+    def->set_default_value(new ConfigOptionInt(1));
+
     def = this->add("sparse_infill_pattern", coEnum);
     def->label = L("Sparse infill pattern");
     def->category = L("Strength");
@@ -3189,7 +3197,7 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "nozzle_diameter";
     def->min      = 0;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0.4, false));
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def           = this->add("skeleton_infill_line_width", coFloatOrPercent);
     def->label    = L("Skeleton line width");
@@ -3199,7 +3207,7 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "nozzle_diameter";
     def->min      = 0;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0.4, false));
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def           = this->add("symmetric_infill_y_axis", coBool);
     def->label    = L("Symmetric infill y axis");

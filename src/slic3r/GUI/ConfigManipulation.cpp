@@ -294,6 +294,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
+    int    fill_multiline        = config->option<ConfigOptionInt>("fill_multiline")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
     if (!is_plate_config &&
@@ -546,6 +547,20 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
     toggle_line("infill_combination_max_layer_height", have_combined_infill);
 
+    // Infill patterns that support multiline infill.
+    InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
+    bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear || pattern == ipTpmsD || pattern == ipCrossHatch || pattern == ipHoneycomb ||
+                                                  pattern == ipCubic || pattern == ipStars || pattern == ipAlignedRectilinear || pattern == ipLightning || pattern == ip3DHoneycomb || pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
+    toggle_line("fill_multiline", have_multiline_infill_pattern);
+
+    // If the infill pattern does not support multiline infill, set fill_multiline to 1.
+    if (have_multiline_infill_pattern==false) {
+        DynamicPrintConfig new_conf = *config;
+        new_conf.set_key_value("fill_multiline", new ConfigOptionInt(1));
+        apply(config, &new_conf);
+    }
+
+    // Hide infill anchor max if sparse_infill_pattern is not line or if sparse_infill_pattern is line but infill_anchor_max is 0.
     bool infill_anchor = config->opt_enum<InfillPattern>("sparse_infill_pattern") != ipLine;
     toggle_field("infill_anchor_max",infill_anchor);
 
@@ -576,6 +591,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_solid_infill = has_top_shell || has_bottom_shell;
     toggle_field("top_surface_pattern", has_top_shell);
     toggle_field("bottom_surface_pattern", has_bottom_shell);
+    toggle_field("top_surface_density", has_top_shell);
+    toggle_field("bottom_surface_density", has_bottom_shell);
 
     for (auto el : { "infill_direction", "sparse_infill_line_width",
         "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle", "internal_bridge_angle",
