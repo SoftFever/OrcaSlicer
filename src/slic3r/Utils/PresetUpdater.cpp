@@ -237,15 +237,28 @@ struct PresetUpdater::priv
 //BBS: change directories by design
 PresetUpdater::priv::priv()
 	: cache_path(fs::path(Slic3r::data_dir()) / "ota")
-	, rsrc_path(fs::path(resources_dir()) / "profiles")
+    , rsrc_path(fs::path(data_dir()) / "ota" / "profiles")
 	, vendor_path(fs::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR)
 	, cancel(false)
 {
 	//BBS: refine preset updater logic
 	enabled_version_check = true;
 	set_download_prefs(GUI::wxGetApp().app_config);
+
 	// Install indicies from resources. Only installs those that are either missing or older than in resources.
-	check_installed_vendor_profiles();
+    if (!fs::exists(vendor_path) || fs::is_empty(vendor_path)) {
+        BOOST_LOG_TRIVIAL(info) << "[Orca Updater]: vendor_path missing or empty, syncing profiles OTA";
+
+        // Sincronizza i profili in modo sincrono
+        sync_config();
+
+        if (fs::exists(rsrc_path))
+            check_installed_vendor_profiles();
+        else
+            BOOST_LOG_TRIVIAL(warning) << "[Orca Updater]: OTA profile sync failed or missing.";
+    }
+
+
     perform_updates(get_printer_config_updates(), false);
 	// Load indices from the cache directory.
 	//index_db = Index::load_db();
@@ -666,7 +679,7 @@ void PresetUpdater::priv::sync_config()
 
     auto profile_update_url = app_config->profile_update_url() + "/" + SoftFever_VERSION;
     // parse the assets section and get the latest asset by comparing the name
-
+    
     Http::get(profile_update_url)
         .on_error([cache_profile_path, cache_profile_update_file](std::string body, std::string error, unsigned http_status) {
             // Orca: we check the response body to see if it's "Not Found", if so, it means for the current Orca version we don't have OTA

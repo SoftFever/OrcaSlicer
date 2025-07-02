@@ -994,7 +994,7 @@ int GuideFrame::LoadProfileData()
         m_ProfileJson["process"]  = json::array();
 
         vendor_dir      = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
-        rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
+        rsrc_vendor_dir = (boost::filesystem::path(data_dir()) / "ota" / "profiles").make_preferred();
 
         // Orca: add custom as default
         // Orca: add json logic for vendor bundle
@@ -1221,7 +1221,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
 
             // wxString strCoverPath = wxString::Format("%s\\%s\\%s_cover.png", strFolder, strVendor, std::string(s1.mb_str()));
             std::string             cover_file = s1 + "_cover.png";
-            boost::filesystem::path cover_path = boost::filesystem::absolute(boost::filesystem::path(resources_dir()) / "/profiles/" / strVendor / cover_file).make_preferred();
+            boost::filesystem::path cover_path = boost::filesystem::absolute(boost::filesystem::path(data_dir()) / "/ota/profiles/" / strVendor / cover_file).make_preferred();
             if (!boost::filesystem::exists(cover_path)) {
                 cover_path =
                     (boost::filesystem::absolute(boost::filesystem::path(resources_dir()) / "/web/image/printer/") /
