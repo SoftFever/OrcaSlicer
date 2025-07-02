@@ -122,3 +122,28 @@ jobs:
         asset_name: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
         asset_content_type: application/octet-stream
         max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
+  generate_profiles_release:
+    name: Generate and Upload Profiles Package (Release)
+    if: ${{github.ref == 'refs/heads/main'}}
+    runs-on: ubuntu-latest
+    needs: build_all
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from version.inc
+        id: get_version
+        run: |
+          ver_pure=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
+          echo "ver_pure=$ver_pure" >> $GITHUB_OUTPUT
+
+      - name: Run profile pack script
+        run: |
+          chmod +x ./scripts/pack_profiles.sh
+          ./scripts/pack_profiles.sh ${{ steps.get_version.outputs.ver_pure }} 1 OrcaFilamentLibrary BBL
+
+      - name: Upload profiles package as release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "orcaslicer-profiles_ota_${{ steps.get_version.outputs.ver_pure }}.1.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
