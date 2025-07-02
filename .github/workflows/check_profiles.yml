@@ -117,9 +117,11 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
-          release_id: 137995723
-          asset_path: ./orcaslicer-profiles_ota_${{ env.VERSION }}.${{ env.NUMBER }}.zip
-          asset_name: orcaslicer-profiles_ota_${{ env.VERSION }}.${{ env.NUMBER }}.zip
+          # upload_url: https://uploads.github.com/repos/gingeradditive/OrcaSlicer/releases/137995723/assets{?name,label}
+          # release_id: 137995723
+          upload_url: https://uploads.github.com/repos/gingeradditive/OrcaSlicer/releases/229318516/assets{?name,label}  
+          release_id: 229318516
+          asset_path: ./orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
+          asset_name: orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
           asset_content_type: application/zip
           max_releases: 1
