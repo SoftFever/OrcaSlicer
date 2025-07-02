@@ -125,3 +125,34 @@ jobs:
           asset_name: orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
           asset_content_type: application/zip
           max_releases: 1
+
+      - name: Delete old profile assets except the newest
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const releaseId = parseInt('${{ steps.get_release.outputs.result }}');
+            const assets = await github.rest.repos.listReleaseAssets({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId,
+            });
+
+            const version = '${{ steps.vars.outputs.VERSION }}';
+            const newNumber = parseInt('${{ steps.get_number.outputs.result }}');
+
+            for (const asset of assets.data) {
+              const regex = new RegExp(`orcaslicer-profiles_ota_${version}\\.(\\d+)\\.zip`);
+              const match = asset.name.match(regex);
+              if (match) {
+                const num = parseInt(match[1]);
+                if (num !== newNumber) {
+                  console.log(`Deleting asset: ${asset.name} (id ${asset.id})`);
+                  await github.rest.repos.deleteReleaseAsset({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    asset_id: asset.id
+                  });
+                }
+              }
+            }
