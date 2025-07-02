@@ -80,7 +80,7 @@ This setting allows you to generate your selected [infill pattern](#sparse-infil
 > [!WARNING]
 > For self intersecting infills (e.g. [Cubic](#cubic), [Grid](#grid)) multiline count greater than 3 may cause layer shift, extruder clog or other issues due to overlapping of lines on intersection points.
 >
-> ![infill-multiline-overlapping](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-overlapping.png?raw=true)
+> ![infill-multiline-overlapping](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-overlapping.gif?raw=true)
 
 ## Direction and Rotation
 
