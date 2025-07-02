@@ -173,7 +173,7 @@ public:
     PrinterMsgPanel(wxWindow *parent);
 
 public:
-    void  UpdateInfos(const std::vector<prePrintInfo>& infos);
+    bool  UpdateInfos(const std::vector<prePrintInfo>& infos);
 
  private:
     wxBoxSizer*  m_sizer = nullptr;

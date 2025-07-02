@@ -191,11 +191,11 @@ static wxColour _GetLabelColour(const prePrintInfo& info)
     return *wxBLACK; // Default colour for normal messages
 }
 
-void PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
+bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
 {
     if (m_infos == infos)
     {
-        return;
+        return false;
     }
     m_infos = infos;
 
@@ -229,7 +229,10 @@ void PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
 
     this->Show();
     this->Layout();
+
     Fit();
+
+    return true;
 }
 
 

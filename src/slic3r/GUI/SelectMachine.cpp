@@ -1422,8 +1422,12 @@ void SelectMachineDialog::prepare(int print_plate_idx)
 
 void SelectMachineDialog::update_print_status_msg()
 {
-    m_statictext_ams_msg->UpdateInfos(m_pre_print_checker.filamentList);
-    m_text_printer_msg->UpdateInfos(m_pre_print_checker.printerList);
+    bool is_ams_update =  m_statictext_ams_msg->UpdateInfos(m_pre_print_checker.filamentList);
+    bool is_printer_update =  m_text_printer_msg->UpdateInfos(m_pre_print_checker.printerList);
+    if (is_printer_update || is_ams_update) {
+        Layout();
+    }
+
  }
 
 void SelectMachineDialog::update_print_error_info(int code, std::string msg, std::string extra)
