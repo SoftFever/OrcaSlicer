@@ -114,7 +114,7 @@ jobs:
           path: ./orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
 
       - name: Deploy profiles to nightly release
-        if: ${{ github.ref == 'refs/heads/main' }}
+        # if: ${{ github.ref == 'refs/heads/main' }}
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           # upload_url: https://uploads.github.com/repos/gingeradditive/OrcaSlicer/releases/137995723/assets{?name,label}
