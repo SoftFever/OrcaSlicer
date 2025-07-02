@@ -664,9 +664,13 @@ void PresetUpdater::priv::sync_config()
     }
     AppConfig *app_config = GUI::wxGetApp().app_config;
 
-    auto profile_update_url = app_config->profile_update_url() + "/" + "nightly-builds";
-    // parse the assets section and get the latest asset by comparing the name
-
+    std::string profile_update_url;
+    if (SoftFever_VERSION.find(".dev") != std::string::npos) {
+        profile_update_url = app_config->profile_update_url() + "/nightly-builds";
+    } else {
+        profile_update_url = app_config->profile_update_url() + "/" + SoftFever_VERSION;
+    }
+    
     Http::get(profile_update_url)
         .on_error([cache_profile_path, cache_profile_update_file](std::string body, std::string error, unsigned http_status) {
             // Orca: we check the response body to see if it's "Not Found", if so, it means for the current Orca version we don't have OTA
