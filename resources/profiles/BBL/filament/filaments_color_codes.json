@@ -1,7 +1,7 @@
 {
     "data": [
         {
-            "fila_color_code": "A00A0",
+            "fila_color_code": "10300",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -24,7 +24,7 @@
             ]
         },
         {
-            "fila_color_code": "A00A1",
+            "fila_color_code": "10301",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -47,7 +47,7 @@
             ]
         },
         {
-            "fila_color_code": "A00B1",
+            "fila_color_code": "10602",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -70,7 +70,7 @@
             ]
         },
         {
-            "fila_color_code": "A00B3",
+            "fila_color_code": "10604",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -93,7 +93,7 @@
             ]
         },
         {
-            "fila_color_code": "A00B5",
+            "fila_color_code": "10605",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -116,7 +116,7 @@
             ]
         },
         {
-            "fila_color_code": "A00B8",
+            "fila_color_code": "10603",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -139,7 +139,7 @@
             ]
         },
         {
-            "fila_color_code": "A00B9",
+            "fila_color_code": "10601",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -162,7 +162,7 @@
             ]
         },
         {
-            "fila_color_code": "A00D0",
+            "fila_color_code": "10103",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -185,7 +185,7 @@
             ]
         },
         {
-            "fila_color_code": "A00D1",
+            "fila_color_code": "10102",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -208,7 +208,7 @@
             ]
         },
         {
-            "fila_color_code": "A00D2",
+            "fila_color_code": "10104",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -231,7 +231,7 @@
             ]
         },
         {
-            "fila_color_code": "A00D3",
+            "fila_color_code": "10105",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -254,7 +254,7 @@
             ]
         },
         {
-            "fila_color_code": "A00G0",
+            "fila_color_code": "10500",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -277,7 +277,7 @@
             ]
         },
         {
-            "fila_color_code": "A00G2",
+            "fila_color_code": "10502",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -300,7 +300,7 @@
             ]
         },
         {
-            "fila_color_code": "A00G3",
+            "fila_color_code": "10503",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -323,7 +323,7 @@
             ]
         },
         {
-            "fila_color_code": "A00G6",
+            "fila_color_code": "10501",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -346,7 +346,7 @@
             ]
         },
         {
-            "fila_color_code": "A00K0",
+            "fila_color_code": "10101",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -369,7 +369,7 @@
             ]
         },
         {
-            "fila_color_code": "A00M0",
+            "fila_color_code": "10900",
             "fila_id": "GFA00",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Basic",
@@ -393,7 +393,7 @@
             ]
         },
         {
-            "fila_color_code": "A00M1",
+            "fila_color_code": "10901",
             "fila_id": "GFA00",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Basic",
@@ -417,7 +417,7 @@
             ]
         },
         {
-            "fila_color_code": "A00M2",
+            "fila_color_code": "10902",
             "fila_id": "GFA00",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Basic",
@@ -441,7 +441,7 @@
             ]
         },
         {
-            "fila_color_code": "A00M3",
+            "fila_color_code": "10903",
             "fila_id": "GFA00",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Basic",
@@ -465,7 +465,7 @@
             ]
         },
         {
-            "fila_color_code": "A00M4",
+            "fila_color_code": "10904",
             "fila_id": "GFA00",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Basic",
@@ -489,7 +489,7 @@
             ]
         },
         {
-            "fila_color_code": "A00M5",
+            "fila_color_code": "10905",
             "fila_id": "GFA00",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Basic",
@@ -513,7 +513,7 @@
             ]
         },
         {
-            "fila_color_code": "A00M6",
+            "fila_color_code": "10906",
             "fila_id": "GFA00",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Basic",
@@ -537,7 +537,7 @@
             ]
         },
         {
-            "fila_color_code": "A00M7",
+            "fila_color_code": "10907",
             "fila_id": "GFA00",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Basic",
@@ -561,7 +561,7 @@
             ]
         },
         {
-            "fila_color_code": "A00N0",
+            "fila_color_code": "10800",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -584,7 +584,7 @@
             ]
         },
         {
-            "fila_color_code": "A00N1",
+            "fila_color_code": "10802",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -607,7 +607,7 @@
             ]
         },
         {
-            "fila_color_code": "A00P0",
+            "fila_color_code": "10201",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -630,7 +630,7 @@
             ]
         },
         {
-            "fila_color_code": "A00P1",
+            "fila_color_code": "10203",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -653,7 +653,7 @@
             ]
         },
         {
-            "fila_color_code": "A00P2",
+            "fila_color_code": "10701",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -676,7 +676,7 @@
             ]
         },
         {
-            "fila_color_code": "A00P5",
+            "fila_color_code": "10700",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -699,7 +699,7 @@
             ]
         },
         {
-            "fila_color_code": "A00P6",
+            "fila_color_code": "10202",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -722,7 +722,7 @@
             ]
         },
         {
-            "fila_color_code": "A00R0",
+            "fila_color_code": "10200",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -745,7 +745,7 @@
             ]
         },
         {
-            "fila_color_code": "A00R2",
+            "fila_color_code": "10205",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -768,7 +768,7 @@
             ]
         },
         {
-            "fila_color_code": "A00R3",
+            "fila_color_code": "10204",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -791,7 +791,7 @@
             ]
         },
         {
-            "fila_color_code": "A00W1",
+            "fila_color_code": "10100",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -814,7 +814,7 @@
             ]
         },
         {
-            "fila_color_code": "A00W2",
+            "fila_color_code": "10106",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -837,7 +837,7 @@
             ]
         },
         {
-            "fila_color_code": "A00Y0",
+            "fila_color_code": "10400",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -860,7 +860,7 @@
             ]
         },
         {
-            "fila_color_code": "A00Y2",
+            "fila_color_code": "10402",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -883,7 +883,7 @@
             ]
         },
         {
-            "fila_color_code": "A00Y3",
+            "fila_color_code": "10801",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -906,7 +906,7 @@
             ]
         },
         {
-            "fila_color_code": "A00Y4",
+            "fila_color_code": "10401",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
             "fila_type": "PLA Basic",
@@ -929,7 +929,7 @@
             ]
         },
         {
-            "fila_color_code": "A01A2",
+            "fila_color_code": "11300",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -952,7 +952,7 @@
             ]
         },
         {
-            "fila_color_code": "A01B0",
+            "fila_color_code": "11603",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -975,7 +975,7 @@
             ]
         },
         {
-            "fila_color_code": "A01B3",
+            "fila_color_code": "11600",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -998,7 +998,7 @@
             ]
         },
         {
-            "fila_color_code": "A01B4",
+            "fila_color_code": "11601",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1021,7 +1021,7 @@
             ]
         },
         {
-            "fila_color_code": "A01B6",
+            "fila_color_code": "11602",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1044,7 +1044,7 @@
             ]
         },
         {
-            "fila_color_code": "A01D0",
+            "fila_color_code": "11104",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1067,7 +1067,7 @@
             ]
         },
         {
-            "fila_color_code": "A01D3",
+            "fila_color_code": "11102",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1090,7 +1090,7 @@
             ]
         },
         {
-            "fila_color_code": "A01G0",
+            "fila_color_code": "11502",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1113,7 +1113,7 @@
             ]
         },
         {
-            "fila_color_code": "A01G1",
+            "fila_color_code": "11500",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1136,7 +1136,7 @@
             ]
         },
         {
-            "fila_color_code": "A01G7",
+            "fila_color_code": "11501",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1159,7 +1159,7 @@
             ]
         },
         {
-            "fila_color_code": "A01K1",
+            "fila_color_code": "11101",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1182,7 +1182,7 @@
             ]
         },
         {
-            "fila_color_code": "A01N0",
+            "fila_color_code": "11802",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1205,7 +1205,7 @@
             ]
         },
         {
-            "fila_color_code": "A01N1",
+            "fila_color_code": "11800",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1228,7 +1228,7 @@
             ]
         },
         {
-            "fila_color_code": "A01N2",
+            "fila_color_code": "11801",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1251,7 +1251,7 @@
             ]
         },
         {
-            "fila_color_code": "A01N3",
+            "fila_color_code": "11803",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1274,7 +1274,7 @@
             ]
         },
         {
-            "fila_color_code": "A01P3",
+            "fila_color_code": "11201",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1297,7 +1297,7 @@
             ]
         },
         {
-            "fila_color_code": "A01P4",
+            "fila_color_code": "11700",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1320,7 +1320,7 @@
             ]
         },
         {
-            "fila_color_code": "A01R1",
+            "fila_color_code": "11200",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1343,7 +1343,7 @@
             ]
         },
         {
-            "fila_color_code": "A01R2",
+            "fila_color_code": "11203",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1366,7 +1366,7 @@
             ]
         },
         {
-            "fila_color_code": "A01R3",
+            "fila_color_code": "11204",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1389,7 +1389,7 @@
             ]
         },
         {
-            "fila_color_code": "A01R4",
+            "fila_color_code": "11202",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1412,7 +1412,7 @@
             ]
         },
         {
-            "fila_color_code": "A01W2",
+            "fila_color_code": "11100",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1435,7 +1435,7 @@
             ]
         },
         {
-            "fila_color_code": "A01W3",
+            "fila_color_code": "11103",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1458,7 +1458,7 @@
             ]
         },
         {
-            "fila_color_code": "A01Y2",
+            "fila_color_code": "11400",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1481,7 +1481,7 @@
             ]
         },
         {
-            "fila_color_code": "A01Y3",
+            "fila_color_code": "11401",
             "fila_id": "GFA01",
             "fila_color_type": "单色",
             "fila_type": "PLA Matte",
@@ -1504,7 +1504,7 @@
             ]
         },
         {
-            "fila_color_code": "A05B0",
+            "fila_color_code": "13601",
             "fila_id": "GFA05",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk",
@@ -1527,7 +1527,7 @@
             ]
         },
         {
-            "fila_color_code": "A05D1",
+            "fila_color_code": "13104",
             "fila_id": "GFA05",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk",
@@ -1550,7 +1550,7 @@
             ]
         },
         {
-            "fila_color_code": "A05G1",
+            "fila_color_code": "13502",
             "fila_id": "GFA05",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk",
@@ -1573,7 +1573,7 @@
             ]
         },
         {
-            "fila_color_code": "A05N4",
+            "fila_color_code": "13300",
             "fila_id": "GFA05",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk",
@@ -1596,7 +1596,7 @@
             ]
         },
         {
-            "fila_color_code": "A05P3",
+            "fila_color_code": "13202",
             "fila_id": "GFA05",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk",
@@ -1619,7 +1619,7 @@
             ]
         },
         {
-            "fila_color_code": "A05P5",
+            "fila_color_code": "13701",
             "fila_id": "GFA05",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk",
@@ -1642,7 +1642,7 @@
             ]
         },
         {
-            "fila_color_code": "A05T1",
+            "fila_color_code": "13901",
             "fila_id": "GFA05",
             "fila_color_type": "多拼色",
             "fila_type": "PLA Silk",
@@ -1666,7 +1666,7 @@
             ]
         },
         {
-            "fila_color_code": "A05T2",
+            "fila_color_code": "13902",
             "fila_id": "GFA05",
             "fila_color_type": "多拼色",
             "fila_type": "PLA Silk",
@@ -1690,7 +1690,7 @@
             ]
         },
         {
-            "fila_color_code": "A05T3",
+            "fila_color_code": "13903",
             "fila_id": "GFA05",
             "fila_color_type": "多拼色",
             "fila_type": "PLA Silk",
@@ -1714,7 +1714,7 @@
             ]
         },
         {
-            "fila_color_code": "A05T4",
+            "fila_color_code": "13904",
             "fila_id": "GFA05",
             "fila_color_type": "多拼色",
             "fila_type": "PLA Silk",
@@ -1738,7 +1738,7 @@
             ]
         },
         {
-            "fila_color_code": "A05T5",
+            "fila_color_code": "13905",
             "fila_id": "GFA05",
             "fila_color_type": "多拼色",
             "fila_type": "PLA Silk",
@@ -1762,7 +1762,7 @@
             ]
         },
         {
-            "fila_color_code": "A05W0",
+            "fila_color_code": "13105",
             "fila_id": "GFA05",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk",
@@ -1785,7 +1785,7 @@
             ]
         },
         {
-            "fila_color_code": "A05Y4",
+            "fila_color_code": "13401",
             "fila_id": "GFA05",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk",
@@ -1808,7 +1808,7 @@
             ]
         },
         {
-            "fila_color_code": "A06B0",
+            "fila_color_code": "13603",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -1831,7 +1831,7 @@
             ]
         },
         {
-            "fila_color_code": "A06B1",
+            "fila_color_code": "13604",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -1854,7 +1854,7 @@
             ]
         },
         {
-            "fila_color_code": "A06D0",
+            "fila_color_code": "13108",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -1877,7 +1877,7 @@
             ]
         },
         {
-            "fila_color_code": "A06D1",
+            "fila_color_code": "13109",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -1900,7 +1900,7 @@
             ]
         },
         {
-            "fila_color_code": "A06G0",
+            "fila_color_code": "13506",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -1923,7 +1923,7 @@
             ]
         },
         {
-            "fila_color_code": "A06G1",
+            "fila_color_code": "13507",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -1946,7 +1946,7 @@
             ]
         },
         {
-            "fila_color_code": "A06P0",
+            "fila_color_code": "13702",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -1969,7 +1969,7 @@
             ]
         },
         {
-            "fila_color_code": "A06R0",
+            "fila_color_code": "13205",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -1992,7 +1992,7 @@
             ]
         },
         {
-            "fila_color_code": "A06R1",
+            "fila_color_code": "13206",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -2015,7 +2015,7 @@
             ]
         },
         {
-            "fila_color_code": "A06R2",
+            "fila_color_code": "13207",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -2038,7 +2038,7 @@
             ]
         },
         {
-            "fila_color_code": "A06W0",
+            "fila_color_code": "13110",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -2061,7 +2061,7 @@
             ]
         },
         {
-            "fila_color_code": "A06Y0",
+            "fila_color_code": "13404",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -2084,7 +2084,7 @@
             ]
         },
         {
-            "fila_color_code": "A06Y1",
+            "fila_color_code": "13405",
             "fila_id": "GFA06",
             "fila_color_type": "单色",
             "fila_type": "PLA Silk+",
@@ -2107,7 +2107,7 @@
             ]
         },
         {
-            "fila_color_code": "A07D4",
+            "fila_color_code": "13103",
             "fila_id": "GFA07",
             "fila_color_type": "单色",
             "fila_type": "PLA Marble",
@@ -2130,7 +2130,7 @@
             ]
         },
         {
-            "fila_color_code": "A07R5",
+            "fila_color_code": "13201",
             "fila_id": "GFA07",
             "fila_color_type": "单色",
             "fila_type": "PLA Marble",
@@ -2153,7 +2153,7 @@
             ]
         },
         {
-            "fila_color_code": "A08B7",
+            "fila_color_code": "13700",
             "fila_id": "GFA08",
             "fila_color_type": "单色",
             "fila_type": "PLA Sparkle",
@@ -2176,7 +2176,7 @@
             ]
         },
         {
-            "fila_color_code": "A08D5",
+            "fila_color_code": "13102",
             "fila_id": "GFA08",
             "fila_color_type": "单色",
             "fila_type": "PLA Sparkle",
@@ -2199,7 +2199,7 @@
             ]
         },
         {
-            "fila_color_code": "A08G3",
+            "fila_color_code": "13501",
             "fila_id": "GFA08",
             "fila_color_type": "单色",
             "fila_type": "PLA Sparkle",
@@ -2222,7 +2222,7 @@
             ]
         },
         {
-            "fila_color_code": "A08K2",
+            "fila_color_code": "13101",
             "fila_id": "GFA08",
             "fila_color_type": "单色",
             "fila_type": "PLA Sparkle",
@@ -2245,7 +2245,7 @@
             ]
         },
         {
-            "fila_color_code": "A08R2",
+            "fila_color_code": "13200",
             "fila_id": "GFA08",
             "fila_color_type": "单色",
             "fila_type": "PLA Sparkle",
@@ -2268,7 +2268,7 @@
             ]
         },
         {
-            "fila_color_code": "A08Y1",
+            "fila_color_code": "13402",
             "fila_id": "GFA08",
             "fila_color_type": "单色",
             "fila_type": "PLA Sparkle",
@@ -2291,7 +2291,7 @@
             ]
         },
         {
-            "fila_color_code": "A09A0",
+            "fila_color_code": "12300",
             "fila_id": "GFA09",
             "fila_color_type": "单色",
             "fila_type": "PLA Tough",
@@ -2314,7 +2314,7 @@
             ]
         },
         {
-            "fila_color_code": "A09B4",
+            "fila_color_code": "12600",
             "fila_id": "GFA09",
             "fila_color_type": "单色",
             "fila_type": "PLA Tough",
@@ -2337,7 +2337,7 @@
             ]
         },
         {
-            "fila_color_code": "A09B5",
+            "fila_color_code": "12700",
             "fila_id": "GFA09",
             "fila_color_type": "单色",
             "fila_type": "PLA Tough",
@@ -2360,7 +2360,7 @@
             ]
         },
         {
-            "fila_color_code": "A09D0",
+            "fila_color_code": "12102",
             "fila_id": "GFA09",
             "fila_color_type": "单色",
             "fila_type": "PLA Tough",
@@ -2383,7 +2383,7 @@
             ]
         },
         {
-            "fila_color_code": "A09D1",
+            "fila_color_code": "12103",
             "fila_id": "GFA09",
             "fila_color_type": "单色",
             "fila_type": "PLA Tough",
@@ -2406,7 +2406,7 @@
             ]
         },
         {
-            "fila_color_code": "A09G4",
+            "fila_color_code": "12500",
             "fila_id": "GFA09",
             "fila_color_type": "单色",
             "fila_type": "PLA Tough",
@@ -2429,7 +2429,7 @@
             ]
         },
         {
-            "fila_color_code": "A09K0",
+            "fila_color_code": "12101",
             "fila_id": "GFA09",
             "fila_color_type": "单色",
             "fila_type": "PLA Tough",
@@ -2452,7 +2452,7 @@
             ]
         },
         {
-            "fila_color_code": "A09R3",
+            "fila_color_code": "12200",
             "fila_id": "GFA09",
             "fila_color_type": "单色",
             "fila_type": "PLA Tough",
@@ -2475,7 +2475,7 @@
             ]
         },
         {
-            "fila_color_code": "A09W3",
+            "fila_color_code": "12100",
             "fila_id": "GFA09",
             "fila_color_type": "单色",
             "fila_type": "PLA Tough",
@@ -2498,7 +2498,7 @@
             ]
         },
         {
-            "fila_color_code": "A09Y0",
+            "fila_color_code": "12400",
             "fila_id": "GFA09",
             "fila_color_type": "单色",
             "fila_type": "PLA Tough",
@@ -2521,7 +2521,7 @@
             ]
         },
         {
-            "fila_color_code": "A11D0",
+            "fila_color_code": "14104",
             "fila_id": "GFA11",
             "fila_color_type": "单色",
             "fila_type": "PLA Aero",
@@ -2544,7 +2544,7 @@
             ]
         },
         {
-            "fila_color_code": "A11K0",
+            "fila_color_code": "14103",
             "fila_id": "GFA11",
             "fila_color_type": "单色",
             "fila_type": "PLA Aero",
@@ -2567,7 +2567,7 @@
             ]
         },
         {
-            "fila_color_code": "A11W0",
+            "fila_color_code": "14102",
             "fila_id": "GFA11",
             "fila_color_type": "单色",
             "fila_type": "PLA Aero",
@@ -2590,7 +2590,7 @@
             ]
         },
         {
-            "fila_color_code": "A12A0",
+            "fila_color_code": "15300",
             "fila_id": "GFA12",
             "fila_color_type": "单色",
             "fila_type": "PLA Glow",
@@ -2613,7 +2613,7 @@
             ]
         },
         {
-            "fila_color_code": "A12B0",
+            "fila_color_code": "15600",
             "fila_id": "GFA12",
             "fila_color_type": "单色",
             "fila_type": "PLA Glow",
@@ -2636,7 +2636,7 @@
             ]
         },
         {
-            "fila_color_code": "A12G0",
+            "fila_color_code": "15500",
             "fila_id": "GFA12",
             "fila_color_type": "单色",
             "fila_type": "PLA Glow",
@@ -2659,7 +2659,7 @@
             ]
         },
         {
-            "fila_color_code": "A12P0",
+            "fila_color_code": "15700",
             "fila_id": "GFA12",
             "fila_color_type": "单色",
             "fila_type": "PLA Glow",
@@ -2682,7 +2682,7 @@
             ]
         },
         {
-            "fila_color_code": "A12R0",
+            "fila_color_code": "15200",
             "fila_id": "GFA12",
             "fila_color_type": "单色",
             "fila_type": "PLA Glow",
@@ -2705,7 +2705,7 @@
             ]
         },
         {
-            "fila_color_code": "A12Y0",
+            "fila_color_code": "15400",
             "fila_id": "GFA12",
             "fila_color_type": "单色",
             "fila_type": "PLA Glow",
@@ -2728,7 +2728,7 @@
             ]
         },
         {
-            "fila_color_code": "A13W0",
+            "fila_color_code": "15100",
             "fila_id": "GFA13",
             "fila_color_type": "单色",
             "fila_type": "PLA Dynamic",
@@ -2751,7 +2751,7 @@
             ]
         },
         {
-            "fila_color_code": "A15B0",
+            "fila_color_code": "13602",
             "fila_id": "GFA15",
             "fila_color_type": "单色",
             "fila_type": "PLA Galaxy",
@@ -2774,7 +2774,7 @@
             ]
         },
         {
-            "fila_color_code": "A15G0",
+            "fila_color_code": "13503",
             "fila_id": "GFA15",
             "fila_color_type": "单色",
             "fila_type": "PLA Galaxy",
@@ -2797,7 +2797,7 @@
             ]
         },
         {
-            "fila_color_code": "A15G1",
+            "fila_color_code": "13504",
             "fila_id": "GFA15",
             "fila_color_type": "单色",
             "fila_type": "PLA Galaxy",
@@ -2820,7 +2820,7 @@
             ]
         },
         {
-            "fila_color_code": "A15R0",
+            "fila_color_code": "13203",
             "fila_id": "GFA15",
             "fila_color_type": "单色",
             "fila_type": "PLA Galaxy",
@@ -2843,7 +2843,7 @@
             ]
         },
         {
-            "fila_color_code": "A16G0",
+            "fila_color_code": "13505",
             "fila_id": "GFA16",
             "fila_color_type": "单色",
             "fila_type": "PLA Wood",
@@ -2866,7 +2866,7 @@
             ]
         },
         {
-            "fila_color_code": "A16K0",
+            "fila_color_code": "13107",
             "fila_id": "GFA16",
             "fila_color_type": "单色",
             "fila_type": "PLA Wood",
@@ -2889,7 +2889,7 @@
             ]
         },
         {
-            "fila_color_code": "A16N0",
+            "fila_color_code": "13801",
             "fila_id": "GFA16",
             "fila_color_type": "单色",
             "fila_type": "PLA Wood",
@@ -2912,7 +2912,7 @@
             ]
         },
         {
-            "fila_color_code": "A16R0",
+            "fila_color_code": "13204",
             "fila_id": "GFA16",
             "fila_color_type": "单色",
             "fila_type": "PLA Wood",
@@ -2935,7 +2935,7 @@
             ]
         },
         {
-            "fila_color_code": "A16W0",
+            "fila_color_code": "13106",
             "fila_id": "GFA16",
             "fila_color_type": "单色",
             "fila_type": "PLA Wood",
@@ -2958,7 +2958,7 @@
             ]
         },
         {
-            "fila_color_code": "A16Y0",
+            "fila_color_code": "13403",
             "fila_id": "GFA16",
             "fila_color_type": "单色",
             "fila_type": "PLA Wood",
@@ -2981,7 +2981,7 @@
             ]
         },
         {
-            "fila_color_code": "A50B6",
+            "fila_color_code": "14601",
             "fila_id": "GFA50",
             "fila_color_type": "单色",
             "fila_type": "PLA-CF",
@@ -3004,7 +3004,7 @@
             ]
         },
         {
-            "fila_color_code": "A50B9",
+            "fila_color_code": "14600",
             "fila_id": "GFA50",
             "fila_color_type": "单色",
             "fila_type": "PLA-CF",
@@ -3027,7 +3027,7 @@
             ]
         },
         {
-            "fila_color_code": "A50D6",
+            "fila_color_code": "14101",
             "fila_id": "GFA50",
             "fila_color_type": "单色",
             "fila_type": "PLA-CF",
@@ -3050,7 +3050,7 @@
             ]
         },
         {
-            "fila_color_code": "A50G7",
+            "fila_color_code": "14500",
             "fila_id": "GFA50",
             "fila_color_type": "单色",
             "fila_type": "PLA-CF",
@@ -3073,7 +3073,7 @@
             ]
         },
         {
-            "fila_color_code": "A50K0",
+            "fila_color_code": "14100",
             "fila_id": "GFA50",
             "fila_color_type": "单色",
             "fila_type": "PLA-CF",
@@ -3096,7 +3096,7 @@
             ]
         },
         {
-            "fila_color_code": "A50P7",
+            "fila_color_code": "14700",
             "fila_id": "GFA50",
             "fila_color_type": "单色",
             "fila_type": "PLA-CF",
@@ -3119,7 +3119,7 @@
             ]
         },
         {
-            "fila_color_code": "A50R4",
+            "fila_color_code": "14200",
             "fila_id": "GFA50",
             "fila_color_type": "单色",
             "fila_type": "PLA-CF",
@@ -3142,7 +3142,7 @@
             ]
         },
         {
-            "fila_color_code": "B00A0",
+            "fila_color_code": "40300",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3165,7 +3165,7 @@
             ]
         },
         {
-            "fila_color_code": "B00B0",
+            "fila_color_code": "40600",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3188,7 +3188,7 @@
             ]
         },
         {
-            "fila_color_code": "B00B4",
+            "fila_color_code": "40601",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3211,7 +3211,7 @@
             ]
         },
         {
-            "fila_color_code": "B00B6",
+            "fila_color_code": "40602",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3234,7 +3234,7 @@
             ]
         },
         {
-            "fila_color_code": "B00B8",
+            "fila_color_code": "40501",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3257,7 +3257,7 @@
             ]
         },
         {
-            "fila_color_code": "B00D1",
+            "fila_color_code": "40102",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3280,7 +3280,7 @@
             ]
         },
         {
-            "fila_color_code": "B00G6",
+            "fila_color_code": "40500",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3303,7 +3303,7 @@
             ]
         },
         {
-            "fila_color_code": "B00G7",
+            "fila_color_code": "40502",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3326,7 +3326,7 @@
             ]
         },
         {
-            "fila_color_code": "B00K0",
+            "fila_color_code": "40101",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3349,7 +3349,7 @@
             ]
         },
         {
-            "fila_color_code": "B00P4",
+            "fila_color_code": "40701",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3372,7 +3372,7 @@
             ]
         },
         {
-            "fila_color_code": "B00P6",
+            "fila_color_code": "40700",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3395,7 +3395,7 @@
             ]
         },
         {
-            "fila_color_code": "B00R0",
+            "fila_color_code": "40200",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3418,7 +3418,7 @@
             ]
         },
         {
-            "fila_color_code": "B00W0",
+            "fila_color_code": "40100",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3441,7 +3441,7 @@
             ]
         },
         {
-            "fila_color_code": "B00Y0",
+            "fila_color_code": "40400",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3464,7 +3464,7 @@
             ]
         },
         {
-            "fila_color_code": "B00Y1",
+            "fila_color_code": "40402",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3487,7 +3487,7 @@
             ]
         },
         {
-            "fila_color_code": "B00Y2",
+            "fila_color_code": "40401",
             "fila_id": "GFB00",
             "fila_color_type": "单色",
             "fila_type": "ABS",
@@ -3510,7 +3510,7 @@
             ]
         },
         {
-            "fila_color_code": "B01B0",
+            "fila_color_code": "45600",
             "fila_id": "GFB01",
             "fila_color_type": "单色",
             "fila_type": "ASA",
@@ -3533,7 +3533,7 @@
             ]
         },
         {
-            "fila_color_code": "B01D0",
+            "fila_color_code": "45102",
             "fila_id": "GFB01",
             "fila_color_type": "单色",
             "fila_type": "ASA",
@@ -3556,7 +3556,7 @@
             ]
         },
         {
-            "fila_color_code": "B01G0",
+            "fila_color_code": "45500",
             "fila_id": "GFB01",
             "fila_color_type": "单色",
             "fila_type": "ASA",
@@ -3579,7 +3579,7 @@
             ]
         },
         {
-            "fila_color_code": "B01K0",
+            "fila_color_code": "45101",
             "fila_id": "GFB01",
             "fila_color_type": "单色",
             "fila_type": "ASA",
@@ -3602,7 +3602,7 @@
             ]
         },
         {
-            "fila_color_code": "B01R0",
+            "fila_color_code": "45200",
             "fila_id": "GFB01",
             "fila_color_type": "单色",
             "fila_type": "ASA",
@@ -3625,7 +3625,7 @@
             ]
         },
         {
-            "fila_color_code": "B01W0",
+            "fila_color_code": "45100",
             "fila_id": "GFB01",
             "fila_color_type": "单色",
             "fila_type": "ASA",
@@ -3648,7 +3648,7 @@
             ]
         },
         {
-            "fila_color_code": "B02W0",
+            "fila_color_code": "46100",
             "fila_id": "GFB02",
             "fila_color_type": "单色",
             "fila_type": "ASA Aero",
@@ -3671,7 +3671,7 @@
             ]
         },
         {
-            "fila_color_code": "B50A0",
+            "fila_color_code": "41300",
             "fila_id": "GFB50",
             "fila_color_type": "单色",
             "fila_type": "ABS-GF",
@@ -3694,7 +3694,7 @@
             ]
         },
         {
-            "fila_color_code": "B50B0",
+            "fila_color_code": "41600",
             "fila_id": "GFB50",
             "fila_color_type": "单色",
             "fila_type": "ABS-GF",
@@ -3717,7 +3717,7 @@
             ]
         },
         {
-            "fila_color_code": "B50D0",
+            "fila_color_code": "41102",
             "fila_id": "GFB50",
             "fila_color_type": "单色",
             "fila_type": "ABS-GF",
@@ -3740,7 +3740,7 @@
             ]
         },
         {
-            "fila_color_code": "B50G0",
+            "fila_color_code": "41500",
             "fila_id": "GFB50",
             "fila_color_type": "单色",
             "fila_type": "ABS-GF",
@@ -3763,7 +3763,7 @@
             ]
         },
         {
-            "fila_color_code": "B50K0",
+            "fila_color_code": "41101",
             "fila_id": "GFB50",
             "fila_color_type": "单色",
             "fila_type": "ABS-GF",
@@ -3786,7 +3786,7 @@
             ]
         },
         {
-            "fila_color_code": "B50R0",
+            "fila_color_code": "41200",
             "fila_id": "GFB50",
             "fila_color_type": "单色",
             "fila_type": "ABS-GF",
@@ -3809,7 +3809,7 @@
             ]
         },
         {
-            "fila_color_code": "B50W0",
+            "fila_color_code": "41100",
             "fila_id": "GFB50",
             "fila_color_type": "单色",
             "fila_type": "ABS-GF",
@@ -3832,7 +3832,7 @@
             ]
         },
         {
-            "fila_color_code": "B50Y0",
+            "fila_color_code": "41400",
             "fila_id": "GFB50",
             "fila_color_type": "单色",
             "fila_type": "ABS-GF",
@@ -3855,7 +3855,7 @@
             ]
         },
         {
-            "fila_color_code": "B51K0",
+            "fila_color_code": "46101",
             "fila_id": "GFB51",
             "fila_color_type": "单色",
             "fila_type": "ASA-CF",
@@ -3878,7 +3878,7 @@
             ]
         },
         {
-            "fila_color_code": "C00C0",
+            "fila_color_code": "60102",
             "fila_id": "GFC00",
             "fila_color_type": "单色",
             "fila_type": "PC",
@@ -3901,7 +3901,7 @@
             ]
         },
         {
-            "fila_color_code": "C00C1",
+            "fila_color_code": "60103",
             "fila_id": "GFC00",
             "fila_color_type": "单色",
             "fila_type": "PC",
@@ -3924,7 +3924,7 @@
             ]
         },
         {
-            "fila_color_code": "C00K0",
+            "fila_color_code": "60101",
             "fila_id": "GFC00",
             "fila_color_type": "单色",
             "fila_type": "PC",
@@ -3947,7 +3947,7 @@
             ]
         },
         {
-            "fila_color_code": "C00W0",
+            "fila_color_code": "60100",
             "fila_id": "GFC00",
             "fila_color_type": "单色",
             "fila_type": "PC",
@@ -3970,7 +3970,7 @@
             ]
         },
         {
-            "fila_color_code": "C01D0",
+            "fila_color_code": "63102",
             "fila_id": "GFC01",
             "fila_color_type": "单色",
             "fila_type": "PC FR",
@@ -3993,7 +3993,7 @@
             ]
         },
         {
-            "fila_color_code": "C01K0",
+            "fila_color_code": "63100",
             "fila_id": "GFC01",
             "fila_color_type": "单色",
             "fila_type": "PC FR",
@@ -4016,7 +4016,7 @@
             ]
         },
         {
-            "fila_color_code": "C01W0",
+            "fila_color_code": "63101",
             "fila_id": "GFC01",
             "fila_color_type": "单色",
             "fila_type": "PC FR",
@@ -4039,7 +4039,7 @@
             ]
         },
         {
-            "fila_color_code": "G00A0",
+            "fila_color_code": "30300",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4062,7 +4062,7 @@
             ]
         },
         {
-            "fila_color_code": "G00B0",
+            "fila_color_code": "30602",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4085,7 +4085,7 @@
             ]
         },
         {
-            "fila_color_code": "G00B1",
+            "fila_color_code": "30601",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4108,7 +4108,7 @@
             ]
         },
         {
-            "fila_color_code": "G00B5",
+            "fila_color_code": "30700",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4131,7 +4131,7 @@
             ]
         },
         {
-            "fila_color_code": "G00B9",
+            "fila_color_code": "30600",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4154,7 +4154,7 @@
             ]
         },
         {
-            "fila_color_code": "G00C1",
+            "fila_color_code": "30103",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4177,7 +4177,7 @@
             ]
         },
         {
-            "fila_color_code": "G00D0",
+            "fila_color_code": "30102",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4200,7 +4200,7 @@
             ]
         },
         {
-            "fila_color_code": "G00G6",
+            "fila_color_code": "30500",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4223,7 +4223,7 @@
             ]
         },
         {
-            "fila_color_code": "G00G8",
+            "fila_color_code": "30501",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4246,7 +4246,7 @@
             ]
         },
         {
-            "fila_color_code": "G00K0",
+            "fila_color_code": "30101",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4269,7 +4269,7 @@
             ]
         },
         {
-            "fila_color_code": "G00R0",
+            "fila_color_code": "30200",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4292,7 +4292,7 @@
             ]
         },
         {
-            "fila_color_code": "G00W0",
+            "fila_color_code": "30100",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4315,7 +4315,7 @@
             ]
         },
         {
-            "fila_color_code": "G00W4",
+            "fila_color_code": "30104",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4338,7 +4338,7 @@
             ]
         },
         {
-            "fila_color_code": "G00Y0",
+            "fila_color_code": "30400",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4361,7 +4361,7 @@
             ]
         },
         {
-            "fila_color_code": "G00Y4",
+            "fila_color_code": "30401",
             "fila_id": "GFG00",
             "fila_color_type": "单色",
             "fila_type": "PETG Basic",
@@ -4384,7 +4384,7 @@
             ]
         },
         {
-            "fila_color_code": "G01A0",
+            "fila_color_code": "32300",
             "fila_id": "GFG01",
             "fila_color_type": "单色",
             "fila_type": "PETG Translucent",
@@ -4407,7 +4407,7 @@
             ]
         },
         {
-            "fila_color_code": "G01B0",
+            "fila_color_code": "32600",
             "fila_id": "GFG01",
             "fila_color_type": "单色",
             "fila_type": "PETG Translucent",
@@ -4430,7 +4430,7 @@
             ]
         },
         {
-            "fila_color_code": "G01C0",
+            "fila_color_code": "32101",
             "fila_id": "GFG01",
             "fila_color_type": "单色",
             "fila_type": "PETG Translucent",
@@ -4453,7 +4453,7 @@
             ]
         },
         {
-            "fila_color_code": "G01D0",
+            "fila_color_code": "32100",
             "fila_id": "GFG01",
             "fila_color_type": "单色",
             "fila_type": "PETG Translucent",
@@ -4476,7 +4476,7 @@
             ]
         },
         {
-            "fila_color_code": "G01G0",
+            "fila_color_code": "32500",
             "fila_id": "GFG01",
             "fila_color_type": "单色",
             "fila_type": "PETG Translucent",
@@ -4499,7 +4499,7 @@
             ]
         },
         {
-            "fila_color_code": "G01G1",
+            "fila_color_code": "32501",
             "fila_id": "GFG01",
             "fila_color_type": "单色",
             "fila_type": "PETG Translucent",
@@ -4522,7 +4522,7 @@
             ]
         },
         {
-            "fila_color_code": "G01N0",
+            "fila_color_code": "32800",
             "fila_id": "GFG01",
             "fila_color_type": "单色",
             "fila_type": "PETG Translucent",
@@ -4545,7 +4545,7 @@
             ]
         },
         {
-            "fila_color_code": "G01P0",
+            "fila_color_code": "32700",
             "fila_id": "GFG01",
             "fila_color_type": "单色",
             "fila_type": "PETG Translucent",
@@ -4568,7 +4568,7 @@
             ]
         },
         {
-            "fila_color_code": "G01P1",
+            "fila_color_code": "32200",
             "fila_id": "GFG01",
             "fila_color_type": "单色",
             "fila_type": "PETG Translucent",
@@ -4591,7 +4591,7 @@
             ]
         },
         {
-            "fila_color_code": "G02A0",
+            "fila_color_code": "33300",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4614,7 +4614,7 @@
             ]
         },
         {
-            "fila_color_code": "G02B0",
+            "fila_color_code": "33600",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4637,7 +4637,7 @@
             ]
         },
         {
-            "fila_color_code": "G02B1",
+            "fila_color_code": "33601",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4660,7 +4660,7 @@
             ]
         },
         {
-            "fila_color_code": "G02D0",
+            "fila_color_code": "33101",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4683,7 +4683,7 @@
             ]
         },
         {
-            "fila_color_code": "G02D1",
+            "fila_color_code": "33103",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4706,7 +4706,7 @@
             ]
         },
         {
-            "fila_color_code": "G02G0",
+            "fila_color_code": "33500",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4729,7 +4729,7 @@
             ]
         },
         {
-            "fila_color_code": "G02G1",
+            "fila_color_code": "33501",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4752,7 +4752,7 @@
             ]
         },
         {
-            "fila_color_code": "G02G2",
+            "fila_color_code": "33502",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4775,7 +4775,7 @@
             ]
         },
         {
-            "fila_color_code": "G02K0",
+            "fila_color_code": "33102",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4798,7 +4798,7 @@
             ]
         },
         {
-            "fila_color_code": "G02N1",
+            "fila_color_code": "33801",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4821,7 +4821,7 @@
             ]
         },
         {
-            "fila_color_code": "G02R0",
+            "fila_color_code": "33200",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4844,7 +4844,7 @@
             ]
         },
         {
-            "fila_color_code": "G02W0",
+            "fila_color_code": "33100",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4867,7 +4867,7 @@
             ]
         },
         {
-            "fila_color_code": "G02Y0",
+            "fila_color_code": "33400",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4890,7 +4890,7 @@
             ]
         },
         {
-            "fila_color_code": "G02Y1",
+            "fila_color_code": "33401",
             "fila_id": "GFG02",
             "fila_color_type": "单色",
             "fila_type": "PETG HF",
@@ -4913,7 +4913,7 @@
             ]
         },
         {
-            "fila_color_code": "G50B6",
+            "fila_color_code": "31600",
             "fila_id": "GFG50",
             "fila_color_type": "单色",
             "fila_type": "PETG-CF",
@@ -4936,7 +4936,7 @@
             ]
         },
         {
-            "fila_color_code": "G50D6",
+            "fila_color_code": "31101",
             "fila_id": "GFG50",
             "fila_color_type": "单色",
             "fila_type": "PETG-CF",
@@ -4959,7 +4959,7 @@
             ]
         },
         {
-            "fila_color_code": "G50G7",
+            "fila_color_code": "31500",
             "fila_id": "GFG50",
             "fila_color_type": "单色",
             "fila_type": "PETG-CF",
@@ -4982,7 +4982,7 @@
             ]
         },
         {
-            "fila_color_code": "G50K0",
+            "fila_color_code": "31100",
             "fila_id": "GFG50",
             "fila_color_type": "单色",
             "fila_type": "PETG-CF",
@@ -5005,7 +5005,7 @@
             ]
         },
         {
-            "fila_color_code": "G50P7",
+            "fila_color_code": "31700",
             "fila_id": "GFG50",
             "fila_color_type": "单色",
             "fila_type": "PETG-CF",
@@ -5028,7 +5028,7 @@
             ]
         },
         {
-            "fila_color_code": "G50R4",
+            "fila_color_code": "31200",
             "fila_id": "GFG50",
             "fila_color_type": "单色",
             "fila_type": "PETG-CF",
@@ -5051,7 +5051,7 @@
             ]
         },
         {
-            "fila_color_code": "N04K0",
+            "fila_color_code": "70100",
             "fila_id": "GFN04",
             "fila_color_type": "单色",
             "fila_type": "PAHT-CF",
@@ -5074,7 +5074,7 @@
             ]
         },
         {
-            "fila_color_code": "N05K0",
+            "fila_color_code": "72100",
             "fila_id": "GFN05",
             "fila_color_type": "单色",
             "fila_type": "PA6-CF",
@@ -5097,7 +5097,7 @@
             ]
         },
         {
-            "fila_color_code": "N06K0",
+            "fila_color_code": "73100",
             "fila_id": "GFN06",
             "fila_color_type": "单色",
             "fila_type": "PPA-CF",
@@ -5120,7 +5120,7 @@
             ]
         },
         {
-            "fila_color_code": "N08B0",
+            "fila_color_code": "72600",
             "fila_id": "GFN08",
             "fila_color_type": "单色",
             "fila_type": "PA6-GF",
@@ -5143,7 +5143,7 @@
             ]
         },
         {
-            "fila_color_code": "N08D0",
+            "fila_color_code": "72102",
             "fila_id": "GFN08",
             "fila_color_type": "单色",
             "fila_type": "PA6-GF",
@@ -5166,7 +5166,7 @@
             ]
         },
         {
-            "fila_color_code": "N08D1",
+            "fila_color_code": "72103",
             "fila_id": "GFN08",
             "fila_color_type": "单色",
             "fila_type": "PA6-GF",
@@ -5189,7 +5189,7 @@
             ]
         },
         {
-            "fila_color_code": "N08G0",
+            "fila_color_code": "72500",
             "fila_id": "GFN08",
             "fila_color_type": "单色",
             "fila_type": "PA6-GF",
@@ -5212,7 +5212,7 @@
             ]
         },
         {
-            "fila_color_code": "N08K0",
+            "fila_color_code": "72104",
             "fila_id": "GFN08",
             "fila_color_type": "单色",
             "fila_type": "PA6-GF",
@@ -5235,7 +5235,7 @@
             ]
         },
         {
-            "fila_color_code": "N08N0",
+            "fila_color_code": "72800",
             "fila_id": "GFN08",
             "fila_color_type": "单色",
             "fila_type": "PA6-GF",
@@ -5258,7 +5258,7 @@
             ]
         },
         {
-            "fila_color_code": "N08R0",
+            "fila_color_code": "72200",
             "fila_id": "GFN08",
             "fila_color_type": "单色",
             "fila_type": "PA6-GF",
@@ -5281,7 +5281,7 @@
             ]
         },
         {
-            "fila_color_code": "N08Y0",
+            "fila_color_code": "72400",
             "fila_id": "GFN08",
             "fila_color_type": "单色",
             "fila_type": "PA6-GF",
@@ -5304,7 +5304,7 @@
             ]
         },
         {
-            "fila_color_code": "S02K0",
+            "fila_color_code": "65101",
             "fila_id": "GFS02",
             "fila_color_type": "单色",
             "fila_type": "Support for PLA",
@@ -5327,7 +5327,7 @@
             ]
         },
         {
-            "fila_color_code": "S02W0",
+            "fila_color_code": "65100",
             "fila_id": "GFS02",
             "fila_color_type": "单色",
             "fila_type": "Support for PLA",
@@ -5350,7 +5350,7 @@
             ]
         },
         {
-            "fila_color_code": "S03G1",
+            "fila_color_code": "65500",
             "fila_id": "GFS03",
             "fila_color_type": "单色",
             "fila_type": "Support for PA/PET",
@@ -5373,7 +5373,7 @@
             ]
         },
         {
-            "fila_color_code": "S04Y0",
+            "fila_color_code": "66400",
             "fila_id": "GFS04",
             "fila_color_type": "单色",
             "fila_type": "PVA",
@@ -5396,7 +5396,7 @@
             ]
         },
         {
-            "fila_color_code": "S05C0",
+            "fila_color_code": "65102",
             "fila_id": "GFS05",
             "fila_color_type": "单色",
             "fila_type": "Support for PLA/PETG",
@@ -5419,7 +5419,7 @@
             ]
         },
         {
-            "fila_color_code": "S05K0",
+            "fila_color_code": "65103",
             "fila_id": "GFS05",
             "fila_color_type": "单色",
             "fila_type": "Support for PLA/PETG",
@@ -5442,7 +5442,7 @@
             ]
         },
         {
-            "fila_color_code": "S06W0",
+            "fila_color_code": "66100",
             "fila_id": "GFS06",
             "fila_color_type": "单色",
             "fila_type": "Support for ABS",
@@ -5465,7 +5465,7 @@
             ]
         },
         {
-            "fila_color_code": "T01K0",
+            "fila_color_code": "71100",
             "fila_id": "GFT01",
             "fila_color_type": "单色",
             "fila_type": "PET-CF",
@@ -5488,7 +5488,7 @@
             ]
         },
         {
-            "fila_color_code": "T02K0",
+            "fila_color_code": "76100",
             "fila_id": "GFT02",
             "fila_color_type": "单色",
             "fila_type": "PPS-CF",
@@ -5511,7 +5511,7 @@
             ]
         },
         {
-            "fila_color_code": "U00B0",
+            "fila_color_code": "51600",
             "fila_id": "GFU00",
             "fila_color_type": "单色",
             "fila_type": "TPU 95A HF",
@@ -5534,7 +5534,7 @@
             ]
         },
         {
-            "fila_color_code": "U00D0",
+            "fila_color_code": "51101",
             "fila_id": "GFU00",
             "fila_color_type": "单色",
             "fila_type": "TPU 95A HF",
@@ -5557,7 +5557,7 @@
             ]
         },
         {
-            "fila_color_code": "U00K0",
+            "fila_color_code": "51100",
             "fila_id": "GFU00",
             "fila_color_type": "单色",
             "fila_type": "TPU 95A HF",
@@ -5580,7 +5580,7 @@
             ]
         },
         {
-            "fila_color_code": "U00R0",
+            "fila_color_code": "51200",
             "fila_id": "GFU00",
             "fila_color_type": "单色",
             "fila_type": "TPU 95A HF",
@@ -5603,7 +5603,7 @@
             ]
         },
         {
-            "fila_color_code": "U00W0",
+            "fila_color_code": "51102",
             "fila_id": "GFU00",
             "fila_color_type": "单色",
             "fila_type": "TPU 95A HF",
@@ -5626,7 +5626,7 @@
             ]
         },
         {
-            "fila_color_code": "U00Y0",
+            "fila_color_code": "51400",
             "fila_id": "GFU00",
             "fila_color_type": "单色",
             "fila_type": "TPU 95A HF",
@@ -5649,7 +5649,7 @@
             ]
         },
         {
-            "fila_color_code": "U01K0",
+            "fila_color_code": "50101",
             "fila_id": "GFU01",
             "fila_color_type": "单色",
             "fila_type": "TPU 95A",
@@ -5672,7 +5672,7 @@
             ]
         },
         {
-            "fila_color_code": "U01W0",
+            "fila_color_code": "50100",
             "fila_id": "GFU01",
             "fila_color_type": "单色",
             "fila_type": "TPU 95A",
@@ -5695,7 +5695,7 @@
             ]
         },
         {
-            "fila_color_code": "U02B0",
+            "fila_color_code": "53600",
             "fila_id": "GFU02",
             "fila_color_type": "单色",
             "fila_type": "TPU for AMS",
@@ -5718,7 +5718,7 @@
             ]
         },
         {
-            "fila_color_code": "U02D0",
+            "fila_color_code": "53102",
             "fila_id": "GFU02",
             "fila_color_type": "单色",
             "fila_type": "TPU for AMS",
@@ -5741,7 +5741,7 @@
             ]
         },
         {
-            "fila_color_code": "U02G0",
+            "fila_color_code": "53500",
             "fila_id": "GFU02",
             "fila_color_type": "单色",
             "fila_type": "TPU for AMS",
@@ -5764,7 +5764,7 @@
             ]
         },
         {
-            "fila_color_code": "U02K0",
+            "fila_color_code": "53101",
             "fila_id": "GFU02",
             "fila_color_type": "单色",
             "fila_type": "TPU for AMS",
@@ -5787,7 +5787,7 @@
             ]
         },
         {
-            "fila_color_code": "U02R0",
+            "fila_color_code": "53200",
             "fila_id": "GFU02",
             "fila_color_type": "单色",
             "fila_type": "TPU for AMS",
@@ -5810,7 +5810,7 @@
             ]
         },
         {
-            "fila_color_code": "U02W0",
+            "fila_color_code": "53100",
             "fila_id": "GFU02",
             "fila_color_type": "单色",
             "fila_type": "TPU for AMS",
@@ -5833,7 +5833,7 @@
             ]
         },
         {
-            "fila_color_code": "U02Y0",
+            "fila_color_code": "53400",
             "fila_id": "GFU02",
             "fila_color_type": "单色",
             "fila_type": "TPU for AMS",
@@ -5856,7 +5856,7 @@
             ]
         },
         {
-            "fila_color_code": "A18K0",
+            "fila_color_code": "16100",
             "fila_id": "GFA18",
             "fila_color_type": "单色",
             "fila_type": "PLA Lite",
@@ -5879,7 +5879,7 @@
             ]
         },
         {
-            "fila_color_code": "A18Y0",
+            "fila_color_code": "16400",
             "fila_id": "GFA18",
             "fila_color_type": "单色",
             "fila_type": "PLA Lite",
@@ -5902,7 +5902,7 @@
             ]
         },
         {
-            "fila_color_code": "A18W0",
+            "fila_color_code": "16103",
             "fila_id": "GFA18",
             "fila_color_type": "单色",
             "fila_type": "PLA Lite",
@@ -5925,7 +5925,7 @@
             ]
         },
         {
-            "fila_color_code": "A18B0",
+            "fila_color_code": "16600",
             "fila_id": "GFA18",
             "fila_color_type": "单色",
             "fila_type": "PLA Lite",
@@ -5948,7 +5948,7 @@
             ]
         },
         {
-            "fila_color_code": "A18R0",
+            "fila_color_code": "16200",
             "fila_id": "GFA18",
             "fila_color_type": "单色",
             "fila_type": "PLA Lite",
@@ -5971,7 +5971,7 @@
             ]
         },
         {
-            "fila_color_code": "A18D0",
+            "fila_color_code": "16101",
             "fila_id": "GFA18",
             "fila_color_type": "单色",
             "fila_type": "PLA Lite",
@@ -5994,7 +5994,7 @@
             ]
         },
         {
-            "fila_color_code": "A17R0",
+            "fila_color_code": "13210",
             "fila_id": "GFA17",
             "fila_color_type": "单色",
             "fila_type": "PLA Translucent",
@@ -6017,7 +6017,7 @@
             ]
         },
         {
-            "fila_color_code": "A17R1",
+            "fila_color_code": "13211",
             "fila_id": "GFA17",
             "fila_color_type": "单色",
             "fila_type": "PLA Translucent",
@@ -6040,7 +6040,7 @@
             ]
         },
         {
-            "fila_color_code": "A17A0",
+            "fila_color_code": "13301",
             "fila_id": "GFA17",
             "fila_color_type": "单色",
             "fila_type": "PLA Translucent",
@@ -6063,7 +6063,7 @@
             ]
         },
         {
-            "fila_color_code": "A17Y0",
+            "fila_color_code": "13410",
             "fila_id": "GFA17",
             "fila_color_type": "单色",
             "fila_type": "PLA Translucent",
@@ -6086,7 +6086,7 @@
             ]
         },
         {
-            "fila_color_code": "A17G0",
+            "fila_color_code": "13510",
             "fila_id": "GFA17",
             "fila_color_type": "单色",
             "fila_type": "PLA Translucent",
@@ -6109,7 +6109,7 @@
             ]
         },
         {
-            "fila_color_code": "A17B0",
+            "fila_color_code": "13610",
             "fila_id": "GFA17",
             "fila_color_type": "单色",
             "fila_type": "PLA Translucent",
@@ -6132,7 +6132,7 @@
             ]
         },
         {
-            "fila_color_code": "A17B1",
+            "fila_color_code": "13611",
             "fila_id": "GFA17",
             "fila_color_type": "单色",
             "fila_type": "PLA Translucent",
@@ -6155,7 +6155,7 @@
             ]
         },
         {
-            "fila_color_code": "A17B2",
+            "fila_color_code": "13612",
             "fila_id": "GFA17",
             "fila_color_type": "单色",
             "fila_type": "PLA Translucent",
@@ -6178,7 +6178,7 @@
             ]
         },
         {
-            "fila_color_code": "A17P0",
+            "fila_color_code": "13710",
             "fila_id": "GFA17",
             "fila_color_type": "单色",
             "fila_type": "PLA Translucent",
@@ -6201,7 +6201,7 @@
             ]
         },
         {
-            "fila_color_code": "A17P1",
+            "fila_color_code": "13711",
             "fila_id": "GFA17",
             "fila_color_type": "单色",
             "fila_type": "PLA Translucent",
@@ -6224,7 +6224,7 @@
             ]
         },
         {
-            "fila_color_code": "A05M1",
+            "fila_color_code": "13906",
             "fila_id": "GFA05",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Silk",
@@ -6248,7 +6248,7 @@
             ]
         },
         {
-            "fila_color_code": "A05M2",
+            "fila_color_code": "13907",
             "fila_id": "GFA05",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Silk",
@@ -6272,7 +6272,7 @@
             ]
         },
         {
-            "fila_color_code": "A05M3",
+            "fila_color_code": "13908",
             "fila_id": "GFA05",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Silk",
@@ -6296,7 +6296,7 @@
             ]
         },
         {
-            "fila_color_code": "A05M4",
+            "fila_color_code": "13909",
             "fila_id": "GFA05",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Silk",
@@ -6320,7 +6320,7 @@
             ]
         },
         {
-            "fila_color_code": "A05M5",
+            "fila_color_code": "13910",
             "fila_id": "GFA05",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Silk",
@@ -6344,7 +6344,7 @@
             ]
         },
         {
-            "fila_color_code": "A05M8",
+            "fila_color_code": "13912",
             "fila_id": "GFA05",
             "fila_color_type": "渐变色",
             "fila_type": "PLA Silk",
@@ -6370,7 +6370,7 @@
             ]
         },
         {
-            "fila_color_code": "U03K0",
+            "fila_color_code": "51103",
             "fila_id": "GFU03",
             "fila_color_type": "单色",
             "fila_type": "TPU 90A",
@@ -6393,7 +6393,7 @@
             ]
         },
         {
-            "fila_color_code": "U03W1",
+            "fila_color_code": "51105",
             "fila_id": "GFU03",
             "fila_color_type": "单色",
             "fila_type": "TPU 90A",
@@ -6416,7 +6416,7 @@
             ]
         },
         {
-            "fila_color_code": "U04A1",
+            "fila_color_code": "51305",
             "fila_id": "GFU04",
             "fila_color_type": "单色",
             "fila_type": "TPU 85A",
@@ -6439,7 +6439,7 @@
             ]
         },
         {
-            "fila_color_code": "U04G0",
+            "fila_color_code": "51500",
             "fila_id": "GFU04",
             "fila_color_type": "单色",
             "fila_type": "TPU 85A",
@@ -6462,7 +6462,7 @@
             ]
         },
         {
-            "fila_color_code": "U03M0",
+            "fila_color_code": "51900",
             "fila_id": "GFU03",
             "fila_color_type": "渐变色",
             "fila_type": "TPU 90A",
@@ -6486,7 +6486,7 @@
             ]
         },
         {
-            "fila_color_code": "U03M1",
+            "fila_color_code": "51901",
             "fila_id": "GFU03",
             "fila_color_type": "渐变色",
             "fila_type": "TPU 90A",
@@ -6510,7 +6510,7 @@
             ]
         },
         {
-            "fila_color_code": "S02W1",
+            "fila_color_code": "65104",
             "fila_id": "GFS02",
             "fila_color_type": "单色",
             "fila_type": "Support for PLA",
@@ -6533,7 +6533,7 @@
             ]
         },
         {
-            "fila_color_code": "A02D2",
+            "fila_color_code": "13100",
             "fila_id": "GFA02",
             "fila_color_type": "单色",
             "fila_type": "PLA Metal",
@@ -6556,7 +6556,7 @@
             ]
         },
         {
-            "fila_color_code": "A02Y1",
+            "fila_color_code": "13400",
             "fila_id": "GFA02",
             "fila_color_type": "单色",
             "fila_type": "PLA Metal",
@@ -6579,7 +6579,7 @@
             ]
         },
         {
-            "fila_color_code": "A02G2",
+            "fila_color_code": "13500",
             "fila_id": "GFA02",
             "fila_color_type": "单色",
             "fila_type": "PLA Metal",
@@ -6602,7 +6602,7 @@
             ]
         },
         {
-            "fila_color_code": "A02B2",
+            "fila_color_code": "13600",
             "fila_id": "GFA02",
             "fila_color_type": "单色",
             "fila_type": "PLA Metal",
@@ -6625,7 +6625,7 @@
             ]
         },
         {
-            "fila_color_code": "A02N3",
+            "fila_color_code": "13800",
             "fila_id": "GFA02",
             "fila_color_type": "单色",
             "fila_type": "PLA Metal",
@@ -6648,7 +6648,7 @@
             ]
         },
         {
-            "fila_color_code": "A18B1",
+            "fila_color_code": "16601",
             "fila_id": "GFA18",
             "fila_color_type": "单色",
             "fila_type": "PLA Lite",
@@ -6671,7 +6671,7 @@
             ]
         },
         {
-            "fila_color_code": "A18Y1",
+            "fila_color_code": "16401",
             "fila_id": "GFA18",
             "fila_color_type": "单色",
             "fila_type": "PLA Lite",
@@ -6694,7 +6694,7 @@
             ]
         },
         {
-            "fila_color_code": "A18G1",
+            "fila_color_code": "16501",
             "fila_id": "GFA18",
             "fila_color_type": "单色",
             "fila_type": "PLA Lite",
@@ -6717,7 +6717,7 @@
             ]
         },
         {
-            "fila_color_code": "A18A1",
+            "fila_color_code": "16301",
             "fila_id": "GFA18",
             "fila_color_type": "单色",
             "fila_type": "PLA Lite",
@@ -6740,10 +6740,5 @@
             ]
         }
     ],
-    "splitPage": {
-        "total": 292,
-        "pageNumber": 1,
-        "totalPages": 1,
-        "pageSize": 500
-    }
+    "total": 292
 }
