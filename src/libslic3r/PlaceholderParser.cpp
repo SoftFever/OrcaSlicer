@@ -71,6 +71,7 @@ PlaceholderParser::PlaceholderParser(const DynamicConfig *external_config) : m_e
     this->set("version", std::string(SoftFever_VERSION));
     this->apply_env_variables();
     this->update_timestamp();
+    this->update_user_name();
 }
 
 void PlaceholderParser::update_timestamp(DynamicConfig &config)
@@ -96,6 +97,12 @@ void PlaceholderParser::update_timestamp(DynamicConfig &config)
     config.set_key_value("hour",   new ConfigOptionInt(timeinfo->tm_hour));
     config.set_key_value("minute", new ConfigOptionInt(timeinfo->tm_min));
     config.set_key_value("second", new ConfigOptionInt(timeinfo->tm_sec));
+}
+
+void PlaceholderParser::update_user_name(DynamicConfig &config)
+{
+    const char* user = getenv("USER") ? getenv("USER") : getenv("USERNAME") ? getenv("USERNAME") : "unknown";
+    config.set_key_value("user", new ConfigOptionString(user));
 }
 
 static inline bool opts_equal(const DynamicConfig &config_old, const DynamicConfig &config_new, const std::string &opt_key)
