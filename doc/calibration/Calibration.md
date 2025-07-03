@@ -19,13 +19,13 @@ The recommended order for calibration is as follows:
 
 2. **[Flow](flow-rate-calib):** Calibrate the flow rate to ensure that the correct amount of filament is being extruded. This is important for achieving accurate dimensions and good layer adhesion.
 
-   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-pass1.jpg?raw=true" alt="flowrate-pass1" height="200">
+   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-6.jpg?raw=true" alt="flowrate-6" height="200">
 
 1. **[Pressure Advance](pressure-advance-calib):** Calibrate the pressure advance settings to improve print quality and reduce artifacts caused by pressure fluctuations in the nozzle.
 
    - **[Adaptive Pressure Advance](adaptive-pressure-advance-calib):** This is an advanced calibration technique that can be used to further optimize the pressure advance settings for different print speeds and geometries.
 
-   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-tower.jpg?raw=true" alt="pa-tower" height="200">
+      <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-tower.jpg?raw=true" alt="pa-tower" height="200">
 
 2. **[Retraction](retraction-calib):** Calibrate the retraction settings to minimize stringing and improve print quality. Doing this after Flow and Pressure Advance calibration is recommended, as it ensures that the printer is already set up for optimal extrusion.
 
