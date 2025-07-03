@@ -2724,6 +2724,12 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
 
             m_print_error_dlg->update_title_style(_L("Error"), used_button, this);
             m_print_error_dlg->update_text_image(msg, print_error_str, image_url);
+            m_print_error_dlg->Bind(wxEVT_CLOSE_WINDOW, [this, dev_id](wxCloseEvent& e)
+                {
+                    MachineObject *the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
+                    if (the_obj) { the_obj->command_clean_print_error_uiop(the_obj->print_error); }
+                    e.Skip();
+                });
             m_print_error_dlg->on_show();
         }
         else {
@@ -2760,7 +2766,17 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
             m_print_error_dlg_no_action->update_text(error_code_msg);
             m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, dev_id](wxCommandEvent &e) {
                 MachineObject *the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
-                if (the_obj) { the_obj->command_clean_print_error(the_obj->subtask_id_, the_obj->print_error); }
+                if (the_obj) {
+                    the_obj->command_clean_print_error(the_obj->subtask_id_, the_obj->print_error);
+                    the_obj->command_clean_print_error_uiop(the_obj->print_error);
+                }
+            });
+
+            m_print_error_dlg_no_action->Bind(wxEVT_CLOSE_WINDOW, [this, dev_id](wxCloseEvent& e)
+            {
+                MachineObject *the_obj = wxGetApp().getDeviceManager()->get_my_machine(dev_id);
+                if (the_obj) { the_obj->command_clean_print_error_uiop(the_obj->print_error); }
+                e.Skip();
             });
 
             m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_RETRY, [this](wxCommandEvent& e) {
@@ -4678,7 +4694,7 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
                 break;
             }
             case Slic3r::GUI::PrintErrorDialog::CHECK_ASSISTANT: {
-                wxGetApp().mainframe->m_monitor->jump_to_HMS(event); // go to assistant page
+                wxGetApp().mainframe->m_monitor->jump_to_HMS(); // go to assistant page
                 break;
             }
             case Slic3r::GUI::PrintErrorDialog::FILAMENT_EXTRUDED: {
@@ -4732,6 +4748,10 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
             }
             case Slic3r::GUI::PrintErrorDialog::RETRY_PROBLEM_SOLVED: {
                 obj->command_ams_control("resume");
+                break;
+            }
+            case Slic3r::GUI::PrintErrorDialog::STOP_DRYING: {
+                obj->command_ams_drying_stop();
                 break;
             }
             case Slic3r::GUI::PrintErrorDialog::ERROR_BUTTON_COUNT: break;

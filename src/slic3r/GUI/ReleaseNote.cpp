@@ -1123,6 +1123,7 @@ void PrintErrorDialog::init_button_list()
     init_button(PROBLEM_SOLVED_RESUME, _L("Problem Solved and Resume"));
     init_button(STOP_BUZZER, _L("Stop Buzzer"));
     init_button(RETRY_PROBLEM_SOLVED, _L("Retry (problem solved)"));
+    init_button(STOP_DRYING, _L("Stop Drying"));
 }
 
 PrintErrorDialog::~PrintErrorDialog()

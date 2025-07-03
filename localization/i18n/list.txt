@@ -66,6 +66,7 @@ src/slic3r/GUI/BedShapeDialog.cpp
 src/slic3r/GUI/BedShapeDialog.hpp
 src/slic3r/GUI/ConfigManipulation.cpp
 src/slic3r/GUI/DeviceManager.cpp
+src/slic3r/GUI/DeviceErrorDialog.cpp
 src/slic3r/GUI/ExtraRenderers.cpp
 src/slic3r/GUI/EditGCodeDialog.cpp
 src/slic3r/GUI/Field.cpp

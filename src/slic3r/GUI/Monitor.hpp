@@ -154,7 +154,9 @@ public:
     void stop_update() {update_flag = false;};
     void start_update() {update_flag = true;};
 
-    void jump_to_HMS(wxCommandEvent& e);
+
+    void jump_to_HMS();
+    void jump_to_LiveView();
 };
 
 

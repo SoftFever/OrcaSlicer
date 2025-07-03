@@ -507,7 +507,7 @@ std::string MonitorPanel::get_string_from_tab(PrinterTab tab)
     return "";
 }
 
-void MonitorPanel::jump_to_HMS(wxCommandEvent& e)
+void MonitorPanel::jump_to_HMS()
 {
     if (!this->IsShown())
         return;
@@ -516,6 +516,18 @@ void MonitorPanel::jump_to_HMS(wxCommandEvent& e)
         m_tabpanel->SetSelection(PT_HMS);
 }
 
+void MonitorPanel::jump_to_LiveView()
+{
+    if (!this->IsShown()) { return; }
+        
+    auto page = m_tabpanel->GetCurrentPage();
+    if (page && page != m_hms_panel)
+    {
+        m_tabpanel->SetSelection(PT_STATUS);
+    }
+
+    m_status_info_panel->get_media_play_ctrl()->jump_to_play();
+}
 
 } // GUI
 } // Slic3r

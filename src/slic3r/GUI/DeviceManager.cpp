@@ -6,6 +6,7 @@
 
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
+#include "DeviceErrorDialog.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
 #include "ReleaseNote.hpp"
@@ -777,6 +778,10 @@ MachineObject::~MachineObject()
         it->second->trayList.clear();
     }
     amsList.clear();
+
+    while (!m_command_error_code_dlgs.empty()) {
+        delete *m_command_error_code_dlgs.begin();/*element will auto remove from m_command_error_code_dlgs on deleted*/
+    }
 }
 
 bool MachineObject::check_valid_ip()
@@ -1946,6 +1951,24 @@ int MachineObject::command_clean_print_error(std::string subtask_id, int print_e
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_clean_print_error_uiop(int print_error)
+{
+    json j;
+    j["system"]["command"] = "uiop";
+    j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["name"] = "print_error";
+    j["system"]["action"] = "close";
+    j["system"]["source"] = 1;// 0-Mushu 1-Studio
+    j["system"]["type"] = "dialog";
+
+    // the error to be cleaned
+    char buf[32];
+    ::sprintf(buf, "%08X", print_error);
+    j["system"]["err"] = std::string(buf);
+
+    return this->publish_json(j);
+}
+
 int MachineObject::command_upgrade_confirm()
 {
     BOOST_LOG_TRIVIAL(info) << "command_upgrade_confirm";
@@ -2348,6 +2371,13 @@ int MachineObject::command_ams_control(std::string action)
     return -1;
 }
 
+int MachineObject::command_ams_drying_stop()
+{
+    json j;
+    j["print"]["command"] = "auto_stop_ams_dry";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    return this->publish_json(j);
+}
 
 int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
 {
@@ -3826,6 +3856,15 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
                     }
                 }
+
+                if (!key_field_only)
+                {
+                    if (jj.contains("command") && jj.contains("err_code") && jj.contains("result"))
+                    {
+                        if (jj["err_code"].is_number()) { add_command_error_code_dlg(jj["err_code"].get<int>());}
+                    }
+                }
+
                 if (jj["command"].get<std::string>() == "push_status") {
                     m_push_count++;
                     last_push_time = last_update_time;
@@ -5592,6 +5631,12 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             upgrade_display_hold_count = HOLD_COUNT_MAX;
                             BOOST_LOG_TRIVIAL(info) << "ack of upgrade_confirm";
                         }
+                      
+                        if (j["upgrade"].contains("err_code")) {
+                            if (j["upgrade"]["err_code"].is_number()) {
+                                add_command_error_code_dlg(j["upgrade"]["err_code"].get<int>());
+                            }
+                        }
                     }
                 }
             }
@@ -7031,6 +7076,37 @@ wxString MachineObject::get_nozzle_replace_url() const
     }/*retry with en*/
 
     return "https://wiki.bambulab.com/en/h2/maintenance/replace-hotend";
+}
+
+std::string MachineObject::get_error_code_str(int error_code)
+{
+    if (error_code < 0) { return std::string();}
+
+    char buf[32];
+    ::sprintf(buf, "%08X", error_code);
+    std::string print_error_str = std::string(buf);
+    if (print_error_str.size() > 4) { print_error_str.insert(4, "-"); }
+    return print_error_str;
+}
+
+void MachineObject::add_command_error_code_dlg(int command_err)
+{
+    if (command_err > 0 && !Slic3r::GUI::wxGetApp().get_hms_query()->is_internal_error(this, command_err))
+    {
+        GUI::wxGetApp().CallAfter([this, command_err, token = std::weak_ptr<int>(m_token)]
+        {
+            if (token.expired()) { return;}
+            GUI::DeviceErrorDialog* device_error_dialog = new GUI::DeviceErrorDialog(this, (wxWindow*)GUI::wxGetApp().mainframe);
+            device_error_dialog->Bind(wxEVT_DESTROY, [this, token = std::weak_ptr<int>(m_token)](auto& event)
+                {
+                    if (!token.expired()) { m_command_error_code_dlgs.erase((GUI::DeviceErrorDialog*)event.GetEventObject());}
+                    event.Skip();
+                });
+            
+            device_error_dialog->show_error_code(command_err);
+            m_command_error_code_dlgs.insert(device_error_dialog);
+        });
+    };
 }
 
 bool DeviceManager::EnableMultiMachine = false;
