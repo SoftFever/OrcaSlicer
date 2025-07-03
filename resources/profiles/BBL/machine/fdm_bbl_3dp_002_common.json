@@ -233,6 +233,12 @@
         "0.08",
         "0.08"
     ],
+    "nozzle_flush_dataset": [
+        "1",
+        "2",
+        "1",
+        "2"
+    ],
     "nozzle_type": [
         "hardened_steel",
         "hardened_steel",

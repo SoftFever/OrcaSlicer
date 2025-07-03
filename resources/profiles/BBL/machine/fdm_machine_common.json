@@ -94,6 +94,9 @@
         "0.08"
     ],
     "nozzle_height": "4",
+    "nozzle_flush_dataset": [
+        "0"
+    ],
     "printable_height": "250",
     "printer_settings_id": "",
     "printer_structure": "corexy",

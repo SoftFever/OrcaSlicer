@@ -2277,6 +2277,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("By Highest Temp"));
     def->set_default_value(new ConfigOptionEnum<BedTempFormula>(BedTempFormula::btfFirstFilament));
 
+    def = this->add("nozzle_flush_dataset", coInts);
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionIntsNullable{0});
+
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
     def->tooltip = L("Filament diameter is used to calculate extrusion in G-code, so it is important and should be accurate.");
@@ -7535,7 +7539,8 @@ std::set<std::string> printer_options_with_variant_1 = {
     "nozzle_volume",
     "nozzle_type",
     "printer_extruder_id",
-    "printer_extruder_variant"
+    "printer_extruder_variant",
+    "nozzle_flush_dataset"
 };
 
 //options with silient mode

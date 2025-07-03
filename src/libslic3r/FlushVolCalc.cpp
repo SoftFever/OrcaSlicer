@@ -39,24 +39,15 @@ static float DeltaHS_BBS(float h1, float s1, float v1, float h2, float s2, float
     return std::min(1.2f, dxy);
 }
 
-FlushVolCalculator::FlushVolCalculator(int min, int max, bool is_multi_extruder, NozzleVolumeType volume_type, float multiplier)
-    :m_min_flush_vol(min), m_max_flush_vol(max), m_multiplier(multiplier)
+FlushVolCalculator::FlushVolCalculator(int min, int max, int flush_dataset, float multiplier)
+    :m_min_flush_vol(min), m_max_flush_vol(max), m_multiplier(multiplier), m_flush_dataset(flush_dataset)
 {
-    if (!is_multi_extruder) {
-        m_machine_type = FlushPredict::Standard;
-        return;
-    }
-
-    if (volume_type == NozzleVolumeType::nvtHighFlow)
-        m_machine_type = FlushPredict::DualHighFlow;
-    else
-        m_machine_type = FlushPredict::DualStandard;
 }
 
 bool FlushVolCalculator::get_flush_vol_from_data(unsigned char src_r, unsigned char src_g, unsigned char src_b,
     unsigned char dst_r, unsigned char dst_g, unsigned char dst_b, float& flush)
 {
-    GenericFlushPredictor pd(m_machine_type);
+    GenericFlushPredictor pd(m_flush_dataset);
     FlushPredict::RGBColor src(src_r, src_g, src_b);
     FlushPredict::RGBColor dst(dst_r, dst_g, dst_b);
 
@@ -67,7 +58,7 @@ int FlushVolCalculator::calc_flush_vol_rgb(unsigned char src_r, unsigned char sr
     unsigned char dst_r, unsigned char dst_g, unsigned char dst_b)
 {
     float flush_volume;
-    if(m_machine_type == FlushPredict::Standard && get_flush_vol_from_data(src_r, src_g, src_b, dst_r, dst_g, dst_b, flush_volume))
+    if(m_flush_dataset == 0 && get_flush_vol_from_data(src_r, src_g, src_b, dst_r, dst_g, dst_b, flush_volume))
         return flush_volume;
     float src_r_f, src_g_f, src_b_f, dst_r_f, dst_g_f, dst_b_f;
     float from_hsv_h, from_hsv_s, from_hsv_v;
@@ -119,7 +110,7 @@ int FlushVolCalculator::calc_flush_vol(unsigned char src_a, unsigned char src_r,
     }
 
     float flush_volume;
-    if(m_machine_type != FlushPredict::Standard && get_flush_vol_from_data(src_r, src_g, src_b, dst_r, dst_g, dst_b, flush_volume))
+    if(m_flush_dataset != 0  && get_flush_vol_from_data(src_r, src_g, src_b, dst_r, dst_g, dst_b, flush_volume))
         return std::min((int)flush_volume, m_max_flush_vol);
 
 
@@ -129,7 +120,7 @@ int FlushVolCalculator::calc_flush_vol(unsigned char src_a, unsigned char src_r,
     constexpr float light_color_thres = 75.f/255.f;
     bool is_from_dark = get_luminance(src_r, src_g, src_b) > dark_color_thres;
     bool is_to_light = get_luminance(dst_r, dst_g, dst_b) < light_color_thres;
-    if (m_machine_type != FlushPredict::Standard && is_from_dark && is_to_light)
+    if (m_flush_dataset != 0 && is_from_dark && is_to_light)
         flush_volume *= 1.3;
 
     flush_volume += m_min_flush_vol;

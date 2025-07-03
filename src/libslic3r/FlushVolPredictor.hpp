@@ -8,14 +8,6 @@
 
 namespace FlushPredict
 {
-    enum FlushMachineType
-    {
-        Standard,
-        DualStandard,
-        DualHighFlow
-    };
-
-
     struct RGBColor
     {
         unsigned char r{ 0 };
@@ -48,10 +40,10 @@ class FlushVolPredictor;
 class GenericFlushPredictor
 {
     using RGB = FlushPredict::RGBColor;
-    using MachineType = FlushPredict::FlushMachineType;
 public:
-    explicit GenericFlushPredictor(const MachineType& type);
+    explicit GenericFlushPredictor(const int dataset_value);
     bool predict(const RGB& from, const RGB& to, float& flush);
+    int get_min_flush_volume();
 private:
     FlushVolPredictor* predictor{ nullptr };
 };
