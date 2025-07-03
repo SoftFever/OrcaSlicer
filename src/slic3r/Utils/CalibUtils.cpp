@@ -866,6 +866,9 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
     // nozzle volume type
     std::vector<int>& nozzle_volume_types = full_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type", true)->values;
     nozzle_volume_types.resize(extruder_count, NozzleVolumeType::nvtStandard);
+    auto nozzle_flush_dataset = full_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset", true)->values;
+    nozzle_flush_dataset.resize(extruder_count, 0);
+
     int               filament_nums = calib_infos.size();
     std::vector<int> physical_extruder_maps = dynamic_cast<ConfigOptionInts *>(full_config.option("physical_extruder_map", true))->values;
     for (size_t filament_index = 0; filament_index < calib_infos.size(); ++filament_index) {
@@ -899,7 +902,7 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
                     flush_matrix_vec.emplace_back(0);
                 }
                 else {
-                    Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], Slic3r::g_max_flush_volume, extruder_count > 1, NozzleVolumeType(nozzle_volume_types[e_idx]));
+                    Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], Slic3r::g_max_flush_volume, nozzle_flush_dataset[e_idx]);
                     wxColour from = wxColour(filament_colors[from_idx]);
                     wxColour to = wxColour(filament_colors[to_idx]);
                     int volume = calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());

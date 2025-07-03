@@ -54,6 +54,10 @@
         "32",
         "32"
     ],
+    "nozzle_flush_dataset": [
+        "1",
+        "2"
+    ],
     "printable_area": [
         "0x0",
         "340x0",
