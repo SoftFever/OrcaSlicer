@@ -4657,6 +4657,7 @@ LayerResult GCode::process_layer(
         if (is_BBL_Printer() &&
             (print.num_object_instances() <= g_max_label_object) && // Don't support too many objects on one plate
             (print.num_object_instances() > 1) &&                 // Don't support skipping single object
+            (layer_object_label_ids.size() > 0) &&
             (print.calib_params().mode == CalibMode::Calib_None)) {
             std::ostringstream oss;
             for (auto it = layer_object_label_ids.begin(); it != layer_object_label_ids.end(); ++it) {
