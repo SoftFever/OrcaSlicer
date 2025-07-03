@@ -137,33 +137,33 @@ static t_config_enum_values s_keys_map_NoiseType {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NoiseType)
 
 static t_config_enum_values s_keys_map_InfillPattern {
-    { "concentric",         ipConcentric },
-    { "zig-zag",            ipRectilinear },
-    { "grid",               ipGrid },
-    { "2dlattice",          ip2DLattice },
-    { "line",               ipLine },
-    { "cubic",              ipCubic },
-    { "triangles",          ipTriangles },
-    { "tri-hexagon",        ipStars },
-    { "gyroid",             ipGyroid },
-    { "tpmsd",              ipTpmsD },//TpmsD from CrealityPrint
-    { "honeycomb",          ipHoneycomb },
-    { "adaptivecubic",      ipAdaptiveCubic },
-    { "monotonic",          ipMonotonic },
-    { "monotonicline",      ipMonotonicLine },
+    { "monotonic", ipMonotonic },
+    { "monotonicline", ipMonotonicLine },
+    { "zig-zag", ipRectilinear },
     { "alignedrectilinear", ipAlignedRectilinear },
-    { "2dhoneycomb",        ip2DHoneycomb },
-    { "3dhoneycomb",        ip3DHoneycomb },
-    { "hilbertcurve",       ipHilbertCurve },
-    { "archimedeanchords",  ipArchimedeanChords },
-    { "octagramspiral",     ipOctagramSpiral },
-    { "supportcubic",       ipSupportCubic },
-    { "lightning",          ipLightning },
-    { "crosshatch",         ipCrossHatch},
-    { "quartercubic",       ipQuarterCubic},
-    { "zigzag",             ipZigZag },
-    { "crosszag",           ipCrossZag },
-    { "lockedzag",          ipLockedZag }
+    { "zigzag", ipZigZag },
+    { "crosszag", ipCrossZag },
+    { "lockedzag", ipLockedZag },
+    { "line", ipLine },
+    { "grid", ipGrid },
+    { "triangles", ipTriangles },
+    { "tri-hexagon", ipStars },
+    { "cubic", ipCubic },
+    { "adaptivecubic", ipAdaptiveCubic },
+    { "quartercubic", ipQuarterCubic },
+    { "supportcubic", ipSupportCubic },
+    { "honeycomb", ipHoneycomb },
+    { "3dhoneycomb", ip3DHoneycomb },
+    { "2dhoneycomb", ip2DHoneycomb },
+    { "2dlattice", ip2DLattice },
+    { "crosshatch", ipCrossHatch },
+    { "tpmsd", ipTpmsD },
+    { "gyroid", ipGyroid },
+    { "concentric", ipConcentric },
+    { "hilbertcurve", ipHilbertCurve },
+    { "archimedeanchords", ipArchimedeanChords },
+    { "octagramspiral", ipOctagramSpiral },
+    { "lightning", ipLightning }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -1610,19 +1610,19 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Line pattern of top surface infill.");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
-    def->enum_values.push_back("concentric");
-    def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("monotonic");
     def->enum_values.push_back("monotonicline");
+    def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("alignedrectilinear");
+    def->enum_values.push_back("concentric");
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
-    def->enum_labels.push_back(L("Concentric"));
-    def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Monotonic"));
     def->enum_labels.push_back(L("Monotonic line"));
+    def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
+    def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
@@ -2374,56 +2374,56 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Line pattern for internal sparse infill.");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
-    def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
-    def->enum_values.push_back("grid");
-    def->enum_values.push_back("2dlattice");
-    def->enum_values.push_back("line");
-    def->enum_values.push_back("cubic");
-    def->enum_values.push_back("triangles");
-    def->enum_values.push_back("tri-hexagon");
-    def->enum_values.push_back("gyroid");
-    def->enum_values.push_back("tpmsd");
-    def->enum_values.push_back("honeycomb");
-    def->enum_values.push_back("adaptivecubic");
     def->enum_values.push_back("alignedrectilinear");
-    def->enum_values.push_back("2dhoneycomb");
-    def->enum_values.push_back("3dhoneycomb");
-    def->enum_values.push_back("hilbertcurve");
-    def->enum_values.push_back("archimedeanchords");
-    def->enum_values.push_back("octagramspiral");
-    def->enum_values.push_back("supportcubic");
-    def->enum_values.push_back("lightning");
-    def->enum_values.push_back("crosshatch");
-    def->enum_values.push_back("quartercubic");
     def->enum_values.push_back("zigzag");
     def->enum_values.push_back("crosszag");
     def->enum_values.push_back("lockedzag");
-    def->enum_labels.push_back(L("Concentric"));
+    def->enum_values.push_back("line");
+    def->enum_values.push_back("grid");
+    def->enum_values.push_back("triangles");
+    def->enum_values.push_back("tri-hexagon");
+    def->enum_values.push_back("cubic");
+    def->enum_values.push_back("adaptivecubic");
+    def->enum_values.push_back("quartercubic");
+    def->enum_values.push_back("supportcubic");
+    def->enum_values.push_back("honeycomb");
+    def->enum_values.push_back("3dhoneycomb");
+    def->enum_values.push_back("2dhoneycomb");
+    def->enum_values.push_back("2dlattice");
+    def->enum_values.push_back("crosshatch");
+    def->enum_values.push_back("tpmsd");
+    def->enum_values.push_back("gyroid");
+    def->enum_values.push_back("concentric");
+    def->enum_values.push_back("hilbertcurve");
+    def->enum_values.push_back("archimedeanchords");
+    def->enum_values.push_back("octagramspiral");
+    def->enum_values.push_back("lightning");
     def->enum_labels.push_back(L("Rectilinear"));
-    def->enum_labels.push_back(L("Grid"));
-    def->enum_labels.push_back(L("2D Lattice"));
-    def->enum_labels.push_back(L("Line"));
-    def->enum_labels.push_back(L("Cubic"));
-    def->enum_labels.push_back(L("Triangles"));
-    def->enum_labels.push_back(L("Tri-hexagon"));
-    def->enum_labels.push_back(L("Gyroid"));
-    def->enum_labels.push_back(L("TPMS-D"));
-    def->enum_labels.push_back(L("Honeycomb"));
-    def->enum_labels.push_back(L("Adaptive Cubic"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
-    def->enum_labels.push_back(L("2D Honeycomb"));
-    def->enum_labels.push_back(L("3D Honeycomb"));
-    def->enum_labels.push_back(L("Hilbert Curve"));
-    def->enum_labels.push_back(L("Archimedean Chords"));
-    def->enum_labels.push_back(L("Octagram Spiral"));
-    def->enum_labels.push_back(L("Support Cubic"));
-    def->enum_labels.push_back(L("Lightning"));
-    def->enum_labels.push_back(L("Cross Hatch"));
-    def->enum_labels.push_back(L("Quarter Cubic"));
     def->enum_labels.push_back(L("Zig Zag"));
     def->enum_labels.push_back(L("Cross Zag"));
     def->enum_labels.push_back(L("Locked Zag"));
+    def->enum_labels.push_back(L("Line"));
+    def->enum_labels.push_back(L("Grid"));
+    def->enum_labels.push_back(L("Triangles"));
+    def->enum_labels.push_back(L("Tri-hexagon"));
+    def->enum_labels.push_back(L("Cubic"));
+    def->enum_labels.push_back(L("Adaptive Cubic"));
+    def->enum_labels.push_back(L("Quarter Cubic"));
+    def->enum_labels.push_back(L("Support Cubic"));
+    def->enum_labels.push_back(L("Honeycomb"));
+    def->enum_labels.push_back(L("3D Honeycomb"));
+    def->enum_labels.push_back(L("2D Honeycomb"));
+    def->enum_labels.push_back(L("2D Lattice"));
+    def->enum_labels.push_back(L("Cross Hatch"));
+    def->enum_labels.push_back(L("TPMS-D"));
+    def->enum_labels.push_back(L("Gyroid"));
+    def->enum_labels.push_back(L("Concentric"));
+    def->enum_labels.push_back(L("Hilbert Curve"));
+    def->enum_labels.push_back(L("Archimedean Chords"));
+    def->enum_labels.push_back(L("Octagram Spiral"));
+    def->enum_labels.push_back(L("Lightning"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
     def           = this->add("lattice_angle_1", coFloat);
@@ -3418,10 +3418,10 @@ void PrintConfigDef::init_fff_params()
     def->tooltip       = L("The pattern that will be used when ironing.");
     def->category      = L("Quality");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
-    def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
-    def->enum_labels.push_back(L("Concentric"));
+    def->enum_values.push_back("concentric");
     def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Concentric"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
     
@@ -5327,10 +5327,10 @@ void PrintConfigDef::init_fff_params()
     def->tooltip       = L("The pattern that will be used when ironing.");
     def->category      = L("Support");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
-    def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
-    def->enum_labels.push_back(L("Concentric"));
+    def->enum_values.push_back("concentric");
     def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Concentric"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
     
