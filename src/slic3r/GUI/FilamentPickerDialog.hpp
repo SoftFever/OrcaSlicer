@@ -26,7 +26,7 @@ public:
     // Public interface methods
     bool IsDataLoaded() const { return m_is_data_loaded; }
     wxColour GetSelectedColour() const;
-    const FilamentColor& GetSelectedFilamentColor() const { return m_current_filament_color; }
+    const FilamentColor& GetSelectedFilamentColor() const { return m_cur_filament_color; }
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
@@ -75,14 +75,14 @@ private:
     Button* m_more_btn{nullptr};
     Button* m_ok_btn{nullptr};
     Button* m_cancel_btn{nullptr};
-    wxString* m_cur_color_name{nullptr};
 
     // Data members
-    FilamentColorCodeQuery* m_color_query{nullptr};
-    FilamentColorCodes* m_current_color_codes{nullptr};
     bool m_is_data_loaded{false};
-    wxBitmapButton* m_currently_selected_btn{nullptr};
-    FilamentColor m_current_filament_color;
+    wxString *m_cur_color_name{nullptr};
+    FilamentColorCodeQuery* m_color_query{nullptr};
+    FilamentColorCodes* m_cur_color_codes{nullptr};
+    wxBitmapButton* m_cur_selected_btn{nullptr};
+    FilamentColor m_cur_filament_color;
 
     // Shaped window members
     wxBitmap m_shape_bmp;

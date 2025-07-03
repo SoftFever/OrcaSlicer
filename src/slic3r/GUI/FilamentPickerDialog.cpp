@@ -49,7 +49,7 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
 
     m_color_query = new FilamentColorCodeQuery();
     m_is_data_loaded = LoadFilamentData(fila_id);
-    m_current_filament_color = fila_color;
+    m_cur_filament_color = fila_color;
     wxString color_name = m_color_query->GetFilaColorName(fila_id, fila_color);
     m_cur_color_name = new wxString(color_name);
 
@@ -172,14 +172,14 @@ void FilamentPickerDialog::SetWindowShape()
 
 bool FilamentPickerDialog::LoadFilamentData(const wxString& fila_id)
 {
-    m_current_color_codes = m_color_query->GetFilaInfoMap(fila_id);
+    m_cur_color_codes = m_color_query->GetFilaInfoMap(fila_id);
 
-    if (!m_current_color_codes) {
+    if (!m_cur_color_codes) {
         BOOST_LOG_TRIVIAL(warning) << "No color codes found for filament ID: " << fila_id.ToStdString();
         return false;
     }
 
-    FilamentColor2CodeMap* color_map = m_current_color_codes->GetFilamentColor2CodeMap();
+    FilamentColor2CodeMap* color_map = m_cur_color_codes->GetFilamentColor2CodeMap();
     if (!color_map) {
         BOOST_LOG_TRIVIAL(warning) << "No color map found for filament ID: " << fila_id.ToStdString();
         return false;
@@ -211,10 +211,18 @@ void FilamentPickerDialog::CreateColorBitmap(const FilamentColor &fila_color)
     m_color_demo = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, COLOR_DEMO_SIZE, 0);
 
     // Generate bitmap content
-    std::vector<wxColour> wx_colors(fila_color.m_colors.begin(), fila_color.m_colors.end());
-    wxBitmap init_bmp = create_filament_bitmap(wx_colors, COLOR_DEMO_SIZE,
-                                             fila_color.m_color_type == FilamentColor::ColorType::GRADIENT_CLR);
-    m_color_demo->SetBitmap(init_bmp);
+    if (fila_color.ColorCount() > 0) {
+        std::vector<wxColour> wx_colors(fila_color.m_colors.begin(), fila_color.m_colors.end());
+        wxBitmap init_bmp = create_filament_bitmap(wx_colors, COLOR_DEMO_SIZE,
+                                                fila_color.m_color_type == FilamentColor::ColorType::GRADIENT_CLR);
+        m_color_demo->SetBitmap(init_bmp);
+    }
+    else{
+        std::vector<wxColour> wx_colors;
+        wx_colors.push_back(wxNullColour);
+        wxBitmap init_bmp = create_filament_bitmap(wx_colors, COLOR_DEMO_SIZE, false);
+        m_color_demo->SetBitmap(init_bmp);
+    }
 }
 
 wxBoxSizer* FilamentPickerDialog::CreateInfoSection()
@@ -278,15 +286,18 @@ void FilamentPickerDialog::SetupLabelsContent(const FilamentColor &fila_color, c
         m_label_preview_color->SetLabel(*m_cur_color_name);
 
         // Try to get additional color code information
-        if (m_current_color_codes) {
-            FilamentColorCode *color_code = m_current_color_codes->GetColorCode(fila_color);
+        if (m_cur_color_codes) {
+            FilamentColorCode *color_code = m_cur_color_codes->GetColorCode(fila_color);
             if (color_code) {
                 m_label_preview_idx->SetLabel(wxString::Format("(%s)", color_code->GetFilaColorCode()));
             }
         }
     }
     else{
-        if (fila_color.ColorCount() == 1) {
+        if (fila_color.ColorCount() == 0){
+            m_label_preview_color->SetLabel(_L("Null Color"));
+        }
+        else if (fila_color.ColorCount() == 1) {
             m_label_preview_color->SetLabel(fila_color.m_colors.begin()->GetAsString(wxC2S_HTML_SYNTAX));
         }
         else{
@@ -310,9 +321,9 @@ wxBoxSizer* FilamentPickerDialog::CreateSeparatorLine()
 
 wxScrolledWindow* FilamentPickerDialog::CreateColorGrid()
 {
-    if (!m_current_color_codes) return nullptr;
+    if (!m_cur_color_codes) return nullptr;
 
-    FilamentColor2CodeMap* color_map = m_current_color_codes->GetFilamentColor2CodeMap();
+    FilamentColor2CodeMap* color_map = m_cur_color_codes->GetFilamentColor2CodeMap();
     if (!color_map) return nullptr;
 
     // Calculate required row count
@@ -372,15 +383,15 @@ wxScrolledWindow* FilamentPickerDialog::CreateColorGrid()
                                         *m_cur_color_name == color_code->GetFilaColorName());
 
                 if (is_matching_color) {
-                    m_current_filament_color = color_code->GetFilaColor();
-                    m_currently_selected_btn = btn;
+                    m_cur_filament_color = color_code->GetFilaColor();
+                    m_cur_selected_btn = btn;
                     UpdatePreview(*color_code);
                     btn->Bind(wxEVT_PAINT, &FilamentPickerDialog::OnButtonPaint, this);
                 }
 
                 // Bind click
                 btn->Bind(wxEVT_LEFT_DOWN, [this, btn, color_code](wxMouseEvent& evt) {
-                    m_current_filament_color = color_code->GetFilaColor();
+                    m_cur_filament_color = color_code->GetFilaColor();
                     UpdatePreview(*color_code);
                     UpdateButtonStates(btn);
                     evt.Skip();
@@ -475,10 +486,10 @@ void FilamentPickerDialog::UpdateCustomColorPreview(const wxColour& custom_color
 void FilamentPickerDialog::UpdateButtonStates(wxBitmapButton* selected_btn)
 {
     // Reset selected button appearance
-    if (m_currently_selected_btn) {
-        m_currently_selected_btn->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
-        m_currently_selected_btn->Unbind(wxEVT_PAINT, &FilamentPickerDialog::OnButtonPaint, this);
-        m_currently_selected_btn->Refresh();
+    if (m_cur_selected_btn) {
+        m_cur_selected_btn->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+        m_cur_selected_btn->Unbind(wxEVT_PAINT, &FilamentPickerDialog::OnButtonPaint, this);
+        m_cur_selected_btn->Refresh();
     }
 
     if (selected_btn) {
@@ -487,7 +498,7 @@ void FilamentPickerDialog::UpdateButtonStates(wxBitmapButton* selected_btn)
         selected_btn->Refresh();
     }
 
-    m_currently_selected_btn = selected_btn;
+    m_cur_selected_btn = selected_btn;
 }
 
 void FilamentPickerDialog::CreateMoreInfoButton()
@@ -565,8 +576,8 @@ wxColourData FilamentPickerDialog::GetSingleColorData()
 {
     wxColourData data;
     data.SetChooseFull(true);
-    if (m_current_filament_color.ColorCount() > 0) {
-        data.SetColour(*m_current_filament_color.m_colors.begin());
+    if (m_cur_filament_color.ColorCount() > 0) {
+        data.SetColour(*m_cur_filament_color.m_colors.begin());
     }
     return data;
 }
@@ -604,9 +615,9 @@ void FilamentPickerDialog::BindEvents()
                 wxColour selected_color = result.GetColour();
 
                 // Update m_current_filament_color with the selected color
-                m_current_filament_color.m_colors.clear();
-                m_current_filament_color.m_colors.insert(selected_color);
-                m_current_filament_color.m_color_type = FilamentColor::ColorType::SINGLE_CLR;
+                m_cur_filament_color.m_colors.clear();
+                m_cur_filament_color.m_colors.insert(selected_color);
+                m_cur_filament_color.m_color_type = FilamentColor::ColorType::SINGLE_CLR;
 
                 // Update preview
                 UpdateCustomColorPreview(selected_color);

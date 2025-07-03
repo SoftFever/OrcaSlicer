@@ -1402,6 +1402,16 @@ FilamentColor PlaterPresetComboBox::get_cur_color_info()
 {
     std::vector<std::string> filaments_multi_color = Slic3r::GUI::wxGetApp().plater()->get_filament_colors_render_info();
     std::vector<std::string> filament_color_type = Slic3r::GUI::wxGetApp().plater()->get_filament_color_render_type();
+
+    if (m_filament_idx < 0 || m_filament_idx >= static_cast<int>(filaments_multi_color.size())) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": m_filament_idx %1% out of range %2%") % m_filament_idx % filaments_multi_color.size();
+        return FilamentColor();
+    }
+
+    if (m_filament_idx >= static_cast<int>(filament_color_type.size())) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": m_filament_idx %1% out of range for color_type %2%") % m_filament_idx % filament_color_type.size();
+        return FilamentColor();
+    }
     std::string filament_color_info = filaments_multi_color[m_filament_idx];
     std::vector<std::string> colors;
     colors = Slic3r::split_string(filament_color_info, ' ');
