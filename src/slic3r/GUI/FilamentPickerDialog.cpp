@@ -244,17 +244,12 @@ wxBoxSizer* FilamentPickerDialog::CreateInfoSection()
     wxFont bold_font = m_label_preview_color->GetFont();
     bold_font.SetWeight(wxFONTWEIGHT_BOLD);
 #ifdef __WXMSW__
-    bold_font.SetPointSize(FromDIP(9));
+    bold_font.SetPointSize(FromDIP(8));
 #endif
     m_label_preview_color->SetFont(bold_font);
     m_label_preview_idx->SetFont(bold_font);
 
     m_label_preview_type->SetForegroundColour(wxColour(128, 128, 128));
-#ifdef __WXMSW__
-    wxFont type_font = m_label_preview_type->GetFont();
-    type_font.SetPointSize(FromDIP(8));
-    m_label_preview_type->SetFont(type_font);
-#endif
 
     // Layout with platform-specific spacing
 #ifdef __WXMSW__
