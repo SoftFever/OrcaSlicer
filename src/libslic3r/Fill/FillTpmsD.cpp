@@ -110,7 +110,7 @@ void FillTpmsD::_fill_surface_single(
 
     BoundingBox bb = expolygon.contour.bounding_box();
     // Density adjusted to have a good %of weight.
-    double      density_adjusted = std::max(0., params.density * DensityAdjust);
+    double      density_adjusted = std::max(0., params.density * DensityAdjust / params.multiline);
     // Distance between the gyroid waves in scaled coordinates.
     coord_t     distance = coord_t(scale_(this->spacing)  / density_adjusted);
 
@@ -129,6 +129,8 @@ void FillTpmsD::_fill_surface_single(
 	for (Polyline &pl : polylines)
 		pl.translate(bb.min);
 	
+	    // Apply multiline offset if needed
+    multiline_fill(polylines, params, spacing);
 
 	polylines = intersection_pl(polylines, expolygon);
 
