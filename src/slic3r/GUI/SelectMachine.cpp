@@ -453,6 +453,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_check_ext_change_assist->Hide();
     m_label_ext_change_assist = new Label(m_scroll_area, _L("Multi-color with external"));
     m_label_ext_change_assist->Wrap(-1);
+    m_label_ext_change_assist->Hide();
     m_label_ext_change_assist->SetMaxSize(wxSize(FromDIP(200), -1));
     m_label_ext_change_assist->SetFont(::Label::Body_13);
     m_label_ext_change_assist->SetBackgroundColour(*wxWHITE);
