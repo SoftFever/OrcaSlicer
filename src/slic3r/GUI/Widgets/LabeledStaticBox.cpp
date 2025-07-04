@@ -4,12 +4,6 @@
 #include "../GUI_Utils.hpp"
 #include "Label.hpp"
 
-/*
-Fix label overflowing to inner frame
-Fix use elypsis if text too long
-setmin size
-*/
-
 LabeledStaticBox::LabeledStaticBox()
     : state_handler(this)
 {
@@ -28,7 +22,6 @@ LabeledStaticBox::LabeledStaticBox()
         std::make_pair(0xDBDBDB, (int) StateColor::Normal),
         std::make_pair(0xDBDBDB, (int) StateColor::Disabled)
     );
-
 }
 
 LabeledStaticBox::LabeledStaticBox(
@@ -63,11 +56,10 @@ bool LabeledStaticBox::Create(
     m_pos   = this->GetPosition();
 
     int tW,tH,descent,externalLeading;
-    GetTextExtent("Yy", &tW, &tH, &descent, &externalLeading, &m_font);
+    // empty label sets m_label_height as 0 that causes extra spacing at top
+    GetTextExtent(m_label.IsEmpty() ? "Orca" : m_label, &tW, &tH, &descent, &externalLeading, &m_font);
     m_label_height = tH - externalLeading;
-
-    GetTextExtent(m_label, &tW, &tH, &descent, &externalLeading, &m_font);
-    m_label_width = tW;
+    m_label_width  = tW;
 
     Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
         wxPaintDC dc(this);
@@ -178,4 +170,11 @@ void LabeledStaticBox::DrawBorderAndLabel(wxDC& dc)
         dc.SetTextForeground(text_color.colorForStates(state_handler.states()));
         dc.DrawText(m_label, wxPoint(10 * m_scale, 0));
     }
+}
+
+void LabeledStaticBox::GetBordersForSizer(int* borderTop, int* borderOther) const {
+    wxStaticBox::GetBordersForSizer(borderTop, borderOther);
+#ifdef __WXOSX__
+    *borderOther = 5; // Make sure macOS uses the same border padding as other platforms
+#endif
 }
