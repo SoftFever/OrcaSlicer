@@ -167,33 +167,33 @@ There is no one-size-fits-all solution, as the best pattern depends on the speci
 Many patterns may look similar and have similar overall specifications, but they can behave very differently in practice.
 As most settings in 3D printing, experience is the best way to determine which pattern works best for your specific needs.
 
-| Pattern                                       | X-Y Strength | Z Strength  | Material Usage | Print Time  |
-|-----------------------------------------------|--------------|-------------|----------------|-------------|
-| [Concentric](#concentric)                     | Low          | Normal      | Normal         | Normal      |
-| [Rectilinear](#rectilinear)                   | Normal-Low   | Low         | Normal         | Normal-Low  |
-| [Grid](#grid)                                 | High         | High        | Normal         | Normal-Low  |
-| [2D   Lattice](#2d-lattice)                   | Normal-Low   | Low         | Normal         | Normal-Low  |
-| [Line](#line)                                 | Low          | Low         | Normal         | Normal-Low  |
-| [Cubic](#cubic)                               | High         | High        | Normal         | Normal-Low  |
-| [Triangles](#triangles)                       | High         | Normal      | Normal         | Normal-Low  |
-| [Tri-hexagon](#tri-hexagon)                   | High         | Normal-High | Normal         | Normal-Low  |
-| [Gyroid](#gyroid)                             | High         | High        | Normal         | Normal-High |
-| [TPMS-D](#tpms-d)                             | High         | High        | Normal         | High        |
-| [Honeycomb](#honeycomb)                       | High         | High        | High           | Ultra-High  |
-| [Adaptive   Cubic](#adaptive-cubic)           | Normal-High  | Normal-High | Low            | Low         |
-| [Aligned   Rectilinear](#aligned-rectilinear) | Normal-Low   | Normal      | Normal         | Normal-Low  |
-| [2D   Honeycomb](#2d-honeycomb)               | Normal-Low   | Normal-Low  | Normal         | Normal-Low  |
-| [3D Honeycomb](#3d-honeycomb)                 | Normal-High  | Normal-High | Normal-Low     | High        |
-| [Hilbert   Curve](#hilbert-curve)             | Low          | Normal      | Normal         | High        |
-| [Archimedean   Chords](#archimedean-chords)   | Low          | Normal      | Normal         | Normal-Low  |
-| [Octagram   Spiral](#octagram-spiral)         | Low          | Normal      | Normal         | Normal      |
-| [Support Cubic](#support-cubic)               | Low          | Low         | Extra-Low      | Extra-Low   |
-| [Lightning](#lightning)                       | Low          | Low         | Ultra-Low      | Ultra-Low   |
-| [Cross Hatch](#cross-hatch)                   | Normal-High  | Normal-High | Normal         | Normal-High |
-| [Quarter   Cubic](#quarter-cubic)             | High         | High        | Normal         | Normal-Low  |
-| [Zig Zag](#zig-zag)                           | Normal-Low   | Low         | Normal         | Normal      |
-| [Cross Zag](#cross-zag)                       | Normal       | Low         | Normal         | Normal      |
-| [Locked Zag](#locked-zag)                     | Normal-Low   | Normal-Low  | Normal-High    | Extra-High  |
+| SVG | Pattern | X-Y Strength | Z Strength | Material Usage | Print Time |
+|---|---|---|---|---|---|
+| ![param_concentric](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_concentric.svg?raw=true) | [Concentric](#concentric) | Low | Normal | Normal | Normal |
+| ![param_zig-zag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_zig-zag.svg?raw=true) | [Rectilinear](#rectilinear) | Normal-Low | Low | Normal | Normal-Low |
+| ![param_grid](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_grid.svg?raw=true) | [Grid](#grid) | High | High | Normal | Normal-Low |
+| ![param_2dlattice](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_2dlattice.svg?raw=true) | [2D   Lattice](#2d-lattice) | Normal-Low | Low | Normal | Normal-Low |
+| ![param_line](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_line.svg?raw=true) | [Line](#line) | Low | Low | Normal | Normal-Low |
+| ![param_cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_cubic.svg?raw=true) | [Cubic](#cubic) | High | High | Normal | Normal-Low |
+| ![param_triangles](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_triangles.svg?raw=true) | [Triangles](#triangles) | High | Normal | Normal | Normal-Low |
+| ![param_tri-hexagon](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tri-hexagon.svg?raw=true) | [Tri-hexagon](#tri-hexagon) | High | Normal-High | Normal | Normal-Low |
+| ![param_gyroid](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_gyroid.svg?raw=true) | [Gyroid](#gyroid) | High | High | Normal | Normal-High |
+| ![param_tpmsd](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tpmsd.svg?raw=true) | [TPMS-D](#tpms-d) | High | High | Normal | High |
+| ![param_honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_honeycomb.svg?raw=true) | [Honeycomb](#honeycomb) | High | High | High | Ultra-High |
+| ![param_adaptivecubic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_adaptivecubic.svg?raw=true) | [Adaptive   Cubic](#adaptive-cubic) | Normal-High | Normal-High | Low | Low |
+| ![param_alignedrectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_alignedrectilinear.svg?raw=true) | [Aligned   Rectilinear](#aligned-rectilinear) | Normal-Low | Normal | Normal | Normal-Low |
+| ![param_2dhoneycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_2dhoneycomb.svg?raw=true) | [2D   Honeycomb](#2d-honeycomb) | Normal-Low | Normal-Low | Normal | Normal-Low |
+| ![param_3dhoneycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_3dhoneycomb.svg?raw=true) | [3D Honeycomb](#3d-honeycomb) | Normal-High | Normal-High | Normal-Low | High |
+| ![param_hilbertcurve](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_hilbertcurve.svg?raw=true) | [Hilbert   Curve](#hilbert-curve) | Low | Normal | Normal | High |
+| ![param_archimedeanchords](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_archimedeanchords.svg?raw=true) | [Archimedean   Chords](#archimedean-chords) | Low | Normal | Normal | Normal-Low |
+| ![param_octagramspiral](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_octagramspiral.svg?raw=true) | [Octagram   Spiral](#octagram-spiral) | Low | Normal | Normal | Normal |
+| ![param_supportcubic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_supportcubic.svg?raw=true) | [Support Cubic](#support-cubic) | Low | Low | Extra-Low | Extra-Low |
+| ![param_lightning](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lightning.svg?raw=true) | [Lightning](#lightning) | Low | Low | Ultra-Low | Ultra-Low |
+| ![param_crosshatch](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_crosshatch.svg?raw=true) | [Cross Hatch](#cross-hatch) | Normal-High | Normal-High | Normal | Normal-High |
+| ![param_quartercubic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_quartercubic.svg?raw=true) | [Quarter   Cubic](#quarter-cubic) | High | High | Normal | Normal-Low |
+| ![param_zigzag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_zigzag.svg?raw=true) | [Zig Zag](#zig-zag) | Normal-Low | Low | Normal | Normal |
+| ![param_crosszag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_crosszag.svg?raw=true) | [Cross   Zag](#cross-zag) | Normal | Low | Normal | Normal |
+| ![param_lockedzag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lockedzag.svg?raw=true) | [Locked Zag](#locked-zag) | Normal-Low | Normal-Low | Normal-High | Extra-High |
 
 > [!NOTE]
 > You can download [infill_desc_calculator.xlsx](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/print_settings/strength/infill_desc_calculator.xlsx?raw=true) used to calculate the values above.
