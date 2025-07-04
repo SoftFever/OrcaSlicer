@@ -190,3 +190,7 @@ src/slic3r/Utils/Flashforge.cpp
 src/slic3r/GUI/Jobs/OAuthJob.cpp
 src/slic3r/GUI/BackgroundSlicingProcess.cpp
 src/slic3r/GUI/Gizmos/GLGizmoBrimEars.cpp
+src/slic3r/GUI/FilamentBitmapUtils.cpp
+src/slic3r/GUI/FilamentBitmapUtils.hpp
+src/slic3r/GUI/FilamentPickerDialog.cpp
+src/slic3r/GUI/FilamentPickerDialog.hpp
