@@ -389,7 +389,7 @@ void DropDown::render(wxDC &dc)
         }
         auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
-                        : (item.text.StartsWith(group) ? item.text.substr(group.size()).Trim(false) : item.text);
+                        : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
         if (!text_off && !text.IsEmpty()) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
@@ -501,7 +501,7 @@ void DropDown::messureSize()
         if (!text_off) {
             auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
-                        : (item.text.StartsWith(group) ? item.text.substr(group.size()).Trim(false) : item.text);
+                        : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
             size1 = dc.GetMultiLineTextExtent(text);
             if (group.IsEmpty() && !item.group.IsEmpty())
                 size1.x += 5 + arrow_bitmap.GetBmpWidth();

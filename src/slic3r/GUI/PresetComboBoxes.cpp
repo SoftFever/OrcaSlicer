@@ -379,7 +379,7 @@ void PresetComboBox::update(std::string select_preset_name)
 
     wxString selected = "";
     if (!presets.front().is_visible)
-        set_label_marker(Append(L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        set_label_marker(Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
 
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
     {
@@ -409,11 +409,11 @@ void PresetComboBox::update(std::string select_preset_name)
                 selected = get_preset_name(preset);
         }
         if (i + 1 == m_collection->num_default_presets())
-            set_label_marker(Append(L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+            set_label_marker(Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
     }
     if (!nonsys_presets.empty())
     {
-        set_label_marker(Append(L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        set_label_marker(Append(_L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
             bool is_enabled = it->second.second;
@@ -424,7 +424,7 @@ void PresetComboBox::update(std::string select_preset_name)
     }
     if (!incomp_presets.empty())
     {
-        set_label_marker(Append(L("Incompatible presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        set_label_marker(Append(_L("Incompatible presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (std::map<wxString, wxBitmap*>::iterator it = incomp_presets.begin(); it != incomp_presets.end(); ++it) {
             set_label_marker(Append(it->first, *it->second), LABEL_ITEM_DISABLED);
         }
@@ -460,7 +460,7 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
     if (machine_list.empty())
         return;
 
-    set_label_marker(Append(L("My Printer"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+    set_label_marker(Append(_L("My Printer"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
     m_first_printer_idx = GetCount();
     for (auto iter = machine_list.begin(); iter != machine_list.end(); ++iter) {
         Preset* printer_preset = get_printer_preset(iter->second);
@@ -490,7 +490,7 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
     bool is_bbl_vendor_preset = m_preset_bundle->is_bbl_vendor();
     if (is_bbl_vendor_preset && !m_preset_bundle->filament_ams_list.empty()) {
         bool dual_extruder   = (m_preset_bundle->filament_ams_list.begin()->first & 0x10000) == 0;
-        set_label_marker(Append(dual_extruder ? L("Left filaments") : L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        set_label_marker(Append(dual_extruder ? _L("Left filaments") : _L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         m_first_ams_filament = GetCount();
         auto &filaments      = m_collection->get_presets();
 
@@ -505,7 +505,7 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         for (auto &entry : m_preset_bundle->filament_ams_list) {
             if (dual_extruder && (entry.first & 0x10000)) {
                 dual_extruder = false;
-                set_label_marker(Append(L("Right filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+                set_label_marker(Append(_L("Right filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
             }
             auto &      tray        = entry.second;
             std::string filament_id = tray.opt_string("filament_id", 0u);
@@ -1258,7 +1258,7 @@ void PlaterPresetComboBox::update()
     auto  add_presets       = [this, &preset_descriptions, &filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types, &selected_in_ams]
             (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, std::string const &group, wxString const &groupName) {
         if (!presets.empty()) {
-            set_label_marker(Append(group, wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+            set_label_marker(Append(_L(group), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
             if (m_type == Preset::TYPE_FILAMENT) {
                 std::vector<std::map<wxString, wxBitmap *>::value_type const*> list(presets.size(), nullptr);
                 std::transform(presets.begin(), presets.end(), list.begin(), [](auto & pair) { return &pair; });
@@ -1314,11 +1314,11 @@ void PlaterPresetComboBox::update()
     };
 
     //BBS: add project embedded preset logic
-    add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"), _L("Project"));
-    add_presets(nonsys_presets, selected_user_preset, L("User presets"), _L("Custom"));
+    add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"), _L("Project") + " ");
+    add_presets(nonsys_presets, selected_user_preset, L("User presets"), _L("Custom") + " ");
     // BBS: move system to the end
     add_presets(system_presets, selected_system_preset, L("System presets"), _L("System"));
-    add_presets(uncompatible_presets, {}, L("Unsupported presets"), _L("Unsupported"));
+    add_presets(uncompatible_presets, {}, L("Unsupported presets"), _L("Unsupported") + " ");
 
     //BBS: remove unused pysical printer logic
     /*if (m_type == Preset::TYPE_PRINTER)
@@ -1617,7 +1617,7 @@ void TabPresetComboBox::update()
     //BBS: add project embedded preset logic
     if (!project_embedded_presets.empty())
     {
-        set_label_marker(Append(L("Project-inside presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        set_label_marker(Append(_L("Project-inside presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
             SetItemTooltip(item_id, preset_descriptions[it->first]);
@@ -1629,7 +1629,7 @@ void TabPresetComboBox::update()
     }
     if (!nonsys_presets.empty())
     {
-        set_label_marker(Append(L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        set_label_marker(Append(_L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
             SetItemTooltip(item_id, preset_descriptions[it->first]);
@@ -1642,7 +1642,7 @@ void TabPresetComboBox::update()
     //BBS: move system to the end
     if (!system_presets.empty())
     {
-        set_label_marker(Append(L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        set_label_marker(Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = system_presets.begin(); it != system_presets.end(); ++it) {
             int item_id = Append(it->first, *it->second.first);
             SetItemTooltip(item_id, preset_descriptions[it->first]);
@@ -1875,7 +1875,7 @@ void GUI::CalibrateFilamentComboBox::update()
 
     if (!m_nonsys_presets.empty())
     {
-        set_label_marker(Append(L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        set_label_marker(Append(_L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = m_nonsys_presets.begin(); it != m_nonsys_presets.end(); ++it) {
             Append(it->first, *(it->second.second));
             validate_selection(it->first == selected_preset);
@@ -1883,7 +1883,7 @@ void GUI::CalibrateFilamentComboBox::update()
     }
     if (!m_system_presets.empty())
     {
-        set_label_marker(Append(L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        set_label_marker(Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
         for (auto it = m_system_presets.begin(); it != m_system_presets.end(); ++it) {
             Append(it->first, *(it->second.second));
             validate_selection(it->first == selected_preset);
