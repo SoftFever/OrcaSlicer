@@ -88,6 +88,13 @@ protected:
     Label* text_ai_detections;
     Label* text_ai_detections_caption;
 
+    wxSizerItem *ai_detections_bottom_space;
+    wxSizerItem *ai_monitoring_bottom_space;
+    wxSizerItem *spaghetti_bottom_space;
+    wxSizerItem *purgechutepileup_bottom_space;
+    wxSizerItem *nozzleclumping_bottom_space;
+    wxSizerItem *airprinting_bottom_space;
+
     Label *           text_ai_monitoring;
     Label *           text_ai_monitoring_caption;
     Label* text_spaghetti_detection;

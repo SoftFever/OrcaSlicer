@@ -246,17 +246,28 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
 {
     if (!obj_) return;
 
+    if (obj_->is_support_spaghetti_detection || obj_->is_support_purgechutepileup_detection || obj_->is_support_nozzleclumping_detection || obj_->is_support_airprinting_detection) {
+        text_ai_detections->Show();
+        text_ai_detections_caption->Show();
+    } else {
+        text_ai_detections->Hide();
+        text_ai_detections_caption->Hide();
+    }
+
+
     if (obj_->is_support_ai_monitoring && !obj_->xcam_disable_ai_detection_display) {
         text_ai_monitoring->Show();
         m_cb_ai_monitoring->Show();
         text_ai_monitoring_caption->Show();
         ai_monitoring_level_list->Show();
-       // line1->Show();
+        ai_monitoring_bottom_space->Show(true);
+        // line1->Show();
     } else {
         text_ai_monitoring->Hide();
         m_cb_ai_monitoring->Hide();
         text_ai_monitoring_caption->Hide();
         ai_monitoring_level_list->Hide();
+        ai_monitoring_bottom_space->Show(false);
         line1->Hide();
     }
 
@@ -267,65 +278,75 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         text_spaghetti_detection_caption0->Show();
         text_spaghetti_detection_caption1->Show();
         spaghetti_detection_level_list->Show();
+        spaghetti_bottom_space->Show(true);
+
         //line1->Show();
     } else {
         text_spaghetti_detection->Hide();
         m_cb_spaghetti_detection->Hide();
-        text_spaghetti_detection_caption0->Show();
+        text_spaghetti_detection_caption0->Hide();
         text_spaghetti_detection_caption1->Hide();
         spaghetti_detection_level_list->Hide();
+        spaghetti_bottom_space->Show(false);
         line1->Hide();
     }
 
 
-      if (obj_->is_support_purgechutepileup_detection) {
+    if (obj_->is_support_purgechutepileup_detection) {
         text_purgechutepileup_detection->Show();
-          m_cb_purgechutepileup_detection->Show();
+        m_cb_purgechutepileup_detection->Show();
         text_purgechutepileup_detection_caption0->Show();
-         text_purgechutepileup_detection_caption1->Show();
+        text_purgechutepileup_detection_caption1->Show();
         purgechutepileup_detection_level_list->Show();
-       // line1->Show();
+        purgechutepileup_bottom_space->Show(true);
+     // line1->Show();
     } else {
-          text_purgechutepileup_detection->Hide();
+        text_purgechutepileup_detection->Hide();
         m_cb_purgechutepileup_detection->Hide();
-          text_purgechutepileup_detection_caption0->Hide();
+        text_purgechutepileup_detection_caption0->Hide();
         text_purgechutepileup_detection_caption1->Hide();
-          purgechutepileup_detection_level_list->Hide();
+        purgechutepileup_detection_level_list->Hide();
+        purgechutepileup_bottom_space->Show(false);
         line1->Hide();
     }
 
 
-        if (obj_->is_support_nozzleclumping_detection) {
+    if (obj_->is_support_nozzleclumping_detection) {
         text_nozzleclumping_detection->Show();
-            m_cb_nozzleclumping_detection->Show();
+        m_cb_nozzleclumping_detection->Show();
         text_nozzleclumping_detection_caption0->Show();
-            text_nozzleclumping_detection_caption1->Show();
+        text_nozzleclumping_detection_caption1->Show();
         nozzleclumping_detection_level_list->Show();
-       // line1->Show();
-         } else {
-            text_nozzleclumping_detection->Hide();
-        m_cb_nozzleclumping_detection->Hide();
-            text_nozzleclumping_detection_caption0->Hide();
-        text_nozzleclumping_detection_caption1->Hide();
-            nozzleclumping_detection_level_list->Hide();
-        line1->Hide();
-         }
+        nozzleclumping_bottom_space->Show(true);
 
-          if (obj_->is_support_airprinting_detection) {
-             text_airprinting_detection->Show();
-              m_cb_airprinting_detection->Show();
-             text_airprinting_detection_caption0->Show();
-               text_airprinting_detection_caption1->Show();
-              airprinting_detection_level_list->Show();
-          //    line1->Show();
-         } else {
-              text_airprinting_detection->Hide();
-        m_cb_airprinting_detection->Hide();
-              text_airprinting_detection_caption0->Hide();
-        text_airprinting_detection_caption1->Hide();
-              airprinting_detection_level_list->Hide();
+        // line1->Show();
+    } else {
+        text_nozzleclumping_detection->Hide();
+        m_cb_nozzleclumping_detection->Hide();
+        text_nozzleclumping_detection_caption0->Hide();
+        text_nozzleclumping_detection_caption1->Hide();
+        nozzleclumping_detection_level_list->Hide();
+        nozzleclumping_bottom_space->Show(false);
         line1->Hide();
-         }
+    }
+
+    if (obj_->is_support_airprinting_detection) {
+        text_airprinting_detection->Show();
+        m_cb_airprinting_detection->Show();
+        text_airprinting_detection_caption0->Show();
+        text_airprinting_detection_caption1->Show();
+        airprinting_detection_level_list->Show();
+        airprinting_bottom_space->Show(true);
+    //    line1->Show();
+    } else {
+        text_airprinting_detection->Hide();
+        m_cb_airprinting_detection->Hide();
+        text_airprinting_detection_caption0->Hide();
+        text_airprinting_detection_caption1->Hide();
+        airprinting_detection_level_list->Hide();
+        line1->Hide();
+        airprinting_bottom_space->Show(false);
+    }
 
 
 
@@ -546,6 +567,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(text_ai_detections_caption, 0,wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     sizer->Add(line_sizer,0,wxEXPAND | wxLEFT | wxRIGHT,FromDIP(18));
+    ai_detections_bottom_space = sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
 
      // ai monitoring with levels
     line_sizer         = new wxBoxSizer(wxHORIZONTAL);
@@ -555,10 +577,8 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_ai_monitoring, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_ai_monitoring, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(18));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
-
     line_sizer                 = new wxBoxSizer(wxHORIZONTAL);
     text_ai_monitoring_caption = new Label(parent, _L("Pausing Sensitivity:"));
     text_ai_monitoring_caption->SetFont(Label::Body_12);
@@ -577,6 +597,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(text_ai_monitoring_caption, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(ai_monitoring_level_list, 0, wxEXPAND | wxALL, FromDIP(5));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    ai_monitoring_bottom_space = sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
 
     //spaghetti detection  with levels
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -586,7 +607,6 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_spaghetti_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     line_sizer->Add(text_spaghetti_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
-    sizer->Add(0,0,0,wxTOP, FromDIP(10));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -595,7 +615,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     text_spaghetti_detection_caption0->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     text_spaghetti_detection_caption0->Wrap(-1);
     line_sizer->Add(FromDIP(30), 0, 0, 0);
-    line_sizer->Add(text_spaghetti_detection_caption0, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    line_sizer->Add(text_spaghetti_detection_caption0, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -621,6 +641,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line1 = new StaticLine(parent, false);
     line1->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line1, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    spaghetti_bottom_space = sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
 
     //purge chute pile-up detection
     line_sizer               = new wxBoxSizer(wxHORIZONTAL);
@@ -630,7 +651,6 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_purgechutepileup_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     line_sizer->Add(text_purgechutepileup_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line_sizer                        = new wxBoxSizer(wxHORIZONTAL);
@@ -659,6 +679,8 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(text_purgechutepileup_detection_caption1, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(purgechutepileup_detection_level_list, 0, wxEXPAND | wxALL, FromDIP(5));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    purgechutepileup_bottom_space = sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+
 
     //nozzle clumping detection
     line_sizer                      = new wxBoxSizer(wxHORIZONTAL);
@@ -666,9 +688,9 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     text_nozzleclumping_detection   = new Label(parent, _L("Nozzle Clumping Detection"));
     text_nozzleclumping_detection->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
-    line_sizer->Add(m_cb_nozzleclumping_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    line_sizer->Add(text_nozzleclumping_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    line_sizer->Add(m_cb_nozzleclumping_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    line_sizer->Add(text_nozzleclumping_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+   /* sizer->Add(0, 0, 0, wxTOP, FromDIP(10));*/
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line_sizer                               = new wxBoxSizer(wxHORIZONTAL);
@@ -697,6 +719,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(text_nozzleclumping_detection_caption1, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(nozzleclumping_detection_level_list, 0, wxEXPAND | wxALL, FromDIP(5));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    nozzleclumping_bottom_space = sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
 
 
     //air printing detection
@@ -705,13 +728,13 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     text_airprinting_detection      = new Label(parent, _L("Air Printing Detection"));
     text_airprinting_detection->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
-    line_sizer->Add(m_cb_airprinting_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    line_sizer->Add(text_airprinting_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+    line_sizer->Add(m_cb_airprinting_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    line_sizer->Add(text_airprinting_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+   /* sizer->Add(0, 0, 0, wxTOP, FromDIP(12));*/
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line_sizer                               = new wxBoxSizer(wxHORIZONTAL);
-    text_airprinting_detection_caption0 = new Label(parent, _L("Monitor if the waste is piled up in the purge chute."));
+    text_airprinting_detection_caption0 = new Label(parent, _L("Detects air printing caused by nozzle clogging or filament grinding."));
     text_airprinting_detection_caption0->SetFont(Label::Body_12);
     text_airprinting_detection_caption0->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     text_airprinting_detection_caption0->Wrap(-1);
@@ -736,12 +759,11 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(text_airprinting_detection_caption1, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(airprinting_detection_level_list, 0, wxEXPAND | wxALL, FromDIP(5));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
-
+    airprinting_bottom_space = sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
 
     //m_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(1)), wxTAB_TRAVERSAL);
     //m_line->SetBackgroundColour(wxColour(166, 169, 170));
     //sizer->Add(m_line, 0, wxEXPAND | wxALL, FromDIP(20));
-
 
     // detection of build plate position
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -751,7 +773,6 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_plate_mark, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_plate_mark, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-
 
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
@@ -777,6 +798,8 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line2->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line2, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     line2->Hide();
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
     // detection of first layer
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_first_layer = new CheckBox(parent);
@@ -785,13 +808,14 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_first_layer, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_first_layer, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(0,0,0,wxTOP, FromDIP(15));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line3 = new StaticLine(parent, false);
     line3->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line3, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    line3->Hide();
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
 
     // auto-recovery from step loss
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -802,11 +826,13 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(m_cb_auto_recovery, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_auto_recovery, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
-    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(FromDIP(10), 0, 0, 0);
 
     line4 = new StaticLine(parent, false);
     line4->SetLineColour(wxColour(255,255,255));
     sizer->Add(line4, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    line4->Hide();
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
 
     //Open Door Detection
     line_sizer         = new wxBoxSizer(wxHORIZONTAL);
@@ -818,10 +844,11 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_open_door, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_open_door, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     sizer->Add(open_door_switch_board, 0, wxLEFT, FromDIP(58));
-    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(FromDIP(10), 0, 0, 0);
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
 
      //Save remote file to local storage
     line_sizer     = new wxBoxSizer(wxHORIZONTAL);
@@ -835,11 +862,11 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     text_save_remote_print_file_to_storage_explain->SetForegroundColour(STATIC_TEXT_EXPLAIN_COL);
     text_save_remote_print_file_to_storage_explain->SetFont(Label::Body_12);
     text_save_remote_print_file_to_storage_explain->Wrap(FromDIP(400));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     sizer->Add(text_save_remote_print_file_to_storage_explain, 0, wxLEFT, FromDIP(58));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
-
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     //Allow prompt sound
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_sup_sound = new CheckBox(parent);
@@ -848,15 +875,16 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_sup_sound, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_sup_sound, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line5 = new StaticLine(parent, false);
     line5->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line5, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
-
+    line5->Hide();
+    /*sizer->Add(0, 0, 0, wxTOP, FromDIP(20));*/
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     //filament tangle detect
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_filament_tangle = new CheckBox(parent);
@@ -865,15 +893,16 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_filament_tangle, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_filament_tangle, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line6 = new StaticLine(parent, false);
     line6->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line6, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
-
+    line6->Hide();
+    //sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     //nozzle blob detect
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_nozzle_blob = new CheckBox(parent);
@@ -882,7 +911,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_nozzle_blob, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_nozzle_blob, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
@@ -904,6 +933,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     m_cb_nozzle_blob->Hide();
     text_nozzle_blob_caption->Hide();
     line7->Hide();
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
 
       ai_monitoring_level_list->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_ai_monitor_sensitivity), NULL, this);
 
