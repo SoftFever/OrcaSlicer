@@ -55,8 +55,9 @@ static Polylines make_waves(double gridZ, double density_adjusted, double line_s
 	std::vector<std::pair<double,double>> wave;
 	{//fill one wave
 		const auto v=[&](double u){return acos(a/b*cos(u));};
-		for(int c=0;c<=4;++c){
-			const double u=minU+2*M_PI*c/4;
+		const int initialSegments=16;
+		for(int c=0;c<=initialSegments;++c){
+			const double u=minU+2*M_PI*c/initialSegments;
 			wave.emplace_back(u,v(u));
 		}
 		{//refine
