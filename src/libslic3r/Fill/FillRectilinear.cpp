@@ -2961,21 +2961,35 @@ static inline void remove_overlapped(Polylines& polylines, coord_t line_width){
     const coord_t tolerance = coord_t(0.75 * line_width);
     Polylines cleaned;
     cleaned.reserve(polylines.size());
-    for (const Polyline& line : polylines) {
+
+    auto midpoint = [](const Polyline& line) -> Point {
         const Point& p1 = line.first_point();
+        const Point& p2 = line.last_point();
+        return Point((p1.x() + p2.x()) / 2, (p1.y() + p2.y()) / 2);
+    };
+
+    for (const Polyline& line : polylines) {
+        Point mp1 = midpoint(line);
         bool overlapped = false;
+
         for (const Polyline& existing : cleaned) {
-            const Point& p2 = existing.first_point();
-            if (std::abs(p1.y() - p2.y()) > tolerance)
+            Point mp2 = midpoint(existing);
+
+            // Early skip: if they're far apart on one axis, skip
+            if (std::abs(mp1.y() - mp2.y()) > tolerance &&
+                std::abs(mp1.x() - mp2.x()) > tolerance)
                 continue;
-            if (p1.distance_to(p2) < tolerance) {
+
+            if (mp1.distance_to(mp2) < tolerance) {
                 overlapped = true;
                 break;
             }
         }
+
         if (!overlapped)
             cleaned.push_back(line);
     }
+
     polylines = std::move(cleaned);
 }
 
