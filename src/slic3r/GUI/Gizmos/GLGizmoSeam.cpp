@@ -95,53 +95,6 @@ bool GLGizmoSeam::on_key_down_select_tool_type(int keyCode) {
     return true;
 }
 
-void GLGizmoSeam::render_triangles(const Selection& selection) const
-{
-    ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
-    auto* shader = wxGetApp().get_shader("mm_gouraud");
-    if (!shader)
-        return;
-    shader->start_using();
-    shader->set_uniform("clipping_plane", clp_data.clp_dataf);
-    shader->set_uniform("z_range", clp_data.z_range);
-    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
-
-    const ModelObject* mo = m_c->selection_info()->model_object();
-    int                mesh_id = -1;
-    for (const ModelVolume* mv : mo->volumes) {
-        if (!mv->is_model_part())
-            continue;
-
-        ++mesh_id;
-
-        const Transform3d trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
-
-        bool is_left_handed = trafo_matrix.matrix().determinant() < 0.;
-        if (is_left_handed)
-            glsafe(::glFrontFace(GL_CW));
-
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        const Transform3d& view_matrix = camera.get_view_matrix();
-        shader->set_uniform("view_model_matrix", view_matrix * trafo_matrix);
-        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-        shader->set_uniform("view_normal_matrix", view_normal_matrix);
-
-        float normal_z = -::cos(Geometry::deg2rad(m_highlight_by_angle_threshold_deg));
-        Matrix3f normal_matrix = static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
-
-        shader->set_uniform("volume_world_matrix", trafo_matrix);
-        shader->set_uniform("volume_mirrored", is_left_handed);
-        shader->set_uniform("slope.actived", m_parent.is_using_slope());
-        shader->set_uniform("slope.volume_world_normal_matrix", normal_matrix);
-        shader->set_uniform("slope.normal_z", normal_z);
-        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
-
-        if (is_left_handed)
-            glsafe(::glFrontFace(GL_CCW));
-    }
-}
-
 void GLGizmoSeam::show_tooltip_information(float caption_max, float x, float y)
 {
     ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
