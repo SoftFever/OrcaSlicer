@@ -712,14 +712,49 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
     correct_items_positions();
 }
 
+static std::vector<std::string> split_trimmed(const std::string& str, char delimiter = ',')
+{
+    std::vector<std::string> result;
+    std::istringstream       ss(str);
+    std::string              token;
+    while (std::getline(ss, token, delimiter)) {
+        // Trim leading/trailing whitespace
+        token.erase(token.begin(), std::find_if(token.begin(), token.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+        token.erase(std::find_if(token.rbegin(), token.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), token.end());
+        if (!token.empty())
+            result.push_back(token);
+    }
+    return result;
+}
+
 void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
 {
     if (og_line.is_separator())
         return;
-    const std::vector<Option>& option_set = og_line.get_options();
 
-    const ConfigOptionMode& line_mode = option_set.front().opt.mode;
-    is_visible = og_line.toggle_visible && line_mode <= mode;
+    const std::vector<Option>& option_set = og_line.get_options();
+    const std::string&         opt_key    = option_set.front().opt.opt_key;
+    ConfigOptionMode           line_mode  = option_set.front().opt.mode;
+
+    std::vector<std::string> hide_configs = split_trimmed(
+        wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("hide_config", true)->value);
+    std::vector<std::string> force_simple_configs = split_trimmed(
+        wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("force_simple_config", true)->value);
+    std::vector<std::string> force_advanced_configs = split_trimmed(
+        wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("force_advanced_config", true)->value);
+
+    is_visible = og_line.toggle_visible;
+
+    if (std::find(hide_configs.begin(), hide_configs.end(), opt_key) != hide_configs.end()) {
+        is_visible = false;
+    } else {
+        if (std::find(force_simple_configs.begin(), force_simple_configs.end(), opt_key) != force_simple_configs.end()) {
+            line_mode = comSimple;
+        } else if (std::find(force_advanced_configs.begin(), force_advanced_configs.end(), opt_key) != force_advanced_configs.end()) {
+            line_mode = comAdvanced;
+        }
+        is_visible = is_visible && (line_mode <= mode);
+    }
 
     if (draw_just_act_buttons)
         return;
