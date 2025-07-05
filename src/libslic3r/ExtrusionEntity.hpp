@@ -151,8 +151,6 @@ class ExtrusionPath : public ExtrusionEntity
 {
 public:
     Polyline polyline;
-    double overhang_degree = 0;
-    int curve_degree = 0;
     // Volumetric velocity. mm^3 of plastic per mm of linear head motion. Used by the G-code generator.
     double mm3_per_mm;
     // Width of the extrusion, used for visualization purposes.
@@ -167,12 +165,9 @@ public:
     ExtrusionPath() : mm3_per_mm(-1), width(-1), height(-1), m_role(erNone), m_no_extrusion(false), z_offset(0.0), extrusion_multiplier(1.0){}
     ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), m_role(role), m_no_extrusion(false), z_offset(0.0), extrusion_multiplier(1.0) {}
     ExtrusionPath(ExtrusionRole role, double mm3_per_mm, float width, float height, bool no_extrusion = false) : mm3_per_mm(mm3_per_mm), width(width), height(height), m_role(role), m_no_extrusion(no_extrusion) , z_offset(0.0), extrusion_multiplier(1.0) {}
-    ExtrusionPath(double overhang_degree, int curve_degree, ExtrusionRole role, double mm3_per_mm, float width, float height) : overhang_degree(overhang_degree), curve_degree(curve_degree), mm3_per_mm(mm3_per_mm), width(width), height(height), m_role(role) , z_offset(0.0), extrusion_multiplier(1.0){}
 
     ExtrusionPath(const ExtrusionPath &rhs)
         : polyline(rhs.polyline)
-        , overhang_degree(rhs.overhang_degree)
-        , curve_degree(rhs.curve_degree)
         , mm3_per_mm(rhs.mm3_per_mm)
         , width(rhs.width)
         , height(rhs.height)
@@ -184,8 +179,6 @@ public:
     {}
     ExtrusionPath(ExtrusionPath &&rhs)
         : polyline(std::move(rhs.polyline))
-        , overhang_degree(rhs.overhang_degree)
-        , curve_degree(rhs.curve_degree)
         , mm3_per_mm(rhs.mm3_per_mm)
         , width(rhs.width)
         , height(rhs.height)
@@ -197,8 +190,6 @@ public:
     {}
     ExtrusionPath(const Polyline &polyline, const ExtrusionPath &rhs)
         : polyline(polyline)
-        , overhang_degree(rhs.overhang_degree)
-        , curve_degree(rhs.curve_degree)
         , mm3_per_mm(rhs.mm3_per_mm)
         , width(rhs.width)
         , height(rhs.height)
@@ -210,8 +201,6 @@ public:
     {}
     ExtrusionPath(Polyline &&polyline, const ExtrusionPath &rhs)
         : polyline(std::move(polyline))
-        , overhang_degree(rhs.overhang_degree)
-        , curve_degree(rhs.curve_degree)
         , mm3_per_mm(rhs.mm3_per_mm)
         , width(rhs.width)
         , height(rhs.height)
@@ -229,8 +218,6 @@ public:
         this->mm3_per_mm = rhs.mm3_per_mm;
         this->width = rhs.width;
         this->height = rhs.height;
-        this->overhang_degree = rhs.overhang_degree;
-        this->curve_degree = rhs.curve_degree;
         this->polyline = rhs.polyline;
         this->z_offset = rhs.z_offset;
         this->extrusion_multiplier = rhs.extrusion_multiplier;
@@ -243,8 +230,6 @@ public:
         this->mm3_per_mm = rhs.mm3_per_mm;
         this->width = rhs.width;
         this->height = rhs.height;
-        this->overhang_degree = rhs.overhang_degree;
-        this->curve_degree = rhs.curve_degree;
         this->polyline = std::move(rhs.polyline);
         this->z_offset = rhs.z_offset;
         this->extrusion_multiplier = rhs.extrusion_multiplier;
@@ -288,22 +273,6 @@ public:
     void   collect_points(Points &dst) const override { append(dst, this->polyline.points); }
     double total_volume() const override { return mm3_per_mm * unscale<double>(length()); }
 
-    void set_overhang_degree(int overhang) {
-        if (is_perimeter(m_role) || is_bridge(m_role))
-            overhang_degree = (overhang < 0)?0:(overhang > 10 ? 10 : overhang);
-    };
-    int get_overhang_degree() const {
-        // only perimeter has overhang degree. Other return 0;
-        if (is_perimeter(m_role))
-            return (int)overhang_degree;
-        return 0;
-    };
-    void set_curve_degree(int curve) {
-        curve_degree = (curve < 0)?0:(curve > 10 ? 10 : curve);
-    };
-    int get_curve_degree() const {
-        return curve_degree;
-    };
     //BBS: add new simplifing method by fitting arc
     void simplify_by_fitting_arc(double tolerance);
     //BBS:
@@ -541,17 +510,7 @@ inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, Ex
     dst.reserve(dst.size() + polylines.size());
     for (Polyline &polyline : polylines)
         if (polyline.is_valid()) {
-            dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
-            dst.back().polyline = polyline;
-        }
-}
-
-inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, double overhang_degree, int curva_degree, ExtrusionRole role, double mm3_per_mm, float width, float height)
-{
-    dst.reserve(dst.size() + polylines.size());
-    for (Polyline &polyline : polylines)
-        if (polyline.is_valid()) {
-            dst.push_back(ExtrusionPath(overhang_degree, curva_degree, role, mm3_per_mm, width, height));
+            dst.emplace_back(role, mm3_per_mm, width, height);
             dst.back().polyline = polyline;
         }
 }
@@ -561,31 +520,19 @@ inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &&polylines, E
     dst.reserve(dst.size() + polylines.size());
     for (Polyline &polyline : polylines)
         if (polyline.is_valid()) {
-            dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
+            dst.emplace_back(role, mm3_per_mm, width, height);
             dst.back().polyline = std::move(polyline);
         }
     polylines.clear();
 }
 
-inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &&polylines, double overhang_degree, int curva_degree, ExtrusionRole role, double mm3_per_mm, float width, float height)
-{
-    dst.reserve(dst.size() + polylines.size());
-    for (Polyline &polyline : polylines)
-        if (polyline.is_valid()) {
-            dst.push_back(ExtrusionPath(overhang_degree, curva_degree, role, mm3_per_mm, width, height));
-            dst.back().polyline = std::move(polyline);
-        }
-    polylines.clear();
-}
-
-inline void extrusion_paths_append(ExtrusionPaths &dst, Polyline &&polyline, double overhang_degree, int curva_degree, ExtrusionRole role, double mm3_per_mm, float width, float height)
+inline void extrusion_paths_append(ExtrusionPaths &dst, Polyline &&polyline, ExtrusionRole role, double mm3_per_mm, float width, float height)
 {
     dst.reserve(dst.size() + 1);
     if (polyline.is_valid()) {
-        dst.push_back(ExtrusionPath(overhang_degree, curva_degree, role, mm3_per_mm, width, height));
+        dst.emplace_back(role, mm3_per_mm, width, height);
         dst.back().polyline = std::move(polyline);
     }
-    polyline.clear();
 }
 
 inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines &polylines, ExtrusionRole role, double mm3_per_mm, float width, float height, bool can_reverse = true)
@@ -625,7 +572,7 @@ inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst,
             if (last_end_point_valid) {
                 Point temp = polyline.first_point() - last_end_point;
                 if (Vec2d(temp.x(), temp.y()).norm() <= 3 * scaled(width)) {
-                    multi_path->paths.push_back(ExtrusionPath(role, mm3_per_mm, width, height, true));
+                    multi_path->paths.emplace_back(role, mm3_per_mm, width, height, true);
                     multi_path->paths.back().polyline = std::move(Polyline(last_end_point, polyline.first_point()));
                 } else {
                     dst.push_back(multi_path);
@@ -633,7 +580,7 @@ inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst,
                 }
             }
 
-            multi_path->paths.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
+            multi_path->paths.emplace_back(role, mm3_per_mm, width, height);
             multi_path->paths.back().polyline = std::move(polyline);
             last_end_point_valid = true;
             last_end_point = multi_path->paths.back().polyline.last_point();

@@ -6,11 +6,4 @@ grep -q org.freedesktop.Platform.GL.nvidia /.flatpak-info && export WEBKIT_DISAB
 # Work-around https://github.com/bambulab/BambuStudio/issues/3440
 export LC_ALL=C.UTF-8
 
-if XDG_CONFIG_HOME=$HOME/.config /app/bin/uses-dark-theme.py; then
-    export GTK_THEME='Adwaita:dark'
-    export ORCA_SLICER_DARK_THEME='true'
-    echo "Message: $(date +%T): INFO: using dark theme variant"
-fi
-
-exec /app/bin/orca-slicer "$@" &
-$(/app/bin/set-dark-theme-variant.py) &
+exec /app/bin/orca-slicer "$@"

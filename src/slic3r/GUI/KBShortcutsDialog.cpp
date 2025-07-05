@@ -25,9 +25,6 @@ KBShortcutsDialog::KBShortcutsDialog()
     const wxFont& bold_font = wxGetApp().bold_font();
     SetFont(font);
 
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
     this->SetBackgroundColour(wxColour(255, 255, 255));
 
@@ -290,7 +287,7 @@ void KBShortcutsDialog::fill_shortcuts()
 
         Shortcuts object_list_shortcuts = {
             {"1-9", L("Set extruder number for the objects and parts") },
-            {L("Del"), L("Delete objects, parts, modifiers  ")},
+            {L("Del"), L("Delete objects, parts, modifiers")},
             {L("Esc"), L("Deselect all")},
             {ctrl + "C", L("Copy to clipboard")},
             {ctrl + "V", L("Paste from clipboard")},
