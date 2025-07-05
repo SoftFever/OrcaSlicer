@@ -133,6 +133,7 @@ void RadioGroup::Create(
 void RadioGroup::OnClick(int i)
 {
     if(!m_enabled) return;
+    SetFocusIgnoringChildren(); // fixes wxEVT_KILL_FOCUS not working on macOS
     m_focused = true; // prevents 2 time refresh
     SetSelection(i);
 }
