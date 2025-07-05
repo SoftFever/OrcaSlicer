@@ -205,6 +205,7 @@ set(lisbslic3r_sources
     Geometry/VoronoiUtilsCgal.cpp
     Geometry/VoronoiUtilsCgal.hpp
     Geometry/VoronoiVisualUtils.hpp
+    Gridify.cpp
     Int128.hpp
     KDTreeIndirect.hpp
     Layer.cpp
