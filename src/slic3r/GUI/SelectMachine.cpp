@@ -2655,7 +2655,7 @@ wxString SelectMachineDialog::format_steel_name(std::string name)
         return _L("Stainless Steel");
     }
 
-    return wxEmptyString;
+    return wxString::Format(_L("Unknown nozzle type: '%s'"), name);
 }
 
 void SelectMachineDialog::Enable_Auto_Refill(bool enable)
