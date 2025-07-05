@@ -2956,7 +2956,31 @@ void make_fill_lines(const ExPolygonWithOffset &poly_with_offset, Point refpt, d
         }
 }
 
-bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out) // fill multiline
+// Remove lines that are too close to each other.
+static inline void remove_overlapped(Polylines& polylines, coord_t line_width){
+    const coord_t tolerance = 0.75 * line_width;
+    for (auto it = polylines.begin(); it != polylines.end(); ++it) {
+        const Point& p1_start = it->first_point();
+        const Point& p1_end   = it->last_point();
+
+        for (auto jt = std::next(it); jt != polylines.end(); ) {
+            const Point& p2_start = jt->first_point();
+            const Point& p2_end   = jt->last_point();
+
+            bool close_start = p1_start.distance_to(p2_start) < tolerance;
+            bool close_end   = p1_end.distance_to(p2_end) < tolerance;
+            bool cross_close = p1_start.distance_to(p2_end) < tolerance && p1_end.distance_to(p2_start) < tolerance;
+
+            if ((close_start && close_end) || cross_close) {
+                jt = polylines.erase(jt);
+            } else {
+                ++jt;
+            }
+        }
+    }
+}
+
+bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
 {
     assert(sweep_params.size() >= 1);
     assert(!params.full_infill());
@@ -2987,6 +3011,9 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
                             line_width + coord_t(SCALED_EPSILON), line_spacing, pattern_shift, fill_lines);
         }
     }
+
+if (params.pattern == ip2DLattice)
+    remove_overlapped(fill_lines, line_width);
 
     if (!fill_lines.empty()) {
         if (params.dont_connect()) {
