@@ -30,7 +30,7 @@ JusPrinPricingPlanDialog::JusPrinPricingPlanDialog()
     Bind(wxEVT_WEBVIEW_FULLSCREEN_CHANGED, &JusPrinPricingPlanDialog::OnFullScreenChanged, this, m_browser->GetId());
 
     SetTitle(_L("JusPrin Pricing Plan"));
-    wxSize pSize = FromDIP(wxSize(650, 840));
+    wxSize pSize = FromDIP(wxSize(820, 660));
     SetSize(pSize);
 
     int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
