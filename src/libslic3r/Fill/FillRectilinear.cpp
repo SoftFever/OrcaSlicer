@@ -3011,7 +3011,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
         }
     }
 
-if (params.pattern == ip2DLattice && params.multiline >1 )
+if ((params.pattern == ip2DLattice || params.pattern == ip2DHoneycomb ) && params.multiline >1 )
     remove_overlapped(fill_lines, line_width);
 
     if (!fill_lines.empty()) {
@@ -3173,7 +3173,7 @@ Polylines Fill2DHoneycomb::fill_surface(const Surface *surface, const FillParams
     using namespace boost::math::float_constants;
 
     // lets begin calculating some base properties of the honeycomb pattern
-    const float half_horizontal_period = .5f * (1*(2/3.f) + 2*(1/3.f)) * float(spacing) / params.density;
+    const float half_horizontal_period = .5f * (1*(2/3.f) + 2*(1/3.f)) * float(spacing) * params.multiline / params.density;
     const float vertical_period = 3 * half_horizontal_period / tanf(degree * float(params.infill_overhang_angle));
 
     // we want to align the base pattern with its knot on height 0
