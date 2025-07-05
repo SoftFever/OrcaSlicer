@@ -470,6 +470,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/CalibrationWizardSavePage.hpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
+    GUI/CloneDialog.hpp
+    GUI/CloneDialog.cpp
     GUI/PrintOptionsDialog.hpp
     GUI/PrintOptionsDialog.cpp
     GUI/BonjourDialog.hpp

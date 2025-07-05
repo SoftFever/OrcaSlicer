@@ -153,6 +153,7 @@
 #include "CreatePresetsDialog.hpp"
 #include "FileArchiveDialog.hpp"
 #include "StepMeshDialog.hpp"
+#include "CloneDialog.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -13777,21 +13778,8 @@ void Plater::clone_selection()
 {
     if (is_selection_empty())
         return;
-    long res = wxGetNumberFromUser("",
-        _L("Clone"),
-        _L("Number of copies:"),
-        1, 0, 1000, this);
-    wxString msg;
-    if (res == -1) {
-        msg = _L("Invalid number");
-        return;
-    }
-    Selection& selection = p->get_selection();
-    selection.clone(res);
-    if (wxGetApp().app_config->get("auto_arrange") == "true") {
-        this->set_prepare_state(Job::PREPARE_STATE_MENU);
-        this->arrange();
-    }
+    CloneDialog dlg(this);
+    dlg.ShowModal();
 }
 
 std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)
