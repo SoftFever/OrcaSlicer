@@ -8868,6 +8868,10 @@ msgstr "Largeur de ligne du pilonnage"
 msgid "Ramming line spacing"
 msgstr "Espacement des lignes du pilonnage"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr "Pour un débit constant, maintenez %1% tout en faisant glisser."
+
 msgid "Auto-Calc"
 msgstr "Auto-Calc"
 

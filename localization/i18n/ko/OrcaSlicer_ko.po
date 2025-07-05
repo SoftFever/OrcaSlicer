@@ -8474,6 +8474,10 @@ msgstr "채워넣기 선 너비"
 msgid "Ramming line spacing"
 msgstr "채워넣기 선 간격"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr ""
+
 msgid "Auto-Calc"
 msgstr "자동 계산"
 

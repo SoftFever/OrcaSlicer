@@ -8799,6 +8799,11 @@ msgstr "Larghezza linea di modellazione del filamento"
 msgid "Ramming line spacing"
 msgstr "Spaziatura tra linee di modellazione del filamento"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr ""
+"Per ottenere un avanzamento costante, tieni premuto %1% mentre trascini."
+
 msgid "Auto-Calc"
 msgstr "Calcolo automatico"
 
