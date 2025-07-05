@@ -4228,7 +4228,7 @@ PageShp TabPrinter::build_kinematics_page()
     optgroup->append_single_option_line("emit_machine_limits_to_gcode");
 
     // resonance avoidance ported over from qidi slicer
-    optgroup = page->new_optgroup(L("Resonance Avoidance"));
+    optgroup = page->new_optgroup(L("Resonance Avoidance"), "param_resonance_avoidance");
     optgroup->append_single_option_line("resonance_avoidance");
     // Resonance‑avoidance speed inputs
     {
