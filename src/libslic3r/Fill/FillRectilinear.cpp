@@ -2956,7 +2956,44 @@ void make_fill_lines(const ExPolygonWithOffset &poly_with_offset, Point refpt, d
         }
 }
 
-bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out) // fill multiline
+     // Remove lines that are too close to each other.
+static inline void remove_overlapped(Polylines& polylines, coord_t line_width){
+    const coord_t tolerance = coord_t(0.75 * line_width);
+    Polylines cleaned;
+    cleaned.reserve(polylines.size());
+
+    auto midpoint = [](const Polyline& line) -> Point {
+        const Point& p1 = line.first_point();
+        const Point& p2 = line.last_point();
+        return Point((p1.x() + p2.x()) / 2, (p1.y() + p2.y()) / 2);
+    };
+
+    for (const Polyline& line : polylines) {
+        Point mp1 = midpoint(line);
+        bool overlapped = false;
+
+        for (const Polyline& existing : cleaned) {
+            Point mp2 = midpoint(existing);
+
+            // Early skip: if they're far apart on one axis, skip
+            if (std::abs(mp1.y() - mp2.y()) > tolerance &&
+                std::abs(mp1.x() - mp2.x()) > tolerance)
+                continue;
+
+            if (mp1.distance_to(mp2) < tolerance) {
+                overlapped = true;
+                break;
+            }
+        }
+
+        if (!overlapped)
+            cleaned.push_back(line);
+    }
+
+    polylines = std::move(cleaned);
+}
+
+bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
 {
     assert(sweep_params.size() >= 1);
     assert(!params.full_infill());
@@ -2988,8 +3025,11 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
         }
     }
 
+if ((params.pattern == ip2DLattice || params.pattern == ip2DHoneycomb ) && params.multiline >1 )
+    remove_overlapped(fill_lines, line_width);
+
     if (!fill_lines.empty()) {
-        if (params.dont_connect()) {
+        if (params.dont_connect()) { 
             if (fill_lines.size() > 1)
                 fill_lines = chain_polylines(std::move(fill_lines));
             append(polylines_out, std::move(fill_lines));
@@ -3147,7 +3187,7 @@ Polylines Fill2DHoneycomb::fill_surface(const Surface *surface, const FillParams
     using namespace boost::math::float_constants;
 
     // lets begin calculating some base properties of the honeycomb pattern
-    const float half_horizontal_period = .5f * (1*(2/3.f) + 2*(1/3.f)) * float(spacing) / params.density;
+    const float half_horizontal_period = .5f * (1*(2/3.f) + 2*(1/3.f)) * float(spacing) * params.multiline / params.density;
     const float vertical_period = 3 * half_horizontal_period / tanf(degree * float(params.infill_overhang_angle));
 
     // we want to align the base pattern with its knot on height 0
