@@ -49,6 +49,10 @@ struct FilamentInfo
     int         ctype = 0;
     std::vector<std::string> colors = std::vector<std::string>();
     int         mapping_result = 0;
+
+    /*for new ams mapping*/
+    std::string ams_id;
+    std::string slot_id;
 };
 
 class BBLSliceInfo {
