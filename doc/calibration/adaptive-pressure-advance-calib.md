@@ -43,7 +43,7 @@ In addition, it means that you only need to tune this feature once and print acr
 
 Finally, if during calibration you notice that there is little to no variance between the PA tests, this feature is redundant for you. **From experiments, high flow nozzles fitted on high-speed core XY printers appear to benefit the most from this feature as they print with a larger range of flow rates and at a larger range of accelerations.**
 
-### Expected results:
+### Expected results
 
 With this feature enabled there should be absolutely no bulge in the corners, just the smooth rounding caused by the square corner velocity of your printer.  
 ![apa-expected-results](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-expected-results.jpg?raw=true)
@@ -92,20 +92,20 @@ For this example, let’s assume that the baseline number of tests is adequate f
 
 We, therefore, need to run 12 PA tests as below:
 
-**Speed – Acceleration**
-
-1. 50 – 1k
-2. 100 – 1k
-3. 150 – 1k
-4. 200 – 1k
-5. 50 – 2k
-6. 100 – 2k
-7. 150 – 2k
-8. 200 – 2k
-9. 50 – 4k
-10. 100 – 4k
-11. 150 – 4k
-12. 200 – 4k
+| Speed | Acceleration |
+|-------|--------------|
+| 50    | 1k           |
+| 100   | 1k           |
+| 150   | 1k           |
+| 200   | 1k           |
+| 50    | 2k           |
+| 100   | 2k           |
+| 150   | 2k           |
+| 200   | 2k           |
+| 50    | 4k           |
+| 100   | 4k           |
+| 150   | 4k           |
+| 200   | 4k           |
 
 ### Identifying the flow rates from the print speed
 
@@ -117,17 +117,17 @@ Test parameters needed to build adaptive PA table are printed on the test sample
 
 Test sample above was done with acceleration 12000 mm/s² and flow rate 27.13 mm³/s
 
-#### OrcaSlicer 2.1.0 and older.
+#### OrcaSlicer 2.1.0 and older
 
 As mentioned earlier, **the print speed is used as a proxy to vary the extrusion flow rate**. Once your PA test is set up, change the gcode preview to “flow” and move the horizontal slider over one of the herringbone patterns and take note of the flow rate for different speeds.
 
-![apa-test210](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-test210.jpg?raw=true)
+![apa-test210](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-test210.png?raw=true)
 
 ### Running the tests
 
 #### General tips
 
-It is recommended that the PA step is set to a small value, to allow you to make meaningful distinctions between the different tests – **therefore a PA step value of 0.001 is recommended. **
+It is recommended that the PA step is set to a small value, to allow you to make meaningful distinctions between the different tests – **therefore a PA step value of 0.001 is recommended**.
 
 **Set the end PA to a value high enough to start showing perimeter separation for the lowest flow (print speed) and acceleration test.** For example, for a Voron 350 using Revo HF, the maximum value was set to 0.05 as that was sufficient to show perimeter separation even at the slowest flow rates and accelerations.
 
@@ -139,7 +139,7 @@ It is recommended that the PA step is set to a small value, to allow you to make
 
 PA pattern calibration configuration window have been changed to simplify test setup. Now all is needed is to fill list of accelerations and speeds into relevant fields of the calibration window:
 
-![pa-pattern-batch](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch.png?raw=true?raw=true)
+![pa-pattern-batch](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch.png?raw=true?raw=true)
 
 Test patterns generated for each acceleration-speed pair and all parameters are set accordingly. No additional actions needed from user side. Just slice and print all plates generated.
 
@@ -151,10 +151,9 @@ Setup your PA test as usual from the calibration menu in Orca slicer. Once setup
 
 ![apa-setup-result-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-setup-result-speed.png?raw=true)
 
-![alt text](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-setup-result-acceleration-jerk.png?raw=true)
+![apa-setup-result-acceleration-jerk](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-setup-result-acceleration-jerk.png?raw=true)
 
 Now input your identified print speeds and accelerations in the fields above and run the PA tests.
-
 
 > [!IMPORTANT]
 > Make sure your acceleration values are all the same in all text boxes. Same for the print speed values and Jerk (XY) values. Make sure your Jerk value is set to the external perimeter jerk used in your print profiles.
@@ -190,7 +189,7 @@ Remember to paste the values in the adaptive pressure advance measurements text 
 
 ### Tips
 
-#### Model input:
+#### Model input
 
 The adaptive PA model built into the slicer is flexible enough to allow for as many or as few increments of flow and acceleration as you want. Ideally, you want at a minimum 3x data points for acceleration and flow in order to create a meaningful model.
 
@@ -200,7 +199,7 @@ Similarly for acceleration – in the above example you’ll input only 4 rows i
 
 **However, make sure a triplet of values is always provided – PA value, Flow, Acceleration.**
 
-#### Identifying the right PA:
+#### Identifying the right PA
 
 Higher acceleration and higher flow rate PA tests are easier to identify the optimal PA as the range of “good” values is much narrower. It’s evident where the PA is too large, as gaps start to appear in the corner and where PA is too low, as the corner starts bulging.
 
