@@ -1603,6 +1603,7 @@ public:
     static bool get_printer_is_enclosed(std::string type_str);
     static bool get_printer_can_set_nozzle(std::string type_str);// can set nozzle from studio
     static bool load_filaments_blacklist_config();
+    static bool support_wrapping_detection(const std::string& type_str);
 
     static string get_fan_text(const std::string& type_str, const std::string& key);
 

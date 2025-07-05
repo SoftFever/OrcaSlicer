@@ -1322,7 +1322,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     wipe_tower_z = m_last_wipe_tower_print_z + m_tool_changes[m_layer_idx].front().layer_height;
             }
 
-            if (m_enable_timelapse_print && m_is_first_print) {
+            if ((m_enable_timelapse_print || m_enable_wrapping_detection) && m_is_first_print) {
                 gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][0], m_tool_changes[m_layer_idx][0].new_tool, wipe_tower_z);
                 m_tool_change_idx++;
                 m_is_first_print = false;
@@ -1353,7 +1353,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             ignore_sparse = (m_tool_changes[m_layer_idx].size() == 1 && m_tool_changes[m_layer_idx].front().initial_tool == m_tool_changes[m_layer_idx].front().new_tool);
         }
 
-        if (m_enable_timelapse_print && m_is_first_print) {
+        if ((m_enable_timelapse_print || m_enable_wrapping_detection) && m_is_first_print) {
             return false;
         }
 
@@ -1752,6 +1752,7 @@ namespace DoExport {
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Before layer change G-code")), config.before_layer_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Layer change G-code")), config.layer_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Timelapse G-code")), config.time_lapse_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Timelapse G-code")), config.wrapping_detection_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Change filament G-code")), config.change_filament_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
@@ -3015,7 +3016,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // Prusa Multi-Material wipe tower.
             if (has_wipe_tower && ! layers_to_print.empty()) {
                 m_wipe_tower.reset(new WipeTowerIntegration(print.config(), print.get_plate_index(), print.get_plate_origin(), *print.wipe_tower_data().priming.get(),
-                                                            print.wipe_tower_data().tool_changes, *print.wipe_tower_data().final_purge.get()));
+                                                            print.wipe_tower_data().tool_changes, *print.wipe_tower_data().final_purge.get(), print.get_slice_used_filaments(false)));
                 m_wipe_tower->set_wipe_tower_depth(print.get_wipe_tower_depth());
                 m_wipe_tower->set_wipe_tower_bbx(print.get_wipe_tower_bbx());
                 m_wipe_tower->set_rib_offset(print.get_rib_offset());
@@ -4688,6 +4689,30 @@ LayerResult GCode::process_layer(
     if (m_wipe_tower)
         m_wipe_tower->set_is_first_print(true);
 
+    auto insert_wrapping_detection_gcode = [this, &print, &print_z, &most_used_extruder]() -> std::string {
+        std::string wrapping_gcode;
+        if (print.config().enable_wrapping_detection && !print.config().wrapping_detection_gcode.value.empty()) {
+            DynamicConfig config;
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
+            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+            config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(most_used_extruder)));
+            config.set_key_value("curr_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(m_writer.filament()->extruder_id())));
+            wrapping_gcode = this->placeholder_parser_process("wrapping_detection_gcode", print.config().wrapping_detection_gcode.value, m_writer.filament()->id(), &config) +"\n";
+        }
+        m_writer.set_current_position_clear(false);
+
+        double temp_z_after_tool_change;
+        if (GCodeProcessor::get_last_z_from_gcode(wrapping_gcode, temp_z_after_tool_change)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2)    = temp_z_after_tool_change;
+            m_writer.set_position(pos);
+        }
+        return wrapping_gcode;
+    };
+
+    bool has_insert_wrapping_detection_gcode = false;
+
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
@@ -4714,6 +4739,12 @@ LayerResult GCode::process_layer(
                         has_insert_timelapse_gcode = true;
                     }
                 }
+
+                if (!has_insert_wrapping_detection_gcode) {
+                    gcode += this->retract(false, false, auto_lift_type);
+                    gcode += insert_wrapping_detection_gcode();
+                    has_insert_wrapping_detection_gcode = true;
+                }
                 gcode_toolchange = m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
             }
         } else {
@@ -4726,6 +4757,13 @@ LayerResult GCode::process_layer(
                 gcode += insert_timelapse_gcode();
                 has_insert_timelapse_gcode = true;
             }
+
+            if (!has_insert_wrapping_detection_gcode) {
+                gcode += this->retract(false, false, auto_lift_type);
+                gcode += insert_wrapping_detection_gcode();
+                has_insert_wrapping_detection_gcode = true;
+            }
+
             gcode_toolchange = this->set_extruder(extruder_id, print_z);
         }
         if (!gcode_toolchange.empty()) {

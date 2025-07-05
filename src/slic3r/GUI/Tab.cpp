@@ -956,7 +956,8 @@ void Tab::init_options_list()
 
     for (const std::string& opt_key : m_config->keys())
     {
-        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnails") {
+        if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnails"
+            || opt_key == "wrapping_detection_path") {
             m_options_list.emplace(opt_key, m_opt_status_value);
             continue;
         }
@@ -1569,13 +1570,31 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "enable_prime_tower") {
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
-        if (!boost::any_cast<bool>(value) && timelapse_enabled) {
-            MessageDialog dlg(wxGetApp().plater(), _L("A prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
-                              _L("Warning"), wxICON_WARNING | wxYES | wxNO);
-            if (dlg.ShowModal() == wxID_NO) {
-                DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
-                m_config_manipulation.apply(m_config, &new_conf);
+        if (!boost::any_cast<bool>(value)) {
+            bool set_enable_prime_tower = false;
+            if (timelapse_enabled) {
+                MessageDialog
+                    dlg(wxGetApp().plater(),
+                        _L("A prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
+                        _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+                if (dlg.ShowModal() == wxID_NO) {
+                    DynamicPrintConfig new_conf = *m_config;
+                    new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
+                    m_config_manipulation.apply(m_config, &new_conf);
+                    set_enable_prime_tower = true;
+                }
+            }
+            bool enable_wrapping = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
+            if (enable_wrapping && !set_enable_prime_tower) {
+                MessageDialog dlg(wxGetApp().plater(),
+                        _L("A prime tower is required for wrapping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
+                        _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+                if (dlg.ShowModal() == wxID_NO) {
+                    DynamicPrintConfig new_conf = *m_config;
+                    new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
+                    m_config_manipulation.apply(m_config, &new_conf);
+                    set_enable_prime_tower = true;
+                }
             }
             wxGetApp().plater()->update();
         }
@@ -1591,6 +1610,23 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             wxGetApp().plater()->update();
         }
         update_wiping_button_visibility();
+    }
+
+    if (opt_key == "enable_wrapping_detection") {
+        bool wipe_tower_enabled = m_preset_bundle->prints.get_edited_preset().config.option<ConfigOptionBool>("enable_prime_tower")->value;
+        if (boost::any_cast<bool>(value) && !wipe_tower_enabled) {
+            MessageDialog dlg(wxGetApp().plater(),
+                              _L("Prime tower is required for wrapping detection. There may be flaws on the model without prime tower. Do you still want to enable wrapping detection?"),
+                              _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+            if (dlg.ShowModal() == wxID_NO) {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
+                m_config_manipulation.apply(m_config, &new_conf);
+                wxGetApp().plater()->update();
+            }
+        } else {
+            wxGetApp().plater()->update();
+        }
     }
 
     if (opt_key == "precise_z_height") {
@@ -4162,6 +4198,9 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
         optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("scan_first_layer");
+        optgroup->append_single_option_line("enable_wrapping_detection");
+        optgroup->append_single_option_line("wrapping_detection_layers");
+        //optgroup->append_single_option_line("wrapping_detection_path");
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
@@ -4304,6 +4343,17 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
+        optgroup->append_single_option_line(option);
+
+        optgroup              = page->new_optgroup(L("Wrapping Detection G-code"), L"param_gcode", 0);
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
+            validate_custom_gcode_cb(this, optgroup, opt_key, value);
+        };
+        optgroup->edit_custom_gcode = edit_custom_gcode_fn;
+        option                = optgroup->get_option("wrapping_detection_gcode");
+        option.opt.full_width = true;
+        option.opt.is_code    = true;
+        option.opt.height     = gcode_field_height; // 150;
         optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Change filament G-code"), L"param_gcode", 0);
@@ -4975,6 +5025,16 @@ void TabPrinter::toggle_options()
         // SoftFever: hide non-BBL settings
         for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer", "bed_mesh_max", "bed_mesh_min", "bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "thumbnails"})
           toggle_line(el, !is_BBL_printer);
+
+        PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+        std::string printer_type = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+        toggle_line("enable_wrapping_detection", DeviceManager::support_wrapping_detection(printer_type));
+    }
+
+    if (m_active_page->title() == L("Machine G-code")) {
+        PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+        std::string   printer_type  = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+        toggle_line("wrapping_detection_gcode", DeviceManager::support_wrapping_detection(printer_type));
     }
 
     if (m_active_page->title() == L("Multimaterial")) {

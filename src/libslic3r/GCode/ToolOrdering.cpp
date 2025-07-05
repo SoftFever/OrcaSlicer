@@ -780,9 +780,18 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
     for (int i = int(m_layer_tools.size()) - 2; i >= 0; -- i)
         m_layer_tools[i].wipe_tower_partitions = std::max(m_layer_tools[i + 1].wipe_tower_partitions, m_layer_tools[i].wipe_tower_partitions);
 
+
+    int wrapping_layer_nums = config.wrapping_detection_layers;
+    for (size_t i = 0; i < wrapping_layer_nums; ++i) {
+        if (i >= m_layer_tools.size())
+            break;
+        LayerTools &lt    = m_layer_tools[i];
+        lt.has_wipe_tower = config.enable_wrapping_detection;
+    }
+
     //FIXME this is a hack to get the ball rolling.
     for (LayerTools &lt : m_layer_tools)
-        lt.has_wipe_tower = (lt.has_object && (config.timelapse_type == TimelapseType::tlSmooth || lt.wipe_tower_partitions > 0))
+        lt.has_wipe_tower |= (lt.has_object && (config.timelapse_type == TimelapseType::tlSmooth || lt.wipe_tower_partitions > 0))
             || lt.print_z < object_bottom_z + EPSILON;
 
     // Test for a raft, insert additional wipe tower layer to fill in the raft separation gap.
@@ -840,7 +849,8 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
         double last_wipe_tower_print_z = lt_next.print_z;
         while (++j < m_layer_tools.size()-1 && !m_layer_tools[j].has_wipe_tower)
             if (m_layer_tools[j+1].print_z - last_wipe_tower_print_z > max_layer_height + EPSILON) {
-                m_layer_tools[j].has_wipe_tower = true;
+                if (!config.enable_wrapping_detection)
+                    m_layer_tools[j].has_wipe_tower = true;
                 last_wipe_tower_print_z = m_layer_tools[j].print_z;
             }
     }

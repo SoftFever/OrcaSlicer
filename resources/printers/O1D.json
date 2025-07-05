@@ -61,6 +61,7 @@
 			"support_user_preset": false
 		},
 		"model_id": "O1D",
+		"support_wrapping_deteciton": true,
 		"printer_modes": [ "fdm", "laser", "cut" ],
 		"compatible_machine": [],
 		"printer_type": "O1D",

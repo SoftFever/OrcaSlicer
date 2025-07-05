@@ -428,7 +428,7 @@ static Polylines remove_points_from_polygon(const Polygon &polygon, const std::v
         for (auto &p : tmp_poly) points.push_back(unscale(p).cast<float>());
         points.pop_back();
     }
-    
+
     for (int i = 0; i < skip_points.size(); i++) {
         for (int j = 0; j < points.size(); j++) {
             Vec2f& p1                   = points[j];
@@ -1316,6 +1316,9 @@ WipeTower::ToolChangeResult WipeTower::construct_block_tcr(WipeTowerWriter &writ
 }
 
 // BBS
+const double wrapping_wipe_tower_depth = 10;
+
+// BBS
 const std::map<float, float> WipeTower::min_depth_per_height = {
     {5.f,5.f}, {100.f, 20.f}, {250.f, 40.f}, {350.f, 60.f}
 };
@@ -1479,7 +1482,7 @@ TriangleMesh WipeTower::its_make_rib_brim(const Polygon& brim, float layer_heigh
 }
 
 
-WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, size_t initial_tool, const float wipe_tower_height) :
+WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, size_t initial_tool, const float wipe_tower_height, const std::vector<unsigned int>& slice_used_filaments) :
     m_semm(config.single_extruder_multi_material.value),
     m_wipe_tower_pos(config.wipe_tower_x.get_at(plate_idx), config.wipe_tower_y.get_at(plate_idx)),
     m_wipe_tower_width(float(config.prime_tower_width)),
@@ -1497,6 +1500,9 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_current_tool(initial_tool),
     //wipe_volumes(flush_matrix)
     m_enable_timelapse_print(config.timelapse_type.value == TimelapseType::tlSmooth),
+    m_enable_wrapping_detection(config.enable_wrapping_detection),
+    m_wrapping_detection_layers(config.wrapping_detection_layers.value),
+    m_slice_used_filaments(slice_used_filaments.size()),
     m_filaments_change_length(config.filament_change_length.values),
     m_is_multi_extruder(config.nozzle_diameter.size() > 1),
     m_use_gap_wall(config.prime_tower_skip_points.value),
@@ -2524,6 +2530,9 @@ void WipeTower::plan_tower()
     float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(m_wipe_tower_height);
 
     {
+        if (m_enable_wrapping_detection && max_depth < EPSILON)
+            max_depth = wrapping_wipe_tower_depth;
+
         if (m_enable_timelapse_print && max_depth < EPSILON)
             max_depth = min_wipe_tower_depth;
 
@@ -2575,6 +2584,9 @@ void WipeTower::plan_tower()
     for (int layer_index = int(m_plan.size()) - 1; layer_index >= 0; --layer_index)
 	{
         float this_layer_depth = std::max(m_plan[layer_index].depth, m_plan[layer_index].toolchanges_depth());
+        if (m_enable_wrapping_detection && (layer_index < m_wrapping_detection_layers) && this_layer_depth < EPSILON)
+            this_layer_depth = wrapping_wipe_tower_depth;
+
         if (m_enable_timelapse_print && this_layer_depth < EPSILON)
             this_layer_depth = min_wipe_tower_depth;
 
@@ -2591,6 +2603,14 @@ void WipeTower::plan_tower()
 
         if (m_enable_timelapse_print && layer_index == 0)
             max_depth_for_all = m_plan[0].depth;
+    }
+
+    if (m_enable_wrapping_detection) {
+        for (int i = m_wrapping_detection_layers - 1; i >= 0; i--) {
+            if (m_plan.size() <= m_wrapping_detection_layers && (m_plan[i].depth < wrapping_wipe_tower_depth)) {
+                m_plan[i].depth = wrapping_wipe_tower_depth;
+            }
+        }
     }
 
     if (m_enable_timelapse_print) {
@@ -3556,7 +3576,7 @@ void WipeTower::update_all_layer_depth(float wipe_tower_depth)
     if (m_wipe_tower_depth > 0)
         m_wipe_tower_depth += start_offset;
 
-    if (m_enable_timelapse_print) {
+    if (m_enable_wrapping_detection || m_enable_timelapse_print) {
         if (is_approx(m_wipe_tower_depth, 0.f))
             m_wipe_tower_depth = wipe_tower_depth;
         for (WipeTowerInfo &plan_info : m_plan) {
@@ -3700,6 +3720,13 @@ void WipeTower::plan_tower_new()
 
     // only for get m_extra_spacing
     {
+        if (m_enable_wrapping_detection && max_depth < EPSILON) {
+            max_depth = wrapping_wipe_tower_depth;
+            if (m_use_rib_wall) {
+                m_wipe_tower_width = max_depth;
+            }
+        }
+
         if (m_enable_timelapse_print && max_depth < EPSILON) {
             max_depth = min_wipe_tower_depth;
             if (m_use_rib_wall) { m_wipe_tower_width = max_depth; }
@@ -3877,6 +3904,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         };
         int wall_idx = get_wall_filament_for_this_layer();
 
+        bool only_generate_wall = m_enable_timelapse_print || (m_enable_wrapping_detection && m_slice_used_filaments <= 1);
         // this layer has no tool_change
         if (wall_idx == -1) {
             bool need_insert_solid_infill = false;
@@ -3890,10 +3918,10 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
             if (need_insert_solid_infill) {
                 wall_idx = m_current_tool;
             } else {
-                if (m_enable_timelapse_print) {
+                if (only_generate_wall) {
                     timelapse_wall = only_generate_out_wall(true);
                 }
-                finish_layer_tcr = finish_layer_new(m_enable_timelapse_print ? false : true, layer.extruder_fill);
+                finish_layer_tcr = finish_layer_new(only_generate_wall ? false : true, layer.extruder_fill);
                 std::for_each(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [this](WipeTowerBlock &block) {
                     block.finish_depth[this->m_cur_layer_id] = block.start_depth;
                 });
@@ -3903,13 +3931,13 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         // generate tool change
         bool insert_wall = false;
         int  insert_finish_layer_idx = -1;
-        if (wall_idx != -1 && m_enable_timelapse_print) {
+        if (wall_idx != -1 && only_generate_wall) {
             timelapse_wall = only_generate_out_wall(true);
         }
         for (int i = 0; i < int(layer.tool_changes.size()); ++i) {
             ToolChangeResult wall_gcode;
             if (i == 0 && (layer.tool_changes[i].old_tool == wall_idx)) {
-                finish_layer_tcr = finish_layer_new(m_enable_timelapse_print ? false : true, false, false);
+                finish_layer_tcr = finish_layer_new(only_generate_wall ? false : true, false, false);
             }
             const auto * block = get_block_by_category(m_filpar[layer.tool_changes[i].new_tool].category, false);
             int         id    = std::find_if(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [&](const WipeTowerBlock &b) { return &b == block; }) - m_wipe_tower_blocks.begin();
@@ -3924,7 +3952,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
 
             }
             else if (layer.tool_changes[i].new_tool == wall_idx) {
-                finish_layer_tcr = finish_layer_new(m_enable_timelapse_print ? false : true, false, false);
+                finish_layer_tcr = finish_layer_new(only_generate_wall ? false : true, false, false);
                 insert_finish_layer_idx = i;
             }
         }
@@ -3933,7 +3961,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         // insert finish block
         if (wall_idx != -1) {
             if (layer.tool_changes.empty()) {
-                finish_layer_tcr = finish_layer_new(m_enable_timelapse_print ? false : true, false, false);
+                finish_layer_tcr = finish_layer_new(only_generate_wall ? false : true, false, false);
             }
 
             for (WipeTowerBlock& block : m_wipe_tower_blocks) {
@@ -4016,7 +4044,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 layer_result[insert_finish_layer_idx] = merge_tcr(layer_result[insert_finish_layer_idx], finish_layer_tcr);
         }
 
-        if (m_enable_timelapse_print && !timelapse_wall.gcode.empty()) {
+        if (only_generate_wall && !timelapse_wall.gcode.empty()) {
             layer_result.insert(layer_result.begin(), std::move(timelapse_wall));
         }
         result.emplace_back(std::move(layer_result));
@@ -4161,7 +4189,7 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
     // BBS
 
     float wipe_tower_depth = m_layer_info->depth + m_perimeter_width;
-    if (is_new_mode && m_enable_timelapse_print)
+    if (is_new_mode && (m_enable_timelapse_print || m_enable_wrapping_detection))
         wipe_tower_depth = m_wipe_tower_depth;
     box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)), m_wipe_tower_width, wipe_tower_depth);
     wt_box = align_perimeter(wt_box);

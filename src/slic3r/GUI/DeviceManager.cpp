@@ -5639,7 +5639,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             upgrade_display_hold_count = HOLD_COUNT_MAX;
                             BOOST_LOG_TRIVIAL(info) << "ack of upgrade_confirm";
                         }
-                      
+
                         if (j["upgrade"].contains("err_code")) {
                             if (j["upgrade"]["err_code"].is_number()) {
                                 add_command_error_code_dlg(j["upgrade"]["err_code"].get<int>());
@@ -7110,7 +7110,7 @@ void MachineObject::add_command_error_code_dlg(int command_err)
                     if (!token.expired()) { m_command_error_code_dlgs.erase((GUI::DeviceErrorDialog*)event.GetEventObject());}
                     event.Skip();
                 });
-            
+
             device_error_dialog->show_error_code(command_err);
             m_command_error_code_dlgs.insert(device_error_dialog);
         });
@@ -7910,6 +7910,11 @@ std::string DeviceManager::get_printer_ext_img(std::string type_str, int pos) {
     const auto& vec = get_value_from_config<std::vector<std::string>>(type_str, "printer_ext_image");
     if (vec.size() > pos) { return vec[pos];}
     return std::string();
+}
+
+bool DeviceManager::support_wrapping_detection(const std::string &type_str)
+{
+    return get_value_from_config<bool>(type_str, "support_wrapping_deteciton");
 }
 
 bool DeviceManager::get_printer_is_enclosed(std::string type_str) {

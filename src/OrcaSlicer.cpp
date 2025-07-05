@@ -532,7 +532,7 @@ static int load_key_values_from_json(const std::string &file, std::map<std::stri
 }
 
 static std::set<std::string> gcodes_key_set =  {"filament_end_gcode", "filament_start_gcode", "change_filament_gcode", "layer_change_gcode", "machine_end_gcode", "machine_pause_gcode", "machine_start_gcode",
-            "template_custom_gcode", "printing_by_object_gcode", "before_layer_change_gcode", "time_lapse_gcode"};
+            "template_custom_gcode", "printing_by_object_gcode", "before_layer_change_gcode", "time_lapse_gcode", "wrapping_detection_gcode"};
 
 static void load_default_gcodes_to_config(DynamicPrintConfig& config, Preset::Type type)
 {
@@ -569,6 +569,9 @@ static void load_default_gcodes_to_config(DynamicPrintConfig& config, Preset::Ty
 
         ConfigOptionString* timeplase_gcode_opt = config.option<ConfigOptionString>("time_lapse_gcode", true);
         BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", time_lapse_gcode: "<<timeplase_gcode_opt->value;
+
+        ConfigOptionString *wrapping_detection_gcode_opt = config.option<ConfigOptionString>("wrapping_detection_gcode", true);
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ", wrapping_detection_gcode: " << wrapping_detection_gcode_opt->value;
     }
     else if (type == Preset::TYPE_FILAMENT)
     {
@@ -3631,7 +3634,10 @@ int CLI::run(int argc, char **argv)
         ConfigOptionFloats* volume_option = print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
         std::vector<double> wipe_volume = volume_option->values;
 
-        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), new_extruder_count, filaments_cnt);
+        const ConfigOptionBool * wrapping_detection = print_config.option<ConfigOptionBool>("enable_wrapping_detection");
+        bool enable_wrapping = (wrapping_detection != nullptr) && wrapping_detection->value;
+
+        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), new_extruder_count, filaments_cnt, false, enable_wrapping);
         plate_obj_size_info.wipe_width = wipe_tower_size(0);
         plate_obj_size_info.wipe_depth = wipe_tower_size(1);
 
@@ -4771,7 +4777,10 @@ int CLI::run(int argc, char **argv)
 
                             //float depth = v * (filaments_cnt - 1) / (layer_height * w);
 
-                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), new_extruder_count, filaments_cnt);
+                            const ConfigOptionBool *wrapping_detection = m_print_config.option<ConfigOptionBool>("enable_wrapping_detection");
+                            bool   enable_wrapping    = (wrapping_detection != nullptr) && wrapping_detection->value;
+
+                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), new_extruder_count, filaments_cnt, false, enable_wrapping);
                             Vec3d plate_origin = cur_plate->get_origin();
                             int plate_width, plate_depth, plate_height;
                             partplate_list.get_plate_size(plate_width, plate_depth, plate_height);

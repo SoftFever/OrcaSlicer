@@ -45,6 +45,7 @@
 		"model_id": "N2S",
 		"compatible_machine": [],
 		"auto_cali_not_support_filaments": [ "GFU03", "GFU04" ],
+		"support_wrapping_deteciton": false,
 		"printer_type": "N2S",
 		"ftp_folder": "sdcard/",
 		"printer_thumbnail_image": "printer_thumbnail_n2s",

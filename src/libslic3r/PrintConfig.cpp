@@ -3562,6 +3562,26 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(100., true));
 
+    // BBS
+    def          = this->add("enable_wrapping_detection", coBool);
+    def->label   = L("Enable wrapping detection");
+    def->tooltip = L("Enable wrapping detection");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("wrapping_detection_layers", coInt);
+    def->label    = L("Wrapping detection layers");
+    def->tooltip  = L("Wrapping detection layers.");
+    def->min      = 0;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionInt(20));
+
+    def          = this->add("wrapping_detection_path", coPoints);
+    def->label   = L("Wrapping detection position");
+    def->tooltip = L("Wrapping detection position.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionPoints{Vec2d(197.5, 326), Vec2d(207.5, 326)});
+
     def = this->add("sparse_infill_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Infill");
@@ -3812,6 +3832,14 @@ void PrintConfigDef::init_fff_params()
     def->height =5;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString());
+
+    def             = this->add("wrapping_detection_gcode", coString);
+    def->label      = L("Wrapping detection G-code");
+    def->multiline  = true;
+    def->full_width = true;
+    def->height     = 5;
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("silent_mode", coBool);
     def->label = L("Supports silent mode");
@@ -7738,7 +7766,11 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
 
         ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool is_smooth_timelapse = timelapse_opt != nullptr && timelapse_opt->value == TimelapseType::tlSmooth;
-        if (!is_smooth_timelapse && (used_filaments == 1 || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
+
+        ConfigOptionBool *enable_wrapping_opt = this->option<ConfigOptionBool>("enable_wrapping_detection");
+        bool enable_wrapping = enable_wrapping_opt != nullptr && enable_wrapping_opt->value;
+
+        if (!is_smooth_timelapse && !enable_wrapping && (used_filaments == 1 || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
             if (ept_opt->value) {
                 ept_opt->value = false;
                 changed_keys.push_back("enable_prime_tower");

@@ -2908,9 +2908,14 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
         const DynamicPrintConfig &dconfig           = wxGetApp().preset_bundle->prints.get_edited_preset().config;
         auto timelapse_type = dconfig.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
-        bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
+        bool need_wipe_tower = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
 
-        if (wt && (timelapse_enabled || filaments_count > 1) && !wxGetApp().plater()->only_gcode_mode() && !wxGetApp().plater()->is_gcode_3mf()) {
+        const DynamicPrintConfig & printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        if (printer_config.has("enable_wrapping_detection")) {
+            need_wipe_tower |= dynamic_cast<const ConfigOptionBool*>(printer_config.option("enable_wrapping_detection"))->value;
+        }
+
+        if (wt && (need_wipe_tower || filaments_count > 1) && !wxGetApp().plater()->only_gcode_mode() && !wxGetApp().plater()->is_gcode_3mf()) {
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {
                 // If print ByObject and there is only one object in the plate, the wipe tower is allowed to be generated.
                 PartPlate* part_plate = ppl.get_plate(plate_id);
@@ -2931,14 +2936,14 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
                 const Print* print = m_process->fff_print();
                 const Print* current_print = part_plate->fff_print();
-                if (!timelapse_enabled && part_plate->get_extruders(true).size() < 2) continue;
+                if (!need_wipe_tower && part_plate->get_extruders(true).size() < 2) continue;
                 if (part_plate->get_objects_on_this_plate().empty()) continue;
 
                 float brim_width = print->wipe_tower_data(filaments_count).brim_width;
                 const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
                 double wipe_vol = get_max_element(v);
                 int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
-                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums);
+                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, 0, false, dynamic_cast<const ConfigOptionBool*>(printer_config.option("enable_wrapping_detection"))->value);
 
                 {
                     const float                 margin     = WIPE_TOWER_MARGIN + brim_width;
