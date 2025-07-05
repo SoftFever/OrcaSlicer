@@ -962,25 +962,11 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     m_sizer_button->Add(0, 0, 1, 0, 0);
 
      // Add Buttons
-    wxFont      btn_font = this->GetFont().Scaled(1.4f);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    auto add_btn = [this, m_sizer_button, btn_font, dependent_presets, btn_bg_green](Button **btn, int &btn_id, const std::string &icon_name, Action close_act, const wxString &label,
+    auto add_btn = [this, m_sizer_button, dependent_presets](Button **btn, int &btn_id, const std::string &icon_name, Action close_act, const wxString &label,
                                                                               bool focus, bool process_enable = true) {
         *btn = new Button(this, _L(label));
 
-        if (focus) {
-            (*btn)->SetBackgroundColor(btn_bg_green);
-            (*btn)->SetBorderColor(wxColour(0, 150, 136));
-            (*btn)->SetTextColor(wxColour("#FFFFFE"));
-        } else {
-            (*btn)->SetTextColor(wxColour(107, 107, 107));
-        }
-
-        //(*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
-        (*btn)->SetMinSize(wxSize(-1,-1));
-        (*btn)->SetCornerRadius(FromDIP(12));
+        (*btn)->SetStyle(focus ? ButtonStyle::Confirm : ButtonStyle::Regular, ButtonType::Choice);
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent &) {
             bool save_names_and_types = close_act == Action::Save || (close_act == Action::Transfer && ActionButtons::KEEP & m_buttons);
@@ -994,7 +980,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
             e.Skip();
         });
 
-        m_sizer_button->Add(*btn, 0, wxLEFT, 5);
+        m_sizer_button->Add(*btn, 0, wxLEFT, FromDIP(ButtonProps::ChoiceButtonGap()));
     };
 
     // "Transfer" / "Keep" button
@@ -1706,9 +1692,9 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     int em = em_unit();
 
-    msw_buttons_rescale(this, em, { wxID_CANCEL, m_move_btn_id, m_continue_btn_id });
+    //msw_buttons_rescale(this, em, { wxID_CANCEL, m_move_btn_id, m_continue_btn_id });
     for (auto btn : {m_transfer_btn, m_discard_btn, m_save_btn})
-        if (btn) btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
+        if (btn) btn->Rescale();
 
     //m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
     const wxSize& size = wxSize(70 * em, 30 * em);
