@@ -1,6 +1,7 @@
 #include "JusPrinPricingPlanDialog.hpp"
 #include "JusPrinUtils.hpp"
 #include "../GUI_App.hpp"
+#include "../I18N.hpp"
 #include "slic3r/GUI/Widgets/WebView.hpp"
 #include <wx/sizer.h>
 #include <wx/settings.h>
@@ -28,8 +29,8 @@ JusPrinPricingPlanDialog::JusPrinPricingPlanDialog()
     Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &JusPrinPricingPlanDialog::OnTitleChanged, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_FULLSCREEN_CHANGED, &JusPrinPricingPlanDialog::OnFullScreenChanged, this, m_browser->GetId());
 
-    SetTitle("JusPrin Pricing Plan");
-    wxSize pSize = wxSize(650, 840);
+    SetTitle(_L("JusPrin Pricing Plan"));
+    wxSize pSize = FromDIP(wxSize(650, 840));
     SetSize(pSize);
 
     int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
@@ -44,6 +45,7 @@ JusPrinPricingPlanDialog::JusPrinPricingPlanDialog()
     // Construct the pricing URL using the base URL utility
     wxString pricing_url = JusPrinUtils::GetJusPrinBaseUrl() + "/ent/jusprin/pricing/";
     m_browser->LoadURL(pricing_url);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 bool JusPrinPricingPlanDialog::run()
