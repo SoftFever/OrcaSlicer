@@ -1,20 +1,19 @@
-#ifndef slic3r_GUI_JusPrinAccountDialog_hpp_
-#define slic3r_GUI_JusPrinAccountDialog_hpp_
+#ifndef slic3r_GUI_JusPrinPricingPlanDialog_hpp_
+#define slic3r_GUI_JusPrinPricingPlanDialog_hpp_
 
 #include <wx/dialog.h>
 #include <wx/webview.h>
 
 namespace Slic3r { namespace GUI {
 
-class JusPrinAccountDialog : public wxDialog
+class JusPrinPricingPlanDialog : public wxDialog
 {
 public:
-    JusPrinAccountDialog(const wxString& url);
+    JusPrinPricingPlanDialog();
     bool run();
 
 private:
     wxWebView* m_browser {nullptr};
-    wxString m_url;
     void OnNavigationRequest(wxWebViewEvent& evt);
     void OnNavigationComplete(wxWebViewEvent& evt);
     void OnDocumentLoaded(wxWebViewEvent& evt);
@@ -29,4 +28,4 @@ private:
 
 }} // namespace Slic3r::GUI
 
-#endif // slic3r_GUI_JusPrinAccountDialog_hpp_
+#endif // slic3r_GUI_JusPrinPricingPlanDialog_hpp_
