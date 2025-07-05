@@ -1578,7 +1578,7 @@ void MappingItem::set_data(const wxString &tag_name, wxColour colour, wxString n
             }
 
         } else {
-            SetToolTip(_L("Note: Only the AMS slots loaded with the same material type can be selected."));
+            SetToolTip(_L("Note: Only filament-loaded slots can be selected."));
         }
     }
     else
