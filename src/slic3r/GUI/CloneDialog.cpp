@@ -55,11 +55,10 @@ CloneDialog::CloneDialog(wxWindow *parent)
 
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this, dlg_btns, v_sizer](wxCommandEvent &e) {
 
-        dlg_btns->GetOK()->SetFocus(); // ensures input box value applied with wxEVT_KILL_FOCUS
+        m_count_spin->Disable(); // also ensures input box value applied with wxEVT_KILL_FOCUS
+        m_arrange_cb->Disable();
 
         m_count = m_count_spin->GetValue();
-        m_count_spin->Disable();
-        m_arrange_cb->Disable();
 
         m_progress->Show();
 
