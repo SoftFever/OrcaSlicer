@@ -3166,8 +3166,22 @@ int CLI::run(int argc, char **argv)
             std::vector<double>& flush_multipliers = m_print_config.option<ConfigOptionFloats>("flush_multiplier", true)->values;
             flush_multipliers.resize(new_extruder_count, 1.f);
 
-            std::vector<int>& nozzle_flush_dataset = m_print_config.option<ConfigOptionIntsNullable>("filament_flush_dataset",true)->values;
-            nozzle_flush_dataset.resize(new_extruder_count, 0);
+            std::vector<int> nozzle_flush_dataset(new_extruder_count, 0);
+            {
+                std::vector<int>& nozzle_flush_dataset_full = m_print_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset",true)->values;
+                if (m_print_config.has("printer_extruder_variant")) {
+                    nozzle_flush_dataset_full.resize(m_print_config.option<ConfigOptionStrings>("printer_extruder_variant")->size(), 0);
+                }
+                auto extruders = m_print_config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
+                auto volume_types = m_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values; // get volume type from 3mf
+                if(m_extra_config.has("nozzle_volume_type")) // get volume type from input
+                    volume_types = m_extra_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+
+                for (int eidx = 0; eidx < new_extruder_count; ++eidx) {
+                    int index = m_print_config.get_index_for_extruder(eidx + 1, "printer_extruder_id", ExtruderType(extruders[eidx]), NozzleVolumeType(volume_types[eidx]), "printer_extruder_variant");
+                    nozzle_flush_dataset[eidx] = nozzle_flush_dataset_full[index];
+                }
+            }
 
             for (size_t nozzle_id = 0; nozzle_id < new_extruder_count; ++nozzle_id) {
             std::vector<double> flush_vol_mtx = get_flush_volumes_matrix(flush_vol_matrix, nozzle_id, new_extruder_count);
