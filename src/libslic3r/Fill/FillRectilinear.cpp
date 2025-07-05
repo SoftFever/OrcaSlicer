@@ -2956,28 +2956,27 @@ void make_fill_lines(const ExPolygonWithOffset &poly_with_offset, Point refpt, d
         }
 }
 
-// Remove lines that are too close to each other.
+     // Remove lines that are too close to each other.
 static inline void remove_overlapped(Polylines& polylines, coord_t line_width){
-    const coord_t tolerance = 0.75 * line_width;
-    for (auto it = polylines.begin(); it != polylines.end(); ++it) {
-        const Point& p1_start = it->first_point();
-        const Point& p1_end   = it->last_point();
-
-        for (auto jt = std::next(it); jt != polylines.end(); ) {
-            const Point& p2_start = jt->first_point();
-            const Point& p2_end   = jt->last_point();
-
-            bool close_start = p1_start.distance_to(p2_start) < tolerance;
-            bool close_end   = p1_end.distance_to(p2_end) < tolerance;
-            bool cross_close = p1_start.distance_to(p2_end) < tolerance && p1_end.distance_to(p2_start) < tolerance;
-
-            if ((close_start && close_end) || cross_close) {
-                jt = polylines.erase(jt);
-            } else {
-                ++jt;
+    const coord_t tolerance = coord_t(0.75 * line_width);
+    Polylines cleaned;
+    cleaned.reserve(polylines.size());
+    for (const Polyline& line : polylines) {
+        const Point& p1 = line.first_point();
+        bool overlapped = false;
+        for (const Polyline& existing : cleaned) {
+            const Point& p2 = existing.first_point();
+            if (std::abs(p1.y() - p2.y()) > tolerance)
+                continue;
+            if (p1.distance_to(p2) < tolerance) {
+                overlapped = true;
+                break;
             }
         }
+        if (!overlapped)
+            cleaned.push_back(line);
     }
+    polylines = std::move(cleaned);
 }
 
 bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillParams params, const std::initializer_list<SweepParams> &sweep_params, Polylines &polylines_out)
@@ -3012,11 +3011,11 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
         }
     }
 
-if (params.pattern == ip2DLattice)
+if (params.pattern == ip2DLattice && params.multiline >1 )
     remove_overlapped(fill_lines, line_width);
 
     if (!fill_lines.empty()) {
-        if (params.dont_connect()) {
+        if (params.dont_connect()) { 
             if (fill_lines.size() > 1)
                 fill_lines = chain_polylines(std::move(fill_lines));
             append(polylines_out, std::move(fill_lines));
