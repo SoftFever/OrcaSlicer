@@ -79,6 +79,7 @@ private:
 
     // Actions to trigger events in JusPrin
     void handle_show_login(const nlohmann::json& params);
+    void handle_show_pricing_plan(const nlohmann::json& params);
     void handle_start_slicer_all(const nlohmann::json& params);
     void handle_export_gcode(const nlohmann::json& params);
     void handle_auto_orient_all_objects(const nlohmann::json& params);

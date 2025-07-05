@@ -16,6 +16,7 @@
 #include "JusPrinPresetConfigUtils.hpp"
 #include "JusPrinPlateUtils.hpp"
 #include "JusPrinView3D.hpp"
+#include "JusPrinPricingPlanDialog.hpp"
 
 
 namespace Slic3r { namespace GUI {
@@ -87,6 +88,7 @@ void JusPrinChatPanel::init_action_handlers() {
 
     // Actions for the chat page (void return)
     void_action_handlers["show_login"] = &JusPrinChatPanel::handle_show_login;
+    void_action_handlers["show_pricing_plan"] = &JusPrinChatPanel::handle_show_pricing_plan;
     void_action_handlers["start_slicer_all"] = &JusPrinChatPanel::handle_start_slicer_all;
     void_action_handlers["export_gcode"] = &JusPrinChatPanel::handle_export_gcode;
     void_action_handlers["auto_orient_all_objects"] = &JusPrinChatPanel::handle_auto_orient_all_objects;
@@ -184,6 +186,13 @@ void JusPrinChatPanel::handle_init_server_url_and_redirect(const nlohmann::json&
 void JusPrinChatPanel::handle_show_login(const nlohmann::json& params) {
     GUI::wxGetApp().CallAfter([this] {
         wxGetApp().show_jusprin_login();
+    });
+}
+
+void JusPrinChatPanel::handle_show_pricing_plan(const nlohmann::json& params) {
+    GUI::wxGetApp().CallAfter([this] {
+        JusPrinPricingPlanDialog dialog;
+        dialog.run();
     });
 }
 
