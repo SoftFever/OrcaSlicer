@@ -3,7 +3,7 @@
 #include "../GUI_App.hpp"
 #include "slic3r/GUI/Widgets/WebView.hpp"
 #include <wx/sizer.h>
-#include <wx/systemsettings.h>
+#include <wx/settings.h>
 
 namespace Slic3r { namespace GUI {
 
