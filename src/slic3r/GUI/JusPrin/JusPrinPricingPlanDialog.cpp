@@ -38,6 +38,9 @@ JusPrinPricingPlanDialog::JusPrinPricingPlanDialog()
     wxPoint tmpPT((screenwidth - pSize.x) / 2, MaxY);
     Move(tmpPT);
 
+    // Enable dev tools if developer mode is enabled
+    m_browser->EnableAccessToDevTools(wxGetApp().app_config->get_bool("developer_mode"));
+
     // Construct the pricing URL using the base URL utility
     wxString pricing_url = JusPrinUtils::GetJusPrinBaseUrl() + "/ent/jusprin/pricing/";
     m_browser->LoadURL(pricing_url);
