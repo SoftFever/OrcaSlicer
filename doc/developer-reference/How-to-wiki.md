@@ -150,10 +150,13 @@ Always use raw GitHub URLs for image links to ensure correct display:
 Format = `![[filename]](` + Base URL + filename.extension + Raw tag + `)`
 
 - Base URL:
+
   ```markdown
   https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/
   ```
+
 - Raw tag:
+
   ```markdown
   ?raw=true
   ```
@@ -167,6 +170,7 @@ Format = `![[filename]](` + Base URL + filename.extension + Raw tag + `)`
   ```
 
 - For an image in a subdirectory like `doc/images/calibration/pa-example.svg`:
+
   ```markdown
   ![pa-example](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/calibration/pa-example.svg?raw=true)
   ```
@@ -194,6 +198,7 @@ If resizing is necessary (e.g., for thumbnails), use the following syntax:
 
 HTML Format = `<img src="` + Base URL + filename.extension + Raw tag + `" alt="` + filename + `"` + size limit.
 Example:
+
 ```html
    <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_marlin_print_measure.jpg?raw=true" alt="Input_Shaping" height="200">
 ```

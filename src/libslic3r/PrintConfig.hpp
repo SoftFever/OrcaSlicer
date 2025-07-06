@@ -299,6 +299,13 @@ static std::unordered_map<NozzleType, std::string>NozzleTypeEumnToStr = {
     {NozzleType::ntBrass,           "brass"}
 };
 
+static std::unordered_map<std::string, NozzleType>NozzleTypeStrToEumn = {
+    {"undefine", NozzleType::ntUndefine},
+    {"hardened_steel", NozzleType::ntHardenedSteel},
+    {"stainless_steel", NozzleType::ntStainlessSteel},
+    {"brass", NozzleType::ntBrass}
+};
+
 // BBS
 enum PrinterStructure {
     psUndefine=0,
@@ -315,6 +322,12 @@ enum ZHopType {
     zhtSlope,
     zhtSpiral,
     zhtCount
+};
+
+enum NozzleVolumeType {
+    nvtNormal = 0,
+    nvtBigTraffic,
+    nvtMaxNozzleVolumeType = nvtBigTraffic
 };
 
 enum RetractLiftEnforceType {
@@ -980,6 +993,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool, infill_combination))
     // Orca:
     ((ConfigOptionFloatOrPercent,                infill_combination_max_layer_height))
+    ((ConfigOptionInt,                  fill_multiline))
     // Ironing options
     ((ConfigOptionEnum<IroningType>, ironing_type))
     ((ConfigOptionEnum<InfillPattern>, ironing_pattern))
