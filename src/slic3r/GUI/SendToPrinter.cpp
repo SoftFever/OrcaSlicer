@@ -439,12 +439,12 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_rename_text->SetForegroundColour(*wxBLACK);
     m_rename_text->SetFont(::Label::Body_13);
     m_rename_text->SetMaxSize(wxSize(FromDIP(390), -1));
-    m_rename_button = new Button(m_rename_normal_panel, "", "ams_editable", wxBORDER_NONE, FromDIP(13)); // ORCA fix edit icon size
+    m_rename_button = new Button(m_rename_normal_panel, "", "rename_edit", wxBORDER_NONE, FromDIP(13)); // ORCA Match edit icon and its size
     m_rename_button->SetBackgroundColor(*wxWHITE);
     m_rename_button->SetBackgroundColour(*wxWHITE);
 
     rename_sizer_h->Add(m_rename_text, 0, wxALIGN_CENTER, 0);
-    rename_sizer_h->Add(m_rename_button, 0, wxALIGN_CENTER | wxLEFT, FromDIP(1)); // ORCA add gap between text and icon
+    rename_sizer_h->Add(m_rename_button, 0, wxALIGN_CENTER, 0);
     rename_sizer_v->Add(rename_sizer_h, 1, wxALIGN_CENTER, 0);
     m_rename_normal_panel->SetSizer(rename_sizer_v);
     m_rename_normal_panel->Layout();
@@ -1349,9 +1349,9 @@ void SendToPrinterDialog::set_default()
 
     char weight[64];
     if (wxGetApp().app_config->get("use_inches") == "1") {
-        ::sprintf(weight, "%.2f oz", aprint_stats.total_weight*0.035274); // ORCA remove spacing begore text
+        ::sprintf(weight, "%.2f oz", aprint_stats.total_weight*0.035274); // ORCA remove spacing before text
     }else{
-        ::sprintf(weight, "%.2f g", aprint_stats.total_weight); // ORCA remove spacing begore text
+        ::sprintf(weight, "%.2f g", aprint_stats.total_weight); // ORCA remove spacing before text
     }
 
     m_stext_time->SetLabel(time);
