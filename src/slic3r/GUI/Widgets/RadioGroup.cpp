@@ -47,6 +47,8 @@ void RadioGroup::Create(
     SetFont(m_font);
 
     SetDoubleBuffered(true);
+    SetCanFocus(true);
+    SetFocusIgnoringChildren();
     AcceptsFocusFromKeyboard();
 
     Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {m_focused = true ; Refresh(); e.Skip();}));
@@ -81,6 +83,8 @@ void RadioGroup::Create(
     for (int i = 0; i < m_item_count; ++i){
         auto rb = new wxGenericStaticBitmap(this, wxID_ANY, m_off.bmp(), wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxNO_BORDER);
         m_radioButtons.push_back(rb);
+        rb->SetCanFocus(false);
+        rb->DisableFocusFromKeyboard();
         rb->Bind(wxEVT_LEFT_DOWN   ,([this, i](wxMouseEvent e) {OnClick(i)            ; e.Skip();}));
         rb->Bind(wxEVT_ENTER_WINDOW,([this, i](wxMouseEvent e) {SetRadioIcon(i, true) ; e.Skip();}));
         rb->Bind(wxEVT_LEAVE_WINDOW,([this, i](wxMouseEvent e) {
@@ -92,9 +96,11 @@ void RadioGroup::Create(
         }));
 
         auto tx = new wxBannerWindow(this, wxID_ANY); // best solution to prevent stealing focus
+        tx->SetCanFocus(false);
+        tx->DisableFocusFromKeyboard();
         tx->SetMinSize(GetTextExtent(m_labels[i]) + total_add);
         tx->SetBackgroundColour(GetBackgroundColour());
-        tx->DisableFocusFromKeyboard();
+        tx->SetBackgroundStyle(wxBG_STYLE_PAINT);
         m_labelButtons.push_back(tx);
         tx->Bind(wxEVT_LEFT_DOWN   ,([this, i](wxMouseEvent e) {OnClick(i)            ; e.Skip();}));
         tx->Bind(wxEVT_ENTER_WINDOW,([this, i](wxMouseEvent e) {SetRadioIcon(i, true) ; e.Skip();}));
@@ -106,7 +112,7 @@ void RadioGroup::Create(
             e.Skip();
         }));
         tx->Bind(wxEVT_PAINT,([this, i, tx, text_start, rect_end](wxPaintEvent e) {
-            wxPaintDC dc(tx);
+            wxAutoBufferedPaintDC dc(tx);
             dc.Clear();
 
             dc.SetTextForeground(m_text_color);
