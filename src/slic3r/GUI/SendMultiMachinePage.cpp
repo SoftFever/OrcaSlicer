@@ -565,7 +565,7 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
             params.comments = "no_ip";
         else if (obj->is_support_cloud_print_only)
             params.comments = "low_version";
-        else if (!obj->has_sdcard())
+        else if (obj->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)
             params.comments = "no_sdcard";
         else if (params.password.empty())
             params.comments = "no_password";
