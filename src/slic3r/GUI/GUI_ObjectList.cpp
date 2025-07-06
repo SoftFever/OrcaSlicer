@@ -2154,7 +2154,7 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
     else if (type_name == "Cone")
         mesh = TriangleMesh(its_make_cone(0.5 * side, side));
     else if (type_name == "Disc")
-        mesh.ReadSTLFile((Slic3r::resources_dir() + "/handy_models/helper_disk.stl").c_str(), true, nullptr);
+        mesh = TriangleMesh(its_make_cylinder(0.5 * 15, 0.2f));
     else if (type_name == "Torus")
         mesh.ReadSTLFile((Slic3r::resources_dir() + "/handy_models/torus.stl").c_str(), true, nullptr);
     return TriangleMesh(mesh);
