@@ -90,6 +90,7 @@ public:
 
 	//BBS set global header for each http request
 	static void set_extra_headers(std::map<std::string, std::string> headers);
+	static std::map<std::string, std::string> get_extra_headers();
 
 	~Http();
 
