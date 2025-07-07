@@ -335,9 +335,10 @@ inline Vec3f its_face_normal(const indexed_triangle_set &its, const int face_idx
 
 indexed_triangle_set    its_make_cube(double x, double y, double z);
 indexed_triangle_set    its_make_prism(float width, float length, float height);
-indexed_triangle_set    its_make_cylinder(double r, double h, double fa=(2*PI/360));
-indexed_triangle_set    its_make_cone(double r, double h, double fa=(2*PI/360));
-indexed_triangle_set    its_make_frustum(double r, double h, double fa=(2*PI/360));
+indexed_triangle_set    its_make_cylinder(double r, double h, double fa=(2*PI/90));
+indexed_triangle_set    its_make_cone(double r, double h, double fa=(2*PI/90));
+indexed_triangle_set    its_make_frustum(double r, double h, double fa=(2*PI/90));
+indexed_triangle_set    its_make_torus(double r, double h, double fa);
 indexed_triangle_set    its_make_frustum_dowel(double r, double h, int sectorCount);
 indexed_triangle_set    its_make_pyramid(float base, float height);
 indexed_triangle_set    its_make_sphere(double radius, double fa);
@@ -353,6 +354,7 @@ inline TriangleMesh     make_cylinder(double r, double h, double fa=(2*PI/360)) 
 inline TriangleMesh     make_cone(double r, double h, double fa=(2*PI/360))     { return TriangleMesh(its_make_cone(r, h, fa)); }
 inline TriangleMesh     make_pyramid(float base, float height)                  { return TriangleMesh(its_make_pyramid(base, height)); }
 inline TriangleMesh     make_sphere(double rho, double fa=(2*PI/360))           { return TriangleMesh(its_make_sphere(rho, fa)); }
+inline TriangleMesh     make_torus(double r, double h, double fa=(2*PI/360))    { return TriangleMesh(its_make_torus(r, h, fa)); }
 
 bool        its_write_stl_ascii(const char *file, const char *label, const std::vector<stl_triangle_vertex_indices> &indices, const std::vector<stl_vertex> &vertices);
 inline bool its_write_stl_ascii(const char *file, const char *label, const indexed_triangle_set &its) { return its_write_stl_ascii(file, label, its.indices, its.vertices); }
