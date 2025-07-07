@@ -2659,29 +2659,6 @@
             ]
         },
         {
-            "fila_color_code": "15700",
-            "fila_id": "GFA12",
-            "fila_color_type": "单色",
-            "fila_type": "PLA Glow",
-            "fila_color_name": {
-                "de": "Leuchtend-Lila",
-                "sv": "Lila glöd",
-                "pt": "Brilho Roxo",
-                "ko": "글로우 퍼플",
-                "ja": "グロー パープル",
-                "en": "Glow Purple",
-                "it": "Viola fosforescente",
-                "fr": "Violet éclatant",
-                "hu": "Ragyogó lila",
-                "zh": "夜光紫",
-                "nl": "Paarse gloed",
-                "es": "Púrpura brillante"
-            },
-            "fila_color": [
-                "#D189EB"
-            ]
-        },
-        {
             "fila_color_code": "15200",
             "fila_id": "GFA12",
             "fila_color_type": "单色",
@@ -6248,54 +6225,6 @@
             ]
         },
         {
-            "fila_color_code": "13907",
-            "fila_id": "GFA05",
-            "fila_color_type": "渐变色",
-            "fila_type": "PLA Silk",
-            "fila_color_name": {
-                "de": "",
-                "sv": "",
-                "pt": "",
-                "ko": "",
-                "ja": "",
-                "en": "Icy Breeze",
-                "it": "",
-                "fr": "",
-                "hu": "",
-                "zh": "蓝柑",
-                "nl": "",
-                "es": ""
-            },
-            "fila_color": [
-                "#98C6E3",
-                "#0064B3"
-            ]
-        },
-        {
-            "fila_color_code": "13908",
-            "fila_id": "GFA05",
-            "fila_color_type": "渐变色",
-            "fila_type": "PLA Silk",
-            "fila_color_name": {
-                "de": "",
-                "sv": "",
-                "pt": "",
-                "ko": "",
-                "ja": "",
-                "en": "Molten Lava",
-                "it": "",
-                "fr": "",
-                "hu": "",
-                "zh": "丹霞橙",
-                "nl": "",
-                "es": ""
-            },
-            "fila_color": [
-                "#DA4C36",
-                "#F78D2F"
-            ]
-        },
-        {
             "fila_color_code": "13909",
             "fila_id": "GFA05",
             "fila_color_type": "渐变色",
@@ -6317,30 +6246,6 @@
             "fila_color": [
                 "#7F3696",
                 "#006EC9"
-            ]
-        },
-        {
-            "fila_color_code": "13910",
-            "fila_id": "GFA05",
-            "fila_color_type": "渐变色",
-            "fila_type": "PLA Silk",
-            "fila_color_name": {
-                "de": "",
-                "sv": "",
-                "pt": "",
-                "ko": "",
-                "ja": "",
-                "en": "Green Opal",
-                "it": "",
-                "fr": "",
-                "hu": "",
-                "zh": "碧波绿",
-                "nl": "",
-                "es": ""
-            },
-            "fila_color": [
-                "#AFDCB9",
-                "#00B57A"
             ]
         },
         {
@@ -6740,5 +6645,5 @@
             ]
         }
     ],
-    "total": 292
+    "total": 288
 }
