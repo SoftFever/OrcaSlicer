@@ -335,9 +335,9 @@ inline Vec3f its_face_normal(const indexed_triangle_set &its, const int face_idx
 
 indexed_triangle_set    its_make_cube(double x, double y, double z);
 indexed_triangle_set    its_make_prism(float width, float length, float height);
-indexed_triangle_set    its_make_cylinder(double r, double h, double fa=(2*PI/90));
-indexed_triangle_set    its_make_cone(double r, double h, double fa=(2*PI/90));
-indexed_triangle_set    its_make_frustum(double r, double h, double fa=(2*PI/90));
+indexed_triangle_set    its_make_cylinder(double r, double h, double fa=(2*PI/180));
+indexed_triangle_set    its_make_cone(double r, double h, double fa=(2*PI/180));
+indexed_triangle_set    its_make_frustum(double r, double h, double fa=(2*PI/180));
 indexed_triangle_set    its_make_torus(double r, double h, double fa);
 indexed_triangle_set    its_make_frustum_dowel(double r, double h, int sectorCount);
 indexed_triangle_set    its_make_pyramid(float base, float height);

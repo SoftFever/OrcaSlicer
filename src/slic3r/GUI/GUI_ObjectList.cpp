@@ -2156,7 +2156,7 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
     else if (type_name == "Disc")
         mesh = TriangleMesh(its_make_cylinder(0.5 * 15, 0.2f));
     else if (type_name == "Torus")
-        mesh = TriangleMesh(its_make_torus(0.5 * side, 0.125 * side,( 2* PI / 90)));
+        mesh = TriangleMesh(its_make_torus(0.5 * side, 0.125 * side,(PI / 60)));
     return mesh;
 }
 
