@@ -2258,6 +2258,8 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
 }
 
 bool SelectMachineDialog::is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result) {
+    if (m_print_job && m_print_job->task_use_ams) return false;
+
     std::map<std::string, int> v_ams_map;
     v_ams_map[VIRTUAL_AMS_MAIN_ID_STR] = 0;
     v_ams_map[VIRTUAL_AMS_DEPUTY_ID_STR] = 0;
