@@ -30,5 +30,6 @@
 	"change_filament_gcode": "",
 	"machine_start_gcode": "START_PRINT BED=[first_layer_bed_temperature] EXTRUDER={first_layer_temperature[0]} EXTRUDER1={first_layer_temperature[1]}",
 	"before_layer_change_gcode": "G92 E0",
+	"layer_change_gcode": "TIMELAPSE_TAKE_FRAME",
 	"machine_end_gcode": "END_PRINT"
 }

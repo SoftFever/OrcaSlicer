@@ -10,16 +10,16 @@
         "1.00"
     ],
     "nozzle_temperature": [
-      "230"
+      "235"
     ],
     "hot_plate_temp" : [
         "60"
     ],
     "fan_max_speed": [
-        "70"
+        "80"
     ],
     "fan_min_speed": [
-        "40"
+        "50"
     ],
     "filament_max_volumetric_speed": [
       "22"
