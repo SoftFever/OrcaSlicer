@@ -3168,17 +3168,31 @@ int CLI::run(int argc, char **argv)
 
             std::vector<int> nozzle_flush_dataset(new_extruder_count, 0);
             {
-                std::vector<int>& nozzle_flush_dataset_full = m_print_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset",true)->values;
-                if (m_print_config.has("printer_extruder_variant")) {
+                std::vector<int> nozzle_flush_dataset_full = m_print_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset",true)->values;
+                if (m_print_config.has("printer_extruder_variant"))
                     nozzle_flush_dataset_full.resize(m_print_config.option<ConfigOptionStrings>("printer_extruder_variant")->size(), 0);
-                }
-                auto extruders = m_print_config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
-                auto volume_types = m_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values; // get volume type from 3mf
+                else
+                    nozzle_flush_dataset_full.resize(1, 0);
+
+                std::vector<int> extruders;
+                if (m_print_config.has("extruder_type"))
+                    extruders = m_print_config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
+                else
+                    extruders.resize(1,int(ExtruderType::etDirectDrive));
+
+                std::vector<int> volume_types;
+                if (m_print_config.has("nozzle_volume_type"))
+                    volume_types = m_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values; // get volume type from 3mf
+                else
+                    volume_types.resize(1, int(NozzleVolumeType::nvtStandard));
+
                 if(m_extra_config.has("nozzle_volume_type")) // get volume type from input
                     volume_types = m_extra_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
 
                 for (int eidx = 0; eidx < new_extruder_count; ++eidx) {
-                    int index = m_print_config.get_index_for_extruder(eidx + 1, "printer_extruder_id", ExtruderType(extruders[eidx]), NozzleVolumeType(volume_types[eidx]), "printer_extruder_variant");
+                    int index = 0;
+                    if (m_print_config.has("printer_extruder_id") && m_print_config.has("printer_extruder_variant"))
+                        index = m_print_config.get_index_for_extruder(eidx + 1, "printer_extruder_id", ExtruderType(extruders[eidx]), NozzleVolumeType(volume_types[eidx]), "printer_extruder_variant");
                     nozzle_flush_dataset[eidx] = nozzle_flush_dataset_full[index];
                 }
             }
