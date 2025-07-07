@@ -1,10 +1,33 @@
 # How to Build
 
+This wiki page provides detailed instructions for building OrcaSlicer from source on different operating systems, including Windows, macOS, and Linux.  
+It includes tool requirements, setup commands, and build steps for each platform.
+
+Whether you're a contributor or just want a custom build, this guide will help you compile OrcaSlicer successfully.
+
+- [Windows 64-bit](#windows-64-bit)
+  - [Windows Tools Required](#windows-tools-required)
+  - [Windows Instructions](#windows-instructions)
+- [MacOS 64-bit](#macos-64-bit)
+  - [MacOS Tools Required](#macos-tools-required)
+  - [MacOS Instructions](#macos-instructions)
+  - [Debugging in Xcode](#debugging-in-xcode)
+- [Linux](#linux)
+  - [Using Docker (Recommended)](#using-docker-recommended)
+    - [Docker Dependencies](#docker-dependencies)
+    - [Docker Instructions](#docker-instructions)
+  - [Troubleshooting](#troubleshooting)
+- [Ubuntu](#ubuntu)
+  - [Ubuntu Dependencies](#ubuntu-dependencies)
+  - [Ubuntu Instructions](#ubuntu-instructions)
+- [Portable User Configuration](#portable-user-configuration)
+  - [Example folder structure](#example-folder-structure)
+
 ## Windows 64-bit
 
-This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Windows 64-bit.
+How to building with Visual Studio 2022 on Windows 64-bit.
 
-### Tools Required
+### Windows Tools Required
 
 - [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or Visual Studio 2019
   ```shell
@@ -33,7 +56,7 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
 > winget install --id=GitHub.GitHubDesktop -e
 > ```
 
-### Instructions
+### Windows Instructions
 
 1. Clone the repository:
    - If using GitHub Desktop clone the repository from the GUI.
@@ -74,9 +97,11 @@ This guide is for building your Visual Studio 2022 solution for OrcaSlicer on Wi
 > [!NOTE]
 > If the build fails, try deleting the `build/` and `deps/build/` directories to clear any cached build data. Rebuilding after a clean-up is usually sufficient to resolve most issues.
 
-## macOS 64-bit
+## MacOS 64-bit
 
-### Tools Required
+How to building with Xcode on MacOS 64-bit.
+
+### MacOS Tools Required
 
 - Xcode
 - CMake (version 3.31.x is mandatory)
@@ -114,7 +139,7 @@ cmake --version
 > [!IMPORTANT]
 > If you've recently upgraded Xcode, be sure to open Xcode at least once and install the required macOS build support.
 
-### Instructions
+### MacOS Instructions
 
 1. Clone the repository:
    ```shell
@@ -147,14 +172,18 @@ To build and debug directly in Xcode:
 
 ## Linux
 
+Linux instructions are available in two formats: using Docker (recommended) or building directly on your system.
+
 ### Using Docker (Recommended)
 
-#### Dependencies
+How to build and run OrcaSlicer using Docker.
+
+#### Docker Dependencies
 
 - Docker
 - Git
 
-#### Instructions
+#### Docker Instructions
 
 ```shell
 git clone https://github.com/SoftFever/OrcaSlicer && cd OrcaSlicer && ./DockerBuild.sh && ./DockerRun.sh
@@ -179,7 +208,9 @@ By uncommenting and using these options as needed, you can often resolve issues 
 
 ## Ubuntu
 
-### Dependencies
+How to build OrcaSlicer on Ubuntu.
+
+### Ubuntu Dependencies
 
 All required dependencies will be installed automatically by the provided shell script, including:
 
@@ -199,9 +230,27 @@ All required dependencies will be installed automatically by the provided shell 
 - git
 - texinfo
 
-### Instructions
+### Ubuntu Instructions
 
 ```shell
 `./build_linux.sh -u`      # install dependencies
 `./build_linux.sh -disr`    # build OrcaSlicer
 ```
+
+## Portable User Configuration
+
+If you want OrcaSlicer to use a custom user configuration folder (e.g., for a portable installation), you can simply place a folder named `data_dir` next to the OrcaSlicer executable. OrcaSlicer will automatically use this folder as its configuration directory.
+
+This allows for multiple self-contained installations with separate user data.
+
+> [!TIP]
+> This feature is especially useful if you want to run OrcaSlicer from a USB stick or keep different profiles isolated.
+
+### Example folder structure
+
+```shell
+OrcaSlicer.exe
+data_dir/
+```
+
+You don’t need to recompile or modify any settings — this works out of the box as long as `data_dir` exists in the same folder as the executable.

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
-
+#include "FillBase.hpp"
 #include "FillGyroid.hpp"
 
 namespace Slic3r {
@@ -149,10 +149,10 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
 constexpr double FillGyroid::PatternTolerance;
 
 void FillGyroid::_fill_surface_single(
-    const FillParams                &params, 
+    const FillParams                &params,
     unsigned int                     thickness_layers,
-    const std::pair<float, Point>   &direction, 
-    ExPolygon                        expolygon, 
+    const std::pair<float, Point>   &direction,
+    ExPolygon                        expolygon,
     Polylines                       &polylines_out)
 {
     auto infill_angle = float(this->angle + (CorrectionAngle * 2*M_PI) / 360.);
@@ -161,7 +161,7 @@ void FillGyroid::_fill_surface_single(
 
     BoundingBox bb = expolygon.contour.bounding_box();
     // Density adjusted to have a good %of weight.
-    double      density_adjusted = std::max(0., params.density * DensityAdjust);
+    double      density_adjusted = std::max(0., params.density * DensityAdjust / params.multiline);
     // Distance between the gyroid waves in scaled coordinates.
     coord_t     distance = coord_t(scale_(this->spacing) / density_adjusted);
 
@@ -183,6 +183,9 @@ void FillGyroid::_fill_surface_single(
 	// shift the polyline to the grid origin
 	for (Polyline &pl : polylines)
 		pl.translate(bb.min);
+
+    // Apply multiline offset if needed
+    multiline_fill(polylines, params, spacing);
 
 	polylines = intersection_pl(polylines, expolygon);
 

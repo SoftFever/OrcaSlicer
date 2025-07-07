@@ -30,7 +30,7 @@ function check_available_memory_and_disk() {
 }
 
 function usage() {
-    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-u]"
+    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-u][-l]"
     echo "   -1: limit builds to one core (where possible)"
     echo "   -j N: limit builds to N cores (where possible)"
     echo "   -b: build in debug mode"
@@ -43,6 +43,7 @@ function usage() {
     echo "   -r: skip RAM and disk checks (low RAM compiling)"
     echo "   -s: build the Orca Slicer (optional)"
     echo "   -u: install system dependencies (asks for sudo password; build prerequisite)"
+    echo "   -l: use Clang instead of GCC (default: GCC)"
     echo "For a first use, you want to './${SCRIPT_NAME} -u'"
     echo "   and then './${SCRIPT_NAME} -dsi'"
 }
@@ -50,7 +51,7 @@ function usage() {
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
-while getopts ":1j:bcCdhiprsu" opt ; do
+while getopts ":1j:bcCdhiprsul" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -87,6 +88,9 @@ while getopts ":1j:bcCdhiprsu" opt ; do
         ;;
     u )
         UPDATE_LIB="1"
+        ;;
+    l )
+        USE_CLANG="1"
         ;;
   esac
 done
@@ -139,6 +143,11 @@ if ! [[ -n "${SKIP_RAM_CHECK}" ]] ; then
     check_available_memory_and_disk
 fi
 
+export CMAKE_C_CXX_COMPILER_CLANG=""
+if [[ -n "${USE_CLANG}" ]] ; then
+    export CMAKE_C_CXX_COMPILER_CLANG="-DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++"
+fi
+
 if [[ -n "${BUILD_DEPS}" ]] ; then
     echo "Configuring dependencies..."
     BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON"
@@ -155,13 +164,13 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
         if [ ! -d "deps/build/release" ] ; then
             mkdir deps/build/release
         fi
-        cmake -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${COLORED_OUTPUT} ${BUILD_ARGS}
+        cmake ${CMAKE_C_CXX_COMPILER_CLANG} -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${COLORED_OUTPUT} ${BUILD_ARGS}
         cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
-    echo "cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}"
-    cmake -S deps -B deps/build -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}
+    echo "cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${BUILD_ARGS}"
+    cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}
     cmake --build deps/build
 fi
 
@@ -180,7 +189,7 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
         BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
     fi
 
-    CMAKE_CMD="cmake -S . -B build -G Ninja \
+    CMAKE_CMD="cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
 -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
 -DSLIC3R_STATIC=1 \
