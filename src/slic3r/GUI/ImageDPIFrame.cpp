@@ -81,6 +81,23 @@ void ImageDPIFrame::on_timer(wxTimerEvent &event)
             Raise();
         }
         m_timer_count++;
+    }else{
+        wxPoint mouse_pos = wxGetMousePosition();
+        wxRect window_rect = GetScreenRect();
+
+        wxPoint center(window_rect.x + window_rect.width / 2, window_rect.y + window_rect.height / 2);
+        int half_width = window_rect.width / 2;
+        int half_height = window_rect.height / 2;
+        wxRect expanded_rect(
+            center.x - half_width * 2,
+            center.y - half_height * 2,
+            window_rect.width * 2,
+            window_rect.height * 2
+        );
+
+        if (!expanded_rect.Contains(mouse_pos)) {
+            on_hide();
+        }
     }
 }
 
