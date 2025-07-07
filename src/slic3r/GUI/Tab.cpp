@@ -1660,6 +1660,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             if (dialog.ShowModal() == wxID_NO) {
                 new_conf.set_key_value("support_filament", new ConfigOptionInt(0));
                 m_config_manipulation.apply(m_config, &new_conf);
+                on_value_change(opt_key, 0);
             }
             wxGetApp().plater()->update();
         }
