@@ -690,6 +690,7 @@ public:
 
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
+    std::string   get_show_printer_type() const;
     PrinterSeries get_printer_series() const;
     PrinterArch get_printer_arch() const;
     std::string get_printer_ams_type() const;

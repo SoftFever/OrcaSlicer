@@ -618,6 +618,14 @@ std::string MachineObject::convertToIp(long long ip)
     return ss.str();
 }
 
+std::string MachineObject::get_show_printer_type() const
+{
+    std::string printer_type = this->printer_type;
+    if (this->is_support_upgrade_kit && this->installed_upgrade_kit)
+        printer_type = "C12";
+    return printer_type;
+}
+
 PrinterSeries MachineObject::get_printer_series() const
 {
     std::string series =  DeviceManager::get_printer_series(printer_type);
