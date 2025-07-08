@@ -814,29 +814,6 @@
             ]
         },
         {
-            "fila_color_code": "10106",
-            "fila_id": "GFA00",
-            "fila_color_type": "单色",
-            "fila_type": "PLA Basic",
-            "fila_color_name": {
-                "de": "Aschweiß",
-                "sv": "Askvit",
-                "pt": "Ash White",
-                "ko": "애쉬 화이트",
-                "ja": "アッシュ ホワイト",
-                "en": "Ash White",
-                "it": "Bianco cenere",
-                "fr": "Blanc cendré",
-                "hu": "Hamufehér",
-                "zh": "石灰白",
-                "nl": "Aswit",
-                "es": "Blanco ceniza"
-            },
-            "fila_color": [
-                "#F4F4F4"
-            ]
-        },
-        {
             "fila_color_code": "10400",
             "fila_id": "GFA00",
             "fila_color_type": "单色",
@@ -6645,5 +6622,5 @@
             ]
         }
     ],
-    "total": 288
+    "total": 287
 }
