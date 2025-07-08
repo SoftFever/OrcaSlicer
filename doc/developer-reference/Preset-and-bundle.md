@@ -1,3 +1,5 @@
+# Preset and Bundle
+
 This page deals with the explanation for 3 classes in the code.
 
 ## [`Preset`](https://github.com/SoftFever/OrcaSlicer/blob/main/src/libslic3r/Preset.hpp)
@@ -9,15 +11,15 @@ As the name might suggest this class deals with presets for various things. It d
 
 - `TYPE_PRINT`: Refers to a process preset. It's called 'Print' probably due to some legacy code.
 
-![process-preset-full](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process-preset-full.png?raw=true)
+![process-preset-full](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process-preset-full.png?raw=true)
 
 - `TYPE_FILAMENT`: As the name suggests this preset is for filaments
 
-![filament-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/filament-preset.png?raw=true)
+![filament-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/filament-preset.png?raw=true)
 
 - `TYPE_PRINTER`: Preset for printers.
 
-![printer-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/printer-preset.png?raw=true)
+![printer-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/printer-preset.png?raw=true)
 
 There are other preset types but some of them are for SLA. Which is legacy code, since SLA printers are no longer supported. Above 3 are the important types.
 

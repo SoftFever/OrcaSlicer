@@ -28,7 +28,7 @@ Steps:
 
    ![pa-lines](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-lines.png?raw=true)
 
-   ![pa-line-0-016](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-line-0-016.jpg?raw=true)
+   ![pa-line-0-016](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-line-0-016.png?raw=true)
 
    ![pressure_advance_enable](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pressure_advance_enable.png?raw=true)
 
@@ -42,7 +42,7 @@ Test configuration window allow user to generate one or more tests in a single p
 
 1. Single test \
    ![PA pattern single test](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-single.png?raw=true)
-2. Batch mode testing (multiple tests on a sinle plate) \
+2. Batch mode testing (multiple tests on a single plate) \
    ![PA pattern batch mode](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch.png?raw=true)
 
 Once test generated, one or more small rectangular prisms could be found on the plate, one for each test case. This object serves a few purposes:
@@ -61,16 +61,16 @@ Next, Ellis' generator provided the ability to adjust specific printer, filament
 1. Ellis specified line widths as a percent of filament diameter. The Orca pattern method does the same to provide its suggested defaults, making use of Ellis' percentages in combination with your specified nozzle diameter
 2. In terms of line width, the pattern only makes use of the `Default` and `First layer` widths
 3. In terms of speed, the pattern only uses the `First layer speed -> First layer` and `Other layers speed -> Outer wall` speeds
-4. The infill pattern beneath the numbers cannot be changed becuase it's not actually an infill pattern pulled from the settings. All of the pattern G-Code is custom written, so that "infill" is, effectively, hand-drawn and so not processed through the usual channels that would enable Orca to recognize it as infill
+4. The infill pattern beneath the numbers cannot be changed because it's not actually an infill pattern pulled from the settings. All of the pattern G-Code is custom written, so that "infill" is, effectively, hand-drawn and so not processed through the usual channels that would enable Orca to recognize it as infill
 
 ## Tower method
 
 The tower method may take a bit more time to complete, but it does not rely on the quality of the first layer.
 The PA value for this test will be increased by 0.002 for every 1 mm increase in height. (**NOTE** 0.02 for Bowden)
 
-1.  Select the printer, filament, and process you would like to use for the test.
-2.  Examine each corner of the print and mark the height that yields the best overall result.
-3.  I selected a height of 8 mm for this case, so the pressure advance value should be calculated as `PressureAdvanceStart+(PressureAdvanceStep x measured)` example: `0+(0.002 x 8) = 0.016`.
+1. Select the printer, filament, and process you would like to use for the test.
+2. Examine each corner of the print and mark the height that yields the best overall result.
+3. I selected a height of 8 mm for this case, so the pressure advance value should be calculated as `PressureAdvanceStart+(PressureAdvanceStep x measured)` example: `0+(0.002 x 8) = 0.016`.
    ![pa-tower](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-tower.jpg?raw=true)
    ![pa-tower-measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-tower-measure.jpg?raw=true)
 
