@@ -485,12 +485,14 @@ bool Button::AcceptsFocus() const { return canFocus; }
 
 void Button::EnableTooltipEvenDisabled()
 {
+#if defined(_MSC_VER) || defined(_WIN32)
     auto parent = this->GetParent();
     if (parent)
     {
         parent->Bind(wxEVT_MOTION, &Button::OnParentMotion, this);
         parent->Bind(wxEVT_LEAVE_WINDOW, &Button::OnParentLeave, this);
     };
+#endif
 };
 
 void Button::OnParentMotion(wxMouseEvent& event)
