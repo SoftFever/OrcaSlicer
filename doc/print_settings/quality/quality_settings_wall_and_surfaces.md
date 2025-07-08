@@ -60,6 +60,7 @@ The actual top surface flow used is calculated by multiplying this value with th
 ## Only one wall
 
 Use only one wall on flat surfaces, to give more space to the top infill pattern.
+Specially useful in small features, like letters, where the top surface is very small and concentric pattern from walls would not cover it properly.
 
 ![only-one-wall](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/only-one-wall.gif?raw=true)
 
