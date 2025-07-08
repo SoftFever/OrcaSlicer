@@ -152,6 +152,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "adaptivecubic", ipAdaptiveCubic },
     { "quartercubic", ipQuarterCubic },
     { "supportcubic", ipSupportCubic },
+    { "lightning", ipLightning },
     { "honeycomb", ipHoneycomb },
     { "3dhoneycomb", ip3DHoneycomb },
     { "2dhoneycomb", ip2DHoneycomb },
@@ -162,8 +163,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "concentric", ipConcentric },
     { "hilbertcurve", ipHilbertCurve },
     { "archimedeanchords", ipArchimedeanChords },
-    { "octagramspiral", ipOctagramSpiral },
-    { "lightning", ipLightning }
+    { "octagramspiral", ipOctagramSpiral }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -226,8 +226,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SlicingMode)
 static t_config_enum_values s_keys_map_SupportMaterialPattern {
     { "rectilinear",        smpRectilinear },
     { "rectilinear-grid",   smpRectilinearGrid },
-    { "honeycomb",          smpHoneycomb },
     { "lightning",          smpLightning },
+    { "honeycomb",          smpHoneycomb },
     { "default",            smpDefault},
     { "hollow",               smpNone},
 };
@@ -2387,6 +2387,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("adaptivecubic");
     def->enum_values.push_back("quartercubic");
     def->enum_values.push_back("supportcubic");
+    def->enum_values.push_back("lightning");
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("3dhoneycomb");
     def->enum_values.push_back("2dhoneycomb");
@@ -2398,7 +2399,6 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
-    def->enum_values.push_back("lightning");
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Zig Zag"));
@@ -2412,6 +2412,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Adaptive Cubic"));
     def->enum_labels.push_back(L("Quarter Cubic"));
     def->enum_labels.push_back(L("Support Cubic"));
+    def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("3D Honeycomb"));
     def->enum_labels.push_back(L("2D Honeycomb"));
@@ -2423,7 +2424,6 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
     def->enum_labels.push_back(L("Octagram Spiral"));
-    def->enum_labels.push_back(L("Lightning"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
     def           = this->add("lattice_angle_1", coFloat);
@@ -5051,14 +5051,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("default");
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
-    def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("lightning");
+    def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("hollow");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear grid"));
-    def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Lightning"));
+    def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Hollow"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpDefault));
