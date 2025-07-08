@@ -2,6 +2,11 @@
 	"00.00.00.00": {
 		"display_name": "Bambu Lab H2S",
 		"print": {
+			"2D": {
+				"laser": {
+					"power": [ 10, 40 ]
+				}
+			},
 			"ipcam": {
 				"resolution_supported": [ "1080p" ],
 				"virtual_camera": "enabled",
@@ -18,6 +23,7 @@
 				"zh": "https://wiki.bambulab.com/zh/h2/maintenance/replace-hotend",
 				"en": "https://wiki.bambulab.com/en/h2/maintenance/replace-hotend"
 			},
+			"bed_temp_range": [ 0, 120 ],
 			"support_motor_noise_cali": false,
 			"support_tunnel_mqtt": true,
 			"support_mqtt_alive": true,
@@ -42,6 +48,8 @@
 			"support_build_plate_marker_detect": true,
 			"support_build_plate_marker_detect_type": 2,
 			"support_lidar_calibration": false,
+			"support_nozzle_offset_calibration": true,
+			"support_high_tempbed_calibration": true,
 			"support_ai_monitoring": true,
 			"support_first_layer_inspect": false,
 			"support_save_remote_print_file_to_storage": true,
@@ -52,6 +60,7 @@
 			"support_user_preset": false
 		},
 		"model_id": "O1S",
+		"printer_modes": [ "fdm", "laser", "cut" ],
 		"compatible_machine": [],
 		"printer_type": "O1S",
 		"printer_thumbnail_image": "printer_thumbnail_o1s",
