@@ -121,7 +121,7 @@ wxWindow *KBShortcutsDialog::create_button(int id, wxString text)
 
     auto stext = new wxStaticText(tab_button, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, 0);
     stext->SetFont(::Label::Body_13);
-    stext->SetForegroundColour(wxColour(38, 46, 48));
+    stext->SetForegroundColour(wxColour(48, 38, 38));
     stext->Wrap(-1);
     sizer->Add(stext, 1, wxALIGN_CENTER, 0);
 

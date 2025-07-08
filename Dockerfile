@@ -54,13 +54,13 @@ RUN apt-get update && apt-get install  -y \
 ENV LC_ALL=en_US.utf8
 RUN locale-gen $LC_ALL
 
-# Set this so that Orca Slicer doesn't complain about
+# Set this so that Ginger Slicer doesn't complain about
 # the CA cert path on every startup
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
-COPY ./ OrcaSlicer
+COPY ./ GingerSlicer
 
-WORKDIR OrcaSlicer
+WORKDIR GingerSlicer
 
 # These can run together, but we run them seperate for podman caching
 # Update System dependencies
@@ -76,7 +76,7 @@ RUN ./build_linux.sh -sr
 ENV container podman
 RUN ./build_linux.sh -ir
 
-# It's easier to run Orca Slicer as the same username,
+# It's easier to run Ginger Slicer as the same username,
 # UID and GID as your workstation.  Since we bind mount
 # your home directory into the container, it's handy
 # to keep permissions the same.  Just in case, defaults
@@ -97,4 +97,4 @@ RUN if [[ "$UID" != "0" ]]; then \
     fi
 # Using an entrypoint instead of CMD because the binary
 # accepts several command line arguments.
-ENTRYPOINT ["/OrcaSlicer/build/package/bin/orca-slicer"]
+ENTRYPOINT ["/OrcaSlicer/build/package/bin/Ginger-Slicer"]

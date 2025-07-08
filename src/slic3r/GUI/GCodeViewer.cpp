@@ -335,7 +335,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     static float last_window_width = 0.0f;
     size_t text_line = 0;
     static size_t last_text_line = 0;
-    const ImU32 text_name_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.88 * 255) : IM_COL32(38, 46, 48, 255);
+    const ImU32 text_name_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.88 * 255) : IM_COL32(48, 38, 38, 255);
     const ImU32 text_value_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.4 * 255) : IM_COL32(144, 144, 144, 255);
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();

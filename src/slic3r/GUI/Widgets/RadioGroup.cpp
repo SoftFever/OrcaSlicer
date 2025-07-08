@@ -46,7 +46,7 @@ void RadioGroup::Create(
     Bind(wxEVT_PAINT,([this](wxPaintEvent e) {
         wxPaintDC dc(this);
         dc.Clear();
-        dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#009688")), 1, wxPENSTYLE_SOLID));
+        dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#d72828")), 1, wxPENSTYLE_SOLID));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRectangle(
             m_focused ? wxRect(

@@ -20,7 +20,7 @@ def main():
         print("HINTS_TO_POT FAILED: WRONG NUM OF ARGS")
         exit(-1)
     path_to_ini = Path(sys.argv[1]).parent / "resources" / "data" / "hints.ini"
-    path_to_pot = Path(sys.argv[2]).parent / "i18n" / "OrcaSlicer.pot"
+    path_to_pot = Path(sys.argv[2]).parent / "i18n" / "GingerSlicer.pot"
     if not path_to_ini.exists():
         print("HINTS_TO_POT FAILED: PATH TO INI DOES NOT EXISTS")
         print(str(path_to_ini))

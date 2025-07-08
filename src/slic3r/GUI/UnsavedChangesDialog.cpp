@@ -779,7 +779,7 @@ static std::string none{"none"};
 #define UNSAVE_CHANGE_DIALOG_BUTTON_SIZE wxSize(FromDIP(70), FromDIP(24))
 
 #define THUMB_COLOR wxColor(196, 196, 196)
-#define GREY900 wxColour(38, 46, 48)
+#define GREY900 wxColour(48, 38, 38)
 #define GREY700 wxColour(107,107,107)
 #define GREY400 wxColour(206,206,206)
 #define GREY300 wxColour(238,238,238)
@@ -963,8 +963,8 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
      // Add Buttons
     wxFont      btn_font = this->GetFont().Scaled(1.4f);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour( 202, 37, 37), StateColor::Pressed), std::pair<wxColour, int>(wxColour(253, 47, 47), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(215, 40, 40), StateColor::Normal));
 
     auto add_btn = [this, m_sizer_button, btn_font, dependent_presets, btn_bg_green](Button **btn, int &btn_id, const std::string &icon_name, Action close_act, const wxString &label,
                                                                               bool focus, bool process_enable = true) {
@@ -972,7 +972,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
         if (focus) {
             (*btn)->SetBackgroundColor(btn_bg_green);
-            (*btn)->SetBorderColor(wxColour(0, 150, 136));
+            (*btn)->SetBorderColor(wxColour(215, 40, 40));
             (*btn)->SetTextColor(wxColour("#FFFFFE"));
         } else {
             (*btn)->SetTextColor(wxColour(107, 107, 107));

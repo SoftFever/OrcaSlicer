@@ -39,7 +39,7 @@ namespace Slic3r {
 
 static const std::string VERSION_CHECK_URL_STABLE = "https://api.github.com/repos/gingeradditive/OrcaSlicer/releases/latest";
 static const std::string VERSION_CHECK_URL = "https://api.github.com/repos/gingeradditive/OrcaSlicer/releases";
-static const std::string PROFILE_UPDATE_URL = "https://api.github.com/repos/OrcaSlicer/orcaslicer-profiles/releases/tags";
+static const std::string PROFILE_UPDATE_URL = "https://api.github.com/repos/gingeradditive/orcaslicer-profiles/releases/tags";
 static const std::string MODELS_STR = "models";
 
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
@@ -167,7 +167,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("use_perspective_camera").empty())
-        set_bool("use_perspective_camera", true);
+        set_bool("use_perspective_camera", false);
 
     if (get("auto_perspective").empty())
         set_bool("auto_perspective", false);
@@ -198,7 +198,7 @@ void AppConfig::set_defaults()
         set_bool("enable_multi_machine", false);
 
     if (get("show_gcode_window").empty())
-        set_bool("show_gcode_window", true);
+        set_bool("show_gcode_window", false);
 
     if (get("show_3d_navigator").empty())
         set_bool("show_3d_navigator", true);

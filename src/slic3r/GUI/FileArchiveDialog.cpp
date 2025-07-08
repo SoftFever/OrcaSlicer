@@ -379,11 +379,11 @@ wxBoxSizer* FileArchiveDialog::create_btn_sizer()
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto apply_highlighted_btn_colors = [](Button* btn) {
-        btn->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-                                           std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                                           std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)));
+        btn->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour( 202, 37, 37), StateColor::Pressed),
+                                           std::pair<wxColour, int>(wxColour(253, 47, 47), StateColor::Hovered),
+                                           std::pair<wxColour, int>(wxColour(215, 40, 40), StateColor::Normal)));
 
-        btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)));
+        btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(215, 40, 40), StateColor::Normal)));
 
         btn->SetTextColor(StateColor(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)));
     };
@@ -393,9 +393,9 @@ wxBoxSizer* FileArchiveDialog::create_btn_sizer()
                                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)));
 
-        btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)));
+        btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(48, 38, 38), StateColor::Normal)));
 
-        btn->SetTextColor(StateColor(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)));
+        btn->SetTextColor(StateColor(std::pair<wxColour, int>(wxColour(48, 38, 38), StateColor::Normal)));
     };
 
     auto style_btn = [this, apply_highlighted_btn_colors, apply_std_btn_colors](Button* btn, bool highlight) {

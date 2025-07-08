@@ -105,7 +105,7 @@ sub copyright_info
     my (%params) = @_;
     my %tag = Slic3r::tags($params{format});
     my $out =
-        'Copyright &copy; Orca Slicer.';
+        'Copyright &copy; Ginger Slicer.';
     return $out;
 }
 

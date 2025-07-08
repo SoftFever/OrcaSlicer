@@ -217,7 +217,7 @@ extern bool is_shapes_dir(const std::string& dir);
 extern bool is_json_file(const std::string& path);
 
 // Orca: custom protocal support utils
-inline bool is_orca_open(const std::string& url) { return boost::starts_with(url, "orcaslicer://open"); }
+inline bool is_orca_open(const std::string& url) { return boost::starts_with(url, "gingerslicer://open"); }
 inline bool is_prusaslicer_open(const std::string& url) { return boost::starts_with(url, "prusaslicer://open"); }
 inline bool is_bambustudio_open(const std::string& url) { return boost::starts_with(url, "bambustudio://open") || boost::starts_with(url, "bambustudioopen://"); }
 inline bool is_cura_open(const std::string& url) { return boost::starts_with(url, "cura://open"); }

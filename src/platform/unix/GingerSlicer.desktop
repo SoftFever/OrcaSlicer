@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=GingerSlicer
+GenericName=3D Printing Software
+Icon=GingerSlicer
+Exec=Ginger-Slicer %U
+Terminal=false
+Type=Application
+MimeType=model/stl;model/3mf;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;x-scheme-handler/gingerslicer;
+Categories=Graphics;3DGraphics;Engineering;
+Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA
+StartupNotify=false
+StartupWMClass=Ginger-Slicer

@@ -578,10 +578,26 @@ function ReturnPreviewPage()
 
 function GotoNetPluginPage()
 {
-	let bRet=ResponseFilamentResult();
+	// let bRet=ResponseFilamentResult();
 	
-	if(bRet)
-		window.location.href="../4orca/index.html";
+	// if(bRet)
+	// 	window.location.href="../4orca/index.html";
+
+	// Activate Stealth mode 
+	let nVal="yes";	
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="save_stealth_mode";
+	tSend['data']={};
+	tSend['data']['action']=nVal;
+	SendWXMessage( JSON.stringify(tSend) );
+
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="user_guide_finish";
+	tSend['data']={};
+	tSend['data']['action']="finish";
+	SendWXMessage( JSON.stringify(tSend) );	
 }
 
 function FinishGuide()

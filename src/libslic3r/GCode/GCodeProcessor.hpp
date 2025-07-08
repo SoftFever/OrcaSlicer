@@ -740,7 +740,7 @@ class Print;
         enum class EProducer
         {
             Unknown,
-            OrcaSlicer,
+            GingerSlicer,
             Slic3rPE,
             Slic3r,
             SuperSlicer,

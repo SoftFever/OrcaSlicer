@@ -1,12 +1,12 @@
 #
-# This CMake project downloads, configures and builds OrcaSlicer dependencies on Unix and Windows.
+# This CMake project downloads, configures and builds GingerSlicer dependencies on Unix and Windows.
 #
 # When using this script, it's recommended to perform an out-of-source build using CMake.
 #
 # All the dependencies are installed in a `destdir` directory in the root of the build directory,
 # in a traditional Unix-style prefix structure. The destdir can be used directly by CMake
-# when building OrcaSlicer - to do this, set the CMAKE_PREFIX_PATH to ${destdir}/usr/local.
-# Warning: On UNIX/Linux, you also need to set -DSLIC3R_STATIC=1 when building OrcaSlicer.
+# when building GingerSlicer - to do this, set the CMAKE_PREFIX_PATH to ${destdir}/usr/local.
+# Warning: On UNIX/Linux, you also need to set -DSLIC3R_STATIC=1 when building GingerSlicer.
 #
 # For better clarity of console output, it's recommended to _not_ use a parallelized build
 # for the top-level command, ie. use `make -j 1` or `ninja -j 1` to force single-threaded top-level
@@ -34,7 +34,7 @@ if(POLICY CMP0135) # DOWNLOAD_EXTRACT_TIMESTAMP
     cmake_policy(SET CMP0135 NEW)
 endif()
 
-project(OrcaSlicer-deps)
+project(GingerSlicer-deps)
 
 include(ExternalProject)
 include(ProcessorCount)
@@ -87,9 +87,9 @@ endif ()
 # Slic3r compiles with a different version which will cause runtime errors.
 # option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
-message(STATUS "OrcaSlicer deps DESTDIR: ${DESTDIR}")
-message(STATUS "OrcaSlicer download dir for source packages: ${DEP_DOWNLOAD_DIR}")
-message(STATUS "OrcaSlicer deps debug build: ${DEP_DEBUG}")
+message(STATUS "GingerSlicer deps DESTDIR: ${DESTDIR}")
+message(STATUS "GingerSlicer download dir for source packages: ${DEP_DOWNLOAD_DIR}")
+message(STATUS "GingerSlicer deps debug build: ${DEP_DEBUG}")
 
 find_package(Git REQUIRED)
 
@@ -101,7 +101,7 @@ if (NOT _is_multi AND NOT CMAKE_BUILD_TYPE)
     message(STATUS "Forcing CMAKE_BUILD_TYPE to Release as it was not specified.")
 endif ()
 
-function(orcaslicer_add_cmake_project projectname)
+function(gingerslicer_add_cmake_project projectname)
     cmake_parse_arguments(P_ARGS "" "INSTALL_DIR;BUILD_COMMAND;INSTALL_COMMAND" "CMAKE_ARGS" ${ARGN})
 
     set(_configs_line -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE})
@@ -148,7 +148,7 @@ elseif(FLATPAK)
     # the only reason this is here is because of the HACK at the bottom for ci
     #
     # note for future devs: shared libs may actually create a size reduction
-    # but orcaslicer_deps tends to get really funny regarding linking after that (notably boost)
+    # but OrcaSlicer_deps tends to get really funny regarding linking after that (notably boost)
     # so, as much as I would like to use that, it's not happening
     ExternalProject_Add(
         dep_${projectname}
@@ -199,7 +199,7 @@ else()
 
 endif()
 
-endfunction(orcaslicer_add_cmake_project)
+endfunction(gingerslicer_add_cmake_project)
 
 
 if (MSVC)

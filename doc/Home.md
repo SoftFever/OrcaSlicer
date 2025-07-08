@@ -1,6 +1,6 @@
 # Welcome to the OrcaSlicer WIKI!
 
-Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki page aims to provide an detailed explanation of the slicer settings, how to get the most out of them as well as how to calibrate and setup your printer.
+Ginger Slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki page aims to provide an detailed explanation of the slicer settings, how to get the most out of them as well as how to calibrate and setup your printer.
 
 - [Printer Settings](#printer-settings)
 - [Material Settings](#material-settings)
@@ -143,7 +143,7 @@ The [Calibration Guide](Calibration) outlines Orca’s key calibration tests and
 
 This is a documentation from someone exploring the code and is by no means complete or even completely accurate. Please edit the parts you might find inaccurate. This is probably going to be helpful nonetheless.
 
-- [How to build Orca Slicer](How-to-build)
+- [How to build Ginger Slicer](How-to-build)
 - [Localization and translation guide](Localization_guide)
 - [How to create profiles](How-to-create-profiles)
 - [How to contribute to the wiki](How-to-wiki)

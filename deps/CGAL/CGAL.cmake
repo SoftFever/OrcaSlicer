@@ -2,7 +2,7 @@ if (IN_GIT_REPO)
     set(CGAL_DIRECTORY_FLAG --directory ${BINARY_DIR_REL}/dep_CGAL-prefix/src/dep_CGAL)
 endif ()
 
-orcaslicer_add_cmake_project(
+gingerslicer_add_cmake_project(
     CGAL
     # GIT_REPOSITORY https://github.com/CGAL/cgal.git
     # GIT_TAG        bec70a6d52d8aacb0b3d82a7b4edc3caa899184b # releases/CGAL-5.0

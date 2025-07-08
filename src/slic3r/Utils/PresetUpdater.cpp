@@ -706,7 +706,7 @@ void PresetUpdater::priv::sync_config()
                         for (auto asset : assets) {
                             std::string name          = asset["name"].get<std::string>();
                             int         versionNumber = -1;
-                            std::regex  regexPattern("orcaslicer-profiles_ota_.*\\.([0-9]+)\\.zip$");
+                            std::regex  regexPattern("gingerslicer-profiles_ota_.*\\.([0-9]+)\\.zip$");
                             std::smatch matches;
                             if (std::regex_search(name, matches, regexPattern) && matches.size() > 1) {
                                 versionNumber = std::stoi(matches[1].str());

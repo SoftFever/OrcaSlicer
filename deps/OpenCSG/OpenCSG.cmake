@@ -1,5 +1,5 @@
 
-orcaslicer_add_cmake_project(OpenCSG
+gingerslicer_add_cmake_project(OpenCSG
     # GIT_REPOSITORY https://github.com/floriankirsch/OpenCSG.git
     # GIT_TAG 83e274457b46c9ad11a4ee599203250b1618f3b9 #v1.4.2
     URL https://github.com/floriankirsch/OpenCSG/archive/refs/tags/opencsg-1-4-2-release.zip

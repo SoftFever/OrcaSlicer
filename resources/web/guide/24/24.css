@@ -7,7 +7,7 @@
 .BlockBanner
 {
 	padding: 0px;
-	border-bottom:#009688 1px solid;
+	border-bottom:#d72828 1px solid;
 	width: 100%;
 }
 
@@ -42,7 +42,7 @@
 
 .Banner-Btn-green
 {
-	background-color: #009688;
+	background-color: #d72828;
 	color: #fff;
 	padding: 0px 6px;
 	min-width: 50px;
@@ -55,7 +55,7 @@
 .BlockBanner  a
 {
 	display: inline-block;
-	background-color:#009688;
+	background-color:#d72828;
 	line-height: 40px;
 	height: 40px;
 	padding: 0px 24px;
@@ -177,7 +177,7 @@
 
 .searchTerm:focus{
 	color: #363636;       /* ORCA Searchbox > use normal text color */
-	border-color:#009688; /* ORCA Searchbox > highlight border color when focused. like on normal UI */
+	border-color:#d72828; /* ORCA Searchbox > highlight border color when focused. like on normal UI */
 }
 @media (prefers-color-scheme: dark) {  /* ORCA Searchbox > add dark mode support */
 	.searchTerm:focus{color: #FFFFFF}

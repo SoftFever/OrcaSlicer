@@ -1,5 +1,5 @@
 {
-	"name": "OrcaSlicer",
+	"name": "GingerSlicer",
 	"build": {
 		"dockerfile": "Dockerfile",
 			"args": {

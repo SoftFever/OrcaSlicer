@@ -99,18 +99,18 @@ void DialogButtons::SetPrimaryButton(wxString translated_label) {
     // we won't need color definations after button style management
     bool is_dark = wxGetApp().dark_mode();
     StateColor clr_bg = StateColor(
-        std::pair(wxColour("#009688"), (int)StateColor::NotHovered),
+        std::pair(wxColour("#d72828"), (int)StateColor::NotHovered),
         std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#009688"), (int)StateColor::Pressed),
-        std::pair(wxColour("#26A69A"), (int)StateColor::Hovered),
-        std::pair(wxColour("#009688"), (int)StateColor::Normal),
-        std::pair(wxColour("#009688"), (int)StateColor::Enabled)
+        std::pair(wxColour("#d72828"), (int)StateColor::Pressed),
+        std::pair(wxColour("#d72828"), (int)StateColor::Hovered),
+        std::pair(wxColour("#d72828"), (int)StateColor::Normal),
+        std::pair(wxColour("#d72828"), (int)StateColor::Enabled)
     );
     btn->SetBackgroundColor(clr_bg);
     StateColor clr_br = StateColor(
-        std::pair(wxColour("#009688"), (int)StateColor::NotFocused),
+        std::pair(wxColour("#d72828"), (int)StateColor::NotFocused),
         std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour(is_dark ? "#26A69A" : "#00FFD4"), (int)StateColor::Focused)
+        std::pair(wxColour(is_dark ? "#d72828" : "#00FFD4"), (int)StateColor::Focused)
     );
     btn->SetBorderColor(clr_br);
     StateColor clr_tx = StateColor(
@@ -149,7 +149,7 @@ void DialogButtons::SetAlertButton(wxString translated_label) {
     StateColor clr_br = StateColor(
         std::pair(wxColour("#DFDFDF"), (int)StateColor::NotFocused),
         std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#26A69A"), (int)StateColor::Focused)
+        std::pair(wxColour("#d72828"), (int)StateColor::Focused)
     );
     btn->SetBorderColor(clr_br);
     StateColor clr_tx = StateColor(
@@ -178,7 +178,7 @@ void DialogButtons::UpdateButtons() {
     StateColor clr_br = StateColor(
         std::pair(wxColour("#DFDFDF"), (int)StateColor::NotFocused),
         std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#26A69A"), (int)StateColor::Focused)
+        std::pair(wxColour("#d72828"), (int)StateColor::Focused)
     );
     StateColor clr_tx = StateColor(
         std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),

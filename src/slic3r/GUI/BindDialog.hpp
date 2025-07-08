@@ -36,7 +36,7 @@
 
 #define BIND_DIALOG_GREY200 wxColour(248, 248, 248)
 #define BIND_DIALOG_GREY800 wxColour(50, 58, 61)
-#define BIND_DIALOG_GREY900 wxColour(38, 46, 48)
+#define BIND_DIALOG_GREY900 wxColour(48, 38, 38)
 #define BIND_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(24))
 #define BIND_DIALOG_BUTTON_PANEL_SIZE wxSize(FromDIP(450), FromDIP(30))
 #define PING_CODE_LENGTH 6

@@ -18,7 +18,7 @@ namespace Slic3r { namespace GUI {
 
 
 #define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
-#define DESIGN_GRAY900_COLOR wxColour(38, 46, 48)
+#define DESIGN_GRAY900_COLOR wxColour(48, 38, 38)
 #define DESIGN_GRAY800_COLOR wxColour(50, 58, 61)
 #define DESIGN_GRAY600_COLOR wxColour(144, 144, 144)
 #define DESIGN_GRAY400_COLOR wxColour(166, 169, 170)

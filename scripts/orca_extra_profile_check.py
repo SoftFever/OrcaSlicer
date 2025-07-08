@@ -166,7 +166,6 @@ def check_machine_default_materials(profiles_dir, vendor_name):
         
     # Load available filament profiles
     vendor_filaments = load_available_filament_profiles(profiles_dir, vendor_name)
-    global_filaments = load_available_filament_profiles(profiles_dir, "OrcaFilamentLibrary")
     all_available_filaments = vendor_filaments.union(global_filaments)
     
     # Check each machine profile
@@ -276,9 +275,7 @@ def check_filament_id(vendor, vendor_folder):
     """
     Make sure filament_id is not longer than 8 characters, otherwise AMS won't work properly
     """
-    if vendor not in ('BBL', 'OrcaFilamentLibrary'):
-        return 0
-    
+
     error = 0
     vendor_path = Path(vendor_folder)
     if not vendor_path.exists():
@@ -389,7 +386,7 @@ def main():
         run_checks(args.vendor)
     else:
         for vendor_dir in profiles_dir.iterdir():
-            if not vendor_dir.is_dir() or vendor_dir.name == "OrcaFilamentLibrary":
+            if not vendor_dir.is_dir():
                 continue
             run_checks(vendor_dir.name)
 

@@ -31,10 +31,10 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
     m_button_confirm->SetFont(Label::Body_14);
     m_button_confirm->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_confirm->SetCornerRadius(FromDIP(12));
-    StateColor confirm_btn_bg(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor confirm_btn_bg(std::pair<wxColour, int>(wxColour(253, 47, 47), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(215, 40, 40), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(confirm_btn_bg);
-    m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
+    m_button_confirm->SetBorderColor(wxColour(215, 40, 40));
     m_button_confirm->SetTextColor(*wxWHITE);
 
     m_button_close = new Button(this, _L("Close"));
@@ -44,8 +44,8 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
     StateColor close_btn_bg(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Hovered),
         std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
     m_button_close->SetBackgroundColor(close_btn_bg);
-    m_button_close->SetBorderColor(wxColour(38, 46, 48));
-    m_button_close->SetTextColor(wxColour(38, 46, 48));
+    m_button_close->SetBorderColor(wxColour(48, 38, 38));
+    m_button_close->SetTextColor(wxColour(48, 38, 38));
 
     button_sizer->AddStretchSpacer();
     button_sizer->Add(m_button_confirm);

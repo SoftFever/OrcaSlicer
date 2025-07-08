@@ -1,6 +1,6 @@
 set(patch_command git init && ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-Respect-BUILD_SHARED_LIBS.patch)
 
-orcaslicer_add_cmake_project(ZLIB
+gingerslicer_add_cmake_project(ZLIB
   # GIT_REPOSITORY https://github.com/madler/zlib.git
   # GIT_TAG v1.2.11
   #URL https://github.com/madler/zlib/archive/refs/tags/v1.2.11.zip

@@ -170,8 +170,8 @@ body
 	font-size: 14px;
 	height: 24px;
 	line-height: 24px;
-	color: #4db6ac;
-	border: 1px solid  #009688;
+	color: #fd2f2f;
+	border: 1px solid  #d72828;
 	border-radius: 4px;
 	cursor: pointer;
 	margin-top: 5px;
@@ -278,7 +278,7 @@ body
 
 .MenuItem:hover
 {
-	border-color: #009688;		/*ORCA color*/
+	border-color: #d72828;		/*ORCA color*/
 	background-color: #E5F0EE; /*ORCA color with %25 opacity*/
 }
 
@@ -466,7 +466,7 @@ body
 .CT_Item:hover
 {
 	cursor: pointer;
-	background-color:#009688; /*ORCA color*/
+	background-color:#d72828; /*ORCA color*/
 	border-radius: 4px;
 	color: #fff;
 }
@@ -702,7 +702,7 @@ body
 #HotModel_RIGHT_Title:hover
 {
 	cursor: pointer;	
-	color:#009688;	
+	color:#d72828;	
 }
 
 .HotModelPiece
