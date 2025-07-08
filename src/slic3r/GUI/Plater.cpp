@@ -1031,20 +1031,22 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
         hsizer_ams->Add(btn_edit, 0, wxLEFT | wxALIGN_CENTER, FromDIP(2));
     hsizer_ams->Add(ams_not_installed_msg, 0, wxALIGN_CENTER);
 
-    btn_up = new ScalableButton(this, wxID_ANY, "page_up", "", {-1, FromDIP(14)});
+    btn_up = new ScalableButton(this, wxID_ANY, "page_up", "", {FromDIP(14), FromDIP(14)}, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 14);
     btn_up->SetBackgroundColour(*wxWHITE);
     btn_up->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, index](auto &evt) {
         if (page_cur > 0)
             --page_cur;
         update_ams();
     });
-    btn_down = new ScalableButton(this, wxID_ANY, "page_down", "", {-1, FromDIP(14)});
+    btn_up->Hide();
+    btn_down = new ScalableButton(this, wxID_ANY, "page_down", "", {FromDIP(14), FromDIP(14)}, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 14);
     btn_down->SetBackgroundColour(*wxWHITE);
     btn_down->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, index](auto &evt) {
         if (page_cur + 1 < page_num)
             ++page_cur;
         update_ams();
     });
+    btn_down->Hide();
 
     wxBoxSizer *hsizer_diameter = new wxBoxSizer(wxHORIZONTAL);
     hsizer_diameter->Add(label_diameter, 0, wxALIGN_CENTER);

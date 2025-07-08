@@ -1088,8 +1088,8 @@ ScalableButton::ScalableButton( wxWindow *          parent,
     if (size != wxDefaultSize)
     {
         const int em = em_unit(parent);
-        m_width = size.x/em;
-        m_height= size.y/em;
+        m_width = size.x * 10 / em;
+        m_height= size.y * 10 / em;
     }
 }
 
@@ -1178,7 +1178,7 @@ void ScalableButton::msw_rescale()
     if (m_width > 0 || m_height>0)
     {
         const int em = em_unit(m_parent);
-        wxSize size(m_width * em, m_height * em);
+        wxSize size(m_width * em / 10, m_height * em / 10);
         SetMinSize(size);
     }
 }
