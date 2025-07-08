@@ -1498,8 +1498,6 @@ public:
 
     bool set_selected_machine(std::string dev_id,  bool need_disconnect = false);
     MachineObject* get_selected_machine();
-    void add_user_subscribe();
-    void del_user_subscribe();
 
     void subscribe_device_list(std::vector<std::string> dev_list);
 

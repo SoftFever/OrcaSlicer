@@ -448,7 +448,6 @@ public:
     void show_errors(wxString& info);
     void on_ok_btn(wxCommandEvent& event);
     void Enable_Auto_Refill(bool enable);
-    void connect_printer_mqtt();
     void on_send_print();
     void clear_ip_address_config(wxCommandEvent& e);
     void on_refresh(wxCommandEvent& event);

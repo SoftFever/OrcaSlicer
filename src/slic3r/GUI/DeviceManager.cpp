@@ -6003,6 +6003,7 @@ std::string MachineObject::get_string_from_fantype(int type)
 
 void MachineObject::nt_condition_local_tunnel()
 {
+    return;
     int full_msg_count_limit = 2;
     if (!nt_try_local_tunnel && nt_cloud_full_msg_count == full_msg_count_limit) {
         connect(Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
@@ -7495,8 +7496,6 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
         if (last_selected->second->connection_type() == "lan") {
             if (last_selected->second->is_connecting() && !need_disconnect)
                 return false;
-
-            if (!need_disconnect) {m_agent->disconnect_printer(); }
         }
     }
 
@@ -7514,7 +7513,6 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
             } else {
                 // lan mode printer reconnect printer
                 if (m_agent) {
-                    if (!need_disconnect) {m_agent->disconnect_printer();}
                     it->second->reset();
 #if !BBL_RELEASE_TO_PUBLIC
                     it->second->connect(Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
@@ -7572,28 +7570,6 @@ MachineObject* DeviceManager::get_selected_machine()
             return it->second;
     }
     return nullptr;
-}
-
-void DeviceManager::add_user_subscribe()
-{
-    /* user machine */
-    std::vector<std::string> dev_list;
-    for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
-        dev_list.push_back(it->first);
-        BOOST_LOG_TRIVIAL(trace) << "add_user_subscribe: " << it->first;
-    }
-    m_agent->add_subscribe(dev_list);
-}
-
-void DeviceManager::del_user_subscribe()
-{
-    /* user machine */
-    std::vector<std::string> dev_list;
-    for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
-        dev_list.push_back(it->first);
-        BOOST_LOG_TRIVIAL(trace) << "del_user_subscribe: " << it->first;
-    }
-    m_agent->del_subscribe(dev_list);
 }
 
 void DeviceManager::subscribe_device_list(std::vector<std::string> dev_list)

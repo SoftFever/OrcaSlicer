@@ -1689,7 +1689,6 @@ void GUI_App::init_networking_callbacks()
                     m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
                     //subscribe device
                     if (m_agent->is_user_login()) {
-                        m_agent->start_device_subscribe();
 
                         /*disconnect lan*/
                         DeviceManager* dev = this->getDeviceManager();
@@ -4343,7 +4342,6 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 
     int online_login = evt.GetInt();
     m_agent->connect_server();
-
     // get machine list
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;

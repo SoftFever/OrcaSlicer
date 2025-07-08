@@ -2339,27 +2339,6 @@ void SelectMachineDialog::Enable_Auto_Refill(bool enable)
     m_ams_backup_tip->Refresh();
 }
 
-void SelectMachineDialog::connect_printer_mqtt()
-{
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
-    MachineObject* obj_ = dev->get_selected_machine();
-
-    if (obj_->connection_type() == "cloud") {
-        show_status(PrintDialogStatus::PrintStatusSending);
-        m_status_bar->disable_cancel_button();
-        m_status_bar->set_status_text(_L("Connecting to the printer. Unable to cancel during the connection process."));
-#if !BBL_RELEASE_TO_PUBLIC
-        obj_->connect(wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
-#else
-        obj_->connect(obj_->local_use_ssl_for_mqtt);
-#endif
-    }
-    else {
-        on_send_print();
-    }
-}
-
 static bool _HasExt(const std::vector<FilamentInfo> &ams_mapping_result) {
     if (ams_mapping_result.empty()) {
         return true;
