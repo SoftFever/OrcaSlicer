@@ -405,7 +405,7 @@ void DropDown::render(wxDC &dc)
             if (group.IsEmpty() && !item.group.IsEmpty()) {
                 auto szBmp = arrow_bitmap.GetBmpSize();
                 pt.x = rcContent.GetRight() - szBmp.x - 5;
-                pt.y = rcContent.y += (rcContent.height - szBmp.y) / 2;
+                pt.y = rcContent.y + (rcContent.height - szBmp.y) / 2;
                 dc.DrawBitmap(arrow_bitmap.bmp(), pt);
             }
         }
