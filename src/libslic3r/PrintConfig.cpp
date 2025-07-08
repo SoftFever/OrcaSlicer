@@ -697,7 +697,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
                      "A value of 0 means the filament does not support printing on the Cool Plate SuperTack.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 120;
@@ -707,7 +707,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
                      "A value of 0 means the filament does not support printing on the Cool Plate.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -717,7 +717,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
                      "A value of 0 means the filament does not support printing on the Textured Cool Plate.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -727,7 +727,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
                      "A value of 0 means the filament does not support printing on the Engineering Plate.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -737,7 +737,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
                      "A value of 0 means the filament does not support printing on the High Temp Plate.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -747,7 +747,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
                      "A value of 0 means the filament does not support printing on the Textured PEI Plate.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -758,7 +758,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
                      "A value of 0 means the filament does not support printing on the Cool Plate SuperTack.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->min = 0;
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 35 });
@@ -768,7 +768,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
                      "A value of 0 means the filament does not support printing on the Cool Plate.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->min = 0;
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 35 });
@@ -778,7 +778,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
                      "A value of 0 means the filament does not support printing on the Textured Cool Plate.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->min = 0;
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 40 });
@@ -788,7 +788,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
                      "A value of 0 means the filament does not support printing on the Engineering Plate.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->min = 0;
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
@@ -798,7 +798,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
                      "A value of 0 means the filament does not support printing on the High Temp Plate.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
@@ -807,7 +807,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
                      "A value of 0 means the filament does not support printing on the Textured PEI Plate.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->min = 0;
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{45});
@@ -2303,7 +2303,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Softening temperature");
     def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than this, "
                      "it's highly recommended to open the front door and/or remove the upper glass to avoid clogging.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
 
@@ -2730,7 +2730,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->full_label = L("Initial layer nozzle temperature");
     def->tooltip = L("Nozzle temperature for printing initial layer when using this filament.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
@@ -3725,7 +3725,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This parameter smooths out sudden extrusion rate changes that happen when " 
                      "the printer transitions from printing a high flow (high speed/larger width) "
                      "extrusion to a lower flow (lower speed/smaller width) extrusion and vice versa.\n\n"
-                     "It defines the maximum rate by which the extruded volumetric flow in mm³/s² can change over time. "
+                     "It defines the maximum rate by which the extruded volumetric flow in mm³/s can change over time. "
                      "Higher values mean higher extrusion rate changes are allowed, resulting in faster speed transitions.\n\n" 
                      "A value of 0 disables the feature.\n\n"
                      "For a high speed, high flow direct drive printer (like the Bambu lab or Voron) this value is usually not needed. "
@@ -5369,7 +5369,7 @@ void PrintConfigDef::init_fff_params()
                      "This may be useful if your printer does not support M141/M191 commands, or if you desire "
                      "to handle heat soaking in the print start macro if no active chamber heater is installed."
                     );
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->full_label = L("Chamber temperature");
     def->min = 0;
     def->max = max_temp;
@@ -5378,7 +5378,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_temperature", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Nozzle temperature for layers after the initial one.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->full_label = L("Nozzle temperature");
     def->min = 0;
     def->max = max_temp;
@@ -5387,7 +5387,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_temperature_range_low", coInts);
     def->label = L("Min");
     //def->tooltip = L("");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 190 });
@@ -5395,7 +5395,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_temperature_range_high", coInts);
     def->label = L("Max");
     //def->tooltip = L("");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 240 });
@@ -5750,7 +5750,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Idle temperature");
     def->tooltip = L("Nozzle temperature when the tool is currently not used in multi-tool setups. "
                      "This is only used when 'Ooze prevention' is active in Print Settings. Set to 0 to disable.");
-    def->sidetext = "\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts{0});
