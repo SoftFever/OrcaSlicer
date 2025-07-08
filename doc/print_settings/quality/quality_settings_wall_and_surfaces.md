@@ -20,20 +20,29 @@ Print sequence of the internal (inner) and external (outer) walls.
 
 ### Inner/Outer
 
-Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.  
+Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighboring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.
+
+![inner-outer](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/inner-outer.gif?raw=true)
 
 ### Inner/Outer/Inner
 
-Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.  
+Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.
+
+![inner-outer-inner](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/inner-outer-inner.gif?raw=true)
 
 ### Outer/Inner
 
-Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.
+Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of [Inner/Outer/Inner](#innerouterinner) option. However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.
+
+![outer-inner](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/outer-inner.gif?raw=true)
 
 ### Print infill first
 
-Order of wall/infill. When the tickbox is unchecked the walls are printed first, which works best in most cases.  
-Printing infill first may help with extreme overhangs as the walls have the neighbouring infill to adhere to. However, the infill will slightly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.
+When the tickbox is unchecked the walls are printed first, which works best in most cases.  
+Printing infill first may help with extreme overhangs as the walls have the neighboring infill to adhere to. However, the infill will slightly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.  
+When using this option is recommended to use the [Precise Wall](quality_settings_precision#precise-wall) or [Inner/Outer/Inner](#innerouterinner) wall printing order, to avoid the infill pushing out the external wall.
+
+![infill-first](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/infill-first.gif?raw=true)
 
 ## Wall loop direction
 
@@ -51,6 +60,8 @@ The actual top surface flow used is calculated by multiplying this value with th
 ## Only one wall
 
 Use only one wall on flat surfaces, to give more space to the top infill pattern.
+
+![only-one-wall](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/only-one-wall.gif?raw=true)
 
 ### Threshold
 
