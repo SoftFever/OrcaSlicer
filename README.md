@@ -32,7 +32,7 @@ Optimize your prints with ultra-fast slicing, intelligent support generation, an
   Adjust outer wall spacing and apply scarf seams to enhance print accuracy.
 - **[Sandwich Mode](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_wall_and_surfaces#innerouterinner) and [Polyholes](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_precision#polyholes) Support**  
   Use varied infill patterns and accurate hole shapes for improved clarity.
-- **[Overhang](https://github.com/SoftFever/OrcaSlicer/wiki/speed_settings_overhang_speed) and [Support Optimization](https://github.com/SoftFever/OrcaSlicer/wiki#support-settings)**  
+- **[Overhang](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_overhangs) and [Support Optimization](https://github.com/SoftFever/OrcaSlicer/wiki#support-settings)**  
   Modify geometry for printable overhangs with precise support placement.
 - **[Granular Controls](https://github.com/SoftFever/OrcaSlicer/wiki#process-settings) and Customization**  
   Fine-tune print speed, layer height, pressure, and temperature with precision.
