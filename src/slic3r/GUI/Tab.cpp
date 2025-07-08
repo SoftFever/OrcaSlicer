@@ -2179,14 +2179,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("counterbore_hole_bridging", "quality_settings_bridging#bridge-counterbore-hole");
 
         optgroup = page->new_optgroup(L("Overhangs"), L"param_overhang");
-        optgroup->append_single_option_line("detect_overhang_wall");
-        optgroup->append_single_option_line("make_overhang_printable");
-        optgroup->append_single_option_line("make_overhang_printable_angle");
-        optgroup->append_single_option_line("make_overhang_printable_hole_size");
-        optgroup->append_single_option_line("extra_perimeters_on_overhangs");
-        optgroup->append_single_option_line("overhang_reverse");
-        optgroup->append_single_option_line("overhang_reverse_internal_only");
-        optgroup->append_single_option_line("overhang_reverse_threshold");
+        optgroup->append_single_option_line("detect_overhang_wall", "quality_settings_overhangs#detect-overhang-wall");
+        optgroup->append_single_option_line("make_overhang_printable", "quality_settings_overhangs#make-overhang-printable");
+        optgroup->append_single_option_line("make_overhang_printable_angle", "quality_settings_overhangs#maximum-angle");
+        optgroup->append_single_option_line("make_overhang_printable_hole_size", "quality_settings_overhangs#hole-area");
+        optgroup->append_single_option_line("extra_perimeters_on_overhangs", "quality_settings_overhangs#extra-perimeters-on-overhangs");
+        optgroup->append_single_option_line("overhang_reverse", "quality_settings_overhangs#reverse-on-even");
+        optgroup->append_single_option_line("overhang_reverse_internal_only", "quality_settings_overhangs#reverse-internal-only");
+        optgroup->append_single_option_line("overhang_reverse_threshold", "quality_settings_overhangs#reverse-threshold");
 
     page = add_options_page(L("Strength"), "custom-gcode_strength"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");

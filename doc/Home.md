@@ -70,6 +70,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 - [Wall generator](quality_settings_wall_generator)
 - [Walls and surfaces](quality_settings_wall_and_surfaces)
 - [Bridging](quality_settings_bridging)
+- [Overhangs](quality_settings_overhangs)
 
 ### Strength Settings
 
