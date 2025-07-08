@@ -1,4 +1,4 @@
-# Extrusion rate smoothing
+# Speed Advanced - Extrusion rate smoothing
 
 Extrusion rate smoothing (ERS), also known as pressure equalizer in Prusa Slicer, aims to **limit the rate of extrusion volume change to be below a user set threshold (the ERS value).** It aims to assist the printer firmware internal motion planners, pressure advance in achieving the desired nozzle flow and reducing deviations against the ideal flow.
 
