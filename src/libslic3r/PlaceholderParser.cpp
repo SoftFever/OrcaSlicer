@@ -101,7 +101,7 @@ void PlaceholderParser::update_timestamp(DynamicConfig &config)
 
 void PlaceholderParser::update_user_name(DynamicConfig &config)
 {
-    const char* user = getenv("USER") ? getenv("USER") : getenv("USERNAME") ? getenv("USERNAME") : "unknown";
+    const char* user = boost::nowide::getenv("USER") ? boost::nowide::getenv("USER") : boost::nowide::getenv("USERNAME") ? boost::nowide::getenv("USERNAME") : "unknown";
     config.set_key_value("user", new ConfigOptionString(user));
 }
 
