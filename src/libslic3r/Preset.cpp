@@ -2373,6 +2373,11 @@ bool PresetCollection::clone_presets_for_filament(Preset const *const &     pres
             preset.config.apply_only(dynamic_config, {"filament_vendor", "compatible_printers", "filament_type"},true);
 
             preset.filament_id = filament_id;
+            auto compatible = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
+            if (compatible->values.empty()) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " " << __LINE__ << preset.name << " apply compatible_printer failed";
+                compatible->values.push_back(compatible_printers);
+            }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << preset.name << " is cloned and filament_id: " << filament_id;
          }
         },
