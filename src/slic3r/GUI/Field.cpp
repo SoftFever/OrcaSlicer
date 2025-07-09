@@ -435,21 +435,25 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             if (!ConfigOptionFloats::validate_string(ustr)) {
                 string      v;
                 std::smatch match;
-                string      ps = u8"[#][\\d]+[\/]?|[+\\-]?[\\d.]+[%]?[\/]?[#*]?[\\d]*[\/]?";
-                if (m_opt.opt_key == "sparse_infill_rotate_template")
-                    ps += u8"[@]?[+\\-]?[\\d.]*[%\'\"cm]?[m]?[\/]?";
+                string      ps = u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[#]?[\\d]*[\/$~^NnZzLlUuQq]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[";
+                if (m_opt.opt_key == "sparse_infill_rotate_template") {
+                    ps = u8"[BT][!]?|" + ps + u8"S";
+                }
+                ps += u8"BT]?[!*]?";
                 while (std::regex_search(ustr, match, std::regex(ps))) {
                     for (auto x : match) v += x.str() + ", ";
                     ustr = match.suffix().str();
                 }
                 v = v.substr(0, v.length() - 2);
-                this->set_value(from_u8(v), true);
-                m_value = into_u8(v);
-                 /* else {
-                    show_error(m_parent, format_wxstr(_L("This parameter expects a comma-delimited list of numbers. E.g, \"0,90\".")));
+                try {
+                    this->set_value(from_u8(v), true);
+                    m_value = into_u8(v);
+                } catch (...) {
+                    show_error(m_parent, format_wxstr(_L("This parameter expects a valid template.")));
                     wxString old_value(boost::any_cast<std::string>(m_value));
                     this->set_value(old_value, true); // Revert to previous value
-                }*/
+                    throw;
+                }
             } else {
                 // Valid string, so update m_value with the new string from the control.
                 m_value = into_u8(str);
