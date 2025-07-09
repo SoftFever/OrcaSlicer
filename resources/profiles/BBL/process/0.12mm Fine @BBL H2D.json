@@ -25,7 +25,6 @@
     "top_shell_layers": "9",
     "top_shell_thickness": "0.8",
     "top_surface_speed": "150",
-    "wall_loops": "4",
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle"
     ]
