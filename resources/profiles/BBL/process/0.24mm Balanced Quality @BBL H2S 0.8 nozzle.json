@@ -8,7 +8,7 @@
     "description": "High quality profile for 0.8mm nozzle, prioritizing print quality.",
     "bridge_speed": [
         "30",
-        "50"
+        "30"
     ],
     "default_acceleration": [
         "10000",
@@ -16,7 +16,7 @@
     ],
     "gap_infill_speed": [
         "50",
-        "250"
+        "50"
     ],
     "initial_layer_infill_speed": [
         "105",
@@ -32,7 +32,7 @@
     ],
     "internal_solid_infill_speed": [
         "250",
-        "300"
+        "250"
     ],
     "outer_wall_speed": [
         "200",
@@ -50,7 +50,7 @@
     "prime_tower_width": "60",
     "sparse_infill_speed": [
         "350",
-        "600"
+        "350"
     ],
     "top_surface_speed": [
         "200",

@@ -10,7 +10,7 @@
     ],
     "filament_max_volumetric_speed": [
         "1",
-        "2"
+        "1"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.2 nozzle"
@@ -34,11 +34,11 @@
     ],
     "nozzle_temperature": [
         "240",
-        "230"
+        "240"
     ],
     "nozzle_temperature_initial_layer": [
         "240",
-        "230"
+        "240"
     ],
     "filament_deretraction_speed": [
         "nil",

@@ -20,9 +20,9 @@
     "extruder_colour": [
         "#FCE94F"
     ],
-    "enable_long_retraction_when_cut" : "0",
+    "enable_long_retraction_when_cut": "0",
     "enable_pre_heating": "0",
-    "bed_temperature_formula" : "by_first_filament",
+    "bed_temperature_formula": "by_first_filament",
     "hotend_cooling_rate": "2",
     "hotend_heating_rate": "2",
     "extruder_offset": [
