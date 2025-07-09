@@ -1672,14 +1672,9 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_chamber->SetBorderWidth(FromDIP(2));
     m_tempCtrl_chamber->SetTextColor(tempinput_text_colour);
     m_tempCtrl_chamber->SetBorderColor(tempinput_border_colour);
-
     sizer->Add(m_tempCtrl_chamber, 0, wxEXPAND | wxALL, 1);
-    line = new StaticLine(parent);
-    line->SetLineColour(STATIC_BOX_LINE_COL);
-    sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
 
     m_misc_ctrl_sizer = create_misc_control(parent);
-
     sizer->Add(m_misc_ctrl_sizer, 0, wxEXPAND, 0);
     return sizer;
 }
