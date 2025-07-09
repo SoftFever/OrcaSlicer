@@ -1570,7 +1570,7 @@ void MappingItem::set_data(const wxString &tag_name, wxColour colour, wxString n
             if (!m_name.IsEmpty() && (m_name != "-")) {
                 const wxString &msg = wxString::Format(_L("Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. "
                                                           "If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."),
-                                                           m_name, tag_name, m_name, tag_name);
+                                                           m_name, tag_name, tag_name, m_name);
                 SetToolTip(msg);
             } else {
                 const wxString &msg = wxString::Format(_L("Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."), tag_name);
