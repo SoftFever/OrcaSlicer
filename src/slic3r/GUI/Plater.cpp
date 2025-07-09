@@ -1742,7 +1742,7 @@ Sidebar::Sidebar(Plater *parent)
         project_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
 
         // Sync printer information
-        btn_sync = new Button(p->m_panel_printer_content, _L("Sync printer information"), "printer_sync", 0, 32);
+        btn_sync = new Button(p->m_panel_printer_content, _L("Sync info"), "printer_sync", 0, 32);
         //btn_sync->SetFont(Label::Body_8);
         btn_sync->SetToolTip(_L("Synchronize nozzle information and the number of AMS"));
         btn_sync->SetCornerRadius(8);
