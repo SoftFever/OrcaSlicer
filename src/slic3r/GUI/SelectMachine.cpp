@@ -4265,7 +4265,7 @@ void SelectMachineDialog::set_default_from_sdcard()
     MachineObject *obj_ = dev_manager->get_selected_machine();
     if (!obj_) { return; };
 
-    m_printer_box->SetPrinterName(obj_->dev_name);
+    m_printer_box->SetPrinterName(wxString::FromUTF8(obj_->dev_name));
 
     m_print_plate_total = m_required_data_plate_data_list.size();
     update_page_turn_state(true);
