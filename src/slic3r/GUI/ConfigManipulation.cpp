@@ -586,8 +586,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("spiral_mode_max_xy_smoothing", has_spiral_vase && config->opt_bool("spiral_mode_smooth"));
     toggle_line("spiral_starting_flow_ratio", has_spiral_vase);
     toggle_line("spiral_finishing_flow_ratio", has_spiral_vase);
-    bool has_top_shell    = config->opt_int("top_shell_layers") > 0;
-    bool has_bottom_shell = config->opt_int("bottom_shell_layers") > 0;
+        bool has_top_shell    = config->opt_int("top_shell_layers") > 0 || has_spiral_vase;
+    bool has_bottom_shell = config->opt_int("bottom_shell_layers") > 0  || has_spiral_vase;
     bool has_solid_infill = has_top_shell || has_bottom_shell;
     toggle_field("top_surface_pattern", has_top_shell);
     toggle_field("bottom_surface_pattern", has_bottom_shell);
@@ -609,7 +609,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("gap_infill_speed", have_perimeters);
 
     for (auto el : { "top_surface_line_width", "top_surface_speed" })
-        toggle_field(el, has_top_shell || (has_spiral_vase && has_bottom_shell));
+        toggle_field(el, has_top_shell || has_bottom_shell);
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
 

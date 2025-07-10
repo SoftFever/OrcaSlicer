@@ -1302,9 +1302,11 @@ void Layer::make_ironing()
 		if (! layerm->slices.empty()) {
 			IroningParams ironing_params;
 			const PrintRegionConfig &config = layerm->region().config();
+			// Check if we're in spiral vase mode
+			bool is_spiral_mode = this->object()->print()->config().spiral_mode;
 			if (config.ironing_type != IroningType::NoIroning &&
 				(config.ironing_type == IroningType::AllSolid ||
-				 	(config.top_shell_layers > 0 &&
+				 	((config.top_shell_layers > 0 || is_spiral_mode) &&
 						(config.ironing_type == IroningType::TopSurfaces ||
 					 	(config.ironing_type == IroningType::TopmostOnly && layerm->layer()->upper_layer == nullptr))))) {
 				if (config.wall_filament == config.solid_infill_filament || config.wall_loops == 0) {
@@ -1342,6 +1344,9 @@ void Layer::make_ironing()
 	for (size_t i = 0; i < by_extruder.size();) {
 		// Find span of regions equivalent to the ironing operation.
 		IroningParams &ironing_params = by_extruder[i];
+		// Check if we're in spiral vase mode (needed for surface processing)
+		bool is_spiral_mode = this->object()->print()->config().spiral_mode;
+		
 		// Create the filler object.
 		if( f_pattern != ironing_params.pattern )
 		{
@@ -1388,7 +1393,7 @@ void Layer::make_ironing()
 						polygons_append(polys, surface.expolygon);
 				} else {
 					for (const Surface &surface : ironing_params.layerm->slices.surfaces)
-						if ((surface.surface_type == stTop && region_config.top_shell_layers > 0) || (iron_everything && surface.surface_type == stBottom && region_config.bottom_shell_layers > 0))
+						if ((surface.surface_type == stTop && (region_config.top_shell_layers > 0 || is_spiral_mode)) || (iron_everything && surface.surface_type == stBottom && region_config.bottom_shell_layers > 0))
 							// stBottomBridge is not being ironed on purpose, as it would likely destroy the bridges.
 							polygons_append(polys, surface.expolygon);
 				}
