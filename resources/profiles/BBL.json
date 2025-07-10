@@ -2570,10 +2570,6 @@
             "sub_path": "filament/Bambu PLA Glow @BBL H2D.json"
         },
         {
-            "name": "Bambu PLA Glow @BBL H2D 0.2 nozzle",
-            "sub_path": "filament/Bambu PLA Glow @BBL H2D 0.2 nozzle.json"
-        },
-        {
             "name": "Bambu PLA Glow @BBL P1P",
             "sub_path": "filament/Bambu PLA Glow @BBL P1P.json"
         },
@@ -4566,10 +4562,6 @@
             "sub_path": "filament/Bambu PVA @BBL H2D.json"
         },
         {
-            "name": "Bambu PVA @BBL H2D 0.2 nozzle",
-            "sub_path": "filament/Bambu PVA @BBL H2D 0.2 nozzle.json"
-        },
-        {
             "name": "Bambu PVA @BBL P1P",
             "sub_path": "filament/Bambu PVA @BBL P1P.json"
         },
@@ -4612,10 +4604,6 @@
         {
             "name": "Generic PVA @BBL H2D",
             "sub_path": "filament/Generic PVA @BBL H2D.json"
-        },
-        {
-            "name": "Generic PVA @BBL H2D 0.2 nozzle",
-            "sub_path": "filament/Generic PVA @BBL H2D 0.2 nozzle.json"
         },
         {
             "name": "Generic PVA @BBL P1P",
