@@ -2230,7 +2230,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("solid_infill_direction");
         optgroup->append_single_option_line("solid_infill_rotate_template");
         optgroup->append_single_option_line("gap_fill_target");
-        optgroup->append_single_option_line("filter_out_gap_fill"); 
+        optgroup->append_single_option_line("filter_out_gap_fill");
         optgroup->append_single_option_line("infill_wall_overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
