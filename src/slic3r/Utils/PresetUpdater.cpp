@@ -849,7 +849,7 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         BOOST_LOG_TRIVIAL(info) << "non need to sync plugins for there is no plugins currently.";
         return;
     }
-    std::string curr_version = SLIC3R_VERSION;
+    std::string curr_version = NetworkAgent::use_legacy_network ? BAMBU_NETWORK_AGENT_VERSION_LEGACY : BAMBU_NETWORK_AGENT_VERSION;
     std::string using_version = curr_version.substr(0, 9) + "00";
 
     std::string cached_version;
@@ -943,6 +943,16 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         }
     }
 
+#if defined(__WINDOWS__)
+    if (GUI::wxGetApp().is_running_on_arm64() && !NetworkAgent::use_legacy_network) {
+        //set to arm64 for plugins
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows_arm";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type to windows_arm");
+    }
+#endif
     try {
         std::map<std::string, Resource> resources
         {
@@ -953,6 +963,16 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
     catch (std::exception& e) {
         BOOST_LOG_TRIVIAL(warning) << format("[Orca Updater] sync_plugins: %1%", e.what());
     }
+#if defined(__WINDOWS__)
+    if (GUI::wxGetApp().is_running_on_arm64() && !NetworkAgent::use_legacy_network) {
+        //set back
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type back to windows");
+    }
+#endif
 
     bool result = get_cached_plugins_version(cached_version, force_upgrade);
     if (result) {
@@ -1203,9 +1223,9 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
             auto machine_in_cache = (cache_profile_path / vendor_name / PRESET_PRINTER_NAME);
 
             if (( fs::exists(path_in_vendor))
-                &&( fs::exists(print_in_cache))
-                &&( fs::exists(filament_in_cache))
-                &&( fs::exists(machine_in_cache))) {
+                || fs::exists(print_in_cache)
+                || fs::exists(filament_in_cache)
+                || fs::exists(machine_in_cache)) {
                 Semver vendor_ver = get_version_from_json(path_in_vendor.string());
 
                 std::map<std::string, std::string> key_values;
@@ -1240,11 +1260,10 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                     Version version;
                     version.config_version = cache_ver;
                     version.comment        = description;
-
-                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
-
-                        //BBS: add directory support
-                        updates.updates.emplace_back(cache_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
+                    // Orca: update vendor.json
+                    updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
+                    //Orca: update vendor folder
+                    updates.updates.emplace_back(cache_profile_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
                 }
             }
         }

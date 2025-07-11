@@ -1,6 +1,6 @@
 {
     "name": "OrcaFilamentLibrary",
-    "version":  "02.03.00.03",
+    "version":  "02.03.00.04",
     "force_update": "0",
     "description": "Orca Filament Library",
     "filament_list": [
@@ -368,6 +368,30 @@
             "name": "Overture PLA @base",
             "sub_path": "filament/Overture/Overture PLA @base.json"
         },
+		{
+            "name": "Overture TPU @base",
+            "sub_path": "filament/Overture/Overture TPU @base.json"
+        },
+		{
+            "name": "Overture ABS Basic @base",
+            "sub_path": "filament/Overture/Overture ABS Basic @base.json"
+        },
+        {
+            "name": "Valment PLA @base",
+            "sub_path": "filament/Valment/Valment PLA @base.json"
+        },
+        {
+            "name": "Valment PLA Silk @base",
+            "sub_path": "filament/Valment/Valment PLA Silk @base.json"
+        },
+        {
+            "name": "Valment PLA-CF @base",
+            "sub_path": "filament/Valment/Valment PLA-CF @base.json"
+        },
+        {
+            "name": "Valment PLA Galaxy @base",
+            "sub_path": "filament/Valment/Valment PLA Galaxy @base.json"
+        },
         {
             "name": "PolyLite PLA @base",
             "sub_path": "filament/Polymaker/PolyLite PLA @base.json"
@@ -684,6 +708,30 @@
             "name": "Overture PLA @System",
             "sub_path": "filament/Overture/Overture PLA @System.json"
         },
+		{
+            "name": "Overture TPU @System",
+            "sub_path": "filament/Overture/Overture TPU @System.json"
+        },
+		{
+            "name": "Overture ABS Basic @System",
+            "sub_path": "filament/Overture/Overture ABS Basic @System.json"
+        },
+        {
+            "name": "Valment PLA @System",
+            "sub_path": "filament/Valment/Valment PLA @System.json"
+        },
+        {
+            "name": "Valment PLA Silk @System",
+            "sub_path": "filament/Valment/Valment PLA Silk @System.json"
+        },
+        {
+            "name": "Valment PLA-CF @System",
+            "sub_path": "filament/Valment/Valment PLA-CF @System.json"
+        },
+        {
+            "name": "Valment PLA Galaxy @System",
+            "sub_path": "filament/Valment/Valment PLA Galaxy @System.json"
+        },
         {
             "name": "PolyLite Dual PLA @System",
             "sub_path": "filament/Polymaker/PolyLite Dual PLA @System.json"
@@ -755,6 +803,14 @@
         {
             "name": "Bambu TPU 95A HF @System",
             "sub_path": "filament/Bambu/Bambu TPU 95A HF @System.json"
+        },
+        {
+            "name": "FusRock ABS-GF @base",
+            "sub_path": "filament/FusRock/FusRock ABS-GF @base.json"
+        },
+        {
+            "name": "FusRock ABS-GF @System",
+            "sub_path": "filament/FusRock/FusRock ABS-GF @System.json"
         },
         {
             "name": "AliZ PETG-CF @System",

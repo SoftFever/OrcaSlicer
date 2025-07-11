@@ -150,11 +150,16 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_dev_ver        = obj->get_ota_version();
         m_lan_mode       = obj->is_lan_mode_printer();
         m_lan_proto      = obj->liveview_local;
-        m_remote_proto   = obj->liveview_remote;
+        m_remote_proto   = obj->get_liveview_remote();
         m_lan_ip         = obj->dev_ip;
         m_lan_passwd     = obj->get_access_code();
         m_device_busy    = obj->is_camera_busy_off();
         m_tutk_state     = obj->tutk_state;
+
+        if (DeviceManager::get_printer_series(obj->printer_type) == "series_o" && NetworkAgent::use_legacy_network) {
+            // Legacy plugin cannot support remote play for H2D, force using local mode
+            m_remote_proto = MachineObject::LVR_None;
+        }
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
@@ -306,7 +311,7 @@ void MediaPlayCtrl::Play()
 
     if (m_lan_proto <= MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto)) {
         Stop(m_lan_proto == MachineObject::LVL_None 
-            ? _L("Problem occurred. Please update the printer firmware and try again.")
+            ? _L("A problem occurred. Please update the printer firmware and try again.")
             : _L("LAN Only Liveview is off. Please turn on the liveview on printer screen."));
         return;
     }
@@ -378,7 +383,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
         else if (m_failed_code) {
             auto iter = error_messages.find(m_failed_code);
             auto msg2 = iter == error_messages.end()
-                ? _L("Please check the network and try again, You can restart or update the printer if the issue persists.")
+                ? _L("Please check the network and try again. You can restart or update the printer if the issue persists.")
                 : _L(iter->second.c_str());
             if (m_failed_code == 1) {
                 if (m_last_state == wxMEDIASTATE_PLAYING)

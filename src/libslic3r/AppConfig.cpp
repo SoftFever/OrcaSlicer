@@ -178,6 +178,9 @@ void AppConfig::set_defaults()
     if (get("camera_navigation_style").empty())
         set("camera_navigation_style", "0");
 
+    if (get("swap_mouse_buttons").empty())
+        set_bool("swap_mouse_buttons", false);
+
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
 
@@ -253,6 +256,9 @@ void AppConfig::set_defaults()
     // Orca
     if (get("stealth_mode").empty()) {
         set_bool("stealth_mode", false);
+    }
+    if (get("legacy_networking").empty()) {
+        set_bool("legacy_networking", true);
     }
 
     if(get("check_stable_update_only").empty()) {
@@ -409,6 +415,17 @@ void AppConfig::set_defaults()
     }
     if (get("print", "timelapse").empty()) {
         set_str("print", "timelapse", "1");
+    }
+
+    if (get("enable_step_mesh_setting").empty()) {
+        set_bool("enable_step_mesh_setting", true);
+    }
+    if (get("linear_defletion", "angle_defletion").empty()) {
+        set("linear_defletion", "0.003");
+        set("angle_defletion", "0.5");
+    }
+    if (get("is_split_compound").empty()) {
+        set_bool("is_split_compound", false);
     }
 
     // Remove legacy window positions/sizes

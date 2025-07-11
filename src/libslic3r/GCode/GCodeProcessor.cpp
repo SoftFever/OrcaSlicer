@@ -831,7 +831,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     const ConfigOptionPoints* printable_area = config.option<ConfigOptionPoints>("printable_area");
     if (printable_area != nullptr)
-        m_result.printable_area = printable_area->values;
+        m_result.printable_area = make_counter_clockwise(printable_area->values);
 
     //BBS: add bed_exclude_area
     const ConfigOptionPoints* bed_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area");
@@ -1038,6 +1038,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         if (machine_max_jerk_e != nullptr)
             m_time_processor.machine_limits.machine_max_jerk_e.values = machine_max_jerk_e->values;
 
+          const ConfigOptionFloats* machine_max_junction_deviation = config.option<ConfigOptionFloats>("machine_max_junction_deviation");
+        if (machine_max_junction_deviation != nullptr)
+              m_time_processor.machine_limits.machine_max_junction_deviation.values = machine_max_junction_deviation->values;
+
         const ConfigOptionFloats* machine_max_acceleration_extruding = config.option<ConfigOptionFloats>("machine_max_acceleration_extruding");
         if (machine_max_acceleration_extruding != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_extruding.values = machine_max_acceleration_extruding->values;
@@ -1146,6 +1150,7 @@ void GCodeProcessor::reset()
     m_forced_width = 0.0f;
     m_forced_height = 0.0f;
     m_mm3_per_mm = 0.0f;
+    m_travel_dist = 0.0f;
     m_fan_speed = 0.0f;
     m_z_offset = 0.0f;
 
@@ -2644,7 +2649,8 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::o
 
     EMoveType type = move_type(delta_pos);
     if (type == EMoveType::Extrude) {
-        float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+        const float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+        m_travel_dist = delta_xyz;
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
 
@@ -3121,7 +3127,8 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     EMoveType type = move_type(delta_pos[E]);
 
 
-    float delta_xyz = std::sqrt(sqr(arc_length) + sqr(delta_pos[Z]));
+    const float delta_xyz = std::sqrt(sqr(arc_length) + sqr(delta_pos[Z]));
+    m_travel_dist         = delta_xyz;
     if (type == EMoveType::Extrude) {
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
@@ -4226,15 +4233,19 @@ void GCodeProcessor::run_post_process()
         }
 
         // add the given gcode line to the cache
-        void append_line(const std::string& line) {
+        void append_line(const std::string& line, const bool ignore_from_move = false) {
+            if (line.empty()) return;
+
             m_lines.push_back({ line, m_times });
 #ifndef NDEBUG
             m_statistics.add_line(line.length());
 #endif // NDEBUG
             m_size += line.length();
             ++m_added_lines_counter;
-            assert(!m_gcode_lines_map.empty());
-            m_gcode_lines_map.back().second = m_added_lines_counter;
+            if (!ignore_from_move) {
+                assert(!m_gcode_lines_map.empty());
+                m_gcode_lines_map.back().second = m_added_lines_counter;
+            }
         }
 
         // Insert the gcode lines required by the command cmd by backtracing into the cache
@@ -4451,6 +4462,7 @@ void GCodeProcessor::run_post_process()
                 char buf[128];
                 sprintf(buf, "; total layer number: %u\n", m_layer_id);
                 export_lines.append_line(buf);
+                processed = true;
             }
         }
 
@@ -4527,7 +4539,7 @@ void GCodeProcessor::run_post_process()
                                                                 time_in_minutes(machine.time - it->elapsed_time) };
                         if (last_exported_main[i] != to_export_main) {
                             export_lines.append_line(format_line_M73_main(machine.line_m73_main_mask.c_str(),
-                                to_export_main.first, to_export_main.second));
+                                to_export_main.first, to_export_main.second), true);
                             last_exported_main[i] = to_export_main;
                         }
                         // export remaining time to next printer stop
@@ -4538,7 +4550,7 @@ void GCodeProcessor::run_post_process()
                             if (last_exported_stop[i] != to_export_stop) {
                                 if (to_export_stop > 0) {
                                     if (last_exported_stop[i] != to_export_stop) {
-                                        export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop));
+                                        export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop), true);
                                         last_exported_stop[i] = to_export_stop;
                                     }
                                 }
@@ -4559,9 +4571,9 @@ void GCodeProcessor::run_post_process()
 
                                     if (is_last) {
                                         if (std::distance(machine.stop_times.begin(), it_stop) == static_cast<ptrdiff_t>(machine.stop_times.size() - 1))
-                                            export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop));
+                                            export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop), true);
                                         else
-                                            export_lines.append_line(format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time)));
+                                            export_lines.append_line(format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time)), true);
 
                                         last_exported_stop[i] = to_export_stop;
                                     }
@@ -4598,55 +4610,56 @@ void GCodeProcessor::run_post_process()
                     if (m_print != nullptr)
                         m_print->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning);
                 }
-            }
-            export_lines.insert_lines(
-                backtrace, cmd,
-                // line inserter
-                [tool_number, this](unsigned int id, const std::vector<float>& time_diffs) {
-                    const int temperature = int(m_layer_id != 1 ? m_extruder_temps_config[tool_number] :
-                                                                  m_extruder_temps_first_layer_config[tool_number]);
-                    // Orca: M104.1 for XL printers, I can't find the documentation for this so I copied the C++ comments from
-                    // Prusa-Firmware-Buddy here
-                    /**
-                     * M104.1: Early Set Hotend Temperature (preheat, and with stealth mode support)
-                     *
-                     * This GCode is used to tell the XL printer the time estimate when a tool will be used next,
-                     * so that the printer can start preheating the tool in advance.
-                     *
-                     * ## Parameters
-                     * - `P` - <number> - time in seconds till the temperature S is required (in standard mode)
-                     * - `Q` - <number> - time in seconds till the temperature S is required (in stealth mode)
-                     * The rest is same as M104
-                     */
-                    if (this->m_is_XL_printer) {
-                        std::string out = "M104.1 T" + std::to_string(tool_number);
-                        if (time_diffs.size() > 0)
-                            out += " P" + std::to_string(int(std::round(time_diffs[0])));
-                        if (time_diffs.size() > 1)
-                            out += " Q" + std::to_string(int(std::round(time_diffs[1])));
-                        out += " S" + std::to_string(temperature) + "\n";
-                        return out;
-                    } else {
-                        std::string comment = "preheat T" + std::to_string(tool_number) +
-                                              " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
-                        return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, comment);
-                    }
-                },
-                // line replacer
-                [this, tool_number](const std::string& line) {
-                    if (GCodeReader::GCodeLine::cmd_is(line, "M104")) {
-                        GCodeReader::GCodeLine gline;
-                        GCodeReader reader;
-                        reader.parse_line(line, [&gline](GCodeReader& reader, const GCodeReader::GCodeLine& l) { gline = l; });
-
-                        float val;
-                        if (gline.has_value('T', val) && gline.raw().find("cooldown") != std::string::npos) {
-                            if (static_cast<int>(val) == tool_number)
-                                return std::string("; removed M104\n");
+                export_lines.insert_lines(
+                    backtrace, cmd,
+                    // line inserter
+                    [tool_number, this](unsigned int id, const std::vector<float>& time_diffs) {
+                        const int temperature = int(m_layer_id != 1 ? m_extruder_temps_config[tool_number] :
+                                                                    m_extruder_temps_first_layer_config[tool_number]);
+                        // Orca: M104.1 for XL printers, I can't find the documentation for this so I copied the C++ comments from
+                        // Prusa-Firmware-Buddy here
+                        /**
+                        * M104.1: Early Set Hotend Temperature (preheat, and with stealth mode support)
+                        *
+                        * This GCode is used to tell the XL printer the time estimate when a tool will be used next,
+                        * so that the printer can start preheating the tool in advance.
+                        *
+                        * ## Parameters
+                        * - `P` - <number> - time in seconds till the temperature S is required (in standard mode)
+                        * - `Q` - <number> - time in seconds till the temperature S is required (in stealth mode)
+                        * The rest is same as M104
+                        */
+                        if (this->m_is_XL_printer) {
+                            std::string out = "M104.1 T" + std::to_string(tool_number);
+                            if (time_diffs.size() > 0)
+                                out += " P" + std::to_string(int(std::round(time_diffs[0])));
+                            if (time_diffs.size() > 1)
+                                out += " Q" + std::to_string(int(std::round(time_diffs[1])));
+                            out += " S" + std::to_string(temperature) + "\n";
+                            return out;
+                        } else {
+                            std::string comment = "preheat T" + std::to_string(tool_number) +
+                                                " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
+                            return GCodeWriter::set_temperature(temperature, this->m_flavor, false, tool_number, comment);
                         }
+                    },
+                    // line replacer
+                    [this, tool_number](const std::string& line) {
+                        if (GCodeReader::GCodeLine::cmd_is(line, "M104")) {
+                            GCodeReader::GCodeLine gline;
+                            GCodeReader reader;
+                            reader.parse_line(line, [&gline](GCodeReader& reader, const GCodeReader::GCodeLine& l) { gline = l; });
+
+                            float val;
+                            if (gline.has_value('T', val) && gline.raw().find("cooldown") != std::string::npos) {
+                                if (static_cast<int>(val) == tool_number)
+                                    return std::string("; removed M104\n");
+                            }
+                        }
+                        return line;
                     }
-                    return line;
-                });
+                );
+            }
         }
     };
 
@@ -4778,6 +4791,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_width,
         m_height,
         m_mm3_per_mm,
+        m_travel_dist,
         m_fan_speed,
         m_extruder_temps[m_extruder_id],
         static_cast<float>(m_result.moves.size()),
