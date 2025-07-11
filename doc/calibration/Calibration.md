@@ -55,7 +55,7 @@ The recommended order for calibration is as follows:
 
 _Credits:_
 
-- _The Flowrate test and retraction test is inspired by [SuperSlicer](https://github.com/supermerill/SuperSlicer)._
+- _The Flow test and retraction test is inspired by [SuperSlicer](https://github.com/supermerill/SuperSlicer)._
 - _The PA Line method is inspired by [K-factor Calibration Pattern](https://marlinfw.org/tools/lin_advance/k-factor.html)._
 - _The PA Tower method is inspired by [Klipper](https://www.klipper3d.org/Pressure_Advance.html)._
 - _The temp tower model is remixed from [Smart compact temperature calibration tower](https://www.thingiverse.com/thing:2729076)._
