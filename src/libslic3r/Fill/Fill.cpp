@@ -964,166 +964,6 @@ void export_group_fills_to_svg(const char *path, const std::vector<SurfaceFill> 
 }
 #endif
 
-double Layer::get_template_angle(std::string v) {
-    std::vector<std::string>   tk;
-    std::regex                 del("[\\s,]+");
-    std::sregex_token_iterator it(v.begin(), v.end(), del, -1);
-    std::sregex_token_iterator end;
-    std::string                search_string = "/NnZz$LlUuQq~6|#";
-    while (it != end)
-        tk.push_back(*it++);
-    int t = 0;
-    int               repeats = 0;
-    double            angle = 0;
-    double            angle_add = 0;
-    double            angle_steps  = 1;
-    double            angle_start  = 0;
-    double            fill_z       = 0;
-    double            limit_fill_z = 0;
-    double            start_fill_z = 0;
-    char*             cs;
-    char*             fc;
-    bool              noop;
-    std::vector<bool> stop(tk.size(), false);
-    int               fill_form = 0;
-    bool              negative  = false;
-
-    limit_fill_z = this->object()->get_layer(0)->bottom_z();
-    for (int i = 0; i <= this->id(); i++) {
-        fill_z = this->object()->get_layer(i)->bottom_z();
-        
-        if (limit_fill_z < this->object()->get_layer(i)->slice_z) {
-            if (repeats) { // if repeats >0 then restore parameters for new iteration
-                limit_fill_z += limit_fill_z - start_fill_z;
-                start_fill_z = fill_z;
-                repeats--;
-            } else {
-                start_fill_z = fill_z;
-                limit_fill_z = this->object()->get_layer(i)->print_z;
-                do {
-                    if (!stop[t]) {
-                        noop     = false;
-                        negative = false;
-                        angle_start += angle_add;
-                        angle_add   = 0;
-                        angle_steps = 1;
-                        repeats     = 1;
-                        if (tk[t].find('!') != std::string::npos) // this is an one-time instruction
-                            stop[t] = true;
-
-                        fc = tk[t].data();
-                        cs = tk[t].data();
-
-                        if (fc[0] == '#' || fc[0] == 'B' || fc[0] == 'T') { // multiply layers without other parameters
-                            if (fc[0] == 'B')
-                                angle_steps = this->object()->print()->default_region_config().bottom_shell_layers.value;
-                            else if (fc[0] == 'T')
-                                angle_steps = this->object()->print()->default_region_config().top_shell_layers.value;
-                            else
-                                angle_steps = strtol(&cs[1], &cs, 0);
-                            limit_fill_z = this->object()->get_layer(std::min(i + std::max(angle_steps - 1, 0.), (double) this->object()->layers().size() - 1))->print_z;
-                        } else {
-                            angle_add = strtod(tk[t].data(), &cs); // read angle parameter
-                            if (fc[0] != '+' && fc[0] != '-') {    // absolute/relative
-                                angle_start = angle_add;
-                            }
-
-                            if (cs[0] == '%') { // percentage of angles
-                                angle_add *= 3.6;
-                                cs = &cs[1];
-                            }
-
-                            int tit = tk[t].find('*');
-                            if (tit != std::string::npos) { // overall angle_cycles
-                                repeats = strtol(&tk[t][tit + 1], &cs, 0);
-                            }
-
-                            if (cs[0] != '\0') {
-                                if (repeats) {               // run if overall cycles greater than 0
-                                    negative = cs[1] == '-'; // negative parameter
-                                    if (cs[0] == 'B') {
-                                        angle_steps = this->object()->print()->default_region_config().bottom_shell_layers.value;
-                                    } else if (cs[0] == 'T') {
-                                        angle_steps = this->object()->print()->default_region_config().top_shell_layers.value;
-                                    } else {
-                                        angle_steps = abs(strtod(&cs[1], &fc));
-                                        if (cs[0] == '#') { // multiply layers
-                                            angle_start += angle_add;
-                                            angle_add = 0.;
-                                        } else {
-                                            fill_form = search_string.find(cs[0]);
-
-                                            if (!angle_steps)
-                                                stop[t] = true; // a one-time instruction
-                                        }
-                                        if (fc[0] != '\0' && fc[0] != '!') {
-                                            if (fc[0] == '%')       // value in the percents of fill_z
-                                                limit_fill_z = angle_steps * this->object()->height() * 1e-8;
-                                            else if (fc[0] == '#')  // value in the feet
-                                                limit_fill_z = angle_steps * this->object()->config().layer_height;
-                                            else if (fc[0] == '\'') // value in the feet
-                                                limit_fill_z = angle_steps * 12 * 25.4;
-                                            else if (fc[0] == '\"') // value in the inches
-                                                limit_fill_z = angle_steps * 25.4;
-                                            else if (fc[0] == 'c')  // value in centimeters
-                                                limit_fill_z = angle_steps * 10.;
-                                            else if (fc[0] == 'm')
-                                                if (fc[1] == 'm') { // value in the millimeters
-                                                    limit_fill_z = angle_steps * 1.;
-                                                } else              // value in the meters
-                                                    limit_fill_z = angle_steps * 1000.;
-                                            limit_fill_z += fill_z;
-                                        } else {
-                                            int idx      = i + std::max(angle_steps - 1, 0.);
-                                            int sdx      = std::max(0, idx - (int) this->object()->layers().size());
-                                            idx          = std::min(idx, (int) this->object()->layers().size() - 1);
-                                            limit_fill_z = this->object()->get_layer(idx)->print_z +
-                                                           sdx * this->object()->config().layer_height;
-                                        }
-                                    }
-                                    // if (angle_steps == 1)   // a one-time instruction
-                                    //     stop[t]     = true;
-
-                                    if (!angle_steps) // a dumb instruction
-                                        noop = true;
-                                } else {
-                                    noop = true; // set the dumb cycle
-                                }
-                            }
-                            repeats = std::max(--repeats, 0);
-                        }
-                    }
-                    if (++t >= tk.size())
-                        t = 0;
-                } while (std::all_of(stop.begin(), stop.end(), [](bool v) { return v; }) ? false : (t ? noop : false) || stop[t]); // if this is a dumb instruction which never reaprated twice
-            }
-        }
-        double negvalue = (negative ? limit_fill_z - fill_z : fill_z - start_fill_z) / (limit_fill_z - start_fill_z);
-
-        switch (fill_form) {
-        case 0: break;                                                              // /-joint
-        case 1: negvalue -= sin(negvalue * PI * 2.) / (PI * 2.); break;             // sinus-joint vertical 
-        case 2: negvalue -= sin(negvalue * PI * 2.) / (PI * 4.); break;             // sinus-joint vertical lazy
-        case 3: negvalue += sin(negvalue * PI * 2.) / (PI * 2.); break;             // sinus-joint horizontal 
-        case 4: negvalue += sin(negvalue * PI * 2.) / (PI * 4.); break;             // sinus-joint horizontal lazy
-        case 5: negvalue = asin(negvalue * 2. - 1.) / PI + 0.5; break;              // arcsinus-joint
-        case 6: negvalue = 1. - cos(negvalue * PI / 2.); break;                     // quarter-joint of circle
-        case 7: negvalue = sin(negvalue * PI / 2.); break;                          // quarter-joint of circle inverse
-        case 8: negvalue = 1. - pow(1. - negvalue, 2); break;                       // squared-joint
-        case 9: negvalue = pow(1 - negvalue, 2); break;                             // squared-joint inverse
-        case 10: negvalue = 1. - pow(1. - negvalue, 3); break;                      // cubic-joint
-        case 11: negvalue = pow(1. - negvalue, 3); break;                           // cubic-joint inverse
-        case 12: negvalue = (double) rand() / RAND_MAX; break;                      // random-joint
-        case 13: negvalue += ((double) rand() / RAND_MAX - 0.5); break;             // pseudorandom-joint
-        case 14: negvalue = 0.5; break;                                             // |-joint, like #-joint but placed at middle
-        case 15: negvalue = negative >= 0.5 ? 0. : 1.; break;                       // #-joint
-        }
-        angle = angle_start + angle_add * negvalue;
-    }
-    return angle;
-}; 
-
-
 // friend to Layer
 void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator)
 {
@@ -1208,20 +1048,182 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
         auto &region_config = layerm->region().config();
+        params.config               = &region_config;
+        params.pattern              = surface_fill.params.pattern;
 
         ConfigOptionFloats rotate_angles;
-        std::string        v(surface_fill.params.extrusion_role == erInternalInfill ? region_config.sparse_infill_rotate_template.value :
+        const std::string  search_string = "/NnZz$LlUuQq~^|#";
+        std::string        v(params.extrusion_role == erInternalInfill ? region_config.sparse_infill_rotate_template.value :
                                                                                       region_config.solid_infill_rotate_template.value);
-        if (regex_search(v, std::regex("[+\\-%#*\/@\'\"]"))) {
-            f->rotate_angle = Geometry::deg2rad(get_template_angle(v));
+        if (regex_search(v, std::regex("[+\\-%*@\'\"cmSODMR" + search_string + "]"))) { // template metalanguage of rotating infill
+            std::regex                 del("[\\s,]+");
+            std::sregex_token_iterator it(v.begin(), v.end(), del, -1);
+            std::vector<std::string>   tk;
+            std::sregex_token_iterator end;
+            while (it != end) {
+                tk.push_back(*it++);
+            }
+            int               t            = 0;
+            int               repeats      = 0;
+            double            angle        = 0;
+            double            angle_add    = 0;
+            double            angle_steps  = 1;
+            double            angle_start  = 0;
+            double            limit_fill_z = this->object()->get_layer(0)->bottom_z();
+            double            start_fill_z = limit_fill_z;
+            bool              noop         = false;
+            auto              solid        = std::string::npos; // -1 - sparse,  0 - native (D), 1 - internal solid (S), 2 - concentric (O), 3 - monotonic (M), 4 - rectilinear (R)           
+            auto              fill_form    = std::string::npos;
+            bool              negative     = false;
+            std::vector<bool> stop(tk.size(), false);
+
+            for (int i = 0; i <= this->id(); i++) {
+                double fill_z = this->object()->get_layer(i)->bottom_z();
+
+                if (limit_fill_z < this->object()->get_layer(i)->slice_z) {
+                    if (repeats) { // if repeats >0 then restore parameters for new iteration
+                        limit_fill_z += limit_fill_z - start_fill_z;
+                        start_fill_z = fill_z;
+                        repeats--;
+                    } else {
+                        start_fill_z = fill_z;
+                        limit_fill_z = this->object()->get_layer(i)->print_z;
+                        solid        = std::string::npos;
+                        fill_form    = std::string::npos;
+                        do {
+                            if (!stop[t]) {
+                                noop     = false;
+                                negative = false;
+                                angle_start += angle_add;
+                                angle_add   = 0;
+                                angle_steps = 1;
+                                repeats     = 1;
+                                if (tk[t].find('!') != std::string::npos) // this is an one-time instruction
+                                    stop[t] = true;
+
+                                char* cs = &tk[t][0];
+
+                                angle_add = strtod(cs, &cs); // read angle parameter
+
+                                if (angle_add) {
+                                    if (tk[t][0] != '+' && tk[t][0] != '-') { // absolute/relative
+                                        angle_start = angle_add;
+                                    }
+                                    if (cs[0] == '%') {                 // percentage of angles
+                                        angle_add *= 3.6;
+                                        cs = &cs[1];
+                                    }
+                                }
+
+                                int tit = tk[t].find('*');
+                                if (tit != std::string::npos)          // overall angle_cycles
+                                    repeats = strtol(&tk[t][tit + 1], &cs, 0);
+
+                                if (repeats) {                          // run if overall cycles greater than 0
+                                    solid = std::string("DSOMR").find(cs[0]); // solid infill
+                                    if (solid != std::string::npos) 
+                                        cs = &cs[1];
+
+                                    if (cs[0] == 'B') {
+                                        angle_steps = this->object()->print()->default_region_config().bottom_shell_layers.value;
+                                    } else if (cs[0] == 'T') {
+                                        angle_steps = this->object()->print()->default_region_config().top_shell_layers.value;
+                                    } else {
+                                        fill_form = search_string.find(cs[0]);
+                                        if (fill_form != std::string::npos)
+                                            cs = &cs[1];
+
+                                        negative = (cs[0] == '-');  // negative parameter
+                                        angle_steps = abs(strtod(cs, &cs));
+                                        if (angle_steps && cs[0] != '\0' && cs[0] != '!') {
+                                            if (cs[0] == '%')       // value in the percents of fill_z
+                                                limit_fill_z = angle_steps * this->object()->height() * 1e-8;
+                                            else if (cs[0] == '#')  // value in the feet
+                                                limit_fill_z = angle_steps * this->object()->config().layer_height;
+                                            else if (cs[0] == '\'') // value in the feet
+                                                limit_fill_z = angle_steps * 12 * 25.4;
+                                            else if (cs[0] == '\"') // value in the inches
+                                                limit_fill_z = angle_steps * 25.4;
+                                            else if (cs[0] == 'c')  // value in centimeters
+                                                limit_fill_z = angle_steps * 10.;
+                                            else if (cs[0] == 'm')
+                                                if (cs[1] == 'm') { // value in the millimeters
+                                                    limit_fill_z = angle_steps * 1.;
+                                                } else              // value in the meters
+                                                    limit_fill_z = angle_steps * 1000.;
+                                            limit_fill_z += fill_z;
+                                            angle_steps = 0; // limit_fill_z has already count
+                                        }
+                                    }
+                                    if (angle_steps) {       // if limit_fill_z does not setting by lenght method. Get count the layer id above model height
+                                        int idx      = i + std::max(angle_steps - 1, 0.);
+                                        int sdx      = std::max(0, idx - (int) this->object()->layers().size());
+                                        idx          = std::min(idx, (int) this->object()->layers().size() - 1);
+                                        limit_fill_z = this->object()->get_layer(idx)->print_z +
+                                                        sdx * this->object()->config().layer_height;
+                                    }
+                                    repeats = std::max(--repeats, 0);
+                                } else 
+                                    noop = true;        // set the dumb cycle
+                            }
+                            if (++t >= tk.size())
+                                t = 0;
+                        } while (std::all_of(stop.begin(), stop.end(), [](bool v) { return v; }) ?
+                                     false :
+                                     (t ? noop : false) || stop[t]); // if this is a dumb instruction which never reaprated twice
+                    }
+                }
+                double negvalue = (negative ? limit_fill_z - fill_z : fill_z - start_fill_z) / (limit_fill_z - start_fill_z);
+
+                switch (fill_form) {
+                case 0: break;                                                  // /-joint, linear
+                case 1: negvalue -= sin(negvalue * PI * 2.) / (PI * 2.); break; // N-joint, sinus, vertical start
+                case 2: negvalue -= sin(negvalue * PI * 2.) / (PI * 4.); break; // n-joint, sinus, vertical start, lazy
+                case 3: negvalue += sin(negvalue * PI * 2.) / (PI * 2.); break; // Z-joint, sinus, horizontal start
+                case 4: negvalue += sin(negvalue * PI * 2.) / (PI * 4.); break; // z-joint, sinus, horizontal start, lazy
+                case 5: negvalue = asin(negvalue * 2. - 1.) / PI + 0.5; break;  // $-joint, arcsin
+                case 6: negvalue = sin(negvalue * PI / 2.); break;              // L-joint, quarter of circle, horizontal start
+                case 7: negvalue = 1. - cos(negvalue * PI / 2.); break;         // l-joint, quarter of circle, vertical start
+                case 8: negvalue = 1. - pow(1. - negvalue, 2); break;           // U-joint, squared, x2
+                case 9: negvalue = pow(1 - negvalue, 2); break;                 // u-joint, squared, x2 inverse
+                case 10: negvalue = 1. - pow(1. - negvalue, 3); break;          // Q-joint, cubic, x3
+                case 11: negvalue = pow(1. - negvalue, 3); break;               // q-joint, cubic, x3 inverse
+                case 12: negvalue = (double) rand() / RAND_MAX; break;          // ~-joint, random, fill the whole angle
+                case 13: negvalue += (double) rand() / RAND_MAX - 0.5; break;   // ^-joint, pseudorandom, disperse at middle line
+                case 14: negvalue = 0.5; break;                                 // |-joint, like #-joint but placed at middle angle
+                case 15: negvalue = negative ? 0. : 1.; break;                  // #-joint, vertical at the end angle
+                }
+                angle = angle_start + angle_add * negvalue;
+            }
+            if (solid != std::string::npos) {
+                switch (solid) {
+                case 1: params.pattern = region_config.internal_solid_infill_pattern.value; break; // selected solid pattern
+                case 2: params.pattern = ipConcentric; break;                                      // concentric pattern 
+                case 3: params.pattern = ipMonotonic; break;                                       // monotonic pattern 
+                case 4: params.pattern = ipRectilinear;                                            // rectilinear pattern  
+                }                                                                                  // or else use native pattern
+                params.extrusion_role = erSolidInfill;
+                params.density        = 1.;
+                surface_fill.params.pattern = params.pattern;
+
+                f = std::unique_ptr<Fill>(Fill::new_from_type(params.pattern)); // reinitialize surface
+                f->set_bounding_box(bbox);
+                f->layer_id            = this->id();
+                f->z                   = this->print_z;
+                f->angle               = surface_fill.params.angle;
+                //f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
+                f->print_config        = &this->object()->print()->config();
+                f->print_object_config = &this->object()->config();
+                //f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
+                params.use_arachne = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipConcentricInternal;
+            }
+            f->rotate_angle = Geometry::deg2rad(angle);
         } else {
             rotate_angles.deserialize(v);
             auto rotate_angle_idx = f->layer_id % rotate_angles.size();
             f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
         }
 
-		params.config = &region_config;
-        params.pattern = surface_fill.params.pattern;
 		if( surface_fill.params.pattern == ipLockedZag ) {
 			params.locked_zag = true;
             params.infill_lock_depth = surface_fill.params.infill_lock_depth;
