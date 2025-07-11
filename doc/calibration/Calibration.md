@@ -21,33 +21,33 @@ The recommended order for calibration is as follows:
 
    <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-6.jpg?raw=true" alt="flowrate-6" height="200">
 
-1. **[Pressure Advance](pressure-advance-calib):** Calibrate the pressure advance settings to improve print quality and reduce artifacts caused by pressure fluctuations in the nozzle.
+3. **[Pressure Advance](pressure-advance-calib):** Calibrate the pressure advance settings to improve print quality and reduce artifacts caused by pressure fluctuations in the nozzle.
 
    - **[Adaptive Pressure Advance](adaptive-pressure-advance-calib):** This is an advanced calibration technique that can be used to further optimize the pressure advance settings for different print speeds and geometries.
 
       <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-tower.jpg?raw=true" alt="pa-tower" height="200">
 
-2. **[Retraction](retraction-calib):** Calibrate the retraction settings to minimize stringing and improve print quality. Doing this after Flow and Pressure Advance calibration is recommended, as it ensures that the printer is already set up for optimal extrusion.
+4. **[Retraction](retraction-calib):** Calibrate the retraction settings to minimize stringing and improve print quality. Doing this after Flow and Pressure Advance calibration is recommended, as it ensures that the printer is already set up for optimal extrusion.
 
    <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/retraction/retraction_test_print.jpg?raw=true" alt="Retraction" height="200">
 
-3. **[Tolerance](tolerance-calib):** Calibrate the tolerances of your printer to ensure that it can accurately reproduce the dimensions of the model being printed. This is important for achieving a good fit between parts and for ensuring that the final print meets the desired specifications.
+5. **[Tolerance](tolerance-calib):** Calibrate the tolerances of your printer to ensure that it can accurately reproduce the dimensions of the model being printed. This is important for achieving a good fit between parts and for ensuring that the final print meets the desired specifications.
 
    <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/OrcaToleranceTes_m6.jpg?raw=true" alt="Tolerance" height="200">
 
-4. **[Max Volumetric Speed](volumetric-speed-calib):** Calibrate the maximum volumetric speed of the filament. This is important for ensuring that the printer can handle the flow rate of the filament without causing issues such as under-extrusion or over-extrusion.
+6. **[Max Volumetric Speed](volumetric-speed-calib):** Calibrate the maximum volumetric speed of the filament. This is important for ensuring that the printer can handle the flow rate of the filament without causing issues such as under-extrusion or over-extrusion.
 
    <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/MVF/mvf_measurement_point.jpg?raw=true" alt="Max_Volumetric_Speed" height="200">
 
-5. **[Cornering](cornering-calib):** Calibrate the Jerk/Junction Deviation settings to improve print quality and reduce artifacts caused by sharp corners and changes in direction.
+7. **[Cornering](cornering-calib):** Calibrate the Jerk/Junction Deviation settings to improve print quality and reduce artifacts caused by sharp corners and changes in direction.
 
      <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_second_print_measure.jpg?raw=true" alt="Cornering" height="200">
 
-6. **[Input Shaping](input-shaping-calib):** This is an advanced calibration technique that can be used to reduce ringing and improve print quality by compensating for mechanical vibrations in the printer.
+8. **[Input Shaping](input-shaping-calib):** This is an advanced calibration technique that can be used to reduce ringing and improve print quality by compensating for mechanical vibrations in the printer.
 
    <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_marlin_print_measure.jpg?raw=true" alt="Input_Shaping" height="200">
 
-7. **[VFA](vfa-calib):** A VFA speed test is available to find resonance speeds.
+9. **[VFA](vfa-calib):** A VFA speed test is available to find resonance speeds.
 
    <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/vfa/vfa_test_print.jpg?raw=true" alt="vfa_test_print" height="200">
 
