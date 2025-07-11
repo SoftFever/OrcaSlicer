@@ -231,11 +231,16 @@ void PrintJob::process(Ctl &ctl)
     params.task_layer_inspect   = this->task_layer_inspect;
     params.task_record_timelapse= this->task_record_timelapse;
     params.ams_mapping          = this->task_ams_mapping;
+    params.ams_mapping2         = this->task_ams_mapping2;
     params.ams_mapping_info     = this->task_ams_mapping_info;
+    params.nozzles_info         = this->task_nozzles_info;
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
     params.task_bed_type        = this->task_bed_type;
     params.print_type           = this->m_print_type;
+    params.auto_bed_leveling    = this->auto_bed_leveling;
+    params.auto_flow_cali       = this->auto_flow_cali;
+    params.auto_offset_cali     = this->auto_offset_cali;
 
     if (m_print_type == "from_sdcard_view") {
         params.dst_file = m_dst_path;

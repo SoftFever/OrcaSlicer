@@ -4,17 +4,17 @@ The purpose of this guide is to describe how to contribute to the Orca Slicer tr
 
 Those can be downloaded here:
 
-- https://sourceforge.net/directory/os:windows/?q=gnu+gettext GNUgettext package contains a set of tools to extract strings from the source code and to create the translation Catalog.
-- https://poedit.net PoEdit provides good interface for the translators.
+- [GNUgettext](https://www.gnu.org/software/gettext/) package contains a set of tools to extract strings from the source code and to create the translation Catalog.
+- [PoEdit](https://poedit.net) provides good interface for the translators.
 
 After GNUgettext is installed, it is recommended to add the path to gettext/bin to PATH variable.
 
-Full manual for GNUgettext can be seen here: http://www.gnu.org/software/gettext/manual/gettext.html
+Full manual for GNUgettext can be seen here: [http://www.gnu.org/software/gettext/manual/gettext.html](http://www.gnu.org/software/gettext/manual/gettext.html)
 
 ### Scenario 1. How do I add a translation or fix an existing translation
 
 1. Get PO-file 'OrcaSlicer_xx.pot' from corresponding sub-folder here:
-   https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n
+   [https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n](https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n)
 2. Open this file in PoEdit as "Edit a translation"
 3. Apply your corrections to the translation
 4. Push changed OrcaSlicer_xx.po into the original folder
@@ -23,15 +23,15 @@ Full manual for GNUgettext can be seen here: http://www.gnu.org/software/gettext
 ### Scenario 2. How do I add a new language support
 
 1. Get file OrcaSlicer.pot here :
-   https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n
+   [https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n](https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n)
 2. Open it in PoEdit for "Create new translation"
 3. Select Translation Language (for example French).
 4. As a result you will have fr.po - the file containing translation to French.
 Notice. When the translation is complete you need to:
     - Rename the file to OrcaSlicer_fr.po
     - Click "Save file" button. OrcaSlicer_fr.mo will be created immediately
-    - Bambu_Studio_fr.po needs to be copied into the sub-folder fr of https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n, and be pushed
-	- copy OrcaSlicer_xx.mo into resources/i18n/xx and rename it to OrcaSlicer.mo, then push the changed file.
+    - Bambu_Studio_fr.po needs to be copied into the sub-folder fr of [https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n](https://github.com/softfever/OrcaSlicer/tree/master/localization/i18n), and be pushed
+    - copy OrcaSlicer_xx.mo into resources/i18n/xx and rename it to OrcaSlicer.mo, then push the changed file.
 ( name of folder "fr" means "French" - the translation language).
 
 ### Scenario 3. How do I add a new text resource when implementing a feature to Orca Slicer
@@ -47,10 +47,10 @@ If you add new file resource, add it to the list of files containing macro `L()`
 
 ### Scenario 4. How do I use GNUgettext to localize my own application taking Orca Slicer as an example
 
-1.  For convenience create a list of files with this macro `L(s)`. We have
+1. For convenience create a list of files with this macro `L(s)`. We have
     https://github.com/softfever/OrcaSlicer/blob/master/localization/i18n/list.txt.
 
-2.  Create template file(*.POT) with GNUgettext command:
+2. Create template file(*.POT) with GNUgettext command:
 
     ```shell
     xgettext --keyword=L --add-comments=TRN --from-code=UTF-8 --debug -o OrcaSlicer.pot -f list.txt
@@ -59,9 +59,9 @@ If you add new file resource, add it to the list of files containing macro `L()`
     Use flag `--from-code=UTF-8` to specify that the source strings are in UTF-8 encoding
     Use flag `--debug` to correctly extract formatted strings(used %d, %s etc.)
 
-3.  Create PO- and MO-files for your project as described above.
+3. Create PO- and MO-files for your project as described above.
 
-4.  To merge old PO-file with strings from created new POT-file use command:
+4. To merge old PO-file with strings from created new POT-file use command:
 
     ```shell
     msgmerge -N -o new.po old.po new.pot
@@ -69,17 +69,20 @@ If you add new file resource, add it to the list of files containing macro `L()`
 
     Use option `-N` to not using fuzzy matching when an exact match is not found.
 
-5.  To concatenate old PO-file with strings from new PO-file use command:
+5. To concatenate old PO-file with strings from new PO-file use command:
 
     ```shell
     msgcat -o new.po old.po
     ```
 
-6.  Create an English translation catalog with command:
-    ```shell
-    msgen -o new.po old.po
-    ```
-    Notice, in this Catalog it will be totally same strings for initial text and translated.
+6. Create an English translation catalog with command:
+
+   ```shell
+   msgen -o new.po old.po
+   ```
+
+    > [!NOTE]
+    > In this Catalog it will be totally same strings for initial text and translated.
 
 When you have Catalog to translation open POT or PO file in PoEdit and start translating.
 
