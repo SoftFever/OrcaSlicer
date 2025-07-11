@@ -51,15 +51,19 @@ When using this option is recommended to use the [Precise Wall](quality_settings
 ## Wall loop direction
 
 The direction which the wall loops are extruded when looking down from the top.  
-By default all walls are extruded in counter-clockwise, unless Reverse on even is enabled. Set this to any option other than Auto will force the wall direction regardless of the Reverse on even.
+By default all walls are extruded in counter-clockwise, unless Reverse on even is enabled.  
+Set this to any option other than Auto will force the wall direction regardless of the Reverse on even.
 
 > [!NOTE]
 > This option will be disabled if spiral vase mode is enabled.
 
 ## Surface flow ratio
 
-This factor affects the amount of material for top solid infill. You can decrease it slightly to have smooth surface finish.  
+This factor affects the amount of material for top or bottom solid infill. You can decrease it slightly to have smooth surface finish.  
 The actual top surface flow used is calculated by multiplying this value with the filament flow ratio, and if set, the object's flow ratio.
+
+> [!TIP]
+> Before using a value other than 1, it is recommended to [calibrate the flow ratio](flow-rate-calib) to ensure that the flow ratio is set correctly for your printer and filament.
 
 ## Only one wall
 
@@ -70,24 +74,60 @@ Specially useful in small features, like letters, where the top surface is very 
 
 ### Threshold
 
-If a top surface has to be printed and it's partially covered by another layer, it won't be considered at a top layer where its width is below this value. This can be useful to not let the 'one perimeter on top' trigger on surface that should be covered only by perimeters. This value can be a mm or a % of the perimeter extrusion width.  
-Warning: If enabled, artifacts can be created if you have some thin features on the next layer, like letters. Set this setting to 0 to remove these artifacts.
+If a top surface has to be printed and it's partially covered by another layer, it won't be considered at a top layer where its width is below this value. This can be useful to not let the 'one perimeter on top' trigger on surface that should be covered only by perimeters. This value can be a mm or a % of the perimeter extrusion width.
+
+![only-one-wall-threshold](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/only-one-wall-threshold.png?raw=true)
+
+> [!WARNING]
+> If enabled, artifacts can be created if you have some thin features on the next layer, like letters. Set this setting to 0 to remove these artifacts.
 
 ## Avoid crossing walls
 
 Maximum detour distance for avoiding crossing wall. Don't detour if the detour distance is larger than this value. Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable.
 
+![avoid-crossing-walls](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/avoid-crossing-walls.png?raw=true)
+
 ### Max detour length
 
-Maximum detour distance for avoiding crossing wall. Don't detour if the detour distance is larger than this value. Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable.
+Maximum detour distance for avoiding crossing wall. Don't detour if the detour distance is larger than this value.  
+Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path.
+
+Zero will detour no matter the distance.
 
 ## Small area flow compensation
 
-Enable flow compensation for small infill areas.
+Enables adaptive flow control for small infill areas.
+This feature helps address extrusion problems that often occur in small regions of solid infill, such as the tops of narrow letters or fine features. In these cases, standard extrusion flow may be too much for the available space, leading to over-extrusion or poor surface quality.
+
+![flow-compensation-model](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/flow-compensation-model.png?raw=true)
+
+It works by dynamically adjusting the extrusion flow based on the length of the extrusion path, ensuring more precise material deposition in small spaces.
+
+This is a native implementation of @Alexander-T-Moss [Small Area Flow Compensation](https://github.com/Alexander-T-Moss/Small-Area-Flow-Comp).
 
 ### Flow Compensation Model
 
-used to adjust the flow for small infill areas. The model is expressed as a comma separated pair of values for extrusion length and flow correction factors, one per line, in the following format:
+The model uses a list of Extrusion Length and Flow Correction Factor value pairs. Each pair defines how much flow should be used for a specific Extrusion Length.  
+For values between the listed points, the flow is calculated using linear interpolation.
+
+![flow-compensation-model-graph](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/flow-compensation-model-graph.png?raw=true)
+
+For example for the following model:
+
+| Extrusion Length | Flow Correction Factor |
+|------------------|------------------------|
+| 0                | 0                      |
+| 0.2              | 0.4444                 |
+| 0.4              | 0.6145                 |
+| 0.6              | 0.7059                 |
+| 0.8              | 0.7619                 |
+| 1.5              | 0.8571                 |
+| 2                | 0.8889                 |
+| 3                | 0.9231                 |
+| 5                | 0.952                  |
+| 10               | 1                      |
+
+You should write it as:
 
 ```c++
 0,0;
