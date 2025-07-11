@@ -38,11 +38,15 @@ Use Outer/Inner for the same external wall quality and dimensional accuracy bene
 
 ### Print infill first
 
-When the tickbox is unchecked the walls are printed first, which works best in most cases.  
-Printing infill first may help with extreme overhangs as the walls have the neighboring infill to adhere to. However, the infill will slightly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.  
-When using this option is recommended to use the [Precise Wall](quality_settings_precision#precise-wall) or [Inner/Outer/Inner](#innerouterinner) wall printing order, to avoid the infill pushing out the external wall.
+When this option is enabled, the infill is printed first, followed by the walls. This can be useful for some overhangs where the infill can support the walls.
 
 ![infill-first](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/infill-first.gif?raw=true)
+
+**However**, the infill will slightly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.
+
+![infill-ghosting](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/infill-ghosting.png?raw=true)
+
+When using this option is recommended to use the [Precise Wall](quality_settings_precision#precise-wall), [Inner/Outer/Inner](#innerouterinner) wall printing order or reduce [Infill/Wall Overlap](strength_settings_infill#infill-wall-overlap) to avoid the infill pushing out the external wall.
 
 ## Wall loop direction
 
