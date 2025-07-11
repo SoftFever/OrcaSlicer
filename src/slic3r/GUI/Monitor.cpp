@@ -335,12 +335,6 @@ void MonitorPanel::update_all()
     if (!dev) return;
     obj = dev->get_selected_machine();
 
-    m_status_info_panel->obj = obj;
-    m_upgrade_panel->update(obj);
-    m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
-    m_media_file_panel->SetMachineObject(obj);
-    m_side_tools->update_status(obj);
-
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
         m_hms_panel->clear_hms_tag();
@@ -350,6 +344,9 @@ void MonitorPanel::update_all()
     }
 
     if (obj->connection_type() != last_conn_type) { last_conn_type = obj->connection_type(); }
+  
+    m_side_tools->update_status(obj);
+  
     if (obj->is_connecting()) {
         show_status(MONITOR_CONNECTING);
         return;
@@ -367,9 +364,13 @@ void MonitorPanel::update_all()
 
     show_status(MONITOR_NORMAL);
 
-
-    if (m_status_info_panel->IsShown()) {
+    auto current_page = m_tabpanel->GetCurrentPage();
+    if (current_page == m_status_info_panel) {
         m_status_info_panel->update(obj);
+    } else if (current_page == m_upgrade_panel) {
+        m_upgrade_panel->update(obj);
+    } else if (current_page == m_media_file_panel) {
+        m_media_file_panel->UpdateByObj(obj);
     }
 
     if (m_hms_panel->IsShown() ||  (obj->hms_list.size() != m_hms_panel->temp_hms_list.size())) {

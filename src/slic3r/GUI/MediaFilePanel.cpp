@@ -210,11 +210,12 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
 
 MediaFilePanel::~MediaFilePanel()
 {
-    SetMachineObject(nullptr);
+    UpdateByObj(nullptr);
 }
 
-void MediaFilePanel::SetMachineObject(MachineObject* obj)
+void MediaFilePanel::UpdateByObj(MachineObject* obj)
 {
+    bool sdcard_state_changed = false;
     std::string machine = obj ? obj->dev_id : "";
     if (obj) {
         m_lan_mode     = obj->is_lan_mode_printer();
@@ -222,23 +223,32 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_lan_passwd   = obj->get_access_code();
         m_dev_ver      = obj->get_ota_version();
         m_device_busy  = obj->is_camera_busy_off();
-        m_sdcard_exist = obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
         m_local_proto  = obj->file_local;
         m_remote_proto = obj->get_file_remote();
         m_model_download_support = obj->file_model_download;
+
+        if (m_sdcard_exist != (obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL)) {
+            m_sdcard_exist = obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+            sdcard_state_changed = true;
+        }
     } else {
         m_lan_mode  = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
         m_dev_ver.clear();
-        m_sdcard_exist = false;
         m_device_busy = false;
         m_local_proto = 0;
         m_remote_proto = 0;
         m_model_download_support = false;
+
+        if (m_sdcard_exist) {
+            m_sdcard_exist = false; // reset sdcard state when no object
+            sdcard_state_changed = true;
+        }
     }
+
     Enable(obj && obj->is_info_ready() && obj->m_push_count > 0);
-    if (machine == m_machine) {
+    if (machine == m_machine && !sdcard_state_changed) {
         if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && (m_local_proto || m_remote_proto))) {
             auto fs = m_image_grid->GetFileSystem();
             if (fs) fs->Retry();
@@ -443,11 +453,6 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     if (!m_local_proto && !m_remote_proto) {
         m_waiting_support = true;
         m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in storage is not supported in current firmware. Please update the printer firmware."));
-        fs->SetUrl("0");
-        return;
-    }
-    if (!m_sdcard_exist) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Please check if the storage is inserted into the printer.\nIf it still cannot be read, you can try formatting the storage."));
         fs->SetUrl("0");
         return;
     }
