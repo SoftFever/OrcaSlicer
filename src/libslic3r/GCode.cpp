@@ -6151,7 +6151,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
         // Orca: use `travel_to_xyz` to ensure we start at the correct z, in case we moved z in custom/filament change gcode
-        if (m_spiral_vase &&  m_toolchange_count ==0 ) {
+        if (m_spiral_vase && m_toolchange_count == 0 ) {
             // No lazy z lift for spiral vase mode
             for (size_t i = 1; i < travel.size(); ++i) {
                 gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
