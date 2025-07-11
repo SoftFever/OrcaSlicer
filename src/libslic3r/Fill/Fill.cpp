@@ -969,10 +969,11 @@ double Layer::get_template_angle(std::string v) {
     std::regex                 del("[\\s,]+");
     std::sregex_token_iterator it(v.begin(), v.end(), del, -1);
     std::sregex_token_iterator end;
+    std::string                search_string = "/NnZz$LlUuQq~6|#";
     while (it != end)
         tk.push_back(*it++);
     int t = 0;
-    int               repeats = 1;
+    int               repeats = 0;
     double            angle = 0;
     double            angle_add = 0;
     double            angle_steps  = 1;
@@ -991,152 +992,133 @@ double Layer::get_template_angle(std::string v) {
     for (int i = 0; i <= this->id(); i++) {
         fill_z = this->object()->get_layer(i)->bottom_z();
         
-        if (repeats) {
-        }
-
         if (limit_fill_z < this->object()->get_layer(i)->slice_z) {
-            start_fill_z = fill_z;
-            limit_fill_z = this->object()->get_layer(i)->print_z;
-            do {
-                if (!stop[t]) {
-                    noop = false;
-                    negative    = false;
-                    angle_start += angle_add;
-                    angle_add    = 0;
-                    angle_steps = 1;
-                    repeats     = 1;
-                    if (tk[t].find('!') != std::string::npos)           // this is a one-time instruction
-                        stop[t] = true;
+            if (repeats) { // if repeats >0 then restore parameters for new iteration
+                limit_fill_z += limit_fill_z - start_fill_z;
+                start_fill_z = fill_z;
+                repeats--;
+            } else {
+                start_fill_z = fill_z;
+                limit_fill_z = this->object()->get_layer(i)->print_z;
+                do {
+                    if (!stop[t]) {
+                        noop     = false;
+                        negative = false;
+                        angle_start += angle_add;
+                        angle_add   = 0;
+                        angle_steps = 1;
+                        repeats     = 1;
+                        if (tk[t].find('!') != std::string::npos) // this is an one-time instruction
+                            stop[t] = true;
 
-                    fc = tk[t].data();
-                    cs = tk[t].data();
+                        fc = tk[t].data();
+                        cs = tk[t].data();
 
-                    if (fc[0] == '#' || fc[0] == 'B' || fc[0] == 'T') { // multiply layers without other parameters
-                        if (fc[0] == 'B') 
-                            angle_steps = this->object()->print()->default_region_config().bottom_shell_layers.value;
-                        else if (fc[0] == 'T')
-                            angle_steps = this->object()->print()->default_region_config().top_shell_layers.value;
-                        else 
-                            angle_steps = strtol(&cs[1], &cs, 0);
-                        limit_fill_z = this->object()->get_layer(std::min(i + std::max(angle_steps - 1, 0.), (double) this->object()->layers().size() - 1))->print_z;
-                    } else {
-                        angle_add = strtod(tk[t].data(), &cs); // read angle parameter
-                        if (fc[0] != '+' && fc[0] != '-') {         // absolute/relative
-                            angle_start = angle_add;
-                        }
-                        
-                        if (cs[0] == '%') {                             // percentage of angles
-                            angle_add *= 3.6;
-                            cs = &cs[1]; }
+                        if (fc[0] == '#' || fc[0] == 'B' || fc[0] == 'T') { // multiply layers without other parameters
+                            if (fc[0] == 'B')
+                                angle_steps = this->object()->print()->default_region_config().bottom_shell_layers.value;
+                            else if (fc[0] == 'T')
+                                angle_steps = this->object()->print()->default_region_config().top_shell_layers.value;
+                            else
+                                angle_steps = strtol(&cs[1], &cs, 0);
+                            limit_fill_z = this->object()->get_layer(std::min(i + std::max(angle_steps - 1, 0.), (double) this->object()->layers().size() - 1))->print_z;
+                        } else {
+                            angle_add = strtod(tk[t].data(), &cs); // read angle parameter
+                            if (fc[0] != '+' && fc[0] != '-') {    // absolute/relative
+                                angle_start = angle_add;
+                            }
 
-                        int tit = tk[t].find('*');
-                        if (tit != std::string::npos) { // overall angle_cycles
-                            repeats = strtol(&tk[t][tit], &cs, 0);
-                        }
-                        if (cs[0] != '\0') {
-                            if (repeats) {                  // run if overall cycles greater than 0
-                                negative = cs[1] == '-';    // negative parameter
-                                if (cs[0] == 'B') {
-                                    angle_steps = this->object()->print()->default_region_config().bottom_shell_layers.value;
-                                } else if (cs[0] == 'T') {
-                                    angle_steps = this->object()->print()->default_region_config().top_shell_layers.value;
-                                } else {
-                                    angle_steps = abs(strtod(&cs[1], &fc));
-                                    if (cs[0] == '#') {         // multiply layers
+                            if (cs[0] == '%') { // percentage of angles
+                                angle_add *= 3.6;
+                                cs = &cs[1];
+                            }
+
+                            int tit = tk[t].find('*');
+                            if (tit != std::string::npos) { // overall angle_cycles
+                                repeats = strtol(&tk[t][tit + 1], &cs, 0);
+                            }
+
+                            if (cs[0] != '\0') {
+                                if (repeats) {               // run if overall cycles greater than 0
+                                    negative = cs[1] == '-'; // negative parameter
+                                    if (cs[0] == 'B') {
+                                        angle_steps = this->object()->print()->default_region_config().bottom_shell_layers.value;
+                                    } else if (cs[0] == 'T') {
+                                        angle_steps = this->object()->print()->default_region_config().top_shell_layers.value;
+                                    } else {
+                                        angle_steps = abs(strtod(&cs[1], &fc));
+                                        if (cs[0] == '#') { // multiply layers
                                             angle_start += angle_add;
                                             angle_add = 0.;
-                                    } else {
-                                        if (cs[0] == 'N') {
-                                            fill_form = 1;      // infill form by sinus (vertical connection)
-                                        } else if (cs[0] == 'n') {
-                                            fill_form = 2;      // infill form by sinus (vertical connection, lazy)
-                                        } else if (cs[0] == 'Z') {
-                                            fill_form = 3;      // infill form by sinus (horisontal connection)
-                                        } else if (cs[0] == 'z') {
-                                            fill_form = 4;      // infill form by sinus (horisontal connection, lazy)
-                                        } else if (cs[0] == '$') {
-                                            fill_form = 5;      // infill form by arcsinus metod
-                                        } else if (cs[0] == 'l') {
-                                            fill_form = 6;      // infill form by quarter of circle 
-                                        } else if (cs[0] == 'L') {
-                                            fill_form = 7;      // infill form by quarter of circle (inverse)
-                                        } else if (cs[0] == 'U') {
-                                            fill_form = 8;      // infill form by squared 
-                                        } else if (cs[0] == 'u') {
-                                            fill_form = 9;      // infill form by squared (inverse)
-                                        } else if (cs[0] == 'Q') {
-                                            fill_form = 10;      // infill form by cubic 
-                                        } else if (cs[0] == 'q') {
-                                            fill_form = 11;      // infill form by cubic (inverse)
-                                        } else if (cs[0] == '~') {
-                                            fill_form = 12;      // infill form random angle 
-                                        } else if (cs[0] == '^') {
-                                            fill_form = 13;      // infill form pseudorandom angle 
-                                        }                        // '/' cycle + divider 
+                                        } else {
+                                            fill_form = search_string.find(cs[0]);
 
-                                        if (!angle_steps)
-                                            stop[t] = true;     // a one-time instruction
+                                            if (!angle_steps)
+                                                stop[t] = true; // a one-time instruction
+                                        }
+                                        if (fc[0] != '\0' && fc[0] != '!') {
+                                            if (fc[0] == '%')       // value in the percents of fill_z
+                                                limit_fill_z = angle_steps * this->object()->height() * 1e-8;
+                                            else if (fc[0] == '#')  // value in the feet
+                                                limit_fill_z = angle_steps * this->object()->config().layer_height;
+                                            else if (fc[0] == '\'') // value in the feet
+                                                limit_fill_z = angle_steps * 12 * 25.4;
+                                            else if (fc[0] == '\"') // value in the inches
+                                                limit_fill_z = angle_steps * 25.4;
+                                            else if (fc[0] == 'c')  // value in centimeters
+                                                limit_fill_z = angle_steps * 10.;
+                                            else if (fc[0] == 'm')
+                                                if (fc[1] == 'm') { // value in the millimeters
+                                                    limit_fill_z = angle_steps * 1.;
+                                                } else              // value in the meters
+                                                    limit_fill_z = angle_steps * 1000.;
+                                            limit_fill_z += fill_z;
+                                        } else {
+                                            int idx      = i + std::max(angle_steps - 1, 0.);
+                                            int sdx      = std::max(0, idx - (int) this->object()->layers().size());
+                                            idx          = std::min(idx, (int) this->object()->layers().size() - 1);
+                                            limit_fill_z = this->object()->get_layer(idx)->print_z +
+                                                           sdx * this->object()->config().layer_height;
+                                        }
                                     }
-                                    if (fc[0] != '\0' && fc[0] != '!') {
-                                        if (fc[0] == '%')       // value in the percents of fill_z
-                                            limit_fill_z = angle_steps * this->object()->height() * 1e-8;
-                                        else if (fc[0] == '#')  // value in the feet
-                                            limit_fill_z = angle_steps * this->object()->config().layer_height; 
-                                        else if (fc[0] == '\'') // value in the feet
-                                            limit_fill_z = angle_steps * 12 * 25.4;
-                                        else if (fc[0] == '\"') // value in the inches
-                                            limit_fill_z = angle_steps * 25.4;
-                                        else if (fc[0] == 'c')  // value in centimeters
-                                            limit_fill_z = angle_steps * 10.;
-                                        else if (fc[0] == 'm')
-                                            if (fc[1] == 'm') { // value in the millimeters
-                                                limit_fill_z = angle_steps * 1. ;
-                                            } else              // value in the meters
-                                                limit_fill_z = angle_steps * 1000. ;
-                                        limit_fill_z += fill_z;
-                                    } else {
-                                        limit_fill_z = this->object()->get_layer(std::min(i + std::max(angle_steps - 1, 0.), (double) this->object()->layers().size() - 1))->print_z;
-                                    }
+                                    // if (angle_steps == 1)   // a one-time instruction
+                                    //     stop[t]     = true;
+
+                                    if (!angle_steps) // a dumb instruction
+                                        noop = true;
+                                } else {
+                                    noop = true; // set the dumb cycle
                                 }
-                                //if (angle_steps == 1)   // a one-time instruction
-                                //    stop[t]     = true;
-
-                                if (!angle_steps)       // a dumb instruction
-                                    noop = true;
-                            } else {
-                                noop = true;
                             }
+                            repeats = std::max(--repeats, 0);
                         }
                     }
-                }
-                if (++t >= tk.size())
-                    t = 0;
-            } while (std::all_of(stop.begin(), stop.end(), [](bool v) { return v; }) ? false : (t ? noop : false) || stop[t]); // if this is a dumb instruction which never reaprated twice
+                    if (++t >= tk.size())
+                        t = 0;
+                } while (std::all_of(stop.begin(), stop.end(), [](bool v) { return v; }) ? false : (t ? noop : false) || stop[t]); // if this is a dumb instruction which never reaprated twice
+            }
         }
-        double negvalue = (negative ? limit_fill_z - fill_z : fill_z - start_fill_z) / (limit_fill_z - start_fill_z);  
+        double negvalue = (negative ? limit_fill_z - fill_z : fill_z - start_fill_z) / (limit_fill_z - start_fill_z);
+
         switch (fill_form) {
-        case 1: angle = angle_start + angle_add * (negvalue - sin(negvalue * PI * 2.) / (PI * 2.)); break;      // sinus vertical 
-        case 2: angle = angle_start + angle_add * (negvalue - sin(negvalue * PI * 2.) / (PI * 4.)); break;      // sinus vertical lazy
-
-        case 3: angle = angle_start + angle_add * (negvalue + sin(negvalue * PI * 2.) / (PI * 2.)); break;      // sinus horizontal 
-        case 4: angle = angle_start + angle_add * (negvalue + sin(negvalue * PI * 2.) / (PI * 4.)); break;      // sinus horizontal lazy
-
-        case 5: angle = angle_start + angle_add * (asin(negvalue * 2. - 1.) / PI + 0.5) ; break;                // arcsinus
-
-        case 6: angle = angle_start + angle_add * sin(negvalue * PI / 2.); break;                               // quarter of circle
-        case 7: angle = angle_start + angle_add * (1. - cos(negvalue * PI / 2.)); break;                        // quarter of circle inverse
-
-        case 8: angle = angle_start + angle_add * (1. - pow(1. - negvalue, 2)); break;                          // squared
-        case 9: angle = angle_start + angle_add * pow(1 - negvalue, 2); break;                                  // squared inverse
-
-        case 10: angle = angle_start + angle_add * (1. - pow(1. - negvalue, 3)); break;                         // cubic
-        case 11: angle = angle_start + angle_add * pow(1. - negvalue, 3); break;                                // cubic inverse
-
-        case 12: angle = angle_start + angle_add * rand() / RAND_MAX; break;                                    // random
-        case 13: angle = angle_start + angle_add * (negvalue + (double) rand() / RAND_MAX - 0.5); break;        // pseudorandom
-
-        default: angle = angle_start + angle_add * negvalue;
+        case 0: break;                                                              // /-joint
+        case 1: negvalue -= sin(negvalue * PI * 2.) / (PI * 2.); break;             // sinus-joint vertical 
+        case 2: negvalue -= sin(negvalue * PI * 2.) / (PI * 4.); break;             // sinus-joint vertical lazy
+        case 3: negvalue += sin(negvalue * PI * 2.) / (PI * 2.); break;             // sinus-joint horizontal 
+        case 4: negvalue += sin(negvalue * PI * 2.) / (PI * 4.); break;             // sinus-joint horizontal lazy
+        case 5: negvalue = asin(negvalue * 2. - 1.) / PI + 0.5; break;              // arcsinus-joint
+        case 6: negvalue = 1. - cos(negvalue * PI / 2.); break;                     // quarter-joint of circle
+        case 7: negvalue = sin(negvalue * PI / 2.); break;                          // quarter-joint of circle inverse
+        case 8: negvalue = 1. - pow(1. - negvalue, 2); break;                       // squared-joint
+        case 9: negvalue = pow(1 - negvalue, 2); break;                             // squared-joint inverse
+        case 10: negvalue = 1. - pow(1. - negvalue, 3); break;                      // cubic-joint
+        case 11: negvalue = pow(1. - negvalue, 3); break;                           // cubic-joint inverse
+        case 12: negvalue = (double) rand() / RAND_MAX; break;                      // random-joint
+        case 13: negvalue += ((double) rand() / RAND_MAX - 0.5); break;             // pseudorandom-joint
+        case 14: negvalue = 0.5; break;                                             // |-joint, like #-joint but placed at middle
+        case 15: negvalue = negative >= 0.5 ? 0. : 1.; break;                       // #-joint
         }
+        angle = angle_start + angle_add * negvalue;
     }
     return angle;
 }; 

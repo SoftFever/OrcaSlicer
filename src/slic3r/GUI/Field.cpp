@@ -435,7 +435,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             if (!ConfigOptionFloats::validate_string(ustr)) {
                 string      v;
                 std::smatch match;
-                string      ps = u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[#]?[\\d]*[\/$~^NnZzLlUuQq]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[";
+                string      ps = u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[";
                 if (m_opt.opt_key == "sparse_infill_rotate_template") {
                     ps = u8"[BT][!]?|" + ps + u8"S";
                 }
