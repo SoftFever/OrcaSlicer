@@ -46,6 +46,111 @@ jobs:
           unzip ./orca_custom_preset_tests.zip -d ${{ github.workspace }}/resources/profiles
           ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -l 2
 
+  release_profiles:
+    runs-on: ubuntu-24.04
+    needs: check_translation
+    if: ${{ success() }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
+      - name: Set variables
+        id: vars
+        run: |
+          VERSION=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Get release ID for nightly
+        id: get_release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: 'nightly-builds',
+            });
+            return release.data.id;
+          result-encoding: string
 
+      - name: Get existing assets and determine next NUMBER
+        id: get_number
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const releaseId = parseInt('${{ steps.get_release.outputs.result }}');
+            const assets = await github.rest.repos.listReleaseAssets({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId,
+            });
+
+            let maxNumber = 0;
+            const version = '${{ steps.vars.outputs.VERSION }}';
+            for (const asset of assets.data) {
+              const regex = new RegExp(`orcaslicer-profiles_ota_${version}\\.(\\d+)\\.zip`);
+              const match = asset.name.match(regex);
+              if (match) {
+                const num = parseInt(match[1]);
+                if (num > maxNumber) maxNumber = num;
+              }
+            }
+            return maxNumber + 1;
+          result-encoding: string
+
+      - name: Run pack_profiles.sh
+        run: |
+          NUMBER=${{ steps.get_number.outputs.result }}
+          VERSION=${{ steps.vars.outputs.VERSION }}
+          ./scripts/pack_profiles.sh "$VERSION" "$NUMBER"
+        env:
+          VERSION: ${{ steps.vars.outputs.VERSION }}
+          NUMBER: ${{ steps.get_number.outputs.result }}
+
+      - name: Upload artifact profiles
+        uses: actions/upload-artifact@v4
+        with:
+          name: orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
+          path: ./orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
+
+      - name: Deploy profiles to nightly release
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: WebFreak001/deploy-nightly@v3.2.0
+        with:
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+          release_id: 137995723
+          asset_path: ./orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
+          asset_name: orcaslicer-profiles_ota_${{ steps.vars.outputs.VERSION }}.${{ steps.get_number.outputs.result }}.zip
+          asset_content_type: application/zip
+          max_releases: 1
+
+      - name: Delete old profile assets except the newest
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const releaseId = parseInt('${{ steps.get_release.outputs.result }}');
+            const assets = await github.rest.repos.listReleaseAssets({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId,
+            });
+
+            const version = '${{ steps.vars.outputs.VERSION }}';
+            const newNumber = parseInt('${{ steps.get_number.outputs.result }}');
+
+            for (const asset of assets.data) {
+              const regex = new RegExp(`orcaslicer-profiles_ota_${version}\\.(\\d+)\\.zip`);
+              const match = asset.name.match(regex);
+              if (match) {
+                const num = parseInt(match[1]);
+                if (num !== newNumber) {
+                  console.log(`Deleting asset: ${asset.name} (id ${asset.id})`);
+                  await github.rest.repos.deleteReleaseAsset({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    asset_id: asset.id
+                  });
+                }
+              }
+            }

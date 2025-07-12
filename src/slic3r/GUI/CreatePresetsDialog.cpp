@@ -2126,8 +2126,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
 
         if (boost::filesystem::exists(boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR / selected_vendor_id)) {
             preset_path = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).string();
-        } else if (boost::filesystem::exists(boost::filesystem::path(Slic3r::resources_dir()) / "profiles" / selected_vendor_id)) {
-            preset_path = (boost::filesystem::path(Slic3r::resources_dir()) / "profiles").string();
+        } else if (boost::filesystem::exists(boost::filesystem::path(Slic3r::data_dir()) / "ota" / "profiles" / selected_vendor_id)) {
+            preset_path = (boost::filesystem::path(Slic3r::data_dir()) / "ota" / "profiles").string();
         }
 
         if (preset_path.empty()) {

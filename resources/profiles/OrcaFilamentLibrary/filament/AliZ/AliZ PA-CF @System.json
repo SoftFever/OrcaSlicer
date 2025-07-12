@@ -1,9 +1,0 @@
-{
-    "type": "filament",
-    "setting_id": "AliZGFSA04",
-    "name": "AliZ PA-CF @System",
-    "from": "system",
-    "instantiation": "true",
-    "inherits": "AliZ PA-CF @base",
-    "compatible_printers": []
-}

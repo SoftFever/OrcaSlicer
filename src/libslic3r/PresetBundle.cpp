@@ -1289,7 +1289,7 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_mod
         compatibility_rule = ForwardCompatibilitySubstitutionRule::Disable;
 
     // Here the vendor specific read only Config Bundles are stored.
-    boost::filesystem::path    dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
+    boost::filesystem::path    dir = (boost::filesystem::path(data_dir()) / "ota" / "profiles").make_preferred();
     PresetsConfigSubstitutions substitutions;
     std::string                errors_cummulative;
     for (auto &dir_entry : boost::filesystem::directory_iterator(dir)) {
@@ -1323,7 +1323,7 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_fil
         compatibility_rule = ForwardCompatibilitySubstitutionRule::Disable;
 
     // Here the vendor specific read only Config Bundles are stored.
-    boost::filesystem::path    dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
+    boost::filesystem::path    dir = (boost::filesystem::path(data_dir()) / "ota" / "profiles").make_preferred();
     PresetsConfigSubstitutions substitutions;
     std::string                errors_cummulative;
     bool                       first = true;

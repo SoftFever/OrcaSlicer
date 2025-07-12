@@ -121,7 +121,7 @@ BundleMap BundleMap::load()
 
     //BBS: change directories by design
     const auto vendor_dir = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
-    const auto rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
+    const auto rsrc_vendor_dir = (boost::filesystem::path(data_dir()) / "ota" / "profiles").make_preferred();
 
     //Orca: add custom as default
     //Orca: add json logic for vendor bundle
