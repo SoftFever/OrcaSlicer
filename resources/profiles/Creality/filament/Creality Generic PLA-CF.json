@@ -22,6 +22,8 @@
     ],
 	"compatible_printers": [
 		"Creality CR-10 V2 0.4 nozzle",
+		"Creality CR-10 V3 0.4 nozzle",
+		"Creality CR-10 V3 0.6 nozzle",
 		"Creality CR-10 Max 0.4 nozzle",
 		"Creality CR-6 SE 0.2 nozzle",
 		"Creality CR-6 SE 0.4 nozzle",
