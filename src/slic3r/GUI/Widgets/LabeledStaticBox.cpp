@@ -75,6 +75,7 @@ bool LabeledStaticBox::Create(
     SetForegroundColour(      text_color.colorForStates(state_handler.states()));
     SetBorderColor(         border_color.colorForStates(state_handler.states()));
     SetCanFocus(false);
+    DisableFocusFromKeyboard();
     return true;
 }
 

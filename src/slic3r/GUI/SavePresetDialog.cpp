@@ -9,8 +9,6 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/wupdlock.h>
-// BBS: add radio button for project embedded preset logic
-#include <wx/radiobut.h>
 
 #include "libslic3r/PresetBundle.hpp"
 
@@ -56,7 +54,7 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
     }
 
     wxStaticText *label_top = new wxStaticText(m_parent, wxID_ANY, from_u8((boost::format(_utf8(L("Save %s as"))) % into_u8(tab->title())).str()));
-    label_top->SetFont(::Label::Body_13);
+    label_top->SetFont(::Label::Body_14);
     label_top->SetForegroundColour(wxColour(38,46,48));
 
 
@@ -105,70 +103,20 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
 
     if (m_type == Preset::TYPE_PRINTER) m_parent->add_info_for_edit_ph_printer(sizer);
 
-    // BBS: add project embedded presets logic
-    wxBoxSizer *radio_sizer = new wxBoxSizer(wxHORIZONTAL);
+    // ORCA RadioGroup
+    m_radio_group = new RadioGroup(m_parent, {
+        _L("User Preset"),          // 0
+        _L("Preset Inside Project") // 1
+    }, wxVERTICAL);
 
-    wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(m_radio_group, 0, wxEXPAND | wxTOP | wxLEFT, BORDER_W);
 
-    m_sizer_left->Add(0, 0, 0, wxLEFT, 25);
-
-    m_radio_user     = new RadioBox(parent);
-    m_radio_user->SetBackgroundColour(SAVE_PRESET_DIALOG_DEF_COLOUR);
-
-    m_sizer_left->Add(m_radio_user, 0, wxALIGN_CENTER, 0);
-
-    m_sizer_left->Add(0, 0, 0, wxLEFT, 10);
-
-    auto m_left_text = new wxStaticText(parent, wxID_ANY, _L("User Preset"), wxDefaultPosition, wxDefaultSize, 0);
-    m_left_text->Wrap(-1);
-    m_left_text->SetFont(::Label::Body_13);
-    m_left_text->SetForegroundColour(wxColour(107,107,107));
-    m_sizer_left->Add(m_left_text, 0, wxALIGN_CENTER, 0);
-
-    radio_sizer->Add(m_sizer_left, 1, wxALIGN_CENTER, 5);
-
-    wxBoxSizer *m_sizer_right = new wxBoxSizer(wxHORIZONTAL);
-
-    m_sizer_right->Add(0, 0, 0, wxLEFT, 15);
-
-    m_radio_project   = new RadioBox(parent);
-    m_radio_project->SetBackgroundColour(SAVE_PRESET_DIALOG_DEF_COLOUR);
-
-    m_sizer_right->Add(m_radio_project, 0, wxALIGN_CENTER, 0);
-
-    m_sizer_right->Add(0, 0, 0, wxLEFT, 10);
-
-    auto m_right_text = new wxStaticText(parent, wxID_ANY, _L("Preset Inside Project"), wxDefaultPosition, wxDefaultSize, 0);
-    m_right_text->SetForegroundColour(wxColour(107,107,107));
-    m_right_text->SetFont(::Label::Body_13);
-    m_right_text->Wrap(-1);
-    m_sizer_right->Add(m_right_text, 0, wxALIGN_CENTER, 0);
-
-    radio_sizer->Add(m_sizer_right, 1, wxEXPAND, 5);
-
-    sizer->Add(radio_sizer, 0, wxEXPAND | wxTOP, BORDER_W);
-
-    auto radio_clicked = [this](wxMouseEvent &e) {
-        if (m_radio_user->GetId() == e.GetId()) {
-            m_radio_user->SetValue(true);
-            m_radio_project->SetValue(false);
-            m_save_to_project = false;
-        }
-
-        if (m_radio_project->GetId() == e.GetId()) {
-            m_radio_user->SetValue(false);
-            m_radio_project->SetValue(true);
-            m_save_to_project = true;
-        }
-    };
-    m_radio_user->Bind(wxEVT_LEFT_DOWN, radio_clicked);
-    m_radio_project->Bind(wxEVT_LEFT_DOWN, radio_clicked);
+    m_radio_group->Bind(wxEVT_COMMAND_RADIOBOX_SELECTED, [this](wxCommandEvent &e) {
+        m_save_to_project = m_radio_group->GetSelection() == 1;
+    });
 
     bool is_project_embedded = m_presets->get_edited_preset().is_project_embedded;
-    if (is_project_embedded)
-        m_radio_project->SetValue(true);
-    else
-        m_radio_user->SetValue(true);
+    m_radio_group->SetSelection(is_project_embedded ? 1 : 0);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", create item: type" << Preset::get_type_string(m_type) << ", preset " << m_preset_name
                             << ", is_project_embedded = " << is_project_embedded;
@@ -240,22 +188,18 @@ void SavePresetDialog::Item::update()
     }
 
     // BBS: add project embedded presets logic
-    if (existing) {
+    if (existing) { // ORCA RadioGroup
         if (existing->is_project_embedded) {
-            m_radio_project->SetValue(true);
+            m_radio_group->SetSelection(1);
             m_save_to_project = true;
         } else {
-            m_radio_user->SetValue(true);
+            m_radio_group->SetSelection(0);
             m_save_to_project = false;
         }
-        m_radio_user->Disable();
-        m_radio_project->Disable();
+        m_radio_group->Disable();
     } else {
-        m_radio_user->Enable();
-        m_radio_project->Enable();
-
-        m_radio_user->SetValue(!m_save_to_project);
-        m_radio_project->SetValue(m_save_to_project);
+        m_radio_group->Enable();
+        m_radio_group->SetSelection(m_save_to_project ? 1 : 0);
     }
 
     m_valid_label->SetLabel(info_line);

@@ -133,7 +133,10 @@ bool Button::Enable(bool enable)
     return result;
 }
 
-void Button::SetCanFocus(bool canFocus) { this->canFocus = canFocus; }
+void Button::SetCanFocus(bool canFocus) {
+    StaticBox::SetCanFocus(canFocus);
+    this->canFocus = canFocus;
+}
 
 void Button::SetValue(bool state)
 {
