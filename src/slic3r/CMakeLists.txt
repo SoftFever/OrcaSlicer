@@ -586,6 +586,10 @@ set(SLIC3R_GUI_SOURCES
     Utils/ElegooLink.hpp
     Utils/ElegooLink.cpp
     Utils/WebSocketClient.hpp
+    Utils/Spoolman.cpp
+    Utils/Spoolman.hpp
+    GUI/SpoolmanImportDialog.cpp
+    GUI/SpoolmanImportDialog.hpp
     Utils/bambu_networking.hpp
 )
 
