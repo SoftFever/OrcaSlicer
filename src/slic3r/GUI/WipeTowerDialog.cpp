@@ -411,6 +411,21 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<std::vector<int>>
                     store_matrixs.emplace_back((*iter).get<std::vector<double>>());
                 }
                 std::vector<double>store_multipliers = j["flush_multiplier"].get<std::vector<double>>();
+                {// limit all matrix value before write to gcode, the limitation is depends on the multipliers
+                    size_t cols_temp_matrix = 0;
+                    if (!store_matrixs.empty()) { cols_temp_matrix = store_matrixs[0].size(); }
+                    if (store_multipliers.size() == store_matrixs.size() && cols_temp_matrix>0) // nuzzles==nuzzles
+                    {
+                        for (size_t idx = 0; idx < store_multipliers.size(); ++idx) {
+                            double m_max_flush_volume_t = (double)m_max_flush_volume, m_store_multipliers=store_multipliers[idx];
+                            std::transform(store_matrixs[idx].begin(), store_matrixs[idx].end(),
+                                           store_matrixs[idx].begin(),
+                                           [m_max_flush_volume_t, m_store_multipliers](double inputx) {
+                                               return std::clamp(inputx, 0.0, m_max_flush_volume_t / m_store_multipliers);
+                                           });
+                        }
+                    }
+                }
                 this->StoreFlushData(extruder_num, store_matrixs, store_multipliers);
                 m_submit_flag = true;
                 this->Close();
