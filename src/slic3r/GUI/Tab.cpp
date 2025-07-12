@@ -3946,6 +3946,16 @@ void TabPrinter::build_fff()
         // optgroup->append_single_option_line("spaghetti_detector");
         optgroup->append_single_option_line("time_cost");
 
+        option                = optgroup->get_option("hide_config");
+        option.opt.full_width = true;
+        optgroup->append_single_option_line(option, "hide_config");
+        option                = optgroup->get_option("force_simple_config");
+        option.opt.full_width = true;
+        optgroup->append_single_option_line(option, "force_simple_config");
+        option                = optgroup->get_option("force_advanced_config");
+        option.opt.full_width = true;
+        optgroup->append_single_option_line(option, "force_advanced_config");
+
         optgroup  = page->new_optgroup(L("Cooling Fan"), "param_cooling_fan");
         Line line = Line{ L("Fan speed-up time"), optgroup->get_option("fan_speedup_time").opt.tooltip };
         line.append_option(optgroup->get_option("fan_speedup_time"));
