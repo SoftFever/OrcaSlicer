@@ -5,7 +5,7 @@ Pressure Advance is a feature that compensates for the lag in filament pressure 
 Orca Slicer includes three approaches for calibrating the pressure advance value. Each method has its own advantages and disadvantages. It is important to note that each method has two versions: one for a direct drive extruder and one for a Bowden extruder. Make sure to select the appropriate version for your test.
 
 > [!NOTE]
-> [Adaptive Pressure Advance Guide](adaptive-pressure-advance-calib)
+> [Adaptive Pressure Advance Guide](adaptive-pressure-advance-calib.md)
 
 > [!WARNING]
 > **Marlin Printers:** Linear advance must be enabled in firmware (M900).  
