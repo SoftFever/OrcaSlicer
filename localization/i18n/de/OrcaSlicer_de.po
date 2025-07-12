@@ -8840,6 +8840,10 @@ msgstr "Ramming-Linienbreite"
 msgid "Ramming line spacing"
 msgstr "Ramming-Linienabstand"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr "Um eine konstante Flussrate zu erhalten, halten Sie %1% gedrückt, während Sie ziehen."
+
 msgid "Auto-Calc"
 msgstr "Automatisch berechnen"
 
