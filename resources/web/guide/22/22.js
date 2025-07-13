@@ -95,8 +95,8 @@ function SortUI()
 	for(let n=0;n<nMode;n++)
 	{
 		let sModel=ModelList[n];	
-
-		HtmlMode+='<div><input type="checkbox" mode="'+sModel['model']+'"  nozzle="'+sModel['nozzle_selected']+'"   onChange="MachineClick()" />'+sModel['model']+'</div>';
+		/* ORCA use label tag to allow checkbox to toggle when user ckicked to text */
+		HtmlMode+='<label><input type="checkbox" mode="'+sModel['model']+'"  nozzle="'+sModel['nozzle_selected']+'"   onChange="MachineClick()" />'+sModel['model']+'</label>';
 	}
 	
 	$('#MachineList .CValues').append(HtmlMode);	
@@ -172,7 +172,8 @@ function SortUI()
 			let LowType=fType.toLowerCase();
 		    if(!TypeHtmlArray.hasOwnProperty(LowType))
 		    {
-			    let HtmlType='<div><input type="checkbox" filatype="'+fType+'" onChange="FilaClick()"   />'+fType+'</div>';
+				/* ORCA use label tag to allow checkbox to toggle when user ckicked to text */
+			    let HtmlType='<label><input type="checkbox" filatype="'+fType+'" onChange="FilaClick()"   />'+fType+'</label>';
 			
 				TypeHtmlArray[LowType]=HtmlType;
 		    }
@@ -181,7 +182,8 @@ function SortUI()
 			let lowVendor=fVendor.toLowerCase();
 			if(!VendorHtmlArray.hasOwnProperty(lowVendor))
 		    {
-			    let HtmlVendor='<div><input type="checkbox" vendor="'+fVendor+'"  onChange="VendorClick()" />'+fVendor+'</div>';
+				/* ORCA use label tag to allow checkbox to toggle when user ckicked to text */
+			    let HtmlVendor='<label><input type="checkbox" vendor="'+fVendor+'"  onChange="VendorClick()" />'+fVendor+'</label>';
 				
 				VendorHtmlArray[lowVendor]=HtmlVendor;
 		    }
@@ -190,7 +192,8 @@ function SortUI()
 			let pFila=$("#ItemBlockArea input[vendor='"+fVendor+"'][filatype='"+fType+"'][name='"+fShortName+"']");
 	        if(pFila.length==0)
 		    {
-			    let HtmlFila='<div class="MItem"><input type="checkbox" vendor="'+fVendor+'"  filatype="'+fType+'" filalist="'+fWholeName+';'+'"  model="'+fModel+'" name="'+fShortName+'" />'+fShortName+'</div>';
+				/* ORCA use label tag to allow checkbox to toggle when user ckicked to text */
+			    let HtmlFila='<label class="MItem"><input type="checkbox" vendor="'+fVendor+'"  filatype="'+fType+'" filalist="'+fWholeName+';'+'"  model="'+fModel+'" name="'+fShortName+'" />'+fShortName+'</label>';
 			
 			    $("#ItemBlockArea").append(HtmlFila);
 		    } 

@@ -1,6 +1,6 @@
 app-id: io.github.softfever.OrcaSlicer
 runtime: org.gnome.Platform
-runtime-version: "46"
+runtime-version: "47"
 sdk: org.gnome.Sdk
 command: entrypoint
 separate-locales: true
@@ -19,34 +19,8 @@ finish-args:
   - --talk-name=io.github.softfever.OrcaSlicer.InstanceCheck.*
   - --system-talk-name=org.freedesktop.UDisks2
   - --env=SPNAV_SOCKET=/run/spnav.sock
-  # set dark theme
-  - --env=ORCA_SLICER_DARK_THEME=false
 
 modules:
-  # xprop, xlib is needed to manipulate the X11 window and set _GTK_THEME_VARIANT dark on X11
-  # and paint the window dark when ORCA_SLICER_DARK_THEME is true
-  # see: entrypoint & set-dark-theme-variant.py (originated from Pursa Slicer flatpak which originated from spotify client flatpak)
-  - name: xprop
-    sources:
-    - type: archive
-      url: https://xorg.freedesktop.org/archive/individual/app/xprop-1.2.5.tar.gz
-      sha256: b7bf6b6be6cf23e7966a153fc84d5901c14f01ee952fbd9d930aa48e2385d670
-  - name: python-setuptools_scm
-    buildsystem: simple
-    build-commands:
-    - pip3 install --no-deps --no-build-isolation --verbose --prefix=${FLATPAK_DEST} .
-    sources:
-    - type: archive
-      url: https://files.pythonhosted.org/packages/57/38/930b1241372a9f266a7df2b184fb9d4f497c2cef2e016b014f82f541fe7c/setuptools_scm-6.0.1.tar.gz
-      sha256: d1925a69cb07e9b29416a275b9fadb009a23c148ace905b2fb220649a6c18e92
-  - name: python-xlib
-    buildsystem: simple
-    build-commands:
-    - pip3 install --no-deps --no-build-isolation --verbose --prefix=${FLATPAK_DEST} .
-    sources:
-    - type: archive
-      url: https://files.pythonhosted.org/packages/86/f5/8c0653e5bb54e0cbdfe27bf32d41f27bc4e12faa8742778c17f2a71be2c0/python-xlib-0.33.tar.gz
-      sha256: 55af7906a2c75ce6cb280a584776080602444f75815a7aff4d287bb2d7018b32
 
   # JPEG codec for the liveview
   - name: gst-plugins-good
@@ -61,29 +35,6 @@ modules:
       - type: archive
         url: https://gstreamer.freedesktop.org/src/gst-plugins-good/gst-plugins-good-1.22.8.tar.xz
         sha256: e305b9f07f52743ca481da0a4e0c76c35efd60adaf1b0694eb3bb021e2137e39
-
-  # For libOSMesa
-  - name: mesa
-    buildsystem: meson
-    config-opts:
-      - -Dosmesa=classic
-      - -Ddri-drivers=[]
-      - -Dgallium-drivers=[]
-      - -Dvulkan-drivers=[]
-      - -Dplatforms=[]
-    build-options:
-      arch:
-        aarch64:
-          config-opts:
-            - -Dlibunwind=disabled
-    cleanup:
-      - /share/drirc.d
-      - /include
-      - "*.a"
-    sources:
-      - type: archive
-        url: https://archive.mesa3d.org/older-versions/20.x/mesa-20.2.6.tar.xz
-        sha256: f12ca3c6c622f11cd79ad66b4220f04514fa96f795062fe92a37339ab19885db
 
   - name: glu
     config-opts:
@@ -110,9 +61,9 @@ modules:
   - name: libspnav
     sources:
       - type: archive
-        url: https://github.com/FreeSpacenav/libspnav/releases/download/v1.1/libspnav-1.1.tar.gz
-        sha256: 04b297f68a10db4fa40edf68d7f823ba7b9d0442f2b665181889abe2cea42759
- 
+        url: https://github.com/FreeSpacenav/libspnav/releases/download/v1.2/libspnav-1.2.tar.gz
+        sha256: 093747e7e03b232e08ff77f1ad7f48552c06ac5236316a5012db4269951c39db
+
   - name: orca_wxwidgets
     buildsystem: simple
     build-commands:
@@ -141,7 +92,7 @@ modules:
           -DwxUSE_LIBPNG=sys \
           -DwxUSE_ZLIB=sys \
           -DwxUSE_LIBJPEG=sys \
-          -DwxUSE_LIBTIFF=sys \
+          -DwxUSE_LIBTIFF=OFF \
           -DwxUSE_EXPAT=sys \
           -DBUILD_SHARED_LIBS:BOOL=ON \
           -DCMAKE_INSTALL_PREFIX:STRING=/app \
@@ -221,6 +172,12 @@ modules:
         dest: external-packages/GMP
         sha256: eae9326beb4158c386e39a356818031bd28f3124cf915f8c5b1dc4c7a36b4d7c
 
+      # curl
+      - type: file
+        url: https://github.com/curl/curl/archive/refs/tags/curl-7_75_0.zip
+        dest: external-packages/CURL
+        sha256: a63ae025bb0a14f119e73250f2c923f4bf89aa93b8d4fafa4a9f5353a96a765a
+
       # MPFR
       - type: file
         url: https://www.mpfr.org/mpfr-4.2.2/mpfr-4.2.2.tar.bz2
@@ -256,6 +213,12 @@ modules:
         url: https://github.com/AcademySoftwareFoundation/openexr/archive/refs/tags/v2.5.5.zip
         dest: external-packages/OpenEXR
         sha256: 0307a3d7e1fa1e77e9d84d7e9a8694583fbbbfd50bdc6884e2c96b8ef6b902de
+
+      # OpenSSL
+      - type: file
+        url: https://github.com/openssl/openssl/archive/OpenSSL_1_1_1w.tar.gz
+        dest: external-packages/OpenSSL
+        sha256: 2130e8c2fb3b79d1086186f78e59e8bc8d1a6aedf17ab3907f4cb9ae20918c41
 
       # OpenVDB
       - type: file
@@ -325,8 +288,6 @@ modules:
         desktop-file-edit --set-key=Exec --set-value="entrypoint %U" /app/share/applications/${FLATPAK_ID}.desktop
         install -Dm755 entrypoint /app/bin
         install -Dm755 umount /app/bin
-        install set-dark-theme-variant.py /app/bin
-        install uses-dark-theme.py /app/bin
 
     sources:
       # -
@@ -343,14 +304,6 @@ modules:
       # AppData metainfo for Gnome Software & Co.
       - type: file
         path: io.github.softfever.OrcaSlicer.metainfo.xml
-
-      # script to set dark theme variant
-      - type: file
-        path: set-dark-theme-variant.py
-      
-      # script to detect if host uses dark theme
-      - type: file
-        path: uses-dark-theme.py
 
       # start-up script
       - type: file

@@ -1369,6 +1369,10 @@ void Filler::_fill_surface_single(
         // Convert lines to polylines.
         all_polylines.reserve(lines.size());
         std::transform(lines.begin(), lines.end(), std::back_inserter(all_polylines), [](const Line& l) { return Polyline{ l.a, l.b }; });
+
+         // Apply multiline offset if needed
+         multiline_fill(all_polylines, params, spacing);
+
         // Crop all polylines
         all_polylines = intersection_pl(std::move(all_polylines), expolygon);
 #endif
@@ -1401,10 +1405,7 @@ void Filler::_fill_surface_single(
     }
 #endif /* ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT */
 
-    if (params.dont_connect() || all_polylines_with_hooks.size() <= 1)
-        append(polylines_out, chain_polylines(std::move(all_polylines_with_hooks)));
-    else
-        connect_infill(std::move(all_polylines_with_hooks), expolygon, polylines_out, this->spacing, params);
+    chain_or_connect_infill(std::move(all_polylines_with_hooks), expolygon, polylines_out, this->spacing, params);
 
 #ifdef ADAPTIVE_CUBIC_INFILL_DEBUG_OUTPUT
     {

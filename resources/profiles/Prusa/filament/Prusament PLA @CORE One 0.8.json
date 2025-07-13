@@ -1,0 +1,18 @@
+{
+    "compatible_printers": [
+        "Prusa CORE One 0.8 nozzle"
+    ],
+    "filament_id": "Prusament PLA @CORE One 0.8",
+    "filament_max_volumetric_speed": [
+        "19"
+    ],
+    "from": "system",
+    "inherits": "Prusament PLA @CORE One",
+    "instantiation": "true",
+    "name": "Prusament PLA @CORE One 0.8",
+    "setting_id": "GFSA04",
+    "slow_down_layer_time": [
+        "17"
+    ],
+    "type": "filament"
+}

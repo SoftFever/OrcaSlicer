@@ -22,6 +22,7 @@ deps/build-linux/*
 **/.DS_Store
 install_*
 build_*/
+!build_linux.sh
 SVG
 Dockerfile
 DockerBuild.sh

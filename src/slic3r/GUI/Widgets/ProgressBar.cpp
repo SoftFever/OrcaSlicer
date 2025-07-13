@@ -7,7 +7,7 @@
 
 
 wxDEFINE_EVENT(wxCUSTOMEVT_SET_TEMP_FINISH, wxCommandEvent);
-BEGIN_EVENT_TABLE(ProgressBar, wxPanel)
+BEGIN_EVENT_TABLE(ProgressBar, wxWindow)
 EVT_PAINT(ProgressBar::paintEvent)
 END_EVENT_TABLE()
 

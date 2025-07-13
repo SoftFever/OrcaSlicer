@@ -874,15 +874,14 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     }
     ImGuiWrapper::pop_combo_style();
     caption_max = combox_content_size - 4 * space_size;
-    ImGui::SameLine(caption_max + index * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextAlignCenter("X");
-    ImGui::SameLine(caption_max + unit_size + (++index) * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextAlignCenter("Y");
-    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextAlignCenter("Z");
+    // ORCA use TextColored to match axes color
+    float offset_to_center = (unit_size - ImGui::CalcTextSize("O").x) / 2;
+    ImGui::SameLine(caption_max + index * space_size + offset_to_center);
+    ImGui::TextColored(ImGuiWrapper::to_ImVec4(ColorRGBA::X()),"X");
+    ImGui::SameLine(caption_max + unit_size + (++index) * space_size + offset_to_center);
+    ImGui::TextColored(ImGuiWrapper::to_ImVec4(ColorRGBA::Y()),"Y");
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size + offset_to_center);
+    ImGui::TextColored(ImGuiWrapper::to_ImVec4(ColorRGBA::Z()),"Z");
 
     index      = 1;
     index_unit = 1;
@@ -1003,15 +1002,14 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     unsigned int current_active_id = ImGui::GetActiveID();
     ImGui::PushItemWidth(caption_max);
     imgui_wrapper->text(_L("World coordinates"));
-    ImGui::SameLine(caption_max + index * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextAlignCenter("X");
-    ImGui::SameLine(caption_max + unit_size + (++index) * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextAlignCenter("Y");
-    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextAlignCenter("Z");
+    // ORCA use TextColored to match axes color
+    float offset_to_center = (unit_size - ImGui::CalcTextSize("O").x) / 2;
+    ImGui::SameLine(caption_max + index * space_size + offset_to_center);
+    ImGui::TextColored(ImGuiWrapper::to_ImVec4(ColorRGBA::X()),"X");
+    ImGui::SameLine(caption_max + unit_size + (++index) * space_size + offset_to_center);
+    ImGui::TextColored(ImGuiWrapper::to_ImVec4(ColorRGBA::Y()),"Y");
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size + offset_to_center);
+    ImGui::TextColored(ImGuiWrapper::to_ImVec4(ColorRGBA::Z()),"Z");
 
     index      = 1;
     index_unit = 1;
@@ -1036,7 +1034,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         is_relative_input = true;
     }
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
-    imgui_wrapper->text(_L("°"));
+    imgui_wrapper->text("°");
     m_buffered_rotation = rotation;
     if (is_relative_input) {
         m_last_rotate_type = RotateType::Relative;
@@ -1093,7 +1091,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         is_absolute_input = true;
     }
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
-    imgui_wrapper->text(_L("°"));
+    imgui_wrapper->text("°");
     m_buffered_absolute_rotation = absolute_rotation;
     if (is_absolute_input) {
         m_last_rotate_type = RotateType::Absolute;
@@ -1224,15 +1222,14 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGuiWrapper::pop_combo_style();
     caption_max = combox_content_size - 4 * space_size;
     //ImGui::Dummy(ImVec2(caption_max, -1));
-    ImGui::SameLine(caption_max + space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextAlignCenter("X");
-    ImGui::SameLine(caption_max + unit_size + index * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextAlignCenter("Y");
-    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
-    ImGui::PushItemWidth(unit_size);
-    ImGui::TextAlignCenter("Z");
+    // ORCA use TextColored to match axes color
+    float offset_to_center = (unit_size - ImGui::CalcTextSize("O").x) / 2;
+    ImGui::SameLine(caption_max + space_size + offset_to_center);
+    ImGui::TextColored(ImGuiWrapper::to_ImVec4(ColorRGBA::X()),"X");
+    ImGui::SameLine(caption_max + unit_size + index * space_size + offset_to_center);
+    ImGui::TextColored(ImGuiWrapper::to_ImVec4(ColorRGBA::Y()),"Y");
+    ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size + offset_to_center);
+    ImGui::TextColored(ImGuiWrapper::to_ImVec4(ColorRGBA::Z()),"Z");
 
     index      = 2;
     index_unit = 1;
@@ -1250,7 +1247,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     ImGui::PushItemWidth(unit_size);
     ImGui::BBLInputDouble(label_scale_values[0][2], &scale[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) *unit_size + (++index) * space_size);
-    imgui_wrapper->text(_L("%"));
+    imgui_wrapper->text("%");
     if (scale.x() > 0 && scale.y() > 0 && scale.z() > 0) {
         m_buffered_scale = scale;
     }

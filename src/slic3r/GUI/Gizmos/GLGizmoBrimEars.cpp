@@ -42,8 +42,8 @@ bool GLGizmoBrimEars::on_init()
 {
 
     m_new_point_head_diameter = get_brim_default_radius();
-    
-    m_shortcut_key = WXK_CONTROL_L;
+
+    m_shortcut_key = WXK_CONTROL_E;
 
     m_desc["head_diameter"]    = _L("Head diameter");
     m_desc["max_angle"]        = _L("Max angle");
@@ -110,10 +110,12 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
 
     if (!has_points) return;
 
-    GLShaderProgram *shader = wxGetApp().get_shader("gouraud_light");
-    if (shader != nullptr) shader->start_using();
+    const auto shader = wxGetApp().get_shader("gouraud_light");
+    if (shader == nullptr)
+        return;
+    shader->start_using();
     ScopeGuard guard([shader]() {
-        if (shader != nullptr) shader->stop_using();
+        shader->stop_using();
     });
 
     const Camera&      camera                          = wxGetApp().plater()->get_camera();
@@ -121,6 +123,8 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
     const GLVolume    *vol                             = selection.get_volume(*selection.get_volume_idxs().begin());
     const Transform3d &instance_scaling_matrix_inverse = vol->get_instance_transformation().get_scaling_factor_matrix().inverse();
     const Transform3d &instance_matrix                 = vol->get_instance_transformation().get_matrix();
+
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
     ColorRGBA render_color;
     for (size_t i = 0; i < cache_size; ++i) {
@@ -151,7 +155,7 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
         }
 
         m_cylinder.model.set_color(render_color);
-        if (shader) shader->set_uniform("emission_factor", 0.5f);
+        shader->set_uniform("emission_factor", 0.5f);
 
         if (vol->is_left_handed()) glFrontFace(GL_CW);
 
@@ -164,10 +168,10 @@ void GLGizmoBrimEars::render_points(const Selection &selection)
 
         double radius = (double) brim_point.head_front_radius * RenderPointScale;
         const Transform3d center_matrix =
-            instance_matrix 
-            * Geometry::translation_transform(brim_point.pos.cast<double>()) 
+            instance_matrix
+            * Geometry::translation_transform(brim_point.pos.cast<double>())
             // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-            * instance_scaling_matrix_inverse 
+            * instance_scaling_matrix_inverse
             * q
             * Geometry::scale_transform(Vec3d{radius, radius, .2});
         if (i < m_grabbers.size()) {
@@ -200,8 +204,8 @@ bool GLGizmoBrimEars::unproject_on_mesh2(const Vec2d &mouse_pos, std::pair<Vec3f
     double               clp_dist        = m_c->object_clipper()->get_position();
     const ClippingPlane *clp             = m_c->object_clipper()->get_clipping_plane();
     bool                 mouse_on_object = false;
-    Vec3f                position_on_model;
-    Vec3f                normal_on_model;
+    Vec3f                position_on_model {};
+    Vec3f                normal_on_model {};
     double               closest_hit_distance = std::numeric_limits<double>::max();
 
     for (auto item : m_mesh_raycaster_map) {
@@ -274,7 +278,7 @@ bool GLGizmoBrimEars::on_mouse(const wxMouseEvent& mouse_event)
     if (mouse_event.Moving()) {
         gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false);
     }
-    
+
     // when control is down we allow scene pan and rotation even when clicking
     // over some object
     bool control_down           = mouse_event.CmdDown();
@@ -283,14 +287,14 @@ bool GLGizmoBrimEars::on_mouse(const wxMouseEvent& mouse_event)
     const Selection &selection = m_parent.get_selection();
     int selected_object_idx = selection.get_object_idx();
     if (mouse_event.LeftDown()) {
-        if ((!control_down || grabber_contains_mouse) &&            
+        if ((!control_down || grabber_contains_mouse) &&
             gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false))
             // the gizmo got the event and took some action, there is no need
             // to do anything more
             return true;
     } else if (mouse_event.RightDown()){
         if (!control_down && selected_object_idx != -1 &&
-            gizmo_event(SLAGizmoEventType::RightDown, mouse_pos, false, false, false)) 
+            gizmo_event(SLAGizmoEventType::RightDown, mouse_pos, false, false, false))
             // event was taken care of
             return true;
     } else if (mouse_event.Dragging()) {
@@ -537,6 +541,7 @@ void GLGizmoBrimEars::delete_selected_points()
 
     select_point(NoPoints);
     find_single();
+    update_model_object();
 }
 
 void GLGizmoBrimEars::on_dragging(const UpdateData& data)
@@ -592,6 +597,7 @@ void GLGizmoBrimEars::update_cache_radius()
         if (cache_entry.selected) {
             cache_entry.brim_point.head_front_radius = m_new_point_head_diameter / 2.f;
             find_single();
+            update_model_object();
         }
     m_parent.set_as_dirty();
 }
@@ -735,12 +741,12 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
             ImColor HyperColor = ImGuiWrapper::COL_ORCA;
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
             float parent_width = ImGui::GetContentRegionAvail().x;
-            m_imgui->text_wrapped(_L("Warning: The brim type is not set to \"painted\",the brim ears will not take effect !"), parent_width);
+            m_imgui->text_wrapped(_L("Warning: The brim type is not set to \"painted\", the brim ears will not take effect!"), parent_width);
             ImGui::PopStyleColor();
             ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
             ImGui::Dummy(ImVec2(font_size * 1.8, font_size * 1.3));
             ImGui::SameLine();
-            m_imgui->bold_text(_u8L("Set the brim type to \"painted\""));
+            m_imgui->bold_text(_u8L("Set the brim type of this object to \"painted\""));
             ImGui::PopStyleColor();
             // underline
             ImVec2 lineEnd = ImGui::GetItemRectMax();
@@ -840,7 +846,7 @@ CommonGizmosDataID GLGizmoBrimEars::on_get_requirements() const
                               int(CommonGizmosDataID::ObjectClipper));
 }
 
-void GLGizmoBrimEars::save_model()
+void GLGizmoBrimEars::update_model_object()
 {
     ModelObject* mo = m_c->selection_info()->model_object();
     if (mo) {
@@ -848,6 +854,7 @@ void GLGizmoBrimEars::save_model()
         for (const CacheEntry& ce : m_editing_cache) mo->brim_points.emplace_back(ce.brim_point);
         wxGetApp().plater()->set_plater_dirty(true);
     }
+    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 // switch gizmos
@@ -863,8 +870,7 @@ void GLGizmoBrimEars::on_set_state()
     if (m_state == Off && m_old_state != Off) {
         // the gizmo was just turned Off
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Brim ears edit");
-        save_model();
-        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+        update_model_object();
         wxGetApp().plater()->leave_gizmos_stack();
         // wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, true);
     }
@@ -1073,6 +1079,7 @@ bool GLGizmoBrimEars::add_point_to_cache(Vec3f pos, float head_radius, bool sele
         if (m_editing_cache[i].brim_point == point) { return false; }
     }
     m_editing_cache.emplace_back(point, selected, normal);
+    update_model_object();
     return true;
 }
 

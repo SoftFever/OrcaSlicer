@@ -6,6 +6,8 @@
 
 namespace Slic3r { namespace GUI {
 
+#define CALIBRATION_SAVE_AMS_NAME_SIZE wxSize(FromDIP(20), FromDIP(24))
+#define CALIBRATION_SAVE_NUMBER_INPUT_SIZE wxSize(FromDIP(100), FromDIP(24))
 #define CALIBRATION_SAVE_INPUT_SIZE     wxSize(FromDIP(240), FromDIP(24))
 #define FLOW_RATE_MAX_VALUE  1.15
 
@@ -56,7 +58,7 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
     return filament_name;
 }
 
-static wxString get_tray_name_by_tray_id(int tray_id) 
+static wxString get_tray_name_by_tray_id(int tray_id)
 {
     wxString tray_name;
     if (tray_id == VIRTUAL_TRAY_ID) {
@@ -125,14 +127,14 @@ CaliPASaveAutoPanel::CaliPASaveAutoPanel(
     const wxPoint& pos,
     const wxSize& size,
     long style)
-    : wxPanel(parent, id, pos, size, style) 
+    : wxPanel(parent, id, pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
 
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
-    
+
     create_panel(this);
-    
+
     this->SetSizer(m_top_sizer);
     m_top_sizer->Fit(this);
 }
@@ -200,6 +202,11 @@ std::vector<std::pair<int, std::string>> CaliPASaveAutoPanel::default_naming(std
 
 void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result)
 {
+    if (m_obj && m_obj->is_multi_extruders()) {
+        sync_cali_result_for_multi_extruder(cali_result, history_result);
+        return;
+    }
+
     m_history_results = history_result;
     m_calib_results.clear();
     for (auto& item : cali_result) {
@@ -391,7 +398,7 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
         }
         m_calib_results[tray_id].name = into_u8(name);
     }
-    
+
     auto childern = window->GetChildren();
     for (auto child : childern) {
         save_to_result_from_widgets(child, out_is_valid, out_msg);
@@ -413,7 +420,7 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
         std::unordered_set<std::pair<std::string, std::string>, PACalibResult> set;
         for (auto& result : m_calib_results) {
             if (!set.insert({ result.second.name, result.second.filament_id }).second) {
-                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to override the other results?"), wxEmptyString, wxICON_WARNING | wxYES_NO);
+                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to overwrite the other results?"), wxEmptyString, wxICON_WARNING | wxYES_NO);
                 if (msg_dlg.ShowModal() != wxID_YES) {
                     return false;
                 }
@@ -442,6 +449,230 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
         msg_dlg.ShowModal();
         return false;
     }
+}
+
+void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result)
+{
+    if (!m_obj)
+        return;
+
+    m_is_all_failed  = true;
+    bool part_failed = false;
+    if (cali_result.empty())
+        part_failed = true;
+
+    m_history_results = history_result;
+    m_calib_results.clear();
+    for (auto &item : cali_result) {
+        if (item.confidence == 0) {
+            int tray_id = 4 * item.ams_id + item.slot_id;
+            m_calib_results[tray_id] = item;
+        }
+    }
+    m_grid_panel->DestroyChildren();
+    auto        grid_sizer       = new wxBoxSizer(wxHORIZONTAL);
+    const int   COLUMN_GAP       = FromDIP(10);
+    const int   ROW_GAP          = FromDIP(10);
+
+    wxStaticBoxSizer* left_sizer = new wxStaticBoxSizer(wxVERTICAL, m_grid_panel, "Left extruder");
+    wxStaticBoxSizer* right_sizer = new wxStaticBoxSizer(wxVERTICAL, m_grid_panel, "Right extruder");
+    grid_sizer->Add(left_sizer);
+    grid_sizer->AddSpacer(COLUMN_GAP);
+    grid_sizer->Add(right_sizer);
+
+    wxFlexGridSizer *left_grid_sizer  = new wxFlexGridSizer(3, COLUMN_GAP, ROW_GAP);
+    wxFlexGridSizer *right_grid_sizer = new wxFlexGridSizer(3, COLUMN_GAP, ROW_GAP);
+    left_sizer->Add(left_grid_sizer);
+    right_sizer->Add(right_grid_sizer);
+
+    // main extruder
+    {
+        left_grid_sizer->Add(new wxStaticText(m_grid_panel, wxID_ANY, ""), 1, wxEXPAND);  // fill empty space
+
+        auto brand_title = new Label(m_grid_panel, _L("Name"), 0, CALIBRATION_SAVE_INPUT_SIZE);
+        brand_title->SetFont(Label::Head_14);
+        left_grid_sizer->Add(brand_title, 1, wxALIGN_CENTER);
+
+        auto k_title = new Label(m_grid_panel, _L("Factor K"), 0, CALIBRATION_SAVE_NUMBER_INPUT_SIZE);
+        k_title->SetFont(Label::Head_14);
+        left_grid_sizer->Add(k_title, 1, wxALIGN_CENTER);
+    }
+
+    // deputy extruder
+    {
+        right_grid_sizer->Add(new wxStaticText(m_grid_panel, wxID_ANY, ""), 1, wxEXPAND); // fill empty space
+
+        auto brand_title = new Label(m_grid_panel, _L("Name"), 0, CALIBRATION_SAVE_INPUT_SIZE);
+        brand_title->SetFont(Label::Head_14);
+        right_grid_sizer->Add(brand_title, 1, wxALIGN_CENTER);
+
+        auto k_title = new Label(m_grid_panel, _L("Factor K"), 0, CALIBRATION_SAVE_NUMBER_INPUT_SIZE);
+        k_title->SetFont(Label::Head_14);
+        right_grid_sizer->Add(k_title, 1, wxALIGN_CENTER);
+    }
+
+    std::vector<std::pair<int, std::string>> preset_names;
+    for (auto &info : m_obj->selected_cali_preset) {
+        preset_names.push_back({info.tray_id, info.name});
+    }
+    preset_names = default_naming(preset_names);
+
+    bool left_first_add_item = true;
+    bool right_first_add_item = true;
+    for (auto &item : cali_result) {
+        bool result_failed = false;
+        if (item.confidence != 0) {
+            result_failed = true;
+            part_failed   = true;
+        } else {
+            m_is_all_failed = false;
+        }
+
+        //wxBoxSizer *item_data_sizer = new wxBoxSizer(wxHORIZONTAL);
+        auto        tray_title      = new Label(m_grid_panel, "", 0, CALIBRATION_SAVE_AMS_NAME_SIZE);
+        tray_title->SetFont(Label::Head_14);
+        wxString tray_name = get_tray_name_by_tray_id(item.tray_id);
+        tray_title->SetLabel(tray_name);
+
+        auto k_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_NUMBER_INPUT_SIZE, item.tray_id, GridTextInputType::K);
+        auto n_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_NUMBER_INPUT_SIZE, item.tray_id, GridTextInputType::N);
+        k_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+        n_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+        auto k_value_failed = new Label(m_grid_panel, _L("Failed"));
+        auto n_value_failed = new Label(m_grid_panel, _L("Failed"));
+
+        auto                              comboBox_tray_name = new GridComboBox(m_grid_panel, CALIBRATION_SAVE_INPUT_SIZE, item.tray_id);
+        auto                              tray_name_failed   = new Label(m_grid_panel, " - ");
+        wxArrayString                     selections;
+        static std::vector<PACalibResult> filtered_results;
+        filtered_results.clear();
+        for (auto history : history_result) {
+            if (history.filament_id == item.filament_id
+                && history.extruder_id == item.extruder_id
+                && history.nozzle_volume_type == item.nozzle_volume_type
+                && history.nozzle_diameter == item.nozzle_diameter) {
+                filtered_results.push_back(history);
+                selections.push_back(from_u8(history.name));
+            }
+        }
+        comboBox_tray_name->Set(selections);
+
+        auto set_edit_mode = [this, k_value, n_value, k_value_failed, n_value_failed, comboBox_tray_name, tray_name_failed](std::string str) {
+            if (str == "normal") {
+                comboBox_tray_name->Show();
+                tray_name_failed->Show(false);
+                k_value->Show();
+                n_value->Show();
+                k_value_failed->Show(false);
+                n_value_failed->Show(false);
+            }
+            if (str == "failed") {
+                comboBox_tray_name->Show(false);
+                tray_name_failed->Show();
+                k_value->Show(false);
+                n_value->Show(false);
+                k_value_failed->Show();
+                n_value_failed->Show();
+            }
+
+            // hide n value
+            n_value->Hide();
+            n_value_failed->Hide();
+
+            m_grid_panel->Layout();
+            m_grid_panel->Update();
+        };
+
+        if (!result_failed) {
+            set_edit_mode("normal");
+
+            auto k_str = wxString::Format("%.3f", item.k_value);
+            auto n_str = wxString::Format("%.3f", item.n_coef);
+            k_value->GetTextCtrl()->SetValue(k_str);
+            n_value->GetTextCtrl()->SetValue(n_str);
+
+            for (auto &name : preset_names) {
+                if (item.tray_id == name.first) { comboBox_tray_name->SetValue(from_u8(name.second)); }
+            }
+
+            comboBox_tray_name->Bind(wxEVT_COMBOBOX, [this, comboBox_tray_name, k_value, n_value](auto &e) {
+                int  selection = comboBox_tray_name->GetSelection();
+                auto history   = filtered_results[selection];
+            });
+        } else {
+            set_edit_mode("failed");
+        }
+
+        if ((m_obj->is_main_extruder_on_left() && item.extruder_id == 0)
+            || (!m_obj->is_main_extruder_on_left() && item.extruder_id == 1)) {
+            if (left_first_add_item) {
+                wxString title_name = left_sizer->GetStaticBox()->GetLabel();
+                title_name += " - ";
+                title_name += get_nozzle_volume_type_name(item.nozzle_volume_type);
+                left_sizer->GetStaticBox()->SetLabel(title_name);
+                left_first_add_item = false;
+            }
+
+            left_grid_sizer->Add(tray_title, 1, wxEXPAND);
+
+            if (comboBox_tray_name->IsShown()) {
+                left_grid_sizer->Add(comboBox_tray_name, 1, wxEXPAND);
+            } else {
+                left_grid_sizer->Add(tray_name_failed, 1, wxEXPAND);
+            }
+
+            if (k_value->IsShown()) {
+                left_grid_sizer->Add(k_value, 1, wxEXPAND);
+            } else {
+                left_grid_sizer->Add(k_value_failed, 1, wxEXPAND);
+            }
+        }
+        else {
+            if (right_first_add_item) {
+                wxString title_name = right_sizer->GetStaticBox()->GetLabel();
+                title_name += " - ";
+                title_name += get_nozzle_volume_type_name(item.nozzle_volume_type);
+                right_sizer->GetStaticBox()->SetLabel(title_name);
+                right_first_add_item = false;
+            }
+            right_grid_sizer->Add(tray_title, 1, wxEXPAND);
+
+            if (comboBox_tray_name->IsShown()) {
+                right_grid_sizer->Add(comboBox_tray_name, 1, wxEXPAND);
+            } else {
+                right_grid_sizer->Add(tray_name_failed, 1, wxEXPAND);
+            }
+
+            if (k_value->IsShown()) {
+                right_grid_sizer->Add(k_value, 1, wxEXPAND);
+            } else {
+                right_grid_sizer->Add(k_value_failed, 1, wxEXPAND);
+            }
+        }
+    }
+
+    if (left_first_add_item)
+        left_sizer->Show(false);
+    if (right_first_add_item)
+        right_sizer->Show(false);
+
+    m_grid_panel->SetSizer(grid_sizer, true);
+    m_grid_panel->Bind(wxEVT_LEFT_DOWN, [this](auto &e) { SetFocusIgnoringChildren(); });
+
+    if (part_failed) {
+        m_part_failed_panel->Show();
+        m_complete_text_panel->Show();
+        if (m_is_all_failed) {
+            m_complete_text_panel->Hide();
+        }
+    } else {
+        m_complete_text_panel->Show();
+        m_part_failed_panel->Hide();
+    }
+
+    wxGetApp().UpdateDarkUIWin(this);
+
+    Layout();
 }
 
 CaliPASaveManualPanel::CaliPASaveManualPanel(
@@ -521,7 +752,7 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 }
 
 void CaliPASaveManualPanel::set_save_img() {
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
         m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual_result_CN", 330));
     } else {
         m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual_result", 330));
@@ -778,19 +1009,19 @@ void CaliSavePresetValuePanel::set_save_name_title(const wxString& title) {
     m_save_name_title->SetLabel(title);
 }
 
-void CaliSavePresetValuePanel::get_value(double& value) 
-{ 
-    m_input_value->GetTextCtrl()->GetValue().ToDouble(&value); 
+void CaliSavePresetValuePanel::get_value(double& value)
+{
+    m_input_value->GetTextCtrl()->GetValue().ToDouble(&value);
 }
 
 void CaliSavePresetValuePanel::get_save_name(std::string& name)
-{ 
-    name = into_u8(m_input_name->GetTextCtrl()->GetValue()); 
+{
+    name = into_u8(m_input_name->GetTextCtrl()->GetValue());
 }
 
 void CaliSavePresetValuePanel::set_save_name(const std::string& name)
-{ 
-    m_input_name->GetTextCtrl()->SetValue(name); 
+{
+    m_input_name->GetTextCtrl()->SetValue(name);
 }
 
 void CaliSavePresetValuePanel::msw_rescale()
@@ -1307,7 +1538,7 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
 }
 
 void CalibrationFlowCoarseSavePage::set_save_img() {
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
         m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_coarse_result_CN", 350));
     } else {
         m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_coarse_result", 350));
@@ -1336,7 +1567,7 @@ void CalibrationFlowCoarseSavePage::set_curr_flow_ratio(const float value) {
 bool CalibrationFlowCoarseSavePage::get_result(float* out_value, wxString* out_name) {
     // Check if the value is valid
     if (m_optimal_block_coarse->GetSelection() == -1 || m_coarse_flow_ratio <= 0.0 || m_coarse_flow_ratio >= 2.0) {
-        MessageDialog msg_dlg(nullptr, _L("Please choose a block with smoothest top surface"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please choose a block with smoothest top surface."), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
     }
@@ -1491,7 +1722,7 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
 }
 
 void CalibrationFlowFineSavePage::set_save_img() {
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
         m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_fine_result_CN", 350));
     } else {
         m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_fine_result", 350));

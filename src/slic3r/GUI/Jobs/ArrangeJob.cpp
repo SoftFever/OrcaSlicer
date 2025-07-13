@@ -171,7 +171,7 @@ void ArrangeJob::prepare_selected() {
             m_selected.swap(m_unselected);
         else {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on the locked plate,\nWe can not do auto-arrange on these objects.")));
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on a locked plate.\nCannot auto-arrange these objects.")));
             }
         }
 
@@ -241,7 +241,7 @@ void ArrangeJob::prepare_all() {
         }
         else {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on the locked plate,\nWe can not do auto-arrange on these objects.")));
+                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on a locked plate.\nCannot auto-arrange these objects.")));
         }
     }
 
@@ -379,7 +379,7 @@ void ArrangeJob::prepare_partplate() {
 
     if (plate->is_locked()) {
         m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
-            NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("This plate is locked,\nWe can not do auto-arrange on this plate.")));
+            NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("This plate is locked.\nCannot auto-arrange on this plate.")));
         return;
     }
 
@@ -458,17 +458,7 @@ void ArrangeJob::prepare()
         auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
         auto print_config = print.config();
         bed_poly.points = get_bed_shape(*m_plater->config());
-        Pointfs excluse_area_points = print_config.bed_exclude_area.values;
-        Polygons exclude_polys;
-        Polygon exclude_poly;
-        for (int i = 0; i < excluse_area_points.size(); i++) {
-            auto pt = excluse_area_points[i];
-            exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
-            if (i % 4 == 3) {  // exclude areas are always rectangle
-                exclude_polys.push_back(exclude_poly);
-                exclude_poly.points.clear();
-            }
-        }
+        Polygons exclude_polys = get_bed_excluded_area(print_config);
         bed_poly = diff({ bed_poly }, exclude_polys)[0];
     }
 

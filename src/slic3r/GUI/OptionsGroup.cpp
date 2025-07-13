@@ -7,6 +7,7 @@
 #include "MsgDialog.hpp"
 #include "format.hpp"
 #include "Widgets/StaticLine.hpp"
+#include "Widgets/LabeledStaticBox.hpp"
 
 #include <utility>
 #include <wx/bookctrl.h>
@@ -257,10 +258,10 @@ void OptionsGroup::activate_line(Line& line)
         ) {
         // BBS: new layout
         const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(h_sizer, 1, wxEXPAND | wxALL, wxOSX ? 0 : 15);
+        sizer->Add(h_sizer, 1, wxEXPAND | wxALL, (wxOSX && !staticbox) ? 0 : 15);
         if (line.widget != nullptr) {
             // description lines
-            sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
+            sizer->Add(line.widget(this->ctrl_parent()), 0, wxEXPAND | wxALL, (wxOSX && !staticbox) ? 0 : 15);
             return;
         }
         if (!line.get_extra_widgets().empty()) {
@@ -281,9 +282,9 @@ void OptionsGroup::activate_line(Line& line)
 		// BBS: new layout
 		custom_ctrl->SetLabel("");
 		if (is_legend_line)
-			sizer->Add(custom_ctrl, 0, wxEXPAND | wxLEFT, wxOSX ? 0 : 10);
+			sizer->Add(custom_ctrl, 0, wxEXPAND | wxLEFT, (wxOSX && !staticbox) ? 0 : 10);
 		else
-            sizer->Add(custom_ctrl, 0, wxEXPAND | wxALL, wxOSX || !staticbox ? 0 : 5);
+            sizer->Add(custom_ctrl, 0, wxEXPAND | wxALL, !staticbox ? 0 : 5);
     }
 
 	// Set sidetext width for a better alignment of options in line
@@ -303,7 +304,7 @@ void OptionsGroup::activate_line(Line& line)
 
 		// BBS: new layout
 		const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
-		sizer->Add(h_sizer, 1, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+		sizer->Add(h_sizer, 1, wxEXPAND | wxALL, (wxOSX && !staticbox) ? 0 : 5);
 		if (is_window_field(field))
 			h_sizer->Add(field->getWindow(), 1, wxEXPAND | wxLEFT, option.opt.multiline ? 0 : titleWidth * wxGetApp().em_unit());
 		if (is_sizer_field(field))
@@ -470,14 +471,11 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 
 	try {
 		if (staticbox) {
-			wxStaticBox * stb = new wxStaticBox(m_parent, wxID_ANY, _(title));
-			if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
-            stb->SetBackgroundColour(m_parent->GetBackgroundColour());
-			stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
-			wxGetApp().UpdateDarkUI(stb);
-			// BBS: new layout
-			sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
+            // ORCA match style of wxStaticBox between platforms
+			LabeledStaticBox * stb = new LabeledStaticBox(m_parent, _(title));
+			//wxGetApp().UpdateDarkUI(stb);
 			this->stb = stb;
+			sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
 		}
 		else {
 			// BBS: new layout
@@ -511,7 +509,7 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 		static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH);
 		static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(grow_col);
 
-		sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX || !staticbox ? 0 : 5);
+		sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, !staticbox ? 0 : 5);
 
 		// activate lines
 		for (Line& line: m_lines) {

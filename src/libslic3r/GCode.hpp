@@ -449,7 +449,7 @@ private:
 
     std::string     extrude_perimeters(const Print& print, const std::vector<ObjectByExtruder::Island::Region>& by_region, bool is_first_layer, bool is_infill_first);
     std::string     extrude_infill(const Print& print, const std::vector<ObjectByExtruder::Island::Region>& by_region, bool ironing);
-    std::string     extrude_support(const ExtrusionEntityCollection& support_fills);
+    std::string     extrude_support(const ExtrusionEntityCollection& support_fills, const ExtrusionRole support_extrusion_role);
 
     // BBS
     LiftType to_lift_type(ZHopType z_hop_types);
@@ -605,7 +605,7 @@ private:
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
-    double get_overhang_degree_corr_speed(float speed, double path_degree);
+    bool _needSAFC(const ExtrusionPath &path);
     void print_machine_envelope(GCodeOutputStream &file, Print &print);
     void _print_first_layer_bed_temperature(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     void _print_first_layer_extruder_temperatures(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);

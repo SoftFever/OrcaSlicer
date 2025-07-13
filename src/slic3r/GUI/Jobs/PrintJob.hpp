@@ -61,7 +61,9 @@ public:
     std::string m_access_code;
     std::string task_bed_type;
     std::string task_ams_mapping;
+    std::string task_ams_mapping2;
     std::string task_ams_mapping_info;
+    std::string task_nozzles_info;
     std::string connection_type;
     std::string m_print_type;
     std::string m_dst_path;
@@ -69,7 +71,7 @@ public:
     bool m_is_calibration_task = false;
 
     int         m_print_from_sdc_plate_idx = 0;
-    
+
     bool        m_local_use_ssl_for_mqtt { true };
     bool        m_local_use_ssl_for_ftp { true };
     bool        task_bed_leveling;
@@ -81,7 +83,14 @@ public:
     bool        has_sdcard { false };
     bool        task_use_ams { true };
 
-    void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect) 
+    int         auto_bed_leveling{0};
+    int         auto_flow_cali{0};
+    int         auto_offset_cali{0};
+
+    void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect,
+        int auto_bed_levelingt,
+        int auto_flow_calit,
+        int auto_offset_calit)
     {
         task_bed_type       = bed_type;
         task_bed_leveling   = bed_leveling;
@@ -89,6 +98,10 @@ public:
         task_vibration_cali = vabration_cali;
         task_record_timelapse = record_timelapse;
         task_layer_inspect    = layer_inspect;
+
+        auto_bed_leveling = auto_bed_levelingt;
+        auto_flow_cali = auto_flow_calit;
+        auto_offset_cali = auto_offset_calit;
     }
 
     int  status_range() const

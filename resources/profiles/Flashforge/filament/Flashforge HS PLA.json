@@ -1,0 +1,12 @@
+{
+    "filament_settings_id": [
+        "Flashforge HS PLA"
+    ],
+    "from": "system",
+    "setting_id": "GFSA04",
+    "instantiation": "true",
+    "inherits": "Flashforge Generic PLA",
+    "is_custom_defined": "0",
+    "name": "Flashforge HS PLA",
+    "version": "2.1.1.0"
+}

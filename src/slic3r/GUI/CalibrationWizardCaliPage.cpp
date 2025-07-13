@@ -495,8 +495,8 @@ float CalibrationCaliPage::get_selected_calibration_nozzle_dia(MachineObject* ob
         return obj->cali_selected_nozzle_dia;
 
     // return default nozzle if nozzle diameter is set
-    if (obj->nozzle_diameter > 1e-3 && obj->nozzle_diameter < 10.0f)
-        return obj->nozzle_diameter;
+    if (obj->m_extder_data.extders[0].current_nozzle_diameter > 1e-3 && obj->m_extder_data.extders[0].current_nozzle_diameter < 10.0f)
+        return obj->m_extder_data.extders[0].current_nozzle_diameter;
 
     // return 0.4 by default
     return 0.4;

@@ -80,7 +80,7 @@ public:
     bool on_mouse(const wxMouseEvent& mouse_event) override;
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
     void delete_selected_points();
-    void save_model();
+    void update_model_object();
     //ClippingPlane get_sla_clipping_plane() const;
 
     bool is_selection_rectangle_dragging() const { return m_selection_rectangle.is_dragging(); }
