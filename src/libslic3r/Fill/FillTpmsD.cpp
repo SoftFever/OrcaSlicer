@@ -55,8 +55,9 @@ static Polylines make_waves(double gridZ, double density_adjusted, double line_s
 	std::vector<std::pair<double,double>> wave;
 	{//fill one wave
 		const auto v=[&](double u){return acos(a/b*cos(u));};
-		for(int c=0;c<=4;++c){
-			const double u=minU+2*M_PI*c/4;
+		const int initialSegments=16;
+		for(int c=0;c<=initialSegments;++c){
+			const double u=minU+2*M_PI*c/initialSegments;
 			wave.emplace_back(u,v(u));
 		}
 		{//refine
@@ -110,7 +111,7 @@ void FillTpmsD::_fill_surface_single(
 
     BoundingBox bb = expolygon.contour.bounding_box();
     // Density adjusted to have a good %of weight.
-    double      density_adjusted = std::max(0., params.density * DensityAdjust);
+    double      density_adjusted = std::max(0., params.density * DensityAdjust / params.multiline);
     // Distance between the gyroid waves in scaled coordinates.
     coord_t     distance = coord_t(scale_(this->spacing)  / density_adjusted);
 
@@ -129,6 +130,8 @@ void FillTpmsD::_fill_surface_single(
 	for (Polyline &pl : polylines)
 		pl.translate(bb.min);
 	
+	    // Apply multiline offset if needed
+    multiline_fill(polylines, params, spacing);
 
 	polylines = intersection_pl(polylines, expolygon);
 
