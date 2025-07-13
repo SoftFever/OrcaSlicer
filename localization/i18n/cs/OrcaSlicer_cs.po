@@ -6698,17 +6698,23 @@ msgstr ""
 "Pokud je povoleno, použijte volnou kameru. Pokud není povoleno, použijte "
 "omezenou kameru."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Prohodit tlačítka pro posouvání a otáčení myši"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Pokud je tato možnost povolena, prohodí levé a pravé tlačítko myši pro funkce posouvání a otáčení."
+
 msgid "Reverse mouse zoom"
-msgstr ""
+msgstr "Zvětšení/zmenšení myší v opačném směru"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
+msgstr "Pokud je povoleno, obrací směr přiblížení kolečkem myši."
 
 msgid "Show splash screen"
 msgstr "Zobrazovat úvodní obrazovku"
 
 msgid "Show the splash screen during startup."
-msgstr ""
+msgstr "Zobrazit úvodní obrazovku během spuštění."
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Zobrazovat \"Tip dne\" po spuštění"

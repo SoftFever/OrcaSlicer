@@ -6598,30 +6598,34 @@ msgstr ""
 msgid "Zoom to mouse position"
 msgstr "Zooma till musens position"
 
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
-msgstr ""
-"Zooma in mot muspekarens position i 3D-vyn, istället för mot 2D-fönstrets "
+msgstr "Zooma in mot muspekarens position i 3D-vyn, istället för mot 2D-fönstrets "
 "mitt."
 
 msgid "Use free camera"
-msgstr ""
+msgstr "Använd fri kamera"
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
-msgstr ""
+msgstr "Om aktiverat, använd fri kamera. Om inte aktiverat, använd begränsad kamera."
+
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Växla panorerings- och rotationsknapparna på musen"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Om aktiverat växlar vänster och höger musknapps panorerings- och rotationsfunktioner."
 
 msgid "Reverse mouse zoom"
-msgstr ""
+msgstr "Omvänd muszoomning"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
+msgstr "Om aktiverad, vänder zoomriktningen med mushjulet."
 
 msgid "Show splash screen"
-msgstr ""
+msgstr "Visa välkomstskärm"
 
 msgid "Show the splash screen during startup."
-msgstr ""
+msgstr "Visa välkomstskärmen under uppstart."
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Visa \"Dagens tips\" efter start"

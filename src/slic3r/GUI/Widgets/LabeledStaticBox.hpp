@@ -63,6 +63,9 @@ protected:
     int          m_label_width;
     float        m_scale;
     wxPoint      m_pos;
+
+    void GetBordersForSizer(int *borderTop, int *borderOther) const override;
+
 };
 
 #endif // !slic3r_GUI_LabeledStaticBox_hpp_

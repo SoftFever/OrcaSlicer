@@ -6669,6 +6669,12 @@ msgstr ""
 "활성화된 경우 자유로운 카메라 앵글을 사용합니다. 활성화되지 않은 경우 제한된 "
 "카메라 앵글을 사용합니다."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "팬 및 회전 마우스 버튼 바꾸기"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "이 기능을 활성화하면 왼쪽 마우스 버튼과 오른쪽 마우스 버튼의 팬 및 회전 기능이 바뀝니다."
+
 msgid "Reverse mouse zoom"
 msgstr "역방향 마우스 줌"
 

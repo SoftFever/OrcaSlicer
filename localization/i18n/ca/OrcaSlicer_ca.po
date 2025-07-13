@@ -6872,6 +6872,12 @@ msgstr ""
 "Si està activat, fa servir la càmera lliure. Si no està activat, fa servir "
 "la càmera restringida."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Intercanviar la panoràmica i girar els botons del ratolí"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Si està activat, intercanvia les funcions de panoràmica i rotació dels botons esquerre i dret del ratolí."
+
 msgid "Reverse mouse zoom"
 msgstr "Zoom invers del ratolí"
 

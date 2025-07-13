@@ -6707,6 +6707,12 @@ msgstr ""
 "Als dit is ingeschakeld wordt de vrij beweegbare camera gebruikt, anders een "
 "vaste camera."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Wissel de pan- en rotatiemuisknoppen om"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Als deze optie is ingeschakeld, worden de pan- en rotatiefuncties van de linker- en rechtermuisknop omgedraaid."
+
 msgid "Reverse mouse zoom"
 msgstr "Omgekeerde muiszoom"
 

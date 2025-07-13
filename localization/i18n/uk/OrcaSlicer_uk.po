@@ -6860,6 +6860,12 @@ msgstr ""
 "Якщо увімкнено, використовуватиметься вільна камера. Якщо вимкнено, "
 "використовуватиметься камера з обмеженими можливостями."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Поміняти кнопки миші для панорамування й обертання"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Якщо ввімкнено, змінює місцями функції панорамування та обертання між лівою та правою кнопками миші."
+
 msgid "Reverse mouse zoom"
 msgstr "Зворотне масштабування мишкою"
 

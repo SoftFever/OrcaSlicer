@@ -122,6 +122,13 @@
 #include "dark_mode.hpp"
 #include "wx/headerctrl.h"
 #include "wx/msw/headerctrl.h"
+
+typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS2)(
+    HANDLE hProcess,
+    USHORT *pProcessMachine,
+    USHORT *pNativeMachine
+);
+
 #endif // _MSW_DARK_MODE
 #endif // __WINDOWS__
 
@@ -1166,7 +1173,7 @@ std::string GUI_App::get_plugin_url(std::string name, std::string country_code)
 {
     std::string url = get_http_url(country_code);
 
-    std::string curr_version = SLIC3R_VERSION;
+    std::string curr_version = NetworkAgent::use_legacy_network ? BAMBU_NETWORK_AGENT_VERSION_LEGACY : BAMBU_NETWORK_AGENT_VERSION;
     std::string using_version = curr_version.substr(0, 9) + "00";
     if (name == "cameratools")
         using_version = curr_version.substr(0, 6) + "00.00";
@@ -1210,6 +1217,17 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
     fs::path target_file_path = (fs::temp_directory_path() / package_name);
     fs::path tmp_path = target_file_path;
     tmp_path += format(".%1%%2%", get_current_pid(), ".tmp");
+
+#if defined(__WINDOWS__)
+    if (is_running_on_arm64() && !NetworkAgent::use_legacy_network) {
+        //set to arm64 for plugins
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows_arm";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: set X-BBL-OS-Type to windows_arm");
+    }
+#endif
 
     // get_url
     std::string  url = get_plugin_url(name, app_config->get_country_code());
@@ -1267,6 +1285,17 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
                 err_msg += "[download_plugin 1] on_error: " + error + ", body = " + body;
                 result = -1;
         }).perform_sync();
+
+#if defined(__WINDOWS__)
+    if (is_running_on_arm64() && !NetworkAgent::use_legacy_network) {
+        //set back
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: set X-BBL-OS-Type back to windows");
+    }
+#endif
 
     bool cancel = false;
     if (result < 0) {
@@ -1542,7 +1571,7 @@ bool GUI_App::check_networking_version()
     if (!network_ver.empty()) {
         BOOST_LOG_TRIVIAL(info) << "get_network_agent_version=" << network_ver;
     }
-    std::string studio_ver = SLIC3R_VERSION;
+    std::string studio_ver = NetworkAgent::use_legacy_network ? BAMBU_NETWORK_AGENT_VERSION_LEGACY : BAMBU_NETWORK_AGENT_VERSION;
     if (network_ver.length() >= 8) {
         if (network_ver.substr(0,8) == studio_ver.substr(0,8)) {
             m_networking_compatible = true;
@@ -1751,6 +1780,8 @@ void GUI_App::init_networking_callbacks()
             CallAfter([this, dev_id, msg] {
                 if (m_is_closing)
                     return;
+                this->process_network_msg(dev_id, msg);
+
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
                     obj->is_ams_need_update = false;
@@ -1803,6 +1834,7 @@ void GUI_App::init_networking_callbacks()
                 if (m_is_closing)
                     return;
 
+                this->process_network_msg(dev_id, msg);
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (!obj || !obj->is_lan_mode_printer()) {
                     obj = m_device_manager->get_local_machine(dev_id);
@@ -2048,7 +2080,11 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-Client-Name", SLIC3R_APP_NAME));
     extra_headers.insert(std::make_pair("X-BBL-Client-Version", VersionInfo::convert_full_version(SLIC3R_VERSION)));
 #if defined(__WINDOWS__)
+#ifdef _M_X64
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
+#else
+    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows_arm"));
+#endif
 #elif defined(__APPLE__)
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "macos"));
 #elif defined(__LINUX__)
@@ -2260,6 +2296,33 @@ bool GUI_App::on_init_inner()
 #endif
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current OrcaSlicer Version %1%")%SoftFever_VERSION;
+
+#if defined(__WINDOWS__)
+    HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
+    m_is_arm64 = false;
+    if (hKernel32) {
+        auto fnIsWow64Process2 = (LPFN_ISWOW64PROCESS2)GetProcAddress(hKernel32, "IsWow64Process2");
+        if (fnIsWow64Process2) {
+            USHORT processMachine = 0;
+            USHORT nativeMachine = 0;
+            if (fnIsWow64Process2(GetCurrentProcess(), &processMachine, &nativeMachine)) {
+                if (nativeMachine == IMAGE_FILE_MACHINE_ARM64) {//IMAGE_FILE_MACHINE_ARM64
+                    m_is_arm64 = true;
+                }
+                BOOST_LOG_TRIVIAL(info) << boost::format("processMachine architecture %1%, nativeMachine %2% m_is_arm64 %3%")%(int)(processMachine) %(int) nativeMachine %m_is_arm64;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << boost::format("IsWow64Process2 failed, set m_is_arm64 to %1%") %m_is_arm64;
+            }
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << boost::format("can not find IsWow64Process2, set m_is_arm64 to %1%") %m_is_arm64;
+        }
+    }
+    else {
+        BOOST_LOG_TRIVIAL(info) << boost::format("can not find kernel32, set m_is_arm64 to %1%") %m_is_arm64;
+    }
+#endif
     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
     // Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
@@ -2516,6 +2579,22 @@ bool GUI_App::on_init_inner()
     std::map<std::string, std::string> extra_headers = get_extra_header();
     Slic3r::Http::set_extra_headers(extra_headers);
 
+    // Orca: select network plugin version
+    NetworkAgent::use_legacy_network = app_config->get_bool("legacy_networking");
+    // Force legacy network plugin if debugger attached
+    // See https://github.com/bambulab/BambuStudio/issues/6726
+    if (!NetworkAgent::use_legacy_network) {
+        bool debugger_attached = false;
+#if defined(__WINDOWS__)
+        debugger_attached = IsDebuggerPresent();
+#elif defined(__WXOSX__) || defined(__linux__)
+        debugger_attached = is_debugger_present();
+#endif
+        if (debugger_attached) {
+            NetworkAgent::use_legacy_network = true;
+            wxMessageBox("Force using legacy bambu networking plugin because debugger is attached! If the app terminates itself immediately, please delete installed plugin and try again!");
+        }
+    }
     copy_network_if_available();
     on_init_network();
 
@@ -2768,13 +2847,12 @@ void GUI_App::copy_network_if_available()
 
 bool GUI_App::on_init_network(bool try_backup)
 {
+    bool create_network_agent = false;
     auto should_load_networking_plugin = app_config->get_bool("installed_networking");
     if(!should_load_networking_plugin) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Don't load plugin as installed_networking is false";
-        return false;
-    }
+    } else {
     int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module();
-    bool create_network_agent = false;
 __retry:
     if (!load_agent_dll) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
@@ -2809,6 +2887,7 @@ __retry:
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
             m_networking_need_update = true;
         }
+    }
     }
 
     if (create_network_agent) {
@@ -3662,10 +3741,18 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 
 wxString GUI_App::transition_tridid(int trid_id)
 {
-    wxString maping_dict[8] = { "A", "B", "C", "D", "E", "F", "G" };
-    int id_index = ceil(trid_id / 4);
-    int id_suffix = (trid_id + 1) % 4 == 0 ? 4 : (trid_id + 1) % 4;
-    return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+    wxString maping_dict[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+
+    if (trid_id >= 128 * 4) {
+        trid_id -= 128 * 4;
+        int id_index = trid_id / 4;
+        return wxString::Format("%s", maping_dict[id_index]);
+    }
+    else {
+        int id_index = ceil(trid_id / 4);
+        int id_suffix = trid_id % 4 + 1;
+        return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+    }
 }
 
 //BBS
@@ -4388,6 +4475,13 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
           } catch (...) {}
         })
         .perform();
+}
+
+void GUI_App::process_network_msg(std::string dev_id, std::string msg)
+{
+    if (dev_id.empty()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << msg;
+    }
 }
 
 //BBS pop up a dialog and download files

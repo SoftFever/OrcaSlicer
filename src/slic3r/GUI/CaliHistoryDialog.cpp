@@ -11,7 +11,7 @@
 namespace Slic3r {
 namespace GUI {
 
-  
+
 #define HISTORY_WINDOW_SIZE                wxSize(FromDIP(700), FromDIP(600))
 #define EDIT_HISTORY_DIALOG_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
 #define NEW_HISTORY_DIALOG_INPUT_SIZE      wxSize(FromDIP(250), FromDIP(24))
@@ -180,7 +180,7 @@ void HistoryWindow::on_device_connected(MachineObject* obj)
     int selection = 1;
     for (int i = 0; i < nozzle_diameter_list.size(); i++) {
         m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
-        if (abs(curr_obj->nozzle_diameter - nozzle_diameter_list[i]) < 1e-3) {
+        if (abs(curr_obj->m_extder_data.extders[0].current_nozzle_diameter - nozzle_diameter_list[i]) < 1e-3) {
             selection = i;
         }
     }
@@ -201,9 +201,8 @@ void HistoryWindow::update(MachineObject* obj)
 {
     if (!obj) return;
 
-    if (obj->cali_version != history_version) {
+    if (obj->cali_version != obj->last_cali_version) {
         if (obj->has_get_pa_calib_tab) {
-            history_version = obj->cali_version;
             reqeust_history_result(obj);
         }
     }
@@ -217,20 +216,23 @@ void HistoryWindow::update(MachineObject* obj)
 void HistoryWindow::on_select_nozzle(wxCommandEvent& evt)
 {
     reqeust_history_result(curr_obj);
-    
+
 }
 
 void HistoryWindow::reqeust_history_result(MachineObject* obj)
 {
     if (curr_obj) {
-        // reset 
+        // reset
         curr_obj->reset_pa_cali_history_result();
         m_calib_results_history.clear();
         sync_history_data();
 
         float nozzle_value = get_nozzle_value();
         if (nozzle_value > 0) {
-            CalibUtils::emit_get_PA_calib_infos(nozzle_value);
+            PACalibExtruderInfo cali_info;
+            cali_info.nozzle_diameter = nozzle_value;
+            cali_info.use_nozzle_volume_type = false;
+            CalibUtils::emit_get_PA_calib_infos(cali_info);
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
             BOOST_LOG_TRIVIAL(info) << "request calib history";
         }
@@ -303,7 +305,12 @@ void HistoryWindow::sync_history_data() {
             gbSizer->SetEmptyCellSize({ 0,0 });
             m_history_data_panel->Layout();
             m_history_data_panel->Fit();
-            CalibUtils::delete_PA_calib_result({ result.tray_id, result.cali_idx, result.nozzle_diameter, result.filament_id });
+            PACalibIndexInfo cali_info;
+            cali_info.tray_id         = result.tray_id;
+            cali_info.cali_idx        = result.cali_idx;
+            cali_info.nozzle_diameter = result.nozzle_diameter;
+            cali_info.filament_id     = result.filament_id;
+            CalibUtils::delete_PA_calib_result(cali_info);
             });
 
         auto edit_button = new Button(m_history_data_panel, _L("Edit"));
@@ -468,7 +475,7 @@ void EditCalibrationHistoryDialog::on_save(wxCommandEvent& event) {
         return;
 
     m_new_result.name = m_name_value->GetTextCtrl()->GetValue().ToUTF8().data();
-    
+
     float k = 0.0f;
     if (!CalibUtils::validate_input_k_value(m_k_value->GetTextCtrl()->GetValue(), &k)) {
         MessageDialog msg_dlg(nullptr, wxString::Format(_L("Please input a valid value (K in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE), wxEmptyString, wxICON_WARNING | wxOK);
@@ -499,7 +506,7 @@ wxArrayString NewCalibrationHistoryDialog::get_all_filaments(const MachineObject
     std::set<std::string> filament_id_set;
     std::set<std::string> printer_names;
     std::ostringstream    stream;
-    stream << std::fixed << std::setprecision(1) << obj->nozzle_diameter;
+    stream << std::fixed << std::setprecision(1) << obj->m_extder_data.extders[0].current_nozzle_diameter;
     std::string nozzle_diameter_str = stream.str();
 
     for (auto printer_it = preset_bundle->printers.begin(); printer_it != preset_bundle->printers.end(); printer_it++) {
@@ -616,11 +623,11 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     static std::array<float, 4> nozzle_diameter_list = {0.2f, 0.4f, 0.6f, 0.8f};
     for (int i = 0; i < nozzle_diameter_list.size(); i++) {
         m_comboBox_nozzle_diameter->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
-        if (abs(obj->nozzle_diameter - nozzle_diameter_list[i]) < 1e-3) {
+        if (abs(obj->m_extder_data.extders[0].current_nozzle_diameter - nozzle_diameter_list[i]) < 1e-3) {
             m_comboBox_nozzle_diameter->SetSelection(i);
         }
     }
-    
+
     // Nozzle Diameter
     flex_sizer->Add(nozzle_diameter_title);
     flex_sizer->Add(m_comboBox_nozzle_diameter);
@@ -628,7 +635,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     Label *k_title = new Label(top_panel, _L("Factor K"));
     auto   k_str   = wxString::Format("%.3f", m_new_result.k_value);
     m_k_value      = new TextInput(top_panel, k_str, "", "", wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, wxTE_PROCESS_ENTER);
-    
+
     // Factor K
     flex_sizer->Add(k_title);
     flex_sizer->Add(m_k_value);
@@ -703,7 +710,7 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
     m_new_result.k_value  = k;
     m_new_result.tray_id = -1;
     m_new_result.cali_idx = -1;
-    
+
     m_new_result.nozzle_diameter = nozzle_value;
     m_new_result.filament_id = filament_id;
     m_new_result.setting_id = setting_id;

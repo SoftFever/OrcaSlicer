@@ -6894,13 +6894,17 @@ msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
 "Se abilitato, usa la visuale libera. Altrimenti, usa la visuale vincolata."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "Scambia i pulsanti del mouse per ruotare e spostare"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "Se abilitato, inverte le funzioni di panoramica e rotazione dei pulsanti sinistro e destro del mouse."
+
 msgid "Reverse mouse zoom"
 msgstr "Inverti zoom del mouse"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
-"Se abilitato, inverte la direzione dell'ingrandimento con la rotellina del "
-"mouse."
+msgstr "Se abilitato, inverte la direzione dell'ingrandimento con la rotellina del mouse."
 
 msgid "Show splash screen"
 msgstr "Mostra schermata iniziale"
