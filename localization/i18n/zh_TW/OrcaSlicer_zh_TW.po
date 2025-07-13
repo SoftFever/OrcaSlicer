@@ -8299,6 +8299,10 @@ msgstr "尖端成型線寬"
 msgid "Ramming line spacing"
 msgstr "尖端成型線間距"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr ""
+
 msgid "Auto-Calc"
 msgstr "自動計算"
 
