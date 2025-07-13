@@ -1303,10 +1303,10 @@ void Layer::make_ironing()
 			IroningParams ironing_params;
 			const PrintRegionConfig &config = layerm->region().config();
 			if (config.ironing_type != IroningType::NoIroning &&
-				(config.ironing_type == IroningType::AllSolid ||
-				 	((config.top_shell_layers > 0 || this->object()->print()->config().spiral_mode) &&
-						(config.ironing_type == IroningType::TopSurfaces ||
-					 	(config.ironing_type == IroningType::TopmostOnly && layerm->layer()->upper_layer == nullptr))))) {
+			    (config.ironing_type == IroningType::AllSolid ||
+				    ((config.top_shell_layers > 0 || (this->object()->print()->config().spiral_mode && config.bottom_shell_layers > 1)) &&
+					    (config.ironing_type == IroningType::TopSurfaces ||
+					        (config.ironing_type == IroningType::TopmostOnly && layerm->layer()->upper_layer == nullptr))))) {
 				if (config.wall_filament == config.solid_infill_filament || config.wall_loops == 0) {
 					// Iron the whole face.
 					ironing_params.extruder = config.solid_infill_filament;
