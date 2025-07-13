@@ -31,8 +31,10 @@ bool GLGizmoFuzzySkin::on_init()
 {
     m_shortcut_key = WXK_CONTROL_H;
 
+    m_desc["clipping_of_view_caption"]  = _L("Alt + Mouse wheel");
     m_desc["clipping_of_view"]          = _L("Section view");
     m_desc["reset_direction"]           = _L("Reset direction");
+    m_desc["cursor_size_caption"]       = _L("Ctrl + Mouse wheel");
     m_desc["cursor_size"]               = _L("Brush size");
     m_desc["cursor_type"]               = _L("Brush shape") ;
     m_desc["add_fuzzy_skin_caption"]    = _L("Left mouse button");
@@ -46,6 +48,7 @@ bool GLGizmoFuzzySkin::on_init()
     m_desc["tool_type"]                 = _L("Tool type");
     m_desc["tool_brush"]                = _L("Brush");
     m_desc["tool_smart_fill"]           = _L("Smart fill");
+    m_desc["smart_fill_angle_caption"]  = _L("Ctrl + Mouse wheel");
     m_desc["smart_fill_angle"]          = _L("Smart fill angle");
 
     return true;
@@ -76,7 +79,7 @@ void GLGizmoFuzzySkin::show_tooltip_information(float caption_max, float x, floa
     ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
-    caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 35.f;
+    caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 15.f;
 
     float  scale       = m_parent.get_scale();
     ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
@@ -92,9 +95,22 @@ void GLGizmoFuzzySkin::show_tooltip_information(float caption_max, float x, floa
             m_imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
         };
 
-        for (const std::string& t : {"add_fuzzy_skin"s, "remove_fuzzy_skin"s}) {
-            draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
+        std::vector<std::string> tip_items;
+        switch (m_tool_type) {
+            case ToolType::BRUSH:
+                if (m_cursor_type == TriangleSelector::POINTER) {
+                    tip_items = {"add_fuzzy_skin", "remove_fuzzy_skin", "clipping_of_view"};
+                } else {
+                    tip_items = {"add_fuzzy_skin", "remove_fuzzy_skin", "cursor_size", "clipping_of_view"};
+                }
+                break;
+            case ToolType::SMART_FILL:
+                tip_items = {"add_fuzzy_skin", "remove_fuzzy_skin", "smart_fill_angle", "clipping_of_view"};
+                break;
+            default:
+                break;
         }
+        for (const auto &t : tip_items) draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(2);
@@ -122,10 +138,10 @@ void GLGizmoFuzzySkin::on_render_input_window(float x, float y, float bottom_lim
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float space_size = m_imgui->get_style_scaling() * 8;
-    const float clipping_slider_left   = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
-                                                  m_imgui->calc_text_size(m_desc.at("reset_direction")).x) + m_imgui->scaled(1.5f);
-    const float cursor_slider_left     = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
-    const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.f);
+    const float clipping_slider_left  = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f),
+        m_imgui->calc_text_size(m_desc.at("reset_direction")).x + m_imgui->scaled(1.5f) + ImGui::GetStyle().FramePadding.x * 2);
+    const float cursor_slider_left     = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
+    const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);
 
     const float cursor_type_radio_circle  = m_imgui->calc_text_size(m_desc["circle"]).x + m_imgui->scaled(2.5f);
     const float cursor_type_radio_sphere  = m_imgui->calc_text_size(m_desc["sphere"]).x + m_imgui->scaled(2.5f);
