@@ -8750,6 +8750,10 @@ msgstr "Largura da linha de moldeamento"
 msgid "Ramming line spacing"
 msgstr "Espaçamento da linha de moldeamento"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr ""
+
 msgid "Auto-Calc"
 msgstr "Auto-Calc"
 
