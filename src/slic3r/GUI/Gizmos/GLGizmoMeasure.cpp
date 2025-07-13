@@ -39,7 +39,7 @@ std::string GLGizmoMeasure::surface_feature_type_as_string(Measure::SurfaceFeatu
     switch (type)
     {
     default:
-    case Measure::SurfaceFeatureType::Undef:  { return ("No feature"); }
+    case Measure::SurfaceFeatureType::Undef:  { return _u8L("No feature"); }
     case Measure::SurfaceFeatureType::Point:  { return _u8L("Vertex"); }
     case Measure::SurfaceFeatureType::Edge:   { return _u8L("Edge"); }
     case Measure::SurfaceFeatureType::Circle: { return _u8L("Circle"); }

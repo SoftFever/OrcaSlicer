@@ -1331,6 +1331,15 @@ struct SupportAnnotations
         // Append custom supports.
         object.project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers_layers);
         object.project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers_layers);
+
+        // Expand the blocker a bit. Custom blockers produce strips
+        // spanning just the projection between the two slices.
+        // Subtracting them as they are may leave unwanted narrow
+        // residues of diff_polygons that would then be supported.
+        for (auto& blocker : blockers_layers) {
+            if (!blocker.empty())
+                blocker = expand(union_(blocker), float(1000. * SCALED_EPSILON));
+        }
     }
 
     std::vector<Polygons>         enforcers_layers;
@@ -1490,11 +1499,7 @@ static inline ExPolygons detect_overhangs(
 
             // Apply the "support blockers".
             if (!annotations.blockers_layers.empty() && !annotations.blockers_layers[layer_id].empty()) {
-                // Expand the blocker a bit. Custom blockers produce strips
-                // spanning just the projection between the two slices.
-                // Subtracting them as they are may leave unwanted narrow
-                // residues of diff_polygons that would then be supported.
-                auto blocker = expand(union_(annotations.blockers_layers[layer_id]), float(1000. * SCALED_EPSILON));
+                const auto& blocker = annotations.blockers_layers[layer_id];
                 diff_polygons = diff(diff_polygons, blocker);
                 layer.sharp_tails = diff_ex(layer.sharp_tails, blocker);
             }
@@ -2217,6 +2222,13 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
                     ExPolygons overhang = diff_ex({ expoly }, lower_layer->lslices);
                     layer->sharp_tails.push_back(expoly);
                     layer->sharp_tails_height.push_back( accum_height );
+
+                    // Apply the "support blockers".
+                    if (!annotations.blockers_layers.empty() && !annotations.blockers_layers[layer_nr].empty()) {
+                        const auto& blocker = annotations.blockers_layers[layer_nr];
+                        overhang            = diff_ex(overhang, blocker);
+                    }
+
                     append(overhangs_per_layers[layer_nr], overhang);
                 }
 

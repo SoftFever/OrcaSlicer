@@ -86,10 +86,16 @@ SHELL ["/bin/bash", "-l", "-c"]
 ARG USER=root
 ARG UID=0
 ARG GID=0
-RUN [[ "$UID" != "0" ]] \
-  && groupadd -f -g $GID $USER \
-  && useradd -u $UID -g $GID $USER
-
+RUN if [[ "$UID" != "0" ]]; then \
+      # Create group if it doesn't exist \
+      groupadd -f -g $GID $USER; \
+      # Check if user with this UID already exists \
+      if getent passwd $UID > /dev/null 2>&1; then \
+        echo "User with UID $UID already exists, skipping user creation"; \
+      else \
+        useradd -u $UID -g $GID $USER; \
+      fi \
+    fi
 # Using an entrypoint instead of CMD because the binary
 # accepts several command line arguments.
 ENTRYPOINT ["/OrcaSlicer/build/package/bin/orca-slicer"]

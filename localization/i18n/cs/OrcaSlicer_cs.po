@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-01 17:37+0800\n"
+"POT-Creation-Date: 2025-03-16 22:32+0800\n"
 "PO-Revision-Date: 2024-11-03 20:59+0100\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -1007,6 +1007,10 @@ msgid "Orient the text towards the camera."
 msgstr "Orientovat text směrem ke kameře."
 
 #, boost-format
+msgid "Font \"%1%\" can't be used. Please select another."
+msgstr ""
+
+#, boost-format
 msgid ""
 "Can't load exactly same font(\"%1%\"). Application selected a similar "
 "one(\"%2%\"). You have to specify font for enable edit text."
@@ -1261,6 +1265,9 @@ msgstr "Nano SVG parser nemůže číst ze souboru (%1%)."
 #, boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "SVG soubor neobsahuje jedinou cestu, kterou lze embosovat (%1%)."
+
+msgid "No feature"
+msgstr ""
 
 msgid "Vertex"
 msgstr "Vertex"
@@ -3187,8 +3194,12 @@ msgid ""
 "program"
 msgstr "Došlo k chybě. Možná paměť systému nestačí nebo je to chyba program"
 
-msgid "Please save project and restart the program. "
-msgstr "Uložte projekt a restartujte program. "
+#, boost-format
+msgid "A fatal error occurred: \"%1%\""
+msgstr ""
+
+msgid "Please save project and restart the program."
+msgstr "Uložte projekt a restartujte program."
 
 msgid "Processing G-Code from Previous file..."
 msgstr "Zpracovává se G-kód z předchozího souboru..."
@@ -3621,9 +3632,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Aktuální teplota komory je vyšší než bezpečná teplota materiálu,může to "
 "způsobit změkčení materiálu a jeho ucpaní. Maximální bezpečná teplota pro "
@@ -3683,7 +3694,7 @@ msgstr ""
 
 msgid ""
 "Alternate extra wall does't work well when ensure vertical shell thickness "
-"is set to All. "
+"is set to All."
 msgstr ""
 
 msgid ""
@@ -4400,7 +4411,7 @@ msgstr "Objem:"
 msgid "Size:"
 msgstr "Velikost:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4796,6 +4807,14 @@ msgstr "Použít perspektivní pohled"
 msgid "Use Orthogonal View"
 msgstr "Použít ortogonální zobrazení"
 
+msgid "Auto Perspective"
+msgstr ""
+
+msgid ""
+"Automatically switch between orthographic and perspective when changing from "
+"top/bottom/side views"
+msgstr ""
+
 msgid "Show &G-code Window"
 msgstr ""
 
@@ -4935,16 +4954,19 @@ msgstr "&Zobrazení"
 msgid "&Help"
 msgstr "&Pomoc"
 
-#, c-format, boost-format
-msgid "A file exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to overwrite it?"
 msgstr "Existuje soubor se stejným názvem: %s, chcete jej přepsat."
 
-#, c-format, boost-format
-msgid "A config exists with the same name: %s, do you want to override it."
+#, fuzzy, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to overwrite it?"
 msgstr "Existuje konfigurace se stejným názvem: %s, chcete ji přepsat."
 
 msgid "Overwrite file"
 msgstr "Přepsat soubor"
+
+msgid "Overwrite config"
+msgstr ""
 
 msgid "Yes to All"
 msgstr "Ano všem"
@@ -6302,6 +6324,22 @@ msgid ""
 msgstr ""
 "Import do Orca Sliceru selhal. Stáhněte soubor a proveďte jeho ruční import."
 
+msgid "INFO:"
+msgstr ""
+
+msgid ""
+"No accelerations provided for calibration. Use default acceleration value "
+msgstr ""
+
+msgid "mm/s²"
+msgstr "mm/s²"
+
+msgid "No speeds provided for calibration. Use default optimal speed "
+msgstr ""
+
+msgid "mm/s"
+msgstr "mm/s"
+
 msgid "Import SLA archive"
 msgstr "Importovat SLA archiv"
 
@@ -6513,11 +6551,11 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"Plate %d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
-"to non zero."
+"to non-zero."
 msgstr ""
-"Plate% d: %s se nedoporučuje používat k tisku filamentu %s(%s). Pokud Přesto "
+"Plate %d: %s se nedoporučuje používat k tisku filamentu %s(%s). Pokud Přesto "
 "chcete tento tisk provést, nastavte prosím teplotu podložky tohoto filamentu "
 "ne na nulovou."
 
@@ -7597,8 +7635,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Při nahrávání časosběru bez nástrojové hlavy se doporučuje přidat  "
 "\"Timelapse Wipe Tower\" \n"
@@ -8226,7 +8264,7 @@ msgstr ""
 "následující neuložené změny:"
 
 #, boost-format
-msgid "You have changed some settings of preset \"%1%\". "
+msgid "You have changed some settings of preset \"%1%\"."
 msgstr ""
 
 msgid ""
@@ -9377,6 +9415,11 @@ msgstr ""
 "raftových vrstev"
 
 msgid ""
+"The prime tower is only supported for multiple objects if they are printed "
+"with the same support_top_z_distance"
+msgstr ""
+
+msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
 "heights."
 msgstr ""
@@ -9390,11 +9433,22 @@ msgstr ""
 "Čistící věž je podporována pouze v případě, že všechny objekty mají stejnou "
 "proměnnou výšku vrstvy"
 
+msgid ""
+"One or more object were assigned an extruder that the printer does not have."
+msgstr ""
+
 msgid "Too small line width"
 msgstr "Příliš malá šířka extruze"
 
 msgid "Too large line width"
 msgstr "Příliš velká šířka extruze"
+
+msgid ""
+"Printing with multiple extruders of differing nozzle diameters. If support "
+"is to be printed with the current filament (support_filament == 0 or "
+"support_interface_filament == 0), all nozzles have to be of the same "
+"diameter."
+msgstr ""
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
@@ -10061,10 +10115,10 @@ msgstr "Dodatečné perimetry u převisů"
 
 msgid ""
 "Create additional perimeter paths over steep overhangs and areas where "
-"bridges cannot be anchored. "
+"bridges cannot be anchored."
 msgstr ""
 "Vytvořte další perimetry přes strmé převisy a oblasti, kde mosty nelze "
-"ukotvit. "
+"ukotvit."
 
 msgid "Reverse on even"
 msgstr ""
@@ -10181,9 +10235,6 @@ msgid ""
 "are supported by less than 13%, whether they are part of a bridge or an "
 "overhang."
 msgstr ""
-
-msgid "mm/s"
-msgstr "mm/s"
 
 msgid "Internal"
 msgstr "Vnitřní"
@@ -10323,9 +10374,6 @@ msgid ""
 "The default acceleration of both normal printing and travel except initial "
 "layer"
 msgstr "Výchozí zrychlení normálního tisku i pohybu kromě počáteční vrstvy"
-
-msgid "mm/s²"
-msgstr "mm/s²"
 
 msgid "Default filament profile"
 msgstr "Výchozí profil filamentu"
@@ -11432,8 +11480,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² or %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Zrychlení vnitřní výplně. Pokud je hodnota vyjádřena v procentech (např. 100 "
 "%), bude vypočítána na základě výchozího zrychlení."
@@ -11538,10 +11586,10 @@ msgstr "Maximální otáčky ventilátoru ve vrstvě"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "Otáčky ventilátoru se lineárně zvýší z nuly ve vrstvě "
 "\"close_fan_first_layers\" na maximum ve vrstvě \"full_fan_speed_layer\". "
@@ -11679,7 +11727,7 @@ msgstr "Vrstvy a perimetry"
 msgid ""
 "Don't print gap fill with a length is smaller than the threshold specified "
 "(in mm). This setting applies to top, bottom and solid infill and, if using "
-"the classic perimeter generator, to wall gap fill. "
+"the classic perimeter generator, to wall gap fill."
 msgstr ""
 
 msgid ""
@@ -13101,6 +13149,15 @@ msgstr "Výška obrysu"
 msgid "How many layers of skirt. Usually only one layer"
 msgstr "Kolik vrstev Obrysu. Obvykle pouze jedna vrstva"
 
+msgid "Single loop draft shield"
+msgstr ""
+
+msgid ""
+"Limits the draft shield loops to one wall after the first layer. This is "
+"useful, on occasion, to conserve filament but may cause the draft shield to "
+"warp / crack."
+msgstr ""
+
 msgid "Draft shield"
 msgstr "Ochranný štít"
 
@@ -13158,7 +13215,7 @@ msgid ""
 "Using a non zero value is useful if the printer is set up to print without a "
 "prime line.\n"
 "Final number of loops is not taling into account whli arranging or "
-"validating objects distance. Increase loop number in such case. "
+"validating objects distance. Increase loop number in such case."
 msgstr ""
 
 msgid ""
@@ -13215,26 +13272,27 @@ msgstr ""
 msgid "Max XY Smoothing"
 msgstr ""
 
+#, no-c-format, no-boost-format
 msgid ""
-"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"Maximum distance to move points in XY to try to achieve a smooth spiral. If "
 "expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 
 msgid "Spiral starting flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
-"to the spiral. Normally the spiral transition scales the flow ratio from "
-"0% to 100% during the first loop which can in some cases lead to under "
+"to the spiral. Normally the spiral transition scales the flow ratio from 0% "
+"to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
 msgstr ""
 
 msgid "Spiral finishing flow ratio"
 msgstr ""
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -13411,16 +13469,16 @@ msgid ""
 msgstr ""
 
 msgid "Normal (auto)"
-msgstr ""
+msgstr "Normální (auto)"
 
 msgid "Tree (auto)"
-msgstr ""
+msgstr "Strom (auto)"
 
 msgid "Normal (manual)"
-msgstr ""
+msgstr "Normální (manuální)"
 
 msgid "Tree (manual)"
-msgstr ""
+msgstr "Strom (manuální)"
 
 msgid "Support/object xy distance"
 msgstr "Podpěry/Objekt xy vzdálenost"
@@ -13606,7 +13664,7 @@ msgstr ""
 "větve a ušetří mnoho materiálu (výchozí organický), zatímco hybridní styl "
 "vytvoří podobnou strukturu jako běžná podpěra pod velkými plochými převisy."
 
-msgid "Default (Grid/Organic"
+msgid "Default (Grid/Organic)"
 msgstr ""
 
 msgid "Snug"
@@ -13778,8 +13836,8 @@ msgstr "Aktivovat řízení teploty"
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the \"machine_start_gcode"
-"\"\n"
+"activates the emitting of an M191 command before the "
+"\"machine_start_gcode\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present. \n"
@@ -14054,9 +14112,9 @@ msgid "Idle temperature"
 msgstr "Teplota při nečinnosti"
 
 msgid ""
-"Nozzle temperature when the tool is currently not used in multi-tool setups."
-"This is only used when 'Ooze prevention' is active in Print Settings. Set to "
-"0 to disable."
+"Nozzle temperature when the tool is currently not used in multi-tool "
+"setups.This is only used when 'Ooze prevention' is active in Print Settings. "
+"Set to 0 to disable."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -14538,13 +14596,13 @@ msgid "Debug level"
 msgstr "Úroveň ladění"
 
 msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+"5:trace\n"
 msgstr ""
-"Nastaví úroveň protokolování ladění. 0:fatal, 1:error, 2:warning, 3:info, 4:"
-"debug, 5:sledovat\n"
+"Nastaví úroveň protokolování ladění. 0:fatal, 1:error, 2:warning, 3:info, "
+"4:debug, 5:sledovat\n"
 
-msgid "Enable timeplapse for print"
+msgid "Enable timelapse for print"
 msgstr ""
 
 msgid "If enabled, this slicing will be considered using timelapse"
@@ -14960,8 +15018,8 @@ msgstr "Podpěry: generování kontaktních bodů"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo ."
-"amf(.xml)"
+"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj "
+"nebo .amf(.xml)"
 
 msgid "Loading of a model file failed."
 msgstr "Nahrávání souboru modelu selhalo."
@@ -15556,8 +15614,20 @@ msgstr "Konec PA: "
 msgid "PA step: "
 msgstr "PA Krok: "
 
+msgid "Accelerations: "
+msgstr ""
+
+msgid "Speeds: "
+msgstr ""
+
 msgid "Print numbers"
 msgstr "Tisk čísel"
+
+msgid "Comma-separated list of printing accelerations"
+msgstr ""
+
+msgid "Comma-separated list of printing speeds"
+msgstr ""
 
 msgid ""
 "Please input valid values:\n"
@@ -15915,8 +15985,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers, Please go to printer selection"
 msgstr ""
 
@@ -16857,8 +16927,8 @@ msgid ""
 msgstr ""
 "Plochou na podložku\n"
 "Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
-"\" nebo stiskněte klávesu <b>F</b>."
+"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na "
+"podložku\" nebo stiskněte klávesu <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -17263,18 +17333,6 @@ msgstr ""
 #~ "podpěr. Pokud je vybrána možnost Normální(manual) nebo Strom(manual), "
 #~ "budou generovány pouze vynucené podpěry"
 
-#~ msgid "normal(auto)"
-#~ msgstr "Normální (auto)"
-
-#~ msgid "tree(auto)"
-#~ msgstr "Strom (auto)"
-
-#~ msgid "normal(manual)"
-#~ msgstr "Normální (manuální)"
-
-#~ msgid "tree(manual)"
-#~ msgstr "Strom (manuální)"
-
 #~ msgid "Unselect"
 #~ msgstr "Zrušení výběru"
 
@@ -17472,12 +17530,12 @@ msgstr ""
 #~ "Najdete podrobnosti o kalibraci průtoku dynamiky v naší wiki.\n"
 #~ "\n"
 #~ "Obvykle kalibrace není potřebná. Při spuštění tisku s jednobarevným/"
-#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku dynamiky"
-#~ "\" v menu spuštění tisku, tiskárna bude postupovat podle staré metody a "
-#~ "zkalibruje filament před tiskem. Při spuštění tisku s vícebarevným/"
-#~ "materiálovým filamentem bude tiskárna při každé změně filamentu používat "
-#~ "výchozí kompenzační parametr pro filament, což má většinou dobrý "
-#~ "výsledek.\n"
+#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku "
+#~ "dynamiky\" v menu spuštění tisku, tiskárna bude postupovat podle staré "
+#~ "metody a zkalibruje filament před tiskem. Při spuštění tisku s "
+#~ "vícebarevným/materiálovým filamentem bude tiskárna při každé změně "
+#~ "filamentu používat výchozí kompenzační parametr pro filament, což má "
+#~ "většinou dobrý výsledek.\n"
 #~ "\n"
 #~ "Všimněte si, že existují některé případy, které mohou způsobit, že "
 #~ "výsledek kalibrace nebude spolehlivý: použití texturované podložky pro "
@@ -17719,10 +17777,10 @@ msgstr ""
 #~ "3mf je generován starým Orca Slicerem, načtěte pouze geometrická data."
 
 #~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" option."
-#~ "Some extruders work better with this option unchecked (absolute extrusion "
-#~ "mode). Wipe tower is only compatible with relative mode. It is always "
-#~ "enabled on BambuLab printers. Default is checked"
+#~ "Relative extrusion is recommended when using \"label_objects\" "
+#~ "option.Some extruders work better with this option unchecked (absolute "
+#~ "extrusion mode). Wipe tower is only compatible with relative mode. It is "
+#~ "always enabled on BambuLab printers. Default is checked"
 #~ msgstr ""
 #~ "Při použití volby \"label_objects\" se doporučuje relativní extruzi. "
 #~ "Některé extrudery fungují lépe, když je tato možnost odškrtnuta (režim "
@@ -17992,8 +18050,8 @@ msgstr ""
 #~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
 #~ "parsed.Please delete the file and try again."
 #~ msgstr ""
-#~ "Konfigurační soubor OrcaSlicer může být poškozen a nelze jej analyzovat."
-#~ "Smažte soubor a zkuste to znovu."
+#~ "Konfigurační soubor OrcaSlicer může být poškozen a nelze jej "
+#~ "analyzovat.Smažte soubor a zkuste to znovu."
 
 #~ msgid "Online Models"
 #~ msgstr "Online modely"

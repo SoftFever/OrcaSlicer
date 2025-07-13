@@ -118,7 +118,7 @@
         "1"
     ],
     "enable_filament_ramming": "0",
-    "extruder_clearance_height_to_lid": "27",
+    "extruder_clearance_height_to_lid": "301",
     "extruder_clearance_height_to_rod": "27",
     "extruder_clearance_radius": "55",
     "z_hop": [

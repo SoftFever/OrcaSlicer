@@ -358,25 +358,25 @@ void Tab::create_preset_tab()
     m_main_sizer = new wxBoxSizer( wxVERTICAL );
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
 
-    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
+    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::ContentMargin()));
     // BBS: model config
     if (m_presets_choice) {
         m_presets_choice->Reparent(m_top_panel);
-        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 8);
+        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::ElementSpacing()));
     } else {
-        m_top_sizer->AddSpacer(10);
+        m_top_sizer->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         m_top_sizer->AddStretchSpacer(1);
     }
 
     const float scale_factor = /*wxGetApp().*/em_unit(this)*0.1;// GetContentScaleFactor();
 #ifndef DISABLE_UNDO_SYS
-    m_top_sizer->Add( m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_top_sizer->AddSpacer(8);
+    m_top_sizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
+    m_top_sizer->AddSpacer(FromDIP(SidebarProps::IconSpacing()));
 #endif
-    m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8  );
-    m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
-    m_top_sizer->Add( m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
-    m_top_sizer->Add( m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT , 8 );
+    m_top_sizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    m_top_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    m_top_sizer->Add(m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    m_top_sizer->Add(m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::ContentMargin()));
 
     if (dynamic_cast<TabPrint*>(this) == nullptr) {
         m_static_title = new Label(m_top_panel, Label::Body_12, _L("Advance"));
@@ -385,13 +385,13 @@ void Tab::create_preset_tab()
         m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
             restore_last_select_item();
         });
-        m_top_sizer->Add( m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
+        m_top_sizer->Add(m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
-        m_top_sizer->AddSpacer(4);
+        m_top_sizer->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         m_top_sizer->Add( m_mode_view, 0, wxALIGN_CENTER_VERTICAL);
     }
 
-    m_top_sizer->AddSpacer(10);
+    m_top_sizer->AddSpacer(FromDIP(SidebarProps::ContentMargin()));
 
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
@@ -1069,17 +1069,21 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
                 to_sys ? group->back_to_sys_value("compatible_printers") : group->back_to_initial_value("compatible_printers");
                 load_key_value("compatible_printers", true/*some value*/, true);
 
-                bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-                m_compatible_printers.checkbox->SetValue(is_empty);
-                is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+                if (m_compatible_printers.checkbox) {
+                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
+                    m_compatible_printers.checkbox->SetValue(is_empty);
+                    is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
+                }
             }
             if ((m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) && (m_options_list["compatible_prints"] & os) == 0) {
                 to_sys ? group->back_to_sys_value("compatible_prints") : group->back_to_initial_value("compatible_prints");
                 load_key_value("compatible_prints", true/*some value*/, true);
 
-                bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
-                m_compatible_prints.checkbox->SetValue(is_empty);
-                is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+                if (m_compatible_prints.checkbox) {
+                    bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
+                    m_compatible_prints.checkbox->SetValue(is_empty);
+                    is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
+                }
             }
         }
         for (const auto &kvp : group->opt_map()) {
@@ -2310,6 +2314,7 @@ page = add_options_page(L("Others"), "custom-gcode_other"); // ORCA: icon only v
         optgroup->append_single_option_line("skirt_height");
         optgroup->append_single_option_line("skirt_speed");
         optgroup->append_single_option_line("draft_shield");
+        optgroup->append_single_option_line("single_loop_draft_shield");
         
         optgroup = page->new_optgroup(L("Brim"), L"param_adhension");
         optgroup->append_single_option_line("brim_type", "auto-brim");
@@ -4195,7 +4200,9 @@ if (is_marlin_flavor)
             // optgroup->get_value() return int for def.type == coInt,
             // Thus, there should be boost::any_cast<int> !
             // Otherwise, boost::any_cast<size_t> causes an "unhandled unknown exception"
-            size_t extruders_count = size_t(boost::any_cast<int>(optgroup_sh->get_value("extruders_count")));
+            const auto v = optgroup_sh->get_value("extruders_count");
+            if (v.empty()) return;
+            size_t extruders_count = size_t(boost::any_cast<int>(v));
             wxTheApp->CallAfter([this, opt_key, value, extruders_count]() {
                 if (opt_key == "extruders_count" || opt_key == "single_extruder_multi_material") {
                     extruders_count_changed(extruders_count);
@@ -5570,8 +5577,12 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
         exist_preset = true;
     }
 
-    // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-    m_presets->save_current_preset(name, detach, save_to_project);
+    Preset* _current_printer = nullptr;
+    if (m_presets->type() == Preset::TYPE_FILAMENT) {
+        _current_printer = const_cast<Preset*>(&wxGetApp().preset_bundle->printers.get_selected_preset_base());
+    }
+    // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.json
+    m_presets->save_current_preset(name, detach, save_to_project, nullptr, _current_printer);
 
     //BBS create new settings
     new_preset = m_presets->find_preset(name, false, true);
