@@ -1113,9 +1113,14 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,               machine_min_extruding_rate))
 
     //resonance avoidance ported from qidi slicer
-    ((ConfigOptionBool,                 resonance_avoidance))
-    ((ConfigOptionFloat,                min_resonance_avoidance_speed))
-    ((ConfigOptionFloat,                max_resonance_avoidance_speed))
+   // ((ConfigOptionBool,                 resonance_avoidance))
+    //((ConfigOptionFloat,                min_resonance_avoidance_speed))
+    //((ConfigOptionFloat,                max_resonance_avoidance_speed))
+
+    //resonance avoidance multiple zones
+    ((ConfigOptionBool, resonance_avoidance))
+    ((ConfigOptionString, resonance_avoidance_speed_ranges))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::GCode.

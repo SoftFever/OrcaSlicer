@@ -881,7 +881,11 @@ static std::vector<std::string> s_Preset_machine_limits_options {
     "machine_max_jerk_x", "machine_max_jerk_y", "machine_max_jerk_z", "machine_max_jerk_e",
     "machine_max_junction_deviation",
     //resonance avoidance ported from qidi slicer
-    "resonance_avoidance", "min_resonance_avoidance_speed", "max_resonance_avoidance_speed",
+    //"resonance_avoidance", "min_resonance_avoidance_speed", "max_resonance_avoidance_speed",
+    // 
+    //resonance avoidance multiple ranges
+    "resonance_avoidance",
+    "resonance_avoidance_speed_ranges",
 };
 
 static std::vector<std::string> s_Preset_printer_options {

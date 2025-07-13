@@ -5385,34 +5385,46 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         speed = std::min(speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm);
     }
     // ORCA: resonance‑avoidance on short external perimeters
-{
-    double ref_speed = speed;  // stash the pre‑cap speed
-    if (path.role() == erExternalPerimeter
-        && m_config.resonance_avoidance.value) {
+    {
+        double ref_speed = speed; // stash the pre‑cap speed
+        if (path.role() == erExternalPerimeter && m_config.resonance_avoidance.value) {
+        const std::string&  ranges_str = m_config.resonance_avoidance_speed_ranges.value;
+        std::vector<double> ranges;
+        std::stringstream   ss(ranges_str);
+        std::string         item;
 
-        // if our original speed was above “max”, disable RA for this loop
-        if (ref_speed > m_config.max_resonance_avoidance_speed.value) {
-            m_resonance_avoidance = false;
+        while (std::getline(ss, item, ',')) {
+                try {
+                    ranges.push_back(std::stod(item));
+                } catch (...) {
+                    // Skip invalid inputs
+                }
         }
 
-        // re‑apply volumetric cap
+        double ref_speed          = speed;
+        bool   in_avoidance_range = false;
+
+        // Re-apply volumetric cap first
         if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
-            speed = std::min(
-                speed,
-                EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm
-            );
+                speed = std::min(speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm);
         }
 
-        // if still in avoidance mode and under “max”, clamp to “min”
-        if (m_resonance_avoidance
-            && speed <= m_config.max_resonance_avoidance_speed.value) {
-            speed = std::min(speed, m_config.min_resonance_avoidance_speed.value);
+        for (size_t i = 0; i + 1 < ranges.size(); i += 2) {
+                double min_avoid = ranges[i];
+                double max_avoid = ranges[i + 1];
+
+                if (ref_speed >= min_avoid && ref_speed <= max_avoid) {
+                    speed              = std::min(speed, min_avoid);
+                    in_avoidance_range = true;
+                    break;
+                }
         }
 
-        // reset flag for next segment
-        m_resonance_avoidance = true;
+        m_resonance_avoidance = in_avoidance_range;
+        }
     }
-}
+    
+
     
     bool variable_speed = false;
     std::vector<ProcessedPoint> new_points {};
