@@ -609,7 +609,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("gap_infill_speed", have_perimeters);
 
     for (auto el : { "top_surface_line_width", "top_surface_speed" })
-        toggle_field(el, has_top_shell || has_bottom_shell);
+        toggle_field(el, has_top_shell);
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
 
