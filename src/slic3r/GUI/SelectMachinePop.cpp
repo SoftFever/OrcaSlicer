@@ -79,8 +79,10 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
     auto minor = platformInfo.GetOSMinorVersion();
     auto micro = platformInfo.GetOSMicroVersion();
 
-    //macos 13.1.0
-    if (major >= 13 && minor >= 1 && micro >= 0) {
+    //macos over 13.1.0
+    if (major == 13 && minor >= 1) {
+        m_is_macos_special_version = true;
+    } else if (major > 13) {
         m_is_macos_special_version = true;
     }
 #endif
