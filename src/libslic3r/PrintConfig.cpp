@@ -1339,9 +1339,9 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("resonance_avoidance_speed_ranges", coString);
     def->label   = L("Resonance Avoidance Speed Ranges");
-    def->tooltip = L("Enter comma-separated min,max pairs, like: 40,50,70,80 to avoid 40–50 and 70–80 mm/s ranges.");
+    def->tooltip = L("Enter hyphenated seperated min,max pairs, like: 40-50,70-80 to avoid 40–50 and 70–80 mm/s ranges.");
     def->mode    = comAdvanced;
-    def->set_default_value(new ConfigOptionString("40,50,70,80"));
+    def->set_default_value(new ConfigOptionString("40-50,70-80"));
 
     def = this->add("compatible_printers", coStrings);
     def->label = L("Select printers");
@@ -3704,9 +3704,9 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("resonance_avoidance_speed_ranges", coString);
     def->label   = L("Resonance Avoidance Speed Ranges");
-    def->tooltip = L("Enter comma-separated min,max pairs, like: 40,50,70,80 to avoid 40–50 and 70–80 mm/s ranges.");
+    def->tooltip = L("Enter hyphenated min,max pairs, like: 40-50,70-80 to avoid 40–50 and 70–80 mm/s ranges.");
     def->mode    = comAdvanced;
-    def->set_default_value(new ConfigOptionString("40,50,70,80"));
+    def->set_default_value(new ConfigOptionString("40-50, 70-80"));
 
 
     def = this->add("fan_max_speed", coFloats);

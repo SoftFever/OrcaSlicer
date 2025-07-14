@@ -5391,24 +5391,31 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         const std::string&  ranges_str = m_config.resonance_avoidance_speed_ranges.value;
         std::vector<double> ranges;
         std::stringstream   ss(ranges_str);
-        std::string         item;
+        std::string         segment;
 
-        while (std::getline(ss, item, ',')) {
-                try {
-                    ranges.push_back(std::stod(item));
-                } catch (...) {
-                    // Skip invalid inputs
+        // Parse "50-60,90-110" into {50, 60, 90, 110}
+        while (std::getline(ss, segment, ',')) {
+                size_t dash = segment.find('-');
+                if (dash != std::string::npos) {
+                    try {
+                        double min_val = std::stod(segment.substr(0, dash));
+                        double max_val = std::stod(segment.substr(dash + 1));
+                        ranges.push_back(min_val);
+                        ranges.push_back(max_val);
+                    } catch (...) {
+                        // skip malformed input like "abc-def"
+                    }
                 }
         }
 
-        double ref_speed          = speed;
-        bool   in_avoidance_range = false;
+        bool in_avoidance_range = false;
 
         // Re-apply volumetric cap first
         if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
                 speed = std::min(speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm);
         }
 
+        // Iterate over min-max pairs
         for (size_t i = 0; i + 1 < ranges.size(); i += 2) {
                 double min_avoid = ranges[i];
                 double max_avoid = ranges[i + 1];
@@ -5422,6 +5429,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
         m_resonance_avoidance = in_avoidance_range;
         }
+    
     }
     
 
