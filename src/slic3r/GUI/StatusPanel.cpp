@@ -3180,6 +3180,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
     if (obj && (obj->last_cali_version != obj->cali_version)) {
+        obj->last_cali_version = obj->cali_version;
         PACalibExtruderInfo cali_info;
         cali_info.nozzle_diameter        = obj->m_extder_data.extders[0].current_nozzle_diameter;
         cali_info.use_extruder_id        = false;
