@@ -2291,7 +2291,7 @@ static bool _HasAms(const std::vector<FilamentInfo> &ams_mapping_result) {
 }
 
 bool SelectMachineDialog::is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result) {
-    if (_HasAms(ams_mapping_result)) return false;
+    // if (_HasAms(ams_mapping_result)) return false;
 
     std::map<std::string, int> v_ams_map;
     v_ams_map[VIRTUAL_AMS_MAIN_ID_STR] = 0;
