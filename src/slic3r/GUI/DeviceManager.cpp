@@ -1632,6 +1632,78 @@ int MachineObject::command_ams_drying_stop()
     return this->publish_json(j);
 }
 
+int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
+{
+    json j;
+    j["system"]["command"] = "ledctrl";
+    j["system"]["led_node"] = "chamber_light";
+    j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["led_mode"] = light_effect_str(effect);
+    j["system"]["led_on_time"] = on_time;
+    j["system"]["led_off_time"] = off_time;
+    j["system"]["loop_times"] = loops;
+    j["system"]["interval_time"] = interval;
+    return this->publish_json(j);
+}
+
+
+int MachineObject::command_set_chamber_light2(LIGHT_EFFECT effect, int on_time /*= 500*/, int off_time /*= 500*/, int loops /*= 1*/, int interval /*= 1000*/)
+{
+    json j;
+    j["system"]["command"]       = "ledctrl";
+    j["system"]["led_node"]      = "chamber_light2";
+    j["system"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["led_mode"]      = light_effect_str(effect);
+    j["system"]["led_on_time"]   = on_time;
+    j["system"]["led_off_time"]  = off_time;
+    j["system"]["loop_times"]    = loops;
+    j["system"]["interval_time"] = interval;
+    return this->publish_json(j);
+}
+
+int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float diameter)
+{
+    nozzle_setting_hold_count = HOLD_COUNT_MAX * 2;
+
+    json j;
+    j["system"]["command"] = "set_accessories";
+    j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["accessory_type"] = "nozzle";
+    j["system"]["nozzle_type"] = nozzle_type;
+    j["system"]["nozzle_diameter"] = diameter;
+    return this->publish_json(j);
+}
+
+int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter)
+{
+    nozzle_setting_hold_count = HOLD_COUNT_MAX * 2;
+
+    json j;
+    j["print"]["command"]         = "set_nozzle";
+    j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["id"]              = id;
+    j["print"]["type"]            = nozzle_type;
+    j["print"]["diameter"]        = diameter;
+    j["print"]["wear"]            = 0;
+    return this->publish_json(j);
+}
+
+
+int MachineObject::command_set_work_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
+{
+    json j;
+    j["system"]["command"] = "ledctrl";
+    j["system"]["led_node"] = "work_light";
+    j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["led_mode"] = light_effect_str(effect);
+    j["system"]["led_on_time"] = on_time;
+    j["system"]["led_off_time"] = off_time;
+    j["system"]["loop_times"] = loops;
+    j["system"]["interval_time"] = interval;
+
+    return this->publish_json(j);
+}
+
 int MachineObject::command_start_extrusion_cali(int tray_index, int nozzle_temp, int bed_temp, float max_volumetric_speed, std::string setting_id)
 {
     BOOST_LOG_TRIVIAL(trace) << "extrusion_cali: tray_id = " << tray_index << ", nozzle_temp = " << nozzle_temp << ", bed_temp = " << bed_temp
