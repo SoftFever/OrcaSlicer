@@ -8400,6 +8400,10 @@ msgstr ""
 msgid "Ramming line spacing"
 msgstr ""
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr ""
+
 msgid "Auto-Calc"
 msgstr "Autoberäkna"
 
