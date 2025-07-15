@@ -394,6 +394,7 @@ class GLCanvas3D
         MixUsePLAAndPETG,
         PrimeTowerOutside,
         NozzleFilamentIncompatible,
+        MixtureFilamentIncompatible,
     };
 
     class RenderStats

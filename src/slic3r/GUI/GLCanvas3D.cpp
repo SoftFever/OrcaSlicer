@@ -142,6 +142,12 @@ std::string& get_nozzle_filament_incompatible_text() {
     return nozzle_filament_incompatible_text;
 }
 
+std::string& get_filament_mixture_warning_text(){
+    static std::string filament_mixture_warning_text;
+    return filament_mixture_warning_text;
+}
+
+
 static std::string format_number(float value)
 {
     std::ostringstream oss;
@@ -3052,6 +3058,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool filament_nozzle_compatible = cur_plate->check_compatible_of_nozzle_and_filament(full_config_temp, wxGetApp().preset_bundle->filament_presets, get_nozzle_filament_incompatible_text());
             _set_warning_notification(EWarning::NozzleFilamentIncompatible, !filament_nozzle_compatible);
 
+            bool filament_mixture_compatible = cur_plate->check_mixture_filament_compatible(full_config_temp, get_filament_mixture_warning_text());
+            _set_warning_notification(EWarning::MixtureFilamentIncompatible, !filament_mixture_compatible);
+
             bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid && filament_printable;
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, model_fits));
             ppl.get_curr_plate()->update_slice_ready_status(model_fits);
@@ -3070,6 +3079,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::MultiExtruderPrintableError,false);
            _set_warning_notification(EWarning::MultiExtruderHeightOutside,false);
            _set_warning_notification(EWarning::NozzleFilamentIncompatible,false);
+           _set_warning_notification(EWarning::MixtureFilamentIncompatible,false);
 
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
@@ -10122,6 +10132,10 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case EWarning::NozzleFilamentIncompatible: {
         text = _u8L(get_nozzle_filament_incompatible_text());
+        break;
+    }
+    case EWarning::MixtureFilamentIncompatible: {
+        text = _u8L(get_filament_mixture_warning_text());
         break;
     }
     }
