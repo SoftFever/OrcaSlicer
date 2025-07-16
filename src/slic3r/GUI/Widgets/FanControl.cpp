@@ -685,6 +685,37 @@ void FanControlPopupNew::CreateDuct()
 
     //tips
     UpdateParts();
+
+    //update data
+    if (!m_data.modes.empty())
+    {
+        for (const auto& part : m_data.parts)
+        {
+            auto part_id    = part.id;
+            auto part_func  = part.func;
+            auto part_name  = fan_func_name[AIR_FUN(part_id)];
+            auto part_state = part.state;
+
+            auto it = m_fan_control_list.find(part_id);
+            if (it != m_fan_control_list.end())
+            {
+                auto fan_control = m_fan_control_list[part_id];
+                fan_control->set_fan_speed_percent(part_state / 10);
+            }
+        }
+    }
+    else
+    {
+        if (m_obj)
+        {
+            int cooling_fan_speed = round(m_obj->cooling_fan_speed / float(25.5));
+            int big_fan1_speed = round(m_obj->big_fan1_speed / float(25.5));
+            int big_fan2_speed = round(m_obj->big_fan2_speed / float(25.5));
+            update_fan_data(AIR_FUN::FAN_COOLING_0_AIRDOOR, cooling_fan_speed);
+            update_fan_data(AIR_FUN::FAN_REMOTE_COOLING_0_IDX, big_fan1_speed);
+            update_fan_data(AIR_FUN::FAN_CHAMBER_0_IDX, big_fan2_speed);
+        }
+    }
 }
 
 void FanControlPopupNew::UpdateParts()
