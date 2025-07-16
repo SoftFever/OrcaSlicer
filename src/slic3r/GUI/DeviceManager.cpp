@@ -7351,8 +7351,8 @@ MachineObject* DeviceManager::insert_local_device(const BBLocalMachine& machine,
         localMachineList.insert(std::make_pair(machine.dev_id, obj));
     }
     obj->printer_type = MachineObject::parse_printer_type(machine.printer_type);
-    obj->dev_connection_type = connection_type;
-    obj->bind_state = bind_state;
+    obj->dev_connection_type = connection_type == "farm" ? "lan":connection_type;
+    obj->bind_state          = connection_type == "farm" ? "free":bind_state;
     obj->bind_sec_link = "secure";
     obj->bind_ssdp_version = version;
     obj->m_is_online = true;
@@ -7622,6 +7622,7 @@ std::map<std::string, MachineObject*> DeviceManager::get_my_machine_list()
     for (auto it = localMachineList.begin(); it != localMachineList.end(); it++) {
         if (!it->second)
             continue;
+
         if (it->second->has_access_right() && it->second->is_avaliable() && it->second->is_lan_mode_printer()) {
             // remove redundant in userMachineList
             if (result.find(it->first) == result.end()) {
