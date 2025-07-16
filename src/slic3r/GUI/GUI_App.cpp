@@ -1009,7 +1009,7 @@ void GUI_App::post_init()
     if(!m_networking_need_update && m_agent) {
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
-                if (m_is_closing) {
+                if (is_closing()) {
                     return;
                 }
                 GUI::wxGetApp().CallAfter([this, json_str] {
@@ -1118,7 +1118,7 @@ void GUI_App::shutdown()
     }
 
     if (m_is_recreating_gui) return;
-    m_is_closing = true;
+    set_closing(true);
     BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown exit";
 }
 
@@ -1538,7 +1538,7 @@ void GUI_App::restart_networking()
         init_networking_callbacks();
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
-                if (m_is_closing) {
+                if (is_closing()) {
                     return;
                 }
                 GUI::wxGetApp().CallAfter([this, json_str] {
@@ -1664,7 +1664,7 @@ void GUI_App::init_networking_callbacks()
 
 
         m_agent->set_on_server_connected_fn([this](int return_code, int reason_code) {
-            if (m_is_closing) {
+            if (is_closing()) {
             return;
             }
             if (return_code == 5) {
@@ -1678,7 +1678,7 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             GUI::wxGetApp().CallAfter([this] {
-                if (m_is_closing)
+                if (is_closing())
                     return;
                 BOOST_LOG_TRIVIAL(trace) << "static: server connected";
                 m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
@@ -1716,11 +1716,11 @@ void GUI_App::init_networking_callbacks()
             });
 
         m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
-            if (m_is_closing) {
+            if (is_closing()) {
                 return;
             }
             GUI::wxGetApp().CallAfter([this, dev_id] {
-                if (m_is_closing)
+                if (is_closing())
                     return;
                 bool tunnel = boost::algorithm::starts_with(dev_id, "tunnel/");
                 /* request_pushing */
@@ -1753,11 +1753,11 @@ void GUI_App::init_networking_callbacks()
 
         m_agent->set_on_local_connect_fn(
             [this](int state, std::string dev_id, std::string msg) {
-                if (m_is_closing) {
+                if (is_closing()) {
                     return;
                 }
                 CallAfter([this, state, dev_id, msg] {
-                    if (m_is_closing) {
+                    if (is_closing()) {
                         return;
                     }
                     /* request_pushing */
@@ -1824,11 +1824,11 @@ void GUI_App::init_networking_callbacks()
         );
 
         auto message_arrive_fn = [this](std::string dev_id, std::string msg) {
-            if (m_is_closing) {
+            if (is_closing()) {
                 return;
             }
             CallAfter([this, dev_id, msg] {
-                if (m_is_closing)
+                if (is_closing())
                     return;
                 this->process_network_msg(dev_id, msg);
 
@@ -1858,11 +1858,11 @@ void GUI_App::init_networking_callbacks()
         m_agent->set_on_message_fn(message_arrive_fn);
 
         auto user_message_arrive_fn = [this](std::string user_id, std::string msg) {
-            if (m_is_closing) {
+            if (is_closing()) {
                 return;
             }
             CallAfter([this, user_id, msg] {
-                if (m_is_closing)
+                if (is_closing())
                     return;
 
                 //check user
@@ -1877,11 +1877,11 @@ void GUI_App::init_networking_callbacks()
 
 
         auto lan_message_arrive_fn = [this](std::string dev_id, std::string msg) {
-            if (m_is_closing) {
+            if (is_closing()) {
                 return;
             }
             CallAfter([this, dev_id, msg] {
-                if (m_is_closing)
+                if (is_closing())
                     return;
 
                 this->process_network_msg(dev_id, msg);
@@ -5302,7 +5302,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
             });
         };
         cancelFn = [this, dlg]() {
-            return m_is_closing || dlg->WasCanceled();
+            return is_closing() || dlg->WasCanceled();
         };
         finishFn = [this, userid = m_agent->get_user_id(), dlg, t = std::weak_ptr<int>(m_user_sync_token)](bool ok) {
             CallAfter([=]{
@@ -5316,6 +5316,9 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
             CallAfter([=] {
                 if (ok && m_agent && t.lock() == m_user_sync_token && userid == m_agent->get_user_id()) reload_settings();
             });
+        };
+        cancelFn = [this]() {
+            return is_closing();
         };
     }
 
@@ -5342,6 +5345,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                     return true;
                 }
             }, progressFn, cancelFn);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " get_setting_list2 ret = " << ret << " m_is_closing = " << m_is_closing;
             finishFn(ret == 0);
 
             int count = 0, sync_count = 0;
@@ -5386,7 +5390,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
                         if (total_count == 0) {
                             CallAfter([this] {
-                                if (!m_is_closing)
+                                if (!is_closing())
                                     plater()->get_notification_manager()->close_notification_of_type(NotificationType::BBLUserPresetExceedLimit);
                             });
                         }
@@ -5425,7 +5429,7 @@ void GUI_App::stop_sync_user_preset()
 
     m_user_sync_token.reset();
     if (m_sync_update_thread.joinable()) {
-        if (m_is_closing)
+        if (is_closing())
             m_sync_update_thread.join();
         else
             m_sync_update_thread.detach();

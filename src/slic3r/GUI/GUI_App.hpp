@@ -285,7 +285,7 @@ private:
     std::unique_ptr<Downloader> m_downloader;
 
     //BBS
-    bool m_is_closing {false};
+    std::atomic<bool> m_is_closing {false};
     Slic3r::DeviceManager* m_device_manager { nullptr };
     Slic3r::UserManager* m_user_manager { nullptr };
     Slic3r::TaskManager* m_task_manager { nullptr };
@@ -344,6 +344,9 @@ public:
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
     std::string logo_name() const { return is_editor() ? "OrcaSlicer" : "OrcaSlicer-gcodeviewer"; }
+
+    bool is_closing() const { return m_is_closing.load(std::memory_order_acquire); }
+    void set_closing(bool closing) { m_is_closing.store(closing, std::memory_order_release); }
     
     // SoftFever
     bool show_gcode_window() const { return m_show_gcode_window; }
