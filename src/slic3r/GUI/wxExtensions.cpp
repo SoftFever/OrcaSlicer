@@ -612,6 +612,9 @@ wxBitmap *get_extruder_color_icon(std::vector<std::string> colors, bool is_gradi
         for (const auto& color_str : colors) {
             wx_colors.push_back(wxColour(color_str));
         }
+        if (wx_colors.empty()) {
+            wx_colors.push_back(wxColour("#636363")); // default color if no colors provided
+        }
 
         // create filament bitmap in multi color
         wxBitmap base_bitmap = Slic3r::GUI::create_filament_bitmap(wx_colors, wxSize(icon_width, icon_height), is_gradient);
