@@ -12431,6 +12431,8 @@ void Plater::load_gcode(const wxString& filename)
 
     current_print.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
+    current_print.apply_config_for_render(processor.export_config_for_render());
+
     //BBS: add cost info when drag in gcode
     auto& ps = current_result->print_statistics;
     double total_cost = 0.0;

@@ -986,6 +986,8 @@ public:
     const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
 
     void update_filament_maps_to_config(std::vector<int> f_maps);
+    void apply_config_for_render(const DynamicConfig &config);
+
     // 1 based group ids
     std::vector<int> get_filament_maps() const;
     FilamentMapMode  get_filament_map_mode() const;

@@ -2798,6 +2798,10 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps)
     m_has_auto_filament_map_result = true;
 }
 
+void Print::apply_config_for_render(const DynamicConfig &config)
+{
+    m_config.apply(config);
+}
 
 std::vector<int> Print::get_filament_maps() const
 {

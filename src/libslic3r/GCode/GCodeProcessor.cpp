@@ -2316,6 +2316,16 @@ static inline const char* remove_eols(const char *begin, const char *end) {
     return end;
 }
 
+DynamicConfig GCodeProcessor::export_config_for_render() const
+{
+    DynamicConfig config;
+    config.set_key_value("filament_colour", new ConfigOptionStrings(m_parser.get_config().filament_colour.values));
+    config.set_key_value("filament_is_support", new ConfigOptionBools(m_parser.get_config().filament_is_support.values));
+    config.set_key_value("filament_type", new ConfigOptionStrings(m_parser.get_config().filament_type.values));
+    config.set_key_value("filament_map", new ConfigOptionInts(m_parser.get_config().filament_map.values));
+    return config;
+}
+
 // Load a G-code into a stand-alone G-code viewer.
 // throws CanceledException through print->throw_if_canceled() (sent by the caller as callback).
 void GCodeProcessor::process_file(const std::string& filename, std::function<void()> cancel_callback)
