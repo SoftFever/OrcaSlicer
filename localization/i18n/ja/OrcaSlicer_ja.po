@@ -8202,6 +8202,10 @@ msgstr "ラミング線幅"
 msgid "Ramming line spacing"
 msgstr "ラミング線間距離"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr "流量を一定にするには、%1% を押したままドラッグします。"
+
 msgid "Auto-Calc"
 msgstr "自動計算"
 

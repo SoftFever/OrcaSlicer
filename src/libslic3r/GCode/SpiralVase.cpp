@@ -132,7 +132,7 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
         if (line.cmd_is("G1")) {
             // Orca: Filter out retractions at layer change
             if (line.retracting(reader) || (line.extruding(reader) && line.dist_XY(reader) < EPSILON)) return;
-            if (line.has_z() && !line.retracting(reader)) {
+            if (line.has_z() && !(line.has_x() || line.has_y())) {
                 // If this is the initial Z move of the layer, replace it with a
                 // (redundant) move to the last Z of previous layer.
                 line.set(Z, z);
