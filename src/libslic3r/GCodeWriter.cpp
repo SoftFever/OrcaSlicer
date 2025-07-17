@@ -352,6 +352,26 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
     return gcode.str();
 }
 
+std::string GCodeWriter::set_infill_pressure_advance(double pa) const
+{
+    std::ostringstream gcode;
+    if (pa < 0)
+        return gcode.str();
+    if(m_is_bbl_printers){
+        //SoftFever: set L1000 to use linear model
+        gcode << "M900 K" <<std::setprecision(4)<< pa << " L1000 M10 ; Infill pressure advance value\n";
+    }
+    else{
+        if (FLAVOR_IS(gcfKlipper))
+            gcode << "SET_INFILL_PRESSURE_ADVANCE ADVANCE=" << std::setprecision(4) << pa << "; Infill pressure advance value\n";
+        else if(FLAVOR_IS(gcfRepRapFirmware))
+            gcode << ("M572 D0 S") << std::setprecision(4) << pa << "; Infill  pressure advance value\n";
+        else
+            gcode << "M900 K" <<std::setprecision(4)<< pa << "; Infill  pressure advance value\n";
+    }
+    return gcode.str();
+}
+
 std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq) const
 {
     if (freq < 0.0f || damp < 0.f || damp > 1.0f || (axis != 'X' && axis != 'Y' && axis != 'Z' && axis != 'A'))// A = all axis
