@@ -409,8 +409,10 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
             }));
         }
     }
-
+#pragma warning(push)
+#pragma warning(disable: 4996)
     wxPostEvent(this, wxTimerEvent());
+#pragma warning(pop)
     PopupWindow::Popup();
 }
 
