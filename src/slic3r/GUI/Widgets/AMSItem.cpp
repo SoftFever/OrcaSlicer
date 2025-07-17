@@ -9,12 +9,11 @@
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
+#include <wx/event.h>
 
 #include <boost/log/trivial.hpp>
 
 #include "CalibUtils.hpp"
-
-
 
 namespace Slic3r { namespace GUI {
 
@@ -148,16 +147,6 @@ AMSrefresh::AMSrefresh(wxWindow *parent, int number, Caninfo info, const wxPoint
      }
  }
 
-void AMSrefresh::handle_timer()
-{
-   Refresh();
-}
-
-void AMSrefresh::on_timer(wxTimerEvent& event)
-{
-   handle_timer();
-}
-
 void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
     wxWindow::Create(parent, id, pos, size, wxBORDER_NONE);
@@ -192,22 +181,21 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
     m_playing_timer = new wxTimer();
     m_playing_timer->SetOwner(this);
-    handle_timer();
 
     SetSize(AMS_REFRESH_SIZE);
     SetMinSize(AMS_REFRESH_SIZE);
     SetMaxSize(AMS_REFRESH_SIZE);
 }
 
-//void AMSrefresh::on_timer(wxTimerEvent &event)
-//{
-//    //if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
-//    //    m_rotation_angle = 0;
-//    //} else {
-//    //    m_rotation_angle++;
-//    //}
-//    Refresh();
-//}
+void AMSrefresh::on_timer(wxTimerEvent &event)
+{
+    //if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
+    //    m_rotation_angle = 0;
+    //} else {
+    //    m_rotation_angle++;
+    //}
+    Refresh();
+}
 
 void AMSrefresh::PlayLoading()
 {
@@ -355,7 +343,7 @@ void AMSextruderImage::msw_rescale()
 {
     //m_ams_extruder.SetSize(AMS_EXTRUDER_BITMAP_SIZE);
     //auto image     = m_ams_extruder.ConvertToImage();
-    m_ams_extruder = ScalableBitmap(this, "monitor_ams_extruder", 55);
+    m_ams_extruder = ScalableBitmap(this, "monitor_ams_extruder",55);
     Refresh();
 }
 
