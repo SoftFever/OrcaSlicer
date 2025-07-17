@@ -4944,7 +4944,7 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
         obj->command_set_chamber_light2(MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_ON);
     } else {
         if (obj->m_lamp_close_recheck) {
-            MessageDialog msg_dlg(nullptr, _L("Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti dectection. Please choose carefully."), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
+            MessageDialog msg_dlg(nullptr, _L("Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti detection. Please choose carefully."), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
             msg_dlg.SetButtonLabel(wxID_OK, _L("Keep it On"));
             msg_dlg.SetButtonLabel(wxID_CANCEL, _L("Turn it Off"));
             if (msg_dlg.ShowModal() != wxID_CANCEL) {
