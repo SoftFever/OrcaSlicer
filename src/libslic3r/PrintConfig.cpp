@@ -139,9 +139,9 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NoiseType)
 static t_config_enum_values s_keys_map_InfillPattern {
     { "monotonic", ipMonotonic },
     { "monotonicline", ipMonotonicLine },
-    { "zig-zag", ipRectilinear },
+    { "rectilinear", ipRectilinear },
     { "alignedrectilinear", ipAlignedRectilinear },
-    { "zigzag", ipZigZag },
+    { "zig-zag", ipZigZag },
     { "crosszag", ipCrossZag },
     { "lockedzag", ipLockedZag },
     { "line", ipLine },
@@ -317,7 +317,7 @@ static const t_config_enum_values s_keys_map_SLADisplayOrientation = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SLADisplayOrientation)
 
 static const t_config_enum_values s_keys_map_SLAPillarConnectionMode = {
-    {"zigzag",          slapcmZigZag},
+    {"zig-zag",          slapcmZigZag},
     {"cross",           slapcmCross},
     {"dynamic",         slapcmDynamic}
 };
@@ -1612,7 +1612,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("monotonic");
     def->enum_values.push_back("monotonicline");
-    def->enum_values.push_back("zig-zag");
+    def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("hilbertcurve");
@@ -2374,9 +2374,9 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Line pattern for internal sparse infill.");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
-    def->enum_values.push_back("zig-zag");
+    def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("alignedrectilinear");
-    def->enum_values.push_back("zigzag");
+    def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("crosszag");
     def->enum_values.push_back("lockedzag");
     def->enum_values.push_back("line");
@@ -3418,7 +3418,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip       = L("The pattern that will be used when ironing.");
     def->category      = L("Quality");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
-    def->enum_values.push_back("zig-zag");
+    def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("concentric");
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Concentric"));
@@ -5327,7 +5327,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip       = L("The pattern that will be used when ironing.");
     def->category      = L("Support");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
-    def->enum_values.push_back("zig-zag");
+    def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("concentric");
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Concentric"));
@@ -6448,7 +6448,7 @@ void PrintConfigDef::init_sla_params()
     //def->label = L("");
     //def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<SLAPillarConnectionMode>::get_enum_values();
-    def->enum_values.push_back("zigzag");
+    def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("cross");
     def->enum_values.push_back("dynamic");
     def->enum_labels.push_back(" ");
