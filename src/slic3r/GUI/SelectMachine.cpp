@@ -162,20 +162,20 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_rename_normal_panel->SetBackgroundColour(*wxWHITE);
     rename_sizer_v = new wxBoxSizer(wxVERTICAL);
     rename_sizer_h = new wxBoxSizer(wxHORIZONTAL);
-
     m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     m_rename_text->SetFont(::Label::Body_13);
     m_rename_text->SetBackgroundColour(*wxWHITE);
     m_rename_text->SetMaxSize(wxSize(FromDIP(340), -1));
-    rename_editable = new ScalableBitmap(this, "rename_edit", 20);
-    rename_editable_light = new ScalableBitmap(this, "rename_edit", 20);
+    rename_editable       = new ScalableBitmap(this, "rename_edit", FromDIP(13)); // ORCA Match edit icon and its size
+    rename_editable_light = new ScalableBitmap(this, "rename_edit", FromDIP(13)); // ORCA Match edit icon and its size
     m_rename_button = new wxStaticBitmap(m_rename_normal_panel, wxID_ANY, rename_editable->bmp(), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
     m_rename_button->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
     m_rename_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
 
-    rename_sizer_h->Add(m_rename_text, 0, wxALIGN_CENTER|wxTOP, FromDIP(2));
-    rename_sizer_h->Add(m_rename_button, 0, wxALIGN_CENTER, 0);
+    rename_sizer_h->Add(m_rename_text, 0, wxALIGN_CENTER, 0); // ORCA align text with icon
+    rename_sizer_h->Add(m_rename_button, 0, wxALIGN_CENTER| wxLEFT, FromDIP(3)); // ORCA add gap between text and icon
     rename_sizer_v->Add(rename_sizer_h, 1, wxTOP, 0);
+
     m_rename_normal_panel->SetSizer(rename_sizer_v);
     m_rename_normal_panel->Layout();
     rename_sizer_v->Fit(m_rename_normal_panel);
@@ -3626,9 +3626,9 @@ void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
 
     char weight[64];
     if (wxGetApp().app_config->get("use_inches") == "1") {
-        ::sprintf(weight, "  %.2f oz", aprint_stats.total_weight * 0.035274);
+        ::sprintf(weight, "%.2f oz", aprint_stats.total_weight * 0.035274); // ORCA remove spacing before text
     } else {
-        ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+        ::sprintf(weight, "%.2f g", aprint_stats.total_weight); // ORCA remove spacing before text
     }
 
     m_stext_time->SetLabel(time);
@@ -3761,7 +3761,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         wxString   time;
         time = wxString::Format("%s", short_time(get_time_dhms(float_time)));
         char weight[64];
-        ::sprintf(weight, "  %.2f g", float_weight);
+        ::sprintf(weight, "%.2f g", float_weight); // ORCA remove spacing before text
         m_stext_time->SetLabel(time);
         m_stext_weight->SetLabel(weight);
     }
