@@ -19,15 +19,15 @@ The recommended order for calibration is as follows:
 
 2. **[Flow](flow-rate-calib):** Calibrate the flow rate to ensure that the correct amount of filament is being extruded. This is important for achieving accurate dimensions and good layer adhesion.
 
-   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-pass1.jpg?raw=true" alt="flowrate-pass1" height="200">
+   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-6.jpg?raw=true" alt="flowrate-6" height="200">
 
 1. **[Pressure Advance](pressure-advance-calib):** Calibrate the pressure advance settings to improve print quality and reduce artifacts caused by pressure fluctuations in the nozzle.
 
-   - **[Adaptative Pressure Advance](adaptive-pressure-advance-calib):** This is an advanced calibration technique that can be used to further optimize the pressure advance settings for different print speeds and geometries.
+   - **[Adaptive Pressure Advance](adaptive-pressure-advance-calib):** This is an advanced calibration technique that can be used to further optimize the pressure advance settings for different print speeds and geometries.
 
-   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa-tower.jpg?raw=true" alt="pa-tower" height="200">
+      <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-tower.jpg?raw=true" alt="pa-tower" height="200">
 
-2. **[Retraction](retraction-calib):** Calibrate the retraction settings to minimize stringing and improve print quality. Doing this after Flow and
+2. **[Retraction](retraction-calib):** Calibrate the retraction settings to minimize stringing and improve print quality. Doing this after Flow and Pressure Advance calibration is recommended, as it ensures that the printer is already set up for optimal extrusion.
 
    <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/retraction/retraction_test_print.jpg?raw=true" alt="Retraction" height="200">
 
@@ -37,7 +37,7 @@ The recommended order for calibration is as follows:
 
 4. **[Max Volumetric Speed](volumetric-speed-calib):** Calibrate the maximum volumetric speed of the filament. This is important for ensuring that the printer can handle the flow rate of the filament without causing issues such as under-extrusion or over-extrusion.
 
-   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/vmf_measurement_point.jpg?raw=true" alt="Max_Volumetric_Speed" height="200">
+   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/MVF/mvf_measurement_point.jpg?raw=true" alt="Max_Volumetric_Speed" height="200">
 
 5. **[Cornering](cornering-calib):** Calibrate the Jerk/Junction Deviation settings to improve print quality and reduce artifacts caused by sharp corners and changes in direction.
 
@@ -47,10 +47,9 @@ The recommended order for calibration is as follows:
 
    <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_marlin_print_measure.jpg?raw=true" alt="Input_Shaping" height="200">
 
-### VFA
+7. **[VFA](vfa-calib):** A VFA speed test is available to find resonance speeds.
 
-Vertical Fine Artifacts (VFA) are small artifacts that can occur on the surface of a 3D print, particularly in areas where there are sharp corners or changes in direction. These artifacts can be caused by a variety of factors, including mechanical vibrations, resonance, and other factors that can affect the quality of the print.
-Because of the nature of these artifacts the methods to reduce them can be mechanical such as changing motors, belts and pulleys or with advanced calibrations such as Jerk/[Junction Deviation](junction-deviation) corrections or [Input Shaping](input-shaping).
+   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/vfa/vfa_test_print.jpg?raw=true" alt="vfa_test_print" height="200">
 
 ---
 
@@ -62,4 +61,3 @@ _Credits:_
 - _The temp tower model is remixed from [Smart compact temperature calibration tower](https://www.thingiverse.com/thing:2729076)._
 - _The max flowrate test was inspired by Stefan (CNC Kitchen), and the model used in the test is a remix of his [Extrusion Test Structure](https://www.printables.com/model/342075-extrusion-test-structure)._
 - _ZV Input Shaping is inspired by [Marlin Input Shaping](https://marlinfw.org/docs/features/input_shaping.html) and [Ringing Tower 3D STL](https://marlinfw.org/assets/stl/ringing_tower.stl)._
-- _ChatGPT_ ;)

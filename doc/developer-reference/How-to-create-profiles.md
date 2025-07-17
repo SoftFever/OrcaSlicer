@@ -292,11 +292,15 @@ Example variant profile:
 - The `model` directory under the vendor folder is intended to behave similarly to `machine` profiles.
 - Used for additional printer-related 3D models or definitions, stored at:
 
-```
+```shell
 resources\profiles\vendor_name\model\
 ```
 
 ## Vendor Meta File
+
+```shell
+resources\profiles\vendor_name.json
+```
 
 Each vendor must include a JSON file in the `resources\profiles` directory, named `vendor_name.json`. This file lists all available models, variants, processes, and filaments:
 
@@ -403,9 +407,11 @@ python ./orca_extra_profile_check.py
 
 You can also enable or disable specific checks:
 
+- `--help`: displays help information
 - `--vendor` (optional): checks only the specified vendor. If omitted, all vendors are checked.
 - `--check-filaments` (enabled by default): checks `compatible_printers` fields in filament profiles
 - `--check-materials`: checks default material names in machine profiles
+- `--check-obsolete-keys`: checks for obsolete keys in profiles
 
 #### Sample usage with all checks enabled
 

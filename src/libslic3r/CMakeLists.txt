@@ -3,9 +3,6 @@ project(libslic3r)
 
 include(PrecompiledHeader)
 
-string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
-set(SLIC3R_BUILD_TIME ${COMPILE_TIME})
-
 if(NOT DEFINED ORCA_CHECK_GCODE_PLACEHOLDERS)
     set(ORCA_CHECK_GCODE_PLACEHOLDERS "0")
 endif()
@@ -59,8 +56,6 @@ set(lisbslic3r_sources
     Color.hpp
     Config.cpp
     Config.hpp
-    CurveAnalyzer.cpp
-    CurveAnalyzer.hpp
     EdgeGrid.cpp
     EdgeGrid.hpp
     ElephantFootCompensation.cpp
