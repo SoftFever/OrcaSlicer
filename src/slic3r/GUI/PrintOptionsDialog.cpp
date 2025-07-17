@@ -837,7 +837,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     //Open Door Detection
     line_sizer         = new wxBoxSizer(wxHORIZONTAL);
     m_cb_open_door     = new CheckBox(parent);
-    text_open_door     = new Label(parent, _L("Open Door Dectection"));
+    text_open_door     = new Label(parent, _L("Open Door Detection"));
     text_open_door->SetFont(Label::Body_14);
     open_door_switch_board = new SwitchBoard(parent, _L("Notification"), _L("Pause printing"), wxSize(FromDIP(200), FromDIP(26)));
     open_door_switch_board->Disable();
