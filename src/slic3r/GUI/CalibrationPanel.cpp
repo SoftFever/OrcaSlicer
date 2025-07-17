@@ -268,8 +268,10 @@ void SelectMObjectPopup::Popup(wxWindow* WXUNUSED(focus))
             }));
         }
     }
-
+#pragma warning(push)
+#pragma warning(disable: 4996)
     wxPostEvent(this, wxTimerEvent());
+#pragma warning(pop)
     PopupWindow::Popup();
 }
 
@@ -505,7 +507,10 @@ void CalibrationPanel::init_timer()
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(REFRESH_INTERVAL);
+#pragma warning(push)
+#pragma warning(disable: 4996)
     wxPostEvent(this, wxTimerEvent());
+#pragma warning(pop)
 }
 
 void CalibrationPanel::on_timer(wxTimerEvent& event) {
@@ -634,7 +639,10 @@ bool CalibrationPanel::Show(bool show) {
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(REFRESH_INTERVAL);
+#pragma warning(push)
+#pragma warning(disable: 4996)
         wxPostEvent(this, wxTimerEvent());
+#pragma warning(pop)
 
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         if (dev) {
