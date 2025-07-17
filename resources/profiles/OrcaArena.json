@@ -16,44 +16,44 @@
             "sub_path": "process/fdm_process_common.json"
         },
         {
-            "name": "fdm_process_bbl_common",
-            "sub_path": "process/fdm_process_bbl_common.json"
+            "name": "fdm_process_arena_common",
+            "sub_path": "process/fdm_process_arena_common.json"
         },
         {
-            "name": "fdm_process_bbl_0.08",
-            "sub_path": "process/fdm_process_bbl_0.08.json"
+            "name": "fdm_process_arena_0.08",
+            "sub_path": "process/fdm_process_arena_0.08.json"
         },
         {
-            "name": "fdm_process_bbl_0.10_nozzle_0.2",
-            "sub_path": "process/fdm_process_bbl_0.10_nozzle_0.2.json"
+            "name": "fdm_process_arena_0.10_nozzle_0.2",
+            "sub_path": "process/fdm_process_arena_0.10_nozzle_0.2.json"
         },
         {
-            "name": "fdm_process_bbl_0.40_nozzle_0.8",
-            "sub_path": "process/fdm_process_bbl_0.40_nozzle_0.8.json"
+            "name": "fdm_process_arena_0.40_nozzle_0.8",
+            "sub_path": "process/fdm_process_arena_0.40_nozzle_0.8.json"
         },
         {
-            "name": "fdm_process_bbl_0.30_nozzle_0.6",
-            "sub_path": "process/fdm_process_bbl_0.30_nozzle_0.6.json"
+            "name": "fdm_process_arena_0.30_nozzle_0.6",
+            "sub_path": "process/fdm_process_arena_0.30_nozzle_0.6.json"
         },
         {
-            "name": "fdm_process_bbl_0.12",
-            "sub_path": "process/fdm_process_bbl_0.12.json"
+            "name": "fdm_process_arena_0.12",
+            "sub_path": "process/fdm_process_arena_0.12.json"
         },
         {
-            "name": "fdm_process_bbl_0.16",
-            "sub_path": "process/fdm_process_bbl_0.16.json"
+            "name": "fdm_process_arena_0.16",
+            "sub_path": "process/fdm_process_arena_0.16.json"
         },
         {
-            "name": "fdm_process_bbl_0.20",
-            "sub_path": "process/fdm_process_bbl_0.20.json"
+            "name": "fdm_process_arena_0.20",
+            "sub_path": "process/fdm_process_arena_0.20.json"
         },
         {
-            "name": "fdm_process_bbl_0.24",
-            "sub_path": "process/fdm_process_bbl_0.24.json"
+            "name": "fdm_process_arena_0.24",
+            "sub_path": "process/fdm_process_arena_0.24.json"
         },
         {
-            "name": "fdm_process_bbl_0.28",
-            "sub_path": "process/fdm_process_bbl_0.28.json"
+            "name": "fdm_process_arena_0.28",
+            "sub_path": "process/fdm_process_arena_0.28.json"
         },
         {
             "name": "0.08mm Extra Fine @Arena X1C",
@@ -96,20 +96,20 @@
             "sub_path": "process/0.40mm Standard @Arena X1C 0.8 nozzle.json"
         },
         {
-            "name": "fdm_process_bbl_0.06_nozzle_0.2",
-            "sub_path": "process/fdm_process_bbl_0.06_nozzle_0.2.json"
+            "name": "fdm_process_arena_0.06_nozzle_0.2",
+            "sub_path": "process/fdm_process_arena_0.06_nozzle_0.2.json"
         },
         {
-            "name": "fdm_process_bbl_0.08_nozzle_0.2",
-            "sub_path": "process/fdm_process_bbl_0.08_nozzle_0.2.json"
+            "name": "fdm_process_arena_0.08_nozzle_0.2",
+            "sub_path": "process/fdm_process_arena_0.08_nozzle_0.2.json"
         },
         {
-            "name": "fdm_process_bbl_0.12_nozzle_0.2",
-            "sub_path": "process/fdm_process_bbl_0.12_nozzle_0.2.json"
+            "name": "fdm_process_arena_0.12_nozzle_0.2",
+            "sub_path": "process/fdm_process_arena_0.12_nozzle_0.2.json"
         },
         {
-            "name": "fdm_process_bbl_0.14_nozzle_0.2",
-            "sub_path": "process/fdm_process_bbl_0.14_nozzle_0.2.json"
+            "name": "fdm_process_arena_0.14_nozzle_0.2",
+            "sub_path": "process/fdm_process_arena_0.14_nozzle_0.2.json"
         },
         {
             "name": "0.06mm Standard @Arena X1C 0.2 nozzle",
@@ -128,20 +128,20 @@
             "sub_path": "process/0.14mm Standard @Arena X1C 0.2 nozzle.json"
         },
         {
-            "name": "fdm_process_bbl_0.18_nozzle_0.6",
-            "sub_path": "process/fdm_process_bbl_0.18_nozzle_0.6.json"
+            "name": "fdm_process_arena_0.18_nozzle_0.6",
+            "sub_path": "process/fdm_process_arena_0.18_nozzle_0.6.json"
         },
         {
-            "name": "fdm_process_bbl_0.24_nozzle_0.6",
-            "sub_path": "process/fdm_process_bbl_0.24_nozzle_0.6.json"
+            "name": "fdm_process_arena_0.24_nozzle_0.6",
+            "sub_path": "process/fdm_process_arena_0.24_nozzle_0.6.json"
         },
         {
-            "name": "fdm_process_bbl_0.36_nozzle_0.6",
-            "sub_path": "process/fdm_process_bbl_0.36_nozzle_0.6.json"
+            "name": "fdm_process_arena_0.36_nozzle_0.6",
+            "sub_path": "process/fdm_process_arena_0.36_nozzle_0.6.json"
         },
         {
-            "name": "fdm_process_bbl_0.42_nozzle_0.6",
-            "sub_path": "process/fdm_process_bbl_0.42_nozzle_0.6.json"
+            "name": "fdm_process_arena_0.42_nozzle_0.6",
+            "sub_path": "process/fdm_process_arena_0.42_nozzle_0.6.json"
         },
         {
             "name": "0.18mm Standard @Arena X1C 0.6 nozzle",
@@ -160,20 +160,20 @@
             "sub_path": "process/0.42mm Standard @Arena X1C 0.6 nozzle.json"
         },
         {
-            "name": "fdm_process_bbl_0.24_nozzle_0.8",
-            "sub_path": "process/fdm_process_bbl_0.24_nozzle_0.8.json"
+            "name": "fdm_process_arena_0.24_nozzle_0.8",
+            "sub_path": "process/fdm_process_arena_0.24_nozzle_0.8.json"
         },
         {
-            "name": "fdm_process_bbl_0.32_nozzle_0.8",
-            "sub_path": "process/fdm_process_bbl_0.32_nozzle_0.8.json"
+            "name": "fdm_process_arena_0.32_nozzle_0.8",
+            "sub_path": "process/fdm_process_arena_0.32_nozzle_0.8.json"
         },
         {
-            "name": "fdm_process_bbl_0.48_nozzle_0.8",
-            "sub_path": "process/fdm_process_bbl_0.48_nozzle_0.8.json"
+            "name": "fdm_process_arena_0.48_nozzle_0.8",
+            "sub_path": "process/fdm_process_arena_0.48_nozzle_0.8.json"
         },
         {
-            "name": "fdm_process_bbl_0.56_nozzle_0.8",
-            "sub_path": "process/fdm_process_bbl_0.56_nozzle_0.8.json"
+            "name": "fdm_process_arena_0.56_nozzle_0.8",
+            "sub_path": "process/fdm_process_arena_0.56_nozzle_0.8.json"
         },
         {
             "name": "0.24mm Standard @Arena X1C 0.8 nozzle",

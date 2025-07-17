@@ -125,7 +125,7 @@
 #include "ParamsDialog.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/RoundedRectangle.hpp"
-#include "Widgets/RadioBox.hpp"
+#include "Widgets/RadioGroup.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Button.hpp"
 
@@ -153,6 +153,7 @@
 #include "CreatePresetsDialog.hpp"
 #include "FileArchiveDialog.hpp"
 #include "StepMeshDialog.hpp"
+#include "CloneDialog.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -2080,7 +2081,6 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
     auto& printer_config = preset_bundle->printers.get_edited_preset().config;
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     auto& ams_multi_color_filament = preset_bundle->ams_multi_color_filment;
-    auto& ams_filament_list = preset_bundle->filament_ams_list;
 
     const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
     const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
@@ -7815,7 +7815,7 @@ wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool
         }
     } else {
         if (only_filename) {
-            if(m_project_name == _L("Untitled"))
+            if(!model.objects.empty() && m_project_name == _L("Untitled"))
                 return wxString(fs::path(model.objects.front()->name).replace_extension().c_str()) + from_u8(plate_index_str) + extension;
 
             if (export_all)
@@ -9555,7 +9555,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     if (accels.empty()) {
         accels.assign({accel});
         const auto msg{_L("INFO:") + "\n" +
-                       _L("No accelerations provided for calibration. Use default acceleration value ") + std::to_string(long(accel)) + _L("mm/s²")};
+                       _L("No accelerations provided for calibration. Use default acceleration value ") + std::to_string(long(accel)) + wxString::FromUTF8("mm/s²")};
         get_notification_manager()->push_notification(msg.ToStdString());
     } else {
         // set max acceleration in case of batch mode to get correct test pattern size
@@ -10744,23 +10744,12 @@ bool Plater::preview_zip_archive(const boost::filesystem::path& archive_path)
     return true;
 }
 
-class RadioBox;
-class RadioSelector
-{
-public:
-    int       m_select_id;
-    int       m_groupid;
-    RadioBox *m_radiobox;
-};
-WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
-
 #define PROJECT_DROP_DIALOG_SELECT_PLANE_SIZE wxSize(FromDIP(350), FromDIP(120))
 
 class ProjectDropDialog : public DPIDialog
 {
 private:
     wxColour          m_def_color = wxColour(255, 255, 255);
-    RadioSelectorList m_radio_group;
     int               m_action{1};
     bool              m_remember_choice{false};
 
@@ -10773,12 +10762,9 @@ public:
     wxStaticText *m_fname_s;
     StaticBox * m_panel_select;
 
-    void      select_radio(int index);
-    void      on_select_radio(wxMouseEvent &event);
     void      on_select_ok(wxCommandEvent &event);
     void      on_select_cancel(wxCommandEvent &event);
 
-    int       get_select_radio(int groupid);
     int       get_action() const { return m_action; }
     void      set_action(int index) { m_action = index; }
 
@@ -10796,6 +10782,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
                 wxDefaultPosition,
                 wxDefaultSize,
                 wxCAPTION | wxCLOSE_BOX)
+    , m_action(2)
 {
     // def setting
     SetBackgroundColour(m_def_color);
@@ -10818,7 +10805,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
 
     m_fname_title = new wxStaticText(this, wxID_ANY, _L("Please select an action"), wxDefaultPosition, wxDefaultSize, 0);
     m_fname_title->Wrap(-1);
-    m_fname_title->SetFont(::Label::Body_13);
+    m_fname_title->SetFont(::Label::Body_14);
     m_fname_title->SetForegroundColour(wxColour(107, 107, 107));
     m_fname_title->SetBackgroundColour(wxColour(255, 255, 255));
 
@@ -10826,7 +10813,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_sizer_fline->Add(0, 0, 0, wxEXPAND | wxLEFT, 5);
 
     m_fname_f = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-    m_fname_f->SetFont(::Label::Head_13);
+    m_fname_f->SetFont(::Label::Head_14);
     m_fname_f->Wrap(-1);
     m_fname_f->SetForegroundColour(wxColour(38, 46, 48));
 
@@ -10835,43 +10822,25 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_sizer_name->Add(m_sizer_fline, 1, wxEXPAND, 0);
 
     m_fname_s = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-    m_fname_s->SetFont(::Label::Head_13);
+    m_fname_s->SetFont(::Label::Head_14);
     m_fname_s->Wrap(-1);
     m_fname_s->SetForegroundColour(wxColour(38, 46, 48));
 
     m_sizer_name->Add(m_fname_s, 1, wxALL, 0);
 
-    m_sizer_main->Add(m_sizer_name, 1, wxEXPAND | wxLEFT | wxRIGHT, 40);
+    m_sizer_main->Add(m_sizer_name, 1, wxEXPAND | wxLEFT | wxRIGHT, 20);
 
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 5);
+    auto radio_group = new RadioGroup(this, {
+        _L("Open as project"),     // 0
+        _L("Import geometry only") // 1
+    }, wxVERTICAL);
+    radio_group->SetMinSize(wxSize(FromDIP(300),-1));
+    radio_group->SetSelection(get_action() - 1);
+    radio_group->Bind(wxEVT_COMMAND_RADIOBOX_SELECTED, [this, radio_group](wxCommandEvent &e) {
+        set_action(radio_group->GetSelection() + 1);
+    });
 
-    m_panel_select = new StaticBox(this, wxID_ANY, wxDefaultPosition, PROJECT_DROP_DIALOG_SELECT_PLANE_SIZE);
-    StateColor box_colour(std::pair<wxColour, int>(wxColour("#F8F8F8"), StateColor::Normal));
-    StateColor box_border_colour(std::pair<wxColour, int>(wxColour(*wxWHITE), StateColor::Normal));
-
-    m_panel_select->SetBackgroundColor(box_colour);
-    m_panel_select->SetBorderColor(box_border_colour);
-    m_panel_select->SetCornerRadius(5);
-
-    wxBoxSizer *m_sizer_select_h = new wxBoxSizer(wxHORIZONTAL);
-
-    wxBoxSizer *m_sizer_select_v = new wxBoxSizer(wxVERTICAL);
-
-
-    auto select_f = create_item_radiobox(_L("Open as project"), m_panel_select, 1, 0);
-    auto select_s = create_item_radiobox(_L("Import geometry only"), m_panel_select, 2, 0);
-    //auto select_t = create_item_radiobox(_L("Import presets only"), m_panel_select,3, 0);
-
-    m_sizer_select_v->Add(select_f, 0, wxEXPAND, 5);
-    m_sizer_select_v->Add(select_s, 0, wxEXPAND, 5);
-    //m_sizer_select_v->Add(select_t, 0, wxEXPAND, 5);
-    select_radio(2);
-
-    m_sizer_select_h->Add(m_sizer_select_v, 0, wxALIGN_CENTER | wxLEFT, 22);
-
-    m_panel_select->SetSizer(m_sizer_select_h);
-    m_panel_select->Layout();
-    m_sizer_main->Add(m_panel_select, 0, wxEXPAND | wxLEFT | wxRIGHT, 40);
+    m_sizer_main->Add(radio_group, 0, wxEXPAND | wxLEFT | wxRIGHT, 20);
 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 10);
 
@@ -10923,34 +10892,6 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-wxBoxSizer *ProjectDropDialog ::create_item_radiobox(wxString title, wxWindow *parent, int select_id, int groupid)
-{
-    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto radiobox =  new RadioBox(parent);
-
-    radiobox->SetBackgroundColour(wxColour(248,248,248));
-    sizer->Add(radiobox, 0, wxALL, 5);
-    sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, 5);
-    auto text = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    text->Wrap(-1);
-    text->SetForegroundColour(wxColour(107, 107, 107));
-    text->SetBackgroundColour(wxColour(248,248,248));
-    sizer->Add(text, 0, wxALL, 5);
-
-    radiobox->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_radio, this);
-    text->Bind(wxEVT_LEFT_DOWN, [this, radiobox](auto &e) {
-        e.SetId(radiobox->GetId());
-        on_select_radio(e);
-    });
-
-    RadioSelector *rs = new RadioSelector;
-    rs->m_groupid     = groupid;
-    rs->m_radiobox    = radiobox;
-    rs->m_select_id   = select_id;
-    m_radio_group.Append(rs);
-
-    return sizer;
-}
 wxBoxSizer *ProjectDropDialog::create_remember_checkbox(wxString title, wxWindow *parent, wxString tooltip)
 {
     wxBoxSizer *m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
@@ -10975,63 +10916,6 @@ wxBoxSizer *ProjectDropDialog::create_remember_checkbox(wxString title, wxWindow
     });
 
     return m_sizer_checkbox;
-}
-
-void ProjectDropDialog::select_radio(int index)
-{
-    m_action                         = index;
-    RadioSelectorList::compatibility_iterator it = m_radio_group.GetFirst();
-    auto                     groupid = 0;
-
-    while (it) {
-        RadioSelector *rs = it->GetData();
-        if (rs->m_select_id == index) groupid = rs->m_groupid;
-        it = it->GetNext();
-    }
-
-    it = m_radio_group.GetFirst();
-    while (it) {
-        RadioSelector *rs = it->GetData();
-        if (rs->m_groupid == groupid && rs->m_select_id == index) rs->m_radiobox->SetValue(true);
-        if (rs->m_groupid == groupid && rs->m_select_id != index) rs->m_radiobox->SetValue(false);
-        it = it->GetNext();
-    }
-}
-
-int ProjectDropDialog::get_select_radio(int groupid)
-{
-    RadioSelectorList::compatibility_iterator it = m_radio_group.GetFirst();
-    while (it) {
-        RadioSelector *rs = it->GetData();
-        if (rs->m_groupid == groupid && rs->m_radiobox->GetValue()) { return rs->m_select_id; }
-        it = it->GetNext();
-    }
-
-    return 0;
-}
-void ProjectDropDialog::on_select_radio(wxMouseEvent &event)
-{
-    RadioSelectorList::compatibility_iterator it = m_radio_group.GetFirst();
-    auto                     groupid = 0;
-
-    while (it) {
-        RadioSelector *rs = it->GetData();
-        if (rs->m_radiobox->GetId() == event.GetId()) groupid = rs->m_groupid;
-        it = it->GetNext();
-    }
-
-    it = m_radio_group.GetFirst();
-    while (it) {
-        RadioSelector *rs = it->GetData();
-        if (rs->m_groupid == groupid && rs->m_radiobox->GetId() == event.GetId()) {
-            set_action(rs->m_select_id);
-            rs->m_radiobox->SetValue(true);
-        }
-
-
-        if (rs->m_groupid == groupid && rs->m_radiobox->GetId() != event.GetId()) rs->m_radiobox->SetValue(false);
-        it = it->GetNext();
-    }
 }
 
 void ProjectDropDialog::on_select_ok(wxCommandEvent &event)
@@ -13777,21 +13661,8 @@ void Plater::clone_selection()
 {
     if (is_selection_empty())
         return;
-    long res = wxGetNumberFromUser("",
-        _L("Clone"),
-        _L("Number of copies:"),
-        1, 0, 1000, this);
-    wxString msg;
-    if (res == -1) {
-        msg = _L("Invalid number");
-        return;
-    }
-    Selection& selection = p->get_selection();
-    selection.clone(res);
-    if (wxGetApp().app_config->get("auto_arrange") == "true") {
-        this->set_prepare_state(Job::PREPARE_STATE_MENU);
-        this->arrange();
-    }
+    CloneDialog dlg(this);
+    dlg.ShowModal();
 }
 
 std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)

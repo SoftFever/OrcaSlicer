@@ -6673,7 +6673,7 @@ msgstr "Volume: %1% pol³\n"
 
 #, boost-format
 msgid "Volume: %1% mm³\n"
-msgstr "Volume: %1% mm3\n"
+msgstr "Volume: %1% mm³\n"
 
 #, boost-format
 msgid "Triangles: %1%\n"
@@ -8749,6 +8749,10 @@ msgstr "Largura da linha de moldeamento"
 
 msgid "Ramming line spacing"
 msgstr "Espaçamento da linha de moldeamento"
+
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "Auto-Calc"
@@ -13232,7 +13236,7 @@ msgid ""
 "extrusion to a lower flow (lower speed/smaller width) extrusion and vice "
 "versa.\n"
 "\n"
-"It defines the maximum rate by which the extruded volumetric flow in mm³/s² "
+"It defines the maximum rate by which the extruded volumetric flow in mm³/s "
 "can change over time. Higher values mean higher extrusion rate changes are "
 "allowed, resulting in faster speed transitions.\n"
 "\n"
@@ -13259,7 +13263,7 @@ msgstr ""
 "velocidade/maior largura) para uma extrusão de baixo fluxo (baixa velocidade/"
 "menor largura) e vice-versa.\n"
 "\n"
-"Define a taxa máxima pela qual o fluxo volumétrico extrudado em mm³/s² pode "
+"Define a taxa máxima pela qual o fluxo volumétrico extrudado em mm³/s pode "
 "mudar ao longo do tempo. Valores mais altos significam que mudanças de taxa "
 "de extrusão mais altas são permitidas, resultando em transições de "
 "velocidade mais rápidas.\n"
