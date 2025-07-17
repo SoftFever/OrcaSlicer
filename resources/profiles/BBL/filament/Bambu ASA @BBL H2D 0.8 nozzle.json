@@ -29,8 +29,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "30",
-        "45"
+        "18",
+        "18"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
@@ -92,6 +92,10 @@
         "0",
         "0"
     ],
+    "filament_extruder_id": [
+        "1",
+        "1"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -116,9 +120,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
-    ],
-    "filament_extruder_id": [
-        "1",
-        "1"
     ]
 }
