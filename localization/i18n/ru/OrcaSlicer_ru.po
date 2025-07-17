@@ -8845,6 +8845,10 @@ msgstr "Ширина линии при рэмминге"
 msgid "Ramming line spacing"
 msgstr "Расстояние между линиями при рэмминге"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr "Для постоянного объёмного расхода удерживайте нажатой клавишу %1% при перетаскивании."
+
 msgid "Auto-Calc"
 msgstr "Авторасчёт"
 
@@ -13408,13 +13412,14 @@ msgstr ""
 msgid "Extrusion rate smoothing"
 msgstr "Сглаживание скорости экструзии"
 
+#, fuzzy
 msgid ""
 "This parameter smooths out sudden extrusion rate changes that happen when "
 "the printer transitions from printing a high flow (high speed/larger width) "
 "extrusion to a lower flow (lower speed/smaller width) extrusion and vice "
 "versa.\n"
 "\n"
-"It defines the maximum rate by which the extruded volumetric flow in mm³/s² "
+"It defines the maximum rate by which the extruded volumetric flow in mm³/s "
 "can change over time. Higher values mean higher extrusion rate changes are "
 "allowed, resulting in faster speed transitions.\n"
 "\n"
