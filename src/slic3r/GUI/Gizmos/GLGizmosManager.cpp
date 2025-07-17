@@ -169,6 +169,9 @@ void GLGizmosManager::switch_gizmos_icon_filename()
         case (EType::Assembly):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_assembly_dark.svg" : "toolbar_assembly.svg");
             break;
+        case (EType::BrimEars):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_brimears_dark.svg" : "toolbar_brimears.svg");
+            break;
         }
 
     }
