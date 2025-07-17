@@ -6716,7 +6716,7 @@ void DeviceManager::parse_user_print_info(std::string body)
         }
     }
     catch (std::exception& e) {
-        ;
+       (void)e; 
     }
 }
 

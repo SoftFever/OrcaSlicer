@@ -442,8 +442,11 @@ static std::string generate_system_info_json()
 
 
     pt::ptree hw_node;
-    {
+    {   
+#pragma warning(push)
+#pragma warning(disable: 4996)
         hw_node.put("ArchName", wxPlatformInfo::Get().GetArchName());
+#pragma warning(pop)
         size_t num = std::round(Slic3r::total_physical_memory()/107374100.);
         hw_node.put("RAM_GiB", std::to_string(num / 10) + "." + std::to_string(num % 10));
     }
