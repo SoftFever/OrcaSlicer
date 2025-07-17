@@ -310,6 +310,7 @@ protected:
     void create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
 
     void on_timer(wxTimerEvent &event);
+    void AMSrefresh::handle_timer();
     void OnEnterWindow(wxMouseEvent &evt);
     void OnLeaveWindow(wxMouseEvent &evt);
     void OnClick(wxMouseEvent &evt);
