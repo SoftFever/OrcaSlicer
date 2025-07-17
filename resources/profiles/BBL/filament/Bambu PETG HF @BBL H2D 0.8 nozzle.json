@@ -36,8 +36,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "35",
-        "45"
+        "30",
+        "40"
     ],
     "filament_pre_cooling_temperature": [
         "0",
@@ -95,6 +95,10 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
+    "filament_extruder_id": [
+        "1",
+        "1"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -131,9 +135,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
-    ],
-    "filament_extruder_id": [
-        "1",
-        "1"
     ]
 }

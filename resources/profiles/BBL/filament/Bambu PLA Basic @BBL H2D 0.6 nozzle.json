@@ -107,6 +107,10 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
+    "filament_extruder_id": [
+        "1",
+        "1"
+    ],
     "hole_coef_3": [
         "0.18"
     ],
@@ -137,9 +141,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
-    ],
-    "filament_extruder_id": [
-        "1",
-        "1"
     ]
 }
