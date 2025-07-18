@@ -1098,8 +1098,15 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         if (total_copies_count > 1 && m_config.print_sequence != PrintSequence::ByObject)
             return {L("Please select \"By object\" print sequence to print multiple objects in spiral vase mode."), nullptr, "spiral_mode"};
         assert(m_objects.size() == 1);
-        if (m_objects.front()->all_regions().size() > 1)
-            return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
+        const auto all_regions = m_objects.front()->all_regions();
+        if (all_regions.size() > 1) {
+            // Orca: make sure regions are not compatible
+            if (std::any_of(all_regions.begin() + 1, all_regions.end(), [ra = all_regions.front()](const auto rb) {
+                return !Layer::is_perimeter_compatible(ra, rb);
+            })) {
+                return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
+            }
+        }
     }
 
     // Cache of layer height profiles for checking:
@@ -1880,6 +1887,8 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             if (!model_volume1.seam_facets.equals(model_volume2.seam_facets))
                 return false;
             if (!model_volume1.mmu_segmentation_facets.equals(model_volume2.mmu_segmentation_facets))
+                return false;
+            if (!model_volume1.fuzzy_skin_facets.equals(model_volume2.fuzzy_skin_facets))
                 return false;
             if (model_volume1.config.get() != model_volume2.config.get())
                 return false;
@@ -4329,6 +4338,23 @@ Point PrintInstance::shift_without_plate_offset() const
     const Print* print = print_object->print();
     const Vec3d plate_offset = print->get_plate_origin();
     return shift - Point(scaled(plate_offset.x()), scaled(plate_offset.y()));
+}
+
+PrintRegion *PrintObjectRegions::FuzzySkinPaintedRegion::parent_print_object_region(const LayerRangeRegions &layer_range) const
+{
+    using FuzzySkinParentType = PrintObjectRegions::FuzzySkinPaintedRegion::ParentType;
+
+    if (this->parent_type == FuzzySkinParentType::PaintedRegion) {
+        return layer_range.painted_regions[this->parent].region;
+    }
+
+    assert(this->parent_type == FuzzySkinParentType::VolumeRegion);
+    return layer_range.volume_regions[this->parent].region;
+}
+
+int PrintObjectRegions::FuzzySkinPaintedRegion::parent_print_object_region_id(const LayerRangeRegions &layer_range) const
+{
+    return this->parent_print_object_region(layer_range)->print_object_region_id();
 }
 
 } // namespace Slic3r
