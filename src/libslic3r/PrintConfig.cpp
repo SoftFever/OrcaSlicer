@@ -1875,10 +1875,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.02 });
 
-        def = this->add("infill_pressure_advance", coFloats);
-    def->label = L("Infill pressure advance");
+    def = this->add("enable_infill_pressure_advance", coBools);
+    def->set_default_value(new ConfigOptionBools{ false });
+    def->label = L("Enable infill pressure advance");
     def->tooltip = L("Pressure advance / Linear advance factor for sparse infill, "
                      "it avoid unnecessary extruder movements and reduce printing time.");
+    def = this->add("infill_pressure_advance", coFloats);
+    def->label = L("Infill pressure advance");
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.02 });

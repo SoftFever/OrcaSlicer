@@ -5487,12 +5487,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     const float normal_pa  = m_config.pressure_advance.get_at(extruder_id);
     const bool  enable_pa  = m_config.enable_pressure_advance.get_at(extruder_id);
     const bool  is_infill  = path.role() == erInternalInfill;
-    
+    const bool  enable_infill_pressure_advance = enable_pa && m_config.enable_infill_pressure_advance.get_at(extruder_id);
+
     static float last_pa = -1.0f;  // valor imposible
     
-    if (is_infill && infill_pa > 0.0f) {
+    if (is_infill && enable_infill_pressure_advance) {
         if (infill_pa != last_pa) {
-            gcode += m_writer.set_infill_pressure_advance(infill_pa);
+            gcode += m_writer.set_pressure_advance(infill_pa);
             m_pa_processor->resetPreviousPA(infill_pa);
             last_pa = infill_pa;
         }
