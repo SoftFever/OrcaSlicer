@@ -4219,10 +4219,7 @@ PageShp TabPrinter::build_kinematics_page()
     optgroup->append_single_option_line("resonance_avoidance");
     // Resonance‑avoidance speed inputs
     {
-        Line resonance_line = {L("Resonance Avoidance Speed"), L("")};
-        resonance_line.append_option(optgroup->get_option("min_resonance_avoidance_speed"));
-        resonance_line.append_option(optgroup->get_option("max_resonance_avoidance_speed"));
-        optgroup->append_line(resonance_line);
+        optgroup->append_single_option_line("resonance_avoidance_speed_ranges");
     }
 
     const std::vector<std::string> speed_axes{
@@ -4756,20 +4753,21 @@ void TabPrinter::toggle_options()
         toggle_option("travel_slope", m_config->opt_enum("z_hop_types", i) != ZHopType::zhtNormal, i);
     }
 
-    if (m_active_page->title() == L("Motion ability")) {
-        auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+   if (m_active_page->title() == L("Motion ability")) {
+        auto gcf         = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool silent_mode = m_config->opt_bool("silent_mode");
         int  max_field   = silent_mode ? 2 : 1;
+
         for (int i = 0; i < max_field; ++i)
             toggle_option("machine_max_acceleration_travel", gcf != gcfMarlinLegacy && gcf != gcfKlipper, i);
         toggle_line("machine_max_acceleration_travel", gcf != gcfMarlinLegacy && gcf != gcfKlipper);
+
         for (int i = 0; i < max_field; ++i)
             toggle_option("machine_max_junction_deviation", gcf == gcfMarlinFirmware, i);
         toggle_line("machine_max_junction_deviation", gcf == gcfMarlinFirmware);
 
         bool resonance_avoidance = m_config->opt_bool("resonance_avoidance");
-        toggle_option("min_resonance_avoidance_speed", resonance_avoidance);
-        toggle_option("max_resonance_avoidance_speed", resonance_avoidance);
+        toggle_option("resonance_avoidance_speed_ranges", resonance_avoidance);
     }
 }
 
