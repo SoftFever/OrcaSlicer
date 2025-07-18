@@ -1034,6 +1034,8 @@ wxSize ScalableBitmap::GetBmpSize(const wxBitmap &bmp)
 
 int ScalableBitmap::GetBmpWidth() const
 {
+    if (!m_bmp.IsOk())
+        return 0;
 #ifdef __APPLE__
     return m_bmp.GetScaledWidth();
 #else
@@ -1043,6 +1045,8 @@ int ScalableBitmap::GetBmpWidth() const
 
 int ScalableBitmap::GetBmpHeight() const
 {
+    if (!m_bmp.IsOk())
+        return 0;
 #ifdef __APPLE__
     return m_bmp.GetScaledHeight();
 #else

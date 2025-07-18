@@ -43,7 +43,7 @@ void uiAmsPercentHumidityDryPopup::Create()
     title->SetFont(Label::Head_18);
 
     title_sizer->AddStretchSpacer();
-    title_sizer->Add(title, 0, wxALIGN_CENTER_HORIZONTAL);
+    title_sizer->Add(title, 0);
     title_sizer->AddStretchSpacer();
 
     // create humidity image

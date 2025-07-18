@@ -191,6 +191,8 @@ void DropDown::paintNow()
 
 static wxSize GetBmpSize(wxBitmap & bmp)
 {
+    if (!bmp.IsOk())
+        return wxSize(0, 0);
 #ifdef __APPLE__
     return bmp.GetScaledSize();
 #else

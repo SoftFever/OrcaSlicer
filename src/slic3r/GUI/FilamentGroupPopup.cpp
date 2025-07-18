@@ -127,7 +127,7 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         detail_infos[idx]->Wrap(FromDIP(320));
 
         label_sizer->AddSpacer(radio_btns[idx]->GetRect().width + ratio_spacing);
-        label_sizer->Add(detail_infos[idx], 1, wxEXPAND | wxALIGN_CENTER_VERTICAL);
+        label_sizer->Add(detail_infos[idx], 1, wxALIGN_CENTER_VERTICAL);
 
         top_sizer->Add(button_sizer, 0, wxLEFT | wxRIGHT, horizontal_margin);
         top_sizer->Add(label_sizer, 0, wxLEFT | wxRIGHT, horizontal_margin);

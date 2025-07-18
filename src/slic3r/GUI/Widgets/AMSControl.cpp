@@ -100,7 +100,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_panel_down_road->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
     m_down_road = new AMSRoadDownPart(m_panel_down_road, wxID_ANY, wxDefaultPosition, AMS_DOWN_ROAD_SIZE);
-    m_sizer_down_road->Add(m_panel_down_road, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, 0);
+    m_sizer_down_road->Add(m_panel_down_road, 0, wxTOP, 0);
 
     // ams mode
     //
@@ -228,11 +228,11 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_panel_option_left->Layout();
     m_panel_option_right->Layout();
 
-    m_sizer_ams_option->Add(m_panel_option_left, 0, wxALIGN_LEFT, 0);
+    m_sizer_ams_option->Add(m_panel_option_left, 0, wxALIGN_TOP, 0);
     m_sizer_ams_option->Add( 0, 0, 1, wxEXPAND, 0);
-    m_sizer_ams_option->Add(m_sizer_option_mid, 0, wxALIGN_RIGHT, 0);
+    m_sizer_ams_option->Add(m_sizer_option_mid, 0, wxALIGN_TOP, 0);
     m_sizer_ams_option->Add( 0, 0, 1, wxEXPAND, 0);
-    m_sizer_ams_option->Add(m_panel_option_right, 0, wxALIGN_RIGHT, 0);
+    m_sizer_ams_option->Add(m_panel_option_right, 0, wxALIGN_TOP, 0);
 
 
     m_sizer_ams_body->Add(m_sizer_ams_area_left, wxALIGN_CENTER, 0);

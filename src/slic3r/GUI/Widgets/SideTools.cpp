@@ -328,7 +328,7 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
     wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
 
-    m_link_network_state = new wxHyperlinkCtrl(m_side_error_panel, wxID_ANY,_L("Check the status of current system services"),"",wxDefaultPosition,wxDefaultSize,wxALIGN_CENTER_HORIZONTAL | wxST_ELLIPSIZE_END);
+    m_link_network_state = new wxHyperlinkCtrl(m_side_error_panel, wxID_ANY,_L("Check the status of current system services"),"",wxDefaultPosition,wxDefaultSize, wxHL_ALIGN_CENTRE |wxST_ELLIPSIZE_END);
     m_link_network_state->SetMinSize(wxSize(FromDIP(220), -1));
     m_link_network_state->SetMaxSize(wxSize(FromDIP(220), -1));
     m_link_network_state->SetFont(::Label::Body_12);
