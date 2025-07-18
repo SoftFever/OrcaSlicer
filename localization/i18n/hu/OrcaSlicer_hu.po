@@ -8406,6 +8406,10 @@ msgstr "Tömörítési vonal szélessége"
 msgid "Ramming line spacing"
 msgstr "Tömörítési vonal térköze"
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr ""
+
 msgid "Auto-Calc"
 msgstr "Automatikus számítás"
 
@@ -12176,7 +12180,7 @@ msgid ""
 "extrusion to a lower flow (lower speed/smaller width) extrusion and vice "
 "versa.\n"
 "\n"
-"It defines the maximum rate by which the extruded volumetric flow in mm³/s² "
+"It defines the maximum rate by which the extruded volumetric flow in mm³/s "
 "can change over time. Higher values mean higher extrusion rate changes are "
 "allowed, resulting in faster speed transitions.\n"
 "\n"
