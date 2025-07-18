@@ -5543,6 +5543,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             this->preview->update_gcode_result(partplate_list.get_current_slice_result());
                             release_PlateData_list(plate_data);
                             sidebar->obj_list()->reload_all_plates();
+                            q->suppress_background_process(true);
                         } else {
                             partplate_list.reload_all_objects();
                         }
@@ -6305,6 +6306,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if (msg.ShowModal() == wxID_YES) {}
         }
     }
+    q->schedule_background_process(true);
     return obj_idxs;
 }
 

@@ -1212,6 +1212,9 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
     opt_idx = orig_opt_idx >= 0 ? orig_opt_idx : 0;
     opt_key = get_pure_opt_key(opt_key);
     auto option = config.option(opt_key);
+    if (!option) {
+        return _L("N/A");
+    }
 
     if (option->is_scalar() && config.option(opt_key)->is_nil() ||
         option->is_vector() && dynamic_cast<const ConfigOptionVectorBase *>(config.option(opt_key))->is_nil(opt_idx))
