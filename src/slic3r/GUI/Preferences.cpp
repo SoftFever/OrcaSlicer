@@ -804,6 +804,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             if (pbool) {
                 GUI::wxGetApp().CallAfter([] { GUI::wxGetApp().ShowDownNetPluginDlg(); });
             }
+            if (m_legacy_networking_ckeckbox != nullptr) { m_legacy_networking_ckeckbox->Enable(pbool); }
         }
 
 #endif // __WXMSW__
@@ -834,6 +835,11 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     //// for debug mode
     if (param == "developer_mode") { m_developer_mode_ckeckbox = checkbox; }
     if (param == "internal_developer_mode") { m_internal_developer_mode_ckeckbox = checkbox; }
+    if (param == "legacy_networking") { 
+        m_legacy_networking_ckeckbox = checkbox;
+        bool pbool = app_config->get_bool("installed_networking");
+        checkbox->Enable(pbool);
+    }
 
 
     checkbox->SetToolTip(tooltip);
@@ -854,19 +860,7 @@ wxBoxSizer* PreferencesDialog::create_item_button(
     m_staticTextPath->SetToolTip(tooltip);
 
     auto m_button_download = new Button(parent, title2);
-
-    StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-                        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    m_button_download->SetBackgroundColor(abort_bg);
-    StateColor abort_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_download->SetBorderColor(abort_bd);
-    StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_download->SetTextColor(abort_text);
-    m_button_download->SetFont(Label::Body_10);
-    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetCornerRadius(FromDIP(12));
+    m_button_download->SetStyle(ButtonStyle::Regular, ButtonType::Window);
     m_button_download->SetToolTip(tooltip2);
 
     m_button_download->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
@@ -897,19 +891,7 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
     m_staticTextPath->Wrap(-1);
 
     auto m_button_download = new Button(item_panel, _L("Browse"));
-
-    StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-    std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-    std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    m_button_download->SetBackgroundColor(abort_bg);
-    StateColor abort_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_download->SetBorderColor(abort_bd);
-    StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_download->SetTextColor(abort_text);
-    m_button_download->SetFont(Label::Body_10);
-    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetCornerRadius(FromDIP(12));
+    m_button_download->SetStyle(ButtonStyle::Regular, ButtonType::Window);
 
     m_button_download->Bind(wxEVT_BUTTON, [this, m_staticTextPath, item_panel](auto& e) {
         wxString defaultPath = wxT("/");
@@ -1196,6 +1178,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     auto item_stealth_mode = create_item_checkbox(_L("Stealth Mode"), page, _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), 50, "stealth_mode");
     auto item_enable_plugin = create_item_checkbox(_L("Enable network plugin"), page, _L("Enable network plugin"), 50, "installed_networking");
+    auto item_legacy_network_plugin = create_item_checkbox(_L("Use legacy network plugin (Takes effect after restarting Orca)"), page, _L("Disable to use latest network plugin that supports new BambuLab firmwares."), 50, "legacy_networking");
     auto item_check_stable_version_only = create_item_checkbox(_L("Check for stable updates only"), page, _L("Check for stable updates only"), 50, "check_stable_update_only");
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
@@ -1321,6 +1304,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_check_stable_version_only, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_stealth_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_enable_plugin, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_legacy_network_plugin, 0, wxTOP, FromDIP(3));
 #ifdef _WIN32
     sizer_page->Add(title_associate_file, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
@@ -1483,10 +1467,7 @@ wxWindow* PreferencesDialog::create_debug_page()
     StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
     Button* debug_button = new Button(page, _L("debug save button"));
-    debug_button->SetBackgroundColor(btn_bg_white);
-    debug_button->SetBorderColor(btn_bd_white);
-    debug_button->SetFont(Label::Body_13);
-
+    debug_button->SetStyle(ButtonStyle::Regular, ButtonType::Window);
 
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box

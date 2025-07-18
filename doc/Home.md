@@ -21,7 +21,7 @@ Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wik
 
 ## Printer Settings
 
-![printer-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/printer-preset.png)
+![printer-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/printer-preset.png)
 
 - [Air filtration/Exhaust fan handling](air-filtration)
 - [Auxiliary fan handling](Auxiliary-fan)
@@ -31,7 +31,7 @@ Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wik
 
 ## Material Settings
 
-![filament-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/filament-preset.png)
+![filament-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/filament-preset.png)
 
 - [Single Extruder Multimaterial](semm)
 - [Pellet Printers (pellet flow coefficient)](pellet-flow-coefficient)
@@ -44,13 +44,13 @@ First steps to prepare your model/s for printing.
 
 ## Process Settings
 
-![process-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process-preset.png)
+![process-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process-preset.png)
 
 The below sections provide a detailed settings explanation as well as tips and tricks in setting these for optimal print results.
 
 ### Quality Settings
 
-![process-quality](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-quality.png?raw=true)
+![process-quality](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-quality.png?raw=true)
 
 - [Layer Height Settings](quality_settings_layer_height)
 - [Line Width Settings](quality_settings_line_width)
@@ -66,38 +66,63 @@ The below sections provide a detailed settings explanation as well as tips and t
   - [Precise wall](quality_settings_precision#precise-wall)
   - [Precise Z Height](quality_settings_precision#precise-z-height)
   - [Polyholes](quality_settings_precision#polyholes)
+- [Ironing](quality_settings_ironing)
 - [Wall generator](quality_settings_wall_generator)
+- [Walls and surfaces](quality_settings_wall_and_surfaces)
+- [Bridging](quality_settings_bridging)
 
 ### Strength Settings
 
-![process-strength](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-strength.png?raw=true)
+![process-strength](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-strength.png?raw=true)
 
+- [Walls](strength_settings_walls)
 - [Top and Bottom Shells](strength_settings_top_bottom_shells)
 - [Infill](strength_settings_infill)
+- [Advanced](strength_settings_advanced)
 
 ### Speed Settings
 
-![process-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-speed.png?raw=true)
+![process-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-speed.png?raw=true)
 
-- [Extrusion rate smoothing](speed_settings_extrusion_rate_smoothing)
+- [Initial Layer Speed](speed_settings_initial_layer_speed)
+- [Other Layers Speed](speed_settings_other_layers_speed)
+- [Overhang Speed](speed_settings_overhang_speed)
+- [Travel Speed](speed_settings_travel)
+- [Acceleration](speed_settings_acceleration)
+- [Jerk (XY)](speed_settings_jerk_xy)
+- [Advanced / Extrusion rate smoothing](speed_settings_advanced)
 
 ### Support Settings
 
-![process-support](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-support.png?raw=true)
+![process-support](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-support.png?raw=true)
 
-WIP...
+- [Support](support_settings_support)
+- [Raft](support_settings_raft)
+- [Support Filament](support_settings_filament)
+- [Support Ironing](support_settings_ironing)
+- [Advanced](support_settings_advanced)
+- [Tree Supports](support_settings_tree)
 
 ### Multimaterial Settings
 
-![process-multimaterial](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-multimaterial.png?raw=true)
+![process-multimaterial](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-multimaterial.png?raw=true)
 
-WIP...
+- [Prime Tower](multimaterial_settings_prime_tower)
+- [Filament for Features](multimaterial_settings_filament_for_features)
+- [Ooze Prevention](multimaterial_settings_ooze_prevention)
+- [Flush Options](multimaterial_settings_flush_options)
+- [Advanced](multimaterial_settings_advanced)
 
 ### Others Settings
 
-![process-others](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/gui/process/process-others.png?raw=true)
+![process-others](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-others.png?raw=true)
 
-WIP...
+[Skirt](others_settings_skirt)
+[Brim](others_settings_brim)
+[Special Mode](others_settings_special_mode)
+[G-Code Output](others_settings_g_code_output)
+[Post Processing Scripts](others_settings_post_processing_scripts)
+[Notes](others_settings_notes)
 
 ## Calibrations
 

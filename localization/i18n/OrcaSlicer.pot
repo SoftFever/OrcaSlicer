@@ -8004,6 +8004,10 @@ msgstr ""
 msgid "Ramming line spacing"
 msgstr ""
 
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr ""
+
 msgid "Auto-Calc"
 msgstr ""
 
@@ -11523,7 +11527,7 @@ msgid ""
 "extrusion to a lower flow (lower speed/smaller width) extrusion and vice "
 "versa.\n"
 "\n"
-"It defines the maximum rate by which the extruded volumetric flow in mm³/s² "
+"It defines the maximum rate by which the extruded volumetric flow in mm³/s "
 "can change over time. Higher values mean higher extrusion rate changes are "
 "allowed, resulting in faster speed transitions.\n"
 "\n"
@@ -11723,7 +11727,7 @@ msgstr ""
 #, possible-c-format, possible-boost-format
 msgid ""
 "Detect the overhang percentage relative to line width and use different "
-"speed to print. For 100%% overhang, bridge speed is used."
+"speed to print. For 100% overhang, bridge speed is used."
 msgstr ""
 
 msgid "Filament to print walls"
