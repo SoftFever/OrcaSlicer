@@ -102,22 +102,24 @@ public:
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, const wxString& icon = wxEmptyString, int noncommon_label_width = -1, bool is_extruder_og = false);
 	const ConfigOptionsGroupShp	get_optgroup(const wxString& title) const;
 
-	bool		set_item_colour(const wxColour *clr) {
-		if (m_item_color != clr) {
+	bool set_item_colour(StateColor clr) {
+		if (m_item_color.colorForStates(StateColor::Normal)     != clr.colorForStates(StateColor::Normal) ||
+            m_item_color.colorForStates(StateColor::NotChecked) != clr.colorForStates(StateColor::NotChecked)
+        ) {
 			m_item_color = clr;
 			return true;
 		}
 		return false;
 	}
 
-	const wxColour	get_item_colour() {
-			return *m_item_color;
+	const StateColor get_item_colour() {
+			return m_item_color;
 	}
     bool get_show() const { return m_show; }
 
 protected:
 	// Color of TreeCtrlItem. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
-	const wxColour*		m_item_color;
+	StateColor    m_item_color;
 };
 
 
@@ -213,7 +215,7 @@ protected:
 	// Colors for ui "decoration"
 	wxColour			m_sys_label_clr;
 	wxColour			m_modified_label_clr;
-	wxColour			m_default_text_clr;
+	wxColour			m_user_label_clr;
 
 	// Tooltip text for reset buttons (for whole options group)
 	wxString			m_ttg_value_lock;
