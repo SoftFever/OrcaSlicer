@@ -81,6 +81,10 @@ using namespace std::literals::string_view_literals;
 
 namespace Slic3r {
 
+static inline bool approx_equal(float a, float b) {
+    return std::fabs(a - b) < 1E-3f;
+}
+
     //! macro used to mark string used at localization,
     //! return same string
 #define L(s) (s)
@@ -5477,20 +5481,28 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                                          [speed](const ProcessedPoint &p) { return fabs(double(p.speed) - speed) > 1; }); // Ignore small speed variations (under 1mm/sec)
     }
 
-        // Sparse infill pressure advance
+    // Sparse infill pressure advance
     unsigned int extruder_id = m_writer.extruder()->id();
     const float infill_pa  = m_config.infill_pressure_advance.get_at(extruder_id);
     const float normal_pa  = m_config.pressure_advance.get_at(extruder_id);
     const bool  enable_pa  = m_config.enable_pressure_advance.get_at(extruder_id);
     const bool  is_infill  = path.role() == erInternalInfill;
     
+    static float last_pa = -1.0f;  // valor imposible
+    
     if (is_infill && infill_pa > 0.0f) {
-        gcode += m_writer.set_infill_pressure_advance(infill_pa);
-        m_pa_processor->resetPreviousPA(infill_pa);
+        if (infill_pa != last_pa) {
+            gcode += m_writer.set_infill_pressure_advance(infill_pa);
+            m_pa_processor->resetPreviousPA(infill_pa);
+            last_pa = infill_pa;
+        }
     }
     else if (enable_pa) {
-        gcode += m_writer.set_pressure_advance(normal_pa);
-        m_pa_processor->resetPreviousPA(normal_pa);
+        if (normal_pa != last_pa) {
+            gcode += m_writer.set_pressure_advance(normal_pa);
+            m_pa_processor->resetPreviousPA(normal_pa);
+            last_pa = normal_pa;
+        }
     }
 
     double F = speed * 60;  // convert mm/sec to mm/min
