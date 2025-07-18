@@ -6,6 +6,7 @@
 //**********************************************************/
 
 #pragma once
+#include "slic3r/GUI/Widgets/AMSItem.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
 #include "slic3r/GUI/Widgets/PopupWindow.hpp"
 
@@ -19,6 +20,7 @@ namespace Slic3r { namespace GUI {
 struct uiAmsHumidityInfo
 {
     std::string ams_id;
+    AMSModel ams_type;
     int humidity_level = -1;
     int humidity_percent = -1;
     float current_temperature;

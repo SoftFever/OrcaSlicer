@@ -1814,18 +1814,6 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
     wxGetApp().UpdateDarkUIWin(this);
 }
 
-void AmsHumidityTipPopup::paintEvent(wxPaintEvent& evt)
-{
-    wxPaintDC dc(this);
-    render(dc);
-}
-
-void AmsHumidityTipPopup::OnDismiss() {}
-
-bool AmsHumidityTipPopup::ProcessLeftDown(wxMouseEvent& event) {
-    return PopupWindow::ProcessLeftDown(event);
-}
-
 void AmsHumidityTipPopup::set_humidity_level(int level)
 {
     current_humidity_level = level;
@@ -1836,6 +1824,29 @@ void AmsHumidityTipPopup::set_humidity_level(int level)
     curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, 132));
     curr_humidity_img->Refresh();
     curr_humidity_img->Update();
+}
+
+void AmsHumidityTipPopup::msw_rescale()
+{
+    // close image
+    close_img.msw_rescale();
+
+    // current humidity level image
+    std::string mode_string = wxGetApp().dark_mode() ? "_dark" : "_light";
+    curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, 132));
+
+    // the list
+    humidity_level_list->msw_rescale();
+
+    // refresh
+    Refresh();
+}
+
+
+void AmsHumidityTipPopup::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
 }
 
 void AmsHumidityTipPopup::render(wxDC& dc)
@@ -1869,6 +1880,8 @@ void AmsHumidityTipPopup::doRender(wxDC& dc)
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
 }
+
+
 
 AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
 :PopupWindow(parent, wxBORDER_NONE)
@@ -2669,7 +2682,19 @@ AmsHumidityLevelList::AmsHumidityLevelList(wxWindow* parent)
 
 void AmsHumidityLevelList::msw_rescale()
 {
+    background_img.msw_rescale();
 
+    for (int i = 0; i < hum_level_img_light.size(); i++)
+    {
+        hum_level_img_light[i].msw_rescale();
+    }
+
+    for (int i = 0; i < hum_level_img_dark.size(); i++)
+    {
+        hum_level_img_dark[i].msw_rescale();
+    }
+
+    Refresh();
 }
 
 void AmsHumidityLevelList::paintEvent(wxPaintEvent& evt)

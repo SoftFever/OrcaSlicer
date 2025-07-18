@@ -1885,7 +1885,7 @@ void AMSRoad::doRender(wxDC &dc)
         dc.DrawRoundedRectangle(size.x * 0.37 / 2, size.y * 0.6 - size.y / 6, size.x * 0.63, size.y / 3, m_radius);
     }
 
-    if (m_canindex == 3) {
+    if (m_canindex == 3) /*To check, tao.wang*/{
 
         if (m_amsinfo.ams_humidity >= 1 && m_amsinfo.ams_humidity <= 5) {m_show_humidity = true;}
         else {m_show_humidity = false;}
@@ -2795,8 +2795,8 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
 {
     create(parent, id, pos, wxDefaultSize);
 
-    for (int i = 1; i <= 5; i++) { ams_humidity_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_light", 16));}
-    for (int i = 1; i <= 5; i++) { ams_humidity_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_dark", 16));}
+    for (int i = 1; i <= 5; i++) { ams_humidity_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_light", 20));}
+    for (int i = 1; i <= 5; i++) { ams_humidity_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_dark", 20));}
     for (int i = 1; i <= 5; i++) { ams_humidity_no_num_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_light", 16)); }
     for (int i = 1; i <= 5; i++) { ams_humidity_no_num_dark_imgs.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_no_num_dark", 16)); }
 
@@ -2808,10 +2808,6 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
 
     Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
         if (m_show_humidity) {
-            if (m_amsinfo.ams_type == AMSModel::GENERIC_AMS) {
-                return;/*STUDIO-12083*/
-            }
-
             auto mouse_pos = ClientToScreen(e.GetPosition());
             auto rect = ClientToScreen(wxPoint(0, 0));
 
@@ -2821,6 +2817,7 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
 
                 uiAmsHumidityInfo *info = new uiAmsHumidityInfo;
                 info->ams_id            = m_amsinfo.ams_id;
+                info->ams_type          = m_amsinfo.ams_type;
                 info->humidity_level    = m_amsinfo.ams_humidity;
                 info->humidity_percent  = m_amsinfo.humidity_raw;
                 info->left_dry_time     = m_amsinfo.left_dray_time;
@@ -2853,10 +2850,10 @@ void AMSHumidity::Update(AMSinfo amsinfo)
 void AMSHumidity::update_size()
 {
     wxSize size;
-    if (m_amsinfo.humidity_raw != -1) {
-        size = AMS_HUMIDITY_SIZE;
-    } else {
+    if (m_amsinfo.ams_type == AMSModel::GENERIC_AMS) {
         size = AMS_HUMIDITY_NO_PERCENT_SIZE;
+    } else {
+        size = AMS_HUMIDITY_SIZE;
     }
 
     if (!m_amsinfo.support_drying()) { size.x -= AMS_HUMIDITY_DRY_WIDTH; }
@@ -2911,7 +2908,20 @@ void AMSHumidity::doRender(wxDC& dc)
         dc.DrawRoundedRectangle(0, 0, (size.x), (size.y), (size.y / 2));
 
         wxPoint pot;
-        if (m_amsinfo.humidity_raw != -1) /*image with no number + percentage*/
+        if (m_amsinfo.ams_type == AMSModel::GENERIC_AMS) /*image with stage*/
+        {
+            ScalableBitmap hum_img;
+            if (!wxGetApp().dark_mode()) {
+                hum_img = ams_humidity_imgs[m_amsinfo.ams_humidity - 1];
+            } else {
+                hum_img = ams_humidity_dark_imgs[m_amsinfo.ams_humidity - 1];
+            }
+
+            pot = wxPoint((size.x - hum_img.GetBmpWidth()) / 2, ((size.y - hum_img.GetBmpSize().y) / 2));
+            dc.DrawBitmap(hum_img.bmp(), pot);
+            pot.x = pot.x + hum_img.GetBmpSize().x;
+        }
+        else if (m_amsinfo.humidity_raw != -1) /*image with no number + percentage*/
         {
             // hum image
             ScalableBitmap hum_img;
@@ -2945,20 +2955,6 @@ void AMSHumidity::doRender(wxDC& dc)
             dc.DrawText(_L("%"), pot);
 
             pot.x += tsize2.x;
-        }
-        else /*image with number*/
-        {
-            // hum image
-            ScalableBitmap hum_img;
-            if (!wxGetApp().dark_mode()) {
-                hum_img = ams_humidity_imgs[m_amsinfo.ams_humidity - 1];
-            } else {
-                hum_img = ams_humidity_dark_imgs[m_amsinfo.ams_humidity - 1];
-            }
-
-            pot = wxPoint(FromDIP(5), ((size.y - hum_img.GetBmpSize().y) / 2));
-            dc.DrawBitmap(hum_img.bmp(), pot);
-            pot.x = pot.x + hum_img.GetBmpSize().x;
         }
 
         if (m_amsinfo.support_drying())
