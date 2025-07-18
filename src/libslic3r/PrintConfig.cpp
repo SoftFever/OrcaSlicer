@@ -6709,6 +6709,27 @@ void PrintConfigDef::init_sla_params()
     def->enum_labels.push_back(" ");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SLAMaterialSpeed>(slamsFast));
+    
+    def             = this->add("hide_config", coString);
+    def->label      = L("Hide Config");
+    def->tooltip = L("List of configuration keys to be forcibly hidden from the user interface, in the following format: \"key1, key2, ...\".");
+    def->full_width = true;
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
+
+    def          = this->add("force_simple_config", coString);
+    def->label   = L("Force Config to Simple Mode");
+    def->tooltip = L("List of configuration to be forcibly shown in simple mode user interface, in the following format: \"key1, key2, ...\".");
+    def->full_width = true;
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
+     
+    def          = this->add("force_advanced_config", coString);
+    def->label   = L("Force Config to Advanced Mode");
+    def->tooltip = L("List of configuration to be forcibly shown in advanced mode user interface, in the following format: \"key1, key2, ...\".");
+    def->full_width = true;
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
