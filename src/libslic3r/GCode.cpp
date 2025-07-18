@@ -81,10 +81,6 @@ using namespace std::literals::string_view_literals;
 
 namespace Slic3r {
 
-static inline bool approx_equal(float a, float b) {
-    return std::fabs(a - b) < 1E-3f;
-}
-
     //! macro used to mark string used at localization,
     //! return same string
 #define L(s) (s)
@@ -5489,7 +5485,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     const bool  is_infill  = path.role() == erInternalInfill;
     const bool  enable_infill_pressure_advance = enable_pa && m_config.enable_infill_pressure_advance.get_at(extruder_id);
 
-    static float last_pa = -1.0f;  // valor imposible
+    static float last_pa = -1.0f;  
     
     if (is_infill && enable_infill_pressure_advance) {
         if (infill_pa != last_pa) {

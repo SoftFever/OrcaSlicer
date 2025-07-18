@@ -1882,6 +1882,7 @@ void PrintConfigDef::init_fff_params()
                      "it avoid unnecessary extruder movements and reduce printing time.");
     def = this->add("infill_pressure_advance", coFloats);
     def->label = L("Infill pressure advance");
+    def->tooltip = L("Value with which PA is overwritten in the sparse infill.");
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.02 });
