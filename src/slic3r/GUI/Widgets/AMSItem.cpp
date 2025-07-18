@@ -148,6 +148,16 @@ AMSrefresh::AMSrefresh(wxWindow *parent, int number, Caninfo info, const wxPoint
      }
  }
 
+void AMSrefresh::handle_timer()
+{
+   Refresh();
+}
+
+void AMSrefresh::on_timer(wxTimerEvent& event)
+{
+   handle_timer();
+}
+
 void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
     wxWindow::Create(parent, id, pos, size, wxBORDER_NONE);
@@ -182,22 +192,22 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
     m_playing_timer = new wxTimer();
     m_playing_timer->SetOwner(this);
-    wxPostEvent(this, wxTimerEvent());
+    handle_timer();
 
     SetSize(AMS_REFRESH_SIZE);
     SetMinSize(AMS_REFRESH_SIZE);
     SetMaxSize(AMS_REFRESH_SIZE);
 }
 
-void AMSrefresh::on_timer(wxTimerEvent &event)
-{
-    //if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
-    //    m_rotation_angle = 0;
-    //} else {
-    //    m_rotation_angle++;
-    //}
-    Refresh();
-}
+//void AMSrefresh::on_timer(wxTimerEvent &event)
+//{
+//    //if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
+//    //    m_rotation_angle = 0;
+//    //} else {
+//    //    m_rotation_angle++;
+//    //}
+//    Refresh();
+//}
 
 void AMSrefresh::PlayLoading()
 {
