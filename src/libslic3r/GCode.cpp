@@ -5477,6 +5477,22 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                                          [speed](const ProcessedPoint &p) { return fabs(double(p.speed) - speed) > 1; }); // Ignore small speed variations (under 1mm/sec)
     }
 
+        // Sparse infill pressure advance
+    unsigned int extruder_id = m_writer.extruder()->id();
+    const float infill_pa  = m_config.infill_pressure_advance.get_at(extruder_id);
+    const float normal_pa  = m_config.pressure_advance.get_at(extruder_id);
+    const bool  enable_pa  = m_config.enable_pressure_advance.get_at(extruder_id);
+    const bool  is_infill  = path.role() == erInternalInfill;
+    
+    if (is_infill && infill_pa > 0.0f) {
+        gcode += m_writer.set_infill_pressure_advance(infill_pa);
+        m_pa_processor->resetPreviousPA(infill_pa);
+    }
+    else if (enable_pa) {
+        gcode += m_writer.set_pressure_advance(normal_pa);
+        m_pa_processor->resetPreviousPA(normal_pa);
+    }
+
     double F = speed * 60;  // convert mm/sec to mm/min
     
     // Orca: Dynamic PA
@@ -5502,7 +5518,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             evaluate_adaptive_pa = true;
     }
     // Orca: End of dynamic PA trigger flag segment
-    
+
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
             DynamicConfig config;
