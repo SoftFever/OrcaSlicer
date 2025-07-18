@@ -4820,7 +4820,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("middle");
     def->enum_values.push_back("exclusive");
     def->enum_values.push_back("inclusive");
-    def->enum_labels.push_back(L("Middle"));
+    def->enum_labels.push_back(L("Middle (Default)"));
     def->enum_labels.push_back(L("Exclusive"));
     def->enum_labels.push_back(L("Inclusive"));
     def->mode = comAdvanced;
