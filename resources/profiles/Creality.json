@@ -8,6 +8,10 @@
             "name": "Creality CR-10 V2",
             "sub_path": "machine/Creality CR-10 V2.json"
         },
+	{
+            "name": "Creality CR-10 V3",
+            "sub_path": "machine/Creality CR-10 V3.json"
+        },
         {
             "name": "Creality CR-10 Max",
             "sub_path": "machine/Creality CR-10 Max.json"
@@ -645,6 +649,14 @@
         {
             "name": "0.20mm Standard @Creality CR10V2",
             "sub_path": "process/0.20mm Standard @Creality CR10V2.json"
+        },
+	{
+            "name": "0.20mm Standard @Creality CR10V3 0.4",
+            "sub_path": "process/0.20mm Standard @Creality CR10V3 0.4.json"
+        },
+	{
+            "name": "0.20mm Standard @Creality CR10V3 0.6",
+            "sub_path": "process/0.20mm Standard @Creality CR10V3 0.6.json"
         },
         {
             "name": "0.20mm Standard @Creality CR10Max",
@@ -1502,6 +1514,14 @@
             "name": "Creality CR-10 V2 0.4 nozzle",
             "sub_path": "machine/Creality CR-10 V2 0.4 nozzle.json"
         },
+	{
+            "name": "Creality CR-10 V3 0.4 nozzle",
+            "sub_path": "machine/Creality CR-10 V3 0.4 nozzle.json"
+        },
+	{
+            "name": "Creality CR-10 V3 0.6 nozzle",
+            "sub_path": "machine/Creality CR-10 V3 0.6 nozzle.json"
+        }, 
         {
             "name": "Creality CR-10 Max 0.4 nozzle",
             "sub_path": "machine/Creality CR-10 Max 0.4 nozzle.json"
