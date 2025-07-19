@@ -24,12 +24,12 @@
 
 ## Outer wall
 
-Speed of outer wall which is outermost and visible. It's used to be slower than inner wall speed to get better quality.
+Speed of outer wall which is outermost and visible. It's used to be slower than [inner wall speed](#inner-wall) to get better quality and good layer adhesion.
 This setting is also limited by [Machine / Motion ability / Resonance avoidance speed settings](vfa-calib).
 
 ## Inner wall
 
-Speed of inner wall which is printed faster than outer wall to reduce print time.
+Speed of inner wall which is printed faster than outer wall to reduce print time but is still recommended to be slower than the [maximum volumetric speed](volumetric-speed-calib) to ensure good layer adhesion and reduce material internal stresses.
 
 ## Small perimeters
 
