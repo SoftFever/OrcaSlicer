@@ -5028,6 +5028,10 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
             if (! extrusions.empty()) {
                 m_config.apply(print.get_print_region(&region - &by_region.front()).config());
                 chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+                bool disable_infill_pa =this->config().enable_pressure_advance.get_at(m_writer.extruder()->id()) && m_config.disable_infill_pressure_advance;
+                if(disable_infill_pa){
+                    gcode += m_writer.set_pressure_advance(0);
+                }
                 for (const ExtrusionEntity *fill : extrusions) {
                     auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
                     if (eec) {
@@ -5036,8 +5040,12 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
                     } else
                         gcode += this->extrude_entity(*fill, extrusion_name);
                 }
+                if(disable_infill_pa){
+                    gcode += m_writer.set_pressure_advance(this->config().pressure_advance.get_at(m_writer.extruder()->id()));
+                }
             }
         }
+
     return gcode;
 }
 
@@ -5477,30 +5485,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                                          [speed](const ProcessedPoint &p) { return fabs(double(p.speed) - speed) > 1; }); // Ignore small speed variations (under 1mm/sec)
     }
 
-    // Sparse infill pressure advance
-    unsigned int extruder_id = m_writer.extruder()->id();
-    const float infill_pa  = m_config.infill_pressure_advance.get_at(extruder_id);
-    const float normal_pa  = m_config.pressure_advance.get_at(extruder_id);
-    const bool  enable_pa  = m_config.enable_pressure_advance.get_at(extruder_id);
-    const bool  is_infill  = path.role() == erInternalInfill;
-    const bool  enable_infill_pressure_advance = enable_pa && m_config.enable_infill_pressure_advance.get_at(extruder_id);
 
-    static float last_pa = -1.0f;  
-    
-    if (is_infill && enable_infill_pressure_advance) {
-        if (infill_pa != last_pa) {
-            gcode += m_writer.set_pressure_advance(infill_pa);
-            m_pa_processor->resetPreviousPA(infill_pa);
-            last_pa = infill_pa;
-        }
-    }
-    else if (enable_pa) {
-        if (normal_pa != last_pa) {
-            gcode += m_writer.set_pressure_advance(normal_pa);
-            m_pa_processor->resetPreviousPA(normal_pa);
-            last_pa = normal_pa;
-        }
-    }
 
     double F = speed * 60;  // convert mm/sec to mm/min
     
