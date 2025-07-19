@@ -2464,6 +2464,8 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction", "others_settings_g_code_output#reduce-infill-retraction");
+                //bool ipa = pa && m_config->opt_bool("disable_infill_pressure_advance", 0);
+        optgroup->append_single_option_line("disable_infill_pressure_advance","");
         optgroup->append_single_option_line("gcode_add_line_number", "others_settings_g_code_output#add-line-number");
         optgroup->append_single_option_line("gcode_comments", "others_settings_g_code_output#verbose-g-code");
         optgroup->append_single_option_line("gcode_label_objects", "others_settings_g_code_output#label-objects");
@@ -3413,6 +3415,7 @@ void TabFilament::build()
 
         optgroup->append_single_option_line("enable_pressure_advance");
         optgroup->append_single_option_line("pressure_advance");
+        optgroup->append_single_option_line("disable_infill_pressure_advance");
 
         // Orca: adaptive pressure advance and calibration model
         optgroup->append_single_option_line("adaptive_pressure_advance");
