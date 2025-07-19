@@ -652,7 +652,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
-                params.multiline     = int(region_config.fill_multiline);
+                params.multiline     = 1; // Default to single line, will be set for sparse infill only
                 params.lattice_angle_1 = region_config.lattice_angle_1;
                 params.lattice_angle_2 = region_config.lattice_angle_2;
                 params.infill_overhang_angle = region_config.infill_overhang_angle;
@@ -712,6 +712,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 }
                 if (params.extrusion_role == erInternalInfill) {
                     params.angle += float(Geometry::deg2rad(region_config.infill_direction.value));
+                    params.multiline = int(region_config.fill_multiline);
                 } else {
                     params.angle += float(Geometry::deg2rad(region_config.solid_infill_direction.value));
                 }
