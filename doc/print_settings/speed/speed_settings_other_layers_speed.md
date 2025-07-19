@@ -1,5 +1,15 @@
 # Other layers speed
 
+## Speed limitations
+
+> [!IMPORTANT]
+> Every speed setting is limited by several parameters like:
+> - [Maximum Volumetric Speed](volumetric-speed-calib)
+> - Machine / Motion ability
+> - Acceleration
+> - Jerk settings.
+
+- [Speed limitations](#speed-limitations)
 - [Outer wall](#outer-wall)
 - [Inner wall](#inner-wall)
 - [Small perimeters](#small-perimeters)
@@ -15,6 +25,7 @@
 ## Outer wall
 
 Speed of outer wall which is outermost and visible. It's used to be slower than inner wall speed to get better quality.
+This setting is also limited by [Machine / Motion ability / Resonance avoidance speed settings](vfa-calib).
 
 ## Inner wall
 
