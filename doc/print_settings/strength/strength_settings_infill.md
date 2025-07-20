@@ -169,7 +169,7 @@ As most settings in 3D printing, experience is the best way to determine which p
 
 | SVG | Pattern | X-Y Strength | Z Strength | Material Usage | Print Time |
 |---|---|---|---|---|---|
-| ![param_zig-zag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_zig-zag.svg?raw=true) | [Rectilinear](#rectilinear) | Normal-Low | Low | Normal | Normal-Low |
+| ![param_rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_rectilinear.svg?raw=true) | [Rectilinear](#rectilinear) | Normal-Low | Low | Normal | Normal-Low |
 | ![param_alignedrectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_alignedrectilinear.svg?raw=true) | [Aligned   Rectilinear](#aligned-rectilinear) | Normal-Low | Normal | Normal | Normal-Low |
 | ![param_zigzag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_zigzag.svg?raw=true) | [Zig Zag](#zig-zag) | Normal-Low | Low | Normal | Normal |
 | ![param_crosszag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_crosszag.svg?raw=true) | [Cross   Zag](#cross-zag) | Normal | Low | Normal | Normal |

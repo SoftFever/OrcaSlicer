@@ -141,7 +141,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "monotonicline", ipMonotonicLine },
     { "rectilinear", ipRectilinear },
     { "alignedrectilinear", ipAlignedRectilinear },
-    { "zig-zag", ipZigZag },
+    { "zigzag", ipZigZag },
     { "crosszag", ipCrossZag },
     { "lockedzag", ipLockedZag },
     { "line", ipLine },
@@ -317,7 +317,7 @@ static const t_config_enum_values s_keys_map_SLADisplayOrientation = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SLADisplayOrientation)
 
 static const t_config_enum_values s_keys_map_SLAPillarConnectionMode = {
-    {"zig-zag",          slapcmZigZag},
+    {"zigzag",          slapcmZigZag},
     {"cross",           slapcmCross},
     {"dynamic",         slapcmDynamic}
 };
@@ -2376,7 +2376,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("alignedrectilinear");
-    def->enum_values.push_back("zig-zag");
+    def->enum_values.push_back("zigzag");
     def->enum_values.push_back("crosszag");
     def->enum_values.push_back("lockedzag");
     def->enum_values.push_back("line");
@@ -6448,7 +6448,7 @@ void PrintConfigDef::init_sla_params()
     //def->label = L("");
     //def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<SLAPillarConnectionMode>::get_enum_values();
-    def->enum_values.push_back("zig-zag");
+    def->enum_values.push_back("zigzag");
     def->enum_values.push_back("cross");
     def->enum_values.push_back("dynamic");
     def->enum_labels.push_back(" ");
@@ -6835,6 +6835,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "counterbore_hole_bridging";
     } else if (opt_key == "draft_shield" && value == "limited") {
         value = "disabled";
+    } else if (opt_key == "sparse_infill_pattern" && value == "zig-zag") {
+        value = "rectilinear";
     }
 
     // Ignore the following obsolete configuration keys:
