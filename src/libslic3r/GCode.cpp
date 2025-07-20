@@ -79,6 +79,20 @@ using namespace std::literals::string_view_literals;
 
 #include <assert.h>
 
+static bool gcode_has_xyz(const std::string& gcode_line){
+    std::string::size_type comment_pos = gcode_line.find(';');
+    std::string code_only = gcode_line.substr(0, comment_pos);
+
+    return code_only.find('G') != std::string::npos ||
+           code_only.find('g') != std::string::npos ||
+           code_only.find('X') != std::string::npos ||
+           code_only.find('x') != std::string::npos ||
+           code_only.find('Y') != std::string::npos ||
+           code_only.find('y') != std::string::npos ||
+           code_only.find('Z') != std::string::npos ||
+           code_only.find('z') != std::string::npos;
+ }
+
 namespace Slic3r {
 
     //! macro used to mark string used at localization,
@@ -4380,7 +4394,8 @@ LayerResult GCode::process_layer(
 
                             std::string timepals_gcode = insert_timelapse_gcode();
                             gcode += timepals_gcode;
-                            m_writer.set_current_position_clear(false);
+                            if (gcode_has_xyz(timepals_gcode)){
+                            m_writer.set_current_position_clear(false);                        
                             //BBS: check whether custom gcode changes the z position. Update if changed
                             double temp_z_after_timepals_gcode;
                             if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
@@ -4390,6 +4405,7 @@ LayerResult GCode::process_layer(
                             }
 
                             has_insert_timelapse_gcode = true;
+                            }
                         }
                         // Then print infill
                         gcode += this->extrude_infill(print, by_region_specific, false);
@@ -4465,13 +4481,15 @@ LayerResult GCode::process_layer(
 
         std::string timepals_gcode = insert_timelapse_gcode();
         gcode += timepals_gcode;
-        m_writer.set_current_position_clear(false);
+        if (gcode_has_xyz(timepals_gcode)){
+        m_writer.set_current_position_clear(false);        
         //BBS: check whether custom gcode changes the z position. Update if changed
         double temp_z_after_timepals_gcode;
         if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
             Vec3d pos = m_writer.get_position();
             pos(2) = temp_z_after_timepals_gcode;
             m_writer.set_position(pos);
+        }
         }
     }
 
@@ -6078,8 +6096,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
 
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
     // multi-hop travel path inside the configuration space
-    if (needs_retraction
-        && m_config.reduce_crossing_wall
+    if ( m_config.reduce_crossing_wall
         && ! m_avoid_crossing_perimeters.disabled_once()
         //BBS: don't generate detour travel paths when current position is unclear
         && m_writer.is_current_position_clear()) {
