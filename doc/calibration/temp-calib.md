@@ -22,7 +22,9 @@ Once the print is complete, we can examine each block of the tower and determine
 
 ## Bed temperature
 
-Bed temperature is another important setting to calibrate for a successful print. The bed temperature affects the adhesion of the filament to the print bed, which in turn affects the overall quality of the print. If the bed temperature is too low, the filament may not adhere properly to the print bed, leading to warping and poor layer adhesion. If the bed temperature is too high, the filament may become too soft and lose its shape, leading to over-extrusion and poor layer adhesion.
+Bed temperature is another important setting to calibrate for a successful print. The bed temperature affects the adhesion of the filament to the print bed, which in turn affects the overall quality of the print.  
+If the bed temperature is too low, the filament may not adhere properly to the print bed, leading to warping and poor layer adhesion.  
+If the bed temperature is too high, the filament may become too soft and [deform](quality_settings_precision#elephant-foot-compensation).
 
 This setting doesn't have a specific test, but it is recommended to start with the recommended bed temperature for the filament and adjust it based on the filament manufacturer's recommendations.
 
