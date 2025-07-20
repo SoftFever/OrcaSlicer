@@ -6669,6 +6669,12 @@ msgstr ""
 "활성화된 경우 자유로운 카메라 앵글을 사용합니다. 활성화되지 않은 경우 제한된 "
 "카메라 앵글을 사용합니다."
 
+msgid "Swap pan and rotate mouse buttons"
+msgstr "팬 및 회전 마우스 버튼 바꾸기"
+
+msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgstr "이 기능을 활성화하면 왼쪽 마우스 버튼과 오른쪽 마우스 버튼의 팬 및 회전 기능이 바뀝니다."
+
 msgid "Reverse mouse zoom"
 msgstr "역방향 마우스 줌"
 
@@ -8467,6 +8473,10 @@ msgstr "채워넣기 선 너비"
 
 msgid "Ramming line spacing"
 msgstr "채워넣기 선 간격"
+
+#. TRN: The placeholder expands to Ctrl or Cmd (on macOS).
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "자동 계산"
@@ -12680,13 +12690,14 @@ msgstr ""
 msgid "Extrusion rate smoothing"
 msgstr "유연한 압출량"
 
+#, fuzzy
 msgid ""
 "This parameter smooths out sudden extrusion rate changes that happen when the "
 "printer transitions from printing a high flow (high speed/larger width) "
 "extrusion to a lower flow (lower speed/smaller width) extrusion and vice "
 "versa.\n"
 "\n"
-"It defines the maximum rate by which the extruded volumetric flow in mm³/s² "
+"It defines the maximum rate by which the extruded volumetric flow in mm³/s "
 "can change over time. Higher values mean higher extrusion rate changes are "
 "allowed, resulting in faster speed transitions.\n"
 "\n"
@@ -12711,7 +12722,7 @@ msgstr ""
 "속도/더 작은 너비) 압출로 또는 그 반대로 출력할 때 발생하는 급격한 압출 속도 "
 "변화를 완화합니다.\n"
 "\n"
-"이는 압출된 압출 압출량(mm3/초)이 시간에 따라 변할 수 있는 최대 속도를 정의합"
+"이는 압출된 압출 압출량(mm³/초)이 시간에 따라 변할 수 있는 최대 속도를 정의합"
 "니다. 값이 높을수록 더 높은 압출 속도 변경이 허용되어 속도 전환이 더 빨라진다"
 "는 의미입니다.\n"
 "\n"

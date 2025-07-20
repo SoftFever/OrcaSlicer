@@ -128,7 +128,7 @@
     ],
     "nozzle_type": "hardened_steel",
 	"support_chamber_temp_control": "1",
-	"change_filament_gcode": "G91\nG1 Z{layer_z+z_hop[0]} F1000\nG90",
+	"change_filament_gcode": "G91\nG1 Z{z_hop[0]} F1000\nG90",
 	"machine_start_gcode": "START_PRINT TOOL_NR=[initial_tool] T_BED=[bed_temperature_initial_layer] T_EXTRUDER=[first_layer_temperature[initial_tool]] T_CHAMBER=[chamber_temperature] {if is_extruder_used[0]}T0_TEMP={first_layer_temperature[0]}{endif} {if is_extruder_used[1]}T1_TEMP={first_layer_temperature[1]}{endif}",
 	"machine_end_gcode": "END_PRINT T_BED=[bed_temperature] T_CHAMBER=[chamber_temperature] COOLDOWN_TIME=120",
 	"machine_pause_gcode": "PAUSE"
