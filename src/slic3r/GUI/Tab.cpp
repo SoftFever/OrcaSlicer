@@ -2452,6 +2452,7 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
 
         optgroup->append_single_option_line("timelapse_type", "others_settings_special_mode#timelapse");
 
+        optgroup = page->new_optgroup(L("Fuzzy Skin"), L"fuzzy_skin");
         optgroup->append_single_option_line("fuzzy_skin", "others_settings_special_mode#fuzzy-skin");
         optgroup->append_single_option_line("fuzzy_skin_noise_type", "others_settings_special_mode#fuzzy-skin-mode");
         optgroup->append_single_option_line("fuzzy_skin_point_distance", "others_settings_special_mode#point-distance");
@@ -3549,6 +3550,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
         optgroup->append_single_option_line("internal_bridge_fan_speed"); // ORCA: Add support for separate internal bridge fan speed control
         optgroup->append_single_option_line("support_material_interface_fan_speed");
+        optgroup->append_single_option_line("ironing_fan_speed"); // ORCA: Add support for ironing fan speed control
 
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_aux_fan");
         optgroup->append_single_option_line("additional_cooling_fan_speed", "auxiliary-fan");
@@ -3611,25 +3613,10 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_stamping_loading_speed");
         optgroup->append_single_option_line("filament_stamping_distance");
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
+
             // ORCA modernize button style
             Button* btn = new Button(parent, _(L("Set")) + " " + dots);
-            btn->SetFont(Label::Body_14);
-            btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
-            btn->SetCornerRadius(FromDIP(4));
-            StateColor clr_bg = StateColor(
-                std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-                std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-                std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-                std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-                std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-            );
-            btn->SetBackgroundColor(clr_bg);
-            btn->SetBorderColor(clr_bg);
-            btn->SetTextColor(StateColor(
-                std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-                std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-                std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-            ));
+            btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(btn);
@@ -6011,23 +5998,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 
     // ORCA modernize button style
     Button* btn = new Button(parent, _(L("Set")) + " " + dots);
-    btn->SetFont(Label::Body_14);
-    btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
-    btn->SetCornerRadius(FromDIP(4));
-    StateColor clr_bg = StateColor(
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-        std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-    );
-    btn->SetBackgroundColor(clr_bg);
-    btn->SetBorderColor(clr_bg);
-    btn->SetTextColor(StateColor(
-        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-        std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-        std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-    ));
+    btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
     deps.btn = btn;
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -6138,25 +6109,9 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 // Return a callback to create a TabPrinter widget to edit bed shape
 wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
-     // ORCA modernize button style
+    // ORCA modernize button style
     Button* btn = new Button(parent, _(L("Set")) + " " + dots);
-    btn->SetFont(Label::Body_14);
-    btn->SetSize(wxSize(FromDIP(120), FromDIP(26)));
-    btn->SetCornerRadius(FromDIP(4));
-    StateColor clr_bg = StateColor(
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-        std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-    );
-    btn->SetBackgroundColor(clr_bg);
-    btn->SetBorderColor(clr_bg);
-    btn->SetTextColor(StateColor(
-        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-        std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-        std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-    ));
+    btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
