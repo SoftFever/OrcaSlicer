@@ -970,7 +970,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
             }*/
         }
 
-        if (!intersection(wrapping_poly, convex_hull).empty()) {
+        if (print_config.enable_wrapping_detection.value && !intersection(wrapping_poly, convex_hull).empty()) {
             return {inst->model_instance->get_object()->name + L(" is too close to wrapping detection area, there may be collisions when printing.") + "\n",
                 inst->model_instance->get_object()};
         }
@@ -1024,7 +1024,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         }*/
         return {L("Prime Tower") + L(" is too close to exclusion area, and collisions will be caused.\n")};
     }
-    if (!intersection({wrapping_poly}, convex_hulls_temp).empty()) {
+    if (print_config.enable_wrapping_detection.value && !intersection({wrapping_poly}, convex_hulls_temp).empty()) {
         return {L("Prime Tower") + L(" is too close to wrapping detection area, and collisions will be caused.\n")};
     }
     return {};
