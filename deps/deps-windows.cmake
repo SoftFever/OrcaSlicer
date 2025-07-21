@@ -27,6 +27,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     set(DEP_BOOST_TOOLSET "clang-win")
 endif ()
 
+set(DEP_MSVC_GEN "Visual Studio ${DEP_VS_VER}")
 if (${DEPS_ARCH} EQUAL "x86")
     set(DEP_PLATFORM "Win32")
 elseif (${DEPS_ARCH} EQUAL "x64")
