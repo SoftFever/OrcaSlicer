@@ -1001,7 +1001,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
         f->print_config        = &this->object()->print()->config();
         f->print_object_config = &this->object()->config();
-        f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
+        // f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree; - PPS: remove double def
 		if (surface_fill.params.pattern == ipConcentricInternal) {
             FillConcentricInternal *fill_concentric = dynamic_cast<FillConcentricInternal *>(f.get());
             assert(fill_concentric != nullptr);
@@ -1077,10 +1077,11 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
             double            angle_start  = 0;
             double            limit_fill_z = this->object()->get_layer(0)->bottom_z();
             double            start_fill_z = limit_fill_z;
-            bool              noop         = false;
+            bool              _noop        = false;
             auto              solid        = std::string::npos; // -1 - sparse,  0 - native (D), 1 - internal solid (S), 2 - concentric (O), 3 - monotonic (M), 4 - rectilinear (R)           
             auto              fill_form    = std::string::npos;
-            bool              negative     = false;
+            bool              _absolute    = false;
+            bool              _negative    = false;
             std::vector<bool> stop(tk.size(), false);
 
             for (int i = 0; i <= this->id(); i++) {
@@ -1098,8 +1099,9 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                         fill_form    = std::string::npos;
                         do {
                             if (!stop[t]) {
-                                noop     = false;
-                                negative = false;
+                                _noop       = false;
+                                _absolute   = false;
+                                _negative   = false;
                                 angle_start += angle_add;
                                 angle_add   = 0;
                                 angle_steps = 1;
@@ -1109,24 +1111,22 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
                                 char* cs = &tk[t][0];
 
-                                angle_add = strtod(cs, &cs); // read angle parameter
+                                if ((cs[0] >= '0' && cs[0] <= '9') && !(cs[0] == '+' || cs[0] == '-')) // absolute/relative
+                                    _absolute = true;
 
-                                if (angle_add) {
-                                    if (tk[t][0] != '+' && tk[t][0] != '-') { // absolute/relative
-                                        angle_start = angle_add;
-                                    }
-                                    if (cs[0] == '%') {                 // percentage of angles
-                                        angle_add *= 3.6;
-                                        cs = &cs[1];
-                                    }
+                                angle_add = strtod(cs, &cs);        // read angle parameter
+
+                                if (cs[0] == '%') {                 // percentage of angles
+                                    angle_add *= 3.6;
+                                    cs = &cs[1];
                                 }
 
                                 int tit = tk[t].find('*');
-                                if (tit != std::string::npos)          // overall angle_cycles
+                                if (tit != std::string::npos)                   // overall angle_cycles
                                     repeats = strtol(&tk[t][tit + 1], &cs, 0);
 
-                                if (repeats) {                          // run if overall cycles greater than 0
-                                    solid = std::string("DSOMR").find(cs[0]); // solid infill
+                                if (repeats) {                                  // run if overall cycles greater than 0
+                                    solid = std::string("DSOMR").find(cs[0]);   // solid infill
                                     if (solid != std::string::npos) 
                                         cs = &cs[1];
 
@@ -1139,8 +1139,9 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                                         if (fill_form != std::string::npos)
                                             cs = &cs[1];
 
-                                        negative = (cs[0] == '-');  // negative parameter
+                                        _negative = (cs[0] == '-'); // negative parameter
                                         angle_steps = abs(strtod(cs, &cs));
+
                                         if (angle_steps && cs[0] != '\0' && cs[0] != '!') {
                                             if (cs[0] == '%')       // value in the percents of fill_z
                                                 limit_fill_z = angle_steps * this->object()->height() * 1e-8;
@@ -1159,27 +1160,32 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                                                     limit_fill_z = angle_steps * 1000.;
                                             limit_fill_z += fill_z;
                                             angle_steps = 0; // limit_fill_z has already count
-                                        }
+                                        } 
                                     }
                                     if (angle_steps) {       // if limit_fill_z does not setting by lenght method. Get count the layer id above model height
-                                        int idx      = i + std::max(angle_steps - 1, 0.);
-                                        int sdx      = std::max(0, idx - (int) this->object()->layers().size());
-                                        idx          = std::min(idx, (int) this->object()->layers().size() - 1);
-                                        limit_fill_z = this->object()->get_layer(idx)->print_z +
-                                                        sdx * this->object()->config().layer_height;
-                                    }
+                                        if (fill_form == std::string::npos && !_absolute) 
+                                            angle_add     *= (int) angle_steps;
+                                        int idx       = i + std::max(angle_steps - 1, 0.);
+                                        int sdx       = std::max(0, idx - (int) this->object()->layers().size());
+                                        idx           = std::min(idx, (int) this->object()->layers().size() - 1);
+                                        limit_fill_z  = this->object()->get_layer(idx)->print_z + sdx * this->object()->config().layer_height;
+                                    } 
                                     repeats = std::max(--repeats, 0);
                                 } else 
-                                    noop = true;        // set the dumb cycle
+                                    _noop = true;   // set the dumb cycle
+                                if (_absolute) {    // is absolute
+                                    angle_start = angle_add;
+                                    angle_add   = 0;
+                                }
                             }
                             if (++t >= tk.size())
                                 t = 0;
-                        } while (std::all_of(stop.begin(), stop.end(), [](bool v) { return v; }) ?
-                                     false :
-                                     (t ? noop : false) || stop[t]); // if this is a dumb instruction which never reaprated twice
+                        } while (std::all_of(stop.begin(), stop.end(), [](bool v) { return v; }) ? false :
+                                     (t ? _noop : false) || stop[t]); // if this is a dumb instruction which never reaprated twice
                     }
                 }
-                double negvalue = (negative ? limit_fill_z - fill_z : fill_z - start_fill_z) / (limit_fill_z - start_fill_z);
+                double top_z    = this->object()->get_layer(i)->print_z;
+                double negvalue = (_negative ? limit_fill_z - top_z : top_z - start_fill_z) / (limit_fill_z - start_fill_z);
 
                 switch (fill_form) {
                 case 0: break;                                                  // /-joint, linear
@@ -1197,7 +1203,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                 case 12: negvalue = (double) rand() / RAND_MAX; break;          // ~-joint, random, fill the whole angle
                 case 13: negvalue += (double) rand() / RAND_MAX - 0.5; break;   // ^-joint, pseudorandom, disperse at middle line
                 case 14: negvalue = 0.5; break;                                 // |-joint, like #-joint but placed at middle angle
-                case 15: negvalue = negative ? 0. : 1.; break;                  // #-joint, vertical at the end angle
+                case 15: negvalue = _negative ? 0. : 1.; break;                 // #-joint, vertical at the end angle
                 }
                 angle = angle_start + angle_add * negvalue;
             }
@@ -1217,10 +1223,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                 f->layer_id            = this->id();
                 f->z                   = this->print_z;
                 f->angle               = surface_fill.params.angle;
-                //f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
                 f->print_config        = &this->object()->print()->config();
                 f->print_object_config = &this->object()->config();
-                //f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
                 params.use_arachne = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipConcentricInternal;
             }
             f->rotate_angle = Geometry::deg2rad(angle);
