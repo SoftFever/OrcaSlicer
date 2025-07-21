@@ -189,58 +189,6 @@ void GLGizmoMmuSegmentation::data_changed(bool is_serializing)
     }
 }
 
-void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
-{
-    ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
-    auto* shader = wxGetApp().get_shader("mm_gouraud");
-    if (!shader)
-        return;
-    shader->start_using();
-    shader->set_uniform("clipping_plane", clp_data.clp_dataf);
-    shader->set_uniform("z_range", clp_data.z_range);
-    shader->set_uniform("slope.actived", m_parent.is_using_slope());
-    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
-
-    //BBS: to improve the random white pixel issue
-    glsafe(::glDisable(GL_CULL_FACE));
-
-    const ModelObject *mo      = m_c->selection_info()->model_object();
-    int                mesh_id = -1;
-    for (const ModelVolume *mv : mo->volumes) {
-        if (!mv->is_model_part())
-            continue;
-
-        ++mesh_id;
-
-        Transform3d trafo_matrix;
-        if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-            trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_matrix();
-            trafo_matrix.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mo->instances[selection.get_instance_idx()]->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
-        }
-        else {
-            trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix()* mv->get_matrix();
-        }
-
-        const bool is_left_handed = trafo_matrix.matrix().determinant() < 0.0;
-        if (is_left_handed)
-            glsafe(::glFrontFace(GL_CW));
-
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        const Transform3d& view_matrix = camera.get_view_matrix();
-        shader->set_uniform("view_model_matrix", view_matrix * trafo_matrix);
-        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-        shader->set_uniform("view_normal_matrix", view_normal_matrix);
-
-        shader->set_uniform("volume_world_matrix", trafo_matrix);
-        shader->set_uniform("volume_mirrored", is_left_handed);
-        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
-
-        if (is_left_handed)
-            glsafe(::glFrontFace(GL_CCW));
-    }
-}
-
 // BBS
 bool GLGizmoMmuSegmentation::on_number_key_down(int number)
 {
@@ -869,7 +817,7 @@ void GLGizmoMmuSegmentation::tool_changed(wchar_t old_tool, wchar_t new_tool)
 
 PainterGizmoType GLGizmoMmuSegmentation::get_painter_type() const
 {
-    return PainterGizmoType::MMU_SEGMENTATION;
+    return PainterGizmoType::MM_SEGMENTATION;
 }
 
 // BBS

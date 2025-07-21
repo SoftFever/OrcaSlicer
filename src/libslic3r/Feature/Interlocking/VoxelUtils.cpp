@@ -2,9 +2,9 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "VoxelUtils.hpp"
-#include "../Geometry.hpp"
-#include "../Fill/FillRectilinear.hpp"
-#include "../Surface.hpp"
+#include "libslic3r/Geometry.hpp"
+#include "libslic3r/Fill/FillRectilinear.hpp"
+#include "libslic3r/Surface.hpp"
 
 namespace Slic3r
 {
