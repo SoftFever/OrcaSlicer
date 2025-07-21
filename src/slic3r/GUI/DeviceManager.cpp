@@ -6834,7 +6834,7 @@ void MachineObject::update_filament_list()
             }
         }
 
-        for (auto it = m_filament_list.begin(); it != m_filament_list.end(); it++) { m_checked_filament.erase(it->first); }
+        for (auto it = m_filament_list.begin(); it != m_filament_list.end(); it++) { m_checked_filament.insert(it->first); }
 
         m_filament_list = filament_list;
     }
@@ -6902,7 +6902,7 @@ void MachineObject::check_ams_filament_valid()
         for (const auto &[slot_id, curr_tray] : ams->trayList) {
 
             if (curr_tray->setting_id.size() == 8 && curr_tray->setting_id[0] == 'P' && filament_list.find(curr_tray->setting_id) == filament_list.end()) {
-                if (checked_filament.find(curr_tray->setting_id) == checked_filament.end()) {
+                if (checked_filament.find(curr_tray->setting_id) != checked_filament.end()) {
                     need_checked_filament_id[nozzle_diameter_str].insert(curr_tray->setting_id);
                     wxColour color = *wxWHITE;
                     char     col_buf[10];
@@ -6919,7 +6919,7 @@ void MachineObject::check_ams_filament_valid()
                 }
             }
             if (curr_tray->setting_id.size() == 8 && curr_tray->setting_id[0] == 'P' && curr_tray->nozzle_temp_min != "" && curr_tray->nozzle_temp_max != "") {
-                if (checked_filament.find(curr_tray->setting_id) == checked_filament.end()) {
+                if (checked_filament.find(curr_tray->setting_id) != checked_filament.end()) {
                     need_checked_filament_id[nozzle_diameter_str].insert(curr_tray->setting_id);
                     try {
                         std::string preset_setting_id;
@@ -6962,7 +6962,7 @@ void MachineObject::check_ams_filament_valid()
         auto &checked_filament = data.checked_filament;
         auto &filament_list    = data.filament_list;
         if (vt_tray.setting_id.size() == 8 && vt_tray.setting_id[0] == 'P' && filament_list.find(vt_tray.setting_id) == filament_list.end()) {
-            if (checked_filament.find(vt_tray.setting_id) == checked_filament.end()) {
+            if (checked_filament.find(vt_tray.setting_id) != checked_filament.end()) {
                 need_checked_filament_id[nozzle_diameter_str].insert(vt_tray.setting_id);
                 wxColour color = *wxWHITE;
                 char     col_buf[10];
@@ -6977,7 +6977,7 @@ void MachineObject::check_ams_filament_valid()
             }
         }
         if (vt_tray.setting_id.size() == 8 && vt_tray.setting_id[0] == 'P' && vt_tray.nozzle_temp_min != "" && vt_tray.nozzle_temp_max != "") {
-            if (checked_filament.find(vt_tray.setting_id) == checked_filament.end()) {
+            if (checked_filament.find(vt_tray.setting_id) != checked_filament.end()) {
                 need_checked_filament_id[nozzle_diameter_str].insert(vt_tray.setting_id);
                 try {
                     std::string        preset_setting_id;
@@ -7008,7 +7008,7 @@ void MachineObject::check_ams_filament_valid()
         auto &diameter = diameter_pair.first;
         auto &data     = diameter_pair.second;
         for (auto &filament_id : need_checked_filament_id[diameter]) {
-            data.checked_filament.insert(filament_id);
+            data.checked_filament.erase(filament_id);
         }
     }
 }
