@@ -22,6 +22,7 @@
 #include "MsgDialog.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "SingleChoiceDialog.hpp"
+#include "StepMeshDialog.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
@@ -118,7 +119,7 @@ public:
         wxEllipsizeMode ellipsizeMode = wxELLIPSIZE_END
     ) override
     {   // ORCA draw custom text to improve consistency between platforms
-        dc.SetFont(Label::Body_13);
+        //dc.SetFont(win->GetFont()); Without SetFont it pulls font from window
         dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#262E30"))); // use same color for selected / non-selected
         dc.DrawText(text,wxPoint(rect.x, rect.y));
     }
@@ -557,7 +558,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         *non_manifold_edges = stats.open_edges;
 
     if (is_windows10() && !sidebar_info)
-        tooltip += "\n" + _L("Right click the icon to fix model object");
+        tooltip += "\n" + _L("Click the icon to repair model object");
 
     return { tooltip, get_warning_icon_name(stats) };
 }
@@ -1289,8 +1290,8 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                 ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
                 if (node && node->HasColorPainting()) {
                     GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
-                    if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
-                        gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+                    if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmSegmentation)
+                        gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmSegmentation);
                     else
                         gizmos_mgr.reset_all_states();
                 }
@@ -2031,15 +2032,49 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         dlg.Update(static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size())),
             _L("Loading file") + ": " + from_path(boost::filesystem::path(input_file).filename()));
         dlg.Fit();
-
+        
+        bool is_user_cancel = false;
         Model model;
         try {
-            model = Model::read_from_file(input_file, nullptr, nullptr, LoadStrategy::LoadModel);
+            if (boost::iends_with(input_file, ".stp") ||
+                boost::iends_with(input_file, ".step")) {
+                double linear  = string_to_double_decimal_point(wxGetApp().app_config->get("linear_defletion"));
+                if (linear <= 0) linear = 0.003;
+                double angle = string_to_double_decimal_point(wxGetApp().app_config->get("angle_defletion"));
+                if (angle <= 0) angle = 0.5;
+                bool split_compound = wxGetApp().app_config->get_bool("is_split_compound");
+                model = Model::read_from_step(
+                    input_file, LoadStrategy::LoadModel, nullptr, nullptr,
+                    [this, &is_user_cancel, &linear, &angle, &split_compound](Slic3r::Step& file, double& linear_value,
+                                                                                     double& angle_value, bool& is_split) -> int {
+                        if (wxGetApp().app_config->get_bool("enable_step_mesh_setting")) {
+                            StepMeshDialog mesh_dlg(nullptr, file, linear, angle);
+                            if (mesh_dlg.ShowModal() == wxID_OK) {
+                                linear_value = mesh_dlg.get_linear_defletion();
+                                angle_value  = mesh_dlg.get_angle_defletion();
+                                is_split     = mesh_dlg.get_split_compound_value();
+                                return 1;
+                            }
+                        } else {
+                            linear_value = linear;
+                            angle_value  = angle;
+                            is_split     = split_compound;
+                            return 1;
+                        }
+                        is_user_cancel = true;
+                        return -1;
+                    },
+                    linear, angle, split_compound);
+            } else {
+                model = Model::read_from_file(input_file, nullptr, nullptr, LoadStrategy::LoadModel);
+            }
         }
         catch (std::exception&) {
-            // auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
-            auto msg = _L("Error!") + " " + _L("Failed to get the model data in the current file.");
-            show_error(parent, msg);
+            if (!is_user_cancel) {
+                // auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
+                auto msg = _L("Error!") + " " + _L("Failed to get the model data in the current file.");
+                show_error(parent, msg);
+            }
             return;
         }
 
@@ -2112,17 +2147,17 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
     else if (type_name == "Sphere")
         // Centered around 0, half the sphere below the print bed, half above.
         // The sphere has the same volume as the box above.
-        mesh = TriangleMesh(its_make_sphere(0.5 * side, PI / 18));
+        mesh = TriangleMesh(its_make_sphere(0.5 * side, PI / 90));
     else if (type_name == "Slab")
         // Sitting on the print bed, left front front corner at (0, 0).
         mesh = TriangleMesh(its_make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5));
     else if (type_name == "Cone")
         mesh = TriangleMesh(its_make_cone(0.5 * side, side));
     else if (type_name == "Disc")
-        mesh.ReadSTLFile((Slic3r::resources_dir() + "/handy_models/helper_disk.stl").c_str(), true, nullptr);
+        mesh = TriangleMesh(its_make_cylinder(0.5 * side, 0.2f));
     else if (type_name == "Torus")
-        mesh.ReadSTLFile((Slic3r::resources_dir() + "/handy_models/torus.stl").c_str(), true, nullptr);
-    return TriangleMesh(mesh);
+        mesh = TriangleMesh(its_make_torus(0.5 * side, 0.125 * side,(PI / 60)));
+    return mesh;
 }
 
 void ObjectList::load_generic_subobject(const std::string& type_name, const ModelVolumeType type)
@@ -2366,18 +2401,26 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
         break;
 
     // BBS: remove CustomSeam
-    case InfoItemType::MmuSegmentation:
-        cnv->get_gizmos_manager().reset_all_states();
-        Plater::TakeSnapshot(plater, "Remove color painting");
-        for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
-            mv->mmu_segmentation_facets.reset();
-        break;
 
     case InfoItemType::CutConnectors:
         if (!del_from_cut_object(true)) {
             // there is no need to post EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS if nothing was changed
             return;
         }
+        break;
+
+    case InfoItemType::MmSegmentation:
+        cnv->get_gizmos_manager().reset_all_states();
+        Plater::TakeSnapshot(plater, "Remove color painting");
+        for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
+            mv->mmu_segmentation_facets.reset();
+        break;
+
+    case InfoItemType::FuzzySkin:
+        cnv->get_gizmos_manager().reset_all_states();
+        Plater::TakeSnapshot(plater, _u8L("Remove paint-on fuzzy skin"));
+        for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
+            mv->fuzzy_skin_facets.reset();
         break;
 
     // BBS: remove Sinking
@@ -3300,11 +3343,13 @@ void ObjectList::part_selection_changed()
                     case InfoItemType::CustomSupports:
                     // BBS: remove CustomSeam
                     //case InfoItemType::CustomSeam:
-                    case InfoItemType::MmuSegmentation:
+                    case InfoItemType::MmSegmentation:
+                    case InfoItemType::FuzzySkin:
                     {
                         GLGizmosManager::EType gizmo_type = info_type == InfoItemType::CustomSupports ? GLGizmosManager::EType::FdmSupports :
                                                             /*info_type == InfoItemType::CustomSeam ? GLGizmosManager::EType::Seam :*/
-                                                            GLGizmosManager::EType::MmuSegmentation;
+                                                            info_type == InfoItemType::FuzzySkin        ? GLGizmosManager::EType::FuzzySkin :
+                                                            GLGizmosManager::EType::MmSegmentation;
                         GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                         if (gizmos_mgr.get_current_type() != gizmo_type)
                             gizmos_mgr.open_gizmo(gizmo_type);
@@ -4874,11 +4919,11 @@ bool ObjectList::check_last_selection(wxString& msg_str)
 
         if (m_selection_mode == smInstance) {
             msg_str = wxString::Format(_(L("Selection conflicts")) + "\n\n" +
-                _(L("If first selected item is an object, the second one should also be object.")) + "\n");
+                _(L("If the first selected item is an object, the second should also be an object.")) + "\n");
         }
         else {
             msg_str = wxString::Format(_(L("Selection conflicts")) + "\n\n" +
-                _(L("If first selected item is a part, the second one should be part in the same object.")) + "\n");
+                _(L("If the first selected item is a part, the second should be a part in the same object.")) + "\n");
         }
 
         // Unselect last selected item, if selection is without SHIFT
@@ -5572,8 +5617,8 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
         ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
         if (node->HasColorPainting()) {
             GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
-            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
-                gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmSegmentation)
+                gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmSegmentation);
             else
                 gizmos_mgr.reset_all_states();
         }
@@ -5908,11 +5953,6 @@ ModelObject* ObjectList::object(const int obj_idx) const
         return nullptr;
 
     return (*m_objects)[obj_idx];
-}
-
-bool ObjectList::has_paint_on_segmentation()
-{
-    return m_objects_model->HasInfoItem(InfoItemType::MmuSegmentation);
 }
 
 void ObjectList::apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object, bool need_update_assemble_matrix)

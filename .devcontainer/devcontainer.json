@@ -8,7 +8,7 @@
 			},
 			"options": ["--platform=linux/amd64"]
 	},
-	"runArgs": ["--env-file", "/tmp/devcontainer.env", "--platform=linux/amd64"],
+	"runArgs": ["--platform=linux/amd64"],
     "features": {
         "ghcr.io/devcontainers/features/desktop-lite:1": {
 			"password": "orca"
@@ -17,9 +17,6 @@
 	"customizations": {
 		"vscode": {
 			"settings": {
-				"cmake.buildToolArgs": [
-					"-l${containerEnv:CORES}"
-				]
 			},
 			
 			// Add the IDs of extensions you want installed when the container is created.
@@ -39,10 +36,6 @@
     },
 	"otherPortsAttributes": {
 		"onAutoForward": "ignore"
-	},
-	
-	"initializeCommand": {
-		"Setup Temporary Env File": "echo \"CORES=`nproc --all`\" > /tmp/devcontainer.env"
 	},
 	"onCreateCommand": {
 		"Set postCreate executable flag": "chmod +x .devcontainer/postCreate.sh"

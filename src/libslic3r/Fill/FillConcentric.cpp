@@ -61,8 +61,8 @@ void FillConcentric::_fill_surface_single(
     size_t iPathFirst = polylines_out.size();
     Point last_pos(0, 0);
     
-    double min_nozzle_diameter;
-    bool dir;
+    double min_nozzle_diameter = 0.0;
+    bool dir = false;
     if (this->print_config != nullptr && params.density >= STAGGER_SEAM_THRESHOLD) {
         min_nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
         dir = rand() % 2;

@@ -22,7 +22,11 @@
 	"retraction_length": ["2.4"],
 	"retraction_speed": ["30"],
 	"deretraction_speed": ["30"],
+	"machine_max_acceleration_x": ["4500"],
+	"machine_max_acceleration_y": ["4500"],
+	"machine_max_acceleration_z": ["50"],
 	"machine_start_gcode": "START_PRINT BED=[first_layer_bed_temperature] EXTRUDER=[first_layer_temperature]",
 	"before_layer_change_gcode": "G92 E0",
+	"layer_change_gcode": "TIMELAPSE_TAKE_FRAME",
 	"machine_end_gcode": "END_PRINT"
 }
