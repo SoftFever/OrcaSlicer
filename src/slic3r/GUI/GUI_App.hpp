@@ -444,7 +444,6 @@ public:
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
     wxString        transition_tridid(int trid_id) const;
-    wxString        transition_tridid(int trid_id, bool is_n3s) const;
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg();
     void            ShowUserLogin(bool show = true);

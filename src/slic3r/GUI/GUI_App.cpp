@@ -3857,24 +3857,17 @@ wxString GUI_App::transition_tridid(int trid_id) const
         int id_index = trid_id / 4;
         return wxString::Format("%s", maping_dict[id_index]);
     }
-    else {
-        int id_index = ceil(trid_id / 4);
-        int id_suffix = trid_id % 4 + 1;
-        return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
-    }
-}
-
-wxString GUI_App::transition_tridid(int trid_id, bool is_n3s) const
-{
-    if (is_n3s)
-    {
+    else if (trid_id >= 0x80 && trid_id <= 0x87) { // n3s
         const char base = 'A' + (trid_id - 128);
         wxString prefix("HT-");
         prefix.append(base);
         return prefix;
     }
-
-    return transition_tridid(trid_id);
+    else {
+        int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
+        int id_suffix = trid_id % 4 + 1;
+        return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+    }
 }
 
 //BBS

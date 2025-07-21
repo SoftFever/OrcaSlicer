@@ -18,8 +18,10 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include "fast_float/fast_float.h"
 #include <wx/dir.h>
+#include "fast_float/fast_float.h"
+
+#include "Widgets/AMSItem.hpp"
 
 #define CALI_DEBUG
 #define MINUTE_30 1800000    //ms
@@ -1027,11 +1029,17 @@ int MachineObject::ams_filament_mapping(
     std::map<int, FilamentInfo> tray_filaments; // tray_index : tray_color
     bool  left_nozzle_has_ams = false, right_nozzle_has_ams = false;
     for (auto ams = amsList.begin(); ams != amsList.end(); ams++) {
-        std::string ams_id = ams->second->id;
+        std::string ams_id   = ams->second->id;
+        int         ams_type = ams->second->type;
         for (auto tray = ams->second->trayList.begin(); tray != ams->second->trayList.end(); tray++) {
             int ams_id = atoi(ams->first.c_str());
             int tray_id = atoi(tray->first.c_str());
-            int tray_index = ams_id * 4 + tray_id;
+            int tray_index = 0;
+            if (ams_type == GUI::AMSModel::GENERIC_AMS || ams_type == GUI::AMSModel::AMS_LITE || ams_type == GUI::AMSModel::N3F_AMS) {
+                tray_index = ams_id * 4 + tray_id;
+            } else if (ams_type == GUI::AMSModel::N3S_AMS) {
+                tray_index = ams_id + tray_id;
+            }
             // skip exclude id
             for (int i = 0; i < exclude_id.size(); i++) {
                 if (tray_index == exclude_id[i])

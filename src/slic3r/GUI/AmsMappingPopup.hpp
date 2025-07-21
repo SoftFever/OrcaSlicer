@@ -76,6 +76,7 @@ struct TrayData
 class MaterialItem: public wxPanel
 {
 protected:
+    int m_text_pos_x =  0;
     int m_text_pos_y = -1;
     bool m_dropdown_allow_painted = true;
 
