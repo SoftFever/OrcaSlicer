@@ -5025,6 +5025,7 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
     std::string 		 gcode;
     ExtrusionEntitiesPtr extrusions;
     const char*          extrusion_name = ironing ? "ironing" : "infill";
+    const bool disable_infill_pa =this->config().enable_pressure_advance.get_at(m_writer.extruder()->id()) && !this->config().adaptive_pressure_advance.get_at(m_writer.extruder()->id()) && m_config.disable_infill_pressure_advance;
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.infills.empty()) {
             extrusions.clear();
@@ -5035,7 +5036,6 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
             if (! extrusions.empty()) {
                 m_config.apply(print.get_print_region(&region - &by_region.front()).config());
                 chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
-                bool disable_infill_pa =this->config().enable_pressure_advance.get_at(m_writer.extruder()->id()) && !this->config().adaptive_pressure_advance.get_at(m_writer.extruder()->id()) && m_config.disable_infill_pressure_advance;
                 if(disable_infill_pa){
                     gcode += m_writer.set_pressure_advance(0);
                 }
