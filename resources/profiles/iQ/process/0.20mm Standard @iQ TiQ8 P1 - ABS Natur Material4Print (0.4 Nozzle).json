@@ -53,7 +53,7 @@
     "support_expansion": "1",
     "support_filament": "1",
     "support_interface_filament": "1",
-    "support_interface_pattern": "default",
+    "support_interface_pattern": "auto",
     "independent_support_layer_height":"1",
     "enable_prime_tower": "0",
     "brim_object_gap": "0.05",
