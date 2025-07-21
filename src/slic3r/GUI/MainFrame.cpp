@@ -12,7 +12,7 @@
 //#include <wx/glcanvas.h>
 #include <wx/filename.h>
 #include <wx/debug.h>
-#include <wx/utils.h> 
+#include <wx/utils.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
@@ -2906,7 +2906,7 @@ void MainFrame::init_menubar_as_editor()
 
     // SoftFever calibrations
 
-    // Flowrate
+    // Temperature
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Temperature"), _L("Temperature Calibration"),
         [this](wxCommandEvent&) {
             if (!m_temp_calib_dlg)
@@ -2914,6 +2914,8 @@ void MainFrame::init_menubar_as_editor()
             m_temp_calib_dlg->ShowModal();
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
+
+    // Flow rate (with submenu)
     auto flowrate_menu = new wxMenu();
     append_menu_item(
         flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
@@ -2930,6 +2932,8 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
+
+    // Pressure Advance
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
         [this](wxCommandEvent&) {
             if (!m_pa_calib_dlg)
@@ -2937,6 +2941,8 @@ void MainFrame::init_menubar_as_editor()
             m_pa_calib_dlg->ShowModal();
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
+
+    // Retraction test
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Retraction test"), _L("Retraction test"),
         [this](wxCommandEvent&) {
             if (!m_retraction_calib_dlg)
@@ -2944,39 +2950,39 @@ void MainFrame::init_menubar_as_editor()
             m_retraction_calib_dlg->ShowModal();
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-        
+
+    // Tolerance Test
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Orca Tolerance Test"), _L("Orca Tolerance Test"),
         [this](wxCommandEvent&) {
             m_plater->new_project();
-        m_plater->add_model(false, Slic3r::resources_dir() + "/calib/tolerance_test/OrcaToleranceTest.stl");
+            m_plater->add_model(false, Slic3r::resources_dir() + "/calib/tolerance_test/OrcaToleranceTest.stl");
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    // Advance calibrations
-    auto advance_menu = new wxMenu();
 
-    append_menu_item(
-        advance_menu, wxID_ANY, _L("Max flowrate"), _L("Max flowrate"),
+    // Max Volumetric Speed
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Max flowrate"), _L("Max flowrate"),
         [this](wxCommandEvent&) {
             if (!m_vol_test_dlg)
                 m_vol_test_dlg = new MaxVolumetricSpeed_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_vol_test_dlg->ShowModal();
-        },
-        "", nullptr,
+        }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
+    // Cornering (with submenu)
+    auto cornering_menu = new wxMenu();
     append_menu_item(
-        advance_menu, wxID_ANY, _L("VFA"), _L("VFA"),
+        cornering_menu, wxID_ANY, _L("Junction Deviation"), _L("Junction Deviation calibration"),
         [this](wxCommandEvent&) {
-            if (!m_vfa_test_dlg)
-                m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_vfa_test_dlg->ShowModal();
+            if (!m_junction_deviation_calib_dlg)
+                m_junction_deviation_calib_dlg = new Junction_Deviation_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_junction_deviation_calib_dlg->ShowModal();
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-        
-    // Input Shaping calibrations
+    m_topbar->GetCalibMenu()->AppendSubMenu(cornering_menu, _L("Cornering"));
+
+    // Input Shaping (with submenu)
     auto input_shaping_menu = new wxMenu();
-    
     append_menu_item(
         input_shaping_menu, wxID_ANY, _L("Input Shaping Frequency"), _L("Input Shaping Frequency"),
         [this](wxCommandEvent&) {
@@ -2986,7 +2992,6 @@ void MainFrame::init_menubar_as_editor()
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-        
     append_menu_item(
         input_shaping_menu, wxID_ANY, _L("Input Shaping Damping/zeta factor"), _L("Input Shaping Damping/zeta factor"),
         [this](wxCommandEvent&) {
@@ -2996,21 +3001,16 @@ void MainFrame::init_menubar_as_editor()
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    
     m_topbar->GetCalibMenu()->AppendSubMenu(input_shaping_menu, _L("Input Shaping"));
-    
-    // Add Junction Deviation option to More menu
-    append_menu_item(
-        advance_menu, wxID_ANY, _L("Junction Deviation"), _L("Junction Deviation calibration"),
+
+    // VFA
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("VFA"), _L("VFA"),
         [this](wxCommandEvent&) {
-            if (!m_junction_deviation_calib_dlg)
-                m_junction_deviation_calib_dlg = new Junction_Deviation_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_junction_deviation_calib_dlg->ShowModal();
-        },
-        "", nullptr,
+            if (!m_vfa_test_dlg)
+                m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_vfa_test_dlg->ShowModal();
+        }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-        
-    m_topbar->GetCalibMenu()->AppendSubMenu(advance_menu, _L("More..."));
 
     // help 
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
@@ -3036,7 +3036,7 @@ void MainFrame::init_menubar_as_editor()
     // SoftFever calibrations
     auto calib_menu = new wxMenu();
 
-    // PA
+    // Temperature
     append_menu_item(calib_menu, wxID_ANY, _L("Temperature"), _L("Temperature"),
         [this](wxCommandEvent&) {
             if (!m_temp_calib_dlg)
@@ -3045,7 +3045,7 @@ void MainFrame::init_menubar_as_editor()
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
         
-    // Flowrate
+    // Flowrate (with submenu)
     auto flowrate_menu = new wxMenu();
     append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(false, 1); }, "", nullptr,
@@ -3063,7 +3063,7 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
-    // PA
+    // Pressure Advance
     append_menu_item(calib_menu, wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
         [this](wxCommandEvent&) {
             if (!m_pa_calib_dlg)
@@ -3072,7 +3072,7 @@ void MainFrame::init_menubar_as_editor()
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
-    // Retraction
+    // Retraction test
     append_menu_item(calib_menu, wxID_ANY, _L("Retraction test"), _L("Retraction test"),
         [this](wxCommandEvent&) {
             if (!m_retraction_calib_dlg)
@@ -3089,38 +3089,30 @@ void MainFrame::init_menubar_as_editor()
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
-    // Advance calibrations
-    auto advance_menu = new wxMenu();
-    append_menu_item(
-        advance_menu, wxID_ANY, _L("Max flowrate"), _L("Max flowrate"),
+    // Max Volumetric Speed
+    append_menu_item(calib_menu, wxID_ANY, _L("Max flowrate"), _L("Max flowrate"),
         [this](wxCommandEvent&) { 
             if (!m_vol_test_dlg)
                 m_vol_test_dlg = new MaxVolumetricSpeed_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_vol_test_dlg->ShowModal(); 
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
+
+    // Cornering (with submenu)
+    auto cornering_menu = new wxMenu();
     append_menu_item(
-        advance_menu, wxID_ANY, _L("VFA"), _L("VFA"),
-        [this](wxCommandEvent&) { 
-            if (!m_vfa_test_dlg)
-                m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_vfa_test_dlg->ShowModal();
-        }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);    
-       
-    // Add Junction Deviation option to More menu
-    append_menu_item(
-        advance_menu, wxID_ANY, _L("Junction Deviation"), _L("Junction Deviation calibration"),
+        cornering_menu, wxID_ANY, _L("Junction Deviation"), _L("Junction Deviation calibration"),
         [this](wxCommandEvent&) {
             if (!m_junction_deviation_calib_dlg)
                 m_junction_deviation_calib_dlg = new Junction_Deviation_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_junction_deviation_calib_dlg->ShowModal();
-        }, "", nullptr,
+        },
+        "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-        
-    // Input Shaping calibrations
+    calib_menu->AppendSubMenu(cornering_menu, _L("Cornering"));
+
+    // Input Shaping (with submenu)
     auto input_shaping_menu = new wxMenu();
-    
     append_menu_item(
         input_shaping_menu, wxID_ANY, _L("Input Shaping Frequency"), _L("Input Shaping Frequency"),
         [this](wxCommandEvent&) {
@@ -3130,7 +3122,6 @@ void MainFrame::init_menubar_as_editor()
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-        
     append_menu_item(
         input_shaping_menu, wxID_ANY, _L("Input Shaping Damping/zeta factor"), _L("Input Shaping Damping/zeta factor"),
         [this](wxCommandEvent&) {
@@ -3140,11 +3131,16 @@ void MainFrame::init_menubar_as_editor()
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    
     calib_menu->AppendSubMenu(input_shaping_menu, _L("Input Shaping"));
-    
-    append_submenu(calib_menu, advance_menu, wxID_ANY, _L("More..."), _L("More calibrations"), "",
-        [this]() {return m_plater->is_view3D_shown();; });
+
+    // VFA
+    append_menu_item(calib_menu, wxID_ANY, _L("VFA"), _L("VFA"),
+        [this](wxCommandEvent&) { 
+            if (!m_vfa_test_dlg)
+                m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_vfa_test_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
     // help
     append_menu_item(calib_menu, wxID_ANY, _L("Tutorial"), _L("Calibration help"),
         [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/SoftFever/OrcaSlicer/wiki/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
