@@ -72,7 +72,7 @@
 	"internal_solid_infill_pattern": "monotonic",
 
 	"ironing_flow": "10%",
-	"ironing_pattern": "zig-zag",
+	"ironing_pattern": "rectilinear",
 	"ironing_spacing": "0.15",
 	"ironing_speed": "30",
 	"ironing_type": "no ironing",

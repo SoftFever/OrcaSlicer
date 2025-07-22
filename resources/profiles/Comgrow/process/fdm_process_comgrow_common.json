@@ -80,7 +80,7 @@
     "internal_solid_infill_speed": "200",
     "ironing_angle": "-1",
     "ironing_flow": "15%",
-    "ironing_pattern": "zig-zag",
+    "ironing_pattern": "rectilinear",
     "ironing_spacing": "0.25",
     "ironing_speed": "15",
     "ironing_type": "no ironing",
