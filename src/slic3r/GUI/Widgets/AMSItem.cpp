@@ -13,7 +13,6 @@
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
-#include <wx/event.h>
 
 #include <boost/log/trivial.hpp>
 
@@ -363,7 +362,8 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
     m_playing_timer = new wxTimer();
     m_playing_timer->SetOwner(this);
-
+    wxCommandEvent event(wxEVT_TIMER);
+    wxPostEvent(this, event);
     SetSize(AMS_REFRESH_SIZE);
     SetMinSize(AMS_REFRESH_SIZE);
     SetMaxSize(AMS_REFRESH_SIZE);
