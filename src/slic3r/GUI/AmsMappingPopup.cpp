@@ -1826,14 +1826,14 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
 
 void AmsHumidityTipPopup::set_humidity_level(int level)
 {
-    current_humidity_level = level;
-    if (current_humidity_level<= 0) {return;}
-
-    std::string mode_string = wxGetApp().dark_mode()?"_dark":"_light";
-
-    curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, 132));
-    curr_humidity_img->Refresh();
-    curr_humidity_img->Update();
+    if (0 < current_humidity_level && current_humidity_level < 6)
+    {
+        current_humidity_level = level;
+        std::string mode_string = wxGetApp().dark_mode()?"_dark":"_light";
+        curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, 132));
+        curr_humidity_img->Refresh();
+        curr_humidity_img->Update();
+    }
 }
 
 void AmsHumidityTipPopup::msw_rescale()
@@ -1842,8 +1842,11 @@ void AmsHumidityTipPopup::msw_rescale()
     close_img.msw_rescale();
 
     // current humidity level image
-    std::string mode_string = wxGetApp().dark_mode() ? "_dark" : "_light";
-    curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, 132));
+    if (0 < current_humidity_level && current_humidity_level < 6)
+    {
+        std::string mode_string = wxGetApp().dark_mode() ? "_dark" : "_light";
+        curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, 132));
+    }
 
     // the list
     humidity_level_list->msw_rescale();
