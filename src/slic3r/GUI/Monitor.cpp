@@ -446,9 +446,8 @@ bool MonitorPanel::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(REFRESH_INTERVAL);
-
-       wxCommandEvent event(wxEVT_TIMER);
-       wxPostEvent(this, event);
+        wxCommandEvent event(wxEVT_TIMER);
+        wxPostEvent(this, event);
 
         if (dev) {
             //set a default machine when obj is null
