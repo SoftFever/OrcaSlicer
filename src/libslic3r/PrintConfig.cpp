@@ -6835,7 +6835,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "counterbore_hole_bridging";
     } else if (opt_key == "draft_shield" && value == "limited") {
         value = "disabled";
-    } else if (opt_key == "sparse_infill_pattern" && value == "zig-zag") {
+    } else if ((opt_key == "sparse_infill_pattern"         ||
+                opt_key == "top_surface_pattern"           ||
+                opt_key == "bottom_surface_pattern"        ||
+                opt_key == "internal_solid_infill_pattern" ||
+                opt_key == "ironing_pattern"               ||
+                opt_key == "support_ironing_pattern") && value == "zig-zag") {
         value = "rectilinear";
     }
 
