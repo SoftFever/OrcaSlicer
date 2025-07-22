@@ -303,17 +303,6 @@ jobs:
           name: OrcaSlicer_Linux_ubuntu_${{ env.ubuntu-ver }}_${{ env.ver }}_${{ inputs.os }}
           path: './build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage'
 
-      - name: Deploy orca_custom_preset_tests
-        if: ${{ (github.event_name == 'workflow_dispatch' || github.event_name == 'push') && inputs.os == 'ubuntu-22.04' }}
-        uses: WebFreak001/deploy-nightly@v3.2.0
-        with:
-          upload_url: https://uploads.github.com/repos/NanashiTheNameless/OrcaSlicer/releases/205149129/assets{?name,label}
-          release_id: 205149129
-          asset_path: '${{ github.workspace }}/resources/profiles/orca_custom_preset_tests.zip'
-          asset_name: orca_custom_preset_tests.zip
-          asset_content_type: application/octet-stream
-          max_releases: 1
-
       - name: Deploy Ubuntu release
         if: ${{ (github.event_name == 'workflow_dispatch' || github.event_name == 'push') && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04') }}
         env:
@@ -335,3 +324,14 @@ jobs:
           tag_exists_error: false
           force_push_tag: true
           message: "Nightly-Rolling"
+
+      - name: Deploy orca_custom_preset_tests
+        if: ${{ (github.event_name == 'workflow_dispatch' || github.event_name == 'push') && inputs.os == 'ubuntu-22.04' }}
+        uses: WebFreak001/deploy-nightly@v3.2.0
+        with:
+          upload_url: https://uploads.github.com/repos/NanashiTheNameless/OrcaSlicer/releases/205149129/assets{?name,label}
+          release_id: 205149129
+          asset_path: '${{ github.workspace }}/resources/profiles/orca_custom_preset_tests.zip'
+          asset_name: orca_custom_preset_tests.zip
+          asset_content_type: application/octet-stream
+          max_releases: 1
