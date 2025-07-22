@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "EncodedFilament.hpp"
+#include "GUI_App.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -22,6 +23,51 @@ static BitmapDC init_bitmap_dc(const wxSize& size) {
     return BitmapDC(size);
 }
 
+// Check if a color is transparent (alpha == 0)
+static bool is_transparent_color(const wxColour& color) {
+    return color.Alpha() == 0;
+}
+
+// Create transparent bitmap
+static wxBitmap create_transparent_bitmap(const wxSize& size) {
+    BitmapDC bdc = init_bitmap_dc(size);
+    if (!bdc.dc.IsOk()) return wxNullBitmap;
+
+    // Create checkerboard pattern
+    wxColour light_gray(217, 217, 217);  // #D9D9D9
+    wxColour white(255, 255, 255);
+
+    bool is_dark_mode = wxGetApp().dark_mode();
+
+    // Calculate parameters based on mode
+    int start_pos = is_dark_mode ? 0 : 1;
+    int end_width = is_dark_mode ? size.GetWidth() : size.GetWidth() - 1;
+    int end_height = is_dark_mode ? size.GetHeight() : size.GetHeight() - 1;
+    int square_size = std::max(6, std::min(end_width - start_pos, end_height - start_pos) / 8);
+
+    // Draw checkerboard
+    for (int x = start_pos; x < end_width; x += square_size) {
+        for (int y = start_pos; y < end_height; y += square_size) {
+            bool is_light = ((x / square_size) + (y / square_size)) % 2 == 0;
+            bdc.dc.SetBrush(wxBrush(is_light ? white : light_gray));
+
+            int width = std::min(square_size, size.GetWidth() - x);
+            int height = std::min(square_size, size.GetHeight() - y);
+            bdc.dc.DrawRectangle(x, y, width, height);
+        }
+    }
+
+    // Add border only in light mode
+    if (!is_dark_mode) {
+        bdc.dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
+        bdc.dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
+    }
+
+    bdc.dc.SelectObject(wxNullBitmap);
+    return bdc.bitmap;
+}
+
 // Sort colors by HSV values (primarily by hue, then saturation, then value)
 static void sort_colors_by_hsv(std::vector<wxColour>& colors) {
     if (colors.size() < 2) return;
@@ -37,15 +83,27 @@ static void sort_colors_by_hsv(std::vector<wxColour>& colors) {
 
 static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSize& size)
 {
+    // Check if color is transparent
+    if (is_transparent_color(color)) {
+        return create_transparent_bitmap(size);
+    }
+
     BitmapDC bdc = init_bitmap_dc(size);
     if (!bdc.dc.IsOk()) return wxNullBitmap;
 
     bdc.dc.SetBrush(wxBrush(color));
     bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
 
-    // Add gray border for light colors (similar to wxExtensions.cpp logic)
-    if (color.Red() > 224 && color.Blue() > 224 && color.Green() > 224) {
-        bdc.dc.SetPen(*wxGREY_PEN);
+    // Add gray border for light colors (similar to wxExtensions.cpp logic) - only in light mode
+    if (!wxGetApp().dark_mode() && color.Red() > 224 && color.Blue() > 224 && color.Green() > 224) {
+        bdc.dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
+        bdc.dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
+    }
+
+    // Add white border for dark colors - only in dark mode
+    if(wxGetApp().dark_mode() && color.Red() < 45 && color.Blue() < 45 && color.Green() < 45) {
+        bdc.dc.SetPen(wxPen(wxColour(207, 207, 207), 1, wxPENSTYLE_SOLID));
         bdc.dc.SetBrush(*wxTRANSPARENT_BRUSH);
         bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
     }

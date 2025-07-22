@@ -87,7 +87,7 @@ void FilamentColorCodeQuery::LoadFromLocal()
                         }
                     }
                 }
-                
+
                 if (fila_color.m_colors.empty()) {
                     BOOST_LOG_TRIVIAL(warning) << "FilamentColorCodeQuery::LoadFromLocal: No colors found for fila_color_code: " << fila_color_code;
                     continue; // Skip if no colors are defined
@@ -173,7 +173,7 @@ void FilamentColorCode::Debug(const char* prefix)
     //for (const auto& name_pair : m_fila_color_names) { BOOST_LOG_TRIVIAL(debug) << prefix << "  Color Name [" << name_pair.first << "]: " << name_pair.second;}
 }
 
-FilamentColorCodes::FilamentColorCodes(const wxString& fila_id, const wxString& fila_type) 
+FilamentColorCodes::FilamentColorCodes(const wxString& fila_id, const wxString& fila_type)
     : m_fila_id(fila_id), m_fila_type(fila_type)
 {
     m_fila_colors_map = new FilamentColor2CodeMap;
