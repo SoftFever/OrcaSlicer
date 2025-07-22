@@ -94,9 +94,9 @@ AddMachinePanel::~AddMachinePanel() {
     m_button_add_machine->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AddMachinePanel::on_add_machine), NULL, this);
 }
 
- MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style),
-     m_select_machine(SelectMachinePopup(this))
+    m_select_machine(SelectMachinePopup(this))
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -120,7 +120,7 @@ AddMachinePanel::~AddMachinePanel() {
 
     m_select_machine.Bind(EVT_FINISHED_UPDATE_MACHINE_LIST, [this](wxCommandEvent& e) {
         m_side_tools->start_interval();
-    });
+        });
 
     Bind(EVT_ALREADY_READ_HMS, [this](wxCommandEvent& e) {
         auto key = e.GetString().ToStdString();
@@ -131,7 +131,7 @@ AddMachinePanel::~AddMachinePanel() {
 
         update_hms_tag();
         e.Skip();
-    });
+        });
 }
 
 MonitorPanel::~MonitorPanel()
@@ -143,7 +143,7 @@ MonitorPanel::~MonitorPanel()
     delete m_refresh_timer;
 }
 
- void MonitorPanel::init_bitmap()
+void MonitorPanel::init_bitmap()
 {
     m_signal_strong_img = create_scaled_bitmap("monitor_signal_strong", nullptr, 24);
     m_signal_middle_img = create_scaled_bitmap("monitor_signal_middle", nullptr, 24);
@@ -153,7 +153,7 @@ MonitorPanel::~MonitorPanel()
     m_arrow_img = create_scaled_bitmap("monitor_arrow",nullptr, 14);
 }
 
- void MonitorPanel::init_timer()
+void MonitorPanel::init_timer()
 {
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
@@ -167,7 +167,7 @@ MonitorPanel::~MonitorPanel()
         GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
 }
 
- void MonitorPanel::init_tabpanel()
+void MonitorPanel::init_tabpanel()
 {
     m_side_tools = new SideTools(this, wxID_ANY);
     wxBoxSizer* sizer_side_tools = new wxBoxSizer(wxVERTICAL);
@@ -182,7 +182,8 @@ MonitorPanel::~MonitorPanel()
             m_media_file_panel->SwitchStorage(title == _L("Storage"));
         }
         page->SetFocus();
-    }, m_tabpanel->GetId());
+        update_all();
+        }, m_tabpanel->GetId());
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
     m_status_info_panel        = new StatusPanel(m_tabpanel);
@@ -263,15 +264,15 @@ void MonitorPanel::select_machine(std::string machine_sn)
 }
 
 
- void MonitorPanel::on_timer(wxTimerEvent& event)
+void MonitorPanel::on_timer(wxTimerEvent& event)
 {
-     if (update_flag) {
-         update_all();
-         //Layout();
-     }
+    if (update_flag) {
+        update_all();
+        //Layout();
+    }
 }
 
- void MonitorPanel::on_select_printer(wxCommandEvent& event)
+void MonitorPanel::on_select_printer(wxCommandEvent& event)
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -330,6 +331,9 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 
 void MonitorPanel::update_all()
 {
+    if (!m_initialized)
+        return;
+
     NetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
@@ -344,9 +348,9 @@ void MonitorPanel::update_all()
     }
 
     if (obj->connection_type() != last_conn_type) { last_conn_type = obj->connection_type(); }
-  
+
     m_side_tools->update_status(obj);
-  
+
     if (obj->is_connecting()) {
         show_status(MONITOR_CONNECTING);
         return;
@@ -366,6 +370,8 @@ void MonitorPanel::update_all()
 
     auto current_page = m_tabpanel->GetCurrentPage();
     if (current_page == m_status_info_panel) {
+        m_status_info_panel->obj = obj;
+        m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
         m_status_info_panel->update(obj);
     } else if (current_page == m_upgrade_panel) {
         m_upgrade_panel->update(obj);
@@ -373,15 +379,9 @@ void MonitorPanel::update_all()
         m_media_file_panel->UpdateByObj(obj);
     }
 
-    if (m_hms_panel->IsShown() ||  (obj->hms_list.size() != m_hms_panel->temp_hms_list.size())) {
+    if (current_page == m_hms_panel || (obj->hms_list.size() != m_hms_panel->temp_hms_list.size())) {
         m_hms_panel->update(obj);
     }
-
-#if !BBL_RELEASE_TO_PUBLIC
-    if (m_upgrade_panel->IsShown()) {
-        m_upgrade_panel->update(obj);
-    }
-#endif
 
     update_hms_tag();
 }
@@ -460,7 +460,7 @@ void MonitorPanel::show_status(int status)
 
     BOOST_LOG_TRIVIAL(info) << "monitor: show_status = " << status;
 
-//Freeze();
+    //Freeze();
     // update panels
     if (m_side_tools) { m_side_tools->show_status(status); };
     m_status_info_panel->show_status(status);
@@ -485,7 +485,7 @@ void MonitorPanel::show_status(int status)
         m_tabpanel->Layout();
     }
     Layout();
-//Thaw();
+    //Thaw();
 }
 
 std::string MonitorPanel::get_string_from_tab(PrinterTab tab)
@@ -519,7 +519,7 @@ void MonitorPanel::jump_to_HMS()
 void MonitorPanel::jump_to_LiveView()
 {
     if (!this->IsShown()) { return; }
-        
+
     auto page = m_tabpanel->GetCurrentPage();
     if (page && page != m_hms_panel)
     {
