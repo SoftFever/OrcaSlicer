@@ -285,7 +285,7 @@ jobs:
           chmod +x ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
 
       - name: Build orca_custom_preset_tests
-        if: ${{ inputs.os == 'ubuntu-22.04' }}
+        if: ${{ (github.event_name == 'workflow_dispatch' || github.event_name == 'push') && inputs.os == 'ubuntu-24.04' }}
         working-directory: ${{ github.workspace }}/build/src
         shell: bash
         run: |
@@ -326,7 +326,7 @@ jobs:
           message: "Nightly-Rolling"
 
       - name: Deploy orca_custom_preset_tests
-        if: ${{ (github.event_name == 'workflow_dispatch' || github.event_name == 'push') && inputs.os == 'ubuntu-22.04' }}
+        if: ${{ (github.event_name == 'workflow_dispatch' || github.event_name == 'push') && inputs.os == 'ubuntu-24.04' }}
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/NanashiTheNameless/OrcaSlicer/releases/205149129/assets{?name,label}
