@@ -4,10 +4,43 @@
 #include "Widgets/Button.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
+#include "ReleaseNote.hpp"
 
 namespace Slic3r {
 namespace GUI
 {
+
+static std::unordered_set<std::string> message_containing_retry{
+    "0701-8004",
+    "0701-8005",
+    "0701-8006",
+    "0701-8006",
+    "0701-8007",
+    "0700-8012",
+    "0701-8012",
+    "0702-8012",
+    "0703-8012",
+    "07FF-8003",
+    "07FF-8004",
+    "07FF-8005",
+    "07FF-8006",
+    "07FF-8007",
+    "07FF-8010",
+    "07FF-8011",
+    "07FF-8012",
+    "07FF-8013",
+    "12FF-8007",
+    "1200-8006"
+};
+
+static std::unordered_set<std::string> message_containing_done{
+    "07FF-8007",
+    "12FF-8007"
+};
+
+static std::unordered_set<std::string> message_containing_resume{
+    "0300-8013"
+};
 
 DeviceErrorDialog::DeviceErrorDialog(MachineObject* obj, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
     :DPIDialog(parent, id, title, pos, size, style), m_obj(obj)
@@ -159,6 +192,11 @@ void DeviceErrorDialog::init_button_list()
     init_button(TURN_OFF_FIRE_ALARM, _L("Got it, Turn off the Fire Alarm."));
     init_button(RETRY_PROBLEM_SOLVED, _L("Retry (problem solved)"));
     init_button(STOP_DRYING, _L("Stop Drying"));
+    init_button(DBL_CHECK_CANCEL, _L("Cancle"));
+    init_button(DBL_CHECK_DONE, _L("Done"));
+    init_button(DBL_CHECK_RETRY, _L("Retry"));
+    init_button(DBL_CHECK_RESUME, _L("Resume"));
+    init_button(DBL_CHECK_OK, _L("Confirm"));
 }
 
 void DeviceErrorDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -169,10 +207,10 @@ void DeviceErrorDialog::on_dpi_changed(const wxRect& suggested_rect)
 }
 
 static const std::unordered_set<string> s_jump_liveview_error_codes = { "0300-8003", "0300-8002", "0300-800A"};
-void DeviceErrorDialog::show_error_code(int error_code)
+wxString DeviceErrorDialog::show_error_code(int error_code)
 {
-    if (m_error_code == error_code) { return;}
-    if (wxGetApp().get_hms_query()->is_internal_error(m_obj, error_code)) { return;}
+    if (m_error_code == error_code) { return wxEmptyString;}
+    if (wxGetApp().get_hms_query()->is_internal_error(m_obj, error_code)) { return wxEmptyString;}
 
     /* error code str*/
     std::string error_str = m_obj->get_error_code_str(error_code);
@@ -181,22 +219,56 @@ void DeviceErrorDialog::show_error_code(int error_code)
     wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(m_obj, error_code);
     if (error_msg.IsEmpty()) { error_msg = _L("Unknown error.");}
 
-    /* action buttons*/
-    std::vector<int> used_button;
-    wxString error_image_url = wxGetApp().get_hms_query()->query_print_image_action(m_obj, error_code, used_button);
-    if (s_jump_liveview_error_codes.count(error_str)) { used_button.emplace_back(DeviceErrorDialog::JUMP_TO_LIVEVIEW);}// special case
+    /* error_str is old error code*/
+    if (message_containing_retry.count(error_str) || message_containing_done.count(error_str) || message_containing_resume.count(error_str)) {
+        /* convert old error code to pseudo buttons*/
+        std::vector<int> pseudo_button = convert_to_pseudo_buttons(error_str);
 
-    /* do update*/
-    update_contents(error_msg, error_str, error_image_url, used_button);
+        /* do update*/
+        update_contents(_L("Warning"), error_msg, error_str, wxEmptyString, pseudo_button);
+    } else {
+        /* action buttons*/
+        std::vector<int> used_button;
+        wxString         error_image_url = wxGetApp().get_hms_query()->query_print_image_action(m_obj, error_code, used_button);
+        if (s_jump_liveview_error_codes.count(error_str)) { used_button.emplace_back(DeviceErrorDialog::JUMP_TO_LIVEVIEW); } // special case
+
+        /* do update*/
+        update_contents(_L("Error"), error_msg, error_str, error_image_url, used_button);
+    }
 
     wxGetApp().UpdateDlgDarkUI(this);
     Show();
     Raise();
 
     this->RequestUserAttention(wxUSER_ATTENTION_ERROR);
+
+    return error_msg;
 }
 
-void DeviceErrorDialog::update_contents(const wxString& text, const wxString& error_code, const wxString& image_url, const std::vector<int>& btns)
+std::vector<int> DeviceErrorDialog::convert_to_pseudo_buttons(std::string error_str)
+{
+    std::vector<int> pseudo_button;
+    if (message_containing_done.count(error_str) && message_containing_retry.count(error_str)) {
+        pseudo_button.emplace_back(DBL_CHECK_RETRY);
+        pseudo_button.emplace_back(DBL_CHECK_DONE);
+        pseudo_button.emplace_back(DBL_CHECK_OK);
+    } else if (message_containing_done.count(error_str)) {
+        pseudo_button.emplace_back(DBL_CHECK_DONE);
+        pseudo_button.emplace_back(DBL_CHECK_OK);
+    } else if (message_containing_retry.count(error_str)) {
+        pseudo_button.emplace_back(DBL_CHECK_RETRY);
+        pseudo_button.emplace_back(DBL_CHECK_OK);
+    } else if (message_containing_resume.count(error_str)) {
+        pseudo_button.emplace_back(DBL_CHECK_RESUME);
+        pseudo_button.emplace_back(DBL_CHECK_OK);
+    } else {
+        pseudo_button.emplace_back(DBL_CHECK_OK);
+    }
+
+    return pseudo_button;
+}
+
+void DeviceErrorDialog::update_contents(const wxString& title, const wxString& text, const wxString& error_code, const wxString& image_url, const std::vector<int>& btns)
 {
     if (error_code.empty()) { return; }
 
@@ -273,6 +345,9 @@ void DeviceErrorDialog::update_contents(const wxString& text, const wxString& er
     m_error_msg_label->SetMaxSize(wxSize(FromDIP(300), -1));
     m_error_msg_label->SetMinSize(wxSize(FromDIP(300), -1));
     m_error_msg_label->SetLabelText(text);
+
+    /* dialog title*/
+    SetTitle(title);
 
     /* update layout*/
     {
@@ -381,6 +456,36 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
         break;
     }
     case DeviceErrorDialog::ERROR_BUTTON_COUNT: break;
+
+    case DeviceErrorDialog::DBL_CHECK_CANCEL: {
+        // post EVT_SECONDARY_CHECK_CANCEL
+        // no event
+        break;
+    }
+    case DeviceErrorDialog::DBL_CHECK_DONE: {
+        // post EVT_SECONDARY_CHECK_DONE
+        m_obj->command_ams_control("done");
+        break;
+    }
+    case DeviceErrorDialog::DBL_CHECK_RETRY: {
+        // post EVT_SECONDARY_CHECK_RETRY
+        wxCommandEvent event(EVT_SECONDARY_CHECK_RETRY);
+        wxPostEvent(GetParent(), event);
+        break;
+    }
+    case DeviceErrorDialog::DBL_CHECK_RESUME: {
+        // post EVT_SECONDARY_CHECK_RESUME
+        wxCommandEvent event(EVT_SECONDARY_CHECK_RESUME);
+        wxPostEvent(GetParent(), event);
+        break;
+    }
+    case DeviceErrorDialog::DBL_CHECK_OK: {
+        // post EVT_SECONDARY_CHECK_CONFIRM
+        m_obj->command_clean_print_error(m_obj->subtask_id_, m_error_code);
+        m_obj->command_clean_print_error_uiop(m_error_code);
+        break;
+    }
+
     default: break;
     }
 

@@ -44,7 +44,14 @@ public:
         STOP_DRYING = 35,
         REMOVE_CLOSE_BTN = 39, // special case, do not show close button
 
-        ERROR_BUTTON_COUNT
+        ERROR_BUTTON_COUNT,
+
+        // old error code to pseudo action
+        DBL_CHECK_CANCEL = 10000,
+        DBL_CHECK_DONE = 10001,
+        DBL_CHECK_RETRY = 10002,
+        DBL_CHECK_RESUME = 10003,
+        DBL_CHECK_OK = 10004,
     };
 
 public:
@@ -58,13 +65,15 @@ public:
     ~DeviceErrorDialog();
 
 public:
-    void show_error_code(int error_code);
+    wxString show_error_code(int error_code);
 
 protected:
     void init_button_list();
     void init_button(ActionButton style, wxString buton_text);
 
-    void update_contents(const wxString& text, const wxString& error_code,const wxString& image_url, const std::vector<int>& btns);
+    std::vector<int> convert_to_pseudo_buttons(std::string error_str);
+
+    void update_contents(const wxString& title, const wxString& text, const wxString& error_code,const wxString& image_url, const std::vector<int>& btns);
 
     void on_button_click(ActionButton btn_id);
     void on_webrequest_state(wxWebRequestEvent& evt);
