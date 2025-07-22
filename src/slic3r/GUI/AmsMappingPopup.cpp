@@ -1826,10 +1826,10 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
 
 void AmsHumidityTipPopup::set_humidity_level(int level)
 {
-    if (0 < current_humidity_level && current_humidity_level < 6)
+    if (0 < level && level < 6)
     {
         current_humidity_level = level;
-        std::string mode_string = wxGetApp().dark_mode()?"_dark":"_light";
+        std::string mode_string = wxGetApp().dark_mode() ? "_dark" : "_light";
         curr_humidity_img->SetBitmap(create_scaled_bitmap("hum_level" + std::to_string(current_humidity_level) + mode_string, this, 132));
         curr_humidity_img->Refresh();
         curr_humidity_img->Update();
