@@ -12,6 +12,7 @@
 #include <wx/scrolwin.h>
 #include <wx/bitmap.h>
 #include <wx/region.h>
+#include <wx/timer.h>
 #include <vector>
 #include <string>
 
@@ -39,6 +40,14 @@ protected:
     void OnMouseMove(wxMouseEvent& event);
     void OnMouseLeftUp(wxMouseEvent& event);
     void OnButtonPaint(wxPaintEvent& event);
+    void OnTimerCheck(wxTimerEvent& event);
+    void OnFlashTimer(wxTimerEvent& event);
+
+    // Platform-independent window detection
+    bool IsClickOnTopMostWindow(const wxPoint& mouse_pos);
+    void StartClickDetection();
+    void StopClickDetection();
+    void CleanupTimers();
 
 private:
     // UI creation methods
@@ -67,6 +76,9 @@ private:
     bool LoadFilamentData(const wxString& fila_id);
     wxColourData GetSingleColorData();
 
+    // Flash effect
+    void StartFlashing();
+
     // UI elements
     wxStaticBitmap* m_color_demo{nullptr};
     wxStaticText* m_label_preview_color{nullptr};
@@ -90,6 +102,14 @@ private:
 
     // Mouse drag members
     wxPoint m_drag_delta;
+
+    // Click detection timers
+    wxTimer* m_click_timer{nullptr};
+    bool m_last_mouse_down{false};
+
+    // Flash effect timer
+    wxTimer* m_flash_timer{nullptr};
+    int m_flash_step{0};
 };
 
 }} // namespace Slic3r::GUI

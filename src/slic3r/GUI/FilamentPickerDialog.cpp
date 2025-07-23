@@ -13,6 +13,10 @@
 #include <wx/stattext.h>
 #include <wx/button.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #define COLOR_DEMO_SIZE wxSize(FromDIP(50), FromDIP(50))
 #define COLOR_BTN_BITMAP_SIZE wxSize(FromDIP(24), FromDIP(24))
 #define COLOR_BTN_SIZE wxSize(FromDIP(30), FromDIP(30))
@@ -35,6 +39,21 @@ void FilamentPickerDialog::on_dpi_changed(const wxRect &suggested_rect)
     SetWindowShape();
     Refresh();
     Layout();
+}
+
+// Flash effect implementation
+void FilamentPickerDialog::StartFlashing()
+{
+    // Stop any existing flash timer
+    if (m_flash_timer) {
+        m_flash_timer->Stop();
+        delete m_flash_timer;
+    }
+
+    m_flash_timer = new wxTimer(this, wxID_ANY + 1);
+    Bind(wxEVT_TIMER, &FilamentPickerDialog::OnFlashTimer, this, m_flash_timer->GetId());
+    m_flash_step = 0;
+    m_flash_timer->Start(50);
 }
 
 FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fila_id, const FilamentColor& fila_color, const std::string& fila_type)
@@ -118,10 +137,16 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
     // Set window transparency
     SetTransparent(255);
     BindEvents();
+
+    // Start click detection timer for outside click detection
+    StartClickDetection();
 }
 
 FilamentPickerDialog::~FilamentPickerDialog()
 {
+    // Clean up all timers
+    CleanupTimers();
+
     delete m_color_query;
     m_color_query = nullptr;
 
@@ -584,19 +609,12 @@ wxColourData FilamentPickerDialog::GetSingleColorData()
 
 void FilamentPickerDialog::BindEvents()
 {
-    // Bind mouse events
+    // Bind mouse events for window dragging
     Bind(wxEVT_LEFT_DOWN, &FilamentPickerDialog::OnMouseLeftDown, this);
     Bind(wxEVT_MOTION, &FilamentPickerDialog::OnMouseMove, this);
     Bind(wxEVT_LEFT_UP, &FilamentPickerDialog::OnMouseLeftUp, this);
 
-    // Add safety event handlers to ensure mouse capture is released
-    Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& event) {
-        if (HasCapture()) {
-            ReleaseMouse();
-        }
-        event.Skip();
-    });
-
+    // Essential window events
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
         if (HasCapture()) {
             ReleaseMouse();
@@ -726,6 +744,133 @@ void FilamentPickerDialog::OnButtonPaint(wxPaintEvent& event)
     dc.SetPen(wxPen(wxColour("#00AE42"), 2));  // Green pen, 2px thick
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.DrawRectangle(1, 1, COLOR_BTN_SIZE.GetWidth() - 1, COLOR_BTN_SIZE.GetHeight() - 1);
+}
+
+bool FilamentPickerDialog::IsClickOnTopMostWindow(const wxPoint& mouse_pos)
+{
+    wxWindow* main_window = wxGetApp().mainframe;
+    if (!main_window) {
+        return false;
+    }
+
+    wxRect main_rect = main_window->GetScreenRect();
+    bool in_main_app = main_rect.Contains(mouse_pos);
+
+    if (!in_main_app) {
+        return false;
+    }
+
+#ifdef _WIN32
+    // Windows: Use WindowFromPoint to check actual topmost window
+    POINT pt = {mouse_pos.x, mouse_pos.y};
+    HWND hwnd_at_point = WindowFromPoint(pt);
+    HWND main_hwnd = (HWND)main_window->GetHandle();
+
+    // Check if clicked window belongs to our main window hierarchy
+    HWND parent_hwnd = hwnd_at_point;
+    while (parent_hwnd != NULL) {
+        if (parent_hwnd == main_hwnd) {
+            return true;
+        }
+        parent_hwnd = ::GetParent(parent_hwnd);
+    }
+    return false;
+
+#elif defined(__WXOSX__)
+    // macOS: Use focus and active window check
+    return (wxGetActiveWindow() == main_window) || main_window->HasFocus();
+
+#else
+    // Linux: Use focus check (similar to macOS)
+    return (wxGetActiveWindow() == main_window) || main_window->HasFocus();
+#endif
+}
+
+void FilamentPickerDialog::StartClickDetection()
+{
+    if (m_click_timer) {
+        StopClickDetection();
+    }
+
+    m_click_timer = new wxTimer(this, wxID_ANY);
+    Bind(wxEVT_TIMER, &FilamentPickerDialog::OnTimerCheck, this, m_click_timer->GetId());
+    m_click_timer->Start(50);
+}
+
+void FilamentPickerDialog::StopClickDetection()
+{
+    if (m_click_timer) {
+        m_click_timer->Stop();
+        delete m_click_timer;
+        m_click_timer = nullptr;
+    }
+}
+
+void FilamentPickerDialog::CleanupTimers()
+{
+    StopClickDetection();
+
+    if (m_flash_timer) {
+        m_flash_timer->Stop();
+        delete m_flash_timer;
+        m_flash_timer = nullptr;
+    }
+}
+
+// Only perform complex detection when the mouse state actually changes
+void FilamentPickerDialog::OnTimerCheck(wxTimerEvent& event)
+{
+    static wxPoint last_mouse_pos(-1, -1);
+    wxPoint current_pos = wxGetMousePosition();
+
+    // If the mouse position and button state haven't changed, skip the detection
+    if (current_pos == last_mouse_pos &&
+        wxGetMouseState().LeftIsDown() == m_last_mouse_down) {
+        return;
+    }
+
+    last_mouse_pos = current_pos;
+
+    wxPoint mouse_pos = wxGetMousePosition();
+    wxRect window_rect = GetScreenRect();
+
+    // Check if mouse button state changed
+    bool mouse_down = wxGetMouseState().LeftIsDown();
+
+    if (mouse_down != m_last_mouse_down) {
+        if (mouse_down) {
+            bool in_dialog = window_rect.Contains(mouse_pos);
+            bool is_valid_click = IsClickOnTopMostWindow(mouse_pos);
+
+            if (is_valid_click && !in_dialog) {
+                StartFlashing();
+            }
+        }
+
+        m_last_mouse_down = mouse_down;
+    }
+}
+
+void FilamentPickerDialog::OnFlashTimer(wxTimerEvent& event)
+{
+    // 5 flashes = 10 steps (semi-transparent -> opaque for each flash)
+    if (m_flash_step < 10) {
+        if (m_flash_step % 2 == 0) {
+            // Even steps: semi-transparent
+            SetTransparent(120);
+        } else {
+            // Odd steps: opaque
+            SetTransparent(255);
+        }
+
+        m_flash_step++;
+    } else {
+        // Complete flash sequence
+        SetTransparent(255);
+        m_flash_timer->Stop();
+        delete m_flash_timer;
+        m_flash_timer = nullptr;
+    }
 }
 
 }} // namespace Slic3r::GUI
