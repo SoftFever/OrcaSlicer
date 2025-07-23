@@ -2891,7 +2891,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
                 if (!key_field_only)
                 {
-                    if (jj.contains("command") && jj.contains("err_code") && jj.contains("result"))
+                    if (is_studio_cmd(sequence_id) && jj.contains("command") && jj.contains("err_code") && jj.contains("result"))
                     {
                         if (jj["err_code"].is_number()) { add_command_error_code_dlg(jj["err_code"].get<int>());}
                     }
@@ -4114,7 +4114,17 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             BOOST_LOG_TRIVIAL(info) << "ack of upgrade_confirm";
                         }
 
-                        if (j["upgrade"].contains("err_code")) {
+                        bool check_studio_cmd = true;
+                        if (j["upgrade"].contains("sequence_id")) {
+                            try
+                            {
+                                std::string str_seq = j["upgrade"]["sequence_id"].get<std::string>();
+                                check_studio_cmd = is_studio_cmd(stoi(str_seq));
+                            }
+                            catch (...) { }
+                        }
+                        
+                        if (check_studio_cmd && j["upgrade"].contains("err_code")) {
                             if (j["upgrade"]["err_code"].is_number()) {
                                 add_command_error_code_dlg(j["upgrade"]["err_code"].get<int>());
                             }
