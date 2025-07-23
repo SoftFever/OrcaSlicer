@@ -592,7 +592,7 @@ public:
     const std::string& 		get_preset_name_by_alias(const std::string& alias) const;
 	const std::string*		get_preset_name_renamed(const std::string &old_name) const;
     bool                    is_alias_exist(const std::string &alias, Preset* preset = nullptr);
-    void                    set_printer_hold_alias(const std::string &alias, Preset &preset);
+    void                    set_printer_hold_alias(const std::string &alias, Preset &preset, bool remove = false);
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }

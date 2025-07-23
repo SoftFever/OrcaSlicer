@@ -2564,6 +2564,7 @@ bool PresetCollection::delete_preset(const std::string& name)
     }
     //BBS: add lock logic for sync preset in background
     lock();
+    set_printer_hold_alias(it->alias, *it, true);
     m_presets.erase(it);
     unlock();
 
@@ -3217,22 +3218,43 @@ void PresetCollection::set_custom_preset_alias(Preset &preset)
     }
 }
 
-void PresetCollection::set_printer_hold_alias(const std::string &alias, Preset &preset)
+void PresetCollection::set_printer_hold_alias(const std::string &alias, Preset &preset, bool remove)
 {
     auto compatible_printers = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
     if (compatible_printers == nullptr) return;
     for (const std::string &printer_name : compatible_printers->values) {
         auto printer_iter = m_printer_hold_alias.find(printer_name);
+        bool insert_success = false, remove_success = false;
         if (m_printer_hold_alias.end() == printer_iter) {
-            m_printer_hold_alias[printer_name].insert(alias);
-        } else {
-            auto alias_iter = m_printer_hold_alias[printer_name].find(alias);
-            if (m_printer_hold_alias[printer_name].end() == alias_iter) {
+            if (!remove) {
+                insert_success = true;
                 m_printer_hold_alias[printer_name].insert(alias);
+            }
+        } else {
+            auto &printer_filament_alias = m_printer_hold_alias[printer_name];
+            auto  alias_iter             = printer_filament_alias.find(alias);
+            if (printer_filament_alias.end() == alias_iter) {
+                if (!remove) {
+                    insert_success = true;
+                    printer_filament_alias.insert(alias);
+                }
             } else {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << printer_name << "already has alias: " << alias << " and the preset name: " << preset.name;
+                if (remove) {
+                    if (preset.inherits() == "") {
+                        remove_success = true;
+                        printer_filament_alias.erase(alias);
+                    }
+                    if (auto alias_iter = m_map_alias_to_profile_name.find(alias); alias_iter != m_map_alias_to_profile_name.end()) {
+                        auto& presets = alias_iter->second;
+                        auto  new_end = std::remove(presets.begin(), presets.end(), preset.name);
+                        presets.erase(new_end, presets.end());
+                        if (presets.empty()) { m_map_alias_to_profile_name.erase(alias); }
+                    }
+                }
             }
         }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << " preset name : " << preset.name << " remove action: " << remove << " insert success: "
+                                << insert_success << " remove success: " << remove_success << " alias: " << alias;
     }
 }
 
