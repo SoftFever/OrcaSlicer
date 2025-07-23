@@ -40,6 +40,7 @@
 #include "UnsavedChangesDialog.hpp"
 #include "SavePresetDialog.hpp"
 #include "EditGCodeDialog.hpp"
+#include "MultiChoiceDialog.hpp"
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
 
@@ -6073,7 +6074,15 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
                 presets.Add(from_u8(preset.name));
         }
 
-        wxMultiChoiceDialog dlg(parent, deps.dialog_title, deps.dialog_label, presets);
+        if(deps.type == Preset::TYPE_PRINTER){
+            deps.dialog_title = "Compatible printers";
+            deps.dialog_label = "Select printers";
+        }else{
+            deps.dialog_title = "Compatible process profiles";
+            deps.dialog_label = "Select profiles";
+        }
+
+        MultiChoiceDialog dlg(parent, deps.dialog_label, deps.dialog_title, presets);
         wxGetApp().UpdateDlgDarkUI(&dlg);
         // Collect and set indices of depending_presets marked as compatible.
         wxArrayInt selections;
@@ -6086,13 +6095,15 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
                         break;
                     }
         dlg.SetSelections(selections);
+        dlg.SetSize(FromDIP(wxSize(360, 480)));
         std::vector<std::string> value;
         // Show the dialog.
         if (dlg.ShowModal() == wxID_OK) {
             selections.Clear();
             selections = dlg.GetSelections();
-            for (auto idx : selections)
-                value.push_back(presets[idx].ToUTF8().data());
+            if(selections.GetCount() != presets.GetCount()) // leave list empty if all items checked to check "All" checkbox. also fixes unnecessary config change
+                for (auto idx : selections)
+                    value.push_back(presets[idx].ToUTF8().data());
             if (value.empty()) {
                 deps.checkbox->SetValue(1);
                 deps.btn->Disable();
