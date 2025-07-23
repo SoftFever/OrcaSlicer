@@ -3138,7 +3138,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "##0A2CA5"
+                "#0A2CA5"
             ]
         },
         {
@@ -3851,7 +3851,7 @@
                 "es": "Negro transparente"
             },
             "fila_color": [
-                "#0"
+                "#000000"
             ]
         },
         {
@@ -3874,7 +3874,7 @@
                 "es": "Translúcido"
             },
             "fila_color": [
-                "#0"
+                "#FFFFFF"
             ]
         },
         {
@@ -4127,7 +4127,7 @@
                 "es": "Translúcido"
             },
             "fila_color": [
-                "#0"
+                "#FFFFFF"
             ]
         },
         {
@@ -4403,7 +4403,7 @@
                 "es": "Transparente"
             },
             "fila_color": [
-                "#0"
+                "#FFFFFF"
             ]
         },
         {
