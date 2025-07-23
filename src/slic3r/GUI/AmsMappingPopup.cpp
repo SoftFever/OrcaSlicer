@@ -1557,6 +1557,9 @@ void MappingItem::render(wxDC &dc)
 
     top += txt_size.y + FromDIP(2);
     m_name.size() > 4 ? dc.SetFont(::Label::Body_9) : dc.SetFont(::Label::Body_12);
+    if(m_name.size() > 5){
+        m_name = m_name.substr(0,5) + "...";
+    }
     txt_size = dc.GetTextExtent(m_name);
     dc.DrawText(m_name, wxPoint((GetSize().x - txt_size.x) / 2, top));
 }
