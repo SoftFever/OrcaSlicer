@@ -139,6 +139,7 @@ namespace Slic3r {
         for (auto& obj : object_list) {
             for (auto& instance : obj->instances()) {
                 auto instance_bbox = get_real_instance_bbox(instance);
+                bool higher_than_curr_layer = (layer->object() == obj)  ?  false : instance_bbox.max.z() > z_target;
                 if(range_intersect(instance_bbox.min.z(), instance_bbox.max.z(), z_low, z_high)){
                     ExPolygon expoly;
                     expoly.contour = {
@@ -147,7 +148,7 @@ namespace Slic3r {
                         {scale_(instance_bbox.max.x()), scale_(instance_bbox.max.y())},
                         {scale_(instance_bbox.min.x()), scale_(instance_bbox.max.y())}
                     };
-                    expoly.contour = expand_object_projection(expoly.contour, by_object);
+                    expoly.contour = expand_object_projection(expoly.contour, by_object, higher_than_curr_layer);
                     ret.emplace_back(std::move(expoly));
                 }
             }
@@ -249,11 +250,16 @@ namespace Slic3r {
 
 
     // expand the object expolygon by safe distance, scaled data
-    Polygon TimelapsePosPicker::expand_object_projection(const Polygon& poly, bool by_object)
+    Polygon TimelapsePosPicker::expand_object_projection(const Polygon &poly, bool by_object, bool higher_than_curr)
     {
         float radius = 0;
-        if (by_object)
-            radius = scale_(print->config().extruder_clearance_radius.value);
+        if (by_object) {
+            if (higher_than_curr) {
+                radius = scale_(print->config().extruder_clearance_radius.value);
+            }else{
+                radius = scale_(print->config().extruder_clearance_radius.value / 2);
+            }
+        }
         else
             radius = scale_(print->config().extruder_clearance_radius.value / 2);
 
@@ -557,7 +563,7 @@ namespace Slic3r {
                     { max_p.x(),max_p.y() },
                     { min_p.x(),max_p.y() }
                 };
-                object_projections.emplace_back(expand_object_projection(obj_proj,by_object));
+                object_projections.emplace_back(expand_object_projection(obj_proj, by_object));
             }
         };
 

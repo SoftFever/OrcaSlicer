@@ -45,7 +45,7 @@ namespace Slic3r {
 
         Polygons collect_limit_areas_for_rod(const std::vector<const PrintObject*>& object_list, const PosPickCtx& ctx);
 
-        Polygon expand_object_projection(const Polygon& poly, bool by_object);
+        Polygon       expand_object_projection(const Polygon &poly, bool by_object, bool higher_than_curr = true);
         BoundingBoxf3 expand_object_bbox(const BoundingBoxf3& bbox, bool by_object);
 
         Point pick_nearest_object_center(const Point& curr_pos, const std::vector<const PrintObject*>& object_list);
