@@ -13834,7 +13834,7 @@ void Plater::export_core_3mf()
     export_3mf(path_u8, SaveStrategy::Silence);
 }
 
-Preset *get_printer_preset(MachineObject *obj)
+Preset *get_printer_preset(const MachineObject *obj)
 {
     if (!obj)
         return nullptr;
