@@ -727,10 +727,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                     if (params.extrusion_role == erInternalInfill)
                         params.sparse_infill_speed = region_config.sparse_infill_speed;
                     else if (params.extrusion_role == erTopSolidInfill) {
-                        params.angle += float(Geometry::deg2rad(region_config.top_surface_direction.get_abs_value(360)));
+                        params.angle = float(Geometry::deg2rad(region_config.top_surface_direction.value));
                         params.top_surface_speed = region_config.top_surface_speed;
                     } else if (params.extrusion_role == erBottomSurface)
-                        params.angle += float(Geometry::deg2rad(region_config.bottom_surface_direction.get_abs_value(360)));
+                        params.angle = float(Geometry::deg2rad(region_config.bottom_surface_direction.value));
                     else if (params.extrusion_role == erSolidInfill)
                         params.solid_infill_speed = region_config.internal_solid_infill_speed;
                 }

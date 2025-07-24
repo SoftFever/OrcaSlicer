@@ -2368,31 +2368,25 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def           = this->add("top_surface_direction", coFloatOrPercent);
+    def           = this->add("top_surface_direction", coFloat);
     def->label    = L("Top surface direction");
     def->category = L("Strength");
-    def->tooltip  = _(L("Direction for top surface pattern.")) + "\n" +
-                    _(L("If expressed as a %, it will be computed a sector of the full turn 360°.")) + "\n" +
-                    _(L("Positive values for turn CCW, negative ones for turn CW."));
-    def->sidetext    = L("° or %");
-    def->min         = -360;
-    def->max         = 360;
-    def->max_literal = 10;
-    def->mode        = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
+    def->tooltip  = L("Angle for top surface pattern, which controls the start or main direction of line.");
+    def->sidetext = "°";
+    def->min      = 0;
+    def->max      = 360;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
-    def           = this->add("bottom_surface_direction", coFloatOrPercent);
-    def->label    = L("Bottom surfase direction");
+    def           = this->add("bottom_surface_direction", coFloat);
+    def->label    = L("Bottom surface direction");
     def->category = L("Strength");
-    def->tooltip  = _(L("Direction for bottom surface pattern.")) + "\n" +
-                    _(L("If expressed as a %, it will be computed a sector of the full turn 360°.")) + "\n" +
-                    _(L("Positive values for turn CCW, negative ones for turn CW."));
-    def->sidetext    = L("° or %");
-    def->min         = -360;
-    def->max         = 360;
-    def->max_literal = 10;
-    def->mode        = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
+    def->tooltip  = L("Angle for bottom surface pattern, which controls the start or main direction of line.");
+    def->sidetext = "°";
+    def->min      = 0;
+    def->max      = 360;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     // Infill multiline
     def             = this->add("fill_multiline", coInt);
