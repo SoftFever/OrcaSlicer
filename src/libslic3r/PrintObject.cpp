@@ -1078,7 +1078,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "skeleton_infill_line_width"
             || opt_key == "infill_direction"
             || opt_key == "solid_infill_direction"
-            || opt_key == "apply_model_direction" 
+            || opt_key == "align_infill_direction_to_model" 
             || opt_key == "top_surface_direction" 
             || opt_key == "bottom_surface_direction"
             || opt_key == "ensure_vertical_shell_thickness"

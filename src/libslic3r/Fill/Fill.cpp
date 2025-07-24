@@ -705,7 +705,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 }
                 params.bridge_angle = float(surface.bridge_angle);
                 
-                if (region_config.apply_model_direction) {
+                if (region_config.align_infill_direction_to_model) {
                     auto m = layer.object()->trafo().matrix();
                     params.angle += atan2((float) m(1, 0), (float) m(0, 0));
                 }
