@@ -2414,13 +2414,10 @@ void SelectMachineDialog::update_user_printer()
 
         for (auto i = 0; i < m_list.size(); i++) {
             if (m_list[i]->dev_id == m_printer_last_select) {
-
-                if (obj && !obj->get_lan_mode_connection_state()) {
-                    m_comboBox_printer->SetSelection(i);
-                    wxCommandEvent event(wxEVT_COMBOBOX);
-                    event.SetEventObject(m_comboBox_printer);
-                    wxPostEvent(m_comboBox_printer, event);
-                }
+                m_comboBox_printer->SetSelection(i);
+                wxCommandEvent event(wxEVT_COMBOBOX);
+                event.SetEventObject(m_comboBox_printer);
+                wxPostEvent(m_comboBox_printer, event);
             }
         }
     }
@@ -2598,7 +2595,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         }
     }
 
-    if (obj) {
+    if (obj && !obj->get_lan_mode_connection_state()) {
         obj->command_get_version();
         obj->command_request_push_all();
         if (!dev->get_selected_machine()) {
