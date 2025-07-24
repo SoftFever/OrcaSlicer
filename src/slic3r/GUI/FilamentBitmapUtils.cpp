@@ -13,7 +13,11 @@ struct BitmapDC {
     wxBitmap bitmap;
     wxMemoryDC dc;
 
-    BitmapDC(const wxSize& size) : bitmap(size), dc(bitmap) {
+    BitmapDC(const wxSize& size) : bitmap(size){
+#ifdef __WXOSX__
+        bitmap.UseAlpha();
+#endif
+        dc.SelectObject(bitmap);
         // Don't set white background - let the color patterns fill the entire area
         dc.SetPen(*wxTRANSPARENT_PEN);
     }
@@ -91,6 +95,8 @@ static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSiz
     BitmapDC bdc = init_bitmap_dc(size);
     if (!bdc.dc.IsOk()) return wxNullBitmap;
 
+    bdc.dc.SetBackground(wxBrush(color));
+    bdc.dc.Clear();
     bdc.dc.SetBrush(wxBrush(color));
     bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
 

@@ -683,15 +683,16 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
         // there is no neede to scale created solid bitmap
         wxColor clr(color);
         bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
-#ifndef __WXMSW__
-        wxMemoryDC dc;
+#ifdef __WXOSX__
+        bitmap->UseAlpha();
+        wxMemoryDC dc(*bitmap);
 #else
         wxClientDC cdc((wxWindow *) Slic3r::GUI::wxGetApp().mainframe);
         wxMemoryDC dc(&cdc);
+        dc.SelectObject(*bitmap);
 #endif
         dc.SetFont(::Label::Body_12);
         Slic3r::GUI::WxFontUtils::get_suitable_font_size(icon_height - 2, dc);
-        dc.SelectObject(*bitmap);
         if (clr.Alpha() == 0) {
             int             size        = icon_height * 2;
             static wxBitmap transparent = *Slic3r::GUI::BitmapCache().load_svg("transparent", size, size);

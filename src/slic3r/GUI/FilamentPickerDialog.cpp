@@ -625,8 +625,14 @@ void FilamentPickerDialog::BindEvents()
     // Bind more colors button event
     if (m_more_btn) {
         m_more_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+            // Pause click detection while color picker is open
+            StopClickDetection();
+
             wxColourData original_data = GetSingleColorData();
             wxColourData result = show_sys_picker_dialog(this, original_data);
+
+            // Resume click detection after color picker closes
+            StartClickDetection();
 
             // Check if user actually selected a different color
             if (result.GetColour() != original_data.GetColour()) {
