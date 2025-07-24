@@ -1072,17 +1072,31 @@ void PrintErrorDialog::update_title_style(wxString title, std::vector<int> butto
             m_button_list[used_button_id]->Hide();
         }
     }
+
     m_sizer_button->Clear();
     m_used_button = button_style;
+    bool need_remove_close_btn = false;
     for (int button_id : button_style) {
         if (m_button_list.find(button_id) != m_button_list.end()) {
             m_sizer_button->Add(m_button_list[button_id], 0, wxALL, FromDIP(5));
             m_button_list[button_id]->Show();
         }
+
+        need_remove_close_btn |= (button_id == REMOVE_CLOSE_BTN); // special case, do not show close button
     }
+
+    // Special case, do not show close button
+    if (need_remove_close_btn)
+    {
+        SetWindowStyle(GetWindowStyle() & ~wxCLOSE_BOX);
+    }
+    else
+    {
+        SetWindowStyle(GetWindowStyle() | wxCLOSE_BOX);
+    }
+
     Layout();
     Fit();
-
 }
 
 void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text)
@@ -1124,7 +1138,7 @@ void PrintErrorDialog::init_button_list()
     init_button(IGNORE_NO_REMINDER_NEXT_TIME, _L("Ignore. Don't Remind Next Time"));
     init_button(IGNORE_RESUME, _L("Ignore this and Resume"));
     init_button(PROBLEM_SOLVED_RESUME, _L("Problem Solved and Resume"));
-    init_button(STOP_BUZZER, _L("Stop Buzzer"));
+    init_button(TURN_OFF_FIRE_ALARM, _L("Got it, Turn off the Fire Alarm."));
     init_button(RETRY_PROBLEM_SOLVED, _L("Retry (problem solved)"));
     init_button(STOP_DRYING, _L("Stop Drying"));
 }

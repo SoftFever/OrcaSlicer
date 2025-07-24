@@ -4764,7 +4764,7 @@ void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
                 obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
                 break;
             }
-            case Slic3r::GUI::PrintErrorDialog::STOP_BUZZER: {
+            case Slic3r::GUI::PrintErrorDialog::TURN_OFF_FIRE_ALARM: {
                 obj->command_stop_buzzer();
                 break;
             }

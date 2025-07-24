@@ -156,7 +156,7 @@ void DeviceErrorDialog::init_button_list()
     init_button(IGNORE_NO_REMINDER_NEXT_TIME, _L("Ignore. Don't Remind Next Time"));
     init_button(IGNORE_RESUME, _L("Ignore this and Resume"));
     init_button(PROBLEM_SOLVED_RESUME, _L("Problem Solved and Resume"));
-    init_button(STOP_BUZZER, _L("Stop Buzzer"));
+    init_button(TURN_OFF_FIRE_ALARM, _L("Got it, Turn off the Fire Alarm."));
     init_button(RETRY_PROBLEM_SOLVED, _L("Retry (problem solved)"));
     init_button(STOP_DRYING, _L("Stop Drying"));
 }
@@ -206,9 +206,12 @@ void DeviceErrorDialog::update_contents(const wxString& text, const wxString& er
         m_used_button.clear();
 
         // Show the used buttons
+        bool need_remove_close_btn = false;
         std::unordered_set<int> shown_btns;
         for (int button_id : btns)
         {
+            need_remove_close_btn |= (button_id == REMOVE_CLOSE_BTN); // special case, do not show close button
+
             auto iter = m_button_list.find(button_id);
             if (iter != m_button_list.end())
             {
@@ -216,6 +219,16 @@ void DeviceErrorDialog::update_contents(const wxString& text, const wxString& er
                 iter->second->Show();
                 m_used_button.insert(iter->second);
             }
+        }
+
+        // Special case, do not show close button
+        if (need_remove_close_btn)
+        {
+            SetWindowStyle(GetWindowStyle() & ~wxCLOSE_BOX);
+        }
+        else
+        {
+            SetWindowStyle(GetWindowStyle() | wxCLOSE_BOX);
         }
 
         // Hide unused buttons
@@ -355,7 +368,7 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
         m_obj->command_hms_resume(std::to_string(m_error_code), m_obj->job_id_);
         break;
     }
-    case DeviceErrorDialog::STOP_BUZZER: {
+    case DeviceErrorDialog::TURN_OFF_FIRE_ALARM: {
         m_obj->command_stop_buzzer();
         break;
     }
