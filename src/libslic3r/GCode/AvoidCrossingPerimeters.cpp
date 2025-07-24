@@ -13,7 +13,7 @@
 #include <unordered_set>
 #include <boost/range/adaptor/reversed.hpp>
 
-//#define AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
+#define AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
 
 namespace Slic3r {
 
@@ -1187,6 +1187,18 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
         // Initialize m_internal only when it is necessary.
         if (m_internal.boundaries.empty())
             init_boundary(&m_internal, to_polygons(get_boundary(*gcodegen.layer())));
+
+        
+#ifdef AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
+        {
+            static int iRun = 0;
+            export_travel_to_svg(to_polygons(gcodegen.layer()->lslices), Line(start, end), result_pl, {},
+                                 debug_out_path("AvoidCrossingPerimeters-beg-%d-%d-1.svg", gcodegen.layer()->id(), iRun));
+            export_travel_to_svg(m_internal.boundaries, Line(start, end), result_pl, {},
+                                 debug_out_path("AvoidCrossingPerimeters-beg-%d-%d-2.svg", gcodegen.layer()->id(), iRun++));
+        }
+#endif /* AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT */
+
 
         // Trim the travel line by the bounding box.
         if (!m_internal.boundaries.empty() && Geometry::liang_barsky_line_clipping(startf, endf, m_internal.bbox)) {
