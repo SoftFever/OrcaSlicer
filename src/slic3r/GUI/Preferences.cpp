@@ -1250,8 +1250,8 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_project_load_behaviour = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
     
     std::vector<wxString> projectSwitchBehaviourOptions = {_L("Ask"), _L("Transfer"), _L("Discard")};
-    std::vector<string> projectSwitchConfigOptions = { OPTION_PROJECT_SWITCH_BEHAVIOUR_ASK, OPTION_PROJECT_SWITCH_BEHAVIOUR_TRANSFER, OPTION_PROJECT_SWITCH_BEHAVIOUR_DISCARD };
-    auto item_switch_printer_behaviour = create_item_combobox(_L("Switch Printer Behaviour"), page, _L("Should changing printer ask, transfer or discard settings."), SETTING_PROJECT_SWITCH_BEHAVIOUR, projectSwitchBehaviourOptions, projectSwitchConfigOptions, 50);
+    std::vector<string> projectSwitchConfigOptions = { OPTION_PRINTER_SWITCH_BEHAVIOUR_ASK, OPTION_PRINTER_SWITCH_BEHAVIOUR_TRANSFER, OPTION_PRINTER_SWITCH_BEHAVIOUR_DISCARD };
+    auto item_switch_printer_behaviour = create_item_combobox(_L("Switch Printer Behaviour"), page, _L("Should changing printer ask, transfer or discard settings."), SETTING_PRINTER_SWITCH_BEHAVIOUR, projectSwitchBehaviourOptions, projectSwitchConfigOptions, 50);
 
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
