@@ -1248,6 +1248,10 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
     std::vector<string> projectLoadSettingsConfigOptions = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
     auto item_project_load_behaviour = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
+    
+    std::vector<wxString> projectSwitchBehaviourOptions = {_L("Ask"), _L("Transfer"), _L("Discard")};
+    std::vector<string> projectSwitchConfigOptions = { OPTION_PROJECT_SWITCH_BEHAVIOUR_ASK, OPTION_PROJECT_SWITCH_BEHAVIOUR_TRANSFER, OPTION_PROJECT_SWITCH_BEHAVIOUR_DISCARD };
+    auto item_switch_printer_behaviour = create_item_combobox(_L("Switch Printer Behaviour"), page, _L("Should changing printer ask, transfer or discard settings."), SETTING_PROJECT_SWITCH_BEHAVIOUR, projectSwitchBehaviourOptions, projectSwitchConfigOptions);
 
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
@@ -1329,6 +1333,7 @@ wxWindow* PreferencesDialog::create_general_page()
     // item_region->GetItem(size_t(2))->GetWindow()->Bind(wxEVT_COMBOBOX, update_modelmall);
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_project_load_behaviour, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_switch_printer_behaviour, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));
