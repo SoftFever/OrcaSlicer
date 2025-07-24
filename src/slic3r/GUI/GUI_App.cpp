@@ -4196,6 +4196,10 @@ void GUI_App::enable_user_preset_folder(bool enable)
 
 void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
 {
+    // Orca: do not connect to default device during app startup, because some of the lan machines might not online yet
+    // and user will be prompted by several "Connect XXX failed" error message.
+    return;
+
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (dev) {
         dev->set_selected_machine(m_agent->get_user_selected_machine());
