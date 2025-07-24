@@ -87,7 +87,7 @@ protected:
     Label* text_first_layer;
     Label* text_ai_detections;
     Label* text_ai_detections_caption;
-
+    wxPanel          *ai_refine_panel;
     wxSizerItem *ai_detections_bottom_space;
     wxSizerItem *ai_monitoring_bottom_space;
     wxSizerItem *spaghetti_bottom_space;
@@ -136,6 +136,8 @@ protected:
     StaticLine* line7;
     SwitchBoard* open_door_switch_board;
     wxBoxSizer* create_settings_group(wxWindow* parent);
+    wxPanel     *m_line;
+
 
     bool print_halt = false;
 
