@@ -4932,6 +4932,13 @@ std::map<std::string, std::string> Plater::get_bed_texture_maps()
     return {};
 }
 
+bool Plater::get_enable_wrapping_detection()
+{
+   const DynamicPrintConfig & printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    const ConfigOptionBool *  wrapping_detection = printer_config.option<ConfigOptionBool>("enable_wrapping_detection");
+   return  (wrapping_detection != nullptr) && wrapping_detection->value;
+}
+
 wxColour Plater::get_next_color_for_filament()
 {
     static int curr_color_filamenet = 0;
