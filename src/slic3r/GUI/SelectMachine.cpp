@@ -2373,6 +2373,10 @@ void SelectMachineDialog::update_user_printer()
     m_comboBox_printer->Set(machine_list_name);
 
     MachineObject* obj = dev->get_selected_machine();
+    if (!obj) {
+        dev->load_last_machine();
+        obj = dev->get_selected_machine();
+    }
 
     if (obj) {
         if (obj->is_lan_mode_printer() && !obj->has_access_right()) {
