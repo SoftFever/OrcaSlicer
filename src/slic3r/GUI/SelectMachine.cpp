@@ -3010,9 +3010,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         obj->command_get_version();
         obj->command_request_push_all();
         if (!dev->get_selected_machine()) {
-            dev->set_selected_machine(m_printer_last_select, true);
+            dev->set_selected_machine(m_printer_last_select);
         }else if (dev->get_selected_machine()->dev_id != m_printer_last_select) {
-            dev->set_selected_machine(m_printer_last_select, true);
+            dev->set_selected_machine(m_printer_last_select);
         }
 
         // Has changed machine unrecoverably
@@ -4499,15 +4499,6 @@ bool SelectMachineDialog::Show(bool show)
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
     } else {
         m_refresh_timer->Stop();
-
-        DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-        if (dev) {
-            MachineObject *obj_ = dev->get_selected_machine();
-            if (obj_ && obj_->connection_type() == "cloud" /*&& m_print_type == FROM_SDCARD_VIEW*/) {
-                if (obj_->is_connected()) { obj_->disconnect(); }
-            }
-        }
-
         return DPIDialog::Show(false);
     }
     show_init();

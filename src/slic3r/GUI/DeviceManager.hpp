@@ -1402,15 +1402,6 @@ public:
     bool is_firmware_info_valid();
     std::string get_string_from_fantype(int type);
 
-    /*for local mqtt tunnel try*/
-    bool                        nt_try_local_tunnel { false };
-    bool                        nt_use_local_tunnel { false };
-    int                         nt_cloud_full_msg_count { 0 };
-    int                         nt_local_full_msg_count { 0 };
-    void nt_condition_local_tunnel();
-    void nt_restore_cloud_tunnel();
-    void nt_reset_data();
-
     /*for more extruder*/
     bool                        is_enable_np{ false };
     bool                        is_enable_ams_np{ false };
@@ -1511,7 +1502,7 @@ public:
     void clean_user_info();
     void reload_printer_settings();
 
-    bool set_selected_machine(std::string dev_id,  bool need_disconnect = false);
+    bool set_selected_machine(std::string dev_id);
     MachineObject* get_selected_machine();
 
     void subscribe_device_list(std::vector<std::string> dev_list);

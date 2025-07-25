@@ -52,15 +52,6 @@ bool SyncAmsInfoDialog::Show(bool show)
         if (m_refresh_timer) { m_refresh_timer->Start(LIST_REFRESH_INTERVAL); }
     } else {
         m_refresh_timer->Stop();
-
-        DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-        if (dev) {
-            MachineObject *obj_ = dev->get_selected_machine();
-            if (obj_ && obj_->connection_type() == "cloud" /*&& m_print_type == FROM_SDCARD_VIEW*/) {
-                if (obj_->is_connected()) { obj_->disconnect(); }
-            }
-        }
-
         return DPIDialog::Show(false);
     }
     // set default value when show this dialog
@@ -456,7 +447,6 @@ void SyncAmsInfoDialog::init_bitmaps()
 void SyncAmsInfoDialog::add_two_image_control()
 {// thumbnail
     m_two_thumbnail_panel = new StaticBox(m_scrolledWindow);
-    // m_two_thumbnail_panel->SetBackgroundColour(wxColour(0xF8F8F8));
     m_two_thumbnail_panel->SetBorderWidth(0);
     //m_two_thumbnail_panel->SetMinSize(wxSize(FromDIP(637), -1));
     //m_two_thumbnail_panel->SetMaxSize(wxSize(FromDIP(637), -1));
@@ -484,7 +474,6 @@ void SyncAmsInfoDialog::add_two_image_control()
     view_two_thumbnail_sizer->AddSpacer(FromDIP(24));
     {
         m_two_image_panel = new StaticBox(m_two_thumbnail_panel);
-        // m_two_thumbnail_panel->SetBackgroundColour(wxColour(0xF8F8F8));
         m_two_image_panel->SetBorderWidth(0);
         //m_two_image_panel->SetForegroundColour(wxColour(248, 248, 248, 100));
         m_two_image_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -754,7 +743,6 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     m_fix_filament_panel->Fit();
     /*1 extruder*/
     m_filament_panel = new StaticBox(m_scrolledWindow);
-    //m_filament_panel->SetBackgroundColour(wxColour(0xF8F8F8));
     m_filament_panel->SetBorderWidth(0);
     m_filament_panel->SetMinSize(wxSize(FromDIP(637), -1));
     m_filament_panel->SetMaxSize(wxSize(FromDIP(637), -1));
@@ -770,7 +758,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     m_sizer_filament_2extruder = new wxBoxSizer(wxHORIZONTAL);
 
     m_filament_left_panel = new StaticBox(m_scrolledWindow);
-    m_filament_left_panel->SetBackgroundColour(wxColour(0xF8F8F8));
+    m_filament_left_panel->SetBackgroundColour(wxColour("#F8F8F8"));
     m_filament_left_panel->SetBorderWidth(0);
     m_filament_left_panel->SetMinSize(wxSize(FromDIP(315), -1));
     m_filament_left_panel->SetMaxSize(wxSize(FromDIP(315), -1));
@@ -779,11 +767,11 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     auto left_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto left_recommend_title1      = new Label(m_filament_left_panel, _L("Left Extruder"));
     left_recommend_title1->SetFont(::Label::Head_13);
-    left_recommend_title1->SetBackgroundColour(wxColour(0xF8F8F8));
+    left_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
     auto left_recommend_title2 = new Label(m_filament_left_panel, _L("(Recommended filament)"));
     left_recommend_title2->SetFont(::Label::Body_13);
-    left_recommend_title2->SetForegroundColour(wxColour(0x6B6B6B));
-    left_recommend_title2->SetBackgroundColour(wxColour(0xF8F8F8));
+    left_recommend_title2->SetForegroundColour(wxColour("#6B6B6B"));
+    left_recommend_title2->SetBackgroundColour(wxColour("#F8F8F8"));
     left_recommend_title_sizer->Add(left_recommend_title1, 0, wxALIGN_CENTER, 0);
     left_recommend_title_sizer->Add(0, 0, 0, wxLEFT, FromDIP(4));
     left_recommend_title_sizer->Add(left_recommend_title2, 0, wxALIGN_CENTER, 0);
@@ -796,7 +784,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
     m_filament_right_panel = new StaticBox(m_scrolledWindow);
     m_filament_right_panel->SetBorderWidth(0);
-    m_filament_right_panel->SetBackgroundColour(wxColour(0xf8f8f8));
+    m_filament_right_panel->SetBackgroundColour(wxColour("#F8F8F8"));
     m_filament_right_panel->SetMinSize(wxSize(FromDIP(315), -1));
     m_filament_right_panel->SetMaxSize(wxSize(FromDIP(315), -1));
 
@@ -804,12 +792,12 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     auto right_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto right_recommend_title1      = new Label(m_filament_right_panel, _L("Right Extruder"));
     right_recommend_title1->SetFont(::Label::Head_13);
-    right_recommend_title1->SetBackgroundColour(wxColour(0xF8F8F8));
+    right_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
 
     auto right_recommend_title2 = new Label(m_filament_right_panel, _L("(Recommended filament)"));
     right_recommend_title2->SetFont(::Label::Body_13);
-    right_recommend_title2->SetForegroundColour(wxColour(0x6B6B6B));
-    right_recommend_title2->SetBackgroundColour(wxColour(0xF8F8F8));
+    right_recommend_title2->SetForegroundColour(wxColour("#6B6B6B"));
+    right_recommend_title2->SetBackgroundColour(wxColour("#F8F8F8"));
     right_recommend_title_sizer->Add(right_recommend_title1, 0, wxALIGN_CENTER, 0);
     right_recommend_title_sizer->Add(0, 0, 0, wxLEFT, FromDIP(4));
     right_recommend_title_sizer->Add(right_recommend_title2, 0, wxALIGN_CENTER, 0);
@@ -1004,7 +992,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         m_button_ok = new Button(m_show_page,  _L("Synchronize now"));
         m_button_ok->SetBackgroundColor(btn_bg_green);
         m_button_ok->SetBorderColor(*wxWHITE);
-        m_button_ok->SetTextColor(wxColour(0xFFFFFE));
+        m_button_ok->SetTextColor(wxColour("#FFFFFE"));
         m_button_ok->SetFont(Label::Body_12);
         m_button_ok->SetSize(OK_BUTTON_SIZE);
         m_button_ok->SetMinSize(OK_BUTTON_SIZE);

@@ -1697,13 +1697,6 @@ void GUI_App::init_networking_callbacks()
                         MachineObject *obj = dev->get_selected_machine();
                         if (!obj) return;
 
-                        if (obj->nt_try_local_tunnel && obj->connection_type() == "cloud") {
-                            if (obj->is_connected()) {
-                                obj->disconnect();
-                            }
-                            obj->nt_reset_data();
-                        }
-
                         /* resubscribe the cache dev list */
                         if (this->is_enable_multi_machine()) {
 
@@ -1776,7 +1769,7 @@ void GUI_App::init_networking_callbacks()
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 // Orca: avoid showing same error message multiple times until next connection attempt.
                                 const auto already_disconnected = m_device_manager->selected_machine.empty();
-                                m_device_manager->set_selected_machine("", true);
+                                m_device_manager->set_selected_machine("");
                                 if (!already_disconnected) {
                                     wxString text;
                                     if (msg == "5") {
@@ -1791,7 +1784,7 @@ void GUI_App::init_networking_callbacks()
                                 }
                                 event.SetInt(-1);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
-                                m_device_manager->set_selected_machine("", true);
+                                m_device_manager->set_selected_machine("");
                                 event.SetInt(-1);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
                             } else {

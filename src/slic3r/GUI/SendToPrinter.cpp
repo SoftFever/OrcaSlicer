@@ -1214,12 +1214,12 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         obj->command_get_version();
         obj->command_request_push_all();
         if (!dev->get_selected_machine()) {
-            dev->set_selected_machine(m_printer_last_select, true);
+            dev->set_selected_machine(m_printer_last_select);
             if (m_file_sys) m_file_sys.reset();
         }else if (dev->get_selected_machine()->dev_id != m_printer_last_select) {
             m_ability_list.clear();
             //update_storage_list(std::vector<std::string>());
-            dev->set_selected_machine(m_printer_last_select, true);
+            dev->set_selected_machine(m_printer_last_select);
             if (m_file_sys) m_file_sys.reset();
         }
     }

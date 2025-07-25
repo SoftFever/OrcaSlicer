@@ -2095,7 +2095,7 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
 
         if (m_obj) {
             m_obj->set_user_access_code(str_access_code);
-            wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id, true);
+            wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id);
         }
 
 

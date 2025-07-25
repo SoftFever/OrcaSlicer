@@ -3137,8 +3137,6 @@ void MachineObject::reset()
     jobState_ = 0;
     m_plate_index = -1;
 
-    nt_reset_data();
-
     // reset print_json
     json empty_j;
     print_json.diff2all_base_reset(empty_j);
@@ -3151,14 +3149,6 @@ void MachineObject::reset()
         }
     }
     subtask_ = nullptr;
-}
-
-void MachineObject::nt_reset_data()
-{
-    nt_try_local_tunnel = false;
-    nt_use_local_tunnel = false;
-    nt_cloud_full_msg_count = 0;
-    nt_local_full_msg_count = 0;
 }
 
 void MachineObject::set_print_state(std::string status)
@@ -3366,10 +3356,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             m_push_count++;
                             m_full_msg_count++;
 
-                            if (tunnel == "cloud") {nt_cloud_full_msg_count++;}
-                            if (tunnel == "lan") {nt_local_full_msg_count++;}
-                            nt_condition_local_tunnel();
-
                             if (!printer_type.empty())
                                 print_json.load_compatible_settings(printer_type, "");
                             print_json.diff2all_base_reset(j_pre);
@@ -3394,9 +3380,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     }
                     else {
                         if (!printer_type.empty()) {
-                            nt_local_full_msg_count++;
                             m_full_msg_count++;/* all message package is full at LAN mode*/
-                            nt_condition_local_tunnel();
                             print_json.load_compatible_settings(printer_type, "");
                         }
 
@@ -6064,32 +6048,6 @@ std::string MachineObject::get_string_from_fantype(int type)
     return "";
 }
 
-void MachineObject::nt_condition_local_tunnel()
-{
-    return;
-    int full_msg_count_limit = 2;
-    if (!nt_try_local_tunnel && nt_cloud_full_msg_count == full_msg_count_limit) {
-        connect(Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
-        nt_try_local_tunnel = true;
-    }
-
-    if (!nt_use_local_tunnel && nt_try_local_tunnel && nt_local_full_msg_count == full_msg_count_limit) {
-        std::vector<std::string> dev_list{dev_id};
-        Slic3r::GUI::wxGetApp().getAgent()->del_subscribe(dev_list);
-        nt_use_local_tunnel = true;
-    }
-}
-
-void MachineObject::nt_restore_cloud_tunnel()
-{
-    if (is_connected()) {
-        disconnect();
-        std::vector<std::string> dev_list{dev_id};
-        Slic3r::GUI::wxGetApp().getAgent()->add_subscribe(dev_list);
-        nt_use_local_tunnel = false;
-    }
-}
-
 NozzleFlowType MachineObject::get_nozzle_flow_type(int extruder_id) const
 {
     if (is_nozzle_flow_type_supported() && m_extder_data.extders.size() > extruder_id)
@@ -7276,12 +7234,6 @@ void DeviceManager::check_pushing()
             obj->command_pushing("start");
         }
     }
-
-    /*check local tunnel state*/
-    if (obj && obj->nt_use_local_tunnel && internal.count() > PUSHINFO_TIMEOUT) {
-        obj->nt_restore_cloud_tunnel();
-        BOOST_LOG_TRIVIAL(info) << "Unable to receive more data in LAN tunnel";
-    }
 }
 
 void DeviceManager::on_machine_alive(std::string json_str)
@@ -7577,7 +7529,7 @@ void DeviceManager::clean_user_info()
     userMachineList.clear();
 }
 
-bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnect)
+bool DeviceManager::set_selected_machine(std::string dev_id)
 {
     BOOST_LOG_TRIVIAL(info) << "set_selected_machine=" << dev_id;
     auto my_machine_list = get_my_machine_list();
@@ -7588,8 +7540,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
     if (last_selected != my_machine_list.end()) {
         last_selected->second->m_active_state = MachineObject::NotActive;
         if (last_selected->second->connection_type() == "lan") {
-            if (last_selected->second->is_connecting() && !need_disconnect)
-                return false;
+            m_agent->disconnect_printer();
         }
     }
 
@@ -7607,6 +7558,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
             } else {
                 // lan mode printer reconnect printer
                 if (m_agent) {
+                    m_agent->disconnect_printer();
                     it->second->reset();
 #if !BBL_RELEASE_TO_PUBLIC
                     it->second->connect(Slic3r::GUI::wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false);
@@ -7621,7 +7573,6 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
                 if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
                     if (m_agent->get_user_selected_machine() == dev_id) {
                         it->second->reset_update_time();
-                        it->second->nt_reset_data();
                     }
                     else {
                         BOOST_LOG_TRIVIAL(info) << "static: set_selected_machine: same dev_id = " << dev_id;
