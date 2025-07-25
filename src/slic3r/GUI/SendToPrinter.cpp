@@ -917,6 +917,11 @@ void SendToPrinterDialog::update_user_printer()
     m_comboBox_printer->Set(machine_list_name);
 
     MachineObject* obj = dev->get_selected_machine();
+    if (!obj) {
+        dev->load_last_machine();
+        obj = dev->get_selected_machine();
+    }
+
     if (obj) {
         m_printer_last_select = obj->dev_id;
     } else {
