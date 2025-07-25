@@ -1,14 +1,21 @@
-<h1> <p "font-size:200px;"><img align="left" src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
+<div align="center">
 
-[![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
+<picture>
+  <img alt="OrcaSlicer logo" src="resources/images/OrcaSlicer.png" width="15%" height="15%">
+</picture>
 
-Orca Slicer is an open source Next-Gen Slicing Software for Precision 3D Prints.  
+<a href="https://trendshift.io/repositories/952" target="_blank"><img src="https://trendshift.io/api/badge/repositories/952" alt="SoftFever%2FOrcaSlicer | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
+[![GitHub Repo stars](https://img.shields.io/github/stars/SoftFever/OrcaSlicer)](https://github.com/SoftFever/OrcaSlicer/stargazers) [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
+
+OrcaSlicer: an open source Next-Gen Slicing Software for Precision 3D Prints.  
 Optimize your prints with ultra-fast slicing, intelligent support generation, and seamless printer compatibility—engineered for perfection.
+<h3>
 
-## Official links and community
+# Official links and community
 
 #### Official Website:
-<a href="https://orcaslicer.com/" style="font-size:2em;"><strong>orcaslicer.com</strong></a>
+<a href="https://www.orcaslicer.com/" style="font-size:2em;">OrcaSlicer.com</a>
 
 #### Github Repository:
 <a href="https://github.com/SoftFever/OrcaSlicer"><img src="https://img.shields.io/badge/OrcaSlicer-181717?style=flat&logo=github&logoColor=white" width="200" alt="GitHub Logo"/> </a>
@@ -19,10 +26,18 @@ Optimize your prints with ultra-fast slicing, intelligent support generation, an
 #### Join our Discord community:
 <a href="https://discord.gg/P4VE9UY9gJ"><img src="https://img.shields.io/badge/-Discord-5865F2?style=flat&logo=discord&logoColor=fff" width="200" alt="discord logo"/> </a>
 
-> [!CAUTION]
-> There are multiple unofficial and potentially malicious websites pretending to be related to OrcaSlicer. These sites may redirect you to dangerous downloads or contain misleading information.
->
-> If you come across any of these in search results, please report them as unsafe or spam to help keep the community secure.
+<div style="border: 2px solid #ffa500; background-color: #fff8e1; color: #333; padding: 16px; border-radius: 8px; margin: 16px 0; text-align: left;">
+  <strong style="color: #d35400; font-size: 1.1em;">&#9888; CAUTION:</strong>
+  <div style="margin-top: 8px;">
+    There are multiple unofficial and potentially malicious websites pretending to be related to OrcaSlicer. These sites may redirect you to dangerous downloads or contain misleading information.
+    <br><br>
+    If you come across any of these in search results, please report them as unsafe or spam to help keep the community secure.
+  </div>
+</div>
+
+
+</div>
+
 
 # Main features
 
