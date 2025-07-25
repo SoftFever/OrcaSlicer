@@ -8,30 +8,13 @@
     "chamber_temperatures": [
         "60"
     ],
-    "compatible_printers": [
-        "Bambu Lab H2S 0.4 nozzle",
-        "Bambu Lab H2S 0.6 nozzle",
-        "Bambu Lab H2S 0.8 nozzle"
+    "filament_deretraction_speed": [
+        "nil",
+        "nil"
     ],
     "filament_flow_ratio": [
         "0.95",
         "0.95"
-    ],
-    "filament_max_volumetric_speed": [
-        "12",
-        "12"
-    ],
-    "nozzle_temperature": [
-        "270",
-        "270"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "260",
-        "260"
-    ],
-    "filament_deretraction_speed": [
-        "nil",
-        "nil"
     ],
     "filament_flush_temp": [
         "0",
@@ -45,11 +28,19 @@
         "nil",
         "nil"
     ],
+    "filament_max_volumetric_speed": [
+        "12",
+        "12"
+    ],
     "filament_ramming_volumetric_speed": [
         "-1",
         "-1"
     ],
     "filament_retract_before_wipe": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_restart_extra": [
         "nil",
         "nil"
     ],
@@ -93,14 +84,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "long_retractions_when_ec": [
-        "0",
-        "0"
-    ],
-    "retraction_distances_when_ec": [
-        "0",
-        "0"
-    ],
     "filament_pre_cooling_temperature": [
         "0",
         "0"
@@ -108,6 +91,27 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "270",
+        "270"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "260",
+        "260"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2S 0.4 nozzle",
+        "Bambu Lab H2S 0.6 nozzle",
+        "Bambu Lab H2S 0.8 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

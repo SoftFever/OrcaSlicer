@@ -6,129 +6,9 @@
     "setting_id": "GFSP95_9",
     "instantiation": "true",
     "description": "This is neither a commonly used filament, nor one of Bambu filaments, and it varies a lot from brand to brand. So, it's highly recommended to ask its vendor for suitable profile before printing and adjust some parameters according to its performances.",
-    "first_x_layer_fan_speed": [
-        "40"
-    ],
-    "compatible_printers": [
-        "Bambu Lab H2S 0.4 nozzle",
-        "Bambu Lab H2S 0.6 nozzle",
-        "Bambu Lab H2S 0.8 nozzle"
-    ],
-    "filament_start_gcode": [
-        "; filament start gcode\n"
-    ],
-    "filament_id": "GFP95",
-    "filament_cost": [
-        "59.99"
-    ],
-    "filament_density": [
-        "1.05"
-    ],
-    "filament_max_volumetric_speed": [
-        "6",
-        "6"
-    ],
-    "filament_type": [
-        "PP-GF"
-    ],
-    "additional_cooling_fan_speed": [
-        "70"
-    ],
-    "close_fan_the_first_x_layers": [
-        "1"
-    ],
-    "cool_plate_temp": [
-        "35"
-    ],
-    "cool_plate_temp_initial_layer": [
-        "35"
-    ],
-    "eng_plate_temp": [
-        "0"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "0"
-    ],
-    "fan_cooling_layer_time": [
-        "100"
-    ],
-    "fan_min_speed": [
-        "100"
-    ],
-    "hot_plate_temp": [
-        "55"
-    ],
-    "hot_plate_temp_initial_layer": [
-        "55"
-    ],
-    "nozzle_temperature_range_low": [
-        "220"
-    ],
-    "nozzle_temperature_range_high": [
-        "250"
-    ],
-    "nozzle_temperature": [
-        "235",
-        "235"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "235",
-        "235"
-    ],
-    "overhang_fan_threshold": [
-        "50%"
-    ],
-    "reduce_fan_stop_start_freq": [
-        "1"
-    ],
-    "supertack_plate_temp": [
-        "0"
-    ],
-    "supertack_plate_temp_initial_layer": [
-        "0"
-    ],
-    "slow_down_layer_time": [
-        "4"
-    ],
-    "slow_down_min_speed": [
-        "20"
-    ],
-    "temperature_vitrification": [
-        "50"
-    ],
-    "textured_plate_temp": [
-        "55"
-    ],
-    "textured_plate_temp_initial_layer": [
-        "55"
-    ],
-    "filament_adhesiveness_category": [
-        "902"
-    ],
-    "filament_end_gcode": [
-        "; filament end gcode \n\n"
-    ],
-    "activate_air_filtration": [
-        "0"
-    ],
-    "chamber_temperatures": [
-        "0"
-    ],
-    "complete_print_exhaust_fan_speed": [
-        "70"
-    ],
-    "during_print_exhaust_fan_speed": [
-        "70"
-    ],
-    "fan_max_speed": [
-        "100"
-    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
-    ],
-    "filament_diameter": [
-        "1.75"
     ],
     "filament_flow_ratio": [
         "1",
@@ -142,31 +22,24 @@
         "0",
         "0"
     ],
-    "filament_is_support": [
-        "0"
-    ],
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
     ],
-    "filament_long_retractions_when_ec": [
-        "nil"
+    "filament_max_volumetric_speed": [
+        "6",
+        "6"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
         "-1"
-    ],
-    "filament_minimal_purge_on_wipe_tower": [
-        "15"
-    ],
-    "filament_printable": [
-        "3"
     ],
     "filament_retract_before_wipe": [
         "nil",
         "nil"
     ],
     "filament_retract_restart_extra": [
+        "nil",
         "nil"
     ],
     "filament_retract_when_changing_layer": [
@@ -175,9 +48,6 @@
     ],
     "filament_retraction_distances_when_cut": [
         "nil",
-        "nil"
-    ],
-    "filament_retraction_distances_when_ec": [
         "nil"
     ],
     "filament_retraction_length": [
@@ -192,15 +62,6 @@
         "nil",
         "nil"
     ],
-    "filament_settings_id": [
-        ""
-    ],
-    "filament_soluble": [
-        "0"
-    ],
-    "filament_vendor": [
-        "Generic"
-    ],
     "filament_wipe": [
         "nil",
         "nil"
@@ -208,9 +69,6 @@
     "filament_wipe_distance": [
         "nil",
         "nil"
-    ],
-    "filament_prime_volume": [
-        "45"
     ],
     "filament_z_hop": [
         "nil",
@@ -220,86 +78,9 @@
         "nil",
         "nil"
     ],
-    "full_fan_speed_layer": [
-        "0"
-    ],
-    "filament_extruder_id": [
-        "1"
-    ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
-    ],
-    "filament_scarf_seam_type": [
-        "none"
-    ],
-    "filament_scarf_height": [
-        "10%"
-    ],
-    "filament_scarf_gap": [
-        "0%"
-    ],
-    "filament_scarf_length": [
-        "10"
-    ],
-    "filament_shrink": [
-        "100%"
-    ],
-    "long_retractions_when_ec": [
-        "0",
-        "0"
-    ],
-    "overhang_fan_speed": [
-        "100"
-    ],
-    "required_nozzle_HRC": [
-        "3"
-    ],
-    "retraction_distances_when_ec": [
-        "0",
-        "0"
-    ],
-    "slow_down_for_layer_cooling": [
-        "1"
-    ],
-    "counter_coef_1": [
-        "0"
-    ],
-    "counter_coef_2": [
-        "0.008"
-    ],
-    "counter_coef_3": [
-        "-0.041"
-    ],
-    "hole_coef_1": [
-        "0"
-    ],
-    "hole_coef_2": [
-        "-0.008"
-    ],
-    "hole_coef_3": [
-        "0.23415"
-    ],
-    "counter_limit_min": [
-        "-0.035"
-    ],
-    "counter_limit_max": [
-        "0.033"
-    ],
-    "hole_limit_min": [
-        "0.088"
-    ],
-    "hole_limit_max": [
-        "0.22"
-    ],
-    "circle_compensation_speed": [
-        "200"
-    ],
-    "diameter_limit": [
-        "50"
-    ],
-    "impact_strength_z": [
-        "10"
     ],
     "filament_pre_cooling_temperature": [
         "0",
@@ -308,5 +89,35 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "first_x_layer_fan_speed": [
+        "40"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "235",
+        "235"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "235",
+        "235"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
+    ],
+    "temperature_vitrification": [
+        "50"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2S 0.4 nozzle",
+        "Bambu Lab H2S 0.6 nozzle",
+        "Bambu Lab H2S 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
     ]
 }

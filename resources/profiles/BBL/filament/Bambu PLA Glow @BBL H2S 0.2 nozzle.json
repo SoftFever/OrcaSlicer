@@ -11,38 +11,13 @@
     "fan_min_speed": [
         "80"
     ],
-    "filament_max_volumetric_speed": [
-        "1",
-        "1"
-    ],
-    "compatible_printers": [
-        "Bambu Lab H2S 0.2 nozzle"
-    ],
-    "filament_start_gcode": [
-        "; filament start gcode\n"
-    ],
-    "filament_ramming_volumetric_speed": [
-        "-1",
-        "-1"
-    ],
-    "pre_start_fan_time": [
-        "2"
+    "filament_deretraction_speed": [
+        "nil",
+        "nil"
     ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
-    ],
-    "nozzle_temperature": [
-        "220",
-        "220"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "220",
-        "220"
-    ],
-    "filament_deretraction_speed": [
-        "nil",
-        "nil"
     ],
     "filament_flush_temp": [
         "0",
@@ -56,7 +31,19 @@
         "nil",
         "nil"
     ],
+    "filament_max_volumetric_speed": [
+        "1",
+        "1"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
     "filament_retract_before_wipe": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_restart_extra": [
         "nil",
         "nil"
     ],
@@ -100,14 +87,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "long_retractions_when_ec": [
-        "0",
-        "0"
-    ],
-    "retraction_distances_when_ec": [
-        "0",
-        "0"
-    ],
     "filament_pre_cooling_temperature": [
         "0",
         "0"
@@ -115,6 +94,31 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "220",
+        "220"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "220",
+        "220"
+    ],
+    "pre_start_fan_time": [
+        "2"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2S 0.2 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"

@@ -5,35 +5,16 @@
     "from": "system",
     "setting_id": "GFSC99_12",
     "instantiation": "true",
-    "filament_max_volumetric_speed": [
-        "1",
-        "1"
+    "chamber_temperatures": [
+        "60"
     ],
-    "compatible_printers": [
-        "Bambu Lab H2S 0.2 nozzle"
-    ],
-    "filament_start_gcode": [
-        "; filament start gcode\n"
-    ],
-    "filament_long_retractions_when_cut": [
+    "filament_deretraction_speed": [
         "nil",
         "nil"
     ],
     "filament_flow_ratio": [
         "0.94",
         "0.94"
-    ],
-    "nozzle_temperature": [
-        "280",
-        "280"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "270",
-        "270"
-    ],
-    "filament_deretraction_speed": [
-        "nil",
-        "nil"
     ],
     "filament_flush_temp": [
         "0",
@@ -43,11 +24,23 @@
         "0",
         "0"
     ],
+    "filament_long_retractions_when_cut": [
+        "nil",
+        "nil"
+    ],
+    "filament_max_volumetric_speed": [
+        "1",
+        "1"
+    ],
     "filament_ramming_volumetric_speed": [
         "-1",
         "-1"
     ],
     "filament_retract_before_wipe": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_restart_extra": [
         "nil",
         "nil"
     ],
@@ -91,14 +84,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "long_retractions_when_ec": [
-        "0",
-        "0"
-    ],
-    "retraction_distances_when_ec": [
-        "0",
-        "0"
-    ],
     "filament_pre_cooling_temperature": [
         "0",
         "0"
@@ -107,13 +92,32 @@
         "0",
         "0"
     ],
-    "filament_end_gcode": [
-        "; filament end gcode \n"
+    "long_retractions_when_ec": [
+        "0",
+        "0"
     ],
-    "chamber_temperatures": [
-        "60"
+    "nozzle_temperature": [
+        "280",
+        "280"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "270",
+        "270"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
     ],
     "slow_down_layer_time": [
         "12"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2S 0.2 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
     ]
 }
