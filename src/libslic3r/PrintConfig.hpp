@@ -983,6 +983,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                lattice_angle_1))
     ((ConfigOptionFloat,                lattice_angle_2))
     ((ConfigOptionFloat,                infill_overhang_angle))
+    ((ConfigOptionBool,                 align_infill_direction_to_model))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
