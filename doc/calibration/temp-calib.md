@@ -3,6 +3,10 @@
 In FDM 3D printing, the temperature is a critical factor that affects the quality of the print.
 There is no other calibration that can have such a big impact on the print quality as temperature calibration.
 
+- [Nozzle Temp tower](#nozzle-temp-tower)
+- [Bed temperature](#bed-temperature)
+- [Chamber temperature](#chamber-temperature)
+
 ## Nozzle Temp tower
 
 Nozzle temperature is one of the most important settings to calibrate for a successful print. The temperature of the nozzle affects the viscosity of the filament, which in turn affects how well it flows through the nozzle and adheres to the print bed. If the temperature is too low, the filament may not flow properly, leading to under-extrusion, poor layer adhesion and stringing. If the temperature is too high, the filament may degrade, over-extrude and produce stringing.
