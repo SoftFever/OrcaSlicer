@@ -500,6 +500,10 @@ void dataview_remove_insets(wxDataViewCtrl* dv);
 void staticbox_remove_margin(wxStaticBox* sb);
 #endif
 
+#if defined(__WXOSX__) || defined(__linux__)
+bool is_debugger_present();
+#endif
+
 /// <summary>
 /// Make sure the given window fits inside current display
 /// </summary>
