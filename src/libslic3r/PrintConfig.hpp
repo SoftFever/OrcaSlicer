@@ -1262,6 +1262,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,              small_area_infill_flow_compensation_model))
 
     ((ConfigOptionBool,                has_scarf_joint_seam))
+    
+    ((ConfigOptionString,             hide_config))
+    ((ConfigOptionString,             force_simple_config))
+    ((ConfigOptionString,             force_advanced_config))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
