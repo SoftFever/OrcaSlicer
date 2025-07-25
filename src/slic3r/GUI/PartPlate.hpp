@@ -264,6 +264,8 @@ public:
     bool get_spiral_vase_mode() const;
     void set_spiral_vase_mode(bool spiral_mode, bool as_global);
 
+    std::vector<Vec2d> get_plate_wrapping_detection_area() const;
+
     //static const int plate_x_offset = 20; //mm
     //static const double plate_x_gap = 0.2;
     ThumbnailData thumbnail_data;
