@@ -2368,25 +2368,6 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def           = this->add("top_surface_direction", coFloat);
-    def->label    = L("Top surface direction");
-    def->category = L("Strength");
-    def->tooltip  = L("Angle for top surface pattern, which controls the start or main direction of line.");
-    def->sidetext = "°";
-    def->min      = 0;
-    def->max      = 360;
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
-
-    def           = this->add("bottom_surface_direction", coFloat);
-    def->label    = L("Bottom surface direction");
-    def->category = L("Strength");
-    def->tooltip  = L("Angle for bottom surface pattern, which controls the start or main direction of line.");
-    def->sidetext = "°";
-    def->min      = 0;
-    def->max      = 360;
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
 
     // Infill multiline
     def             = this->add("fill_multiline", coInt);
