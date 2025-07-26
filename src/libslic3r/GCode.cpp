@@ -5018,6 +5018,7 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
     std::string 		 gcode;
     ExtrusionEntitiesPtr extrusions;
     const char*          extrusion_name = ironing ? "ironing" : "infill";
+    const bool disable_infill_pa =this->config().enable_pressure_advance.get_at(m_writer.extruder()->id()) && !this->config().adaptive_pressure_advance.get_at(m_writer.extruder()->id()) && m_config.disable_infill_pressure_advance;
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.infills.empty()) {
             extrusions.clear();
@@ -5028,6 +5029,9 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
             if (! extrusions.empty()) {
                 m_config.apply(print.get_print_region(&region - &by_region.front()).config());
                 chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+                if(disable_infill_pa){
+                    gcode += m_writer.set_pressure_advance(0);
+                }
                 for (const ExtrusionEntity *fill : extrusions) {
                     auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
                     if (eec) {
@@ -5035,6 +5039,9 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
                             gcode += this->extrude_entity(*ee, extrusion_name);
                     } else
                         gcode += this->extrude_entity(*fill, extrusion_name);
+                }
+                if(disable_infill_pa){
+                    gcode += m_writer.set_pressure_advance(this->config().pressure_advance.get_at(m_writer.extruder()->id()));
                 }
             }
         }
@@ -5502,7 +5509,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             evaluate_adaptive_pa = true;
     }
     // Orca: End of dynamic PA trigger flag segment
-    
+
     //Orca: process custom gcode for extrusion role change
     if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
             DynamicConfig config;
