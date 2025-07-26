@@ -70,6 +70,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 - [Wall generator](quality_settings_wall_generator)
 - [Walls and surfaces](quality_settings_wall_and_surfaces)
 - [Bridging](quality_settings_bridging)
+- [Overhangs](quality_settings_overhangs)
 
 ### Strength Settings
 
@@ -117,12 +118,12 @@ The below sections provide a detailed settings explanation as well as tips and t
 
 ![process-others](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-others.png?raw=true)
 
-[Skirt](others_settings_skirt)
-[Brim](others_settings_brim)
-[Special Mode](others_settings_special_mode)
-[G-Code Output](others_settings_g_code_output)
-[Post Processing Scripts](others_settings_post_processing_scripts)
-[Notes](others_settings_notes)
+- [Skirt](others_settings_skirt)
+- [Brim](others_settings_brim)
+- [Special Mode](others_settings_special_mode)
+- [G-Code Output](others_settings_g_code_output)
+- [Post Processing Scripts](others_settings_post_processing_scripts)
+- [Notes](others_settings_notes)
 
 ## Calibrations
 
@@ -138,6 +139,7 @@ The [Calibration Guide](Calibration) outlines Orca’s key calibration tests and
   - [Volumetric Speed](volumetric-speed-calib)
   - [Cornering (Jerk & Junction Deviation)](cornering-calib)
   - [Input Shaping](input-shaping-calib)
+  - [VFA](vfa-calib)
 
 ## Developer Section
 
