@@ -26,14 +26,16 @@ Optimize your prints with ultra-fast slicing, intelligent support generation, an
 #### Join our Discord community:
 <a href="https://discord.gg/P4VE9UY9gJ"><img src="https://img.shields.io/badge/-Discord-5865F2?style=flat&logo=discord&logoColor=fff" width="200" alt="discord logo"/> </a>
 
-<div style="border: 2px solid #ffa500; background-color: #fff8e1; color: #333; padding: 16px; border-radius: 8px; margin: 16px 0; text-align: left;">
-  <strong style="color: #d35400; font-size: 1.1em;">&#9888; CAUTION:</strong>
-  <div style="margin-top: 8px;">
-    There are multiple unofficial and potentially malicious websites pretending to be related to OrcaSlicer. These sites may redirect you to dangerous downloads or contain misleading information.
-    <br><br>
-    If you come across any of these in search results, please report them as unsafe or spam to help keep the community secure.
-  </div>
-</div>
+<table border="2" style="border-color: #ffa500; background-color:rgb(232, 220, 180); color: #856404;">
+<tr>
+<td>
+<strong>⚠️ CAUTION:</strong><br><br>
+There are several clickbait and malicious websites pretending to be Official OrcaSlicer. These sites may redirect you to dangerous downloads or contain misleading information.
+<br><br>
+If you come across any of these in search results, please report them as unsafe or spam to help keep the community secure.
+</td>
+</tr>
+</table>
 
 
 </div>
