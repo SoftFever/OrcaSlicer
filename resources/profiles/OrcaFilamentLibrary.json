@@ -971,6 +971,30 @@
         {
             "name": "Polymaker HT-PLA-GF @System",
             "sub_path": "filament/Polymaker/Polymaker HT-PLA-GF @System.json"
+        },
+        {
+            "name": "NIT ABS @base",
+            "sub_path": "filament/NIT/NIT ABS @base.json"
+        },
+        {
+            "name": "NIT ABS @System",
+            "sub_path": "filament/NIT/NIT ABS @System.json"
+        },
+        {
+            "name": "NIT PETG @base",
+            "sub_path": "filament/NIT/NIT PETG @base.json"
+        },
+        {
+            "name": "NIT PETG @System",
+            "sub_path": "filament/NIT/NIT PETG @System.json"
+        },
+        {
+            "name": "NIT PLA @base",
+            "sub_path": "filament/NIT/NIT PLA @base.json"
+        },
+        {
+            "name": "NIT PLA @System",
+            "sub_path": "filament/NIT/NIT PLA @System.json"
         }
     ]
 }
