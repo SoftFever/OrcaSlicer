@@ -123,12 +123,31 @@ jobs:
           if [ -f "${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
             codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app
           fi
+          
+          # Create main OrcaSlicer DMG
           ln -s /Applications ${{ github.workspace }}/build/universal/OrcaSlicer/Applications
           hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
           codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
+          
+          # Create separate OrcaSlicer_profile_validator DMG if the app exists
+          if [ -f "${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
+            mkdir -p ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg
+            cp -R ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/
+            ln -s /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/Applications
+            hdiutil create -volname "OrcaSlicer Profile Validator" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg -ov -format UDZO OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+            codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+          fi
+          
+          # Notarize main DMG
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
           xcrun notarytool submit "OrcaSlicer_Mac_universal_${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
           xcrun stapler staple OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
+          
+          # Notarize profile validator DMG if it exists
+          if [ -f "OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg" ]; then
+            xcrun notarytool submit "OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
+            xcrun stapler staple OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+          fi
 
       - name: Create DMG without notary
         if: github.ref != 'refs/heads/main' && inputs.os == 'macos-14'
@@ -136,6 +155,14 @@ jobs:
         run: |
           ln -s /Applications ${{ github.workspace }}/build/universal/OrcaSlicer/Applications
           hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
+          
+          # Create separate OrcaSlicer_profile_validator DMG if the app exists
+          if [ -f "${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
+            mkdir -p ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg
+            cp -R ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/
+            ln -s /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/Applications
+            hdiutil create -volname "OrcaSlicer Profile Validator" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg -ov -format UDZO OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+          fi
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-14'
@@ -144,12 +171,13 @@ jobs:
           name: OrcaSlicer_Mac_universal_${{ env.ver }}
           path: ${{ github.workspace }}/OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
 
-      - name: Upload OrcaSlicer_profile_validator mac
+      - name: Upload OrcaSlicer_profile_validator DMG mac
         if: inputs.os == 'macos-14'
         uses: actions/upload-artifact@v4
         with:
-          name: OrcaSlicer_profile_validator_Mac_${{ env.ver }}
-          path: ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app
+          name: OrcaSlicer_profile_validator_Mac_universal_DMG_${{ env.ver }}
+          path: ${{ github.workspace }}/OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+          if-no-files-found: ignore
 
       - name: Deploy Mac release
         if: github.ref == 'refs/heads/main' && inputs.os == 'macos-14'
@@ -162,12 +190,6 @@ jobs:
           asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
-      - name: Create OrcaSlicer_profile_validator zip for Mac release
-        if: github.ref == 'refs/heads/main' && inputs.os == 'macos-14'
-        working-directory: ${{ github.workspace }}
-        run: |
-          cd build/universal/OrcaSlicer
-          zip -r ../../../OrcaSlicer_profile_validator_Mac_${{ env.ver }}.zip OrcaSlicer_profile_validator.app
 
       - name: Deploy Mac OrcaSlicer_profile_validator release
         if: github.ref == 'refs/heads/main' && inputs.os == 'macos-14'
@@ -178,6 +200,17 @@ jobs:
           asset_path: ${{ github.workspace }}/OrcaSlicer_profile_validator_Mac_${{ env.ver }}.zip
           asset_name: OrcaSlicer_profile_validator_Mac_${{ env.ver }}.zip
           asset_content_type: application/zip
+          max_releases: 1
+
+      - name: Deploy Mac OrcaSlicer_profile_validator DMG release
+        if: github.ref == 'refs/heads/main' && inputs.os == 'macos-14'
+        uses: WebFreak001/deploy-nightly@v3.2.0
+        with:
+          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
+          release_id: 137995723
+          asset_path: ${{ github.workspace }}/OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+          asset_name: OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+          asset_content_type: application/octet-stream
           max_releases: 1
 
 # Windows
