@@ -104,7 +104,7 @@ Download the **Windows Installer exe**  for your preferred version from the [rel
 
 Windows Package Manager:
 ```shell
-winget install --id=SoftFever.OrcaSlicer --e
+winget install --id=SoftFever.OrcaSlicer --exact
 ```
 
 ## Mac:
