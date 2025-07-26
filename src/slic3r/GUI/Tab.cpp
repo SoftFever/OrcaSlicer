@@ -4222,7 +4222,7 @@ PageShp TabPrinter::build_kinematics_page()
     optgroup->append_single_option_line("resonance_avoidance");
     // Resonance‑avoidance speed inputs
     {
-        Line resonance_line = {L("Resonance Avoidance Speed"), L("")};
+        Line resonance_line = {L("Resonance Avoidance Speed"), L""};
         resonance_line.append_option(optgroup->get_option("min_resonance_avoidance_speed"));
         resonance_line.append_option(optgroup->get_option("max_resonance_avoidance_speed"));
         optgroup->append_line(resonance_line);
