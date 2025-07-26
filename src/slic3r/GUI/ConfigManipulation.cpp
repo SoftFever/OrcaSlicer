@@ -804,6 +804,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
 
+    FuzzySkinState fuzzy_skin_state = config->opt_enum<FuzzySkinState>("fuzzy_skin_state");
+    for (auto el : { "fuzzy_skin_mode", "fuzzy_skin_noise_type", "fuzzy_skin_point_distance",
+        "fuzzy_skin_thickness", "fuzzy_skin_scale", "fuzzy_skin_octaves", "fuzzy_skin_persistence", "fuzzy_skin_first_layer"})
+        toggle_line(el, fuzzy_skin_state != FuzzySkinState::None);
     NoiseType fuzzy_skin_noise_type = config->opt_enum<NoiseType>("fuzzy_skin_noise_type");
     toggle_line("fuzzy_skin_scale", fuzzy_skin_noise_type != NoiseType::Classic);
     toggle_line("fuzzy_skin_octaves", fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin_noise_type != NoiseType::Voronoi);
