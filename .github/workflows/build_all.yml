@@ -3,7 +3,7 @@ name: Build all
 on:
   push:
     branches:
-     - main
+     - patch-1
      - release/*
     paths:
      - 'deps/**'
@@ -17,7 +17,7 @@ on:
 
   pull_request:
     branches:
-     - main
+     - patch-1
      - release/*
     paths:
      - 'deps/**'
