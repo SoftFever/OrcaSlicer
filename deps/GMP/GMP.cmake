@@ -60,8 +60,8 @@ else ()
     endif ()
 
     ExternalProject_Add(dep_GMP
-        URL https://github.com/SoftFever/OrcaSlicer_deps/releases/download/gmp-6.2.1/gmp-6.2.1.tar.bz2
-        URL_HASH SHA256=eae9326beb4158c386e39a356818031bd28f3124cf915f8c5b1dc4c7a36b4d7c
+        URL https://github.com/gmp-mirror/gmp-6.3/archive/fb2a20c31bab706024dce27878eed29a298fc69f.zip
+        URL_HASH SHA256=340d6c849f679332a27499bcfaa2b777c7bb2bac2a934a35c7807c407fd7e771
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/GMP
         PATCH_COMMAND git apply ${GMP_DIRECTORY_FLAG} --verbose ${CMAKE_CURRENT_LIST_DIR}/0001-GMP_GCC15.patch
         BUILD_IN_SOURCE ON
