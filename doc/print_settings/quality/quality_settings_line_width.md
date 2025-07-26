@@ -18,7 +18,7 @@ These settings control how wide the extruded lines are.
 
 - **Support:** The line width in mm or as a percentage of the nozzle size used when printing the model’s support structures.
 
-## Tips:
+## Tips
 
 1. **Typically, the line width will be anything from 100% up to 150% of the nozzle width**. Due to the way the slicer’s flow math works, a 100% line width will attempt to extrude slightly “smaller” than the nozzle size and when squished onto the layer below will match the nozzle orifice. You can read more on the flow math here: [Flow Math](https://manual.slic3r.org/advanced/flow-math).
 

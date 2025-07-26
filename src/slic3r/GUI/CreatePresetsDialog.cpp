@@ -643,9 +643,6 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
 	this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(600), FromDIP(480)));
 
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
 	wxBoxSizer *m_main_sizer = new wxBoxSizer(wxVERTICAL);
     // top line
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
@@ -1542,9 +1539,6 @@ CreatePrinterPresetDialog::CreatePrinterPresetDialog(wxWindow *parent)
     this->SetBackgroundColour(*wxWHITE);
     SetSizeHints(wxDefaultSize, wxDefaultSize);
 
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     wxBoxSizer *m_main_sizer = new wxBoxSizer(wxVERTICAL);
     // top line
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 2), wxTAB_TRAVERSAL);
@@ -1876,7 +1870,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_bed_size_item(wxWindow *parent)
      // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(length_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *length_input_sizer      = new wxBoxSizer(wxVERTICAL);
-    m_bed_size_x_input = new TextInput(parent, "200", _L("mm"), "inputbox_x", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
+    m_bed_size_x_input = new TextInput(parent, "200", "mm", "inputbox_x", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     wxTextValidator validator(wxFILTER_DIGITS);
     m_bed_size_x_input->GetTextCtrl()->SetValidator(validator);
     length_input_sizer->Add(m_bed_size_x_input, 0, wxEXPAND | wxLEFT, FromDIP(5));
@@ -1886,7 +1880,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_bed_size_item(wxWindow *parent)
     // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(width_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *width_input_sizer      = new wxBoxSizer(wxVERTICAL);
-    m_bed_size_y_input            = new TextInput(parent, "200", _L("mm"), "inputbox_y", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
+    m_bed_size_y_input            = new TextInput(parent, "200", "mm", "inputbox_y", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     m_bed_size_y_input->GetTextCtrl()->SetValidator(validator);
     width_input_sizer->Add(m_bed_size_y_input, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(width_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1909,7 +1903,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_origin_item(wxWindow *parent)
     // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(length_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *length_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bed_origin_x_input           = new TextInput(parent, "0", _L("mm"), "inputbox_x", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
+    m_bed_origin_x_input           = new TextInput(parent, "0", "mm", "inputbox_x", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     wxTextValidator validator(wxFILTER_DIGITS);
     m_bed_origin_x_input->GetTextCtrl()->SetValidator(validator);
     length_input_sizer->Add(m_bed_origin_x_input, 0, wxEXPAND | wxLEFT, FromDIP(5)); // Align with other
@@ -1919,7 +1913,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_origin_item(wxWindow *parent)
     // ORCA use icon on input box to match style with other Point fields
     horizontal_sizer->Add(width_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *width_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bed_origin_y_input          = new TextInput(parent, "0", _L("mm"), "inputbox_y", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
+    m_bed_origin_y_input          = new TextInput(parent, "0", "mm", "inputbox_y", wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER);
     m_bed_origin_y_input->GetTextCtrl()->SetValidator(validator);
     width_input_sizer->Add(m_bed_origin_y_input, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(width_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1939,21 +1933,10 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_stl_item(wxWindow *parent)
 
     wxBoxSizer *hot_bed_stl_sizer = new wxBoxSizer(wxVERTICAL);
 
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
+    m_button_bed_stl = new Button(parent, _L("Load..."));
+    m_button_bed_stl->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
+    m_button_bed_stl->Bind(wxEVT_BUTTON, ([this](wxCommandEvent& e) { load_model_stl(); }));
 
-    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
-
-    m_button_bed_stl = new Button(parent, _L("Load stl"));
-    m_button_bed_stl->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_model_stl(); }));
-    m_button_bed_stl->SetFont(Label::Body_10);
-
-    m_button_bed_stl->SetPaddingSize(wxSize(FromDIP(30), FromDIP(8)));
-    m_button_bed_stl->SetFont(Label::Body_13);
-    m_button_bed_stl->SetCornerRadius(FromDIP(8));
-    m_button_bed_stl->SetBackgroundColor(flush_bg_col);
-    m_button_bed_stl->SetBorderColor(flush_bd_col);
     hot_bed_stl_sizer->Add(m_button_bed_stl, 0, wxEXPAND | wxALL, 0);
 
     horizontal_sizer->Add(hot_bed_stl_sizer, 0, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -1976,21 +1959,10 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_svg_item(wxWindow *parent)
 
     wxBoxSizer *hot_bed_stl_sizer = new wxBoxSizer(wxVERTICAL);
 
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
-
-    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
-
-    m_button_bed_svg = new Button(parent, _L("Load svg"));
+    m_button_bed_svg = new Button(parent, _L("Load..."));
+    m_button_bed_svg->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
     m_button_bed_svg->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_texture(); }));
-    m_button_bed_svg->SetFont(Label::Body_10);
 
-    m_button_bed_svg->SetPaddingSize(wxSize(FromDIP(30), FromDIP(8)));
-    m_button_bed_svg->SetFont(Label::Body_13);
-    m_button_bed_svg->SetCornerRadius(FromDIP(8));
-    m_button_bed_svg->SetBackgroundColor(flush_bg_col);
-    m_button_bed_svg->SetBorderColor(flush_bd_col);
     hot_bed_stl_sizer->Add(m_button_bed_svg, 0, wxEXPAND | wxALL, 0);
 
     horizontal_sizer->Add(hot_bed_stl_sizer, 0, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -2012,7 +1984,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_max_print_height_item(wxWindow *pa
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *hight_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_print_height_input          = new TextInput(parent, "200", _L("mm"), wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER); // Use same alignment with all other input boxes
+    m_print_height_input          = new TextInput(parent, "200", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_PROCESS_ENTER); // Use same alignment with all other input boxes
     wxTextValidator validator(wxFILTER_DIGITS);
     m_print_height_input->GetTextCtrl()->SetValidator(validator);
     hight_input_sizer->Add(m_print_height_input, 0, wxEXPAND | wxLEFT, FromDIP(5));
@@ -3224,8 +3196,6 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
 {
     this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(450), FromDIP(200)));
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *m_main_sizer = new wxBoxSizer(wxVERTICAL);
     // top line
@@ -3314,9 +3284,6 @@ ExportConfigsDialog::ExportConfigsDialog(wxWindow *parent)
 
     this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(600), FromDIP(600)));
-
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     // top line
@@ -4192,9 +4159,6 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, Filamentinf
     this->SetBackgroundColour(*wxWHITE);
     this->SetMinSize(wxSize(FromDIP(600), -1));
 
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     // top line
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
@@ -4502,22 +4466,8 @@ wxBoxSizer *EditFilamentPresetDialog::create_add_filament_btn()
 {
     wxBoxSizer *add_filament_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_add_filament_btn                 = new Button(this, _L("+ Add Preset"));
-    m_add_filament_btn->SetFont(Label::Body_10);
-    m_add_filament_btn->SetPaddingSize(wxSize(FromDIP(8), FromDIP(3)));
-    m_add_filament_btn->SetCornerRadius(FromDIP(8));
+    m_add_filament_btn->SetStyle(ButtonStyle::Regular, ButtonType::Window);
 
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
-
-    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed), std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
-
-    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
-
-    m_add_filament_btn->SetBackgroundColor(flush_bg_col);
-    m_add_filament_btn->SetBorderColor(flush_bd_col);
-    m_add_filament_btn->SetTextColor(flush_fg_col);
     add_filament_btn_sizer->Add(m_add_filament_btn, 0, wxEXPAND | wxALL, FromDIP(10));
 
     m_add_filament_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
@@ -4615,9 +4565,6 @@ CreatePresetForPrinterDialog::CreatePresetForPrinterDialog(wxWindow *parent, std
     get_visible_printer_and_compatible_filament_presets();
 
     this->SetBackgroundColour(*wxWHITE);
-
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
     // top line
@@ -4853,41 +4800,17 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     }
     sizer->Add(0, 0, 1, wxEXPAND, 0);
 
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
-
-    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed), std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
-
-    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
-
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    Button *edit_preset_btn = new Button(panel, _L("Edit Preset"));
-    edit_preset_btn->SetFont(Label::Body_10);
-    edit_preset_btn->SetPaddingSize(wxSize(8, 3));
-    edit_preset_btn->SetCornerRadius(8);
-    edit_preset_btn->SetBackgroundColor(flush_bg_col);
-    edit_preset_btn->SetBorderColor(flush_bd_col);
-    edit_preset_btn->SetTextColor(flush_fg_col);
+    Button *edit_preset_btn = new Button(panel, _L("Edit Preset")); 
+    edit_preset_btn->SetStyle(ButtonStyle::Regular, ButtonType::Compact);
     //edit_preset_btn->Hide();
     sizer->Add(edit_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     sizer->Add(0, 0, 0, wxLEFT, 5);
 
     Button *del_preset_btn = new Button(panel, _L("Delete Preset"));
-    del_preset_btn->SetFont(Label::Body_10);
-    del_preset_btn->SetPaddingSize(wxSize(8, 3));
-    del_preset_btn->SetCornerRadius(8);
     if (base_id_error) {
-        del_preset_btn->SetBackgroundColor(btn_bg_green);
-        del_preset_btn->SetBorderColor(btn_bg_green);
-        del_preset_btn->SetTextColor(wxColour(0xFFFFFE));
+        del_preset_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
     } else {
-        del_preset_btn->SetBackgroundColor(flush_bg_col);
-        del_preset_btn->SetBorderColor(flush_bd_col);
-        del_preset_btn->SetTextColor(flush_fg_col);
+        del_preset_btn->SetStyle(ButtonStyle::Alert,   ButtonType::Compact);
     }
     
     //del_preset_btn->Hide();

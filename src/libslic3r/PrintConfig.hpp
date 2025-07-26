@@ -34,11 +34,18 @@ enum GCodeFlavor : unsigned char {
     gcfSmoothie, gcfNoExtrusion
 };
 
+
 enum class FuzzySkinType {
     None,
     External,
     All,
     AllWalls,
+};
+
+enum class FuzzySkinMode {
+    Displacement,
+    Extrusion,
+    Combined,
 };
 
 enum class NoiseType {
@@ -58,9 +65,14 @@ enum AuthorizationType {
 };
 
 enum InfillPattern : int {
-    ipConcentric, ipRectilinear, ipGrid, ip2DLattice, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipTpmsD, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip2DHoneycomb, ip3DHoneycomb,
-    ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-    ipLightning, ipCrossHatch, ipQuarterCubic,
+    ipRectilinear, ipAlignedRectilinear, ipZigZag, ipCrossZag, ipLockedZag,
+    ipLine, ipGrid,  ipMonotonic, ipMonotonicLine,
+    ipTriangles, ipStars,
+    ipCubic, ipAdaptiveCubic, ipQuarterCubic, ipSupportCubic, ipLightning,
+    ipHoneycomb, ip3DHoneycomb, ip2DHoneycomb, ip2DLattice,
+    ipCrossHatch, ipTpmsD, ipGyroid,
+    ipConcentric, ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral,
+    ipSupportBase, ipConcentricInternal,
     ipCount,
 };
 
@@ -299,6 +311,13 @@ static std::unordered_map<NozzleType, std::string>NozzleTypeEumnToStr = {
     {NozzleType::ntBrass,           "brass"}
 };
 
+static std::unordered_map<std::string, NozzleType>NozzleTypeStrToEumn = {
+    {"undefine", NozzleType::ntUndefine},
+    {"hardened_steel", NozzleType::ntHardenedSteel},
+    {"stainless_steel", NozzleType::ntStainlessSteel},
+    {"brass", NozzleType::ntBrass}
+};
+
 // BBS
 enum PrinterStructure {
     psUndefine=0,
@@ -315,6 +334,12 @@ enum ZHopType {
     zhtSlope,
     zhtSpiral,
     zhtCount
+};
+
+enum NozzleVolumeType {
+    nvtNormal = 0,
+    nvtBigTraffic,
+    nvtMaxNozzleVolumeType = nvtBigTraffic
 };
 
 enum RetractLiftEnforceType {
@@ -422,6 +447,7 @@ static std::string get_bed_temp_1st_layer_key(const BedType type)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrinterTechnology)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeFlavor)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NoiseType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(IroningType)
@@ -849,6 +875,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,      support_threshold_overlap))
     ((ConfigOptionFloat,               support_object_xy_distance))
     ((ConfigOptionFloat,               support_object_first_layer_gap))
+    ((ConfigOptionBool,                support_ironing))
+    ((ConfigOptionEnum<InfillPattern>, support_ironing_pattern))
+    ((ConfigOptionPercent,             support_ironing_flow))
+    ((ConfigOptionFloat,               support_ironing_spacing))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
     ((ConfigOptionBool,                flush_into_objects))
@@ -935,6 +965,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bridge_speed))
     ((ConfigOptionFloatOrPercent,       internal_bridge_speed))
     ((ConfigOptionEnum<EnsureVerticalShellThickness>,   ensure_vertical_shell_thickness))
+    ((ConfigOptionPercent,              top_surface_density))
+    ((ConfigOptionPercent,               bottom_surface_density))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))
@@ -942,17 +974,22 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                outer_wall_speed))
     ((ConfigOptionFloat,                infill_direction))
     ((ConfigOptionFloat,                solid_infill_direction))
-    ((ConfigOptionBool,                 rotate_solid_infill_direction))
+    ((ConfigOptionString,               solid_infill_rotate_template))
+    ((ConfigOptionBool,                 symmetric_infill_y_axis))
+    ((ConfigOptionFloat,                infill_shift_step))
+    ((ConfigOptionString,               sparse_infill_rotate_template))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
     ((ConfigOptionFloat,                lattice_angle_1))
     ((ConfigOptionFloat,                lattice_angle_2))
     ((ConfigOptionFloat,                infill_overhang_angle))
+    ((ConfigOptionBool,                 align_infill_direction_to_model))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
     ((ConfigOptionBool,                 fuzzy_skin_first_layer))
     ((ConfigOptionEnum<NoiseType>,      fuzzy_skin_noise_type))
+    ((ConfigOptionEnum<FuzzySkinMode>,  fuzzy_skin_mode))
     ((ConfigOptionFloat,                fuzzy_skin_scale))
     ((ConfigOptionInt,                  fuzzy_skin_octaves))
     ((ConfigOptionFloat,                fuzzy_skin_persistence))
@@ -962,10 +999,16 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,              infill_wall_overlap))
     ((ConfigOptionPercent,              top_bottom_infill_wall_overlap))
     ((ConfigOptionFloat,                sparse_infill_speed))
-    //BBS
+    ((ConfigOptionPercent, skeleton_infill_density))
+    ((ConfigOptionPercent, skin_infill_density))
+    ((ConfigOptionFloat, infill_lock_depth))
+    ((ConfigOptionFloat, skin_infill_depth))
+    ((ConfigOptionFloatOrPercent, skin_infill_line_width))
+    ((ConfigOptionFloatOrPercent, skeleton_infill_line_width))
     ((ConfigOptionBool, infill_combination))
     // Orca:
     ((ConfigOptionFloatOrPercent,                infill_combination_max_layer_height))
+    ((ConfigOptionInt,                  fill_multiline))
     // Ironing options
     ((ConfigOptionEnum<IroningType>, ironing_type))
     ((ConfigOptionEnum<InfillPattern>, ironing_pattern))
@@ -1012,7 +1055,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 wipe_before_external_loop))
     ((ConfigOptionEnum<WallInfillOrder>, wall_infill_order))
     ((ConfigOptionBool,                 precise_outer_wall))
-    ((ConfigOptionBool,                 overhang_speed_classic))
     ((ConfigOptionPercent,              bridge_density))
     ((ConfigOptionFloat,                 filter_out_gap_fill))
     ((ConfigOptionFloatOrPercent,       small_perimeter_speed))
@@ -1376,6 +1418,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInt,                 slow_down_layers))
     ((ConfigOptionInts,                support_material_interface_fan_speed))
     ((ConfigOptionInts,                internal_bridge_fan_speed)) // ORCA: Add support for separate internal bridge fan speed control
+    ((ConfigOptionInts,                ironing_fan_speed))
     // Orca: notes for profiles from PrusaSlicer
     ((ConfigOptionStrings,             filament_notes))
     ((ConfigOptionString,              notes))
