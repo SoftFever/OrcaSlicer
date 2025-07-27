@@ -3721,8 +3721,8 @@ LayerResult GCode::process_layer(
     if(is_BBL_Printer()){
         if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
             std::string timepals_gcode = insert_timelapse_gcode();
-            gcode += timepals_gcode;
             if(!timepals_gcode.empty()){
+            gcode += timepals_gcode;
             m_writer.set_current_position_clear(false);
             //BBS: check whether custom gcode changes the z position. Update if changed
             double temp_z_after_timepals_gcode;
@@ -4136,8 +4136,8 @@ LayerResult GCode::process_layer(
                     m_writer.add_object_change_labels(gcode);
 
                     std::string timepals_gcode = insert_timelapse_gcode();
-                    gcode += timepals_gcode;
                     if(!timepals_gcode.empty()){
+                    gcode += timepals_gcode;
                     m_writer.set_current_position_clear(false);
                     //BBS: check whether custom gcode changes the z position. Update if changed
                     double temp_z_after_timepals_gcode;
@@ -4383,9 +4383,9 @@ LayerResult GCode::process_layer(
                             gcode += this->retract(false, false, LiftType::NormalLift);
 
                             std::string timepals_gcode = insert_timelapse_gcode();
-                            gcode += timepals_gcode;
                             if(!timepals_gcode.empty()){
-                            m_writer.set_current_position_clear(false);                        
+                            gcode += timepals_gcode;
+                            m_writer.set_current_position_clear(false);
                             //BBS: check whether custom gcode changes the z position. Update if changed
                             double temp_z_after_timepals_gcode;
                             if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
@@ -4470,9 +4470,9 @@ LayerResult GCode::process_layer(
         m_writer.add_object_change_labels(gcode);
 
         std::string timepals_gcode = insert_timelapse_gcode();
-        gcode += timepals_gcode;
         if(!timepals_gcode.empty()){
-        m_writer.set_current_position_clear(false);        
+        gcode += timepals_gcode;
+        m_writer.set_current_position_clear(false);
         //BBS: check whether custom gcode changes the z position. Update if changed
         double temp_z_after_timepals_gcode;
         if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
