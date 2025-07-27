@@ -3721,6 +3721,7 @@ LayerResult GCode::process_layer(
     if(is_BBL_Printer()){
         if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
             std::string timepals_gcode = insert_timelapse_gcode();
+            if(!timepals_gcode.empty()){
             gcode += timepals_gcode;
             m_writer.set_current_position_clear(false);
             //BBS: check whether custom gcode changes the z position. Update if changed
@@ -3729,6 +3730,7 @@ LayerResult GCode::process_layer(
                 Vec3d pos = m_writer.get_position();
                 pos(2) = temp_z_after_timepals_gcode;
                 m_writer.set_position(pos);
+            }
             }
         }
     } else {
@@ -4134,6 +4136,7 @@ LayerResult GCode::process_layer(
                     m_writer.add_object_change_labels(gcode);
 
                     std::string timepals_gcode = insert_timelapse_gcode();
+                    if(!timepals_gcode.empty()){
                     gcode += timepals_gcode;
                     m_writer.set_current_position_clear(false);
                     //BBS: check whether custom gcode changes the z position. Update if changed
@@ -4142,6 +4145,7 @@ LayerResult GCode::process_layer(
                         Vec3d pos = m_writer.get_position();
                         pos(2) = temp_z_after_timepals_gcode;
                         m_writer.set_position(pos);
+                    }
                     }
                     has_insert_timelapse_gcode = true;
                 }
@@ -4379,6 +4383,7 @@ LayerResult GCode::process_layer(
                             gcode += this->retract(false, false, LiftType::NormalLift);
 
                             std::string timepals_gcode = insert_timelapse_gcode();
+                            if(!timepals_gcode.empty()){
                             gcode += timepals_gcode;
                             m_writer.set_current_position_clear(false);
                             //BBS: check whether custom gcode changes the z position. Update if changed
@@ -4388,7 +4393,7 @@ LayerResult GCode::process_layer(
                                 pos(2) = temp_z_after_timepals_gcode;
                                 m_writer.set_position(pos);
                             }
-
+                            }
                             has_insert_timelapse_gcode = true;
                         }
                         // Then print infill
@@ -4464,6 +4469,7 @@ LayerResult GCode::process_layer(
         m_writer.add_object_change_labels(gcode);
 
         std::string timepals_gcode = insert_timelapse_gcode();
+        if(!timepals_gcode.empty()){
         gcode += timepals_gcode;
         m_writer.set_current_position_clear(false);
         //BBS: check whether custom gcode changes the z position. Update if changed
@@ -4472,6 +4478,7 @@ LayerResult GCode::process_layer(
             Vec3d pos = m_writer.get_position();
             pos(2) = temp_z_after_timepals_gcode;
             m_writer.set_position(pos);
+        }
         }
     }
 
@@ -6078,8 +6085,7 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
 
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
     // multi-hop travel path inside the configuration space
-    if (needs_retraction
-        && m_config.reduce_crossing_wall
+    if ( m_config.reduce_crossing_wall
         && ! m_avoid_crossing_perimeters.disabled_once()
         //BBS: don't generate detour travel paths when current position is unclear
         && m_writer.is_current_position_clear()) {
