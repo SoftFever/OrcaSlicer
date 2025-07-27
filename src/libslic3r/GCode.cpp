@@ -79,20 +79,6 @@ using namespace std::literals::string_view_literals;
 
 #include <assert.h>
 
-static bool gcode_has_xyz(const std::string& gcode_line){
-    std::string::size_type comment_pos = gcode_line.find(';');
-    std::string code_only = gcode_line.substr(0, comment_pos);
-
-    return code_only.find('G') != std::string::npos ||
-           code_only.find('g') != std::string::npos ||
-           code_only.find('X') != std::string::npos ||
-           code_only.find('x') != std::string::npos ||
-           code_only.find('Y') != std::string::npos ||
-           code_only.find('y') != std::string::npos ||
-           code_only.find('Z') != std::string::npos ||
-           code_only.find('z') != std::string::npos;
- }
-
 namespace Slic3r {
 
     //! macro used to mark string used at localization,
@@ -3736,6 +3722,7 @@ LayerResult GCode::process_layer(
         if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
             std::string timepals_gcode = insert_timelapse_gcode();
             gcode += timepals_gcode;
+            if(!timepals_gcode.empty()){
             m_writer.set_current_position_clear(false);
             //BBS: check whether custom gcode changes the z position. Update if changed
             double temp_z_after_timepals_gcode;
@@ -3743,6 +3730,7 @@ LayerResult GCode::process_layer(
                 Vec3d pos = m_writer.get_position();
                 pos(2) = temp_z_after_timepals_gcode;
                 m_writer.set_position(pos);
+            }
             }
         }
     } else {
@@ -4149,6 +4137,7 @@ LayerResult GCode::process_layer(
 
                     std::string timepals_gcode = insert_timelapse_gcode();
                     gcode += timepals_gcode;
+                    if(!timepals_gcode.empty()){
                     m_writer.set_current_position_clear(false);
                     //BBS: check whether custom gcode changes the z position. Update if changed
                     double temp_z_after_timepals_gcode;
@@ -4158,6 +4147,7 @@ LayerResult GCode::process_layer(
                         m_writer.set_position(pos);
                     }
                     has_insert_timelapse_gcode = true;
+                    }
                 }
                 gcode_toolchange = m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
             }
@@ -4394,7 +4384,7 @@ LayerResult GCode::process_layer(
 
                             std::string timepals_gcode = insert_timelapse_gcode();
                             gcode += timepals_gcode;
-                            if (gcode_has_xyz(timepals_gcode)){
+                            if(!timepals_gcode.empty()){
                             m_writer.set_current_position_clear(false);                        
                             //BBS: check whether custom gcode changes the z position. Update if changed
                             double temp_z_after_timepals_gcode;
@@ -4481,7 +4471,7 @@ LayerResult GCode::process_layer(
 
         std::string timepals_gcode = insert_timelapse_gcode();
         gcode += timepals_gcode;
-        if (gcode_has_xyz(timepals_gcode)){
+        if(!timepals_gcode.empty()){
         m_writer.set_current_position_clear(false);        
         //BBS: check whether custom gcode changes the z position. Update if changed
         double temp_z_after_timepals_gcode;
