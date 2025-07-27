@@ -4146,7 +4146,7 @@ LayerResult GCode::process_layer(
                         pos(2) = temp_z_after_timepals_gcode;
                         m_writer.set_position(pos);
                     }
-		            }
+                    }
                     has_insert_timelapse_gcode = true;
                 }
                 gcode_toolchange = m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
