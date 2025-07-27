@@ -190,18 +190,6 @@ jobs:
           asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
-
-      - name: Deploy Mac OrcaSlicer_profile_validator release
-        if: github.ref == 'refs/heads/main' && inputs.os == 'macos-14'
-        uses: WebFreak001/deploy-nightly@v3.2.0
-        with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
-          release_id: 137995723
-          asset_path: ${{ github.workspace }}/OrcaSlicer_profile_validator_Mac_${{ env.ver }}.zip
-          asset_name: OrcaSlicer_profile_validator_Mac_${{ env.ver }}.zip
-          asset_content_type: application/zip
-          max_releases: 1
-
       - name: Deploy Mac OrcaSlicer_profile_validator DMG release
         if: github.ref == 'refs/heads/main' && inputs.os == 'macos-14'
         uses: WebFreak001/deploy-nightly@v3.2.0
