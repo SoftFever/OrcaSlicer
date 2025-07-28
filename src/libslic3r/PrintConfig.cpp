@@ -3564,21 +3564,21 @@ void PrintConfigDef::init_fff_params()
 
     // BBS
     def          = this->add("enable_wrapping_detection", coBool);
-    def->label   = L("Enable wrapping detection");
-    def->tooltip = L("Enable wrapping detection");
+    def->label   = L("Enable clumping detection");
+    def->tooltip = L("Enable clumping detection");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def           = this->add("wrapping_detection_layers", coInt);
-    def->label    = L("Wrapping detection layers");
-    def->tooltip  = L("Wrapping detection layers.");
+    def->label    = L("Clumping detection layers");
+    def->tooltip  = L("Clumping detection layers.");
     def->min      = 0;
     def->mode     = comDevelop;
     def->set_default_value(new ConfigOptionInt(20));
 
     def          = this->add("wrapping_detection_path", coPoints);
-    def->label   = L("Wrapping detection position");
-    def->tooltip = L("Wrapping detection position.");
+    //def->label   = L("Clumping detection position");
+    //def->tooltip = L("Clumping detection position.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionPoints{Vec2d(197.5, 326), Vec2d(207.5, 326)});
 
