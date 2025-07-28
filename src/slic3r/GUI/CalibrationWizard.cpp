@@ -1029,7 +1029,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
 
         wxString wx_err_string;
         std::string error_message;
-        CalibUtils::calib_flowrate_X1C(calib_infos, error_message);
+        CalibUtils::calib_flowratio_X1C(calib_infos, error_message);
         wx_err_string = from_u8(error_message);
         if (!wx_err_string.empty()) {
             MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
@@ -1094,7 +1094,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             calib_info.filament_prest = temp_filament_preset;
 
             if (cali_stage > 0) {
-                if (!CalibUtils::calib_flowrate(cali_stage, calib_info, wx_err_string)) {
+                if (!CalibUtils::calib_flowratio(cali_stage, calib_info, wx_err_string)) {
                     if (!wx_err_string.empty()) {
                         MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
                         msg_dlg.ShowModal();
