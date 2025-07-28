@@ -2974,8 +2974,11 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, co
 			poly.contour.append({ scale_(p(0)), scale_(p(1)) });
 		}*/
 		generate_print_polygon(poly);
+        calc_triangles(poly);
+
+        // reset m_wrapping_detection_triangles when change printer
         m_print_polygon = poly;
-		calc_triangles(poly);
+        m_wrapping_detection_triangles.reset();
         init_raycaster_from_model(m_triangles);
 
 		ExPolygon exclude_poly;
