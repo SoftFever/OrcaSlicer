@@ -1339,20 +1339,20 @@ void FlowRateWizard::cache_coarse_info(MachineObject *obj)
     back_preset_info(obj, false);
 }
 
-MaxVolumetricSpeedWizard::MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+MaxVolumetricFlowWizard::MaxVolumetricFlowWizard(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationWizard(parent, CalibMode::Calib_Vol_speed_Tower, id, pos, size, style)
 {
     create_pages();
 }
 
-void MaxVolumetricSpeedWizard::create_pages()
+void MaxVolumetricFlowWizard::create_pages()
 {
-    start_step  = new CalibrationWizardPageStep(new CalibrationMaxVolumetricSpeedStartPage(m_scrolledWindow));
-    preset_step = new CalibrationWizardPageStep(new MaxVolumetricSpeedPresetPage(m_scrolledWindow, m_mode, true));
+    start_step  = new CalibrationWizardPageStep(new CalibrationMaxVolumetricFlowStartPage(m_scrolledWindow));
+    preset_step = new CalibrationWizardPageStep(new MaxVolumetricFlowPresetPage(m_scrolledWindow, m_mode, true));
 
     // manual
     cali_step = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode));
-    save_step = new CalibrationWizardPageStep(new CalibrationMaxVolumetricSpeedSavePage(m_scrolledWindow));
+    save_step = new CalibrationWizardPageStep(new CalibrationMaxVolumetricFlowSavePage(m_scrolledWindow));
 
     m_all_pages_sizer->Add(start_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
     m_all_pages_sizer->Add(preset_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
@@ -1370,7 +1370,7 @@ void MaxVolumetricSpeedWizard::create_pages()
 
     for (int i = 0; i < m_page_steps.size(); i++) {
         m_page_steps[i]->page->Hide();
-        m_page_steps[i]->page->Bind(EVT_CALI_ACTION, &MaxVolumetricSpeedWizard::on_cali_action, this);
+        m_page_steps[i]->page->Bind(EVT_CALI_ACTION, &MaxVolumetricFlowWizard::on_cali_action, this);
     }
 
     for (auto page_step : m_page_steps) {
@@ -1382,7 +1382,7 @@ void MaxVolumetricSpeedWizard::create_pages()
     return;
 }
 
-void MaxVolumetricSpeedWizard::on_cali_action(wxCommandEvent& evt)
+void MaxVolumetricFlowWizard::on_cali_action(wxCommandEvent& evt)
 {
     CaliPageActionType action = static_cast<CaliPageActionType>(evt.GetInt());
 
@@ -1406,7 +1406,7 @@ void MaxVolumetricSpeedWizard::on_cali_action(wxCommandEvent& evt)
     }
 }
 
-void MaxVolumetricSpeedWizard::on_cali_start()
+void MaxVolumetricFlowWizard::on_cali_start()
 {
     float       nozzle_dia = 0.4;
     std::string setting_id;
@@ -1468,7 +1468,7 @@ void MaxVolumetricSpeedWizard::on_cali_start()
     cali_page->clear_last_job_status();
 }
 
-void MaxVolumetricSpeedWizard::on_cali_save()
+void MaxVolumetricFlowWizard::on_cali_save()
 {
     std::string old_preset_name;
     std::string new_preset_name;
@@ -1480,7 +1480,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
     }
 
     double value = 0;
-    CalibrationMaxVolumetricSpeedSavePage *save_page = (static_cast<CalibrationMaxVolumetricSpeedSavePage *>(save_step->page));
+    CalibrationMaxVolumetricFlowSavePage *save_page = (static_cast<CalibrationMaxVolumetricFlowSavePage *>(save_step->page));
     if (!save_page->get_save_result(value, new_preset_name)) {
         BOOST_LOG_TRIVIAL(info) << "max_volumetric_speed_cali: get result failed";
         return;
@@ -1499,12 +1499,12 @@ void MaxVolumetricSpeedWizard::on_cali_save()
         return;
     }
 
-    MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset."), wxEmptyString, wxOK);
+    MessageDialog msg_dlg(nullptr, _L("Max Volumetric Flow calibration result has been saved to preset."), wxEmptyString, wxOK);
     msg_dlg.ShowModal();
     show_step(start_step);
 }
 
-void MaxVolumetricSpeedWizard::on_cali_job_finished(wxString evt_data)
+void MaxVolumetricFlowWizard::on_cali_job_finished(wxString evt_data)
 {
     int       cali_stage = 0;
     CalibMode obj_cali_mode = CalibUtils::get_calib_mode_by_name(evt_data.ToStdString(), cali_stage);
@@ -1518,7 +1518,7 @@ void MaxVolumetricSpeedWizard::on_cali_job_finished(wxString evt_data)
     static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
 }
 
-void MaxVolumetricSpeedWizard::on_device_connected(MachineObject *obj)
+void MaxVolumetricFlowWizard::on_device_connected(MachineObject *obj)
 {
     CalibrationWizard::on_device_connected(obj);
 
