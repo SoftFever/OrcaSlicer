@@ -9613,7 +9613,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
         new ConfigOptionEnum<BrimType>(SuggestedConfigCalibPAPattern().brim_pair.second)
     );
 
-    // Orca: Set the outer wall speed to the optimal speed for the test, cap it with max volumetric speed
+    // Orca: Set the outer wall speed to the optimal speed for the test, cap it with max Volumetric Flow
     if (speeds.empty()) {
         double speed = CalibPressureAdvance::find_optimal_PA_speed(
             wxGetApp().preset_bundle->full_config(),
@@ -10067,7 +10067,7 @@ void Plater::calib_temp(const Calib_Params& params) {
 
 void Plater::calib_max_vol_speed(const Calib_Params& params)
 {
-    const auto calib_vol_speed_name = wxString::Format(L"Max volumetric speed test");
+    const auto calib_vol_speed_name = wxString::Format(L"Max Volumetric Flow test");
     new_project(false, false, calib_vol_speed_name);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode != CalibMode::Calib_Vol_speed_Tower)

@@ -68,11 +68,11 @@ protected:
     Plater* m_plater;
 };
 
-class MaxVolumetricSpeed_Test_Dlg : public DPIDialog
+class MaxVolumetricFlow_Test_Dlg : public DPIDialog
 {
 public:
-    MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
-    ~MaxVolumetricSpeed_Test_Dlg();
+    MaxVolumetricFlow_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~MaxVolumetricFlow_Test_Dlg();
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
 protected:
