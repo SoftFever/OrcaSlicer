@@ -451,11 +451,11 @@ void Temp_Calibration_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
 }
 
 
-// MaxVolumetricSpeed_Test_Dlg
+// MaxVolumetricFlow_Test_Dlg
 //
 
-MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
-    : DPIDialog(parent, id, _L("Max volumetric speed test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE), m_plater(plater)
+MaxVolumetricFlow_Test_Dlg::MaxVolumetricFlow_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
+    : DPIDialog(parent, id, _L("Max Volumetric Flow test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE), m_plater(plater)
 {
     SetBackgroundColour(*wxWHITE); // make sure background color set for dialog
     SetForegroundColour(wxColour("#363636"));
@@ -465,8 +465,8 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     SetSizer(v_sizer);
 
     // Settings
-    wxString start_vol_str = _L("Start volumetric speed: ");
-    wxString end_vol_str   = _L("End volumetric speed: ");
+    wxString start_vol_str = _L("Start Volumetric Flow: ");
+    wxString end_vol_str   = _L("End Volumetric Flow: ");
     wxString vol_step_str  = _L("Step") + ": ";
     int text_max = GetTextMax(this, std::vector<wxString>{start_vol_str, end_vol_str, vol_step_str});
 
@@ -512,7 +512,7 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     auto dlg_btns = new DialogButtons(this, {"OK"});
     v_sizer->Add(dlg_btns , 0, wxEXPAND);
 
-    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &MaxVolumetricSpeed_Test_Dlg::on_start, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &MaxVolumetricFlow_Test_Dlg::on_start, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -520,11 +520,11 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     Fit();
 }
 
-MaxVolumetricSpeed_Test_Dlg::~MaxVolumetricSpeed_Test_Dlg() {
+MaxVolumetricFlow_Test_Dlg::~MaxVolumetricFlow_Test_Dlg() {
     // Disconnect Events
 }
 
-void MaxVolumetricSpeed_Test_Dlg::on_start(wxCommandEvent& event) {
+void MaxVolumetricFlow_Test_Dlg::on_start(wxCommandEvent& event) {
     bool read_double = false;
     read_double = m_tiStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double = read_double && m_tiEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
@@ -542,7 +542,7 @@ void MaxVolumetricSpeed_Test_Dlg::on_start(wxCommandEvent& event) {
 
 }
 
-void MaxVolumetricSpeed_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
+void MaxVolumetricFlow_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
     this->Refresh();
     Fit();
 
