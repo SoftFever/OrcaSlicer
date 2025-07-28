@@ -948,7 +948,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,  interlocking_boundary_avoidance))
 
     // Orca: internal use only
-    ((ConfigOptionBool,  calib_flowrate_topinfill_special_order)) // ORCA: special flag for flow rate calibration
+    ((ConfigOptionBool,  calib_flowratio_topinfill_special_order)) // ORCA: special flag for flow rate calibration
 
 
 )

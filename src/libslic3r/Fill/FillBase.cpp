@@ -162,8 +162,8 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         // Only concentric fills are not sorted.
         eec->no_sort = this->no_sort();
         // ORCA: special flag for flow rate calibration
-        auto is_flow_calib = params.extrusion_role == erTopSolidInfill && this->print_object_config->has("calib_flowrate_topinfill_special_order") &&
-                             this->print_object_config->option("calib_flowrate_topinfill_special_order")->getBool();
+        auto is_flow_calib = params.extrusion_role == erTopSolidInfill && this->print_object_config->has("calib_flowratio_topinfill_special_order") &&
+                             this->print_object_config->option("calib_flowratio_topinfill_special_order")->getBool();
         if (is_flow_calib) {
             eec->no_sort = true;
         }
