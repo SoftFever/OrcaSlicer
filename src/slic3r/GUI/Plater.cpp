@@ -9856,9 +9856,9 @@ void Plater::_calib_pa_select_added_objects() {
     }
 }
 
-// Adjust settings for flowrate calibration
+// Adjust settings for flowratio calibration
 // For linear mode, pass 1 means normal version while pass 2 mean "for perfectionists" version
-void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, int pass)
+void adjust_settings_for_flowratio_calib(ModelObjectPtrs& objects, bool linear, int pass)
 {
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -9890,13 +9890,13 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
     }
     canvas->do_scale("");
 
-    auto cur_flowrate = filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+    auto cur_flowratio = filament_config->option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
     Flow infill_flow = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
     double filament_max_volumetric_speed = filament_config->option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
     double max_infill_speed;
     if (linear)
         max_infill_speed = filament_max_volumetric_speed /
-                           (infill_flow.mm3_per_mm() * (cur_flowrate + (pass == 2 ? 0.035 : 0.05)) / cur_flowrate);
+                           (infill_flow.mm3_per_mm() * (cur_flowratio + (pass == 2 ? 0.035 : 0.05)) / cur_flowratio);
     else
         max_infill_speed = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
     double internal_solid_speed = std::floor(std::min(print_config->opt_float("internal_solid_infill_speed"), max_infill_speed));
@@ -9932,9 +9932,9 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
         _obj->config.set_key_value("gap_fill_target", new ConfigOptionEnum<GapFillTarget>(GapFillTarget::gftNowhere));
         print_config->set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
-        _obj->config.set_key_value("calib_flowrate_topinfill_special_order", new ConfigOptionBool(true));
+        _obj->config.set_key_value("calib_flowratio_topinfill_special_order", new ConfigOptionBool(true));
 
-        // extract flowrate from name, filename format: flowrate_xxx
+        // extract flowratio from name, filename format: flowratio_xxx
         std::string obj_name = _obj->name;
         assert(obj_name.length() > 9);
         obj_name = obj_name.substr(9);
@@ -9952,7 +9952,7 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         std::setlocale(LC_NUMERIC, _loc.c_str());
 
         if(linear)
-            _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat((cur_flowrate + modifier)/cur_flowrate));
+            _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat((cur_flowratio + modifier)/cur_flowratio));
         else
             _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f + modifier/100.f));
 
@@ -9972,7 +9972,7 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
 }
 
-void Plater::calib_flowrate(bool is_linear, int pass) {
+void Plater::calib_flowratio(bool is_linear, int pass) {
     if (pass != 1 && pass != 2)
         return;
     wxString calib_name;
@@ -9981,7 +9981,7 @@ void Plater::calib_flowrate(bool is_linear, int pass) {
         if (pass == 2)
             calib_name += L" - Perfectionist version";
     } else
-        calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
+        calib_name = wxString::Format(L"Flowratio Test - Pass%d", pass);
 
     if (new_project(false, false, calib_name) == wxID_CANCEL)
         return;
@@ -9998,13 +9998,13 @@ void Plater::calib_flowrate(bool is_linear, int pass) {
     } else {
         if (pass == 1)
             add_model(false,
-                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass1.3mf").string());
+                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowratio-test-pass1.3mf").string());
         else
             add_model(false,
-                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass2.3mf").string());
+                      (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowratio-test-pass2.3mf").string());
     }
 
-    adjust_settings_for_flowrate_calib(model().objects, is_linear, pass);
+    adjust_settings_for_flowratio_calib(model().objects, is_linear, pass);
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
     auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
