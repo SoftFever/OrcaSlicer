@@ -46,7 +46,7 @@ void ExtrusionCalibration::create()
     step_1_sizer->Add(0, EXTRUSION_CALIBRATION_WIDGET_GAP, 0, 0);
 
     // filament title
-    wxString intro_text = _L("The nozzle temp and max volumetric speed will affect the calibration results. Please fill in the same values as the actual printing. They can be auto-filled by selecting a filament preset.");
+    wxString intro_text = _L("The nozzle temp and Max Volumetric Flow will affect the calibration results. Please fill in the same values as the actual printing. They can be auto-filled by selecting a filament preset.");
     m_filament_preset_title = new Label(m_step_1_panel, intro_text);
     m_filament_preset_title->SetFont(Label::Body_12);
     m_filament_preset_title->SetForegroundColour(EXTRUSION_CALIBRATION_GREY800);
@@ -125,7 +125,7 @@ void ExtrusionCalibration::create()
     auto nozzle_temp_text = new wxStaticText(m_step_1_panel, wxID_ANY, _L("Nozzle temperature"));
     auto max_input_width = std::max(std::max(std::max(wxWindow::GetTextExtent(_L("Nozzle temperature")).x,
         wxWindow::GetTextExtent(_L("Bed Temperature")).x),
-        wxWindow::GetTextExtent(_L("Max volumetric speed")).x),
+        wxWindow::GetTextExtent(_L("Max Volumetric Flow")).x),
         EXTRUSION_CALIBRATION_INPUT_SIZE.x);
     m_nozzle_temp = new TextInput(m_step_1_panel, wxEmptyString, wxString::FromUTF8("\u2103") /* °C */, "", wxDefaultPosition, { max_input_width, EXTRUSION_CALIBRATION_INPUT_SIZE.y }, wxTE_READONLY);
     nozzle_temp_sizer->Add(nozzle_temp_text, 0, wxALIGN_LEFT);
@@ -140,7 +140,7 @@ void ExtrusionCalibration::create()
     bed_temp_sizer->Add(m_bed_temp, 0, wxEXPAND);
 
     auto max_flow_sizer = new wxBoxSizer(wxVERTICAL);
-    auto max_flow_text = new wxStaticText(m_step_1_panel, wxID_ANY, _L("Max volumetric speed"));
+    auto max_flow_text = new wxStaticText(m_step_1_panel, wxID_ANY, _L("Max Volumetric Flow"));
     m_max_flow_ratio = new TextInput(m_step_1_panel, wxEmptyString, wxString::FromUTF8("mm³"), "", wxDefaultPosition, { max_input_width, EXTRUSION_CALIBRATION_INPUT_SIZE.y }, wxTE_READONLY);
     max_flow_sizer->Add(max_flow_text, 0, wxALIGN_LEFT);
     max_flow_sizer->AddSpacer(FromDIP(4));
