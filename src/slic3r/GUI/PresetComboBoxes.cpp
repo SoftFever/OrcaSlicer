@@ -1432,11 +1432,9 @@ FilamentColor PlaterPresetComboBox::get_cur_color_info()
 void PlaterPresetComboBox::show_default_color_picker()
 {
     wxColourData data = show_sys_picker_dialog(this, m_clrData);
-    if(m_clrData.GetColour() != data.GetColour()) {
-        std::vector<std::string> color = {data.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString()};
-        m_clrData.SetColour(data.GetColour());
-        sync_colour_config(color, false);
-    }
+    std::vector<std::string> color = {data.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString()};
+    m_clrData.SetColour(data.GetColour());
+    sync_colour_config(color, false);
 }
 
 void PlaterPresetComboBox::sync_colour_config(const std::vector<std::string> &clrs, bool is_gradient)
