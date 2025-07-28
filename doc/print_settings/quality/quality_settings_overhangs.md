@@ -2,7 +2,7 @@
 
 ## Detect overhang wall
 
-Detect the overhang percentage relative to line width and use different speed to print. For 100%% overhang, bridge speed is used.
+Detect the overhang percentage relative to line width and use different speed to print. For 100% overhang, bridge speed is used.
 
 ## Make overhang printable
 
@@ -10,11 +10,13 @@ Modify the geometry to print overhangs without support material.
 
 ### Maximum angle
 
-Maximum angle of overhangs to allow after making more steep overhangs printable.90° will not change the model at all and allow any overhang, while 0 will replace all overhangs with conical material.
+Maximum angle of overhangs to allow after making more steep overhangs printable.  
+90° will not change the model at all and allow any overhang, while 0 will replace all overhangs with conical material.
 
 ### Hole area
 
-Maximum area of a hole in the base of the model before it's filled by conical material. A value of 0 will fill all the holes in the model base.
+Maximum area of a hole in the base of the model before it's filled by conical material.  
+A value of 0 will fill all the holes in the model base.
 
 ## Extra perimeters on overhangs
 
