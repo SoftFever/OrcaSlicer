@@ -608,7 +608,14 @@ void HMSQuery::init_hms_info(const std::string& dev_type_id)
 
     /*download from cloud*/
     time_t info_last_update_time = m_cloud_hms_last_update_time[dev_type_id];
-    if (time(nullptr) - info_last_update_time > (60 * 60 * 24))/*do not update in one day to reduce waiting*/
+
+    /* check hms is valid or not */
+    bool retry = false;
+    if(m_hms_info_jsons[dev_type_id].empty() || m_hms_action_jsons[dev_type_id].empty()){
+        retry =time(nullptr) - info_last_update_time > (60 * 1); // retry after 1 minute
+    }
+
+    if (time(nullptr) - info_last_update_time > (60 * 60 * 24) || retry)/*do not update in one day to reduce waiting*/
     {
         download_hms_related(QUERY_HMS_INFO, dev_type_id, &m_hms_info_jsons[dev_type_id]);
         download_hms_related(QUERY_HMS_ACTION, dev_type_id, &m_hms_action_jsons[dev_type_id]);
