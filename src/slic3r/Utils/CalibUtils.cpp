@@ -441,7 +441,7 @@ void CalibUtils::delete_PA_calib_result(const PACalibIndexInfo& pa_calib_info)
     obj_->command_delete_pa_calibration(pa_calib_info);
 }
 
-void CalibUtils::calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::string& error_message)
+void CalibUtils::calib_flowratio_X1C(const X1CCalibInfos& calib_infos, std::string& error_message)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -485,7 +485,7 @@ bool CalibUtils::get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult>&
     return flow_ratio_calib_results.size() > 0;
 }
 
-bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString &error_message)
+bool CalibUtils::calib_flowratio(int pass, const CalibInfo &calib_info, wxString &error_message)
 {
     if (pass != 1 && pass != 2)
         return false;
@@ -493,9 +493,9 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     Model       model;
     std::string input_file;
     if (pass == 1)
-        input_file = Slic3r::resources_dir() + "/calib/filament_flow/flowrate-test-pass1.3mf";
+        input_file = Slic3r::resources_dir() + "/calib/filament_flow/flowratio-test-pass1.3mf";
     else
-        input_file = Slic3r::resources_dir() + "/calib/filament_flow/flowrate-test-pass2.3mf";
+        input_file = Slic3r::resources_dir() + "/calib/filament_flow/flowratio-test-pass2.3mf";
 
     read_model_from_file(input_file, model);
 
