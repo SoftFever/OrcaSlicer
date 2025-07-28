@@ -669,7 +669,7 @@ ComboBox *ObjColorPanel::CreateEditorCtrl(wxWindow *parent, int id) // wxRect la
                                           wxCB_READONLY | CB_NO_DROP_ICON | CB_NO_TEXT);
     c_editor->SetMinSize(wxSize(FromDIP(m_combox_width), -1));
     c_editor->SetMaxSize(wxSize(FromDIP(m_combox_width), -1));
-    c_editor->GetDropDown().SetUseContentWidth(true);
+    c_editor->GetDropDown().SetUseContentWidth(false);
     for (size_t i = 0; i < icons.size(); i++) {
         c_editor->Append(wxString::Format("%d", i), *icons[i]);
         if (i == 0) {
@@ -687,9 +687,6 @@ ComboBox *ObjColorPanel::CreateEditorCtrl(wxWindow *parent, int id) // wxRect la
             m_cluster_map_filaments[i] = com_box->GetSelection();
             m_new_add_colors[i]        = com_box->GetItemTooltip(com_box->GetSelection());
             deal_thumbnail();
-            if (m_cluster_map_filaments[i] > m_max_filament_index) {
-                m_max_filament_index = m_cluster_map_filaments[i];
-            }
         }
         evt.StopPropagation();
     });
@@ -702,7 +699,6 @@ void ObjColorPanel::deal_approximate_match_btn()
     if (m_result_icon_list.size() == 0) { return; }
     auto map_count = m_result_icon_list[0]->bitmap_combox->GetCount() -1;
     if (map_count < 1) { return; }
-    m_max_filament_index = 0;
     for (size_t i = 0; i < m_cluster_colours.size(); i++) {
         auto    c = m_cluster_colours[i];
         std::vector<ColorDistValue> color_dists;
@@ -720,9 +716,6 @@ void ObjColorPanel::deal_approximate_match_btn()
         m_result_icon_list[i]->bitmap_combox->SetSelection(new_index);
         m_new_add_colors[i]        = m_result_icon_list[i]->bitmap_combox->GetItemTooltip(new_index);
         m_cluster_map_filaments[i] = new_index;
-        if (new_index > m_max_filament_index) {
-            m_max_filament_index = new_index;
-        }
     }
 }
 
@@ -816,6 +809,11 @@ void ObjColorPanel::draw_new_table()
 void ObjColorPanel::update_new_add_final_colors()
 {
     m_new_add_final_colors = m_new_add_colors;
+    if (!m_cluster_map_filaments.empty()) {
+        m_max_filament_index = *std::max_element(m_cluster_map_filaments.begin(), m_cluster_map_filaments.end());
+    } else {
+        m_max_filament_index = 0;
+    }
     if (m_max_filament_index <= m_colours.size()) { // Fix 20240904
         m_new_add_final_colors.clear();
     } else {
@@ -975,7 +973,6 @@ bool ObjColorPanel::deal_add_btn()
         new_index++;
     }
     new_index = m_colours.size() + 1;
-    m_max_filament_index = 0;
     for (size_t i = 0; i < m_result_icon_list.size(); i++) {
         auto item = m_result_icon_list[i];
         for (size_t k = 0; k < new_icons.size(); k++) {
@@ -984,9 +981,6 @@ bool ObjColorPanel::deal_add_btn()
         }
         item->bitmap_combox->SetSelection(new_index);
         m_cluster_map_filaments[i] = new_index;
-        if (new_index > m_max_filament_index) {
-            m_max_filament_index = new_index;
-        }
         new_index++;
     }
     if (is_exceed) {
