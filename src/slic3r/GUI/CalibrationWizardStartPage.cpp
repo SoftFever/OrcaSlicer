@@ -96,7 +96,7 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
            "You only need to do the calibration in the following limited cases:\n"
            "1. If you introduce a new filament of different brands/models or the filament is damp;\n"
            "2. If the nozzle is worn out or replaced with a new one;\n"
-           "3. If the max volumetric speed or print temperature is changed in the filament setting."));
+           "3. If the max Volumetric Flow or print temperature is changed in the filament setting."));
 
     m_top_sizer->Add(m_when_title);
     m_top_sizer->Add(m_when_content);
@@ -333,7 +333,7 @@ void CalibrationFlowRateStartPage::msw_rescale()
     }
 }
 
-CalibrationMaxVolumetricSpeedStartPage::CalibrationMaxVolumetricSpeedStartPage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+CalibrationMaxVolumetricFlowStartPage::CalibrationMaxVolumetricFlowStartPage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationStartPage(parent, id, pos, size, style)
 {
     m_cali_mode = CalibMode::Calib_Vol_speed_Tower;
@@ -345,18 +345,18 @@ CalibrationMaxVolumetricSpeedStartPage::CalibrationMaxVolumetricSpeedStartPage(w
     m_top_sizer->Fit(this);
 }
 
-void CalibrationMaxVolumetricSpeedStartPage::create_page(wxWindow* parent)
+void CalibrationMaxVolumetricFlowStartPage::create_page(wxWindow* parent)
 {
     m_page_caption = new CaliPageCaption(parent, m_cali_mode);
     m_page_caption->show_prev_btn(false);
     m_top_sizer->Add(m_page_caption, 0, wxEXPAND, 0);
-    create_when(parent, _L("When you need Max Volumetric Speed Calibration"), _L("Over-extrusion or under extrusion"));
+    create_when(parent, _L("When you need Max Volumetric Flow Calibration"), _L("Over-extrusion or under extrusion"));
 
     m_top_sizer->Add(m_when_title);
     m_top_sizer->Add(m_when_content);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    auto recommend_title = new Label(parent, _L("Max Volumetric Speed calibration is recommended when you print with:"));
+    auto recommend_title = new Label(parent, _L("Max Volumetric Flow calibration is recommended when you print with:"));
     recommend_title->SetFont(Label::Head_14);
     recommend_title->Wrap(CALIBRATION_START_PAGE_TEXT_MAX_LENGTH);
     m_top_sizer->Add(recommend_title);
@@ -386,7 +386,7 @@ void CalibrationMaxVolumetricSpeedStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
 }
 
-void CalibrationMaxVolumetricSpeedStartPage::msw_rescale()
+void CalibrationMaxVolumetricFlowStartPage::msw_rescale()
 {
     CalibrationWizardPage::msw_rescale();
     if (wxGetApp().app_config->get_language_code() == "zh-cn") {

@@ -110,7 +110,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     double top_surface_speed           = print_config.opt_float("top_surface_speed");
     // Maximum print speed when auto-speed is enabled by setting any of the above speed values to zero.
     double max_print_speed                  = print_config.opt_float("max_print_speed");
-    // Maximum volumetric speed allowed for the print profile.
+    // Maximum Volumetric Flow allowed for the print profile.
     double max_volumetric_speed             = print_config.opt_float("max_volumetric_speed");
 
     const auto &extrusion_width                     = *print_config.option<ConfigOptionFloatOrPercent>("line_width");

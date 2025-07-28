@@ -1779,7 +1779,7 @@ void CalibrationFlowFineSavePage::msw_rescale()
     m_picture_panel->msw_rescale();
 }
 
-CalibrationMaxVolumetricSpeedSavePage::CalibrationMaxVolumetricSpeedSavePage(
+CalibrationMaxVolumetricFlowSavePage::CalibrationMaxVolumetricFlowSavePage(
     wxWindow *parent,
     wxWindowID id,
     const wxPoint &pos,
@@ -1801,7 +1801,7 @@ CalibrationMaxVolumetricSpeedSavePage::CalibrationMaxVolumetricSpeedSavePage(
     m_top_sizer->Fit(this);
 }
 
-void CalibrationMaxVolumetricSpeedSavePage::create_page(wxWindow *parent)
+void CalibrationMaxVolumetricFlowSavePage::create_page(wxWindow *parent)
 {
     m_page_caption = new CaliPageCaption(parent, m_cali_mode);
     m_page_caption->show_prev_btn(true);
@@ -1825,16 +1825,16 @@ void CalibrationMaxVolumetricSpeedSavePage::create_page(wxWindow *parent)
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
 }
 
-void CalibrationMaxVolumetricSpeedSavePage::set_save_img() {
+void CalibrationMaxVolumetricFlowSavePage::set_save_img() {
     m_save_preset_panel->set_img("max_volumetric_speed_calibration");
 }
 
-bool CalibrationMaxVolumetricSpeedSavePage::get_save_result(double& value, std::string& name) {
+bool CalibrationMaxVolumetricFlowSavePage::get_save_result(double& value, std::string& name) {
     // Check if the value is valid
     m_save_preset_panel->get_save_name(name);
     m_save_preset_panel->get_value(value);
     if (value < 0 || value > 60) {
-        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0 <= Max Volumetric Speed <= 60)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0 <= Max Volumetric Flow <= 60)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
     }
@@ -1846,7 +1846,7 @@ bool CalibrationMaxVolumetricSpeedSavePage::get_save_result(double& value, std::
     return true;
 }
 
-bool CalibrationMaxVolumetricSpeedSavePage::Show(bool show) {
+bool CalibrationMaxVolumetricFlowSavePage::Show(bool show) {
     if (show) {
         if (curr_obj) {
             assert(curr_obj->selected_cali_preset.size() <= 1);
@@ -1856,7 +1856,7 @@ bool CalibrationMaxVolumetricSpeedSavePage::Show(bool show) {
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "CalibrationMaxVolumetricSpeedSave::Show(): obj is nullptr";
+            BOOST_LOG_TRIVIAL(trace) << "CalibrationMaxVolumetricFlowSave::Show(): obj is nullptr";
         }
     }
     return wxPanel::Show(show);

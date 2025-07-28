@@ -413,7 +413,7 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
     bed_temp_sizer->Add(m_bed_temp, 0, wxALIGN_CENTER);
 
     auto max_flow_sizer = new wxBoxSizer(wxVERTICAL);
-    auto max_flow_text = new Label(parent, _L("Max volumetric speed"));
+    auto max_flow_text = new Label(parent, _L("Max Volumetric Flow"));
     max_flow_text->SetFont(Label::Body_12);
     m_max_volumetric_speed = new TextInput(parent, wxEmptyString, wxString::FromUTF8("mm³"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
     m_max_volumetric_speed->SetBorderWidth(0);
@@ -1907,14 +1907,14 @@ CalibMode CalibrationPresetPage::get_pa_cali_method()
     return CalibMode::Calib_PA_Line;
 }
 
-MaxVolumetricSpeedPresetPage::MaxVolumetricSpeedPresetPage(
+MaxVolumetricFlowPresetPage::MaxVolumetricFlowPresetPage(
     wxWindow *parent, CalibMode cali_mode, bool custom_range, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
     : CalibrationPresetPage(parent, cali_mode, custom_range, id, pos, size, style)
 {
     if (custom_range && m_custom_range_panel) {
         wxArrayString titles;
-        titles.push_back(_L("From Volumetric Speed"));
-        titles.push_back(_L("To Volumetric Speed"));
+        titles.push_back(_L("From Volumetric Flow"));
+        titles.push_back(_L("To Volumetric Flow"));
         titles.push_back(_L("Step"));
         m_custom_range_panel->set_titles(titles);
 

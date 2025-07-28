@@ -1660,11 +1660,11 @@ namespace DoExport {
 	    if (! mm3_per_mm.empty()) {
 	        // In order to honor max_print_speed we need to find a target volumetric
 	        // speed that we can use throughout the print. So we define this target
-	        // volumetric speed as the volumetric speed produced by printing the
+	        // Volumetric Flow as the Volumetric Flow produced by printing the
 	        // smallest cross-section at the maximum speed: any larger cross-section
 	        // will need slower feedrates.
 	        volumetric_speed = *std::min_element(mm3_per_mm.begin(), mm3_per_mm.end()) * print.config().max_print_speed.value;
-	        // limit such volumetric speed with max_volumetric_speed if set
+	        // limit such Volumetric Flow with max_volumetric_speed if set
             //BBS
 	        //if (print.config().max_volumetric_speed.value > 0)
 	        //    volumetric_speed = std::min(volumetric_speed, print.config().max_volumetric_speed.value);
@@ -2343,7 +2343,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             during_print_exhaust_fan_speed_num.emplace_back((int)(item / 100.0 * 255));
         this->placeholder_parser().set("during_print_exhaust_fan_speed_num",new ConfigOptionInts(during_print_exhaust_fan_speed_num));
 
-        // calculate the volumetric speed of outer wall. Ignore per-object setting and multi-filament, and just use the default setting
+        // calculate the Volumetric Flow of outer wall. Ignore per-object setting and multi-filament, and just use the default setting
         {
 
             float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
@@ -4987,7 +4987,7 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
 
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)
 {
-    // Orca: Reset average multipath flow as this is a single line, single extrude volumetric speed path
+    // Orca: Reset average multipath flow as this is a single line, single extrude Volumetric Flow path
     m_multi_flow_segment_path_pa_set = false;
     m_multi_flow_segment_path_average_mm3_per_mm = 0;
     //    description += ExtrusionEntity::role_to_string(path.role());

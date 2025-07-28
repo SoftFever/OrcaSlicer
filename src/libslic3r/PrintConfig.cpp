@@ -2022,9 +2022,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts{0});
 
     def = this->add("filament_max_volumetric_speed", coFloats);
-    def->label = L("Max volumetric speed");
+    def->label = L("Max Volumetric Flow");
     def->tooltip = L("This setting stands for how much volume of filament can be melted and extruded per second. "
-                     "Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. "
+                     "Printing speed is limited by max Volumetric Flow, in case of too high and unreasonable speed setting. "
                      "Can't be zero.");
     def->sidetext = u8"mm³/s";	// cubic milimeters per second, don't need translation
     def->min = 0;
@@ -5701,8 +5701,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wipe_tower_max_purge_speed", coFloat);
     def->label = L("Maximum wipe tower print speed");
     def->tooltip = L("The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. "
-                     "When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
-                     "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
+                     "When purging, if the sparse infill speed or calculated speed from the filament max Volumetric Flow is lower, the lowest will be used instead.\n\n"
+                     "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max Volumetric Flow is lower, the lowest will be used instead.\n\n"
                      "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n\n"
                      "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n\n"
                      "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting.");

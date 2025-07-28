@@ -311,10 +311,10 @@ protected:
     float m_fine_flow_ratio;
 };
 
-class CalibrationMaxVolumetricSpeedSavePage : public CalibrationCommonSavePage
+class CalibrationMaxVolumetricFlowSavePage : public CalibrationCommonSavePage
 {
 public:
-    CalibrationMaxVolumetricSpeedSavePage(wxWindow *parent, wxWindowID id = wxID_ANY,
+    CalibrationMaxVolumetricFlowSavePage(wxWindow *parent, wxWindowID id = wxID_ANY,
         const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
 
     void create_page(wxWindow *parent);

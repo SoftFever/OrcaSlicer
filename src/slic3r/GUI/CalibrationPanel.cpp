@@ -25,7 +25,7 @@ wxString get_calibration_type_name(CalibMode cali_mode)
     case CalibMode::Calib_Flow_Rate:
         return _L("Flow Rate");
     case CalibMode::Calib_Vol_speed_Tower:
-        return _L("Max Volumetric Speed");
+        return _L("Max Volumetric Flow");
     case CalibMode::Calib_Temp_Tower:
         return _L("Temperature");
     case CalibMode::Calib_Retraction_tower:
@@ -478,7 +478,7 @@ void CalibrationPanel::init_tabpanel() {
 
     m_cali_panels[0] = new PressureAdvanceWizard(m_tabpanel);
     m_cali_panels[1] = new FlowRateWizard(m_tabpanel);
-    //m_cali_panels[2] = new MaxVolumetricSpeedWizard(m_tabpanel);
+    //m_cali_panels[2] = new MaxVolumetricFlowWizard(m_tabpanel);
 
     for (int i = 0; i < (int)CALI_MODE_COUNT; i++) {
         bool selected = false;

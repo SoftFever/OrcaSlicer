@@ -298,10 +298,10 @@ protected:
     MachineObject* curr_obj { nullptr };
 };
 
-class MaxVolumetricSpeedPresetPage : public CalibrationPresetPage
+class MaxVolumetricFlowPresetPage : public CalibrationPresetPage
 {
 public:
-    MaxVolumetricSpeedPresetPage(wxWindow *     parent,
+    MaxVolumetricFlowPresetPage(wxWindow *     parent,
                                  CalibMode      cali_mode,
                                  bool           custom_range = false,
                                  wxWindowID     id           = wxID_ANY,

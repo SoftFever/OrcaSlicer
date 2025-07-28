@@ -68,10 +68,10 @@ public:
     void msw_rescale() override;
 };
 
-class CalibrationMaxVolumetricSpeedStartPage : public CalibrationStartPage
+class CalibrationMaxVolumetricFlowStartPage : public CalibrationStartPage
 {
 public:
-    CalibrationMaxVolumetricSpeedStartPage(wxWindow* parent,
+    CalibrationMaxVolumetricFlowStartPage(wxWindow* parent,
         wxWindowID id = wxID_ANY,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
