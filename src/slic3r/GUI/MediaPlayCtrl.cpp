@@ -140,6 +140,8 @@ MediaPlayCtrl::~MediaPlayCtrl()
     while (!m_thread.try_join_for(boost::chrono::milliseconds(10))) {
         wxEventLoopBase::GetActive()->Yield();
     }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << this;
 }
 
 void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
@@ -335,7 +337,12 @@ void MediaPlayCtrl::Play()
     if (agent) {
         std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
         agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
-                [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
+                [this, m = m_machine, v = agent_version, dv = m_dev_ver, token = std::weak_ptr(m_token)](std::string url) {
+            if (token.expired()) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": token has been expired";
+                return;
+            }
+
             if (boost::algorithm::starts_with(url, "bambu:///")) {
                 url += "&device=" + into_u8(m);
                 url += "&net_ver=" + v;
