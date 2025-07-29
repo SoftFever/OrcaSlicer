@@ -125,7 +125,7 @@ The fuzzy skin condition is obtained by changing the amount of extruded plastic 
 
 > [!CAUTION]
 > The "Fuzzy skin thicknesses" parameter cannot be more than about 70%-125% (selected individually for different conditions) of the nozzle diameter! This is a complex condition that also depends on the height of the layer, and determines how thin the lines can be extruded.
-> Arachine wall generator mode should also be enabled.
+> Arachne wall generator mode should also be enabled.
 
 <img width="160" height="160" alt="image" align="bottom" src="https://github.com/user-attachments/assets/b75b848e-f2fd-44cc-a4c4-e40ea717a97f" />
 
