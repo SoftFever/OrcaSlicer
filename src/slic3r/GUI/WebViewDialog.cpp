@@ -240,7 +240,6 @@ WebViewPanel::~WebViewPanel()
 void WebViewPanel::load_url(wxString& url)
 {
     this->Show();
-    this->Raise();
     m_url->SetLabelText(url);
 
     if (wxGetApp().get_mode() == comDevelop)
