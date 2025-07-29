@@ -826,15 +826,6 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
         clr_picker->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
         clr_picker->SetToolTip(_L("Click to select filament color"));
         clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-            m_clrData.SetColour(clr_picker->GetBackgroundColour());
-            m_clrData.SetChooseFull(true);
-            m_clrData.SetChooseAlpha(false);
-
-            std::vector<std::string> colors = wxGetApp().app_config->get_custom_color_from_config();
-            for (int i = 0; i < colors.size(); i++) {
-                 m_clrData.SetCustomColour(i, string_to_wxColor(colors[i]));
-            }
-
             // Check if it's an official filament
             auto fila_type = Preset::remove_suffix_modified(GetValue().ToUTF8().data());
             bool is_official = boost::algorithm::starts_with(fila_type, "Bambu");
@@ -877,6 +868,9 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             } else {
                 show_default_color_picker();
             }
+            wxCommandEvent *evt = new wxCommandEvent(EVT_FILAMENT_COLOR_CHANGED);
+            evt->SetInt(m_filament_idx);
+            wxQueueEvent(wxGetApp().plater(), evt);
         });
     }
     else {
@@ -1431,10 +1425,20 @@ FilamentColor PlaterPresetComboBox::get_cur_color_info()
 
 void PlaterPresetComboBox::show_default_color_picker()
 {
+    DynamicPrintConfig* cfg = &wxGetApp().preset_bundle->project_config;
+    auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
+    wxColour current_clr(colors->values[m_filament_idx]);
+    if (!current_clr.IsOk())
+        current_clr = wxColour(0, 0, 0); // Don't set alfa to transparence
+
+    m_clrData.SetColour(current_clr);
+
     wxColourData data = show_sys_picker_dialog(this, m_clrData);
-    std::vector<std::string> color = {data.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString()};
-    m_clrData.SetColour(data.GetColour());
-    sync_colour_config(color, false);
+    if (m_clrData.GetColour() != data.GetColour()) {
+        std::vector<std::string> color = {data.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString()};
+        m_clrData.SetColour(data.GetColour());
+        sync_colour_config(color, false);
+    }
 }
 
 void PlaterPresetComboBox::sync_colour_config(const std::vector<std::string> &clrs, bool is_gradient)
@@ -1471,10 +1475,6 @@ void PlaterPresetComboBox::sync_colour_config(const std::vector<std::string> &cl
     update();  // refresh the preset combobox with new config
 
     wxGetApp().plater()->on_config_change(cfg_new);
-
-    wxCommandEvent *evt = new wxCommandEvent(EVT_CALI_TRAY_CHANGED);
-    evt->SetInt(m_filament_idx);
-    wxQueueEvent(wxGetApp().plater(), evt);
 }
 
 // ---------------------------------
