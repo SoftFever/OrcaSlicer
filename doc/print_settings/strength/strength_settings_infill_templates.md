@@ -3,66 +3,113 @@
 ## Basic instructions
 
 `[±]α[*ℤ or !][solid or joint sign, оr its combinations][-][ℕ, B or T][length modifier][* or !]`  - full length template instruction for the **sparse** infill<br/>
+
 `[±]α[*ℤ or !][joint sign][-][ℕ][* or !]` - full length template instruction for the **solid** infill<br/>
+
 `[±]α*` - just setting an initial rotation angle<br/>
+
 `[solid or joint sign]ℕ[!]` - putting the solid layers ℕ times without them rotating<br/>
+
 `[B or T][!]` - putting the solid layers according to the number of bottom or top shell layers without them rotating<br/>
 
-where:
-`[...]` - values in square brackets are optional
+> `[...]` - values in square brackets are optional
 
-`[±]α` - command of setting of rotation infill angle (for joint infills at some height range, this angle is finite)<br/>
-`α` - just set absolute angle 0...360<br/>
-`+α` - set positive relative angle CCW<br/>
-`-α` - set negative relative angle CW<br/>
+### Defined angle
+`[±]α` - command of setting of rotation infill angle (for joint infills at some height range, this angle is finite):<br/>
+   - `α` - just set absolute angle 0...360<br/>
+   - `+α` - set positive relative angle CCW<br/>
+   - `-α` - set negative relative angle CW<br/>
 
-`[*, *ℤ or !]` - runtime instructions<br/>
-   `*` - the mark of "dumb" instruction. Its need for setting an initial angle. No further action will be taken.<br/>
-   `*ℤ` - repeat the instruction ℤ times<br/>
-   `!` - the one-time running instruction<br/>
+### Runtime instructions
+`[*, *ℤ or !]` - runtime instructions:<br/>
+   - `*` - the mark of "dumb" instruction. Its need for setting an initial angle. No further action will be taken<br/>
+   - `*ℤ` - repeat the instruction ℤ times<br/>
+   - `!` - the one-time running instruction<br/>
 
-`[solid sign]` - mark for insert solid layer<br/>
-   `D` - insert native sparse patterned layer but with 100% density<br/>
-   `S` - insert user-defined solid layer<br/>
-   `O` - insert Concentric solid layer<br/>
-   `M` - insert Monotonic solid layer<br/>
-   `R` - insert Rectilinear solid layer<br/>
+### Solid sign
+`[solid sign]` - the mark for insert solid layer:<br/>
+   - `D` - insert native sparse patterned layer but with 100% density<br/>
+   - `S` - insert user-defined solid layer<br/>
+   - `O` - insert Concentric solid layer<br/>
+   - `M` - insert Monotonic solid layer<br/>
+   - `R` - insert Rectilinear solid layer<br/>
 
-`[joint sign]` - connection symbol for turning the infill<br/>
-   `/` - linear displacement of the infill<br/>
-   `#` - infill of multiple layers with vertical displacement at finish angle<br/>
-   `#-` - infill of multiple layers with vertical displacement at initial angle<br/>
-   `|` - infill of multiple layers with vertical displacement at middle angle<br/>
-   `N` - infill form by sinus function (vertical connection)<br/>
-   `n` - infill form by sinus function (vertical connection, lazy)<br/>
-   `Z` - infill form by sinus function (horizontal connection)<br/>
-   `z` - infill form by sinus function (horizontal connection, lazy)<br/>
-   `L` - infill form by quarter of circle  (horizontal to vertical connection)<br/>
-   `l` -  infill form by quarter of circle (vertical to horizontal connection)<br/>
-   `U` - infill form by squared function<br/>
-   `u` - infill form by squared function (inverse)<br/>
-   `Q` - infill form by cubic function<br/>
-   `q` - infill form by cubic function (inverse)<br/>
-   `$` - infill form by arcsinus method<br/>
-   `~` - infill form random angle<br/>
-   `^` - infill form pseudorandom angle<br/>
+### Joint sign
+`[joint sign]` - the symbol which determinate method of connection for turning of the infill:<br/>
 
-`[-]ℕ` - counting the distance at which the turn will take place<br/>
-   `ℕ` - the count will take place by ℕ layers<br/>
-   `-ℕ` - indicates that the joint form will be flipped upward<br/>
-   `B` - the count will take place by next layers equals of bottom_shell_layers parameter<br/>
-   `T` - the count will take place by next layers equals of top_shell_layers parameter<br/>
+   - `/` - linear displacement of the infill<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/6cd3e120-afb5-48ea-b8b2-8ae21271ed33" /> `+22.5/50%`
 
-`ℕ[length modifier]` - the distance at which the specified turn will take place<br/>
-   `ℕmm` - the distance in millimeters<br/>
-   `ℕcm` - the distance in centimeters<br/>
-   `ℕm` - the distance in meters<br/>
-   `ℕ'` - the distance in feet<br/>
-   `ℕ"` - the distance in inches<br/>
-   `ℕ#` - the distance in range of standard height of ℕ layers<br/>
-   `ℕ%` - the distance of model height in percents<br/>
+   - `#` - infill of multiple layers with vertical displacement at finish angle<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/c6d28fb1-06e9-45d3-b683-be7157ed7123" /> `+22.5#50%`
 
-## Instructions description and examples
+   - `#-` - infill of multiple layers with vertical displacement at initial angle<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/ca06e63f-cf3a-4b9c-ab4d-e5b01a3ac9c7" /> `+22.5#-50%`
+
+   - `|` - infill of multiple layers with vertical displacement at middle angle<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/6ee2ee0d-e99d-465e-bdce-02879265f3d4" /> `+22.5|50%`
+
+   - `N` - infill form by sinus function (vertical connection)<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/e993de8e-8431-45a2-b616-192804b1ead2" /> `+22.5N50%`
+
+   - `n` - infill form by sinus function (vertical connection, lazy)<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/d3ceb949-fb9d-45bc-8a6e-f9ec31048708" /> `+22.5n50%`
+
+   - `Z` - infill form by sinus function (horizontal connection)<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/c2457b50-ae96-4dc1-b4b7-6987f4323d3a" /> `+22.5Z50%`
+
+   - `z` - infill form by sinus function (horizontal connection, lazy)<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/34ec4712-505a-4d46-88eb-4af3f60051a3" /> `+22.5z50%`
+
+   - `L` - infill form by quarter of circle  (horizontal to vertical connection)<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/b04ff730-97b6-40d7-b6ab-212906fa7d26" /> `+22.5L50%`
+
+   - `l` -  infill form by quarter of circle (vertical to horizontal connection)<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/95dd0de2-d673-4c1f-885b-763c7919794e" /> `+22.5l50%`
+
+   - `U` - infill form by squared function<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/61f4656c-1b9d-4345-b31e-ed322c103b46" /> `+22.5U50%`
+
+   - `u-` - infill form by squared function (inverse)<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/d942c0b6-295b-4278-b456-dfc3d4d22fb9" /> `+22.5u-50%`
+
+   - `Q` - infill form by cubic function<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/804a4983-5022-44de-9d0e-27e1d3571440" /> `+22.5Q50%`
+
+   - `q-` - infill form by cubic function (inverse)<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/dc1be529-a5f7-4ecc-a092-46b3c14ebf8e" /> `+22.5q-50%`
+
+   - `$` - infill form by arcsinus method<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/220bfdf6-3f79-4ce2-a698-ca6fb2af79cd" /> `+22.5$50%`
+
+   - `~` - infill form random angle<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/a5fe6f7d-8422-4980-878e-4807a3f1d649" /> `+22.5~50%`
+
+   - `^` - infill form pseudorandom angle<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/aa4768f1-08a8-4333-a447-c40742f652ef" /> `+22.5^50%`
+
+### Counting 
+`[-]ℕ` - counting the distance at which the turn will take place:<br/>
+   - `ℕ` - the count will take place by ℕ layers<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/d97220a4-9ae4-42e1-9e77-63c6cd85948a" /> `+22.5/50%`
+
+   - `-ℕ` - indicates that the joint form will be flipped upward<br/>
+   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/9bdfb759-a757-464e-aaf1-aa5e9b6265ae" /> `+22.5/-50%`
+
+   - `B` - the count will take place by next layers equals of bottom_shell_layers parameter<br/>
+   - `T` - the count will take place by next layers equals of top_shell_layers parameter<br/>
+
+### Length modifier
+`ℕ[length modifier]` - the distance at which the specified turn will take place:<br/>
+   - `ℕmm` - the distance in millimeters<br/>
+   - `ℕcm` - the distance in centimeters<br/>
+   - `ℕm` - the distance in meters<br/>
+   - `ℕ'` - the distance in feet<br/>
+   - `ℕ"` - the distance in inches<br/>
+   - `ℕ#` - the distance in range of standard height of ℕ layers<br/>
+   - `ℕ%` - the distance of model height in percents<br/>
+
+## Description of instructions and examples
 Each instruction is written by combination of symbols and numbers and separated by a comma or a space.
 For more complex instructions, an autoformat is used to make the template easier to read.
 All examples are shown with a 5% density rectilinear infill on model of cube 20x20x20mm which has 100 layers of 0.2mm thickness. Without walls and upper and lower shells. Initial angle is 0. 
@@ -72,19 +119,15 @@ They include a simple definition of the angle for each layer. Note that the init
 
 `0`, `15`, `45.5`, `256.5605`... - just fill at the existing angle. The initial direction starts at the X-axis one, and the acceptable range of values is from 0 to 360<br/>
 
-`0` as also `+0`, `-0` or just empty template<br/>
-<img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/eba8282e-b2ea-4b04-93a7-70db3018ffaf" />
+<img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/eba8282e-b2ea-4b04-93a7-70db3018ffaf" /> `0` as also `+0`, `-0` or just empty template<br/>
 
-`45`<br/>
-<img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/f8222867-b43f-4935-bf29-7216dafe13a1" />
+<img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/f8222867-b43f-4935-bf29-7216dafe13a1" /> `45`<br/>
 
 `0%`, `10%`, `25%`, `100%`... - infill angle determine from relative terms from a full turn of 360 degree rotation. Rotate by 0, 36, 90, and 0 degrees.<br/>
 
-`25%` - the equivalent of `90` instruction.<br/>
-<img width="160" height="160" align="bottom" src="https://github.com/user-attachments/assets/a9761199-e2f5-485f-b5b4-0009f7b07fc1" />
+<img width="160" height="160" align="bottom" src="https://github.com/user-attachments/assets/a9761199-e2f5-485f-b5b4-0009f7b07fc1" /> `25%` - the equivalent of `90` instruction.<br/>
 
-`0, 30` - is a simple alternation through each layer in the direction of 0 and 30 degrees.<br/>
-<img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/e6f48755-e24b-4098-b8e2-de3db655e67c" />
+<img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/e6f48755-e24b-4098-b8e2-de3db655e67c" /> `0, 30` - is a simple alternation through each layer in the direction of 0 and 30 degrees.<br/>
 
 `30, 60, 90, 120, 150, 0` - a more complex command defines a turn every layer at 30 degrees. At the end of the template line, the next instruction is read first, and this process continues until the entire height of the model is filled in.
 
@@ -112,18 +155,23 @@ They include a simple definition of the angle for each layer. Note that the init
 
 ### Repetitive, adjusting and one-time instructions
 `5, 10, +20` - simple instructions without modifiers. Sets the angles in sequence = 5, 10, 30, 5, 10, 30, 5, 10 ...<br/>
+
 `5, 10*, +20` - the `*` sign sets the initial angle without quantitative designation without the layer processing. It is useful for setting the orientation of a group of layers, which will be described below. Sets the angles in sequence = 5, 30, 5, 30, 5, 30, 5 ...<br/>
+
 `5, 10!, +20` - the `!` sign indicates that instruction will be executed only once for the entire height of the model. Sets the angles in sequence = 5, 10, 30, 5, 25, 5, 25, 5  ...<br/>
+
 `5, 10*!, +20` - the combination `*` and `!` signs also usable = 5, 30, 5, 25, 5, 25, 5, 25 ...<br/>
+
 `5, 10*3, +20` - if a number is written after the `*` sign, it indicates the number of repetitions of this instruction. Sets the angles in sequence = 5, 10, 10, 10, 30, 5, 10, 10, 10, 30, 5, 10 ...<br/>
 
 ### Range instructions
 A combined set of layers will be organized, where the rotation of one layer relative to the other will also be predetermined.
 You can specify how many layers will be rotated by a certain angle, and according to which mathematical law this rotation will be performed. This law is determined by writing a certain symbol and specifying a numeric value after it. 
-The following signs are available that determine the shape of the turn: `/` `#` `#-` `|` `N` `n` `Z` `z` `L` `l` `U` `u` `Q` `q` `$` `~` `^`. For their purpose, see above.
+The following signs are available that determine the shape of the turn: `/` `#` `#-` `|` `N` `n` `Z` `z` `L` `l` `U` `u` `Q` `q` `$` `~` `^`. For their purpose, see [above](###Joint-sign).
 
 Also, after the digital value there is a range modifier, then this rotation will occur according to the described length. 
-The following modifiers are available that determine the range of turn: `mm` `cm` `m` `'` `"` `#` `%`. For their purpose, see above.
+The following modifiers are available that determine the range of turn: `mm` `cm` `m` `'` `"` `#` `%`. For their purpose, see [above](###Length-modifier).
+
 If there is the `-` sign before the numeric value, then the initial fill angle changes with the final one. This is useful for joining the linear infills in some cases. Absolute values of the rotation angle using the range instructions have no effect.
 It is important to know that this will not be the exact length, but will be tied to the nearest layer from below.
 
@@ -135,7 +183,6 @@ When changing the height of the instruction `+45/50` or `+45/50%` - the final an
 
 `-50%Z1cm` - rotate one centimeter of infill by sinus function at a 180 degree CW.<br/>
 
-
 ### Constant layer number instructions
 There are 2 letter signs `T` and `B` that can determine the number of shell layers on top and bottom of model. It is useful for calculating skipping this amount to align the fill, or inserting the required number of horizontal solid bulkheads.
 
@@ -144,7 +191,9 @@ There are 2 letter signs `T` and `B` that can determine the number of shell laye
 `+30/1cm, T` -  rotate one centimeter of infill linearity at a 30 degree, then skip the number of layers equal to the count of the upper shell layers without rotation.<br/>
 
 ### Solid layers into sparse infill instructions
-The following instructions allow you to embed solid layers in a sparse fill. The following commands are available `D` `S` `O` `M` `R`. For their purpose, see above. It is possible to combine them with the rotation method and layer number constant - `DT` `S/` `M#` `OB`... 
+The following instructions allow you to embed solid layers in a sparse fill. The following commands are available `D` `S` `O` `M` `R`. For their purpose, see [above](###Solid-sign). 
+
+It is possible to combine them with the rotation method and layer number constant - `DT` `S/` `M#` `OB`... 
 
 `#14, +15R` -  put the 14 layers of sparse infill when put one rectilinear layer of solid infill with 15 degree turn<br/>
 <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/7866fd2c-880e-45e8-be5f-0cafe685f29a" /><br/>
@@ -159,7 +208,7 @@ The following instructions allow you to embed solid layers in a sparse fill. The
 `+10L25%, -10l25%, -10L25%, +10l25%` -  fill the model with sine period with 10 degrees amplitude<br/>
 <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/de4bc426-3f73-4c98-a331-f237502f889f" /><br/>
 
-`+30/-10#` - rotate the infill at height of 10 standard layers (if standard layer height is 0.2mm * 10 = 2mm) inverse linearly at a 30 degree angle.<br/>
+`+30/-10#` - rotate the infill at height of 10 standard layers (or @ standard layer height is 0.2mm x 10 = 2mm) inverse linearly at a 30 degree angle.<br/>
 <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/e517f545-9690-4b3f-8d35-91068c63066e" /><br/>
 
 `+360~100%` or `+100%~100%` - fill the model an infill with random direction at each layer.<br/>
