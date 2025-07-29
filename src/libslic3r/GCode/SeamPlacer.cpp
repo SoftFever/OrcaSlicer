@@ -162,7 +162,7 @@ std::vector<float> raycast_visibility(const AABBTreeIndirect::Tree<3, float> &ra
 
                         const Vec3f &center = samples.positions[s_idx];
                         const Vec3f &normal = samples.normals[s_idx];
-                        if (seam_position == spAlignedAvoidFront) {
+                        if (seam_position == spAlignedBack) {
                             const float front_adjustment = std::clamp((normal.dot(Vec3f(0.0f, -1.0f, 0.0f)) + 1.2f) * 0.5f, 0.0f, 1.0f);
                             result[s_idx] += front_adjustment;
                         }
@@ -748,7 +748,7 @@ struct SeamComparator {
   // should return if a is better seamCandidate than b
   bool is_first_better(const SeamCandidate &a, const SeamCandidate &b, const Vec2f &preffered_location = Vec2f { 0.0f,
                                                                                                                0.0f }) const {
-    if ((setup == SeamPosition::spAligned || setup == SeamPosition::spAlignedAvoidFront) && a.central_enforcer != b.central_enforcer) {
+    if ((setup == SeamPosition::spAligned || setup == SeamPosition::spAlignedBack) && a.central_enforcer != b.central_enforcer) {
       return a.central_enforcer;
     }
 
@@ -797,7 +797,7 @@ struct SeamComparator {
   // Also used by the random seam generator.
   bool is_first_not_much_worse(const SeamCandidate &a, const SeamCandidate &b) const {
     // Blockers/Enforcers discrimination, top priority
-    if ((setup == SeamPosition::spAligned || setup == SeamPosition::spAlignedAvoidFront) && a.central_enforcer != b.central_enforcer) {
+    if ((setup == SeamPosition::spAligned || setup == SeamPosition::spAlignedBack) && a.central_enforcer != b.central_enforcer) {
       // Prefer centers of enforcers.
       return a.central_enforcer;
     }
@@ -1433,7 +1433,7 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
       GlobalModelInfo global_model_info { };
       gather_enforcers_blockers(global_model_info, po);
       throw_if_canceled_func();
-      if (configured_seam_preference == spAligned || configured_seam_preference == spNearest || configured_seam_preference == spAlignedAvoidFront) {
+      if (configured_seam_preference == spAligned || configured_seam_preference == spNearest || configured_seam_preference == spAlignedBack) {
         compute_global_occlusion(global_model_info, po, throw_if_canceled_func, configured_seam_preference);
       }
       throw_if_canceled_func();
@@ -1443,7 +1443,7 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
       BOOST_LOG_TRIVIAL(debug)
           << "SeamPlacer: gather_seam_candidates: end";
       throw_if_canceled_func();
-      if (configured_seam_preference == spAligned || configured_seam_preference == spNearest || configured_seam_preference == spAlignedAvoidFront) {
+      if (configured_seam_preference == spAligned || configured_seam_preference == spNearest || configured_seam_preference == spAlignedBack) {
         BOOST_LOG_TRIVIAL(debug)
             << "SeamPlacer: calculate_candidates_visibility : start";
         calculate_candidates_visibility(po, global_model_info);
@@ -1479,7 +1479,7 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
           << "SeamPlacer: pick_seam_point : end";
     }
     throw_if_canceled_func();
-    if (configured_seam_preference == spAligned || configured_seam_preference == spRear || configured_seam_preference == spAlignedAvoidFront) {
+    if (configured_seam_preference == spAligned || configured_seam_preference == spRear || configured_seam_preference == spAlignedBack) {
       BOOST_LOG_TRIVIAL(debug)
           << "SeamPlacer: align_seam_points : start";
       align_seam_points(po, comparator);
