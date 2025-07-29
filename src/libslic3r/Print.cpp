@@ -2041,6 +2041,8 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         }
         //if (!object1->config().equals(object2->config()))
         //    return false;
+        if (model_obj1->layer_height_profile.get() != model_obj2->layer_height_profile.get())
+            return false;
         if (model_obj1->config.get() != model_obj2->config.get())
             return false;
         return true;
