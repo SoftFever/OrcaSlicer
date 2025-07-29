@@ -1097,6 +1097,53 @@ int Print::get_compatible_filament_type(const std::set<int>& filament_types)
 StringObjectException Print::check_multi_filament_valid(const Print& print)
 {
     auto print_config = print.config();
+    if(print_config.print_sequence == PrintSequence::ByObject) {// use ByObject valid under ByObject print sequence
+        std::set<FilamentCompatibilityType> Compatibility_each_obj;
+        bool enable_mix_printing = !print.need_check_multi_filaments_compatibility();
+
+        for (const auto &objectID_t : print.print_object_ids()) {
+            std::set<int> obj_used_extruder_ids;
+            auto                     print_object = print.get_object(objectID_t);// current object
+            if (print_object){
+                auto object_extruders_t = print_object->object_extruders(); // object used extruder
+                for (int extruder : object_extruders_t) {
+                    assert(extruder > 0);
+                    obj_used_extruder_ids.insert(extruder);
+                }
+            }
+
+            if (print_object->has_support_material()) { // extruder used by supports
+                auto num_extruders                 = (unsigned int) print_config.filament_diameter.size();
+                assert(print_object->config().support_filament >= 0);
+                if (print_object->config().support_filament >= 1 && (unsigned int)print_object->config().support_filament < num_extruders + 1)
+                    obj_used_extruder_ids.insert((unsigned int) print_object->config().support_filament - 1);//0-based extruder id
+                assert(print_object->config().support_interface_filament >= 0);
+                if (print_object->config().support_interface_filament >= 1 && (unsigned int)print_object->config().support_interface_filament < num_extruders + 1)
+                    obj_used_extruder_ids.insert((unsigned int) print_object->config().support_interface_filament - 1);
+            }
+            std::vector<std::string> filament_types;
+            filament_types.reserve(obj_used_extruder_ids.size());
+            for (const auto &extruder_idx : obj_used_extruder_ids) filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
+
+            auto                  compatibility       = check_multi_filaments_compatibility(filament_types);// check for each object
+            Compatibility_each_obj.insert(compatibility);
+        }
+        StringObjectException ret;
+        std::string           hypertext = "filament_mix_print";
+        if (Compatibility_each_obj.count(FilamentCompatibilityType::HighLowMixed)){// at least one object has HighLowMixed
+            if (enable_mix_printing) {
+                ret.string     = L("Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage.");
+                ret.is_warning = true;
+                // ret.hypetext   = hypertext;
+            } else
+                ret.string = L("Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences.");
+        }else if (Compatibility_each_obj.count(FilamentCompatibilityType::LowMidMixed) || Compatibility_each_obj.count(FilamentCompatibilityType::HighMidMixed)){// at least one object has other Mixed
+            ret.is_warning = true;
+            // ret.hypetext   = hypertext;
+            ret.string     = L("Printing different-temp filaments together may cause nozzle clogging or printer damage.");
+        }
+        return ret;
+    }
     std::vector<unsigned int> extruders = print.extruders();
     std::vector<std::string> filament_types;
     filament_types.reserve(extruders.size());
@@ -1147,7 +1194,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     if (extruders.empty())
         return { L("No extrusions under current settings.") };
 
-    if (nozzles < 2 && extruders.size() > 1 && m_config.print_sequence != PrintSequence::ByObject) {
+    if (nozzles < 2 && extruders.size() > 1) {
         auto ret = check_multi_filament_valid(*this);
         if (!ret.string.empty())
         {
