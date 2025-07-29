@@ -3834,7 +3834,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString());
 
     def             = this->add("wrapping_detection_gcode", coString);
-    def->label      = L("Wrapping detection G-code");
+    def->label      = L("Clumping detection G-code");
     def->multiline  = true;
     def->full_width = true;
     def->height     = 5;

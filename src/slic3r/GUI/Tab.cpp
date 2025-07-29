@@ -1587,7 +1587,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             bool enable_wrapping = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
             if (enable_wrapping && !set_enable_prime_tower) {
                 MessageDialog dlg(wxGetApp().plater(),
-                        _L("A prime tower is required for wrapping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
+                        _L("A prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
                         _L("Warning"), wxICON_WARNING | wxYES | wxNO);
                 if (dlg.ShowModal() == wxID_NO) {
                     DynamicPrintConfig new_conf = *m_config;
@@ -1616,7 +1616,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         bool wipe_tower_enabled = m_preset_bundle->prints.get_edited_preset().config.option<ConfigOptionBool>("enable_prime_tower")->value;
         if (boost::any_cast<bool>(value) && !wipe_tower_enabled) {
             MessageDialog dlg(wxGetApp().plater(),
-                              _L("Prime tower is required for wrapping detection. There may be flaws on the model without prime tower. Do you still want to enable wrapping detection?"),
+                              _L("Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_NO) {
                 DynamicPrintConfig new_conf = *m_config;
@@ -4345,7 +4345,7 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
-        optgroup              = page->new_optgroup(L("Wrapping Detection G-code"), L"param_gcode", 0);
+        optgroup              = page->new_optgroup(L("Clumping Detection G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };

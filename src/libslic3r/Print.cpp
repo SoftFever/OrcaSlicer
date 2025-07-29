@@ -971,7 +971,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         }
 
         if (print_config.enable_wrapping_detection.value && !intersection(wrapping_poly, convex_hull).empty()) {
-            return {inst->model_instance->get_object()->name + L(" is too close to wrapping detection area, there may be collisions when printing.") + "\n",
+            return {inst->model_instance->get_object()->name + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n",
                 inst->model_instance->get_object()};
         }
         convex_hulls_other.emplace_back(convex_hull);
@@ -1025,7 +1025,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         return {L("Prime Tower") + L(" is too close to exclusion area, and collisions will be caused.\n")};
     }
     if (print_config.enable_wrapping_detection.value && !intersection({wrapping_poly}, convex_hulls_temp).empty()) {
-        return {L("Prime Tower") + L(" is too close to wrapping detection area, and collisions will be caused.\n")};
+        return {L("Prime Tower") + L(" is too close to clumping detection area, and collisions will be caused.\n")};
     }
     return {};
 }
@@ -1165,7 +1165,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             return {L("Smooth mode of timelapse is not supported when \"by object\" sequence is enabled.")};
 
         if (m_config.enable_wrapping_detection)
-            return {L("Wrapping detection is not supported when \"by object\" sequence is enabled.")};
+            return {L("Clumping detection is not supported when \"by object\" sequence is enabled.")};
 
         //BBS: refine seq-print validation logic
         auto ret = sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
