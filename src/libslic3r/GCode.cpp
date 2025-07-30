@@ -2375,14 +2375,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
-
-    // Orca: set chamber temperature at the beginning of gcode file
-    if (activate_chamber_temp_control && max_chamber_temp > 0)
-        file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
-
+ 
     // Write the custom start G-code
     file.writeln(machine_start_gcode);
 
+    // Orca: set chamber temperature after bed temp set by machine_start_code
+    if (activate_chamber_temp_control && max_chamber_temp > 0)
+        file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
+    
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
     m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
