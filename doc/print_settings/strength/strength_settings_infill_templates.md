@@ -38,63 +38,63 @@
 `[joint sign]` - the symbol which determinate method of connection for turning of the infill:<br/>
 
    - `/` - linear displacement of the infill<br/>
-   <img height="200" align="bottom" alt="linear joint" src="../../images/Template-metalanguage/lin-joint.png?raw=true" /> `+22.5/50%`
+   <img height="200" align="bottom" alt="linear joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/lin-joint.png?raw=true" /> `+22.5/50%`
 
    - `#` - infill of multiple layers with vertical displacement at finish angle<br/>
-   <img height="200" align="bottom" alt="multiple joint" src="../../images/Template-metalanguage/%23-joint.png?raw=true" /> `+22.5#50%`
+   <img height="200" align="bottom" alt="multiple joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/%23-joint.png?raw=true" /> `+22.5#50%`
 
    - `#-` - infill of multiple layers with vertical displacement at initial angle<br/>
-   <img height="200" align="bottom" alt="multiple joint @ initial angle" src="../../images/Template-metalanguage/%23--joint.png?raw=true" /> `+22.5#-50%`
+   <img height="200" align="bottom" alt="multiple joint @ initial angle" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/%23--joint.png?raw=true" /> `+22.5#-50%`
 
    - `|` - infill of multiple layers with vertical displacement at middle angle<br/>
-   <img height="200" align="bottom" alt="multiple joint @ middle angle" src="../../images/Template-metalanguage/div-joint.png?raw=true" /> `+22.5|50%`
+   <img height="200" align="bottom" alt="multiple joint @ middle angle" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/div-joint.png?raw=true" /> `+22.5|50%`
 
    - `N` - infill form by sinus function (vertical connection)<br/>
-   <img height="200" align="bottom" alt="v-sinus joint" src="../../images/Template-metalanguage/N-joint.png?raw=true" /> `+22.5N50%`
+   <img height="200" align="bottom" alt="v-sinus joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/N-joint.png?raw=true" /> `+22.5N50%`
 
    - `n` - infill form by sinus function (vertical connection, lazy)<br/>
-   <img height="200" align="bottom" alt="v-sinus joint, lazy" src="../../images/Template-metalanguage/n_-joint.png?raw=true" /> `+22.5n50%`
+   <img height="200" align="bottom" alt="v-sinus joint, lazy" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/n_-joint.png?raw=true" /> `+22.5n50%`
 
    - `Z` - infill form by sinus function (horizontal connection)<br/>
-   <img height="200" align="bottom" alt="h-sinus joint" src="../../images/Template-metalanguage/Z-joint.png?raw=true" /> `+22.5Z50%`
+   <img height="200" align="bottom" alt="h-sinus joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/Z-joint.png?raw=true" /> `+22.5Z50%`
 
    - `z` - infill form by sinus function (horizontal connection, lazy)<br/>
-   <img height="200" align="bottom" alt="h-sinus joint, lazy" src="../../images/Template-metalanguage/z_-joint.png?raw=true" /> `+22.5z50%`
+   <img height="200" align="bottom" alt="h-sinus joint, lazy" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/z_-joint.png?raw=true" /> `+22.5z50%`
 
    - `L` - infill form by quarter of circle  (horizontal to vertical connection)<br/>
-   <img height="200" align="bottom" alt="vh-quarter joint" src="../../images/Template-metalanguage/L-joint.png?raw=true" /> `+22.5L50%`
+   <img height="200" align="bottom" alt="vh-quarter joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/L-joint.png?raw=true" /> `+22.5L50%`
 
    - `l` -  infill form by quarter of circle (vertical to horizontal connection)<br/>
-   <img height="200" align="bottom" alt="hv-quarter joint" src="../../images/Template-metalanguage/l_-joint.png?raw=true" /> `+22.5l50%`
+   <img height="200" align="bottom" alt="hv-quarter joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/l_-joint.png?raw=true" /> `+22.5l50%`
 
    - `U` - infill form by squared function<br/>
-   <img height="200" align="bottom" alt="squared joint" src="../../images/Template-metalanguage/U-joint.png?raw=true" /> `+22.5U50%`
+   <img height="200" align="bottom" alt="squared joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/U-joint.png?raw=true" /> `+22.5U50%`
 
    - `u-` - infill form by squared function (inverse)<br/>
-   <img height="200" align="bottom" alt="squared joint, inverse" src="../../images/Template-metalanguage/u_-joint.png?raw=true" /> `+22.5u-50%`
+   <img height="200" align="bottom" alt="squared joint, inverse" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/u_-joint.png?raw=true" /> `+22.5u-50%`
 
    - `Q` - infill form by cubic function<br/>
-   <img height="200" align="bottom" alt="cubic joint" src="../../images/Template-metalanguage/Q-joint.png?raw=true" /> `+22.5Q50%`
+   <img height="200" align="bottom" alt="cubic joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/Q-joint.png?raw=true" /> `+22.5Q50%`
 
    - `q-` - infill form by cubic function (inverse)<br/>
-   <img height="200" align="bottom" alt="cubic joint, inverse" src="../../images/Template-metalanguage/q_-joint.png?raw=true" /> `+22.5q-50%`
+   <img height="200" align="bottom" alt="cubic joint, inverse" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/q_-joint.png?raw=true" /> `+22.5q-50%`
 
    - `$` - infill form by arcsinus method<br/>
-   <img height="200" align="bottom" alt="arcsinus joint" src="../../images/Template-metalanguage/%24-joint.png?raw=true" /> `+22.5$50%`
+   <img height="200" align="bottom" alt="arcsinus joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/%24-joint.png?raw=true" /> `+22.5$50%`
 
    - `~` - infill form random angle<br/>
-   <img height="200" align="bottom" alt="random joint" src="../../images/Template-metalanguage/%7E-joint.png?raw=true" /> `+22.5~50%`
+   <img height="200" align="bottom" alt="random joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/%7E-joint.png?raw=true" /> `+22.5~50%`
 
    - `^` - infill form pseudorandom angle<br/>
-   <img height="200" align="bottom" alt="pseudorandom joint" src="../../images/Template-metalanguage/%5E-joint.png?raw=true" /> `+22.5^50%`
+   <img height="200" align="bottom" alt="pseudorandom joint" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/%5E-joint.png?raw=true" /> `+22.5^50%`
 
 ### Counting 
 `[-]ℕ` - counting the distance at which the turn will take place:<br/>
    - `ℕ` - the count will take place by ℕ layers<br/>
-   <img height="200" align="bottom" alt="infill counting" src="../../images/Template-metalanguage/N.png?raw=true" /> `+22.5/50%`
+   <img height="200" align="bottom" alt="infill counting" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/N.png?raw=true" /> `+22.5/50%`
 
    - `-ℕ` - indicates that the joint form will be flipped upward<br/>
-   <img height="200" align="bottom" alt="infill counting, flipped" src="../../images/Template-metalanguage/-N.png?raw=true" /> `+22.5/-50%`
+   <img height="200" align="bottom" alt="infill counting, flipped" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/-N.png?raw=true" /> `+22.5/-50%`
 
    - `B` - the count will take place by next layers equals of bottom_shell_layers parameter<br/>
    - `T` - the count will take place by next layers equals of top_shell_layers parameter<br/>
@@ -119,40 +119,40 @@ They include a simple definition of the angle for each layer. Note that the init
 
 - `0`, `15`, `45.5`, `256.5605`... - just fill at the existing angle. The initial direction starts at the X-axis one, and the acceptable range of values is from 0 to 360<br/>
 
-   - <img height="200" align="bottom" alt="0" src="../../images/Template-metalanguage/0.png?raw=true" /> `0` as also `+0`, `-0` or just empty template<br/>
+   - <img height="200" align="bottom" alt="0" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/0.png?raw=true" /> `0` as also `+0`, `-0` or just empty template<br/>
 
-   - <img height="200" align="bottom" alt="45" src="../../images/Template-metalanguage/45.png?raw=true" /> `45`<br/>
+   - <img height="200" align="bottom" alt="45" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/45.png?raw=true" /> `45`<br/>
    
-   - <img height="200" align="bottom" alt="0, 30" src="../../images/Template-metalanguage/0-30.png?raw=true" /> `0, 30` - is a simple alternation through each layer in the direction of 0 and 30 degrees.<br/>
+   - <img height="200" align="bottom" alt="0, 30" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/0-30.png?raw=true" /> `0, 30` - is a simple alternation through each layer in the direction of 0 and 30 degrees.<br/>
 
 - `0%`, `10%`, `25%`, `100%`... - infill angle determine from relative terms from a full turn of 360 degree rotation. Rotate by 0, 36, 90, and 0 degrees.<br/>
 
-   - <img height="200" align="bottom" alt="25% or 90" src="../../images/Template-metalanguage/90.png?raw=true" /> `25%` - the equivalent of `90` instruction.<br/>
+   - <img height="200" align="bottom" alt="25% or 90" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/90.png?raw=true" /> `25%` - the equivalent of `90` instruction.<br/>
 
 - `30, 60, 90, 120, 150, 0` - a more complex command defines a turn every layer at 30 degrees. At the end of the template line, the next instruction is read first, and this process continues until the entire height of the model is filled in.
 
 ### Relative instructions
 
 - `+30` - this is a short instruction by counterclockwise rotation. The equivalent of `30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 0` or `30, 60, 90, 120, 150, 0` instruction.<br/>
-<img height="200" align="bottom" src="../../images/Template-metalanguage/+30.png?raw=true" /><br/>
+<img height="200" align="bottom" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/+30.png?raw=true" /><br/>
 
 - `-30` - this is the same instruction, but with clockwise rotation. The equivalent of `330, 300, 270, 240, 210, 180, 150, 120, 90, 60, 30, 0` or `330, 300, 270, 240, 210, 0` instruction.<br/>
 
 - `+150` - you can specify a different multiple of the irrational angle for better fill dispersion = `150, 300, 90, 240, 30, 180, 330, 120, 270, 60, 210, 0` ...<br/>
 
 - `+45` The equivalent of `45, 90, 135, 180, 225, 270, 315, 0` or `45, 90, 135, 0` instruction.<br/>
-<img height="200" align="bottom" alt="image" src="../../images/Template-metalanguage/+30.png?raw=true" /><br/>
+<img height="200" align="bottom" alt="image" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/+30.png?raw=true" /><br/>
 
 - `+90` The equivalent of `90, 180, 270, 0` or `90, 0` instruction.<br/>
-<img height="200" align="bottom" alt="+90" src="../../images/Template-metalanguage/+30.png?raw=true" /><br/>
+<img height="200" align="bottom" alt="+90" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/+30.png?raw=true" /><br/>
 
 - `+15%` -  useful for dividing angles on a decimal basis = `54, 108, 162, 270, 324, 18, 72, 126, 180, 234, 288, 342, 36, 90, 144, 196, 252, 306, 0` ...<br/>
 
 - `+30, +90` - a complex instruction setting the rotation of each layer in these positions = `30, 120, 150, 240, 270, 0` ...<br/>
-<img height="200" align="bottom" alt="+30, +90" src="../../images/Template-metalanguage/+30+90.png?raw=true" /><br/>
+<img height="200" align="bottom" alt="+30, +90" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/+30+90.png?raw=true" /><br/>
 
 - `0, +30, +90` - a complex instruction setting the rotation of each layer in these positions = `0, 30, 120` ...<br/>
-<img height="200" align="bottom" alt="0, +30, +90" src="../../images/Template-metalanguage/0+30+90.png?raw=true" /><br/>
+<img height="200" align="bottom" alt="0, +30, +90" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/0+30+90.png?raw=true" /><br/>
 
 ### Repetitive, adjusting and one-time instructions
 - `5, 10, +20` - simple instructions without modifiers. Sets the angles in sequence = 5, 10, 30, 5, 10, 30, 5, 10 ...<br/>
@@ -177,10 +177,10 @@ If there is the `-` sign before the numeric value, then the initial fill angle c
 It is important to know that this will not be the exact length, but will be tied to the nearest layer from below.
 
 - `+45/100` - rotate the next 100 layers linearly at a 45 degree angle. For this model, this instruction is equivalent of `+45/100%` as it contains 100 layers.<br/>
-<img height="200" align="bottom" alt="+45/100" src="../../images/Template-metalanguage/+45-100.png?raw=true" /><br/>
+<img height="200" align="bottom" alt="+45/100" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/+45-100.png?raw=true" /><br/>
 
 - When changing the height of the instruction `+45/50` or `+45/50%` - the final angle will be 90, as the turn will occur twice.<br/>
-<img height="200" align="bottom" alt="+45/50" src="../../images/Template-metalanguage/+45--100.png?raw=true" /><br/>
+<img height="200" align="bottom" alt="+45/50" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/+45--100.png?raw=true" /><br/>
 
 - `-50%Z1cm` - rotate one centimeter of infill by sinus function at a 180 degree CW.<br/>
 
@@ -197,7 +197,7 @@ The following instructions allow you to embed solid layers in a sparse fill. The
 It is possible to combine them with the rotation method and layer number constant - `DT` `S/` `M#` `OB`... 
 
 - `#14, +15R` -  put the 14 layers of sparse infill when put one rectilinear layer of solid infill with 15 degree turn<br/>
-<img height="200" align="bottom" alt="#14, +15R" src="../../images/Template-metalanguage/%2314-15R.png?raw=true" /><br/>
+<img height="200" align="bottom" alt="#14, +15R" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/%2314-15R.png?raw=true" /><br/>
 
 - `B!, 240M3, #25` - skip the first shell layers from rotate, fill model by 3 solid monotonic layers at 240 degree, then put 25 sparse layers by same angle<br/>
 
@@ -207,10 +207,10 @@ It is possible to combine them with the rotation method and layer number constan
 
 ## Complex template examples
 - `+10L25%, -10l25%, -10L25%, +10l25%` -  fill the model with sine period with 10 degrees amplitude<br/>
-<img height="200" align="bottom" alt="period with 10 degrees amplitude" src="../../images/Template-metalanguage/10period.png?raw=true" /><br/>
+<img height="200" align="bottom" alt="period with 10 degrees amplitude" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/10period.png?raw=true" /><br/>
 
 - `+30/-10#` - rotate the infill at height of 10 standard layers (or @ standard layer height is 0.2mm x 10 = 2mm) inverse linearly at a 30 degree angle.<br/>
-<img height="200" align="bottom" alt="+30/-10#" src="../../images/Template-metalanguage/+30-10%23.png?raw=true" /><br/>
+<img height="200" align="bottom" alt="+30/-10#" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/+30-10%23.png?raw=true" /><br/>
 
 - `+360~100%` or `+100%~100%` - fill the model an infill with random direction at each layer.<br/>
-<img height="200" align="bottom" alt="+360~100%" src="../../images/Template-metalanguage/+360~100%25.png?raw=true" /><br/>
+<img height="200" align="bottom" alt="+360~100%" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Template-metalanguage/+360~100%25.png?raw=true" /><br/>
