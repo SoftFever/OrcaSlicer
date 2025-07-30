@@ -38,55 +38,55 @@
 `[joint sign]` - the symbol which determinate method of connection for turning of the infill:<br/>
 
    - `/` - linear displacement of the infill<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/6cd3e120-afb5-48ea-b8b2-8ae21271ed33" /> `+22.5/50%`
+   <img height="200" align="bottom" alt="linear joint" src="../../images/Template-metalanguage/lin-joint.png" /> `+22.5/50%`
 
    - `#` - infill of multiple layers with vertical displacement at finish angle<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/c6d28fb1-06e9-45d3-b683-be7157ed7123" /> `+22.5#50%`
+   <img height="200" align="bottom" alt="multiple joint" src="../../images/Template-metalanguage/%23-joint.png" /> `+22.5#50%`
 
    - `#-` - infill of multiple layers with vertical displacement at initial angle<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/ca06e63f-cf3a-4b9c-ab4d-e5b01a3ac9c7" /> `+22.5#-50%`
+   <img height="200" align="bottom" alt="multiple joint @ initial angle" src="../../images/Template-metalanguage/%23--joint.png" /> `+22.5#-50%`
 
    - `|` - infill of multiple layers with vertical displacement at middle angle<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/6ee2ee0d-e99d-465e-bdce-02879265f3d4" /> `+22.5|50%`
+   <img height="200" align="bottom" alt="multiple joint @ middle angle" src="../../images/Template-metalanguage/div-joint.png" /> `+22.5|50%`
 
    - `N` - infill form by sinus function (vertical connection)<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/e993de8e-8431-45a2-b616-192804b1ead2" /> `+22.5N50%`
+   <img height="200" align="bottom" alt="v-sinus joint" src="../../images/Template-metalanguage/N-joint.png" /> `+22.5N50%`
 
    - `n` - infill form by sinus function (vertical connection, lazy)<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/d3ceb949-fb9d-45bc-8a6e-f9ec31048708" /> `+22.5n50%`
+   <img height="200" align="bottom" alt="v-sinus joint, lazy" src="../../images/Template-metalanguage/n_-joint.png" /> `+22.5n50%`
 
    - `Z` - infill form by sinus function (horizontal connection)<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/c2457b50-ae96-4dc1-b4b7-6987f4323d3a" /> `+22.5Z50%`
+   <img height="200" align="bottom" alt="h-sinus joint" src="../../images/Template-metalanguage/Z-joint.png" /> `+22.5Z50%`
 
    - `z` - infill form by sinus function (horizontal connection, lazy)<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/34ec4712-505a-4d46-88eb-4af3f60051a3" /> `+22.5z50%`
+   <img height="200" align="bottom" alt="h-sinus joint, lazy" src="../../images/Template-metalanguage/z_-joint.png" /> `+22.5z50%`
 
    - `L` - infill form by quarter of circle  (horizontal to vertical connection)<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/b04ff730-97b6-40d7-b6ab-212906fa7d26" /> `+22.5L50%`
+   <img height="200" align="bottom" alt="vh-quarter joint" src="../../images/Template-metalanguage/L-joint.png" /> `+22.5L50%`
 
    - `l` -  infill form by quarter of circle (vertical to horizontal connection)<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/95dd0de2-d673-4c1f-885b-763c7919794e" /> `+22.5l50%`
+   <img height="200" align="bottom" alt="hv-quarter joint" src="../../images/Template-metalanguage/l_-joint.png" /> `+22.5l50%`
 
    - `U` - infill form by squared function<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/61f4656c-1b9d-4345-b31e-ed322c103b46" /> `+22.5U50%`
+   <img height="200" align="bottom" alt="squared joint" src="../../images/Template-metalanguage/U-joint.png" /> `+22.5U50%`
 
    - `u-` - infill form by squared function (inverse)<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/d942c0b6-295b-4278-b456-dfc3d4d22fb9" /> `+22.5u-50%`
+   <img height="200" align="bottom" alt="squared joint, inverse" src="../../images/Template-metalanguage/u_-joint.png" /> `+22.5u-50%`
 
    - `Q` - infill form by cubic function<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/804a4983-5022-44de-9d0e-27e1d3571440" /> `+22.5Q50%`
+   <img height="200" align="bottom" alt="cubic joint" src="../../images/Template-metalanguage/Q-joint.png" /> `+22.5Q50%`
 
    - `q-` - infill form by cubic function (inverse)<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/dc1be529-a5f7-4ecc-a092-46b3c14ebf8e" /> `+22.5q-50%`
+   <img height="200" align="bottom" alt="cubic joint, inverse" src="../../images/Template-metalanguage/q_-joint.png" /> `+22.5q-50%`
 
    - `$` - infill form by arcsinus method<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/220bfdf6-3f79-4ce2-a698-ca6fb2af79cd" /> `+22.5$50%`
+   <img height="200" align="bottom" alt="arcsinus joint" src="../../images/Template-metalanguage/%24-joint.png" /> `+22.5$50%`
 
    - `~` - infill form random angle<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/a5fe6f7d-8422-4980-878e-4807a3f1d649" /> `+22.5~50%`
+   <img height="200" align="bottom" alt="random joint" src="../../images/Template-metalanguage/%7E-joint.png" /> `+22.5~50%`
 
    - `^` - infill form pseudorandom angle<br/>
-   <img width="160" height="160" align="bottom" alt="image" src="https://github.com/user-attachments/assets/aa4768f1-08a8-4333-a447-c40742f652ef" /> `+22.5^50%`
+   <img height="200" align="bottom" alt="pseudorandom joint" src="../../images/Template-metalanguage/%5E-joint.png" /> `+22.5^50%`
 
 ### Counting 
 `[-]ℕ` - counting the distance at which the turn will take place:<br/>
