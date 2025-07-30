@@ -341,9 +341,7 @@ struct Sidebar::priv
     wxPanel* m_panel_print_content;
     //wxComboBox *                m_comboBox_print_preset;
     ComboBox *                  m_bed_type_list = nullptr;
-    ComboBox *                  m_left_extruder_list  = nullptr;
     wxStaticText *              m_left_ams_count = nullptr;
-    ComboBox *                  m_right_extruder_list = nullptr;
     wxStaticText *              m_right_ams_count     = nullptr;
     wxSizer *                   m_dual_extruder_sizer = nullptr;
     wxStaticLine *              m_staticline1;
@@ -970,19 +968,6 @@ Sidebar::Sidebar(Plater *parent)
             static_box->SetFont(Label::Body_10);
             static_box->SetForegroundColour("#909090");
             wxStaticBoxSizer *static_box_sizer = new wxStaticBoxSizer(static_box, wxVERTICAL);
-            // Nozzle
-            wxBoxSizer * nozzle_sizer = new wxBoxSizer(wxHORIZONTAL);
-            wxStaticText * nozzle_title = new wxStaticText(static_box, wxID_ANY, _L("Nozzle"));
-            nozzle_title->SetFont(Label::Body_14);
-            nozzle_title->SetForegroundColour("#262E30");
-            auto nozzle_type_list = new ComboBox(static_box, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
-            nozzle_type_list->Bind(wxEVT_COMBOBOX, [this, index, nozzle_type_list](wxCommandEvent &evt) {
-                auto printer_tab = dynamic_cast<TabPrinter*>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-                printer_tab->set_extruder_volume_type(index, NozzleVolumeType(intptr_t(nozzle_type_list->GetClientData(evt.GetInt()))));
-            });
-            nozzle_sizer->Add(nozzle_title, 2, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
-            nozzle_sizer->Add(nozzle_type_list, 3, wxLEFT | wxEXPAND, FromDIP(10));
-            static_box_sizer->Add(nozzle_sizer, 0, wxTOP | wxEXPAND, FromDIP(5));
             // AMS count
             wxBoxSizer * ams_count_sizer = new wxBoxSizer(wxHORIZONTAL);
             wxStaticText *ams_count_title = new wxStaticText(static_box, wxID_ANY, _L("AMS"));
@@ -1007,16 +992,14 @@ Sidebar::Sidebar(Plater *parent)
             ams_count_sizer->Add(ams_count_edit, 2, wxLEFT | wxEXPAND, FromDIP(10));
             static_box_sizer->Add(ams_count_sizer, 0, wxTOP | wxBOTTOM | wxEXPAND, FromDIP(5));
             p->m_dual_extruder_sizer->Add(static_box_sizer, 1, wxEXPAND);
-            return std::make_pair(nozzle_type_list, ams_count_text);
+            return ams_count_text;
         };
         p->m_dual_extruder_sizer->Add(FromDIP(10), 0);
         auto left_extruder = add_extruder(0, _L("Left Extruder"));
-        p->m_left_extruder_list = left_extruder.first;
-        p->m_left_ams_count = left_extruder.second;
+        p->m_left_ams_count = left_extruder;
         p->m_dual_extruder_sizer->Add(FromDIP(2), 0);
         auto right_extruder = add_extruder(1, _L("Right Extruder"));
-        p->m_right_extruder_list = right_extruder.first;
-        p->m_right_ams_count = right_extruder.second;
+        p->m_right_ams_count = right_extruder;
         p->m_dual_extruder_sizer->Add(FromDIP(10), 0);
 
         vsizer_printer->Add(p->m_dual_extruder_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
@@ -1598,29 +1581,8 @@ void Sidebar::update_presets(Preset::Type preset_type)
             wxGetApp().plater()->get_current_canvas3D()->get_arrange_settings().align_to_y_axis = false;
 
         // Update dual extrudes
-        auto extruder_variants = printer_preset.config.option<ConfigOptionStrings>("extruder_variant_list");
-        p->m_dual_extruder_sizer->Show(extruder_variants->size() == 2);
-        if (extruder_variants->size() == 2) {
-            auto extruders_def = printer_preset.config.def()->get("extruder_type");
-            auto extruders = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
-            auto nozzle_volumes_def = printer_preset.config.def()->get("nozzle_volume_type");
-            auto nozzle_volumes = printer_preset.config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-            auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants](ComboBox &box, int index) {
-                box.Clear();
-                auto extruder = extruders_def->enum_labels[extruders->values[index]];
-                int select = -1;
-                for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
-                    if (boost::algorithm::contains(extruder_variants->values[index], extruder + " " + nozzle_volumes_def->enum_labels[i])) {
-                        if (nozzle_volumes->values[index] == i)
-                            select = box.GetCount();
-                        box.Append(_L(nozzle_volumes_def->enum_labels[i], {}, (void*)i));
-                    }
-                }
-                box.SetSelection(select);
-            };
-            update_extruder_variant(*p->m_left_extruder_list, 0);
-            update_extruder_variant(*p->m_right_extruder_list, 1);
-        }
+        auto* nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(printer_preset.config.option("nozzle_diameter"));
+        p->m_dual_extruder_sizer->Show(preset_bundle.is_bbl_vendor() && nozzle_diameter->size() == 2);
 
         break;
     }
