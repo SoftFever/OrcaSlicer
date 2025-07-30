@@ -117,26 +117,28 @@ Determines how the fuzzy skin effect will be reproduced:
 
 The classic method is when the pattern on the walls is achieved by shifting the printhead perpendicular to the wall. It gives a predictable result, but decreases the strength entire shells and open the pores inside the walls. It also increases the mechanical stress on the kinematics of the printer. The speed of general printing is slowing down.
 
-<img width="160" height="160" alt="image" align="bottom" src="https://github.com/user-attachments/assets/a9d75ded-ad79-4f0d-b0b4-2531c746f775" />
+<img width="160" height="160" alt="Fuzzy skin Displacement mode" align="bottom" src="../../images/Fuzzy-skin/Fuzzy-skin-Displacement-mode.png" /></br>
 
 #### Extrusion
 
 The fuzzy skin condition is obtained by changing the amount of extruded plastic as the print head moves linearly. There is no extra load on the kinematics, there is no decrease in the printing speed, the pores do not open, but the drawing turns out to be smoother by a factor of 2. It is suitable for creating "loose" walls to reduce internal stress into extruded plastic, or masking printing defects on the side walls - a matte effect.
 
+<img width="160" height="160" alt="Fuzzy skin Extrusion mode" align="bottom" src="../../images/Fuzzy-skin/Fuzzy-skin-Extrusion-mode.png" /></br>
+
 > [!CAUTION]
 > The "Fuzzy skin thicknesses" parameter cannot be more than about 70%-125% (selected individually for different conditions) of the nozzle diameter! This is a complex condition that also depends on the height of the layer, and determines how thin the lines can be extruded.
 > Arachne wall generator mode should also be enabled.
 
-<img width="160" height="160" alt="image" align="bottom" src="https://github.com/user-attachments/assets/b75b848e-f2fd-44cc-a4c4-e40ea717a97f" />
 
 #### Combined
 
 This is a combination of Displacement and Extrusion modes. The clarity of the drawing is the same in the classic mode, but the walls remain strong and tight. The load on the kinematics is 2 times lower. The printing speed is faster than in Displacement mode, but the elapsed time will still be longer.
 
+<img width="160" height="160" alt="Fuzzy skin Combined mode" align="bottom" src="../../images/Fuzzy-skin/Fuzzy-skin-Combined-mode.png" /></br>
+
 > [!WARNING]
 > The limits on line thickness are the same as in the Extrusion mode.
 
-<img width="160" height="160" alt="image" align="bottom" src="https://github.com/user-attachments/assets/7a0c9a7a-cdda-49b9-b074-0e17a0641b33" />
 
 ### Noise Type
 
