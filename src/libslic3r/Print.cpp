@@ -929,52 +929,33 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         wrapping_poly.points.emplace_back(scale_(pt.x() + print_origin.x()), scale_(pt.y() + print_origin.y()));
     }
 
-    std::map<const PrintInstance*, Polygon> map_model_object_to_convex_hull;
-    // sequential_print_horizontal_clearance_valid
+    std::map<const ModelVolume*, Polygon> map_model_volume_to_convex_hull;
     Polygons convex_hulls_other;
-    for (int k = 0; k < print_instances_ordered.size(); k++)
-    {
-        auto& inst = print_instances_ordered[k];
-        auto it_convex_hull = map_model_object_to_convex_hull.find(inst);
-        // Get convex hull of all printable volumes assigned to this print object.
-        const ModelInstance* model_instance0 = inst->model_instance;
-        if (it_convex_hull == map_model_object_to_convex_hull.end()) {
-            // Calculate the convex hull of a printable object.
-            auto convex_hull0 = inst->print_object->model_object()->convex_hull_2d(
-                Geometry::assemble_transform(Vec3d::Zero(), model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
+    for (auto& inst : print_instances_ordered) {
+        for (const ModelVolume *v : inst->print_object->model_object()->volumes) {
+            if (!v->is_model_part()) continue;
+            auto it_convex_hull = map_model_volume_to_convex_hull.find(v);
+            if (it_convex_hull == map_model_volume_to_convex_hull.end()) {
+                auto volume_hull = v->get_convex_hull_2d(Geometry::assemble_transform(Vec3d::Zero(), inst->model_instance->get_rotation(),
+                                                                                      inst->model_instance->get_scaling_factor(), inst->model_instance->get_mirror()));
+                volume_hull.translate(inst->shift - inst->print_object->center_offset());
 
-            double z_diff = Geometry::rotation_diff_z(model_instance0->get_rotation(), inst->model_instance->get_rotation());
-            if (std::abs(z_diff) > EPSILON)
-                convex_hull0.rotate(z_diff);
-
-            // instance.shift is a position of a centered object, while model object may not be centered.
-            // Conver the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
-            convex_hull0.translate(inst->shift - inst->print_object->center_offset());
-
-            it_convex_hull = map_model_object_to_convex_hull.emplace_hint(it_convex_hull, inst, convex_hull0);
-        }
-        Polygon& convex_hull = it_convex_hull->second;
-        Polygons convex_hulls_temp;
-        convex_hulls_temp.push_back(convex_hull);
-        if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
-            if (warning) {
-                warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there may be collisions when printing.") + "\n";
-                warning->object = inst->model_instance->get_object();
+                it_convex_hull = map_model_volume_to_convex_hull.emplace_hint(it_convex_hull, v, volume_hull);
             }
-        }
-        if (!intersection(exclude_polys, convex_hull).empty()) {
-            return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n", inst->model_instance->get_object()};
-            /*if (warning) {
-                warning->string = inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n";
-                warning->object = inst->model_instance->get_object();
-            }*/
-        }
+            Polygon &convex_hull = it_convex_hull->second;
+            Polygons convex_hulls_temp;
+            convex_hulls_temp.push_back(convex_hull);
+            if (!intersection(exclude_polys, convex_hull).empty()) {
+                return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n",
+                        inst->model_instance->get_object()};
+            }
 
-        if (print_config.enable_wrapping_detection.value && !intersection(wrapping_poly, convex_hull).empty()) {
-            return {inst->model_instance->get_object()->name + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n",
-                inst->model_instance->get_object()};
+            if (print_config.enable_wrapping_detection.value && !intersection(wrapping_poly, convex_hull).empty()) {
+                return {inst->model_instance->get_object()->name + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n",
+                        inst->model_instance->get_object()};
+            }
+            convex_hulls_other.emplace_back(convex_hull);
         }
-        convex_hulls_other.emplace_back(convex_hull);
     }
 
     //BBS: add the wipe tower check logic
