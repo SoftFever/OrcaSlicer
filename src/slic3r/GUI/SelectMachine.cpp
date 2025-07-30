@@ -4031,7 +4031,7 @@ void SelectMachineDialog::record_edge_pixels_data()
     };
     ThumbnailData &data = m_cur_no_light_thumbnail_data;
     ThumbnailData &origin_data = m_cur_input_thumbnail_data;
-    if (data.width > 0 && data.height > 0) {
+    if (data.width > 0 && data.height > 0 && (data.width == origin_data.width && data.height == origin_data.height) ) {
         m_edge_pixels.resize(data.width * data.height);
         for (unsigned int r = 0; r < data.height; ++r) {
             unsigned int rr        = (data.height - 1 - r) * data.width;
