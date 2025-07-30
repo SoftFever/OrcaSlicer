@@ -2746,7 +2746,7 @@ size_t PresetCollection::first_visible_idx() const
     size_t first_visible = -1;
     size_t idx = m_default_suppressed ? m_num_default_presets : 0;
     for (; idx < m_presets.size(); ++ idx)
-        if (m_presets[idx].is_visible) {
+        if (m_presets[idx].is_visible && m_presets[idx].get_printer_id() == "BBL") {
             if (first_visible == -1)
                 first_visible = idx;
             if (m_type != Preset::TYPE_FILAMENT)
@@ -2758,8 +2758,12 @@ size_t PresetCollection::first_visible_idx() const
                 }
             }
         }
-    if (first_visible == -1)
-        first_visible = 0;
+    if (first_visible == -1) {
+        if (m_presets.size() > 1 && m_default_suppressed)
+            first_visible = m_presets.size() == m_num_default_presets ? 0 : m_num_default_presets;
+        else
+            first_visible = 0;
+    }
     return first_visible;
 }
 
