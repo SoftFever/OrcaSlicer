@@ -1688,7 +1688,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "support_filament") {
         int filament_id           = m_config->opt_int("support_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1;
-        if (is_support_filament(filament_id) && !is_soluble_filament(filament_id) && !has_filaments({"TPU", "TPU-AMS"})) {
+        if (is_support_filament(filament_id, false) && !is_soluble_filament(filament_id) && !has_filaments({"TPU", "TPU-AMS"})) {
             wxString           msg_text = _L("Non-soluble support materials are not recommended for support base. \n"
                                                        "Are you sure to use them for support base? \n");
             MessageDialog      dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
@@ -1706,7 +1706,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "support_interface_filament") {
         int filament_id           = m_config->opt_int("support_filament") - 1;
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
-        if ((is_support_filament(interface_filament_id) &&
+        if ((is_support_filament(interface_filament_id, false) &&
              !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
                m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced)) ||
             (is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id))) {

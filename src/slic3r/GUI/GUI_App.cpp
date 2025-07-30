@@ -7303,7 +7303,7 @@ bool has_filaments(const std::vector<string>& model_filaments) {
     return false;
 }
 
-bool is_support_filament(int extruder_id)
+bool is_support_filament(int extruder_id, bool strict_check)
 {
     auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
     auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
@@ -7317,7 +7317,7 @@ bool is_support_filament(int extruder_id)
 
     Slic3r::ConfigOptionBools *support_option = dynamic_cast<Slic3r::ConfigOptionBools *>(filament->config.option("filament_is_support"));
 
-    if (filament_type == "PETG" || filament_type == "PLA") {
+    if(!strict_check &&(filament_type == "PETG" || filament_type == "PLA")) {
         std::vector<string> model_filaments;
         if (filament_type == "PETG")
             model_filaments.emplace_back("PLA");
