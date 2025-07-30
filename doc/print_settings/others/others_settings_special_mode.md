@@ -115,14 +115,14 @@ Determines how the fuzzy skin effect will be reproduced:
 
 #### Displacement
 
-<img alt="Fuzzy skin Displacement mode" align="bottom" src="../../images/Fuzzy-skin/Fuzzy-skin-Displacement-mode.png" height="200" /> [Fuzzy skin Displacement mode](../../images/Fuzzy-skin/Fuzzy-skin-Displacement-mode.png?raw=true)</br>
+<img alt="Fuzzy skin Displacement mode" align="bottom" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-Displacement-mode.png" height="200" /> [Fuzzy skin Displacement mode](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-Displacement-mode.png?raw=true)</br>
 
 
 The classic method is when the pattern on the walls is achieved by shifting the printhead perpendicular to the wall. It gives a predictable result, but decreases the strength entire shells and open the pores inside the walls. It also increases the mechanical stress on the kinematics of the printer. The speed of general printing is slowing down.
 
 #### Extrusion
 
-<img alt="Fuzzy skin Extrusion mode" align="bottom" src="../../images/Fuzzy-skin/Fuzzy-skin-Extrusion-mode.png" height="200" /> [Fuzzy skin Extrusion mode](../../images/Fuzzy-skin/Fuzzy-skin-Extrusion-mode.png?raw=true)</br>
+<img alt="Fuzzy skin Extrusion mode" align="bottom" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-Extrusion-mode.png" height="200" /> [Fuzzy skin Extrusion mode](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-Extrusion-mode.png?raw=true)</br>
 
 The fuzzy skin condition is obtained by changing the amount of extruded plastic as the print head moves linearly. There is no extra load on the kinematics, there is no decrease in the printing speed, the pores do not open, but the drawing turns out to be smoother by a factor of 2. It is suitable for creating "loose" walls to reduce internal stress into extruded plastic, or masking printing defects on the side walls - a matte effect.
 
@@ -133,7 +133,7 @@ The fuzzy skin condition is obtained by changing the amount of extruded plastic 
 
 #### Combined
 
-<img alt="Fuzzy skin Combined mode" align="bottom" src="../../images/Fuzzy-skin/Fuzzy-skin-Combined-mode.png" height="200" /> [Fuzzy skin Combined mode](../../images/Fuzzy-skin/Fuzzy-skin-Combined-mode.png?raw=true)</br>
+<img alt="Fuzzy skin Combined mode" align="bottom" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-Combined-mode.png" height="200" /> [Fuzzy skin Combined mode](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-Combined-mode.png?raw=true)</br>
 
 This is a combination of Displacement and Extrusion modes. The clarity of the drawing is the same in the classic mode, but the walls remain strong and tight. The load on the kinematics is 2 times lower. The printing speed is faster than in Displacement mode, but the elapsed time will still be longer.
 
