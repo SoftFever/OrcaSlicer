@@ -14403,12 +14403,12 @@ void Plater::show_object_info()
         size = vol->get_convex_hull().transformed_bounding_box(t).size();
     }
     else {
-        //int obj_idx, vol_idx;
-        //wxGetApp().obj_list()->get_selected_item_indexes(obj_idx, vol_idx);
-        //if (obj_idx < 0) {
-        //    //corner case when merge/split/remove
-        //    return;
-        //}
+        int obj_idx, vol_idx;
+        wxGetApp().obj_list()->get_selected_item_indexes(obj_idx, vol_idx);
+        if (obj_idx < 0) {
+           //corner case when merge/split/remove
+           return;
+        }
         info_text += (boost::format(_utf8(L("Object name: %1%\n"))) % model_object->name).str();
         face_count = static_cast<int>(model_object->facets_count());
         size = model_object->instance_convex_hull_bounding_box(inst_idx).size();
