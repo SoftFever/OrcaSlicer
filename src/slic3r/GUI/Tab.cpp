@@ -2179,14 +2179,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("counterbore_hole_bridging", "quality_settings_bridging#bridge-counterbore-hole");
 
         optgroup = page->new_optgroup(L("Overhangs"), L"param_overhang");
-        optgroup->append_single_option_line("detect_overhang_wall");
-        optgroup->append_single_option_line("make_overhang_printable");
-        optgroup->append_single_option_line("make_overhang_printable_angle");
-        optgroup->append_single_option_line("make_overhang_printable_hole_size");
-        optgroup->append_single_option_line("extra_perimeters_on_overhangs");
-        optgroup->append_single_option_line("overhang_reverse");
-        optgroup->append_single_option_line("overhang_reverse_internal_only");
-        optgroup->append_single_option_line("overhang_reverse_threshold");
+        optgroup->append_single_option_line("detect_overhang_wall", "quality_settings_overhangs#detect-overhang-wall");
+        optgroup->append_single_option_line("make_overhang_printable", "quality_settings_overhangs#make-overhang-printable");
+        optgroup->append_single_option_line("make_overhang_printable_angle", "quality_settings_overhangs#maximum-angle");
+        optgroup->append_single_option_line("make_overhang_printable_hole_size", "quality_settings_overhangs#hole-area");
+        optgroup->append_single_option_line("extra_perimeters_on_overhangs", "quality_settings_overhangs#extra-perimeters-on-overhangs");
+        optgroup->append_single_option_line("overhang_reverse", "quality_settings_overhangs#reverse-on-even");
+        optgroup->append_single_option_line("overhang_reverse_internal_only", "quality_settings_overhangs#reverse-internal-only");
+        optgroup->append_single_option_line("overhang_reverse_threshold", "quality_settings_overhangs#reverse-threshold");
 
     page = add_options_page(L("Strength"), "custom-gcode_strength"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
@@ -2195,6 +2195,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_thin_wall", "strength_settings_walls#detect-thin-wall");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
+
         optgroup->append_single_option_line("top_shell_layers", "strength_settings_top_bottom_shells#shells-layers");
         optgroup->append_single_option_line("top_shell_thickness", "strength_settings_top_bottom_shells#shell-thickness");
         optgroup->append_single_option_line("top_surface_density", "strength_settings_top_bottom_shells#surface-density");
@@ -2233,6 +2234,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_wall_overlap", "strength_settings_infill#infill-wall-overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+        optgroup->append_single_option_line("align_infill_direction_to_model");
         optgroup->append_single_option_line("bridge_angle", "strength_settings_advanced#bridge-infill-direction");
         optgroup->append_single_option_line("internal_bridge_angle", "strength_settings_advanced#bridge-infill-direction"); // ORCA: Internal bridge angle override
         optgroup->append_single_option_line("minimum_sparse_infill_area", "strength_settings_advanced#minimum-sparse-infill-threshold");
@@ -2454,6 +2456,7 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
 
         optgroup = page->new_optgroup(L("Fuzzy Skin"), L"fuzzy_skin");
         optgroup->append_single_option_line("fuzzy_skin", "others_settings_special_mode#fuzzy-skin");
+        optgroup->append_single_option_line("fuzzy_skin_mode");
         optgroup->append_single_option_line("fuzzy_skin_noise_type", "others_settings_special_mode#fuzzy-skin-mode");
         optgroup->append_single_option_line("fuzzy_skin_point_distance", "others_settings_special_mode#point-distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness", "others_settings_special_mode#skin-thickness");
@@ -4219,7 +4222,7 @@ PageShp TabPrinter::build_kinematics_page()
     optgroup->append_single_option_line("resonance_avoidance");
     // Resonance‑avoidance speed inputs
     {
-        Line resonance_line = {L("Resonance Avoidance Speed"), L("")};
+        Line resonance_line = {L("Resonance Avoidance Speed"), L""};
         resonance_line.append_option(optgroup->get_option("min_resonance_avoidance_speed"));
         resonance_line.append_option(optgroup->get_option("max_resonance_avoidance_speed"));
         optgroup->append_line(resonance_line);
