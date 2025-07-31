@@ -1223,11 +1223,11 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                 f->print_object_config = &this->object()->config();
                 params.use_arachne = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipConcentricInternal;
             }
-            f->rotate_angle = Geometry::deg2rad(angle);
+            f->angle += Geometry::deg2rad(angle); //PPS: archaic rotate_angle config removed
         } else {
             rotate_angles.deserialize(v);
             auto rotate_angle_idx = f->layer_id % rotate_angles.size();
-            f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
+            f->angle += Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]); //PPS: archaic rotate_angle config removed
         }
 
 		if( surface_fill.params.pattern == ipLockedZag ) {

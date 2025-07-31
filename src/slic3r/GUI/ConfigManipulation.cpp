@@ -879,21 +879,58 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "lattice_angle_1", "lattice_angle_2"})
         toggle_line(el, lattice_options);
 
-    //Orca: hide rotate template for solid infill if not support
+    //Orca: hide rotate template for solid infill if not support. Add: and hide rotate config at same case
     const auto _sparse_infill_pattern = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value;
     bool       show_sparse_infill_rotate_template = _sparse_infill_pattern == ipRectilinear || _sparse_infill_pattern == ipLine ||
                                               _sparse_infill_pattern == ipZigZag || _sparse_infill_pattern == ipCrossZag ||
+                                              _sparse_infill_pattern == ipHilbertCurve || _sparse_infill_pattern == ipArchimedeanChords ||
+                                              _sparse_infill_pattern == ipOctagramSpiral ||
                                               _sparse_infill_pattern == ipLockedZag;
 
+    if (!show_sparse_infill_rotate_template) {
+        DynamicPrintConfig new_conf = *config;
+        new_conf.set("sparse_infill_rotate_template", "");
+        apply(config, &new_conf);
+    }
     toggle_line("sparse_infill_rotate_template", show_sparse_infill_rotate_template);
 
-    //Orca: hide rotate template for solid infill if not support
+    bool show_sparse_infill_rotate = _sparse_infill_pattern == ipConcentric || _sparse_infill_pattern == ipConcentricInternal ||
+                                     _sparse_infill_pattern == ipSupportBase || _sparse_infill_pattern == ipLightning;
+
+    toggle_line("infill_direction", !show_sparse_infill_rotate);
+
+
+    //Orca: hide rotate template for solid infill if not support. Add: and hide rotate config at same case
     const auto _solid_infill_pattern = config->option<ConfigOptionEnum<InfillPattern>>("internal_solid_infill_pattern")->value;
     bool       show_solid_infill_rotate_template = _solid_infill_pattern == ipRectilinear || _solid_infill_pattern == ipMonotonic ||
+                                              _solid_infill_pattern == ipHilbertCurve || _solid_infill_pattern == ipArchimedeanChords ||
+                                              _solid_infill_pattern == ipOctagramSpiral ||
                                               _solid_infill_pattern == ipMonotonicLine || _solid_infill_pattern == ipAlignedRectilinear;
 
+    if (!show_solid_infill_rotate_template) {
+        DynamicPrintConfig new_conf = *config;
+        new_conf.set( "solid_infill_rotate_template", "");
+        apply(config, &new_conf);
+    }
     toggle_line("solid_infill_rotate_template", show_solid_infill_rotate_template);
 
+    bool show_solid_infill_rotate = _solid_infill_pattern == ipConcentric || _solid_infill_pattern == ipConcentricInternal;
+
+    toggle_line("solid_infill_direction", !show_solid_infill_rotate);
+
+    /* PPS: A code block that gives a reminder to check the ability to print the sparse infill with rotation. But it's too annoying. It needs to be placed in a different location.
+       The best idea would be if the user changed the empty field "sparse_infill_rotate_template" to a different value for the first time */
+    
+    //string _sparse_template_value = config->option<ConfigOptionString>("sparse_infill_rotate_template")->value;
+    //if (!(_sparse_template_value == "" || _sparse_template_value == "0" ||
+    //      config->option<ConfigOptionPercent>("sparse_infill_density")->get_abs_value(100) == 100)) {
+    //    wxString      msg_text = _(L("You are trying to apply rotation to a sparse infill!\n"
+    //                                 "Make sure that it can be printed and doesn't contain any overhanging loose loops or segments that aren't fixed at one end."));
+    //    MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+    //    is_msg_dlg_already_exist = true;
+    //    dialog.ShowModal();
+    //    is_msg_dlg_already_exist = false;
+    //}
 
     toggle_line("infill_overhang_angle", config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ip2DHoneycomb);
 }
