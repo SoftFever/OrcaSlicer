@@ -20,7 +20,7 @@
                 "es": "Naranja"
             },
             "fila_color": [
-                "#FF6A13"
+                "#FF6A13FF"
             ]
         },
         {
@@ -43,7 +43,7 @@
                 "es": "Naranja calabaza"
             },
             "fila_color": [
-                "#FF9016"
+                "#FF9016FF"
             ]
         },
         {
@@ -66,7 +66,7 @@
                 "es": "Gris azulado"
             },
             "fila_color": [
-                "#5B6579"
+                "#5B6579FF"
             ]
         },
         {
@@ -89,7 +89,7 @@
                 "es": "Azul cobalto"
             },
             "fila_color": [
-                "#0056B8"
+                "#0056B8FF"
             ]
         },
         {
@@ -112,7 +112,7 @@
                 "es": "Turquesa"
             },
             "fila_color": [
-                "#00B1B7"
+                "#00B1B7FF"
             ]
         },
         {
@@ -135,7 +135,7 @@
                 "es": "Cian"
             },
             "fila_color": [
-                "#0086D6"
+                "#0086D6FF"
             ]
         },
         {
@@ -158,7 +158,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#0A2989"
+                "#0A2989FF"
             ]
         },
         {
@@ -181,7 +181,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#8E9089"
+                "#8E9089FF"
             ]
         },
         {
@@ -204,7 +204,7 @@
                 "es": "Plateado"
             },
             "fila_color": [
-                "#A6A9AA"
+                "#A6A9AAFF"
             ]
         },
         {
@@ -227,7 +227,7 @@
                 "es": "Gris claro"
             },
             "fila_color": [
-                "#D1D3D5"
+                "#D1D3D5FF"
             ]
         },
         {
@@ -250,7 +250,7 @@
                 "es": "Gris oscuro"
             },
             "fila_color": [
-                "#545454"
+                "#545454FF"
             ]
         },
         {
@@ -273,7 +273,7 @@
                 "es": "Verde"
             },
             "fila_color": [
-                "#164B35"
+                "#164B35FF"
             ]
         },
         {
@@ -296,7 +296,7 @@
                 "es": "Verde muérdago"
             },
             "fila_color": [
-                "#3F8E43"
+                "#3F8E43FF"
             ]
         },
         {
@@ -319,7 +319,7 @@
                 "es": "Verde brillante"
             },
             "fila_color": [
-                "#BECF00"
+                "#BECF00FF"
             ]
         },
         {
@@ -342,7 +342,7 @@
                 "es": "Verde bambú"
             },
             "fila_color": [
-                "#00AE42"
+                "#00AE42FF"
             ]
         },
         {
@@ -365,7 +365,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -388,8 +388,8 @@
                 "es": "Susurro ártico"
             },
             "fila_color": [
-                "#FFFFFF",
-                "#9CDBD9"
+                "#FFFFFFFF",
+                "#9CDBD9FF"
             ]
         },
         {
@@ -412,8 +412,8 @@
                 "es": "Brisa solar"
             },
             "fila_color": [
-                "#E94B3C",
-                "#FFFFFF"
+                "#E94B3CFF",
+                "#FFFFFFFF"
             ]
         },
         {
@@ -436,8 +436,8 @@
                 "es": "Del océano a la pradera"
             },
             "fila_color": [
-                "#307FE2",
-                "#54FF9B"
+                "#307FE2FF",
+                "#54FF9BFF"
             ]
         },
         {
@@ -460,8 +460,8 @@
                 "es": "Rosa cítrico"
             },
             "fila_color": [
-                "#E4505A",
-                "#F78F77"
+                "#F78F77FF",
+                "#E4505AFF"
             ]
         },
         {
@@ -484,8 +484,8 @@
                 "es": "Lima menta"
             },
             "fila_color": [
-                "#4EC939",
-                "#B6FF43"
+                "#4EC939FF",
+                "#B6FF43FF"
             ]
         },
         {
@@ -508,8 +508,8 @@
                 "es": "Chicle de arándano"
             },
             "fila_color": [
-                "#8573DD",
-                "#6FCAEF"
+                "#6FCAEFFF",
+                "#8573DDFF"
             ]
         },
         {
@@ -532,8 +532,8 @@
                 "es": "Resplandor del crepúsculo"
             },
             "fila_color": [
-                "#ED9558",
-                "#CE4406"
+                "#CE4406FF",
+                "#ED9558FF"
             ]
         },
         {
@@ -556,8 +556,8 @@
                 "es": "Nube de algodón de azúcar"
             },
             "fila_color": [
-                "#E7C1D5",
-                "#8EC9E9"
+                "#8EC9E9FF",
+                "#E7C1D5FF"
             ]
         },
         {
@@ -580,7 +580,7 @@
                 "es": "Marrón"
             },
             "fila_color": [
-                "#9D432C"
+                "#9D432CFF"
             ]
         },
         {
@@ -603,7 +603,7 @@
                 "es": "Marrón cacao"
             },
             "fila_color": [
-                "#6F5034"
+                "#6F5034FF"
             ]
         },
         {
@@ -626,7 +626,7 @@
                 "es": "Beis"
             },
             "fila_color": [
-                "#F7E6DE"
+                "#F7E6DEFF"
             ]
         },
         {
@@ -649,7 +649,7 @@
                 "es": "Rosa"
             },
             "fila_color": [
-                "#F55A74"
+                "#F55A74FF"
             ]
         },
         {
@@ -672,7 +672,7 @@
                 "es": "Púrpura índigo"
             },
             "fila_color": [
-                "#482960"
+                "#482960FF"
             ]
         },
         {
@@ -695,7 +695,7 @@
                 "es": "Púrpura"
             },
             "fila_color": [
-                "#5E43B7"
+                "#5E43B7FF"
             ]
         },
         {
@@ -718,7 +718,7 @@
                 "es": "Magenta"
             },
             "fila_color": [
-                "#EC008C"
+                "#EC008CFF"
             ]
         },
         {
@@ -741,7 +741,7 @@
                 "es": "Rojo"
             },
             "fila_color": [
-                "#C12E1F"
+                "#C12E1FFF"
             ]
         },
         {
@@ -764,7 +764,7 @@
                 "es": "Rojo granate"
             },
             "fila_color": [
-                "#9D2235"
+                "#9D2235FF"
             ]
         },
         {
@@ -787,7 +787,7 @@
                 "es": "Rosa fucsia"
             },
             "fila_color": [
-                "#F5547C"
+                "#F5547CFF"
             ]
         },
         {
@@ -810,7 +810,7 @@
                 "es": "Blanco jade"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -833,7 +833,7 @@
                 "es": "Amarillo"
             },
             "fila_color": [
-                "#F4EE2A"
+                "#F4EE2AFF"
             ]
         },
         {
@@ -856,7 +856,7 @@
                 "es": "Amarillo girasol"
             },
             "fila_color": [
-                "#FEC600"
+                "#FEC600FF"
             ]
         },
         {
@@ -879,7 +879,7 @@
                 "es": "Bronce"
             },
             "fila_color": [
-                "#847D48"
+                "#847D48FF"
             ]
         },
         {
@@ -902,7 +902,7 @@
                 "es": "Dorado"
             },
             "fila_color": [
-                "#E4BD68"
+                "#E4BD68FF"
             ]
         },
         {
@@ -925,7 +925,7 @@
                 "es": "Naranja Mandarina"
             },
             "fila_color": [
-                "#F99963"
+                "#F99963FF"
             ]
         },
         {
@@ -948,7 +948,7 @@
                 "es": "Azul cielo"
             },
             "fila_color": [
-                "#56B7E6"
+                "#56B7E6FF"
             ]
         },
         {
@@ -971,7 +971,7 @@
                 "es": "Azul marino"
             },
             "fila_color": [
-                "#0078BF"
+                "#0078BFFF"
             ]
         },
         {
@@ -994,7 +994,7 @@
                 "es": "Azul hielo"
             },
             "fila_color": [
-                "#A3D8E1"
+                "#A3D8E1FF"
             ]
         },
         {
@@ -1017,7 +1017,7 @@
                 "es": "Azul oscuro"
             },
             "fila_color": [
-                "#042F56"
+                "#042F56FF"
             ]
         },
         {
@@ -1040,7 +1040,7 @@
                 "es": "Gris nardo"
             },
             "fila_color": [
-                "#757575"
+                "#757575FF"
             ]
         },
         {
@@ -1063,7 +1063,7 @@
                 "es": "Gris ceniza"
             },
             "fila_color": [
-                "#9B9EA0"
+                "#9B9EA0FF"
             ]
         },
         {
@@ -1086,7 +1086,7 @@
                 "es": "Verde manzana"
             },
             "fila_color": [
-                "#C2E189"
+                "#C2E189FF"
             ]
         },
         {
@@ -1109,7 +1109,7 @@
                 "es": "Verde hierba"
             },
             "fila_color": [
-                "#61C680"
+                "#61C680FF"
             ]
         },
         {
@@ -1132,7 +1132,7 @@
                 "es": "Verde oscuro"
             },
             "fila_color": [
-                "#68724D"
+                "#68724DFF"
             ]
         },
         {
@@ -1155,7 +1155,7 @@
                 "es": "Carbón"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -1178,7 +1178,7 @@
                 "es": "Chocolate oscuro"
             },
             "fila_color": [
-                "#4D3324"
+                "#4D3324FF"
             ]
         },
         {
@@ -1201,7 +1201,7 @@
                 "es": "Marrón Latte"
             },
             "fila_color": [
-                "#D3B7A7"
+                "#D3B7A7FF"
             ]
         },
         {
@@ -1224,7 +1224,7 @@
                 "es": "Marrón oscuro"
             },
             "fila_color": [
-                "#7D6556"
+                "#7D6556FF"
             ]
         },
         {
@@ -1247,7 +1247,7 @@
                 "es": "Caramelo"
             },
             "fila_color": [
-                "#AE835B"
+                "#AE835BFF"
             ]
         },
         {
@@ -1270,7 +1270,7 @@
                 "es": "Rosa sakura"
             },
             "fila_color": [
-                "#E8AFCF"
+                "#E8AFCFFF"
             ]
         },
         {
@@ -1293,7 +1293,7 @@
                 "es": "Púrpura lila"
             },
             "fila_color": [
-                "#AE96D4"
+                "#AE96D4FF"
             ]
         },
         {
@@ -1316,7 +1316,7 @@
                 "es": "Rojo escarlata"
             },
             "fila_color": [
-                "#DE4343"
+                "#DE4343FF"
             ]
         },
         {
@@ -1339,7 +1339,7 @@
                 "es": "Terracota"
             },
             "fila_color": [
-                "#B15533"
+                "#B15533FF"
             ]
         },
         {
@@ -1362,7 +1362,7 @@
                 "es": "Ciruela"
             },
             "fila_color": [
-                "#950051"
+                "#950051FF"
             ]
         },
         {
@@ -1385,7 +1385,7 @@
                 "es": "Rojo oscuro"
             },
             "fila_color": [
-                "#BB3D43"
+                "#BB3D43FF"
             ]
         },
         {
@@ -1408,7 +1408,7 @@
                 "es": "Blanco marfil"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -1431,7 +1431,7 @@
                 "es": "Blanco hueso"
             },
             "fila_color": [
-                "#CBC6B8"
+                "#CBC6B8FF"
             ]
         },
         {
@@ -1454,7 +1454,7 @@
                 "es": "Amarillo limón"
             },
             "fila_color": [
-                "#F7D959"
+                "#F7D959FF"
             ]
         },
         {
@@ -1477,7 +1477,7 @@
                 "es": "Arena del desierto"
             },
             "fila_color": [
-                "#E8DBB7"
+                "#E8DBB7FF"
             ]
         },
         {
@@ -1500,7 +1500,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#147BD1"
+                "#147BD1FF"
             ]
         },
         {
@@ -1523,7 +1523,7 @@
                 "es": "Plateado"
             },
             "fila_color": [
-                "#EAECEB"
+                "#EAECEBFF"
             ]
         },
         {
@@ -1546,7 +1546,7 @@
                 "es": "Verde"
             },
             "fila_color": [
-                "#4CE4A0"
+                "#4CE4A0FF"
             ]
         },
         {
@@ -1569,7 +1569,7 @@
                 "es": "Cobre"
             },
             "fila_color": [
-                "#5E4B3C"
+                "#5E4B3CFF"
             ]
         },
         {
@@ -1592,7 +1592,7 @@
                 "es": "Rosa"
             },
             "fila_color": [
-                "#EEB1C1"
+                "#EEB1C1FF"
             ]
         },
         {
@@ -1615,7 +1615,7 @@
                 "es": "Púrpura"
             },
             "fila_color": [
-                "#854CE4"
+                "#854CE4FF"
             ]
         },
         {
@@ -1638,8 +1638,8 @@
                 "es": "Rosa dorado"
             },
             "fila_color": [
-                "#FF9425",
-                "#C16784"
+                "#FF9425FF",
+                "#C16784FF"
             ]
         },
         {
@@ -1662,8 +1662,8 @@
                 "es": "Resplandor de medianoche"
             },
             "fila_color": [
-                "#0047BB",
-                "#7D1B49"
+                "#0047BBFF",
+                "#7D1B49FF"
             ]
         },
         {
@@ -1686,8 +1686,8 @@
                 "es": "Ciudad de neón"
             },
             "fila_color": [
-                "#BB22A3",
-                "#0047BB"
+                "#BB22A3FF",
+                "#0047BBFF"
             ]
         },
         {
@@ -1710,8 +1710,8 @@
                 "es": "Azul Hawái"
             },
             "fila_color": [
-                "#70C884",
-                "#418FDE"
+                "#70C884FF",
+                "#418FDEFF"
             ]
         },
         {
@@ -1734,8 +1734,8 @@
                 "es": "Eclipse de terciopelo (negro-rojo)"
             },
             "fila_color": [
-                "#000000",
-                "#A34342"
+                "#000000FF",
+                "#A34342FF"
             ]
         },
         {
@@ -1758,7 +1758,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -1781,7 +1781,7 @@
                 "es": "Dorado"
             },
             "fila_color": [
-                "#E5B03D"
+                "#E5B03DFF"
             ]
         },
         {
@@ -1804,7 +1804,7 @@
                 "es": "Azul bebé"
             },
             "fila_color": [
-                "#A8C6EE"
+                "#A8C6EEFF"
             ]
         },
         {
@@ -1827,7 +1827,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#008BDA"
+                "#008BDAFF"
             ]
         },
         {
@@ -1850,7 +1850,7 @@
                 "es": "Gris titán"
             },
             "fila_color": [
-                "#5F6367"
+                "#5F6367FF"
             ]
         },
         {
@@ -1873,7 +1873,7 @@
                 "es": "Plateado"
             },
             "fila_color": [
-                "#C8C8C8"
+                "#C8C8C8FF"
             ]
         },
         {
@@ -1896,7 +1896,7 @@
                 "es": "Verde caramelo"
             },
             "fila_color": [
-                "#018814"
+                "#018814FF"
             ]
         },
         {
@@ -1919,7 +1919,7 @@
                 "es": "Menta"
             },
             "fila_color": [
-                "#96DCB9"
+                "#96DCB9FF"
             ]
         },
         {
@@ -1942,7 +1942,7 @@
                 "es": "Púrpura"
             },
             "fila_color": [
-                "#8671CB"
+                "#8671CBFF"
             ]
         },
         {
@@ -1965,7 +1965,7 @@
                 "es": "Rojo caramelo"
             },
             "fila_color": [
-                "#D02727"
+                "#D02727FF"
             ]
         },
         {
@@ -1988,7 +1988,7 @@
                 "es": "Oro rosa"
             },
             "fila_color": [
-                "#BA9594"
+                "#BA9594FF"
             ]
         },
         {
@@ -2011,7 +2011,7 @@
                 "es": "Rosa"
             },
             "fila_color": [
-                "#F7ADA6"
+                "#F7ADA6FF"
             ]
         },
         {
@@ -2034,7 +2034,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -2057,7 +2057,7 @@
                 "es": "Champán"
             },
             "fila_color": [
-                "#F3CFB2"
+                "#F3CFB2FF"
             ]
         },
         {
@@ -2080,7 +2080,7 @@
                 "es": "Dorado"
             },
             "fila_color": [
-                "#F4A925"
+                "#F4A925FF"
             ]
         },
         {
@@ -2103,7 +2103,7 @@
                 "es": "Mármol blanco"
             },
             "fila_color": [
-                "#F7F3F0"
+                "#F7F3F0FF"
             ]
         },
         {
@@ -2126,7 +2126,7 @@
                 "es": "Granate rojo"
             },
             "fila_color": [
-                "#AD4E38"
+                "#AD4E38FF"
             ]
         },
         {
@@ -2149,7 +2149,7 @@
                 "es": "Púrpura real brillante"
             },
             "fila_color": [
-                "#483D8B"
+                "#483D8BFF"
             ]
         },
         {
@@ -2172,7 +2172,7 @@
                 "es": "Gris pizarra brillante"
             },
             "fila_color": [
-                "#8E9089"
+                "#8E9089FF"
             ]
         },
         {
@@ -2195,7 +2195,7 @@
                 "es": "Verde alpino brillante"
             },
             "fila_color": [
-                "#3F5443"
+                "#3F5443FF"
             ]
         },
         {
@@ -2218,7 +2218,7 @@
                 "es": "Negro ónix brillante"
             },
             "fila_color": [
-                "#2D2B28"
+                "#2D2B28FF"
             ]
         },
         {
@@ -2241,7 +2241,7 @@
                 "es": "Rojo carmesí brillante"
             },
             "fila_color": [
-                "#792B36"
+                "#792B36FF"
             ]
         },
         {
@@ -2264,7 +2264,7 @@
                 "es": "Dorado clásico brillante"
             },
             "fila_color": [
-                "#CEA629"
+                "#CEA629FF"
             ]
         },
         {
@@ -2287,7 +2287,7 @@
                 "es": "Naranja"
             },
             "fila_color": [
-                "#FF7F41"
+                "#FF7F41FF"
             ]
         },
         {
@@ -2310,7 +2310,7 @@
                 "es": "Azul claro"
             },
             "fila_color": [
-                "#0085AD"
+                "#0085ADFF"
             ]
         },
         {
@@ -2333,7 +2333,7 @@
                 "es": "Azul lavanda"
             },
             "fila_color": [
-                "#6667AB"
+                "#6667ABFF"
             ]
         },
         {
@@ -2356,7 +2356,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#515A6C"
+                "#515A6CFF"
             ]
         },
         {
@@ -2379,7 +2379,7 @@
                 "es": "Plateado"
             },
             "fila_color": [
-                "#898D8D"
+                "#898D8DFF"
             ]
         },
         {
@@ -2402,7 +2402,7 @@
                 "es": "Verde pino"
             },
             "fila_color": [
-                "#00482B"
+                "#00482BFF"
             ]
         },
         {
@@ -2425,7 +2425,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#25282A"
+                "#25282AFF"
             ]
         },
         {
@@ -2448,7 +2448,7 @@
                 "es": "Rojo bermellón"
             },
             "fila_color": [
-                "#DD3C22"
+                "#DD3C22FF"
             ]
         },
         {
@@ -2471,7 +2471,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#F9F7F4"
+                "#F9F7F4FF"
             ]
         },
         {
@@ -2494,7 +2494,7 @@
                 "es": "Amarillo"
             },
             "fila_color": [
-                "#FEDB00"
+                "#FEDB00FF"
             ]
         },
         {
@@ -2517,7 +2517,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#CDCECA"
+                "#CDCECAFF"
             ]
         },
         {
@@ -2540,7 +2540,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -2563,7 +2563,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -2586,7 +2586,7 @@
                 "es": "Naranja brillante"
             },
             "fila_color": [
-                "#FF9D5B"
+                "#FF9D5BFF"
             ]
         },
         {
@@ -2609,7 +2609,7 @@
                 "es": "Azul brillante"
             },
             "fila_color": [
-                "#7AC0E9"
+                "#7AC0E9FF"
             ]
         },
         {
@@ -2632,7 +2632,7 @@
                 "es": "Verde brillante"
             },
             "fila_color": [
-                "#A1FFAC"
+                "#A1FFACFF"
             ]
         },
         {
@@ -2655,7 +2655,7 @@
                 "es": "Rosa brillante"
             },
             "fila_color": [
-                "#F17B8F"
+                "#F17B8FFF"
             ]
         },
         {
@@ -2678,7 +2678,7 @@
                 "es": "Amarillo brillante"
             },
             "fila_color": [
-                "#F8FF80"
+                "#F8FF80FF"
             ]
         },
         {
@@ -2701,7 +2701,7 @@
                 "es": "De blanco a coral (Cambia con los rayos UV)"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -2724,7 +2724,7 @@
                 "es": "Púrpura"
             },
             "fila_color": [
-                "#594177"
+                "#594177FF"
             ]
         },
         {
@@ -2747,7 +2747,7 @@
                 "es": "Verde"
             },
             "fila_color": [
-                "#3B665E"
+                "#3B665EFF"
             ]
         },
         {
@@ -2770,7 +2770,7 @@
                 "es": "Nebulosa"
             },
             "fila_color": [
-                "#424379"
+                "#424379FF"
             ]
         },
         {
@@ -2793,7 +2793,7 @@
                 "es": "Marrón"
             },
             "fila_color": [
-                "#684A43"
+                "#684A43FF"
             ]
         },
         {
@@ -2816,7 +2816,7 @@
                 "es": "Abedul clásico"
             },
             "fila_color": [
-                "#918669"
+                "#918669FF"
             ]
         },
         {
@@ -2839,7 +2839,7 @@
                 "es": "Nogal negro"
             },
             "fila_color": [
-                "#4F3F24"
+                "#4F3F24FF"
             ]
         },
         {
@@ -2862,7 +2862,7 @@
                 "es": "Marrón arcilla"
             },
             "fila_color": [
-                "#995F11"
+                "#995F11FF"
             ]
         },
         {
@@ -2885,7 +2885,7 @@
                 "es": "Palo de rosa"
             },
             "fila_color": [
-                "#4C241C"
+                "#4C241CFF"
             ]
         },
         {
@@ -2908,7 +2908,7 @@
                 "es": "Roble blanco"
             },
             "fila_color": [
-                "#D6CCA3"
+                "#D6CCA3FF"
             ]
         },
         {
@@ -2931,7 +2931,7 @@
                 "es": "Amarillo ocre"
             },
             "fila_color": [
-                "#C98935"
+                "#C98935FF"
             ]
         },
         {
@@ -2954,7 +2954,7 @@
                 "es": "Azul real"
             },
             "fila_color": [
-                "#2842AD"
+                "#2842ADFF"
             ]
         },
         {
@@ -2977,7 +2977,7 @@
                 "es": "Azul vaquero"
             },
             "fila_color": [
-                "#6e88bc"
+                "#6e88bcFF"
             ]
         },
         {
@@ -3000,7 +3000,7 @@
                 "es": "Gris lava"
             },
             "fila_color": [
-                "#4d5054"
+                "#4d5054FF"
             ]
         },
         {
@@ -3023,7 +3023,7 @@
                 "es": "Verde matcha"
             },
             "fila_color": [
-                "#5c9748"
+                "#5c9748FF"
             ]
         },
         {
@@ -3046,7 +3046,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -3069,7 +3069,7 @@
                 "es": "Púrpura iris"
             },
             "fila_color": [
-                "#69398E"
+                "#69398EFF"
             ]
         },
         {
@@ -3092,7 +3092,7 @@
                 "es": "Rojo burdeos"
             },
             "fila_color": [
-                "#951e23"
+                "#951e23FF"
             ]
         },
         {
@@ -3115,7 +3115,7 @@
                 "es": "Naranja"
             },
             "fila_color": [
-                "#FF6A13"
+                "#FF6A13FF"
             ]
         },
         {
@@ -3138,7 +3138,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#0A2CA5"
+                "#0A2CA5FF"
             ]
         },
         {
@@ -3161,7 +3161,7 @@
                 "es": "Azul celeste"
             },
             "fila_color": [
-                "#489FDF"
+                "#489FDFFF"
             ]
         },
         {
@@ -3184,7 +3184,7 @@
                 "es": "Azul marino oscuro"
             },
             "fila_color": [
-                "#0C2340"
+                "#0C2340FF"
             ]
         },
         {
@@ -3207,7 +3207,7 @@
                 "es": "Menta"
             },
             "fila_color": [
-                "#7AE1BF"
+                "#7AE1BFFF"
             ]
         },
         {
@@ -3230,7 +3230,7 @@
                 "es": "Plateado"
             },
             "fila_color": [
-                "#87909A"
+                "#87909AFF"
             ]
         },
         {
@@ -3253,7 +3253,7 @@
                 "es": "Verde bambú"
             },
             "fila_color": [
-                "#00AE42"
+                "#00AE42FF"
             ]
         },
         {
@@ -3276,7 +3276,7 @@
                 "es": "Oliva"
             },
             "fila_color": [
-                "#789D4A"
+                "#789D4AFF"
             ]
         },
         {
@@ -3299,7 +3299,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -3322,7 +3322,7 @@
                 "es": "Lavanda"
             },
             "fila_color": [
-                "#7248BD"
+                "#7248BDFF"
             ]
         },
         {
@@ -3345,7 +3345,7 @@
                 "es": "Púrpura"
             },
             "fila_color": [
-                "#AF1685"
+                "#AF1685FF"
             ]
         },
         {
@@ -3368,7 +3368,7 @@
                 "es": "Rojo"
             },
             "fila_color": [
-                "#D32941"
+                "#D32941FF"
             ]
         },
         {
@@ -3391,7 +3391,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -3414,7 +3414,7 @@
                 "es": "Amarillo"
             },
             "fila_color": [
-                "#FCE900"
+                "#FCE900FF"
             ]
         },
         {
@@ -3437,7 +3437,7 @@
                 "es": "Amarillo mandarina"
             },
             "fila_color": [
-                "#FFC72C"
+                "#FFC72CFF"
             ]
         },
         {
@@ -3460,7 +3460,7 @@
                 "es": "Beis"
             },
             "fila_color": [
-                "#DFD1A7"
+                "#DFD1A7FF"
             ]
         },
         {
@@ -3483,7 +3483,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#2140B4"
+                "#2140B4FF"
             ]
         },
         {
@@ -3506,7 +3506,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#8A949E"
+                "#8A949EFF"
             ]
         },
         {
@@ -3529,7 +3529,7 @@
                 "es": "Verde"
             },
             "fila_color": [
-                "#00A6A0"
+                "#00A6A0FF"
             ]
         },
         {
@@ -3552,7 +3552,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -3575,7 +3575,7 @@
                 "es": "Rojo"
             },
             "fila_color": [
-                "#E02928"
+                "#E02928FF"
             ]
         },
         {
@@ -3598,7 +3598,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFAF2"
+                "#FFFAF2FF"
             ]
         },
         {
@@ -3621,7 +3621,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#F5F1DD"
+                "#F5F1DDFF"
             ]
         },
         {
@@ -3644,7 +3644,7 @@
                 "es": "Naranja"
             },
             "fila_color": [
-                "#F48438"
+                "#F48438FF"
             ]
         },
         {
@@ -3667,7 +3667,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#0C3B95"
+                "#0C3B95FF"
             ]
         },
         {
@@ -3690,7 +3690,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#C6C6C6"
+                "#C6C6C6FF"
             ]
         },
         {
@@ -3713,7 +3713,7 @@
                 "es": "Verde"
             },
             "fila_color": [
-                "#61BF36"
+                "#61BF36FF"
             ]
         },
         {
@@ -3736,7 +3736,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -3759,7 +3759,7 @@
                 "es": "Rojo"
             },
             "fila_color": [
-                "#E83100"
+                "#E83100FF"
             ]
         },
         {
@@ -3782,7 +3782,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -3805,7 +3805,7 @@
                 "es": "Amarillo"
             },
             "fila_color": [
-                "#FFE133"
+                "#FFE133FF"
             ]
         },
         {
@@ -3828,7 +3828,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -3851,7 +3851,7 @@
                 "es": "Negro transparente"
             },
             "fila_color": [
-                "#000000"
+                "#00000080"
             ]
         },
         {
@@ -3874,7 +3874,7 @@
                 "es": "Translúcido"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFF00"
             ]
         },
         {
@@ -3897,7 +3897,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#686865"
+                "#686865FF"
             ]
         },
         {
@@ -3920,7 +3920,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -3943,7 +3943,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#A8A8AA"
+                "#A8A8AAFF"
             ]
         },
         {
@@ -3966,7 +3966,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -3989,7 +3989,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -4012,7 +4012,7 @@
                 "es": "Naranja"
             },
             "fila_color": [
-                "#FF671F"
+                "#FF671FFF"
             ]
         },
         {
@@ -4035,7 +4035,7 @@
                 "es": "Azul Lago"
             },
             "fila_color": [
-                "#0069B1"
+                "#0069B1FF"
             ]
         },
         {
@@ -4058,7 +4058,7 @@
                 "es": "Gris azulado"
             },
             "fila_color": [
-                "#688197"
+                "#688197FF"
             ]
         },
         {
@@ -4081,7 +4081,7 @@
                 "es": "Púrpura"
             },
             "fila_color": [
-                "#9E007E"
+                "#9E007EFF"
             ]
         },
         {
@@ -4104,7 +4104,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#001489"
+                "#001489FF"
             ]
         },
         {
@@ -4127,7 +4127,7 @@
                 "es": "Translúcido"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFF00"
             ]
         },
         {
@@ -4150,7 +4150,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#9EA2A2"
+                "#9EA2A2FF"
             ]
         },
         {
@@ -4173,7 +4173,7 @@
                 "es": "Verde"
             },
             "fila_color": [
-                "#009639"
+                "#009639FF"
             ]
         },
         {
@@ -4196,7 +4196,7 @@
                 "es": "Verde lima"
             },
             "fila_color": [
-                "#7CD82B"
+                "#7CD82BFF"
             ]
         },
         {
@@ -4219,7 +4219,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -4242,7 +4242,7 @@
                 "es": "Rojo"
             },
             "fila_color": [
-                "#D6001C"
+                "#D6001CFF"
             ]
         },
         {
@@ -4265,7 +4265,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -4288,7 +4288,7 @@
                 "es": "Naturaleza"
             },
             "fila_color": [
-                "#F9F7F2"
+                "#F9F7F2FF"
             ]
         },
         {
@@ -4311,7 +4311,7 @@
                 "es": "Amarillo"
             },
             "fila_color": [
-                "#FCE300"
+                "#FCE300FF"
             ]
         },
         {
@@ -4334,7 +4334,7 @@
                 "es": "Dorado"
             },
             "fila_color": [
-                "#B28B33"
+                "#B28B33FF"
             ]
         },
         {
@@ -4357,7 +4357,7 @@
                 "es": "Naranja translúcido"
             },
             "fila_color": [
-                "#FF911A"
+                "#FF911A80"
             ]
         },
         {
@@ -4380,7 +4380,7 @@
                 "es": "Azul claro translúcido"
             },
             "fila_color": [
-                "#61B0FF"
+                "#61B0FF80"
             ]
         },
         {
@@ -4403,7 +4403,7 @@
                 "es": "Transparente"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFF00"
             ]
         },
         {
@@ -4426,7 +4426,7 @@
                 "es": "Gris translúcido"
             },
             "fila_color": [
-                "#8E8E8E"
+                "#8E8E8E80"
             ]
         },
         {
@@ -4449,7 +4449,7 @@
                 "es": "Oliva translúcido"
             },
             "fila_color": [
-                "#748C45"
+                "#748C4580"
             ]
         },
         {
@@ -4472,7 +4472,7 @@
                 "es": "Verde azulado translúcido"
             },
             "fila_color": [
-                "#77EDD7"
+                "#77EDD780"
             ]
         },
         {
@@ -4495,7 +4495,7 @@
                 "es": "Marrón translúcido"
             },
             "fila_color": [
-                "#C9A381"
+                "#C9A38180"
             ]
         },
         {
@@ -4518,7 +4518,7 @@
                 "es": "Púrpura translúcido"
             },
             "fila_color": [
-                "#D6ABFF"
+                "#D6ABFF80"
             ]
         },
         {
@@ -4541,7 +4541,7 @@
                 "es": "Rosa translúcido"
             },
             "fila_color": [
-                "#F9C1BD"
+                "#F9C1BD80"
             ]
         },
         {
@@ -4564,7 +4564,7 @@
                 "es": "Naranja"
             },
             "fila_color": [
-                "#F75403"
+                "#F75403FF"
             ]
         },
         {
@@ -4587,7 +4587,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#002E96"
+                "#002E96FF"
             ]
         },
         {
@@ -4610,7 +4610,7 @@
                 "es": "Azul Lago"
             },
             "fila_color": [
-                "#1F79E5"
+                "#1F79E5FF"
             ]
         },
         {
@@ -4633,7 +4633,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#ADB1B2"
+                "#ADB1B2FF"
             ]
         },
         {
@@ -4656,7 +4656,7 @@
                 "es": "Gris oscuro"
             },
             "fila_color": [
-                "#515151"
+                "#515151FF"
             ]
         },
         {
@@ -4679,7 +4679,7 @@
                 "es": "Verde"
             },
             "fila_color": [
-                "#00AE42"
+                "#00AE42FF"
             ]
         },
         {
@@ -4702,7 +4702,7 @@
                 "es": "Verde lima"
             },
             "fila_color": [
-                "#6EE53C"
+                "#6EE53CFF"
             ]
         },
         {
@@ -4725,7 +4725,7 @@
                 "es": "Verde bosque"
             },
             "fila_color": [
-                "#39541A"
+                "#39541AFF"
             ]
         },
         {
@@ -4748,7 +4748,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -4771,7 +4771,7 @@
                 "es": "Marrón cacahuete"
             },
             "fila_color": [
-                "#875718"
+                "#875718FF"
             ]
         },
         {
@@ -4794,7 +4794,7 @@
                 "es": "Rojo"
             },
             "fila_color": [
-                "#BC0900"
+                "#BC0900FF"
             ]
         },
         {
@@ -4817,7 +4817,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -4840,7 +4840,7 @@
                 "es": "Amarillo"
             },
             "fila_color": [
-                "#FFD00B"
+                "#FFD00BFF"
             ]
         },
         {
@@ -4863,7 +4863,7 @@
                 "es": "Crema"
             },
             "fila_color": [
-                "#F9DFB9"
+                "#F9DFB9FF"
             ]
         },
         {
@@ -4886,7 +4886,7 @@
                 "es": "Azul índigo"
             },
             "fila_color": [
-                "#324585"
+                "#324585FF"
             ]
         },
         {
@@ -4909,7 +4909,7 @@
                 "es": "Gris titán"
             },
             "fila_color": [
-                "#565656"
+                "#565656FF"
             ]
         },
         {
@@ -4932,7 +4932,7 @@
                 "es": "Verde malaquita"
             },
             "fila_color": [
-                "#16b08e"
+                "#16b08eFF"
             ]
         },
         {
@@ -4955,7 +4955,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -4978,7 +4978,7 @@
                 "es": "Violeta púrpura"
             },
             "fila_color": [
-                "#583061"
+                "#583061FF"
             ]
         },
         {
@@ -5001,7 +5001,7 @@
                 "es": "Rojo ladrillo"
             },
             "fila_color": [
-                "#9f332a"
+                "#9f332aFF"
             ]
         },
         {
@@ -5024,7 +5024,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5047,7 +5047,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5070,7 +5070,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5093,7 +5093,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#75AED8"
+                "#75AED8FF"
             ]
         },
         {
@@ -5116,7 +5116,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#EAEAE4"
+                "#EAEAE4FF"
             ]
         },
         {
@@ -5139,7 +5139,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#353533"
+                "#353533FF"
             ]
         },
         {
@@ -5162,7 +5162,7 @@
                 "es": "Lima"
             },
             "fila_color": [
-                "#C5ED48"
+                "#C5ED48FF"
             ]
         },
         {
@@ -5185,7 +5185,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5208,7 +5208,7 @@
                 "es": "Marrón"
             },
             "fila_color": [
-                "#5B492F"
+                "#5B492FFF"
             ]
         },
         {
@@ -5231,7 +5231,7 @@
                 "es": "Naranja"
             },
             "fila_color": [
-                "#FF4800"
+                "#FF4800FF"
             ]
         },
         {
@@ -5254,7 +5254,7 @@
                 "es": "Amarillo"
             },
             "fila_color": [
-                "#FFCE00"
+                "#FFCE00FF"
             ]
         },
         {
@@ -5277,7 +5277,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5300,7 +5300,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -5323,7 +5323,7 @@
                 "es": "Verde"
             },
             "fila_color": [
-                "#C0DF16"
+                "#C0DF16FF"
             ]
         },
         {
@@ -5346,7 +5346,7 @@
                 "es": "Transparente"
             },
             "fila_color": [
-                "#F0F1A8"
+                "#F0F1A880"
             ]
         },
         {
@@ -5369,7 +5369,7 @@
                 "es": "Naturaleza"
             },
             "fila_color": [
-                "#000000"
+                "#00000000"
             ]
         },
         {
@@ -5392,7 +5392,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5415,7 +5415,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -5438,7 +5438,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5461,7 +5461,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5484,7 +5484,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#0072CE"
+                "#0072CEFF"
             ]
         },
         {
@@ -5507,7 +5507,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#898D8D"
+                "#898D8DFF"
             ]
         },
         {
@@ -5530,7 +5530,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#101820"
+                "#101820FF"
             ]
         },
         {
@@ -5553,7 +5553,7 @@
                 "es": "Rojo"
             },
             "fila_color": [
-                "#C8102E"
+                "#C8102EFF"
             ]
         },
         {
@@ -5576,7 +5576,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -5599,7 +5599,7 @@
                 "es": "Amarillo"
             },
             "fila_color": [
-                "#F3E600"
+                "#F3E600FF"
             ]
         },
         {
@@ -5622,7 +5622,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5645,7 +5645,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -5668,7 +5668,7 @@
                 "es": "Azul"
             },
             "fila_color": [
-                "#5898DD"
+                "#5898DDFF"
             ]
         },
         {
@@ -5691,7 +5691,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#939393"
+                "#939393FF"
             ]
         },
         {
@@ -5714,7 +5714,7 @@
                 "es": "Verde neón"
             },
             "fila_color": [
-                "#90FF1A"
+                "#90FF1AFF"
             ]
         },
         {
@@ -5737,7 +5737,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5760,7 +5760,7 @@
                 "es": "Rojo"
             },
             "fila_color": [
-                "#ED0000"
+                "#ED0000FF"
             ]
         },
         {
@@ -5783,7 +5783,7 @@
                 "es": "Blanco"
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -5806,7 +5806,7 @@
                 "es": "Amarillo"
             },
             "fila_color": [
-                "#F9EF41"
+                "#F9EF41FF"
             ]
         },
         {
@@ -5829,7 +5829,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -5852,7 +5852,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#EFE255"
+                "#EFE255FF"
             ]
         },
         {
@@ -5875,7 +5875,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -5898,7 +5898,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#4DAFDA"
+                "#4DAFDAFF"
             ]
         },
         {
@@ -5921,7 +5921,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#C6001A"
+                "#C6001AFF"
             ]
         },
         {
@@ -5944,7 +5944,7 @@
                 "es": "Gris"
             },
             "fila_color": [
-                "#999D9D"
+                "#999D9DFF"
             ]
         },
         {
@@ -5967,7 +5967,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#B50011"
+                "#B5001180"
             ]
         },
         {
@@ -5990,7 +5990,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#F5B6CD"
+                "#F5B6CD80"
             ]
         },
         {
@@ -6013,7 +6013,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#F74E02"
+                "#F74E0280"
             ]
         },
         {
@@ -6036,7 +6036,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#F5DBAB"
+                "#F5DBAB80"
             ]
         },
         {
@@ -6059,7 +6059,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#96D8AF"
+                "#96D8AF80"
             ]
         },
         {
@@ -6082,7 +6082,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#B8CDE9"
+                "#B8CDE980"
             ]
         },
         {
@@ -6105,7 +6105,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#0047BB"
+                "#0047BB80"
             ]
         },
         {
@@ -6128,7 +6128,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#009FA1"
+                "#009FA180"
             ]
         },
         {
@@ -6151,7 +6151,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#8344B0"
+                "#8344B080"
             ]
         },
         {
@@ -6174,7 +6174,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#B8ACD6"
+                "#B8ACD680"
             ]
         },
         {
@@ -6197,8 +6197,8 @@
                 "es": ""
             },
             "fila_color": [
-                "#00918B",
-                "#F772A4"
+                "#00918BFF",
+                "#F772A4FF"
             ]
         },
         {
@@ -6221,8 +6221,8 @@
                 "es": ""
             },
             "fila_color": [
-                "#7F3696",
-                "#006EC9"
+                "#7F3696FF",
+                "#006EC9FF"
             ]
         },
         {
@@ -6245,10 +6245,10 @@
                 "es": ""
             },
             "fila_color": [
-                "#D87694",
-                "#A66EB9",
-                "#EC984C",
-                "#6CD4BC"
+                "#EC984CFF",
+                "#6CD4BCFF",
+                "#A66EB9FF",
+                "#D87694FF"
             ]
         },
         {
@@ -6271,7 +6271,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#000000"
+                "#000000FF"
             ]
         },
         {
@@ -6294,7 +6294,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
             ]
         },
         {
@@ -6317,7 +6317,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#F68B1B"
+                "#F68B1BFF"
             ]
         },
         {
@@ -6340,7 +6340,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#C3E2D6"
+                "#C3E2D6FF"
             ]
         },
         {
@@ -6363,8 +6363,8 @@
                 "es": ""
             },
             "fila_color": [
-                "#FFFFFF",
-                "#40B6E4"
+                "#FFFFFFFF",
+                "#40B6E4FF"
             ]
         },
         {
@@ -6387,8 +6387,8 @@
                 "es": ""
             },
             "fila_color": [
-                "#D21B3C",
-                "#F1AAA8"
+                "#D21B3CFF",
+                "#F1AAA8FF"
             ]
         },
         {
@@ -6411,7 +6411,168 @@
                 "es": ""
             },
             "fila_color": [
-                "#FFFFFF"
+                "#FFFFFFFF"
+            ]
+        },
+        {
+            "fila_color_code": "12104",
+            "fila_id": "GFA10",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Tough+",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Black",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "黑色",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#000000FF"
+            ]
+        },
+        {
+            "fila_color_code": "12105",
+            "fila_id": "GFA10",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Tough+",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Gray",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "浅灰色",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#AFB1AEFF"
+            ]
+        },
+        {
+            "fila_color_code": "12106",
+            "fila_id": "GFA10",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Tough+",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Silver",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "银色",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#959698FF"
+            ]
+        },
+        {
+            "fila_color_code": "12107",
+            "fila_id": "GFA10",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Tough+",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "White",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "白色",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#FFFFFFFF"
+            ]
+        },
+        {
+            "fila_color_code": "12301",
+            "fila_id": "GFA10",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Tough+",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Orange",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "橙色",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#DC3A27FF"
+            ]
+        },
+        {
+            "fila_color_code": "12401",
+            "fila_id": "GFA10",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Tough+",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Yellow",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "亮黄色",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#F4D53FFF"
+            ]
+        },
+        {
+            "fila_color_code": "12601",
+            "fila_id": "GFA10",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Tough+",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Cyan",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "天蓝色",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#009BD8FF"
             ]
         },
         {
@@ -6434,7 +6595,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#43403D"
+                "#43403DFF"
             ]
         },
         {
@@ -6457,7 +6618,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#B39B84"
+                "#B39B84FF"
             ]
         },
         {
@@ -6480,7 +6641,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#1D7C6A"
+                "#1D7C6AFF"
             ]
         },
         {
@@ -6503,7 +6664,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#39699E"
+                "#39699EFF"
             ]
         },
         {
@@ -6526,7 +6687,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#AA6443"
+                "#AA6443FF"
             ]
         },
         {
@@ -6549,7 +6710,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#004EA8"
+                "#004EA8FF"
             ]
         },
         {
@@ -6572,7 +6733,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#FFB549"
+                "#FFB549FF"
             ]
         },
         {
@@ -6595,7 +6756,7 @@
                 "es": ""
             },
             "fila_color": [
-                "#00BB31"
+                "#00BB31FF"
             ]
         },
         {
@@ -6618,9 +6779,9 @@
                 "es": ""
             },
             "fila_color": [
-                "#FF671F"
+                "#FF671FFF"
             ]
         }
     ],
-    "total": 287
+    "total": 294
 }
