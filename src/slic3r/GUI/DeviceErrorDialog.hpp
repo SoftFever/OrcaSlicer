@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_set>
+#include <wx/statbmp.h>
 #include <wx/webrequest.h>
 
 #include "GUI_Utils.hpp"
