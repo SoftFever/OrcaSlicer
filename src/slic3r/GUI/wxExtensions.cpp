@@ -686,9 +686,12 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
 #ifdef __WXOSX__
         bitmap->UseAlpha();
         wxMemoryDC dc(*bitmap);
-#else
+#elif defined(__WXMSW__)
         wxClientDC cdc((wxWindow *) Slic3r::GUI::wxGetApp().mainframe);
         wxMemoryDC dc(&cdc);
+        dc.SelectObject(*bitmap);
+#else
+        wxMemoryDC dc;
         dc.SelectObject(*bitmap);
 #endif
         dc.SetFont(::Label::Body_12);
