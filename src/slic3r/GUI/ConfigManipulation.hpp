@@ -24,6 +24,7 @@ class ConfigManipulation
     bool                m_is_initialized_support_material_overhangs_queried{ false };
     bool                m_support_material_overhangs_queried{ false };
     bool                is_BBL_Printer{false};
+    bool                is_msg_dlg_infill_template_pass{ false };
 
     // function to loading of changed configuration 
     std::function<void()>                                       load_config = nullptr;
