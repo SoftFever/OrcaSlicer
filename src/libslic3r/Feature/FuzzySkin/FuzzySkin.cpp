@@ -116,6 +116,7 @@ void fuzzy_extrusion_line(Arachne::ExtrusionJunctions& ext_lines, coordf_t slice
 
     const double min_dist_between_points = cfg.point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = cfg.point_distance / 2.;
+    const double min_extrusion_width = 0.01; // workaround for many print options. Need overwrite formula with the layer height parameter. The width must more than >>> layer_height * (1 - 0.25 * PI) * 1.05 <<< (last num is the coeff of overlay error case)
     double dist_left_over = random_value() * (min_dist_between_points / 2.); // the distance to be traversed on the line before making the first new point
 
     auto* p0 = &ext_lines.front();
@@ -134,7 +135,18 @@ void fuzzy_extrusion_line(Arachne::ExtrusionJunctions& ext_lines, coordf_t slice
         for (; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + random_value() * range_random_point_dist) {
             Point pa = p0->p + (p0p1 * (p0pa_dist / p0p1_size)).cast<coord_t>();
             double r = noise->GetValue(unscale_(pa.x()), unscale_(pa.y()), slice_z) * cfg.thickness;
-            out.emplace_back(pa + (perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index);
+            switch (cfg.mode) { //the curly code for testing
+                case FuzzySkinMode::Displacement :
+                    out.emplace_back(pa + (perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index);
+                    break;
+                case FuzzySkinMode::Extrusion :
+                    out.emplace_back(pa, std::max(p1.w + r + min_extrusion_width,  min_extrusion_width), p1.perimeter_index); 
+                    break;
+                case FuzzySkinMode::Combined :
+                    double rad = std::max(p1.w + r + min_extrusion_width,  min_extrusion_width);
+                    out.emplace_back(pa + (perp(p0p1).cast<double>().normalized() * ((rad  - p1.w) / 2)).cast<coord_t>(), rad, p1.perimeter_index); //0.05 - minimum width of extruded line
+                    break;
+            }
         }
         dist_left_over = p0pa_dist - p0p1_size;
         p0 = &p1;
@@ -148,8 +160,10 @@ void fuzzy_extrusion_line(Arachne::ExtrusionJunctions& ext_lines, coordf_t slice
         --point_idx;
     }
 
-    if (ext_lines.back().p == ext_lines.front().p) // Connect endpoints.
+    if (ext_lines.back().p == ext_lines.front().p) { // Connect endpoints.
         out.front().p = out.back().p;
+        out.front().w = out.back().w;
+    }
 
     if (out.size() >= 3)
         ext_lines = std::move(out);
@@ -171,7 +185,8 @@ void group_region_by_fuzzify(PerimeterGenerator& g)
                                   region_config.fuzzy_skin_noise_type,
                                   region_config.fuzzy_skin_scale,
                                   region_config.fuzzy_skin_octaves,
-                                  region_config.fuzzy_skin_persistence};
+                                  region_config.fuzzy_skin_persistence,
+                                  region_config.fuzzy_skin_mode};
         auto&                 surfaces = regions[cfg];
         for (const auto& surface : region->slices.surfaces) {
             surfaces.push_back(&surface);

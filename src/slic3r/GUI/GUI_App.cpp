@@ -1728,16 +1728,20 @@ void GUI_App::init_networking_callbacks()
                                 event.SetString(obj->dev_id);
                                 GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
+                                // Orca: avoid showing same error message multiple times until next connection attempt.
+                                const auto already_disconnected = m_device_manager->selected_machine.empty();
                                 m_device_manager->set_selected_machine("", true);
-                                wxString text;
-                                if (msg == "5") {
-                                    obj->set_access_code("");
-                                    obj->erase_user_access_code();
-                                    text = wxString::Format(_L("Incorrect password"));
-                                    wxGetApp().show_dialog(text);
-                                } else {
-                                    text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
-                                    wxGetApp().show_dialog(text);
+                                if (!already_disconnected) {
+                                    wxString text;
+                                    if (msg == "5") {
+                                        obj->set_access_code("");
+                                        obj->erase_user_access_code();
+                                        text = wxString::Format(_L("Incorrect password"));
+                                        wxGetApp().show_dialog(text);
+                                    } else {
+                                        text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
+                                        wxGetApp().show_dialog(text);
+                                    }
                                 }
                                 event.SetInt(-1);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
@@ -4196,6 +4200,10 @@ void GUI_App::enable_user_preset_folder(bool enable)
 
 void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
 {
+    // Orca: do not connect to default device during app startup, because some of the lan machines might not online yet
+    // and user will be prompted by several "Connect XXX failed" error message.
+    return;
+
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (dev) {
         dev->set_selected_machine(m_agent->get_user_selected_machine());
