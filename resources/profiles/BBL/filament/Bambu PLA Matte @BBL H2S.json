@@ -6,7 +6,7 @@
     "setting_id": "GFSA01_07",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
-        "75"
+        "100"
     ],
     "filament_deretraction_speed": [
         "nil",
@@ -30,7 +30,7 @@
     ],
     "filament_max_volumetric_speed": [
         "25",
-        "35"
+        "40"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",

@@ -6,45 +6,32 @@
     "setting_id": "GP130",
     "instantiation": "true",
     "description": "It has a big layer height, and results in apparent layer lines and ordinary printing quality and printing time.",
-    "elefant_foot_compensation": "0.15",
-    "prime_tower_flat_ironing": "1",
-    "prime_tower_width": "60",
-    "travel_speed": [
-        "1000",
-        "1000"
-    ],
-    "compatible_printers": [
-        "Bambu Lab H2S 0.6 nozzle"
-    ],
     "bridge_speed": [
         "30",
         "30"
+    ],
+    "default_acceleration": [
+        "10000",
+        "10000"
+    ],
+    "elefant_foot_compensation": "0.15",
+    "enable_overhang_speed": [
+        "1",
+        "1"
+    ],
+    "enable_height_slowdown": [
+        "0",
+        "0"
+    ],
+    "gap_infill_speed": [
+        "50",
+        "50"
     ],
     "initial_layer_infill_speed": [
         "105",
         "105"
     ],
     "initial_layer_speed": [
-        "50",
-        "50"
-    ],
-    "overhang_3_4_speed": [
-        "30",
-        "30"
-    ],
-    "sparse_infill_speed": [
-        "350",
-        "600"
-    ],
-    "top_surface_speed": [
-        "200",
-        "200"
-    ],
-    "enable_overhang_speed": [
-        "1",
-        "1"
-    ],
-    "gap_infill_speed": [
         "50",
         "50"
     ],
@@ -58,11 +45,19 @@
     ],
     "inner_wall_speed": [
         "300",
-        "300"
+        "600"
     ],
     "internal_solid_infill_speed": [
         "250",
-        "300"
+        "600"
+    ],
+    "initial_layer_travel_acceleration": [
+        "6000",
+        "6000"
+    ],
+    "overhang_3_4_speed": [
+        "30",
+        "30"
     ],
     "outer_wall_acceleration": [
         "5000",
@@ -80,6 +75,16 @@
         "10",
         "10"
     ],
+    "outer_wall_speed": [
+        "120",
+        "500"
+    ],
+    "overhang_totally_speed": [
+        "10",
+        "10"
+    ],
+    "prime_tower_flat_ironing": "1",
+    "prime_tower_width": "60",
     "print_extruder_id": [
         "1",
         "1"
@@ -87,6 +92,10 @@
     "print_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
+    ],
+    "sparse_infill_speed": [
+        "350",
+        "600"
     ],
     "small_perimeter_speed": [
         "50%",
@@ -103,14 +112,6 @@
     "support_speed": [
         "150",
         "150"
-    ],
-    "top_surface_acceleration": [
-        "2000",
-        "2000"
-    ],
-    "enable_height_slowdown": [
-        "0",
-        "0"
     ],
     "slowdown_start_height": [
         "0",
@@ -136,37 +137,36 @@
         "100000",
         "100000"
     ],
-    "travel_speed_z": [
-        "0",
-        "0"
-    ],
-    "vertical_shell_speed": [
-        "80%",
-        "80%"
-    ],
-    "default_acceleration": [
-        "10000",
-        "10000"
-    ],
-    "outer_wall_speed": [
-        "120",
-        "120"
-    ],
-    "overhang_totally_speed": [
-        "10",
-        "10"
-    ],
     "support_interface_speed": [
         "80",
         "80"
     ],
-    "initial_layer_travel_acceleration": [
-        "6000",
-        "6000"
+    "smooth_coefficient": "4",
+    "travel_speed": [
+        "1000",
+        "1000"
+    ],
+    "top_surface_speed": [
+        "200",
+        "200"
+    ],
+    "top_surface_acceleration": [
+        "2000",
+        "2000"
+    ],
+    "travel_speed_z": [
+        "0",
+        "0"
     ],
     "travel_acceleration": [
         "10000",
         "10000"
     ],
-    "smooth_coefficient": "4"
+    "vertical_shell_speed": [
+        "80%",
+        "80%"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2S 0.6 nozzle"
+    ]
 }
