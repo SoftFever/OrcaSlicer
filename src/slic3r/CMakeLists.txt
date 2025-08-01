@@ -614,6 +614,7 @@ set(SLIC3R_GUI_SOURCES
     Utils/WxFontUtils.hpp
 )
 
+add_subdirectory(GUI/DeviceCore)
 add_subdirectory(GUI/DeviceTab)
 
 if (WIN32)

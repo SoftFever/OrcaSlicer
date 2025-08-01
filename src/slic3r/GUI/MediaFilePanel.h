@@ -33,7 +33,7 @@ class MediaFilePanel : public wxPanel
 {
 public:
     MediaFilePanel(wxWindow * parent);
-    
+
     ~MediaFilePanel();
 
     void UpdateByObj(MachineObject * obj);

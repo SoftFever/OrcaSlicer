@@ -23,6 +23,9 @@
 #include <algorithm>
 #include "BitmapCache.hpp"
 
+#include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevStorage.h"
+
 
 namespace Slic3r {
 namespace GUI {
@@ -803,7 +806,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
         m_comboBox_printer->SetTextLabel("");
         return;
     }
-    assert(obj_->dev_id == m_printer_last_select);
+    assert(obj_->get_dev_id() == m_printer_last_select);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " << m_printer_last_select << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
@@ -960,7 +963,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     } else {
 
         auto m_send_job           = std::make_unique<SendJob>(m_printer_last_select);
-        m_send_job->m_dev_ip      = obj_->dev_ip;
+        m_send_job->m_dev_ip      = obj_->get_dev_ip();
         m_send_job->m_access_code = obj_->get_access_code();
 
 
@@ -979,7 +982,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 #endif
         m_send_job->connection_type     = obj_->connection_type();
         m_send_job->cloud_print_only    = true;
-        m_send_job->has_sdcard          = obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+        m_send_job->has_sdcard          = obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
         m_send_job->set_project_name(m_current_project_name.utf8_string());
 
         enable_prepare_mode = false;
@@ -1116,15 +1119,15 @@ void SendToPrinterDialog::update_user_printer()
     // same machine only appear once
     for (auto it = option_list.begin(); it != option_list.end(); it++) {
         if (it->second && (it->second->is_online() || it->second->is_connected())) {
-            machine_list.push_back(it->second->dev_name);
+            machine_list.push_back(it->second->get_dev_name());
         }
     }
     machine_list = sort_string(machine_list);
     for (auto tt = machine_list.begin(); tt != machine_list.end(); tt++) {
         for (auto it = option_list.begin(); it != option_list.end(); it++) {
-            if (it->second->dev_name == *tt) {
+            if (it->second->get_dev_name() == *tt) {
                 m_list.push_back(it->second);
-                wxString dev_name_text = from_u8(it->second->dev_name);
+                wxString dev_name_text = from_u8(it->second->get_dev_name());
                 if (it->second->is_lan_mode_printer()) {
                     dev_name_text += "(LAN)";
                 }
@@ -1143,7 +1146,7 @@ void SendToPrinterDialog::update_user_printer()
     }
 
     if (obj) {
-        m_printer_last_select = obj->dev_id;
+        m_printer_last_select = obj->get_dev_id();
     } else {
         m_printer_last_select = "";
     }
@@ -1151,14 +1154,14 @@ void SendToPrinterDialog::update_user_printer()
     if (m_list.size() > 0) {
         // select a default machine
         if (m_printer_last_select.empty()) {
-            m_printer_last_select = m_list[0]->dev_id;
+            m_printer_last_select = m_list[0]->get_dev_id();
             m_comboBox_printer->SetSelection(0);
             wxCommandEvent event(wxEVT_COMBOBOX);
             event.SetEventObject(m_comboBox_printer);
             wxPostEvent(m_comboBox_printer, event);
         }
         for (auto i = 0; i < m_list.size(); i++) {
-            if (m_list[i]->dev_id == m_printer_last_select) {
+            if (m_list[i]->get_dev_id() == m_printer_last_select) {
                 m_comboBox_printer->SetSelection(i);
                 wxCommandEvent event(wxEVT_COMBOBOX);
                 event.SetEventObject(m_comboBox_printer);
@@ -1203,7 +1206,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     MachineObject* obj = nullptr;
     for (int i = 0; i < m_list.size(); i++) {
         if (i == selection) {
-            m_printer_last_select = m_list[i]->dev_id;
+            m_printer_last_select = m_list[i]->get_dev_id();
             obj = m_list[i];
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
             break;
@@ -1216,7 +1219,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         if (!dev->get_selected_machine()) {
             dev->set_selected_machine(m_printer_last_select);
             if (m_file_sys) m_file_sys.reset();
-        }else if (dev->get_selected_machine()->dev_id != m_printer_last_select) {
+        }else if (dev->get_selected_machine()->get_dev_id() != m_printer_last_select) {
             m_ability_list.clear();
             //update_storage_list(std::vector<std::string>());
             dev->set_selected_machine(m_printer_last_select);
@@ -1290,7 +1293,7 @@ void SendToPrinterDialog::update_show_status()
     // check sdcard when if lan mode printer
    /* if (obj_->is_lan_mode_printer()) {
     }*/
-	if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
+	if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD) {
 		show_status(PrintDialogStatus::PrintStatusNoSdcard);
 		return;
 	}
@@ -1316,7 +1319,7 @@ void SendToPrinterDialog::update_show_status()
             show_status(PrintDialogStatus::PrintStatusReadingFinished);
             return;
         } else/* if (obj_->connection_type() == "cloud")*/ {
-            std::string dev_id = obj_->dev_ip;
+            std::string dev_id = obj_->get_dev_ip();
             if (m_file_sys) {
                 if (dev_id == m_device_select) {
                     if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && obj_->get_file_remote()))
@@ -1497,7 +1500,7 @@ bool SendToPrinterDialog::is_blocking_printing(MachineObject* obj_)
     auto target_model = obj_->printer_type;
 
     if (source_model != target_model) {
-        std::vector<std::string> compatible_machine = dev->get_compatible_machine(target_model);
+        std::vector<std::string> compatible_machine = obj_->get_compatible_machine();
         vector<std::string>::iterator it = find(compatible_machine.begin(), compatible_machine.end(), source_model);
         if (it == compatible_machine.end()) {
             return true;
@@ -1863,7 +1866,7 @@ void SendToPrinterDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     }
 
     std::string dev_ver = obj->get_ota_version();
-    std::string dev_id = obj->dev_id;
+    std::string dev_id = obj->get_dev_id();
     int remote_proto = obj->get_file_remote();
     if (!remote_proto) {
         m_waiting_support = true;
@@ -1884,7 +1887,7 @@ void SendToPrinterDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 
        if (agent) {
             if (m_tcp_try_connect) {
-                std::string devIP      = obj->dev_ip;
+                std::string devIP      = obj->get_dev_ip();
                 std::string accessCode = obj->get_access_code();
                 std::string tcp_url    = "bambu:///local/" + devIP + "?port=6000&user=" + "bblp" + "&passwd=" + accessCode;
                 CallAfter([=] {
@@ -1899,7 +1902,7 @@ void SendToPrinterDialog::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
             }
             else if (m_tutk_try_connect){
                 std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
-                agent->get_camera_url(obj->dev_id + "|" + dev_ver + "|" + protocols[1], [this, wfs, m = dev_id, v = agent->get_version(), dv = dev_ver](std::string url) {
+                agent->get_camera_url(obj->get_dev_id() + "|" + dev_ver + "|" + protocols[1], [this, wfs, m = dev_id, v = agent->get_version(), dv = dev_ver](std::string url) {
                     if (boost::algorithm::starts_with(url, "bambu:///")) {
                         url += "&device=" + m;
                         url += "&net_ver=" + v;

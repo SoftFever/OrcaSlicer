@@ -50,8 +50,8 @@
 #include "libslic3r/GCode/Thumbnails.hpp"
 #include "WipeTowerDialog.hpp"
 
-#include "BedShapeDialog.hpp"
-// #include "BonjourDialog.hpp"
+#include "DeviceCore/DevManager.h"
+
 #ifdef WIN32
 	#include <commctrl.h>
 #endif // WIN32
@@ -5028,13 +5028,13 @@ void TabPrinter::toggle_options()
 
         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
         std::string printer_type = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
-        toggle_line("enable_wrapping_detection", DeviceManager::support_wrapping_detection(printer_type));
+        toggle_line("enable_wrapping_detection", DevPrinterConfigUtil::support_wrapping_detection(printer_type));
     }
 
     if (m_active_page->title() == L("Machine G-code")) {
         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
         std::string   printer_type  = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
-        toggle_line("wrapping_detection_gcode", DeviceManager::support_wrapping_detection(printer_type));
+        toggle_line("wrapping_detection_gcode", DevPrinterConfigUtil::support_wrapping_detection(printer_type));
     }
 
     if (m_active_page->title() == L("Multimaterial")) {

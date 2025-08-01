@@ -11,6 +11,15 @@
 #include "../Utils/ColorSpaceConvert.hpp"
 #include "EncodedFilament.hpp"
 
+
+#include "DeviceCore/DevConfig.h"
+#include "DeviceCore/DevExtruderSystem.h"
+#include "DeviceCore/DevFilaBlackList.h"
+#include "DeviceCore/DevFilaSystem.h"
+
+#define FILAMENT_MAX_TEMP       300
+#define FILAMENT_MIN_TEMP       120
+
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
@@ -534,7 +543,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
             select_index_info.tray_id = tray_id;
             select_index_info.ams_id = ams_id;
             select_index_info.slot_id = slot_id;
-            select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+            select_index_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
             select_index_info.cali_idx = -1;
             select_index_info.filament_id     = selected_ams_id;
             CalibUtils::select_PA_calib_result(select_index_info);
@@ -571,7 +580,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
                     if (vendor && (vendor->values.size() > 0)) {
                         std::string vendor_name = vendor->values[0];
-                        DeviceManager::check_filaments_in_blacklist(obj->printer_type, vendor_name, filamnt_type, it->filament_id, ams_id, slot_id, it->name, in_blacklist, action, info);
+                        DevFilaBlacklist::check_filaments_in_blacklist(obj->printer_type, vendor_name, filamnt_type, it->filament_id, ams_id, slot_id, it->name, in_blacklist, action, info);
                     }
 
                     if (in_blacklist) {
@@ -659,7 +668,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             select_index_info.tray_id = vt_tray;
             select_index_info.ams_id = ams_id;
             select_index_info.slot_id = 0;
-            select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+            select_index_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
 
             auto cali_select_id = m_comboBox_cali_result->GetSelection();
             if (m_pa_profile_items.size() > 0 && cali_select_id >= 0) {
@@ -700,7 +709,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             select_index_info.tray_id = cali_tray_id;
             select_index_info.ams_id = ams_id;
             select_index_info.slot_id = slot_id;
-            select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+            select_index_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
 
             auto cali_select_id = m_comboBox_cali_result->GetSelection();
             if (m_pa_profile_items.size() > 0 && cali_select_id > 0) {
@@ -784,14 +793,7 @@ void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
     }
 
     std::vector<wxColour> ams_colors;
-    for (auto ams_it = obj->amsList.begin(); ams_it != obj->amsList.end(); ++ams_it) {
-        for (auto tray_id = ams_it->second->trayList.begin(); tray_id != ams_it->second->trayList.end(); ++tray_id) {
-            std::vector<wxColour>::iterator iter = find(ams_colors.begin(), ams_colors.end(), AmsTray::decode_color(tray_id->second->color));
-            if (iter == ams_colors.end()) {
-                ams_colors.push_back(AmsTray::decode_color(tray_id->second->color));
-            }
-        }
-    }
+    obj->GetFilaSystem()->CollectAmsColors(ams_colors);
 
     wxPoint img_pos = m_clr_picker->ClientToScreen(wxPoint(0, 0));
     wxPoint popup_pos(img_pos.x - m_color_picker_popup.GetSize().x - FromDIP(95), img_pos.y - FromDIP(65));
@@ -882,9 +884,9 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     std::set<std::string> filament_id_set;
     PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
     std::ostringstream    stream;
-    stream << std::fixed << std::setprecision(1) << obj->m_extder_data.extders[0].current_nozzle_diameter;
+    stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(0);
     std::string nozzle_diameter_str = stream.str();
-    std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(MachineObject::get_preset_printer_model_name(obj->printer_type), nozzle_diameter_str);
+    std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
 
     if (preset_bundle) {
         BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << preset_bundle->filaments.size();
@@ -1121,9 +1123,9 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     if (preset_bundle) {
         std::ostringstream stream;
         if (obj)
-            stream << std::fixed << std::setprecision(1) << obj->m_extder_data.extders[0].current_nozzle_diameter;
+            stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(0);
         std::string nozzle_diameter_str = stream.str();
-        std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(MachineObject::get_preset_printer_model_name(obj->printer_type),
+        std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(DevPrinterConfigUtil::get_printer_display_name(obj->printer_type),
                                                                                                           nozzle_diameter_str);
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             if (!m_comboBox_filament->GetValue().IsEmpty()) {
@@ -1242,13 +1244,13 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     };
 
     int extruder_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-    if (obj->is_nozzle_flow_type_supported() && (obj->get_nozzle_flow_type(extruder_id) == NozzleFlowType::NONE_FLOWTYPE))
+    if (obj->is_nozzle_flow_type_supported() && (obj->GetExtderSystem()->GetNozzleFlowType(extruder_id) == NozzleFlowType::NONE_FLOWTYPE))
     {
         MessageDialog dlg(nullptr, _L("The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n'Device -> Print parts'"), _L("Warning"), wxICON_WARNING | wxOK);
         dlg.ShowModal();
     }
 
-    NozzleFlowType nozzle_flow_type = obj->get_nozzle_flow_type(extruder_id);
+    NozzleFlowType nozzle_flow_type = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
     NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtStandard;
     if (nozzle_flow_type != NozzleFlowType::NONE_FLOWTYPE)
     {
@@ -1260,7 +1262,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         PACalibResult default_item;
         default_item.cali_idx = -1;
         default_item.filament_id = ams_filament_id;
-        if (obj->is_support_auto_flow_calibration) {
+        if (obj->GetConfig()->SupportCalibrationPA_FlowAuto()) {
             default_item.k_value = -1;
             default_item.n_coef  = -1;
         }
@@ -1302,21 +1304,20 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
         else {
             if (from_printer && (*from_printer == 1)) {
-                if (this->obj->amsList.find(std::to_string(ams_id)) != this->obj->amsList.end()) {
-                    Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
-                    if (!selected_ams)
-                        return;
-                    AmsTray* selected_tray = selected_ams->trayList[std::to_string(slot_id)];
-                    if (!selected_tray)
-                        return;
-                    cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
-                    if (cali_select_idx < 0) {
-                        BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile, ams_id = " << ams_id
-                            << ", slot_id = " << slot_id << ", cali_idx = " << selected_tray->cali_idx;
-                        cali_select_idx = 0;
-                    }
-                    m_comboBox_cali_result->SetSelection(cali_select_idx);
+                DevAmsTray* selected_tray = this->obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
+                if (!selected_tray)
+                {
+                    return;
                 }
+
+                cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
+                if (cali_select_idx < 0)
+                {
+                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile, ams_id = " << ams_id
+                        << ", slot_id = " << slot_id << ", cali_idx = " << selected_tray->cali_idx;
+                    cali_select_idx = 0;
+                }
+                m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
             else {
                 int index = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());

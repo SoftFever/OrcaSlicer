@@ -7,6 +7,10 @@
 
 #include "slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h"
 
+#include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevConfig.h"
+#include "slic3r/GUI/DeviceCore/DevManager.h"
+
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 
@@ -42,30 +46,30 @@ namespace Slic3r { namespace GUI {
 //#define AMS_SINGLE_CAN_SIZE wxSize(FromDIP(78), 144)
 #define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(174))
 #define AMS_SINGLE_CAN_SIZE wxSize(FromDIP(78), FromDIP(174))
-bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, bool humidity_flag)
+bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, bool humidity_flag)
 {
     if (!ams) return false;
-    this->ams_id = ams->id;
+    this->ams_id = ams->GetAmsId();
 
-    if (ams->type == 1 || ams->type == 3 || ams->type == N3S_AMS){
-        this->ams_humidity = ams->humidity;
+    if (ams->SupportHumidity()){
+        this->ams_humidity = ams->GetHumidityLevel();
     }
     else{
         this->ams_humidity = -1;
     }
 
-    this->humidity_raw = ams->humidity_raw;
-    this->left_dray_time = ams->left_dry_time;
-    this->current_temperature = ams->current_temperature;
-    this->ams_type = AMSModel(ams->type);
+    this->humidity_raw = ams->GetHumidityPercent();
+    this->left_dray_time = ams->GetLeftDryTime();
+    this->current_temperature = ams->GetCurrentTemperature();
+    this->ams_type = AMSModel(ams->GetAmsType());
 
-    nozzle_id = ams->nozzle;
+    nozzle_id = ams->GetExtruderId();
     cans.clear();
-    for (int i = 0; i < ams->trayList.size(); i++) {
-        auto    it = ams->trayList.find(std::to_string(i));
+    for (int i = 0; i < ams->GetTrays().size(); i++) {
+        auto    it = ams->GetTrays().find(std::to_string(i));
         Caninfo info;
         // tray is exists
-        if (it != ams->trayList.end() && it->second->is_exists) {
+        if (it != ams->GetTrays().end() && it->second->is_exists) {
             if (it->second->is_tray_info_ready()) {
                 info.can_id        = it->second->id;
                 info.ctype         = it->second->ctype;
@@ -73,23 +77,23 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
                 info.cali_idx      = it->second->cali_idx;
                 info.filament_id   = it->second->setting_id;
                 if (!it->second->color.empty()) {
-                    info.material_colour = AmsTray::decode_color(it->second->color);
+                    info.material_colour = DevAmsTray::decode_color(it->second->color);
                 } else {
                     // set to white by default
                     info.material_colour = AMS_TRAY_DEFAULT_COL;
                 }
 
                 for (std::string cols:it->second->cols) {
-                    info.material_cols.push_back(AmsTray::decode_color(cols));
+                    info.material_cols.push_back(DevAmsTray::decode_color(cols));
                 }
 
-                if (MachineObject::is_bbl_filament(it->second->tag_uid)) {
+                if (DevFilaSystem::IsBBL_Filament(it->second->tag_uid)) {
                     info.material_state = AMSCanType::AMS_CAN_TYPE_BRAND;
                 } else {
                     info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
                 }
 
-                if (!MachineObject::is_bbl_filament(it->second->tag_uid) || !remain_flag) {
+                if (!DevFilaSystem::IsBBL_Filament(it->second->tag_uid) || !remain_flag) {
                     info.material_remain = 100;
                 } else {
                     if(it->second->remain < 0 || it->second->remain > 100) {
@@ -128,7 +132,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
     return true;
 }
 
-void AMSinfo::parse_ext_info(MachineObject* obj, AmsTray tray) {
+void AMSinfo::parse_ext_info(MachineObject* obj, DevAmsTray tray) {
 
     this->ams_id = tray.id;
     this->ams_type = AMSModel::EXT_AMS;
@@ -147,7 +151,7 @@ void AMSinfo::parse_ext_info(MachineObject* obj, AmsTray tray) {
         info.cali_idx    = tray.cali_idx;
         info.filament_id = tray.setting_id;
         if (!tray.color.empty()) {
-            info.material_colour = AmsTray::decode_color(tray.color);
+            info.material_colour = DevAmsTray::decode_color(tray.color);
         }
         else {
             // set to white by default
@@ -155,7 +159,7 @@ void AMSinfo::parse_ext_info(MachineObject* obj, AmsTray tray) {
         }
 
         for (std::string cols : tray.cols) {
-            info.material_cols.push_back(AmsTray::decode_color(cols));
+            info.material_cols.push_back(DevAmsTray::decode_color(cols));
         }
         info.material_remain = 100;
     }
@@ -575,9 +579,9 @@ AMSextruderImage::~AMSextruderImage() {}
 Description:AMSExtImage upon ext lib
 **************************************************/
 
-AMSExtImage::AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos, ExtderData *data, wxWindowID id, const wxPoint& pos)
+AMSExtImage::AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos, int total_ext_num, bool over_ext, wxWindowID id, const wxPoint& pos)
 {
-    if (data == nullptr)
+    if (over_ext)
     {
         wxWindow::Create(parent, id, pos);
         SetMinSize(AMS_HUMIDITY_SIZE);
@@ -591,9 +595,9 @@ AMSExtImage::AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos, ExtderData *data
         SetMaxSize(wxSize(FromDIP(98), FromDIP(99)));
 
         m_show_ext = true;
-        total_ext_num = data->total_extder_count;
     }
 
+    m_ext_num = total_ext_num;
     m_ext_pos = ext_pos;
     SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
 
@@ -606,7 +610,7 @@ const wxBitmap &AMSExtImage::get_bmp(const std::string &printer_type, bool is_am
 {
     int pos_id = 0;
     if (pos == AMSPanelPos::LEFT_PANEL) { pos_id = 1;}
-    const std::string &image_name = DeviceManager::get_printer_ext_img(printer_type, pos_id);
+    const std::string &image_name = DevPrinterConfigUtil::get_printer_ext_img(printer_type, pos_id);
     if (image_name.empty()) { return wxNullBitmap; }
 
     int image_size = is_ams_ext ? 25 : 98;
@@ -639,9 +643,9 @@ void AMSExtImage::setShowAmsExt(bool show)
 
 void AMSExtImage::setTotalExtNum(const std::string &series_name, const std::string &printer_type, int num)
 {
-    if ((total_ext_num != num) || (m_series_name != series_name) || (m_printer_type_name != printer_type))
+    if ((m_ext_num != num) || (m_series_name != series_name) || (m_printer_type_name != printer_type))
     {
-        total_ext_num = num;
+        m_ext_num = num;
         m_series_name = series_name;
         m_printer_type_name = printer_type;
         Refresh();
@@ -701,7 +705,7 @@ void AMSExtImage::doRender(wxDC& dc)
 }
 
 
-//Ams Extruder
+//DevAms Extruder
 AMSextruder::AMSextruder(wxWindow *parent, wxWindowID id, int nozzle_num, const wxPoint &pos, const wxSize &size)
 {
     create(parent, id, pos, size, nozzle_num);
@@ -743,13 +747,13 @@ void AMSextruder::OnAmsLoading(bool load, int nozzle_id, wxColour col /*= AMS_CO
         if (load) m_current_colur_deputy = col;
     }
     else if (m_nozzle_num > 1){
-        if (nozzle_id == MAIN_NOZZLE_ID) {
+        if (nozzle_id == MAIN_EXTRUDER_ID) {
             m_right_extruder->OnAmsLoading(load, col);
             if (m_current_colur != col){
                 if (load) m_current_colur = col;
             }
         }
-        else if(nozzle_id == DEPUTY_NOZZLE_ID) {
+        else if(nozzle_id == DEPUTY_EXTRUDER_ID) {
             m_left_extruder->OnAmsLoading(load, col);
             if (m_current_colur_deputy != col) {
                 if (load) m_current_colur_deputy = col;
@@ -1054,7 +1058,7 @@ void AMSLib::render_generic_text(wxDC &dc)
         show_k_value = false;
     }
     else if (m_info.cali_idx == -1 || (m_obj && (CalibUtils::get_selected_calib_idx(m_obj->pa_calib_tab, m_info.cali_idx) == -1))) {
-        if (m_obj && m_obj->is_support_auto_flow_calibration)
+        if (m_obj && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto())
             show_k_value = false;
         else
             get_default_k_n_value(m_info.filament_id, m_info.k, m_info.n);
@@ -2224,19 +2228,19 @@ void AMSRoadDownPart::SetPassRoadColour(bool left, wxColour col)
 {
     if (left)
     {
-        if (m_road_color[DEPUTY_NOZZLE_ID] == col)
+        if (m_road_color[DEPUTY_EXTRUDER_ID] == col)
         {
             return;
         }
-        m_road_color[DEPUTY_NOZZLE_ID] = col;
+        m_road_color[DEPUTY_EXTRUDER_ID] = col;
     }
     else
     {
-        if (m_road_color[MAIN_NOZZLE_ID] == col)
+        if (m_road_color[MAIN_EXTRUDER_ID] == col)
         {
             return;
         }
-        m_road_color[MAIN_NOZZLE_ID] = col;
+        m_road_color[MAIN_EXTRUDER_ID] = col;
     }
 
     Refresh();
@@ -3057,7 +3061,7 @@ void AmsItem::create(wxWindow *parent)
         }
         else{
             if (m_ams_model == EXT_AMS){
-                m_ext_image = new AMSExtImage(this, m_panel_pos);
+                m_ext_image = new AMSExtImage(this, m_panel_pos, 1, true);
                 sizer_item->Add(m_ext_image, 0, wxALIGN_CENTER, 0);
             }
         }

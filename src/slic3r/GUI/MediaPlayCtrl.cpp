@@ -144,19 +144,19 @@ MediaPlayCtrl::~MediaPlayCtrl()
 
 void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
-    std::string machine = obj ? obj->dev_id : "";
+    std::string machine = obj ? obj->get_dev_id() : "";
     if (obj) {
         m_camera_exists  = obj->has_ipcam;
         m_dev_ver        = obj->get_ota_version();
         m_lan_mode       = obj->is_lan_mode_printer();
         m_lan_proto      = obj->liveview_local;
         m_remote_proto   = obj->get_liveview_remote();
-        m_lan_ip         = obj->dev_ip;
+        m_lan_ip         = obj->get_dev_ip();
         m_lan_passwd     = obj->get_access_code();
         m_device_busy    = obj->is_camera_busy_off();
         m_tutk_state     = obj->tutk_state;
 
-        if (DeviceManager::get_printer_series(obj->printer_type) == "series_o" && NetworkAgent::use_legacy_network) {
+        if (DevPrinterConfigUtil::get_printer_series_str(obj->printer_type) == "series_o" && NetworkAgent::use_legacy_network) {
             // Legacy plugin cannot support remote play for H2D, force using local mode
             m_remote_proto = MachineObject::LVR_None;
         }

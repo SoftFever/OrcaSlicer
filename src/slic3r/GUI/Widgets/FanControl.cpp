@@ -458,9 +458,9 @@ void FanControlNew::command_control_fan()
     if (m_obj) {
         if (!m_obj->is_enable_np){
             int speed = floor(m_current_speed * float(25.5));
-            m_obj->command_control_fan(m_part_id, speed);
+            m_obj->GetFan()->command_control_fan(m_part_id, speed);
         } else {
-            m_obj->command_control_fan_new(m_part_id, m_current_speed * 10, nullptr);
+            m_obj->GetFan()->command_control_fan_new(m_part_id, m_current_speed * 10);
         }
         post_event();
     }
@@ -708,9 +708,9 @@ void FanControlPopupNew::CreateDuct()
     {
         if (m_obj)
         {
-            int cooling_fan_speed = round(m_obj->cooling_fan_speed / float(25.5));
-            int big_fan1_speed = round(m_obj->big_fan1_speed / float(25.5));
-            int big_fan2_speed = round(m_obj->big_fan2_speed / float(25.5));
+            int cooling_fan_speed = round(m_obj->GetFan()->GetCoolingFanSpeed() / float(25.5));
+            int big_fan1_speed = round(m_obj->GetFan()->GetBigFan1Speed() / float(25.5));
+            int big_fan2_speed = round(m_obj->GetFan()->GetBigFan2Speed() / float(25.5));
             update_fan_data(AIR_FUN::FAN_COOLING_0_AIRDOOR, cooling_fan_speed);
             update_fan_data(AIR_FUN::FAN_REMOTE_COOLING_0_IDX, big_fan1_speed);
             update_fan_data(AIR_FUN::FAN_CHAMBER_0_IDX, big_fan2_speed);
@@ -808,12 +808,12 @@ void FanControlPopupNew::update_fan_data(MachineObject *obj)
         return;
     }
 
-    if (!obj->m_air_duct_data.modes.empty()) {
-        update_fan_data(obj->m_air_duct_data);
+    if (!obj->GetFan()->GetAirDuctData().modes.empty()) {
+        update_fan_data(obj->GetFan()->GetAirDuctData());
     } else {
-        int cooling_fan_speed = round(obj->cooling_fan_speed / float(25.5));
-        int big_fan1_speed    = round(obj->big_fan1_speed / float(25.5));
-        int big_fan2_speed    = round(obj->big_fan2_speed / float(25.5));
+        int cooling_fan_speed = round(obj->GetFan()->GetCoolingFanSpeed() / float(25.5));
+        int big_fan1_speed    = round(obj->GetFan()->GetBigFan1Speed() / float(25.5));
+        int big_fan2_speed    = round(obj->GetFan()->GetBigFan2Speed() / float(25.5));
         update_fan_data(AIR_FUN::FAN_COOLING_0_AIRDOOR, cooling_fan_speed);
         update_fan_data(AIR_FUN::FAN_REMOTE_COOLING_0_IDX, big_fan1_speed);
         update_fan_data(AIR_FUN::FAN_CHAMBER_0_IDX, big_fan2_speed);
@@ -910,7 +910,7 @@ void FanControlPopupNew::command_control_air_duct(int mode_id, int submode)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", control air duct, id = " << mode_id;
     if (m_obj) {
-        m_obj->command_control_air_duct(mode_id, submode, [](const json& reply) {});
+        m_obj->GetFan()->command_control_air_duct(mode_id, submode, [](const json& reply) {});
 
         m_air_duct_time_out = time_out;
         m_data.curren_mode = mode_id;
@@ -1002,13 +1002,13 @@ void FanControlPopupNew::init_names(MachineObject* obj) {
 
     // special texts
     if (obj) {
-        const std::string& special_cooling_text = DeviceManager::get_fan_text(obj->printer_type, "special_cooling_text");
+        const std::string& special_cooling_text = DevPrinterConfigUtil::get_fan_text(obj->printer_type, "special_cooling_text");
         if (!special_cooling_text.empty()) {
             L("Cooling mode is suitable for printing PLA/PETG/TPU materials."); //some potential text, add i18n flags
             label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = special_cooling_text;
         }
 
-        const std::string& special_func_aux_text = DeviceManager::get_fan_text(obj->printer_type, "special_func_aux_text");
+        const std::string& special_func_aux_text = DevPrinterConfigUtil::get_fan_text(obj->printer_type, "special_func_aux_text");
         if (!special_func_aux_text.empty()) {
             L_CONTEXT("Right", "air_duct");
             fan_func_name[AIR_FUN::FAN_REMOTE_COOLING_0_IDX] = _CTX(special_func_aux_text, "air_duct");

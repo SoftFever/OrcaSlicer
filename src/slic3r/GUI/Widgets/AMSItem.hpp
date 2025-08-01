@@ -257,8 +257,8 @@ public:
         return true;
     };
 
-    bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
-    void parse_ext_info(MachineObject* obj, AmsTray tray);
+    bool parse_ams_info(MachineObject* obj, DevAms *ams, bool remain_flag = false, bool humidity_flag = false);
+    void parse_ext_info(MachineObject* obj, DevAmsTray tray);
 
     bool support_drying() const { return (ams_type == AMSModel::N3S_AMS) || (ams_type == AMSModel::N3F_AMS); };
     Caninfo get_caninfo(const std::string& can_id, bool& found) const;
@@ -376,12 +376,12 @@ private:
     bool    m_show_ext     = false;
 
     AMSPanelPos m_ext_pos;
-    int         total_ext_num = 1;
+    int         m_ext_num = 1;
 
     ScalableBitmap m_ext_image;
 
 public:
-    AMSExtImage(wxWindow *parent, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, ExtderData *data = nullptr, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition);
+    AMSExtImage(wxWindow *parent, AMSPanelPos ext_pos, int total_ext_num, bool over_ext, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition);
     ~AMSExtImage();
 
     void msw_rescale();

@@ -50,6 +50,12 @@
 #define  PRINT_OPT_BG_GRAY       0xF8F8F8
 #define  PRINT_OPT_ITEM_BG_GRAY  0xEEEEEE
 
+
+// Previous definitions
+namespace Slic3r{
+    class DevExtder;
+}
+
 namespace Slic3r { namespace GUI {
 
 std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_type);
@@ -476,10 +482,10 @@ public:
     void update_print_error_info(int code, std::string msg, std::string extra);
     bool has_timelapse_warning(wxString& msg);
     bool has_timelapse_warning() { wxString msg; return has_timelapse_warning(msg);};
-    bool can_support_auto_cali();
+    bool can_support_pa_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
-    bool is_nozzle_hrc_matched(const Extder& extruder, std::string& filament_type) const;
+    bool is_nozzle_hrc_matched(const DevExtder* extruder, std::string& filament_type) const;
     bool check_sdcard_for_timelpase(MachineObject* obj);
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
@@ -489,9 +495,9 @@ public:
     bool do_ams_mapping(MachineObject *obj_,bool use_ams);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
     bool build_nozzles_info(std::string& nozzles_info);
-    bool can_hybrid_mapping(ExtderData data);
-    void auto_supply_with_ext(std::vector<AmsTray> slots);
-    bool is_nozzle_type_match(ExtderData data, wxString& error_message) const;
+    bool can_hybrid_mapping(DevExtderSystem data);
+    void auto_supply_with_ext(std::vector<DevAmsTray> slots);
+    bool is_nozzle_type_match(DevExtderSystem data, wxString& error_message) const;
     int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
 
     PrintFromType get_print_type() {return m_print_type;};

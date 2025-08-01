@@ -184,7 +184,7 @@ void CalibrationWizard::on_device_connected(MachineObject* obj)
     recover_preset_info(obj);
 
     BOOST_LOG_TRIVIAL(info) << "on_device_connected - machine object status:"
-                            << " dev_id = " << obj->dev_id
+                            << " dev_id = " << obj->get_dev_id()
                             << ", print_type = " << obj->printer_type
                             << ", printer_status = " << obj->print_status
                             << ", cali_finished = " << obj->cali_finished
@@ -417,8 +417,8 @@ void CalibrationWizard::recover_preset_info(MachineObject *obj)
 {
     std::vector<PrinterCaliInfo> back_infos = wxGetApp().app_config->get_printer_cali_infos();
     for (const auto& back_info : back_infos) {
-        if (obj && (obj->dev_id == back_info.dev_id) ) {
-            obj->dev_id = back_info.dev_id;
+        if (obj && (obj->get_dev_id() == back_info.dev_id) ) {
+            obj->set_dev_id(back_info.dev_id);
             obj->cali_finished    = back_info.cali_finished;
             obj->cache_flow_ratio = back_info.cache_flow_ratio;
             obj->selected_cali_preset = back_info.selected_presets;
@@ -433,7 +433,7 @@ void CalibrationWizard::back_preset_info(MachineObject *obj, bool cali_finish, b
         return;
 
     PrinterCaliInfo printer_cali_info;
-    printer_cali_info.dev_id           = obj->dev_id;
+    printer_cali_info.dev_id           = obj->get_dev_id();
     printer_cali_info.cali_finished    = cali_finish;
     printer_cali_info.cache_flow_ratio = obj->cache_flow_ratio;
     printer_cali_info.selected_presets = obj->selected_cali_preset;
@@ -599,7 +599,7 @@ void PressureAdvanceWizard::update(MachineObject* obj)
         if (obj->cali_version != -1 && obj->cali_version != cali_version) {
             cali_version = obj->cali_version;
             PACalibExtruderInfo cali_info;
-            cali_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+            cali_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
             cali_info.use_extruder_id        = false;
             cali_info.use_nozzle_volume_type = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
@@ -751,7 +751,7 @@ void PressureAdvanceWizard::on_cali_start()
 
             int selected_tray_id = 0;
             CalibInfo calib_info;
-            calib_info.dev_id            = curr_obj->dev_id;
+            calib_info.dev_id            = curr_obj->get_dev_id();
             get_tray_ams_and_slot_id(curr_obj, selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
             calib_info.extruder_id       = preset_page->get_extruder_id(calib_info.ams_id);
             calib_info.extruder_type     = preset_page->get_extruder_type(calib_info.extruder_id);
@@ -1205,7 +1205,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
     else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
         CalibrationFlowCoarseSavePage* coarse_page = (static_cast<CalibrationFlowCoarseSavePage*>(coarse_save_step->page));
         CalibInfo calib_info;
-        calib_info.dev_id            = curr_obj->dev_id;
+        calib_info.dev_id            = curr_obj->get_dev_id();
         Preset* temp_filament_preset = nullptr;
         int cali_stage = -1;
         wxString wx_err_string;
@@ -1635,7 +1635,7 @@ void MaxVolumetricSpeedWizard::on_cali_start()
 
     CalibInfo calib_info;
     calib_info.params = params;
-    calib_info.dev_id = curr_obj->dev_id;
+    calib_info.dev_id = curr_obj->get_dev_id();
     if (!selected_filaments.empty()) {
         int selected_tray_id = 0;
         get_tray_ams_and_slot_id(curr_obj, selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);

@@ -29,6 +29,8 @@
 #include "Plater.hpp"
 #include "BindDialog.hpp"
 
+#include "DeviceCore/DevManager.h"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -126,7 +128,7 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
         auto key = e.GetString().ToStdString();
         auto iter = m_hms_panel->temp_hms_list.find(key);
         if (iter != m_hms_panel->temp_hms_list.end()) {
-            m_hms_panel->temp_hms_list[key].already_read = true;
+            m_hms_panel->temp_hms_list[key].set_read();
         }
 
         update_hms_tag();
@@ -164,7 +166,7 @@ void MonitorPanel::init_timer()
     if (!dev) return;
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_)
-        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
+        GUI::wxGetApp().sidebar().load_ams_list(obj_->get_dev_id(), obj_);
 }
 
 void MonitorPanel::init_tabpanel()
@@ -277,7 +279,7 @@ void MonitorPanel::on_select_printer(wxCommandEvent& event)
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
-    if ( dev->get_selected_machine() && (dev->get_selected_machine()->dev_id != event.GetString().ToStdString()) && m_hms_panel) {
+    if ( dev->get_selected_machine() && (dev->get_selected_machine()->get_dev_id() != event.GetString().ToStdString()) && m_hms_panel) {
         m_hms_panel->clear_hms_tag();
     }
 
@@ -293,7 +295,7 @@ void MonitorPanel::on_select_printer(wxCommandEvent& event)
         obj_->reset_pa_cali_history_result();
         obj_->reset_pa_cali_result();
         Sidebar &sidebar = GUI::wxGetApp().sidebar();
-        sidebar.load_ams_list(obj_->dev_id, obj_);
+        sidebar.load_ams_list(obj_->get_dev_id(), obj_);
         sidebar.update_sync_status(obj_);
         sidebar.set_need_auto_sync_after_connect_printer(sidebar.need_auto_sync_extruder_list_after_connect_priner(obj_));
     }
@@ -379,7 +381,7 @@ void MonitorPanel::update_all()
         m_media_file_panel->UpdateByObj(obj);
     }
 
-    if (current_page == m_hms_panel || (obj->hms_list.size() != m_hms_panel->temp_hms_list.size())) {
+    if (current_page == m_hms_panel || (obj->GetHMS()->GetHMSItems().size() != m_hms_panel->temp_hms_list.size())) {
         m_hms_panel->update(obj);
     }
 
@@ -392,10 +394,10 @@ void MonitorPanel::update_hms_tag()
 
         if (!obj) { break;}
 
-        const wxString &msg = wxGetApp().get_hms_query()->query_hms_msg(obj->dev_id, hmsitem.second.get_long_error_code());
+        const wxString &msg = wxGetApp().get_hms_query()->query_hms_msg(obj->get_dev_id(), hmsitem.second.get_long_error_code());
         if (msg.empty()){ continue;} /*STUDIO-10363 it's hidden message*/
 
-        if (!hmsitem.second.already_read) {
+        if (!hmsitem.second.has_read()) {
             //show HMS new tag
             m_tabpanel->GetBtnsListCtrl()->showNewTag(3, true);
             return;
@@ -428,10 +430,10 @@ bool MonitorPanel::Show(bool show)
                 dev->load_last_machine();
                 obj = dev->get_selected_machine();
                 if (obj && obj->is_info_ready(false))
-                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                    GUI::wxGetApp().sidebar().load_ams_list(obj->get_dev_id(), obj);
             } else {
                 obj->reset_update_time();
-                //select_machine(obj->dev_id);
+                //select_machine(obj->get_dev_id());
             }
         }
     } else {
@@ -448,7 +450,7 @@ void MonitorPanel::show_status(int status)
     if ((last_status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) {
         NetworkAgent* agent = wxGetApp().getAgent();
         json j;
-        j["dev_id"] = obj ? obj->dev_id : "obj_nullptr";
+        j["dev_id"] = obj ? obj->get_dev_id() : "obj_nullptr";
         if ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) {
             j["result"] = "failed";
         }

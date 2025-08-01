@@ -7,6 +7,9 @@
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h"
 
+#include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 
@@ -33,7 +36,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         parse_object(obj);
     }
 
-    m_extder_data.total_extder_count = 1;
     SetBackgroundColour(*wxWHITE);
     // normal mode
     //Freeze();
@@ -174,7 +176,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
 
     /*option mid*/
-    m_extruder = new AMSextruder(m_amswin, wxID_ANY, m_extder_data.total_extder_count, wxDefaultPosition, AMS_EXTRUDER_SIZE);
+    m_extruder = new AMSextruder(m_amswin, wxID_ANY, m_total_ext_count, wxDefaultPosition, AMS_EXTRUDER_SIZE);
     m_sizer_option_mid->Add( m_extruder, 0, wxALIGN_CENTER, 0 );
 
 
@@ -342,8 +344,8 @@ std::string AMSControl::GetCurrentCan(std::string amsid)
 }
 
 bool AMSControl::IsAmsInRightPanel(std::string ams_id) {
-    if (m_extder_data.total_extder_count == 2){
-        if (m_ams_item_list.find(ams_id) != m_ams_item_list.end() && m_ams_item_list[ams_id]->get_nozzle_id() == MAIN_NOZZLE_ID) {
+    if (m_total_ext_count == 2){
+        if (m_ams_item_list.find(ams_id) != m_ams_item_list.end() && m_ams_item_list[ams_id]->get_nozzle_id() == MAIN_EXTRUDER_ID) {
             return true;
         }
         else{
@@ -351,7 +353,7 @@ bool AMSControl::IsAmsInRightPanel(std::string ams_id) {
         }
     }
     else{
-        for (auto id : m_item_ids[MAIN_NOZZLE_ID]){
+        for (auto id : m_item_ids[MAIN_EXTRUDER_ID]){
             if (id == ams_id){
                 return true;
             }
@@ -614,17 +616,17 @@ void AMSControl::CreateAmsDoubleNozzle(const std::string &series_name, const std
     //Freeze();
     for (auto ams_info = m_ams_info.begin(); ams_info != m_ams_info.end(); ams_info++){
         if (ams_info->cans.size() == GENERIC_AMS_SLOT_NUM){
-            ams_info->nozzle_id == MAIN_NOZZLE_ID ? m_item_ids[MAIN_NOZZLE_ID].push_back(ams_info->ams_id) : m_item_ids[DEPUTY_NOZZLE_ID].push_back(ams_info->ams_id);
+            ams_info->nozzle_id == MAIN_EXTRUDER_ID ? m_item_ids[MAIN_EXTRUDER_ID].push_back(ams_info->ams_id) : m_item_ids[DEPUTY_EXTRUDER_ID].push_back(ams_info->ams_id);
             AddAmsPreview(*ams_info, ams_info->ams_type);
             AddAms(*ams_info);
         }
         else if (ams_info->cans.size() == 1){
 
-            if (ams_info->nozzle_id == MAIN_NOZZLE_ID){
+            if (ams_info->nozzle_id == MAIN_EXTRUDER_ID){
                 single_info_right.push_back(*ams_info);
                 if (single_info_right.size() == 2){
-                    single_info_right[0].nozzle_id == MAIN_NOZZLE_ID ? m_item_ids[MAIN_NOZZLE_ID].push_back(single_info_right[0].ams_id) : m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info_right[0].ams_id);
-                    single_info_right[1].nozzle_id == MAIN_NOZZLE_ID ? m_item_ids[MAIN_NOZZLE_ID].push_back(single_info_right[1].ams_id) : m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info_right[1].ams_id);
+                    single_info_right[0].nozzle_id == MAIN_EXTRUDER_ID ? m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info_right[0].ams_id) : m_item_ids[DEPUTY_EXTRUDER_ID].push_back(single_info_right[0].ams_id);
+                    single_info_right[1].nozzle_id == MAIN_EXTRUDER_ID ? m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info_right[1].ams_id) : m_item_ids[DEPUTY_EXTRUDER_ID].push_back(single_info_right[1].ams_id);
                     AddAms(single_info_right, series_name, printer_type);
                     AddAmsPreview(single_info_right, AMSPanelPos::RIGHT_PANEL);
                     pair_id.push_back(std::make_pair(single_info_right[0].ams_id, single_info_right[1].ams_id));
@@ -634,8 +636,8 @@ void AMSControl::CreateAmsDoubleNozzle(const std::string &series_name, const std
             else if (ams_info->nozzle_id == 1){
                 single_info_left.push_back(*ams_info);
                 if (single_info_left.size() == 2){
-                    single_info_left[0].nozzle_id == MAIN_NOZZLE_ID ? m_item_ids[MAIN_NOZZLE_ID].push_back(single_info_left[0].ams_id) : m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info_left[0].ams_id);
-                    single_info_left[1].nozzle_id == MAIN_NOZZLE_ID ? m_item_ids[MAIN_NOZZLE_ID].push_back(single_info_left[1].ams_id) : m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info_left[1].ams_id);
+                    single_info_left[0].nozzle_id == MAIN_EXTRUDER_ID ? m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info_left[0].ams_id) : m_item_ids[DEPUTY_EXTRUDER_ID].push_back(single_info_left[0].ams_id);
+                    single_info_left[1].nozzle_id == MAIN_EXTRUDER_ID ? m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info_left[1].ams_id) : m_item_ids[DEPUTY_EXTRUDER_ID].push_back(single_info_left[1].ams_id);
                     AddAms(single_info_left, series_name, printer_type);
                     AddAmsPreview(single_info_left, AMSPanelPos::LEFT_PANEL);
                     pair_id.push_back(std::make_pair(single_info_left[0].ams_id, single_info_left[1].ams_id));
@@ -660,9 +662,9 @@ void AMSControl::CreateAmsDoubleNozzle(const std::string &series_name, const std
     //wait add
 
 
-    single_info_right[0].nozzle_id == MAIN_NOZZLE_ID ? m_item_ids[MAIN_NOZZLE_ID].push_back(single_info_right[0].ams_id) : m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info_right[0].ams_id);
+    single_info_right[0].nozzle_id == MAIN_EXTRUDER_ID ? m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info_right[0].ams_id) : m_item_ids[DEPUTY_EXTRUDER_ID].push_back(single_info_right[0].ams_id);
     if (single_info_right.size() == 2){
-        single_info_right[1].nozzle_id == MAIN_NOZZLE_ID ? m_item_ids[MAIN_NOZZLE_ID].push_back(single_info_right[1].ams_id) : m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info_right[1].ams_id);
+        single_info_right[1].nozzle_id == MAIN_EXTRUDER_ID ? m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info_right[1].ams_id) : m_item_ids[DEPUTY_EXTRUDER_ID].push_back(single_info_right[1].ams_id);
         pair_id.push_back(std::make_pair(single_info_right[0].ams_id, single_info_right[1].ams_id));
     }
     AddAms(single_info_right, series_name, printer_type);
@@ -677,9 +679,9 @@ void AMSControl::CreateAmsDoubleNozzle(const std::string &series_name, const std
         }
     }
     //wait add
-    single_info_left[0].nozzle_id == MAIN_NOZZLE_ID ? m_item_ids[MAIN_NOZZLE_ID].push_back(single_info_left[0].ams_id) : m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info_left[0].ams_id);
+    single_info_left[0].nozzle_id == MAIN_EXTRUDER_ID ? m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info_left[0].ams_id) : m_item_ids[DEPUTY_EXTRUDER_ID].push_back(single_info_left[0].ams_id);
     if (single_info_left.size() == 2){
-        single_info_left[1].nozzle_id == MAIN_NOZZLE_ID ? m_item_ids[MAIN_NOZZLE_ID].push_back(single_info_left[1].ams_id) : m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info_left[1].ams_id);
+        single_info_left[1].nozzle_id == MAIN_EXTRUDER_ID ? m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info_left[1].ams_id) : m_item_ids[DEPUTY_EXTRUDER_ID].push_back(single_info_left[1].ams_id);
         pair_id.push_back(std::make_pair(single_info_left[0].ams_id, single_info_left[1].ams_id));
     }
     AddAmsPreview(single_info_left, AMSPanelPos::LEFT_PANEL);
@@ -705,19 +707,19 @@ void AMSControl::CreateAmsDoubleNozzle(const std::string &series_name, const std
     auto right_init_mode = findFirstMode(AMSPanelPos::RIGHT_PANEL);
 
 
-    m_down_road->UpdateLeft(m_extder_data.total_extder_count, left_init_mode);
-    m_down_road->UpdateRight(m_extder_data.total_extder_count, right_init_mode);
+    m_down_road->UpdateLeft(2, left_init_mode);
+    m_down_road->UpdateRight(2, right_init_mode);
 
-    m_extruder->updateNozzleNum(m_extder_data.total_extder_count);
+    m_extruder->updateNozzleNum(2);
 
-    m_current_show_ams_left = m_item_ids[DEPUTY_NOZZLE_ID].size() > 0 ? m_item_ids[DEPUTY_NOZZLE_ID][0] : "";
-    m_current_show_ams_right = m_item_ids[MAIN_NOZZLE_ID].size() > 0 ? m_item_ids[MAIN_NOZZLE_ID][0] : "";
+    m_current_show_ams_left = m_item_ids[DEPUTY_EXTRUDER_ID].size() > 0 ? m_item_ids[DEPUTY_EXTRUDER_ID][0] : "";
+    m_current_show_ams_right = m_item_ids[MAIN_EXTRUDER_ID].size() > 0 ? m_item_ids[MAIN_EXTRUDER_ID][0] : "";
 
     m_current_ams = "";
     m_down_road->UpdatePassRoad(AMSPanelPos::LEFT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-    m_extruder->OnAmsLoading(false, DEPUTY_NOZZLE_ID);
+    m_extruder->OnAmsLoading(false, DEPUTY_EXTRUDER_ID);
     m_down_road->UpdatePassRoad(AMSPanelPos::RIGHT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-    m_extruder->OnAmsLoading(false, MAIN_NOZZLE_ID);
+    m_extruder->OnAmsLoading(false, MAIN_EXTRUDER_ID);
 
     m_amswin->Layout();
     m_amswin->Fit();
@@ -735,13 +737,13 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
     //add ams data
     for (auto ams_info = m_ams_info.begin(); ams_info != m_ams_info.end(); ams_info++) {
         if (ams_info->cans.size() == GENERIC_AMS_SLOT_NUM) {
-            m_item_ids[DEPUTY_NOZZLE_ID].push_back(ams_info->ams_id);
+            m_item_ids[DEPUTY_EXTRUDER_ID].push_back(ams_info->ams_id);
             AddAmsPreview(*ams_info, ams_info->ams_type);
             AddAms(*ams_info, AMSPanelPos::LEFT_PANEL);
             //AddExtraAms(*ams_info);
         }
         else if (ams_info->cans.size() == 1) {
-            m_item_ids[DEPUTY_NOZZLE_ID].push_back(ams_info->ams_id);
+            m_item_ids[DEPUTY_EXTRUDER_ID].push_back(ams_info->ams_id);
             AddAmsPreview(*ams_info, ams_info->ams_type);
             AddAms(*ams_info, AMSPanelPos::LEFT_PANEL);
 
@@ -758,8 +760,8 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
         }
     }
     if (single_info.size() > 0){
-        m_item_ids[DEPUTY_NOZZLE_ID].push_back(single_info[0].ams_id);
-        m_item_nums[DEPUTY_NOZZLE_ID]++;
+        m_item_ids[DEPUTY_EXTRUDER_ID].push_back(single_info[0].ams_id);
+        m_item_nums[DEPUTY_EXTRUDER_ID]++;
         AddAms(single_info, series_name, printer_type, AMSPanelPos::LEFT_PANEL);
         AddAmsPreview(single_info, AMSPanelPos::LEFT_PANEL);
         single_info.clear();
@@ -772,7 +774,7 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
     }
 
     single_info.push_back(m_ext_info[0]);
-    m_item_ids[MAIN_NOZZLE_ID].push_back(single_info[0].ams_id);
+    m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info[0].ams_id);
     AddAms(single_info, series_name, printer_type, AMSPanelPos::RIGHT_PANEL);
     auto left_init_mode = findFirstMode(AMSPanelPos::LEFT_PANEL);
     auto right_init_mode = findFirstMode(AMSPanelPos::RIGHT_PANEL);
@@ -802,14 +804,14 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
         m_down_road->UpdateLeft(1, left_init_mode);
         m_down_road->UpdateRight(1, right_init_mode);
     }
-    m_current_show_ams_left = m_item_ids[DEPUTY_NOZZLE_ID].size() > 0 ? m_item_ids[DEPUTY_NOZZLE_ID][0] : "";
-    m_current_show_ams_right = m_item_ids[MAIN_NOZZLE_ID].size() > 0 ? m_item_ids[MAIN_NOZZLE_ID][0] : "";
+    m_current_show_ams_left = m_item_ids[DEPUTY_EXTRUDER_ID].size() > 0 ? m_item_ids[DEPUTY_EXTRUDER_ID][0] : "";
+    m_current_show_ams_right = m_item_ids[MAIN_EXTRUDER_ID].size() > 0 ? m_item_ids[MAIN_EXTRUDER_ID][0] : "";
     m_current_ams = "";
 
     m_down_road->UpdatePassRoad(AMSPanelPos::LEFT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     m_down_road->UpdatePassRoad(AMSPanelPos::RIGHT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     m_extruder->updateNozzleNum(1);
-    m_extruder->OnAmsLoading(false, MAIN_NOZZLE_ID);
+    m_extruder->OnAmsLoading(false, MAIN_EXTRUDER_ID);
 
     m_amswin->Layout();
     m_amswin->Fit();
@@ -911,7 +913,7 @@ void AMSControl::UpdateAms(const std::string   &series_name,
                            const std::string   &printer_type,
                            std::vector<AMSinfo> ams_info,
                            std::vector<AMSinfo> ext_info,
-                           ExtderData           data,
+                           DevExtderSystem           data,
                            std::string          dev_id,
                            bool                 is_reset,
                            bool                 test)
@@ -921,7 +923,8 @@ void AMSControl::UpdateAms(const std::string   &series_name,
         bool fresh = false;
 
         // basic check
-        if (m_ams_info.size() == ams_info.size() && m_extder_data.total_extder_count == data.total_extder_count && m_dev_id == dev_id && m_ext_info.size() == ext_info.size()) {
+        if (m_ams_info.size() == ams_info.size() && m_total_ext_count == data.GetTotalExtderCount() && m_dev_id == dev_id && m_ext_info.size() == ext_info.size())
+        {
             for (int i = 0; i < m_ams_info.size(); i++){
                 if (m_ams_info[i].ams_id != ams_info[i].ams_id){
                     fresh = true;
@@ -938,13 +941,13 @@ void AMSControl::UpdateAms(const std::string   &series_name,
 
         m_ams_info.clear();
         m_ams_info = ams_info;
+        m_total_ext_count = data.GetTotalExtderCount();
         m_ext_info.clear();
         m_ext_info = ext_info;
-        m_extder_data = data;
         m_dev_id = dev_id;
         if (fresh){
             ClearAms();
-            if (m_extder_data.total_extder_count >= 2){
+            if (m_total_ext_count >= 2){
                 CreateAmsDoubleNozzle(series_name, printer_type);
             }else{
                 CreateAmsSingleNozzle(series_name, printer_type);
@@ -986,77 +989,7 @@ void AMSControl::UpdateAms(const std::string   &series_name,
             { ams_prv.second->Update(item->second->get_ams_info());
             }
         }
-
-        /*if (m_current_show_ams.empty() && !is_reset) {
-            if (ext_info.size() > 0) {
-                SwitchAms(ext_info[0].ams_id);
-            }
-        }*/
-
-        //m_simplebook_ams_left->SetSelection(m_simplebook_ams_left->m_first);
     }
-    //else
-    //{
-    //    static bool first_time = true;
-    //    bool fresh = false;
-    //    static std::vector<AMSinfo>ams_info;
-    //    int nozzle_num = 2;
-    //    if (first_time){
-    //        ams_info = GenerateSimulateData();
-    //        fresh = true;
-    //        first_time = false;
-    //    }
-
-    //    //Freeze();
-
-    //    // update item
-    //    m_ams_info.clear();
-    //    m_ams_info = ams_info;
-    //    m_ext_info.clear();
-    //    m_ext_info.push_back(ext_info[0]);
-    //    m_ext_info.push_back(ext_info[0]);
-    //    m_ext_info[0].ams_id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
-    //    m_ext_info[0].nozzle_id = MAIN_NOZZLE_ID;
-    //    m_ext_info[1].ams_id = std::to_string(VIRTUAL_TRAY_DEPUTY_ID);
-    //    m_ext_info[1].nozzle_id = DEPUTY_NOZZLE_ID;
-    //    m_extder_data = data;
-    //    if (fresh){
-    //        ClearAms();
-    //        if (m_extder_data.total_extder_count >= 2) {
-    //            CreateAmsDoubleNozzle();
-    //        }
-    //        else {
-    //            CreateAmsSingleNozzle();
-    //        }
-    //        SetSize(wxSize(FromDIP(578), -1));
-    //        SetMinSize(wxSize(FromDIP(578), -1));
-    //        Layout();
-    //    }
-    //    //Thaw();
-
-    //    // update cans
-
-    //    for (auto ams_item : m_ams_item_list) {
-    //        std::string ams_id = ams_item.first;
-    //        AmsItem* cans = ams_item.second;
-    //        if (atoi(cans->get_ams_id().c_str()) >= VIRTUAL_TRAY_DEPUTY_ID) {
-    //            for (auto ifo : m_ext_info) {
-    //                if (ifo.ams_id == ams_id) {
-    //                    cans->Update(ifo);
-    //                    cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE ? false : true);
-    //                }
-    //            }
-    //        }
-    //        else {
-    //            for (auto ifo : m_ams_info) {
-    //                if (ifo.ams_id == ams_id) {
-    //                    cans->Update(ifo);
-    //                    cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE ? false : true);
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
 
     /*update humidity popup*/
     if (m_percent_humidity_dry_popup->IsShown())
@@ -1079,7 +1012,7 @@ void AMSControl::UpdateAms(const std::string   &series_name,
     }
 
     /*update ams extruder*/
-    if (m_extruder->updateNozzleNum(m_extder_data.total_extder_count, series_name))
+    if (m_extruder->updateNozzleNum(m_total_ext_count, series_name))
     {
         m_amswin->Layout();
     }
@@ -1089,12 +1022,12 @@ void AMSControl::AddAmsPreview(AMSinfo info, AMSModel type)
 {
     AMSPreview *ams_prv = nullptr;
 
-    if (info.nozzle_id == MAIN_NOZZLE_ID)
+    if (info.nozzle_id == MAIN_EXTRUDER_ID)
     {
         ams_prv = new AMSPreview(m_panel_prv_right, wxID_ANY, info, type);
         m_sizer_prv_right->Add(ams_prv, 0, wxALIGN_CENTER | wxLEFT, FromDIP(6));
     }
-    else if (info.nozzle_id == DEPUTY_NOZZLE_ID)
+    else if (info.nozzle_id == DEPUTY_EXTRUDER_ID)
     {
         ams_prv = new AMSPreview(m_panel_prv_left, wxID_ANY, info, type);
         m_sizer_prv_left->Add(ams_prv, 0, wxALIGN_CENTER | wxLEFT, FromDIP(6));
@@ -1121,11 +1054,11 @@ void AMSControl::createAms(wxSimplebook* parent, int& idx, AMSinfo info, AMSPane
 AMSRoadShowMode AMSControl::findFirstMode(AMSPanelPos pos) {
     auto init_mode = AMSRoadShowMode::AMS_ROAD_MODE_NONE;
     std::string ams_id = "";
-    if (pos == AMSPanelPos::LEFT_PANEL && m_item_ids[DEPUTY_NOZZLE_ID].size() > 0){
-        ams_id = m_item_ids[DEPUTY_NOZZLE_ID][0];
+    if (pos == AMSPanelPos::LEFT_PANEL && m_item_ids[DEPUTY_EXTRUDER_ID].size() > 0){
+        ams_id = m_item_ids[DEPUTY_EXTRUDER_ID][0];
     }
-    else if (pos == AMSPanelPos::RIGHT_PANEL && m_item_ids[MAIN_NOZZLE_ID].size() > 0){
-        ams_id = m_item_ids[MAIN_NOZZLE_ID][0];
+    else if (pos == AMSPanelPos::RIGHT_PANEL && m_item_ids[MAIN_EXTRUDER_ID].size() > 0){
+        ams_id = m_item_ids[MAIN_EXTRUDER_ID][0];
     }
 
     auto item = m_ams_item_list.find(ams_id);
@@ -1184,7 +1117,7 @@ void AMSControl::createAmsPanel(wxSimplebook *parent, int &idx, std::vector<AMSi
                 book_sizer->Add(ams1, 0, wxLEFT, (book_panel->GetSize().x - ams1->GetSize().x) / 2);
             }
             else{
-                auto ext_image = new AMSExtImage(book_panel, pos, &m_extder_data);
+                auto ext_image = new AMSExtImage(book_panel, pos, m_total_ext_count, false);
                 book_sizer->Add(ams1, 0, wxLEFT, FromDIP(30));
                 book_sizer->Add(ext_image, 0, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(30));
                 ext_image->setTotalExtNum(series_name, printer_type, total_ext_num);
@@ -1211,15 +1144,15 @@ void AMSControl::createAmsPanel(wxSimplebook *parent, int &idx, std::vector<AMSi
 
 void AMSControl::AddAms(AMSinfo info, AMSPanelPos pos)
 {
-    if (m_extder_data.total_extder_count > 1){
-        if (info.nozzle_id == MAIN_NOZZLE_ID){
+    if (m_total_ext_count > 1){
+        if (info.nozzle_id == MAIN_EXTRUDER_ID){
             createAms(m_simplebook_ams_right, m_right_page_index, info, AMSPanelPos::RIGHT_PANEL);
         }
-        else if (info.nozzle_id == DEPUTY_NOZZLE_ID){
+        else if (info.nozzle_id == DEPUTY_EXTRUDER_ID){
             createAms(m_simplebook_ams_left, m_left_page_index, info, AMSPanelPos::LEFT_PANEL);
         }
     }
-    else if (m_extder_data.total_extder_count == 1){
+    else if (m_total_ext_count == 1){
         createAms(m_simplebook_ams_left, m_left_page_index, info, AMSPanelPos::LEFT_PANEL);
     }
     m_simplebook_ams_left->Layout();
@@ -1252,20 +1185,20 @@ void AMSControl::AddAms(std::vector<AMSinfo> single_info, const std::string &ser
      if (single_info.size() <= 0){
         return;
     }
-    if (m_extder_data.total_extder_count == 2) {
-        if (single_info[0].nozzle_id == MAIN_NOZZLE_ID) {
-            createAmsPanel(m_simplebook_ams_right, m_right_page_index, single_info, series_name, printer_type, AMSPanelPos::RIGHT_PANEL, m_extder_data.total_extder_count);
+    if (m_total_ext_count == 2) {
+        if (single_info[0].nozzle_id == MAIN_EXTRUDER_ID) {
+            createAmsPanel(m_simplebook_ams_right, m_right_page_index, single_info, series_name, printer_type, AMSPanelPos::RIGHT_PANEL, m_total_ext_count);
         }
-        else if (single_info[0].nozzle_id == DEPUTY_NOZZLE_ID) {
-            createAmsPanel(m_simplebook_ams_left, m_left_page_index, single_info, series_name, printer_type, AMSPanelPos::LEFT_PANEL, m_extder_data.total_extder_count);
+        else if (single_info[0].nozzle_id == DEPUTY_EXTRUDER_ID) {
+            createAmsPanel(m_simplebook_ams_left, m_left_page_index, single_info, series_name, printer_type, AMSPanelPos::LEFT_PANEL, m_total_ext_count);
         }
     }
-    else if (m_extder_data.total_extder_count == 1) {
+    else if (m_total_ext_count == 1) {
         if (pos == AMSPanelPos::RIGHT_PANEL) {
-            createAmsPanel(m_simplebook_ams_right, m_right_page_index, single_info, series_name, printer_type, AMSPanelPos::RIGHT_PANEL, m_extder_data.total_extder_count);
+            createAmsPanel(m_simplebook_ams_right, m_right_page_index, single_info, series_name, printer_type, AMSPanelPos::RIGHT_PANEL, m_total_ext_count);
         }
         else {
-            createAmsPanel(m_simplebook_ams_left, m_left_page_index, single_info, series_name, printer_type, AMSPanelPos::LEFT_PANEL, m_extder_data.total_extder_count);
+            createAmsPanel(m_simplebook_ams_left, m_left_page_index, single_info, series_name, printer_type, AMSPanelPos::LEFT_PANEL, m_total_ext_count);
         }
     }
 
@@ -1391,7 +1324,7 @@ void AMSControl::SwitchAms(std::string ams_id)
     for (auto ams_item : m_ams_item_list) {
         AmsItem* item = ams_item.second;
         if (item->get_ams_id() == ams_id) {
-            auto ids = item->get_panel_pos() == AMSPanelPos::LEFT_PANEL ? m_item_ids[DEPUTY_NOZZLE_ID] : m_item_ids[MAIN_NOZZLE_ID];
+            auto ids = item->get_panel_pos() == AMSPanelPos::LEFT_PANEL ? m_item_ids[DEPUTY_EXTRUDER_ID] : m_item_ids[MAIN_EXTRUDER_ID];
             auto pos = item->get_panel_pos();
             for (auto id : ids) {
                 if (id == item->get_ams_id()) {
@@ -1399,16 +1332,16 @@ void AMSControl::SwitchAms(std::string ams_id)
                     if (item->get_can_count() == GENERIC_AMS_SLOT_NUM) {
                         if (item->get_ams_model() == AMSModel::AMS_LITE) {
                             if (pos == AMSPanelPos::LEFT_PANEL) {
-                                m_down_road->UpdateLeft(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
+                                m_down_road->UpdateLeft(m_total_ext_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
                             } else {
-                                m_down_road->UpdateRight(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
+                                m_down_road->UpdateRight(m_total_ext_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
                             }
                         }
                         else {
                             if (pos == AMSPanelPos::LEFT_PANEL) {
-                                m_down_road->UpdateLeft(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
+                                m_down_road->UpdateLeft(m_total_ext_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
                             } else {
-                                m_down_road->UpdateRight(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
+                                m_down_road->UpdateRight(m_total_ext_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
                             }
                         }
                     }
@@ -1424,8 +1357,8 @@ void AMSControl::SwitchAms(std::string ams_id)
                                 break;
                             }
                         }
-                        pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_extder_data.total_extder_count, mode)
-                            : m_down_road->UpdateRight(m_extder_data.total_extder_count, mode);
+                        pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_total_ext_count, mode)
+                            : m_down_road->UpdateRight(m_total_ext_count, mode);
                         if (pos == AMSPanelPos::LEFT_PANEL) {
                             m_down_road->UpdatePassRoad(AMSPanelPos::LEFT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
                         } else {
@@ -1710,12 +1643,12 @@ void AMSControl::on_ams_setting_click(wxMouseEvent &event)
 }
 
 void AMSControl::parse_object(MachineObject* obj) {
-    if (!obj || obj->amsList.size() == 0)
+    if (!obj || obj->GetFilaSystem()->GetAmsList().size() == 0)
     {
         return;
     }
     m_ams_info.clear();
-    for (auto ams : obj->amsList)
+    for (auto ams : obj->GetFilaSystem()->GetAmsList())
     {
         AMSinfo info;
         info.parse_ams_info(obj, ams.second);

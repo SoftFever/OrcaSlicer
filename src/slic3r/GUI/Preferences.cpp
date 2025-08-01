@@ -1061,19 +1061,6 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     SetBackgroundColour(*wxWHITE);
     create();
     wxGetApp().UpdateDlgDarkUI(this);
-    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
-        try {
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) {
-                json j;
-                std::string value;
-                value = wxGetApp().app_config->get("auto_calculate_flush");
-                j["auto_flushing"] = value;
-                agent->track_event("preferences_changed", j.dump());
-            }
-        } catch(...) {}
-        event.Skip();
-        });
 }
 
 void PreferencesDialog::create()

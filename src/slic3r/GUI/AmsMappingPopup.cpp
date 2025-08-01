@@ -23,6 +23,8 @@
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
 
+#include "DeviceCore/DevFilaSystem.h"
+
 namespace Slic3r { namespace GUI {
 #define MATERIAL_ITEM_SIZE wxSize(FromDIP(65), FromDIP(50))
 #define MATERIAL_REC_WHEEL_SIZE wxSize(FromDIP(17), FromDIP(16))
@@ -1038,12 +1040,12 @@ void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& a
 
 void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result)
 {
-    //BOOST_LOG_TRIVIAL(info) << "ams_mapping nozzle count  " << obj->m_extder_data.nozzle.size();
-    BOOST_LOG_TRIVIAL(info) << "ams_mapping total count " << obj->amsList.size();
+    //BOOST_LOG_TRIVIAL(info) << "ams_mapping nozzle count  " << obj->get_extder_system()->nozzle.size();
+    BOOST_LOG_TRIVIAL(info) << "ams_mapping total count " << obj->GetFilaSystem()->GetAmsCount();
 
 
     if (!obj) {return;}
-    m_ams_remain_detect_flag = obj->ams_calibrate_remain_flag;
+    m_ams_remain_detect_flag = obj->GetFilaSystem()->IsDetectRemainEnabled();
 
     for (auto& ams_container : m_amsmapping_container_list) {
         ams_container->Destroy();
@@ -1068,7 +1070,7 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
     //const auto& full_config = wxGetApp().preset_bundle->full_config();
     //size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
-    size_t nozzle_nums = obj->m_extder_data.total_extder_count;
+    size_t nozzle_nums = obj->GetExtderSystem()->GetTotalExtderCount();
 
     if (nozzle_nums == 1) {
         m_left_marea_panel->Hide();
@@ -1121,7 +1123,7 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
 
     for (int i = 0; i < obj->vt_slot.size(); i++) {
 
-        AmsTray* tray_data = &obj->vt_slot[i];
+        DevAmsTray* tray_data = &obj->vt_slot[i];
         TrayData td;
 
         td.id       = std::stoi(tray_data->id);
@@ -1141,12 +1143,12 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
         else {
             td.type = NORMAL;
             td.remain = tray_data->remain;
-            td.colour = AmsTray::decode_color(tray_data->color);
+            td.colour = DevAmsTray::decode_color(tray_data->color);
             td.name = tray_data->get_display_filament_type();
             td.filament_type = tray_data->get_filament_type();
             td.ctype = tray_data->ctype;
             for (auto col : tray_data->cols) {
-                td.material_cols.push_back(AmsTray::decode_color(col));
+                td.material_cols.push_back(DevAmsTray::decode_color(col));
             }
         }
 
@@ -1167,15 +1169,16 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
         std::list<MappingContainer *>   right_one_slot_containers;
         std::vector<MappingContainer *> left_four_slots_containers;
         std::vector<MappingContainer *> right_four_slot_containers;
-        for (std::map<std::string, Ams *>::iterator ams_iter = obj->amsList.begin(); ams_iter != obj->amsList.end(); ams_iter++) {
+
+        const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
+        for (auto ams_iter = ams_list.begin(); ams_iter != ams_list.end(); ams_iter++) {
             int ams_indx  = atoi(ams_iter->first.c_str());
-            int ams_type  = ams_iter->second->type;
-            int nozzle_id = ams_iter->second->nozzle;
+            int nozzle_id = ams_iter->second->GetExtruderId();
 
 
             auto sizer_mapping_list         = new wxBoxSizer(wxHORIZONTAL);
-            auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0 ? m_right_marea_panel : m_left_marea_panel, ams_iter->second->get_ams_device_name(),
-                                                                    ams_iter->second->trayList.size());
+            auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0 ? m_right_marea_panel : m_left_marea_panel, ams_iter->second->GetDisplayName(),
+                                                                   ams_iter->second->GetSlotCount());
             ams_mapping_item_container->SetName(nozzle_id == 0 ? m_right_marea_panel->GetName() : m_left_marea_panel->GetName());
             ams_mapping_item_container->SetSizer(sizer_mapping_list);
             ams_mapping_item_container->Layout();
@@ -1184,19 +1187,20 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
 
             BOOST_LOG_TRIVIAL(trace) << "ams_mapping ams id " << ams_iter->first.c_str();
 
-            Ams *                                      ams_group = ams_iter->second;
+            DevAms*   ams_group = ams_iter->second;
+            auto ams_type = ams_group->GetAmsType();
             std::vector<TrayData>                      tray_datas;
-            std::map<std::string, AmsTray *>::iterator tray_iter;
-
-            for (tray_iter = ams_group->trayList.begin(); tray_iter != ams_group->trayList.end(); tray_iter++) {
-                AmsTray *tray_data = tray_iter->second;
+            std::map<std::string, DevAmsTray *>::const_iterator tray_iter;
+            for (tray_iter = ams_group->GetTrays().cbegin(); tray_iter != ams_group->GetTrays().cend(); tray_iter++)
+            {
+                DevAmsTray *tray_data = tray_iter->second;
                 TrayData td;
                 if (ams_type == AMSModel::GENERIC_AMS || ams_type == AMSModel::AMS_LITE || ams_type == AMSModel::N3F_AMS) {
                     td.id = ams_indx * AMS_TOTAL_COUNT + atoi(tray_data->id.c_str());
                 } else if (ams_type == AMSModel::N3S_AMS) {
                     td.id = ams_indx + atoi(tray_data->id.c_str());
                 }
-                td.ams_id  = std::stoi(ams_iter->second->id);
+                td.ams_id  = std::stoi(ams_iter->second->GetAmsId());
                 td.slot_id = std::stoi(tray_iter->second->id);
 
                 if (!tray_data->is_exists) {
@@ -1207,11 +1211,11 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
                     } else {
                         td.type          = NORMAL;
                         td.remain        = tray_data->remain;
-                        td.colour        = AmsTray::decode_color(tray_data->color);
+                        td.colour        = DevAmsTray::decode_color(tray_data->color);
                         td.name          = tray_data->get_display_filament_type();
                         td.filament_type = tray_data->get_filament_type();
                         td.ctype         = tray_data->ctype;
-                        for (auto col : tray_data->cols) { td.material_cols.push_back(AmsTray::decode_color(col)); }
+                        for (auto col : tray_data->cols) { td.material_cols.push_back(DevAmsTray::decode_color(col)); }
                     }
                 }
 
@@ -1219,7 +1223,7 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
             }
 
             ams_mapping_item_container->Show();
-            add_ams_mapping(tray_datas, obj->ams_calibrate_remain_flag, ams_mapping_item_container, sizer_mapping_list);
+            add_ams_mapping(tray_datas, obj->GetFilaSystem()->IsDetectRemainEnabled(), ams_mapping_item_container, sizer_mapping_list);
             m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
             m_amsmapping_container_list.push_back(ams_mapping_item_container);
 
@@ -1253,22 +1257,22 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
     Refresh();
 }
 
-std::vector<TrayData> AmsMapingPopup::parse_ams_mapping(std::map<std::string, Ams*> amsList)
+std::vector<TrayData> AmsMapingPopup::parse_ams_mapping(std::map<std::string, DevAms*> amsList)
 {
     std::vector<TrayData> m_tray_data;
-    std::map<std::string, Ams *>::iterator ams_iter;
+    std::map<std::string, DevAms *>::iterator ams_iter;
 
     for (ams_iter = amsList.begin(); ams_iter != amsList.end(); ams_iter++) {
 
         BOOST_LOG_TRIVIAL(trace) << "ams_mapping ams id " << ams_iter->first.c_str();
 
         auto ams_indx = atoi(ams_iter->first.c_str());
-        Ams* ams_group = ams_iter->second;
+        DevAms* ams_group = ams_iter->second;
         std::vector<TrayData>                      tray_datas;
-        std::map<std::string, AmsTray*>::iterator tray_iter;
+        std::map<std::string, DevAmsTray*>::const_iterator tray_iter;
 
-        for (tray_iter = ams_group->trayList.begin(); tray_iter != ams_group->trayList.end(); tray_iter++) {
-            AmsTray* tray_data = tray_iter->second;
+        for (tray_iter = ams_group->GetTrays().cbegin(); tray_iter != ams_group->GetTrays().cend(); tray_iter++) {
+            DevAmsTray* tray_data = tray_iter->second;
             TrayData td;
 
             td.id = ams_indx * AMS_TOTAL_COUNT + atoi(tray_data->id.c_str());
@@ -1283,7 +1287,7 @@ std::vector<TrayData> AmsMapingPopup::parse_ams_mapping(std::map<std::string, Am
                 else {
                     td.type = NORMAL;
                     td.remain  = tray_data->remain;
-                    td.colour = AmsTray::decode_color(tray_data->color);
+                    td.colour = DevAmsTray::decode_color(tray_data->color);
                     td.name = tray_data->get_display_filament_type();
                     td.filament_type = tray_data->get_filament_type();
                 }
@@ -2258,7 +2262,7 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
     if (obj)
     {
         m_obj = obj;
-        if (obj->m_extder_data.total_extder_count > 1)
+        if (obj->GetExtderSystem()->GetTotalExtderCount() > 1)
         {
             m_nozzle_btn_panel->updateState("right");
             m_nozzle_btn_panel->Show();
@@ -2268,7 +2272,7 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
             m_nozzle_btn_panel->Hide();
         }
 
-        update_to_nozzle(MAIN_NOZZLE_ID);
+        update_to_nozzle(MAIN_EXTRUDER_ID);
     }
 }
 
@@ -2321,7 +2325,7 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
         return;
     }
 
-    if (m_obj->m_extder_data.extders.size() < nozzle_id)
+    if (m_obj->GetExtderSystem()->GetTotalExtderCount() < nozzle_id)
     {
         return;
     }
@@ -2329,38 +2333,40 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
     //update group
     int group_index = 0;
     m_groups_sizer->Clear(true);
-    if (m_obj->is_support_filament_backup && m_obj->ams_auto_switch_filament_flag)
+    if (m_obj->is_support_filament_backup && m_obj->GetFilaSystem()->IsAutoRefillEnabled())
     {
         // traverse the amd list
-        std::unordered_map<int, AmsTray*> id2tray;// tray id to tray
+        std::unordered_map<int, DevAmsTray*> id2tray;// tray id to tray
         try
         {
-            for (const auto& ams_info : m_obj->amsList)
+            for (const auto& ams_info : m_obj->GetFilaSystem()->GetAmsList())
             {
                 int ams_device_id = atoi(ams_info.first.c_str());
                 if (ams_device_id < 128)
                 {
                     int ams_base_id = ams_device_id * 4;
-                    for (auto tray_info : ams_info.second->trayList)
+                    for (auto tray_info : ams_info.second->GetTrays())
                     {
                         int tray_offset = atoi(tray_info.first.c_str());
                         id2tray[ams_base_id + tray_offset] = tray_info.second;
                     }
                 }
-                else if (ams_info.second->trayList.size() == 1)/*n3f*/
+                else if (ams_info.second->GetTrays().size() == 1)/*n3f*/
                 {
-                    id2tray[ams_device_id] = ams_info.second->trayList.begin()->second;
+                    id2tray[ams_device_id] = ams_info.second->GetTrays().begin()->second;
                 }
             }
         }
         catch (...) {}
 
-        const Extder& extder = m_obj->m_extder_data.extders[nozzle_id];
-        for (int filam : extder.filam_bak)
+        const auto& extder = m_obj->GetExtderSystem()->GetExtderById(nozzle_id);
+        if (extder)
         {
-            std::map<std::string, wxColour> group_info;
-            std::string    group_material;
-            bool   is_in_tray = false;
+            for (int filam : extder->GetFilamBackup())
+            {
+                std::map<std::string, wxColour> group_info;
+                std::string    group_material;
+                bool   is_in_tray = false;
 
             //get color & material
             const auto& trayid_group = _GetBackupStatus(filam);
@@ -2368,7 +2374,7 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
             {
                 if (elem.second)
                 {
-                    AmsTray* cur_tray = id2tray[elem.first];
+                    DevAmsTray* cur_tray = id2tray[elem.first];
                     if (cur_tray)
                     {
                         auto tray_name = wxGetApp().transition_tridid(elem.first).ToStdString();
@@ -2378,21 +2384,22 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
                             is_in_tray = true;
                         }
 
-                        group_info[tray_name] = AmsTray::decode_color(cur_tray->color);
-                        group_material = cur_tray->get_display_filament_type();
+                            group_info[tray_name] = DevAmsTray::decode_color(cur_tray->color);
+                            group_material = cur_tray->get_display_filament_type();
+                        }
                     }
                 }
-            }
 
-            if (group_info.size() < 2) /* do not show refill if there is one tray*/
-            {
-                continue;
-            }
+                if (group_info.size() < 2) /* do not show refill if there is one tray*/
+                {
+                    continue;
+                }
 
-            if (is_in_tray || m_tray_used.size() <= 0)
-            {
-                m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material), 0, wxALL, FromDIP(10));
-                group_index++;
+                if (is_in_tray || m_tray_used.size() <= 0)
+                {
+                    m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material), 0, wxALL, FromDIP(10));
+                    group_index++;
+                }
             }
         }
     }
@@ -2430,7 +2437,7 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
         {
             label_txt->SetLabel(_L("The printer does not currently support auto refill."));
         }
-        else if (!m_obj->ams_auto_switch_filament_flag)
+        else if (!m_obj->GetFilaSystem()->IsAutoRefillEnabled())
         {
             label_txt->SetLabelText(_L("AMS filament backup is not enabled, please enable it in the AMS settings."));
         }

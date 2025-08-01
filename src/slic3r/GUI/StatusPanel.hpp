@@ -39,6 +39,9 @@ class StepIndicator;
 #define COMMAND_TIMEOUT         5
 
 namespace Slic3r {
+
+class DevExtderSystem;
+
 namespace GUI {
 
 // Previous definitions
@@ -156,10 +159,7 @@ public:
     void msw_rescale();
 
 private:
-    void updateSwitchingLabel(const ExtruderSwitchState &state);
-
-    void updateBy(const ExtderData& ext_data);
-    void updateBtnGroup(const ExtderData &ext_data);
+    void updateBy(const DevExtderSystem* ext_system);
     void showQuitBtn(bool show);
     void showRetryBtn(bool show);
 

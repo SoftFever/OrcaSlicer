@@ -226,8 +226,8 @@ protected:
     bool enable_select_firmware = false;
     bool m_need_update = false;
     //hint of force upgrade or consistency upgrade
-    int last_forced_hint_status = -1;
-    int last_consistency_hint_status = -1;
+    DevFirmwareUpgradingState last_forced_hint_status = DevFirmwareUpgradingState::DC;
+    DevFirmwareUpgradingState last_consistency_hint_status = DevFirmwareUpgradingState::DC;
     int last_status;
     bool m_show_forced_hint = true;
     bool m_show_consistency_hint = true;

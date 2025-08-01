@@ -2,6 +2,8 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 
+#include "DeviceCore/DevManager.h"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -279,13 +281,13 @@ void DevicePickItem::doRender(wxDC& dc)
     left += FromDIP(PICK_LEFT_PRINTABLE);
 
     //dev names
-    DrawTextWithEllipsis(dc, wxString::FromUTF8(get_obj()->dev_name), FromDIP(PICK_LEFT_DEV_NAME), left);
+    DrawTextWithEllipsis(dc, wxString::FromUTF8(get_obj()->get_dev_name()), FromDIP(PICK_LEFT_DEV_NAME), left);
     left += FromDIP(PICK_LEFT_DEV_NAME);
 }
 void DevicePickItem::post_event(wxCommandEvent&& event)
 {
     event.SetEventObject(this);
-    event.SetString(obj_->dev_id);
+    event.SetString(obj_->get_dev_id());
     event.SetInt(state_selected);
     wxPostEvent(this, event);
 }
@@ -363,7 +365,7 @@ void MultiMachinePickPage::update_selected_count()
     int count = 0;
     for (auto it = m_device_items.begin(); it != m_device_items.end(); it++) {
         if (it->second->state_selected == 1 ) {
-            selected_multi_devices.push_back(it->second->obj_->dev_id);
+            selected_multi_devices.push_back(it->second->obj_->get_dev_id());
             count++;
         }
     }
@@ -423,7 +425,7 @@ void MultiMachinePickPage::refresh_user_device()
     std::vector<std::string> subscribe_list;
 
     for (auto it = user_machine.begin(); it != user_machine.end(); ++it) {
-        if (it->second->m_extder_data.total_extder_count > 1) { continue; }
+        if (it->second->GetExtderSystem()->GetTotalExtderCount() > 1) { continue; }
         if (it->second->printer_type == "O1D") { continue;} /*maybe total_extder_count is not valid, hard codes here. to be moved to printers json*/
 
         DevicePickItem* di = new DevicePickItem(scroll_macine_list, it->second);
@@ -451,7 +453,7 @@ void MultiMachinePickPage::refresh_user_device()
         }
 
         //update selected
-        auto dev_it = std::find(selected_multi_devices.begin(), selected_multi_devices.end(), it->second->dev_id );
+        auto dev_it = std::find(selected_multi_devices.begin(), selected_multi_devices.end(), it->second->get_dev_id() );
         if (dev_it != selected_multi_devices.end()) {
             di->state_selected = 1;
         }

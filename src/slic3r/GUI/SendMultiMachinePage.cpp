@@ -7,6 +7,9 @@
 #include "Widgets/RadioBox.hpp"
 #include <wx/listimpl.cpp>
 
+#include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevStorage.h"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -203,7 +206,7 @@ void SendDeviceItem::doRender(wxDC& dc)
     left += FromDIP(SEND_LEFT_PRINTABLE);
 
     //dev names
-    DrawTextWithEllipsis(dc, wxString::FromUTF8(get_obj()->dev_name),  FromDIP(SEND_LEFT_DEV_NAME), left);
+    DrawTextWithEllipsis(dc, wxString::FromUTF8(get_obj()->get_dev_name()),  FromDIP(SEND_LEFT_DEV_NAME), left);
     left += FromDIP(SEND_LEFT_DEV_NAME);
 
     //device state
@@ -225,7 +228,7 @@ void SendDeviceItem::doRender(wxDC& dc)
 
 
     //AMS
-    if (!obj_->has_ams()) {
+    if (!obj_->HasAms()) {
         DrawTextWithEllipsis(dc, _L("No AMS"), FromDIP(SEND_LEFT_DEV_NAME), left);
     }
     else {
@@ -241,7 +244,7 @@ void SendDeviceItem::doRender(wxDC& dc)
 void SendDeviceItem::post_event(wxCommandEvent&& event)
 {
     event.SetEventObject(this);
-    event.SetString(obj_->dev_id);
+    event.SetString(obj_->get_dev_id());
     event.SetInt(state_selected);
     wxPostEvent(this, event);
 }
@@ -488,9 +491,9 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
     else
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
-    params.dev_ip = obj->dev_ip;
-    params.dev_id = obj->dev_id;
-    params.dev_name = obj->dev_name;
+    params.dev_ip = obj->get_dev_ip();
+    params.dev_id = obj->get_dev_id();
+    params.dev_name = obj->get_dev_name();
     params.ftp_folder = obj->get_ftp_folder();
     params.connection_type = obj->connection_type();
     params.print_type = "from_normal";
@@ -601,7 +604,7 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
             params.comments = "no_ip";
         else if (obj->is_support_cloud_print_only)
             params.comments = "low_version";
-        else if (obj->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)
+        else if (obj->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD)
             params.comments = "no_sdcard";
         else if (params.password.empty())
             params.comments = "no_password";

@@ -77,6 +77,8 @@
 #include "EncodedFilament.hpp"
 #include "GeneratedConfig.hpp"
 
+#include "DeviceCore/DevManager.h"
+
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/Process.hpp"
@@ -1030,8 +1032,6 @@ void GUI_App::post_init()
             mainframe->refresh_plugin_tips();
         });
 
-    DeviceManager::load_filaments_blacklist_config();
-
     // remove old log files over LOG_FILES_MAX_NUM
     std::string log_addr = data_dir();
     if (!log_addr.empty()) {
@@ -1725,8 +1725,8 @@ void GUI_App::init_networking_callbacks()
                     obj->erase_user_access_code();
                     obj->command_get_access_code();
                     if (m_agent)
-                        m_agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
-                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                        m_agent->install_device_cert(obj->get_dev_id(), obj->is_lan_mode_printer());
+                    GUI::wxGetApp().sidebar().load_ams_list(obj->get_dev_id(), obj);
                 }
                 });
             });
@@ -1764,8 +1764,8 @@ void GUI_App::init_networking_callbacks()
                                 obj->command_request_push_all(true);
                                 obj->command_get_version();
                                 event.SetInt(0);
-                                event.SetString(obj->dev_id);
-                                GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                                event.SetString(obj->get_dev_id());
+                                GUI::wxGetApp().sidebar().load_ams_list(obj->get_dev_id(), obj);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 // Orca: avoid showing same error message multiple times until next connection attempt.
                                 const auto already_disconnected = m_device_manager->selected_machine.empty();
@@ -1778,7 +1778,7 @@ void GUI_App::init_networking_callbacks()
                                         text = wxString::Format(_L("Incorrect password"));
                                         wxGetApp().show_dialog(text);
                                     } else {
-                                        text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
+                                    text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->get_dev_name()), obj->get_dev_id(), msg);
                                         wxGetApp().show_dialog(text);
                                     }
                                 }
@@ -1797,15 +1797,15 @@ void GUI_App::init_networking_callbacks()
                         else {
                             if (state == ConnectStatus::ConnectStatusOk) {
                                 event.SetInt(1);
-                                event.SetString(obj->dev_id);
+                                event.SetString(obj->get_dev_id());
                             }
                             else if(msg == "5") {
                                 event.SetInt(5);
-                                event.SetString(obj->dev_id);
+                                event.SetString(obj->get_dev_id());
                             }
                             else {
                                 event.SetInt(-2);
-                                event.SetString(obj->dev_id);
+                                event.SetString(obj->get_dev_id());
                             }
                         }
                     }
@@ -1829,7 +1829,8 @@ void GUI_App::init_networking_callbacks()
                 if (obj) {
                     auto sel = this->m_device_manager->get_selected_machine();
 
-                    if (sel && sel->dev_id == dev_id) {
+                    if (sel && sel->get_dev_id() == dev_id)
+                    {
                         obj->parse_json("cloud", msg);
                     }
                     else {
@@ -1837,9 +1838,8 @@ void GUI_App::init_networking_callbacks()
                     }
 
 
-                    if ((sel == obj || sel == nullptr) && obj->is_ams_need_update) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
-                        obj->is_ams_need_update = false;
+                    if (sel == obj || sel == nullptr) {
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->get_dev_id(), obj);
                     }
                 }
 
@@ -1881,9 +1881,9 @@ void GUI_App::init_networking_callbacks()
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
 
                 if (obj) {
-                    obj->parse_json("lan", msg, DeviceManager::key_field_only);
-                    if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
+                    obj->parse_json("lan", msg);
+                    if (this->m_device_manager->get_selected_machine() == obj) {
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->get_dev_id(), obj);
                     }
                 }
 
@@ -1936,11 +1936,16 @@ bool GUI_App::is_blocking_printing(MachineObject *obj_)
         target_model = obj_->printer_type;
     }
 
+    if (!obj_)
+    {
+        return false;
+    }
+
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     std::string    source_model  = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
 
     if (source_model != target_model) {
-        std::vector<std::string>      compatible_machine = dev->get_compatible_machine(target_model);
+        std::vector<std::string>      compatible_machine = obj_->get_compatible_machine();
         vector<std::string>::iterator it                 = find(compatible_machine.begin(), compatible_machine.end(), source_model);
         if (it == compatible_machine.end()) {
             return true;
@@ -2195,10 +2200,10 @@ void GUI_App::on_start_subscribe_again(std::string dev_id)
         MachineObject* obj = dev->get_selected_machine();
         if (!obj) return;
 
-        if ( (dev_id == obj->dev_id) && obj->is_connecting() && obj->subscribe_counter > 0) {
+        if ( (dev_id == obj->get_dev_id()) && obj->is_connecting() && obj->subscribe_counter > 0) {
             obj->subscribe_counter--;
             if(wxGetApp().getAgent()) wxGetApp().getAgent()->set_user_selected_machine(dev_id);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": dev_id=" << obj->dev_id;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": dev_id=" << obj->get_dev_id();
         }
     });
     start_subscribe_timer->Start(5000, wxTIMER_ONE_SHOT);
@@ -3006,11 +3011,10 @@ __retry:
                 m_task_manager = new Slic3r::TaskManager(m_agent);
                 m_task_manager->start();
             }
-            m_agent->enable_multi_machine(true);
-            DeviceManager::EnableMultiMachine = true;
+
+            m_device_manager->EnableMultiMachine(true);
         } else {
-            m_agent->enable_multi_machine(false);
-            DeviceManager::EnableMultiMachine = false;
+            m_device_manager->EnableMultiMachine(false);
         }
 
         //BBS set config dir
@@ -5906,10 +5910,10 @@ bool GUI_App::show_modal_ip_address_enter_dialog(bool input_sn, wxString title)
 
             BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
             if (!ip_address.empty()) {
-                wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
+                wxGetApp().app_config->set_str("ip_address", obj->get_dev_id(), ip_address.ToStdString());
                 wxGetApp().app_config->save();
 
-                obj->dev_ip = ip_address.ToStdString();
+                obj->set_dev_ip(ip_address.ToStdString());
                 obj->set_user_access_code(access_code.ToStdString());
             }
         }

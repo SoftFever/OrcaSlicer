@@ -9,6 +9,9 @@
 #include "slic3r/GUI/format.hpp"
 #include "bambu_networking.hpp"
 
+#include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevUtil.h"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -459,7 +462,7 @@ void PrintJob::process(Ctl &ctl)
             try {
                 std::ignore = job_info_j.parse(job_info);
                 if (job_info_j.contains("job_id")) {
-                    curr_job_id = JsonValParser::get_longlong_val(job_info_j["job_id"]);
+                    curr_job_id = DevJsonValParser::get_longlong_val(job_info_j["job_id"]);
                 }
                 BOOST_LOG_TRIVIAL(trace) << "print_job: curr_obj_id=" << curr_job_id;
 

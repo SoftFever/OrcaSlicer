@@ -1,6 +1,6 @@
 //**********************************************************/
 /* File: uiAmsHumidityPopup.h
-*  Description: The popup with Ams Humidity
+*  Description: The popup with DevAms Humidity
 *
 *  \n class uiAmsHumidityPopup
 //**********************************************************/
@@ -28,7 +28,7 @@ struct uiAmsHumidityInfo
 };
 
 /// </summary>
-/// Note: The popup of Ams Humidity with percentage and dry time
+/// Note: The popup of DevAms Humidity with percentage and dry time
 /// Author: xin.zhang
 /// </summary>
 class uiAmsPercentHumidityDryPopup : public wxDialog

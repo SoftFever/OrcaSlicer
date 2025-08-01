@@ -11,6 +11,7 @@
 #include "Widgets/ProgressDialog.hpp"
 #include <libslic3r/Model.hpp>
 #include <libslic3r/Format/bbs_3mf.hpp>
+#include "DeviceCore/DevStorage.h"
 
 #ifdef __WXMSW__
 #include <shellapi.h>
@@ -216,10 +217,10 @@ MediaFilePanel::~MediaFilePanel()
 void MediaFilePanel::UpdateByObj(MachineObject* obj)
 {
     bool sdcard_state_changed = false;
-    std::string machine = obj ? obj->dev_id : "";
+    std::string machine = obj ? obj->get_dev_id() : "";
     if (obj) {
         m_lan_mode     = obj->is_lan_mode_printer();
-        m_lan_ip       = obj->dev_ip;
+        m_lan_ip       = obj->get_dev_ip();
         m_lan_passwd   = obj->get_access_code();
         m_dev_ver      = obj->get_ota_version();
         m_device_busy  = obj->is_camera_busy_off();
@@ -227,8 +228,8 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
         m_remote_proto = obj->get_file_remote();
         m_model_download_support = obj->file_model_download;
 
-        if (m_sdcard_exist != (obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL)) {
-            m_sdcard_exist = obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+        if (m_sdcard_exist != (obj->GetStorage()->get_sdcard_state() == DevStorage::HAS_SDCARD_NORMAL)) {
+            m_sdcard_exist = obj->GetStorage()->get_sdcard_state() == DevStorage::HAS_SDCARD_NORMAL;
             sdcard_state_changed = true;
         }
     } else {

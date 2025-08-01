@@ -2,6 +2,8 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 
+#include "DeviceCore/DevManager.h"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -18,7 +20,7 @@ MultiMachineItem::MultiMachineItem(wxWindow* parent, MachineObject* obj)
     Bind(wxEVT_LEFT_DOWN, &MultiMachineItem::OnLeftDown, this);
     Bind(wxEVT_MOTION, &MultiMachineItem::OnMove, this);
     Bind(EVT_MULTI_DEVICE_VIEW, [this, obj](auto& e) {
-        wxGetApp().mainframe->jump_to_monitor(obj->dev_id);
+        wxGetApp().mainframe->jump_to_monitor(obj->get_dev_id());
         if (wxGetApp().mainframe->m_monitor->get_status_panel()->get_media_play_ctrl()) {
             wxGetApp().mainframe->m_monitor->get_status_panel()->get_media_play_ctrl()->jump_to_play();
         }
@@ -152,7 +154,7 @@ void MultiMachineItem::doRender(wxDC& dc)
 
     if (obj_) {
         //dev name
-        wxString dev_name = wxString::FromUTF8(obj_->dev_name);
+        wxString dev_name = wxString::FromUTF8(obj_->get_dev_name());
         if (!obj_->is_online()) {
             dev_name = dev_name + "(" + _L("Offline") + ")";
         }
@@ -235,7 +237,7 @@ void MultiMachineItem::doRender(wxDC& dc)
 void MultiMachineItem::post_event(wxCommandEvent&& event)
 {
     event.SetEventObject(this);
-    event.SetString(obj_->dev_id);
+    event.SetString(obj_->get_dev_id());
     event.SetInt(state_selected);
     wxPostEvent(this, event);
 }
@@ -620,8 +622,8 @@ void MultiMachineManagerPage::sync_state(MachineObject* obj_)
     ObjState state_obj;
 
     if (obj_) {
-        state_obj.dev_id = obj_->dev_id;
-        state_obj.state_dev_name = obj_->dev_name;
+        state_obj.dev_id = obj_->get_dev_id();
+        state_obj.state_dev_name = obj_->get_dev_name();
 
         if (obj_->print_status == "IDLE") {
             state_obj.state_device = 0;

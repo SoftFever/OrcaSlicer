@@ -52,7 +52,7 @@ class PartPlateList;
 class SlicingStatusEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
-class Ams;
+class DevAms;
 
 using ModelInstancePtrs = std::vector<ModelInstance*>;
 

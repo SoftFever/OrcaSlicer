@@ -5,6 +5,9 @@
 #include "Widgets/SwitchButton.hpp"
 #include "MsgDialog.hpp"
 
+#include "DeviceCore/DevConfig.h"
+#include "DeviceCore/DevExtruderSystem.h"
+
 static const wxColour STATIC_BOX_LINE_COL = wxColour(238, 238, 238);
 static const wxColour STATIC_TEXT_CAPTION_COL = wxColour(100, 100, 100);
 static const wxColour STATIC_TEXT_EXPLAIN_COL = wxColour(100, 100, 100);
@@ -254,8 +257,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         text_ai_detections_caption->Hide();
     }
 
-
-    if (obj_->is_support_ai_monitoring && !obj_->xcam_disable_ai_detection_display) {
+    if (obj_->GetConfig()->SupportAIMonitor() && !obj_->xcam_disable_ai_detection_display) {
         text_ai_monitoring->Show();
         m_cb_ai_monitoring->Show();
         text_ai_monitoring_caption->Show();
@@ -373,7 +375,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line2->Hide();
     }
 
-    if (obj_->is_support_first_layer_inspect) {
+    if (obj_->GetConfig()->SupportFirstLayerInspect()) {
         text_first_layer->Show();
         m_cb_first_layer->Show();
        // line3->Show();
@@ -525,7 +527,7 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj) {
 
 void PrintOptionsDialog::UpdateOptionSavePrintFileToStorage(MachineObject *obj)
 {
-    if (obj && obj->support_save_remote_print_file_to_storage())
+    if (obj && obj->GetConfig()->SupportSaveRemotePrintFileToStorage())
     {
         m_cb_save_remote_print_file_to_storage->SetValue(obj->get_save_remote_print_file_to_storage());
     }
@@ -1271,14 +1273,14 @@ bool PrinterPartsDialog::Show(bool show)
 
         /*disable editing*/
         EnableEditing(false);
-        assert(DeviceManager::get_printer_can_set_nozzle(obj->printer_type) == false);/*editing is not supported*/
+        assert(DevPrinterConfigUtil::get_printer_can_set_nozzle(obj->printer_type) == false);/*editing is not supported*/
 
-        if (obj->m_extder_data.extders.size() <= 1) {
+        if (obj->GetExtderSystem()->GetTotalExtderSize() <= 1) {
             single_panel->Show();
             multiple_panel->Hide();
 
-            auto type     = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type;
-            auto diameter = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter;
+            auto type     = obj->GetExtderSystem()->GetNozzleType(MAIN_EXTRUDER_ID);
+            auto diameter = obj->GetExtderSystem()->GetNozzleDiameter(MAIN_EXTRUDER_ID);
             nozzle_type_checkbox->SetValue(GetString(type));
             nozzle_diameter_checkbox->SetValue(GetString(diameter));
 
@@ -1287,7 +1289,7 @@ bool PrinterPartsDialog::Show(bool show)
             nozzle_flow_type_checkbox->Show(obj->is_nozzle_flow_type_supported());
             if (obj->is_nozzle_flow_type_supported())
             {
-                auto flow_type = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_flow_type;
+                auto flow_type = obj->GetExtderSystem()->GetNozzleFlowType(MAIN_EXTRUDER_ID);
                 nozzle_flow_type_checkbox->SetValue(GetString(flow_type));
             }
         } else {
@@ -1295,17 +1297,17 @@ bool PrinterPartsDialog::Show(bool show)
             multiple_panel->Show();
 
             //left
-            auto type      = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_type;
-            auto diameter  = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_diameter;
-            auto flow_type = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_flow_type;
+            auto type      = obj->GetExtderSystem()->GetNozzleType(DEPUTY_EXTRUDER_ID);
+            auto diameter  = obj->GetExtderSystem()->GetNozzleDiameter(DEPUTY_EXTRUDER_ID);
+            auto flow_type = obj->GetExtderSystem()->GetNozzleFlowType(DEPUTY_EXTRUDER_ID);
             multiple_left_nozzle_type_checkbox->SetValue(GetString(type));
             multiple_left_nozzle_diameter_checkbox->SetValue(GetString(diameter));
             multiple_left_nozzle_flow_checkbox->SetValue(GetString(flow_type));
 
             //right
-            type      = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type;
-            diameter  = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter;
-            flow_type = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_flow_type;
+            type      = obj->GetExtderSystem()->GetNozzleType(MAIN_EXTRUDER_ID);
+            diameter  = obj->GetExtderSystem()->GetNozzleDiameter(MAIN_EXTRUDER_ID);
+            flow_type = obj->GetExtderSystem()->GetNozzleFlowType(MAIN_EXTRUDER_ID);
             multiple_right_nozzle_type_checkbox->SetValue(GetString(type));
             multiple_right_nozzle_diameter_checkbox->SetValue(GetString(diameter));
             multiple_right_nozzle_flow_checkbox->SetValue(GetString(flow_type));

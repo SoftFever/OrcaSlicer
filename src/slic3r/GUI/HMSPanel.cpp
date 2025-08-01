@@ -16,7 +16,7 @@ namespace GUI {
 
 wxDEFINE_EVENT(EVT_ALREADY_READ_HMS, wxCommandEvent);
 
-HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, HMSItem& item)
+HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, DevHMSItem& item)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL)
     , m_hms_item(item)
     , dev_id(dev_id)
@@ -140,7 +140,7 @@ void HMSNotifyItem::init_bitmaps() {
 
 wxBitmap & HMSNotifyItem::get_notify_bitmap()
 {
-    switch (m_hms_item.msg_level) {
+    switch (m_hms_item.get_level()) {
         case (HMS_FATAL):
             return m_img_notify_lv1;
             break;
@@ -153,8 +153,6 @@ wxBitmap & HMSNotifyItem::get_notify_bitmap()
         case (HMS_INFO):
             //return m_img_notify_lv4;
             break;
-        case (HMS_UNKNOWN):
-        case (HMS_MSG_LEVEL_MAX):
         default: break;
     }
     return wxNullBitmap;
@@ -187,7 +185,7 @@ HMSPanel::~HMSPanel() {
     ;
 }
 
-void HMSPanel::append_hms_panel(const std::string& dev_id, HMSItem& item) {
+void HMSPanel::append_hms_panel(const std::string& dev_id, DevHMSItem& item) {
     wxString msg = wxGetApp().get_hms_query()->query_hms_msg(dev_id, item.get_long_error_code());
     if (!msg.empty()) {
         HMSNotifyItem *notify_item = new HMSNotifyItem(dev_id, m_scrolledWindow, item);
@@ -214,7 +212,7 @@ void HMSPanel::update(MachineObject *obj)
         this->Freeze();
         delete_hms_panels();
         wxString hms_text;
-        for (auto item : obj->hms_list) {
+        for (auto item : obj->GetHMS()->GetHMSItems()) {
             if (wxGetApp().get_hms_query()) {
 
                 auto key = item.get_long_error_code();
@@ -223,14 +221,14 @@ void HMSPanel::update(MachineObject *obj)
                     temp_hms_list[key] = item;
                 }
 
-                append_hms_panel(obj->dev_id, item);
+                append_hms_panel(obj->get_dev_id(), item);
             }
         }
 
         for (auto it = temp_hms_list.begin(); it != temp_hms_list.end(); ) {
             auto key = it->second.get_long_error_code();
             bool inr = false;
-            for (auto hms : obj->hms_list) {
+            for (auto hms : obj->GetHMS()->GetHMSItems()) {
                 if (hms.get_long_error_code() == key) {
                     inr = true;
                     break;

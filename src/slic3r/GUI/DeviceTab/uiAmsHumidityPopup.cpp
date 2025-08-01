@@ -1,6 +1,6 @@
 //**********************************************************/
 /* File: uiAmsHumidityPopup.cpp
-*  Description: The popup with Ams Humidity
+*  Description: The popup with DevAms Humidity
 *
 * \n class uiAmsHumidityPopup
 //**********************************************************/

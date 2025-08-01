@@ -459,7 +459,7 @@ void SideTools::update_status(MachineObject* obj)
     if (!obj) return;
 
     /* Update Device Info */
-    m_side_tools->set_current_printer_name(obj->dev_name);
+    m_side_tools->set_current_printer_name(obj->get_dev_name());
 
     // update wifi signal image
     int wifi_signal_val = 0;

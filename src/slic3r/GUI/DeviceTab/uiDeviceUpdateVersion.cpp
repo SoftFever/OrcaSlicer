@@ -28,7 +28,7 @@ uiDeviceUpdateVersion::uiDeviceUpdateVersion(wxWindow* parent,
     CreateWidgets();
 }
 
-void uiDeviceUpdateVersion::UpdateInfo(const MachineObject::ModuleVersionInfo& info)
+void uiDeviceUpdateVersion::UpdateInfo(const DevFirmwareVersionInfo& info)
 {
     SetName(I18N::translate(info.product_name));
     SetSerial(info.sn);

@@ -64,6 +64,8 @@
 #include "DailyTips.hpp"
 #include "FilamentMapDialog.hpp"
 
+#include "DeviceCore/DevManager.h"
+
 #ifdef _WIN32
 #include <dbt.h>
 #include <shlobj.h>

@@ -4,6 +4,8 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 
+#include "slic3r/GUI/DeviceCore/DevManager.h"
+
 namespace Slic3r {
 namespace GUI {
 

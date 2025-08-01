@@ -13,7 +13,7 @@
 #include <wx/hyperlink.h>
 #include <wx/animate.h>
 #include <wx/dynarray.h>
-
+#include "../DeviceCore/DevFan.h"
 
 namespace Slic3r {
 namespace GUI {

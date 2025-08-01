@@ -25,6 +25,9 @@
 #include "BitmapCache.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 
+#include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevStorage.h"
+
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
@@ -1558,9 +1561,9 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_input_modelID->SetMinSize(wxSize(FromDIP(168), FromDIP(28)));
     m_input_modelID->SetMaxSize(wxSize(FromDIP(168), FromDIP(28)));
 
-    m_models_map = DeviceManager::get_all_model_id_with_name();
+    m_models_map = DevPrinterConfigUtil::get_all_model_id_with_name();
     for (auto it = m_models_map.begin(); it != m_models_map.end(); ++it) {
-        m_input_modelID->Append(it->right);
+        m_input_modelID->Append(it->first);
         m_input_modelID->SetSelection(0);
     }
 
@@ -1814,11 +1817,11 @@ void InputIpAddressDialog::update_title(wxString title)
 void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
 {
     m_obj = obj;
-    m_input_ip->GetTextCtrl()->SetLabelText(m_obj->dev_ip);
+    m_input_ip->GetTextCtrl()->SetLabelText(m_obj->get_dev_ip());
     m_input_access_code->GetTextCtrl()->SetLabelText(m_obj->get_access_code());
-    m_input_printer_name->GetTextCtrl()->SetLabelText(m_obj->dev_name);
+    m_input_printer_name->GetTextCtrl()->SetLabelText(m_obj->get_dev_name());
 
-    std::string img_str = DeviceManager::get_printer_diagram_img(m_obj->printer_type);
+    std::string img_str = DevPrinterConfigUtil::get_printer_connect_help_img(m_obj->printer_type);
     auto diagram_bmp = create_scaled_bitmap(img_str + "_en", this, 198);
     m_img_help->SetBitmap(diagram_bmp);
 
@@ -1907,9 +1910,9 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     std::string str_sn = m_input_sn->GetTextCtrl()->GetValue().Strip(wxString::both).Upper().ToStdString();
     std::string str_model_id = "";
 
-    auto it = m_models_map.right.find(m_input_modelID->GetStringSelection().ToStdString());
-    if (it != m_models_map.right.end()) {
-        str_model_id = it->get_left();
+    auto it = m_models_map.find(m_input_modelID->GetStringSelection().ToStdString());
+    if (it != m_models_map.end()) {
+        str_model_id = it->second;
     }
 
     m_button_manual_setup->Enable(false);
@@ -1968,7 +1971,7 @@ void InputIpAddressDialog::on_send_retry()
         m_worker->wait_for_idle();
     });
 
-    auto m_send_job           = std::make_unique<SendJob>(m_obj->dev_id);
+    auto m_send_job           = std::make_unique<SendJob>(m_obj->get_dev_id());
     m_send_job->m_dev_ip      = ip.ToStdString();
     m_send_job->m_access_code = str_access_code.ToStdString();
 
@@ -1982,7 +1985,7 @@ void InputIpAddressDialog::on_send_retry()
 
     m_send_job->connection_type  = m_obj->connection_type();
     m_send_job->cloud_print_only = true;
-    m_send_job->has_sdcard       = m_obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+    m_send_job->has_sdcard       = m_obj->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
     m_send_job->set_check_mode();
     m_send_job->set_project_name("verify_job");
 
@@ -2095,7 +2098,7 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
 
         if (m_obj) {
             m_obj->set_user_access_code(str_access_code);
-            wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id);
+            wxGetApp().getDeviceManager()->set_selected_machine(m_obj->get_dev_id());
         }
 
 

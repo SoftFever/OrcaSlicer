@@ -3,6 +3,8 @@
 #include "Widgets/Label.hpp"
 #include "MsgDialog.hpp"
 
+#include "DeviceCore/DevFilaSystem.h"
+
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_CALI_ACTION, wxCommandEvent);
@@ -310,7 +312,7 @@ void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
 
     m_tray_id = id;
     m_tray_name = m_comboBox->get_tray_name();
-    m_is_bbl_filamnet = MachineObject::is_bbl_filament(m_comboBox->get_tag_uid());
+    m_is_bbl_filamnet = DevFilaSystem::IsBBL_Filament(m_comboBox->get_tag_uid());
     Enable(m_comboBox->is_tray_exist());
 
     if (m_comboBox->is_tray_exist()) {

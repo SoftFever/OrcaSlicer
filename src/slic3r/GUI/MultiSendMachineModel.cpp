@@ -22,7 +22,7 @@ void MultiSendMachineModel::Init()
 
 wxDataViewItem MultiSendMachineModel::AddMachine(MachineObject* obj)
 {
-    wxString name = from_u8(obj->dev_name);
+    wxString name = from_u8(obj->get_dev_name());
 
     wxDataViewItem new_item;
 

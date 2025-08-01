@@ -11,8 +11,13 @@
 #include "slic3r/GUI/Jobs/BoostThreadWorker.hpp"
 #include "slic3r/GUI/Jobs/PlaterWorker.hpp"
 #include "../GUI/MsgDialog.hpp"
-#include "../GUI/Plater.hpp"
 
+#include "../GUI/DeviceCore/DevConfig.h"
+#include "../GUI/DeviceCore/DevExtruderSystem.h"
+#include "../GUI/DeviceCore/DevManager.h"
+#include "../GUI/DeviceCore/DevStorage.h"
+#include "libslic3r/FlushVolCalc.hpp"
+#include "../GUI/Plater.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -174,9 +179,9 @@ static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, cons
         for (size_t idx = 0; idx < opt_nozzle_diameters->size(); ++idx)
             config_nozzle_diameters[idx] = opt_nozzle_diameters->values[idx];
 
-        std::vector<float> machine_nozzle_diameters(obj->m_extder_data.extders.size());
-        for (size_t idx = 0; idx < obj->m_extder_data.extders.size(); ++idx)
-            machine_nozzle_diameters[idx] = obj->m_extder_data.extders[idx].current_nozzle_diameter;
+        std::vector<float> machine_nozzle_diameters(obj->GetExtderSystem()->GetTotalExtderCount());
+        for (size_t idx = 0; idx < obj->GetExtderSystem()->GetTotalExtderCount(); ++idx)
+            machine_nozzle_diameters[idx] = obj->GetExtderSystem()->GetNozzleDiameter(idx);
 
         if (config_nozzle_diameters.size() != machine_nozzle_diameters.size()) {
             wxString nozzle_in_preset  = wxString::Format(_L("nozzle size in preset: %d"), config_nozzle_diameters.size());
@@ -206,7 +211,7 @@ static bool is_same_nozzle_type(const DynamicPrintConfig &full_config, const Mac
     if (obj == nullptr)
         return true;
 
-    NozzleType nozzle_type = obj->m_extder_data.extders[0].current_nozzle_type;
+    NozzleType nozzle_type = obj->GetExtderSystem()->GetNozzleType(0);
     int printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(nozzle_type);
 
     if (full_config.has("required_nozzle_HRC")) {
@@ -214,7 +219,7 @@ static bool is_same_nozzle_type(const DynamicPrintConfig &full_config, const Mac
         if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
             BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch:  printer_nozzle_hrc = " << printer_nozzle_hrc << ", filament_nozzle_hrc = " << filament_nozzle_hrc;
             std::string filament_type = full_config.opt_string("filament_type", 0);
-            error_msg = wxString::Format(_L("Printing %1s material with %2s nozzle may cause nozzle damage."), filament_type, to_wstring_name(NozzleTypeEumnToStr[obj->m_extder_data.extders[0].current_nozzle_type]));
+            error_msg = wxString::Format(_L("Printing %1s material with %2s nozzle may cause nozzle damage."), filament_type, to_wstring_name(NozzleTypeEumnToStr[obj->GetExtderSystem()->GetNozzleType(0)]));
             error_msg += "\n";
 
             MessageDialog msg_dlg(nullptr, error_msg, wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
@@ -250,7 +255,7 @@ static bool check_nozzle_diameter_and_type(const DynamicPrintConfig &full_config
         return false;
 
     // P1P/S
-    if (obj->m_extder_data.extders[0].current_nozzle_type == NozzleType::ntUndefine)
+    if (obj->GetExtderSystem()->GetNozzleType(0) == NozzleType::ntUndefine)
         return true;
 
     // if (!is_same_nozzle_diameters(full_config, obj, error_msg))
@@ -1138,8 +1143,8 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
     bool  is_multi_extruder = obj->is_multi_extruders();
     std::vector<NozzleFlowType> nozzle_volume_types;
     if (is_multi_extruder) {
-        for (const Extder& extruder : obj->m_extder_data.extders) {
-            nozzle_volume_types.emplace_back(extruder.current_nozzle_flow_type);
+        for (const DevExtder& extruder : obj->GetExtderSystem()->GetExtruders()) {
+            nozzle_volume_types.emplace_back(extruder.GetNozzleFlowType());
         }
     }
 
@@ -1153,14 +1158,12 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
         float cali_diameter = cali_info.nozzle_diameter;
         int   extruder_id   = cali_info.extruder_id;
-
-        if (extruder_id >= obj->m_extder_data.extders.size()) {
+        if (extruder_id >= obj->GetExtderSystem()->GetTotalExtderSize()) {
             error_message = _L("The number of printer extruders and the printer selected for calibration does not match.");
             return false;
         }
 
-        float diameter = obj->m_extder_data.extders[extruder_id].current_nozzle_diameter;
-
+        float diameter = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
         if (!is_approx(cali_info.nozzle_diameter, diameter)) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
@@ -1198,12 +1201,12 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
     const ConfigOptionFloatsNullable *nozzle_diameter_config = cali_info.printer_prest->config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     float nozzle_diameter = nozzle_diameter_config->values[0];
 
-    float diameter = obj->m_extder_data.extders[cali_info.extruder_id].current_nozzle_diameter;
+    float diameter = obj->GetExtderSystem()->GetNozzleDiameter(cali_info.extruder_id);
     bool  is_multi_extruder = obj->is_multi_extruders();
     std::vector<NozzleFlowType> nozzle_volume_types;
     if (is_multi_extruder) {
-        for (const Extder& extruder : obj->m_extder_data.extders) {
-            nozzle_volume_types.emplace_back(extruder.current_nozzle_flow_type);
+        for (const DevExtder& extruder : obj->GetExtderSystem()->GetExtruders()) {
+            nozzle_volume_types.emplace_back(extruder.GetNozzleFlowType());
         }
     }
 
@@ -1469,12 +1472,12 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         return;
     }
 
-    else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
+    else if (!obj_->GetConfig()->SupportPrintWithoutSD() && (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD)) {
         error_message = _L("Storage needs to be inserted before printing.");
         return;
     }
     if (obj_->is_lan_mode_printer()) {
-        if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
+        if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD) {
             error_message = _L("Storage needs to be inserted before printing via LAN.");
             return;
         }
@@ -1483,7 +1486,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     print_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(wxGetApp().plater(), std::move(process_bar), "calib_worker");
 
     auto print_job              = std::make_unique<PrintJob>(dev_id);
-    print_job->m_dev_ip         = obj_->dev_ip;
+    print_job->m_dev_ip         = obj_->get_dev_ip();
     print_job->m_ftp_folder     = obj_->get_ftp_folder();
     print_job->m_access_code    = obj_->get_access_code();
 
@@ -1527,7 +1530,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     print_job->m_project_name = get_calib_mode_name(cali_mode, flow_ratio_mode);
     print_job->set_calibration_task(true);
 
-    print_job->has_sdcard = obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+    print_job->has_sdcard = obj_->GetStorage()->get_sdcard_state() == DevStorage::HAS_SDCARD_NORMAL;
     print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true, false, 0, 0, 0);
     print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event(), print_job->m_project_name);
 

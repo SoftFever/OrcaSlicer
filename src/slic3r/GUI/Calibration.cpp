@@ -11,6 +11,8 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 
+#include "DeviceCore/DevConfig.h"
+
 static wxColour FG_COLOR = wxColour(0x32, 0x3A, 0x3D);
 static wxColour BG_COLOR = wxColour(0xF8, 0xF8, 0xF8);
 
@@ -214,7 +216,8 @@ wxWindow* CalibrationDialog::create_check_option(wxString title, wxWindow* paren
 void CalibrationDialog::update_cali(MachineObject *obj)
 {
     if (!obj) return;
-    if (obj->is_support_ai_monitoring && obj->is_support_lidar_calibration) {
+    if (obj->GetConfig()->SupportAIMonitor() && obj->GetConfig()->SupportCalibrationLidar())
+    {
         select_xcam_cali->Show();
     } else {
         select_xcam_cali->Hide();
@@ -235,19 +238,16 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         m_checkbox_list["motor_noise"]->SetValue(false);
     }
 
-    if (obj->is_support_nozzle_offset_cali) {
+    if (obj->GetConfig()->SupportCalibrationNozzleOffset()) {
         select_nozzle_cali->Show();
     } else {
         select_nozzle_cali->Hide();
         m_checkbox_list["nozzle_cali"]->SetValue(false);
     }
 
-    if (obj->is_support_high_tempbed_cali)
-    {
+    if (obj->GetConfig()->SupportCalibrationHighTempBed()) {
         select_heatbed_cali->Show();
-    }
-    else
-    {
+    } else {
         select_heatbed_cali->Hide();
         m_checkbox_list["bed_cali"]->SetValue(false);
     }
@@ -277,7 +277,7 @@ void CalibrationDialog::update_cali(MachineObject *obj)
             // change items if stage_list_info changed
             m_calibration_flow->DeleteAllItems();
             for (int i = 0; i < obj->stage_list_info.size(); i++) {
-                m_calibration_flow->AppendItem(get_stage_string(obj->stage_list_info[i]));
+                m_calibration_flow->AppendItem(Slic3r::get_stage_string(obj->stage_list_info[i]));
             }
         }
         int index = obj->get_curr_stage_idx();

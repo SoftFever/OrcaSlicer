@@ -335,7 +335,7 @@ public:
     int    current_input_index {0};
     std::shared_ptr<BBLStatusBarSend> m_status_bar;
     std::unique_ptr<Worker> m_worker;
-    boost::bimaps::bimap<std::string, std::string> m_models_map;
+    std::map<std::string, std::string> m_models_map;// display_name -> model_id
 
     void switch_input_panel(int index);
     void on_cancel();

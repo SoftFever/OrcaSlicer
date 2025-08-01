@@ -3,6 +3,8 @@
 #include "I18N.hpp"
 #include "Widgets/Label.hpp"
 
+#include "DeviceCore/DevManager.h"
+
 namespace Slic3r { namespace GUI {
 
 static const wxString NA_STR = _L("N/A");
@@ -167,7 +169,7 @@ void CalibrationCaliPage::update(MachineObject* obj)
         if (obj) {
             if (obj->print_status != "RUNNING") {
                 BOOST_LOG_TRIVIAL(info) << "on_show_cali_page - machine object status:"
-                                        << " dev_id = " << obj->dev_id
+                                        << " dev_id = " << obj->get_dev_id()
                                         << ", print_type = " << obj->printer_type
                                         << ", printer_status = " << obj->print_status
                                         << ", is_connected = " << obj->is_connected()
@@ -190,8 +192,8 @@ void CalibrationCaliPage::update(MachineObject* obj)
     // enable calibration when finished
     bool enable_cali = false;
     if (obj) {
-        if (obj->m_extder_data.current_extder_id != m_cur_extruder_id) {
-            m_cur_extruder_id = obj->m_extder_data.current_extder_id;
+        if (obj->GetExtderSystem()->GetCurrentExtderId() != m_cur_extruder_id) {
+            m_cur_extruder_id = obj->GetExtderSystem()->GetCurrentExtderId();
             set_cali_img();
         }
 
@@ -521,8 +523,8 @@ float CalibrationCaliPage::get_selected_calibration_nozzle_dia(MachineObject* ob
         return obj->cali_selected_nozzle_dia;
 
     // return default nozzle if nozzle diameter is set
-    if (obj->m_extder_data.extders[0].current_nozzle_diameter > 1e-3 && obj->m_extder_data.extders[0].current_nozzle_diameter < 10.0f)
-        return obj->m_extder_data.extders[0].current_nozzle_diameter;
+    if (obj->GetExtderSystem()->GetNozzleDiameter(0) > 1e-3 && obj->GetExtderSystem()->GetNozzleDiameter(0) < 10.0f)
+        return obj->GetExtderSystem()->GetNozzleDiameter(0);
 
     // return 0.4 by default
     return 0.4;

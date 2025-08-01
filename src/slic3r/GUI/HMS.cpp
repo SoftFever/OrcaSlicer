@@ -1,5 +1,8 @@
 #include "HMS.hpp"
+
 #include "DeviceManager.hpp"
+#include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevUtil.h"
 
 #include <boost/log/trivial.hpp>
 
@@ -34,7 +37,7 @@ int get_hms_info_version(std::string& version)
             try {
                 json j = json::parse(body);
                 if (j.contains("ver")) {
-                    version = JsonValParser::get_longlong_val(j["ver"]);
+                    version = DevJsonValParser::get_longlong_val(j["ver"]);
                 }
             } catch (...) {
                 ;
@@ -89,7 +92,7 @@ int HMSQuery::download_hms_related(const std::string& hms_type, const std::strin
                         return;
                     }
 
-                    const std::string& remote_ver = JsonValParser::get_longlong_val(j["ver"]);
+                    const std::string& remote_ver = DevJsonValParser::get_longlong_val(j["ver"]);
                     if (remote_ver <= local_version)
                     {
                         return;
@@ -202,10 +205,10 @@ int HMSQuery::load_from_local(const std::string& hms_type, const std::string& de
             }
 
             if (j.contains("version")) {
-                load_version = JsonValParser::get_longlong_val(j["version"]);
+                load_version = DevJsonValParser::get_longlong_val(j["version"]);
             }
             else if (j.contains("ver")) {
-                load_version = JsonValParser::get_longlong_val(j["ver"]);
+                load_version = DevJsonValParser::get_longlong_val(j["ver"]);
             }
             else
             {
@@ -307,7 +310,7 @@ string HMSQuery::get_dev_id_type(const MachineObject* obj) const
 {
     if (obj)
     {
-        return obj->dev_id.substr(0, 3);
+        return obj->get_dev_id().substr(0, 3);
     }
 
     return string();
@@ -640,11 +643,11 @@ std::string get_hms_wiki_url(std::string error_code)
     MachineObject* obj = dev->get_selected_machine();
     if (!obj) return url;
 
-    if (!obj->dev_id.empty()) {
+    if (!obj->get_dev_id().empty()) {
         url = (boost::format("https://%1%/index.php?e=%2%&d=%3%&s=device_hms&lang=%4%")
                        % hms_host
                        % error_code
-                       % obj->dev_id
+                       % obj->get_dev_id()
                        % lang_code).str();
     }
     return url;
