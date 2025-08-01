@@ -6,8 +6,8 @@
 > Every speed setting is limited by several parameters like:
 > - [Maximum Volumetric Speed](volumetric-speed-calib)
 > - Machine / Motion ability
-> - Acceleration
-> - Jerk settings.
+> - [Acceleration](speed-settings-acceleration)
+> - [Jerk settings](speed-settings-jerk)
 
 - [Speed limitations](#speed-limitations)
 - [Outer wall](#outer-wall)
