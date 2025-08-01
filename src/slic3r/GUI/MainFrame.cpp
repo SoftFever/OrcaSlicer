@@ -1495,8 +1495,10 @@ bool MainFrame::can_send_gcode() const
     if (m_plater && !m_plater->model().objects.empty())
     {
         auto cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-        if (const auto *print_host_opt = cfg.option<ConfigOptionString>("print_host"); print_host_opt)
-            return !print_host_opt->value.empty();
+
+        const auto *print_host_opt = cfg.option<ConfigOptionString>("print_host");
+        if (! print_host_opt) return false;
+        else return !print_host_opt->value.empty();
     }
     return true;
 }
