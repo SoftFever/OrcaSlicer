@@ -1,5 +1,10 @@
 # Overhang Speed
 
+- [Slow down for overhang](#slow-down-for-overhang)
+  - [Slow down for curled perimeters](#slow-down-for-curled-perimeters)
+  - [Overhang speed](#overhang-speed-1)
+- [Bridge speed](#bridge-speed)
+
 ## Slow down for overhang
 
 Enable this option to slow printing down for different overhang degree.
