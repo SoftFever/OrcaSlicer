@@ -1,9 +1,22 @@
 # Jerk XY
 
-Jerk in 3D printing is usually set on the printer's firmware settings.  
-This setting will try to override the jerk when [normal printing jerk](#normal-printing) or [Junction Deviation](#junction-deviation) value is different than 0.
-Orca will limit the jerk to not exceed the jerk set in the Printer's Motion Ability settings.
+**Jerk** is the rate of change of acceleration and how quickly your printer can change between different accelerations. It controls direction changes and velocity transitions during movement.
 
+## Cornering Control Types
+
+- **Jerk**: Traditional method, sets a maximum speed for direction changes.
+- **[Junction Deviation](#junction-deviation)**: Modern method, calculates cornering speed based on acceleration and speed.
+
+## Key Effects
+
+- **Corner Control**: Lower values = smoother corners, better quality. Higher values = faster cornering, potential artifacts
+- **Print Speed**: Higher jerk reduces deceleration at direction changes, increasing overall speed
+- **Surface Quality**: Lower jerk minimizes vibrations and ringing, especially important for outer walls
+
+This setting overrides firmware jerk values when different motion types need specific settings. Orca limits jerk to not exceed the Printer's Motion Ability settings.
+
+- [Cornering Control Types](#cornering-control-types)
+- [Key Effects](#key-effects)
 - [Default](#default)
   - [Outer wall](#outer-wall)
   - [Inner wall](#inner-wall)
@@ -17,6 +30,9 @@ Orca will limit the jerk to not exceed the jerk set in the Printer's Motion Abil
 ## Default
 
 Default Jerk value.
+
+> [!NOTE]
+> If this value is set to 0, the jerk will be set to the printer's default jerk.
 
 ### Outer wall
 
