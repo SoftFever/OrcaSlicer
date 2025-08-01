@@ -3576,11 +3576,12 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comDevelop;
     def->set_default_value(new ConfigOptionInt(20));
 
-    def          = this->add("wrapping_detection_path", coPoints);
-    //def->label   = L("Clumping detection position");
-    //def->tooltip = L("Clumping detection position.");
-    def->mode    = comAdvanced;
-    def->set_default_value(new ConfigOptionPoints{Vec2d(197.5, 326), Vec2d(207.5, 326)});
+    def = this->add("wrapping_exclude_area", coPoints);
+    def->label   = L("Probing exclude area of clumping");
+    def->tooltip = L("Probing exclude area of clumping.");
+    def->mode = comAdvanced;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
+    def->set_default_value(new ConfigOptionPoints{Vec2d(145, 326), Vec2d(145, 310), Vec2d(256, 310), Vec2d(256, 326)});
 
     def = this->add("sparse_infill_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;

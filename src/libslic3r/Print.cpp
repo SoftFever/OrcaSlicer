@@ -137,7 +137,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "inner_wall_acceleration",
         "initial_layer_acceleration",
         "top_surface_acceleration",
-        "enable_wrapping_detection",
         "bridge_acceleration",
         "travel_acceleration",
         "sparse_infill_acceleration",
@@ -302,6 +301,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "hot_plate_temp"
             || opt_key == "textured_plate_temp"
             || opt_key == "enable_prime_tower"
+            || opt_key == "enable_wrapping_detection"
             || opt_key == "prime_tower_enable_framework"
             || opt_key == "prime_tower_width"
             || opt_key == "prime_tower_brim_width"
@@ -922,7 +922,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     std::for_each(exclude_polys.begin(), exclude_polys.end(),
                   [&print_origin](Polygon& p) { p.translate(scale_(print_origin.x()), scale_(print_origin.y())); });
 
-    Pointfs wrapping_detection_area = get_wrapping_detection_area(print_config.wrapping_detection_path.values, print_config.extruder_clearance_radius.value / 2);
+    Pointfs wrapping_detection_area = print_config.wrapping_exclude_area.values;
     Polygon wrapping_poly;
     for (size_t i = 0; i < wrapping_detection_area.size(); ++i) {
         auto pt = wrapping_detection_area[i];

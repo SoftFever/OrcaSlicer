@@ -23,6 +23,7 @@
     "enable_prime_tower": "1",
     "enable_support": "0",
     "enable_circle_compensation": "0",
+    "enable_wrapping_detection": "0",
     "filename_format": "{input_filename_base}_{filament_type[0]}_{print_time}.gcode",
     "gap_infill_speed": "30",
     "infill_combination": "0",

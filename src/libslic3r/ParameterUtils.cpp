@@ -75,33 +75,4 @@ int get_index_for_extruder_parameter(const DynamicPrintConfig &config, const std
     return variant_index;
 }
 
-std::vector<Vec2d> get_wrapping_detection_area(const std::vector<Vec2d> &wrapping_detection_path, double avoidance_radius)
-{
-    if (wrapping_detection_path.empty())
-        return std::vector<Vec2d>();
-
-    double min_x = wrapping_detection_path[0](0);
-    double max_x = wrapping_detection_path[0](0);
-    double min_y = wrapping_detection_path[0](1);
-    double max_y = wrapping_detection_path[0](1);
-
-    for (const Vec2d& pt : wrapping_detection_path) {
-        if (pt(0) < min_x)
-            min_x = pt(0);
-        if (pt(0) > max_x)
-            max_x = pt(0);
-        if (pt(1) < min_y)
-            min_y = pt(1);
-        if (pt(1) > max_y)
-            max_y = pt(1);
-    }
-
-    min_x = min_x - avoidance_radius;
-    min_y = min_y - avoidance_radius;
-    max_x = max_x + avoidance_radius;
-    max_y = max_y + avoidance_radius;
-
-    return {{min_x, min_y}, {max_x, min_y}, {max_x, max_y}, {min_x, max_y}};
-}
-
 }; // namespace Slic3r

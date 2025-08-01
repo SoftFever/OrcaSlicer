@@ -24,7 +24,6 @@
         "0x0,325x0,325x320,0x320",
         "25x0,350x0,350x320,25x320"
     ],
-    "enable_wrapping_detection": "1",
     "hotend_heating_rate": "3.6",
     "machine_load_filament_time": "30",
     "machine_max_speed_e": [

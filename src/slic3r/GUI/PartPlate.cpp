@@ -349,12 +349,11 @@ bool PartPlate::get_spiral_vase_mode() const
 
 std::vector<Vec2d> PartPlate::get_plate_wrapping_detection_area() const
 {
-    DynamicPrintConfig gconfig = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    ConfigOptionPoints *wrapping_path_opt        = gconfig.option<ConfigOptionPoints>("wrapping_detection_path");
-    ConfigOptionFloat *clearance_max_radius_opt = gconfig.option<ConfigOptionFloat>("extruder_clearance_radius");
-    if (wrapping_path_opt && clearance_max_radius_opt) {
-        std::vector<Vec2d> wrapping_area = get_wrapping_detection_area(wrapping_path_opt->values, clearance_max_radius_opt->value / 2);
-        for (Vec2d &pt : wrapping_area) {
+    DynamicPrintConfig  gconfig                  = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    ConfigOptionPoints *wrapping_exclude_area_opt = gconfig.option<ConfigOptionPoints>("wrapping_exclude_area");
+    if (wrapping_exclude_area_opt) {
+        std::vector<Vec2d> wrapping_area = wrapping_exclude_area_opt->values;
+        for (Vec2d& pt : wrapping_area) {
             pt += Vec2d(m_origin.x(), m_origin.y());
         }
         return wrapping_area;

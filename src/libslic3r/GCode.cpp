@@ -4740,7 +4740,7 @@ LayerResult GCode::process_layer(
                     }
                 }
 
-                if (!has_insert_wrapping_detection_gcode) {
+                if (print.config().enable_wrapping_detection && !has_insert_wrapping_detection_gcode) {
                     gcode += this->retract(false, false, auto_lift_type);
                     gcode += insert_wrapping_detection_gcode();
                     has_insert_wrapping_detection_gcode = true;
@@ -4758,7 +4758,7 @@ LayerResult GCode::process_layer(
                 has_insert_timelapse_gcode = true;
             }
 
-            if (!has_insert_wrapping_detection_gcode) {
+            if (print.config().enable_wrapping_detection && !has_insert_wrapping_detection_gcode) {
                 gcode += this->retract(false, false, auto_lift_type);
                 gcode += insert_wrapping_detection_gcode();
                 has_insert_wrapping_detection_gcode = true;
