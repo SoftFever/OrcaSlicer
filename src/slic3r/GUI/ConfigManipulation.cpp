@@ -809,7 +809,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_line(el, fuzzy_skin != FuzzySkinType::None);
     NoiseType fuzzy_skin_noise_type = config->opt_enum<NoiseType>("fuzzy_skin_noise_type");
     toggle_line("fuzzy_skin_scale", fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin != FuzzySkinType::None);
-    toggle_line("fuzzy_skin_octaves", (fuzzy_skin_noise_type != NoiseType::Classic || fuzzy_skin_noise_type != NoiseType::Voronoi) && fuzzy_skin != FuzzySkinType::None);
+    toggle_line("fuzzy_skin_octaves", fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin_noise_type != NoiseType::Voronoi && fuzzy_skin != FuzzySkinType::None);
     toggle_line("fuzzy_skin_persistence", (fuzzy_skin_noise_type == NoiseType::Perlin || fuzzy_skin_noise_type == NoiseType::Billow) && fuzzy_skin != FuzzySkinType::None);
 
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
