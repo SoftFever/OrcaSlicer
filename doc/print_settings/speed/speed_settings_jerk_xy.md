@@ -15,6 +15,10 @@
 
 This setting overrides firmware jerk values when different motion types need specific settings. Orca limits jerk to not exceed the Printer's Motion Ability settings.
 
+> [!TIP]
+> Jerk can work in conjunction with [Pressure Advance](pressure-advance-calib), [Adaptive Pressure Advance](adaptive-pressure-advance-calib), and [Input Shaping](input-shaping-calib) to optimize print quality and speed.
+> It's recommended to follow the [calibration guide](calibration) order for best results.
+
 - [Cornering Control Types](#cornering-control-types)
 - [Key Effects](#key-effects)
 - [Default](#default)
@@ -78,3 +82,5 @@ JD = 0,4 \cdot \frac{\text{Jerk}^2}{\text{Accel.}}
 - [JD Explained and Visualized, by Paul Wanamaker](https://reprap.org/forum/read.php?1,739819)
 - [Computing JD for Marlin Firmware](https://blog.kyneticcnc.com/2018/10/computing-junction-deviation-for-marlin.html)
 - [Improving GRBL: Cornering Algorithm](https://onehossshay.wordpress.com/2011/09/24/improving_grbl_cornering_algorithm/)
+- [Pressure Advance Calibration](../../calibration/pressure-advance-calib.md)
+- [Adaptive Pressure Advance](../../calibration/adaptive-pressure-advance-calib.md)
