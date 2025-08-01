@@ -4,6 +4,7 @@
 
 > [!IMPORTANT]
 > Every speed setting is limited by several parameters like:
+>
 > - [Maximum Volumetric Speed](volumetric-speed-calib)
 > - Machine / Motion ability
 > - [Acceleration](speed-settings-acceleration)
@@ -56,30 +57,36 @@ For example, if the threshold is set to 5 mm, then the perimeter length must be 
 - A Cube of 10mm x 10mm will have a perimeter length of 40 mm, which is greater than the threshold, so it will not be considered a small perimeter.
 - A Cube of 5mm x 5mm will have a perimeter length of 20 mm, which is less than the threshold, so it will be considered a small perimeter.
 
+> [!NOTE]
+> Zero will disable [small perimeters speed](#small-perimeters) and will use the [outer wall speed](#outer-wall).
+
 ## Sparse infill
 
-Speed of sparse infill which is printed faster than solid infill to reduce print time.
+Speed of [sparse infill](strength_settings_infill#sparse-infill) which is printed faster than solid infill to reduce print time.  
+In case you are using your Infill Pattern as aesthetic feature, you may want to set it closer to the [outer wall speed](#outer-wall) to get better quality.
 
 ## Internal solid infill
 
-Speed of internal solid infill which is printed faster than top surface speed to reduce print time.
+Speed of internal solid infill, which fills the interior of the model with solid layers.  
+This is typically set faster than the [top surface speed](#top-surface) to optimize print time, while still ensuring adequate strength and layer adhesion. Adjusting this speed can help balance print quality and efficiency, especially for models requiring strong internal structures.  
+Solid infill is also considered when [infill %  is set to 100%](strength_settings_infill##internal-solid-infill).
 
 ## Top surface
 
-Speed of top surface which is printed slower than internal solid infill to get better quality.
+Speed of the [topmost solid layers](strength_settings_top_bottom_shells) of the print. This is usually set similar to the [outer wall speed](#outer-wall) to achieve a smoother and higher-quality finish on visible surfaces. Lower speeds help minimize surface defects and improve the appearance of the final printed object.
 
 ## Gap infill
 
-Speed of gap infill which is printed faster than top surface speed to reduce print time.
+Speed of [gap infill](strength_settings_infill#apply-gap-fill), which is used to fill small gaps or holes in the print.
 
 ## Ironing speed
 
-Ironing speed, typically slower than the top surface speed to ensure a smooth finish.
+[Ironing](quality_settings_ironing) and [Support Ironing](support_settings_ironing) speed, typically slower than the top surface speed to ensure a smooth finish.
 
 ## Support
 
-Speed of support material which is printed slower than the main model to ensure proper adhesion and prevent sagging.
+Speed at which [support](support_settings_support) material is printed. Slower speeds help ensure that supports are stable and effective during the print process.
 
 ## Support interface
 
-Speed of support interface material which is printed slower than the main support material to ensure proper adhesion and prevent sagging.
+Speed for the support interface layers, which are the layers directly contacting the model. This is usually set even slower than the main [support speed](#support) to maximize surface quality where the support meets the model and to make support removal easier.
