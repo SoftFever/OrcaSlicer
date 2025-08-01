@@ -33,13 +33,28 @@ Speed of inner wall which is printed faster than outer wall to reduce print time
 
 ## Small perimeters
 
-This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above.  
-Set to zero for auto.
+Speed of outer wall with theoretical radius <= [small perimeters threshold](#small-perimeters-threshold).
+Any shape (not only circles) will be considered as a small perimeter.
+
+If expressed as percentage (for example: 80%) it will be calculated on the [outer wall speed](#outer-wall).
+
+> [!NOTE]
+> Zero will use [50%](https://github.com/SoftFever/OrcaSlicer/blob/7d2a12aa3cbf2e7ca5d0523446bf1d1d4717f8d1/src/libslic3r/GCode.cpp#L4698) of [outer wall speed](#outer-wall).
 
 ### Small perimeters threshold
 
-This sets the threshold for small perimeter length.  
-Default threshold is 0mm.
+**Radius** in millimeters below which the speed of perimeters will be reduced to the [small perimeters speed](#small-perimeters).  
+To know the length of the perimeter, you can use the formula:
+
+```math
+\frac{\text{Perimeter Length}}{2\pi} \leq \text{Threshold}
+```
+
+For example, if the threshold is set to 5 mm, then the perimeter length must be less than or equal to 31.4 mm (2 * π * 5 mm) to be considered a small perimeter.
+
+- A Circle with a diameter of 10 mm will have a perimeter length of approximately 31.4 mm, which is equal to the threshold, so it will be considered a small perimeter.
+- A Cube of 10mm x 10mm will have a perimeter length of 40 mm, which is greater than the threshold, so it will not be considered a small perimeter.
+- A Cube of 5mm x 5mm will have a perimeter length of 20 mm, which is less than the threshold, so it will be considered a small perimeter.
 
 ## Sparse infill
 
