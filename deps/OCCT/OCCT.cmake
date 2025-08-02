@@ -9,10 +9,8 @@ if (IN_GIT_REPO)
 endif ()
 
 orcaslicer_add_cmake_project(OCCT
-    URL https://github.com/Open-Cascade-SAS/OCCT/archive/refs/tags/V7_6_0.zip
-    URL_HASH SHA256=28334f0e98f1b1629799783e9b4d21e05349d89e695809d7e6dfa45ea43e1dbc
-    #PATCH_COMMAND ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-OCCT-fix.patch
-    PATCH_COMMAND git apply ${OCCT_DIRECTORY_FLAG} --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/0001-OCCT-fix.patch
+    URL https://github.com/Open-Cascade-SAS/OCCT/archive/refs/tags/V7_9_1.zip
+    URL_HASH SHA256=E36559B97DA3B4F5F68AC44EA1684722B737754D681D8332FE0825AF4BB5DA9E
     #DEPENDS dep_Boost
     DEPENDS ${FREETYPE_PKG}
     CMAKE_ARGS
