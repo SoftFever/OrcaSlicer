@@ -5,8 +5,6 @@
 #include <boost/log/trivial.hpp>
 #include <cstddef>
 #include <tbb/parallel_for.h>
-#include <tbb/blocked_range.h>
-#include <tbb/spin_mutex.h>
 
 #ifndef NDEBUG
 //    #define EXPENSIVE_DEBUG_CHECKS
@@ -1258,41 +1256,6 @@ void TriangleSelector::garbage_collect()
     m_invalid_triangles = 0;
     m_free_triangles_head = -1;
     m_free_vertices_head = -1;
-}
-
-bool TriangleSelector::swap_triangle_state(EnforcerBlockerType state1, EnforcerBlockerType state2)
-{
-    if (m_triangles.empty())
-        return false;
-
-    tbb::spin_mutex mutex;
-    bool b_swapped = false;
-
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, m_triangles.size()),
-        [this, state1, state2, &b_swapped, &mutex](const tbb::blocked_range<size_t>& range) {
-            bool local_swapped = false;
-            for (size_t i = range.begin(); i != range.end(); ++i) {
-                Triangle& tr = m_triangles[i];
-                if (tr.valid()) {
-                    EnforcerBlockerType current_state = tr.get_state();
-                    if (current_state == state1) {
-                        tr.set_state(state2);
-                        local_swapped = true;
-                    } else if (current_state == state2) {
-                        tr.set_state(state1);
-                        local_swapped = true;
-                    }
-                }
-            }
-            if (local_swapped) {
-                tbb::spin_mutex::scoped_lock lock(mutex);
-                b_swapped = true;
-            }
-        }
-    );
-
-    return b_swapped;
 }
 
 void TriangleSelector::remap_triangle_state(const EnforcerBlockerStateMap& state_map)

@@ -347,8 +347,7 @@ public:
     // Remove all unnecessary data.
     void garbage_collect();
 
-    // Orca: Swap the state of triangles that are in the same state as the state1 to the state2.
-    bool swap_triangle_state(EnforcerBlockerType state1, EnforcerBlockerType state2);
+    // Orca: remap the state of triangles according to the state_map
     void remap_triangle_state(const EnforcerBlockerStateMap& state_map);
 
 
