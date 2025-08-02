@@ -962,7 +962,6 @@ void GLGizmoMmuSegmentation::render_filament_remap_ui(float window_width, float 
 {
     size_t n_extr = std::min((size_t)EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
 
-    // Use same button sizing as top filament buttons
     const ImVec2 max_label_size = ImGui::CalcTextSize("99", NULL, true);
     const ImVec2 button_size(max_label_size.x + m_imgui->scaled(0.5f), 0.f);
 
@@ -974,11 +973,9 @@ void GLGizmoMmuSegmentation::render_filament_remap_ui(float window_width, float 
         if (src) ImGui::SameLine();
         std::string btn_id = "##remap_src_" + std::to_string(src);
         
-        // Apply same styling as top filament buttons
         ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs |
                                     ImGuiColorEditFlags_NoLabel  | ImGuiColorEditFlags_NoPicker |
                                     ImGuiColorEditFlags_NoTooltip;
-        // Show border for currently selected filament button, similar to top filament buttons
         if (m_selected_extruder_idx != src) flags |= ImGuiColorEditFlags_NoBorder;
         
         #ifdef __APPLE__
@@ -1015,8 +1012,26 @@ void GLGizmoMmuSegmentation::render_filament_remap_ui(float window_width, float 
 
         // popup with possible destinations
         std::string pop_id = "popup_" + std::to_string(src);
-        if (clicked) ImGui::OpenPopup(pop_id.c_str());
+        if (clicked) {
+            // Calculate popup position centered below the current button
+            ImVec2 button_pos = ImGui::GetItemRectMin();
+            ImVec2 button_size = ImGui::GetItemRectSize();
+            ImVec2 popup_pos(button_pos.x + button_size.x * 0.5f, button_pos.y + button_size.y);
+            
+            // Set popup styling BEFORE opening popup
+            ImGui::SetNextWindowPos(popup_pos, ImGuiCond_Appearing, ImVec2(0.5f, -0.1f));
+            ImGui::SetNextWindowBgAlpha(1.0f); // Ensure full opacity
+            ImGui::OpenPopup(pop_id.c_str());
+        }
+        
+        // Apply popup styling before BeginPopup using standard Orca colors
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 1.0f);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, m_is_dark_mode ? ImGuiWrapper::COL_WINDOW_BG_DARK : ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_Border, m_is_dark_mode ? ImVec4(0.5f, 0.5f, 0.5f, 1.0f) : ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+        
         if (ImGui::BeginPopup(pop_id.c_str())) {
+            
             for (int dst = 0; dst < (int)n_extr; ++dst) {
                 const ColorRGBA &dst_col_popup = m_extruders_colors[dst];
                 ImVec4 dst_vec = ImGuiWrapper::to_ImVec4(dst_col_popup);
@@ -1071,6 +1086,10 @@ void GLGizmoMmuSegmentation::render_filament_remap_ui(float window_width, float 
             }
             ImGui::EndPopup();
         }
+        
+        // Clean up popup styling (always pop, whether popup was open or not)
+        ImGui::PopStyleColor(2); // PopupBg and Border
+        ImGui::PopStyleVar(2);   // PopupRounding and PopupBorderSize
     }
 
     ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.3f));
