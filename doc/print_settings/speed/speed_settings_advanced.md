@@ -185,9 +185,9 @@ In this case, the printer slows down and then accelerates independently of what 
 ## Credits
 
 - **Original feature authors and creators:** The Prusa Slicer team, including [@bubnikv](https://github.com/bubnikv), [@hejllukas](https://github.com/hejllukas).
-- **Enhanced by:** [@MGunlogson](https://github.com/MGunlogson), introducing the - feature to external perimeters, enhancing it by taking into account travel, - retraction and implementing near-contiguous extrusions pressure equalizer adjustments.
+- **Enhanced by:** [@MGunlogson](https://github.com/MGunlogson), introducing the feature to external perimeters, enhancing it by taking into account travel, retraction and implementing near-contiguous extrusions pressure equalizer adjustments.
 - **Ported to Orca:** [@igiannakas](https://github.com/igiannakas).
-- **Enhanced by:** [@noisyfox](https://github.com/Noisyfox), per object pressure - equalization and fixing calculation logic bugs.
+- **Enhanced by:** [@noisyfox](https://github.com/Noisyfox), per object pressure equalization and fixing calculation logic bugs.
 - **Wiki page:** [@igiannakas](https://github.com/igiannakas).
 - **Overall Orca owner and assurance:** [@softfever](https://github.com/SoftFever).
 - **Community testing and feedback:** [@HakunMatat4](https://github.com/HakunMatat4), [@psiberfunk](https://github.com/psiberfunk), [@u3dreal](https://github.com/u3dreal) and more.
