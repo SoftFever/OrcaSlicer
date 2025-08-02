@@ -69,7 +69,7 @@ In case you are using your Infill Pattern as aesthetic feature, you may want to 
 
 Speed of internal solid infill, which fills the interior of the model with solid layers.  
 This is typically set faster than the [top surface speed](#top-surface) to optimize print time, while still ensuring adequate strength and layer adhesion. Adjusting this speed can help balance print quality and efficiency, especially for models requiring strong internal structures.  
-Solid infill is also considered when [infill %  is set to 100%](strength_settings_infill##internal-solid-infill).
+Solid infill is also considered when [infill % is set to 100%](strength_settings_infill#internal-solid-infill).
 
 ## Top surface
 
