@@ -1,19 +1,57 @@
 # Layer Height
 
-This setting controls how tall each printed layer will be. Typically, a smaller layer height produces a better-looking part with less jagged edges, especially around curved sections (like the top of a sphere). However, lower layer heights mean more layers to print, proportionally increasing print time.
+Layer height determines the vertical thickness of each printed layer, significantly impacting both print quality and printing time.
 
-## Tips
+Smaller layer heights produce better quality (smoother surfaces, less visible layer lines, better curved details, [improved overhang angles](quality_settings_overhangs)) but increase print time and can cause flow inconsistencies at high speeds.
 
-1. **The optimal layer height depends on the size of your nozzle**. The set layer height must not be taller than 80% of the diameter of the nozzle, else there is little "squish" between the printed layer and the layer below, leading to weaker parts.
+- [Quick Reference](#quick-reference)
+- [Layer Height Guidelines](#layer-height-guidelines)
+- [First Layer Height](#first-layer-height)
+- [Stepper Motor Magic Numbers](#stepper-motor-magic-numbers)
 
-2. While technically there is no limit to how small a layer height one can use, **typically most printers struggle to print reliably with a layer height that is smaller than 20% of the nozzle diameter**. This is because with smaller layer heights, less material is extruded per mm and, at some point, the tolerances of the extruder system result in variations in the flow to such an extent that visible artifacts occur, especially if printing at high speeds.
+## Quick Reference
 
-For example, it is not uncommon to see "fish scale" type patterns on external walls when printing with a 0.4 mm nozzle at 0.08 mm layer height at speeds of 200mm/sec+. If you observe that pattern, simply increase your layer height to 30% of your nozzle height and/or slow down the print speed considerably.
+| Nozzle Size | Min    | Max    | [First Layer Height](#first-layer-height) |
+|-------------|--------|--------|-------------------------------------------|
+| 0.2mm       | 0.04mm | 0.16mm | 0.12mm                                    |
+| 0.3mm       | 0.06mm | 0.24mm | 0.18mm                                    |
+| 0.4mm       | 0.08mm | 0.32mm | 0.25mm                                    |
+| 0.6mm       | 0.12mm | 0.48mm | 0.35mm                                    |
+| 0.8mm       | 0.16mm | 0.64mm | 0.45mm                                    |
+| 1.0mm       | 0.20mm | 0.80mm | 0.55mm                                    |
+
+## Layer Height Guidelines
+
+Usually, the optimal range for layer height is between 20% and 80% of the nozzle diameter.
+
+- **Below 20%:** Flow inconsistencies and "fish scale" patterns may occur, especially at high speeds.
+- **Over 80%:** Increased risk of layer adhesion issues and reduced print quality.
 
 ## First Layer Height
 
-This setting controls how tall the first layer of the print will be. Typically, this is set to 50% of the nozzle width for optimal bed adhesion.
+Controls the thickness of the initial layer.  
+A thicker first layer improves bed adhesion and compensates for build surface imperfections.
 
-### Tip
+**Recommended:** 0.25mm for 0.4mm nozzle (62.5% of nozzle diameter)  
+**Maximum:** 65% of nozzle diameter
 
-A thicker first layer is more forgiving to slight variations to the evenness of the build surface, resulting in a more uniform, visually, first layer. Set it to 0.25mm for a 0.4mm nozzle, for example, if your build surface is uneven or your printer has a slightly inconsistent z offset between print runs. However, as a rule of thumb, try not to exceed 65% of the nozzle width so as to not compromise bed adhesion too much.
+## Stepper Motor Magic Numbers
+
+For optimal print quality, consider using layer heights that align with your printer's Z-axis stepper motor resolution. These "magic numbers" ensure that each layer height corresponds to complete stepper motor steps, reducing micro-stepping inaccuracies.
+
+> [!IMPORTANT]
+> **Modern printers** may not benefit from magic numbers thanks to high-resolution drivers.
+
+**Common magic numbers for 0.9° stepper motors (400 steps/mm):**
+
+- 0.1mm, 0.15mm, 0.2mm, 0.25mm, 0.3mm
+
+**Common magic numbers for 1.8° stepper motors (200 steps/mm):**
+
+- 0.1mm, 0.2mm, 0.3mm, 0.4mm
+
+**To calculate your magic numbers:**
+
+1. Determine your Z-axis steps/mm (check firmware or calculate: steps_per_revolution ÷ lead_screw_pitch)
+2. Use layer heights that result in whole numbers when multiplied by steps/mm
+3. Formula: Magic_Layer_Height = whole_number ÷ steps_per_mm
