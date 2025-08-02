@@ -152,10 +152,10 @@ protected:
     void on_device_connected(MachineObject* obj) override;
 };
 
-class MaxVolumetricSpeedWizard : public CalibrationWizard {
+class MaxVolumetricFlowWizard : public CalibrationWizard {
 public:
-    MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
-    ~MaxVolumetricSpeedWizard() {};
+    MaxVolumetricFlowWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
+    ~MaxVolumetricFlowWizard() {};
 
     void on_cali_job_finished(wxString evt_data) override;
 
