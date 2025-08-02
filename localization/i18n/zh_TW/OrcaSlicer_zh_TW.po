@@ -2779,8 +2779,6 @@ msgstr "下載中"
 msgid "Download failed"
 msgstr "下載失敗"
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr "安裝成功。"
@@ -16082,7 +16080,7 @@ msgstr "已加入佇列"
 msgid "Uploading"
 msgstr "正在上傳"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "取消中"
 
 msgid "Error uploading to print host"
@@ -16835,8 +16833,8 @@ msgstr "與 Repetier 的連接工作正常。"
 msgid "Could not connect to Repetier"
 msgstr "無法連接到 Repetier"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "注意：Repetier 版本至少需要 0.90.0。"
 
 #, boost-format
 msgid ""
@@ -17852,9 +17850,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "重新整理列印設備"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "注意：Repetier 版本至少需要 0.90.0。"
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "

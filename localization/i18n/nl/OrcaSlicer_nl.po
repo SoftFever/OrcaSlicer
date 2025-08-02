@@ -2822,8 +2822,6 @@ msgstr "Downloaden"
 msgid "Download failed"
 msgstr "Downloaden mislukt"
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr "Succesvol geïnstalleerd."
@@ -16144,7 +16142,7 @@ msgstr "In de wachtrij"
 msgid "Uploading"
 msgstr "Uploaden"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Annuleren"
 
 msgid "Error uploading to print host"
@@ -16946,7 +16944,7 @@ msgstr "De verbinding met Repetier werkt goed."
 msgid "Could not connect to Repetier"
 msgstr "Kan geen verbinding maken met Repetier"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr ""
 
 #, boost-format

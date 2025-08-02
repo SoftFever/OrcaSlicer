@@ -2778,8 +2778,6 @@ msgstr "ダウンロード中"
 msgid "Download failed"
 msgstr "ダウンロード失敗"
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr "インストール完了"
@@ -15557,7 +15555,7 @@ msgstr ""
 msgid "Uploading"
 msgstr "アップロード中"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "キャンセル中"
 
 msgid "Error uploading to print host"
@@ -16276,7 +16274,7 @@ msgstr "Repetierへの接続は正常に動作しています"
 msgid "Could not connect to Repetier"
 msgstr "Repetierに接続できませんでした。"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr ""
 
 #, boost-format

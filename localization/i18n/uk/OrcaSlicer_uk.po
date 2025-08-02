@@ -2877,8 +2877,6 @@ msgstr "Завантаження"
 msgid "Download failed"
 msgstr "Помилка завантаження"
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr "Успішне встановлення."
@@ -17337,7 +17335,7 @@ msgstr "У черзі"
 msgid "Uploading"
 msgstr "Завантаження"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Скасування"
 
 msgid "Error uploading to print host"
@@ -18168,8 +18166,8 @@ msgstr "Підключення до Repetier працює правильно."
 msgid "Could not connect to Repetier"
 msgstr "Не вдалося підключитися до Repetier"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "Примітка: потрібна версія Repetier принаймні 0.90.0."
 
 #, boost-format
 msgid ""
@@ -19215,9 +19213,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "Оновити принтери"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "Примітка: потрібна версія Repetier принаймні 0.90.0."
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "

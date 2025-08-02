@@ -2851,8 +2851,6 @@ msgstr "İndiriliyor"
 msgid "Download failed"
 msgstr "Yükleme başarısız"
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr "Yükleme başarılı."
@@ -17224,7 +17222,7 @@ msgstr "Sıraya alındı"
 msgid "Uploading"
 msgstr "Yükleniyor"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "İptal Ediliyor"
 
 msgid "Error uploading to print host"
@@ -18033,8 +18031,8 @@ msgstr "Repetier'e bağlantı düzgün çalışıyor."
 msgid "Could not connect to Repetier"
 msgstr "Repetier'a bağlanılamadı"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "Not: Repetier sürümü en az 0.90.0 gereklidir."
 
 #, boost-format
 msgid ""
@@ -19127,9 +19125,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "Yazıcıları Yenile"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "Not: Repetier sürümü en az 0.90.0 gereklidir."
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "

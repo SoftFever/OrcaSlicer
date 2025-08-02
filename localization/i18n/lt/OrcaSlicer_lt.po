@@ -2875,8 +2875,6 @@ msgstr "Atsisiunčiama"
 msgid "Download failed"
 msgstr "Atsisiuntimas nepavyko"
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr "Sėkmingai įdiegta."
@@ -17248,7 +17246,7 @@ msgstr "Eilėje"
 msgid "Uploading"
 msgstr "Įkeliama"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Atšaukiama"
 
 msgid "Error uploading to print host"
@@ -18067,8 +18065,8 @@ msgstr "Ryšys su REpieter veikia tinkamai."
 msgid "Could not connect to Repetier"
 msgstr "Nepavyko prisijungti prie Repieter"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "Pastaba: reikalinga bent 0.90.0 Repetier versija."
 
 #, boost-format
 msgid ""
@@ -19372,9 +19370,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "Atnaujinti spausdintuvus"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "Pastaba: reikalinga bent 0.90.0 Repetier versija."
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "

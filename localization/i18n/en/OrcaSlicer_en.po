@@ -2751,8 +2751,6 @@ msgstr ""
 msgid "Download failed"
 msgstr ""
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr ""
@@ -15450,7 +15448,7 @@ msgstr ""
 msgid "Uploading"
 msgstr ""
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr ""
 
 msgid "Error uploading to print host"
@@ -16200,7 +16198,7 @@ msgstr ""
 msgid "Could not connect to Repetier"
 msgstr ""
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr ""
 
 #, boost-format

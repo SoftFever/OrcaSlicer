@@ -2798,8 +2798,6 @@ msgstr "Laddar ner"
 msgid "Download failed"
 msgstr "Nedladdningen misslyckades"
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr "Installationen lyckades"
@@ -15814,7 +15812,7 @@ msgstr "I kö"
 msgid "Uploading"
 msgstr "Laddar upp"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Avbryter"
 
 msgid "Error uploading to print host"
@@ -16605,7 +16603,7 @@ msgstr ""
 msgid "Could not connect to Repetier"
 msgstr "Kunde inte ansluta till Repetier"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr ""
 
 #, boost-format

@@ -2816,8 +2816,6 @@ msgstr "다운로드 중"
 msgid "Download failed"
 msgstr "다운로드 실패"
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr "성공적으로 설치하였습니다."
@@ -16685,7 +16683,7 @@ msgstr "대기 중"
 msgid "Uploading"
 msgstr "업로드 중"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "취소 중"
 
 msgid "Error uploading to print host"
@@ -17476,8 +17474,8 @@ msgstr "Repetier에 대한 연결이 올바르게 작동합니다."
 msgid "Could not connect to Repetier"
 msgstr "Repetier에 연결할 수 없습니다"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "참고: 최소 0.90.0 이상의 반복 버전이 필요합니다."
 
 #, boost-format
 msgid ""
@@ -18586,9 +18584,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "프린터 새로 고침"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "참고: 최소 0.90.0 이상의 반복 버전이 필요합니다."
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "

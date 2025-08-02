@@ -2836,8 +2836,6 @@ msgstr "Stahování"
 msgid "Download failed"
 msgstr "Stahování se nezdařilo"
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr "Instalace proběhla úspěšně."
@@ -16262,7 +16260,7 @@ msgstr "Ve frontě"
 msgid "Uploading"
 msgstr "Nahrávání"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Ruší se"
 
 msgid "Error uploading to print host"
@@ -16995,8 +16993,8 @@ msgstr "Připojení k Repetieru funguje správně."
 msgid "Could not connect to Repetier"
 msgstr "Nelze se připojit k Repetieru"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "Poznámka: Je vyžadována verze Repetier alespoň 0.90.0."
 
 #, boost-format
 msgid ""
@@ -17865,9 +17863,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "Obnovit tiskárny"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "Poznámka: Je vyžadována verze Repetier alespoň 0.90.0."
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "

@@ -2789,8 +2789,6 @@ msgstr "Letöltés"
 msgid "Download failed"
 msgstr "Letöltés sikertelen"
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr "Sikeresen telepítve"
@@ -15908,7 +15906,7 @@ msgstr "Sorban áll"
 msgid "Uploading"
 msgstr "Feltöltés"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Megszakítás"
 
 msgid "Error uploading to print host"
@@ -16698,7 +16696,7 @@ msgstr ""
 msgid "Could not connect to Repetier"
 msgstr "Nem sikerült csatlakozni a Repetierhez"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr ""
 
 #, boost-format
