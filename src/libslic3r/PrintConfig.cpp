@@ -232,8 +232,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SlicingMode)
 static t_config_enum_values s_keys_map_SupportMaterialPattern {
     { "rectilinear",        smpRectilinear },
     { "rectilinear-grid",   smpRectilinearGrid },
-    { "lightning",          smpLightning },
     { "honeycomb",          smpHoneycomb },
+    { "lightning",          smpLightning },
     { "default",            smpDefault},
     { "hollow",               smpNone},
 };
@@ -5091,14 +5091,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("default");
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
-    def->enum_values.push_back("lightning");
     def->enum_values.push_back("honeycomb");
+    def->enum_values.push_back("lightning");
     def->enum_values.push_back("hollow");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear grid"));
-    def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Honeycomb"));
+    def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Hollow"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpDefault));
