@@ -788,9 +788,9 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     // X axis frequencies
     auto x_freq_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_x_text = new wxStaticText(this, wxID_ANY, x_axis_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiFreqStartX = new TextInput(this, std::to_string(15) , _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqStartX = new TextInput(this, std::to_string(15) , "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqStartX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    m_tiFreqEndX   = new TextInput(this, std::to_string(110), _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqEndX   = new TextInput(this, std::to_string(110), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqEndX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     
     x_freq_sizer->Add(start_x_text  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -801,9 +801,9 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     // Y axis frequencies
     auto y_freq_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_y_text = new wxStaticText(this, wxID_ANY, y_axis_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiFreqStartY = new TextInput(this, std::to_string(15) , _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqStartY = new TextInput(this, std::to_string(15) , "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqStartY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    m_tiFreqEndY =   new TextInput(this, std::to_string(110), _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqEndY =   new TextInput(this, std::to_string(110), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqEndY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     
     y_freq_sizer->Add(start_y_text  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -923,9 +923,9 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
 
     auto freq_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto freq_text = new wxStaticText(this, wxID_ANY, freq_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiFreqX = new TextInput(this, std::to_string(30), _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqX = new TextInput(this, std::to_string(30), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    m_tiFreqY = new TextInput(this, std::to_string(30), _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqY = new TextInput(this, std::to_string(30), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     freq_sizer->Add(freq_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     freq_sizer->Add(m_tiFreqX, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));

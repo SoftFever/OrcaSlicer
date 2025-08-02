@@ -36,13 +36,7 @@ msgstr "온도"
 msgid "Left Time"
 msgstr ""
 
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
 
-#, c-format, boost-format
-msgid "%d : %d"
-msgstr ""
 
 msgid "Serial:"
 msgstr "시리얼:"
@@ -16577,8 +16571,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
 
 msgid "Damp: "
 msgstr ""

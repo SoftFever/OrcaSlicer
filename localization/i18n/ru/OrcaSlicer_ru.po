@@ -37,13 +37,7 @@ msgstr "Температура"
 msgid "Left Time"
 msgstr ""
 
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
 
-#, c-format, boost-format
-msgid "%d : %d"
-msgstr ""
 
 msgid "Serial:"
 msgstr "Серийный номер:"
@@ -17675,8 +17669,6 @@ msgstr "(начальное/конечное значение)"
 msgid "Frequency settings"
 msgstr "Задание частоты"
 
-msgid "hz"
-msgstr ""
 
 msgid "Damp: "
 msgstr "Затухание (Damp):"

@@ -36,14 +36,6 @@ msgstr ""
 msgid "Left Time"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "%d : %d"
-msgstr ""
-
 msgid "Serial:"
 msgstr ""
 
@@ -14899,8 +14891,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
 
 msgid "Damp: "
 msgstr ""

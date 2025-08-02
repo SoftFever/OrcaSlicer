@@ -37,14 +37,6 @@ msgstr "Temperatura"
 msgid "Left Time"
 msgstr ""
 
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
-msgstr ""
-
 msgid "Serial:"
 msgstr "Número de Sèrie:"
 
@@ -17375,9 +17367,6 @@ msgid "Start / End"
 msgstr ""
 
 msgid "Frequency settings"
-msgstr ""
-
-msgid "hz"
 msgstr ""
 
 msgid "Damp: "
