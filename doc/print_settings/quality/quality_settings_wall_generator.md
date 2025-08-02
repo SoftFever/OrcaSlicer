@@ -2,6 +2,17 @@
 
 The Wall Generator defines how the outer and inner walls (perimeters) of the model are printed.
 
+- [Classic](#classic)
+- [Arachne](#arachne)
+  - [Wall transitioning threshhold angle](#wall-transitioning-threshhold-angle)
+  - [Wall transitioning filter margin](#wall-transitioning-filter-margin)
+  - [Wall transitioning length](#wall-transitioning-length)
+  - [Wall distribution count](#wall-distribution-count)
+  - [Minimum wall width](#minimum-wall-width)
+    - [First layer minimum wall width](#first-layer-minimum-wall-width)
+  - [Minimum feature size](#minimum-feature-size)
+  - [Minimum wall length](#minimum-wall-length)
+
 ## Classic
 
 The Classic wall generator is a simple and reliable method used in many slicers. It creates as many walls as possible (limited by [Wall Loops](strength_settings_walls#wall-loops)) by extruding along the model’s perimeter using the defined [Line Width](quality_settings_line_width).
