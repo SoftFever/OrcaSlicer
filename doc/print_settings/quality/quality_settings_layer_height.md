@@ -1,13 +1,20 @@
 # Layer Height
 
-Layer height determines the vertical thickness of each printed layer, significantly impacting both print quality and printing time.
+Layer height defines the vertical thickness of each printed layer, playing a crucial role in both print quality and printing speed.
 
-Smaller layer heights produce better quality (smoother surfaces, less visible layer lines, better curved details, [improved overhang angles](quality_settings_overhangs)) but increase print time and can cause flow inconsistencies at high speeds.
+Using smaller layer heights increases print time but results in:
+
+- Smoother surface finishes
+- Less noticeable layer lines
+- Enhanced detail on curves
+- [Better performance on overhangs](#layer-height-overhangs-impacts)
+
+![layer-height-spheres](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Precision/layer-height-spheres.png)
 
 - [Quick Reference](#quick-reference)
 - [Layer Height Guidelines](#layer-height-guidelines)
 - [First Layer Height](#first-layer-height)
-- [Stepper Motor Magic Numbers](#stepper-motor-magic-numbers)
+- [Layer Height Overhangs Impacts](#layer-height-overhangs-impacts)
 
 ## Quick Reference
 
@@ -16,6 +23,7 @@ Smaller layer heights produce better quality (smoother surfaces, less visible la
 | 0.2mm       | 0.04mm | 0.16mm | 0.12mm                                    |
 | 0.3mm       | 0.06mm | 0.24mm | 0.18mm                                    |
 | 0.4mm       | 0.08mm | 0.32mm | 0.25mm                                    |
+| 0.5mm       | 0.10mm | 0.40mm | 0.30mm                                    |
 | 0.6mm       | 0.12mm | 0.48mm | 0.35mm                                    |
 | 0.8mm       | 0.16mm | 0.64mm | 0.45mm                                    |
 | 1.0mm       | 0.20mm | 0.80mm | 0.55mm                                    |
@@ -35,23 +43,10 @@ A thicker first layer improves bed adhesion and compensates for build surface im
 **Recommended:** 0.25mm for 0.4mm nozzle (62.5% of nozzle diameter)  
 **Maximum:** 65% of nozzle diameter
 
-## Stepper Motor Magic Numbers
+## Layer Height Overhangs Impacts
 
-For optimal print quality, consider using layer heights that align with your printer's Z-axis stepper motor resolution. These "magic numbers" ensure that each layer height corresponds to complete stepper motor steps, reducing micro-stepping inaccuracies.
+Layer height directly affects [overhang angle](quality_settings_overhangs#maximum-angle) capability and quality.
 
-> [!IMPORTANT]
-> **Modern printers** may not benefit from magic numbers thanks to high-resolution drivers.
+![layer-height](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Precision/layer-height.svg)
 
-**Common magic numbers for 0.9° stepper motors (400 steps/mm):**
-
-- 0.1mm, 0.15mm, 0.2mm, 0.25mm, 0.3mm
-
-**Common magic numbers for 1.8° stepper motors (200 steps/mm):**
-
-- 0.1mm, 0.2mm, 0.3mm, 0.4mm
-
-**To calculate your magic numbers:**
-
-1. Determine your Z-axis steps/mm (check firmware or calculate: steps_per_revolution ÷ lead_screw_pitch)
-2. Use layer heights that result in whole numbers when multiplied by steps/mm
-3. Formula: Magic_Layer_Height = whole_number ÷ steps_per_mm
+**Smaller layer heights** enable steeper overhangs by reducing the unsupported distance between layers, while **larger layer heights** increase this gap, leading to more sagging and requiring support material at shallower angles.
