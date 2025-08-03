@@ -113,6 +113,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/SceneRaycaster.cpp
     GUI/OpenGLManager.hpp
     GUI/OpenGLManager.cpp
+    GUI/GraphicsBackendManager.hpp
+    GUI/GraphicsBackendManager.cpp
     GUI/Selection.hpp
     GUI/Selection.cpp
     GUI/SlicingProgressNotification.cpp

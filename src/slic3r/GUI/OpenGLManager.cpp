@@ -327,6 +327,19 @@ wxGLContext* OpenGLManager::init_glcontext(wxGLCanvas& canvas)
         s_os_info.minor = wxPlatformInfo::Get().GetOSMinorVersion();
         s_os_info.micro = wxPlatformInfo::Get().GetOSMicroVersion();
 #endif //__APPLE__
+
+#ifdef __linux__
+        // Log graphics backend information for debugging
+        BOOST_LOG_TRIVIAL(info) << "OpenGLManager: Creating OpenGL context with current graphics configuration";
+        const char* gbm_backend = std::getenv("GBM_BACKEND");
+        if (gbm_backend) {
+            BOOST_LOG_TRIVIAL(info) << "OpenGLManager: GBM_BACKEND=" << gbm_backend;
+        }
+        const char* mesa_loader = std::getenv("MESA_LOADER_DRIVER_OVERRIDE");
+        if (mesa_loader) {
+            BOOST_LOG_TRIVIAL(info) << "OpenGLManager: MESA_LOADER_DRIVER_OVERRIDE=" << mesa_loader;
+        }
+#endif // __linux__
     }
     return m_context;
 }

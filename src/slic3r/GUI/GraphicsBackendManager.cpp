@@ -1,0 +1,564 @@
+#include "GraphicsBackendManager.hpp"
+#include "libslic3r/Platform.hpp"
+#include <boost/log/trivial.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
+#ifdef __linux__
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <pwd.h>
+#endif
+
+namespace Slic3r {
+namespace GUI {
+
+GraphicsBackendManager& GraphicsBackendManager::get_instance()
+{
+    static GraphicsBackendManager instance;
+    return instance;
+}
+
+GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::detect_graphics_environment()
+{
+    GraphicsConfig config;
+    
+    config.session_type = detect_session_type();
+    config.driver = detect_graphics_driver();
+    
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected session type: " 
+                            << (config.session_type == SessionType::Wayland ? "Wayland" : 
+                                config.session_type == SessionType::X11 ? "X11" : "Unknown");
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected driver: " 
+                            << (config.driver == GraphicsDriver::NVIDIA ? "NVIDIA" :
+                                config.driver == GraphicsDriver::AMD ? "AMD" :
+                                config.driver == GraphicsDriver::Intel ? "Intel" :
+                                config.driver == GraphicsDriver::Mesa ? "Mesa" : "Unknown");
+    
+    return config;
+}
+
+GraphicsBackendManager::SessionType GraphicsBackendManager::detect_session_type()
+{
+#ifdef __linux__
+    const char* xdg_session_type = std::getenv("XDG_SESSION_TYPE");
+    if (xdg_session_type) {
+        std::string session_type(xdg_session_type);
+        if (boost::iequals(session_type, "wayland")) {
+            return SessionType::Wayland;
+        } else if (boost::iequals(session_type, "x11")) {
+            return SessionType::X11;
+        }
+    }
+    
+    // Fallback detection methods
+    const char* wayland_display = std::getenv("WAYLAND_DISPLAY");
+    if (wayland_display) {
+        return SessionType::Wayland;
+    }
+    
+    const char* display = std::getenv("DISPLAY");
+    if (display) {
+        return SessionType::X11;
+    }
+#endif
+    
+    return SessionType::Unknown;
+}
+
+GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_driver()
+{
+#ifdef __linux__
+    // Try to get OpenGL vendor and renderer info
+    std::string glx_info = get_glx_info();
+    std::string egl_info = get_egl_info();
+    
+    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: GLX info: " << (glx_info.empty() ? "empty" : glx_info.substr(0, 100));
+    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: EGL info: " << (egl_info.empty() ? "empty" : egl_info.substr(0, 100));
+    
+    // Check for NVIDIA
+    if (boost::icontains(glx_info, "nvidia") || 
+        boost::icontains(egl_info, "nvidia") ||
+        boost::icontains(glx_info, "NVIDIA") || 
+        boost::icontains(egl_info, "NVIDIA")) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA driver via GLX/EGL";
+        return GraphicsDriver::NVIDIA;
+    }
+    
+    // Check for AMD
+    if (boost::icontains(glx_info, "amd") || 
+        boost::icontains(egl_info, "amd") ||
+        boost::icontains(glx_info, "AMD") || 
+        boost::icontains(egl_info, "AMD") ||
+        boost::icontains(glx_info, "radeon") || 
+        boost::icontains(egl_info, "radeon")) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected AMD driver via GLX/EGL";
+        return GraphicsDriver::AMD;
+    }
+    
+    // Check for Intel
+    if (boost::icontains(glx_info, "intel") || 
+        boost::icontains(egl_info, "intel") ||
+        boost::icontains(glx_info, "Intel") || 
+        boost::icontains(egl_info, "Intel")) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Intel driver via GLX/EGL";
+        return GraphicsDriver::Intel;
+    }
+    
+    // Check for Mesa
+    if (boost::icontains(glx_info, "mesa") || 
+        boost::icontains(egl_info, "mesa") ||
+        boost::icontains(glx_info, "Mesa") || 
+        boost::icontains(egl_info, "Mesa")) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Mesa driver via GLX/EGL";
+        return GraphicsDriver::Mesa;
+    }
+    
+    // Try to run glxinfo as fallback
+    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: GLX/EGL detection failed, trying glxinfo fallback";
+    std::string glx_output = execute_command("glxinfo 2>/dev/null | grep 'OpenGL vendor\\|OpenGL renderer'");
+    if (!glx_output.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: glxinfo output: " << glx_output.substr(0, 200);
+        
+        if (boost::icontains(glx_output, "nvidia")) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA driver via glxinfo fallback";
+            return GraphicsDriver::NVIDIA;
+        } else if (boost::icontains(glx_output, "amd") || boost::icontains(glx_output, "radeon")) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected AMD driver via glxinfo fallback";
+            return GraphicsDriver::AMD;
+        } else if (boost::icontains(glx_output, "intel")) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Intel driver via glxinfo fallback";
+            return GraphicsDriver::Intel;
+        } else if (boost::icontains(glx_output, "mesa")) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Mesa driver via glxinfo fallback";
+            return GraphicsDriver::Mesa;
+        }
+    }
+    
+    // Try additional fallback methods
+    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: glxinfo fallback failed, trying additional methods";
+    
+    // Check for NVIDIA using nvidia-smi
+    std::string nvidia_check = execute_command("nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -n1");
+    if (!nvidia_check.empty() && nvidia_check != "N/A") {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA driver via nvidia-smi fallback";
+        return GraphicsDriver::NVIDIA;
+    }
+    
+    // Check for AMD using lspci
+    std::string amd_check = execute_command("lspci | grep -i 'vga\\|3d' | grep -i amd 2>/dev/null");
+    if (!amd_check.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected AMD driver via lspci fallback";
+        return GraphicsDriver::AMD;
+    }
+    
+    // Check for Intel using lspci
+    std::string intel_check = execute_command("lspci | grep -i 'vga\\|3d' | grep -i intel 2>/dev/null");
+    if (!intel_check.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Intel driver via lspci fallback";
+        return GraphicsDriver::Intel;
+    }
+    
+    BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Failed to detect graphics driver, using Mesa as fallback";
+    return GraphicsDriver::Mesa; // Default to Mesa as safest fallback
+#else
+    return GraphicsDriver::Unknown;
+#endif
+}
+
+std::string GraphicsBackendManager::get_nvidia_driver_version()
+{
+#ifdef __linux__
+    return execute_command("nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null | head -n1");
+#else
+    return "";
+#endif
+}
+
+bool GraphicsBackendManager::is_nvidia_driver_newer_than(int major_version)
+{
+    std::string version = get_nvidia_driver_version();
+    if (version.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: No NVIDIA driver version detected";
+        return false;
+    }
+    
+    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: NVIDIA driver version: " << version;
+    
+    try {
+        size_t dot_pos = version.find('.');
+        if (dot_pos != std::string::npos) {
+            std::string major_str = version.substr(0, dot_pos);
+            int driver_major = std::stoi(major_str);
+            bool is_newer = driver_major > major_version;
+            BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Driver major version: " << driver_major 
+                                    << ", threshold: " << major_version << ", is newer: " << is_newer;
+            return is_newer;
+        } else {
+            BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Invalid NVIDIA driver version format: " << version;
+            return false;
+        }
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Failed to parse NVIDIA driver version '" 
+                                   << version << "': " << e.what();
+        return false;
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Unknown error parsing NVIDIA driver version: " << version;
+        return false;
+    }
+}
+
+std::string GraphicsBackendManager::get_glx_info()
+{
+    return execute_command("glxinfo 2>/dev/null | grep -E 'OpenGL vendor|OpenGL renderer' | head -10");
+}
+
+std::string GraphicsBackendManager::get_egl_info()
+{
+    return execute_command("eglinfo 2>/dev/null | grep -E 'EGL vendor|EGL renderer' | head -10");
+}
+
+void GraphicsBackendManager::set_environment_variable(const std::string& name, const std::string& value)
+{
+#ifdef __linux__
+    if (!value.empty()) {
+        setenv(name.c_str(), value.c_str(), 1);
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Set " << name << "=" << value;
+    }
+#endif
+}
+
+void GraphicsBackendManager::unset_environment_variable(const std::string& name)
+{
+#ifdef __linux__
+    unsetenv(name.c_str());
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Unset " << name;
+#endif
+}
+
+GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::get_nvidia_wayland_config()
+{
+    GraphicsConfig config;
+    config.session_type = SessionType::Wayland;
+    config.driver = GraphicsDriver::NVIDIA;
+    
+    // For NVIDIA on Wayland, we need specific configuration
+    if (is_nvidia_driver_newer_than(555)) {
+        // Newer NVIDIA drivers (555+) work better with Zink
+        config.use_zink = true;
+        config.gbm_backend = "dri";
+        config.mesa_loader_driver = "zink";
+        config.gallium_driver = "zink";
+        config.glx_vendor_library = "mesa";
+        config.egl_vendor_library = "/usr/share/glvnd/egl_vendor.d/50_mesa.json";
+        config.disable_dmabuf = true;
+    } else {
+        // Older NVIDIA drivers need different approach
+        config.gbm_backend = "dri";
+        config.force_dri_backend = true;
+    }
+    
+    return config;
+}
+
+GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::get_nvidia_x11_config()
+{
+    GraphicsConfig config;
+    config.session_type = SessionType::X11;
+    config.driver = GraphicsDriver::NVIDIA;
+    
+    // For NVIDIA on X11, we can use native drivers
+    config.gbm_backend = "dri";
+    config.force_dri_backend = true;
+    
+    return config;
+}
+
+GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::get_amd_config()
+{
+    GraphicsConfig config;
+    config.driver = GraphicsDriver::AMD;
+    
+    // AMD drivers generally work well with Mesa
+    config.gbm_backend = "dri";
+    config.mesa_loader_driver = "radeonsi";
+    config.gallium_driver = "radeonsi";
+    
+    return config;
+}
+
+GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::get_intel_config()
+{
+    GraphicsConfig config;
+    config.driver = GraphicsDriver::Intel;
+    
+    // Intel drivers work well with Mesa
+    config.gbm_backend = "dri";
+    config.mesa_loader_driver = "i965";
+    config.gallium_driver = "i965";
+    
+    return config;
+}
+
+GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::get_mesa_config()
+{
+    GraphicsConfig config;
+    config.driver = GraphicsDriver::Mesa;
+    
+    // Mesa software rendering
+    config.gbm_backend = "dri";
+    config.mesa_loader_driver = "swrast";
+    config.gallium_driver = "swrast";
+    
+    return config;
+}
+
+GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::get_recommended_config()
+{
+    GraphicsConfig detected = detect_graphics_environment();
+    
+    switch (detected.driver) {
+        case GraphicsDriver::NVIDIA:
+            if (detected.session_type == SessionType::Wayland) {
+                return get_nvidia_wayland_config();
+            } else {
+                return get_nvidia_x11_config();
+            }
+        case GraphicsDriver::AMD:
+            return get_amd_config();
+        case GraphicsDriver::Intel:
+            return get_intel_config();
+        case GraphicsDriver::Mesa:
+            return get_mesa_config();
+        default:
+            // Fallback to basic configuration
+            GraphicsConfig fallback;
+            fallback.gbm_backend = "dri";
+            fallback.force_dri_backend = true;
+            return fallback;
+    }
+}
+
+void GraphicsBackendManager::apply_graphics_config(const GraphicsConfig& config)
+{
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Applying graphics configuration...";
+    
+    // Validate configuration before applying
+    if (!validate_configuration(config)) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Configuration validation failed, but continuing with application";
+    }
+    
+    if (config.session_type == SessionType::Unknown) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Unknown session type, using fallback configuration";
+    }
+    
+    if (config.driver == GraphicsDriver::Unknown) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Unknown graphics driver, using fallback configuration";
+    }
+    
+    // Apply environment variables based on configuration
+    if (!config.gbm_backend.empty()) {
+        set_environment_variable("GBM_BACKEND", config.gbm_backend);
+    } else {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: No GBM_BACKEND specified in configuration";
+    }
+    
+    if (!config.mesa_loader_driver.empty()) {
+        set_environment_variable("MESA_LOADER_DRIVER_OVERRIDE", config.mesa_loader_driver);
+    } else {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: No MESA_LOADER_DRIVER_OVERRIDE specified in configuration";
+    }
+    
+    if (!config.gallium_driver.empty()) {
+        set_environment_variable("GALLIUM_DRIVER", config.gallium_driver);
+    } else {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: No GALLIUM_DRIVER specified in configuration";
+    }
+    
+    if (!config.glx_vendor_library.empty()) {
+        set_environment_variable("__GLX_VENDOR_LIBRARY_NAME", config.glx_vendor_library);
+    } else {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: No __GLX_VENDOR_LIBRARY_NAME specified in configuration";
+    }
+    
+    if (!config.egl_vendor_library.empty()) {
+        set_environment_variable("__EGL_VENDOR_LIBRARY_FILENAMES", config.egl_vendor_library);
+    } else {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: No __EGL_VENDOR_LIBRARY_FILENAMES specified in configuration";
+    }
+    
+    if (config.disable_dmabuf) {
+        set_environment_variable("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Disabled DMABUF renderer";
+    }
+    
+    // Force DRI backend if needed
+    if (config.force_dri_backend) {
+        set_environment_variable("LIBGL_ALWAYS_SOFTWARE", "0");
+        set_environment_variable("MESA_GL_VERSION_OVERRIDE", "3.3");
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Forced DRI backend configuration";
+    }
+    
+    // Log the final configuration summary
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Configuration applied successfully";
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Session: " 
+                            << (config.session_type == SessionType::Wayland ? "Wayland" : 
+                                config.session_type == SessionType::X11 ? "X11" : "Unknown");
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Driver: " 
+                            << (config.driver == GraphicsDriver::NVIDIA ? "NVIDIA" :
+                                config.driver == GraphicsDriver::AMD ? "AMD" :
+                                config.driver == GraphicsDriver::Intel ? "Intel" :
+                                config.driver == GraphicsDriver::Mesa ? "Mesa" : "Unknown");
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Use Zink: " << (config.use_zink ? "Yes" : "No");
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Force DRI: " << (config.force_dri_backend ? "Yes" : "No");
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Disable DMABUF: " << (config.disable_dmabuf ? "Yes" : "No");
+}
+
+bool GraphicsBackendManager::is_configuration_optimal()
+{
+    // Check if current environment variables are set optimally
+    const char* gbm_backend = std::getenv("GBM_BACKEND");
+    if (!gbm_backend || std::string(gbm_backend) != "dri") {
+        return false;
+    }
+    
+    return true;
+}
+
+bool GraphicsBackendManager::validate_configuration(const GraphicsConfig& config)
+{
+    bool valid = true;
+    
+    // Check for required fields based on driver type
+    switch (config.driver) {
+        case GraphicsDriver::NVIDIA:
+            if (config.session_type == SessionType::Wayland) {
+                if (config.gbm_backend.empty()) {
+                    BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: NVIDIA Wayland config missing GBM_BACKEND";
+                    valid = false;
+                }
+            }
+            break;
+            
+        case GraphicsDriver::AMD:
+            if (config.mesa_loader_driver.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: AMD config missing MESA_LOADER_DRIVER_OVERRIDE";
+                valid = false;
+            }
+            break;
+            
+        case GraphicsDriver::Intel:
+            if (config.mesa_loader_driver.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Intel config missing MESA_LOADER_DRIVER_OVERRIDE";
+                valid = false;
+            }
+            break;
+            
+        case GraphicsDriver::Mesa:
+            // Mesa config is usually minimal, no specific requirements
+            break;
+            
+        case GraphicsDriver::Unknown:
+            BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Unknown driver type in configuration";
+            valid = false;
+            break;
+    }
+    
+    // Check for conflicting settings
+    if (config.use_zink && config.force_dri_backend) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Conflicting settings: use_zink and force_dri_backend both true";
+        valid = false;
+    }
+    
+    if (valid) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Configuration validation passed";
+    } else {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Configuration validation failed";
+    }
+    
+    return valid;
+}
+
+void GraphicsBackendManager::log_graphics_info()
+{
+    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Current graphics information:";
+    
+    GraphicsConfig detected = detect_graphics_environment();
+    BOOST_LOG_TRIVIAL(info) << "  Session Type: " 
+                            << (detected.session_type == SessionType::Wayland ? "Wayland" : 
+                                detected.session_type == SessionType::X11 ? "X11" : "Unknown");
+    BOOST_LOG_TRIVIAL(info) << "  Graphics Driver: " 
+                            << (detected.driver == GraphicsDriver::NVIDIA ? "NVIDIA" :
+                                detected.driver == GraphicsDriver::AMD ? "AMD" :
+                                detected.driver == GraphicsDriver::Intel ? "Intel" :
+                                detected.driver == GraphicsDriver::Mesa ? "Mesa" : "Unknown");
+    
+    if (detected.driver == GraphicsDriver::NVIDIA) {
+        std::string nvidia_version = get_nvidia_driver_version();
+        if (!nvidia_version.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "  NVIDIA Driver Version: " << nvidia_version;
+        }
+    }
+    
+    // Log current environment variables
+    const char* gbm_backend = std::getenv("GBM_BACKEND");
+    if (gbm_backend) {
+        BOOST_LOG_TRIVIAL(info) << "  GBM_BACKEND: " << gbm_backend;
+    }
+    
+    const char* mesa_loader = std::getenv("MESA_LOADER_DRIVER_OVERRIDE");
+    if (mesa_loader) {
+        BOOST_LOG_TRIVIAL(info) << "  MESA_LOADER_DRIVER_OVERRIDE: " << mesa_loader;
+    }
+    
+    const char* gallium_driver = std::getenv("GALLIUM_DRIVER");
+    if (gallium_driver) {
+        BOOST_LOG_TRIVIAL(info) << "  GALLIUM_DRIVER: " << gallium_driver;
+    }
+}
+
+// Helper function to execute shell commands
+std::string GraphicsBackendManager::execute_command(const std::string& command)
+{
+#ifdef __linux__
+    std::string result;
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Failed to execute command: " << command;
+        return "";
+    }
+    
+    char buffer[128];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        result += buffer;
+    }
+    
+    int status = pclose(pipe);
+    if (status != 0) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Command failed with status " << status << ": " << command;
+        // Don't return empty string for failed commands, as some commands may fail but still provide useful output
+    }
+    
+    // Remove trailing newline
+    if (!result.empty() && result[result.length()-1] == '\n') {
+        result.erase(result.length()-1);
+    }
+    
+    if (result.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Command returned no output: " << command;
+    }
+    
+    return result;
+#else
+    return "";
+#endif
+}
+
+} // namespace GUI
+} // namespace Slic3r 

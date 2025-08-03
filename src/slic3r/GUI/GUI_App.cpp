@@ -94,6 +94,7 @@
 #include "ParamsDialog.hpp"
 #include "KBShortcutsDialog.hpp"
 #include "DownloadProgressDialog.hpp"
+#include "GraphicsBackendManager.hpp"
 
 #include "BitmapCache.hpp"
 #include "Notebook.hpp"
@@ -2297,6 +2298,22 @@ bool GUI_App::on_init_inner()
         std::cerr << "Quitting, user chose to move their data to new location." << std::endl;
         return false;
     }
+    
+    // Initialize graphics backend configuration for Linux systems
+    BOOST_LOG_TRIVIAL(info) << "Initializing graphics backend configuration...";
+    GraphicsBackendManager& gbm = GraphicsBackendManager::get_instance();
+    
+    // Log current graphics information
+    gbm.log_graphics_info();
+    
+    // Detect and apply optimal graphics configuration
+    GraphicsBackendManager::GraphicsConfig detected_config = gbm.detect_graphics_environment();
+    GraphicsBackendManager::GraphicsConfig recommended_config = gbm.get_recommended_config();
+    
+    // Apply the recommended configuration
+    gbm.apply_graphics_config(recommended_config);
+    
+    BOOST_LOG_TRIVIAL(info) << "Graphics backend configuration completed.";
 #endif
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current OrcaSlicer Version %1%")%SoftFever_VERSION;
