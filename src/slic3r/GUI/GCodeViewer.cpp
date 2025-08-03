@@ -4411,7 +4411,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     // BBS AMS containers
     float line_height          = ImGui::GetFrameHeight();
     int   AMS_filament_max_num = std::max(m_left_extruder_filament.size(), m_right_extruder_filament.size());
-    float three_words_width    = imgui.calc_text_size("ABC").x;
+    float three_words_width    = imgui.calc_text_size("ABC"sv).x;
     float AMS_container_height = (std::ceil(AMS_filament_max_num / 4.0f) * (three_words_width * 1.5f + line_height) + (line_height * 4));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
     ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
@@ -4768,7 +4768,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     std::string title = _u8L("Slicing Result");
     imgui.bold_text(title);
     // BBS Set the width of the 8 "ABCD" words minus the "sliced result" to the spacing between the buttons and the title
-    float single_word_width = imgui.calc_text_size("ABCD").x;
+    float single_word_width = imgui.calc_text_size("ABCD"sv).x;
     float title_width       = imgui.calc_text_size(title).x;
     float spacing           = 18.0f * m_scale;
     ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width);
