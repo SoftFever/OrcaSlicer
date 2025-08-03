@@ -7,15 +7,17 @@ SCRIPT_PATH=$(dirname "$(readlink -f "${0}")")
 pushd "${SCRIPT_PATH}" > /dev/null
 
 function usage() {
-    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-u][-l]"
+    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-C][-d][-g][-h][-i][-I][-j N][-p][-r][-s][-u][-l]"
     echo "   -1: limit builds to one core (where possible)"
     echo "   -j N: limit builds to N cores (where possible)"
-    echo "   -b: build in debug mode"
+    echo "   -b: build in debug mode (warning: unmaintained)"
     echo "   -c: force a clean build"
     echo "   -C: enable ANSI-colored compile output (GNU/Clang only)"
     echo "   -d: download and build dependencies in ./deps/ (build prerequisite)"
+    echo "   -g: build with debug symbols"
     echo "   -h: prints this help text"
     echo "   -i: build the Orca Slicer AppImage (optional)"
+    echo "   -I: Incremental, don\'t recreate the build files"
     echo "   -p: boost ccache hit rate by disabling precompiled headers (default: ON)"
     echo "   -r: skip RAM and disk checks (low RAM compiling)"
     echo "   -s: build the Orca Slicer (optional)"
@@ -28,7 +30,7 @@ function usage() {
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
-while getopts ":1j:bcCdhiprsul" opt ; do
+while getopts ":1j:bcCdghiIprsul" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -48,11 +50,17 @@ while getopts ":1j:bcCdhiprsul" opt ; do
     d )
         BUILD_DEPS="1"
         ;;
+    g )
+	BUILD_WITH_SYMBOLS=1
+	;;
     h ) usage
         exit 1
         ;;
     i )
         BUILD_IMAGE="1"
+        ;;
+    I )
+        INCREMENTAL=1
         ;;
     p )
         SLIC3R_PRECOMPILED_HEADERS="OFF"
@@ -79,6 +87,16 @@ done
 if [ ${OPTIND} -eq 1 ] ; then
     usage
     exit 1
+fi
+
+# This doesn't exactly copy the Windows build_release.bat because Windows uses a
+# Multi-Config generator which does not use CMAKE_BUILD_TYPE.
+if [[ -n "${BUILD_DEBUG}" ]] ; then
+    BUILD_DIR=build-dbg
+elif [[ -n "${BUILD_WITH_SYMBOLS}" ]] ; then
+    BUILD_DIR=build-dbginfo
+else
+    BUILD_DIR=build
 fi
 
 function check_available_memory_and_disk() {
@@ -154,53 +172,74 @@ fi
 if [[ -n "${BUILD_DEPS}" ]] ; then
     echo "Configuring dependencies..."
     BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON"
+
+    pushd "${SCRIPT_PATH}/deps"
     if [[ -n "${CLEAN_BUILD}" ]]
     then
-        rm -fr deps/build
+        rm -fr "${BUILD_DIR}"
     fi
-    if [ ! -d "deps/build" ]
+    mkdir -p "${BUILD_DIR}"
+    # if [[ -n "${BUILD_DEBUG}" ]] ; then
+    #     # build deps with debug and release else cmake will not find required sources
+    #     mkdir -p "${BUILD_DIR}"/release
+    # 	cmake "${CMAKE_C_CXX_COMPILER_CLANG}" -S deps -B "${BUILD_DIR}"/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/"${BUILD_DIR}"/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" "${COLORED_OUTPUT}" "${BUILD_ARGS}"
+    #     cmake --build "${BUILD_DIR}"/release
+    # fi
+    if [[ -n "${BUILD_DEBUG}" || -n "${BUILD_WITH_SYMBOLS}" ]]
     then
-        mkdir deps/build
+	export CMAKE_BUILD_TYPE=Debug
+    else
+	export CMAKE_BUILD_TYPE=Release
     fi
-    if [[ -n "${BUILD_DEBUG}" ]] ; then
-        # build deps with debug and release else cmake will not find required sources
-        if [ ! -d "deps/build/release" ] ; then
-            mkdir deps/build/release
-        fi
-	cmake "${CMAKE_C_CXX_COMPILER_CLANG}" -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" "${COLORED_OUTPUT}" "${BUILD_ARGS}"
-        cmake --build deps/build/release
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
+    if [[ -z "${INCREMENTAL}" ]]; then
+	set -x
+	cmake -S . -B "${BUILD_DIR}" "${CMAKE_C_CXX_COMPILER_CLANG}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS}"
+    else
+	echo "Skip creating build files because -I is set"
     fi
-
-    echo "cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${BUILD_ARGS}"
-    cmake -S deps -B deps/build "${CMAKE_C_CXX_COMPILER_CLANG}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS}"
-    cmake --build deps/build
+    { set +x; } 2> /dev/null # turn off echo silently
+    cmake --build "${BUILD_DIR}"
+    popd
 fi
 
 if [[ -n "${BUILD_ORCA}" ]] ; then
     echo "Configuring OrcaSlicer..."
-    if [[ -n "${CLEAN_BUILD}" ]] ; then
-        rm --force --recursive build
+    pushd "${SCRIPT_PATH}"
+    if [[ -n "${CLEAN_BUILD}" ]]
+    then
+        rm -fr "${BUILD_DIR}"
     fi
+    mkdir -p "${BUILD_DIR}"
+
     BUILD_ARGS="${ORCA_EXTRA_BUILD_ARGS}"
     if [[ -n "${FOUND_GTK3_DEV}" ]] ; then
         BUILD_ARGS="${BUILD_ARGS} -DSLIC3R_GTK=3"
     fi
+
     if [[ -n "${BUILD_DEBUG}" ]] ; then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"
+        BUILD_ARGS="${BUILD_ARGS} -DBBL_INTERNAL_TESTING=1"
+	export CMAKE_BUILD_TYPE=Debug
+    elif [[ "${BUILD_WITH_SYMBOLS}" ]] ; then
+        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
+	export CMAKE_BUILD_TYPE=RelWithDebInfo
     else
         BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
+	export CMAKE_BUILD_TYPE=Release
     fi
 
-    CMAKE_CMD="cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja \
--DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
--DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
--DSLIC3R_STATIC=1 \
--DORCA_TOOLS=ON \
-${COLORED_OUTPUT} \
-${BUILD_ARGS}"
-    echo -e "${CMAKE_CMD}"
-    ${CMAKE_CMD}
+    if [[ -z "${INCREMENTAL}" ]]; then
+	set -x
+	cmake -S . -B "${BUILD_DIR}" "${CMAKE_C_CXX_COMPILER_CLANG}" -G Ninja \
+	      -DSLIC3R_PCH="${SLIC3R_PRECOMPILED_HEADERS}" \
+	      -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/${BUILD_DIR}/destdir/usr/local" \
+	      -DSLIC3R_STATIC=1 \
+	      -DORCA_TOOLS=ON \
+	      "${COLORED_OUTPUT}" \
+	      "${BUILD_ARGS}"
+    else
+	echo "Skip creating build files because -I is set"
+    fi
+    { set +x; } 2> /dev/null # turn off echo silently
     echo "done"
     echo "Building OrcaSlicer ..."
     cmake --build build --target OrcaSlicer
@@ -208,10 +247,11 @@ ${BUILD_ARGS}"
     cmake --build build --target OrcaSlicer_profile_validator
     ./run_gettext.sh
     echo "done"
+    popd
 fi
 
 if [[ -n "${BUILD_IMAGE}" || -n "${BUILD_ORCA}" ]] ; then
-    pushd build > /dev/null
+    pushd "${SCRIPT_PATH}/${BUILD_DIR}"
     echo "[9/9] Generating Linux app..."
     build_linux_image="./src/build_linux_image.sh"
     if [[ -e ${build_linux_image} ]] ; then
@@ -223,7 +263,7 @@ if [[ -n "${BUILD_IMAGE}" || -n "${BUILD_ORCA}" ]] ; then
 
         echo "done"
     fi
-    popd > /dev/null # build
+    popd
 fi
 
 popd > /dev/null # ${SCRIPT_PATH}

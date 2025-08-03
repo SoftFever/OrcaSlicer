@@ -237,6 +237,12 @@ All required dependencies will be installed automatically by the provided shell 
 `./build_linux.sh -disr`    # build OrcaSlicer
 ```
 
+### Debugging in GDB
+
+To get symbols, you must either use the `-g` or `-b` option with `build_linux.sh`. The "debug mode" `-b` [is unmaintained](https://github.com/SoftFever/OrcaSlicer/issues/10299#issuecomment-3148344474) so don't use it unless necessary. `-g` will create a Release build with symbols. If you build "dependencies" (`-d`) and Orca (`-s`) separately, you must include the same set of `-g` and/or `-b` flags for both invocations.
+
+---
+
 ## Portable User Configuration
 
 If you want OrcaSlicer to use a custom user configuration folder (e.g., for a portable installation), you can simply place a folder named `data_dir` next to the OrcaSlicer executable. OrcaSlicer will automatically use this folder as its configuration directory.

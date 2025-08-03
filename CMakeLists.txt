@@ -437,7 +437,7 @@ if (SLIC3R_PROFILE)
     add_definitions(-DSLIC3R_PROFILE)
 endif ()
 
-# Disable optimization for RelWithDebInfo
+# Disable optimization for RelWithDebInfo on Windows and with Clang compiler on Mac/Linux
 if(CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "/O2")
     string(REGEX REPLACE "/O2" "/Od" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 endif()
