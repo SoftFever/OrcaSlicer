@@ -1,33 +1,10 @@
 #!/usr/bin/env bash
+set -e # Exit immediately if a command exits with a non-zero status.
 
 SCRIPT_NAME=$(basename "$0")
 SCRIPT_PATH=$(dirname "$(readlink -f "${0}")")
 
 pushd "${SCRIPT_PATH}" > /dev/null
-
-set -e # Exit immediately if a command exits with a non-zero status.
-
-function check_available_memory_and_disk() {
-    FREE_MEM_GB=$(free --gibi --total | grep 'Mem' | rev | cut --delimiter=" " --fields=1 | rev)
-    MIN_MEM_GB=10
-
-    FREE_DISK_KB=$(df --block-size=1K . | tail -1 | awk '{print $4}')
-    MIN_DISK_KB=$((10 * 1024 * 1024))
-
-    if [[ ${FREE_MEM_GB} -le ${MIN_MEM_GB} ]] ; then
-        echo -e "\nERROR: Orca Slicer Builder requires at least ${MIN_MEM_GB}G of 'available' mem (system has only ${FREE_MEM_GB}G available)"
-        echo && free --human && echo
-        echo "Invoke with -r to skip RAM and disk checks."
-        exit 2
-    fi
-
-    if [[ ${FREE_DISK_KB} -le ${MIN_DISK_KB} ]] ; then
-        echo -e "\nERROR: Orca Slicer Builder requires at least $(echo "${MIN_DISK_KB}" |awk '{ printf "%.1fG\n", $1/1024/1024; }') (system has only $(echo "${FREE_DISK_KB}" | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
-        echo && df --human-readable . && echo
-        echo "Invoke with -r to skip ram and disk checks."
-        exit 1
-    fi
-}
 
 function usage() {
     echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-u][-l]"
@@ -103,6 +80,28 @@ if [ ${OPTIND} -eq 1 ] ; then
     usage
     exit 1
 fi
+
+function check_available_memory_and_disk() {
+    FREE_MEM_GB=$(free --gibi --total | grep 'Mem' | rev | cut --delimiter=" " --fields=1 | rev)
+    MIN_MEM_GB=10
+
+    FREE_DISK_KB=$(df --block-size=1K . | tail -1 | awk '{print $4}')
+    MIN_DISK_KB=$((10 * 1024 * 1024))
+
+    if [[ ${FREE_MEM_GB} -le ${MIN_MEM_GB} ]] ; then
+        echo -e "\nERROR: Orca Slicer Builder requires at least ${MIN_MEM_GB}G of 'available' mem (system has only ${FREE_MEM_GB}G available)"
+        echo && free --human && echo
+        echo "Invoke with -r to skip RAM and disk checks."
+        exit 2
+    fi
+
+    if [[ ${FREE_DISK_KB} -le ${MIN_DISK_KB} ]] ; then
+        echo -e "\nERROR: Orca Slicer Builder requires at least $(echo "${MIN_DISK_KB}" |awk '{ printf "%.1fG\n", $1/1024/1024; }') (system has only $(echo "${FREE_DISK_KB}" | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
+        echo && df --human-readable . && echo
+        echo "Invoke with -r to skip ram and disk checks."
+        exit 1
+    fi
+}
 
 # cmake 4.x compatibility workaround
 export CMAKE_POLICY_VERSION_MINIMUM=3.5
