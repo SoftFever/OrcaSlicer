@@ -26,8 +26,8 @@ std::vector<std::pair<size_t, bool>> chain_extrusion_paths(std::vector<Extrusion
 void                                 reorder_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, std::vector<std::pair<size_t, bool>> &chain);
 void                                 chain_and_reorder_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, const Point *start_near = nullptr);
 
-Polylines 							 chain_polylines(Polylines &&src, const Point *start_near = nullptr);
-inline Polylines 					 chain_polylines(const Polylines& src, const Point* start_near = nullptr) { Polylines tmp(src); return chain_polylines(std::move(tmp), start_near); }
+Polylines                            chain_polylines(Polylines&& src, const Point* start_near = nullptr, bool can_reverse = true);
+inline Polylines 					 chain_polylines(const Polylines& src, const Point* start_near = nullptr) { Polylines tmp(src); return chain_polylines(std::move(tmp), start_near, true); }
 template<typename T> inline void reorder_by_shortest_traverse(std::vector<T> &polylines_out)
 {
     Points start_point;

@@ -103,6 +103,7 @@ struct FillParams
     bool            locked_zag{false};
     float           infill_lock_depth{0.0};
     float           skin_infill_depth{0.0};
+    bool            align_center_of_surfaces{false};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 

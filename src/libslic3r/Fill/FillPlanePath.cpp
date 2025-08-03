@@ -89,9 +89,12 @@ void FillPlanePath::_fill_surface_single(
         // around the clipping expolygon only.
         snug_bounding_box;
 
-    Point shift = this->centered() ? 
-        bounding_box.center() :
-        bounding_box.min;
+
+    Point shift = this->centered() ? bounding_box.center() : bounding_box.min;
+    if (params.align_center_of_surfaces) {
+        shift = direction.second;
+        bounding_box = extended_object_bounding_box();
+    }
     expolygon.translate(-shift.x(), -shift.y());
     bounding_box.translate(-shift.x(), -shift.y());
 
@@ -135,18 +138,18 @@ void FillPlanePath::_fill_surface_single(
                     Polyline center_spiral = std::move(*it);
 
                     // Ensure the spiral is printed from inside to out
-                    if (center_spiral.first_point().squaredNorm() > center_spiral.last_point().squaredNorm()) {
+                    if ((center_spiral.first_point().squaredNorm() > center_spiral.last_point().squaredNorm()) && params.can_reverse) {
                         center_spiral.reverse();
                     }
 
                     // Chain the other polylines
                     polylines.erase(it);
-                    chained = chain_polylines(std::move(polylines));
+                    chained = chain_polylines(std::move(polylines), nullptr, params.can_reverse);
 
                     // Then add the center spiral back
                     chained.push_back(std::move(center_spiral));
                 } else {
-                    chained = chain_polylines(std::move(polylines));
+                    chained = chain_polylines(std::move(polylines), nullptr, params.can_reverse);
                 }
             } else
                 connect_infill(std::move(polylines), expolygon, chained, this->spacing, params);

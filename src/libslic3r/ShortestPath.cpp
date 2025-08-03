@@ -1933,7 +1933,7 @@ static inline void improve_ordering_by_two_exchanges_with_segment_flipping(Polyl
 }
 
 // Used to optimize order of infill lines and brim lines.
-Polylines chain_polylines(Polylines &&polylines, const Point *start_near)
+Polylines chain_polylines(Polylines&& polylines, const Point* start_near, bool can_reverse)
 {
 #ifdef DEBUG_SVG_OUTPUT
 	static int iRun = 0;
@@ -1948,10 +1948,10 @@ Polylines chain_polylines(Polylines &&polylines, const Point *start_near)
 		out.reserve(polylines.size()); 
 		for (auto &segment_and_reversal : ordered) {
 			out.emplace_back(std::move(polylines[segment_and_reversal.first]));
-			if (segment_and_reversal.second)
+            if (segment_and_reversal.second && can_reverse)
 				out.back().reverse();
 		}
-		if (out.size() > 1 && start_near == nullptr) {
+        if (out.size() > 1 && start_near == nullptr && can_reverse) {
 			improve_ordering_by_two_exchanges_with_segment_flipping(out, start_near != nullptr);
 			//improve_ordering_by_segment_flipping(out, start_near != nullptr);
 		}

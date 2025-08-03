@@ -87,6 +87,14 @@ Sets the starting flow ratio while transitioning from the last bottom layer to t
 
 Sets the finishing flow ratio while ending the spiral. Normally the spiral transition scales the flow ratio from 100% to 0% during the last loop which can in some cases lead to under extrusion at the end of the spiral.
 
+### Aesthetic surfaces
+
+Aesthetic patterns on the top and bottom surfaces. Cancellation of reverse filling for some patterns to reduce color dispersion when using multi-colored plastics. This option can increase a printing time.
+
+### Align center of surfaces
+
+Align assembly/model center to the top and bottom surface patterns. Need for aesthetic purpose.
+
 ## Timelapse
 
 WIP...

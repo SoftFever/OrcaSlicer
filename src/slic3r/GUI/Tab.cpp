@@ -2234,7 +2234,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_wall_overlap", "strength_settings_infill#infill-wall-overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("align_infill_direction_to_model");
+        optgroup->append_single_option_line("align_infill_direction_to_model", "strength_settings_infill");
         optgroup->append_single_option_line("bridge_angle", "strength_settings_advanced#bridge-infill-direction");
         optgroup->append_single_option_line("internal_bridge_angle", "strength_settings_advanced#bridge-infill-direction"); // ORCA: Internal bridge angle override
         optgroup->append_single_option_line("minimum_sparse_infill_area", "strength_settings_advanced#minimum-sparse-infill-threshold");
@@ -2454,9 +2454,13 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
 
         optgroup->append_single_option_line("timelapse_type", "others_settings_special_mode#timelapse");
 
+        //optgroup = page->new_optgroup(L("Aesthetic"), L"param_aesthetic");
+        optgroup->append_single_option_line("aesthetic_surfaces", "others_settings_special_mode#aesthetic-surfaces");
+        optgroup->append_single_option_line("align_center_of_surfaces", "others_settings_special_mode#align-center-of-surfaces");
+
         optgroup = page->new_optgroup(L("Fuzzy Skin"), L"fuzzy_skin");
         optgroup->append_single_option_line("fuzzy_skin", "others_settings_special_mode#fuzzy-skin");
-        optgroup->append_single_option_line("fuzzy_skin_mode");
+        optgroup->append_single_option_line("fuzzy_skin_mode", "others_settings_special_mode#fuzzy-skin-generator-mode");
         optgroup->append_single_option_line("fuzzy_skin_noise_type", "others_settings_special_mode#fuzzy-skin-mode");
         optgroup->append_single_option_line("fuzzy_skin_point_distance", "others_settings_special_mode#point-distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness", "others_settings_special_mode#skin-thickness");
