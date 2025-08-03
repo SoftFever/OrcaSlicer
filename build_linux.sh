@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 SCRIPT_NAME=$(basename "$0")
-SCRIPT_PATH=$(dirname $(readlink -f ${0}))
+SCRIPT_PATH=$(dirname "$(readlink -f "${0}")")
 
-pushd ${SCRIPT_PATH} > /dev/null
+pushd "${SCRIPT_PATH}" > /dev/null
 
 set -e # Exit immediately if a command exits with a non-zero status.
 
@@ -22,7 +22,7 @@ function check_available_memory_and_disk() {
     fi
 
     if [[ ${FREE_DISK_KB} -le ${MIN_DISK_KB} ]] ; then
-        echo -e "\nERROR: Orca Slicer Builder requires at least $(echo ${MIN_DISK_KB} |awk '{ printf "%.1fG\n", $1/1024/1024; }') (system has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
+        echo -e "\nERROR: Orca Slicer Builder requires at least $(echo "${MIN_DISK_KB}" |awk '{ printf "%.1fG\n", $1/1024/1024; }') (system has only $(echo "${FREE_DISK_KB}" | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
         echo && df --human-readable . && echo
         echo "Invoke with -r to skip ram and disk checks."
         exit 1
@@ -72,7 +72,7 @@ while getopts ":1j:bcCdhiprsul" opt ; do
         BUILD_DEPS="1"
         ;;
     h ) usage
-        exit 0
+        exit 1
         ;;
     i )
         BUILD_IMAGE="1"
@@ -87,17 +87,21 @@ while getopts ":1j:bcCdhiprsul" opt ; do
         BUILD_ORCA="1"
         ;;
     u )
-        UPDATE_LIB="1"
+        export UPDATE_LIB="1"
         ;;
     l )
         USE_CLANG="1"
         ;;
+    * )
+	echo "Unknown argument '${opt}', aborting."
+	exit 1
+	;;
   esac
 done
 
 if [ ${OPTIND} -eq 1 ] ; then
     usage
-    exit 0
+    exit 1
 fi
 
 # cmake 4.x compatibility workaround
@@ -115,13 +119,13 @@ elif [[ "${DISTRIBUTION_LIKE}" == *"arch"* ]] ; then
     DISTRIBUTION="arch"
 fi
 
-if [ ! -f ./linux.d/${DISTRIBUTION} ] ; then
+if [ ! -f "./linux.d/${DISTRIBUTION}" ] ; then
     echo "Your distribution \"${DISTRIBUTION}\" is not supported by system-dependency scripts in ./linux.d/"
     echo "Please resolve dependencies manually and contribute a script for your distribution to upstream."
     exit 1
 else
     echo "resolving system dependencies for distribution \"${DISTRIBUTION}\" ..."
-    source ./linux.d/${DISTRIBUTION}
+    source "./linux.d/${DISTRIBUTION}"
 fi
 
 echo "FOUND_GTK3=${FOUND_GTK3}"
@@ -139,7 +143,7 @@ echo "Changing date in version..."
 echo "done"
 
 
-if ! [[ -n "${SKIP_RAM_CHECK}" ]] ; then
+if [[ -z "${SKIP_RAM_CHECK}" ]] ; then
     check_available_memory_and_disk
 fi
 
@@ -164,13 +168,13 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
         if [ ! -d "deps/build/release" ] ; then
             mkdir deps/build/release
         fi
-        cmake ${CMAKE_C_CXX_COMPILER_CLANG} -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${COLORED_OUTPUT} ${BUILD_ARGS}
+	cmake "${CMAKE_C_CXX_COMPILER_CLANG}" -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" "${COLORED_OUTPUT}" "${BUILD_ARGS}"
         cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
     echo "cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${BUILD_ARGS}"
-    cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}
+    cmake -S deps -B deps/build "${CMAKE_C_CXX_COMPILER_CLANG}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS}"
     cmake --build deps/build
 fi
 
