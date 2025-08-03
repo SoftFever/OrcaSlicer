@@ -28,6 +28,7 @@ Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wik
 - [Chamber temperature control](chamber-temperature)
 - [Adaptive Bed Mesh](adaptive-bed-mesh)
 - [Using different bed types in Orca](bed-types)
+- [Pellet Printers](Pellet-modded-printer)
 
 ## Material Settings
 
