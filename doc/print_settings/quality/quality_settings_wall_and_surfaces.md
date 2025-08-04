@@ -51,8 +51,8 @@ When using this option is recommended to use the [Precise Wall](quality_settings
 ## Wall loop direction
 
 The direction which the wall loops are extruded when looking down from the top.  
-By default all walls are extruded in counter-clockwise, unless Reverse on even is enabled.  
-Set this to any option other than Auto will force the wall direction regardless of the Reverse on even.
+By default all walls are extruded in counter-clockwise, unless [Reverse on even](quality_settings_overhangs#reverse-on-even) is enabled.  
+Set this to any option other than Auto will force the wall direction regardless of the [Reverse on even](quality_settings_overhangs#reverse-on-even).
 
 > [!NOTE]
 > This option will be disabled if spiral vase mode is enabled.
