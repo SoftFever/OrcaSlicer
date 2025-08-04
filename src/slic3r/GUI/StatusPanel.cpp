@@ -3944,42 +3944,33 @@ void StatusPanel::reset_printing_values()
 void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
 {
     if (!obj) return;
-    if (event.GetInt() == 0) { obj->command_axis_control("Y", 1.0, 10.0f, 3000); }
-    if (event.GetInt() == 1) { obj->command_axis_control("X", 1.0, -10.0f, 3000); }
-    if (event.GetInt() == 2) { obj->command_axis_control("Y", 1.0, -10.0f, 3000); }
-    if (event.GetInt() == 3) { obj->command_axis_control("X", 1.0, 10.0f, 3000); }
-    if (event.GetInt() == 4) { obj->command_axis_control("Y", 1.0, 1.0f, 3000); }
-    if (event.GetInt() == 5) { obj->command_axis_control("X", 1.0, -1.0f, 3000); }
-    if (event.GetInt() == 6) { obj->command_axis_control("Y", 1.0, -1.0f, 3000); }
-    if (event.GetInt() == 7) { obj->command_axis_control("X", 1.0, 1.0f, 3000); }
-    if (event.GetInt() == 8) {
-        if (obj->is_support_command_homing) {
-            obj->command_go_home2();
-        } else {
-            obj->command_go_home();
-        }
-    }
 
     //check is at home
-    if (event.GetInt() == 1
-        || event.GetInt() == 3
-        || event.GetInt() == 5
-        || event.GetInt() == 7) {
-        if (!obj->is_axis_at_home("X")) {
-            BOOST_LOG_TRIVIAL(info) << "axis x is not at home";
-            show_recenter_dialog();
-            return;
-        }
+    static std::unordered_set<int> s_x_ctrl_idxes { 1, 3, 5, 7};
+    static std::unordered_set<int> s_y_ctrl_idxes{ 0, 2, 4, 6 };
+    if (s_x_ctrl_idxes.count(event.GetInt()) != 0 && !obj->is_axis_at_home("X"))
+    {
+        BOOST_LOG_TRIVIAL(info) << "axis x is not at home";
+        show_recenter_dialog();
+        return;
     }
-    else if (event.GetInt() == 0
-        || event.GetInt() == 2
-        || event.GetInt() == 4
-        || event.GetInt() == 6) {
-        if (!obj->is_axis_at_home("Y")) {
-            BOOST_LOG_TRIVIAL(info) << "axis y is not at home";
-            show_recenter_dialog();
-            return;
-        }
+    else if (s_y_ctrl_idxes.count(event.GetInt()) != 0 && !obj->is_axis_at_home("Y"))
+    {
+        BOOST_LOG_TRIVIAL(info) << "axis y is not at home";
+        show_recenter_dialog();
+        return;
+    }
+
+    if (event.GetInt() == 0)      { obj->command_axis_control("Y", 1.0, 10.0f, 3000); }
+    else if (event.GetInt() == 1) { obj->command_axis_control("X", 1.0, -10.0f, 3000); }
+    else if (event.GetInt() == 2) { obj->command_axis_control("Y", 1.0, -10.0f, 3000); }
+    else if (event.GetInt() == 3) { obj->command_axis_control("X", 1.0, 10.0f, 3000); }
+    else if (event.GetInt() == 4) { obj->command_axis_control("Y", 1.0, 1.0f, 3000); }
+    else if (event.GetInt() == 5) { obj->command_axis_control("X", 1.0, -1.0f, 3000); }
+    else if (event.GetInt() == 6) { obj->command_axis_control("Y", 1.0, -1.0f, 3000); }
+    else if (event.GetInt() == 7) { obj->command_axis_control("X", 1.0, 1.0f, 3000); }
+    else if (event.GetInt() == 8) {
+        if (obj) { obj->command_go_home(); }
     }
 }
 

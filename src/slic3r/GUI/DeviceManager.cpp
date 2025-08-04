@@ -494,7 +494,6 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     mc_print_percent = 0;
     mc_print_sub_stage = 0;
     mc_left_time = 0;
-    home_flag = -1;
     hw_switch_state = 0;
 
     has_ipcam = true; // default true
@@ -836,18 +835,17 @@ bool MachineObject::check_pa_result_validation(PACalibResult& result)
 
 bool MachineObject::is_axis_at_home(std::string axis)
 {
-    if (home_flag < 0)
-        return true;
+    if (m_home_flag == 0) { return true; }
 
     if (axis == "X") {
-        return (home_flag & 1) == 1;
+        return (m_home_flag & 1) == 1;
     } else if (axis == "Y") {
-        return ((home_flag >> 1) & 1) == 1;
+        return ((m_home_flag >> 1) & 1) == 1;
     } else if (axis == "Z") {
-        return ((home_flag >> 2) & 1) == 1;
-    } else {
-        return true;
+        return ((m_home_flag >> 2) & 1) == 1;
     }
+
+    return true;
 }
 
 bool MachineObject::is_filament_at_extruder()
@@ -921,8 +919,10 @@ void MachineObject::parse_state_changed_event()
     last_mc_print_stage = mc_print_stage;
 }
 
-void MachineObject::parse_status(int flag)
+void MachineObject::parse_home_flag(int flag)
 {
+    m_home_flag = flag;
+
     is_220V_voltage = ((flag >> 3) & 0x1) != 0;
     if (time(nullptr) - xcam_auto_recovery_hold_start > HOLD_TIME_3SEC) {
         xcam_auto_recovery_step_loss = ((flag >> 4) & 0x1) != 0;
@@ -1299,16 +1299,16 @@ int MachineObject::command_auto_leveling()
 
 int MachineObject::command_go_home()
 {
-    return this->publish_gcode("G28 \n");
-}
+    if (m_support_mqtt_homing)
+    {
+        json j;
+        j["print"]["command"] = "back_to_center";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        return this->publish_json(j);
+    }
 
-int MachineObject::command_go_home2()
-{
-    BOOST_LOG_TRIVIAL(info) << "New protocol of command_go_home2";
-    json j;
-    j["print"]["command"]     = "back_to_center";
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    return this->publish_json(j);
+    // gcode command
+    return this->is_in_printing() ? this->publish_gcode("G28 X\n") : this->publish_gcode("G28 \n");
 }
 
 int MachineObject::command_task_abort()
@@ -2940,10 +2940,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                      DevStorage::ParseV1_0(jj, m_storage);
 
                     if (!key_field_only) {
-                        if (jj.contains("home_flag")) {
-                            home_flag = jj["home_flag"].get<int>();
-                            parse_status(home_flag);
-                        }
+                        if (jj.contains("home_flag")) { parse_home_flag(jj["home_flag"].get<int>());}
 
                         /*the param is invalid in np for Yeshu*/
                         if (jj.contains("hw_switch_state")) {
@@ -4826,7 +4823,7 @@ void MachineObject::parse_new_info(json print)
         is_support_nozzle_blob_detection = get_flag_bits(fun, 13);
         is_support_upgrade_kit = get_flag_bits(fun, 14);
         is_support_internal_timelapse = get_flag_bits(fun, 28);
-        is_support_command_homing = get_flag_bits(fun, 32);
+        m_support_mqtt_homing = get_flag_bits(fun, 32);
         is_support_brtc = get_flag_bits(fun, 31);
         m_support_mqtt_axis_control = get_flag_bits(fun, 38);
         m_support_mqtt_bet_ctrl = get_flag_bits(fun, 39);

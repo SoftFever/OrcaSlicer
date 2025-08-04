@@ -378,7 +378,7 @@ public:
     int     mc_print_percent;       /* left print progess in percent */
     int     mc_left_time;           /* left time in seconds */
     int     last_mc_print_stage;
-    int     home_flag;
+    int     m_home_flag = 0;
     int     hw_switch_state;
     bool    is_system_printing();
 
@@ -451,7 +451,7 @@ public:
     bool is_calibration_done();
 
     void parse_state_changed_event();
-    void parse_status(int flag);
+    void parse_home_flag(int flag);
 
     /* printing status */
     std::string print_status;      /* enum string: FINISH, SLICING, RUNNING, PAUSE, INIT, FAILED */
@@ -581,7 +581,7 @@ public:
     bool is_support_upgrade_kit{false};
     bool is_support_filament_setting_inprinting{false};
     bool is_support_internal_timelapse { false };// fun[28], support timelapse without SD card
-    bool is_support_command_homing { false };// fun[32]
+    bool m_support_mqtt_homing { false };// fun[32]
     bool is_support_brtc{false};                 // fun[31], support tcp and upload protocol
     bool is_support_ext_change_assist{false};
 
@@ -677,7 +677,6 @@ public:
     int command_xyz_abs();
     int command_auto_leveling();
     int command_go_home();
-    int command_go_home2();
 
     int command_task_abort();
     /* cancelled the job_id */
