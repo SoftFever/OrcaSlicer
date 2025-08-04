@@ -124,35 +124,40 @@ void FillPlanePath::_fill_surface_single(
         Polylines polylines = intersection_pl(polyline, expolygon);
         if (!polylines.empty()) {
             Polylines chained;
-            if (params.dont_connect() || params.density > 0.5) {
-                // ORCA: special flag for flow rate calibration
-                auto is_flow_calib = params.extrusion_role == erTopSolidInfill &&
-                                     this->print_object_config->has("calib_flowrate_topinfill_special_order") &&
-                                     this->print_object_config->option("calib_flowrate_topinfill_special_order")->getBool() &&
-                                     dynamic_cast<FillArchimedeanChords*>(this);
-                if (is_flow_calib) {
-                    // We want the spiral part to be printed inside-out
-                    // Find the center spiral line first, by looking for the longest one
-                    auto     it            = std::max_element(polylines.begin(), polylines.end(),
-                                                              [](const Polyline& a, const Polyline& b) { return a.length() < b.length(); });
-                    Polyline center_spiral = std::move(*it);
+            if (params.can_reverse) {
+                if ((params.dont_connect() || params.density > 0.5)) {
+                    // ORCA: special flag for flow rate calibration
+                    auto is_flow_calib = params.extrusion_role == erTopSolidInfill &&
+                                         this->print_object_config->has("calib_flowrate_topinfill_special_order") &&
+                                         this->print_object_config->option("calib_flowrate_topinfill_special_order")->getBool() &&
+                                         dynamic_cast<FillArchimedeanChords*>(this);
+                    if (is_flow_calib) {
+                        // We want the spiral part to be printed inside-out
+                        // Find the center spiral line first, by looking for the longest one
+                        auto     it            = std::max_element(polylines.begin(), polylines.end(),
+                                                                  [](const Polyline& a, const Polyline& b) { return a.length() < b.length(); });
+                        Polyline center_spiral = std::move(*it);
 
-                    // Ensure the spiral is printed from inside to out
-                    if ((center_spiral.first_point().squaredNorm() > center_spiral.last_point().squaredNorm()) && params.can_reverse) {
-                        center_spiral.reverse();
+                        // Ensure the spiral is printed from inside to out
+                        if ((center_spiral.first_point().squaredNorm() > center_spiral.last_point().squaredNorm())) {
+                            center_spiral.reverse();
+                        }
+
+                        // Chain the other polylines
+                        polylines.erase(it);
+                        chained = chain_polylines(std::move(polylines), nullptr);
+
+                        // Then add the center spiral back
+                        chained.push_back(std::move(center_spiral));
+                    } else {
+                        chained = chain_polylines(std::move(polylines), nullptr);
                     }
-
-                    // Chain the other polylines
-                    polylines.erase(it);
-                    chained = chain_polylines(std::move(polylines), nullptr, params.can_reverse);
-
-                    // Then add the center spiral back
-                    chained.push_back(std::move(center_spiral));
-                } else {
-                    chained = chain_polylines(std::move(polylines), nullptr, params.can_reverse);
-                }
-            } else
-                connect_infill(std::move(polylines), expolygon, chained, this->spacing, params);
+                } else
+                    connect_infill(std::move(polylines), expolygon, chained, this->spacing, params);
+            } else {
+                chained = std::move(polylines);
+                std::sort(chained.begin(), chained.end(), [](Polyline a, Polyline b) { return a.distance_to(Point(0., 0.)) < b.distance_to(Point(0., 0.)); });
+            }
             // paths must be repositioned and rotated back
             for (Polyline& pl : chained) {
                 pl.translate(shift.x(), shift.y());

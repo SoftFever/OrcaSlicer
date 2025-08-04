@@ -165,6 +165,11 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         if (is_flow_calib) {
             eec->no_sort = true;
         }
+
+        // disable sorting while aesthetic surfaces
+        if (!params.can_reverse) 
+            eec->no_sort = true;
+ 
         size_t idx   = eec->entities.size();
         if (params.use_arachne) {
             Flow new_flow = params.flow.with_spacing(float(this->spacing));
