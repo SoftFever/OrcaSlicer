@@ -166,7 +166,6 @@ static std::string _parse_printer_type(const std::string& type_str)
         }
     }
 
-    assert(0 && __FUNCTION__);
     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Unsupported printer type: " << type_str;
     return type_str;
 }
