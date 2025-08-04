@@ -405,6 +405,8 @@ protected:
     wxStaticText *  m_staticText_timelapse;
     SwitchButton *  m_bmToggleBtn_timelapse;
 
+    wxStaticText *m_mqtt_source;
+
     wxStaticBitmap *m_bitmap_camera_img;
     wxStaticBitmap *m_bitmap_recording_img;
     wxStaticBitmap *m_bitmap_timelapse_img;

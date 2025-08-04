@@ -171,6 +171,12 @@ public:
     bool is_lan_mode_printer() const { return dev_connection_type == "lan"; }
     bool is_cloud_mode_printer() const { return dev_connection_type == "cloud"; }
 
+    std::chrono::system_clock::time_point last_cloud_msg_time_;
+    std::chrono::system_clock::time_point last_lan_msg_time_;
+
+    bool HasRecentCloudMessage();
+    bool HasRecentLanMessage();
+
     std::string dev_connection_name;    /* lan | eth */
 
     /*access code*/

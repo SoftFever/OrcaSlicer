@@ -352,6 +352,20 @@ std::string MachineObject::get_ftp_folder()
     return DevPrinterConfigUtil::get_ftp_folder(printer_type);
 }
 
+bool MachineObject::HasRecentCloudMessage()
+{
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_cloud_msg_time_);
+    return diff.count() < 5000;
+}
+
+bool MachineObject::HasRecentLanMessage()
+{
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_lan_msg_time_);
+    return diff.count() < 5000;
+}
+
 std::string MachineObject::get_access_code() const
 {
     if (get_user_access_code().empty())
@@ -502,7 +516,7 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     auto vslot = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_slot.push_back(vslot);
 
-    {   
+    {
         m_lamp = new DevLamp(this);
         m_fan = new DevFan(this);
         m_bed = new DevBed(this);
@@ -2460,6 +2474,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
     BOOST_LOG_TRIVIAL(info) << "parse_json: payload = " << payload;
     flush_logs();
 #endif
+
+    if (tunnel == "lan") last_lan_msg_time_ = std::chrono::system_clock::now();
+    if (tunnel == "cloud") last_cloud_msg_time_ = std::chrono::system_clock::now();
 
     parse_msg_count++;
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
