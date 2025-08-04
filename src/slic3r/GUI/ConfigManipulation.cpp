@@ -457,7 +457,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         if (opt != nullptr) {
             if (opt->getInt() > filament_cnt) {
                 DynamicPrintConfig new_conf = *config;
-                new_conf.set_key_value(key, new ConfigOptionInt(0));
+                const DynamicPrintConfig *conf_temp = wxGetApp().plater()->config();
+                int new_value = 0;
+                if (conf_temp != nullptr && conf_temp->has(key)) {
+                    new_value = conf_temp->opt_int(key);
+                }
+                new_conf.set_key_value(key, new ConfigOptionInt(new_value));
                 apply(config, &new_conf);
             }
         }
