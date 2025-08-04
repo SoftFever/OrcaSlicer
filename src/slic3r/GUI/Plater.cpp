@@ -756,9 +756,9 @@ struct DynamicFilamentList : DynamicList
         cb->Clear();
         cb->Append(_L("Default"));
         for (auto i : items) {
-            cb->Append(i.first, *i.second);
+            cb->Append(i.first, i.second ? *i.second : wxNullBitmap);
         }
-        if (n < cb->GetCount())
+        if ((unsigned int)n < cb->GetCount())
             cb->SetSelection(n);
     }
     wxString get_value(int index) override
