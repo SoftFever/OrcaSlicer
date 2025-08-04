@@ -863,7 +863,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
                                                                                            const PrintConfig       &print_config,
                                                                                            ExPolygon                surface)
 {
-    coord_t anchors_size = std::min(coord_t(scale_(BRIDGE_INFILL_MARGIN)), overhang_flow.scaled_spacing() * (perimeter_count + 1));
+    coord_t anchors_size = std::min(coord_t(scale_(BRIDGE_INFILL_MARGIN)), overhang_flow.scaled_spacing());
 
     BoundingBox infill_area_bb = get_extents(infill_area).inflated(SCALED_EPSILON);
     Polygons optimized_lower_slices = ClipperUtils::clip_clipper_polygons_with_subject_bbox(lower_slices_polygons, infill_area_bb);
