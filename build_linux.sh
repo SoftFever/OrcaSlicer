@@ -17,7 +17,7 @@ function usage() {
     echo "   -g: build with debug symbols"
     echo "   -h: prints this help text"
     echo "   -i: build the Orca Slicer AppImage (optional)"
-    echo "   -I: Incremental, don\'t recreate the build files"
+    echo "   -I: Incremental, do not recreate the build files"
     echo "   -p: boost ccache hit rate by disabling precompiled headers (default: ON)"
     echo "   -r: skip RAM and disk checks (low RAM compiling)"
     echo "   -s: build the Orca Slicer (optional)"
@@ -179,25 +179,28 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
         rm -fr "${BUILD_DIR}"
     fi
     mkdir -p "${BUILD_DIR}"
-    # if [[ -n "${BUILD_DEBUG}" ]] ; then
-    #     # build deps with debug and release else cmake will not find required sources
-    #     mkdir -p "${BUILD_DIR}"/release
-    # 	cmake "${CMAKE_C_CXX_COMPILER_CLANG}" -S deps -B "${BUILD_DIR}"/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/"${BUILD_DIR}"/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" "${COLORED_OUTPUT}" "${BUILD_ARGS}"
-    #     cmake --build "${BUILD_DIR}"/release
-    # fi
     if [[ -n "${BUILD_DEBUG}" || -n "${BUILD_WITH_SYMBOLS}" ]]
     then
+	# export CMAKE_BUILD_TYPE=Release
+        # # build deps with debug and release else cmake will not find required sources
+	# # because debug files have a 'd' postfix
+	# # there's a solution for that though: https://cmake.org/cmake/help/latest/guide/tutorial/Packaging%20Debug%20and%20Release.html
+        # mkdir -p "${BUILD_DIR}"/release
+	# cmake "${CMAKE_C_CXX_COMPILER_CLANG}" -S . -B "${BUILD_DIR}"/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/${BUILD_DIR}/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" "${COLORED_OUTPUT}" "${BUILD_ARGS}"
+        # cmake --build "${BUILD_DIR}"/release
 	export CMAKE_BUILD_TYPE=Debug
     else
 	export CMAKE_BUILD_TYPE=Release
     fi
     if [[ -z "${INCREMENTAL}" ]]; then
-	set -x
-	cmake -S . -B "${BUILD_DIR}" "${CMAKE_C_CXX_COMPILER_CLANG}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS}"
+	# If this isn't in one quote, then empty variables can add double-quotes
+	# Unless we don't quote, then shellcheck complains.
+	CMAKE_CMD="cmake -S . -B ${BUILD_DIR} ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}"
+	echo "${CMAKE_CMD}"
+	${CMAKE_CMD}
     else
 	echo "Skip creating build files because -I is set"
     fi
-    { set +x; } 2> /dev/null # turn off echo silently
     cmake --build "${BUILD_DIR}"
     popd
 fi
@@ -228,18 +231,20 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     fi
 
     if [[ -z "${INCREMENTAL}" ]]; then
-	set -x
-	cmake -S . -B "${BUILD_DIR}" "${CMAKE_C_CXX_COMPILER_CLANG}" -G Ninja \
-	      -DSLIC3R_PCH="${SLIC3R_PRECOMPILED_HEADERS}" \
-	      -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/${BUILD_DIR}/destdir/usr/local" \
+	# If this isn't in one quote, then empty variables can add double-quotes
+	# We could just not quote, but then shellcheck complains.
+	CMAKE_CMD="cmake -S . -B ${BUILD_DIR} ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja \
+	      -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
+	      -DCMAKE_PREFIX_PATH=${SCRIPT_PATH}/deps/${BUILD_DIR}/destdir/usr/local \
 	      -DSLIC3R_STATIC=1 \
 	      -DORCA_TOOLS=ON \
-	      "${COLORED_OUTPUT}" \
-	      "${BUILD_ARGS}"
+	      ${COLORED_OUTPUT} \
+	      ${BUILD_ARGS}"
+	echo "${CMAKE_CMD}"
+	${CMAKE_CMD}
     else
 	echo "Skip creating build files because -I is set"
     fi
-    { set +x; } 2> /dev/null # turn off echo silently
     echo "done"
     echo "Building OrcaSlicer ..."
     cmake --build build --target OrcaSlicer
