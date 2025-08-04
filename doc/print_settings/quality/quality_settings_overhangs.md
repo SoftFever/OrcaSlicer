@@ -35,6 +35,7 @@ Create additional perimeter paths over steep overhangs and areas where bridges c
 
 Extrude perimeters that have a part over an overhang in the reverse direction on even layers. This alternating pattern can drastically improve steep overhangs.  
 This setting can also help reduce part warping due to the reduction of stresses in the part walls.
+This feature will only be available if [Wall loop direction](quality_settings_wall_and_surfaces#wall-loop-direction) is set on **Auto** and [spiral vase mode](others_settings_special_mode#spiral-vase) is **disabled**.
 
 ### Reverse internal only
 
