@@ -8,7 +8,7 @@ The implementation is designed to be straightforward, requiring no additional pl
 
 ![ABM-PrinterConfig](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Adaptative-Bed-Mesh/ABM-PrinterConfig.png?raw=true)
 
-## Settings in Orca Slicer:
+## Settings in Orca Slicer
 
 `Bed mesh min`: This option sets the min point for the allowed bed mesh area. Due to the probe's XY offset, most printers are unable to probe the entire bed. To ensure the probe point does not go outside the bed area, the minimum and maximum points of the bed mesh should be set appropriately. OrcaSlicer ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not exceed these min/max points. This information can usually be obtained from your printer manufacturer. The default setting is (-99999, -99999), which means there are no limits, thus allowing probing across the entire bed.
 
@@ -31,16 +31,16 @@ The implementation is designed to be straightforward, requiring no additional pl
 
 `ALGORITHM`: Identifies the algorithm used for adaptive bed mesh interpolation. This variable is useful for Klipper users. If bed_mesh_probe_count is less than 4, the algorithm is set to `lagrange`. Otherwise, it is set to `bicubic`.
 
-## Example of Adaptive Bed Mesh usage in Orca Slicer:
+## Example of Adaptive Bed Mesh usage in Orca Slicer
 
-### Marlin:
+### Marlin
 
 ```gcode
-; Marlin don't support speicify the probe count yet, so we only specify the probe area
+; Marlin don't support specify the probe count yet, so we only specify the probe area
 G29 L{adaptive_bed_mesh_min[0]} R{adaptive_bed_mesh_max[0]} F{adaptive_bed_mesh_min[1]} B{adaptive_bed_mesh_max[1]} T V4
 ```
 
-### Klipper:
+### Klipper
 
 ```gcode
 ; Always pass `ADAPTIVE_MARGIN=0` because Orca has already handled `adaptive_bed_mesh_margin` internally
@@ -48,7 +48,7 @@ G29 L{adaptive_bed_mesh_min[0]} R{adaptive_bed_mesh_max[0]} F{adaptive_bed_mesh_
 BED_MESH_CALIBRATE mesh_min={adaptive_bed_mesh_min[0]},{adaptive_bed_mesh_min[1]} mesh_max={adaptive_bed_mesh_max[0]},{adaptive_bed_mesh_max[1]} ALGORITHM=[bed_mesh_algo] PROBE_COUNT={bed_mesh_probe_count[0]},{bed_mesh_probe_count[1]} ADAPTIVE=0 ADAPTIVE_MARGIN=0
 ```
 
-### RRF:
+### RRF
 
 ```gcode
 M557 X{adaptive_bed_mesh_min[0]}:{adaptive_bed_mesh_max[0]} Y{adaptive_bed_mesh_min[1]}:{adaptive_bed_mesh_max[1]} P{bed_mesh_probe_count[0]}:{bed_mesh_probe_count[1]}

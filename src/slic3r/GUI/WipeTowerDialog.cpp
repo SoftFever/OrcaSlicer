@@ -7,6 +7,7 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
+#include "format.hpp"
 #include "libslic3r/Color.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/StaticLine.hpp"
@@ -14,6 +15,7 @@
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
+#include "Widgets/Label.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::GUI;
@@ -115,10 +117,24 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
     update_ui(m_chart);
  	sizer_chart->Add(m_chart, 0, wxALL, 5);
 
-    m_widget_time                             = new SpinInput(this, wxEmptyString, "ms" , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 5000 , 3000, 500);
-    m_widget_volume                           = new SpinInput(this, wxEmptyString, "mm³", wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 10000, 0   );
-    m_widget_ramming_line_width_multiplicator = new SpinInput(this, wxEmptyString, "%"  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 200  , 100 );
-    m_widget_ramming_step_multiplicator       = new SpinInput(this, wxEmptyString, "%"  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 200  , 100 );
+    // Create help text for constant flow rate dragging
+    std::string ctrl_str = GUI::shortkey_ctrl_prefix();
+    if (!ctrl_str.empty() && ctrl_str.back() == '+') 
+        ctrl_str.pop_back(); // Remove trailing '+'
+    wxString message = format_wxstr(_L("For constant flow rate, hold %1% while dragging."), ctrl_str);
+    Label* label = new Label(this, wxEmptyString);
+    wxClientDC dc(label);
+    wxString multiline_message;
+    label->SetFont(Label::Body_14);
+    label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
+    label->split_lines(dc, scale(470), message, multiline_message);
+    label->SetLabel(multiline_message);
+    sizer_chart->Add(label, 0, wxEXPAND | wxALL, 5);
+
+    m_widget_time                             = new SpinInput(this, wxEmptyString, "ms" , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 5000 , 3000, 250);
+    m_widget_volume                           = new SpinInput(this, wxEmptyString, wxString::FromUTF8("mm³"), wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 10000, 0   );
+    m_widget_ramming_line_width_multiplicator = new SpinInput(this, wxEmptyString, "%"  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 300  , 100 );
+    m_widget_ramming_step_multiplicator       = new SpinInput(this, wxEmptyString, "%"  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 300  , 100 );
 
     auto add_title = [this, sizer_param](wxString label){
         auto title = new StaticLine(this, 0, label);
@@ -219,82 +235,27 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     btn_sizer->AddStretchSpacer();
 
-    StateColor ok_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor ok_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor ok_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_bg(
-        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_bd_(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-
-    StateColor cancel_btn_text(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-
-
-    StateColor calc_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-    
-    StateColor calc_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-    
-    StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-
     if (flags & wxRESET) {
         Button *calc_btn = new Button(this, _L("Auto-Calc"));
-        calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
-        calc_btn->SetCornerRadius(FromDIP(12));
-        calc_btn->SetBackgroundColor(calc_btn_bg);
-        calc_btn->SetBorderColor(calc_btn_bd);
-        calc_btn->SetTextColor(calc_btn_text);
+        calc_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
         calc_btn->SetFocus();
         calc_btn->SetId(wxID_RESET);
-        btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceButtonGap()));
         m_button_list[wxRESET] = calc_btn;
     }
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
-        ok_btn->SetMinSize(BTN_SIZE);
-        ok_btn->SetCornerRadius(FromDIP(12));
-        ok_btn->SetBackgroundColor(ok_btn_bg);
-        ok_btn->SetBorderColor(ok_btn_bd);
-        ok_btn->SetTextColor(ok_btn_text);
+        ok_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
-        btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceButtonGap()));
         m_button_list[wxOK] = ok_btn;
     }
     if (flags & wxCANCEL) {
         Button* cancel_btn = new Button(this, _L("Cancel"));
-        cancel_btn->SetMinSize(BTN_SIZE);
-        cancel_btn->SetCornerRadius(FromDIP(12));
-        cancel_btn->SetBackgroundColor(cancel_btn_bg);
-        cancel_btn->SetBorderColor(cancel_btn_bd_);
-        cancel_btn->SetTextColor(cancel_btn_text);
+        cancel_btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
         cancel_btn->SetId(wxID_CANCEL);
-        btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::ChoiceButtonGap()));
         m_button_list[wxCANCEL] = cancel_btn;
     }
 
@@ -304,29 +265,11 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
 
 wxBoxSizer* WipingPanel::create_calc_btn_sizer(wxWindow* parent) {
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    StateColor calc_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor calc_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
 
     Button* calc_btn = new Button(parent, _L("Re-calculate"));
-    calc_btn->SetFont(Label::Body_13);
-    calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
-    calc_btn->SetCornerRadius(FromDIP(12));
-    calc_btn->SetBackgroundColor(calc_btn_bg);
-    calc_btn->SetBorderColor(calc_btn_bd);
-    calc_btn->SetTextColor(calc_btn_text);
+    calc_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
     calc_btn->SetFocus();
-    btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+    btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(ButtonProps::WindowButtonGap()));
     calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { calc_flushing_volumes(); });
 
     return btn_sizer;
@@ -337,8 +280,7 @@ void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
     {
         if (button_item.first == wxRESET) 
         {
-            button_item.second->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
-            button_item.second->SetCornerRadius(FromDIP(12));
+            button_item.second->Rescale();
         }
     }
     m_panel_wiping->msw_rescale();
