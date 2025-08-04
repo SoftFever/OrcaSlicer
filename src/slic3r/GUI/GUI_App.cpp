@@ -1901,6 +1901,33 @@ wxGLContext* GUI_App::init_glcontext(wxGLCanvas& canvas)
 bool GUI_App::init_opengl()
 {
 #ifdef __linux__
+    // Initialize graphics backend configuration before OpenGL initialization
+    // This is a safe place because GUI is ready but before graphics calls are made
+    static bool graphics_backend_initialized = false;
+    if (!graphics_backend_initialized) {
+        BOOST_LOG_TRIVIAL(info) << "Initializing graphics backend configuration...";
+        try {
+            GraphicsBackendManager& gbm = GraphicsBackendManager::get_instance();
+            
+            // Log current graphics information
+            gbm.log_graphics_info();
+            
+            // Detect and apply optimal graphics configuration
+            GraphicsBackendManager::GraphicsConfig detected_config = gbm.detect_graphics_environment();
+            GraphicsBackendManager::GraphicsConfig recommended_config = gbm.get_recommended_config();
+            
+            // Apply the recommended configuration
+            gbm.apply_graphics_config(recommended_config);
+            
+            BOOST_LOG_TRIVIAL(info) << "Graphics backend configuration completed.";
+            graphics_backend_initialized = true;
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(warning) << "Graphics backend configuration failed: " << e.what();
+            // Continue with default settings
+            graphics_backend_initialized = true;
+        }
+    }
+    
     bool status = m_opengl_mgr.init_gl();
     m_opengl_initialized = true;
     return status;
@@ -2298,22 +2325,6 @@ bool GUI_App::on_init_inner()
         std::cerr << "Quitting, user chose to move their data to new location." << std::endl;
         return false;
     }
-    
-    // Initialize graphics backend configuration for Linux systems
-    BOOST_LOG_TRIVIAL(info) << "Initializing graphics backend configuration...";
-    GraphicsBackendManager& gbm = GraphicsBackendManager::get_instance();
-    
-    // Log current graphics information
-    gbm.log_graphics_info();
-    
-    // Detect and apply optimal graphics configuration
-    GraphicsBackendManager::GraphicsConfig detected_config = gbm.detect_graphics_environment();
-    GraphicsBackendManager::GraphicsConfig recommended_config = gbm.get_recommended_config();
-    
-    // Apply the recommended configuration
-    gbm.apply_graphics_config(recommended_config);
-    
-    BOOST_LOG_TRIVIAL(info) << "Graphics backend configuration completed.";
 #endif
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current OrcaSlicer Version %1%")%SoftFever_VERSION;

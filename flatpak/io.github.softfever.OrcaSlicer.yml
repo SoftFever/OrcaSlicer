@@ -8,13 +8,20 @@ rename-icon: OrcaSlicer
 finish-args:
   - --share=ipc
   - --socket=x11
+  - --socket=wayland
+  - --socket=fallback-x11
   - --share=network
   - --device=all
+  - --device=dri
   - --filesystem=home
   - --filesystem=xdg-run/gvfs
   - --filesystem=/run/media
   - --filesystem=/media
   - --filesystem=/run/spnav.sock:ro
+  # Allow access to system graphics information for auto-detection
+  - --filesystem=/sys/class/drm:ro
+  - --filesystem=/proc/driver/nvidia:ro
+  - --filesystem=/usr/share/glvnd:ro
   # Allow OrcaSlicer to talk to other instances
   - --talk-name=io.github.softfever.OrcaSlicer.InstanceCheck.*
   - --system-talk-name=org.freedesktop.UDisks2
@@ -48,6 +55,25 @@ modules:
       - /lib/*.a
       - /lib/*.la
       - /lib/pkgconfig
+
+  # Mesa utilities for graphics detection
+  - name: mesa-utils
+    sources:
+      - type: archive
+        url: https://archive.mesa3d.org/demos/mesa-demos-9.0.0.tar.xz
+        sha256: 3046a3d26a7b051af7ebdd257a5f23bfeb160cad6ed952329cdff1e9f1ed496b
+    modules:
+      - name: freeglut
+        sources:
+          - type: archive
+            url: https://github.com/FreeGLUTProject/freeglut/releases/download/v3.4.0/freeglut-3.4.0.tar.gz
+            sha256: 3c0bcb915d9b180a97edaebd011b7a1de54583a838644dcd42bb0ea0c6f3eaec
+    cleanup:
+      - /include
+      - /lib/*.a
+      - /lib/*.la
+      - /lib/pkgconfig
+      - /share/man
 
   - name: kde-extra-cmake-modules
     buildsystem: cmake-ninja

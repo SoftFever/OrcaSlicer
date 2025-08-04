@@ -1,5 +1,4 @@
 #include "GraphicsBackendManager.hpp"
-#include "libslic3r/Platform.hpp"
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -7,7 +6,6 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
-#include <iostream>
 
 #ifdef __linux__
 #include <unistd.h>
@@ -75,6 +73,12 @@ GraphicsBackendManager::SessionType GraphicsBackendManager::detect_session_type(
 GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_driver()
 {
 #ifdef __linux__
+    // First try container-aware detection methods
+    GraphicsDriver container_driver = detect_graphics_driver_container_aware();
+    if (container_driver != GraphicsDriver::Unknown) {
+        return container_driver;
+    }
+    
     // Try to get OpenGL vendor and renderer info
     std::string glx_info = get_glx_info();
     std::string egl_info = get_egl_info();
@@ -120,7 +124,7 @@ GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_d
         return GraphicsDriver::Mesa;
     }
     
-    // Try to run glxinfo as fallback
+    // Try to run glxinfo as fallback (may not work in containers)
     BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: GLX/EGL detection failed, trying glxinfo fallback";
     std::string glx_output = execute_command("glxinfo 2>/dev/null | grep 'OpenGL vendor\\|OpenGL renderer'");
     if (!glx_output.empty()) {
@@ -172,6 +176,154 @@ GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_d
 #endif
 }
 
+GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_driver_container_aware()
+{
+#ifdef __linux__
+    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Using container-aware graphics detection";
+    
+    // Check if running in container
+    bool in_container = is_running_in_container();
+    if (in_container) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Running in container, using filesystem-based detection";
+    }
+    
+    // Try environment variable based detection first
+    const char* gl_vendor = std::getenv("__GLX_VENDOR_LIBRARY_NAME");
+    if (gl_vendor) {
+        std::string vendor(gl_vendor);
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: __GLX_VENDOR_LIBRARY_NAME=" << vendor;
+        if (boost::icontains(vendor, "nvidia")) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA via environment variable";
+            return GraphicsDriver::NVIDIA;
+        } else if (boost::icontains(vendor, "mesa")) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Mesa via environment variable";
+            return GraphicsDriver::Mesa;
+        }
+    }
+    
+    // Try to detect NVIDIA via filesystem access
+    // Check for NVIDIA driver files
+    std::string nvidia_version = read_file_content("/proc/driver/nvidia/version");
+    if (!nvidia_version.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA driver via /proc/driver/nvidia/version";
+        return GraphicsDriver::NVIDIA;
+    }
+    
+    // Check for DRM devices to detect graphics hardware
+    std::string drm_devices = execute_command("ls -1 /sys/class/drm/card*/device/vendor 2>/dev/null | head -5");
+    if (!drm_devices.empty()) {
+        // Read vendor IDs from DRM
+        std::istringstream iss(drm_devices);
+        std::string vendor_file;
+        while (std::getline(iss, vendor_file)) {
+            std::string vendor_id = read_file_content(vendor_file);
+            if (!vendor_id.empty()) {
+                // Remove newline and whitespace
+                boost::trim(vendor_id);
+                BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Found DRM vendor ID: " << vendor_id;
+                
+                if (vendor_id == "0x10de") {  // NVIDIA
+                    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA via DRM vendor ID";
+                    return GraphicsDriver::NVIDIA;
+                } else if (vendor_id == "0x1002") {  // AMD
+                    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected AMD via DRM vendor ID";
+                    return GraphicsDriver::AMD;
+                } else if (vendor_id == "0x8086") {  // Intel
+                    BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Intel via DRM vendor ID";
+                    return GraphicsDriver::Intel;
+                }
+            }
+        }
+    }
+    
+    // Check for Mesa drivers in common locations
+    std::string mesa_check = execute_command("find /usr/lib* -name 'libGL.so*' -exec readlink -f {} \\; 2>/dev/null | grep -i mesa | head -1");
+    if (!mesa_check.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Mesa via library search";
+        return GraphicsDriver::Mesa;
+    }
+    
+    // If we're in a container and couldn't detect anything specific, check if we're supposed to use host graphics
+    if (in_container) {
+        // In containers, we often rely on the host system's graphics
+        const char* display = std::getenv("DISPLAY");
+        const char* wayland_display = std::getenv("WAYLAND_DISPLAY");
+        
+        if (display || wayland_display) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Container with display forwarding, defaulting to DRI backend";
+            // Return Mesa as a safe default for containers with display forwarding
+            return GraphicsDriver::Mesa;
+        }
+    }
+    
+    return GraphicsDriver::Unknown;
+#else
+    return GraphicsDriver::Unknown;
+#endif
+}
+
+bool GraphicsBackendManager::is_running_in_container()
+{
+#ifdef __linux__
+    // Check for Flatpak
+    const char* flatpak_id = std::getenv("FLATPAK_ID");
+    if (flatpak_id) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Running in Flatpak: " << flatpak_id;
+        return true;
+    }
+    
+    // Check for AppImage
+    const char* appimage = std::getenv("APPIMAGE");
+    const char* orcaslicer_appimage = std::getenv("ORCASLICER_APPIMAGE");
+    if (appimage || orcaslicer_appimage) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Running in AppImage: " 
+                                << (appimage ? appimage : "detected via ORCASLICER_APPIMAGE");
+        return true;
+    }
+    
+    // Check for Docker/other containers via cgroup
+    std::string cgroup = read_file_content("/proc/1/cgroup");
+    if (!cgroup.empty() && (boost::icontains(cgroup, "docker") || 
+                           boost::icontains(cgroup, "lxc") || 
+                           boost::icontains(cgroup, "containerd"))) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Running in container (detected via cgroup)";
+        return true;
+    }
+    
+    // Check for container via /.dockerenv or other indicators
+    std::ifstream dockerenv("/.dockerenv");
+    if (dockerenv.good()) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Running in Docker container";
+        return true;
+    }
+    
+    return false;
+#else
+    return false;
+#endif
+}
+
+std::string GraphicsBackendManager::read_file_content(const std::string& filepath)
+{
+#ifdef __linux__
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        return "";
+    }
+    
+    std::stringstream buffer;
+    try {
+        buffer << file.rdbuf();
+        return buffer.str();
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Error reading " << filepath << ": " << e.what();
+        return "";
+    }
+#else
+    return "";
+#endif
+}
+
 std::string GraphicsBackendManager::get_nvidia_driver_version()
 {
 #ifdef __linux__
@@ -216,11 +368,21 @@ bool GraphicsBackendManager::is_nvidia_driver_newer_than(int major_version)
 
 std::string GraphicsBackendManager::get_glx_info()
 {
+    // In containers, this might not work or might interfere with initialization
+    // Use safer detection methods first
+    if (is_running_in_container()) {
+        return "";
+    }
     return execute_command("glxinfo 2>/dev/null | grep -E 'OpenGL vendor|OpenGL renderer' | head -10");
 }
 
 std::string GraphicsBackendManager::get_egl_info()
 {
+    // In containers, this might not work or might interfere with initialization
+    // Use safer detection methods first
+    if (is_running_in_container()) {
+        return "";
+    }
     return execute_command("eglinfo 2>/dev/null | grep -E 'EGL vendor|EGL renderer' | head -10");
 }
 
@@ -489,24 +651,28 @@ void GraphicsBackendManager::log_graphics_info()
 {
     BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Current graphics information:";
     
-    GraphicsConfig detected = detect_graphics_environment();
-    BOOST_LOG_TRIVIAL(info) << "  Session Type: " 
-                            << (detected.session_type == SessionType::Wayland ? "Wayland" : 
-                                detected.session_type == SessionType::X11 ? "X11" : "Unknown");
-    BOOST_LOG_TRIVIAL(info) << "  Graphics Driver: " 
-                            << (detected.driver == GraphicsDriver::NVIDIA ? "NVIDIA" :
-                                detected.driver == GraphicsDriver::AMD ? "AMD" :
-                                detected.driver == GraphicsDriver::Intel ? "Intel" :
-                                detected.driver == GraphicsDriver::Mesa ? "Mesa" : "Unknown");
-    
-    if (detected.driver == GraphicsDriver::NVIDIA) {
-        std::string nvidia_version = get_nvidia_driver_version();
-        if (!nvidia_version.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "  NVIDIA Driver Version: " << nvidia_version;
+    try {
+        GraphicsConfig detected = detect_graphics_environment();
+        BOOST_LOG_TRIVIAL(info) << "  Session Type: " 
+                                << (detected.session_type == SessionType::Wayland ? "Wayland" : 
+                                    detected.session_type == SessionType::X11 ? "X11" : "Unknown");
+        BOOST_LOG_TRIVIAL(info) << "  Graphics Driver: " 
+                                << (detected.driver == GraphicsDriver::NVIDIA ? "NVIDIA" :
+                                    detected.driver == GraphicsDriver::AMD ? "AMD" :
+                                    detected.driver == GraphicsDriver::Intel ? "Intel" :
+                                    detected.driver == GraphicsDriver::Mesa ? "Mesa" : "Unknown");
+        
+        if (detected.driver == GraphicsDriver::NVIDIA) {
+            std::string nvidia_version = get_nvidia_driver_version();
+            if (!nvidia_version.empty()) {
+                BOOST_LOG_TRIVIAL(info) << "  NVIDIA Driver Version: " << nvidia_version;
+            }
         }
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Error during graphics info logging: " << e.what();
     }
     
-    // Log current environment variables
+    // Log current environment variables (these are always safe)
     const char* gbm_backend = std::getenv("GBM_BACKEND");
     if (gbm_backend) {
         BOOST_LOG_TRIVIAL(info) << "  GBM_BACKEND: " << gbm_backend;
@@ -520,6 +686,11 @@ void GraphicsBackendManager::log_graphics_info()
     const char* gallium_driver = std::getenv("GALLIUM_DRIVER");
     if (gallium_driver) {
         BOOST_LOG_TRIVIAL(info) << "  GALLIUM_DRIVER: " << gallium_driver;
+    }
+    
+    // Log container detection
+    if (is_running_in_container()) {
+        BOOST_LOG_TRIVIAL(info) << "  Container Environment: Detected";
     }
 }
 

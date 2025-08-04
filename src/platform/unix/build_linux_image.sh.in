@@ -64,6 +64,9 @@ if [ "\$XDG_SESSION_TYPE" = "wayland" ] && [ "\$ZINK_DISABLE_OVERRIDE" != "1" ];
         fi
     fi
 fi
+
+# Set environment variable to help GraphicsBackendManager detect AppImage environment
+export ORCASLICER_APPIMAGE=1
 exec "\$DIR/bin/@SLIC3R_APP_CMD@" "\$@"
 EOF
 

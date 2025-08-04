@@ -2,8 +2,6 @@
 #define slic3r_GraphicsBackendManager_hpp_
 
 #include <string>
-#include <map>
-#include <vector>
 
 namespace Slic3r {
 namespace GUI {
@@ -70,6 +68,9 @@ private:
     // Helper methods
     SessionType detect_session_type();
     GraphicsDriver detect_graphics_driver();
+    GraphicsDriver detect_graphics_driver_container_aware();
+    bool is_running_in_container();
+    std::string read_file_content(const std::string& filepath);
     std::string get_nvidia_driver_version();
     bool is_nvidia_driver_newer_than(int major_version);
     std::string get_glx_info();
