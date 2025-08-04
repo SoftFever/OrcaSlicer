@@ -230,6 +230,7 @@ public:
 protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
+    wxBoxSizer* create_ams_items_sizer(wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, int nozzle_id);
 
     void init_selection_values();
     void update_filament_combobox(std::string ams_id = "");
@@ -363,4 +364,3 @@ public:
 }} // namespace Slic3r::GUI
 
 #endif
-
