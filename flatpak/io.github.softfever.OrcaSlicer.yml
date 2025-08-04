@@ -56,24 +56,6 @@ modules:
       - /lib/*.la
       - /lib/pkgconfig
 
-  # Mesa utilities for graphics detection
-  - name: mesa-utils
-    sources:
-      - type: archive
-        url: https://archive.mesa3d.org/demos/mesa-demos-9.0.0.tar.xz
-        sha256: 3046a3d26a7b051af7ebdd257a5f23bfeb160cad6ed952329cdff1e9f1ed496b
-    modules:
-      - name: freeglut
-        sources:
-          - type: archive
-            url: https://github.com/FreeGLUTProject/freeglut/releases/download/v3.4.0/freeglut-3.4.0.tar.gz
-            sha256: 3c0bcb915d9b180a97edaebd011b7a1de54583a838644dcd42bb0ea0c6f3eaec
-    cleanup:
-      - /include
-      - /lib/*.a
-      - /lib/*.la
-      - /lib/pkgconfig
-      - /share/man
 
   - name: kde-extra-cmake-modules
     buildsystem: cmake-ninja
