@@ -1440,6 +1440,7 @@ void GCodeProcessorResult::reset() {
     printable_area = Pointfs();
     //BBS: add bed exclude area
     bed_exclude_area = Pointfs();
+    wrapping_exclude_area = Pointfs();
     //BBS: add toolpath_outside
     toolpath_outside = false;
     //BBS: add label_object_enabled
@@ -1468,6 +1469,7 @@ void GCodeProcessorResult::reset() {
     printable_area = Pointfs();
     //BBS: add bed exclude area
     bed_exclude_area = Pointfs();
+    wrapping_exclude_area = Pointfs();
     //BBS: add toolpath_outside
     toolpath_outside = false;
     //BBS: add label_object_enabled
@@ -1989,6 +1991,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionPoints* bed_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area");
     if (bed_exclude_area != nullptr)
         m_result.bed_exclude_area = bed_exclude_area->values;
+
+    const ConfigOptionPoints* wrapping_exclude_area = config.option<ConfigOptionPoints>("wrapping_exclude_area");
+    if (wrapping_exclude_area != nullptr)
+        m_result.wrapping_exclude_area = wrapping_exclude_area->values;
 
     const ConfigOptionString* print_settings_id = config.option<ConfigOptionString>("print_settings_id");
     if (print_settings_id != nullptr)

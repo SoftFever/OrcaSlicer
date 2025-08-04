@@ -227,6 +227,7 @@ class Print;
         Pointfs printable_area;
         //BBS: add bed exclude area
         Pointfs bed_exclude_area;
+        Pointfs wrapping_exclude_area;
         std::vector<Pointfs> extruder_areas;
         std::vector<double> extruder_heights;
         //BBS: add toolpath_outside
@@ -277,6 +278,7 @@ class Print;
             lines_ends = other.lines_ends;
             printable_area = other.printable_area;
             bed_exclude_area = other.bed_exclude_area;
+            wrapping_exclude_area = other.wrapping_exclude_area;
             toolpath_outside = other.toolpath_outside;
             label_object_enabled = other.label_object_enabled;
             long_retraction_when_cut = other.long_retraction_when_cut;
