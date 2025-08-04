@@ -98,7 +98,7 @@ namespace BBL {
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
 #define BAMBU_NETWORK_AGENT_VERSION_LEGACY  "01.10.01.01"
-#define BAMBU_NETWORK_AGENT_VERSION         "02.02.00.60"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.01.01.52"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -276,7 +276,6 @@ struct PrintParams {
     int             auto_bed_leveling{ 0 };
     int             auto_flow_cali{ 0 };
     int             auto_offset_cali{ 0 };
-    bool            task_ext_change_assist{ false };
 };
 
 struct TaskQueryParams
