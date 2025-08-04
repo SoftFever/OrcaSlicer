@@ -64,13 +64,11 @@ Controls the speed of a wipe motion, i.e., how fast the nozzle will move over a 
 
 If role-based wipe speed is disabled, set this field to the absolute wipe speed or as a percentage over the travel speed.
 
-### Wipe on loop(inward movement)
+### Wipe on loop (inward movement)
 
 When finishing printing a "loop" (i.e., an extrusion that starts and ends at the same point), move the nozzle slightly inwards towards the part. That move aims to reduce seam unevenness by tucking in the end of the seam to the part. It also slightly cleans the nozzle before traveling to the next area of the model, reducing stringing.
 
 ![seam-wipe-on-loop](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-wipe-on-loop.png?raw=true)
-
-![seam-outer-wall-wipe](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-outer-wall-wipe.png?raw=true)
 
 ![seam-wipe-on-loops-options](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-wipe-on-loops-options.png?raw=true)
 
