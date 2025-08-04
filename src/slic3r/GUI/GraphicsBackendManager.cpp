@@ -12,10 +12,18 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <pwd.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <EGL/egl.h>
 #endif
 
 namespace Slic3r {
 namespace GUI {
+
+// Thread safety for OpenGL detection operations
+std::mutex GraphicsBackendManager::opengl_detection_mutex_;
 
 GraphicsBackendManager& GraphicsBackendManager::get_instance()
 {
@@ -79,7 +87,8 @@ GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_d
         return container_driver;
     }
     
-    // Try to get OpenGL vendor and renderer info
+    // Try to get OpenGL vendor and renderer info using direct OpenGL API calls
+    // This creates minimal OpenGL contexts (GLX/EGL) and uses glGetString() directly
     std::string glx_info = get_glx_info();
     std::string egl_info = get_egl_info();
     
@@ -124,29 +133,29 @@ GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_d
         return GraphicsDriver::Mesa;
     }
     
-    // Try to run glxinfo as fallback (may not work in containers)
-    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: GLX/EGL detection failed, trying glxinfo fallback";
+    // Try to run glxinfo as final fallback (may not work in containers)
+    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Direct OpenGL and GLX/EGL detection failed, trying glxinfo fallback";
     std::string glx_output = execute_command("glxinfo 2>/dev/null | grep 'OpenGL vendor\\|OpenGL renderer'");
     if (!glx_output.empty()) {
-        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: glxinfo output: " << glx_output.substr(0, 200);
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: glxinfo fallback output: " << glx_output.substr(0, 200);
         
         if (boost::icontains(glx_output, "nvidia")) {
-            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA driver via glxinfo fallback";
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA driver via glxinfo final fallback";
             return GraphicsDriver::NVIDIA;
         } else if (boost::icontains(glx_output, "amd") || boost::icontains(glx_output, "radeon")) {
-            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected AMD driver via glxinfo fallback";
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected AMD driver via glxinfo final fallback";
             return GraphicsDriver::AMD;
         } else if (boost::icontains(glx_output, "intel")) {
-            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Intel driver via glxinfo fallback";
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Intel driver via glxinfo final fallback";
             return GraphicsDriver::Intel;
         } else if (boost::icontains(glx_output, "mesa")) {
-            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Mesa driver via glxinfo fallback";
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected Mesa driver via glxinfo final fallback";
             return GraphicsDriver::Mesa;
         }
     }
     
     // Try additional fallback methods
-    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: glxinfo fallback failed, trying additional methods";
+    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: All OpenGL detection methods failed, trying hardware-based fallbacks";
     
     // Check for NVIDIA using nvidia-smi
     std::string nvidia_check = execute_command("nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -n1");
@@ -366,10 +375,259 @@ bool GraphicsBackendManager::is_nvidia_driver_newer_than(int major_version)
     }
 }
 
+/**
+ * Helper function to query OpenGL strings and check for errors.
+ * 
+ * @param context_type String describing the context type for logging (e.g., "GLX", "EGL")
+ * @return String containing OpenGL vendor, renderer, and version information,
+ *         or empty string if detection fails or errors occur
+ */
+std::string GraphicsBackendManager::query_opengl_strings(const std::string& context_type)
+{
+#ifdef __linux__
+    // Query OpenGL information
+    const GLubyte* vendor = glGetString(GL_VENDOR);
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: OpenGL error after glGetString(GL_VENDOR): " << error;
+        return "";
+    }
+    
+    const GLubyte* renderer = glGetString(GL_RENDERER);
+    error = glGetError();
+    if (error != GL_NO_ERROR) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: OpenGL error after glGetString(GL_RENDERER): " << error;
+        return "";
+    }
+    
+    const GLubyte* version = glGetString(GL_VERSION);
+    error = glGetError();
+    if (error != GL_NO_ERROR) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: OpenGL error after glGetString(GL_VERSION): " << error;
+        return "";
+    }
+    
+    if (vendor && renderer && version) {
+        std::string result = "OpenGL vendor string: " + std::string(reinterpret_cast<const char*>(vendor)) + "\n";
+        result += "OpenGL renderer string: " + std::string(reinterpret_cast<const char*>(renderer)) + "\n";
+        result += "OpenGL version string: " + std::string(reinterpret_cast<const char*>(version));
+        
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Successfully retrieved OpenGL info via " << context_type;
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Vendor: " << reinterpret_cast<const char*>(vendor);
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Renderer: " << reinterpret_cast<const char*>(renderer);
+        return result;
+    }
+    
+    BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: glGetString returned null pointers via " << context_type;
+    return "";
+#else
+    return "";
+#endif
+}
+
+/**
+ * Direct OpenGL graphics detection using native API calls.
+ * 
+ * This function creates minimal OpenGL contexts to query graphics information directly
+ * via OpenGL API calls, eliminating dependency on external tools like glxinfo/eglinfo.
+ * 
+ * Detection process:
+ * 1. Try GLX context creation (for X11 environments)
+ * 2. Try EGL context creation (for Wayland/headless environments)
+ * 3. Query glGetString(GL_VENDOR/GL_RENDERER/GL_VERSION)
+ * 4. Clean up all created resources
+ * 
+ * Benefits:
+ * - Works reliably in containers (Docker, Flatpak, AppImage)
+ * - No external command dependencies
+ * - Better error handling and logging
+ * - Supports both X11 and Wayland
+ * 
+ * @return String containing OpenGL vendor, renderer, and version information,
+ *         or empty string if detection fails
+ */
+std::string GraphicsBackendManager::get_opengl_info_direct()
+{
+#ifdef __linux__
+    // Thread safety: X11 and EGL operations are not thread-safe
+    std::lock_guard<std::mutex> lock(opengl_detection_mutex_);
+    
+    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Attempting direct OpenGL detection";
+    
+    std::string result;
+    Display* display = nullptr;
+    GLXContext context = nullptr;
+    Window window = 0;
+    Colormap colormap = 0;
+    XVisualInfo* visual = nullptr;
+    
+    try {
+        // Try X11 first
+        display = XOpenDisplay(nullptr);
+        if (display) {
+            BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: X11 display opened successfully";
+            
+            // Get a visual
+            int screen = DefaultScreen(display);
+            int attribs[] = {
+                GLX_RGBA,
+                GLX_RED_SIZE, 1,
+                GLX_GREEN_SIZE, 1,
+                GLX_BLUE_SIZE, 1,
+                GLX_DEPTH_SIZE, 12,
+                GLX_DOUBLEBUFFER,
+                None
+            };
+            
+            visual = glXChooseVisual(display, screen, attribs);
+            if (visual) {
+                BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: GLX visual chosen successfully";
+                
+                // Create a minimal window
+                Window root = RootWindow(display, screen);
+                colormap = XCreateColormap(display, root, visual->visual, AllocNone);
+                
+                XSetWindowAttributes attrs;
+                attrs.colormap = colormap;
+                attrs.event_mask = 0;
+                
+                window = XCreateWindow(display, root, 0, 0, 1, 1, 0,
+                                     visual->depth, InputOutput, visual->visual,
+                                     CWColormap | CWEventMask, &attrs);
+                
+                if (window) {
+                    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: X11 window created successfully";
+                    
+                    // Create OpenGL context
+                    context = glXCreateContext(display, visual, nullptr, GL_TRUE);
+                    if (context && glXMakeCurrent(display, window, context)) {
+                        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: OpenGL context created and made current";
+                        
+                        // Query OpenGL information using helper function
+                        result = query_opengl_strings("GLX");
+                        
+                        glXMakeCurrent(display, None, nullptr);
+                    } else {
+                        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Failed to create or make current OpenGL context";
+                    }
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Failed to create X11 window";
+                }
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Failed to choose GLX visual";
+            }
+        } else {
+            BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: X11 display not available, trying EGL";
+            
+            // Try EGL as fallback (for Wayland or headless)
+            EGLDisplay egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+            if (egl_display != EGL_NO_DISPLAY) {
+                EGLint major, minor;
+                if (eglInitialize(egl_display, &major, &minor)) {
+                    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: EGL initialized successfully";
+                    
+                    EGLint config_attribs[] = {
+                        EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+                        EGL_BLUE_SIZE, 8,
+                        EGL_GREEN_SIZE, 8,
+                        EGL_RED_SIZE, 8,
+                        EGL_DEPTH_SIZE, 8,
+                        EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+                        EGL_NONE
+                    };
+                    
+                    EGLConfig config;
+                    EGLint num_configs;
+                    if (eglChooseConfig(egl_display, config_attribs, &config, 1, &num_configs) && num_configs > 0) {
+                        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: EGL config chosen successfully";
+                        
+                        // Create a pbuffer surface
+                        EGLint pbuffer_attribs[] = {
+                            EGL_WIDTH, 1,
+                            EGL_HEIGHT, 1,
+                            EGL_NONE
+                        };
+                        
+                        EGLSurface surface = eglCreatePbufferSurface(egl_display, config, pbuffer_attribs);
+                        if (surface != EGL_NO_SURFACE) {
+                            BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: EGL pbuffer surface created successfully";
+                            
+                            eglBindAPI(EGL_OPENGL_API);
+                            EGLContext egl_context = eglCreateContext(egl_display, config, EGL_NO_CONTEXT, nullptr);
+                            
+                            if (egl_context != EGL_NO_CONTEXT && eglMakeCurrent(egl_display, surface, surface, egl_context)) {
+                                BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: EGL context created and made current";
+                                
+                                // Query OpenGL information using helper function
+                                result = query_opengl_strings("EGL");
+                                
+                                eglMakeCurrent(egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+                                eglDestroyContext(egl_display, egl_context);
+                            } else {
+                                BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Failed to create or make current EGL context";
+                            }
+                            
+                            eglDestroySurface(egl_display, surface);
+                        } else {
+                            BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Failed to create EGL pbuffer surface";
+                        }
+                    } else {
+                        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Failed to choose EGL config";
+                    }
+                    
+                    eglTerminate(egl_display);
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Failed to initialize EGL";
+                }
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: EGL display not available";
+            }
+        }
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "GraphicsBackendManager: Exception during direct OpenGL detection: " << e.what();
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "GraphicsBackendManager: Unknown exception during direct OpenGL detection";
+    }
+    
+    // Cleanup X11 resources (fixing resource leaks)
+    if (context) {
+        glXDestroyContext(display, context);
+    }
+    if (window && display) {
+        XDestroyWindow(display, window);
+    }
+    if (colormap && display) {
+        XFreeColormap(display, colormap);
+    }
+    if (visual) {
+        XFree(visual);
+    }
+    if (display) {
+        XCloseDisplay(display);
+    }
+    
+    if (result.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Direct OpenGL detection failed, falling back to command-line tools";
+    }
+    
+    return result;
+#else
+    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Direct OpenGL detection not available on this platform";
+    return "";
+#endif
+}
+
 std::string GraphicsBackendManager::get_glx_info()
 {
-    // In containers, this might not work or might interfere with initialization
-    // Use safer detection methods first
+    // Primary method: Use direct OpenGL API calls via GLX/EGL contexts
+    // This avoids dependency on external glxinfo command and works better in containers
+    std::string direct_info = get_opengl_info_direct();
+    if (!direct_info.empty()) {
+        return direct_info;
+    }
+    
+    // Final fallback: Use glxinfo command if direct detection failed
+    // This may not work in containers or restricted environments
     if (is_running_in_container()) {
         return "";
     }
@@ -378,8 +636,15 @@ std::string GraphicsBackendManager::get_glx_info()
 
 std::string GraphicsBackendManager::get_egl_info()
 {
-    // In containers, this might not work or might interfere with initialization
-    // Use safer detection methods first
+    // Primary method: Use direct OpenGL API calls via EGL contexts
+    // This avoids dependency on external eglinfo command and works better in containers
+    std::string direct_info = get_opengl_info_direct();
+    if (!direct_info.empty()) {
+        return direct_info;
+    }
+    
+    // Final fallback: Use eglinfo command if direct detection failed
+    // This may not work in containers or restricted environments
     if (is_running_in_container()) {
         return "";
     }

@@ -9,11 +9,21 @@ OrcaSlicer now includes an automatic graphics backend detection and configuratio
 
 ## Problem Solved
 
-Previously, users had to manually set environment variables like `GBM_BACKEND=dri` to make the 3D view work properly on systems like Kubuntu 25.04. This was especially problematic for:
+Previously, users had to manually set environment variables like `GBM_BACKEND=dri` to make the 3D view work properly on systems like Kubuntu 25.04. Additionally, the system relied on external command-line tools for graphics detection. This was especially problematic for:
 
 - **Wayland sessions** with NVIDIA drivers
 - **Newer graphics drivers** that require specific configurations
 - **Different graphics hardware** (NVIDIA, AMD, Intel) requiring different settings
+- **Containerized environments** (Docker, Flatpak, AppImage) where external tools might not be available
+- **Systems without mesa-utils packages** installed
+
+## Improvements in Current Version
+
+### Direct OpenGL Detection
+- **No External Dependencies**: Graphics detection now uses direct OpenGL API calls instead of relying on `glxinfo`/`eglinfo` commands
+- **Container-Friendly**: Works reliably in Docker, Flatpak, and AppImage environments
+- **Better Performance**: Eliminates subprocess overhead from command execution
+- **Enhanced Reliability**: Direct API calls are more dependable than parsing command output
 
 ## How It Works
 
@@ -24,6 +34,26 @@ The system automatically detects:
 - **Session Type**: Wayland or X11
 - **Graphics Driver**: NVIDIA, AMD, Intel, or Mesa
 - **Driver Version**: For NVIDIA drivers, detects version to apply appropriate settings
+
+#### Detection Methodology
+
+The graphics detection uses a multi-tier approach for maximum reliability:
+
+1. **Direct OpenGL API Calls (Primary)**
+   - Creates minimal OpenGL contexts using GLX (X11) or EGL (Wayland/headless)
+   - Uses `glGetString(GL_VENDOR)` and `glGetString(GL_RENDERER)` directly
+   - Works reliably in containers and restricted environments
+   - No dependency on external command-line tools
+
+2. **Command-Line Tools (Fallback)**
+   - Uses `glxinfo` and `eglinfo` commands only if direct detection fails
+   - Provides compatibility with older detection methods
+   - Tools are no longer required to be installed
+
+3. **Hardware-Based Detection (Final Fallback)**
+   - Reads PCI vendor IDs from `/sys/class/drm/`
+   - Uses `nvidia-smi` for NVIDIA-specific detection
+   - Filesystem-based detection methods
 
 ### 2. Smart Configuration
 
@@ -112,13 +142,16 @@ Common log messages:
 
 The system now includes improved error handling and validation:
 
-#### Command Execution Errors
-- `GraphicsBackendManager: Failed to execute command: glxinfo`
+#### Graphics Detection Errors
+- `GraphicsBackendManager: Direct OpenGL detection failed, falling back to command-line tools`
+- `GraphicsBackendManager: Failed to create or make current OpenGL context`
 - `GraphicsBackendManager: Command failed with status 127: nvidia-smi`
-- `GraphicsBackendManager: Command returned no output: eglinfo`
+- `GraphicsBackendManager: glGetString returned null pointers`
 
-#### Driver Detection Fallbacks
-- `GraphicsBackendManager: GLX/EGL detection failed, trying glxinfo fallback`
+#### Driver Detection Methods
+- `GraphicsBackendManager: Successfully retrieved OpenGL info directly`
+- `GraphicsBackendManager: Direct OpenGL and GLX/EGL detection failed, trying glxinfo fallback`
+- `GraphicsBackendManager: Detected NVIDIA driver via glxinfo final fallback`
 - `GraphicsBackendManager: Detected NVIDIA driver via nvidia-smi fallback`
 - `GraphicsBackendManager: Failed to detect graphics driver, using Mesa as fallback`
 
@@ -134,15 +167,19 @@ The system now includes improved error handling and validation:
 
 ### Troubleshooting Common Issues
 
-#### 1. Missing System Tools
-If you see "Failed to execute command" messages, install missing tools:
-```bash
-# For Ubuntu/Debian
-sudo apt install mesa-utils glxinfo
+#### 1. Graphics Detection Issues
+The system now uses direct OpenGL API calls as the primary detection method, eliminating the need for external tools in most cases.
 
-# For Arch Linux
-sudo pacman -S mesa-utils glxinfo
+If direct detection fails and you see "glxinfo fallback" messages, you can optionally install tools for debugging:
+```bash
+# For Ubuntu/Debian (optional, for debugging only)
+sudo apt install mesa-utils
+
+# For Arch Linux (optional, for debugging only)
+sudo pacman -S mesa-utils
 ```
+
+**Note**: These tools are no longer required for normal operation as the system uses direct OpenGL API calls.
 
 #### 2. Driver Detection Failures
 If driver detection fails, check:
@@ -153,7 +190,8 @@ nvidia-smi
 # Check graphics hardware
 lspci | grep -i vga
 
-# Check OpenGL information
+# Check OpenGL information (the system now does this automatically via API calls)
+# For manual checking, you can still use:
 glxinfo | grep "OpenGL vendor"
 ```
 
