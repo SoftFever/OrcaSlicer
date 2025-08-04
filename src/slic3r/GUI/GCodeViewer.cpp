@@ -1167,8 +1167,10 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
         {
         case EMoveType::Extrude:
         {
-            m_extrusions.ranges.height.update_from(round_to_bin(curr.height));
-            m_extrusions.ranges.width.update_from(round_to_bin(curr.width));
+            if (curr.extrusion_role != ExtrusionRole::erCustom) {
+                m_extrusions.ranges.height.update_from(round_to_bin(curr.height));
+                m_extrusions.ranges.width.update_from(round_to_bin(curr.width));
+            } // prevent the start code extrude extreme height/width and make the range deviate from the normal range
             m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
             m_extrusions.ranges.temperature.update_from(curr.temperature);
             if (curr.delta_extruder > 0.005 && curr.travel_dist > 0.01) {
