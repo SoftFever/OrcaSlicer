@@ -28,5 +28,8 @@
         "3",
         "3",
         "3"
+    ],
+    "upward_compatible_machine": [
+        "Bambu Lab H2D Pro 0.8 nozzle"
     ]
 }
