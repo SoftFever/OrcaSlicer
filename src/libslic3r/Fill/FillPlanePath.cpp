@@ -124,7 +124,7 @@ void FillPlanePath::_fill_surface_single(
         Polylines polylines = intersection_pl(polyline, expolygon);
         if (!polylines.empty()) {
             Polylines chained;
-            if (params.can_reverse) {
+            if (params.can_reverse) { // not aesthetic surface
                 if ((params.dont_connect() || params.density > 0.5)) {
                     // ORCA: special flag for flow rate calibration
                     auto is_flow_calib = params.extrusion_role == erTopSolidInfill &&
@@ -154,9 +154,27 @@ void FillPlanePath::_fill_surface_single(
                     }
                 } else
                     connect_infill(std::move(polylines), expolygon, chained, this->spacing, params);
-            } else {
-                chained = std::move(polylines);
-                std::sort(chained.begin(), chained.end(), [](Polyline a, Polyline b) { return a.distance_to(Point(0., 0.)) < b.distance_to(Point(0., 0.)); });
+            } else { // aesthetic surface
+                const Point _center(0., 0.);
+                for (Polyline& segment : polylines) { // sort paths by its direction
+                    if (segment.size() > 1 || !segment.first_point().distance_to(_center)) {
+                        if (segment.first_point().ccw(segment.points[1], _center) < 0)
+                            segment.reverse();
+                    }
+                    chained.emplace_back(segment);
+                }
+                //if (params.extrusion_role == erTopSolidInfill) { // for top surface draw path outside to center for decrease visual defects
+                //    for (Polyline& segment : chained) {
+                //        segment.reverse();
+                //    }
+                //    std::sort(chained.begin(), chained.end(), [](Polyline a, Polyline b) {
+                //        return a.distance_to(Point(0., 0.)) > b.distance_to(Point(0., 0.));
+                //    });
+                //} else 
+                    std::sort(chained.begin(), chained.end(), [](Polyline a, Polyline b) { //just sort polylines from center to outside
+                        return a.distance_to(Point(0., 0.)) < b.distance_to(Point(0., 0.));
+                    });
+
             }
             // paths must be repositioned and rotated back
             for (Polyline& pl : chained) {
