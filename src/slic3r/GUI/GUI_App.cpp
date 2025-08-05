@@ -2587,7 +2587,7 @@ bool GUI_App::on_init_inner()
     NetworkAgent::use_legacy_network = app_config->get_bool("legacy_networking");
     // Force legacy network plugin if debugger attached
     // See https://github.com/bambulab/BambuStudio/issues/6726
-    if (!NetworkAgent::use_legacy_network) {
+    /* if (!NetworkAgent::use_legacy_network) {
         bool debugger_attached = false;
 #if defined(__WINDOWS__)
         debugger_attached = IsDebuggerPresent();
@@ -2598,7 +2598,7 @@ bool GUI_App::on_init_inner()
             NetworkAgent::use_legacy_network = true;
             wxMessageBox("Force using legacy bambu networking plugin because debugger is attached! If the app terminates itself immediately, please delete installed plugin and try again!");
         }
-    }
+    } */
     copy_network_if_available();
     on_init_network();
 
