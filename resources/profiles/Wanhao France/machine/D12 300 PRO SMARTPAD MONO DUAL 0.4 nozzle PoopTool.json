@@ -4,7 +4,7 @@
     "name": "D12 300 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool",
     "from": "system",
     "instantiation": "true",
-    "inherits": "../fdm_machine_common",
+    "inherits": "fdm_machine_common",
     "printer_model": "Wanhao D12 300 PRO SMARTPAD MONO DUAL PoopTool",
     "gcode_flavor": "klipper",
     "default_print_profile": "0.20mm Standard @Wanhao-D12-300 PoopTool",
