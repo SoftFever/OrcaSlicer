@@ -5573,140 +5573,132 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
 
     // total estimated printing time section
-    if (show_estimated) {
-        ImGui::Spacing();
-        std::string time_title = m_view_type == EViewType::FeatureType ? _u8L("Total Estimation") : _u8L("Time Estimation");
-        auto can_show_mode_button = [this](PrintEstimatedStatistics::ETimeMode mode) {
-            bool show = false;
-            if (m_print_statistics.modes.size() > 1 && m_print_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
-                for (size_t i = 0; i < m_print_statistics.modes.size(); ++i) {
-                    if (i != static_cast<size_t>(mode) &&
-                        m_print_statistics.modes[i].time > 0.0f &&
-                        short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_print_statistics.modes[i].time))) {
-                        show = true;
-                        break;
-                    }
+    ImGui::Spacing();
+    std::string time_title = m_view_type == EViewType::FeatureType ? _u8L("Total Estimation") : _u8L("Time Estimation");
+    auto can_show_mode_button = [this](PrintEstimatedStatistics::ETimeMode mode) {
+        bool show = false;
+        if (m_print_statistics.modes.size() > 1 && m_print_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
+            for (size_t i = 0; i < m_print_statistics.modes.size(); ++i) {
+                if (i != static_cast<size_t>(mode) &&
+                    m_print_statistics.modes[i].time > 0.0f &&
+                    short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_print_statistics.modes[i].time))) {
+                    show = true;
+                    break;
                 }
             }
-            return show;
+        }
+        return show;
+    };
+ if (can_show_mode_button(m_time_estimate_mode)) {
+        switch (m_time_estimate_mode)
+        {
+        case PrintEstimatedStatistics::ETimeMode::Normal: { time_title += " [" + _u8L("Normal mode") + "]"; break; }
+        default: { assert(false); break; }
+        }
+    }
+    ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine();
+    imgui.title(time_title);
+    std::string total_filament_str = _u8L("Total Filament");
+    std::string model_filament_str = _u8L("Model Filament");
+    std::string cost_str = _u8L("Cost");
+    std::string prepare_str = _u8L("Prepare time");
+    std::string print_str = _u8L("Model printing time");
+    std::string total_str = _u8L("Total time");
+ float max_len = window_padding + 2 * ImGui::GetStyle().ItemSpacing.x;
+    if (time_mode.layers_times.empty())
+        max_len += ImGui::CalcTextSize(total_str.c_str()).x;
+    else {
+        if (m_view_type == EViewType::FeatureType)
+            max_len += std::max(ImGui::CalcTextSize(cost_str.c_str()).x,
+                std::max(ImGui::CalcTextSize(print_str.c_str()).x,
+                    std::max(std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x),
+                        std::max(ImGui::CalcTextSize(total_filament_str.c_str()).x, ImGui::CalcTextSize(model_filament_str.c_str()).x))));
+        else
+            max_len += std::max(ImGui::CalcTextSize(print_str.c_str()).x,
+                (std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x)));
+    }
+    if (m_view_type == EViewType::FeatureType) {
+        //BBS display filament cost
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(total_filament_str + ":");
+        ImGui::SameLine(max_len);
+        //BBS: use current plater's print statistics
+        bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+        char buf[64];
+        ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", ps.total_used_filament / koef);
+        imgui.text(buf);
+        ImGui::SameLine();
+        ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", ps.total_weight / unit_conver);
+        imgui.text(buf);
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(model_filament_str + ":");
+        ImGui::SameLine(max_len);
+        auto exlude_m = total_support_used_filament_m + total_flushed_filament_m + total_wipe_tower_used_filament_m;
+        auto exlude_g = total_support_used_filament_g + total_flushed_filament_g + total_wipe_tower_used_filament_g;
+        ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", ps.total_used_filament / koef - exlude_m);
+        imgui.text(buf);
+        ImGui::SameLine();
+        ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", (ps.total_weight - exlude_g) / unit_conver);
+        imgui.text(buf);
+        //BBS: display cost of filaments
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(cost_str + ":");
+        ImGui::SameLine(max_len);
+        ::sprintf(buf, "%.2f", ps.total_cost);
+        imgui.text(buf);
+    }
+     auto role_time = [time_mode](ExtrusionRole role) {
+        auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
+            return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
         };
-
-        if (can_show_mode_button(m_time_estimate_mode)) {
-            switch (m_time_estimate_mode)
-            {
-            case PrintEstimatedStatistics::ETimeMode::Normal: { time_title += " [" + _u8L("Normal mode") + "]"; break; }
-            default: { assert(false); break; }
-            }
-        }
-        ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+    //BBS: start gcode is mostly same with prepeare time
+    if (time_mode.prepare_time != 0.0f) {
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
-        imgui.title(time_title);
-        std::string total_filament_str = _u8L("Total Filament");
-        std::string model_filament_str = _u8L("Model Filament");
-        std::string cost_str = _u8L("Cost");
-        std::string prepare_str = _u8L("Prepare time");
-        std::string print_str = _u8L("Model printing time");
-        std::string total_str = _u8L("Total time");
-
-        float max_len = window_padding + 2 * ImGui::GetStyle().ItemSpacing.x;
-        if (time_mode.layers_times.empty())
-            max_len += ImGui::CalcTextSize(total_str.c_str()).x;
-        else {
-            if (m_view_type == EViewType::FeatureType)
-                max_len += std::max(ImGui::CalcTextSize(cost_str.c_str()).x,
-                    std::max(ImGui::CalcTextSize(print_str.c_str()).x,
-                        std::max(std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x),
-                            std::max(ImGui::CalcTextSize(total_filament_str.c_str()).x, ImGui::CalcTextSize(model_filament_str.c_str()).x))));
-            else
-                max_len += std::max(ImGui::CalcTextSize(print_str.c_str()).x,
-                    (std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x)));
-        }
-
-        if (m_view_type == EViewType::FeatureType) {
-            //BBS display filament cost
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(total_filament_str + ":");
-            ImGui::SameLine(max_len);
-            //BBS: use current plater's print statistics
-            bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-            char buf[64];
-            ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", ps.total_used_filament / koef);
-            imgui.text(buf);
-            ImGui::SameLine();
-            ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", ps.total_weight / unit_conver);
-            imgui.text(buf);
-
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(model_filament_str + ":");
-            ImGui::SameLine(max_len);
-            auto exlude_m = total_support_used_filament_m + total_flushed_filament_m + total_wipe_tower_used_filament_m;
-            auto exlude_g = total_support_used_filament_g + total_flushed_filament_g + total_wipe_tower_used_filament_g;
-            ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", ps.total_used_filament / koef - exlude_m);
-            imgui.text(buf);
-            ImGui::SameLine();
-            ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", (ps.total_weight - exlude_g) / unit_conver);
-            imgui.text(buf);
-
-            //BBS: display cost of filaments
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(cost_str + ":");
-            ImGui::SameLine(max_len);
-            ::sprintf(buf, "%.2f", ps.total_cost);
-            imgui.text(buf);
-        }
-
-            auto role_time = [time_mode](ExtrusionRole role) {
-            auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
-                return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
-            };
-        //BBS: start gcode is mostly same with prepeare time
-        if (time_mode.prepare_time != 0.0f) {
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(prepare_str + ":");
-            ImGui::SameLine(max_len);
-            imgui.text(short_time(get_time_dhms(time_mode.prepare_time)));
-        }
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.text(print_str + ":");
+        imgui.text(prepare_str + ":");
         ImGui::SameLine(max_len);
-        imgui.text(short_time(get_time_dhms(time_mode.time - time_mode.prepare_time)));
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.text(total_str + ":");
-        ImGui::SameLine(max_len);
-        imgui.text(short_time(get_time_dhms(time_mode.time)));
+        imgui.text(short_time(get_time_dhms(time_mode.prepare_time)));
+    }
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine();
+    imgui.text(print_str + ":");
+    ImGui::SameLine(max_len);
+    imgui.text(short_time(get_time_dhms(time_mode.time - time_mode.prepare_time)));
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine();
+    imgui.text(total_str + ":");
+    ImGui::SameLine(max_len);
+    imgui.text(short_time(get_time_dhms(time_mode.time)));
 
-        auto show_mode_button = [this, &imgui, can_show_mode_button](const wxString& label, PrintEstimatedStatistics::ETimeMode mode) {
-            if (can_show_mode_button(mode)) {
-                if (imgui.button(label)) {
-                    m_time_estimate_mode = mode;
+    auto show_mode_button = [this, &imgui, can_show_mode_button](const wxString& label, PrintEstimatedStatistics::ETimeMode mode) {
+        if (can_show_mode_button(mode)) {
+            if (imgui.button(label)) {
+                m_time_estimate_mode = mode;
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
-                    imgui.set_requires_extra_frame();
+                imgui.set_requires_extra_frame();
 #else
-                    wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-                    wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+            wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
-                }
             }
-        };
+        }
+    };
 
-        switch (m_time_estimate_mode) {
-        case PrintEstimatedStatistics::ETimeMode::Normal: {
-            show_mode_button(_L("Switch to silent mode"), PrintEstimatedStatistics::ETimeMode::Stealth);
-            break;
-        }
-        case PrintEstimatedStatistics::ETimeMode::Stealth: {
-            show_mode_button(_L("Switch to normal mode"), PrintEstimatedStatistics::ETimeMode::Normal);
-            break;
-        }
-        default : { assert(false); break; }
-        }
+    switch (m_time_estimate_mode) {
+    case PrintEstimatedStatistics::ETimeMode::Normal: {
+        show_mode_button(_L("Switch to silent mode"), PrintEstimatedStatistics::ETimeMode::Stealth);
+        break;
+    }
+    case PrintEstimatedStatistics::ETimeMode::Stealth: {
+        show_mode_button(_L("Switch to normal mode"), PrintEstimatedStatistics::ETimeMode::Normal);
+        break;
+    }
+    default : { assert(false); break; }
     }
 
     if (m_view_type == EViewType::ColorPrint) {
