@@ -171,7 +171,7 @@ void ConnectPrinterDialog::on_input_enter(wxCommandEvent& evt)
 }
 
 
-void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event) 
+void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event)
 {
     wxString code = m_textCtrl_code->GetTextCtrl()->GetValue();
     for (char c : code) {
@@ -182,9 +182,6 @@ void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event)
     }
     if (m_obj) {
         m_obj->set_user_access_code(code.ToStdString());
-        if (m_need_connect) {
-            wxGetApp().getDeviceManager()->set_selected_machine(m_obj->get_dev_id());
-        }
     }
     EndModal(wxID_OK);
 }
