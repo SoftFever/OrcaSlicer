@@ -262,6 +262,7 @@ static std::map<std::string, std::string> printer_thumbnails = {
     {"BL-P001", "printer_preview_BL-P001"},
     {"BL-P002", "printer_preview_BL-P002"},
     {"O1D", "printer_preview_O1D"},
+    {"O1E", "printer_preview_O1E"},
 };
 
 enum SlicedInfoIdx

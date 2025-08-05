@@ -26,6 +26,26 @@
     ],
     "hotend_heating_rate": "3.6",
     "machine_load_filament_time": "30",
+    "machine_max_acceleration_x": [
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_y": [
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000"
+    ],
     "machine_max_speed_e": [
         "50",
         "50",
