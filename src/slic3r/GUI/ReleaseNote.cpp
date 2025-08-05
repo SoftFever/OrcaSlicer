@@ -2105,7 +2105,9 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
         machine.dev_ip = str_ip;
         machine.dev_id = detectData.dev_id;
         machine.printer_type = detectData.model_id;
-        m_obj = dev->insert_local_device(machine, detectData.connect_type, detectData.bind_state, detectData.version, str_access_code);
+        m_obj = dev->insert_local_device(machine,
+            detectData.connect_type, detectData.bind_state, detectData.version,
+            str_access_code);
 
 
         if (w.expired()) return;

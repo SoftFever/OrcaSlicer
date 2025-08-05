@@ -100,7 +100,9 @@ private:
     /*TODO*/
 public:
     // to remove
-    MachineObject* insert_local_device(const BBLocalMachine& machine, std::string connection_type, std::string bind_state, std::string version, std::string access_code);
+    MachineObject* insert_local_device(const BBLocalMachine& machine,
+        std::string connection_type, std::string bind_state, std::string version,
+        std::string access_code);
     static void update_local_machine(const MachineObject& m);
 };
 

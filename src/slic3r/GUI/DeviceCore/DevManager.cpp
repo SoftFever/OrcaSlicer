@@ -314,7 +314,9 @@ namespace Slic3r
         }
     }
 
-    MachineObject* DeviceManager::insert_local_device(const BBLocalMachine& machine, std::string connection_type, std::string bind_state, std::string version, std::string access_code)
+    MachineObject* DeviceManager::insert_local_device(const BBLocalMachine& machine,
+        std::string connection_type, std::string bind_state,
+        std::string version, std::string access_code)
     {
         MachineObject* obj;
         auto           it = localMachineList.find(machine.dev_id);
@@ -324,7 +326,10 @@ namespace Slic3r
             obj = new MachineObject(this, m_agent, machine.dev_name, machine.dev_id, machine.dev_ip);
             localMachineList.insert(std::make_pair(machine.dev_id, obj));
         }
-        obj->printer_type = _parse_printer_type(machine.printer_type);
+        if (machine.printer_type.empty())
+            obj->printer_type = _parse_printer_type("C11");
+        else
+            obj->printer_type = _parse_printer_type(machine.printer_type);
         obj->dev_connection_type = connection_type == "farm" ? "lan":connection_type;
         obj->bind_state          = connection_type == "farm" ? "free":bind_state;
         obj->bind_sec_link = "secure";
