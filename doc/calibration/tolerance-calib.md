@@ -22,7 +22,7 @@ To correct for these variations, Orca Slicer provides:
 
 Orca Slicer includes several handy models to help you test and calibrate your printer.  
 Right-click on your plate in Prepare mode and select "Add Handy Model" to access these models.  
-![handy-models-list](../images/Handy-Models/handy-models-list.png)
+![handy-models-list](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Handy-Models/handy-models-list.png?raw=true)
 
 ### Orca Tolerance Test
 

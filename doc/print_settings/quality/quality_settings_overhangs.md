@@ -43,7 +43,7 @@ It can also help reduce warping on floating regions over supports.
 For this setting to be the most effective, it is recommended to set the [Reverse Threshold](#reverse-threshold) to 0 so that all walls print in alternating directions on even layers irrespective of their overhang degree.
 A disadvantage of this setting is that the outer wall may show a texture due to the alternating extrusion direction.
 
-![reverse-odd-texture](../../images/Precision/reverse-odd-texture.png)
+![reverse-odd-texture](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Precision/reverse-odd-texture.png?raw=true)
 
 > [!NOTE]
 > Only be available if [Wall loop direction](quality_settings_wall_and_surfaces#wall-loop-direction) is set on **Auto** and [spiral vase mode](others_settings_special_mode#spiral-vase) is **disabled**.

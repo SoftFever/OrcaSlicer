@@ -19,7 +19,7 @@ Will attempt to align the seam to a hidden internal facet of the model.
 Combines "Aligned" and "Back" strategies by prioritizing seam placement away from the front-facing side while still finding optimal hidden locations for other orientations. This is particularly useful for directional models like sculptures or figurines that have a clear front view.  
 Unlike "Back" which always places seams at the rearmost position, "Aligned Back" uses intelligent positioning that avoids the front while maintaining sophisticated seam hiding capabilities.
 
-![seam-aligned-back](../../images/seam/seam-aligned-back.png)
+![seam-aligned-back](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/imagesimages/seam/seam-aligned-back.png?raw=true)
 
 ### Nearest
 

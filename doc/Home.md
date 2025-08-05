@@ -21,7 +21,7 @@ Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wik
 
 ## Printer Settings
 
-![printer-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/printer-preset.png)
+![printer-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/printer-preset.png?raw=true)
 
 - [Air filtration/Exhaust fan handling](air-filtration)
 - [Auxiliary fan handling](Auxiliary-fan)
@@ -31,7 +31,7 @@ Orca slicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wik
 
 ## Material Settings
 
-![filament-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/filament-preset.png)
+![filament-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/filament-preset.png?raw=true)
 
 - [Single Extruder Multimaterial](semm)
 - [Pellet Printers (pellet flow coefficient)](pellet-flow-coefficient)
@@ -44,7 +44,7 @@ First steps to prepare your model/s for printing.
 
 ## Process Settings
 
-![process-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process-preset.png)
+![process-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process-preset.png?raw=true)
 
 The below sections provide a detailed settings explanation as well as tips and tricks in setting these for optimal print results.
 
