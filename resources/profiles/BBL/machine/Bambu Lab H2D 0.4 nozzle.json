@@ -95,10 +95,10 @@
     ],
     "support_chamber_temp_control": "1",
     "wrapping_exclude_area": [
-        "145x326",
         "145x310",
         "256x310",
-        "256x326"
+        "256x326",
+        "145x326"
     ],
     "upward_compatible_machine": [
         "Bambu Lab H2D Pro 0.4 nozzle"

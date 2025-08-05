@@ -1230,7 +1230,7 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
-    bool translate_old = false, regenerate_thumbnails = false, keep_old_params = false, filament_color_changed = false, downward_check = false;
+    bool translate_old = false, regenerate_thumbnails = false, keep_old_params = false, remove_wrapping_detect = false, filament_color_changed = false, downward_check = false;
     int current_printable_width, current_printable_depth, current_printable_height, shrink_to_new_bed = 0;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
@@ -1330,7 +1330,7 @@ int CLI::run(int argc, char **argv)
     //int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
-    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false;
+    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false, enable_wrapping_detect = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -1553,7 +1553,7 @@ int CLI::run(int argc, char **argv)
                         record_exit_reson(outfile_dir, CLI_FILE_VERSION_NOT_SUPPORTED, 0, cli_errors[CLI_FILE_VERSION_NOT_SUPPORTED], sliced_info);
                         flush_and_exit(CLI_FILE_VERSION_NOT_SUPPORTED);
                     }
-                    Semver old_version(1, 5, 9), old_version2(1, 5, 9), old_version3(2, 0, 0);
+                    Semver old_version(1, 5, 9), old_version2(1, 5, 9), old_version3(2, 0, 0), old_version4(2, 2, 0);
                     if ((file_version < old_version) && !config.empty()) {
                         translate_old = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to translate")%file_version.to_string();
@@ -1562,6 +1562,7 @@ int CLI::run(int argc, char **argv)
                         regenerate_thumbnails = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to regenerate_thumbnails for all")%file_version.to_string();
                     }
+
                     if ((file_version < old_version3) && !config.empty()) {
                         keep_old_params = true;
                         ConfigOptionFloats *filament_prime_volume_option = config.option<ConfigOptionFloats>("filament_prime_volume");
@@ -1576,6 +1577,11 @@ int CLI::run(int argc, char **argv)
                         }
 
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to keep old params")%file_version.to_string();
+                    }
+
+                    if (file_version < old_version4) {
+                        remove_wrapping_detect = true;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to set enable_wrapping_detection to false")%file_version.to_string();
                     }
 
                     if (normative_check) {
@@ -3570,6 +3576,13 @@ int CLI::run(int argc, char **argv)
         initial_layer_travel_acceleration_option->values = initial_layer_acceleration_option->values;
     }
 
+    ConfigOptionBool* enable_wrapping_detection_option = m_print_config.option<ConfigOptionBool>("enable_wrapping_detection", true);
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%, remove_wrapping_detect %2%, old value %3%")%__LINE__ %remove_wrapping_detect %enable_wrapping_detection_option->value;
+    if (is_bbl_3mf && remove_wrapping_detect) {
+        enable_wrapping_detection_option->value = false;
+    }
+    enable_wrapping_detect = enable_wrapping_detection_option->value;
+
     auto get_print_sequence = [](Slic3r::GUI::PartPlate* plate, DynamicPrintConfig& print_config, bool &is_seq_print) {
         PrintSequence curr_plate_seq = plate->get_print_seq();
         if (curr_plate_seq == PrintSequence::ByDefault) {
@@ -3795,12 +3808,13 @@ int CLI::run(int argc, char **argv)
             BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: loaded machine config %1%, from %2%")%config_name %file_path ;
 
             printer_plate_info_t printer_plate;
-            Pointfs temp_printable_area, temp_exclude_area;
+            Pointfs temp_printable_area, temp_exclude_area, temp_wrapping_area;
 
             printer_plate.printer_name = config_name;
 
             temp_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
             temp_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area", true)->values;
+            temp_wrapping_area = config.option<ConfigOptionPoints>("wrapping_exclude_area", true)->values;
             if (temp_printable_area.size() >= 4) {
                 printer_plate.printable_width = (int)(temp_printable_area[2].x() - temp_printable_area[0].x());
                 printer_plate.printable_depth = (int)(temp_printable_area[2].y() - temp_printable_area[0].y());
@@ -3812,9 +3826,17 @@ int CLI::run(int argc, char **argv)
                 printer_plate.exclude_x = (int)temp_exclude_area[0].x();
                 printer_plate.exclude_y = (int)temp_exclude_area[0].y();
             }
-            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}")
+            if (temp_wrapping_area.size() >= 4) {
+                printer_plate.wrapping_width = (int)(temp_wrapping_area[2].x() - temp_wrapping_area[0].x());
+                printer_plate.wrapping_depth = (int)(temp_wrapping_area[2].y() - temp_wrapping_area[0].y());
+                printer_plate.wrapping_x = (int)temp_wrapping_area[0].x();
+                printer_plate.wrapping_y = (int)temp_wrapping_area[0].y();
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}, wrapping area{%8%, %9%: %10% x %11%}, enable_wrapping_detect %12%")
                 %printer_plate.printable_width %printer_plate.printable_depth %printer_plate.printable_height
-                %printer_plate.exclude_x %printer_plate.exclude_y %printer_plate.exclude_width %printer_plate.exclude_depth;
+                %printer_plate.exclude_x %printer_plate.exclude_y %printer_plate.exclude_width %printer_plate.exclude_depth
+                %printer_plate.wrapping_x %printer_plate.wrapping_y %printer_plate.wrapping_width %printer_plate.wrapping_depth %enable_wrapping_detect;
+
             downward_check_printers.push_back(std::move(printer_plate));
         }
     }
@@ -3857,6 +3879,18 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, bbox {%4%, %5%} exceeds real size without exclude_area {%6%, %7%}")
                             %(index+1) %(index2+1) %plate_info.printer_name
                             %size.x() % size.y() %real_width %real_depth;
+                        downward_check_status[index2] = true;
+                        failed_count ++;
+                        continue;
+                    }
+                }
+                if (enable_wrapping_detect && plate_info.wrapping_width > 0) {
+                    //int real_width = plate_info.printable_width - plate_info.wrapping_width;
+                    int real_depth = plate_info.printable_depth - plate_info.wrapping_depth;
+                    if ( size.y() > real_depth) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, bbox {%4%, %5%} exceeds real size without wrapping_area {%6%, %7%}")
+                            %(index+1) %(index2+1) %plate_info.printer_name
+                            %size.x() % size.y() %plate_info.printable_width %real_depth;
                         downward_check_status[index2] = true;
                         failed_count ++;
                         continue;
