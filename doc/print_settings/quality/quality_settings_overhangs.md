@@ -29,7 +29,9 @@ A value of 0 will fill all the holes in the model base.
 
 ## Extra perimeters on overhangs
 
-Create additional perimeter paths over steep overhangs and areas where bridges cannot be anchored.
+Create additional perimeter (overhang wall) paths over steep overhangs and areas where bridges cannot be anchored.
+
+![extra-perimeters-on-overhangs](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/overhangs/extra-perimeters-on-overhangs.png?raw=true)
 
 ## Reverse on even
 
