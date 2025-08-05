@@ -259,8 +259,15 @@ GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_d
         const char* wayland_display = std::getenv("WAYLAND_DISPLAY");
         
         if (display || wayland_display) {
-            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Container with display forwarding, defaulting to DRI backend";
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Container with display forwarding, defaulting to Mesa/DRI backend";
             // Return Mesa as a safe default for containers with display forwarding
+            return GraphicsDriver::Mesa;
+        }
+        
+        // For flatpak specifically, always return Mesa as fallback to avoid OpenGL context creation issues
+        const char* flatpak_id = std::getenv("FLATPAK_ID");
+        if (flatpak_id) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Flatpak environment detected, using Mesa fallback to avoid OpenGL context creation during startup";
             return GraphicsDriver::Mesa;
         }
     }
