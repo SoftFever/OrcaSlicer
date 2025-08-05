@@ -136,6 +136,7 @@
     "wipe": [
         "1"
     ],
+    "wrapping_exclude_area": [],
     "z_hop": [
         "0"
     ],
