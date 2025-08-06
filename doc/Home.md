@@ -111,6 +111,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 - ![param_skirt](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_skirt.svg?raw=true) [Skirt](others_settings_skirt)
 - ![param_adhension](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_adhension.svg?raw=true) [Brim](others_settings_brim)
 - ![param_special](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_special.svg?raw=true) [Special Mode](others_settings_special_mode)
+- ![fuzzy_skin](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/fuzzy_skin.svg?raw=true) [Fuzzy Skin](others_settings_fuzzy_skin)
 - ![param_gcode](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_gcode.svg?raw=true) [G-Code Output](others_settings_g_code_output)
 - ![param_gcode](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_gcode.svg?raw=true) [Post Processing Scripts](others_settings_post_processing_scripts)
 - ![note](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/note.svg?raw=true) [Notes](others_settings_notes)
