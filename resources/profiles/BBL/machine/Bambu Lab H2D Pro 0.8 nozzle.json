@@ -12,6 +12,9 @@
     "printer_model": "Bambu Lab H2D Pro",
     "printer_variant": "0.8",
     "default_print_profile": "0.40mm Standard @BBL H2DP 0.8 nozzle",
+    "default_filament_profile": [
+        "Bambu PLA Basic @BBL H2DP 0.8 nozzle"
+    ],
     "max_layer_height": [
         "0.56",
         "0.56"
