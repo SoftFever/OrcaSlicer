@@ -288,7 +288,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
                 wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
                 m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
 
-                int humidity_value = info->humidity_level;
+                int humidity_value = info->humidity_display_idx;
                 if (humidity_value > 0 && humidity_value <= 5) { m_Humidity_tip_popup.set_humidity_level(humidity_value); }
                 m_Humidity_tip_popup.Popup();
             }
@@ -1001,7 +1001,7 @@ void AMSControl::UpdateAms(const std::string   &series_name,
             {
                 uiAmsHumidityInfo humidity_info;
                 humidity_info.ams_id = the_info.ams_id;
-                humidity_info.humidity_level = the_info.ams_humidity;
+                humidity_info.humidity_display_idx = the_info.get_humidity_display_idx();
                 humidity_info.humidity_percent = the_info.humidity_raw;
                 humidity_info.left_dry_time = the_info.left_dray_time;
                 humidity_info.current_temperature = the_info.current_temperature;

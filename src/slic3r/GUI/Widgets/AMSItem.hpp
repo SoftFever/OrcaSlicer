@@ -262,6 +262,8 @@ public:
 
     bool support_drying() const { return (ams_type == AMSModel::N3S_AMS) || (ams_type == AMSModel::N3F_AMS); };
     Caninfo get_caninfo(const std::string& can_id, bool& found) const;
+
+    int  get_humidity_display_idx() const;
 };
 
 /*************************************************

@@ -131,8 +131,8 @@ private:
 
     // temperature and humidity
     float  m_current_temperature = INVALID_AMS_TEMPERATURE; // the temperature
-    int    m_humidity_level = 5;
-    int    m_humidity_percent = -1; // the percentage, -1 means invalid. eg. 100 means 100%
+    int    m_humidity_level = 5; // AmsType::AMS
+    int    m_humidity_percent = -1; // N3F N3S, the percentage, -1 means invalid. eg. 100 means 100%
     int    m_left_dry_time = 0;
 };
 

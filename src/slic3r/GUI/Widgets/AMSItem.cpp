@@ -197,6 +197,43 @@ Caninfo AMSinfo::get_caninfo(const std::string& can_id, bool& found) const
     return Caninfo();
 };
 
+int AMSinfo::get_humidity_display_idx() const
+{
+    if (ams_type == AMSModel::GENERIC_AMS)
+    {
+        if (ams_humidity > 0 && ams_humidity < 6)
+        {
+            return ams_humidity;
+        }
+    }
+    else if (ams_type == AMSModel::N3F_AMS || ams_type == AMSModel::N3S_AMS)
+    {
+        if (humidity_raw < 20)
+        {
+            return 5;
+        }
+        else if (humidity_raw < 40)
+        {
+            return 4;
+        }
+        else if (humidity_raw < 60)
+        {
+            return 3;
+        }
+        else if (humidity_raw < 80)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+
+    assert(false && "Invalid AMS type for humidity display");
+    return 1;
+}
+
 /*************************************************
 Description:AMSExtText
 **************************************************/
@@ -2822,7 +2859,7 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
                 uiAmsHumidityInfo *info = new uiAmsHumidityInfo;
                 info->ams_id            = m_amsinfo.ams_id;
                 info->ams_type          = m_amsinfo.ams_type;
-                info->humidity_level    = m_amsinfo.ams_humidity;
+                info->humidity_display_idx = m_amsinfo.get_humidity_display_idx();
                 info->humidity_percent  = m_amsinfo.humidity_raw;
                 info->left_dry_time     = m_amsinfo.left_dray_time;
                 info->current_temperature = m_amsinfo.current_temperature;
@@ -2916,9 +2953,9 @@ void AMSHumidity::doRender(wxDC& dc)
         {
             ScalableBitmap hum_img;
             if (!wxGetApp().dark_mode()) {
-                hum_img = ams_humidity_imgs[m_amsinfo.ams_humidity - 1];
+                hum_img = ams_humidity_imgs[m_amsinfo.get_humidity_display_idx() - 1];
             } else {
-                hum_img = ams_humidity_dark_imgs[m_amsinfo.ams_humidity - 1];
+                hum_img = ams_humidity_dark_imgs[m_amsinfo.get_humidity_display_idx() - 1];
             }
 
             pot = wxPoint((size.x - hum_img.GetBmpWidth()) / 2, ((size.y - hum_img.GetBmpSize().y) / 2));
@@ -2930,9 +2967,9 @@ void AMSHumidity::doRender(wxDC& dc)
             // hum image
             ScalableBitmap hum_img;
             if (!wxGetApp().dark_mode()) {
-                hum_img = ams_humidity_no_num_imgs[m_amsinfo.ams_humidity - 1];
+                hum_img = ams_humidity_no_num_imgs[m_amsinfo.get_humidity_display_idx() - 1];
             } else {
-                hum_img = ams_humidity_no_num_dark_imgs[m_amsinfo.ams_humidity - 1];
+                hum_img = ams_humidity_no_num_dark_imgs[m_amsinfo.get_humidity_display_idx() - 1];
             }
 
             pot = wxPoint(FromDIP(5), ((size.y - hum_img.GetBmpSize().y) / 2));

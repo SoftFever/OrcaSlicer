@@ -432,10 +432,9 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
 
                     if (it->contains("humidity"))
                     {
-                        std::string humidity = (*it)["humidity"].get<std::string>();
-
                         try
                         {
+                            std::string humidity = (*it)["humidity"].get<std::string>();
                             curr_ams->m_humidity_level = atoi(humidity.c_str());
                         }
                         catch (...)
@@ -446,39 +445,14 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
 
                     if (it->contains("humidity_raw"))
                     {
-                        std::string humidity_raw = (*it)["humidity_raw"].get<std::string>();
-
                         try
                         {
+                            std::string humidity_raw = (*it)["humidity_raw"].get<std::string>();
                             curr_ams->m_humidity_percent = atoi(humidity_raw.c_str());
                         }
                         catch (...)
                         {
                             ;
-                        }
-
-                        if (curr_ams->GetHumidityPercent() != -1)
-                        {
-                            if (curr_ams->GetHumidityPercent() < 20)
-                            {
-                                curr_ams->m_humidity_level = 5;
-                            }
-                            else if (curr_ams->GetHumidityPercent() < 40)
-                            {
-                                curr_ams->m_humidity_level = 4;
-                            }
-                            else if (curr_ams->GetHumidityPercent() < 60)
-                            {
-                                curr_ams->m_humidity_level = 3;
-                            }
-                            else if (curr_ams->GetHumidityPercent() < 80)
-                            {
-                                curr_ams->m_humidity_level = 2;
-                            }
-                            else
-                            {
-                                curr_ams->m_humidity_level = 1;
-                            }
                         }
                     }
 
