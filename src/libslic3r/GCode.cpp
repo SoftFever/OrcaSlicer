@@ -1929,15 +1929,14 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
         m_processor.result().filament_printable_reuslt = FilamentPrintableResult(conflict_filament, bed_type_to_gcode_string(m_config.curr_bed_type));
     }
-    // check gcode is valid in multi_extruder printabele area
+    // check gcode is valid in machine printabele area and multi_extruder printabele area
     int extruder_size = m_print->config().nozzle_diameter.values.size();
-    if (extruder_size > 1) {
-        std::vector<Polygons> extruder_unprintable_polys = m_print->get_extruder_unprintable_polygons();
-        m_processor.check_multi_extruder_gcode_valid(extruder_unprintable_polys,
-            m_print->get_extruder_printable_height(),
-            m_print->get_filament_maps(),
-            m_print->get_physical_unprintable_filaments(m_print->get_slice_used_filaments(false)));
-    }
+    std::vector<Polygons> extruder_unprintable_polys   = m_print->get_extruder_unprintable_polygons();
+    Pointfs               plate_printable_area         = m_print->config().printable_area.values;
+    Pointfs               wrapping_exclude_area_points = m_print->config().wrapping_exclude_area.values;
+    m_processor.check_multi_extruder_gcode_valid(extruder_size, plate_printable_area, m_print->config().printable_height.value, wrapping_exclude_area_points,
+                                                 extruder_unprintable_polys, m_print->get_extruder_printable_height(),  m_print->get_filament_maps(),
+                                                 m_print->get_physical_unprintable_filaments(m_print->get_slice_used_filaments(false)));
 
     m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);

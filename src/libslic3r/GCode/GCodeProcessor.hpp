@@ -125,7 +125,8 @@ class Print;
 
     struct GCodeCheckResult
     {
-        int error_code = 0;   // 0 means succeed, 0001 printable area error, 0010 printable height error
+        int error_code = 0;   // 0 means succeed, 0b 0001 multi extruder printable area error, 0b 0010 multi extruder printable height error, 
+        // 0b 0100 plate printable area error, 0b 1000 plate printable height error, 0b 10000 wrapping detection area error
         std::map<int, std::vector<std::pair<int, int>>> print_area_error_infos;   // printable_area  extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
         std::map<int, std::vector<std::pair<int, int>>> print_height_error_infos;   // printable_height extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
         void reset() {
@@ -841,7 +842,11 @@ class Print;
         GCodeProcessor();
         void init_filament_maps_and_nozzle_type_when_import_only_gcode();
         // check whether the gcode path meets the filament_map grouping requirements
-        bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas,
+        bool check_multi_extruder_gcode_valid(const int                         extruder_size,
+                                              const Pointfs                     plate_printable_area,
+                                              const double                      plate_printable_height,
+                                              const Pointfs                     wrapping_exclude_area,
+                                              const std::vector<Polygons> &unprintable_areas,
                                               const std::vector<double>   &printable_heights,
                                               const std::vector<int>      &filament_map,
                                               const std::vector<std::set<int>>& unprintable_filament_types );
