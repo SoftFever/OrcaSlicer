@@ -43,6 +43,7 @@ public:
     bool isAirPump() const { return product_name.Contains("Air Pump"); }
     bool isLaszer() const { return product_name.Contains("Laser"); }
     bool isCuttingModule() const { return product_name.Contains("Cutting Module"); }
+    bool isExtinguishSystem() const { return product_name.Contains("Extinguishing System"); }
 };
 
 

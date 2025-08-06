@@ -817,6 +817,7 @@ void MachineObject::clear_version_info()
     air_pump_version_info = DevFirmwareVersionInfo();
     laser_version_info = DevFirmwareVersionInfo();
     cutting_module_version_info = DevFirmwareVersionInfo();
+    extinguish_version_info = DevFirmwareVersionInfo();
     module_vers.clear();
 }
 
@@ -828,6 +829,8 @@ void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
         laser_version_info = info;
     } else if (info.isCuttingModule()) {
         cutting_module_version_info = info;
+    } else if (info.isExtinguishSystem()) {
+        extinguish_version_info = info;
     }
 
     module_vers.emplace(info.name, info);

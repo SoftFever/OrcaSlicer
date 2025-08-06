@@ -26,6 +26,7 @@ static const std::unordered_map<wxString, wxString> ACCESSORY_DISPLAY_STR = {
     {"O2L_PCM", L("Cutting Module")},
     {"O2L_ACM", "Active Cutting Module"},
     {"O2L_UCM", "Ultrasonic Cutting Module"},
+    {"O2L-AFP", L("Auto Fire Extinguishing System")},
 };
 
 enum FIRMWARE_STASUS
@@ -216,6 +217,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     createCuttingWidgets(m_main_left_sizer);
     createLaserWidgets(m_main_left_sizer);
     createAirPumpWidgets(m_main_left_sizer);
+    createExtinguishWidgets(m_main_left_sizer);
 
     m_main_sizer->Add(m_main_left_sizer, 1, wxEXPAND, 0);
 
@@ -389,6 +391,27 @@ void MachineInfoPanel::createLaserWidgets(wxBoxSizer* main_left_sizer)
     main_left_sizer->Add(m_laser_sizer, 0, wxEXPAND, 0);
 }
 
+void MachineInfoPanel::createExtinguishWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_extinguish_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_extinguish_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_extinguish_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_extinguish_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_extinguish_img->SetBitmap(m_img_extinguish.bmp());
+
+    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
+    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
+    m_extinguish_version = new uiDeviceUpdateVersion(this, wxID_ANY);
+    content_sizer->Add(m_extinguish_version, 0, wxEXPAND, 0);
+
+    m_extinguish_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_extinguish_sizer->Add(m_extinguish_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_extinguish_sizer->Add(content_sizer, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_extinguish_sizer, 0, wxEXPAND, 0);
+}
+
 void MachineInfoPanel::msw_rescale()
 {
     rescale_bitmaps();
@@ -421,6 +444,7 @@ void MachineInfoPanel::init_bitmaps()
 
     m_img_laser          = ScalableBitmap(this, "laser", 160);
     m_img_cutting        = ScalableBitmap(this, "cut", 160);
+    m_img_extinguish     = ScalableBitmap(this, "extinguish", 160);
 
     upgrade_green_icon   = ScalableBitmap(this, "monitor_upgrade_online", 5);
     upgrade_gray_icon    = ScalableBitmap(this, "monitor_upgrade_offline", 5);
@@ -516,6 +540,7 @@ void MachineInfoPanel::update(MachineObject* obj)
         update_air_pump(obj);
         update_cut(obj);
         update_laszer(obj);
+        update_extinguish(obj);
 
         //update progress
         int upgrade_percent = obj->get_upgrade_percent();
@@ -1043,6 +1068,19 @@ void MachineInfoPanel::update_laszer(MachineObject* obj)
     }
 }
 
+void MachineInfoPanel::update_extinguish(MachineObject* obj)
+{
+    if (obj && obj->extinguish_version_info.isValid())
+    {
+        m_extinguish_version->UpdateInfo(obj->extinguish_version_info);
+        show_extinguish(true);
+    }
+    else
+    {
+        show_extinguish(false);
+    }
+}
+
 void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
 {
     if (last_status == status && last_status_str == upgrade_status_str) return;
@@ -1166,6 +1204,17 @@ void MachineInfoPanel::show_laszer(bool show)
         m_laser_version->Show(show);
     }
 }
+
+void MachineInfoPanel::show_extinguish(bool show)
+{
+    if (m_extinguish_version->IsShown() != show)
+    {
+        m_extinguish_img->Show(show);
+        m_extinguish_line_above->Show(show);
+        m_extinguish_version->Show(show);
+    }
+}
+
 
 void MachineInfoPanel::on_sys_color_changed()
 {
