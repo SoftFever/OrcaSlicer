@@ -6,7 +6,8 @@ Unless printed in spiral vase mode, every layer needs to begin somewhere and end
 
 Controlling the position of seams can help improve the appearance and strength of the final print.
 
-Typically, aligned or back work the best, especially in combination with seam painting. However, as seams create weak points and slight surface "bulges" or "divots", random seam placement may be optimal for parts that need higher strength as that weak point is spread to different locations between layers (e.g., a pin meant to fit through a hole).
+Typically, [Aligned Back](#aligned-back), [Aligned](#aligned), or [Back](#back) work the best, especially in combination with seam painting.  
+However, as seams create weak points and slight surface "bulges" or "divots", [random](#random) seam placement may be optimal for parts that need higher strength as that weak point is spread to different locations between layers (e.g., a pin meant to fit through a hole).
 
 ### Aligned
 
@@ -16,10 +17,11 @@ Will attempt to align the seam to a hidden internal facet of the model.
 
 ### Aligned Back
 
-Combines "Aligned" and "Back" strategies by prioritizing seam placement away from the front-facing side while still finding optimal hidden locations for other orientations. This is particularly useful for directional models like sculptures or figurines that have a clear front view.  
+Combines [Aligned](#aligned) and [Back](#back) strategies by prioritizing seam placement away from the front-facing side while still finding optimal hidden locations for other orientations.  
+This is particularly useful for directional models like sculptures or figurines that have a clear front view.  
 Unlike "Back" which always places seams at the rearmost position, "Aligned Back" uses intelligent positioning that avoids the front while maintaining sophisticated seam hiding capabilities.
 
-![seam-aligned-back](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/imagesimages/seam/seam-aligned-back.png?raw=true)
+![seam-aligned-back](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-aligned-back.png?raw=true)
 
 ### Nearest
 
