@@ -114,6 +114,10 @@
     "slow_down_min_speed": [
         "30"
     ],
+    "volumetric_speed_coefficients": [
+        "-20.9250;-1.8134;71.7462;1.9816;0.5060;-0.1901",
+        "-20.9250;-1.8134;71.7462;1.9816;0.5060;-0.1901"
+    ],
     "compatible_printers": [
         "Bambu Lab H2S 0.4 nozzle"
     ],

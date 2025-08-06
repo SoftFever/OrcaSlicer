@@ -114,6 +114,10 @@
     "slow_down_for_layer_cooling": [
         "0"
     ],
+    "volumetric_speed_coefficients": [
+        "6.6221;-1.8351;5.4532;2.6077;3.1996;-1.9564",
+        "6.6221;-1.8351;5.4532;2.6077;3.1996;-1.9564"
+    ],
     "compatible_printers": [
         "Bambu Lab H2S 0.8 nozzle"
     ],

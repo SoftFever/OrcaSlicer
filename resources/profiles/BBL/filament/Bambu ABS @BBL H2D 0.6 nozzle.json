@@ -80,6 +80,10 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
+    "filament_extruder_id": [
+        "1",
+        "1"
+    ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
@@ -113,6 +117,10 @@
     ],
     "slow_down_layer_time": [
         "12"
+    ],
+    "volumetric_speed_coefficients": [
+        "0;0;0;0;0;0",
+        "0;0;0;0;0;0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.6 nozzle"

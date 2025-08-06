@@ -92,6 +92,30 @@
         "0",
         "0"
     ],
+    "filament_enable_overhang_speed": [
+        "1",
+        "1"
+    ],
+    "filament_overhang_1_4_speed": [
+        "0",
+        "0"
+    ],
+    "filament_overhang_2_4_speed": [
+        "50",
+        "50"
+    ],
+    "filament_overhang_3_4_speed": [
+        "30",
+        "30"
+    ],
+    "filament_overhang_4_4_speed": [
+        "10",
+        "10"
+    ],
+    "filament_overhang_totally_speed": [
+        "10",
+        "10"
+    ],
     "long_retractions_when_ec": [
         "0",
         "0"
@@ -104,6 +128,10 @@
         "225",
         "225"
     ],
+    "override_process_overhang_speed": [
+        "0",
+        "0"
+    ],
     "pre_start_fan_time": [
         "2"
     ],
@@ -113,6 +141,10 @@
     ],
     "slow_down_for_layer_cooling": [
         "0"
+    ],
+    "volumetric_speed_coefficients": [
+        "12.4717;-2.8601;9.7830;2.9503;3.9235;-1.8644",
+        "12.4717;-2.8601;9.7830;2.9503;3.9235;-1.8644"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.6 nozzle"

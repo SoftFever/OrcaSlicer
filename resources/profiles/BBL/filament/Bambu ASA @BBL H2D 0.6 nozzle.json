@@ -100,6 +100,10 @@
         "10",
         "10"
     ],
+    "volumetric_speed_coefficients": [
+        "0;0;0;0;0;0",
+        "0;0;0;0;0;0"
+    ],
     "compatible_printers": [
         "Bambu Lab H2D 0.6 nozzle"
     ],

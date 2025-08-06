@@ -5797,6 +5797,28 @@ bool GCode::_needSAFC(const ExtrusionPath &path)
     });
 }
 
+double GCode::calc_max_volumetric_speed(const double layer_height, const double line_width, const std::string co_str)
+{
+    std::vector<double> cs;
+    std::stringstream   ss(co_str);
+    std::string         token;
+
+    while (std::getline(ss, token, ';')) {
+        try {
+            cs.push_back(std::stod(token));
+        } catch (...) {
+            std::cerr << "Transformation failed: " << token << std::endl;
+        }
+    }
+    if (cs.size() != 6 || std::all_of(cs.begin(), cs.end(), [](double v) { return v == 0; })) return std::numeric_limits<double>::max();
+
+    const double x = layer_height;
+    const double y = line_width;
+
+    double res = cs[0] * x * x + cs[1] * y * y + cs[2] * x * y + cs[3] * x + cs[4] * y + cs[5];
+    return res;
+}
+
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)
 {
     std::string gcode;
@@ -5959,8 +5981,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     }
     //BBS: if not set the speed, then use the filament_max_volumetric_speed directly
+    double filament_max_volumetric_speed = calc_max_volumetric_speed(path.height, path.width, FILAMENT_CONFIG(volumetric_speed_coefficients));
+    filament_max_volumetric_speed        = std::min(filament_max_volumetric_speed, FILAMENT_CONFIG(filament_max_volumetric_speed));
     if (speed == 0)
-        speed = FILAMENT_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
+        speed = filament_max_volumetric_speed / _mm3_per_mm;
     if (this->on_first_layer()) {
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached

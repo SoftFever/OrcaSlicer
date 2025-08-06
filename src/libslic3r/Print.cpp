@@ -130,6 +130,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_colour",
         "default_filament_colour",
         "filament_diameter",
+         "volumetric_speed_coefficients",
         "filament_density",
         "filament_cost",
         "filament_notes",
