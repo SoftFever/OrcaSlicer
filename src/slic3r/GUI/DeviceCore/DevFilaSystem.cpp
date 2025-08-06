@@ -38,8 +38,6 @@ void DevAmsTray::UpdateColorFromStr(const std::string& color)
     }
 }
 
-wxColour DevAmsTray::get_color() { return decode_color(color); }
-
 void DevAmsTray::reset()
 {
     tag_uid             = "";
@@ -66,7 +64,7 @@ void DevAmsTray::reset()
 }
 
 
-bool DevAmsTray::is_tray_info_ready()
+bool DevAmsTray::is_tray_info_ready() const
 {
     if (color.empty()) return false;
     if (type.empty()) return false;
@@ -74,13 +72,13 @@ bool DevAmsTray::is_tray_info_ready()
     return true;
 }
 
-bool DevAmsTray::is_unset_third_filament()
+bool DevAmsTray::is_unset_third_filament() const
 {
     if (this->is_bbl) return false;
     return (color.empty() || type.empty());
 }
 
-std::string DevAmsTray::get_display_filament_type()
+std::string DevAmsTray::get_display_filament_type() const
 {
     if (type == "PLA-S") return "Sup.PLA";
     if (type == "PA-S") return "Sup.PA";

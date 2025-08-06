@@ -24,14 +24,6 @@ public:
         id = tray_id;
     }
 
-    static wxColour decode_color(const std::string& color);
-
-    bool operator==(DevAmsTray const& o) const
-    {
-        return id == o.id && type == o.type && filament_setting_id == o.filament_setting_id && color == o.color;
-    }
-    bool operator!=(DevAmsTray const& o) const { return !operator==(o); }
-
     std::string              id;
     std::string              tag_uid;             // tag_uid
     std::string              setting_id;          // tray_info_idx
@@ -61,16 +53,30 @@ public:
     int             hold_count = 0;
     int             remain = 0;         // filament remain: 0 ~ 100
 
-    void set_hold_count() { hold_count = HOLD_COUNT_MAX; }
-    void UpdateColorFromStr(const std::string& color);
-    wxColour get_color();
+public:
+    // operators
+    bool operator==(DevAmsTray const& o) const
+    {
+        return id == o.id && type == o.type && filament_setting_id == o.filament_setting_id && color == o.color;
+    }
+    bool operator!=(DevAmsTray const& o) const { return !operator==(o); }
 
+    // setters
     void reset();
+    void UpdateColorFromStr(const std::string& color);
+    void set_hold_count() { hold_count = HOLD_COUNT_MAX; }
 
-    bool is_tray_info_ready();
-    bool is_unset_third_filament();
-    std::string get_display_filament_type();
+    // getter
+    bool is_tray_info_ready() const;
+    bool is_unset_third_filament() const;
+
+    wxColour    get_color()  const { return decode_color(color); };
+
+    std::string get_display_filament_type() const;
     std::string get_filament_type();
+
+    // static
+    static wxColour decode_color(const std::string& color);
 };
 
 class DevAms

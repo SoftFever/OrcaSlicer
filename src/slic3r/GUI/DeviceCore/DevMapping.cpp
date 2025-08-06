@@ -72,7 +72,7 @@ namespace Slic3r
         bool  is_type_match = true;
     };
 
-    static void _parse_tray_info(int ams_id, int slot_id, DevAmsTray tray, FilamentInfo& result)
+    static void _parse_tray_info(int ams_id, int slot_id, DevAms::AmsType type, DevAmsTray tray, FilamentInfo& result)
     {
         result.color = tray.color;
         result.type = tray.get_filament_type();
@@ -91,7 +91,14 @@ namespace Slic3r
         }
         else
         {
-            result.id = ams_id * 4 + slot_id;
+            if (type == DevAms::N3S)
+            {
+                result.id = ams_id + slot_id;
+            }
+            else
+            {
+                result.id = ams_id * 4 + slot_id;
+            }
         }
     }
 
@@ -138,7 +145,7 @@ namespace Slic3r
                 FilamentInfo info;
                 if (tray->second->is_tray_info_ready())
                 {
-                    _parse_tray_info(ams_id, tray_id, *(tray->second), info);
+                    _parse_tray_info(ams_id, tray_id, ams_type, *(tray->second), info);
                 }
 
                 //first: left,nozzle=1,map=1   second: right,nozzle=0,map=2
@@ -179,7 +186,7 @@ namespace Slic3r
                         }
                     }
                     FilamentInfo info;
-                    _parse_tray_info(atoi(tray.id.c_str()), 0, tray, info);
+                    _parse_tray_info(atoi(tray.id.c_str()), 0, DevAms::DUMMY, tray, info);
                     tray_filaments.emplace(std::make_pair(info.tray_id, info));
                 }
             }
