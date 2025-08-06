@@ -3443,6 +3443,18 @@ void TabFilament::build()
         optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Bed temperature"), L"param_bed_temp");
+        line = { L("Cryogrip Pro Frostbite Plate"),
+                 L("Bed temperature when the Cryogrip Pro Frostbite plate is installed. A value of 0 means the filament does not support printing on the Cryogrip Pro Frostbite plate.") };
+        line.append_option(optgroup->get_option("cryogrip_pro_frostbite_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("cryogrip_pro_frostbite_plate_temp"));
+        optgroup->append_line(line);
+
+        line = { L("Cryogrip Pro Glacier Plate"),
+                 L("Bed temperature when the Cryogrip Pro Glacier plate is installed. A value of 0 means the filament does not support printing on the Cryogrip Pro Glacier plate.") };
+        line.append_option(optgroup->get_option("cryogrip_pro_glacier_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("cryogrip_pro_glacier_plate_temp"));
+        optgroup->append_line(line);
+
         line = { L("Cool Plate (SuperTack)"),
                  L("Bed temperature when the Cool Plate SuperTack is installed. A value of 0 means the filament does not support printing on the Cool Plate SuperTack.") };
         line.append_option(optgroup->get_option("supertack_plate_temp_initial_layer"));
@@ -3737,7 +3749,8 @@ void TabFilament::toggle_options()
             bed_temp_1st_layer_key = get_bed_temp_1st_layer_key(proj_cfg.opt_enum<BedType>("curr_bed_type"));
         }
 
-        const std::vector<std::string> bed_temp_keys = {"supertack_plate_temp_initial_layer", "cool_plate_temp_initial_layer",
+        const std::vector<std::string> bed_temp_keys = {"cryogrip_pro_frostbite_plate_temp_initial_layer", "cryogrip_pro_glacier_plate_temp_initial_layer",
+                                                        "supertack_plate_temp_initial_layer", "cool_plate_temp_initial_layer",
                                                         "textured_cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer",
                                                         "textured_plate_temp_initial_layer", "hot_plate_temp_initial_layer"};
 
