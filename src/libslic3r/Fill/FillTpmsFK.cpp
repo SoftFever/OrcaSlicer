@@ -21,81 +21,97 @@ static double scaled_floor(double x,double scale){
 static Polylines make_waves(double gridZ, double density_adjusted, double line_spacing, double width, double height)
 {
     const double scaleFactor = scale_(line_spacing) / density_adjusted;
-
-    // tolerance in scaled units. clamp the maximum tolerance as there's
-    // no processing-speed benefit to do so beyond a certain point
+    const double z = gridZ / scaleFactor;
     const double tolerance = std::min(line_spacing / 2, FillTpmsFK::PatternTolerance) / unscale<double>(scaleFactor);
 
-    //scale factor for 5% : 8 712 388
-    // 1z = 10^-6 mm ?
-    const double z = gridZ / scaleFactor;
     Polylines result;
 
-	//sin(x)*sin(y)*sin(z)-cos(x)*cos(y)*cos(z)=0
-	//2*sin(x)*sin(y)*sin(z)-2*cos(x)*cos(y)*cos(z)=0
-	//(cos(x-y)-cos(x+y))*sin(z)-(cos(x-y)+cos(x+y))*cos(z)=0
-	//(sin(z)-cos(z))*cos(x-y)-(sin(z)+cos(z))*cos(x+y)=0
-	double a=sin(z)-cos(z);
-	double b=sin(z)+cos(z);
-	//a*cos(x-y)-b*cos(x+y)=0
-	//u=x-y, v=x+y
-	double minU=0-height;
-	double maxU=width-0;
-	double minV=0+0;
-	double maxV=width+height;
-	//a*cos(u)-b*cos(v)=0
-	//if abs(b)<abs(a), then u=acos(b/a*cos(v)) is a continuous line
-	//otherwise we swap u and v
-	const bool swapUV=(std::abs(a)>std::abs(b));
-	if(swapUV) {
-		std::swap(a,b);
-		std::swap(minU,minV);
-		std::swap(maxU,maxV);
-	}
-	std::vector<std::pair<double,double>> wave;
-	{//fill one wave
-		const auto v=[&](double u){return acos(a/b*cos(u));};
-		const int initialSegments=16;
-		for(int c=0;c<=initialSegments;++c){
-			const double u=minU+2*M_PI*c/initialSegments;
-			wave.emplace_back(u,v(u));
-		}
-		{//refine
-			int current=0;
-			while(current+1<int(wave.size())){
-				const double u1=wave[current].first;
-				const double u2=wave[current+1].first;
-				const double middleU=(u1+u2)/2;
-				const double v1=wave[current].second;
-				const double v2=wave[current+1].second;
-				const double middleV=v((u1+u2)/2);
-				if(std::abs(middleV-(v1+v2)/2)>tolerance)
-					wave.emplace(wave.begin()+current+1,middleU,middleV);
-				else
-					++current;
-			}
-		}
-		for(int c=1;c<int(wave.size()) && wave.back().first<maxU;++c)//we start from 1 because the 0-th one is already duplicated as the last one in a period
-			wave.emplace_back(wave[c].first+2*M_PI,wave[c].second);
-	}
-	for(double vShift=scaled_floor(minV,2*M_PI);vShift<maxV+2*M_PI;vShift+=2*M_PI) {
-		for(bool forwardRoot:{false,true}) {
-			result.emplace_back();
-			for(const auto &pair:wave) {
-				const double u=pair.first;
-				double v=pair.second;
-				v=(forwardRoot?v:-v)+vShift;
-				const double x=(u+v)/2;
-				const double y=(v-u)/2*(swapUV?-1:1);
-				result.back().points.emplace_back(x*scaleFactor,y*scaleFactor);
-			}
-		}
-	}
-	//todo: select the step better
+    // Equation: cos(2x)*sin(y)*cos(z) + cos(2y)*sin(z)*cos(x) + cos(2z)*sin(x)*cos(y) = 0
+    const double xmin = 0.0;
+    const double xmax = width;
+    const double ymin = 0.0;
+    const double ymax = height;
+
+    // Grid resolution - adjust as needed
+    const int grid_resolution = 1000;
+    const double dx = (xmax - xmin) / grid_resolution;
+    const double dy = (ymax - ymin) / grid_resolution;
+
+    auto equation = [z](double x, double y) {
+        return std::cos(2.0 * x) * std::sin(y) * std::cos(z)
+             + std::cos(2.0 * y) * std::sin(z) * std::cos(x)
+             + std::cos(2.0 * z) * std::sin(x) * std::cos(y);
+    };
+
+    // Create a grid to track visited points
+    std::vector<std::vector<bool>> visited(
+        grid_resolution + 1, 
+        std::vector<bool>(grid_resolution + 1, false)
+    );
+
+    // Directions for contour tracing (8-connected)
+    const int dx8[8] = {1, 1, 0, -1, -1, -1, 0, 1};
+    const int dy8[8] = {0, 1, 1, 1, 0, -1, -1, -1};
+
+    // Find starting points for contours
+    for (int i = 0; i <= grid_resolution; ++i) {
+        for (int j = 0; j <= grid_resolution; ++j) {
+            double x = xmin + i * dx;
+            double y = ymin + j * dy;
+
+            if (visited[i][j]) continue;
+
+            double val = equation(x, y);
+            if (std::abs(val) < tolerance) {
+                // Found a point on the contour - start tracing
+                Polyline contour;
+                int ci = i, cj = j;
+                int dir = 0; // Initial direction
+
+                do {
+                    double cx = xmin + ci * dx;
+                    double cy = ymin + cj * dy;
+                    contour.points.emplace_back(cx * scaleFactor, cy * scaleFactor);
+                    visited[ci][cj] = true;
+
+                    // Find next direction
+                    bool found = false;
+                    for (int k = 0; k < 8; ++k) {
+                        int nd = (dir + k) % 8;
+                        int ni = ci + dx8[nd];
+                        int nj = cj + dy8[nd];
+
+                        if (ni < 0 || ni > grid_resolution || nj < 0 || nj > grid_resolution)
+                            continue;
+
+                        double nx = xmin + ni * dx;
+                        double ny = ymin + nj * dy;
+                        double nval = equation(nx, ny);
+
+                        if (std::abs(nval) < tolerance && !visited[ni][nj]) {
+                            ci = ni;
+                            cj = nj;
+                            dir = (nd + 4) % 8; // Reverse direction
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) break;
+                } while (true);
+
+                if (contour.points.size() > 1) {
+                    // Simplify the contour
+                    contour.simplify(tolerance);
+                    result.push_back(contour);
+                }
+            }
+        }
+    }
+
     return result;
 }
 
-// FIXME: needed to fix build on Mac on buildserver
 constexpr double FillTpmsFK::PatternTolerance;
 
 void FillTpmsFK::_fill_surface_single(
