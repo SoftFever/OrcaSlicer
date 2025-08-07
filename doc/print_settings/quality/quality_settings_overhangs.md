@@ -11,16 +11,25 @@
 
 ## Detect overhang wall
 
-Detect the overhang percentage relative to line width and use different speed to print. For 100% overhang, bridge speed is used.
+Detect the overhang percentage relative to line width and use different speed to print.
+When detecting line width with 100% overhang, bridge options are used.
+
+![overhang](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/overhangs/overhang.png?raw=true)
 
 ## Make overhang printable
 
-Modify the geometry to print overhangs without support material.
+This setting will modify the geometry to print overhangs without support material.  
+Every overhang exceeding the [maximum angle](#maximum-angle) will be modified to be printable.
 
 ### Maximum angle
 
 Maximum angle of overhangs to allow after making more steep overhangs printable.  
 90° will not change the model at all and allow any overhang, while 0 will replace all overhangs with conical material.
+
+![overhang-printable](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/overhangs/overhang-printable.png?raw=true)
+
+> [!TIP]
+> Usually, a value between 45° and 60° works well for most printers and models.
 
 ### Hole area
 
