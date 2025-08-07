@@ -169,10 +169,10 @@ Format = `![[filename]](` + Base URL + filename.extension + Raw tag + `)`
   ![calibration](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/calibration.png?raw=true)
   ```
 
-- For an image in a subdirectory like `doc/images/GUI/combobox.svg`:
+- For an image in a subdirectory like `doc/images/GUI/combobox.png`:
 
   ```markdown
-  ![combobox](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/combobox.svg?raw=true)
+  ![combobox](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/combobox.png?raw=true)
   ```
 
 > [!IMPORTANT]
@@ -196,11 +196,11 @@ Avoid the resize of images and let the Wiki handle it automatically.
 
 If resizing is necessary (e.g., for thumbnails), use the following syntax:
 
-HTML Format = `<img src="` + Base URL + filename.extension + Raw tag + `" alt="` + filename + `"` + size limit.
+HTML Format = `<img alt="` + filename + `"` + `src="` + Base URL + filename.extension + Raw tag + size limit.
 Example:
 
 ```html
-   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_marlin_print_measure.jpg?raw=true" alt="Input_Shaping" height="200">
+   <img alt="IS_damp_marlin_print_measure" src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_marlin_print_measure.jpg?raw=true" height="200">
 ```
 
 ### Image Cropping and Highlighting
