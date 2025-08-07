@@ -2,6 +2,35 @@
 
 Unless printed in spiral vase mode, every layer needs to begin somewhere and end somewhere. That start and end of the extrusion is what results in what visually looks like a seam on the perimeters. This section contains options to control the visual appearance of a seam.
 
+- [Seam Position](#seam-position)
+  - [Aligned](#aligned)
+  - [Aligned Back](#aligned-back)
+  - [Nearest](#nearest)
+  - [Back](#back)
+  - [Random](#random)
+- [Modifiers](#modifiers)
+  - [Staggered inner seams](#staggered-inner-seams)
+  - [Seam gap](#seam-gap)
+  - [Scarf joint seam](#scarf-joint-seam)
+    - [Scarf joint seam Type](#scarf-joint-seam-type)
+    - [Conditional scarf joint](#conditional-scarf-joint)
+    - [Scarf joint speed](#scarf-joint-speed)
+    - [Scarf joint height](#scarf-joint-height)
+    - [Scarf around entire wall](#scarf-around-entire-wall)
+    - [Scarf length](#scarf-length)
+    - [Scarf steps](#scarf-steps)
+    - [Scarf joint flow ratio](#scarf-joint-flow-ratio)
+    - [Scarf joint for inner walls](#scarf-joint-for-inner-walls)
+  - [Role-based wipe speed](#role-based-wipe-speed)
+  - [Wipe speed](#wipe-speed)
+  - [Wipe on loop (inward movement)](#wipe-on-loop-inward-movement)
+  - [Wipe Before External](#wipe-before-external)
+- [Tips](#tips)
+- [Troubleshooting Seam Performance](#troubleshooting-seam-performance)
+  - [Troubleshooting the Start of a Seam](#troubleshooting-the-start-of-a-seam)
+  - [Troubleshooting the End of a Seam](#troubleshooting-the-end-of-a-seam)
+  - [The Role of Wall Ordering in Seam Appearance](#the-role-of-wall-ordering-in-seam-appearance)
+
 ## Seam Position
 
 Controlling the position of seams can help improve the appearance and strength of the final print.
@@ -63,7 +92,47 @@ Controls the gap in mm or as a percentage of the nozzle size between the two end
 
 ### Scarf joint seam
 
-Read more here: [Better Seams - An Orca Slicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
+Use scarf joint to minimize seam visibility and increase seam strength.
+
+> [!NOTE]
+> Read more here: [Better Seams - An Orca Slicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
+
+#### Scarf joint seam Type
+
+- **Contour:** Applies scarf seams exclusively to the outermost perimeter of the model.
+- **Contour and hole:** Extends scarf seams to both the outer perimeter and the inner walls surrounding holes within the part.
+
+#### Conditional scarf joint
+
+Apply scarf joints only to smooth perimeters where traditional seams do not conceal the seams at sharp corners effectively.
+
+#### Scarf joint speed
+
+This option sets the printing speed for scarf joints. It is recommended to print scarf joints at a slow speed (less than 100 mm/s). It's also advisable to enable 'Extrusion rate smoothing' if the set speed varies significantly from the speed of the outer or inner walls. If the speed specified here is higher than the speed of the outer or inner walls, the printer will default to the slower of the two speeds. When specified as a percentage (e.g., 80%), the speed is calculated based on the respective outer or inner wall speed. The default value is set to 100%.
+
+#### Scarf joint height
+
+This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0.
+
+#### Scarf around entire wall
+
+The scarf extends to the entire length of the wall.
+
+#### Scarf length
+
+Length of the scarf. Setting this parameter to zero effectively disables the scarf.
+
+#### Scarf steps
+
+Minimum number of segments of each scarf.
+
+#### Scarf joint flow ratio
+
+This factor affects the amount of material for scarf joints.
+
+#### Scarf joint for inner walls
+
+Use scarf joint for inner walls as well.
 
 ### Role-based wipe speed
 
