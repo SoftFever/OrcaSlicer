@@ -1695,30 +1695,33 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
         Points pos;
         Points pos_custom;
         float  max_print_z;
+        float  max_print_z_custom;
     };
     std::map<int, std::map<int, GCodePosInfo>> gcode_path_pos; // object_id, filament_id, pos
     for (const GCodeProcessorResult::MoveVertex &move : m_result.moves) {
         // sometimes, the start line extrude was outside the edge of plate a little, this is allowed, so do not include into the gcode_path_pos
-        if (move.type == EMoveType::Extrude && !(move.object_label_id < 0 && move.extrusion_role == ExtrusionRole::erCustom) /* || move.type == EMoveType::Travel*/) {
-            if (move.is_arc_move_with_interpolation_points()) {
-                for (int i = 0; i < move.interpolation_points.size(); i++) {
-                    gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
+        if (move.type == EMoveType::Extrude /* && move.extrusion_role != ExtrusionRole::erFlush || move.type == EMoveType::Travel*/)
+            if (move.extrusion_role == ExtrusionRole::erCustom) {
+                if (move.is_arc_move_with_interpolation_points()) {
+                    for (int i = 0; i < move.interpolation_points.size(); i++) {
+                        gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos_custom.emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
+                    }
+                } else {
+                    gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos_custom.emplace_back(to_2d(move.position.cast<double>()));
                 }
-            }
-            else {
-                gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.position.cast<double>()));
-            }
-            gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z = std::max(gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z, move.print_z);
-        } else if ( move.type == EMoveType::Extrude && (move.object_label_id < 0 && move.extrusion_role == ExtrusionRole::erCustom) ){
-            if (move.is_arc_move_with_interpolation_points()) {
-                for (int i = 0; i < move.interpolation_points.size(); i++) {
-                    gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos_custom.emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
-                }
+                gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z_custom =
+                    std::max(gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z_custom, move.print_z);
             } else {
-                gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos_custom.emplace_back(to_2d(move.position.cast<double>()));
+                if (move.is_arc_move_with_interpolation_points()) {
+                    for (int i = 0; i < move.interpolation_points.size(); i++) {
+                        gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
+                    }
+                } else {
+                    gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.position.cast<double>()));
+                }
+                gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z = std::max(gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z,
+                                                                                                   move.print_z);
             }
-            gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z = std::max(gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z, move.print_z);
-        }
     }
 
     bool valid = true;
@@ -1734,11 +1737,6 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
             iter_points.insert(iter_points.end(), iter->second.pos.begin(), iter->second.pos.end());// put object/wipetower extrude position in
             Polygon     path_poly(iter_points);
             BoundingBox bbox = path_poly.bounding_box();
-            iter_points.insert(iter_points.end(), iter->second.pos_custom.begin(), iter->second.pos_custom.end());// put custom extrude position in
-            Polygon     path_poly_custom(iter_points);
-            BoundingBox bbox_custom = path_poly_custom.bounding_box();
-            bbox_custom.offset(-scale_(1.0));//Narrow the range to provide a tolerance for the custom gcode
-            bbox.merge(bbox_custom);// merge the custom gcode pos with other pos
             if (plate_printable_poly.is_valid()){
                 if (!plate_printable_poly.bounding_box().contains(bbox)) {// out of the bed area
                     m_result.gcode_check_result.error_code |= (1<<2);
@@ -1769,7 +1767,11 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
             }
 
             if (extruder_size > 1) {// in multi extruder condition
-
+                /*//iter_points.insert(iter_points.end(), iter->second.pos_custom.begin(), iter->second.pos_custom.end()); // put custom extrude position in
+                //Polygon     path_poly_custom(iter_points);
+                //BoundingBox bbox_custom = path_poly_custom.bounding_box();
+                //bbox_custom.offset(-scale_(1.0)); // Narrow the range to provide a tolerance for the custom gcode
+                //bbox.merge(bbox_custom);          // merge the custom gcode pos with other pos*/
                 // check printable area
                 // Simplified use bounding_box, Accurate calculation is not efficient
                 if (!unprintable_areas[extruder_id].empty())
