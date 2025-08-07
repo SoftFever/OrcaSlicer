@@ -897,6 +897,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
 
     toggle_line("infill_overhang_angle", config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ipLateralHoneycomb);
+
+    ConfigOptionPoints *wrapping_exclude_area_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionPoints>("wrapping_exclude_area");
+    bool support_wrapping_detect = wrapping_exclude_area_opt &&wrapping_exclude_area_opt->values.size() > 3;
+    toggle_line("enable_wrapping_detection", support_wrapping_detect);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
