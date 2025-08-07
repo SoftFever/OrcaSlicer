@@ -3391,6 +3391,19 @@ int CLI::run(int argc, char **argv)
         flush_and_exit(CLI_INVALID_VALUES_IN_3MF);
     }
 
+    ConfigOptionBool* enable_wrapping_detection_option = m_print_config.option<ConfigOptionBool>("enable_wrapping_detection", true);
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%, remove_wrapping_detect %2%, old value %3%")%__LINE__ %remove_wrapping_detect %enable_wrapping_detection_option->value;
+    if (is_bbl_3mf && remove_wrapping_detect) {
+        enable_wrapping_detection_option->value = false;
+    }
+    enable_wrapping_detect = enable_wrapping_detection_option->value;
+    Pointfs current_wrapping_exclude_area = m_print_config.opt<ConfigOptionPoints>("wrapping_exclude_area", true)->values;
+    if (disable_wipe_tower_after_mapping && enable_wrapping_detect && !current_wrapping_exclude_area.empty())
+    {
+        disable_wipe_tower_after_mapping = false;
+        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, set disable_wipe_tower_after_mapping back to false due to wrapping detect")%__LINE__;
+    }
+
     auto timelapse_type_opt = m_print_config.option("timelapse_type");
     bool is_smooth_timelapse = false;
     if (enable_timelapse && timelapse_type_opt && (timelapse_type_opt->getInt() == TimelapseType::tlSmooth))
@@ -3431,7 +3444,6 @@ int CLI::run(int argc, char **argv)
     //use Pointfs insteadof Points
     Pointfs current_printable_area = m_print_config.opt<ConfigOptionPoints>("printable_area")->values;
     Pointfs current_exclude_area = m_print_config.opt<ConfigOptionPoints>("bed_exclude_area")->values;
-    Pointfs current_wrapping_exclude_area = m_print_config.opt<ConfigOptionPoints>("wrapping_exclude_area", true)->values;
     std::vector<Pointfs> current_extruder_areas;
     //update part plate's size
     double print_height = m_print_config.opt_float("printable_height");
@@ -3577,13 +3589,6 @@ int CLI::run(int argc, char **argv)
         ConfigOptionFloatsNullable *initial_layer_acceleration_option = m_print_config.option<ConfigOptionFloatsNullable>("initial_layer_acceleration");
         initial_layer_travel_acceleration_option->values = initial_layer_acceleration_option->values;
     }
-
-    ConfigOptionBool* enable_wrapping_detection_option = m_print_config.option<ConfigOptionBool>("enable_wrapping_detection", true);
-    BOOST_LOG_TRIVIAL(info) << boost::format("%1%, remove_wrapping_detect %2%, old value %3%")%__LINE__ %remove_wrapping_detect %enable_wrapping_detection_option->value;
-    if (is_bbl_3mf && remove_wrapping_detect) {
-        enable_wrapping_detection_option->value = false;
-    }
-    enable_wrapping_detect = enable_wrapping_detection_option->value;
 
     auto get_print_sequence = [](Slic3r::GUI::PartPlate* plate, DynamicPrintConfig& print_config, bool &is_seq_print) {
         PrintSequence curr_plate_seq = plate->get_print_seq();
@@ -4372,7 +4377,7 @@ int CLI::run(int argc, char **argv)
                     }
                 }
 
-                if (!arrange_cfg.is_seq_print && assemble_plate.filaments_count > 1)
+                if (!arrange_cfg.is_seq_print && (assemble_plate.filaments_count > 1)||(enable_wrapping_detect && !current_wrapping_exclude_area.empty()))
                 {
                     //prepare the wipe tower
                     int plate_count = partplate_list.get_plate_count();
@@ -4800,7 +4805,7 @@ int CLI::run(int argc, char **argv)
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange: slice filaments info invalid or need_skip, get from partplate: filament_count %1%")%filaments_cnt;
                         }
 
-                        if ((filaments_cnt <= 1) && !is_smooth_timelapse)
+                        if ((filaments_cnt <= 1) && !is_smooth_timelapse && (!enable_wrapping_detect || current_wrapping_exclude_area.empty()))
                         {
                             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("arrange: not a multi-color object anymore, drop the wipe tower before arrange.");
                         }
