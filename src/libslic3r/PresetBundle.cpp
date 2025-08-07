@@ -2821,6 +2821,13 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                     //get bed model
                     model.bed_model = it.value();
                 }
+                else if (boost::iequals(it.key(), BBL_JSON_KEY_BED_MODEL_FOR_PLATE)) {
+                    // Load bed model overrides for specific BedTypes
+                    for (auto map_it = it.value().begin(); map_it != it.value().end(); map_it++) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": bed_model_for_plate[" << map_it.key() << "] = " << map_it.value() << "\n";
+                        model.bed_model_for_plate[map_it.key()] = map_it.value();
+                    }
+                }
                 else if (boost::iequals(it.key(), BBL_JSON_KEY_BED_TEXTURE)) {
                     //get bed texture
                     model.bed_texture = it.value();

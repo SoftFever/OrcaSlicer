@@ -3647,14 +3647,28 @@ namespace PresetUtils {
 		return out;
 	}
 
-    std::string system_printer_bed_model(const Preset& preset)
+    std::string system_printer_bed_model(const Preset& preset, const BedType bed_type)
     {
         std::string out;
         const VendorProfile::PrinterModel* pm = PresetUtils::system_printer_model(preset);
-        if (pm != nullptr && !pm->bed_model.empty()) {
-            out = Slic3r::data_dir() + "/vendor/" + preset.vendor->id + "/" + pm->bed_model;
-            if (!boost::filesystem::exists(boost::filesystem::path(out)))
-                out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_model;
+        if (pm != nullptr) {
+            // First check if the bed_model_for_plate map contains an entry for bed_type.
+            std::string bed_type_string = bed_type_to_gcode_string(bed_type);
+            auto bed_model_for_plate_it = pm->bed_model_for_plate.find(bed_type_string);
+            if (bed_model_for_plate_it != pm->bed_model_for_plate.end()) {
+                // Found a specific model for bed_type.
+                out = Slic3r::data_dir() + "/vendor/" + preset.vendor->id + "/" + bed_model_for_plate_it->second;
+                if (!boost::filesystem::exists(boost::filesystem::path(out))) {
+                    out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + bed_model_for_plate_it->second;
+                }
+            }
+            else if (!pm->bed_model.empty()) {
+                // Otherwise fall back to the regular bed_model.
+                out = Slic3r::data_dir() + "/vendor/" + preset.vendor->id + "/" + pm->bed_model;
+                if (!boost::filesystem::exists(boost::filesystem::path(out))) {
+                    out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_model;
+                }
+            }
         }
         return out;
     }

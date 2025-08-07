@@ -59,6 +59,7 @@
 #define BBL_JSON_KEY_PRINTER_TECH                 "machine_tech"
 #define BBL_JSON_KEY_FAMILY                     "family"
 #define BBL_JSON_KEY_BED_MODEL                  "bed_model"
+#define BBL_JSON_KEY_BED_MODEL_FOR_PLATE        "bed_model_for_plate"
 #define BBL_JSON_KEY_BED_TEXTURE                "bed_texture"
 #define BBL_JSON_KEY_HOTEND_MODEL               "hotend_model"
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
@@ -114,7 +115,8 @@ public:
         std::vector<PrinterVariant> variants;
         std::vector<std::string>	default_materials;
         // Vendor & Printer Model specific print bed model & texture.
-        std::string 			 	bed_model;
+        std::string 			 	bed_model;           // default bed model
+        std::map<std::string, std::string>      bed_model_for_plate; // bed models for specific bed_types
         std::string 				bed_texture;
         std::string                 hotend_model;
 
@@ -839,7 +841,7 @@ private:
 namespace PresetUtils {
 	// PrinterModel of a system profile, from which this preset is derived, or null if it is not derived from a system profile.
 	const VendorProfile::PrinterModel* system_printer_model(const Preset &preset);
-    std::string system_printer_bed_model(const Preset& preset);
+    std::string system_printer_bed_model(const Preset& preset, const BedType bed_type);
     std::string system_printer_bed_texture(const Preset& preset);
     std::string system_printer_hotend_model(const Preset& preset);
 } // namespace PresetUtils
