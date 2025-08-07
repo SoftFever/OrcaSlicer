@@ -1756,16 +1756,16 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
                 m_result.gcode_check_result.print_height_error_infos[extruder_id].push_back(filament_to_object_id);
                 valid = false;
             }
-            if (wrapping_exclude_poly.is_valid()) {
-                if (wrapping_exclude_poly.bounding_box().overlap(bbox)) { // get into the wrapping area
-                    m_result.gcode_check_result.error_code |= (1 << 4);
-                    std::pair<int, int> filament_to_object_id;
-                    filament_to_object_id.first  = iter->first;
-                    filament_to_object_id.second = object_label_id;
-                    m_result.gcode_check_result.print_area_error_infos[extruder_id].push_back(filament_to_object_id);
-                    valid = false;
-                }
-            }
+            // if (wrapping_exclude_poly.is_valid()) {
+            //     if (wrapping_exclude_poly.bounding_box().overlap(bbox)) { // get into the wrapping area
+            //         m_result.gcode_check_result.error_code |= (1 << 4);
+            //         std::pair<int, int> filament_to_object_id;
+            //         filament_to_object_id.first  = iter->first;
+            //         filament_to_object_id.second = object_label_id;
+            //         m_result.gcode_check_result.print_area_error_infos[extruder_id].push_back(filament_to_object_id);
+            //         valid = false;
+            //     }
+            // }
 
             if (extruder_size > 1) {// in multi extruder condition
                 /*//iter_points.insert(iter_points.end(), iter->second.pos_custom.begin(), iter->second.pos_custom.end()); // put custom extrude position in
