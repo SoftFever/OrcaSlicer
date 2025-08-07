@@ -1,4 +1,4 @@
-# Seam Section
+# Seam
 
 Unless printed in spiral vase mode, every layer needs to begin somewhere and end somewhere. That start and end of the extrusion is what results in what visually looks like a seam on the perimeters. This section contains options to control the visual appearance of a seam.
 
@@ -46,13 +46,20 @@ This option places the seam randomly across the object, which can help to distri
 
 ### Staggered inner seams
 
-As the seam location forms a weak point in the print (it's a discontinuity in the extrusion process after all!), staggering the seam on the internal perimeters can help reduce stress points. This setting moves the start of the internal wall's seam around across layers as well as away from the external perimeter seam. This way, the internal and external seams don't all align at the same point and between them across layers, distributing those weak points further away from the seam location, hence making the part stronger. It can also help improve the water tightness of your model.
+As the seam location forms a weak point in the print, staggering the seam on the internal perimeters can help reduce stress points. This setting moves the start of the internal wall's seam around across layers as well as away from the external perimeter seam. This way, the internal and external seams don't all align at the same point and between them across layers, distributing those weak points further away from the seam location, hence making the part stronger. It can also help improve the water tightness of your model.
+
+![seam-staggered-inner](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-staggered-inner.gif)
 
 ### Seam gap
 
-Controls the gap in mm or as a percentage of the nozzle size between the two ends of a loop starting and ending with a seam. A larger gap will reduce the bulging seen at the seam. A smaller gap reduces the visual appearance of a seam. For a well-tuned printer with pressure advance, a value of 0-15% is typically optimal.
+Controls the gap in mm or as a percentage of the nozzle size between the two ends of a loop starting and ending with a seam.
 
-![seam-gap](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-gap.png?raw=true)
+- A larger gap will reduce the bulging seen at the seam.
+- A smaller gap reduces the visual appearance of a seam.
+
+ For a well-tuned printer with [pressure advance](pressure-advance-calib) and [filament retraction](retraction-calib), a value of **0-15%** is typically optimal.
+
+![seam-gap](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-gap.gif?raw=true)
 
 ### Scarf joint seam
 
