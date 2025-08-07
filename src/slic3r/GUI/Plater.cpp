@@ -9904,7 +9904,7 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("solid_infill_direction", new ConfigOptionFloat(135));
         _obj->config.set_key_value("align_infill_direction_to_model", new ConfigOptionBool(false));
         _obj->config.set_key_value("aesthetic_surfaces", new ConfigOptionBool(false));
-        _obj->config.set_key_value("align_center_of_surfaces", new ConfigOptionBool(false));
+        _obj->config.set_key_value("align_center_of_patterns", new ConfigOptionEnum<AlignCenterOfPatterns>(AlignCenterOfPatterns::Each_Surface));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
         _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));

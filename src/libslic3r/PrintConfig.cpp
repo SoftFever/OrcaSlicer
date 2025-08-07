@@ -118,6 +118,17 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 
+static t_config_enum_values s_keys_map_AlignCenterOfPatterns
+{
+    {"each_surface", int(AlignCenterOfPatterns::Each_Surface)}, 
+    {"each_model", int(AlignCenterOfPatterns::Each_Model)},
+    {"each_assemble", int(AlignCenterOfPatterns::Each_Assembly)}
+    //{"printable_area", int(AlignCenterOfPatterns::Printable_Area)},
+    //{"bed_center", int(AlignCenterOfPatterns::Bed_Center)},
+    //{"bed_orign", int(AlignCenterOfPatterns::Bed_Orign)}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AlignCenterOfPatterns)
+
 static t_config_enum_values s_keys_map_FuzzySkinType {
     { "none",           int(FuzzySkinType::None) },
     { "external",       int(FuzzySkinType::External) },
@@ -2806,12 +2817,25 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def           = this->add("align_center_of_surfaces", coBool);
-    def->label    = L("Align center of surface patterns");
+    def           = this->add("align_center_of_patterns", coEnum);
+    def->label    = L("Align center of patterns to");
     def->category = L("Others");
-    def->tooltip  = L("Align assembly/model center to the top and bottom surface patterns. Need for aesthetic purpose.");
+    def->tooltip  = L("Align centering point of pattern to the indeed place. Need for aesthetic purpose.");
+    def->enum_keys_map = &ConfigOptionEnum<AlignCenterOfPatterns>::get_enum_values();
+    def->enum_values.push_back("each_surface");
+    def->enum_values.push_back("each_model");
+    def->enum_values.push_back("each_assembly");
+    //def->enum_values.push_back("printable_area");
+    //def->enum_values.push_back("bed_center");
+    //def->enum_values.push_back("bed_orign");
+    def->enum_labels.push_back(L("Each Surface"));
+    def->enum_labels.push_back(L("Each Model"));
+    def->enum_labels.push_back(L("Each Assembly"));
+    //def->enum_labels.push_back(L("Printable Area"));
+    //def->enum_labels.push_back(L("Bed center"));
+    //def->enum_labels.push_back(L("Bed orign"));
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionEnum<AlignCenterOfPatterns>(AlignCenterOfPatterns::Each_Surface));
 
     def = this->add("fuzzy_skin", coEnum);
     def->label = L("Fuzzy Skin");

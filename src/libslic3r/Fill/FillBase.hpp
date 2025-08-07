@@ -103,7 +103,8 @@ struct FillParams
     bool            locked_zag{false};
     float           infill_lock_depth{0.0};
     float           skin_infill_depth{0.0};
-    bool            align_center_of_surfaces{false};
+    bool            aesthetic_surface{false};
+    AlignCenterOfPatterns align_center_of_patterns{AlignCenterOfPatterns::Each_Surface};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 

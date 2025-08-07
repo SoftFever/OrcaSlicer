@@ -2456,7 +2456,7 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
 
         //optgroup = page->new_optgroup(L("Aesthetic"), L"param_aesthetic");
         optgroup->append_single_option_line("aesthetic_surfaces", "others_settings_special_mode#aesthetic-surfaces");
-        optgroup->append_single_option_line("align_center_of_surfaces", "others_settings_special_mode#align-center-of-surfaces");
+        optgroup->append_single_option_line("align_center_of_patterns", "others_settings_special_mode#align-center-of-surfaces");
 
         optgroup = page->new_optgroup(L("Fuzzy Skin"), L"fuzzy_skin");
         optgroup->append_single_option_line("fuzzy_skin", "others_settings_special_mode#fuzzy-skin");

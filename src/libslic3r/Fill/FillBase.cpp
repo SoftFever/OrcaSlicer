@@ -167,7 +167,7 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         }
 
         // disable sorting while aesthetic surfaces
-        if (!params.can_reverse) 
+        if (params.aesthetic_surface) 
             eec->no_sort = true;
  
         size_t idx   = eec->entities.size();

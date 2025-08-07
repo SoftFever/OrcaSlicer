@@ -79,22 +79,25 @@ void FillPlanePath::_fill_surface_single(
     // One may align for this->centered() to align the patterns for Archimedean Chords and Octagram Spiral patterns.
     const bool align = params.density < 0.995;
 
+    BoundingBox bounding_box;
     BoundingBox snug_bounding_box = get_extents(expolygon).inflated(SCALED_EPSILON);
 
-    // Rotated bounding box of the area to fill in with the pattern.
-    BoundingBox bounding_box = align ?
-        // Sparse infill needs to be aligned across layers. Align infill across layers using the object's bounding box.
-        this->bounding_box.rotated(-direction.first) :
-        // Solid infill does not need to be aligned across layers, generate the infill pattern
-        // around the clipping expolygon only.
-        snug_bounding_box;
-
+    bool _top_or_bottom = params.extrusion_role == erTopSolidInfill || params.extrusion_role == erBottomSurface;
+    if (!_top_or_bottom || params.align_center_of_patterns == AlignCenterOfPatterns::Each_Surface) {
+        // Rotated bounding box of the area to fill in with the pattern.
+        bounding_box = align ?
+            // Sparse infill needs to be aligned across layers. Align infill across layers using the object's bounding box.
+            this->bounding_box.rotated(-direction.first) :
+            // Solid infill does not need to be aligned across layers, generate the infill pattern
+            // around the clipping expolygon only.
+            snug_bounding_box;
+    } else if (params.align_center_of_patterns == AlignCenterOfPatterns::Each_Model) 
+        bounding_box = extended_object_bounding_box(); 
+    else 
+        bounding_box = this->bounding_box; 
 
     Point shift = this->centered() ? bounding_box.center() : bounding_box.min;
-    if (params.align_center_of_surfaces) {
-        shift = direction.second;
-        bounding_box = extended_object_bounding_box();
-    }
+
     expolygon.translate(-shift.x(), -shift.y());
     bounding_box.translate(-shift.x(), -shift.y());
 
@@ -124,7 +127,7 @@ void FillPlanePath::_fill_surface_single(
         Polylines polylines = intersection_pl(polyline, expolygon);
         if (!polylines.empty()) {
             Polylines chained;
-            if (params.can_reverse) { // not aesthetic surface
+            if (!params.aesthetic_surface) { // not aesthetic surface
                 if ((params.dont_connect() || params.density > 0.5)) {
                     // ORCA: special flag for flow rate calibration
                     auto is_flow_calib = params.extrusion_role == erTopSolidInfill &&

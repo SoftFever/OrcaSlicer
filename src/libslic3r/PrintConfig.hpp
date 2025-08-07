@@ -48,6 +48,15 @@ enum class FuzzySkinMode {
     Combined,
 };
 
+enum class AlignCenterOfPatterns {
+    Each_Surface,
+    Each_Model,
+    Each_Assembly,
+    //Printable_Area,
+    //Bed_Center,
+    //Bed_Orign,
+};
+
 enum class NoiseType {
     Classic,
     Perlin,
@@ -986,7 +995,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                infill_overhang_angle))
     ((ConfigOptionBool,                 align_infill_direction_to_model))
     ((ConfigOptionBool,                 aesthetic_surfaces))
-    ((ConfigOptionBool,                 align_center_of_surfaces))
+    ((ConfigOptionEnum<AlignCenterOfPatterns>, align_center_of_patterns))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
