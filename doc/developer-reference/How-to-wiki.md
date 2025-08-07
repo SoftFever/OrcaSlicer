@@ -163,16 +163,16 @@ Format = `![[filename]](` + Base URL + filename.extension + Raw tag + `)`
 
 #### Examples
 
-- For an image in `doc/images/` named `example.png`:
+- For an image in `doc/images/` named `calibration.png`:
 
   ```markdown
-  ![example](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/example.png?raw=true)
+  ![calibration](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/calibration.png?raw=true)
   ```
 
-- For an image in a subdirectory like `doc/images/calibration/pa-example.svg`:
+- For an image in a subdirectory like `doc/images/GUI/combobox.svg`:
 
   ```markdown
-  ![pa-example](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/calibration/pa-example.svg?raw=true)
+  ![combobox](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/combobox.svg?raw=true)
   ```
 
 > [!IMPORTANT]

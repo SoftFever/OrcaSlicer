@@ -7,7 +7,7 @@ To correct for these variations, Orca Slicer provides:
 
   - Shrinkage (XY)
 
-    ![Shrinkage](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/FilamentShrinkageCompensation.png?raw=true)
+    ![FilamentShrinkageCompensation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/FilamentShrinkageCompensation.png?raw=true)
 
 - Process Compensation:
 
@@ -16,7 +16,7 @@ To correct for these variations, Orca Slicer provides:
   - Precise wall
   - Precise Z height
 
-    ![Process_Compensation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/QualityPrecision.png?raw=true)
+    ![QualityPrecision](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/QualityPrecision.png?raw=true)
 
 ## Handy Models
 

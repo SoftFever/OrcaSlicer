@@ -4,7 +4,7 @@ The Flow Ratio determines how much filament is extruded and plays a key role in 
 
 > [!WARNING]
 > **Bambulab Printers:** make sure you do not select the 'Flow calibration' option.
-> ![flow-rate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.png?raw=true)
+> ![flowrate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.png?raw=true)
 
 > [!IMPORTANT]
 > PASS 1 and PASS 2 follow the older flow ratio formula `FlowRatio_old*(100 + modifier)/100`.  
