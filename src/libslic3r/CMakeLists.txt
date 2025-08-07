@@ -104,6 +104,8 @@ set(lisbslic3r_sources
     Fill/FillGyroid.hpp
     Fill/FillTpmsD.cpp
     Fill/FillTpmsD.hpp
+    Fill/FillTpmsFK.cpp
+    Fill/FillTpmsFK.hpp
     Fill/FillPlanePath.cpp
     Fill/FillPlanePath.hpp
     Fill/FillLine.cpp
