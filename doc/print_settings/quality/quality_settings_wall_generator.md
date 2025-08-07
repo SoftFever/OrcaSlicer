@@ -58,11 +58,12 @@ Specifies the minimum wall width for the first layer. It is recommended to match
 
 ### Minimum feature size
 
-Minimum width required for a model feature to be printed. Features below this value are skipped; features above it are widened to match the **Minimum Wall Width**. Expressed as a percentage of nozzle diameter.
+Minimum width required for a model feature to be printed. Features below this value are skipped; features above it are widened to match the [Minimum Wall Width](#minimum-wall-width). Expressed as a percentage of nozzle diameter.
 
 ### Minimum wall length
 
-Avoids very short or isolated wall segments that add unnecessary time. Increasing this value removes short unconnected walls, improving efficiency.
+Avoids very short or isolated wall segments that add unnecessary time.  
+Increasing this value removes short unconnected walls, **improving efficiency**.
 
 > [!NOTE]
 > Top and bottom surfaces are not affected by this setting to avoid visual artifacts.
