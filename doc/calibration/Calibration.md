@@ -6,7 +6,7 @@ It covers key aspects such as flow rate, pressure advance, temperature towers, r
 
 To access the calibration features, you can find them in the **Calibration** section of the Orca Slicer interface.
 
-![Calibration Button](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/calibration.png?raw=true)
+![calibration](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/calibration.png?raw=true)
 
 > [!IMPORTANT]
 > After completing the calibration process, remember to create a new project in order to exit the calibration mode.
