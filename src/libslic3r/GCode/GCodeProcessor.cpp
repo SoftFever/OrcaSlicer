@@ -1736,6 +1736,7 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
             Points iter_points;//temp points
             iter_points.insert(iter_points.end(), iter->second.pos.begin(), iter->second.pos.end());// put object/wipetower extrude position in
             Polygon     path_poly(iter_points);
+            if (path_poly.empty()) continue;
             BoundingBox bbox = path_poly.bounding_box();
             if (plate_printable_poly.is_valid()){
                 if (!plate_printable_poly.bounding_box().contains(bbox)) {// out of the bed area
