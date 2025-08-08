@@ -17,7 +17,7 @@ namespace Slic3r
        NozzleType      m_nozzle_type = NozzleType::ntUndefine;// 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
        float           m_diameter = 0.4f;// 0.2mm  0.4mm  0.6mm 0.8mm
    };
-   
+
    class DevNozzleSystem
    {
        friend class DevNozzleSystemParser;
@@ -44,7 +44,7 @@ namespace Slic3r
    class DevNozzleSystemParser
    {
    public:
-       static void  ParseV1_0(const nlohmann::json& nozzletype_json, const nlohmann::json& diameter_json, DevNozzleSystem* system);
+       static void  ParseV1_0(const nlohmann::json& nozzletype_json, const nlohmann::json& diameter_json, const int& nozzle_flow_type, DevNozzleSystem* system);
        static void  ParseV2_0(const json& nozzle_json, DevNozzleSystem* system);
    };
 };

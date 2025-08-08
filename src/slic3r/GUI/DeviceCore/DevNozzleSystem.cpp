@@ -62,6 +62,7 @@ static void s_parse_nozzle_type(const std::string& nozzle_type_str, DevNozzle& n
 
 void DevNozzleSystemParser::ParseV1_0(const nlohmann::json& nozzletype_json,
                                       const nlohmann::json& diameter_json,
+                                      const int& nozzle_flow_type,
                                       DevNozzleSystem* system)
 {
     //Since both the old and new protocols push data.
@@ -95,6 +96,17 @@ void DevNozzleSystemParser::ParseV1_0(const nlohmann::json& nozzletype_json,
         if (nozzletype_json.is_string())
         {
             s_parse_nozzle_type(nozzletype_json.get<std::string>(), nozzle);
+        }
+    }
+
+    {
+        if (nozzle_flow_type != -1) {
+            // 0: BBL S_FLOW; 1:E3D H_FLOW (only P)
+            if (nozzle_flow_type == 1) {
+                nozzle.m_nozzle_flow = NozzleFlowType::H_FLOW;
+            } else {
+                nozzle.m_nozzle_flow = NozzleFlowType::S_FLOW;
+            }
         }
     }
 
