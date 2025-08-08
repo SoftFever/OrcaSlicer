@@ -1,4 +1,23 @@
-# Template metalanguage
+# Infill rotation template metalanguage
+
+This metalanguage provides a way to define the [direction and rotation](strength_settings_infill#direction-and-rotation) of patterns in 3D printing.
+
+- [Basic instructions](#basic-instructions)
+  - [Defined angle](#defined-angle)
+  - [Runtime instructions](#runtime-instructions)
+  - [Solid sign](#solid-sign)
+  - [Joint sign](#joint-sign)
+  - [Counting](#counting)
+  - [Length modifier](#length-modifier)
+- [Description of instructions and examples](#description-of-instructions-and-examples)
+  - [Simple absolute instructions](#simple-absolute-instructions)
+  - [Relative instructions](#relative-instructions)
+  - [Repetitive, adjusting and one-time instructions](#repetitive-adjusting-and-one-time-instructions)
+  - [Range instructions](#range-instructions)
+  - [Constant layer number instructions](#constant-layer-number-instructions)
+  - [Solid layers into sparse infill instructions](#solid-layers-into-sparse-infill-instructions)
+- [Complex template examples](#complex-template-examples)
+- [Credits](#credits)
 
 ## Basic instructions
 
@@ -194,3 +213,7 @@ It is possible to combine them with the rotation method and layer number constan
   ![+30/-10#](../../images/Template-metalanguage/+30-10%23.png?raw=true)
 - `+360~100%` or `+100%~100%` - fill the model an infill with random direction at each layer.  
   ![+360~100%](../../images/Template-metalanguage/+360~100%25.png?raw=true)
+
+## Credits
+
+- **Feature author:** [@pi-squared-studio](https://github.com/pi-squared-studio).
