@@ -85,6 +85,9 @@ This setting allows you to generate your selected [infill pattern](#sparse-infil
 
 ## Direction and Rotation
 
+> [!TIP]
+> You can use [Template Metalanguage for infill rotation](strength_settings_infill_rotation_template_metalanguage) to create more complex patterns.
+
 ### Direction
 
 Controls the direction of the infill lines to optimize or strengthen the print.
