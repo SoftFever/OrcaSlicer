@@ -97,7 +97,7 @@ This metalanguage provides a way to define the [direction and rotation](strength
 - `~` - infill formed with random angle. e.g. `+22.5~50%`  
   ![random joint](../../images/fill/Template-metalanguage/%7E-joint.png?raw=true)
 - `^` - infill formed with pseudorandom angle. e.g. `+22.5^50%`  
-  ![pseudorandom joint](../../images/fill/Template-metalanguage/%5E-joint.png?raw=true)  
+  ![pseudorandom joint](../../images/fill/Template-metalanguage/%5E-joint.png?raw=true)
 
 ### Counting
 
@@ -149,18 +149,18 @@ They include a simple definition of the angle for each layer. Note that the init
 ### Relative instructions
 
 - `+30` - this is a short instruction for counterclockwise rotation. The equivalent of `30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 0` or `30, 60, 90, 120, 150, 0` instruction.  
-  ![+30](../../images/fill/Template-metalanguage/+30.png?raw=true)  
+  ![+30](../../images/fill/Template-metalanguage/+30.png?raw=true)
 - `-30` - this is the same instruction, but with clockwise rotation. The equivalent of `330, 300, 270, 240, 210, 180, 150, 120, 90, 60, 30, 0` or `330, 300, 270, 240, 210, 0` instruction.  
 - `+150` - you can specify a different multiple of the irrational angle for better fill dispersion = `150, 300, 90, 240, 30, 180, 330, 120, 270, 60, 210, 0` ...  
 - `+45` - The equivalent of `45, 90, 135, 180, 225, 270, 315, 0` or `45, 90, 135, 0` instruction.  
-  ![+45](../../images/fill/Template-metalanguage/+30.png?raw=true)  
+  ![+45](../../images/fill/Template-metalanguage/+30.png?raw=true)
 - `+90` - The equivalent of `90, 180, 270, 0` or `90, 0` instruction.  
-  ![+90](../../images/fill/Template-metalanguage/+30.png?raw=true)  
+  ![+90](../../images/fill/Template-metalanguage/+30.png?raw=true)
 - `+15%` - useful for dividing angles on a decimal basis = `54, 108, 162, 270, 324, 18, 72, 126, 180, 234, 288, 342, 36, 90, 144, 196, 252, 306, 0` ...  
 - `+30, +90` - a complex instruction setting the rotation of each layer in these positions = `30, 120, 150, 240, 270, 0` ...  
-  ![+30, +90](../../images/fill/Template-metalanguage/+30+90.png?raw=true)  
+  ![+30, +90](../../images/fill/Template-metalanguage/+30+90.png?raw=true)
 - `0, +30, +90` - a complex instruction setting the rotation of each layer in these positions = `0, 30, 120` ...  
-  ![0, +30, +90](../../images/fill/Template-metalanguage/0+30+90.png?raw=true)  
+  ![0, +30, +90](../../images/fill/Template-metalanguage/0+30+90.png?raw=true)
 
 ### Repetitive, adjusting and one-time instructions
 
@@ -174,10 +174,10 @@ They include a simple definition of the angle for each layer. Note that the init
 
 A combined set of layers will be organized, where the rotation of one layer relative to the other will also be predetermined.
 You can specify how many layers will be rotated by a certain angle, and according to which mathematical law this rotation will be performed. This law is determined by writing a certain symbol and specifying a numeric value after it.
-The following signs are available that determine the shape of the turn: `/` `#` `#-` `|` `N` `n` `Z` `z` `L` `l` `U` `u` `Q` `q` `$` `~` `^`. For their purpose, see [above](#joint-sign).
+The following signs are available that determine the shape of the turn: `/` `#` `#-` `|` `N` `n` `Z` `z` `L` `l` `U` `u` `Q` `q` `$` `~` `^`. For their purpose, see [joint sign](#joint-sign).
 
 Also, after the numeric value there is a range modifier, then this rotation will occur according to the described length.
-The following modifiers are available that determine the range of turn: `mm` `cm` `m` `'` `"` `#` `%`. For their purpose, see [above](#length-modifier).
+The following modifiers are available that determine the range of turn: `mm` `cm` `m` `'` `"` `#` `%`. For their purpose, see [length modifier](#length-modifier).
 
 If there is a `-` sign before the numeric value, then the initial fill angle changes with the final one. This is useful for joining the linear infills in some cases. Absolute values of the rotation angle using the range instructions have no effect.
 It is important to know that this will not be the exact length, but will be tied to the nearest layer from below.
@@ -197,12 +197,12 @@ There are 2 letter signs `T` and `B` that can determine the number of shell laye
 
 ### Solid layers into sparse infill instructions
 
-The following instructions allow you to embed solid layers in a sparse fill. The following commands are available `D` `S` `O` `M` `R`. For their purpose, see [above](#solid-sign).
+The following instructions allow you to embed solid layers in a sparse fill. The following commands are available `D` `S` `O` `M` `R`. For their purpose, see [solid sign](#solid-sign).
 
 It is possible to combine them with the rotation method and layer number constant - `DT` `S/` `M#` `OB`...
 
 - `#14, +15R` - put 14 layers of sparse infill then put one rectilinear layer of solid infill with 15 degree turn  
-  ![#14, +15R](../../images/fill/Template-metalanguage/%2314-15R.png?raw=true)  
+  ![#14, +15R](../../images/fill/Template-metalanguage/%2314-15R.png?raw=true)
 - `B!, 240M3, #25` - skip the first shell layers from rotation, fill model with 3 solid monotonic layers at 240 degrees, then put 25 sparse layers at the same angle  
 - `+30/1cm, ST` - rotate one centimeter of infill linearly at 30 degrees, then put solid layers equal to the count of the top shell layers  
 - `+30M3` or `+90M/3` - fill whole model with solid infill with 30 degree turn at each layer  
