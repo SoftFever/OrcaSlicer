@@ -19,7 +19,7 @@
 
 `[±]α` - command of setting of rotation infill angle (for joint infills at some height range, this angle is finite):
 
-- `α` - just set absolute angle 0...360
+- `α:β` - set the angle α value as a percentage of the full turn of 360 rotation
 - `+α` - set positive relative angle CCW
 - `-α` - set negative relative angle CW
 
