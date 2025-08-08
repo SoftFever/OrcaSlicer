@@ -1,14 +1,21 @@
-<h1> <p "font-size:200px;"><img align="left" src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
+<div align="center">
 
-[![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
+<picture>
+  <img alt="OrcaSlicer logo" src="resources/images/OrcaSlicer.png" width="15%" height="15%">
+</picture>
 
-Orca Slicer is an open source Next-Gen Slicing Software for Precision 3D Prints.  
+<a href="https://trendshift.io/repositories/952" target="_blank"><img src="https://trendshift.io/api/badge/repositories/952" alt="SoftFever%2FOrcaSlicer | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
+[![GitHub Repo stars](https://img.shields.io/github/stars/SoftFever/OrcaSlicer)](https://github.com/SoftFever/OrcaSlicer/stargazers) [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
+
+OrcaSlicer: an open source Next-Gen Slicing Software for Precision 3D Prints.  
 Optimize your prints with ultra-fast slicing, intelligent support generation, and seamless printer compatibility—engineered for perfection.
+<h3>
 
-## Official links and community
+# Official links and community
 
 #### Official Website:
-<a href="https://orcaslicer.com/" style="font-size:2em;"><strong>orcaslicer.com</strong></a>
+<a href="https://www.orcaslicer.com/" style="font-size:2em;">OrcaSlicer.com</a>
 
 #### Github Repository:
 <a href="https://github.com/SoftFever/OrcaSlicer"><img src="https://img.shields.io/badge/OrcaSlicer-181717?style=flat&logo=github&logoColor=white" width="200" alt="GitHub Logo"/> </a>
@@ -19,34 +26,44 @@ Optimize your prints with ultra-fast slicing, intelligent support generation, an
 #### Join our Discord community:
 <a href="https://discord.gg/P4VE9UY9gJ"><img src="https://img.shields.io/badge/-Discord-5865F2?style=flat&logo=discord&logoColor=fff" width="200" alt="discord logo"/> </a>
 
-> [!CAUTION]
-> There are multiple unofficial and potentially malicious websites pretending to be related to OrcaSlicer. These sites may redirect you to dangerous downloads or contain misleading information.
->
-> If you come across any of these in search results, please report them as unsafe or spam to help keep the community secure.
+<table border="2" style="border-color: #ffa500; background-color:rgb(232, 220, 180); color: #856404;">
+<tr>
+<td>
+<strong>⚠️ CAUTION:</strong><br><br>
+There are several clickbait and malicious websites pretending to be Official OrcaSlicer. These sites may redirect you to dangerous downloads or contain misleading information.
+<br><br>
+If you come across any of these in search results, please report them as unsafe or spam to help keep the community secure.
+</td>
+</tr>
+</table>
+
+
+</div>
+
 
 # Main features
 
 - **[Advanced Calibration Tools](https://github.com/SoftFever/OrcaSlicer/wiki/Calibration)**  
   Comprehensive suite: temperature towers, flow rate, retraction & more for optimal performance.
-- **[Precise Wall](https://github.com/SoftFever/OrcaSlicer/wiki/Precise-wall) and [Seam Control](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_seam)**  
+- **[Precise Wall](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_precision#precise-wall) and [Seam Control](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_seam)**  
   Adjust outer wall spacing and apply scarf seams to enhance print accuracy.
-- **Sandwich Mode and [SuperSlicer Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes) Support**  
+- **[Sandwich Mode](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_wall_and_surfaces#innerouterinner) and [Polyholes](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_precision#polyholes) Support**  
   Use varied infill patterns and accurate hole shapes for improved clarity.
-- **Overhang and Support Optimization**  
+- **[Overhang](https://github.com/SoftFever/OrcaSlicer/wiki/quality_settings_overhangs) and [Support Optimization](https://github.com/SoftFever/OrcaSlicer/wiki#support-settings)**  
   Modify geometry for printable overhangs with precise support placement.
-- **Granular Controls and Customization**  
+- **[Granular Controls](https://github.com/SoftFever/OrcaSlicer/wiki#process-settings) and Customization**  
   Fine-tune print speed, layer height, pressure, and temperature with precision.
 - **Network Printer Support**  
   Seamless integration with Klipper, PrusaLink, and OctoPrint for remote control.
-- **Mouse Ear Brims & Adaptive Bed Mesh**  
+- **[Mouse Ear Brims](https://github.com/SoftFever/OrcaSlicer/wiki/others_settings_brim) & Adaptive Bed Mesh**  
   Automatic brims and adaptive mesh calibration ensure consistent adhesion.
 - **User-Friendly Interface**  
   Intuitive drag-and-drop design with pre-made profiles for popular printers.
-- **Open-Source & Community Driven**  
+- **[Open-Source](https://github.com/SoftFever/OrcaSlicer) & [Community Driven](https://discord.gg/P4VE9UY9gJ)**  
   Regular updates fueled by continuous community contributions.
 - **Wide Printer Compatibility**  
   Supports a broad range of printers: Bambu Lab, Prusa, Creality, Voron, and more.
-- Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)
+- Additional features can be found in the [change notes](https://github.com/SoftFever/OrcaSlicer/releases/).
 
 # Wiki
 
@@ -54,8 +71,8 @@ The wiki below aims to provide a detailed explanation of the slicer settings, in
 
 Please note that the wiki is a work in progress. We appreciate your patience as we continue to develop and improve it!
 
-**[Access the wiki here](https://github.com/SoftFever/OrcaSlicer/wiki)**
-**[Contribute to the wiki](https://github.com/SoftFever/OrcaSlicer/wiki/How-to-wiki)**
+- **[Access the wiki here](https://github.com/SoftFever/OrcaSlicer/wiki)**
+- **[Contribute to the wiki](https://github.com/SoftFever/OrcaSlicer/wiki/How-to-wiki)**
 
 # Download
 
@@ -87,7 +104,7 @@ Download the **Windows Installer exe**  for your preferred version from the [rel
 
 Windows Package Manager:
 ```shell
-winget install --id=SoftFever.OrcaSlicer --e
+winget install --id=SoftFever.OrcaSlicer --exact
 ```
 
 ## Mac:

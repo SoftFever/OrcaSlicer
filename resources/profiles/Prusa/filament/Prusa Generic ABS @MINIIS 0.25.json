@@ -44,6 +44,12 @@
     "pressure_advance": [
         "0.55"
     ],
+    "filament_retraction_length": [
+        "2.7"
+      ],
+      "filament_retraction_minimum_travel": [
+        "3"
+      ], 
 
     "compatible_printers": [
         "Prusa MINIIS 0.25 nozzle"

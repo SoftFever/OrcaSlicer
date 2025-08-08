@@ -5986,6 +5986,11 @@ bool CLI::setup(int argc, char **argv)
     // The resources are packed to 'resources'
     // Path from Slic3r binary to resources:
     boost::filesystem::path path_resources = boost::filesystem::canonical(path_to_binary).parent_path().parent_path() / "resources";
+    //Orca: for build systems that support multiple configurations, the binary may be in a subdirectory like "bin/Release" or "bin/Debug".
+    if( !boost::filesystem::exists(path_resources)) {
+        // If the resources directory does not exist, try to use the resources directory
+        path_resources = boost::filesystem::canonical(path_to_binary).parent_path().parent_path().parent_path() / "resources";
+    }
 #endif
 
     set_resources_dir(path_resources.string());
