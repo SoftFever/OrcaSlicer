@@ -1,23 +1,36 @@
 # Flow rate
 
-The Flow Ratio determines how much filament is extruded and plays a key role in achieving high-quality prints. A properly calibrated flow ratio ensures consistent layer adhesion and accurate dimensions. If the flow ratio is too low, under-extrusion may occur, leading to gaps, weak layers, and poor structural integrity. On the other hand, a flow ratio that is too high can cause over-extrusion, resulting in excess material, rough surfaces, and dimensional inaccuracies.
+The Flow Ratio determines how much filament is extruded and plays a key role in achieving high-quality prints. A properly calibrated flow ratio ensures consistent layer adhesion and accurate dimensions.
 
-- [OrcaSlicer \> 2.3.0 Archimedean chords](#orcaslicer--230-archimedean-chords)
-- [OrcaSlicer \<= 2.3.0 Monotonic Line](#orcaslicer--230-monotonic-line)
+- Too **low** flow ratio will cause under-extrusion, leading to gaps, weak layers, and poor structural integrity.
+- Too **high** flow ratio can cause over-extrusion, resulting in excess material, rough surfaces, and dimensional inaccuracies.
+
+- [Calibration Types](#calibration-types)
+  - [OrcaSlicer \> 2.3.0 Archimedean chords + YOLO (Recommended)](#orcaslicer--230-archimedean-chords--yolo-recommended)
+  - [OrcaSlicer \<= 2.3.0 Monotonic Line + 2-Pass Calibration](#orcaslicer--230-monotonic-line--2-pass-calibration)
+- [Credits](#credits)
 
 > [!WARNING]
 > **Bambulab Printers:** make sure you do not select the 'Flow calibration' option.
 > ![flowrate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.png?raw=true)
 
-> [!IMPORTANT]
-> PASS 1 and PASS 2 follow the older flow ratio formula `FlowRatio_old*(100 + modifier)/100`.  
-> YOLO (Recommended) and YOLO (perfectionist version) use a new system that is very simple `FlowRatio_old±modifier`.
+> [!NOTE]
+> After v2.3.0, the [Top Pattern](strength_settings_top_bottom_shells#surface-pattern) changed to [Archimedean chords](strength_settings_infill#archimedean-chords) from Monotonic Line.
 
-## OrcaSlicer > 2.3.0 Archimedean chords
+## Calibration Types
 
-![flowrate-pass1](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-pass1.jpg?raw=true)
+- **2-Pass Calibration:** Old method using two passes to determine the optimal flow rate using the formula `FlowRatio_old*(100 + modifier)/100`.
+- **YOLO:** Simplified method that adjusts the flow rate in a single pass using the formula `FlowRatio_old±modifier`.
+  - **Recommended:**  Calibration range `[-0.05, +0.05]`, flow rate step is `0.01`.
+  - **Perfectionist Version:** Calibration range `[-0.04, +0.035]`, flow rate step is `0.005`.
 
-## OrcaSlicer <= 2.3.0 Monotonic Line
+### OrcaSlicer > 2.3.0 Archimedean chords + YOLO (Recommended)
+
+This example demonstrates the use of [Archimedean chords](strength_settings_infill#archimedean-chords) for flow rate calibration using the YOLO (Recommended) method.
+
+### OrcaSlicer <= 2.3.0 Monotonic Line + 2-Pass Calibration
+
+This example demonstrates the use of Monotonic Line for flow rate calibration using the 2-Pass Calibration method.
 
 ![flow-calibration-monotonic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/monotonic-flow-rate/flow-calibration-monotonic.gif?raw=true)
 
@@ -43,3 +56,7 @@ Calibrating the flow rate involves a two-step process.
 
 > [!TIP]
 > @ItsDeidara has made a html to help with the calculation. Check it out if those equations give you a headache [here](https://github.com/ItsDeidara/Orca-Slicer-Assistant).
+
+## Credits
+
+- **[Archimedean Chords Idea](https://makerworld.com/es/models/189543-improved-flow-ratio-calibration-v3#profileId-209504)**: [Jimcorner](https://makerworld.com/es/@jimcorner)
