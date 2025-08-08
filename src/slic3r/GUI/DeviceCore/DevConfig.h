@@ -3,6 +3,7 @@
 
 #include "slic3r/Utils/json_diff.hpp"
 #include <wx/string.h>
+#include <limits>
 
 
 namespace Slic3r
@@ -56,7 +57,7 @@ private:
     bool m_support_chamber_edit = false;
     int  m_chamber_temp_edit_min = 0;
     int  m_chamber_temp_edit_max = 60;
-    int  m_chamber_temp_switch_heat = LONG_MAX; /* the min temp to start heating, default to LONG_MAX */
+    int  m_chamber_temp_switch_heat = std::numeric_limits<int>::max(); /* the min temp to start heating, default to max */
 
     // print options
     bool m_support_first_layer_inspect = false;
