@@ -182,6 +182,10 @@ wxString Slic3r::get_stage_string(int stage)
         return _L("Auto Check: Material Position");
     case 56:
         return _L("Cutting Module Offset Calibration");
+    case 57:
+        return _L("Measuring Surface");
+    case 58:
+        return _L("Thermal Preconditioning for first layer optimization");
     default:
         BOOST_LOG_TRIVIAL(info) << "stage = " << stage;
     }
