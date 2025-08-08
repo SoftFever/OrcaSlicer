@@ -212,7 +212,7 @@ It is possible to combine them with the rotation method and layer number constan
 - `+30/-10#` - rotate the infill at height of 10 standard layers (or @ standard layer height is 0.2mm x 10 = 2mm) inverse linearly at a 30 degree angle.  
   ![+30/-10#](../../images/fill/Template-metalanguage/+30-10%23.png?raw=true)
 - `+360~100%` or `+100%~100%` - fill the model with infill with random direction at each layer.  
-  ![+360~100%](../../images/fill/Template-metalanguage/+360~100%.png?raw=true)
+  ![+360~100p](../../images/fill/Template-metalanguage/+360~100p.png?raw=true)
 
 ## Credits
 
