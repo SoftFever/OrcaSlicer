@@ -187,10 +187,6 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     // font
     SetFont(wxGetApp().normal_font());
 
-    // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     Freeze();
     SetBackgroundColour(m_colour_def_color);
 
@@ -201,7 +197,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
     m_scrollable_region       = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    m_sizer_scrollable_region = new wxBoxSizer(wxVERTICAL); 
+    m_sizer_scrollable_region = new wxBoxSizer(wxVERTICAL);
 
     m_panel_image = new wxPanel(m_scrollable_region, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_image->SetBackgroundColour(m_colour_def_color);
@@ -443,7 +439,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_rename_text->SetForegroundColour(*wxBLACK);
     m_rename_text->SetFont(::Label::Body_13);
     m_rename_text->SetMaxSize(wxSize(FromDIP(390), -1));
-    m_rename_button = new Button(m_rename_normal_panel, "", "ams_editable", wxBORDER_NONE, FromDIP(10));
+    m_rename_button = new Button(m_rename_normal_panel, "", "rename_edit", wxBORDER_NONE, FromDIP(13)); // ORCA Match edit icon and its size
     m_rename_button->SetBackgroundColor(*wxWHITE);
     m_rename_button->SetBackgroundColour(*wxWHITE);
 
@@ -613,7 +609,7 @@ void SendToPrinterDialog::prepare(int print_plate_idx)
     m_print_plate_idx = print_plate_idx;
 }
 
-void SendToPrinterDialog::update_priner_status_msg(wxString msg, bool is_warning) 
+void SendToPrinterDialog::update_priner_status_msg(wxString msg, bool is_warning)
 {
     auto colour = is_warning ? wxColour(0xFF, 0x6F, 0x00) : wxColour(0x6B, 0x6B, 0x6B);
     m_statictext_printer_msg->SetForegroundColour(colour);
@@ -675,7 +671,7 @@ void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
     m_worker->cancel_all();
     this->EndModal(wxID_CANCEL);
 }
- 
+
 void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 {
     BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
@@ -693,7 +689,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     if (!dev) return;
 
     MachineObject *obj_ = dev->get_selected_machine();
-    
+
     if (obj_ == nullptr) {
         m_printer_last_select = "";
         m_comboBox_printer->SetTextLabel("");
@@ -764,7 +760,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 		fs::path default_output_file_path = boost::filesystem::path(default_output_file.c_str());
 		file_name = default_output_file_path.filename().string();
     }*/
-    
+
 
 
     auto m_send_job                 = std::make_unique<SendJob>(m_printer_last_select);
@@ -782,9 +778,9 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 
     m_send_job->connection_type     = obj_->connection_type();
     m_send_job->cloud_print_only    = true;
-    m_send_job->has_sdcard          = obj_->has_sdcard();
+    m_send_job->has_sdcard          = obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
     m_send_job->set_project_name(m_current_project_name.utf8_string());
- 
+
     enable_prepare_mode = false;
 
     m_send_job->on_check_ip_address_fail([this](int result) {
@@ -921,6 +917,11 @@ void SendToPrinterDialog::update_user_printer()
     m_comboBox_printer->Set(machine_list_name);
 
     MachineObject* obj = dev->get_selected_machine();
+    if (!obj) {
+        dev->load_last_machine();
+        obj = dev->get_selected_machine();
+    }
+
     if (obj) {
         m_printer_last_select = obj->dev_id;
     } else {
@@ -1289,7 +1290,7 @@ void SendToPrinterDialog::set_default()
     m_comboBox_printer->Enable();
     // rset status bar
     m_status_bar->reset();
-    
+
     NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
         if (agent->is_user_login()) {
@@ -1316,7 +1317,7 @@ void SendToPrinterDialog::set_default()
         image  = image.Rescale(FromDIP(256), FromDIP(256));
         m_thumbnailPanel->set_thumbnail(image);
     }
-    
+
     std::vector<std::string> materials;
     std::vector<std::string> display_materials;
     {
@@ -1338,7 +1339,7 @@ void SendToPrinterDialog::set_default()
     Layout();
     Fit();
 
-  
+
     wxSize screenSize = wxGetDisplaySize();
     auto dialogSize = this->GetSize();
 
@@ -1353,9 +1354,9 @@ void SendToPrinterDialog::set_default()
 
     char weight[64];
     if (wxGetApp().app_config->get("use_inches") == "1") {
-        ::sprintf(weight, "  %.2f oz", aprint_stats.total_weight*0.035274);
+        ::sprintf(weight, "%.2f oz", aprint_stats.total_weight*0.035274); // ORCA remove spacing before text
     }else{
-        ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+        ::sprintf(weight, "%.2f g", aprint_stats.total_weight); // ORCA remove spacing before text
     }
 
     m_stext_time->SetLabel(time);

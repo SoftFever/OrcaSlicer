@@ -1,7 +1,7 @@
 {
     "type": "process",
     "name": "0.12mm High Quality @BBL P1P",
-    "inherits": "fdm_process_bbl_0.12",
+    "inherits": "fdm_process_single_0.12",
     "from": "system",
     "setting_id": "GP104",
     "instantiation": "true",

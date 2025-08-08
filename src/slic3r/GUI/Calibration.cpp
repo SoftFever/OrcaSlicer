@@ -20,8 +20,6 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Calibration"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     this->SetDoubleBuffered(true);
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
@@ -115,11 +113,11 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     auto cali_text_right_top = new wxStaticText(cali_right_panel, wxID_ANY, _L("Calibration Flow"), wxDefaultPosition, wxDefaultSize, 0);
     cali_text_right_top->Wrap(-1);
     cali_text_right_top->SetFont(::Label::Head_14);
-    cali_text_right_top->SetForegroundColour(wxColour(0x00, 0xAE, 0x42));
+    cali_text_right_top->SetForegroundColour(AMS_CONTROL_BRAND_COLOUR);
     cali_text_right_top->SetBackgroundColour(BG_COLOR);
 
     auto staticline = new ::StaticLine(cali_right_panel);
-    staticline->SetLineColour(wxColour(0x00, 0xAE, 0x42));
+    staticline->SetLineColour(AMS_CONTROL_BRAND_COLOUR);
     auto calibration_panel = new wxPanel(cali_right_panel);
     calibration_panel->SetBackgroundColour(BG_COLOR);
     auto calibration_sizer = new wxBoxSizer(wxVERTICAL);

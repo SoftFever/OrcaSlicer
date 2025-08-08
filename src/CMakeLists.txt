@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 project(OrcaSlicer-native)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 add_subdirectory(build-utils)
 add_subdirectory(admesh)
 # add_subdirectory(avrdude)
 add_subdirectory(clipper)
-add_subdirectory(clipper2)
 add_subdirectory(miniz)
 add_subdirectory(minilzo)
 add_subdirectory(glu-libtess)
@@ -95,7 +97,20 @@ endif()
 
 if(ORCA_TOOLS)
     # OrcaSlicer_profile_validator
-    add_executable(OrcaSlicer_profile_validator OrcaSlicer_profile_validator.cpp)
+    if(APPLE)
+        add_executable(OrcaSlicer_profile_validator MACOSX_BUNDLE OrcaSlicer_profile_validator.cpp)
+        set_target_properties(OrcaSlicer_profile_validator PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_BUNDLE_NAME "OrcaSlicer Profile Validator"
+            MACOSX_BUNDLE_BUNDLE_VERSION "${SLIC3R_VERSION}"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "${SLIC3R_VERSION}"
+            MACOSX_BUNDLE_IDENTIFIER "com.softfever.orcaslicer.profile-validator"
+            MACOSX_BUNDLE_COPYRIGHT "© 2024 SoftFever"
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.softfever.orcaslicer.profile-validator"
+        )
+    else()
+        add_executable(OrcaSlicer_profile_validator OrcaSlicer_profile_validator.cpp)
+    endif()
     target_link_libraries(OrcaSlicer_profile_validator libslic3r boost_headeronly libcurl OpenSSL::SSL OpenSSL::Crypto)
     target_compile_definitions(OrcaSlicer_profile_validator PRIVATE -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x602 -DBOOST_SYSTEM_USE_UTF8)
     if(WIN32)
@@ -123,7 +138,7 @@ if (NOT WIN32 AND NOT APPLE)
     # Binary name on unix like systems (Linux, Unix)
     set_target_properties(OrcaSlicer PROPERTIES OUTPUT_NAME "orca-slicer")
     set(SLIC3R_APP_CMD "orca-slicer")
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/unix/BuildLinuxImage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/BuildLinuxImage.sh @ONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/unix/build_linux_image.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_linux_image.sh USE_SOURCE_PERMISSIONS @ONLY)
 endif ()
 
 target_link_libraries(OrcaSlicer libslic3r cereal::cereal)

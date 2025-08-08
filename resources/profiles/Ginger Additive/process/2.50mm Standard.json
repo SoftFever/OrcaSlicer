@@ -63,7 +63,7 @@
   "travel_acceleration": "2500",
   "travel_jerk": "7",
   "travel_speed": "250",
-  "version": "0.0.0.0",
+  "version": "0.0.0.1",
   "wall_generator": "arachne",
   "wall_loops": "1",
   "wipe_on_loops": "1",
@@ -71,5 +71,7 @@
   "xy_contour_compensation": "0",
   "xy_hole_compensation": "0",
   "instantiation": "true",
+  "skin_infill_line_width": "5.0",
+  "skeleton_infill_line_width": "5.0",
   "compatible_printers": ["Ginger G1 5.0 nozzle"]
 }

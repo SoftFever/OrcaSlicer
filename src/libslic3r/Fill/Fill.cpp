@@ -14,6 +14,7 @@
 #include "FillRectilinear.hpp"
 #include "FillLightning.hpp"
 #include "FillConcentricInternal.hpp"
+#include "FillTpmsD.hpp"
 #include "FillConcentric.hpp"
 #include "libslic3r.h"
 
@@ -33,7 +34,6 @@ struct SurfaceFillParams
     coordf_t    	overlap = 0.;
     // Angle as provided by the region config, in radians.
     float       	angle = 0.f;
-    bool       	    rotate_angle = true;
     // Is bridging used for this fill? Bridging parameters may be used even if this->flow.bridge() is not set.
     bool 			bridge;
     // Non-negative for a bridge.
@@ -41,6 +41,8 @@ struct SurfaceFillParams
 
     // FillParams
     float       	density = 0.f;
+    // Infill line multiplier count.
+    int   multiline = 1;
     // Don't adjust spacing to fill the space evenly.
 //    bool        	dont_adjust = false;
     // Length of the infill anchor along the perimeter line.
@@ -67,6 +69,12 @@ struct SurfaceFillParams
     // Params for lattice infill angles
     float lattice_angle_1 = 0.f;
     float lattice_angle_2 = 0.f;
+    float infill_lock_depth          = 0;
+    float skin_infill_depth          = 0;
+    bool symmetric_infill_y_axis = false;
+
+    // Params for 2D honeycomb
+    float infill_overhang_angle = 60.f;
 
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
@@ -81,8 +89,8 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(spacing);
 		RETURN_COMPARE_NON_EQUAL(overlap);
 		RETURN_COMPARE_NON_EQUAL(angle);
-		RETURN_COMPARE_NON_EQUAL(rotate_angle);
 		RETURN_COMPARE_NON_EQUAL(density);
+		RETURN_COMPARE_NON_EQUAL(multiline);
 //		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
 		RETURN_COMPARE_NON_EQUAL(anchor_length_max);
@@ -96,6 +104,9 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
         RETURN_COMPARE_NON_EQUAL(lattice_angle_1);
 		RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
+		RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
+		RETURN_COMPARE_NON_EQUAL(infill_lock_depth);
+		RETURN_COMPARE_NON_EQUAL(skin_infill_depth);		RETURN_COMPARE_NON_EQUAL(infill_overhang_angle);
 
 		return false;
 	}
@@ -106,10 +117,10 @@ struct SurfaceFillParams
 				this->spacing 			== rhs.spacing 			&&
 				this->overlap 			== rhs.overlap 			&&
 				this->angle   			== rhs.angle   			&&
-				this->rotate_angle   	== rhs.rotate_angle   			&&
 				this->bridge   			== rhs.bridge   		&&
 				this->bridge_angle 		== rhs.bridge_angle		&&
 				this->density   		== rhs.density   		&&
+				this->multiline             == rhs.multiline    &&
 //				this->dont_adjust   	== rhs.dont_adjust 		&&
 				this->anchor_length  	== rhs.anchor_length    &&
 				this->anchor_length_max == rhs.anchor_length_max &&
@@ -119,7 +130,10 @@ struct SurfaceFillParams
 				this->top_surface_speed		== rhs.top_surface_speed &&
 				this->solid_infill_speed	== rhs.solid_infill_speed &&
                 this->lattice_angle_1		== rhs.lattice_angle_1 &&
-				this->lattice_angle_2	    == rhs.lattice_angle_2;
+				this->lattice_angle_2	    == rhs.lattice_angle_2 &&
+				this->infill_lock_depth      ==  rhs.infill_lock_depth &&
+				this->skin_infill_depth      ==  rhs.skin_infill_depth &&
+                this->infill_overhang_angle == rhs.infill_overhang_angle;
 	}
 };
 
@@ -596,16 +610,34 @@ void split_solid_surface(size_t layer_id, const SurfaceFill &fill, ExPolygons &n
 #endif
 }
 
-std::vector<SurfaceFill> group_fills(const Layer &layer)
+std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_param)
 {
 	std::vector<SurfaceFill> surface_fills;
-
 	// Fill in a map of a region & surface to SurfaceFillParams.
 	std::set<SurfaceFillParams> 						set_surface_params;
 	std::vector<std::vector<const SurfaceFillParams*>> 	region_to_surface_params(layer.regions().size(), std::vector<const SurfaceFillParams*>());
     SurfaceFillParams									params;
     bool 												has_internal_voids = false;
 	const PrintObjectConfig&							object_config = layer.object()->config();
+
+	auto append_flow_param = [](std::map<Flow, ExPolygons> &flow_params, Flow flow, const ExPolygon &exp) {
+        auto it = flow_params.find(flow);
+        if (it == flow_params.end())
+            flow_params.insert({flow, {exp}});
+        else
+            it->second.push_back(exp);
+        it++;
+    };
+
+	auto append_density_param = [](std::map<float, ExPolygons> &density_params, float density, const ExPolygon &exp) {
+        auto it = density_params.find(density);
+        if (it == density_params.end())
+            density_params.insert({density, {exp}});
+        else
+            it->second.push_back(exp);
+        it++;
+    };
+
 	for (size_t region_id = 0; region_id < layer.regions().size(); ++ region_id) {
 		const LayerRegion  &layerm = *layer.regions()[region_id];
 		region_to_surface_params[region_id].assign(layerm.fill_surfaces.size(), nullptr);
@@ -619,28 +651,42 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
+                params.multiline     = int(region_config.fill_multiline);
                 params.lattice_angle_1 = region_config.lattice_angle_1;
                 params.lattice_angle_2 = region_config.lattice_angle_2;
+                params.infill_overhang_angle = region_config.infill_overhang_angle;
+                params.angle        = 0.;
+                if (params.pattern == ipLockedZag) {
+                    params.infill_lock_depth = scale_(region_config.infill_lock_depth);
+                    params.skin_infill_depth = scale_(region_config.skin_infill_depth);
+                }
+                if (params.pattern == ipCrossZag || params.pattern == ipLockedZag) {
+                    params.symmetric_infill_y_axis = region_config.symmetric_infill_y_axis;
+                } else if (params.pattern == ipZigZag) {
+                    params.symmetric_infill_y_axis = region_config.symmetric_infill_y_axis;
+                }
 
-		        if (surface.is_solid()) {
-		            params.density = 100.f;
-					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
-					if (surface.is_solid_infill())
-                        params.pattern = region_config.internal_solid_infill_pattern.value;
-                    else if (surface.is_external() && ! is_bridge) {
-                        if(surface.is_top())
+                if (surface.is_solid()) {
+                    if (surface.is_external() && !is_bridge) {
+                        if (surface.is_top()) {
                             params.pattern = region_config.top_surface_pattern.value;
-                        else
+                            params.density = float(region_config.top_surface_density);
+                        } else { // Surface is bottom
                             params.pattern = region_config.bottom_surface_pattern.value;
-                    }
-                    else {
-                        if(region_config.top_surface_pattern == ipMonotonic || region_config.top_surface_pattern == ipMonotonicLine)
+                            params.density = float(region_config.bottom_surface_density);
+                        }
+                    } else if (surface.is_solid_infill()) {
+                        params.pattern = region_config.internal_solid_infill_pattern.value;
+                        params.density = 100.f;
+                    } else {
+                        if (region_config.top_surface_pattern == ipMonotonic || region_config.top_surface_pattern == ipMonotonicLine)
                             params.pattern = ipMonotonic;
                         else
                             params.pattern = ipRectilinear;
+                        params.density = 100.f;
                     }
-		        } else if (params.density <= 0)
-		            continue;
+                } else if (params.density <= 0)
+                    continue;
 
 				params.extrusion_role = erInternalInfill;
                 if (is_bridge) {
@@ -658,12 +704,15 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                     }
                 }
                 params.bridge_angle = float(surface.bridge_angle);
+                
+                if (region_config.align_infill_direction_to_model) {
+                    auto m = layer.object()->trafo().matrix();
+                    params.angle += atan2((float) m(1, 0), (float) m(0, 0));
+                }
                 if (params.extrusion_role == erInternalInfill) {
-                    params.angle = float(Geometry::deg2rad(region_config.infill_direction.value));
-                    params.rotate_angle = (params.pattern == ipRectilinear || params.pattern == ipLine);
+                    params.angle += float(Geometry::deg2rad(region_config.infill_direction.value));
                 } else {
-                    params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
-                    params.rotate_angle = region_config.rotate_solid_infill_direction;
+                    params.angle += float(Geometry::deg2rad(region_config.solid_infill_direction.value));
                 }
 
                 // Calculate the actual flow we'll be using for this infill.
@@ -677,9 +726,9 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                 if (!params.bridge) {
                     if (params.extrusion_role == erInternalInfill)
                         params.sparse_infill_speed = region_config.sparse_infill_speed;
-                    else if (params.extrusion_role == erTopSolidInfill)
+                    else if (params.extrusion_role == erTopSolidInfill) {
                         params.top_surface_speed = region_config.top_surface_speed;
-                    else if (params.extrusion_role == erSolidInfill)
+                    } else if (params.extrusion_role == erSolidInfill)
                         params.solid_infill_speed = region_config.internal_solid_infill_speed;
                 }
 				// Calculate flow spacing for infill pattern generation.
@@ -702,7 +751,28 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 					params.anchor_length = std::min(params.anchor_length, params.anchor_length_max);
 				}
 
-		        auto it_params = set_surface_params.find(params);
+				//get locked region param
+				if (params.pattern == ipLockedZag){
+					const PrintObject *object = layerm.layer()->object();
+					auto nozzle_diameter = float(object->print()->config().nozzle_diameter.get_at(layerm.region().extruder(extrusion_role) - 1));
+					Flow skin_flow = params.bridge ? params.flow : Flow::new_from_config_width(extrusion_role, region_config.skin_infill_line_width, nozzle_diameter, float((surface.thickness == -1) ? layer.height : surface.thickness));
+					//add skin flow
+					append_flow_param(lock_param.skin_flow_params, skin_flow, surface.expolygon);
+
+					Flow skeleton_flow = params.bridge ? params.flow : Flow::new_from_config_width(extrusion_role, region_config.skeleton_infill_line_width, nozzle_diameter, float((surface.thickness == -1) ? layer.height : surface.thickness)) ;
+					// add skeleton flow
+					append_flow_param(lock_param.skeleton_flow_params, skeleton_flow, surface.expolygon);
+
+					// add skin density
+					append_density_param(lock_param.skin_density_params, float(0.01 * region_config.skin_infill_density), surface.expolygon);
+
+					// add skin density
+					append_density_param(lock_param.skeleton_density_params, float(0.01 * region_config.skeleton_infill_density), surface.expolygon);
+
+				}
+
+                auto it_params = set_surface_params.find(params);
+
 		        if (it_params == set_surface_params.end())
 		        	it_params = set_surface_params.insert(it_params, params);
 		        region_to_surface_params[region_id][&surface - &layerm.fill_surfaces.surfaces.front()] = &(*it_params);
@@ -822,7 +892,6 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	            params.density 		 = 100.f;
 		        params.extrusion_role = erSolidInfill;
 		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().solid_infill_direction.value));
-                params.rotate_angle  = layerm.region().config().rotate_solid_infill_direction;
 		        // calculate the actual flow we'll be using for this infill
 				params.flow = layerm.flow(frSolidInfill);
 		        params.spacing = params.flow.spacing();
@@ -907,8 +976,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
 //	this->export_region_fill_surfaces_to_svg_debug("10_fill-initial");
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
-
-	std::vector<SurfaceFill>  surface_fills = group_fills(*this);
+    LockRegionParam lock_param;
+    std::vector<SurfaceFill>     surface_fills = group_fills(*this, lock_param);
 	const Slic3r::BoundingBox bbox 			= this->object()->bounding_box();
 	const auto                resolution 	= this->object()->print()->config().resolution.value;
 
@@ -926,14 +995,21 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->layer_id = this->id();
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
-        f->rotate_angle = surface_fill.params.rotate_angle;
         f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
         f->print_config        = &this->object()->print()->config();
         f->print_object_config = &this->object()->config();
-
-		if (surface_fill.params.pattern == ipLightning)
+		if (surface_fill.params.pattern == ipConcentricInternal) {
+            FillConcentricInternal *fill_concentric = dynamic_cast<FillConcentricInternal *>(f.get());
+            assert(fill_concentric != nullptr);
+            fill_concentric->print_config        = &this->object()->print()->config();
+            fill_concentric->print_object_config = &this->object()->config();
+        } else if (surface_fill.params.pattern == ipConcentric) {
+            FillConcentric *fill_concentric = dynamic_cast<FillConcentric *>(f.get());
+            assert(fill_concentric != nullptr);
+            fill_concentric->print_config = &this->object()->print()->config();
+            fill_concentric->print_object_config = &this->object()->config();
+        } else if (surface_fill.params.pattern == ipLightning)
             dynamic_cast<FillLightning::Filler*>(f.get())->generator = lightning_generator;
-
         // calculate flow spacing for infill pattern generation
         bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.bridge;
         double link_max_length = 0.;
@@ -957,25 +1033,229 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         // apply half spacing using this flow's own spacing and generate infill
         FillParams params;
         params.density 		     = float(0.01 * surface_fill.params.density);
+        params.multiline         = surface_fill.params.multiline;
 		params.dont_adjust		 = false; //  surface_fill.params.dont_adjust;
         params.anchor_length     = surface_fill.params.anchor_length;
 		params.anchor_length_max = surface_fill.params.anchor_length_max;
 		params.resolution        = resolution;
         params.use_arachne       = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipConcentricInternal;
         params.layer_height      = layerm->layer()->height;
-        params.lattice_angle_1   = surface_fill.params.lattice_angle_1; 
+        params.lattice_angle_1   = surface_fill.params.lattice_angle_1;
         params.lattice_angle_2   = surface_fill.params.lattice_angle_2;
+        params.infill_overhang_angle   = surface_fill.params.infill_overhang_angle;
 
 		// BBS
 		params.flow = surface_fill.params.flow;
 		params.extrusion_role = surface_fill.params.extrusion_role;
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
-		params.config = &layerm->region().config();
+        auto &region_config = layerm->region().config();
+        params.config               = &region_config;
+        params.pattern              = surface_fill.params.pattern;
+
+        ConfigOptionFloats rotate_angles;
+        const std::string  search_string = "/NnZz$LlUuQq~^|#";
+        std::string        v(params.extrusion_role == erInternalInfill ? region_config.sparse_infill_rotate_template.value :
+                                                                                      region_config.solid_infill_rotate_template.value);
+        if (regex_search(v, std::regex("[+\\-%*@\'\"cmSODMR" + search_string + "]"))) { // template metalanguage of rotating infill
+            std::regex                 del("[\\s,]+");
+            std::sregex_token_iterator it(v.begin(), v.end(), del, -1);
+            std::vector<std::string>   tk;
+            std::sregex_token_iterator end;
+            while (it != end) {
+                tk.push_back(*it++);
+            }
+            int               t            = 0;
+            int               repeats      = 0;
+            double            angle        = 0;
+            double            angle_add    = 0;
+            double            angle_steps  = 1;
+            double            angle_start  = 0;
+            double            limit_fill_z = this->object()->get_layer(0)->bottom_z();
+            double            start_fill_z = limit_fill_z;
+            bool              _noop        = false;
+            auto              solid        = std::string::npos; // -1 - sparse,  0 - native (D), 1 - internal solid (S), 2 - concentric (O), 3 - monotonic (M), 4 - rectilinear (R)           
+            auto              fill_form    = std::string::npos;
+            bool              _absolute    = false;
+            bool              _negative    = false;
+            std::vector<bool> stop(tk.size(), false);
+
+            for (int i = 0; i <= this->id(); i++) {
+                double fill_z = this->object()->get_layer(i)->bottom_z();
+
+                if (limit_fill_z < this->object()->get_layer(i)->slice_z) {
+                    if (repeats) { // if repeats >0 then restore parameters for new iteration
+                        limit_fill_z += limit_fill_z - start_fill_z;
+                        start_fill_z = fill_z;
+                        repeats--;
+                    } else {
+                        start_fill_z = fill_z;
+                        limit_fill_z = this->object()->get_layer(i)->print_z;
+                        solid        = std::string::npos;
+                        fill_form    = std::string::npos;
+                        do {
+                            if (!stop[t]) {
+                                _noop       = false;
+                                _absolute   = false;
+                                _negative   = false;
+                                angle_start += angle_add;
+                                angle_add   = 0;
+                                angle_steps = 1;
+                                repeats     = 1;
+                                if (tk[t].find('!') != std::string::npos) // this is an one-time instruction
+                                    stop[t] = true;
+
+                                char* cs = &tk[t][0];
+
+                                if ((cs[0] >= '0' && cs[0] <= '9') && !(cs[0] == '+' || cs[0] == '-')) // absolute/relative
+                                    _absolute = true;
+
+                                angle_add = strtod(cs, &cs);        // read angle parameter
+
+                                if (cs[0] == '%') {                 // percentage of angles
+                                    angle_add *= 3.6;
+                                    cs = &cs[1];
+                                }
+
+                                int tit = tk[t].find('*');
+                                if (tit != std::string::npos)                   // overall angle_cycles
+                                    repeats = strtol(&tk[t][tit + 1], &cs, 0);
+
+                                if (repeats) {                                  // run if overall cycles greater than 0
+                                    solid = std::string("DSOMR").find(cs[0]);   // solid infill
+                                    if (solid != std::string::npos) 
+                                        cs = &cs[1];
+
+                                    if (cs[0] == 'B') {
+                                        angle_steps = this->object()->print()->default_region_config().bottom_shell_layers.value;
+                                    } else if (cs[0] == 'T') {
+                                        angle_steps = this->object()->print()->default_region_config().top_shell_layers.value;
+                                    } else {
+                                        fill_form = search_string.find(cs[0]);
+                                        if (fill_form != std::string::npos)
+                                            cs = &cs[1];
+
+                                        _negative = (cs[0] == '-'); // negative parameter
+                                        angle_steps = abs(strtod(cs, &cs));
+
+                                        if (angle_steps && cs[0] != '\0' && cs[0] != '!') {
+                                            if (cs[0] == '%')       // value in the percents of fill_z
+                                                limit_fill_z = angle_steps * this->object()->height() * 1e-8;
+                                            else if (cs[0] == '#')  // value in the feet
+                                                limit_fill_z = angle_steps * this->object()->config().layer_height;
+                                            else if (cs[0] == '\'') // value in the feet
+                                                limit_fill_z = angle_steps * 12 * 25.4;
+                                            else if (cs[0] == '\"') // value in the inches
+                                                limit_fill_z = angle_steps * 25.4;
+                                            else if (cs[0] == 'c')  // value in centimeters
+                                                limit_fill_z = angle_steps * 10.;
+                                            else if (cs[0] == 'm')
+                                                if (cs[1] == 'm') { // value in the millimeters
+                                                    limit_fill_z = angle_steps * 1.;
+                                                } else              // value in the meters
+                                                    limit_fill_z = angle_steps * 1000.;
+                                            limit_fill_z += fill_z;
+                                            angle_steps = 0; // limit_fill_z has already count
+                                        } 
+                                    }
+                                    if (angle_steps) {       // if limit_fill_z does not setting by lenght method. Get count the layer id above model height
+                                        if (fill_form == std::string::npos && !_absolute) 
+                                            angle_add     *= (int) angle_steps;
+                                        int idx       = i + std::max(angle_steps - 1, 0.);
+                                        int sdx       = std::max(0, idx - (int) this->object()->layers().size());
+                                        idx           = std::min(idx, (int) this->object()->layers().size() - 1);
+                                        limit_fill_z  = this->object()->get_layer(idx)->print_z + sdx * this->object()->config().layer_height;
+                                    } 
+                                    repeats = std::max(--repeats, 0);
+                                } else 
+                                    _noop = true;   // set the dumb cycle
+                                if (_absolute) {    // is absolute
+                                    angle_start = angle_add;
+                                    angle_add   = 0;
+                                }
+                            }
+                            if (++t >= tk.size())
+                                t = 0;
+                        } while (std::all_of(stop.begin(), stop.end(), [](bool v) { return v; }) ? false :
+                                     (t ? _noop : false) || stop[t]); // if this is a dumb instruction which never reaprated twice
+                    }
+                }
+                double top_z    = this->object()->get_layer(i)->print_z;
+                double negvalue = (_negative ? limit_fill_z - top_z : top_z - start_fill_z) / (limit_fill_z - start_fill_z);
+
+                switch (fill_form) {
+                case 0: break;                                                  // /-joint, linear
+                case 1: negvalue -= sin(negvalue * PI * 2.) / (PI * 2.); break; // N-joint, sinus, vertical start
+                case 2: negvalue -= sin(negvalue * PI * 2.) / (PI * 4.); break; // n-joint, sinus, vertical start, lazy
+                case 3: negvalue += sin(negvalue * PI * 2.) / (PI * 2.); break; // Z-joint, sinus, horizontal start
+                case 4: negvalue += sin(negvalue * PI * 2.) / (PI * 4.); break; // z-joint, sinus, horizontal start, lazy
+                case 5: negvalue = asin(negvalue * 2. - 1.) / PI + 0.5; break;  // $-joint, arcsin
+                case 6: negvalue = sin(negvalue * PI / 2.); break;              // L-joint, quarter of circle, horizontal start
+                case 7: negvalue = 1. - cos(negvalue * PI / 2.); break;         // l-joint, quarter of circle, vertical start
+                case 8: negvalue = 1. - pow(1. - negvalue, 2); break;           // U-joint, squared, x2
+                case 9: negvalue = pow(1 - negvalue, 2); break;                 // u-joint, squared, x2 inverse
+                case 10: negvalue = 1. - pow(1. - negvalue, 3); break;          // Q-joint, cubic, x3
+                case 11: negvalue = pow(1. - negvalue, 3); break;               // q-joint, cubic, x3 inverse
+                case 12: negvalue = (double) rand() / RAND_MAX; break;          // ~-joint, random, fill the whole angle
+                case 13: negvalue += (double) rand() / RAND_MAX - 0.5; break;   // ^-joint, pseudorandom, disperse at middle line
+                case 14: negvalue = 0.5; break;                                 // |-joint, like #-joint but placed at middle angle
+                case 15: negvalue = _negative ? 0. : 1.; break;                 // #-joint, vertical at the end angle
+                }
+                angle = angle_start + angle_add * negvalue;
+            }
+            if (solid != std::string::npos) {
+                switch (solid) {
+                case 1: params.pattern = region_config.internal_solid_infill_pattern.value; break; // selected solid pattern
+                case 2: params.pattern = ipConcentric; break;                                      // concentric pattern 
+                case 3: params.pattern = ipMonotonic; break;                                       // monotonic pattern 
+                case 4: params.pattern = ipRectilinear;                                            // rectilinear pattern  
+                }                                                                                  // or else use native pattern
+                params.extrusion_role = erSolidInfill;
+                params.density        = 1.;
+                surface_fill.params.pattern = params.pattern;
+
+                f = std::unique_ptr<Fill>(Fill::new_from_type(params.pattern)); // reinitialize surface
+                f->set_bounding_box(bbox);
+                f->layer_id            = this->id();
+                f->z                   = this->print_z;
+                f->angle               = surface_fill.params.angle;
+                f->print_config        = &this->object()->print()->config();
+                f->print_object_config = &this->object()->config();
+                params.use_arachne = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipConcentricInternal;
+            }
+            f->rotate_angle = Geometry::deg2rad(angle);
+        } else {
+            rotate_angles.deserialize(v);
+            auto rotate_angle_idx = f->layer_id % rotate_angles.size();
+            f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
+        }
+
+		if( surface_fill.params.pattern == ipLockedZag ) {
+			params.locked_zag = true;
+            params.infill_lock_depth = surface_fill.params.infill_lock_depth;
+            params.skin_infill_depth = surface_fill.params.skin_infill_depth;
+            f->set_lock_region_param(lock_param);
+		}
+        if (surface_fill.params.pattern == ipCrossZag || surface_fill.params.pattern == ipLockedZag) {
+            if (f->layer_id % 2 == 0) {
+                params.horiz_move -= scale_(region_config.infill_shift_step) * (f->layer_id / 2);
+            } else {
+                params.horiz_move += scale_(region_config.infill_shift_step) * (f->layer_id / 2);
+            }
+
+            params.symmetric_infill_y_axis = surface_fill.params.symmetric_infill_y_axis;
+
+        }
 		if (surface_fill.params.pattern == ipGrid)
 			params.can_reverse = false;
 		for (ExPolygon& expoly : surface_fill.expolygons) {
-            f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
+
+      f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
+            if (params.symmetric_infill_y_axis) {
+                params.symmetric_y_axis = f->extended_object_bounding_box().center().x();
+                expoly.symmetric_y(params.symmetric_y_axis);
+            }
+
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
 			f->spacing = surface_fill.params.spacing;
 			surface_fill.surface.expolygon = std::move(expoly);
@@ -1015,9 +1295,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
 Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree,  FillLightning::Generator* lightning_generator) const
 {
-    std::vector<SurfaceFill>  surface_fills = group_fills(*this);
-    const Slic3r::BoundingBox bbox          = this->object()->bounding_box();
-    const auto                resolution    = this->object()->print()->config().resolution.value;
+    LockRegionParam skin_inner_param;
+    std::vector<SurfaceFill> surface_fills = group_fills(*this, skin_inner_param);
+	const Slic3r::BoundingBox bbox = this->object()->bounding_box();
+	const auto                resolution = this->object()->print()->config().resolution.value;
 
     Polylines sparse_infill_polylines{};
 
@@ -1045,11 +1326,16 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipLine:
         case ipConcentric:
         case ipHoneycomb:
+        case ip2DHoneycomb:
         case ip3DHoneycomb:
         case ipGyroid:
+        case ipTpmsD:
         case ipHilbertCurve:
         case ipArchimedeanChords:
-        case ipOctagramSpiral: break;
+        case ipOctagramSpiral:
+        case ipZigZag:
+        case ipCrossZag:
+		case ipLockedZag: break;
         }
 
         // Create the filler object.
@@ -1093,8 +1379,10 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         params.resolution        = resolution;
         params.use_arachne       = false;
         params.layer_height      = layerm.layer()->height;
-        params.lattice_angle_1   = surface_fill.params.lattice_angle_1; 
-        params.lattice_angle_2   = surface_fill.params.lattice_angle_2; 
+        params.lattice_angle_1   = surface_fill.params.lattice_angle_1;
+        params.lattice_angle_2   = surface_fill.params.lattice_angle_2;
+        params.infill_overhang_angle   = surface_fill.params.infill_overhang_angle;
+        params.multiline         = surface_fill.params.multiline;
 
         for (ExPolygon &expoly : surface_fill.expolygons) {
             // Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
@@ -1192,10 +1480,10 @@ void Layer::make_ironing()
 			IroningParams ironing_params;
 			const PrintRegionConfig &config = layerm->region().config();
 			if (config.ironing_type != IroningType::NoIroning &&
-				(config.ironing_type == IroningType::AllSolid ||
-				 	(config.top_shell_layers > 0 &&
-						(config.ironing_type == IroningType::TopSurfaces ||
-					 	(config.ironing_type == IroningType::TopmostOnly && layerm->layer()->upper_layer == nullptr))))) {
+			    (config.ironing_type == IroningType::AllSolid ||
+				    ((config.top_shell_layers > 0 || (this->object()->print()->config().spiral_mode && config.bottom_shell_layers > 1)) &&
+					    (config.ironing_type == IroningType::TopSurfaces ||
+					        (config.ironing_type == IroningType::TopmostOnly && layerm->layer()->upper_layer == nullptr))))) {
 				if (config.wall_filament == config.solid_infill_filament || config.wall_loops == 0) {
 					// Iron the whole face.
 					ironing_params.extruder = config.solid_infill_filament;
@@ -1277,7 +1565,7 @@ void Layer::make_ironing()
 						polygons_append(polys, surface.expolygon);
 				} else {
 					for (const Surface &surface : ironing_params.layerm->slices.surfaces)
-						if ((surface.surface_type == stTop && region_config.top_shell_layers > 0) || (iron_everything && surface.surface_type == stBottom && region_config.bottom_shell_layers > 0))
+						if ((surface.surface_type == stTop && (region_config.top_shell_layers > 0 || this->object()->print()->config().spiral_mode)) || (iron_everything && surface.surface_type == stBottom && region_config.bottom_shell_layers > 0))
 							// stBottomBridge is not being ironed on purpose, as it would likely destroy the bridges.
 							polygons_append(polys, surface.expolygon);
 				}

@@ -165,6 +165,7 @@ public:
     GCode() :
     	m_origin(Vec2d::Zero()),
         m_enable_loop_clipping(true),
+        m_resonance_avoidance(true),
         m_enable_cooling_markers(false),
         m_enable_extrusion_role_markers(false),
         m_last_processor_extrusion_role(erNone),
@@ -448,7 +449,7 @@ private:
 
     std::string     extrude_perimeters(const Print& print, const std::vector<ObjectByExtruder::Island::Region>& by_region, bool is_first_layer, bool is_infill_first);
     std::string     extrude_infill(const Print& print, const std::vector<ObjectByExtruder::Island::Region>& by_region, bool ironing);
-    std::string     extrude_support(const ExtrusionEntityCollection& support_fills);
+    std::string     extrude_support(const ExtrusionEntityCollection& support_fills, const ExtrusionRole support_extrusion_role);
 
     // BBS
     LiftType to_lift_type(ZHopType z_hop_types);
@@ -506,6 +507,8 @@ private:
     AvoidCrossingPerimeters             m_avoid_crossing_perimeters;
     RetractWhenCrossingPerimeters       m_retract_when_crossing_perimeters;
     bool                                m_enable_loop_clipping;
+    //resonance avoidance
+    bool                                m_resonance_avoidance; 
     // If enabled, the G-code generator will put following comments at the ends
     // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _OVERHANG_FAN_START, _OVERHANG_FAN_END
     // Those comments are received and consumed (removed from the G-code) by the CoolingBuffer.pm Perl module.
@@ -514,10 +517,8 @@ private:
     bool m_enable_exclude_object;
     std::vector<size_t> m_label_objects_ids;
     std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
-    // Orca
-    bool m_is_overhang_fan_on;
-    bool m_is_internal_bridge_fan_on; // ORCA: Add support for separate internal bridge fan speed control
-    bool m_is_supp_interface_fan_on;
+    // ORCA: Add support for role based fan speed control
+    std::array<bool, ExtrusionRole::erCount> m_is_role_based_fan_on;
     // Markers for the Pressure Equalizer to recognize the extrusion type.
     // The Pressure Equalizer removes the markers from the final G-code.
     bool                                m_enable_extrusion_role_markers;
@@ -602,7 +603,7 @@ private:
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
-    double get_overhang_degree_corr_speed(float speed, double path_degree);
+    bool _needSAFC(const ExtrusionPath &path);
     void print_machine_envelope(GCodeOutputStream &file, Print &print);
     void _print_first_layer_bed_temperature(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     void _print_first_layer_extruder_temperatures(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
