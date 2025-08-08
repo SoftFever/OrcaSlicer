@@ -10,6 +10,7 @@ Infill is the internal structure of a 3D print, providing strength and support. 
   - [Rotation](#rotation)
 - [Infill Wall Overlap](#infill-wall-overlap)
 - [Apply gap fill](#apply-gap-fill)
+- [Filter out tiny gaps](#filter-out-tiny-gaps)
 - [Anchor](#anchor)
 - [Internal Solid Infill](#internal-solid-infill)
 - [Sparse Infill Pattern](#sparse-infill-pattern)
@@ -90,7 +91,8 @@ Controls the direction of the infill lines to optimize or strengthen the print.
 
 ### Rotation
 
-This parameter adds a rotation to the sparse infill direction for each layer according to the specified template. The template is a comma-separated list of angles in degrees.
+This parameter adds a rotation to the sparse infill direction for each layer according to the specified template.  
+The template is a comma-separated list of angles in degrees.
 
 For example:
 
@@ -110,8 +112,10 @@ Other examples:
 0,60,120,180
 ```
 
-If there are more layers than angles, the sequence repeats.
 > [!NOTE]
+> If there are more layers than angles, the sequence repeats.
+
+> [!IMPORTANT]
 > Not all sparse infill patterns support rotation.
 
 ## Infill Wall Overlap
@@ -140,6 +144,10 @@ That perimeter gap fill is not controlled by this setting.
 If you would like all gap fill, including the classic perimeter generated one, removed, set the filter out tiny gaps value to a large number, like 999999.
 
 However this is not advised, as gap fill between perimeters is contributing to the model's strength. For models where excessive gap fill is generated between perimeters, a better option would be to switch to the [arachne wall generator](quality_settings_wall_generator#arachne) and use this option to control whether the cosmetic top and bottom surface gap fill is generated.
+
+## Filter out tiny gaps
+
+Don't print gap fill with a length is smaller than the threshold specified (in mm). This setting applies to top, bottom and solid infill and, if using the classic perimeter generator, to wall gap fill.
 
 ## Anchor
 

@@ -2230,11 +2230,11 @@ void TabPrint::build()
         optgroup->append_single_option_line("solid_infill_direction", "strength_settings_infill");
         optgroup->append_single_option_line("solid_infill_rotate_template", "strength_settings_infill");
         optgroup->append_single_option_line("gap_fill_target", "strength_settings_infill#apply-gap-fill");
-        optgroup->append_single_option_line("filter_out_gap_fill", "strength_settings_infill");
+        optgroup->append_single_option_line("filter_out_gap_fill", "strength_settings_infill#filter-out-tiny-gaps");
         optgroup->append_single_option_line("infill_wall_overlap", "strength_settings_infill#infill-wall-overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("align_infill_direction_to_model");
+        optgroup->append_single_option_line("align_infill_direction_to_model", "strength_settings_advanced#align-infill-direction-to-model");
         optgroup->append_single_option_line("bridge_angle", "strength_settings_advanced#bridge-infill-direction");
         optgroup->append_single_option_line("internal_bridge_angle", "strength_settings_advanced#bridge-infill-direction"); // ORCA: Internal bridge angle override
         optgroup->append_single_option_line("minimum_sparse_infill_area", "strength_settings_advanced#minimum-sparse-infill-threshold");
