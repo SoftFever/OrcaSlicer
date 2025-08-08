@@ -33,7 +33,7 @@ static Polylines make_waves(double gridZ, double density_adjusted, double line_s
     const double ymax = height;
 
     // Grid resolution - adjust as needed
-    const int grid_resolution = 1000;
+    const int grid_resolution = 250;
     const double dx = (xmax - xmin) / grid_resolution;
     const double dy = (ymax - ymin) / grid_resolution;
 
