@@ -1182,7 +1182,7 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
 boost::regex regex_g92e0 { "^[ \\t]*[gG]92[ \\t]*[eE](0(\\.0*)?|\\.0+)[ \\t]*(;.*)?$" };
 
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
-//BBS: refine seq-print validation logic
+//BBS: refine seq-print validation logic.....FIXME:StringObjectException *warning can only contain one warning, but there might be many warnings, need a vector<StringObjectException>
 StringObjectException Print::validate(StringObjectException *warning, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons) const
 {
     std::vector<unsigned int> extruders = this->extruders();
@@ -1201,9 +1201,9 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             ret.type = STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP;
             if (ret.is_warning && warning != nullptr) {
                 *warning = ret;
-                return {};
-            }
-            return ret;
+                //return {};
+            }else
+                return ret;
         }
     }
 
@@ -1227,6 +1227,17 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         if (!ret.string.empty()) {
             ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT;
             return ret;
+        }
+    }
+
+    if (m_config.enable_prime_tower) {
+    } else {
+        if (m_config.enable_wrapping_detection && warning!=nullptr) {
+            StringObjectException warningtemp;
+            warningtemp.string     = L("Prime tower is required for clumping detection; otherwise, there may be flaws on the model.");
+            warningtemp.opt_key    = L("enable_prime_tower");
+            warningtemp.is_warning = true;
+            *warning               = warningtemp;
         }
     }
 
@@ -1498,8 +1509,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     bool has_enforcers = mv->is_support_enforcer() ||
                         (mv->is_model_part() && mv->supported_facets.has_facets(*mv, EnforcerBlockerType::ENFORCER));
                     if (has_enforcers) {
-                        warning->string = L("Support enforcers are used but support is not enabled. Please enable support.");
-                        warning->object = object;
+                        StringObjectException warningtemp;
+                        warningtemp.string = L("Support enforcers are used but support is not enabled. Please enable support.");
+                        warningtemp.object  = object;
+                        *warning            = warningtemp;
                         break;
                     }
                 }
