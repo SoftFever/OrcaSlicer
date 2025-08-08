@@ -70,7 +70,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_DURING_PRINT_EXHAUST_FAN",
     " WIPE_TOWER_START",
     " WIPE_TOWER_END",
-    " PA_CHANGE:"
+    " PA_CHANGE:",
+    " IRONING_END"
 };
 
 const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
@@ -91,7 +92,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
     "_DURING_PRINT_EXHAUST_FAN",
     " WIPE_TOWER_START",
     " WIPE_TOWER_END",
-    " PA_CHANGE:"
+    " PA_CHANGE:",
+    " IRONING_END"
 };
 
 
@@ -1137,6 +1139,7 @@ void GCodeProcessor::reset()
     m_wiping = false;
     m_flushing = false;
     m_wipe_tower = false;
+    m_ironing = false;
     m_remaining_volume = 0.f;
     // BBS: arc move related data
     m_move_path_type = EMovePathType::Noop_move;
@@ -1903,6 +1906,8 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
         if (m_extrusion_role == erExternalPerimeter)
             m_seams_detector.activate(true);
         m_processing_start_custom_gcode = (m_extrusion_role == erCustom && m_g1_line_id == 0);
+        if (m_extrusion_role == erIroning)
+            m_ironing = true;
         return;
     }
 
@@ -2086,6 +2091,11 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
                 m_result.spiral_vase_layers.push_back({ FLT_MAX, { move_id, move_id } });
             }
         }
+        return;
+    }
+
+    if (boost::starts_with(comment, reserved_tag(ETags::Ironing_End))) {
+        m_ironing = false;
         return;
     }
 
@@ -2609,7 +2619,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::o
             type = EMoveType::Wipe;
         else if (delta_pos[E] < 0.0f)
             type = (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f || delta_pos[Z] != 0.0f) ? EMoveType::Travel : EMoveType::Retract;
-        else if (delta_pos[E] > 0.0f) {
+        else if (delta_pos[E] > 0.0f || m_ironing) {
             if (delta_pos[X] == 0.0f && delta_pos[Y] == 0.0f)
                 type = (delta_pos[Z] == 0.0f) ? EMoveType::Unretract : EMoveType::Travel;
             else if (delta_pos[X] != 0.0f || delta_pos[Y] != 0.0f)
