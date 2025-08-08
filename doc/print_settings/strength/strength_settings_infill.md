@@ -39,6 +39,7 @@ Infill is the internal structure of a 3D print, providing strength and support. 
   - [Hilbert Curve](#hilbert-curve)
   - [Archimedean Chords](#archimedean-chords)
   - [Octagram Spiral](#octagram-spiral)
+- [Credits](#credits)
 
 ## Sparse infill density
 
@@ -536,3 +537,8 @@ Esthetic pattern with low strength and high print time.
 - **Material/Time (Higher better):** Normal-Low
 
 ![infill-top-octagram-spiral](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-octagram-spiral.png?raw=true)
+
+## Credits
+
+- **[Fill Multiline](#fill-multiline) implementation** - [@RF47](https://github.com/RF47)
+- **Wiki page:** [IanAlexis](https://github.com/IanAlexis).

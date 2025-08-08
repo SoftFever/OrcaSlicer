@@ -22,6 +22,7 @@ Randomly jitter while printing the wall, so that the surface has a rough look. T
 - [Skin Noise Octaves](#skin-noise-octaves)
 - [Skin Noise Persistence](#skin-noise-persistence)
 - [Apply fuzzy skin to first layer](#apply-fuzzy-skin-to-first-layer)
+- [Credits](#credits)
 
 ## Fuzzy Skin Mode
 
@@ -114,3 +115,7 @@ The decay rate for higher octaves of the coherent noise. Lower values will resul
 ## Apply fuzzy skin to first layer
 
 Whether to apply fuzzy skin on the first layer.
+
+## Credits
+
+- **Generator Mode author:** [@pi-squared-studio](https://github.com/pi-squared-studio).
