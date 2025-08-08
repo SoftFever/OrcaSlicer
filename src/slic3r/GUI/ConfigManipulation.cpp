@@ -308,7 +308,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
            ! config->opt_bool("detect_thin_wall") &&
            ! config->opt_bool("overhang_reverse") &&
             config->opt_enum<WallDirection>("wall_direction") == WallDirection::Auto &&
-            config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
+            config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional &&
+            !config->opt_bool("enable_wrapping_detection")))
     {
         DynamicPrintConfig new_conf = *config;
         auto answer = show_spiral_mode_settings_dialog(is_object_config);
