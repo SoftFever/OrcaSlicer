@@ -80,9 +80,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "fan_max_speed": [
-        "80"
-    ],
     "filament_ramming_volumetric_speed": [
         "-1",
         "-1"
@@ -110,9 +107,6 @@
     "retraction_distances_when_ec": [
         "10",
         "10"
-    ],
-    "slow_down_layer_time": [
-        "3"
     ],
     "slow_down_min_speed": [
         "20"
