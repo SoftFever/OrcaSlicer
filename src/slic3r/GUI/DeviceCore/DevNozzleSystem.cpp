@@ -98,7 +98,7 @@ void DevNozzleSystemParser::ParseV1_0(const nlohmann::json& nozzletype_json,
         }
     }
 
-    system->m_nozzles.emplace(0, nozzle);
+    system->m_nozzles[nozzle.m_nozzle_id] = nozzle;
 }
 
 
