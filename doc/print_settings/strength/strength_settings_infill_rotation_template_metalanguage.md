@@ -126,7 +126,9 @@ This metalanguage provides a way to define the [direction and rotation](strength
 
 Each instruction is written by a combination of symbols and numbers and separated by a comma or a space.
 For more complex instructions, autoformatting is used to make the template easier to read.
-All examples are shown with a 5% density rectilinear infill on a model of a cube 20x20x20mm which has 100 layers of 0.2mm thickness. Without walls and upper and lower shells. Initial angle is 0.
+
+> [!NOTE]
+> All examples are shown with a 5% density rectilinear infill on a model of a cube 20x20x20mm which has 100 layers of 0.2mm thickness. Without walls and upper and lower shells. Initial angle is 0.
 
 ### Simple absolute instructions
 
