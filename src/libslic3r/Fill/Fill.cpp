@@ -1056,6 +1056,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
             params.aesthetic_surface       = region_config.aesthetic_surfaces.value;
             params.align_center_of_patterns = region_config.align_center_of_patterns.value;
         }
+        params.precision_surface = region_config.precision_surfaces.value;
 
         ConfigOptionFloats rotate_angles;
         const std::string  search_string = "/NnZz$LlUuQq~^|#";

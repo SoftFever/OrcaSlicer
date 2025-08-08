@@ -996,6 +996,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 align_infill_direction_to_model))
     ((ConfigOptionBool,                 aesthetic_surfaces))
     ((ConfigOptionEnum<AlignCenterOfPatterns>, align_center_of_patterns))
+    ((ConfigOptionBool,                 precision_surfaces))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))

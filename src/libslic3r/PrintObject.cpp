@@ -1132,6 +1132,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "wall_filament"
             || opt_key == "aesthetic_surfaces" 
             || opt_key == "align_center_of_patterns"
+            || opt_key == "precision_surfaces" 
             || opt_key == "fuzzy_skin"
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"

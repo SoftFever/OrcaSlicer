@@ -2828,14 +2828,21 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("printable_area");
     //def->enum_values.push_back("bed_center");
     //def->enum_values.push_back("bed_orign");
-    def->enum_labels.push_back(L("Each Surface"));
-    def->enum_labels.push_back(L("Each Model"));
-    def->enum_labels.push_back(L("Each Assembly"));
+    def->enum_labels.push_back(L("Each surface"));
+    def->enum_labels.push_back(L("Each model"));
+    def->enum_labels.push_back(L("Each assembly"));
     //def->enum_labels.push_back(L("Printable Area"));
     //def->enum_labels.push_back(L("Bed center"));
     //def->enum_labels.push_back(L("Bed orign"));
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<AlignCenterOfPatterns>(AlignCenterOfPatterns::Each_Surface));
+
+    def           = this->add("precision_surfaces", coBool);
+    def->label    = L("Precision surfaces");
+    def->category = L("Others");
+    def->tooltip  = L("It sets the precision overlay of patterns on the top and bottom surfaces, and partially fills the pores when using Fuzzy Skin.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("fuzzy_skin", coEnum);
     def->label = L("Fuzzy Skin");

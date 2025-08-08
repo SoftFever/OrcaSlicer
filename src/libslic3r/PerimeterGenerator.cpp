@@ -1421,6 +1421,23 @@ void PerimeterGenerator::process_classic()
                 steep_overhang_hole    = true;
             }
             ExtrusionEntityCollection entities = traverse_loops(*this, contours.front(), thin_walls, steep_overhang_contour, steep_overhang_hole);
+            
+            if (this->config->precision_surfaces) {                         // PPS: Please check the correct operation of the algorithm!
+                Polygons _pgs = entities.polygons_covered_by_width(); // get loops contour
+                for (Polygon _pg : _pgs) {                                  // close loops for polygons
+                    if (_pg.first_point() != _pg.last_point())
+                        _pg.points.emplace_back(_pg.first_point());
+                }
+
+                Polylines _pls = entities.as_polylines(); // get filled surfases
+                for (Polyline _pl : _pls) {                     // close polylines
+                    if (_pl.first_point() != _pl.last_point())
+                        _pl.points.emplace_back(_pl.first_point());
+                }
+
+                last = diff_ex(to_polygons(_pls), _pgs); // substract loops from surfaces
+            }
+
             // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
             if (wall_direction != WallDirection::CounterClockwise) {
                 reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole,
@@ -2451,6 +2468,23 @@ void PerimeterGenerator::process_arachne()
             steep_overhang_hole    = true;
         }
         if (ExtrusionEntityCollection extrusion_coll = traverse_extrusions(*this, ordered_extrusions, steep_overhang_contour, steep_overhang_hole); !extrusion_coll.empty()) {
+
+            if (this->config->precision_surfaces) { //PPS: Please check the correct operation of the algorithm!
+                Polygons _pgs = extrusion_coll.polygons_covered_by_width(); // get loops contour
+                for (Polygon _pg : _pgs) { // close loops for polygons
+                    if (_pg.first_point() != _pg.last_point())
+                        _pg.points.emplace_back(_pg.first_point());
+                }
+            
+                Polylines _pls  = extrusion_coll.as_polylines(); // get filled surfases
+                for (Polyline _pl : _pls) { // close polylines
+                    if (_pl.first_point() != _pl.last_point())
+                        _pl.points.emplace_back(_pl.first_point());
+                }
+            
+                infill_contour = diff_ex(to_polygons(_pls), _pgs); // substract loops from surfaces
+            }
+
             // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
             if (wall_direction != WallDirection::CounterClockwise) {
                 reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole,
