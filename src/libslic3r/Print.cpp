@@ -1211,8 +1211,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         if (m_config.timelapse_type == TimelapseType::tlSmooth)
             return {L("Smooth mode of timelapse is not supported when \"by object\" sequence is enabled.")};
 
-        if (m_config.enable_wrapping_detection)
-            return {L("Clumping detection is not supported when \"by object\" sequence is enabled.")};
+        if (m_config.enable_wrapping_detection) {
+            StringObjectException clumping_detection_setting_err;
+            clumping_detection_setting_err.string = L("Clumping detection is not supported when \"by object\" sequence is enabled.");
+            clumping_detection_setting_err.opt_key = L("enable_wrapping_detection");
+            return clumping_detection_setting_err;
+        }
 
         //BBS: refine seq-print validation logic
         auto ret = sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
