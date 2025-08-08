@@ -77,6 +77,21 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "filament_printable": [
+        "1"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -103,8 +118,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
-    ],
-    "filament_printable": [
-        "1"
     ]
 }

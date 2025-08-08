@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSU00_11",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "100"
+    ],
     "filament_deretraction_speed": [
         "10",
         "10"
@@ -77,6 +80,21 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "filament_printable": [
+        "2"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "3.0",
+        "3.0"
+    ],
+    "filament_pre_cooling_temperature": [
+        "200",
+        "200"
+    ],
+    "filament_ramming_travel_time": [
+        "20",
+        "20"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -103,8 +121,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
-    ],
-    "filament_printable": [
-        "2"
     ]
 }

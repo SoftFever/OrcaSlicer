@@ -86,6 +86,21 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "filament_printable": [
+        "1"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "hole_coef_2": [
         "-0.012"
     ],
@@ -111,6 +126,12 @@
         "10",
         "10"
     ],
+    "reduce_fan_stop_start_freq": [
+        "1"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
     "compatible_printers": [
         "Bambu Lab H2D Pro 0.4 nozzle",
         "Bambu Lab H2D Pro 0.6 nozzle",
@@ -121,8 +142,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
-    ],
-    "filament_printable": [
-        "1"
     ]
 }

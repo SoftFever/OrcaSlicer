@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSU98_08",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "100"
+    ],
     "fan_cooling_layer_time": [
         "40"
     ],
@@ -85,6 +88,18 @@
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "2.625",
+        "2.625"
+    ],
+    "filament_pre_cooling_temperature": [
+        "200",
+        "200"
+    ],
+    "filament_ramming_travel_time": [
+        "20",
+        "20"
     ],
     "long_retractions_when_ec": [
         "1",

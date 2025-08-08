@@ -80,6 +80,30 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "fan_max_speed": [
+        "60"
+    ],
+    "fan_min_speed": [
+        "0"
+    ],
+    "fan_cooling_layer_time": [
+        "4"
+    ],
+    "full_fan_speed_layer": [
+        "0"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"

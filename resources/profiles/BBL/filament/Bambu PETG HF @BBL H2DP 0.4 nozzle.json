@@ -6,13 +6,13 @@
     "setting_id": "GFSG02_19",
     "instantiation": "true",
     "counter_coef_2": [
-        "0.0065"
+        "0.007"
     ],
     "counter_coef_3": [
-        "-0.032"
+        "0.003"
     ],
     "counter_limit_max": [
-        "0.053"
+        "0.1"
     ],
     "fan_cooling_layer_time": [
         "20"
@@ -45,8 +45,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "24",
-        "32"
+        "25",
+        "35"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -65,8 +65,8 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "nil",
-        "nil"
+        "0.4",
+        "0.4"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
@@ -77,25 +77,40 @@
         "nil"
     ],
     "filament_wipe": [
-        "nil",
-        "nil"
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil",
-        "nil"
+        "1",
+        "1"
     ],
     "filament_z_hop": [
         "nil",
         "nil"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil"
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "hole_coef_2": [
         "-0.006"
     ],
     "hole_coef_3": [
+        "0.1"
+    ],
+    "hole_limit_min": [
         "0.1"
     ],
     "long_retractions_when_ec": [
@@ -112,6 +127,9 @@
     ],
     "overhang_fan_speed": [
         "100"
+    ],
+    "pre_start_fan_time": [
+        "2"
     ],
     "retraction_distances_when_ec": [
         "10",

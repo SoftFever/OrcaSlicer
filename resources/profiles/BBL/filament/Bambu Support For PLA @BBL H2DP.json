@@ -26,8 +26,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "12",
-        "12"
+        "6",
+        "6"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -77,6 +77,24 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "fan_max_speed": [
+        "30"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -88,6 +106,9 @@
     "nozzle_temperature_initial_layer": [
         "220",
         "220"
+    ],
+    "pre_start_fan_time": [
+        "2"
     ],
     "retraction_distances_when_ec": [
         "10",

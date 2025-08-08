@@ -5,11 +5,8 @@
     "from": "system",
     "setting_id": "GFSU04_03",
     "instantiation": "true",
-    "filament_cost": [
-        "41.99"
-    ],
-    "filament_density": [
-        "1.22"
+    "additional_cooling_fan_speed": [
+        "100"
     ],
     "filament_deretraction_speed": [
         "10",
@@ -83,6 +80,21 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "filament_printable": [
+        "2"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "0.55",
+        "0.55"
+    ],
+    "filament_pre_cooling_temperature": [
+        "195",
+        "195"
+    ],
+    "filament_ramming_travel_time": [
+        "20",
+        "20"
+    ],
     "impact_strength_z": [
         "88.7"
     ],
@@ -114,8 +126,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
-    ],
-    "filament_printable": [
-        "2"
     ]
 }

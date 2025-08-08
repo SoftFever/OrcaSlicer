@@ -28,7 +28,6 @@
         "0x0,325x0,325x320,0x320",
         "25x0,350x0,350x320,25x320"
     ],
-    "fan_direction": "left",
     "hotend_heating_rate": [
         "3.6",
         "3.6",

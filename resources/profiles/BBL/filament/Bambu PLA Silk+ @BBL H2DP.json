@@ -37,8 +37,8 @@
         "12"
     ],
     "filament_retract_before_wipe": [
-        "1",
-        "1"
+        "nil",
+        "nil"
     ],
     "filament_retract_restart_extra": [
         "nil",
@@ -53,8 +53,8 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "0.8",
-        "0.8"
+        "0.4",
+        "0.4"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
@@ -65,8 +65,8 @@
         "nil"
     ],
     "filament_wipe": [
-        "nil",
-        "nil"
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
         "1",
@@ -80,6 +80,18 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -92,12 +104,15 @@
         "230",
         "230"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
     "retraction_distances_when_ec": [
         "10",
         "10"
     ],
     "slow_down_layer_time": [
-        "8"
+        "6"
     ],
     "supertack_plate_temp": [
         "35"
