@@ -2994,6 +2994,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
             auto main_extder = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID);
             if (main_extder)
             {
+                m_tempCtrl_nozzle->SetTagTemp(main_extder->GetTargetTemp());
                 m_tempCtrl_nozzle->SetCurrTemp((int)main_extder->GetCurrentTemp());
                 if (main_extder->GetTargetTemp() - main_extder->GetCurrentTemp() > TEMP_THRESHOLD_VAL)
                 {
@@ -3015,6 +3016,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
             auto deputy_extder = obj->GetExtderSystem()->GetExtderById(DEPUTY_EXTRUDER_ID);
             if (deputy_extder)
             {
+                m_tempCtrl_nozzle_deputy->SetTagTemp(deputy_extder->GetTargetTemp());
                 m_tempCtrl_nozzle_deputy->SetCurrTemp((int)deputy_extder->GetCurrentTemp());
                 if (deputy_extder->GetTargetTemp() - deputy_extder->GetCurrentTemp() > TEMP_THRESHOLD_VAL)
                 {
