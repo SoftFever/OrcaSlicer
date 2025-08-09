@@ -25,3 +25,7 @@ The distance to keep from the edges. A value of 0 sets this to half of the nozzl
 ## Angle
 
 The angle ironing is done at. A negative number disables this function and uses the default method.
+
+## Speed
+
+See [Speed settings for other layers](speed_settings_other_layers_speed#ironing-speed) for more information about ironing speed.
