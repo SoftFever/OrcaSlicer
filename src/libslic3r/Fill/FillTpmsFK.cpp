@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <utility>
 #include <tbb/parallel_for.h>
+#include <mutex> 
 
 namespace Slic3r {
 
@@ -171,7 +172,14 @@ Point interpolate(std::vector<std::vector<MarchingSquares::Point>>& posxy,
     p2.x = posxy[p2ij[0]][p2ij[1]].x;
     p2.y = posxy[p2ij[0]][p2ij[1]].y;
 
-    double mu = (contourValue - v1) / (v2 - v1);
+    double denom = v2 - v1;
+    double mu;
+    if (std::abs(denom) < 1e-12) {
+        // avoid division by zero
+        mu = 0.5;
+    } else {
+        mu = (contourValue - v1) / denom;
+    }
     Point  p;
     p.x = p1.x + mu * (p2.x - p1.x);
     p.y = p1.y + mu * (p2.y - p1.y);
@@ -389,7 +397,7 @@ void drawContour(double                                            contourValue,
 
 static float sin_table[360];
 static float cos_table[360];
-static bool  g_is_init = false;
+static std::once_flag trig_tables_once_flag; 
 
 #define PIratio 57.29577951308232 // 180/PI
 
@@ -400,6 +408,12 @@ static void initialize_lookup_tables()
         sin_table[i] = std::sin(angle);
         cos_table[i] = std::cos(angle);
     }
+}
+
+
+inline static void ensure_trig_tables_initialized()
+{
+    std::call_once(trig_tables_once_flag, initialize_lookup_tables);
 }
 
 inline static float get_sin(float angle)
@@ -422,10 +436,7 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
                                       ExPolygon                      expolygon,
                                       Polylines&                     polylines_out)
 {
-    if (!g_is_init) {
-        initialize_lookup_tables();
-        g_is_init = true;
-    }
+    ensure_trig_tables_initialized(); 
 
     auto infill_angle = float(this->angle + (CorrectionAngle * 2 * M_PI) / 360.);
     if(std::abs(infill_angle) >= EPSILON)
