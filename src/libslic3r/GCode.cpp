@@ -5033,13 +5033,18 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
                 if ((ee->role() == erIroning) == ironing)
                     extrusions.emplace_back(ee);
             if (! extrusions.empty()) {
-                m_config.apply(print.get_print_region(&region - &by_region.front()).config());
+                const PrintRegionConfig& region_config = print.get_print_region(&region - &by_region.front()).config();
+                m_config.apply(region_config);
                 chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
                 for (const ExtrusionEntity *fill : extrusions) {
                     auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
                     if (eec) {
+                        if (ironing && region_config.ironing_flow == 0)
+                            gcode += "G1 E-20 F1200" + GCodeWriter::full_gcode_comment ? "; ironing retract\n" : "\n";
                         for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)
                             gcode += this->extrude_entity(*ee, extrusion_name);
+                        if (ironing && region_config.ironing_flow == 0)
+                            gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Ironing_End) + "\nG1 E20 F1200" + (GCodeWriter::full_gcode_comment ? "; ironing unretract\n" : "\n");
                     } else
                         gcode += this->extrude_entity(*fill, extrusion_name);
                 }

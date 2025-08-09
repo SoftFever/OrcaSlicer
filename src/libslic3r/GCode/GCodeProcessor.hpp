@@ -295,6 +295,7 @@ class Print;
             Wipe_Tower_Start,
             Wipe_Tower_End,
             PA_Change,
+            Ironing_End,
         };
 
         static const std::string& reserved_tag(ETags tag) { return s_IsBBLPrinter ? Reserved_Tags[static_cast<unsigned char>(tag)] : Reserved_Tags_compatible[static_cast<unsigned char>(tag)]; }
@@ -686,6 +687,7 @@ class Print;
         bool m_wiping;
         bool m_flushing;
         bool m_wipe_tower;
+        bool m_ironing;
         float m_remaining_volume;
         bool m_manual_filament_change;
 
