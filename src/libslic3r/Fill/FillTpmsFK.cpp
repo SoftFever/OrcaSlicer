@@ -324,23 +324,39 @@ void drawContour(double                                            contourValue,
                  Polylines&                                        repls,
                  const FillParams&                                 params)
 {
-    vector<Point>         contourPoints;
-    int                   total_size = (gridSize_h - 1) * (gridSize_w - 1);
-    vector<vector<Point>> contourPointss;
-    contourPointss.resize(total_size);
+   
+    if (data.empty() || data[0].empty()) {
+        
+        return;
+    }
+    gridSize_h = static_cast<int>(data.size());
+    gridSize_w = static_cast<int>(data[0].size());
+
+    
+    if (static_cast<int>(posxy.size()) != gridSize_h || static_cast<int>(posxy[0].size()) != gridSize_w) {
+       
+        return;
+    }
+
+    int total_size = (gridSize_h - 1) * (gridSize_w - 1);
+    vector<vector<MarchingSquares::Point>> contourPointss(total_size);
+
     tbb::parallel_for(tbb::blocked_range<size_t>(0, total_size),
-                      [&contourValue, &posxy, &contourPointss, &data, &gridSize_w](const tbb::blocked_range<size_t>& range) {
+                      [&contourValue, &posxy, &contourPointss, &data, gridSize_w](const tbb::blocked_range<size_t>& range) {
                           for (size_t k = range.begin(); k < range.end(); ++k) {
-                              int i = k / (gridSize_w - 1);
-                              int j = k % (gridSize_w - 1);
-                              process_block(i, j, data, contourValue, posxy, contourPointss[k]);
+                              int i = static_cast<int>(k) / (gridSize_w - 1);
+                              int j = static_cast<int>(k) % (gridSize_w - 1);
+                              
+                              if (i + 1 < static_cast<int>(data.size()) && j + 1 < static_cast<int>(data[0].size())) {
+                                  process_block(i, j, data, contourValue, posxy, contourPointss[k]);
+                              }
                           }
                       });
 
     vector<pair<myPoint, myPoint>> segments2;
     myPoint                        p1, p2;
     for (int k = 0; k < total_size; k++) {
-        for (int i = 0; i < contourPointss[k].size() / 2; i++) {
+        for (int i = 0; i < static_cast<int>(contourPointss[k].size()) / 2; i++) {
             p1.x = scale_(contourPointss[k][i * 2].x);
             p1.y = scale_(contourPointss[k][i * 2].y);
             p2.x = scale_(contourPointss[k][i * 2 + 1].x);
@@ -368,6 +384,7 @@ void drawContour(double                                            contourValue,
         repls.push_back(repltmp);
     }
 }
+
 } // namespace MarchingSquares
 
 static float sin_table[360];
@@ -410,8 +427,8 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
         g_is_init = true;
     }
 
-    auto infill_angle = float(this->angle - (CorrectionAngle * 2 * M_PI) / 360.);
-    if (std::abs(infill_angle) >= EPSILON)
+    auto infill_angle = float(this->angle + (CorrectionAngle * 2 * M_PI) / 360.);
+    if(std::abs(infill_angle) >= EPSILON)
         expolygon.rotate(-infill_angle);
 
     float density_factor = std::min(0.9f, params.density);
@@ -552,24 +569,26 @@ tbb::parallel_for(tbb::blocked_range<size_t>(0, height),
         // Apply multiline offset if needed
         multiline_fill(polylines, params, spacing);
 
+
         polylines = intersection_pl(polylines, expolygon);
 
-        if (!polylines.empty()) {
-            // connect lines
-            size_t polylines_out_first_idx = polylines_out.size();
-            if (params.dont_connect()) {
-                append(polylines_out, chain_polylines(polylines));
-            } else {
-                this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
-            }
+        // Remove very small bits, but be careful to not remove infill lines connecting thin walls!
+        // The infill perimeter lines should be separated by around a single infill line width.
+        const double minlength = scale_(0.8 * this->spacing);
+		polylines.erase(
+			std::remove_if(polylines.begin(), polylines.end(), [minlength](const Polyline &pl) { return pl.length() < minlength; }),
+			polylines.end());
 
-            // new paths must be rotated back
-            if (std::abs(infill_angle) >= EPSILON) {
-                for (auto it = polylines_out.begin() + polylines_out_first_idx; it != polylines_out.end(); ++it) {
-                    it->rotate(infill_angle);
-                }
-            }
-        }
+		// connect lines
+		size_t polylines_out_first_idx = polylines_out.size();
+        chain_or_connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
+
+	    // new paths must be rotated back
+        if (std::abs(infill_angle) >= EPSILON) {
+	        for (auto it = polylines_out.begin() + polylines_out_first_idx; it != polylines_out.end(); ++ it)
+	        	it->rotate(infill_angle);
+	    }
+        
     }
 }
 
