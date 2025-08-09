@@ -286,7 +286,7 @@ void drawContour(double                                            contourValue,
                  vector<vector<double>>&                           data,
                  std::vector<std::vector<MarchingSquares::Point>>& posxy,
                  Polylines&                                        repls,
-                 const FillParams& params)
+                 const FillParams&                                 params)
 {
     vector<Point>         contourPoints;
     int                   total_size = (gridSize_h - 1) * (gridSize_w - 1);
@@ -295,8 +295,8 @@ void drawContour(double                                            contourValue,
     tbb::parallel_for(tbb::blocked_range<size_t>(0, total_size),
                       [&contourValue, &posxy, &contourPointss, &data, &gridSize_w](const tbb::blocked_range<size_t>& range) {
                           for (size_t k = range.begin(); k < range.end(); ++k) {
-                              int i = k / (gridSize_w - 1); 
-                              int j = k % (gridSize_w - 1); 
+                              int i = k / (gridSize_w - 1);
+                              int j = k % (gridSize_w - 1);
                               process_block(i, j, data, contourValue, posxy, contourPointss[k]);
                           }
                       });
@@ -323,10 +323,10 @@ void drawContour(double                                            contourValue,
             repltmp.points.push_back(Slic3r::Point(pt.x, pt.y));
         }
         // symplify tolerance based on density
-        const float min_tolerance = 0.005f;  
-        const float max_tolerance = 0.2f;   
-        float simplify_tolerance = (0.005f / params.density);
-        simplify_tolerance = std::clamp(simplify_tolerance, min_tolerance, max_tolerance); 
+        const float min_tolerance      = 0.005f;
+        const float max_tolerance      = 0.2f;
+        float       simplify_tolerance = (0.005f / params.density);
+        simplify_tolerance             = std::clamp(simplify_tolerance, min_tolerance, max_tolerance);
         repltmp.simplify(scale_(simplify_tolerance));
         repls.push_back(repltmp);
     }
@@ -362,68 +362,83 @@ inline static float get_cos(float angle)
     return cos_table[index];
 }
 
-void FillTpmsFK::_fill_surface_single(const FillParams& params,
-                                     unsigned int thickness_layers,
-                                     const std::pair<float, Point>& direction,
-                                     ExPolygon expolygon,
-                                     Polylines& polylines_out)
+void FillTpmsFK::_fill_surface_single(const FillParams&              params,
+                                      unsigned int                   thickness_layers,
+                                      const std::pair<float, Point>& direction,
+                                      ExPolygon                      expolygon,
+                                      Polylines&                     polylines_out)
 {
     if (!g_is_init) {
         initialize_lookup_tables();
         g_is_init = true;
     }
 
-  
     auto infill_angle = float(this->angle - (CorrectionAngle * 2 * M_PI) / 360.);
     if (std::abs(infill_angle) >= EPSILON)
         expolygon.rotate(-infill_angle);
 
-    
     float density_factor = std::min(0.9f, params.density);
     // Density adjusted to have a good %of weight.
-    const float vari_T =  4.18f * spacing * params.multiline / density_factor; 
-    
-    BoundingBox bb = expolygon.contour.bounding_box();
-    auto cenpos = unscale(bb.center());
-    auto boxsize = unscale(bb.size());
-    float xlen = boxsize.x();
-    float ylen = boxsize.y();
+    const float vari_T = 4.18f * spacing * params.multiline / density_factor;
 
-  
-    const float delta  = 0.5f; // mesh step (adjust for quality/performance)
-  
+    BoundingBox bb      = expolygon.contour.bounding_box();
+    auto        cenpos  = unscale(bb.center());
+    auto        boxsize = unscale(bb.size());
+    float       xlen    = boxsize.x();
+    float       ylen    = boxsize.y();
+
+    const float delta = 0.5f; // mesh step (adjust for quality/performance)
+
     float myperiod = 2 * PI / vari_T;
-    float c_z = myperiod * this->z; //z height
+    float c_z      = myperiod * this->z; // z height
 
-    auto scalar_field = [&](float x, float y) {
-        float a_x = myperiod * x;
-        float b_y = myperiod * y;
-       
-        // Fischer -Koch S ecuation:
-        // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y) = 0
-        const float cos2ax = get_cos(2*a_x);
-        const float cos2by = get_cos(2*b_y);
-        const float cos2cz = get_cos(2*c_z);
-        const float sinby = get_sin(b_y);
-        const float cosax = get_cos(a_x);
-        const float sinax = get_sin(a_x);
-        const float cosby = get_cos(b_y);
-        const float sincz = get_sin(c_z);
-        const float coscz = get_cos(c_z);
+    // scalar field Fischer-Koch
+    auto scalar_field = [&](float xlen, float ylen, float cen_x, float cen_y, float delta, float myperiod, float c_z,
+                            std::vector<std::vector<double>>& data) {
+        int width  = static_cast<int>(std::ceil(xlen / delta));
+        int height = static_cast<int>(std::ceil(ylen / delta));
 
-        return cos2ax * sinby * coscz
-             + cos2by * sincz * cosax
-             + cos2cz * sinax * cosby;
+        std::vector<float> cos_ax(width), sin_ax(width), cos2ax(width);
+        std::vector<float> cos_by(height), sin_by(height), cos2by(height);
+
+        for (int j = 0; j < width; ++j) {
+            float x   = -(xlen) / 2.0f + j * delta;
+            float a_x = myperiod * (cen_x + x);
+            cos_ax[j] = get_cos(a_x);
+            sin_ax[j] = get_sin(a_x);
+            cos2ax[j] = get_cos(2 * a_x);
+        }
+        for (int i = 0; i < height; ++i) {
+            float y   = -(ylen) / 2.0f + i * delta;
+            float b_y = myperiod * (cen_y + y);
+            cos_by[i] = get_cos(b_y);
+            sin_by[i] = get_sin(b_y);
+            cos2by[i] = get_cos(2 * b_y);
+        }
+
+        const float coscz  = get_cos(c_z);
+        const float sincz  = get_sin(c_z);
+        const float cos2cz = get_cos(2 * c_z);
+
+        data.resize(height, std::vector<double>(width));
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, height), [&](const tbb::blocked_range<size_t>& range) {
+            for (size_t i = range.begin(); i < range.end(); ++i) {
+                for (size_t j = 0; j < width; ++j) {
+                    data[i][j] = cos2ax[j] * sin_by[i] * coscz + cos2by[i] * sincz * cos_ax[j] + cos2cz * sin_ax[j] * cos_by[i];
+                }
+            }
+        });
+
+        return std::pair<int, int>{width, height};
     };
 
-    
     // Mesh generation
     std::vector<std::vector<MarchingSquares::Point>> posxy;
-    int i = 0, j = 0;
-    for (float y = -(ylen)/2.0f ; y < (ylen)/2.0f ; y += delta, i++) {
+    int                                              i = 0, j = 0;
+    for (float y = -(ylen) / 2.0f; y < (ylen) / 2.0f; y += delta, i++) {
         j = 0;
         std::vector<MarchingSquares::Point> colposxy;
-        for (float x = -(xlen)/2.0f ; x < (xlen)/2.0f ; x += delta, j++) {
+        for (float x = -(xlen) / 2.0f; x < (xlen) / 2.0f; x += delta, j++) {
             MarchingSquares::Point pt;
             pt.x = cenpos.x() + x;
             pt.y = cenpos.y() + y;
@@ -432,44 +447,73 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
         posxy.push_back(colposxy);
     }
 
-    
     std::vector<std::vector<double>> data(posxy.size(), std::vector<double>(posxy[0].size()));
-    int width = posxy[0].size();
-    int height = posxy.size();
-    
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, height),
-        [&](const tbb::blocked_range<size_t>& range) {
-            for (size_t i = range.begin(); i < range.end(); ++i) {
-                for (size_t j = 0; j < width; ++j) {
-                    data[i][j] = scalar_field(posxy[i][j].x, posxy[i][j].y);
-                }
-            }
-        });
+    int                              width  = posxy[0].size();
+    int                              height = posxy.size();
 
-    
-    double min_val = *std::min_element(data.begin()->begin(), data.begin()->end());
-    double max_val = *std::max_element(data.begin()->begin(), data.begin()->end());
-    
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, height),
-        [&](const tbb::blocked_range<size_t>& range) {
-            for (size_t i = range.begin(); i < range.end(); ++i) {
-                for (size_t j = 0; j < width; ++j) {
-                    data[i][j] = (data[i][j] - min_val) / (max_val - min_val) - 0.5; 
-                }
-            }
-        });
+tbb::parallel_for(tbb::blocked_range<size_t>(0, height),
+    [&](const tbb::blocked_range<size_t>& range) {
+       
+       
+        static thread_local std::vector<float> cos_ax, sin_ax, cos2ax;
+        static thread_local std::vector<float> cos_by, sin_by, cos2by;
+        static thread_local float last_myperiod_x = -1.0f;
+        static thread_local float last_myperiod_y = -1.0f;
 
-   
+        
+        if (cos_ax.size() != static_cast<size_t>(width) || last_myperiod_x != myperiod) {
+            cos_ax.resize(width);
+            sin_ax.resize(width);
+            cos2ax.resize(width);
+            for (size_t jj = 0; jj < static_cast<size_t>(width); ++jj) {
+                float local_x = static_cast<float>(posxy[0][jj].x - cenpos.x());
+                float a_x = myperiod * local_x;
+                cos_ax[jj]  = get_cos(a_x);
+                sin_ax[jj]  = get_sin(a_x);
+                cos2ax[jj]  = get_cos(2 * a_x);
+            }
+            last_myperiod_x = myperiod;
+        }
+
+        
+        if (cos_by.size() != static_cast<size_t>(height) || last_myperiod_y != myperiod) {
+            cos_by.resize(height);
+            sin_by.resize(height);
+            cos2by.resize(height);
+            for (size_t ii = 0; ii < static_cast<size_t>(height); ++ii) {
+                float local_y = static_cast<float>(posxy[ii][0].y - cenpos.y());
+                float b_y = myperiod * local_y;
+                cos_by[ii]  = get_cos(b_y);
+                sin_by[ii]  = get_sin(b_y);
+                cos2by[ii]  = get_cos(2 * b_y);
+            }
+            last_myperiod_y = myperiod;
+        }
+
+        const float c_z    = myperiod * this->z;
+        const float coscz  = get_cos(c_z);
+        const float sincz  = get_sin(c_z);
+        const float cos2cz = get_cos(2 * c_z);
+
+        for (size_t ii = range.begin(); ii < range.end(); ++ii) {
+            for (size_t jj = 0; jj < static_cast<size_t>(width); ++jj) {
+                data[ii][jj] =
+                    cos2ax[jj] * sin_by[ii] * coscz +
+                    cos2by[ii] * sincz     * cos_ax[jj] +
+                    cos2cz    * sin_ax[jj] * cos_by[ii];
+            }
+        }
+    });
+
+
     Polylines polylines;
-    double contour_value = 0.0; 
-    MarchingSquares::drawContour(contour_value, width-1, height-1, data, posxy, polylines, params);
-    
-   
-    if (!polylines.empty()) {
+    double    contour_value = 0.0;
+    MarchingSquares::drawContour(contour_value, width - 1, height - 1, data, posxy, polylines, params);
 
+    if (!polylines.empty()) {
         // Apply multiline offset if needed
         multiline_fill(polylines, params, spacing);
-        
+
         polylines = intersection_pl(polylines, expolygon);
 
         if (!polylines.empty()) {
@@ -480,7 +524,7 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
             } else {
                 this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
             }
-            
+
             // new paths must be rotated back
             if (std::abs(infill_angle) >= EPSILON) {
                 for (auto it = polylines_out.begin() + polylines_out_first_idx; it != polylines_out.end(); ++it) {
