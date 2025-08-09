@@ -374,7 +374,7 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
 
     
     float density_factor = std::max(0.1f, std::min(1.0f, params.density));
-    float vari_T = 1.8 * spacing / density_factor;
+    float vari_T =  5 * spacing * params.multiline / density_factor;
     
     BoundingBox bb = expolygon.contour.bounding_box();
     auto cenpos = unscale(bb.center());
@@ -383,12 +383,12 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
     float ylen = boxsize.y();
 
   
-    float delta = 0.2f; // Paso de la malla (ajustar para calidad/rendimiento)
+    float delta = 0.1f; // Paso de la malla (ajustar para calidad/rendimiento)
     float margin = 3.0f; 
     
    
     float myperiod = 2 * PI / vari_T;
-    float c_z = myperiod * this->z; 
+    float c_z = myperiod * this->z; //altura en z
     float cos_z = get_cos(c_z);
     float sin_z = get_sin(c_z);
 
