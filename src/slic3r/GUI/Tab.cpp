@@ -3443,18 +3443,6 @@ void TabFilament::build()
         optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Bed temperature"), L"param_bed_temp");
-        line = { L("Cryogrip Pro Frostbite Plate"),
-                 L("Bed temperature when the Cryogrip Pro Frostbite plate is installed. A value of 0 means the filament does not support printing on the Cryogrip Pro Frostbite plate.") };
-        line.append_option(optgroup->get_option("cryogrip_pro_frostbite_plate_temp_initial_layer"));
-        line.append_option(optgroup->get_option("cryogrip_pro_frostbite_plate_temp"));
-        optgroup->append_line(line);
-
-        line = { L("Cryogrip Pro Glacier Plate"),
-                 L("Bed temperature when the Cryogrip Pro Glacier plate is installed. A value of 0 means the filament does not support printing on the Cryogrip Pro Glacier plate.") };
-        line.append_option(optgroup->get_option("cryogrip_pro_glacier_plate_temp_initial_layer"));
-        line.append_option(optgroup->get_option("cryogrip_pro_glacier_plate_temp"));
-        optgroup->append_line(line);
-
         line = { L("Cool Plate (SuperTack)"),
                  L("Bed temperature when the Cool Plate SuperTack is installed. A value of 0 means the filament does not support printing on the Cool Plate SuperTack.") };
         line.append_option(optgroup->get_option("supertack_plate_temp_initial_layer"));
@@ -3489,6 +3477,18 @@ void TabFilament::build()
                  L("Bed temperature when the Textured PEI Plate is installed. A value of 0 means the filament does not support printing on the Textured PEI Plate.") };
         line.append_option(optgroup->get_option("textured_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("textured_plate_temp"));
+        optgroup->append_line(line);
+
+        line = { L("Cryogrip Pro Frostbite Plate"),
+                 L("Bed temperature when the Cryogrip Pro Frostbite plate is installed. A value of 0 means the filament does not support printing on the Cryogrip Pro Frostbite plate.") };
+        line.append_option(optgroup->get_option("cryogrip_pro_frostbite_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("cryogrip_pro_frostbite_plate_temp"));
+        optgroup->append_line(line);
+
+        line = { L("Cryogrip Pro Glacier Plate"),
+                 L("Bed temperature when the Cryogrip Pro Glacier plate is installed. A value of 0 means the filament does not support printing on the Cryogrip Pro Glacier plate.") };
+        line.append_option(optgroup->get_option("cryogrip_pro_glacier_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("cryogrip_pro_glacier_plate_temp"));
         optgroup->append_line(line);
 
         optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value)
