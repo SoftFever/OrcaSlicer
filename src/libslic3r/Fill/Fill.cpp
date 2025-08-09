@@ -15,6 +15,7 @@
 #include "FillLightning.hpp"
 #include "FillConcentricInternal.hpp"
 #include "FillTpmsD.hpp"
+#include "FillTpmsFK.hpp"
 #include "FillConcentric.hpp"
 #include "libslic3r.h"
 
@@ -1330,6 +1331,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ip3DHoneycomb:
         case ipGyroid:
         case ipTpmsD:
+        case ipTpmsFK:
         case ipHilbertCurve:
         case ipArchimedeanChords:
         case ipOctagramSpiral:
