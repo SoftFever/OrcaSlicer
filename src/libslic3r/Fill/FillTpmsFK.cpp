@@ -280,6 +280,42 @@ void process_block(int                                               i,
     }
 }
 
+// --- Chaikin Smooth ---
+
+static Polyline chaikin_smooth(Polyline poly, int iterations , double weight )
+{
+    if (poly.points.size() < 3) return poly;
+
+    const double w1 = 1.0 - weight;
+    decltype(poly.points) buffer;
+    buffer.reserve(poly.points.size() * 2);
+
+    for (int it = 0; it < iterations; ++it) {
+        buffer.clear();
+        buffer.push_back(poly.points.front());
+
+        for (size_t i = 0; i < poly.points.size() - 1; ++i) {
+            const auto &p0 = poly.points[i];
+            const auto &p1 = poly.points[i + 1];
+
+            buffer.emplace_back(
+                p0.x() * w1 + p1.x() * weight,
+                p0.y() * w1 + p1.y() * weight
+            );
+            buffer.emplace_back(
+                p0.x() * weight + p1.x() * w1,
+                p0.y() * weight + p1.y() * w1
+            );
+        }
+
+        buffer.push_back(poly.points.back());
+        poly.points.swap(buffer); 
+    }
+
+    return poly; 
+}
+
+
 void drawContour(double                                            contourValue,
                  int                                               gridSize_w,
                  int                                               gridSize_h,
@@ -328,6 +364,7 @@ void drawContour(double                                            contourValue,
         float       simplify_tolerance = (0.005f / params.density);
         simplify_tolerance             = std::clamp(simplify_tolerance, min_tolerance, max_tolerance);
         repltmp.simplify(scale_(simplify_tolerance));
+        repltmp = chaikin_smooth(repltmp, 2, 0.25);
         repls.push_back(repltmp);
     }
 }
@@ -419,7 +456,8 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
         const float coscz  = get_cos(c_z);
         const float sincz  = get_sin(c_z);
         const float cos2cz = get_cos(2 * c_z);
-
+        // Fischer -Koch S ecuation:
+        // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y) = 0
         data.resize(height, std::vector<double>(width));
         tbb::parallel_for(tbb::blocked_range<size_t>(0, height), [&](const tbb::blocked_range<size_t>& range) {
             for (size_t i = range.begin(); i < range.end(); ++i) {
