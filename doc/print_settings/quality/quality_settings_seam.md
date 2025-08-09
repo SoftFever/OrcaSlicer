@@ -14,6 +14,13 @@ Will attempt to align the seam to a hidden internal facet of the model.
 
 ![seam-aligned](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-aligned.png?raw=true)
 
+### Aligned Back
+
+Combines "Aligned" and "Back" strategies by prioritizing seam placement away from the front-facing side while still finding optimal hidden locations for other orientations. This is particularly useful for directional models like sculptures or figurines that have a clear front view.  
+Unlike "Back" which always places seams at the rearmost position, "Aligned Back" uses intelligent positioning that avoids the front while maintaining sophisticated seam hiding capabilities.
+
+![seam-aligned-back](../../images/seam/seam-aligned-back.png)
+
 ### Nearest
 
 Will place the seam at the nearest starting point compared to where the nozzle stopped printing in the previous layer.
