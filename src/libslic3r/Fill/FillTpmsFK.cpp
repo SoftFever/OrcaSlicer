@@ -545,7 +545,7 @@ tbb::parallel_for(tbb::blocked_range<size_t>(0, height),
 
 
     Polylines polylines;
-    double    contour_value = 0.0;
+    const double contour_value = 0.075; // offset from zero to avoid numerical issues
     MarchingSquares::drawContour(contour_value, width - 1, height - 1, data, posxy, polylines, params);
 
     if (!polylines.empty()) {
