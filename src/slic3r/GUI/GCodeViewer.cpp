@@ -864,9 +864,6 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 
     m_layers_slider->init_texture();
 
-    // Remeber the project_config's curr_bed_type so we can render the correct bed_model later.
-    m_bed_type = preset_bundle->project_config.opt_enum<BedType>("curr_bed_type");
-
     m_gl_data_initialized = true;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
 }
@@ -1006,7 +1003,8 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
             if (bundle != nullptr && !m_settings_ids.printer.empty()) {
                 const Preset* preset = bundle->printers.find_preset(m_settings_ids.printer);
                 if (preset != nullptr) {
-                    model = PresetUtils::system_printer_bed_model(*preset, m_bed_type);
+                    BedType bed_type = bundle->project_config.opt_enum<BedType>("curr_bed_type");
+                    model = PresetUtils::system_printer_bed_model(*preset, bed_type);
                     texture = PresetUtils::system_printer_bed_texture(*preset);
                 }
             }

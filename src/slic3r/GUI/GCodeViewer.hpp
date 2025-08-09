@@ -789,8 +789,6 @@ private:
 mutable bool m_no_render_path { false };
     bool m_is_dark = false;
 
-    BedType m_bed_type = {btDefault};
-
 public:
     GCodeViewer();
     ~GCodeViewer();
