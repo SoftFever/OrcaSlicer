@@ -447,53 +447,35 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     float c_z      = myperiod * this->z; // z height
 
     // scalar field Fischer-Koch
-    auto scalar_field = [&](float xlen, float ylen, float cen_x, float cen_y, float delta, float myperiod, float c_z,
-                            std::vector<std::vector<double>>& data) {
-        int width  = static_cast<int>(std::ceil(xlen / delta));
-        int height = static_cast<int>(std::ceil(ylen / delta));
-
-        std::vector<float> cos_ax(width), sin_ax(width), cos2ax(width);
-        std::vector<float> cos_by(height), sin_by(height), cos2by(height);
-
-        for (int j = 0; j < width; ++j) {
-            float x   = -(xlen) / 2.0f + j * delta;
-            float a_x = myperiod * (cen_x + x);
-            cos_ax[j] = get_cos(a_x);
-            sin_ax[j] = get_sin(a_x);
-            cos2ax[j] = get_cos(2 * a_x);
-        }
-        for (int i = 0; i < height; ++i) {
-            float y   = -(ylen) / 2.0f + i * delta;
-            float b_y = myperiod * (cen_y + y);
-            cos_by[i] = get_cos(b_y);
-            sin_by[i] = get_sin(b_y);
-            cos2by[i] = get_cos(2 * b_y);
-        }
-
-        const float coscz  = get_cos(c_z);
-        const float sincz  = get_sin(c_z);
-        const float cos2cz = get_cos(2 * c_z);
+    auto scalar_field = [&](float x, float y) {
+        float a_x = myperiod * x;
+        float b_y = myperiod * y;
+       
         // Fischer -Koch S ecuation:
         // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y) = 0
-        data.resize(height, std::vector<double>(width));
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, height), [&](const tbb::blocked_range<size_t>& range) {
-            for (size_t i = range.begin(); i < range.end(); ++i) {
-                for (size_t j = 0; j < width; ++j) {
-                    data[i][j] = cos2ax[j] * sin_by[i] * coscz + cos2by[i] * sincz * cos_ax[j] + cos2cz * sin_ax[j] * cos_by[i];
-                }
-            }
-        });
+        const float cos2ax = get_cos(2*a_x);
+        const float cos2by = get_cos(2*b_y);
+        const float cos2cz = get_cos(2*c_z);
+        const float sinby = get_sin(b_y);
+        const float cosax = get_cos(a_x);
+        const float sinax = get_sin(a_x);
+        const float cosby = get_cos(b_y);
+        const float sincz = get_sin(c_z);
+        const float coscz = get_cos(c_z);
 
-        return std::pair<int, int>{width, height};
+        return cos2ax * sinby * coscz
+             + cos2by * sincz * cosax
+             + cos2cz * sinax * cosby;
     };
 
     // Mesh generation
     std::vector<std::vector<MarchingSquares::Point>> posxy;
     int                                              i = 0, j = 0;
-    for (float y = -(ylen) / 2.0f; y < (ylen) / 2.0f; y += delta, i++) {
+    std::vector<MarchingSquares::Point>              allptpos;
+    for (float y = -(ylen) / 2.0f - 2; y < (ylen) / 2.0f + 2; y = y + delta, i++) {
         j = 0;
         std::vector<MarchingSquares::Point> colposxy;
-        for (float x = -(xlen) / 2.0f; x < (xlen) / 2.0f; x += delta, j++) {
+        for (float x = -(xlen) / 2.0f - 2; x < (xlen) / 2.0f + 2; x = x + delta, j++) {
             MarchingSquares::Point pt;
             pt.x = cenpos.x() + x;
             pt.y = cenpos.y() + y;
@@ -503,67 +485,23 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     }
 
     std::vector<std::vector<double>> data(posxy.size(), std::vector<double>(posxy[0].size()));
-    int                              width  = posxy[0].size();
-    int                              height = posxy.size();
 
-tbb::parallel_for(tbb::blocked_range<size_t>(0, height),
-    [&](const tbb::blocked_range<size_t>& range) {
-       
-       
-        static thread_local std::vector<float> cos_ax, sin_ax, cos2ax;
-        static thread_local std::vector<float> cos_by, sin_by, cos2by;
-        static thread_local float last_myperiod_x = -1.0f;
-        static thread_local float last_myperiod_y = -1.0f;
-
-        
-        if (cos_ax.size() != static_cast<size_t>(width) || last_myperiod_x != myperiod) {
-            cos_ax.resize(width);
-            sin_ax.resize(width);
-            cos2ax.resize(width);
-            for (size_t jj = 0; jj < static_cast<size_t>(width); ++jj) {
-                float local_x = static_cast<float>(posxy[0][jj].x - cenpos.x());
-                float a_x = myperiod * local_x;
-                cos_ax[jj]  = get_cos(a_x);
-                sin_ax[jj]  = get_sin(a_x);
-                cos2ax[jj]  = get_cos(2 * a_x);
-            }
-            last_myperiod_x = myperiod;
-        }
-
-        
-        if (cos_by.size() != static_cast<size_t>(height) || last_myperiod_y != myperiod) {
-            cos_by.resize(height);
-            sin_by.resize(height);
-            cos2by.resize(height);
-            for (size_t ii = 0; ii < static_cast<size_t>(height); ++ii) {
-                float local_y = static_cast<float>(posxy[ii][0].y - cenpos.y());
-                float b_y = myperiod * local_y;
-                cos_by[ii]  = get_cos(b_y);
-                sin_by[ii]  = get_sin(b_y);
-                cos2by[ii]  = get_cos(2 * b_y);
-            }
-            last_myperiod_y = myperiod;
-        }
-
-        const float c_z    = myperiod * this->z;
-        const float coscz  = get_cos(c_z);
-        const float sincz  = get_sin(c_z);
-        const float cos2cz = get_cos(2 * c_z);
-
-        for (size_t ii = range.begin(); ii < range.end(); ++ii) {
-            for (size_t jj = 0; jj < static_cast<size_t>(width); ++jj) {
-                data[ii][jj] =
-                    cos2ax[jj] * sin_by[ii] * coscz +
-                    cos2by[ii] * sincz     * cos_ax[jj] +
-                    cos2cz    * sin_ax[jj] * cos_by[ii];
-            }
-        }
-    });
+    int width      = posxy[0].size();
+    int height     = posxy.size();
+    int total_size = (height) * (width);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, total_size),
+                      [&width, &scalar_field, &data, &posxy](const tbb::blocked_range<size_t>& range) {
+                          for (size_t k = range.begin(); k < range.end(); ++k) {
+                              int i      = k / (width);
+                              int j      = k % (width);
+                              data[i][j] = scalar_field(posxy[i][j].x, posxy[i][j].y);
+                          }
+                      });
 
 
     Polylines polylines;
     const double contour_value = 0.075; // offset from zero to avoid numerical issues
-    MarchingSquares::drawContour(contour_value, width - 1, height - 1, data, posxy, polylines, params);
+    MarchingSquares::drawContour(contour_value, width , height , data, posxy, polylines, params);
 
     if (!polylines.empty()) {
         // Apply multiline offset if needed
