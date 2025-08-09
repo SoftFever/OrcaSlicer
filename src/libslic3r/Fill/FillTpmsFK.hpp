@@ -33,12 +33,6 @@ public:
 
     bool is_self_crossing() override { return false; }
 
-    // Density adjustment to have a good %of weight.
-    static constexpr double DensityAdjust = 2.1;
-
-    // Gyroid upper resolution tolerance (mm^-2)
-    static constexpr double PatternTolerance = 0.1;
-
 };
 
 } // namespace Slic3r

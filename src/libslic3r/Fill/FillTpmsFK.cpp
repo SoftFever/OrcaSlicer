@@ -294,8 +294,8 @@ void drawContour(double                                            contourValue,
     tbb::parallel_for(tbb::blocked_range<size_t>(0, total_size),
                       [&contourValue, &posxy, &contourPointss, &data, &gridSize_w](const tbb::blocked_range<size_t>& range) {
                           for (size_t k = range.begin(); k < range.end(); ++k) {
-                              int i = k / (gridSize_w - 1); //
-                              int j = k % (gridSize_w - 1); //
+                              int i = k / (gridSize_w - 1); 
+                              int j = k % (gridSize_w - 1); 
                               process_block(i, j, data, contourValue, posxy, contourPointss[k]);
                           }
                       });
@@ -342,14 +342,14 @@ static void initialize_lookup_tables()
     }
 }
 
-static float get_sin(float angle)
+inline static float get_sin(float angle)
 {
     angle     = angle * PIratio;
     int index = static_cast<int>(std::fmod(angle, 360) + 360) % 360;
     return sin_table[index];
 }
 
-static float get_cos(float angle)
+inline static float get_cos(float angle)
 {
     angle     = angle * PIratio;
     int index = static_cast<int>(std::fmod(angle, 360) + 360) % 360;
@@ -375,7 +375,7 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
     
     float density_factor = std::min(0.9f, params.density);
     // Density adjusted to have a good %of weight.
-    float vari_T =  4.18 * spacing * params.multiline / density_factor; 
+    const float vari_T =  4.18f * spacing * params.multiline / density_factor; 
     
     BoundingBox bb = expolygon.contour.bounding_box();
     auto cenpos = unscale(bb.center());
@@ -384,43 +384,40 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
     float ylen = boxsize.y();
 
   
-    float delta = 0.1f; // Paso de la malla (ajustar para calidad/rendimiento)
-    float margin = 3.0f; 
-    
-   
+    const float delta  = 0.25f; // mesh step (adjust for quality/performance)
+  
     float myperiod = 2 * PI / vari_T;
-    float c_z = myperiod * this->z; //altura en z
-    float cos_z = get_cos(c_z);
-    float sin_z = get_sin(c_z);
+    float c_z = myperiod * this->z; //z height
 
-    
     auto scalar_field = [&](float x, float y) {
         float a_x = myperiod * x;
         float b_y = myperiod * y;
        
-        
-        float cos2ax = get_cos(2*a_x);
-        float sinby = get_sin(b_y);
-        float cosax = get_cos(a_x);
-        float sinax = get_sin(a_x);
-        float cosby = get_cos(b_y);
-        float cos2by = get_cos(2*b_y);
-        float cos2cz = get_cos(2*c_z);
-        
-        
-        // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y)
-        return cos2ax * sinby * cos_z 
-             + cos2by * sin_z * cosax
+        // Fischer -Koch S ecuation:
+        // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y) = 0
+        const float cos2ax = get_cos(2*a_x);
+        const float cos2by = get_cos(2*b_y);
+        const float cos2cz = get_cos(2*c_z);
+        const float sinby = get_sin(b_y);
+        const float cosax = get_cos(a_x);
+        const float sinax = get_sin(a_x);
+        const float cosby = get_cos(b_y);
+        const float sincz = get_sin(c_z);
+        const float coscz = get_cos(c_z);
+
+        return cos2ax * sinby * coscz
+             + cos2by * sincz * cosax
              + cos2cz * sinax * cosby;
     };
 
     
+    // Mesh generation
     std::vector<std::vector<MarchingSquares::Point>> posxy;
     int i = 0, j = 0;
-    for (float y = -(ylen)/2.0f - margin; y < (ylen)/2.0f + margin; y += delta, i++) {
+    for (float y = -(ylen)/2.0f ; y < (ylen)/2.0f ; y += delta, i++) {
         j = 0;
         std::vector<MarchingSquares::Point> colposxy;
-        for (float x = -(xlen)/2.0f - margin; x < (xlen)/2.0f + margin; x += delta, j++) {
+        for (float x = -(xlen)/2.0f ; x < (xlen)/2.0f ; x += delta, j++) {
             MarchingSquares::Point pt;
             pt.x = cenpos.x() + x;
             pt.y = cenpos.y() + y;
@@ -463,13 +460,19 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
     
    
     if (!polylines.empty()) {
-        
+
+        // simplify polylines
+        for (Polyline &polyline : polylines) {
+           polyline.simplify( 0.05 * myperiod);
+        }
+
+        // Apply multiline offset if needed
         multiline_fill(polylines, params, spacing);
         
-       
         polylines = intersection_pl(polylines, expolygon);
 
         if (!polylines.empty()) {
+            // connect lines
             size_t polylines_out_first_idx = polylines_out.size();
             if (params.dont_connect()) {
                 append(polylines_out, chain_polylines(polylines));
@@ -477,7 +480,7 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
                 this->connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
             }
             
-            
+            // new paths must be rotated back
             if (std::abs(infill_angle) >= EPSILON) {
                 for (auto it = polylines_out.begin() + polylines_out_first_idx; it != polylines_out.end(); ++it) {
                     it->rotate(infill_angle);
