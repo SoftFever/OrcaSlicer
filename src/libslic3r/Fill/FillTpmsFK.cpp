@@ -285,7 +285,8 @@ void drawContour(double                                            contourValue,
                  int                                               gridSize_h,
                  vector<vector<double>>&                           data,
                  std::vector<std::vector<MarchingSquares::Point>>& posxy,
-                 Polylines&                                        repls)
+                 Polylines&                                        repls,
+                 const FillParams& params)
 {
     vector<Point>         contourPoints;
     int                   total_size = (gridSize_h - 1) * (gridSize_w - 1);
@@ -321,7 +322,12 @@ void drawContour(double                                            contourValue,
         for (myPoint& pt : p) {
             repltmp.points.push_back(Slic3r::Point(pt.x, pt.y));
         }
-        repltmp.simplify(scale_(0.05f));
+        // symplify tolerance based on density
+        const float min_tolerance = 0.005f;  
+        const float max_tolerance = 0.2f;   
+        float simplify_tolerance = (0.005f / params.density);
+        simplify_tolerance = std::clamp(simplify_tolerance, min_tolerance, max_tolerance); 
+        repltmp.simplify(scale_(simplify_tolerance));
         repls.push_back(repltmp);
     }
 }
@@ -384,7 +390,7 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
     float ylen = boxsize.y();
 
   
-    const float delta  = 0.25f; // mesh step (adjust for quality/performance)
+    const float delta  = 0.5f; // mesh step (adjust for quality/performance)
   
     float myperiod = 2 * PI / vari_T;
     float c_z = myperiod * this->z; //z height
@@ -456,15 +462,10 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
    
     Polylines polylines;
     double contour_value = 0.0; 
-    MarchingSquares::drawContour(contour_value, width-1, height-1, data, posxy, polylines);
+    MarchingSquares::drawContour(contour_value, width-1, height-1, data, posxy, polylines, params);
     
    
     if (!polylines.empty()) {
-
-        // simplify polylines
-        for (Polyline &polyline : polylines) {
-           polyline.simplify( 0.05 * myperiod);
-        }
 
         // Apply multiline offset if needed
         multiline_fill(polylines, params, spacing);
