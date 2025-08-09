@@ -462,7 +462,7 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
         float a_x = myperiod * x;
         float b_y = myperiod * y;
        
-        // Fischer -Koch S ecuation:
+        // Fischer - Koch S equation:
         // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y) = 0
         const float cos2ax = get_cos(2*a_x);
         const float cos2by = get_cos(2*b_y);
