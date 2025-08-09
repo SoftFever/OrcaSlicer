@@ -373,8 +373,9 @@ void FillTpmsFK::_fill_surface_single(const FillParams& params,
         expolygon.rotate(-infill_angle);
 
     
-    float density_factor = std::max(0.1f, std::min(1.0f, params.density));
-    float vari_T =  5 * spacing * params.multiline / density_factor;
+    float density_factor = std::min(0.9f, params.density);
+    // Density adjusted to have a good %of weight.
+    float vari_T =  4.18 * spacing * params.multiline / density_factor; 
     
     BoundingBox bb = expolygon.contour.bounding_box();
     auto cenpos = unscale(bb.center());
