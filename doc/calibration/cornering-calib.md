@@ -72,3 +72,9 @@ JD = 0,4 \cdot \frac{\text{Jerk}^2}{\text{Accel.}}
       ```cpp
       //#define CLASSIC_JERK
       ```
+
+## Credits
+
+- **Junction Deviation Machine Limit** [@RF47](https://github.com/RF47)
+- **Junction Deviation Calibration** [@IanAlexis](https://github.com/IanAlexis)
+- **Fast tower model** [@RF47](https://github.com/RF47)
