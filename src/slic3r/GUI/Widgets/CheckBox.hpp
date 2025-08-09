@@ -5,6 +5,8 @@
 
 #include "Label.hpp"
 
+#include "Button.hpp"
+
 #include "StateColor.hpp"
 
 #include <string>
@@ -12,7 +14,6 @@
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 #include <wx/tglbtn.h> // to keep wxEVT_TOGGLEBUTTON
-#include <wx/gdicmn.h> // Added for wxGCDC
 
 class CheckBox : public wxPanel
 {
@@ -31,8 +32,6 @@ public:
 
     bool IsChecked() const {return m_value;};
 
-    wxStaticText* GetTextCtrl(){return m_text;};
-
     void Rescale();
 
     void SetTooltip(wxString label);
@@ -50,26 +49,27 @@ public:
         return result;
     };
 
+    void SetFont(wxFont font){
+        m_font = font;
+        if(m_has_text)
+            m_text->SetFont(font);
+    };
+
+    wxFont GetFont(){return m_font;};
+
     bool Disable() {return CheckBox::Enable(false);};
 
     bool IsEnabled(){return m_enabled;};
 
+    bool HasFocus() {
+        return m_has_text ? m_text->HasFocus() : m_check->HasFocus();
+    }
+
 private:
-
-    class FocusRect : public wxPanel {
-    public:
-        FocusRect(wxWindow* parent, wxStaticText* target);
-        void UpdatePosition();
-
-    private:
-        wxStaticText* m_target;
-    };
 
     void UpdateIcon();
 
     void OnClick();
-
-    void DrawFocusBorder();
 
     wxWindow* GetScrollParent(wxWindow *pWindow);
 
@@ -89,17 +89,17 @@ private:
     ScalableBitmap m_off_hvrfcs;
     ScalableBitmap m_half_hvrfcs;
     bool m_half_checked = false;
-    bool m_focused      = false;
     bool m_value        = false;
     bool m_enabled      = true;
     bool m_hovered      = false;
     bool m_has_text     = false;
     wxString        m_label;
-    wxStaticBitmap* m_check = nullptr;
-    wxStaticText*   m_text  = nullptr;
+    Button* m_check = nullptr;
+    Button*         m_text  = nullptr;
     wxFont          m_font;
-    FocusRect*      m_focus_rect;
     wxColour        m_bg_track;
+    StateColor      m_text_color;
+    StateColor      m_focus_color;
 };
 
 #endif // !slic3r_GUI_CheckBox_hpp_
