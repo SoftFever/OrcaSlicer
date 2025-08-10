@@ -15,7 +15,7 @@ The Flow Ratio determines how much filament is extruded and plays a key role in 
 > ![flowrate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.png?raw=true)
 
 > [!NOTE]
-> After v2.3.0, the [Top Pattern](strength_settings_top_bottom_shells#surface-pattern) changed to [Archimedean chords](strength_settings_infill#archimedean-chords) from Monotonic Line.
+> After v2.3.0, the [Top Pattern](strength_settings_top_bottom_shells#surface-pattern) changed to [Archimedean chords](strength_settings_patterns#archimedean-chords) from [Monotonic Line](strength_settings_patterns#monotonic-line).
 
 ## Calibration Types
 
@@ -26,7 +26,7 @@ The Flow Ratio determines how much filament is extruded and plays a key role in 
 
 ### OrcaSlicer > 2.3.0 Archimedean chords + YOLO (Recommended)
 
-This example demonstrates the use of [Archimedean chords](strength_settings_infill#archimedean-chords) for flow rate calibration using the YOLO (Recommended) method.
+This example demonstrates the use of [Archimedean chords](strength_settings_patterns#archimedean-chords) for flow rate calibration using the YOLO (Recommended) method.
 
 WIP...
 

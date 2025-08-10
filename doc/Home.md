@@ -69,6 +69,7 @@ The below sections provide a detailed settings explanation as well as tips and t
 - ![param_wall](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_wall.svg?raw=true) [Walls](strength_settings_walls)
 - ![param_shell](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_shell.svg?raw=true) [Top and Bottom Shells](strength_settings_top_bottom_shells)
 - ![param_infill](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_infill.svg?raw=true) [Infill](strength_settings_infill)
+  - ![param_concentric](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_concentric.svg?raw=true) [Fill Patterns](strength_settings_patterns)
   - ![param_gcode](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_gcode.svg?raw=true) [Template Metalanguage for infill rotation](strength_settings_infill_rotation_template_metalanguage)
 - ![param_advanced](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_advanced.svg?raw=true) [Advanced](strength_settings_advanced)
 
