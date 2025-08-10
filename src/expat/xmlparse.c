@@ -6333,6 +6333,15 @@ nextScaffoldPart(XML_Parser parser)
   int next;
 
   if (!dtd->scaffIndex) {
+    /* Detect and prevent integer overflow.
+     * The preprocessor guard addresses the "always false" warning
+     * from -Wtype-limits on platforms where
+     * sizeof(unsigned int) < sizeof(size_t), e.g. on x86_64. */
+#if UINT_MAX >= SIZE_MAX
+    if (parser->m_groupSize > ((size_t)(-1) / sizeof(int))) {
+      return -1;
+    }
+#endif
     dtd->scaffIndex = (int *)MALLOC(groupSize * sizeof(int));
     if (!dtd->scaffIndex)
       return -1;

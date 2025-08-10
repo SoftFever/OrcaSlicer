@@ -6750,28 +6750,19 @@ std::map<std::string ,MachineObject*> DeviceManager::get_local_machine_list()
 
 void DeviceManager::load_last_machine()
 {
-    if (userMachineList.empty()) {
-        // Orca: connect LAN printers instead
-        const auto local_machine = std::find_if(localMachineList.begin(), localMachineList.end(), [](const std::pair<std::string, MachineObject*>& it) -> bool { return it.second->has_access_right();});
-        if (local_machine != localMachineList.end()) {
-            this->set_selected_machine(local_machine->second->dev_id);
-        }
-    }
-    else if (userMachineList.size() == 1) {
-        this->set_selected_machine(userMachineList.begin()->second->dev_id);
+    // Get all available machines, include cloud machines and lan machines that have access right
+    auto all_machines = get_my_machine_list();
+    if (all_machines.empty())
+        return;
+
+    // Then connect to the machine we last selected if available
+    const std::string last_monitor_machine = m_agent ? m_agent->get_user_selected_machine() : "";
+    const auto        last_machine         = all_machines.find(last_monitor_machine);
+    if (last_machine != all_machines.end()) {
+        this->set_selected_machine(last_machine->second->dev_id);
     } else {
-        if (m_agent) {
-            std::string last_monitor_machine = m_agent->get_user_selected_machine();
-            bool found = false;
-            for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
-                if (last_monitor_machine == it->first) {
-                    this->set_selected_machine(last_monitor_machine);
-                    found = true;
-                }
-            }
-            if (!found)
-                this->set_selected_machine(userMachineList.begin()->second->dev_id);
-        }
+        // If not, then select the first available one
+        this->set_selected_machine(all_machines.begin()->second->dev_id);
     }
 }
 

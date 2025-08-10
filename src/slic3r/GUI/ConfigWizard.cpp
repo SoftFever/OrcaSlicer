@@ -1448,7 +1448,7 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
 
     auto *sizer_extr = new wxFlexGridSizer(3, 5, 5);
     auto *text_extr = new wxStaticText(this, wxID_ANY, _L("Extrusion Temperature:"));
-    auto *unit_extr = new wxStaticText(this, wxID_ANY, "\u2103" /* °C */);
+    auto *unit_extr = new wxStaticText(this, wxID_ANY, wxString::FromUTF8("\u2103") /* °C */);
     sizer_extr->AddGrowableCol(0, 1);
     sizer_extr->Add(text_extr, 0, wxALIGN_CENTRE_VERTICAL);
     sizer_extr->Add(spin_extr);
@@ -1462,7 +1462,7 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
 
     auto *sizer_bed = new wxFlexGridSizer(3, 5, 5);
     auto *text_bed = new wxStaticText(this, wxID_ANY, _L("Bed Temperature:"));
-    auto *unit_bed = new wxStaticText(this, wxID_ANY, "\u2103" /* °C */);
+    auto *unit_bed = new wxStaticText(this, wxID_ANY, wxString::FromUTF8("\u2103") /* °C */);
     sizer_bed->AddGrowableCol(0, 1);
     sizer_bed->Add(text_bed, 0, wxALIGN_CENTRE_VERTICAL);
     sizer_bed->Add(spin_bed);

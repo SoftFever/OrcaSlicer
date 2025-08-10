@@ -1839,9 +1839,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_last_layer_z = 0.f;
     m_max_layer_z  = 0.f;
     m_last_width = 0.f;
-    m_is_overhang_fan_on = false;
-    m_is_internal_bridge_fan_on = false;
-    m_is_supp_interface_fan_on = false;
+    m_is_role_based_fan_on.fill(false);
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_last_mm3_per_mm = 0.;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -2041,6 +2039,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser_integration.parser = print.placeholder_parser();
     m_placeholder_parser_integration.parser.update_timestamp();
+    m_placeholder_parser_integration.parser.update_user_name();
     m_placeholder_parser_integration.context.rng = std::mt19937(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     // Enable passing global variables between PlaceholderParser invocations.
     m_placeholder_parser_integration.context.global_config = std::make_unique<DynamicConfig>();
@@ -3722,6 +3721,7 @@ LayerResult GCode::process_layer(
     if(is_BBL_Printer()){
         if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
             std::string timepals_gcode = insert_timelapse_gcode();
+            if(!timepals_gcode.empty()){
             gcode += timepals_gcode;
             m_writer.set_current_position_clear(false);
             //BBS: check whether custom gcode changes the z position. Update if changed
@@ -3730,6 +3730,7 @@ LayerResult GCode::process_layer(
                 Vec3d pos = m_writer.get_position();
                 pos(2) = temp_z_after_timepals_gcode;
                 m_writer.set_position(pos);
+            }
             }
         }
     } else {
@@ -4135,6 +4136,7 @@ LayerResult GCode::process_layer(
                     m_writer.add_object_change_labels(gcode);
 
                     std::string timepals_gcode = insert_timelapse_gcode();
+                    if(!timepals_gcode.empty()){
                     gcode += timepals_gcode;
                     m_writer.set_current_position_clear(false);
                     //BBS: check whether custom gcode changes the z position. Update if changed
@@ -4143,6 +4145,7 @@ LayerResult GCode::process_layer(
                         Vec3d pos = m_writer.get_position();
                         pos(2) = temp_z_after_timepals_gcode;
                         m_writer.set_position(pos);
+                    }
                     }
                     has_insert_timelapse_gcode = true;
                 }
@@ -4380,6 +4383,7 @@ LayerResult GCode::process_layer(
                             gcode += this->retract(false, false, LiftType::NormalLift);
 
                             std::string timepals_gcode = insert_timelapse_gcode();
+                            if(!timepals_gcode.empty()){
                             gcode += timepals_gcode;
                             m_writer.set_current_position_clear(false);
                             //BBS: check whether custom gcode changes the z position. Update if changed
@@ -4389,7 +4393,7 @@ LayerResult GCode::process_layer(
                                 pos(2) = temp_z_after_timepals_gcode;
                                 m_writer.set_position(pos);
                             }
-
+                            }
                             has_insert_timelapse_gcode = true;
                         }
                         // Then print infill
@@ -4465,6 +4469,7 @@ LayerResult GCode::process_layer(
         m_writer.add_object_change_labels(gcode);
 
         std::string timepals_gcode = insert_timelapse_gcode();
+        if(!timepals_gcode.empty()){
         gcode += timepals_gcode;
         m_writer.set_current_position_clear(false);
         //BBS: check whether custom gcode changes the z position. Update if changed
@@ -4473,6 +4478,7 @@ LayerResult GCode::process_layer(
             Vec3d pos = m_writer.get_position();
             pos(2) = temp_z_after_timepals_gcode;
             m_writer.set_position(pos);
+        }
         }
     }
 
@@ -5601,9 +5607,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     auto overhang_fan_threshold = EXTRUDER_CONFIG(overhang_fan_threshold);
     auto enable_overhang_bridge_fan = EXTRUDER_CONFIG(enable_overhang_bridge_fan);
-    
-    auto supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed);
-
 
     //    { "0%", Overhang_threshold_none },
     //    { "10%", Overhang_threshold_1_4 },
@@ -5645,6 +5648,37 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (is_external_perimeter(path.role()))
             comment += ";_EXTERNAL_PERIMETER";
     }
+
+    // Change fan speed based on current extrusion role
+    auto append_role_based_fan_marker = [this, &gcode](const ExtrusionRole role, const std::string_view& marker_prefix, const bool fan_on) {
+        assert(m_enable_cooling_markers);
+
+        if (fan_on) {
+            if (!m_is_role_based_fan_on[role]) {
+                gcode += ";";
+                gcode += marker_prefix;
+                gcode += "_FAN_START\n";
+                m_is_role_based_fan_on[role] = true;
+            }
+        } else {
+            if (m_is_role_based_fan_on[role]) {
+                gcode += ";";
+                gcode += marker_prefix;
+                gcode += "_FAN_END\n";
+                m_is_role_based_fan_on[role] = false;
+            }
+        }
+    };
+    auto apply_role_based_fan_speed = [
+        &path, &append_role_based_fan_marker,
+        supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed),
+        ironing_fan_speed        = EXTRUDER_CONFIG(ironing_fan_speed)
+    ] {
+        append_role_based_fan_marker(erSupportMaterialInterface, "_SUPP_INTERFACE"sv,
+                                     supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface);
+        append_role_based_fan_marker(erIroning, "_IRONING"sv,
+                                     ironing_fan_speed >= 0 && path.role() == erIroning);
+    };
 
     if (!variable_speed) {
         // F is mm per minute.
@@ -5702,41 +5736,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 if (enable_overhang_bridge_fan) {
                     // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
                     // perimeter
-                    if ((overhang_fan_threshold == Overhang_threshold_none && is_external_perimeter(path.role())) ||
-                        (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter)) { // ORCA: Add support for separate internal bridge fan speed control
-                        if (!m_is_overhang_fan_on) {
-                            gcode += ";_OVERHANG_FAN_START\n";
-                            m_is_overhang_fan_on = true;
-                        }
-                    } else {
-                        if (m_is_overhang_fan_on) {
-                            m_is_overhang_fan_on = false;
-                            gcode += ";_OVERHANG_FAN_END\n";
-                        }
-                    }
-                    if (path.role() == erInternalBridgeInfill) { // ORCA: Add support for separate internal bridge fan speed control
-                        if (!m_is_internal_bridge_fan_on) {
-                            gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
-                            m_is_internal_bridge_fan_on = true;
-                        }
-                    } else {
-                        if (m_is_internal_bridge_fan_on) {
-                            m_is_internal_bridge_fan_on = false;
-                            gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
-                        }
-                    }
+                    append_role_based_fan_marker(erOverhangPerimeter, "_OVERHANG"sv,
+                                                 (overhang_fan_threshold == Overhang_threshold_none && is_external_perimeter(path.role())) ||
+                                                 (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter)); // ORCA: Add support for separate internal bridge fan speed control
+
+                    // ORCA: Add support for separate internal bridge fan speed control
+                    append_role_based_fan_marker(erInternalBridgeInfill, "_INTERNAL_BRIDGE"sv, path.role() == erInternalBridgeInfill);
                 }
-                if (supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
-                    if (!m_is_supp_interface_fan_on) {
-                        gcode += ";_SUPP_INTERFACE_FAN_START\n";
-                        m_is_supp_interface_fan_on = true;
-                    }
-                } else {
-                    if (m_is_supp_interface_fan_on) {
-                        gcode += ";_SUPP_INTERFACE_FAN_END\n";
-                        m_is_supp_interface_fan_on = false;
-                    }
-                }
+
+                apply_role_based_fan_speed();
             }
             // BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode or we are doing sloped extrusion
             // Attention: G2 and G3 is not supported in spiral_mode mode
@@ -5869,43 +5877,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             if (m_enable_cooling_markers) {
                 if (enable_overhang_bridge_fan) {
                     cur_fan_enabled = check_overhang_fan(processed_point.overlap, path.role());
-                    if (pre_fan_enabled && cur_fan_enabled) {
-                        if (!m_is_overhang_fan_on) {
-                            gcode += ";_OVERHANG_FAN_START\n";
-                            m_is_overhang_fan_on = true;
-                        }
-                    } else {
-                        if (m_is_overhang_fan_on) {
-                            m_is_overhang_fan_on = false;
-                            gcode += ";_OVERHANG_FAN_END\n";
-                        }
-                    }
+                    append_role_based_fan_marker(erOverhangPerimeter, "_OVERHANG"sv, pre_fan_enabled && cur_fan_enabled);
                     pre_fan_enabled = cur_fan_enabled;
+
+                    // ORCA: Add support for separate internal bridge fan speed control
+                    append_role_based_fan_marker(erInternalBridgeInfill, "_INTERNAL_BRIDGE"sv, path.role() == erInternalBridgeInfill);
                 }
-                // ORCA: Add support for separate internal bridge fan speed control
-                if (path.role() == erInternalBridgeInfill) {
-                    if (!m_is_internal_bridge_fan_on) {
-                        gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
-                        m_is_internal_bridge_fan_on = true;
-                    }
-                } else {
-                    if (m_is_internal_bridge_fan_on) {
-                        gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
-                        m_is_internal_bridge_fan_on = false;
-                    }
-                }
-                
-                if (supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
-                    if (!m_is_supp_interface_fan_on) {
-                        gcode += ";_SUPP_INTERFACE_FAN_START\n";
-                        m_is_supp_interface_fan_on = true;
-                    }
-                } else {
-                    if (m_is_supp_interface_fan_on) {
-                        gcode += ";_SUPP_INTERFACE_FAN_END\n";
-                        m_is_supp_interface_fan_on = false;
-                    }
-                }
+
+                apply_role_based_fan_speed();
             }
 
             const double line_length = (p - prev).norm();
@@ -6106,11 +6085,11 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
 
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
     // multi-hop travel path inside the configuration space
-    if (needs_retraction
-        && m_config.reduce_crossing_wall
-        && ! m_avoid_crossing_perimeters.disabled_once()
-        //BBS: don't generate detour travel paths when current position is unclear
-        && m_writer.is_current_position_clear()) {
+    if (m_config.reduce_crossing_wall
+        && !m_avoid_crossing_perimeters.disabled_once()
+        && m_writer.is_current_position_clear())
+        //BBS: don't generate detour travel paths when current position is unclea
+    {
         travel = m_avoid_crossing_perimeters.travel_to(*this, point, &could_be_wipe_disabled);
         // check again whether the new travel path still needs a retraction
         needs_retraction = this->needs_retraction(travel, role, lift_type);
@@ -6141,9 +6120,18 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
             if (used_external_mp_once)
                 m_avoid_crossing_perimeters.reset_once_modifiers();
         }
-    } else
+    } else {
         // Reset the wipe path when traveling, so one would not wipe along an old path.
         m_wipe.reset_path();
+        // if (m_config.reduce_crossing_wall) {
+        //     // If in the previous call of m_avoid_crossing_perimeters.travel_to was use_external_mp_once set to true restore this value for next call.
+        //     if (used_external_mp_once) m_avoid_crossing_perimeters.use_external_mp_once();
+        //     travel = m_avoid_crossing_perimeters.travel_to(*this, point);
+        //     // If state of use_external_mp_once was changed reset it to right value.
+        //     if (used_external_mp_once) m_avoid_crossing_perimeters.reset_once_modifiers();
+        // }
+    }
+        
 
     // if needed, write the gcode_label_objects_end then gcode_label_objects_start
     m_writer.add_object_change_labels(gcode);

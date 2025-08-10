@@ -147,8 +147,8 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	, m_evt_handler         (evt_handler)
 	, m_notification_start  (GLCanvas3D::timestamp_now())
 {
-    m_ErrorColor  = ImVec4(0.9, 0.36, 0.36, 1);
-    m_WarnColor   = ImVec4(0.99, 0.69, 0.455, 1);
+    m_ErrorColor  = ImGuiWrapper::to_ImVec4(decode_color_to_float_array("#E14747")); // ORCA
+    m_WarnColor   = ImGuiWrapper::to_ImVec4(decode_color_to_float_array("#F59B16")); // ORCA
     m_NormalColor = ImVec4(0, 0.588, 0.533, 1);
 
 	m_CurrentColor = m_NormalColor;   //Default
@@ -370,13 +370,14 @@ void NotificationManager::PopNotification::bbl_render_block_notification(GLCanva
 
 	use_bbl_theme();
     if (m_data.level == NotificationLevel::SeriousWarningNotificationLevel) 
-	{
-        push_style_color(ImGuiCol_Border, {245.f / 255.f, 155 / 255.f, 22 / 255.f, 1}, true, m_current_fade_opacity);
-        push_style_color(ImGuiCol_WindowBg, {245.f / 255.f, 155 / 255.f, 22 / 255.f, 1}, true, m_current_fade_opacity);
+	{   // ORCA match and ensure color usage
+        push_style_color(ImGuiCol_Border,   m_WarnColor, true, m_current_fade_opacity);
+        push_style_color(ImGuiCol_WindowBg, m_WarnColor, true, m_current_fade_opacity);
 	}
-    if (m_data.level == NotificationLevel::ErrorNotificationLevel) {
-        push_style_color(ImGuiCol_Border, {225.f / 255.f, 71 / 255.f, 71 / 255.f, 1}, true, m_current_fade_opacity);
-        push_style_color(ImGuiCol_WindowBg, {225.f / 255.f, 71 / 255.f, 71 / 255.f, 1}, true, m_current_fade_opacity);
+    if (m_data.level == NotificationLevel::ErrorNotificationLevel) 
+    {   // ORCA match and ensure color usage
+        push_style_color(ImGuiCol_Border,   m_ErrorColor, true, m_current_fade_opacity);
+        push_style_color(ImGuiCol_WindowBg, m_ErrorColor, true, m_current_fade_opacity);
     }
 	push_style_color(ImGuiCol_Text, { 1,1,1,1 }, true, m_current_fade_opacity);
 
@@ -1271,10 +1272,11 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 		case InfoItemType::CustomSupports:      text += format(_L_PLURAL("%1$d Object has custom supports.",		"%1$d Objects have custom supports.",		(*it).second), (*it).second) + "\n"; break;
 		// BBS
 		//case InfoItemType::CustomSeam:          text += format(("%1$d Object has custom seam.",			"%1$d Objects have custom seam.",			(*it).second), (*it).second) + "\n"; break;
-		case InfoItemType::MmuSegmentation:     text += format(_L_PLURAL("%1$d Object has color painting.",			"%1$d Objects have color painting.",(*it).second), (*it).second) + "\n"; break;
+		case InfoItemType::MmSegmentation:     text += format(_L_PLURAL("%1$d Object has color painting.",			"%1$d Objects have color painting.",(*it).second), (*it).second) + "\n"; break;
 		// BBS
 		//case InfoItemType::Sinking:             text += format(("%1$d Object has partial sinking.",		"%1$d Objects have partial sinking.",		(*it).second), (*it).second) + "\n"; break;
 		case InfoItemType::CutConnectors:       text += format(_L_PLURAL("%1$d object was loaded as a part of cut object.",		"%1$d objects were loaded as parts of cut object.", (*it).second), (*it).second) + "\n"; break;
+		case InfoItemType::FuzzySkin:           text += format(_L_PLURAL("%1$d object was loaded with fuzzy skin painting.",    "%1$d objects were loaded with fuzzy skin painting.",   (*it).second), (*it).second) + "\n"; break;
 		default: BOOST_LOG_TRIVIAL(error) << "Unknown InfoItemType: " << (*it).second; break;
 		}
 	}

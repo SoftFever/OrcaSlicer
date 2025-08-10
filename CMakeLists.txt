@@ -699,10 +699,12 @@ endif()
 
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
 function(orcaslicer_copy_dlls target config postfix output_dlls)
-    if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-        set(_bits 64)
-    elseif ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
-        set(_bits 32)
+    if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
+        set(_arch "x64")
+    elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "X86")
+        set(_arch "x86")
+    else ()
+        message(FATAL_ERROR "Unable to detect architecture")
     endif ()
 
     get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -719,9 +721,9 @@ function(orcaslicer_copy_dlls target config postfix output_dlls)
         message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
     endif ()
 
-    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win${_bits}/WebView2Loader.dll
+    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win-${_arch}/libgmp-10.dll
+            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win-${_arch}/libmpfr-4.dll
+            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win-${_arch}/WebView2Loader.dll
         DESTINATION ${_out_dir})
 
     file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll

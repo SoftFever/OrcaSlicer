@@ -20,6 +20,7 @@ struct FuzzySkinConfig
     double        noise_scale;
     int           noise_octaves;
     double        noise_persistence;
+    FuzzySkinMode mode;
 
     bool operator==(const FuzzySkinConfig& r) const
     {
@@ -30,7 +31,8 @@ struct FuzzySkinConfig
             && noise_type == r.noise_type
             && noise_scale == r.noise_scale
             && noise_octaves == r.noise_octaves
-            && noise_persistence == r.noise_persistence;
+            && noise_persistence == r.noise_persistence
+            && mode == r.mode;
     }
 
     bool operator!=(const FuzzySkinConfig& r) const { return !(*this == r); }

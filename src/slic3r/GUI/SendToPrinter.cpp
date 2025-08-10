@@ -439,7 +439,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_rename_text->SetForegroundColour(*wxBLACK);
     m_rename_text->SetFont(::Label::Body_13);
     m_rename_text->SetMaxSize(wxSize(FromDIP(390), -1));
-    m_rename_button = new Button(m_rename_normal_panel, "", "ams_editable", wxBORDER_NONE, FromDIP(10));
+    m_rename_button = new Button(m_rename_normal_panel, "", "rename_edit", wxBORDER_NONE, FromDIP(13)); // ORCA Match edit icon and its size
     m_rename_button->SetBackgroundColor(*wxWHITE);
     m_rename_button->SetBackgroundColour(*wxWHITE);
 
@@ -917,6 +917,11 @@ void SendToPrinterDialog::update_user_printer()
     m_comboBox_printer->Set(machine_list_name);
 
     MachineObject* obj = dev->get_selected_machine();
+    if (!obj) {
+        dev->load_last_machine();
+        obj = dev->get_selected_machine();
+    }
+
     if (obj) {
         m_printer_last_select = obj->dev_id;
     } else {
@@ -1349,9 +1354,9 @@ void SendToPrinterDialog::set_default()
 
     char weight[64];
     if (wxGetApp().app_config->get("use_inches") == "1") {
-        ::sprintf(weight, "  %.2f oz", aprint_stats.total_weight*0.035274);
+        ::sprintf(weight, "%.2f oz", aprint_stats.total_weight*0.035274); // ORCA remove spacing before text
     }else{
-        ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+        ::sprintf(weight, "%.2f g", aprint_stats.total_weight); // ORCA remove spacing before text
     }
 
     m_stext_time->SetLabel(time);

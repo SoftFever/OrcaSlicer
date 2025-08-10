@@ -6,7 +6,7 @@
     "filament_id": "GFC00_01",
     "instantiation": "true",
     "filament_vendor": [
-        "Tiertime Lab"
+        "Tiertime"
     ],
     "filament_cost": [
         "39.99"
@@ -21,7 +21,9 @@
         "12"
     ],
     "compatible_printers": [
-        "Tiertime UP300 HS 0.4 nozzle", 
-        "Tiertime UP600 HS 0.4 nozzle"
+        "Tiertime UP300 HS 0.4 nozzle",
+        "Tiertime UP600 HS 0.4 nozzle",
+        "Tiertime UP600 HS 0.6 nozzle",
+        "Tiertime UP600 HS 0.8 nozzle"
     ]
 }

@@ -1918,7 +1918,7 @@ MaxVolumetricSpeedPresetPage::MaxVolumetricSpeedPresetPage(
         titles.push_back(_L("Step"));
         m_custom_range_panel->set_titles(titles);
 
-        m_custom_range_panel->set_unit("mm³/s");
+        m_custom_range_panel->set_unit(wxString::FromUTF8("mm³/s"));
     }
 }
 }}

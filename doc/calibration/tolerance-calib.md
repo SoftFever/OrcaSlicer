@@ -18,7 +18,13 @@ To correct for these variations, Orca Slicer provides:
 
     ![Process_Compensation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/QualityPrecision.png?raw=true)
 
-## Orca Tolerance Test
+## Handy Models
+
+Orca Slicer includes several handy models to help you test and calibrate your printer.  
+Right-click on your plate in Prepare mode and select "Add Handy Model" to access these models.  
+![handy-models-list](../images/Handy-Models/handy-models-list.png)
+
+### Orca Tolerance Test
 
 This calibration test is designed to evaluate the dimensional accuracy of your printer and filament. The model consists of a base with six hexagonal holes, each with a different tolerance: 0.0 mm, 0.05 mm, 0.1 mm, 0.2 mm, 0.3 mm, and 0.4 mm, as well as a hexagon-shaped tester.
 

@@ -87,7 +87,7 @@
     "PETG-CF"
   ],
   "default_filament_colour": [
-    "#3D3C39"
+    ""
   ],
   "nozzle_temperature_range_high": [
     "255"

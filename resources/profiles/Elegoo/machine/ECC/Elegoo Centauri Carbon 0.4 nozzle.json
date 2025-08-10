@@ -41,6 +41,7 @@
   "extruder_offset": [
     "0x0"
   ],
+	"default_bed_type": "4",
   "fan_speedup_time": "0.5",
   "machine_load_filament_time": "29",
   "machine_unload_filament_time": "28",

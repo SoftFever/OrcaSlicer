@@ -177,6 +177,7 @@ function build_slicer() {
                 cmake "${PROJECT_DIR}" \
                     -G "${SLICER_CMAKE_GENERATOR}" \
                     -DBBL_RELEASE_TO_PUBLIC=1 \
+                    -DORCA_TOOLS=ON \
                     -DCMAKE_PREFIX_PATH="$DEPS/usr/local" \
                     -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" \
                     -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
@@ -210,6 +211,15 @@ function build_slicer() {
             cp -R "$resources_path" ./OrcaSlicer.app/Contents/Resources
             # delete .DS_Store file
             find ./OrcaSlicer.app/ -name '.DS_Store' -delete
+            
+            # Copy OrcaSlicer_profile_validator.app if it exists
+            if [ -f "../src$BUILD_DIR_CONFIG_SUBDIR/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
+                echo "Copying OrcaSlicer_profile_validator.app..."
+                rm -rf ./OrcaSlicer_profile_validator.app
+                cp -pR "../src$BUILD_DIR_CONFIG_SUBDIR/OrcaSlicer_profile_validator.app" ./OrcaSlicer_profile_validator.app
+                # delete .DS_Store file
+                find ./OrcaSlicer_profile_validator.app/ -name '.DS_Store' -delete
+            fi
         )
 
         # extract version
@@ -250,6 +260,26 @@ function build_universal() {
         -output "$UNIVERSAL_APP/$BINARY_PATH"
         
     echo "Universal binary created at $UNIVERSAL_APP"
+    
+    # Create universal binary for profile validator if it exists
+    if [ -f "$PROJECT_DIR/build/arm64/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ] && \
+       [ -f "$PROJECT_DIR/build/x86_64/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
+        echo "Creating universal binary for OrcaSlicer_profile_validator..."
+        UNIVERSAL_VALIDATOR_APP="$PROJECT_BUILD_DIR/OrcaSlicer/OrcaSlicer_profile_validator.app"
+        rm -rf "$UNIVERSAL_VALIDATOR_APP"
+        cp -R "$PROJECT_DIR/build/arm64/OrcaSlicer/OrcaSlicer_profile_validator.app" "$UNIVERSAL_VALIDATOR_APP"
+        
+        # Get the binary path inside the profile validator .app bundle
+        VALIDATOR_BINARY_PATH="Contents/MacOS/OrcaSlicer_profile_validator"
+        
+        # Create universal binary using lipo
+        lipo -create \
+            "$PROJECT_DIR/build/x86_64/OrcaSlicer/OrcaSlicer_profile_validator.app/$VALIDATOR_BINARY_PATH" \
+            "$PROJECT_DIR/build/arm64/OrcaSlicer/OrcaSlicer_profile_validator.app/$VALIDATOR_BINARY_PATH" \
+            -output "$UNIVERSAL_VALIDATOR_APP/$VALIDATOR_BINARY_PATH"
+            
+        echo "Universal binary for OrcaSlicer_profile_validator created at $UNIVERSAL_VALIDATOR_APP"
+    fi
 }
 
 case "${BUILD_TARGET}" in

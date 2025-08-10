@@ -655,6 +655,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 params.lattice_angle_1 = region_config.lattice_angle_1;
                 params.lattice_angle_2 = region_config.lattice_angle_2;
                 params.infill_overhang_angle = region_config.infill_overhang_angle;
+                params.angle        = 0.;
                 if (params.pattern == ipLockedZag) {
                     params.infill_lock_depth = scale_(region_config.infill_lock_depth);
                     params.skin_infill_depth = scale_(region_config.skin_infill_depth);
@@ -703,10 +704,15 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                     }
                 }
                 params.bridge_angle = float(surface.bridge_angle);
+                
+                if (region_config.align_infill_direction_to_model) {
+                    auto m = layer.object()->trafo().matrix();
+                    params.angle += atan2((float) m(1, 0), (float) m(0, 0));
+                }
                 if (params.extrusion_role == erInternalInfill) {
-                    params.angle = float(Geometry::deg2rad(region_config.infill_direction.value));
+                    params.angle += float(Geometry::deg2rad(region_config.infill_direction.value));
                 } else {
-                    params.angle = float(Geometry::deg2rad(region_config.solid_infill_direction.value));
+                    params.angle += float(Geometry::deg2rad(region_config.solid_infill_direction.value));
                 }
 
                 // Calculate the actual flow we'll be using for this infill.
@@ -720,9 +726,9 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 if (!params.bridge) {
                     if (params.extrusion_role == erInternalInfill)
                         params.sparse_infill_speed = region_config.sparse_infill_speed;
-                    else if (params.extrusion_role == erTopSolidInfill)
+                    else if (params.extrusion_role == erTopSolidInfill) {
                         params.top_surface_speed = region_config.top_surface_speed;
-                    else if (params.extrusion_role == erSolidInfill)
+                    } else if (params.extrusion_role == erSolidInfill)
                         params.solid_infill_speed = region_config.internal_solid_infill_speed;
                 }
 				// Calculate flow spacing for infill pattern generation.
@@ -992,7 +998,6 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
         f->print_config        = &this->object()->print()->config();
         f->print_object_config = &this->object()->config();
-        f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
 		if (surface_fill.params.pattern == ipConcentricInternal) {
             FillConcentricInternal *fill_concentric = dynamic_cast<FillConcentricInternal *>(f.get());
             assert(fill_concentric != nullptr);
@@ -1045,14 +1050,186 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
         auto &region_config = layerm->region().config();
+        params.config               = &region_config;
+        params.pattern              = surface_fill.params.pattern;
 
         ConfigOptionFloats rotate_angles;
-        rotate_angles.deserialize( surface_fill.params.extrusion_role == erInternalInfill  ? region_config.sparse_infill_rotate_template.value : region_config.solid_infill_rotate_template.value);
-        auto rotate_angle_idx = f->layer_id % rotate_angles.size();
-        f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
+        const std::string  search_string = "/NnZz$LlUuQq~^|#";
+        std::string        v(params.extrusion_role == erInternalInfill ? region_config.sparse_infill_rotate_template.value :
+                                                                                      region_config.solid_infill_rotate_template.value);
+        if (regex_search(v, std::regex("[+\\-%*@\'\"cmSODMR" + search_string + "]"))) { // template metalanguage of rotating infill
+            std::regex                 del("[\\s,]+");
+            std::sregex_token_iterator it(v.begin(), v.end(), del, -1);
+            std::vector<std::string>   tk;
+            std::sregex_token_iterator end;
+            while (it != end) {
+                tk.push_back(*it++);
+            }
+            int               t            = 0;
+            int               repeats      = 0;
+            double            angle        = 0;
+            double            angle_add    = 0;
+            double            angle_steps  = 1;
+            double            angle_start  = 0;
+            double            limit_fill_z = this->object()->get_layer(0)->bottom_z();
+            double            start_fill_z = limit_fill_z;
+            bool              _noop        = false;
+            auto              solid        = std::string::npos; // -1 - sparse,  0 - native (D), 1 - internal solid (S), 2 - concentric (O), 3 - monotonic (M), 4 - rectilinear (R)           
+            auto              fill_form    = std::string::npos;
+            bool              _absolute    = false;
+            bool              _negative    = false;
+            std::vector<bool> stop(tk.size(), false);
 
-		params.config = &region_config;
-        params.pattern = surface_fill.params.pattern;
+            for (int i = 0; i <= this->id(); i++) {
+                double fill_z = this->object()->get_layer(i)->bottom_z();
+
+                if (limit_fill_z < this->object()->get_layer(i)->slice_z) {
+                    if (repeats) { // if repeats >0 then restore parameters for new iteration
+                        limit_fill_z += limit_fill_z - start_fill_z;
+                        start_fill_z = fill_z;
+                        repeats--;
+                    } else {
+                        start_fill_z = fill_z;
+                        limit_fill_z = this->object()->get_layer(i)->print_z;
+                        solid        = std::string::npos;
+                        fill_form    = std::string::npos;
+                        do {
+                            if (!stop[t]) {
+                                _noop       = false;
+                                _absolute   = false;
+                                _negative   = false;
+                                angle_start += angle_add;
+                                angle_add   = 0;
+                                angle_steps = 1;
+                                repeats     = 1;
+                                if (tk[t].find('!') != std::string::npos) // this is an one-time instruction
+                                    stop[t] = true;
+
+                                char* cs = &tk[t][0];
+
+                                if ((cs[0] >= '0' && cs[0] <= '9') && !(cs[0] == '+' || cs[0] == '-')) // absolute/relative
+                                    _absolute = true;
+
+                                angle_add = strtod(cs, &cs);        // read angle parameter
+
+                                if (cs[0] == '%') {                 // percentage of angles
+                                    angle_add *= 3.6;
+                                    cs = &cs[1];
+                                }
+
+                                int tit = tk[t].find('*');
+                                if (tit != std::string::npos)                   // overall angle_cycles
+                                    repeats = strtol(&tk[t][tit + 1], &cs, 0);
+
+                                if (repeats) {                                  // run if overall cycles greater than 0
+                                    solid = std::string("DSOMR").find(cs[0]);   // solid infill
+                                    if (solid != std::string::npos) 
+                                        cs = &cs[1];
+
+                                    if (cs[0] == 'B') {
+                                        angle_steps = this->object()->print()->default_region_config().bottom_shell_layers.value;
+                                    } else if (cs[0] == 'T') {
+                                        angle_steps = this->object()->print()->default_region_config().top_shell_layers.value;
+                                    } else {
+                                        fill_form = search_string.find(cs[0]);
+                                        if (fill_form != std::string::npos)
+                                            cs = &cs[1];
+
+                                        _negative = (cs[0] == '-'); // negative parameter
+                                        angle_steps = abs(strtod(cs, &cs));
+
+                                        if (angle_steps && cs[0] != '\0' && cs[0] != '!') {
+                                            if (cs[0] == '%')       // value in the percents of fill_z
+                                                limit_fill_z = angle_steps * this->object()->height() * 1e-8;
+                                            else if (cs[0] == '#')  // value in the feet
+                                                limit_fill_z = angle_steps * this->object()->config().layer_height;
+                                            else if (cs[0] == '\'') // value in the feet
+                                                limit_fill_z = angle_steps * 12 * 25.4;
+                                            else if (cs[0] == '\"') // value in the inches
+                                                limit_fill_z = angle_steps * 25.4;
+                                            else if (cs[0] == 'c')  // value in centimeters
+                                                limit_fill_z = angle_steps * 10.;
+                                            else if (cs[0] == 'm')
+                                                if (cs[1] == 'm') { // value in the millimeters
+                                                    limit_fill_z = angle_steps * 1.;
+                                                } else              // value in the meters
+                                                    limit_fill_z = angle_steps * 1000.;
+                                            limit_fill_z += fill_z;
+                                            angle_steps = 0; // limit_fill_z has already count
+                                        } 
+                                    }
+                                    if (angle_steps) {       // if limit_fill_z does not setting by lenght method. Get count the layer id above model height
+                                        if (fill_form == std::string::npos && !_absolute) 
+                                            angle_add     *= (int) angle_steps;
+                                        int idx       = i + std::max(angle_steps - 1, 0.);
+                                        int sdx       = std::max(0, idx - (int) this->object()->layers().size());
+                                        idx           = std::min(idx, (int) this->object()->layers().size() - 1);
+                                        limit_fill_z  = this->object()->get_layer(idx)->print_z + sdx * this->object()->config().layer_height;
+                                    } 
+                                    repeats = std::max(--repeats, 0);
+                                } else 
+                                    _noop = true;   // set the dumb cycle
+                                if (_absolute) {    // is absolute
+                                    angle_start = angle_add;
+                                    angle_add   = 0;
+                                }
+                            }
+                            if (++t >= tk.size())
+                                t = 0;
+                        } while (std::all_of(stop.begin(), stop.end(), [](bool v) { return v; }) ? false :
+                                     (t ? _noop : false) || stop[t]); // if this is a dumb instruction which never reaprated twice
+                    }
+                }
+                double top_z    = this->object()->get_layer(i)->print_z;
+                double negvalue = (_negative ? limit_fill_z - top_z : top_z - start_fill_z) / (limit_fill_z - start_fill_z);
+
+                switch (fill_form) {
+                case 0: break;                                                  // /-joint, linear
+                case 1: negvalue -= sin(negvalue * PI * 2.) / (PI * 2.); break; // N-joint, sinus, vertical start
+                case 2: negvalue -= sin(negvalue * PI * 2.) / (PI * 4.); break; // n-joint, sinus, vertical start, lazy
+                case 3: negvalue += sin(negvalue * PI * 2.) / (PI * 2.); break; // Z-joint, sinus, horizontal start
+                case 4: negvalue += sin(negvalue * PI * 2.) / (PI * 4.); break; // z-joint, sinus, horizontal start, lazy
+                case 5: negvalue = asin(negvalue * 2. - 1.) / PI + 0.5; break;  // $-joint, arcsin
+                case 6: negvalue = sin(negvalue * PI / 2.); break;              // L-joint, quarter of circle, horizontal start
+                case 7: negvalue = 1. - cos(negvalue * PI / 2.); break;         // l-joint, quarter of circle, vertical start
+                case 8: negvalue = 1. - pow(1. - negvalue, 2); break;           // U-joint, squared, x2
+                case 9: negvalue = pow(1 - negvalue, 2); break;                 // u-joint, squared, x2 inverse
+                case 10: negvalue = 1. - pow(1. - negvalue, 3); break;          // Q-joint, cubic, x3
+                case 11: negvalue = pow(1. - negvalue, 3); break;               // q-joint, cubic, x3 inverse
+                case 12: negvalue = (double) rand() / RAND_MAX; break;          // ~-joint, random, fill the whole angle
+                case 13: negvalue += (double) rand() / RAND_MAX - 0.5; break;   // ^-joint, pseudorandom, disperse at middle line
+                case 14: negvalue = 0.5; break;                                 // |-joint, like #-joint but placed at middle angle
+                case 15: negvalue = _negative ? 0. : 1.; break;                 // #-joint, vertical at the end angle
+                }
+                angle = angle_start + angle_add * negvalue;
+            }
+            if (solid != std::string::npos) {
+                switch (solid) {
+                case 1: params.pattern = region_config.internal_solid_infill_pattern.value; break; // selected solid pattern
+                case 2: params.pattern = ipConcentric; break;                                      // concentric pattern 
+                case 3: params.pattern = ipMonotonic; break;                                       // monotonic pattern 
+                case 4: params.pattern = ipRectilinear;                                            // rectilinear pattern  
+                }                                                                                  // or else use native pattern
+                params.extrusion_role = erSolidInfill;
+                params.density        = 1.;
+                surface_fill.params.pattern = params.pattern;
+
+                f = std::unique_ptr<Fill>(Fill::new_from_type(params.pattern)); // reinitialize surface
+                f->set_bounding_box(bbox);
+                f->layer_id            = this->id();
+                f->z                   = this->print_z;
+                f->angle               = surface_fill.params.angle;
+                f->print_config        = &this->object()->print()->config();
+                f->print_object_config = &this->object()->config();
+                params.use_arachne = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipConcentricInternal;
+            }
+            f->rotate_angle = Geometry::deg2rad(angle);
+        } else {
+            rotate_angles.deserialize(v);
+            auto rotate_angle_idx = f->layer_id % rotate_angles.size();
+            f->rotate_angle = Geometry::deg2rad(rotate_angles.values[rotate_angle_idx]);
+        }
+
 		if( surface_fill.params.pattern == ipLockedZag ) {
 			params.locked_zag = true;
             params.infill_lock_depth = surface_fill.params.infill_lock_depth;

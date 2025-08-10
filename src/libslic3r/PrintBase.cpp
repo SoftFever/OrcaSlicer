@@ -69,6 +69,7 @@ std::string PrintBase::output_filename(const std::string &format, const std::str
     	cfg = *config_override;
     cfg.set_key_value("version", new ConfigOptionString(std::string(SoftFever_VERSION)));
     PlaceholderParser::update_timestamp(cfg);
+    PlaceholderParser::update_user_name(cfg);
     this->update_object_placeholders(cfg, default_ext);
     if (! filename_base.empty()) {
 		cfg.set_key_value("input_filename", new ConfigOptionString(filename_base + default_ext));
