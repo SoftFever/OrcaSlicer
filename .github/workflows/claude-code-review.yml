@@ -12,6 +12,8 @@ on:
 
 jobs:
   claude-review:
+    # Only run for PRs from the same repository (skip forks)
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     # Optional: Filter by PR author
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||
