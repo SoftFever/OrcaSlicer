@@ -482,7 +482,6 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     // Mesh generation
     std::vector<std::vector<MarchingSquares::Point>> posxy;
     int                                              i = 0, j = 0;
-    std::vector<MarchingSquares::Point>              allptpos;
     for (float y = -(ylen) / 2.0f - 2; y < (ylen) / 2.0f + 2; y = y + delta, i++) {
         j = 0;
         std::vector<MarchingSquares::Point> colposxy;
