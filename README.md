@@ -1,10 +1,4 @@
 
-<<<<<<< HEAD
-<h1> <p "font-size:200px;"><img align="left" src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/OrcaSlicer.ico" width="100"> Orca Slicer</p> </h1>
-
-[![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
-<br>Orca Slicer is an open source slicer for FDM printers.
-=======
 <h1> <p "font-size:200px;"><img align="left" src="https://github.com/kennethjiang/JusPrin/blob/main/resources/images/JusPrin.ico" width="100"> JusPrin</p> </h1>
 
 **Welcome to JusPrin, the first GenAI app for 3D printing!**
@@ -32,34 +26,16 @@ This is a beta version, and while it’s not perfect yet, it’s already showing
 
 ## Download
 
-<<<<<<< HEAD
-Please note that the wiki is a work in progress. We appreciate your patience as we continue to develop and improve it!
-
-**[Access the wiki here](https://github.com/SoftFever/OrcaSlicer/wiki)**
-
-# Download
-
-### Stable Release
-📥 **[Download the Latest Stable Release](https://github.com/SoftFever/OrcaSlicer/releases/latest)**
-Visit our GitHub Releases page for the latest stable version of Orca Slicer, recommended for most users.
-
-### Nightly Builds
-🌙 **[Download the Latest Nightly Build](https://github.com/SoftFever/OrcaSlicer/releases/tag/nightly-builds)**
-Explore the latest developments in Orca Slicer with our nightly builds. Feedback on these versions is highly appreciated.
-=======
-📥 **[Download the Latest Stable Release](https://github.com/SoftFever/OrcaSlicer/releases/latest)**  
-Visit our GitHub Releases page for the latest stable version of Orca Slicer, recommended for most users.
+📥 **[Download the Latest Stable Release](https://github.com/kennethjiang/JusPrin/releases/latest)**
 
 ## Getting Started
->>>>>>> 7b52b5f7a (update readme)
 
-1. **Download and Install**: Install the appropriate version for your operating system.
+1. **Download**: Download the appropriate version for your operating system.
 2. **Open JusPrin**: Launch the app. No complicated setup—just start creating.
 3. **Load a Model**: Upload your 3D model (STL, OBJ, or 3MF formats).
 4. **Just Print**: Tell JusBot your print requirements, even if you’re not exactly sure what they are. JusBot will guide you with suggestions based on your model and the AI's best estimations.
 5. **Enjoy the Magic**: Watch as JusPrin slices your model!
 
-<<<<<<< HEAD
 # How to install
 **Windows**:
 1.  Download the installer for your preferred version from the [releases page](https://github.com/SoftFever/OrcaSlicer/releases).
@@ -122,7 +98,6 @@ Visit our GitHub Releases page for the latest stable version of Orca Slicer, rec
   - Dependencies **Will be auto-installed with the shell script**: `libmspack-dev libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules libgtk2.0-dev libglew-dev libudev-dev libdbus-1-dev cmake git texinfo`
   - run 'sudo ./BuildLinux.sh -u'
   - run './BuildLinux.sh -dsir'
-=======
 ## Feedback
 
 Your feedback is invaluable! If you encounter any issues or notice settings that don’t seem optimal, please let us know. Send your thoughts directly to Kenneth at [k@obico.io](mailto:k@obico.io).
@@ -130,11 +105,9 @@ Your feedback is invaluable! If you encounter any issues or notice settings that
 Every bit of feedback helps JusPrin become a better, smarter tool for everyone.
 
 ## License
->>>>>>> 7b52b5f7a (update readme)
 
 JusPrin is open-source software licensed under the GNU Affero General Public License, based on Orca Slicer.
 
-<<<<<<< HEAD
 **Windows**:
 
 - Install https://nsis.sourceforge.io/Download
@@ -199,8 +172,6 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
 
 
 # License
-=======
->>>>>>> 7b52b5f7a (update readme)
 Orca Slicer is licensed under the GNU Affero General Public License, version 3. Orca Slicer is based on Bambu Studio by BambuLab.
 
 Bambu Studio is licensed under the GNU Affero General Public License, version 3. Bambu Studio is based on PrusaSlicer by PrusaResearch.
