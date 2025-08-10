@@ -22,16 +22,18 @@ Top solid infill area is enlarged slightly to overlap with wall for better bondi
 
 ## Surface Pattern
 
-This setting controls the pattern of the surface. The options are:
+This setting controls the pattern of the surface.
 
-- **[Concentric](strength_settings_infill#concentric):** Fills the surface with inward-tracing loops that follow the outer contour.
-- **[Rectilinear](strength_settings_infill#rectilinear):** Fills the surface with straight lines alternating direction per layer.
-- **Monotonic:** Prints lines in a uniform direction for a smoother visual surface.
-- **Monotonic Lines:** Similar to Monotonic but avoids overlapping with the perimeter, reducing excess material at joints. May introduce visible seams.
-- **[Aligned Rectilinear](strength_settings_infill#aligned-rectilinear):** The surface is printed with rectilinear lines that are aligned with the infill pattern.
-- **[Hilbert Curve](strength_settings_infill#hilbert-curve):** Applies a space-filling curve for even material distribution and a unique appearance. Slow to print but useful in esthetic applications.
-- **[Archimedean Chords](strength_settings_infill#archimedean-chords):** Generates concentric arc-like lines, promoting uniform material spread.
-- **[Octagram Spiral](strength_settings_infill#octagram-spiral):** Creates an octagonal spiral for decorative, esthetic surfaces.
+> [!TIP]
+> See [Infill Patterns Wiki List](strength_settings_patterns) with **detailed specifications**, including their strengths and weaknesses.
 
-> [!NOTE]
-> Some patterns may have further information in its [Sparse Infill Pattern Wiki](strength_settings_infill#sparse-infill-pattern)
+ The surface patterns are:
+
+- **[Concentric](strength_settings_patterns#concentric)**
+- **[Rectilinear](strength_settings_patterns#rectilinear)**
+- **[Monotonic](strength_settings_patterns#monotonic)**
+- **[Monotonic Lines](strength_settings_patterns#monotonic-lines)**
+- **[Aligned Rectilinear](strength_settings_patterns#aligned-rectilinear)**
+- **[Hilbert Curve](strength_settings_patterns#hilbert-curve)**
+- **[Archimedean Chords](strength_settings_patterns#archimedean-chords)**
+- **[Octagram Spiral](strength_settings_patterns#octagram-spiral)**
