@@ -28,6 +28,10 @@ The Flow Ratio determines how much filament is extruded and plays a key role in 
 
 This example demonstrates the use of [Archimedean chords](strength_settings_infill#archimedean-chords) for flow rate calibration using the YOLO (Recommended) method.
 
+WIP...
+
+![flowcalibration-yolo](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowcalibration-yolo.gif?raw=true)
+
 ### OrcaSlicer <= 2.3.0 Monotonic Line + 2-Pass Calibration
 
 This example demonstrates the use of Monotonic Line for flow rate calibration using the 2-Pass Calibration method.
