@@ -555,11 +555,11 @@ bool BackgroundSlicingProcess::stop()
 		m_print->cancel();
 		// Wait until the background processing stops by being canceled.
 		m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED; });
-		// In the "Cancelled" state. Reset the state to "Idle".
+		// In the "Canceled" state. Reset the state to "Idle".
 		m_state = STATE_IDLE;
 		m_print->set_cancel_callback([](){});
 	} else if (m_state == STATE_FINISHED || m_state == STATE_CANCELED) {
-		// In the "Finished" or "Cancelled" state. Reset the state to "Idle".
+		// In the "Finished" or "Canceled" state. Reset the state to "Idle".
 		m_state = STATE_IDLE;
 		m_print->set_cancel_callback([](){});
 	}
@@ -605,7 +605,7 @@ void BackgroundSlicingProcess::stop_internal()
 		// Lock it back to be in a consistent state.
 		m_print->state_mutex().lock();
 	}
-	// In the "Cancelled" state. Reset the state to "Idle".
+	// In the "Canceled" state. Reset the state to "Idle".
 	m_state = STATE_IDLE;
 	m_print->set_cancel_callback([](){});
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", exit"<<std::endl;
