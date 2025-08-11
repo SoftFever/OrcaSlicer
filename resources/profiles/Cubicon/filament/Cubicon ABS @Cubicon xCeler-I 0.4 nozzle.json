@@ -6,9 +6,7 @@
         "Cubicon xCeler-I 0.4 nozzle"
     ],
     
-    "default_filament_colour": [
-        "#80FFFF"
-    ],
+    "default_filament_colour": "",
     
     "filament_id": "P510cfb0",
     
