@@ -54,7 +54,7 @@
     "wipe_before_external_loop": "1",
     "wipe_on_loops": "1",
     "compatible_printers": [
-        "D12 230 PRO SMARTPAD MONO DUAL PoopTool 0.4 nozzle ",
+        "D12 230 PRO SMARTPAD MONO DUAL PoopTool 0.4 nozzle",
         "D12 230 PRO M2 MONO DUAL PoopTool 0.4 nozzle"
     ]
     
