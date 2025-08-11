@@ -112,12 +112,8 @@ DEPS_DIR="$PROJECT_DIR/deps"
 DEPS_BUILD_DIR="$DEPS_DIR/build/$ARCH"
 DEPS="$DEPS_BUILD_DIR/OrcaSlicer_deps"
 
-# Fix for Multi-config generators
-if [ "$SLICER_CMAKE_GENERATOR" == "Xcode" ]; then
-    export BUILD_DIR_CONFIG_SUBDIR="/$BUILD_CONFIG"
-else
-    export BUILD_DIR_CONFIG_SUBDIR=""
-fi
+# For Multi-config generators like Ninja and Xcode
+export BUILD_DIR_CONFIG_SUBDIR="/$BUILD_CONFIG"
 
 function build_deps() {
     # iterate over two architectures: x86_64 and arm64
