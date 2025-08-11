@@ -193,13 +193,8 @@ jobs:
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-<<<<<<< HEAD
-          name: OrcaSlicer_Windows_${{ env.ver }}_portable
-          path: ${{ github.workspace }}/build/OrcaSlicer
-=======
           name: JusPrin_Windows_${{ env.ver }}_portable
           path: ${{ github.workspace }}/build/JusPrin_Windows_${{ env.ver }}_portable.zip
->>>>>>> 076efd24a (github flow)
 
       - name: Upload artifacts Win installer
         if: inputs.os == 'windows-latest'
@@ -215,7 +210,6 @@ jobs:
           name: PDB
           path: ${{ github.workspace }}/build/src/Release/Debug_PDB_${{ env.ver }}_for_developers_only.7z
 
-<<<<<<< HEAD
       - name: Deploy Windows release portable
         if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
         uses: WebFreak001/deploy-nightly@v3.2.0
@@ -237,29 +231,6 @@ jobs:
           asset_name: JusPrin_Windows_Installer_${{ env.ver }}.exe
           asset_content_type: application/x-msdownload
           max_releases: 1
-=======
-      # - name: Deploy Windows release portable
-      #   if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
-      #   uses: WebFreak001/deploy-nightly@v3.1.0
-      #   with:
-      #     upload_url: https://uploads.github.com/repos/kennethjiang/JusPrin/releases/137995723/assets{?name,label}
-      #     release_id: 137995723
-      #     asset_path: ${{ github.workspace }}/build/JusPrin_Windows_${{ env.ver }}_portable.zip
-      #     asset_name: JusPrin_Windows_${{ env.ver }}_portable.zip
-      #     asset_content_type: application/x-zip-compressed
-      #     max_releases: 1
-
-      # - name: Deploy Windows release installer
-      #   if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
-      #   uses: WebFreak001/deploy-nightly@v3.1.0
-      #   with:
-      #     upload_url: https://uploads.github.com/repos/kennethjiang/JusPrin/releases/137995723/assets{?name,label}
-      #     release_id: 137995723
-      #     asset_path: ${{ github.workspace }}/build/JusPrin_Windows_Installer_${{ env.ver }}.exe
-      #     asset_name: JusPrin_Windows_Installer_${{ env.ver }}.exe
-      #     asset_content_type: application/x-msdownload
-      #     max_releases: 1
->>>>>>> c7df9f9f6 (Doing upload manually now)
 
 # Ubuntu
       - name: Install dependencies
@@ -293,13 +264,8 @@ jobs:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         run: |
           ./BuildLinux.sh -isr
-<<<<<<< HEAD
-          mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
-          chmod +x ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
-=======
           mv -n ./build/JusPrin_Linux_V${{ env.ver_pure }}.AppImage ./build/JusPrin_Linux${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
           chmod +x ./build/JusPrin_Linux${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
->>>>>>> 076efd24a (github flow)
 
       - name: Build orca_custom_preset_tests
         if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-20.04'
@@ -317,13 +283,8 @@ jobs:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         uses: actions/upload-artifact@v4
         with:
-<<<<<<< HEAD
-          name: OrcaSlicer_Linux_ubuntu_${{ env.ubuntu-ver }}_${{ env.ver }}
-          path: './build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage'
-=======
           name: JusPrin_Linux_ubuntu_${{ env.ubuntu-ver }}_${{ env.ver }}
           path: './build/JusPrin_Linux${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage'
->>>>>>> 076efd24a (github flow)
 
       - name: Deploy Ubuntu release
         if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04') }}
@@ -333,13 +294,8 @@ jobs:
         with:
           upload_url: https://uploads.github.com/repos/kennethjiang/JusPrin/releases/137995723/assets{?name,label}
           release_id: 137995723
-<<<<<<< HEAD
-          asset_path: ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
-          asset_name: OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
-=======
           asset_path: ./build/JusPrin_Linux${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
           asset_name: JusPrin_Linux${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
->>>>>>> 076efd24a (github flow)
           asset_content_type: application/octet-stream
           max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
 
