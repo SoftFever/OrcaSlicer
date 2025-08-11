@@ -2691,7 +2691,7 @@ msgid "Orienting"
 msgstr "Orientování"
 
 msgid "Orienting canceled."
-msgstr ""
+msgstr "Orientování zrušeno"
 
 msgid "Filling"
 msgstr "Výplň"
