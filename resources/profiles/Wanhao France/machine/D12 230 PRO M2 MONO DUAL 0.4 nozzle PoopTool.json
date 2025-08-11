@@ -1,11 +1,11 @@
 {
     "type": "machine",
     "setting_id": "GM001",
-    "name": "D12 230 PRO M2 MONO DUAL PoopTool 0.4 nozzle",
+    "name": "D12 230 PRO M2 MONO DUAL 0.4 nozzle PoopTool",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
-    "printer_settings_id": "Wanhao France D12 230 PRO M2 MONO DUAL PoopTool 0.4 nozzle",
+    "printer_settings_id": "Wanhao France D12 230 PRO M2 MONO DUAL 0.4 nozzle PoopTool",
     "printer_model": "Wanhao D12 230 PRO M2 MONO DUAL PoopTool",
     "default_print_profile": "0.20mm Standard @Wanhao-D12-230 PoopTool",
     "default_filament_profile": [
