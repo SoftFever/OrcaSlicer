@@ -104,7 +104,7 @@ Download the **Windows Installer exe**  for your preferred version from the [rel
 
 Windows Package Manager:
 ```shell
-winget install --id=SoftFever.OrcaSlicer --exact
+winget install --id=SoftFever.OrcaSlicer -e
 ```
 
 ## Mac:
@@ -121,7 +121,7 @@ winget install --id=SoftFever.OrcaSlicer --exact
     - Option 2:
       Execute this command in terminal:
       ```shell
-      xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app`
+      xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app
       ```
     - Option 3:
         - Step 1: open the app, a warning window will pop up  
