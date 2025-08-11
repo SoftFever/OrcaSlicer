@@ -5,7 +5,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
-    "printer_settings_id": "Wanhao France_D12 300 PRO M2 MONO DUAL PoopTool 0.4 nozzle",
+    "printer_settings_id": "Wanhao France D12 300 PRO M2 MONO DUAL PoopTool 0.4 nozzle",
     "printer_model": "Wanhao D12 300 PRO M2 MONO DUAL PoopTool",
     "gcode_flavor": "marlin2",
     "default_print_profile": "0.20mm Standard @Wanhao-D12-300 PoopTool",
