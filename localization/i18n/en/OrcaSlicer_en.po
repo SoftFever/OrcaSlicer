@@ -32,13 +32,7 @@ msgstr ""
 msgid "Left Time"
 msgstr ""
 
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
 
-#, c-format, boost-format
-msgid "%d : %d"
-msgstr ""
 
 msgid "Serial:"
 msgstr ""
@@ -2757,8 +2751,6 @@ msgstr ""
 msgid "Download failed"
 msgstr ""
 
-msgid "Cancelled"
-msgstr ""
 
 msgid "Installed successfully"
 msgstr ""
@@ -14765,7 +14757,7 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 
 msgid "The name cannot be empty."
@@ -15240,7 +15232,7 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 
 msgid "Temperature calibration"
@@ -15283,7 +15275,7 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 
 msgid "Max volumetric speed test"
@@ -15297,9 +15289,9 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 
 msgid "VFA test"
@@ -15313,9 +15305,9 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 
 msgid "Start retraction length: "
@@ -15342,8 +15334,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
 
 msgid "Damp: "
 msgstr ""
@@ -15354,8 +15344,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
@@ -15374,8 +15364,8 @@ msgid "Note: Use previously calculated frequencies."
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
 
 msgid ""
@@ -15398,7 +15388,7 @@ msgid "Note: Lower values = sharper corners but slower speeds"
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
 
@@ -15458,7 +15448,7 @@ msgstr ""
 msgid "Uploading"
 msgstr ""
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr ""
 
 msgid "Error uploading to print host"
@@ -16208,7 +16198,7 @@ msgstr ""
 msgid "Could not connect to Repetier"
 msgstr ""
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr ""
 
 #, boost-format

@@ -754,8 +754,17 @@ BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
     if (config.has("default_bed_type") && !config.opt_string("default_bed_type").empty()) {
         try {
             std::string str_bed_type = config.opt_string("default_bed_type");
+            
+            // Try parsing as integer first (legacy format)
             int bed_type_value = atoi(str_bed_type.c_str());
-            return BedType(bed_type_value);
+            if (bed_type_value > 0) {
+                return BedType(bed_type_value);
+            }
+            else {
+                BOOST_LOG_TRIVIAL(error) << "default_bed_type: invalid bed type: " << str_bed_type;
+            }
+            return BedType::btPEI;
+
         } catch(...) {
             ;
         }
@@ -766,8 +775,6 @@ BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
         return BedType::btPC;
     } else if (model_id == "C11") {
         return BedType::btPEI;
-    }else if (model_id == "Elegoo-CC" || model_id == "Elegoo-C") {//set default bed type to PTE for Elegoo-CC
-        return BedType::btPTE;
     }
     return BedType::btPEI;
 }
@@ -906,7 +913,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "cooling_tube_retraction",
     "cooling_tube_length", "high_current_on_filament_swap", "parking_pos_retraction", "extra_loading_move", "purge_in_prime_tower", "enable_filament_ramming",
     "z_offset",
-    "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode", "pellet_modded_printer", "support_multi_bed_types","bed_mesh_min","bed_mesh_max","bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut"
+    "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode", "pellet_modded_printer", "support_multi_bed_types", "default_bed_type", "bed_mesh_min","bed_mesh_max","bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut"
     };
 
 static std::vector<std::string> s_Preset_sla_print_options {
