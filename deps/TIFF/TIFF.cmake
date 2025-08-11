@@ -3,8 +3,8 @@ find_package(OpenGL QUIET REQUIRED)
 if (APPLE)
     message(STATUS "Compiling TIFF for macos ${CMAKE_SYSTEM_VERSION}.")
     orcaslicer_add_cmake_project(TIFF
-        URL https://gitlab.com/libtiff/libtiff/-/archive/v4.3.0/libtiff-v4.3.0.zip
-        URL_HASH SHA256=455abecf8fba9754b80f8eff01c3ef5b24a3872ffce58337a59cba38029f0eca
+        URL https://download.osgeo.org/libtiff/tiff-4.3.0.tar.gz
+        URL_HASH SHA256=0e46e5acb087ce7d1ac53cf4f56a09b221537fc86dfc5daaad1c2e89e1b37ac8
         DEPENDS ${ZLIB_PKG} ${PNG_PKG} dep_JPEG
         CMAKE_ARGS
             -Dlzma:BOOL=OFF
