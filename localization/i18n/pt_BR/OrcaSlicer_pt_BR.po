@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-06-08 19:09-0300\n"
 "Last-Translator: Alexandre Folle de Menezes\n"
 "Language-Team: Portuguese, Brazilian\n"
@@ -36,8 +36,6 @@ msgstr "Temperatura"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "Número de série:"
@@ -193,6 +191,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "Alternar malha"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Cancelar"
+
 msgid "Shortcut Key "
 msgstr "Tecla de atalho "
 
@@ -214,6 +221,9 @@ msgstr "Remover cor pintada"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Pintado usando: Filamento %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Mover"
@@ -483,9 +493,6 @@ msgstr "Proporção de espaço em relação ao raio"
 
 msgid "Confirm connectors"
 msgstr "Confirmar conectores"
-
-msgid "Cancel"
-msgstr "Cancelar"
 
 msgid "Build Volume"
 msgstr "Volume de Impressão"
@@ -2872,6 +2879,8 @@ msgstr "Baixando"
 msgid "Download failed"
 msgstr "Falha ao baixar"
 
+msgid "Canceled"
+msgstr "Cancelado"
 
 msgid "Installed successfully"
 msgstr "Instalação concluída com sucesso"
@@ -3872,7 +3881,6 @@ msgstr ""
 "seam_slope_start_height precisa ser menor que layer_height.\n"
 "Redefinir para 0."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10301,6 +10309,13 @@ msgstr "Placa Fria Lisa"
 msgid "Smooth High Temp Plate"
 msgstr "Placa de Alta Temp. Lisa"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Sequência de impressão da primeira camada"
 
@@ -12247,6 +12262,9 @@ msgstr "Hachura Cruzada"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Giroide"
 
@@ -14128,6 +14146,9 @@ msgstr "Mais próximo"
 
 msgid "Aligned"
 msgstr "Alinhada"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Atrás"
@@ -16535,9 +16556,6 @@ msgstr ""
 "Formato de arquivo desconhecido. O arquivo de entrada deve ter extensão .3mf "
 "ou .zip.amf."
 
-msgid "Canceled"
-msgstr "Cancelado"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: falha ao analisar"
 
@@ -17295,7 +17313,6 @@ msgstr "Inicial / Final"
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""

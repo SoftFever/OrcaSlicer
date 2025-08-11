@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,6 @@ msgstr "Hőmérséklet"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "Sorozatszám:"
@@ -184,6 +182,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "Drótváz-megjelenítés váltása"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Mégse"
+
 msgid "Shortcut Key "
 msgstr "Gyorsgomb "
 
@@ -205,6 +212,9 @@ msgstr "Festett szín eltávolítása"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "A következővel festve: %1% filament"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Mozgatás"
@@ -469,9 +479,6 @@ msgstr ""
 
 msgid "Confirm connectors"
 msgstr ""
-
-msgid "Cancel"
-msgstr "Mégse"
 
 msgid "Build Volume"
 msgstr ""
@@ -2789,6 +2796,8 @@ msgstr "Letöltés"
 msgid "Download failed"
 msgstr "Letöltés sikertelen"
 
+msgid "Canceled"
+msgstr "Megszakítva"
 
 msgid "Installed successfully"
 msgstr "Sikeresen telepítve"
@@ -3746,7 +3755,6 @@ msgid ""
 "Reset to 0."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9883,6 +9891,13 @@ msgstr ""
 msgid "Smooth High Temp Plate"
 msgstr ""
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Az első réteg nyomtatási sorrendje"
 
@@ -11372,6 +11387,9 @@ msgid "Cross Hatch"
 msgstr "Cross Hatch"
 
 msgid "TPMS-D"
+msgstr ""
+
+msgid "TPMS-FK"
 msgstr ""
 
 msgid "Gyroid"
@@ -12995,6 +13013,9 @@ msgstr "Legközelebbi"
 
 msgid "Aligned"
 msgstr "Igazított"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Hátul"
@@ -15101,9 +15122,6 @@ msgstr ""
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 
-msgid "Canceled"
-msgstr "Megszakítva"
-
 msgid "load_obj: failed to parse"
 msgstr ""
 
@@ -15791,7 +15809,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""

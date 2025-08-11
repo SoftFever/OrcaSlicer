@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-06-02 17:12+0900\n"
 "Last-Translator: crwusiz <crwusiz@gmail.com>\n"
 "Language-Team: \n"
@@ -35,8 +35,6 @@ msgstr "온도"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "시리얼:"
@@ -191,6 +189,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "와이어프레임 전환"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "취소"
+
 msgid "Shortcut Key "
 msgstr "단축키 "
 
@@ -212,6 +219,9 @@ msgstr "칠한 색 제거"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "칠하기에 사용한 필라멘트 %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "이동"
@@ -481,9 +491,6 @@ msgstr "반경과 관련된 공간 비율"
 
 msgid "Confirm connectors"
 msgstr "커넥터 승인"
-
-msgid "Cancel"
-msgstr "취소"
 
 msgid "Build Volume"
 msgstr "빌드 볼륨"
@@ -2816,6 +2823,8 @@ msgstr "다운로드 중"
 msgid "Download failed"
 msgstr "다운로드 실패"
 
+msgid "Canceled"
+msgstr "취소됨"
 
 msgid "Installed successfully"
 msgstr "성공적으로 설치하였습니다."
@@ -3767,7 +3776,6 @@ msgstr ""
 "심_경사_시작_높이는 레이어_높이보다 작아야 합니다.\n"
 "0으로 재설정합니다."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9982,6 +9990,13 @@ msgstr "부드러운 쿨 플레이트"
 msgid "Smooth High Temp Plate"
 msgstr "부드러운 고온 플레이트"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "첫 레이어 출력 순서"
 
@@ -11777,6 +11792,9 @@ msgstr "크로스 해치"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "자이로이드"
 
@@ -13561,6 +13579,9 @@ msgstr "근접"
 
 msgid "Aligned"
 msgstr "정렬"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "뒷면"
@@ -15832,9 +15853,6 @@ msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 "알 수 없는 파일 형식: 입력 파일의 확장자는.3mf 또는.zip.amf여야 합니다."
 
-msgid "Canceled"
-msgstr "취소됨"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: 구문 분석에 실패"
 
@@ -16568,7 +16586,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""
