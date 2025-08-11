@@ -207,8 +207,8 @@
             "sub_path": "machine/D12 230 PRO M2 MONO DUAL 0.4 nozzle.json"
         },
         {
-            "name": "D12 230 PRO M2 MONO DUAL 0.4 nozzle PoopTool",
-            "sub_path": "machine/D12 230 PRO M2 MONO DUAL 0.4 nozzle PoopTool.json"
+            "name": "D12 230 PRO M2 MONO DUAL PoopTool 0.4 nozzle",
+            "sub_path": "machine/D12 230 PRO M2 MONO DUAL PoopTool 0.4 nozzle.json"
         },
         {
             "name": "D12 230 PRO M2 DIRECT 0.4 nozzle",
@@ -220,8 +220,8 @@
 
         },
         {
-            "name": "D12 230 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool",
-            "sub_path": "machine/D12 230 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool.json"
+            "name": "D12 230 PRO SMARTPAD MONO DUAL PoopTool 0.4 nozzle ",
+            "sub_path": "machine/D12 230 PRO SMARTPAD MONO DUAL PoopTool 0.4 nozzle .json"
         },
         {
             "name": "D12 230 PRO SMARTPAD DIRECT 0.4 nozzle",
