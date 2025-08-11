@@ -4103,7 +4103,7 @@ void ExportConfigsDialog::data_init()
     for (const Preset &printer_preset : printer_presets) {
         
         std::string preset_name        = printer_preset.name;
-        if (!printer_preset.is_visible || printer_preset.is_project_embedded) continue;
+        if (!printer_preset.is_visible || printer_preset.is_default || printer_preset.is_project_embedded) continue;
         preset_bundle.update_compatible(PresetSelectCompatibleType::Always);
 
         const std::deque<Preset> &filament_presets = preset_bundle.filaments.get_presets();
