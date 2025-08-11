@@ -6,6 +6,7 @@
     "instantiation": "true",
     "inherits": "fdm_machine_common",
     "printer_model": "Wanhao D12 230 PRO M2 MONO DUAL PoopTool",
+    "printer_settings_id": "Wanhao France D12 230 PRO M2 MONO DUAL PoopTool 0.4 nozzle",
     "default_print_profile": "0.20mm Standard @Wanhao-D12-230 PoopTool",
     "default_filament_profile": [
 		"YUMI PLA Bowden"
