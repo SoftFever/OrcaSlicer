@@ -5066,10 +5066,6 @@
             "sub_path": "filament/Bambu PVA @BBL H2DP.json"
         },
         {
-            "name": "Bambu PVA @BBL H2DP 0.2 nozzle",
-            "sub_path": "filament/Bambu PVA @BBL H2DP 0.2 nozzle.json"
-        },
-        {
             "name": "Bambu PVA @BBL P1P",
             "sub_path": "filament/Bambu PVA @BBL P1P.json"
         },
@@ -5116,10 +5112,6 @@
         {
             "name": "Generic PVA @BBL H2DP",
             "sub_path": "filament/Generic PVA @BBL H2DP.json"
-        },
-        {
-            "name": "Generic PVA @BBL H2DP 0.2 nozzle",
-            "sub_path": "filament/Generic PVA @BBL H2DP 0.2 nozzle.json"
         },
         {
             "name": "Generic PVA @BBL P1P",

@@ -94,8 +94,8 @@
         "220"
     ],
     "retraction_distances_when_ec": [
-        "10",
-        "10"
+        "0",
+        "0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",
