@@ -118,7 +118,6 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 
-
 static t_config_enum_values s_keys_map_FuzzySkinType {
     { "none",           int(FuzzySkinType::None) },
     { "external",       int(FuzzySkinType::External) },
@@ -135,6 +134,13 @@ static t_config_enum_values s_keys_map_NoiseType {
     { "voronoi",        int(NoiseType::Voronoi) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NoiseType)
+
+static t_config_enum_values s_keys_map_FuzzySkinMode {
+    { "displacement",   int(FuzzySkinMode::Displacement) },
+    { "extrusion",      int(FuzzySkinMode::Extrusion) },
+    { "combined",       int(FuzzySkinMode::Combined)}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FuzzySkinMode)
 
 static t_config_enum_values s_keys_map_InfillPattern {
     { "monotonic", ipMonotonic },
@@ -159,6 +165,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "2dlattice", ip2DLattice },
     { "crosshatch", ipCrossHatch },
     { "tpmsd", ipTpmsD },
+    { "tpmsfk", ipTpmsFK },
     { "gyroid", ipGyroid },
     { "concentric", ipConcentric },
     { "hilbertcurve", ipHilbertCurve },
@@ -226,8 +233,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SlicingMode)
 static t_config_enum_values s_keys_map_SupportMaterialPattern {
     { "rectilinear",        smpRectilinear },
     { "rectilinear-grid",   smpRectilinearGrid },
-    { "lightning",          smpLightning },
     { "honeycomb",          smpHoneycomb },
+    { "lightning",          smpLightning },
     { "default",            smpDefault},
     { "hollow",               smpNone},
 };
@@ -264,8 +271,9 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportType)
 static t_config_enum_values s_keys_map_SeamPosition {
     { "nearest",        spNearest },
     { "aligned",        spAligned },
+    { "aligned_back",   spAlignedBack },
     { "back",           spRear },
-    { "random",         spRandom },
+    { "random",         spRandom }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamPosition)
 
@@ -831,6 +839,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back(L("Textured Cool Plate"));
     def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
+
+    // Orca: allow profile maker to set default bed type in machine profile
+    // This option won't be shown in the UI
+    def = this->add("default_bed_type", coString);
+    def->label = L("Default bed type");
+    def->tooltip = L("Default bed type for the printer (supports both numeric and string format).");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
 
     // BBS
     def             = this->add("first_layer_print_sequence", coInts);
@@ -2360,6 +2376,14 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 100;
     def->set_default_value(new ConfigOptionPercent(20));
+        
+    def           = this->add("align_infill_direction_to_model", coBool);
+    def->label    = L("Align infill direction to model");
+    def->category = L("Strength");
+    def->tooltip  = L("Aligns infill and surface fill directions to follow the model's orientation on the build plate. When enabled, fill directions rotate with the model to maintain optimal strength characteristics.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
 
     // Infill multiline
     def             = this->add("fill_multiline", coInt);
@@ -2394,6 +2418,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("2dlattice");
     def->enum_values.push_back("crosshatch");
     def->enum_values.push_back("tpmsd");
+    def->enum_values.push_back("tpmsfk");
     def->enum_values.push_back("gyroid");
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("hilbertcurve");
@@ -2419,6 +2444,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("2D Lattice"));
     def->enum_labels.push_back(L("Cross Hatch"));
     def->enum_labels.push_back(L("TPMS-D"));
+    def->enum_labels.push_back(L("TPMS-FK"));
     def->enum_labels.push_back(L("Gyroid"));
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Hilbert Curve"));
@@ -2825,6 +2851,29 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Whether to apply fuzzy skin on the first layer.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(0));
+
+    def = this->add("fuzzy_skin_mode", coEnum);
+    def->label = L("Fuzzy skin generator mode");
+    def->category = L("Others");
+    def->tooltip = L("Fuzzy skin generation mode. Works only with Arachne!\n"
+                     "Displacement: Сlassic mode when the pattern is formed by shifting the nozzle sideways from the original path.\n"
+                     "Extrusion: The mode when the pattern formed by the amount of extruded plastic. "
+                     "This is the fast and straight algorithm without unnecessary nozzle shake that gives a smooth pattern. "
+                     "But it is more useful for forming loose walls in the entire they array.\n"
+                     "Combined: Joint mode [Displacement] + [Extrusion]. The appearance of the walls is similar to [Displacement] Mode, but it leaves no pores between the perimeters.\n\n"
+                     "Attention! The [Extrusion] and [Combined] modes works only the fuzzy_skin_thickness parameter not more than the thickness of printed loop."
+                     "At the same time, the width of the extrusion for a particular layer should also not be below a certain level. "
+                     "It is usually equal 15-25%% of a layer height. Therefore, the maximum fuzzy skin thickness with a perimeter width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
+                     "If you enter a higher parameter than this, the error Flow::spacing() will displayed, and the model will not be sliced. You can choose this number until this error is repeated." );
+    def->enum_keys_map = &ConfigOptionEnum<FuzzySkinMode>::get_enum_values();
+    def->enum_values.push_back("displacement");
+    def->enum_values.push_back("extrusion");
+    def->enum_values.push_back("combined");
+    def->enum_labels.push_back(L("Displacement"));
+    def->enum_labels.push_back(L("Extrusion"));
+    def->enum_labels.push_back(L("Combined"));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<FuzzySkinMode>(FuzzySkinMode::Displacement));
 
     def = this->add("fuzzy_skin_noise_type", coEnum);
     def->label = L("Fuzzy skin noise type");
@@ -4328,10 +4377,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<SeamPosition>::get_enum_values();
     def->enum_values.push_back("nearest");
     def->enum_values.push_back("aligned");
+    def->enum_values.push_back("aligned_back");
     def->enum_values.push_back("back");
     def->enum_values.push_back("random");
     def->enum_labels.push_back(L("Nearest"));
     def->enum_labels.push_back(L("Aligned"));
+    def->enum_labels.push_back(L("Aligned back"));
     def->enum_labels.push_back(L("Back"));
     def->enum_labels.push_back(L("Random"));
     def->mode = comSimple;
@@ -4696,7 +4747,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
                      "The value is not used when 'idle_temperature' in filament settings "
                      "is set to non-zero value.");
-    def->sidetext = "∆\u2103";	// delta degrees Celsius, don't need translation
+    def->sidetext = u8"∆\u2103";	// delta degrees Celsius, don't need translation
     def->min = -max_temp;
     def->max = max_temp;
     def->mode = comAdvanced;
@@ -5051,14 +5102,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("default");
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
-    def->enum_values.push_back("lightning");
     def->enum_values.push_back("honeycomb");
+    def->enum_values.push_back("lightning");
     def->enum_values.push_back("hollow");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear grid"));
-    def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Honeycomb"));
+    def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Hollow"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpDefault));
@@ -7466,7 +7517,7 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
             "skeleton_infill_line_width"};
         for (size_t i = 0; i < sizeof(widths) / sizeof(widths[i]); ++ i) {
             std::string key(widths[i]);
-            if (cfg.get_abs_value(key, max_nozzle_diameter) > 2.5 * max_nozzle_diameter) {
+            if (cfg.get_abs_value(key, max_nozzle_diameter) > MAX_LINE_WIDTH_MULTIPLIER * max_nozzle_diameter) {
                 error_message.emplace(key, L("too large line width ") + std::to_string(cfg.get_abs_value(key)));
                 //return std::string("Too Large line width: ") + key;
             }
