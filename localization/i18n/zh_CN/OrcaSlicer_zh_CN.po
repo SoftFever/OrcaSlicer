@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2024-07-28 07:12+0000\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -34,8 +34,6 @@ msgstr "温度"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "序列号："
@@ -189,6 +187,15 @@ msgstr ""
 msgid "Toggle Wireframe"
 msgstr "显示/隐藏线框"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "取消"
+
 msgid "Shortcut Key "
 msgstr "快捷键 "
 
@@ -210,6 +217,9 @@ msgstr "移除已绘制的颜色"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "绘制使用：耗材丝%1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "移动"
@@ -479,9 +489,6 @@ msgstr ""
 
 msgid "Confirm connectors"
 msgstr "确认"
-
-msgid "Cancel"
-msgstr "取消"
 
 msgid "Build Volume"
 msgstr "零件体积"
@@ -2774,6 +2781,8 @@ msgstr "下载中"
 msgid "Download failed"
 msgstr "下载失败"
 
+msgid "Canceled"
+msgstr "已取消"
 
 msgid "Installed successfully"
 msgstr "安装成功。"
@@ -3693,7 +3702,6 @@ msgstr ""
 "seam_slope_start_height需要小于layer_height。\n"
 "重置为0。"
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9668,6 +9676,13 @@ msgstr "光滑的低温打印床"
 msgid "Smooth High Temp Plate"
 msgstr "光滑高温打印热床"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "第一层打印顺序"
 
@@ -11218,6 +11233,9 @@ msgid "Cross Hatch"
 msgstr "交叉层叠"
 
 msgid "TPMS-D"
+msgstr ""
+
+msgid "TPMS-FK"
 msgstr ""
 
 msgid "Gyroid"
@@ -12860,6 +12878,9 @@ msgstr "最近"
 
 msgid "Aligned"
 msgstr "对齐"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "背面"
@@ -14974,9 +14995,6 @@ msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .amf。"
 
-msgid "Canceled"
-msgstr "已取消"
-
 msgid "load_obj: failed to parse"
 msgstr "加载对象：无法分析"
 
@@ -15689,7 +15707,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""

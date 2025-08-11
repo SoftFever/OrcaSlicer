@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.3.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-07-06 21:08+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -36,8 +36,6 @@ msgstr "Температура"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "Серийный номер:"
@@ -196,6 +194,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "Показать/скрыть каркас"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Отмена"
+
 msgid "Shortcut Key "
 msgstr "Горячая клавиша "
 
@@ -219,6 +226,9 @@ msgstr "Удаление окрашенного участка"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Окрашено с использованием прутка %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Перемещение"
@@ -489,9 +499,6 @@ msgstr "Пропорция прорези в клипсе, связанная с
 
 msgid "Confirm connectors"
 msgstr "Подтвердить"
-
-msgid "Cancel"
-msgstr "Отмена"
 
 msgid "Build Volume"
 msgstr "Область построения"
@@ -2901,6 +2908,8 @@ msgstr "Загрузка"
 msgid "Download failed"
 msgstr "Ошибка загрузки"
 
+msgid "Canceled"
+msgstr "Отменено"
 
 msgid "Installed successfully"
 msgstr "Успешно установлено."
@@ -3915,7 +3924,6 @@ msgstr ""
 "seam_slope_start_height должна быть меньше высоты слоя.\n"
 "Значение сброшено на 0."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10442,6 +10450,13 @@ msgstr "Не нагреваемая гладкая пластина Bambu"
 msgid "Smooth High Temp Plate"
 msgstr "Высокотемп. гладкая пластина"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Последовательность печати первого слоя"
 
@@ -12410,6 +12425,9 @@ msgstr "Перекрёстная решётка"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Гироид"
 
@@ -14372,6 +14390,9 @@ msgstr "Ближайшая"
 
 msgid "Aligned"
 msgstr "Выровненная"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Сзади"
@@ -16902,9 +16923,6 @@ msgstr ""
 "Неизвестный формат файла. Входной файл должен иметь расширение *.3mf или "
 "*.zip.amf."
 
-msgid "Canceled"
-msgstr "Отменено"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: ошибка обработки"
 
@@ -17666,7 +17684,6 @@ msgstr "(начальное/конечное значение)"
 
 msgid "Frequency settings"
 msgstr "Задание частоты"
-
 
 msgid "Damp: "
 msgstr "Затухание (Damp):"

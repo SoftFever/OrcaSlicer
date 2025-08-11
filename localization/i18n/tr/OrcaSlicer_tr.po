@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-03-12 23:48+0300\n"
 "Last-Translator: GlauTech\n"
 "Language-Team: \n"
@@ -31,8 +31,6 @@ msgstr "Sıcaklık"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "Seri:"
@@ -188,6 +186,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "Wireframe Göster/Gizle"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "İptal"
+
 msgid "Shortcut Key "
 msgstr "Kısayol tuşu "
 
@@ -209,6 +216,9 @@ msgstr "Boyalı rengi kaldır"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Şunlar kullanılarak boyanmıştır: Filament %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Taşı"
@@ -478,9 +488,6 @@ msgstr "Yarıçapla ilgili alan oranı"
 
 msgid "Confirm connectors"
 msgstr "Bağlayıcıları onayla"
-
-msgid "Cancel"
-msgstr "İptal"
 
 msgid "Build Volume"
 msgstr "Birim oluştur"
@@ -2851,6 +2858,8 @@ msgstr "İndiriliyor"
 msgid "Download failed"
 msgstr "Yükleme başarısız"
 
+msgid "Canceled"
+msgstr "İptal edildi"
 
 msgid "Installed successfully"
 msgstr "Yükleme başarılı."
@@ -3834,7 +3843,6 @@ msgstr ""
 "gerekir.\n"
 "0 a sıfırla."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10201,6 +10209,13 @@ msgstr ""
 msgid "Smooth High Temp Plate"
 msgstr ""
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "İlk katman yazdırma sırası"
 
@@ -12098,6 +12113,9 @@ msgstr "Çapraz çizgi"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Jiroid"
 
@@ -13956,6 +13974,9 @@ msgstr "En yakın"
 
 msgid "Aligned"
 msgstr "Hizalı"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Arka"
@@ -16355,9 +16376,6 @@ msgstr ""
 "Bilinmeyen dosya formatı. Giriş dosyası .3mf veya .zip.amf uzantılı "
 "olmalıdır."
 
-msgid "Canceled"
-msgstr "İptal edildi"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: ayrıştırılamadı"
 
@@ -17107,7 +17125,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""

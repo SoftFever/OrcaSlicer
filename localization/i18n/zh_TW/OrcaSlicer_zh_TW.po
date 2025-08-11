@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-03-27 19:32+0800\n"
 "Last-Translator: 5idereal <hi@5idereal.cc>\n"
 "Language-Team: \n"
@@ -37,8 +37,6 @@ msgstr "溫度"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "序號："
@@ -191,6 +189,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "顯示/隱藏線框"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "取消"
+
 msgid "Shortcut Key "
 msgstr "快捷鍵 "
 
@@ -212,6 +219,9 @@ msgstr "移除已繪製的顏色"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "上色：線材 %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "移動"
@@ -481,9 +491,6 @@ msgstr "與半徑相關的空間佔比"
 
 msgid "Confirm connectors"
 msgstr "確認"
-
-msgid "Cancel"
-msgstr "取消"
 
 msgid "Build Volume"
 msgstr "列印體積"
@@ -2779,6 +2786,8 @@ msgstr "下載中"
 msgid "Download failed"
 msgstr "下載失敗"
 
+msgid "Canceled"
+msgstr "已取消"
 
 msgid "Installed successfully"
 msgstr "安裝成功。"
@@ -3700,7 +3709,6 @@ msgstr ""
 "seam_slope_start_height 必須小於 layer_height。\n"
 "重設為 0。"
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9719,6 +9727,13 @@ msgstr "低溫平滑列印板"
 msgid "Smooth High Temp Plate"
 msgstr "高溫平滑列印板"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "首層列印順序"
 
@@ -11409,6 +11424,9 @@ msgstr "交叉填充"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "螺旋體"
 
@@ -13092,6 +13110,9 @@ msgstr "最近"
 
 msgid "Aligned"
 msgstr "對齊"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "背面"
@@ -15249,9 +15270,6 @@ msgstr "檔案格式未知。輸入的檔案必須是 .stl、.obj 或 .amf(.xml)
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "未知的檔案格式。輸入檔案的副檔名必須為 .3mf 或 .zip .amf。"
 
-msgid "Canceled"
-msgstr "已取消"
-
 msgid "load_obj: failed to parse"
 msgstr "載入物件：解析失敗"
 
@@ -15965,7 +15983,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""
