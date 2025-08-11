@@ -1,32 +1,32 @@
 {
     "type": "machine",
     "setting_id": "GM001",
-    "name": "D12 500 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool",
+    "name": "D12 300 PRO SMARTPAD MONO DUAL PoopTool 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
-    "printer_settings_id": "Wanhao France D12 500 PRO SMARTPAD MONO DUAL PoopTool 0.4 nozzle",
-    "printer_model": "Wanhao D12 500 PRO SMARTPAD MONO DUAL PoopTool",
+    "printer_settings_id": "Wanhao France D12 300 PRO SMARTPAD MONO DUAL PoopTool 0.4 nozzle",
+    "printer_model": "Wanhao D12 300 PRO SMARTPAD MONO DUAL PoopTool",
     "gcode_flavor": "klipper",
-    "default_print_profile": "0.20mm Standard @Wanhao-D12-500 PoopTool",
+    "default_print_profile": "0.20mm Standard @Wanhao-D12-300 PoopTool",
     "nozzle_diameter": [
-        "0.4"
-      ],
-      "printable_area": [
-          "0x0",
-          "510x0",
-          "510x510",
-          "0x510"
-        ],
-    "printable_height": "500",
+      "0.4"
+    ],
+    "printable_area": [
+        "0x0",
+        "310x0",
+        "310x310",
+        "0x310"
+    ],
+    "printable_height": "400",
     "nozzle_type": "brass",
     "auxiliary_fan": "0",
     "printer_variant": "0.4",
-    "default_filament_profile": [
-		"YUMI PLA Bowden"
-	],
-    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nLOG_Z\nTIMELAPSE_TAKE_FRAME\nG92 E0",
-    "z_hop": [
+      "default_filament_profile": [
+          "YUMI PLA Bowden"
+    ],
+      "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nLOG_Z\nTIMELAPSE_TAKE_FRAME\nG92 E0",
+      "z_hop": [
         "0.4"
     ],
     "extra_loading_move": "-2",
@@ -36,10 +36,10 @@
     "nozzle_height": "4",
     "thumbnails": "48x48/PNG, 300x300/PNG",
     "wipe_distance": [
-        "2"
+          "2"
     ],
     "z_hop_types": [
-        "Auto Lift"
+          "Auto Lift"
     ],
     "deretraction_speed": [
       "25"
@@ -59,10 +59,10 @@
         "500"
     ],
     "machine_max_acceleration_x": [
-        "1000"
+        "1200"
     ],
     "machine_max_acceleration_y": [
-      "800"
+      "1000"
     ],
     "machine_max_acceleration_z": [
     "500"

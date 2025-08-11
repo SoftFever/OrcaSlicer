@@ -1,7 +1,7 @@
 {
     "type": "machine",
     "setting_id": "GM001",
-    "name": "D12 500 PRO M2 MONO DUAL 0.4 nozzle PoopTool",
+    "name": "D12 500 PRO M2 MONO DUAL PoopTool 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
