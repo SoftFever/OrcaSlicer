@@ -625,7 +625,6 @@ std::string AppConfig::load()
                 for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
                     m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
                 }
-                }
             } else {
                 if (it.value().is_object()) {
                     for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
@@ -651,7 +650,7 @@ std::string AppConfig::load()
                 }
             }
         }
-    } catch(std::exception err) {
+    } catch(const std::exception &err) {
         BOOST_LOG_TRIVIAL(info) << format("parse app config \"%1%\", error: %2%", AppConfig::loading_path(), err.what());
 
         return err.what();

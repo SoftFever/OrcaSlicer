@@ -51,7 +51,6 @@ static const std::vector<std::string> filament_vendors =
      "Fil X",                  "GEEETECH",               "Giantarm",               "Gizmo Dorks",            "GreenGate3D",
      "HATCHBOX",               "Hello3D",                "IC3D",                   "IEMAI",                  "IIID Max",
      "INLAND",                 "iProspect",              "iSANMATE",               "Justmaker",              "Keene Village Plastics",
-<<<<<<< HEAD
      "Kexcelled",              "LDO",                    "MakerBot",               "MatterHackers",          "MIKA3D",
      "NinjaTek",               "Nobufil",                "Novamaker",              "OVERTURE",               "OVVNYXE",
      "Polymaker",              "Priline",                "Printed Solid",          "Protopasta",             "Prusament",
@@ -60,18 +59,7 @@ static const std::vector<std::string> filament_vendors =
      "Spectrum",               "SUNLU",                  "TTYT3D",                 "Tianse",                 "UltiMaker",
      "Valment",                "Verbatim",               "VO3D",                   "Voxelab",                "VOXELPLA",
      "YOOPAI",                 "Yousu",                  "Ziro",                   "Zyltech"};
-     
-=======
-     "Kexcelled",              "MakerBot",               "MatterHackers",          "MIKA3D",                 "NinjaTek",
-     "Nobufil",                "Novamaker",              "OVERTURE",               "OVVNYXE",                "Polymaker",
-     "Priline",                "Printed Solid",          "Protopasta",             "Prusament",              "Push Plastic",
-     "R3D",                    "Re-pet3D",               "Recreus",                "Regen",                  "RatRig",
-     "Sain SMART",             "SliceWorx",              "Snapmaker",              "SnoLabs",                "Spectrum",
-     "SUNLU",                  "TTYT3D",                 "Tianse",                 "UltiMaker",              "Valment",
-     "Verbatim",               "VO3D",                   "Voxelab",                "VOXELPLA",               "YOOPAI",
-     "Yousu",                  "Ziro",                   "Zyltech"};
 
->>>>>>> 3010ddfa7 (Primary color change)
 static const std::vector<std::string> filament_types = {"PLA",    "rPLA",  "PLA+",      "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",   "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PVB",       "PC",        "PCABS", "PCTG",   "PCCF",   "PHA",    "PP",     "PEI",    "PET",
                                                         "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",       "TPU92A", "TPU98A", "Misc",

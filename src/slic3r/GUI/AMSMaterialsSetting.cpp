@@ -934,11 +934,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         }
 
         m_button_reset->Show();
-<<<<<<< HEAD
-        //m_button_confirm->Show(); 
-=======
         m_button_confirm->Show();
->>>>>>> 3010ddfa7 (Primary color change)
     }
 
     m_comboBox_filament->Set(filament_items);

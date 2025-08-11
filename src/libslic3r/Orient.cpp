@@ -358,17 +358,10 @@ public:
 
         float total_min_z = z_projected.minCoeff();
         // filter bottom area
-<<<<<<< HEAD
         auto bottom_condition = z_max.array() < total_min_z + this->params.FIRST_LAY_H - EPSILON;
         auto bottom_condition_hull = z_max_hull.array() < total_min_z + this->params.FIRST_LAY_H - EPSILON;
         auto bottom_condition_2nd  = z_max.array() < total_min_z + this->params.FIRST_LAY_H / 2.f - EPSILON;
         //The first layer is sliced on half of the first layer height.
-=======
-        auto bottom_condition = z_max.array() < total_min_z + this->params.FIRST_LAY_H - EPSILON;
-        auto bottom_condition_hull = z_max_hull.array() < total_min_z + this->params.FIRST_LAY_H - EPSILON;
-        auto bottom_condition_2nd = z_max.array() < total_min_z + this->params.FIRST_LAY_H/2.f - EPSILON;
-        //The first layer is sliced on half of the first layer height.
->>>>>>> f6ea43b8c (Use AutoOrienter to calculate overhang)
         //The bottom area is measured by accumulating first layer area with the facets area below first layer height.
         //By combining these two factors, we can avoid the wrong orientation of large planar faces while not influence the
         //orientations of complex objects with small bottom areas.

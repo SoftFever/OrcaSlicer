@@ -949,15 +949,12 @@ void PrintErrorDialog::update_text_image(const wxString& text, const wxString& e
     //}
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
 
-<<<<<<< HEAD
     wxString error_code_msg = error_code;
     if (!error_code.IsEmpty()) {
         wxDateTime now       = wxDateTime::Now();
         wxString  show_time = now.Format("%H%M%d");
         error_code_msg = wxString::Format("[%S %S]", error_code, show_time);
     }
-=======
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     if (!m_staticText_release_note) {
         m_staticText_release_note = new Label(m_vebview_release_note, text, LB_AUTO_WRAP);
@@ -1073,13 +1070,8 @@ void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text)
 
 }
 
-<<<<<<< HEAD
 void PrintErrorDialog::init_button_list()
 {
-=======
-void PrintErrorDialog::init_button_list() {
-
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
     init_button(RESUME_PRINTING, _L("Resume Printing"));
     m_button_list[RESUME_PRINTING]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
@@ -1598,10 +1590,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_test_right_msg->SetForegroundColour(wxColour(38, 166, 154));
     m_test_right_msg->Hide();
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
     m_test_wrong_msg = new Label(this, Label::Body_13, wxEmptyString, LB_AUTO_WRAP);
     m_test_wrong_msg->SetForegroundColour(wxColour(208, 27, 27));
     m_test_wrong_msg->Hide();
@@ -1613,10 +1602,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_trouble_shoot = new wxHyperlinkCtrl(this, wxID_ANY, "How to trouble shooting", "");
 
     m_img_help = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_access_code_x1_en", this, 198), wxDefaultPosition, wxSize(FromDIP(352), -1), 0);
-<<<<<<< HEAD
-=======
 
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     auto m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1634,11 +1620,6 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetCornerRadius(FromDIP(12));
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
     m_button_ok->Bind(wxEVT_LEFT_DOWN, &InputIpAddressDialog::on_ok, this);
     m_button_ok->Enable(false);
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
@@ -1685,7 +1666,6 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
 
     auto m_step_icon_panel1 = new wxWindow(this, wxID_ANY);
     auto m_step_icon_panel2 = new wxWindow(this, wxID_ANY);
-<<<<<<< HEAD
     m_step_icon_panel3      = new wxWindow(this, wxID_ANY);
 
     m_step_icon_panel1->SetBackgroundColour(*wxWHITE);
@@ -1695,28 +1675,11 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     auto m_sizer_step_icon_panel1 = new wxBoxSizer(wxVERTICAL);
     auto m_sizer_step_icon_panel2 = new wxBoxSizer(wxVERTICAL);
     auto m_sizer_step_icon_panel3 = new wxBoxSizer(wxVERTICAL);
-=======
-
-    m_step_icon_panel1->SetBackgroundColour(*wxWHITE);
-    m_step_icon_panel2->SetBackgroundColour(*wxWHITE);
-
-
-    auto m_sizer_step_icon_panel1 = new wxBoxSizer(wxVERTICAL);
-    auto m_sizer_step_icon_panel2 = new wxBoxSizer(wxVERTICAL);
-
-
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     m_img_step1 = new wxStaticBitmap(m_step_icon_panel1, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
     m_img_step2 = new wxStaticBitmap(m_step_icon_panel2, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
-<<<<<<< HEAD
     m_img_step3 = new wxStaticBitmap(m_step_icon_panel3, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
-=======
-    m_img_step3 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
-
     m_sizer_step_icon_panel1->Add(m_img_step1, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
-
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     m_step_icon_panel1->SetSizer(m_sizer_step_icon_panel1);
     m_step_icon_panel1->Layout();
@@ -1753,11 +1716,8 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
 
     m_trouble_shoot->Hide();
 
-<<<<<<< HEAD
-    m_sizer_main_right->Add(m_tip1, 0, wxRIGHT | wxEXPAND, FromDIP(18));
-=======
     m_sizer_main_right->Add(m_tip1, 0, wxRIGHT|wxEXPAND, FromDIP(18));
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
+
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(20));
     m_sizer_main_right->Add(m_tip2, 0, wxRIGHT | wxEXPAND, FromDIP(18));
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(2));
@@ -1794,11 +1754,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_sizer_body->Add(m_sizer_button, 0, wxRIGHT | wxEXPAND, FromDIP(25));
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_body->Layout();
-<<<<<<< HEAD
-
     switch_input_panel(0);
-=======
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
 
     SetSizer(m_sizer_body);
     Layout();
@@ -1921,19 +1877,13 @@ void InputIpAddressDialog::update_test_msg(wxString msg,bool connected)
              m_test_wrong_msg->SetLabelText(msg);
              m_test_wrong_msg->SetMinSize(wxSize(FromDIP(352), -1));
              m_test_wrong_msg->SetMaxSize(wxSize(FromDIP(352), -1));
-<<<<<<< HEAD
-             if (current_input_index == 0) {
-                 m_button_manual_setup->Show();
-                 m_button_manual_setup->Enable();
-             }
-             wxCommandEvent e;
-             on_text(e);
-         }
-=======
-         }
-
-
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
+            if (current_input_index == 0) {
+                m_button_manual_setup->Show();
+                m_button_manual_setup->Enable();
+            }
+            wxCommandEvent e;
+            on_text(e);
+        }
     }
 
     Layout();
@@ -2081,16 +2031,12 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
 #ifdef __APPLE__
         wxCommandEvent event(EVT_CLOSE_IPADDRESS_DLG);
         wxPostEvent(this, event);
-<<<<<<< HEAD
-#else
-        closeTimer->Start(1000);
-#endif
-=======
         m_result = 0;
 
         update_test_msg(_L("IP and Access Code Verified! You may close the window"), true);
 
->>>>>>> 285e85f06 (It's crazy that developers are still putting up with these kinds of C++ idiosyncrasies)
+        closeTimer->Start(1000);
+#endif
     });
 }
 
