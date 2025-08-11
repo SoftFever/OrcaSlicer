@@ -1727,7 +1727,13 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
     bool valid = true;
     Point plate_offset = Point(scale_(m_x_offset), scale_(m_y_offset));
     plate_printable_poly.translate(plate_offset);
-    wrapping_exclude_poly.translate(plate_offset);
+    //wrapping_exclude_poly.translate(plate_offset);
+    BoundingBox plate_printable_bbox = plate_printable_poly.bounding_box();
+    if (plate_printable_poly.is_valid()) {
+        plate_printable_bbox.offset(scale_(2.0)); // Expand the range to provide a tolerance
+    } else
+        plate_printable_bbox.defined = false; //when this is used, the printable area config was missing, something wrong
+
     for (auto obj_iter = gcode_path_pos.begin(); obj_iter != gcode_path_pos.end(); ++obj_iter) {
         int                                object_label_id = obj_iter->first;
         const std::map<int, GCodePosInfo> &path_pos        = obj_iter->second;
@@ -1738,8 +1744,8 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
             Polygon     path_poly(iter_points);
             if (path_poly.empty()) continue;
             BoundingBox bbox = path_poly.bounding_box();
-            if (plate_printable_poly.is_valid()){
-                if (!plate_printable_poly.bounding_box().contains(bbox)) {// out of the bed area
+            if (plate_printable_bbox.defined) {
+                if (!plate_printable_bbox.contains(bbox)) { // out of the bed area
                     m_result.gcode_check_result.error_code |= (1<<2);
                     std::pair<int, int> filament_to_object_id;
                     filament_to_object_id.first  = iter->first;
