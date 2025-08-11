@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-03-21 21:00+0200\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -37,8 +37,6 @@ msgstr "Temperatūra"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "Serijinis:"
@@ -193,6 +191,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "Perjungti \"vielinį\" vaizdą"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Atšaukti"
+
 msgid "Shortcut Key "
 msgstr "Spartusis klavišas "
 
@@ -214,6 +221,9 @@ msgstr "Pašalinti dažytą spalvą"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Piešta naudojant: Gija %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Perkelti"
@@ -483,9 +493,6 @@ msgstr "Tarpo proporcija spindulio atžvilgiu"
 
 msgid "Confirm connectors"
 msgstr "Patvirtinti jungtis"
-
-msgid "Cancel"
-msgstr "Atšaukti"
 
 msgid "Build Volume"
 msgstr "Spausdinimo tūris"
@@ -2875,6 +2882,8 @@ msgstr "Atsisiunčiama"
 msgid "Download failed"
 msgstr "Atsisiuntimas nepavyko"
 
+msgid "Canceled"
+msgstr "Atšaukta"
 
 msgid "Installed successfully"
 msgstr "Sėkmingai įdiegta."
@@ -3860,7 +3869,6 @@ msgstr ""
 "seam_slope_start_height turi būti mažesnis nei layer_height.\n"
 "Atstatoma į 0."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10264,6 +10272,13 @@ msgstr "Glotni vėsi plokštė"
 msgid "Smooth High Temp Plate"
 msgstr "Lygi aukštos temperatūros plokštė"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Pirmojo sluoksnio spausdinimo seka"
 
@@ -12156,6 +12171,9 @@ msgstr "Kryžminis skliautas"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Giroidas"
 
@@ -13993,6 +14011,9 @@ msgstr "Artimiausia"
 
 msgid "Aligned"
 msgstr "Sulygiuota"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Gale"
@@ -16370,9 +16391,6 @@ msgstr ""
 "Nežinomas failo formatas. Įvesties failo plėtinys turi būti .3mf "
 "arba .zip.amf."
 
-msgid "Canceled"
-msgstr "Atšaukta"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: nepavyko apdoroti"
 
@@ -17130,7 +17148,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""

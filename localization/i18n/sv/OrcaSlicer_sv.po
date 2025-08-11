@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,6 @@ msgstr "Temperatur"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "Serienummer:"
@@ -185,6 +183,15 @@ msgstr "Alt + Skift + Enter"
 msgid "Toggle Wireframe"
 msgstr "Växla Wireframe"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Avbryt"
+
 msgid "Shortcut Key "
 msgstr "Snabbkommando "
 
@@ -206,6 +213,9 @@ msgstr "Ta bort färgläggning"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Färgläggning använder: Filament %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Flytta"
@@ -470,9 +480,6 @@ msgstr ""
 
 msgid "Confirm connectors"
 msgstr "Bekräfta kontakterna"
-
-msgid "Cancel"
-msgstr "Avbryt"
 
 msgid "Build Volume"
 msgstr ""
@@ -2798,6 +2805,8 @@ msgstr "Laddar ner"
 msgid "Download failed"
 msgstr "Nedladdningen misslyckades"
 
+msgid "Canceled"
+msgstr "Avbruten"
 
 msgid "Installed successfully"
 msgstr "Installationen lyckades"
@@ -3740,7 +3749,6 @@ msgid ""
 "Reset to 0."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9846,6 +9854,13 @@ msgstr ""
 msgid "Smooth High Temp Plate"
 msgstr ""
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Första lagrets utskrifts ordning"
 
@@ -11315,6 +11330,9 @@ msgid "Cross Hatch"
 msgstr "Cross Hatch"
 
 msgid "TPMS-D"
+msgstr ""
+
+msgid "TPMS-FK"
 msgstr ""
 
 msgid "Gyroid"
@@ -12914,6 +12932,9 @@ msgstr "Närmaste"
 
 msgid "Aligned"
 msgstr "Linjerad"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Tillbaka"
@@ -15005,9 +15026,6 @@ msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 "Okänt filformat: indata filen måste ha fil ändelsen .3mf eller .zip.amf."
 
-msgid "Canceled"
-msgstr "Avbruten"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: misslyckades med att analysera"
 
@@ -15697,7 +15715,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""

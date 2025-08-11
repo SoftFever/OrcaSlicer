@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-03-07 09:30+0200\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
@@ -37,8 +37,6 @@ msgstr "Температура"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "Серійний номер:"
@@ -194,6 +192,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "Перемикання каркасу"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Скасувати"
+
 msgid "Shortcut Key "
 msgstr "Комбінація клавіш "
 
@@ -215,6 +222,9 @@ msgstr "Видалити зафарбований колір"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Забарвлений за допомогою: Філамент %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Перемістити"
@@ -484,9 +494,6 @@ msgstr "Пропорція простору в залежності від ра�
 
 msgid "Confirm connectors"
 msgstr "Підтвердити з'єднувачі"
-
-msgid "Cancel"
-msgstr "Скасувати"
 
 msgid "Build Volume"
 msgstr "Робочий об'єм"
@@ -2877,6 +2884,8 @@ msgstr "Завантаження"
 msgid "Download failed"
 msgstr "Помилка завантаження"
 
+msgid "Canceled"
+msgstr "Скасовано"
 
 msgid "Installed successfully"
 msgstr "Успішне встановлення."
@@ -3872,7 +3881,6 @@ msgstr ""
 "seam_slope_start_height має бути менше висоти шару.\n"
 "Значення скинуто на 0."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10282,6 +10290,13 @@ msgstr "Гладка Холодна Пластина"
 msgid "Smooth High Temp Plate"
 msgstr "Гладка Високотемпературна Пластина"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Послідовність друку першого шару"
 
@@ -12212,6 +12227,9 @@ msgstr "Перехресний штрих"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Гіроїд"
 
@@ -14091,6 +14109,9 @@ msgstr "Найближче"
 
 msgid "Aligned"
 msgstr "Вирівняне"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Ззаду"
@@ -16456,9 +16477,6 @@ msgstr ""
 "Невідомий формат файлу: вхідний файл повинен мати розширення .3mf "
 "або .zip.amf."
 
-msgid "Canceled"
-msgstr "Скасовано"
-
 msgid "load_obj: failed to parse"
 msgstr "помилка завантаження файлу OBJ: не вдалося розпізнати формат"
 
@@ -17218,7 +17236,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""
