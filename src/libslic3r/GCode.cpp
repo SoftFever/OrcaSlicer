@@ -5040,11 +5040,12 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
                     auto *eec = dynamic_cast<const ExtrusionEntityCollection*>(fill);
                     if (eec) {
                         if (ironing && region_config.ironing_flow == 0)
-                            gcode += "G1 E-20 F1200" + GCodeWriter::full_gcode_comment ? "; ironing retract\n" : "\n";
+                            gcode += this->writer().emit_retract(region_config.ironing_retract, " ; ironing retract");
+
                         for (ExtrusionEntity *ee : eec->chained_path_from(m_last_pos).entities)
                             gcode += this->extrude_entity(*ee, extrusion_name);
                         if (ironing && region_config.ironing_flow == 0)
-                            gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Ironing_End) + "\nG1 E20 F1200" + (GCodeWriter::full_gcode_comment ? "; ironing unretract\n" : "\n");
+                            gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Ironing_End) + "\n" + this->writer().emit_unretract(region_config.ironing_retract + region_config.ironing_unretract_extra, " ; ironing retract");
                     } else
                         gcode += this->extrude_entity(*fill, extrusion_name);
                 }

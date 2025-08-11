@@ -81,6 +81,8 @@ public:
     std::string retract(bool before_wipe = false, double retract_length = 0);
     std::string retract_for_toolchange(bool before_wipe = false, double retract_length = 0);
     std::string unretract();
+    std::string GCodeWriter::emit_retract(double E, std::string comment);
+    std::string GCodeWriter::emit_unretract(double E, std::string comment);
     std::string lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false);
     std::string unlift();
     const Vec3d& get_position() const { return m_pos; }
