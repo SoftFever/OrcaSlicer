@@ -437,7 +437,7 @@ if (SLIC3R_PROFILE)
     add_definitions(-DSLIC3R_PROFILE)
 endif ()
 
-# Disable optimization for RelWithDebInfo
+# Disable optimization for RelWithDebInfo on Windows and with Clang compiler on Mac/Linux
 if(CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "/O2")
     string(REGEX REPLACE "/O2" "/Od" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 endif()
@@ -646,7 +646,6 @@ foreach(po_file ${BBL_L10N_PO_FILES})
     add_custom_command(
         TARGET gettext_merge_po_with_pot PRE_BUILD
         COMMAND msgmerge -N -o ${po_file} ${po_file} "${BBL_L18N_DIR}/OrcaSlicer.pot"
-        DEPENDS ${po_file}
     )
 endforeach()
 add_custom_target(gettext_po_to_mo
@@ -662,7 +661,6 @@ foreach(po_file ${BBL_L10N_PO_FILES})
         TARGET gettext_po_to_mo PRE_BUILD
         COMMAND msgfmt ARGS --check-format -o ${mo_file} ${po_file}
         #COMMAND msgfmt ARGS --check-compatibility -o ${mo_file} ${po_file}
-        DEPENDS ${po_file}
     )
 endforeach()
 
