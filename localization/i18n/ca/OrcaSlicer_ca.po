@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-03-15 10:55+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -190,6 +190,15 @@ msgstr "Alt + Majúscules + Retorn"
 msgid "Toggle Wireframe"
 msgstr "Commuta Malla Alàmbrica"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Cancel·lar"
+
 msgid "Shortcut Key "
 msgstr "Tecla de drecera "
 
@@ -211,6 +220,9 @@ msgstr "Elimina el color pintat"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Pintat amb: Filament %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Moure"
@@ -480,9 +492,6 @@ msgstr "Proporció espacial en relació al radi"
 
 msgid "Confirm connectors"
 msgstr "Confirmar connectors"
-
-msgid "Cancel"
-msgstr "Cancel·lar"
 
 msgid "Build Volume"
 msgstr "Volum de construcció"
@@ -2878,6 +2887,9 @@ msgstr "Descarregant"
 msgid "Download failed"
 msgstr "Descàrrega fallida"
 
+msgid "Canceled"
+msgstr "Cancel·lat"
+
 msgid "Installed successfully"
 msgstr "Instal·lació correcta."
 
@@ -3875,7 +3887,6 @@ msgstr ""
 "seam_slope_start_height ha de ser més petit que layer_height.\n"
 "Restablert a 0."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10320,6 +10331,13 @@ msgstr "Placa Freda Llisa"
 msgid "Smooth High Temp Plate"
 msgstr "Placa Llisa d'Alta Temperatura"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Seqüència d'impressió de primera capa"
 
@@ -12280,6 +12298,9 @@ msgstr "Quadrícula"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Giroide"
 
@@ -14170,6 +14191,9 @@ msgstr "Més proper"
 
 msgid "Aligned"
 msgstr "Alineat"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Darrera"
@@ -16596,9 +16620,6 @@ msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 "Format de fitxer desconegut. El fitxer d'entrada ha de tenir extensió .3mf "
 "o .zip.amf."
-
-msgid "Canceled"
-msgstr "Cancel·lat"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: no s'ha pogut analitzar"
