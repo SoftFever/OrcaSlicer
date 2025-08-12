@@ -1191,7 +1191,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         if (m_config.enable_wrapping_detection) {
             StringObjectException clumping_detection_setting_err;
             clumping_detection_setting_err.string = L("Clumping detection is not supported when \"by object\" sequence is enabled.");
-            clumping_detection_setting_err.opt_key = L("enable_wrapping_detection");
+            clumping_detection_setting_err.opt_key = "enable_wrapping_detection";
             return clumping_detection_setting_err;
         }
 
@@ -1216,7 +1216,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         if (m_config.enable_wrapping_detection && warning!=nullptr) {
             StringObjectException warningtemp;
             warningtemp.string     = L("Prime tower is required for clumping detection; otherwise, there may be flaws on the model.");
-            warningtemp.opt_key    = L("enable_prime_tower");
+            warningtemp.opt_key    = "enable_prime_tower";
             warningtemp.is_warning = true;
             *warning               = warningtemp;
         }
