@@ -1,11 +1,16 @@
 # Strength Advanced
 
+- [Align infill direction to model](#align-infill-direction-to-model)
 - [Bridge infill direction](#bridge-infill-direction)
 - [Minimum sparse infill threshold](#minimum-sparse-infill-threshold)
 - [Infill Combination](#infill-combination)
   - [Max layer height](#max-layer-height)
 - [Detect narrow internal solid infill](#detect-narrow-internal-solid-infill)
 - [Ensure vertical shell thickness](#ensure-vertical-shell-thickness)
+
+## Align infill direction to model
+
+Aligns infill and surface fill directions to follow the model's orientation on the build plate. When enabled, fill directions rotate with the model to maintain optimal strength characteristics.
 
 ## Bridge infill direction
 

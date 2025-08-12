@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-05-18 09:32-0300\n"
 "Last-Translator: Alexandre Folle de Menezes\n"
 "Language-Team: \n"
@@ -30,14 +30,6 @@ msgid "Temperature"
 msgstr ""
 
 msgid "Left Time"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
 msgstr ""
 
 msgid "Serial:"
@@ -191,6 +183,15 @@ msgstr ""
 msgid "Toggle Wireframe"
 msgstr ""
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
 msgid "Shortcut Key "
 msgstr ""
 
@@ -211,6 +212,9 @@ msgstr ""
 
 #, boost-format
 msgid "Painted using: Filament %1%"
+msgstr ""
+
+msgid "Filament remapping finished."
 msgstr ""
 
 msgid "Move"
@@ -475,9 +479,6 @@ msgid "Space proportion related to radius"
 msgstr ""
 
 msgid "Confirm connectors"
-msgstr ""
-
-msgid "Cancel"
 msgstr ""
 
 msgid "Build Volume"
@@ -2757,7 +2758,7 @@ msgstr ""
 msgid "Download failed"
 msgstr ""
 
-msgid "Cancelled"
+msgid "Canceled"
 msgstr ""
 
 msgid "Installed successfully"
@@ -3658,7 +3659,6 @@ msgid ""
 "Reset to 0."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9602,6 +9602,13 @@ msgstr ""
 msgid "Smooth High Temp Plate"
 msgstr ""
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr ""
 
@@ -11064,6 +11071,9 @@ msgid "Cross Hatch"
 msgstr ""
 
 msgid "TPMS-D"
+msgstr ""
+
+msgid "TPMS-FK"
 msgstr ""
 
 msgid "Gyroid"
@@ -12645,6 +12655,9 @@ msgid "Nearest"
 msgstr ""
 
 msgid "Aligned"
+msgstr ""
+
+msgid "Aligned back"
 msgstr ""
 
 msgid "Back"
@@ -14666,9 +14679,6 @@ msgstr ""
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Unknown file format: input file must have .3mf or .zip.amf extension."
 
-msgid "Canceled"
-msgstr ""
-
 msgid "load_obj: failed to parse"
 msgstr ""
 
@@ -14765,7 +14775,7 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 
 msgid "The name cannot be empty."
@@ -15240,7 +15250,7 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 
 msgid "Temperature calibration"
@@ -15283,7 +15293,7 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 
 msgid "Max volumetric speed test"
@@ -15297,9 +15307,9 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 
 msgid "VFA test"
@@ -15313,9 +15323,9 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 
 msgid "Start retraction length: "
@@ -15342,9 +15352,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
-
 msgid "Damp: "
 msgstr ""
 
@@ -15354,8 +15361,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
@@ -15374,8 +15381,8 @@ msgid "Note: Use previously calculated frequencies."
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
 
 msgid ""
@@ -15398,7 +15405,7 @@ msgid "Note: Lower values = sharper corners but slower speeds"
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
 
@@ -15458,7 +15465,7 @@ msgstr ""
 msgid "Uploading"
 msgstr ""
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr ""
 
 msgid "Error uploading to print host"
@@ -16208,7 +16215,7 @@ msgstr ""
 msgid "Could not connect to Repetier"
 msgstr ""
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr ""
 
 #, boost-format

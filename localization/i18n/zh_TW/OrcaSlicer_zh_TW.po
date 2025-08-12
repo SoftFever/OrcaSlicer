@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-03-27 19:32+0800\n"
 "Last-Translator: 5idereal <hi@5idereal.cc>\n"
 "Language-Team: \n"
@@ -36,14 +36,6 @@ msgid "Temperature"
 msgstr "溫度"
 
 msgid "Left Time"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
 msgstr ""
 
 msgid "Serial:"
@@ -197,6 +189,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "顯示/隱藏線框"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "取消"
+
 msgid "Shortcut Key "
 msgstr "快捷鍵 "
 
@@ -218,6 +219,9 @@ msgstr "移除已繪製的顏色"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "上色：線材 %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "移動"
@@ -487,9 +491,6 @@ msgstr "與半徑相關的空間佔比"
 
 msgid "Confirm connectors"
 msgstr "確認"
-
-msgid "Cancel"
-msgstr "取消"
 
 msgid "Build Volume"
 msgstr "列印體積"
@@ -2785,8 +2786,8 @@ msgstr "下載中"
 msgid "Download failed"
 msgstr "下載失敗"
 
-msgid "Cancelled"
-msgstr ""
+msgid "Canceled"
+msgstr "已取消"
 
 msgid "Installed successfully"
 msgstr "安裝成功。"
@@ -3708,7 +3709,6 @@ msgstr ""
 "seam_slope_start_height 必須小於 layer_height。\n"
 "重設為 0。"
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9727,6 +9727,13 @@ msgstr "低溫平滑列印板"
 msgid "Smooth High Temp Plate"
 msgstr "高溫平滑列印板"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "首層列印順序"
 
@@ -11417,6 +11424,9 @@ msgstr "交叉填充"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "螺旋體"
 
@@ -13100,6 +13110,9 @@ msgstr "最近"
 
 msgid "Aligned"
 msgstr "對齊"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "背面"
@@ -15257,9 +15270,6 @@ msgstr "檔案格式未知。輸入的檔案必須是 .stl、.obj 或 .amf(.xml)
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "未知的檔案格式。輸入檔案的副檔名必須為 .3mf 或 .zip .amf。"
 
-msgid "Canceled"
-msgstr "已取消"
-
 msgid "load_obj: failed to parse"
 msgstr "載入物件：解析失敗"
 
@@ -15358,7 +15368,7 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 "請輸入有效值：\n"
 "起始值：>= %.1f\n"
@@ -15856,7 +15866,7 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 "請輸入有效值：\n"
 "起始 PA：>= 0.0\n"
@@ -15903,7 +15913,7 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 "請輸入有效值：\n"
 "起始溫度：<= 350\n"
@@ -15921,9 +15931,9 @@ msgstr "結束流量："
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "請輸入有效值：\n"
 "開始 > 0\n"
@@ -15941,9 +15951,9 @@ msgstr "結束速度："
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "請輸入有效值：\n"
 "開始 > 10\n"
@@ -15974,9 +15984,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
-
 msgid "Damp: "
 msgstr ""
 
@@ -15986,8 +15993,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
@@ -16006,8 +16013,8 @@ msgid "Note: Use previously calculated frequencies."
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
 
 msgid ""
@@ -16030,7 +16037,7 @@ msgid "Note: Lower values = sharper corners but slower speeds"
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
 
@@ -16090,7 +16097,7 @@ msgstr "已加入佇列"
 msgid "Uploading"
 msgstr "正在上傳"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "取消中"
 
 msgid "Error uploading to print host"
@@ -16843,8 +16850,8 @@ msgstr "與 Repetier 的連接工作正常。"
 msgid "Could not connect to Repetier"
 msgstr "無法連接到 Repetier"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "注意：Repetier 版本至少需要 0.90.0。"
 
 #, boost-format
 msgid ""
@@ -17860,9 +17867,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "重新整理列印設備"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "注意：Repetier 版本至少需要 0.90.0。"
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "

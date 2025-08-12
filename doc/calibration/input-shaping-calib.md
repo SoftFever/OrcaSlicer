@@ -7,6 +7,7 @@ During high-speed movements, vibrations can cause a phenomenon called "ringing,"
 - [Marlin](#marlin)
   - [ZV Input Shaping](#zv-input-shaping)
   - [Fixed-Time Motion](#fixed-time-motion)
+- [Credits](#credits)
 
 ## Klipper
 
@@ -129,3 +130,8 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 ### Fixed-Time Motion
 
 TODO: This calibration test is currently under development. See the [Marlin documentation](https://marlinfw.org/docs/gcode/M493.html) for more information.
+
+## Credits
+
+- **Input Shaping Calibration:** [@IanAlexis](https://github.com/IanAlexis) and [@RF47](https://github.com/RF47)
+- **Klipper testing:** [@ShaneDelmore](https://github.com/ShaneDelmore)

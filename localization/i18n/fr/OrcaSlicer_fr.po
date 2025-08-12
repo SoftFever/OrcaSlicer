@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -33,14 +33,6 @@ msgid "Temperature"
 msgstr "Température"
 
 msgid "Left Time"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
 msgstr ""
 
 msgid "Serial:"
@@ -198,6 +190,15 @@ msgstr "Alt + Shift + Entrée"
 msgid "Toggle Wireframe"
 msgstr "Activer Maillage"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Annuler"
+
 msgid "Shortcut Key "
 msgstr "Raccourci "
 
@@ -219,6 +220,9 @@ msgstr "Supprimer la couleur peinte"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Peint avec : filament %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Déplacer"
@@ -488,9 +492,6 @@ msgstr "Proportion de l’espace par rapport au rayon"
 
 msgid "Confirm connectors"
 msgstr "Confirmer les connecteurs"
-
-msgid "Cancel"
-msgstr "Annuler"
 
 msgid "Build Volume"
 msgstr "Volume d’impression"
@@ -2910,8 +2911,8 @@ msgstr "Téléchargement"
 msgid "Download failed"
 msgstr "Échec du téléchargement"
 
-msgid "Cancelled"
-msgstr ""
+msgid "Canceled"
+msgstr "Annulé"
 
 msgid "Installed successfully"
 msgstr "Installé avec succès."
@@ -3914,7 +3915,6 @@ msgstr ""
 "seam_slope_start_height doit être inférieur à la hauteur de couche.\n"
 "Remise à 0."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10464,6 +10464,13 @@ msgstr "Plaque Cool plate lisse"
 msgid "Smooth High Temp Plate"
 msgstr "Plaque lisse haute température"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Séquence d’impression de la première couche"
 
@@ -12449,6 +12456,9 @@ msgstr "Quadrillage"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Gyroïde"
 
@@ -14360,6 +14370,9 @@ msgstr "La plus proche"
 
 msgid "Aligned"
 msgstr "Alignée"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Arrière"
@@ -16821,9 +16834,6 @@ msgstr ""
 "Format de fichier inconnu : le fichier d'entrée doit porter l'extension "
 ".3mf, .zip ou .amf."
 
-msgid "Canceled"
-msgstr "Annulé"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj : échec de l'analyse"
 
@@ -16925,13 +16935,13 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 "Veuillez saisir des valeurs valides :\n"
 "Début: >= %.1f\n"
 "Fin: <= %.1f\n"
 "Fin: > Début\n"
-"Intervalle: >= %.3f)"
+"Intervalle: >= %.3f"
 
 msgid "The name cannot be empty."
 msgstr "Le nom ne peut pas être vide."
@@ -17482,12 +17492,12 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 "Veuillez saisir des valeurs valides :\n"
 "Début: >= 0.0\n"
 "Fin: > Début\n"
-"Intervalle: >= 0.001)"
+"Intervalle: >= 0.001"
 
 msgid "Temperature calibration"
 msgstr "Calibration de Température"
@@ -17529,12 +17539,12 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 "Veuillez saisir des valeurs valides :\n"
 "Début <= 350\n"
 "Fin >= 170\n"
-"Début > Fin + 5)"
+"Début > Fin + 5"
 
 msgid "Max volumetric speed test"
 msgstr "Test de vitesse volumétrique max"
@@ -17547,14 +17557,14 @@ msgstr "Vitesse volumétrique de fin: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Veuillez saisir des valeurs valides :\n"
 "Début > 0 \n"
 "Intervalle >= 0\n"
-"Fin > Début + Intervalle)"
+"Fin > Début + Intervalle"
 
 msgid "VFA test"
 msgstr "Test VFA"
@@ -17567,14 +17577,14 @@ msgstr "Vitesse de fin: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Veuillez saisir des valeurs valides :\n"
 "Début > 10 \n"
 "intervalles >= 0\n"
-"Fin > Début + Intervalle)"
+"Fin > Début + Intervalle"
 
 msgid "Start retraction length: "
 msgstr "Longueur de rétraction de début: "
@@ -17600,9 +17610,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
-
 msgid "Damp: "
 msgstr ""
 
@@ -17612,8 +17619,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
@@ -17632,8 +17639,8 @@ msgid "Note: Use previously calculated frequencies."
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
 
 msgid ""
@@ -17656,7 +17663,7 @@ msgid "Note: Lower values = sharper corners but slower speeds"
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
 
@@ -17720,7 +17727,7 @@ msgstr "En file d’attente"
 msgid "Uploading"
 msgstr "Téléversement"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Annulation"
 
 msgid "Error uploading to print host"
@@ -18567,8 +18574,8 @@ msgstr "La connexion à Repetier fonctionne correctement."
 msgid "Could not connect to Repetier"
 msgstr "Impossible de se connecter à Repetier"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "Note : La version 0.90.0 de Repetier est requise."
 
 #, boost-format
 msgid ""
@@ -19688,9 +19695,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "Actualiser les imprimantes"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "Note : La version 0.90.0 de Repetier est requise."
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "
@@ -21540,17 +21544,17 @@ msgstr ""
 #~ msgid ""
 #~ "Please input valid values:\n"
 #~ "start > 0 step >= 0\n"
-#~ "end > start + step)"
+#~ "end > start + step"
 #~ msgstr ""
 #~ "Veuillez saisir des valeurs valides :\n"
 #~ "Début > 0 intervalle >= 0\n"
-#~ "Fin > Début + Intervalle)"
+#~ "Fin > Début + Intervalle"
 
 #~ msgid ""
 #~ "Please input valid values:\n"
 #~ "start > 10 step >= 0\n"
-#~ "end > start + step)"
+#~ "end > start + step"
 #~ msgstr ""
 #~ "Veuillez saisir des valeurs valides :\n"
 #~ "Début > 10 intervalles >= 0\n"
-#~ "Fin > Début + Intervalle)"
+#~ "Fin > Début + Intervalle"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-03-21 21:00+0200\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -36,14 +36,6 @@ msgid "Temperature"
 msgstr "Temperatūra"
 
 msgid "Left Time"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
 msgstr ""
 
 msgid "Serial:"
@@ -199,6 +191,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "Perjungti \"vielinį\" vaizdą"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Atšaukti"
+
 msgid "Shortcut Key "
 msgstr "Spartusis klavišas "
 
@@ -220,6 +221,9 @@ msgstr "Pašalinti dažytą spalvą"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Piešta naudojant: Gija %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Perkelti"
@@ -489,9 +493,6 @@ msgstr "Tarpo proporcija spindulio atžvilgiu"
 
 msgid "Confirm connectors"
 msgstr "Patvirtinti jungtis"
-
-msgid "Cancel"
-msgstr "Atšaukti"
 
 msgid "Build Volume"
 msgstr "Spausdinimo tūris"
@@ -2881,8 +2882,8 @@ msgstr "Atsisiunčiama"
 msgid "Download failed"
 msgstr "Atsisiuntimas nepavyko"
 
-msgid "Cancelled"
-msgstr ""
+msgid "Canceled"
+msgstr "Atšaukta"
 
 msgid "Installed successfully"
 msgstr "Sėkmingai įdiegta."
@@ -3868,7 +3869,6 @@ msgstr ""
 "seam_slope_start_height turi būti mažesnis nei layer_height.\n"
 "Atstatoma į 0."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10272,6 +10272,13 @@ msgstr "Glotni vėsi plokštė"
 msgid "Smooth High Temp Plate"
 msgstr "Lygi aukštos temperatūros plokštė"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Pirmojo sluoksnio spausdinimo seka"
 
@@ -12164,6 +12171,9 @@ msgstr "Kryžminis skliautas"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Giroidas"
 
@@ -14001,6 +14011,9 @@ msgstr "Artimiausia"
 
 msgid "Aligned"
 msgstr "Sulygiuota"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Gale"
@@ -16378,9 +16391,6 @@ msgstr ""
 "Nežinomas failo formatas. Įvesties failo plėtinys turi būti .3mf "
 "arba .zip.amf."
 
-msgid "Canceled"
-msgstr "Atšaukta"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: nepavyko apdoroti"
 
@@ -16480,7 +16490,7 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 "Įveskite tinkamas reikšmes:\n"
 "Pradinė reikšmė: >= %.1f\n"
@@ -17021,7 +17031,7 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 "Įveskite galiojančias reikšmes:\n"
 "Pradžios PA: >= 0,0\n"
@@ -17068,7 +17078,7 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 "Įveskite tinkamas reikšmes:\n"
 "Pradžios temp: <= 350\n"
@@ -17086,9 +17096,9 @@ msgstr "Galinis tūrinis greitis: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Įveskite tinkamas reikšmes:\n"
 "pradinis > 0\n"
@@ -17106,9 +17116,9 @@ msgstr "Galinis greitis: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Įveskite tinkamas reikšmes:\n"
 "pradinis > 10\n"
@@ -17139,9 +17149,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
-
 msgid "Damp: "
 msgstr ""
 
@@ -17151,8 +17158,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
@@ -17171,8 +17178,8 @@ msgid "Note: Use previously calculated frequencies."
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
 
 msgid ""
@@ -17195,7 +17202,7 @@ msgid "Note: Lower values = sharper corners but slower speeds"
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
 
@@ -17256,7 +17263,7 @@ msgstr "Eilėje"
 msgid "Uploading"
 msgstr "Įkeliama"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Atšaukiama"
 
 msgid "Error uploading to print host"
@@ -18075,8 +18082,8 @@ msgstr "Ryšys su REpieter veikia tinkamai."
 msgid "Could not connect to Repetier"
 msgstr "Nepavyko prisijungti prie Repieter"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "Pastaba: reikalinga bent 0.90.0 Repetier versija."
 
 #, boost-format
 msgid ""
@@ -19380,9 +19387,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "Atnaujinti spausdintuvus"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "Pastaba: reikalinga bent 0.90.0 Repetier versija."
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "
