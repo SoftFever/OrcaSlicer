@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-07-26 14:14+0800\n"
-"PO-Revision-Date: 2024-11-03 20:59+0100\n"
+"PO-Revision-Date: 2025-08-12 19:55+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
 "Language: cs_CZ\n"
@@ -16,25 +16,25 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.6\n"
 
 msgid "Current AMS humidity"
-msgstr ""
+msgstr "Aktuální vlhkost v AMS"
 
 msgid "Drying"
-msgstr ""
+msgstr "Sušení"
 
 msgid "Idle"
 msgstr "Nečinný"
 
 msgid "Humidity"
-msgstr ""
+msgstr "Vlhkost"
 
 msgid "Temperature"
 msgstr "Teplota"
 
 msgid "Left Time"
-msgstr ""
+msgstr "Zbývající čas"
 
 #, c-format, boost-format
 msgid "%.1f ℃"
@@ -224,7 +224,7 @@ msgid "Move"
 msgstr "Přesunout"
 
 msgid "Please select at least one object."
-msgstr ""
+msgstr "Vyberte prosím alespoň 1 objekt"
 
 msgid "Gizmo-Move"
 msgstr "Gizmo-Posuv"
@@ -257,7 +257,7 @@ msgid "mm"
 msgstr "mm"
 
 msgid "Part selection"
-msgstr ""
+msgstr "Výběr dílu"
 
 msgid "Fixed step drag"
 msgstr ""
@@ -269,7 +269,7 @@ msgid "Position"
 msgstr "Pozice"
 
 msgid "Rotate (relative)"
-msgstr ""
+msgstr "Otočit (relativní)"
 
 msgid "Scale ratios"
 msgstr "Poměry měřítka"
@@ -308,7 +308,7 @@ msgid "Reset current rotation to the value when open the rotation tool."
 msgstr ""
 
 msgid "Rotate (absolute)"
-msgstr ""
+msgstr "Otočit (absolutní)"
 
 msgid "Reset current rotation to real zeros."
 msgstr ""
@@ -1057,7 +1057,7 @@ msgstr "Orientovat text směrem ke kameře."
 
 #, boost-format
 msgid "Font \"%1%\" can't be used. Please select another."
-msgstr ""
+msgstr "Font \"%1%\" nemůže být použit. Vyberte prosím jiný."
 
 #, boost-format
 msgid ""
@@ -1316,7 +1316,7 @@ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "SVG soubor neobsahuje jedinou cestu, kterou lze embosovat (%1%)."
 
 msgid "No feature"
-msgstr ""
+msgstr "Žádná možnost"
 
 msgid "Vertex"
 msgstr "Vertex"
@@ -1372,7 +1372,7 @@ msgstr "Změna rozměru"
 
 msgctxt "Verb"
 msgid "Scale all"
-msgstr ""
+msgstr "Škálovat vše"
 
 msgid "None"
 msgstr "Žádné"
@@ -1387,7 +1387,7 @@ msgid "Selection"
 msgstr "Výběr"
 
 msgid " (Moving)"
-msgstr ""
+msgstr "(Pohybující se)"
 
 msgid ""
 "Select 2 faces on objects and \n"
@@ -1400,13 +1400,13 @@ msgid ""
 msgstr ""
 
 msgid "Face"
-msgstr ""
+msgstr "Plocha na objektu"
 
 msgid " (Fixed)"
 msgstr ""
 
 msgid "Point"
-msgstr ""
+msgstr "Bod"
 
 msgid ""
 "Feature 1 has been reset, \n"
@@ -1438,19 +1438,19 @@ msgid "Distance XYZ"
 msgstr "Vzdálenost XYZ"
 
 msgid "Parallel"
-msgstr ""
+msgstr "Paralelní"
 
 msgid "Center coincidence"
 msgstr ""
 
 msgid "Feature 1"
-msgstr ""
+msgstr "Možnost 1"
 
 msgid "Reverse rotation"
-msgstr ""
+msgstr "Obrátit rotaci"
 
 msgid "Rotate around center:"
-msgstr ""
+msgstr "Otáčet kolem středu"
 
 msgid "Parallel distance:"
 msgstr ""
@@ -1498,7 +1498,7 @@ msgstr ""
 "rozpoznány."
 
 msgid "Based on PrusaSlicer and BambuStudio"
-msgstr ""
+msgstr "Založeno na softwarech PrusaSlicer a BambuStudio"
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory. It may be a bug. "
@@ -1656,7 +1656,7 @@ msgid ""
 msgstr ""
 
 msgid "Sync user presets"
-msgstr ""
+msgstr "Synchronizovat uživatelská přednastavení"
 
 msgid "Loading user preset"
 msgstr "Načítání uživatelské předvolby"
@@ -1742,7 +1742,7 @@ msgid "Top Minimum Shell Thickness"
 msgstr "Minimální tloušťka skořepiny nahoře"
 
 msgid "Top Surface Density"
-msgstr ""
+msgstr "Hustota vrchního povrchu"
 
 msgid "Bottom Solid Layers"
 msgstr "Spodní plné vrstvy"
@@ -1751,7 +1751,7 @@ msgid "Bottom Minimum Shell Thickness"
 msgstr "Minimální tloušťka skořepiny dole"
 
 msgid "Bottom Surface Density"
-msgstr ""
+msgstr "Hustota spodního povrchu"
 
 msgid "Ironing"
 msgstr "Žehlení"
@@ -1823,7 +1823,7 @@ msgid "Load..."
 msgstr "Načíst..."
 
 msgid "Cube"
-msgstr "Kostka"
+msgstr "Krychle"
 
 msgid "Cylinder"
 msgstr "Válec"
@@ -1832,7 +1832,7 @@ msgid "Cone"
 msgstr "Kužel"
 
 msgid "Disc"
-msgstr ""
+msgstr "Disk"
 
 msgid "Torus"
 msgstr ""
@@ -1853,10 +1853,10 @@ msgid "Voron Cube"
 msgstr "Voron Kostka"
 
 msgid "Stanford Bunny"
-msgstr ""
+msgstr "Stanford zajíc"
 
 msgid "Orca String Hell"
-msgstr ""
+msgstr "Orca stringovací kalibrační model"
 
 msgid ""
 "This model features text embossment on the top surface. For optimal results, "
@@ -1865,6 +1865,11 @@ msgid ""
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
 msgstr ""
+"Tento model nabízí embossování textu na vrchním povrchu. Pro optimální "
+"výsledky je doporučeno nastavit \"One Wall Threshold (min_width_top_surface)"
+"\" na 0 pro \"Only One Wall on Top Surfaces\".\n"
+"Ano - Nastavit toto automaticky\n"
+"Ne  - Neměnit nastavení"
 
 msgid "Text"
 msgstr "Text"
@@ -1897,10 +1902,10 @@ msgid "Fix model"
 msgstr "Opravit model"
 
 msgid "Export as one STL"
-msgstr ""
+msgstr "Exportovat jako 1 soubor STL"
 
 msgid "Export as STLs"
-msgstr ""
+msgstr "Exportovat jako jednotlivé soubory STL"
 
 msgid "Reload from disk"
 msgstr "Znovu načíst z disku"
@@ -2018,7 +2023,7 @@ msgid "Add Primitive"
 msgstr "Přidat Primitivní"
 
 msgid "Add Handy models"
-msgstr ""
+msgstr "Přidat triviální modely"
 
 msgid "Add Models"
 msgstr "Přidat modely"
@@ -2069,10 +2074,10 @@ msgid "arrange current plate"
 msgstr "uspořádat aktuální podložku"
 
 msgid "Reload All"
-msgstr ""
+msgstr "Znovu načíst vše"
 
 msgid "reload all from disk"
-msgstr ""
+msgstr "znovu načíst vše z disku"
 
 msgid "Auto Rotate"
 msgstr "Automatické otáčení"
@@ -2096,7 +2101,7 @@ msgid "Center"
 msgstr "Střed"
 
 msgid "Drop"
-msgstr ""
+msgstr "Umístit"
 
 msgid "Edit Process Settings"
 msgstr "Upravit nastavení procesu"
@@ -2150,7 +2155,7 @@ msgstr[1] "%1$d nespojitelné hrany"
 msgstr[2] "%1$d nespojitelných hran"
 
 msgid "Click the icon to repair model object"
-msgstr ""
+msgstr "Klikněte na ikonu pro opravení objektu"
 
 msgid "Right button click the icon to drop the object settings"
 msgstr "Kliknutím pravým tlačítkem na ikonu zrušíte nastavení objektu"
@@ -2202,7 +2207,7 @@ msgstr ""
 "nastavení vybraných předmětů."
 
 msgid "Remove paint-on fuzzy skin"
-msgstr ""
+msgstr "Smazat namalovaný fuzzy-skin"
 
 msgid "Delete connector from object which is a part of cut"
 msgstr "Odstranění spojky z objektu, který je částí řezu"
@@ -2240,7 +2245,7 @@ msgid "Deleting the last solid part is not allowed."
 msgstr "Smazání poslední pevné části není povoleno."
 
 msgid "The target object contains only one part and can not be split."
-msgstr ""
+msgstr "Zvolený objekt je jednolitý celek a nelze ho rozdělit na poddíly"
 
 msgid "Assembly"
 msgstr "Sestavení"
@@ -2354,7 +2359,7 @@ msgstr ""
 "jednu buňku lze zkopírovat pouze do jedné nebo více buněk ve stejném sloupci"
 
 msgid "Copying multiple cells is not supported."
-msgstr "kopírování více buněk není podporováno"
+msgstr "Kopírování více buněk není podporováno."
 
 msgid "Outside"
 msgstr "Mimo"
@@ -2375,7 +2380,7 @@ msgid "Mouse ear"
 msgstr "Uši myši"
 
 msgid "Painted"
-msgstr ""
+msgstr "Namalovaný"
 
 msgid "Outer brim only"
 msgstr "Pouze vnější"
@@ -2429,7 +2434,7 @@ msgid "Pause"
 msgstr "Pozastavení"
 
 msgid "Template"
-msgstr ""
+msgstr "Prostředí"
 
 msgid "Custom"
 msgstr "Vlastní"
@@ -2600,6 +2605,8 @@ msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
+"Vyberte bránu AMS a poté stiskněte \"Zavést / Load\" nebo \"Vysunout / "
+"Unload\" pro automatické zavádění filamentů."
 
 msgid "Edit"
 msgstr "Upravit"
@@ -2676,10 +2683,10 @@ msgid "Orienting"
 msgstr "Orientování"
 
 msgid "Orienting canceled."
-msgstr ""
+msgstr "Orientování zrušeno."
 
 msgid "Filling"
-msgstr ""
+msgstr "Vyplňování"
 
 msgid "Bed filling canceled."
 msgstr "Vyplnění podložky zrušeno."
@@ -2784,7 +2791,7 @@ msgstr "Úspěšně odesláno. Automaticky přejde na další stránku za %ss"
 
 #, c-format, boost-format
 msgid "Access code:%s IP address:%s"
-msgstr ""
+msgstr "Přístupový kód:%s IP adresa:%s"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Před tiskem přes LAN je třeba vložit SD kartu."
@@ -2843,7 +2850,7 @@ msgid "Download failed"
 msgstr "Stahování se nezdařilo"
 
 msgid "Cancelled"
-msgstr ""
+msgstr "Zrušeno"
 
 msgid "Installed successfully"
 msgstr "Instalace proběhla úspěšně."
@@ -2870,7 +2877,7 @@ msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, verze 3"
 
 msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
-msgstr ""
+msgstr "OrcaSlicer je založen na softwarech PrusaSlicer a BambuStudio"
 
 msgid "Libraries"
 msgstr "Knihovny"
@@ -2887,7 +2894,8 @@ msgid "About %s"
 msgstr "O %s"
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
-msgstr "OrcaSlicer je založen na BambuStudio, PrusaSlicer a SuperSlicer."
+msgstr ""
+"OrcaSlicer je založen na softwarech BambuStudio, PrusaSlicer a SuperSlicer."
 
 msgid "BambuStudio is originally based on PrusaSlicer by PrusaResearch."
 msgstr "BambuStudio je původně založeno na PrusaSlicer od PrusaResearch."
@@ -2959,11 +2967,13 @@ msgstr "Nejprve musíte vybrat typ materiálu a barvu."
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr ""
+msgstr "Prosím zadejte platnou hodnotu (K in %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
+"Zadejte prosím platnou hodnotu (K in %.1f~%.1f, N in %.1f~%.1f) (K in "
+"%.1f~%.1f, N in %.1f~%.1f)"
 
 msgid "Other Color"
 msgstr "Jiná Barva"
@@ -3046,10 +3056,10 @@ msgid "AMS Slots"
 msgstr "AMS sloty"
 
 msgid "Left Ams"
-msgstr ""
+msgstr "Levé AMS"
 
 msgid "Right Ams"
-msgstr ""
+msgstr "Pravé AMS"
 
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
@@ -3132,10 +3142,10 @@ msgstr ""
 "značky, typu materiálu a barvy)"
 
 msgid "DRY"
-msgstr ""
+msgstr "SUCHÝ"
 
 msgid "WET"
-msgstr ""
+msgstr "VLHKÝ"
 
 msgid "AMS Settings"
 msgstr "Nastavení AMS"
@@ -3154,6 +3164,8 @@ msgid ""
 "Note: if a new filament is inserted during printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
+"Poznámka: Pokud je vložen do AMS nový filament během tisku, AMS ho nebude "
+"automaticky rozpoznávat, dokud nebude dokončen tisk."
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
@@ -3203,12 +3215,14 @@ msgstr ""
 "automaticky, když dojde aktuální filament"
 
 msgid "Air Printing Detection"
-msgstr ""
+msgstr "Detekce tištění do prázdna"
 
 msgid ""
 "Detects clogging and filament grinding, halting printing immediately to "
 "conserve time and filament."
 msgstr ""
+"Detekuje zacpání filamentem a zaseknutí filamentu a okamžitě pozastaví tisk "
+"pro ušetření času a filamentu."
 
 msgid "File"
 msgstr "Soubor"
@@ -3253,7 +3267,7 @@ msgstr "Došlo k chybě. Možná paměť systému nestačí nebo je to chyba pro
 
 #, boost-format
 msgid "A fatal error occurred: \"%1%\""
-msgstr ""
+msgstr "Nastal kritický error: \"%1%\""
 
 msgid "Please save project and restart the program."
 msgstr "Uložte projekt a restartujte program."
@@ -3289,7 +3303,7 @@ msgid "Running post-processing scripts"
 msgstr "Vykonávají se postprodukční skripty"
 
 msgid "Successfully executed post-processing script"
-msgstr ""
+msgstr "Úspěšně proveden post-processing skript."
 
 msgid "Unknown error occurred during exporting G-code."
 msgstr "Během exportu G-codu došlo k neznámé chybě."
@@ -3374,24 +3388,24 @@ msgid "Task Sent"
 msgstr ""
 
 msgid "Edit multiple printers"
-msgstr ""
+msgstr "Upravit více tiskáren"
 
 msgid "Select connected printers (0/6)"
-msgstr ""
+msgstr "Vybrat připojené tiskárny (0/6)"
 
 #, c-format, boost-format
 msgid "Select Connected Printers (%d/6)"
-msgstr ""
+msgstr "Vybrat připojené tiskárny (%d/6)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
-msgstr ""
+msgstr "Maximální počet tiskáren, které mohou být zvoleny, je %d"
 
 msgid "Offline"
 msgstr "Offline"
 
 msgid "No task"
-msgstr ""
+msgstr "Žádná úloha"
 
 msgid "View"
 msgstr "Zobrazení"
@@ -3400,23 +3414,23 @@ msgid "N/A"
 msgstr "N/A"
 
 msgid "Edit Printers"
-msgstr ""
+msgstr "Upravit tiskárny"
 
 msgid "Device Name"
-msgstr ""
+msgstr "Jméno zařízení"
 
 msgid "Task Name"
-msgstr ""
+msgstr "Jméno úlohy"
 
 msgid "Device Status"
-msgstr ""
+msgstr "Stav zařízení"
 
 msgid "Actions"
-msgstr ""
+msgstr "Akce"
 
 msgid ""
 "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr ""
+msgstr "Prosím zvolte zařízení, která chcete zde spravovat (up to 6 devices)"
 
 msgid "Add"
 msgstr "Přidat"
@@ -3425,22 +3439,22 @@ msgid "Printing"
 msgstr "Tisk"
 
 msgid "Upgrading"
-msgstr ""
+msgstr "Aktualizování"
 
 msgid "Incompatible"
 msgstr "Nekompatibilní"
 
 msgid "syncing"
-msgstr ""
+msgstr "synchronizování"
 
 msgid "Printing Finish"
-msgstr ""
+msgstr "Tisk dokončen"
 
 msgid "Printing Failed"
-msgstr ""
+msgstr "Tisk selhal"
 
 msgid "Printing Pause"
-msgstr ""
+msgstr "Pozastavení tisku"
 
 msgid "Prepare"
 msgstr "Připravit"
@@ -3452,25 +3466,25 @@ msgid "Pending"
 msgstr ""
 
 msgid "Sending"
-msgstr ""
+msgstr "Odesílání"
 
 msgid "Sending Finish"
-msgstr ""
+msgstr "Odesláno"
 
 msgid "Sending Cancel"
-msgstr ""
+msgstr "Odesílání bylo zrušeno"
 
 msgid "Sending Failed"
-msgstr ""
+msgstr "Odesílání selhalo"
 
 msgid "Print Success"
-msgstr ""
+msgstr "Úspěšně vytištěno"
 
 msgid "Print Failed"
-msgstr ""
+msgstr "Tisk selhal"
 
 msgid "Removed"
-msgstr ""
+msgstr "Odstraněno"
 
 msgid "Resume"
 msgstr "Pokračovat"
@@ -3479,13 +3493,13 @@ msgid "Stop"
 msgstr "Zastavit"
 
 msgid "Task Status"
-msgstr ""
+msgstr "Stav úlohy"
 
 msgid "Sent Time"
 msgstr ""
 
 msgid "There are no tasks to be sent!"
-msgstr ""
+msgstr "Nejsou tu žádné úlohy k odeslání!"
 
 msgid "No historical tasks!"
 msgstr ""
@@ -3494,7 +3508,7 @@ msgid "Loading..."
 msgstr "Načítání..."
 
 msgid "No AMS"
-msgstr ""
+msgstr "Žádné AMS"
 
 msgid "Send to Multi-device"
 msgstr ""
@@ -3506,25 +3520,25 @@ msgid "Abnormal print file data. Please slice again"
 msgstr "Abnormální data tiskového souboru. Prosím znovu slicovat"
 
 msgid "There is no device available to send printing."
-msgstr ""
+msgstr "Není k dispozici žádné zařízení pro poslání tiskové úlohy na něj"
 
 msgid "The number of printers in use simultaneously cannot be equal to 0."
-msgstr ""
+msgstr "Počet současně používaných tiskáren se nemůže rovnat 0."
 
 msgid "Use External Spool"
 msgstr ""
 
 msgid "Use AMS"
-msgstr ""
+msgstr "Použít AMS"
 
 msgid "Select Printers"
-msgstr ""
+msgstr "Vyberte tiskárny"
 
 msgid "AMS Status"
-msgstr ""
+msgstr "Stav AMS"
 
 msgid "Printing Options"
-msgstr ""
+msgstr "Možnosti tisku"
 
 msgid "Bed Leveling"
 msgstr "Vyrovnání podložky"
@@ -3536,10 +3550,10 @@ msgid "Flow Dynamic Calibration"
 msgstr ""
 
 msgid "Send Options"
-msgstr ""
+msgstr "Možnosti odeslání"
 
 msgid "Send to"
-msgstr ""
+msgstr "Odeslat na"
 
 msgid ""
 "printers at the same time. (It depends on how many devices can undergo "
@@ -3547,7 +3561,7 @@ msgid ""
 msgstr ""
 
 msgid "Wait"
-msgstr "Zaneprázdněn"
+msgstr "Počkejte"
 
 msgid ""
 "minute each batch. (It depends on how long it takes to complete the heating.)"
@@ -3563,7 +3577,7 @@ msgid "illegal characters:"
 msgstr "nepovolené znaky:"
 
 msgid "illegal suffix:"
-msgstr "nelegální přípona:"
+msgstr "neplatná přípona:"
 
 msgid "The name is not allowed to be empty."
 msgstr "Název nesmí být prázdný."
@@ -5053,13 +5067,13 @@ msgstr "&Zobrazení"
 msgid "&Help"
 msgstr "&Pomoc"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to overwrite it?"
-msgstr "Existuje soubor se stejným názvem: %s, chcete jej přepsat."
+msgstr "Existuje soubor se stejným názvem: %s, chcete jej přepsat?"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid "A config exists with the same name: %s, do you want to overwrite it?"
-msgstr "Existuje konfigurace se stejným názvem: %s, chcete ji přepsat."
+msgstr "Existuje konfigurace se stejným názvem: %s, chcete ji přepsat?"
 
 msgid "Overwrite file"
 msgstr "Přepsat soubor"
@@ -5840,7 +5854,7 @@ msgid "Warning:"
 msgstr "Varování:"
 
 msgid "Exported successfully"
-msgstr "Export úspěšně."
+msgstr "Úspěšně exportováno"
 
 msgid "Model file downloaded."
 msgstr "Soubor modelu byl stažen."
@@ -6269,13 +6283,12 @@ msgstr "Byl detekován objekt s více částmi"
 msgid "The file does not contain any geometry data."
 msgstr "Soubor neobsahuje žádná geometrická data."
 
-#, fuzzy
 msgid ""
 "Your object appears to be too large, do you want to scale it down to fit the "
 "print bed automatically?"
 msgstr ""
 "Váš objekt se zdá být příliš velký, chcete jej zmenšit, aby se vešel na "
-"vyhřívanou podložku automaticky?"
+"podložku automaticky?"
 
 msgid "Object too large"
 msgstr "Objekt je příliš velký"
@@ -7237,9 +7250,8 @@ msgid ""
 msgstr ""
 "Předvolba \"%1%\" již existuje a není kompatibilní s aktuální tiskárnou."
 
-#, fuzzy
 msgid "Please note that saving will overwrite this preset."
-msgstr "Upozorňujeme, že akce uložení nahradí toto přednastavení"
+msgstr "Upozorňujeme, že uložení změn přepíše toto přednastavení"
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Název se nesmí shodovat s názvem aliasem přednastavení."
@@ -7287,7 +7299,7 @@ msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
-msgstr "High temperature Podložka"
+msgstr "Vysokoteplotní Podložka"
 
 msgid "Bambu Textured PEI Plate"
 msgstr ""
@@ -7506,7 +7518,7 @@ msgid "Slice ok."
 msgstr "Slicování Dokončeno."
 
 msgid "View all Daily tips"
-msgstr ""
+msgstr "Ukázat všechny denní tipy"
 
 msgid "Failed to create socket"
 msgstr "Nepodařilo se vytvořit socket"
@@ -8037,7 +8049,7 @@ msgstr ""
 "PEI Podložka/High temperature Podložka"
 
 msgid "Textured PEI Plate"
-msgstr "Textured PEI Podložka"
+msgstr "Texturovaná PEI Podložka"
 
 msgid ""
 "Bed temperature when the Textured PEI Plate is installed. A value of 0 means "
@@ -8116,7 +8128,7 @@ msgid "Dependencies"
 msgstr "Závislosti"
 
 msgid "Compatible printers"
-msgstr ""
+msgstr "Kompatibilní tiskárny"
 
 msgid "Compatible process profiles"
 msgstr "Kompatibilní profily procesů"
@@ -8142,7 +8154,7 @@ msgid "Extruder Clearance"
 msgstr "Vzdálenost extruderu"
 
 msgid "Adaptive bed mesh"
-msgstr ""
+msgstr "Adaptivní síť podložky"
 
 msgid "Accessory"
 msgstr "Příslušenství"
@@ -8151,13 +8163,13 @@ msgid "Machine G-code"
 msgstr "G-kód stroje"
 
 msgid "Machine start G-code"
-msgstr "Stroj start G-kód"
+msgstr "Startovní G-kód"
 
 msgid "Machine end G-code"
-msgstr "Stroj end G-kód"
+msgstr "Závěrečný G-kód"
 
 msgid "Printing by object G-code"
-msgstr ""
+msgstr "G-CODE pro tištění objektu po objektu"
 
 msgid "Before layer change G-code"
 msgstr "G-kód Před změnou vrstvy"
@@ -8175,7 +8187,7 @@ msgid "Change extrusion role G-code"
 msgstr "Změnit G-kód pro úlohu extruze"
 
 msgid "Pause G-code"
-msgstr "G-kód Pauzy"
+msgstr "G-kód Pozastavení"
 
 msgid "Template Custom G-code"
 msgstr "Šablona s vlastním G-kódem"
@@ -8532,7 +8544,7 @@ msgid "The color count should be in range [%d, %d]."
 msgstr ""
 
 msgid "Recommended "
-msgstr ""
+msgstr "Doporučeno"
 
 msgid "Current filament colors:"
 msgstr ""
@@ -8547,7 +8559,7 @@ msgid "Approximate color matching."
 msgstr ""
 
 msgid "Append"
-msgstr ""
+msgstr "Použít"
 
 msgid "Add consumable extruder after existing extruders."
 msgstr ""
@@ -8680,10 +8692,10 @@ msgid ""
 msgstr ""
 
 msgid "Bambu Network plug-in not detected."
-msgstr ""
+msgstr "Bambu Network plug-in nebyl detekován."
 
 msgid "Click here to download it."
-msgstr ""
+msgstr "Klikněte sem pro stažení"
 
 msgid "Login"
 msgstr "Přihlášení"
@@ -9003,7 +9015,7 @@ msgid "Done"
 msgstr "Hotovo"
 
 msgid "Resume Printing"
-msgstr ""
+msgstr "Obnovit tisk"
 
 msgid "Resume Printing (defects acceptable)"
 msgstr ""
@@ -9012,7 +9024,7 @@ msgid "Resume Printing (problem solved)"
 msgstr ""
 
 msgid "Stop Printing"
-msgstr ""
+msgstr "Zastavit tisk"
 
 msgid "Check Assistant"
 msgstr ""
@@ -9864,7 +9876,7 @@ msgid "HTTP digest"
 msgstr "HTTP digest"
 
 msgid "Avoid crossing walls"
-msgstr "Vyhněte se přejíždění stěn"
+msgstr "Vyhnout se přejíždění stěn"
 
 msgid ""
 "Detour to avoid traveling across walls, which may cause blobs on the surface."
@@ -9873,7 +9885,7 @@ msgstr ""
 "povrchu"
 
 msgid "Avoid crossing walls - Max detour length"
-msgstr "Vyhněte se přejíždění stěn - Maximální délka objížďky"
+msgstr "Vyhnout se přejíždění stěn - Maximální délka objížďky"
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
@@ -9981,7 +9993,7 @@ msgid "Smooth Cool Plate"
 msgstr ""
 
 msgid "Smooth High Temp Plate"
-msgstr ""
+msgstr "Hladká High Temp Podložka"
 
 msgid "First layer print sequence"
 msgstr "Sekvence tisku první vrstvy"
@@ -10381,6 +10393,8 @@ msgid ""
 "Speed of internal bridges. If the value is expressed as a percentage, it "
 "will be calculated based on the bridge_speed. Default value is 150%."
 msgstr ""
+"Rychlost vnitřních mostů. Pokud je uvedeno v %, bude spočítáno na základě "
+"bridge_speed (rychlost mostu). Výchozí hodnota je 150%."
 
 msgid "Brim width"
 msgstr "Šířka límce"
@@ -10435,13 +10449,13 @@ msgid ""
 msgstr ""
 
 msgid "Select printers"
-msgstr ""
+msgstr "Vybrat  tiskárny"
 
 msgid "upward compatible machine"
 msgstr "nahoru kompatibilní stroj"
 
 msgid "Condition"
-msgstr ""
+msgstr "Podmínka"
 
 msgid ""
 "A boolean expression using the configuration values of an active printer "
@@ -10453,7 +10467,7 @@ msgstr ""
 "kompatibilní s aktivním profilem tiskárny."
 
 msgid "Select profiles"
-msgstr ""
+msgstr "Vybrat profily"
 
 msgid ""
 "A boolean expression using the configuration values of an active print "
@@ -10707,7 +10721,7 @@ msgid ""
 msgstr ""
 
 msgid "Critical Only"
-msgstr ""
+msgstr "Pouze kritické"
 
 msgid "Moderate"
 msgstr ""
@@ -10894,7 +10908,7 @@ msgstr ""
 "vedlejších objektů."
 
 msgid "Nozzle height"
-msgstr ""
+msgstr "Výška trysky"
 
 msgid "The height of nozzle tip."
 msgstr ""
@@ -11515,7 +11529,7 @@ msgid "TPMS-D"
 msgstr ""
 
 msgid "Gyroid"
-msgstr "Gyroid"
+msgstr ""
 
 msgid "Lattice angle 1"
 msgstr ""
@@ -11995,7 +12009,7 @@ msgid "Undefine"
 msgstr "Nedefinováno"
 
 msgid "Hardened steel"
-msgstr "Kalená ocel"
+msgstr "Tvrzená ocel"
 
 msgid "Stainless steel"
 msgstr "Nerezová ocel"
@@ -12137,10 +12151,10 @@ msgid "Enable this option if your printer uses pellets instead of filaments."
 msgstr ""
 
 msgid "Support multi bed types"
-msgstr ""
+msgstr "Podpora více typů podložek"
 
 msgid "Enable this option if you want to use multiple bed types."
-msgstr ""
+msgstr "Zapněte tuto volbu, pokud chcete používat více typů podložek."
 
 msgid "Label objects"
 msgstr "Označování objektů"
@@ -12157,7 +12171,7 @@ msgstr ""
 "Extruder Multi Material konfigurací a s čištěním trysky do objektu / výplně."
 
 msgid "Exclude objects"
-msgstr "Vynechat objekty"
+msgstr "Vyloučit objekty"
 
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Povolit tuto možnost pro přidání příkazu VYNECHAT OBJEKT do g-kódu"
@@ -13758,7 +13772,6 @@ msgstr "Povolit podpěry"
 msgid "Enable support generation."
 msgstr "Povolit generování podpěr."
 
-#, fuzzy
 msgid ""
 "Normal (auto) and Tree (auto) are used to generate support automatically. If "
 "Normal (manual) or Tree (manual) is selected, only support enforcers are "
@@ -13802,7 +13815,7 @@ msgid "On build plate only"
 msgstr "Pouze na podložce"
 
 msgid "Don't create support on model surface, only on build plate."
-msgstr "Nevytvářejte podpěry na povrchu modelu, pouze na podložce"
+msgstr "Nevytvářet podpěry na povrchu modelu, pouze na podložce"
 
 msgid "Support critical regions only"
 msgstr "Podpěry pouze pro kritické oblasti"
@@ -13880,7 +13893,7 @@ msgid "Top interface layers"
 msgstr "Vrchní kontaktní vrstvy"
 
 msgid "Number of top interface layers."
-msgstr "Počet nejvyšších vrstev"
+msgstr "Počet vrchních vrstev"
 
 msgid "Bottom interface layers"
 msgstr "Spodní kontaktní vrstvy"
@@ -13967,7 +13980,7 @@ msgstr ""
 "vytvoří podobnou strukturu jako běžná podpěra pod velkými plochými převisy."
 
 msgid "Default (Grid/Organic)"
-msgstr ""
+msgstr "Výchozí (Grid/Organic)"
 
 msgid "Snug"
 msgstr "Přiléhavý"
@@ -14500,7 +14513,6 @@ msgstr ""
 msgid "X-Y hole compensation"
 msgstr "X-Y Kompenzace otvoru"
 
-#, fuzzy
 msgid ""
 "Holes in objects will expand or contract in the XY plane by the configured "
 "value. Positive values make holes bigger, negative values make holes "
@@ -14508,13 +14520,12 @@ msgid ""
 "have assembling issues."
 msgstr ""
 "Díry objektu se zvětší nebo zmenší v rovině XY o nakonfigurovanou hodnotu. "
-"Kladná hodnota zvětší díry. Záporná hodnota díry zmenšuje. Tato funkce se "
+"Kladná hodnota zvětší díry. Záporná hodnota díry zmenší. Tato funkce se "
 "používá k mírné úpravě velikosti, když má objekt problém se sestavováním"
 
 msgid "X-Y contour compensation"
 msgstr "X-Y Kompenzace obrysu"
 
-#, fuzzy
 msgid ""
 "Contours of objects will expand or contract in the XY plane by the "
 "configured value. Positive values make contours bigger, negative values make "
@@ -14758,10 +14769,10 @@ msgid "Export STL"
 msgstr "Exportovat STL"
 
 msgid "Export the objects as single STL."
-msgstr ""
+msgstr "Exportovat objekty jako 1 STL soubor"
 
 msgid "Export multiple STLs"
-msgstr ""
+msgstr "Exportovat jako samostatné STL soubory"
 
 msgid "Export the objects as multiple STLs to directory."
 msgstr ""
@@ -14922,7 +14933,7 @@ msgid "Skip some objects in this print."
 msgstr "Přeskočit některé objekty při tisku"
 
 msgid "Clone Objects"
-msgstr ""
+msgstr "Duplikovat objekty"
 
 msgid "Clone objects in the load list."
 msgstr ""
@@ -17284,7 +17295,7 @@ msgid "Brim Ears"
 msgstr "Uši Límce"
 
 msgid "Please select single object."
-msgstr ""
+msgstr "Vyberte prosím 1 objekt."
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
@@ -17608,7 +17619,6 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:When do you need to print with the printer
 #: door opened]
-#, fuzzy
 msgid ""
 "When do you need to print with the printer door opened?\n"
 "Did you know that opening the printer door can reduce the probability of "
@@ -17616,9 +17626,9 @@ msgid ""
 "higher enclosure temperature? More info about this in the Wiki."
 msgstr ""
 "Kdy potřebujete tisknout s otevřenými dveřmi tiskárny\n"
-"Otevření dveří tiskárny může snížit pravděpodobnost ucpaní extruderu/hotendu "
-"při tisku filamentu s nižší teplotou a vyšší teplotě uzavřeného prostoru. "
-"Další informace naleznete ve Wiki."
+"Věděli jste, že otevření dveří tiskárny může snížit pravděpodobnost ucpaní "
+"extruderu/hotendu při tisku filamentu s nižší teplotou a vyšší teplotě "
+"uzavřeného prostoru. Další informace naleznete ve Wiki."
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
