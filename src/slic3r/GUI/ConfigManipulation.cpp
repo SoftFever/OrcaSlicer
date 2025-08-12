@@ -531,6 +531,31 @@ void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::
     }
 }
 
+// Infill patterns that support multiline infill.
+bool is_multiline_pattern(InfillPattern pattern) {
+    switch (pattern) {
+        case ipGyroid:
+        case ipGrid:
+        case ipRectilinear:
+        case ipTpmsD:
+        case ipTpmsFK:
+        case ipCrossHatch:
+        case ipHoneycomb:
+        case ip2DLattice:
+        case ip2DHoneycomb:
+        case ipCubic:
+        case ipStars:
+        case ipAlignedRectilinear:
+        case ipLightning:
+        case ip3DHoneycomb:
+        case ipAdaptiveCubic:
+        case ipSupportCubic:
+            return true;
+        default:
+            return false;
+    }
+}
+
 void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, const bool is_global_config)
 {
     PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
@@ -564,13 +589,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
     toggle_line("infill_combination_max_layer_height", have_combined_infill);
 
-    // Infill patterns that support multiline infill.
-    InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
-    bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear || pattern == ipTpmsD || pattern == ipTpmsFK || pattern == ipCrossHatch || pattern == ipHoneycomb || pattern == ipLateralLattice || pattern == ipLateralHoneycomb ||
-                                                  pattern == ipCubic || pattern == ipStars || pattern == ipAlignedRectilinear || pattern == ipLightning || pattern == ip3DHoneycomb || pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
+    InfillPattern infill_pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
+    bool have_multiline_infill_pattern = is_multiline_pattern(infill_pattern);
     toggle_line("fill_multiline", have_multiline_infill_pattern);
 
-    // If the infill pattern does not support multiline infill, set fill_multiline to 1.
+    // If the infill pattern does not support multiline fill_multiline is changed to 1.
+    // Necessary when the pattern contains params.multiline (for example, triangles because they belong to the rectilinear class)
     if (!have_multiline_infill_pattern) {
         DynamicPrintConfig new_conf = *config;
         new_conf.set_key_value("fill_multiline", new ConfigOptionInt(1));
@@ -610,6 +634,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("bottom_surface_pattern", has_bottom_shell);
     toggle_field("top_surface_density", has_top_shell);
     toggle_field("bottom_surface_density", has_bottom_shell);
+    toggle_field("top_surface_multiline", has_top_shell && is_multiline_pattern(config->opt_enum<InfillPattern>("top_surface_pattern")));
+    toggle_field("bottom_surface_multiline", has_bottom_shell && is_multiline_pattern(config->opt_enum<InfillPattern>("bottom_surface_pattern")));
 
     for (auto el : { "infill_direction", "sparse_infill_line_width", "fill_multiline","gap_fill_target","filter_out_gap_fill","infill_wall_overlap",
         "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle", "internal_bridge_angle",

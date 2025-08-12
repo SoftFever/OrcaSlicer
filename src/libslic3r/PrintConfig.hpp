@@ -968,6 +968,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<EnsureVerticalShellThickness>,   ensure_vertical_shell_thickness))
     ((ConfigOptionPercent,              top_surface_density))
     ((ConfigOptionPercent,               bottom_surface_density))
+    ((ConfigOptionInt,                  top_surface_multiline))
+    ((ConfigOptionInt,                  bottom_surface_multiline))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))
