@@ -6,60 +6,11 @@
     "setting_id": "GP236",
     "instantiation": "true",
     "description": "Standard profile for 0.16mm layer height, prioritizing speed.",
-    "default_acceleration": [
-        "10000",
-        "10000"
-    ],
-    "initial_layer_speed": [
-        "50",
-        "50"
-    ],
-    "internal_solid_infill_speed": [
-        "250",
-        "300"
-    ],
-    "outer_wall_speed": [
-        "200",
-        "200"
-    ],
-    "overhang_1_4_speed": [
-        "0",
-        "0"
-    ],
-    "prime_tower_brim_width": "-1",
-    "prime_tower_width": "60",
-    "sparse_infill_speed": [
-        "350",
-        "600"
-    ],
-    "travel_speed": [
-        "1000",
-        "1000"
-    ],
-    "compatible_printers": [
-        "Bambu Lab H2S 0.4 nozzle"
-    ],
-    "gap_infill_speed": [
-        "250",
-        "250"
-    ],
-    "inner_wall_speed": [
-        "300",
-        "300"
-    ],
-    "initial_layer_infill_speed": [
-        "105",
-        "105"
-    ],
     "bridge_speed": [
         "50",
         "50"
     ],
-    "initial_layer_travel_acceleration": [
-        "6000",
-        "6000"
-    ],
-    "travel_acceleration": [
+    "default_acceleration": [
         "10000",
         "10000"
     ],
@@ -70,6 +21,81 @@
     "enable_height_slowdown": [
         "0",
         "0"
+    ],
+    "gap_infill_speed": [
+        "250",
+        "250"
+    ],
+    "initial_layer_speed": [
+        "50",
+        "50"
+    ],
+    "internal_solid_infill_speed": [
+        "250",
+        "300"
+    ],
+    "inner_wall_speed": [
+        "300",
+        "300"
+    ],
+    "initial_layer_infill_speed": [
+        "105",
+        "105"
+    ],
+    "initial_layer_travel_acceleration": [
+        "6000",
+        "6000"
+    ],
+    "initial_layer_acceleration": [
+        "500",
+        "500"
+    ],
+    "inner_wall_acceleration": [
+        "0",
+        "0"
+    ],
+    "outer_wall_speed": [
+        "200",
+        "200"
+    ],
+    "overhang_1_4_speed": [
+        "60",
+        "60"
+    ],
+    "outer_wall_acceleration": [
+        "5000",
+        "5000"
+    ],
+    "overhang_2_4_speed": [
+        "30",
+        "30"
+    ],
+    "overhang_3_4_speed": [
+        "10",
+        "10"
+    ],
+    "overhang_4_4_speed": [
+        "10",
+        "10"
+    ],
+    "overhang_totally_speed": [
+        "10",
+        "10"
+    ],
+    "prime_tower_brim_width": "-1",
+    "prime_tower_width": "60",
+    "print_extruder_id": [
+        "1",
+        "1"
+    ],
+    "print_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "prime_tower_flat_ironing": "1",
+    "sparse_infill_speed": [
+        "350",
+        "600"
     ],
     "slowdown_start_height": [
         "0",
@@ -95,42 +121,6 @@
         "100000",
         "100000"
     ],
-    "initial_layer_acceleration": [
-        "500",
-        "500"
-    ],
-    "inner_wall_acceleration": [
-        "0",
-        "0"
-    ],
-    "outer_wall_acceleration": [
-        "5000",
-        "5000"
-    ],
-    "overhang_2_4_speed": [
-        "50",
-        "50"
-    ],
-    "overhang_3_4_speed": [
-        "30",
-        "30"
-    ],
-    "overhang_4_4_speed": [
-        "10",
-        "10"
-    ],
-    "overhang_totally_speed": [
-        "10",
-        "10"
-    ],
-    "print_extruder_id": [
-        "1",
-        "1"
-    ],
-    "print_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
     "small_perimeter_speed": [
         "50%",
         "50%"
@@ -152,6 +142,14 @@
         "150",
         "150"
     ],
+    "travel_speed": [
+        "1000",
+        "1000"
+    ],
+    "travel_acceleration": [
+        "10000",
+        "10000"
+    ],
     "top_surface_acceleration": [
         "2000",
         "2000"
@@ -168,5 +166,7 @@
         "80%",
         "80%"
     ],
-    "prime_tower_flat_ironing": "1"
+    "compatible_printers": [
+        "Bambu Lab H2S 0.4 nozzle"
+    ]
 }
