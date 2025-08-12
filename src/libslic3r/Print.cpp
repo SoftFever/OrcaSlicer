@@ -2956,7 +2956,7 @@ size_t Print::get_extruder_id(unsigned int filament_id) const
 bool Print::has_wipe_tower() const
 {
     if (m_config.enable_prime_tower.value == true) {
-        if (m_config.enable_wrapping_detection.value)
+        if (m_config.enable_wrapping_detection.value && m_config.wrapping_exclude_area.values.size() > 2)
             return true;
 
         if (enable_timelapse_print())

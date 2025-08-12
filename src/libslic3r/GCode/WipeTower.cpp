@@ -1501,7 +1501,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     //wipe_volumes(flush_matrix)
     m_enable_timelapse_print(config.timelapse_type.value == TimelapseType::tlSmooth),
     m_enable_wrapping_detection(config.enable_wrapping_detection),
-    m_wrapping_detection_layers(config.wrapping_detection_layers.value),
+    m_wrapping_detection_layers(config.wrapping_detection_layers.value && (config.wrapping_exclude_area.values.size() > 2)),
     m_slice_used_filaments(slice_used_filaments.size()),
     m_filaments_change_length(config.filament_change_length.values),
     m_is_multi_extruder(config.nozzle_diameter.size() > 1),

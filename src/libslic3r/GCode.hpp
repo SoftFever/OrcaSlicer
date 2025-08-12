@@ -95,7 +95,7 @@ public:
         m_plate_origin(plate_origin),
         m_single_extruder_multi_material(print_config.single_extruder_multi_material),
         m_enable_timelapse_print(print_config.timelapse_type.value == TimelapseType::tlSmooth),
-        m_enable_wrapping_detection(print_config.enable_wrapping_detection && (slice_used_filaments.size() <= 1)),
+        m_enable_wrapping_detection(print_config.enable_wrapping_detection && (print_config.wrapping_exclude_area.values.size() > 2) && (slice_used_filaments.size() <= 1)),
         m_is_first_print(true),
         m_print_config(&print_config)
     {
