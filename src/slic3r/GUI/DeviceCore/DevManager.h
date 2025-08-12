@@ -4,6 +4,7 @@
 
 #include "slic3r/Utils/json_diff.hpp"
 #include <wx/string.h>
+#include <wx/timer.h>
 
 namespace Slic3r
 {
