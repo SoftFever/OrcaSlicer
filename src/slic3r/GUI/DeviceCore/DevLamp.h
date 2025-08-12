@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace Slic3r
 {
 
