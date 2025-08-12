@@ -5346,14 +5346,14 @@ void Tab::load_current_preset()
                     ModelObject* object = model.objects[i];
                     DynamicPrintConfig object_config = object->config.get();
                     if (!object_config.empty()) {
-                        object_config.update_values_from_multi_to_multi(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
+                        object_config.update_values_from_multi_to_multi_2(prev_variant_list, new_variant_list, new_print_config, print_options_with_variant);
                         object->config.assign_config(std::move(object_config));
                     }
                     for (ModelVolume* v : object->volumes) {
                         if (v->is_model_part() || v->is_modifier()) {
                             DynamicPrintConfig volume_config = v->config.get();
                             if (!volume_config.empty()) {
-                                volume_config.update_values_from_multi_to_multi(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
+                                volume_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
                                 v->config.assign_config(std::move(volume_config));
                             }
                         }
@@ -5363,7 +5363,7 @@ void Tab::load_current_preset()
                         ModelConfig& layer_model_config = layer_config_it.second;
                         DynamicPrintConfig layer_config = layer_model_config.get();
                         if (!layer_config.empty()) {
-                            layer_config.update_values_from_multi_to_multi(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
+                            layer_config.update_values_from_multi_to_multi_2(prev_variant_list,new_variant_list,new_print_config, print_options_with_variant);
                             layer_model_config.assign_config(std::move(layer_config));
                        }
                     }

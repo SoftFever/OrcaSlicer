@@ -350,6 +350,7 @@ public:
     virtual void append(const ConfigOption *rhs) = 0;
     virtual void set(const ConfigOption* rhs, size_t start, size_t len) = 0;
     virtual void set_with_restore(const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int stride) = 0;
+    virtual void set_with_restore_2(const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len) = 0;
     virtual void set_only_diff(const ConfigOptionVectorBase* rhs, std::vector<int>& diff_index, int stride) = 0;
     virtual void set_with_nil(const ConfigOptionVectorBase* rhs, const ConfigOptionVectorBase* inherits, int stride) = 0;
     // Resize the vector of values, copy the newly added values from opt_default if provided.
@@ -499,7 +500,42 @@ public:
             }
         }
         else
-            throw ConfigurationError("ConfigOptionVector::set_with_keep(): Assigning an incompatible type");
+            throw ConfigurationError("ConfigOptionVector::set_with_restore(): Assigning an incompatible type");
+    }
+
+    //set a item related with extruder variants when loading config from filament json, replace the original filament items
+    //rhs: item from seperate filament config
+    //restore_index: which index in this vector need to be restored
+    //start: which index in this vector need to be replaced
+    //count: how many items in this vector need to be replaced
+    virtual void set_with_restore_2(const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len) override
+    {
+        if (rhs->type() == this->type()) {
+            //backup original ones
+            std::vector<T> backup_values = this->values;
+
+            if (this->values.size() < (start+len))
+                throw ConfigurationError("ConfigOptionVector::set_with_restore_2(): invalid size found");
+
+            //erase the original ones
+            this->values.erase(this->values.begin() + start, this->values.begin() + start + len);
+
+            // Assign the new value from the rhs vector.
+            auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
+
+            if (other->values.size() != (restore_index.size()))
+                throw ConfigurationError("ConfigOptionVector::set_with_restore_2(): Assigning from an vector with invalid restore_index size");
+
+            for (size_t i = 0; i < restore_index.size(); i++) {
+                if ((restore_index[i] != -1)&&(restore_index[i] < backup_values.size())) {
+                    this->values.insert(this->values.begin() + start + i, backup_values[restore_index[i]]);
+                }
+                else
+                    this->values.insert(this->values.begin() + start + i, other->values[i]);
+            }
+        }
+        else
+            throw ConfigurationError("ConfigOptionVector::set_with_restore_2(): Assigning an incompatible type");
     }
 
     //set a item related with extruder variants when loading user config, only set the different value of some extruder

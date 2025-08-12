@@ -1328,15 +1328,16 @@ int CLI::run(int argc, char **argv)
     PlateDataPtrs plate_data_src;
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
     //int arrange_option;
-    int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1;
+    int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1, current_printer_variant_count = 1, current_print_variant_count = 1, new_printer_variant_count = 1;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false, enable_wrapping_detect = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
+    std::vector<NozzleVolumeType> current_nozzle_volume_type, new_nozzle_volume_type;
     std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id, current_printer_model, printer_model, new_default_process_name;
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
-    std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group, current_extruder_variants;
+    std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group, current_extruder_variants, new_extruder_variants, current_print_extruder_variants, new_printer_extruder_variants;
     DynamicPrintConfig load_process_config, load_machine_config;
     bool new_process_config_is_system = true, new_printer_config_is_system = true;
     std::string pipe_name, makerlab_name, makerlab_version, different_process_setting;
@@ -1607,18 +1608,29 @@ int CLI::run(int argc, char **argv)
                     current_printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
                     current_filaments_name = config.option<ConfigOptionStrings>("filament_settings_id")->values;
                     current_extruder_count = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+                    current_printer_variant_count = config.option<ConfigOptionStrings>("printer_extruder_variant", true)->values.size();
+                    current_print_variant_count = config.option<ConfigOptionStrings>("print_extruder_variant", true)->values.size();
                     current_is_multi_extruder = current_extruder_count > 1;
-                    if (current_is_multi_extruder) {
+                    //if (current_is_multi_extruder || (current_printer_variant_count > 1)) {
                         auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(config.option("extruder_type"));
                         auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(config.option("nozzle_volume_type"));
+                        if (opt_nozzle_volume_type) {
+                            int nozzle_volume_type_size = opt_nozzle_volume_type->values.size();
+                            current_nozzle_volume_type.resize(nozzle_volume_type_size, nvtStandard);
+                            for (int i = 0; i < nozzle_volume_type_size; i++)
+                            {
+                                current_nozzle_volume_type[i] = (NozzleVolumeType)(opt_nozzle_volume_type->values[i]);
+                            }
+                        }
+
                         current_extruder_variants.resize(current_extruder_count, "");
                         for (int e_index = 0; e_index < current_extruder_count; e_index++)
                         {
-                            ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(e_index));
-                            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(e_index));
+                            ExtruderType extruder_type = opt_extruder_type ? (ExtruderType)(opt_extruder_type->get_at(e_index)):etDirectDrive;
+                            NozzleVolumeType nozzle_volume_type = opt_nozzle_volume_type?(NozzleVolumeType)(opt_nozzle_volume_type->get_at(e_index)) : nvtStandard;
                             current_extruder_variants[e_index] = get_extruder_variant_string(extruder_type, nozzle_volume_type);
                         }
-                    }
+                    //}
 
                     BOOST_LOG_TRIVIAL(info) << boost::format("current_printer_name %1%, current_process_name %2%")%current_printer_name %current_process_name;
                     ConfigOptionStrings* option_strings = config.option<ConfigOptionStrings>("inherits_group");
@@ -2597,8 +2609,51 @@ int CLI::run(int argc, char **argv)
         project_presets.push_back(new_preset);
     }
 
+    //compute extruder variant index
+    auto compute_variant_index = [](DynamicPrintConfig& full_config, const DynamicPrintConfig& new_config, std::string id_name, std::string variant_name, std::vector<int>& new_index, bool& count_changed) {
+        auto curr_variant_opt = dynamic_cast<const ConfigOptionStrings*>(full_config.option(variant_name));
+        auto new_variant_opt = dynamic_cast<const ConfigOptionStrings*>(new_config.option(variant_name));
+        auto curr_id_opt = dynamic_cast<const ConfigOptionInts*>(full_config.option(id_name));
+        auto new_id_opt = dynamic_cast<const ConfigOptionInts*>(new_config.option(id_name));
+        if (!new_variant_opt || !new_id_opt) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("%1%:%2%, can not get %3% or %4% from new config")%__FUNCTION__ %__LINE__ % variant_name %id_name;
+            count_changed = false;
+            return;
+        }
+        int new_variant_count = new_variant_opt->size(), curr_variant_count = 0;
+        new_index.clear();
+        new_index.resize(new_variant_count, -1);
+        if (curr_variant_opt && curr_id_opt) {
+            if (curr_variant_opt->size() != curr_id_opt->size()) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("%1%:%2%, %3%'s size %4% not equal to %5%'s size %6%")%__FUNCTION__ %__LINE__ % variant_name %curr_variant_opt->size() %id_name %curr_id_opt->size();
+                count_changed = false;
+                return;
+            }
+            curr_variant_count = curr_variant_opt->size();
+            count_changed = (curr_variant_count != new_variant_count);
+        }
+        else
+            count_changed = (new_variant_count != 1);
+
+
+        for (int i = 0; i < new_variant_count; i++)
+        {
+            if (curr_variant_count > 0) {
+                for (int j = 0; j < curr_variant_count; j++)
+                {
+                    if ((curr_variant_opt->values[j] == new_variant_opt->values[i]) && (curr_id_opt->values[j] == new_id_opt->values[i])) {
+                        new_index[i] = j;
+                        break;
+                    }
+                }
+            }
+            else if ((new_variant_opt->values[i] == "Direct Drive Standard") && (new_id_opt->values[i] == 1))
+                new_index[i] = 0;
+        }
+    };
+
     //update seperate configs into full config
-    auto update_full_config = [](DynamicPrintConfig& full_config, const DynamicPrintConfig& config, std::set<std::string>& diff_key_sets, bool update_all = false, bool skip_gcodes = false) {
+    auto update_full_config = [](DynamicPrintConfig& full_config, const DynamicPrintConfig& config, std::set<std::string>& diff_key_sets, bool variant_count_changed, std::set<std::string>& key_set_1, std::set<std::string>& key_set_2, std::vector<int> variant_index, bool update_all = false, bool skip_gcodes = false) {
         const t_config_option_keys& config_keys = config.keys();
         BOOST_LOG_TRIVIAL(info) << boost::format("update_full_config: config keys count %1%")%config_keys.size();
         for (const t_config_option_key &opt_key : config_keys) {
@@ -2613,7 +2668,31 @@ int CLI::run(int argc, char **argv)
                     else {
                         //uptodate, diff keys, continue
                         BOOST_LOG_TRIVIAL(info) << boost::format("%1%, keep key %2%")%__LINE__ %opt_key;
-                        continue;
+                        if (variant_count_changed) {
+                            //
+                            int stride = 0;
+                            if (key_set_1.count(opt_key) > 0)
+                            {
+                                stride = 1;
+                            }
+                            else if (key_set_2.count(opt_key) > 0)
+                            {
+                                stride = 2;
+                            }
+
+                            if (stride > 0) {
+                                const ConfigOption *source_opt = config.option(opt_key);
+                                ConfigOption *dest_opt = full_config.option(opt_key, true);
+                                const ConfigOptionVectorBase* opt_vec_src = static_cast<const ConfigOptionVectorBase*>(source_opt);
+                                ConfigOptionVectorBase* opt_vec_dest = static_cast<ConfigOptionVectorBase*>(dest_opt);
+
+                                opt_vec_dest->set_with_restore(opt_vec_src, variant_index, stride);
+                            }
+                            else
+                                continue;
+                        }
+                        else
+                            continue;
                     }
                 }
             }
@@ -2646,6 +2725,9 @@ int CLI::run(int argc, char **argv)
     if (!is_bbl_3mf && !different_process_setting.empty()) {
         different_settings[0] = different_process_setting;
     }
+
+    std::vector<int> new_variant_index;
+    bool variant_count_changed = false;
     //set the machine settings into print config
     if (!new_printer_name.empty() || up_config_to_date) {
         std::vector<std::string> different_keys;
@@ -2674,7 +2756,8 @@ int CLI::run(int argc, char **argv)
         load_default_gcodes_to_config(load_machine_config, Preset::TYPE_PRINTER);
         if (new_printer_name.empty()) {
             int diff_keys_size = different_keys_set.size();
-            ret = update_full_config(m_print_config, load_machine_config, different_keys_set, false, skip_modified_gcodes);
+            compute_variant_index(m_print_config, load_machine_config, "printer_extruder_id", "printer_extruder_variant", new_variant_index, variant_count_changed);
+            ret = update_full_config(m_print_config, load_machine_config, different_keys_set, variant_count_changed, printer_options_with_variant_1, printer_options_with_variant_2, new_variant_index, false, skip_modified_gcodes);
             if (diff_keys_size != different_keys_set.size()) {
                 //changed
                 BOOST_LOG_TRIVIAL(info) << boost::format("new different key size %1%")%different_keys_set.size();
@@ -2687,7 +2770,7 @@ int CLI::run(int argc, char **argv)
             BOOST_LOG_TRIVIAL(info) << boost::format("no new printer, only update the different key, new different_settings: %1%")%different_settings[filament_count+1];
         }
         else {
-            ret = update_full_config(m_print_config, load_machine_config, different_keys_set, true);
+            ret = update_full_config(m_print_config, load_machine_config, different_keys_set, variant_count_changed, printer_options_with_variant_1, printer_options_with_variant_2, new_variant_index, true);
             BOOST_LOG_TRIVIAL(info) << boost::format("load a new printer, update all the keys, different_settings: %1%")%different_settings[filament_count+1];
             if (new_printer_name != current_printer_name)
             {
@@ -2770,6 +2853,8 @@ int CLI::run(int argc, char **argv)
     if (m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")) {
         new_extruder_count = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
         new_is_multi_extruder = new_extruder_count > 1;
+        new_printer_extruder_variants = m_print_config.option<ConfigOptionStrings>("printer_extruder_variant", true)->values;
+        new_printer_variant_count = new_printer_extruder_variants.size();
     }
 
     //set the process settings into print config
@@ -2815,7 +2900,8 @@ int CLI::run(int argc, char **argv)
         load_default_gcodes_to_config(load_process_config, Preset::TYPE_PRINT);
         if (new_process_name.empty()) {
             int diff_keys_size = different_keys_set.size();
-            ret = update_full_config(m_print_config, load_process_config, different_keys_set, false, skip_modified_gcodes);
+            compute_variant_index(m_print_config, load_process_config, "print_extruder_id", "print_extruder_variant", new_variant_index, variant_count_changed);
+            ret = update_full_config(m_print_config, load_process_config, different_keys_set, variant_count_changed, print_options_with_variant, empty_options, new_variant_index, false, skip_modified_gcodes);
             if (diff_keys_size != different_keys_set.size()) {
                 //changed
                 BOOST_LOG_TRIVIAL(info) << boost::format("new different key size %1%")%different_keys_set.size();
@@ -2828,15 +2914,44 @@ int CLI::run(int argc, char **argv)
             BOOST_LOG_TRIVIAL(info) << boost::format("no new process, only update the different key, new different_settings: %1%")%different_settings[0];
         }
         else {
-            ret = update_full_config(m_print_config, load_process_config, different_keys_set, true);
+            ret = update_full_config(m_print_config, load_process_config, different_keys_set, variant_count_changed, print_options_with_variant, empty_options, new_variant_index, true);
             BOOST_LOG_TRIVIAL(info) << boost::format("load a new process, update all the keys, different_settings: %1%")%different_settings[0];
         }
+        current_print_variant_count = m_print_config.option<ConfigOptionStrings>("print_extruder_variant", true)->values.size();
 
         if (ret) {
             record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
             flush_and_exit(ret);
         }
     }
+
+    //get nozzle_volume_type
+    if(m_extra_config.has("nozzle_volume_type")) {
+        auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(m_extra_config.option("nozzle_volume_type"));
+        if (opt_nozzle_volume_type) {
+            int nozzle_volume_type_size = opt_nozzle_volume_type->values.size();
+            new_nozzle_volume_type.resize(nozzle_volume_type_size, nvtStandard);
+            for (int i = 0; i < nozzle_volume_type_size; i++)
+            {
+                new_nozzle_volume_type[i] = (NozzleVolumeType) (opt_nozzle_volume_type->values[i]);
+            }
+        }
+    }
+    else {
+        new_nozzle_volume_type.resize(new_extruder_count, nvtStandard);
+    }
+    new_extruder_variants.resize(new_extruder_count, "");
+    const ConfigOptionEnumsGeneric *opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric *>(m_print_config.option("extruder_type"));
+    for (int e_index = 0; e_index < new_extruder_count; e_index++) {
+        ExtruderType extruder_type     = opt_extruder_type ? (ExtruderType) (opt_extruder_type->get_at(e_index)) : etDirectDrive;
+        new_extruder_variants[e_index] = get_extruder_variant_string(extruder_type, new_nozzle_volume_type[e_index]);
+    }
+
+    if (current_nozzle_volume_type.empty())
+    {
+        current_nozzle_volume_type.resize(current_extruder_count, nvtStandard);
+    }
+    current_print_extruder_variants = m_print_config.option<ConfigOptionStrings>("print_extruder_variant", true)->values;
 
     if (machine_switch) {
         print_compatible_printers.push_back(new_printer_system_name);
@@ -2859,7 +2974,7 @@ int CLI::run(int argc, char **argv)
         }
 
         //add multi-extruder related logic
-        if (new_process_name.empty() && (current_is_multi_extruder != new_is_multi_extruder)) {
+        if (new_process_name.empty() && ((current_extruder_count != new_extruder_count) || (current_print_variant_count != new_printer_variant_count))) {
             if (new_default_process_name.empty()) {
                 BOOST_LOG_TRIVIAL(error) << boost::format("machine_switch: default process configis null, should not happen, new_printer_name %1%")%new_printer_name;
                 record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
@@ -2880,15 +2995,17 @@ int CLI::run(int argc, char **argv)
                     record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
                     flush_and_exit(CLI_CONFIG_FILE_ERROR);
                 }
-                BOOST_LOG_TRIVIAL(info) << boost::format("machine_switch: loaded default process config %1%, from %2%")%config_name %file_path ;
+                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, machine_switch: loaded default process config %2%, from %3%")%__LINE__ %config_name %file_path ;
+                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, current_is_multi_extruder: %2%, new_is_multi_extruder: %3%, current_print_variant_count: %4%, new_printer_variant_count: %4%")
+                    %__LINE__ %current_is_multi_extruder %new_is_multi_extruder %current_print_variant_count %new_printer_variant_count;
 
-                if (!current_is_multi_extruder && new_is_multi_extruder) {
+                if (!current_is_multi_extruder && new_is_multi_extruder && (current_print_variant_count == 1)) {
                     //single -> multiple
                     ret = m_print_config.update_values_from_single_to_multi(config, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
                 }
-                else if (current_is_multi_extruder && !new_is_multi_extruder) {
+                else {
                     //multiple -> single
-                    ret = m_print_config.update_values_from_multi_to_single(config, print_options_with_variant, "print_extruder_id", "print_extruder_variant", current_extruder_variants);
+                    ret = m_print_config.update_values_from_multi_to_multi(config, print_options_with_variant, "print_extruder_id", "print_extruder_variant", new_extruder_variants);
                 }
 
                 if (ret) {
@@ -2903,26 +3020,34 @@ int CLI::run(int argc, char **argv)
     //set the filament settings into print config
     if ((load_filament_count > 0) || (up_config_to_date))
     {
-        std::vector<int> filament_variant_count(filament_count, 1);
-        std::vector<int> old_start_index(filament_count, 0);
-        std::vector<int> old_variant_count(filament_count, 1);
-        if (current_is_multi_extruder) {
-            std::vector<int>& old_self_indice = m_print_config.option<ConfigOptionInts>("filament_self_index", true)->values;
-            int old_self_indice_size = old_self_indice.size();
-            int k = -1, current_filament = 0;
-            for (size_t i = 0; i < old_self_indice_size; i++) {
-                if (old_self_indice[i] > current_filament) {
-                    current_filament = old_self_indice[i];
-                    old_start_index[++k] = i;
-                    old_variant_count[k] = 1;
-                }
-                else {
-                    old_variant_count[k] = old_variant_count[k] + 1;
-                }
-            }
-            if (load_filament_count == 0)
-                filament_variant_count = old_variant_count;
+        //std::vector<int> filament_variant_count(filament_count, 1);
+        std::vector<int> old_start_indice(filament_count, 0);
+        std::vector<int> old_variant_counts(filament_count, 1), new_variant_counts;
+
+        ConfigOptionInts* filament_self_index_opt = m_print_config.option<ConfigOptionInts>("filament_self_index");
+        if (!filament_self_index_opt) {
+            filament_self_index_opt = m_print_config.option<ConfigOptionInts>("filament_self_index", true);
+            std::vector<int>& filament_self_indice = filament_self_index_opt->values;
+            filament_self_indice.resize(filament_count);
+            for (int index = 0; index < filament_count; index++)
+                filament_self_indice[index] = index + 1;
         }
+
+        std::vector<int> old_self_indice= filament_self_index_opt->values;
+        int old_self_indice_size = old_self_indice.size();
+        int k = -1, current_filament = 0;
+        for (size_t i = 0; i < old_self_indice_size; i++) {
+            if (old_self_indice[i] > current_filament) {
+                current_filament = old_self_indice[i];
+                old_start_indice[++k] = i;
+                old_variant_counts[k] = 1;
+            }
+            else {
+                old_variant_counts[k] = old_variant_counts[k] + 1;
+            }
+        }
+        new_variant_counts = old_variant_counts;
+        //filament_variant_count = old_variant_counts;
         for (int index = 0; index < load_filaments_config.size(); index++) {
             DynamicPrintConfig&  config = load_filaments_config[index];
             int filament_index = load_filaments_index[index];
@@ -2960,6 +3085,30 @@ int CLI::run(int argc, char **argv)
                 opt_filament_ids->resize(filament_count, filament_id_setting);
             opt_filament_ids->set_at(filament_id_setting,  filament_index-1, 0);
 
+            //compute the variant index logic
+            ConfigOptionStrings *curr_variant_opt = m_print_config.option<ConfigOptionStrings>("filament_extruder_variant");
+            if (!curr_variant_opt) {
+                curr_variant_opt = m_print_config.option<ConfigOptionStrings>("filament_extruder_variant", true);
+                std::vector<string>& filament_variants = curr_variant_opt->values;
+                filament_variants.resize(filament_count, get_extruder_variant_string(etDirectDrive, nvtStandard));
+            }
+            const ConfigOptionStrings *new_variant_opt = dynamic_cast<const ConfigOptionStrings*>(config.option("filament_extruder_variant", true));
+
+            std::vector<int> new_variant_indice;
+            int new_variant_count = new_variant_opt->size(), old_variant_count = old_variant_counts[filament_index - 1];
+            new_variant_indice.resize(new_variant_count, -1);
+
+            for (int i = 0; i < new_variant_count; i++)
+            {
+                for (int j = old_start_indice[filament_index - 1]; j < old_start_indice[filament_index - 1] + old_variant_count; j++)
+                {
+                    if (curr_variant_opt->values[j] == new_variant_opt->values[i]) {
+                        new_variant_indice[i] = j;
+                        break;
+                    }
+                }
+            }
+
             //parse the filament value to index th
             //loop through options and apply them
             std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
@@ -2967,6 +3116,17 @@ int CLI::run(int argc, char **argv)
             BOOST_LOG_TRIVIAL(info) << boost::format("update filament %1%'s config to newest, different size %2%, name %3%, different_settings %4%")
                 %filament_index%different_keys_set.size()%load_filaments_name[index] % different_settings[filament_index];
             for (const t_config_option_key &opt_key : config.keys()) {
+                // Create a new option with default value for the key.
+                // If the key is not in the parameter definition, or this ConfigBase is a static type and it does not support the parameter,
+                // an exception is thrown if not ignore_nonexistent.
+                const ConfigOption *source_opt = config.option(opt_key);
+                if (source_opt == nullptr) {
+                    // The key was not found in the source config, therefore it will not be initialized!
+                    BOOST_LOG_TRIVIAL(error) << boost::format("can not find %1% from filament %2%: %3%")%opt_key%filament_index%load_filaments_name[index];
+                    record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                }
+
                 if ((load_filament_count == 0) && !different_keys_set.empty())
                 {
                     std::set<std::string>::iterator iter = different_keys_set.find(opt_key);
@@ -2979,21 +3139,27 @@ int CLI::run(int argc, char **argv)
                         else {
                             //uptodate, diff keys, continue
                             BOOST_LOG_TRIVIAL(info) << boost::format("%1%, keep key %2%")%__LINE__ %opt_key;
+                            if (filament_options_with_variant.find(opt_key) != filament_options_with_variant.end())
+                            {
+                                ConfigOption *opt = m_print_config.option(opt_key);
+                                if (opt == nullptr) {
+                                    // opt_key does not exist in this ConfigBase and it cannot be created, because it is not defined by this->def().
+                                    // This is only possible if other is of DynamicConfig type.
+                                    BOOST_LOG_TRIVIAL(error) << boost::format("can not find option %1% from config, but can find it in different settings")%opt_key;
+                                    record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                                }
+                                ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt);
+                                const ConfigOptionVectorBase* opt_vec_src = static_cast<const ConfigOptionVectorBase*>(source_opt);
+                                //set with index
+                                opt_vec_dst->set_with_restore_2(opt_vec_src, new_variant_indice, old_start_indice[filament_index - 1], old_variant_count);
+                            }
+
                             continue;
                         }
                     }
                 }
-                // Create a new option with default value for the key.
-                // If the key is not in the parameter definition, or this ConfigBase is a static type and it does not support the parameter,
-                // an exception is thrown if not ignore_nonexistent.
 
-                const ConfigOption *source_opt = config.option(opt_key);
-                if (source_opt == nullptr) {
-                    // The key was not found in the source config, therefore it will not be initialized!
-                    BOOST_LOG_TRIVIAL(error) << boost::format("can not find %1% from filament %2%: %3%")%opt_key%filament_index%load_filaments_name[index];
-                    record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
-                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
-                }
                 if (source_opt->is_scalar()) {
                     if (opt_key == "compatible_printers_condition") {
                         ConfigOption *opt = m_print_config.option("compatible_machine_expression_group", true);
@@ -3029,30 +3195,26 @@ int CLI::run(int argc, char **argv)
                     }
                     ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt);
                     const ConfigOptionVectorBase* opt_vec_src = static_cast<const ConfigOptionVectorBase*>(source_opt);
-                    if (new_is_multi_extruder && (filament_options_with_variant.find(opt_key) != filament_options_with_variant.end())) {
-                        if (load_filament_count > 0) {
-                            if (filament_index == 1)
-                                opt_vec_dst->set(opt_vec_src);
-                            else
-                                opt_vec_dst->append(opt_vec_src);
+                    if (filament_options_with_variant.find(opt_key) != filament_options_with_variant.end()) {
+                        std::vector<int> temp_variant_indice;
+                        temp_variant_indice.resize(new_variant_count, -1);
+                        opt_vec_dst->set_with_restore_2(opt_vec_src, temp_variant_indice, old_start_indice[filament_index - 1], old_variant_count);
 
-                            if (opt_key == "filament_extruder_variant")
-                                filament_variant_count[filament_index - 1] = opt_vec_src->size();
-                        }
-                        else {
-                            //only update
-                            for (size_t i = 0; i < old_variant_count[filament_index-1]; i++) {
-                                opt_vec_dst->set_at(opt_vec_src, old_start_index[filament_index - 1] + i, i);
-                            }
-                        }
+                        if (opt_key == "filament_extruder_variant")
+                            new_variant_counts[filament_index - 1] = opt_vec_src->size();
                     }
                     else {
-                        if (current_is_multi_extruder && !new_is_multi_extruder && filament_options_with_variant.find(opt_key) != filament_options_with_variant.end()) {
-                            if (opt_vec_dst->size() > filament_count)
-                                opt_vec_dst->resize(filament_count);
-                        }
                         opt_vec_dst->set_at(opt_vec_src, filament_index - 1, 0);
                     }
+                }
+            }
+
+            //update the old index
+            if (old_variant_count != new_variant_count)
+            {
+                for (int i = index + 1; i < filament_count; i++ )
+                {
+                    old_start_indice[i] += new_variant_count - old_variant_count;
                 }
             }
 
@@ -3073,7 +3235,7 @@ int CLI::run(int argc, char **argv)
             filament_self_indice.resize(index_size, 1);
             int k = 0;
             for (size_t i = 0; i < filament_count; i++) {
-                for (size_t j = 0; j < filament_variant_count[i]; j++) {
+                for (size_t j = 0; j < new_variant_counts[i]; j++) {
                     filament_self_indice[k++] = i + 1;
                 }
             }
@@ -3090,7 +3252,9 @@ int CLI::run(int argc, char **argv)
         std::vector<std::string>& project_filament_colors = project_filament_colors_option->values;
         project_filament_colors.resize(filament_count, "#FFFFFF");
     }
-    if (project_filament_colors_option && (selected_filament_colors_option || !m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix") || (new_extruder_count != current_extruder_count)))
+
+    if (project_filament_colors_option &&
+        (selected_filament_colors_option || !m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix") || (current_extruder_count != new_extruder_count) || (new_nozzle_volume_type != current_nozzle_volume_type)))
     {
         std::vector<std::string>  selected_filament_colors;
         if (selected_filament_colors_option) {
@@ -3179,7 +3343,7 @@ int CLI::run(int argc, char **argv)
             {
                 std::vector<int> nozzle_flush_dataset_full = m_print_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset",true)->values;
                 if (m_print_config.has("printer_extruder_variant"))
-                    nozzle_flush_dataset_full.resize(m_print_config.option<ConfigOptionStrings>("printer_extruder_variant")->size(), 0);
+                    nozzle_flush_dataset_full.resize(new_printer_variant_count, 0);
                 else
                     nozzle_flush_dataset_full.resize(1, 0);
 
@@ -3275,7 +3439,7 @@ int CLI::run(int argc, char **argv)
 
 
     //update the object config due to extruder count change
-    if ((machine_switch) && (new_extruder_count != current_extruder_count))
+    if ((machine_switch) && ((current_extruder_count != new_extruder_count) || (current_print_variant_count != new_printer_variant_count)))
     {
         //process the object params here
         size_t num_objects = m_models[0].objects.size();
@@ -3283,20 +3447,22 @@ int CLI::run(int argc, char **argv)
             ModelObject* object = m_models[0].objects[i];
             DynamicPrintConfig object_config = object->config.get();
             if (!object_config.empty()) {
-                if (current_extruder_count < new_extruder_count)
+                /* if (current_extruder_count < new_extruder_count)
                     object_config.update_values_from_single_to_multi_2(m_print_config, print_options_with_variant);
                 else
-                    object_config.update_values_from_multi_to_single_2(print_options_with_variant);
+                    object_config.update_values_from_multi_to_single_2(print_options_with_variant);*/
+                object_config.update_values_from_multi_to_multi_2(current_print_extruder_variants, new_printer_extruder_variants, m_print_config, print_options_with_variant);
                 object->config.assign_config(std::move(object_config));
             }
             for (ModelVolume* v : object->volumes) {
                 if (v->is_model_part() || v->is_modifier()) {
                     DynamicPrintConfig volume_config = v->config.get();
                     if (!volume_config.empty()) {
-                        if (current_extruder_count < new_extruder_count)
+                        /* if (current_extruder_count < new_extruder_count)
                            volume_config.update_values_from_single_to_multi_2(m_print_config, print_options_with_variant);
                         else
-                           volume_config.update_values_from_multi_to_single_2(print_options_with_variant);
+                           volume_config.update_values_from_multi_to_single_2(print_options_with_variant);*/
+                        volume_config.update_values_from_multi_to_multi_2(current_print_extruder_variants, new_printer_extruder_variants, m_print_config, print_options_with_variant);
                         v->config.assign_config(std::move(volume_config));
                     }
                 }
@@ -3306,10 +3472,11 @@ int CLI::run(int argc, char **argv)
                 ModelConfig& layer_model_config = layer_config_it.second;
                 DynamicPrintConfig layer_config = layer_model_config.get();
                 if (!layer_config.empty()) {
-                   if (current_extruder_count < new_extruder_count)
+                   /*if (current_extruder_count < new_extruder_count)
                        layer_config.update_values_from_single_to_multi_2(m_print_config, print_options_with_variant);
                    else
-                       layer_config.update_values_from_multi_to_single_2(print_options_with_variant);
+                       layer_config.update_values_from_multi_to_single_2(print_options_with_variant);*/
+                    layer_config.update_values_from_multi_to_multi_2(current_print_extruder_variants, new_printer_extruder_variants, m_print_config, print_options_with_variant);
                    layer_model_config.assign_config(std::move(layer_config));
                }
             }
@@ -5663,6 +5830,11 @@ int CLI::run(int argc, char **argv)
                         if (new_extruder_count == 1) {
                             for (int index = 0; index < filament_count; index++)
                                 final_filament_maps[index] = 1;
+                        }
+                        if(!new_print_config.has("nozzle_volume_type")) {
+                            //set default nozzle_volume_type
+                            ConfigOptionEnumsGeneric* final_nozzle_volume_type_opt = new_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type", true);
+                            final_nozzle_volume_type_opt->values.resize(new_extruder_count, nvtStandard);
                         }
                         print->apply(model, new_print_config);
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
