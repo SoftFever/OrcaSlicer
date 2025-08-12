@@ -12,6 +12,7 @@
 #include <map>
 #include <vector>
 
+#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <nlohmann/json.hpp>
 
