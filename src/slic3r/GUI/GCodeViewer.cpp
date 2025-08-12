@@ -3467,17 +3467,20 @@ m_no_render_path = false;
                         offset += static_cast<unsigned int>(sub_path.first.i_id);
 
                         // gets the vertex index from the index buffer on gpu
-                        const IBuffer& i_buffer = buffer.indices[sub_path.first.b_id];
-                        unsigned int index = 0;
-                        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
-                        glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(offset * sizeof(IBufferType)), static_cast<GLsizeiptr>(sizeof(IBufferType)), static_cast<void*>(&index)));
-                        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+                        if (sub_path.first.b_id >= 0 && sub_path.first.b_id < buffer.indices.size()) {
+                            const IBuffer &i_buffer = buffer.indices[sub_path.first.b_id];
+                            unsigned int   index    = 0;
+                            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
+                            glsafe(::glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLintptr>(offset * sizeof(IBufferType)),
+                                                        static_cast<GLsizeiptr>(sizeof(IBufferType)), static_cast<void *>(&index)));
+                            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
-                        // gets the position from the vertices buffer on gpu
-                        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-                        glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(index * buffer.vertices.vertex_size_bytes()), static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void*>(sequential_view->current_position.data())));
-                        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-
+                            // gets the position from the vertices buffer on gpu
+                            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
+                            glsafe(::glGetBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(index * buffer.vertices.vertex_size_bytes()),
+                                                        static_cast<GLsizeiptr>(3 * sizeof(float)), static_cast<void *>(sequential_view->current_position.data())));
+                            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+                        }
                         sequential_view->current_offset = Vec3f::Zero();
                         found = true;
                         break;
