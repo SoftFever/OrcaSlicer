@@ -109,9 +109,6 @@
 	"slow_down_min_speed": [
         "20"
     ],
-	"overhang_fan_speed": [
-        "100"
-    ],
 	"filament_deretraction_speed": [
         "30"
     ],
