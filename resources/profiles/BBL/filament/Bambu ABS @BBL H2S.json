@@ -92,6 +92,9 @@
         "0",
         "0"
     ],
+    "fan_max_speed": [
+        "60"
+    ],
     "long_retractions_when_ec": [
         "0",
         "0"
@@ -113,6 +116,9 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_layer_time": [
+        "12"
     ],
     "volumetric_speed_coefficients": [
         "0;0;0;0;0;0",
