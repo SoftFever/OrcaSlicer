@@ -1,4 +1,5 @@
 #pragma once
+#include <wx/string.h>
 #include "slic3r/Utils/json_diff.hpp"
 
 namespace Slic3r
