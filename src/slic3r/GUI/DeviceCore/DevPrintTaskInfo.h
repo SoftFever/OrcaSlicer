@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 // TODO classes to handle dev print task management and ratings
 
 namespace Slic3r
