@@ -11,6 +11,7 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <boost/log/trivial.hpp>
 #include "nlohmann/json.hpp"
 
 namespace Slic3r
