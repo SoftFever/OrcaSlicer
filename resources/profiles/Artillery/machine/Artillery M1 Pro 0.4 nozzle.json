@@ -121,7 +121,7 @@
     "gcode_flavor": "klipper",
     "head_wrap_detect_zone": [],
     "high_current_on_filament_swap": "0",
-    "host_type": "artillery",
+    "host_type": "octoprint",
     "machine_load_filament_time": "0",
     "machine_max_acceleration_e": [
         "5000",
