@@ -9504,10 +9504,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr "Luftpumpe"
 
-msgid "Laser 10w"
+msgid "Laser 10 W"
 msgstr "Laser 10W"
 
-msgid "Laser 40w"
+msgid "Laser 40 W"
 msgstr "Laser 40W"
 
 msgid "Cutting Module"

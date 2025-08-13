@@ -9136,11 +9136,13 @@ msgstr ""
 msgid "Air Pump"
 msgstr "Hava Pompası"
 
-msgid "Laser 10w"
-msgstr "Lazer 10w"
+#, fuzzy
+msgid "Laser 10 W"
+msgstr "Lazer 10 W"
 
-msgid "Laser 40w"
-msgstr "Lazer 40w"
+#, fuzzy
+msgid "Laser 40 W"
+msgstr "Lazer 40 W"
 
 msgid "Cutting Module"
 msgstr "Kesim Modülü"

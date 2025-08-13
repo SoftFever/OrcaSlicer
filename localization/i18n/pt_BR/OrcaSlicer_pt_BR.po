@@ -9375,10 +9375,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr "Bomba de Ar"
 
-msgid "Laser 10w"
+msgid "Laser 10 W"
 msgstr "Laser 10 W"
 
-msgid "Laser 40w"
+msgid "Laser 40 W"
 msgstr "Laser 40 W"
 
 msgid "Cutting Module"
