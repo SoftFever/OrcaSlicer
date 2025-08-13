@@ -173,6 +173,7 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "2dlattice", ip2DLattice },
     { "crosshatch", ipCrossHatch },
     { "tpmsd", ipTpmsD },
+    { "tpmsfk", ipTpmsFK },
     { "gyroid", ipGyroid },
     { "concentric", ipConcentric },
     { "hilbertcurve", ipHilbertCurve },

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-05-18 09:32-0300\n"
 "Last-Translator: Alexandre Folle de Menezes\n"
 "Language-Team: \n"
@@ -31,8 +31,6 @@ msgstr ""
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr ""
@@ -185,6 +183,15 @@ msgstr ""
 msgid "Toggle Wireframe"
 msgstr ""
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
 msgid "Shortcut Key "
 msgstr ""
 
@@ -205,6 +212,9 @@ msgstr ""
 
 #, boost-format
 msgid "Painted using: Filament %1%"
+msgstr ""
+
+msgid "Filament remapping finished."
 msgstr ""
 
 msgid "Move"
@@ -469,9 +479,6 @@ msgid "Space proportion related to radius"
 msgstr ""
 
 msgid "Confirm connectors"
-msgstr ""
-
-msgid "Cancel"
 msgstr ""
 
 msgid "Build Volume"
@@ -2751,6 +2758,8 @@ msgstr ""
 msgid "Download failed"
 msgstr ""
 
+msgid "Canceled"
+msgstr ""
 
 msgid "Installed successfully"
 msgstr ""
@@ -3650,7 +3659,6 @@ msgid ""
 "Reset to 0."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9594,6 +9602,13 @@ msgstr ""
 msgid "Smooth High Temp Plate"
 msgstr ""
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr ""
 
@@ -11056,6 +11071,9 @@ msgid "Cross Hatch"
 msgstr ""
 
 msgid "TPMS-D"
+msgstr ""
+
+msgid "TPMS-FK"
 msgstr ""
 
 msgid "Gyroid"
@@ -12637,6 +12655,9 @@ msgid "Nearest"
 msgstr ""
 
 msgid "Aligned"
+msgstr ""
+
+msgid "Aligned back"
 msgstr ""
 
 msgid "Back"
@@ -14658,9 +14679,6 @@ msgstr ""
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Unknown file format: input file must have .3mf or .zip.amf extension."
 
-msgid "Canceled"
-msgstr ""
-
 msgid "load_obj: failed to parse"
 msgstr ""
 
@@ -15333,7 +15351,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""
