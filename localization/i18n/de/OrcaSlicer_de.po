@@ -3119,10 +3119,10 @@ msgstr "Schritt"
 msgid "AMS Slots"
 msgstr "AMS Slots"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr "Linker AMS-Slot"
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr "Rechter AMS-Slot"
 
 msgid ""
@@ -10239,7 +10239,7 @@ msgstr ""
 msgid "Preferred orientation"
 msgstr "Bevorzugte Ausrichtung"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr "Automatische Ausrichtung von STLs auf der Z-Achse beim Import"
 
 msgid "Printer preset names"
@@ -13331,11 +13331,11 @@ msgstr "Linienbreite der Skelettfüllung"
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "Passen Sie die Linienbreite der ausgewählten Skelettpfade an."
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr "Symmetrische Füllung Y-Achse"
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -15710,7 +15710,7 @@ msgstr "Breite des Reinigungsturms."
 msgid "Wipe tower rotation angle"
 msgstr "Winkel der Reinigungsturmrotation"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "Winkel der Reinigungsturmrotation in Bezug auf die X-Achse."
 
 msgid "Width of the brim."
@@ -16447,7 +16447,7 @@ msgstr "Lade benutzerdefinierten G-Code"
 msgid "Load custom G-code from json."
 msgstr "Lade benutzerdefinierten G-Code aus json."
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "Lade Filament-IDs"
 
 msgid "Load filament IDs for each object."
@@ -16796,7 +16796,7 @@ msgstr ""
 "Index der aktuellen Schicht. Einsbasiert (d.h. die erste Schicht ist Nummer "
 "1)."
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "Layer Z"
 
 msgid ""
@@ -16806,8 +16806,8 @@ msgstr ""
 "Höhe der aktuellen Schicht über dem Druckbett, gemessen an der Oberseite der "
 "Schicht."
 
-msgid "Maximal layer z"
-msgstr "Maximale Schichtdicke z"
+msgid "Maximal layer Z"
+msgstr "Maximale Schichtdicke Z"
 
 msgid "Height of the last layer above the print bed."
 msgstr "Höhe der letzten Schicht über dem Druckbett."
@@ -19746,7 +19746,7 @@ msgstr ""
 #~ msgid "Downward machines settings"
 #~ msgstr "Einstellungen für abwärtskompatible Maschinen"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "Lade Filament-IDs für jedes Objekt"
 
 #~ msgid ""

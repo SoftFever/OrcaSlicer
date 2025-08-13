@@ -2977,10 +2977,10 @@ msgstr "步骤"
 msgid "AMS Slots"
 msgstr "AMS舱内材料"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -9487,7 +9487,7 @@ msgstr "由打印机结构约束的最大可打印高度"
 msgid "Preferred orientation"
 msgstr "零件朝向偏好"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr "导入模型时自动旋转到指定的朝向"
 
 msgid "Printer preset names"
@@ -11951,11 +11951,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -13946,7 +13946,7 @@ msgstr "擦拭塔宽度"
 msgid "Wipe tower rotation angle"
 msgstr "擦拭塔旋转角度"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "擦拭塔相对于x轴的旋转角度"
 
 msgid "Width of the brim."
@@ -14590,7 +14590,7 @@ msgstr "加载自定义G-code"
 msgid "Load custom G-code from json."
 msgstr "从json文件加载自定义G-code"
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr ""
 
 msgid "Load filament IDs for each object."
@@ -14891,7 +14891,7 @@ msgstr "层编号"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr "当前层编号。从1开始编号（即第一层编号为1）。"
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr ""
 
 msgid ""
@@ -14899,7 +14899,7 @@ msgid ""
 "layer."
 msgstr ""
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr ""
 
 msgid "Height of the last layer above the print bed."

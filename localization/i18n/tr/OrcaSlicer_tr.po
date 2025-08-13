@@ -3024,11 +3024,11 @@ msgstr "Adım"
 msgid "AMS Slots"
 msgstr "AMS Yuvaları"
 
-msgid "Left Ams"
-msgstr "Sol Ams"
+msgid "Left AMS"
+msgstr "Sol AMS"
 
-msgid "Right Ams"
-msgstr "Sağ Ams"
+msgid "Right AMS"
+msgstr "Sağ AMS"
 
 msgid "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "Not: Yalnızca aynı malzeme türüne sahip AMS yuvaları seçilebilir."
@@ -9813,7 +9813,7 @@ msgstr "Yazıcının mekanizması tarafından sınırlanan maksimum yazdırılab
 msgid "Preferred orientation"
 msgstr "Tercih edilen yönlendirme"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr "İlk içe aktarma sonrasında stl'leri Z ekseninde otomatik olarak yönlendirin"
 
 msgid "Printer preset names"
@@ -12660,14 +12660,15 @@ msgstr "İskelet çizgi genişliği"
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "Seçili iskelet yollarının çizgi genişliğini ayarlayın."
 
-msgid "Symmetric infill y axis"
-msgstr "Simetrik dolgu y ekseni"
+msgid "Symmetric infill Y axis"
+msgstr "Simetrik dolgu Y ekseni"
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want these "
-"parts to have symmetric textures, please click this option on one of the parts."
+"If the model has two parts that are symmetric about the Y axis, and you want "
+"these parts to have symmetric textures, please click this option on one of the "
+"parts."
 msgstr ""
-"Modelin y ekseni etrafında simetrik iki parçası varsa ve bu parçaların simetrik "
+"Modelin Y ekseni etrafında simetrik iki parçası varsa ve bu parçaların simetrik "
 "dokulara sahip olmasını istiyorsanız, lütfen parçalardan birinde bu seçeneğe "
 "tıklayın."
 
@@ -14880,7 +14881,7 @@ msgstr "Prime tower genişliği"
 msgid "Wipe tower rotation angle"
 msgstr "Silme kulesi dönüş açısı"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "X eksenine göre silme kulesi dönüş açısı."
 
 msgid "Width of the brim."
@@ -15576,7 +15577,7 @@ msgstr "Özel gcode yükle"
 msgid "Load custom G-code from json."
 msgstr "Json'dan özel gcode yükleyin"
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "Filament kimliklerini yükle"
 
 msgid "Load filament IDs for each object."
@@ -15900,7 +15901,7 @@ msgstr "Katman numarası"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr "Geçerli katmanın dizini. Tek tabanlı (yani ilk katman 1 numaradır)."
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "Z katmanı"
 
 msgid ""
@@ -15908,7 +15909,7 @@ msgid ""
 msgstr ""
 "Geçerli katmanın baskı yatağı üzerindeki yüksekliği, katmanın tepesine kadar ölçülür."
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "Maksimum katman z"
 
 msgid "Height of the last layer above the print bed."
@@ -18705,7 +18706,7 @@ msgstr ""
 #~ msgid "Downward machines settings"
 #~ msgstr "Düşüşteki makinelerin ayarları"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "Her nesne için filaman kimliklerini yükleyin"
 
 #~ msgid ""
