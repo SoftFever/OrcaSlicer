@@ -998,13 +998,6 @@ std::vector<std::pair<size_t, bool>> chain_segments_greedy2(SegmentEndPointFunc 
 	return chain_segments_greedy_constrained_reversals2_<PointType, SegmentEndPointFunc, false, decltype(could_reverse_func)>(end_point_func, could_reverse_func, num_segments, start_near);
 }
 
-template<typename PointType, typename SegmentEndPointFunc>
-std::vector<size_t> chain_segments_neatest(SegmentEndPointFunc end_point_func, size_t num_segments, const PointType* start_near)
-{
-    auto could_reverse_func = [](size_t /* idx */) -> bool { return true; };
-    return chain_segments_greedy_constrained_reversals2_<PointType, SegmentEndPointFunc, false,decltype(could_reverse_func)>(end_point_func, could_reverse_func, num_segments, start_near);
-}
-
 std::vector<std::pair<size_t, bool>> chain_extrusion_entities(std::vector<ExtrusionEntity*> &entities, const Point *start_near)
 {
 	auto segment_end_point = [&entities](size_t idx, bool first_point) -> const Point& { return first_point ? entities[idx]->first_point() : entities[idx]->last_point(); };
@@ -1955,10 +1948,10 @@ Polylines chain_polylines(Polylines &&polylines, const Point *start_near)
 		out.reserve(polylines.size()); 
 		for (auto &segment_and_reversal : ordered) {
 			out.emplace_back(std::move(polylines[segment_and_reversal.first]));
-            if (segment_and_reversal.second)
+			if (segment_and_reversal.second)
 				out.back().reverse();
 		}
-        if (out.size() > 1 && start_near == nullptr) {
+		if (out.size() > 1 && start_near == nullptr) {
 			improve_ordering_by_two_exchanges_with_segment_flipping(out, start_near != nullptr);
 			//improve_ordering_by_segment_flipping(out, start_near != nullptr);
 		}

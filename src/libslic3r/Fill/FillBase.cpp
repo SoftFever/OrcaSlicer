@@ -247,7 +247,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
     char*       _ang_c              = &_ang_s[0];
     float       _degrees            = strtod(_ang_c, nullptr);
     float       _additional_angle   = Geometry::deg2rad(_degrees);
-    float       _tile_direction     = _surface_direction + _additional_angle;
+    float       _tile_direction     = _additional_angle;
     if ((_ang_c[0] >= '0' && _ang_c[0] <= '9') && !(_ang_c[0] == '+' || _ang_c[0] == '-')) // absolute/relative
         _absolute = true;
 
@@ -295,10 +295,12 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
             this->overlap            = 0.;
             _params.dont_adjust      = true;
             
-            if (_degrees == 360.f)
-                _tile_direction = (double) rand() / RAND_MAX * PI;
-            else if (!_absolute)
-                _tile_direction += _additional_angle; 
+            if (params.center_of_surface_pattern != CenterOfSurfacePattern::Each_Assembly) { // some direction manipulations
+                if (_degrees == 360.f)
+                    _tile_direction = (double) rand() / RAND_MAX * PI;
+                else if (!_absolute)
+                    _tile_direction += _additional_angle; 
+            }
 
             if (_is_polar_pattern) { // recalculate the tile center
 #if defined DEBUG_PATCHWORK
@@ -310,13 +312,12 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                     break;
                 case CenterOfSurfacePattern::Each_Model:
                     _params.center_of_surface_pattern = CenterOfSurfacePattern::Each_Assembly;
-                    _tile_center.rotate(-_tile_direction, _center);
-                    _tile_bb = surface->expolygon.contour.bounding_box();
+                    _tile_bb = _bbox;
                     _tile_bb.translate(_tile_center);
                     break;
                 default: // if (center_of_surface_pattern == Each_Assembly)
                     _tile_bb = surface->expolygon.contour.bounding_box();
-                    //_tile_bb.scale(_scale_factor);
+                    _tile_bb.scale(_scale_factor);
                 }
             } else {
                 _params.center_of_surface_pattern = CenterOfSurfacePattern::Each_Surface;
@@ -328,7 +329,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
 
             // store new parameters for _surface
             this->bounding_box = _tile_bb;        // store temporary BoundingBox
-            this->angle        = _tile_direction; // store temporary angle
+            this->angle        = _tile_direction + _surface_direction; // store temporary angle
 
             // *** fill the choosed tiles
             Slic3r::ExPolygons expp = intersection_ex(_exps, _tile_pg, ApplySafetyOffset::No); 
