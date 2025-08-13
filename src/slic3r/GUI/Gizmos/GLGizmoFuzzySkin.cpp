@@ -31,15 +31,15 @@ bool GLGizmoFuzzySkin::on_init()
 {
     m_shortcut_key = WXK_CONTROL_H;
 
-    m_desc["clipping_of_view_caption"]  = _L("Alt + Mouse wheel");
+    m_desc["clipping_of_view_caption"]  = _L("Alt+") + _L("Mouse wheel");
     m_desc["clipping_of_view"]          = _L("Section view");
     m_desc["reset_direction"]           = _L("Reset direction");
-    m_desc["cursor_size_caption"]       = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size_caption"]       = _L("Ctrl+") + _L("Mouse wheel");
     m_desc["cursor_size"]               = _L("Brush size");
     m_desc["cursor_type"]               = _L("Brush shape") ;
     m_desc["add_fuzzy_skin_caption"]    = _L("Left mouse button");
     m_desc["add_fuzzy_skin"]            = _L("Add fuzzy skin");
-    m_desc["remove_fuzzy_skin_caption"] = _L("Shift + Left mouse button");
+    m_desc["remove_fuzzy_skin_caption"] = _L("Shift+") + _L("Left mouse button");
     m_desc["remove_fuzzy_skin"]         = _L("Remove fuzzy skin");
     m_desc["remove_all"]                = _L("Erase all painting");
     m_desc["circle"]                    = _L("Circle");
@@ -48,7 +48,7 @@ bool GLGizmoFuzzySkin::on_init()
     m_desc["tool_type"]                 = _L("Tool type");
     m_desc["tool_brush"]                = _L("Brush");
     m_desc["tool_smart_fill"]           = _L("Smart fill");
-    m_desc["smart_fill_angle_caption"]  = _L("Ctrl + Mouse wheel");
+    m_desc["smart_fill_angle_caption"]  = _L("Ctrl+") + _L("Mouse wheel");
     m_desc["smart_fill_angle"]          = _L("Smart fill angle");
 
     return true;
