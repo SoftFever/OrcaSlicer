@@ -8214,6 +8214,128 @@ int DynamicPrintConfig::update_values_from_single_to_multi_2(DynamicPrintConfig&
     return 0;
 }
 
+
+
+int DynamicPrintConfig::update_values_from_multi_to_multi(const std::vector<std::string>& src_extruder_variants, const std::vector<std::string>& dst_extruder_variants, const DynamicPrintConfig& dst_config, const std::set<std::string>& key_sets)
+{
+    const ConfigDef  *config_def     = this->def();
+    if (!config_def) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define")%__LINE__;
+        return -1;
+    }
+
+    auto get_same_variant_indices = [](const std::vector<std::string>& extruder_variants, const std::string& variant){
+        std::vector<int> indices;
+        for(int i=0;i<extruder_variants.size();++i)
+            if(extruder_variants[i] == variant)
+                indices.push_back(i);
+        return indices;
+    };
+
+    std::vector<std::vector<int>> same_variant_indices;
+    for(size_t dst_idx =0 ;dst_idx < dst_extruder_variants.size(); ++dst_idx){
+        auto& dst_variant = dst_extruder_variants[dst_idx];
+        auto indices =get_same_variant_indices(src_extruder_variants, dst_variant);
+        same_variant_indices.emplace_back(indices);
+    }
+
+    t_config_option_keys keys = this->keys();
+    for(auto& key : keys){
+        if(key_sets.find(key) == key_sets.end())
+            continue;
+        const ConfigOptionDef* optdef = config_def->get(key);
+        if(!optdef){
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%")%__LINE__%key;
+            continue;
+        }
+
+        switch (optdef->type){
+            case coFloats:
+            {
+                ConfigOptionFloatsNullable* opt = this->option<ConfigOptionFloatsNullable>(key);
+                auto src_values = opt->values;
+                auto dst_values = dst_config.option<ConfigOptionFloatsNullable>(key) ->values;
+                for(size_t dst_idx =0; dst_idx < same_variant_indices.size(); ++dst_idx){
+                    auto& indices = same_variant_indices[dst_idx];
+                    if(indices.empty())
+                        continue;
+                    bool has_value = false;
+                    double target_value = std::numeric_limits<double>::max();
+                    for(auto idx : indices){
+                        if(opt && !opt->is_nil(idx)){
+                            has_value = true;
+                            target_value = std::min(target_value, src_values[idx]);
+                        }
+                    }
+
+                    if(has_value)
+                        dst_values[dst_idx] = target_value;
+                }
+                opt->values = dst_values;
+                break;
+            }
+            case coFloatsOrPercents:
+            {
+                ConfigOptionFloatsOrPercentsNullable* opt = this->option<ConfigOptionFloatsOrPercentsNullable>(key);
+                auto src_values = opt->values;
+                auto dst_values = dst_config.option<ConfigOptionFloatsOrPercentsNullable>(key) ->values;
+                for(size_t dst_idx =0; dst_idx < same_variant_indices.size(); ++dst_idx){
+                    auto& indices = same_variant_indices[dst_idx];
+                    if(indices.empty())
+                        continue;
+                    bool has_value = false;
+                    FloatOrPercent target_value{9999.f, true};
+                    for(auto idx : indices){
+                        if(opt && !opt->is_nil(idx)){
+                            has_value = true;
+                            target_value = src_values[idx].value < target_value.value ? src_values[idx] : target_value;
+                        }
+                    }
+
+                    if(has_value)
+                        dst_values[dst_idx] = target_value;
+                }
+                opt->values = dst_values;
+                break;
+            }
+            case coBools:
+            {
+                ConfigOptionBoolsNullable* opt = this->option<ConfigOptionBoolsNullable>(key);
+                auto src_values = opt->values;
+                auto dst_values = dst_config.option<ConfigOptionBoolsNullable>(key) ->values;
+                for(size_t dst_idx =0; dst_idx < same_variant_indices.size(); ++dst_idx){
+                    auto indices = same_variant_indices[dst_idx];
+                    if(indices.empty())
+                        continue;
+                    bool has_value = false;
+                    bool target_value;
+                    for(auto idx : indices){
+                        if(opt && !opt->is_nil(idx)){
+                            has_value = true;
+                            target_value = src_values[idx];
+                            break;
+                        }
+                    }
+
+                    if(has_value)
+                        dst_values[dst_idx] = target_value;
+                }
+
+                opt->values = dst_values;
+                break;
+            }
+            default:
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%")%__LINE__%key;
+                break;
+        }
+
+    }
+
+    return 0;
+
+}
+
+
 int DynamicPrintConfig::update_values_from_multi_to_single(DynamicPrintConfig& single_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name, std::vector<std::string>& extruder_variants)
 {
     int extruder_count = extruder_variants.size();
