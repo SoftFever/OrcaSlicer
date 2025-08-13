@@ -5660,7 +5660,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("patchwork_tiles_alternate_angle", coString);
     def->label    = L("Alternate tiles direction");
     def->category = L("Strength");
-    def->tooltip  = L("The angle of rotation of the adjacent tile.\n"
+    def->tooltip  = L("The angle of rotation of the adjacent tile. They depends from solid_ingill_direction parameter.\n"
                       "When you enter an unsigned value, all tile patterns will be positioned in that direction.\n"
                       "When you enter an signed value (+ or -), the tile patterns will change direction by this value from one to the other.\n"
                       "If you enter a '+0' value, the direction of the tile patterns will be random.");

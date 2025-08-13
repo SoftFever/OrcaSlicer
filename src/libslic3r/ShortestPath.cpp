@@ -1940,7 +1940,7 @@ static inline void improve_ordering_by_two_exchanges_with_segment_flipping(Polyl
 }
 
 // Used to optimize order of infill lines and brim lines.
-Polylines chain_polylines(Polylines&& polylines, const Point* start_near)
+Polylines chain_polylines(Polylines &&polylines, const Point *start_near)
 {
 #ifdef DEBUG_SVG_OUTPUT
 	static int iRun = 0;
