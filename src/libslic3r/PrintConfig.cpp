@@ -3204,13 +3204,13 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString("0,90"));
 
-
     def           = this->add("skeleton_infill_density", coPercent);
     def->label    = L("Skeleton infill density");
     def->category = L("Strength");
-    def->tooltip  = L("The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section."
-                      "When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections."
-                      "default is as same as infill density.");
+    def->tooltip  = L("The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. "
+                      "This parameter is used to adjust the density of this section. "
+                      "When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections. "
+                      "Default is as same as infill density.");
     def->sidetext = "%";
     def->min      = 0;
     def->max      = 100;
@@ -3220,9 +3220,10 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("skin_infill_density", coPercent);
     def->label    = L("Skin infill density");
     def->category = L("Strength");
-    def->tooltip  = L("The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section."
-                      "When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions."
-                     "default is as same as infill density.");
+    def->tooltip  = L("The portion of the model's outer surface within a certain depth range is called the skin. "
+                      "This parameter is used to adjust the density of this section. "
+                      "When two regions have the same sparse infill settings but different skin densities, this area will not be split into two separate regions. "
+                      "Default is as same as infill density.");
     def->sidetext = "%";
     def->min  = 0;
     def->max  = 100;
@@ -5718,7 +5719,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("wipe_tower_extra_rib_length", coFloat);
     def->label    = L("Extra rib length");
-    def->tooltip  = L("Positive values can increase the size of the rib wall, while negative values can reduce the size."
+    def->tooltip  = L("Positive values can increase the size of the rib wall, while negative values can reduce the size. "
                        "However, the size of the rib wall can not be smaller than that determined by the cleaning volume.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->max      = 300;
