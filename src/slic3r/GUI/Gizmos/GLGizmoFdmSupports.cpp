@@ -79,25 +79,31 @@ bool GLGizmoFdmSupports::on_init()
     // BBS
     m_shortcut_key = WXK_CONTROL_L;
 
-    m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
+    // FIXME: maybe should be using GUI::shortkey_ctrl_prefix() or equivalent?
+    const wxString ctrl  = _L("Ctrl+");
+    // FIXME: maybe should be using GUI::shortkey_alt_prefix() or equivalent?
+    const wxString alt   = _L("Alt+");
+    const wxString shift = _L("Shift+");
+
+    m_desc["clipping_of_view_caption"] = alt + _L("Mouse wheel");
     m_desc["clipping_of_view"]      = _L("Section view");
     m_desc["reset_direction"]       = _L("Reset direction");
-    m_desc["cursor_size_caption"]   = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size_caption"]   = ctrl + _L("Mouse wheel");
     m_desc["cursor_size"]           = _L("Pen size");
     m_desc["enforce_caption"]       = _L("Left mouse button");
     m_desc["enforce"]               = _L("Enforce supports");
     m_desc["block_caption"]         = _L("Right mouse button");
     m_desc["block"]                 = _L("Block supports");
-    m_desc["remove_caption"]        = _L("Shift + Left mouse button");
+    m_desc["remove_caption"]        = shift + _L("Left mouse button");
     m_desc["remove"]                = _L("Erase");
     m_desc["remove_all"]            = _L("Erase all painting");
     m_desc["highlight_by_angle"]    = _L("Highlight overhang areas");
     m_desc["gap_fill"]              = _L("Gap fill");
     m_desc["perform"]               = _L("Perform");
-    m_desc["gap_area_caption"]      = _L("Ctrl + Mouse wheel");
+    m_desc["gap_area_caption"]      = ctrl + _L("Mouse wheel");
     m_desc["gap_area"]              = _L("Gap area");
     m_desc["tool_type"]             = _L("Tool type");
-    m_desc["smart_fill_angle_caption"] = _L("Ctrl + Mouse wheel");
+    m_desc["smart_fill_angle_caption"] = ctrl + _L("Mouse wheel");
     m_desc["smart_fill_angle"]      = _L("Smart fill angle");
     m_desc["on_overhangs_only"] = _L("On overhangs only");
 

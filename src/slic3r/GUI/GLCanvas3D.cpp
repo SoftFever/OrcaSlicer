@@ -302,10 +302,10 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
 
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + canvas.m_main_toolbar.get_height();
     std::map<wxString, wxString> captions_texts = {
-        {_L("Left mouse button:") ,_L("Add detail")},
-        {_L("Right mouse button:"), _L("Remove detail")},
-        {_L("Shift + Left mouse button:"),_L("Reset to base")},
-        {_L("Shift + Right mouse button:"), _L("Smoothing")},
+        {_L("Left mouse button") + ":" , _L("Add detail")},
+        {_L("Right mouse button") + ":", _L("Remove detail")},
+        {_L("Shift+") + _L("Left mouse button") + ":", _L("Reset to base")},
+        {_L("Shift+") + _L("Right mouse button") + ":", _L("Smoothing")},
         {_L("Mouse wheel:"), _L("Increase/decrease edit area")}
     };
     show_tooltip_information(canvas, captions_texts, x, get_cur_y);
@@ -1170,7 +1170,8 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
 
     m_assembly_view_desc["object_selection_caption"] = _L("Left mouse button");
     m_assembly_view_desc["object_selection"]         = _L("object selection");
-    m_assembly_view_desc["part_selection_caption"]   = "Alt +" + _L("Left mouse button");
+    // FIXME: maybe should be using GUI::shortkey_alt_prefix() or equivalent?
+    m_assembly_view_desc["part_selection_caption"]   = _L("Alt+") + _L("Left mouse button");
     m_assembly_view_desc["part_selection"]           = _L("part selection");
     m_assembly_view_desc["number_key_caption"]       = "1~16 " + _L("number keys");
     m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
@@ -6469,7 +6470,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "orient";
     item.icon_filename = m_is_dark ? "toolbar_orient_dark.svg" : "toolbar_orient.svg";
-    item.tooltip = _utf8(L("Auto orient all/selected objects")) + " [Q]\n" + _utf8(L("Auto orient all objects on current plate")) + " [Shift+Q]";
+    item.tooltip = _utf8(L("Auto orient all/selected objects")) + " [Q]\n" + _utf8(L("Auto orient all objects on current plate")) + " [" + _utf8(L("Shift+")) + "Q]";
     item.sprite_id++;
     item.left.render_callback = nullptr;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
@@ -6491,7 +6492,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "arrange";
     item.icon_filename = m_is_dark ? "toolbar_arrange_dark.svg" : "toolbar_arrange.svg";
-    item.tooltip = _utf8(L("Arrange all objects")) + " [A]\n" + _utf8(L("Arrange objects on selected plates")) + " [Shift+A]";
+    item.tooltip = _utf8(L("Arrange all objects")) + " [A]\n" + _utf8(L("Arrange objects on selected plates")) + " [" + _utf8(L("Shift+")) + "A]";
     item.sprite_id++;
     item.left.action_callback = []() {};
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
