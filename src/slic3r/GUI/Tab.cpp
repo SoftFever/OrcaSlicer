@@ -2205,6 +2205,17 @@ void TabPrint::build()
         optgroup->append_single_option_line("bottom_surface_density", "strength_settings_top_bottom_shells#surface-density");
         optgroup->append_single_option_line("bottom_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
         optgroup->append_single_option_line("top_bottom_infill_wall_overlap", "strength_settings_top_bottom_shells#infillwall-overlap");
+        optgroup->append_single_option_line("patchwork_surfaces", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_angle", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_tile_height", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_tile_width", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_tile_horizontal_joint", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_tile_vertical_joint", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_tiles_alternate_angle", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_subway_tiling", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("anisotropic_surfaces", "strength_settings_top_bottom_shells#aesthetic-surfaces");
+        optgroup->append_single_option_line("precision_surfaces", "strength_settings_top_bottom_shells#precision-surfaces");
+        optgroup->append_single_option_line("center_of_surface_pattern", "strength_settings_top_bottom_shells#align-center-of-surfaces");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
@@ -2453,11 +2464,6 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
         optgroup->append_single_option_line("spiral_finishing_flow_ratio", "others_settings_special_mode#spiral-finishing-flow-ratio");
 
         optgroup->append_single_option_line("timelapse_type", "others_settings_special_mode#timelapse");
-
-        //optgroup = page->new_optgroup(L("Aesthetic"), L"param_aesthetic");
-        optgroup->append_single_option_line("aesthetic_surfaces", "others_settings_special_mode#aesthetic-surfaces");
-        optgroup->append_single_option_line("align_center_of_patterns", "others_settings_special_mode#align-center-of-surfaces");
-        optgroup->append_single_option_line("precision_surfaces", "others_settings_special_mode#precision-surfaces");
 
         optgroup = page->new_optgroup(L("Fuzzy Skin"), L"fuzzy_skin");
         optgroup->append_single_option_line("fuzzy_skin", "others_settings_special_mode#fuzzy-skin");

@@ -711,9 +711,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 }
                 if (params.extrusion_role == erInternalInfill) {
                     params.angle += float(Geometry::deg2rad(region_config.infill_direction.value));
-                } else {
+                } else if (!region_config.patchwork_surfaces)
                     params.angle += float(Geometry::deg2rad(region_config.solid_infill_direction.value));
-                }
 
                 // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
@@ -1052,11 +1051,13 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         auto &region_config = layerm->region().config();
         params.config               = &region_config;
         params.pattern              = surface_fill.params.pattern;
-        if (params.extrusion_role == erTopSolidInfill || params.extrusion_role == erBottomSurface) {
-            params.aesthetic_surface       = region_config.aesthetic_surfaces.value;
-            params.align_center_of_patterns = region_config.align_center_of_patterns.value;
+        bool _top_or_bottom         = params.extrusion_role == erTopSolidInfill || params.extrusion_role == erBottomSurface;
+        if (_top_or_bottom) {
+            params.anisotropic_surface        = region_config.anisotropic_surfaces.value;
+            params.center_of_surface_pattern  = region_config.center_of_surface_pattern.value;
+            params.patchwork_surface          = region_config.patchwork_surfaces.value;
         }
-        params.precision_surface = region_config.precision_surfaces.value;
+        //params.precision_surface = region_config.precision_surfaces.value;
 
         ConfigOptionFloats rotate_angles;
         const std::string  search_string = "/NnZz$LlUuQq~^|#";
@@ -1274,9 +1275,11 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                 params.dont_adjust = true;
             }
 			// BBS: make fill
-			f->fill_surface_extrusion(&surface_fill.surface,
-				params,
-				m_regions[surface_fill.region_id]->fills.entities);
+
+            if (region_config.patchwork_surfaces.value && (params.extrusion_role == erTopSolidInfill || params.extrusion_role == erBottomSurface))
+                f->fill_patchwork(&surface_fill.surface, params, m_regions[surface_fill.region_id]->fills.entities);
+            else    
+			    f->fill_surface_extrusion(&surface_fill.surface, params, m_regions[surface_fill.region_id]->fills.entities);
 		}
     }
 

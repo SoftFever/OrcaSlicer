@@ -555,6 +555,15 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "small_perimeter_threshold" })
         toggle_field(el, have_perimeters);
 
+    bool patchwork_enable = config->opt_bool("patchwork_surfaces");
+    for (auto el : {"patchwork_angle", "patchwork_tile_height", "patchwork_tile_width",
+                    "patchwork_tile_horizontal_joint", "patchwork_tile_vertical_joint",
+                    "patchwork_tiles_alternate_angle", "patchwork_subway_tiling"})
+        toggle_line(el, patchwork_enable);
+
+    toggle_field("patchwork_tiles_alternate_angle",
+                 config->opt_enum<CenterOfSurfacePattern>("center_of_surface_pattern") != CenterOfSurfacePattern::Each_Assembly);
+
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "infill_combination",
