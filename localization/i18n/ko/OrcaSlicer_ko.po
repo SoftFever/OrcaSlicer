@@ -4354,7 +4354,7 @@ msgstr "순서"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4464,9 +4464,6 @@ msgstr "단면도"
 
 msgid "Assemble Control"
 msgstr "조립 제어"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
@@ -19268,13 +19265,6 @@ msgstr ""
 
 #~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
 #~ msgstr "유효한 값을 입력하세요(K는 0~0.3, N은 0.6~2.0)"
-
-#~ msgid "Select connected printetrs (0/6)"
-#~ msgstr "연결된 프린터 선택(0/6)"
-
-#, c-format, boost-format
-#~ msgid "Select Connected Printetrs (%d/6)"
-#~ msgstr "연결된 프린터 (%d/6)를 선택합니다"
 
 #~ msgid "PrintingPause"
 #~ msgstr "인쇄 일시 중지"

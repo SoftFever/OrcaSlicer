@@ -4465,7 +4465,7 @@ msgstr "Послідовність"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4575,9 +4575,6 @@ msgstr "Розріз"
 
 msgid "Assemble Control"
 msgstr "Складання керування"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""

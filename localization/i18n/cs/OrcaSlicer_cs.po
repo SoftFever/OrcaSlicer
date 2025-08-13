@@ -4381,7 +4381,7 @@ msgstr "Sekvence"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4491,9 +4491,6 @@ msgstr "Sekce Zobrazení"
 
 msgid "Assemble Control"
 msgstr "Ovládání sestavy"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""

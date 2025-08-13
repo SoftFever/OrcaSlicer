@@ -4363,7 +4363,7 @@ msgstr "Sekans"
 msgid "object selection"
 msgstr "nesne seçimi"
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr "parça seçimi"
 
 msgid "number keys"
@@ -4473,9 +4473,6 @@ msgstr "Bölüm Görünümü"
 
 msgid "Assemble Control"
 msgstr "Montaj Kontrolü"
-
-msgid "part selection"
-msgstr "parça seçimi"
 
 msgid "Selection Mode"
 msgstr "Seçim Modu"
@@ -19483,13 +19480,6 @@ msgstr ""
 
 #~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
 #~ msgstr "Lütfen geçerli bir değer girin (K in 0~0.3, N in 0.6~2.0)"
-
-#~ msgid "Select connected printetrs (0/6)"
-#~ msgstr "Bağlı yazıcıları seçin (0/6)"
-
-#, c-format, boost-format
-#~ msgid "Select Connected Printetrs (%d/6)"
-#~ msgstr "Bağlı Yazıcıları Seçin (%d/6)"
 
 #~ msgid "PrintingPause"
 #~ msgstr "Yazdırma Duraklatıldı"

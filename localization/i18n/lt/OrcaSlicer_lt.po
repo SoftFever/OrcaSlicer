@@ -4451,7 +4451,7 @@ msgstr "Seka"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4561,9 +4561,6 @@ msgstr "Sekcijos peržiūra"
 
 msgid "Assemble Control"
 msgstr "Surinkimo valdymas"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""

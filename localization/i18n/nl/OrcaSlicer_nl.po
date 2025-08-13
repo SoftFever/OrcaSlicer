@@ -4373,7 +4373,7 @@ msgstr "Reeks"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4483,9 +4483,6 @@ msgstr "Sectie weergave"
 
 msgid "Assemble Control"
 msgstr "Assemblage controle"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""

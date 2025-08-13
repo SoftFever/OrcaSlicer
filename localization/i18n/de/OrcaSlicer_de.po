@@ -4527,7 +4527,7 @@ msgstr "Reihenfolge"
 msgid "object selection"
 msgstr "Objektauswahl"
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr "Teileauswahl"
 
 msgid "number keys"
@@ -4637,9 +4637,6 @@ msgstr "Schnittansicht"
 
 msgid "Assemble Control"
 msgstr "Montagekontrolle"
-
-msgid "part selection"
-msgstr "Teileauswahl"
 
 msgid "Selection Mode"
 msgstr "Auswahlmodus"
@@ -20580,13 +20577,6 @@ msgstr ""
 
 #~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
 #~ msgstr "Bitte geben Sie einen gültigen Wert ein (K in 0~0.3, N in 0.6~2.0)"
-
-#~ msgid "Select connected printetrs (0/6)"
-#~ msgstr "Wählen die verbundenen Drucker (0/6)"
-
-#, c-format, boost-format
-#~ msgid "Select Connected Printetrs (%d/6)"
-#~ msgstr "Wählen die verbundenen Drucker (%d/6)"
 
 #~ msgid "PrintingPause"
 #~ msgstr "Druckpause"

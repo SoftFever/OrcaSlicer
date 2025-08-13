@@ -4475,7 +4475,7 @@ msgstr "Seqüència"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4585,9 +4585,6 @@ msgstr "Vista de secció"
 
 msgid "Assemble Control"
 msgstr "Control d'ensamblatge"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
