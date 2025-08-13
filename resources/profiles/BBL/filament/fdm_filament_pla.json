@@ -43,11 +43,17 @@
     "filament_scarf_gap": [
         "15%"
     ],
+    "filament_adhesiveness_category": [
+        "100"
+    ],
     "hot_plate_temp": [
         "55"
     ],
     "hot_plate_temp_initial_layer": [
         "55"
+    ],
+    "impact_strength_z": [
+        "10.0"
     ],
     "nozzle_temperature": [
         "220"
@@ -75,9 +81,6 @@
     ],
     "textured_plate_temp_initial_layer": [
         "55"
-    ],
-    "filament_adhesiveness_category": [
-        "100"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n{if  (bed_temperature[current_extruder] >45)||(bed_temperature_initial_layer[current_extruder] >45)}M106 P3 S255\n{elsif(bed_temperature[current_extruder] >35)||(bed_temperature_initial_layer[current_extruder] >35)}M106 P3 S180\n{endif}\n\n{if activate_air_filtration[current_extruder] && support_air_filtration}\nM106 P3 S{during_print_exhaust_fan_speed_num[current_extruder]} \n{endif}"

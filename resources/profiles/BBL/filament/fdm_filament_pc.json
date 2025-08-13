@@ -37,6 +37,9 @@
     "filament_type": [
         "PC"
     ],
+    "filament_adhesiveness_category": [
+        "500"
+    ],
     "hot_plate_temp": [
         "110"
     ],
@@ -84,9 +87,6 @@
     ],
     "textured_plate_temp_initial_layer": [
         "110"
-    ],
-    "filament_adhesiveness_category": [
-        "500"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n\n"

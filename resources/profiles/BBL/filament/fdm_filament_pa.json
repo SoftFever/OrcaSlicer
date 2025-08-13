@@ -40,6 +40,9 @@
     "filament_type": [
         "PA"
     ],
+    "filament_adhesiveness_category": [
+        "400"
+    ],
     "hot_plate_temp": [
         "100"
     ],
@@ -84,9 +87,6 @@
     ],
     "textured_plate_temp_initial_layer": [
         "100"
-    ],
-    "filament_adhesiveness_category": [
-        "400"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n\n"

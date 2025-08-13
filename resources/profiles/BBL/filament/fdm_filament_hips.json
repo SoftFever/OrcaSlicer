@@ -40,6 +40,9 @@
     "filament_type": [
         "HIPS"
     ],
+    "filament_adhesiveness_category": [
+        "798"
+    ],
     "hot_plate_temp": [
         "90"
     ],
@@ -81,9 +84,6 @@
     ],
     "textured_plate_temp_initial_layer": [
         "90"
-    ],
-    "filament_adhesiveness_category": [
-        "798"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n\n"

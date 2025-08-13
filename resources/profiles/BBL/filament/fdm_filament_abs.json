@@ -40,6 +40,9 @@
     "filament_type": [
         "ABS"
     ],
+    "filament_adhesiveness_category": [
+        "200"
+    ],
     "hot_plate_temp": [
         "90"
     ],
@@ -84,9 +87,6 @@
     ],
     "textured_plate_temp_initial_layer": [
         "90"
-    ],
-    "filament_adhesiveness_category": [
-        "200"
     ],
     "filament_end_gcode": [
         "; filament end gcode \n\n"

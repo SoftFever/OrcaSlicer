@@ -143,9 +143,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
-    ],
-    "filament_extruder_id": [
-        "1",
-        "1"
     ]
 }

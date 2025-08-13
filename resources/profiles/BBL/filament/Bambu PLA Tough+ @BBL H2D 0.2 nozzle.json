@@ -119,11 +119,11 @@
     ],
     "nozzle_temperature": [
         "245",
-        "220"
+        "245"
     ],
     "nozzle_temperature_initial_layer": [
         "245",
-        "220"
+        "245"
     ],
     "override_process_overhang_speed": [
         "0",

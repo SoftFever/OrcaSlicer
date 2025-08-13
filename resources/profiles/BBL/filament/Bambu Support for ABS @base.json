@@ -27,19 +27,19 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "filament_scarf_seam_type": [
+        "none"
+    ],
+    "filament_adhesiveness_category": [
+        "706"
+    ],
     "nozzle_temperature_range_high": [
         "270"
     ],
     "slow_down_layer_time": [
         "12"
     ],
-    "filament_scarf_seam_type": [
-        "none"
-    ],
     "temperature_vitrification": [
         "90"
-    ],
-    "filament_adhesiveness_category": [
-        "706"
     ]
 }

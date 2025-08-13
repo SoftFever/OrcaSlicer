@@ -96,6 +96,9 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "filament_printable": [
+        "1"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -134,8 +137,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
-    ],
-    "filament_printable": [
-        "1"
     ]
 }
