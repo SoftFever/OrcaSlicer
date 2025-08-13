@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2024-11-03 20:59+0100\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -35,8 +35,6 @@ msgstr "Teplota"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "Sériové číslo:"
@@ -192,6 +190,15 @@ msgstr ""
 msgid "Toggle Wireframe"
 msgstr "Přepnout drátový model"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Zrušit"
+
 msgid "Shortcut Key "
 msgstr "Klávesová Zkratka "
 
@@ -213,6 +220,9 @@ msgstr "Odbarvení"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Namalováno pomocí: Filament %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Přesunout"
@@ -482,9 +492,6 @@ msgstr "Velikost mezery vůči poloměru"
 
 msgid "Confirm connectors"
 msgstr "Potvrzení spojek"
-
-msgid "Cancel"
-msgstr "Zrušit"
 
 msgid "Build Volume"
 msgstr "Maximální rozměry tisku"
@@ -2836,6 +2843,8 @@ msgstr "Stahování"
 msgid "Download failed"
 msgstr "Stahování se nezdařilo"
 
+msgid "Canceled"
+msgstr "Zrušeno"
 
 msgid "Installed successfully"
 msgstr "Instalace proběhla úspěšně."
@@ -3790,7 +3799,6 @@ msgid ""
 "Reset to 0."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9975,6 +9983,13 @@ msgstr ""
 msgid "Smooth High Temp Plate"
 msgstr ""
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Sekvence tisku první vrstvy"
 
@@ -11504,6 +11519,9 @@ msgid "Cross Hatch"
 msgstr ""
 
 msgid "TPMS-D"
+msgstr ""
+
+msgid "TPMS-FK"
 msgstr ""
 
 msgid "Gyroid"
@@ -13241,6 +13259,9 @@ msgstr "Nejbližší"
 
 msgid "Aligned"
 msgstr "Zarovnaný"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Zezadu"
@@ -15424,9 +15445,6 @@ msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 "Neznámý formát souboru. Vstupní soubor musí mít příponu .3mf nebo .zip.amf."
 
-msgid "Canceled"
-msgstr "Zrušeno"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: nepodařilo se zpracovat"
 
@@ -16145,7 +16163,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""
