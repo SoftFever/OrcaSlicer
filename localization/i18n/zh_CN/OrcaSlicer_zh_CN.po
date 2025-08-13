@@ -4274,7 +4274,7 @@ msgstr "顺序"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4385,9 +4385,6 @@ msgstr "剖面视图"
 
 msgid "Assemble Control"
 msgstr "拼装视图控制"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""

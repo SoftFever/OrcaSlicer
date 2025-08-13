@@ -4328,7 +4328,7 @@ msgstr "Sorrend"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4438,9 +4438,6 @@ msgstr "Keresztmetszet nézet"
 
 msgid "Assemble Control"
 msgstr "Összeállítás"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""

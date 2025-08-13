@@ -4467,7 +4467,7 @@ msgstr "Sequência"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4577,9 +4577,6 @@ msgstr "Vista de Seção"
 
 msgid "Assemble Control"
 msgstr "Controle de Montagem"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
@@ -19837,13 +19834,6 @@ msgstr ""
 
 #~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
 #~ msgstr "Por favor, insira um valor válido (K entre 0~0.3, N entre 0.6~2.0))"
-
-#~ msgid "Select connected printetrs (0/6)"
-#~ msgstr "Selecione as impressoras conectadas (0/6)"
-
-#, c-format, boost-format
-#~ msgid "Select Connected Printetrs (%d/6)"
-#~ msgstr "Selecionar as impressoras conectadas (%d/6)"
 
 #~ msgid "PrintingPause"
 #~ msgstr "Pausa na Impressão"

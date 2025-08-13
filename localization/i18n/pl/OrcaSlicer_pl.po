@@ -4461,7 +4461,7 @@ msgstr "Kolejność"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4571,9 +4571,6 @@ msgstr "Widok przekroju"
 
 msgid "Assemble Control"
 msgstr "Kontrola montażu"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""

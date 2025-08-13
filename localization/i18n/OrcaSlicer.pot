@@ -4155,7 +4155,7 @@ msgstr ""
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4264,9 +4264,6 @@ msgid "Section View"
 msgstr ""
 
 msgid "Assemble Control"
-msgstr ""
-
-msgid "part selection"
 msgstr ""
 
 msgid "Selection Mode"

@@ -4528,7 +4528,7 @@ msgstr "Последовательность"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4638,9 +4638,6 @@ msgstr "Отсечение вида"
 
 msgid "Assemble Control"
 msgstr "Управление сборкой"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
