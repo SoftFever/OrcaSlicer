@@ -2982,10 +2982,10 @@ msgstr "手順"
 msgid "AMS Slots"
 msgstr "AMSスロット"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -9456,7 +9456,7 @@ msgstr "造形可能の最大高さです。"
 msgid "Preferred orientation"
 msgstr ""
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr ""
 
 msgid "Printer preset names"
@@ -11809,11 +11809,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -13751,7 +13751,7 @@ msgstr "プライムタワーの幅です。"
 msgid "Wipe tower rotation angle"
 msgstr "ワイプタワーの回転角"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "x軸に対するワイプタワーの回転角度。"
 
 msgid "Width of the brim."
@@ -14365,7 +14365,7 @@ msgstr ""
 msgid "Load custom G-code from json."
 msgstr ""
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr ""
 
 msgid "Load filament IDs for each object."
@@ -14693,7 +14693,7 @@ msgstr "レイヤーナンバー"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr ""
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr ""
 
 msgid ""
@@ -14701,7 +14701,7 @@ msgid ""
 "layer."
 msgstr "プリント ベッド上の現在のレイヤーの高さ (レイヤーの最上部までの計測)。"
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr ""
 
 msgid "Height of the last layer above the print bed."

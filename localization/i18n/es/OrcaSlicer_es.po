@@ -3109,10 +3109,10 @@ msgstr "Paso"
 msgid "AMS Slots"
 msgstr "Ranuras AMS"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -10110,7 +10110,7 @@ msgstr "Altura máxima imprimible limitada por el mecanismo de la impresora"
 msgid "Preferred orientation"
 msgstr "Orientación preferida"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr ""
 "Orientar automáticamente los stls en el eje Z en la importación inicial"
 
@@ -12996,11 +12996,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -15302,7 +15302,7 @@ msgstr "Ancho de la torre de purga"
 msgid "Wipe tower rotation angle"
 msgstr "Ángulo de rotación de torre de purga"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "Ángulo de rotación con respecto al eje X."
 
 msgid "Width of the brim."
@@ -16016,7 +16016,7 @@ msgstr "Cargar G-Code personalizado"
 msgid "Load custom G-code from json."
 msgstr "Cargar G-Code personalizado desde json."
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr ""
 
 msgid "Load filament IDs for each object."
@@ -16361,7 +16361,7 @@ msgstr ""
 "Índice de la capa actual. Basado en uno (es decir, la primera capa es la "
 "número 1)."
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "Z de capa"
 
 msgid ""
@@ -16371,7 +16371,7 @@ msgstr ""
 "Altura de la capa actual sobre la cama de impresión, medida hasta la parte "
 "superior de la capa."
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "Z máxima de capa"
 
 msgid "Height of the last layer above the print bed."

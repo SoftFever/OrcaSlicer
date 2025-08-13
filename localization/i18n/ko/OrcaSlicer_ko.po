@@ -3026,10 +3026,10 @@ msgstr "단계"
 msgid "AMS Slots"
 msgstr "AMS 슬롯"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -9775,7 +9775,7 @@ msgstr "프린터 기계장치에 의해 제한되는 출력 가능한 최대 �
 msgid "Preferred orientation"
 msgstr "선호하는 방향"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr "최초 임포트 시 Z축에서 자동으로 스톨 방향 지정"
 
 msgid "Printer preset names"
@@ -12566,11 +12566,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -14744,7 +14744,7 @@ msgstr "프라임 타워의 너비"
 msgid "Wipe tower rotation angle"
 msgstr "프라임 타워 회전 각도"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "X축 기준의 프라임 타워 회전 각도."
 
 msgid "Width of the brim."
@@ -15422,7 +15422,7 @@ msgstr "사용자 정의 Gcode 불러오기"
 msgid "Load custom G-code from json."
 msgstr "사용자 정의 Gcode를 json에서 불러오기."
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "필라멘트 ID 불러오기"
 
 msgid "Load filament IDs for each object."
@@ -15743,7 +15743,7 @@ msgstr "레이어 번호"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr "현재 레이어의 인덱스입니다. 1 기반(즉, 첫 번째 레이어가 1번입니다)."
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "레이어 z"
 
 msgid ""
@@ -15751,7 +15751,7 @@ msgid ""
 "layer."
 msgstr "레이어 상단까지 측정된 출력 베드 위의 현재 레이어 높이입니다."
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "최대 레이어 z"
 
 msgid "Height of the last layer above the print bed."
@@ -18549,7 +18549,7 @@ msgstr ""
 #~ msgid "Downward machines settings"
 #~ msgstr "하향 머신 설정"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "각 객체에 대한 필라멘트 ID 로드"
 
 #~ msgid ""

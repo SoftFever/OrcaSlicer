@@ -561,7 +561,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("preferred_orientation", coFloat);
     def->label = L("Preferred orientation");
-    def->tooltip = L("Automatically orient stls on the Z-axis upon initial import.");
+    def->tooltip = L("Automatically orient stls on the Z axis upon initial import.");
     def->sidetext = "°";	// degrees, don't need translation
     def->max = 360;
     def->min = -360;
@@ -3270,9 +3270,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def           = this->add("symmetric_infill_y_axis", coBool);
-    def->label    = L("Symmetric infill y axis");
+    def->label    = L("Symmetric infill Y axis");
     def->category = L("Strength");
-    def->tooltip  = L("If the model has two parts that are symmetric about the y-axis,"
+    def->tooltip  = L("If the model has two parts that are symmetric about the Y axis,"
                       " and you want these parts to have symmetric textures, please click this option on one of the parts.");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
@@ -5664,7 +5664,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_tower_rotation_angle", coFloat);
     def->label = L("Wipe tower rotation angle");
-    def->tooltip = L("Wipe tower rotation angle with respect to x-axis.");
+    def->tooltip = L("Wipe tower rotation angle with respect to X axis.");
     def->sidetext = "°";	// degrees, don't need translation
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -8006,7 +8006,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("load_filament_ids", coInts);
-    def->label = L("Load filament ids");
+    def->label = L("Load filament IDs");
     def->tooltip = L("Load filament IDs for each object.");
     def->cli_params = "\"1,2,3,1\"";
     def->set_default_value(new ConfigOptionInts());
@@ -8402,11 +8402,11 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     def->tooltip = L("Index of the current layer. One-based (i.e. first layer is number 1).");
 
     def = this->add("layer_z", coFloat);
-    def->label = L("Layer z");
+    def->label = L("Layer Z");
     def->tooltip = L("Height of the current layer above the print bed, measured to the top of the layer.");
 
     def = this->add("max_layer_z", coFloat);
-    def->label = L("Maximal layer z");
+    def->label = L("Maximal layer Z");
     def->tooltip = L("Height of the last layer above the print bed.");
 
     def = this->add("filament_extruder_id", coInt);

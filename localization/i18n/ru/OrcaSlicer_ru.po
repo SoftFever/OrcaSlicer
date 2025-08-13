@@ -3118,10 +3118,10 @@ msgstr "Шаг"
 msgid "AMS Slots"
 msgstr "Слоты АСПП"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 # Примечание: выбор слотов ограничен одним типом материала.
@@ -10228,7 +10228,7 @@ msgid "Preferred orientation"
 msgstr "Предпочтительная ориентация"
 
 # Автоориентация stl файлов по оси Z при первоначальном импорте.
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr "Автоориентация моделей относительно оси Z при первоначальном импорте."
 
 msgid "Printer preset names"
@@ -13278,11 +13278,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -15700,7 +15700,7 @@ msgstr ""
 msgid "Wipe tower rotation angle"
 msgstr "Угол поворота черновой башни"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "Угол поворота черновой башни относительно оси X."
 
 msgid "Width of the brim."
@@ -16454,7 +16454,7 @@ msgid "Load custom G-code from json."
 msgstr "Загрузить пользовательской G-код из json"
 
 # ??? назначить идентификаторы
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "Загрузить идентификаторы прутков"
 
 msgid "Load filament IDs for each object."
@@ -16809,7 +16809,7 @@ msgstr ""
 "Номер текущего слоя отсчитываемый от единицы (т.е. первый слой имеет номер "
 "1)."
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "Высота слоя над столом"
 
 msgid ""
@@ -16818,7 +16818,7 @@ msgid ""
 msgstr ""
 "Высота текущего слоя над печатным столом, измеренная до верхней части слоя."
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "Макс. высота слоя над столом"
 
 msgid "Height of the last layer above the print bed."
@@ -19670,7 +19670,7 @@ msgstr ""
 #~ msgid "Downward machines settings"
 #~ msgstr "Настройки совместимости принтера"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "Загрузить идентификаторы прутков для каждого объекта"
 
 #~ msgid ""

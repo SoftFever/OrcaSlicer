@@ -2984,10 +2984,10 @@ msgstr "步驟"
 msgid "AMS Slots"
 msgstr "AMS 槽內線材"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -9538,7 +9538,7 @@ msgstr "受列印設備硬體限制的最大可列印高度"
 msgid "Preferred orientation"
 msgstr "首選方向"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr "匯入 STL 時自動對齊 Z 軸"
 
 msgid "Printer preset names"
@@ -12159,11 +12159,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -14207,7 +14207,7 @@ msgstr "換料塔寬度"
 msgid "Wipe tower rotation angle"
 msgstr "換料塔旋轉角度"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "換料塔相對於 x 軸的旋轉角度。"
 
 msgid "Width of the brim."
@@ -14854,7 +14854,7 @@ msgstr "載入自訂 G-code"
 msgid "Load custom G-code from json."
 msgstr "從 json 載入自訂 G-code"
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "載入耗材識別碼"
 
 msgid "Load filament IDs for each object."
@@ -15165,7 +15165,7 @@ msgstr "層數"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr "當層數 (第一層為一)"
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "層 z 高"
 
 msgid ""
@@ -15173,7 +15173,7 @@ msgid ""
 "layer."
 msgstr "目前這一層距離熱床的高度，從層頂開始計算。"
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "層的最大 Z 軸高度"
 
 msgid "Height of the last layer above the print bed."
@@ -17825,7 +17825,7 @@ msgstr ""
 #~ msgid "Downward machines settings"
 #~ msgstr "相容機器設定"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "載入每個物件的耗材識別碼"
 
 #~ msgid ""
