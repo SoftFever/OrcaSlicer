@@ -10150,9 +10150,11 @@ msgstr "圆盘检测半径"
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
+"在检测尖锐角度之前，几何形状将被简化。此参数表示简化的最小偏差长度。\n"
+"设为0以停用"
 
 msgid "Select printers"
 msgstr ""
@@ -12274,8 +12276,7 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -16251,8 +16252,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
 
@@ -17371,15 +17372,6 @@ msgstr ""
 
 #~ msgid "Enable this option to use classic mode."
 #~ msgstr "启用此选项以使用经典模式"
-
-#~ msgid ""
-#~ "The geometry will be decimated before detecting sharp angles. This "
-#~ "parameter indicates the minimum length of the deviation for the "
-#~ "decimation.\n"
-#~ "0 to deactivate."
-#~ msgstr ""
-#~ "在检测尖锐角度之前，几何形状将被简化。此参数表示简化的最小偏差长度。\n"
-#~ "设为0以停用"
 
 #~ msgid "Compatible machine"
 #~ msgstr "兼容的机器"

@@ -1336,9 +1336,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("brim_ears_detection_length", coFloat);
     def->label = L("Brim ear detection radius");
     def->category = L("Support");
-    def->tooltip = L("The geometry will be decimated before detecting sharp angles. This parameter indicates the "
-                     "minimum length of the deviation for the decimation. "
-                     "\n0 to deactivate.");
+    def->tooltip = L("The geometry will be decimated before detecting sharp angles. "
+                     "This parameter indicates the minimum length of the deviation for the decimation.\n"
+                     "0 to deactivate.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
@@ -3675,7 +3675,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("machine_max_junction_deviation", coFloats);
     def->full_label = L("Maximum Junction Deviation");
     def->category = L("Machine limits");
-    def->tooltip = L("Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin Firmware)");
+    def->tooltip = L("Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->min = 0;
     def->mode = comAdvanced;

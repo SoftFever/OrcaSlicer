@@ -10914,9 +10914,12 @@ msgstr "Raio de detecção da orelha da borda"
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
+"A geometria será decimada antes de detectar ângulos agudos. Este parâmetro "
+"indica o comprimento mínimo da divergência para a decimação.\n"
+"0 para desativar."
 
 msgid "Select printers"
 msgstr ""
@@ -13451,8 +13454,7 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -17908,8 +17910,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
 
@@ -19163,16 +19165,6 @@ msgstr ""
 
 #~ msgid "Enable this option to use classic mode."
 #~ msgstr "Ative esta opção para usar o modo clássico."
-
-#~ msgid ""
-#~ "The geometry will be decimated before detecting sharp angles. This "
-#~ "parameter indicates the minimum length of the deviation for the "
-#~ "decimation.\n"
-#~ "0 to deactivate."
-#~ msgstr ""
-#~ "A geometria será decimada antes de detectar ângulos agudos. Este "
-#~ "parâmetro indica o comprimento mínimo da divergência para a decimação.\n"
-#~ "0 para desativar."
 
 #~ msgid "Compatible machine"
 #~ msgstr "Máquina compatível"
