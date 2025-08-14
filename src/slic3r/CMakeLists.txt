@@ -587,6 +587,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/ElegooLink.cpp
     Utils/WebSocketClient.hpp
     Utils/bambu_networking.hpp
+    Utils/3DPrinterOS.hpp
+    Utils/3DPrinterOS.cpp
 )
 
 add_subdirectory(GUI/DeviceTab)
