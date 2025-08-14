@@ -207,7 +207,11 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
                             msg = r.error_message;
                         }
                     } else if (const auto h = dynamic_cast<C3DPrinterOS*>(host.get()); h) {
-                        // All logic encapsulated in host->test
+                        GUI::MessageDialog dlg(this, _L("Valid session not detected. Proceed with login to 3DPrinterOS?"), _L("Proceed"),
+                                               wxICON_INFORMATION | wxYES | wxNO);
+                        if (dlg.ShowModal() == wxID_YES) {
+                            result = h->login(msg);
+                        }
                     } else {
                         PrinterCloudAuthDialog dlg(this->GetParent(), host.get());
                         dlg.ShowModal();

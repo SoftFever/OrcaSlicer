@@ -24,13 +24,12 @@ public:
     ~C3DPrinterOS() override = default;
 
     const char* get_name() const override;
-
     bool test(wxString &curl_msg) const override;
+    bool login(wxString &msg) const;
     wxString get_test_ok_msg () const override;
     wxString get_test_failed_msg (wxString &msg) const override;
     bool upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const override;
     bool has_auto_discovery() const override { return false; }
-
     bool can_test() const override { return true; }
     bool is_cloud() const override { return true; }
     void log_out() const override;

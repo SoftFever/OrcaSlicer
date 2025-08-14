@@ -264,7 +264,6 @@ private:
                     if (m_resp.get<bool>("result", false) && m_resp.get_optional<std::string>("message.session").has_value()) {
                         wxQueueEvent(this, new wxThreadEvent(wxEVT_THREAD, wxID_OK));
                     } else if (m_resp.get<bool>("result", false)) {
-                        // Immediate retry if OK but no session
                         if (m_attempt < m_max_retries)
                             m_timer.StartOnce(m_retry_delay_ms);
                         else
@@ -311,47 +310,39 @@ const char *C3DPrinterOS::get_name() const { return "3DPrinterOS"; }
 
 bool C3DPrinterOS::test(wxString &msg) const 
 {
-    bool res = true;
-    const char *name = get_name();
-    res = check_session(msg);
+    return check_session(msg);
+}
 
+bool C3DPrinterOS::login(wxString& msg) const 
+{
+    // Get token for auth
+    msg.clear();
+    std::string token = get_api_auth_token(msg);
+    if (token.empty()) {
+        msg = "Error. Can't get api token for authorization";
+        return false;
+    }
+
+    auto login_url = make_url("noauth/apiglobal_login_with_token/" + token);
+    wxLaunchDefaultBrowser(login_url);
+    pt::ptree login_resp;
+    login_with_token(login_resp, token);
+    std::string session, email;
+    try {
+        if (login_resp.get<bool>("result")) {
+            session = login_resp.get<std::string>("message.session");
+            email   = login_resp.get<std::string>("message.email");
+        } else {
+            msg = wxString(login_resp.get<std::string>("message").c_str());
+            return false;
+        }
+    } catch (const std::exception&) {
+        msg = "Could not parse server response";
+        return false;
+    }
+    bool res = save_api_session(session, email);
     if (!res) {
-        // confirm for login
-        GUI::MessageDialog
-            dlg(nullptr, _L("Valid session not detected. Proceed with login to 3DPrinterOS?"),
-                _L("Proceed"), wxICON_INFORMATION | wxYES | wxNO);
-        if (dlg.ShowModal() == wxID_NO) {
-            msg = "Aborted";
-            return false;
-        }
-        // Get token for auth
-        std::string token = get_api_auth_token(msg);
-        if (token.empty()) {
-            msg = "Error. Can't get api token for authorization";
-            return false;
-        }
-        
-        auto login_url = make_url("noauth/apiglobal_login_with_token/" + token);
-        wxLaunchDefaultBrowser(login_url);
-        pt::ptree login_resp;
-        login_with_token(login_resp, token);
-        std::string session, email;
-        try {
-            if (login_resp.get<bool>("result")) {
-                session = login_resp.get<std::string>("message.session");
-                email = login_resp.get<std::string>("message.email");
-            } else {
-                msg = wxString(login_resp.get<std::string>("message").c_str());
-                return false;
-            }
-        } catch (const std::exception &) {
-            msg = "Could not parse server response";
-            return false;
-        }
-        res = save_api_session(session, email);
-        if (!res) {
-            msg = "Error saving session to file";
-        }
+        msg = "Error saving session to file";
     }
     return res;
 }
@@ -406,7 +397,8 @@ bool C3DPrinterOS::upload(
     }
     
     // Show "Confirm cloud printer type and project for 3DPrinterOS upload
-    UploadOptionsDialog dlg(nullptr, cloud_projects_list, cloud_printer_types_list, m_preset_name);
+    
+    UploadOptionsDialog dlg(GUI::wxGetApp().GetTopWindow(), cloud_projects_list, cloud_printer_types_list, m_preset_name);
 
     if (dlg.ShowModal() != wxID_OK) {
         error_fn("Canceled");
@@ -550,7 +542,7 @@ std::string C3DPrinterOS::get_api_auth_token(wxString &err) const
 
 void C3DPrinterOS::login_with_token(pt::ptree &resp, const std::string &token) const {
     auto url = make_url("apiglobal/login_with_token");
-    TokenAuthDialog dlg(nullptr, url, token, m_cafile, resp);
+    TokenAuthDialog dlg(GUI::wxGetApp().GetTopWindow(), url, token, m_cafile, resp);
     dlg.ShowModal();
 }
 
