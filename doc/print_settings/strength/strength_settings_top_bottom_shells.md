@@ -24,14 +24,14 @@ Top solid infill area is enlarged slightly to overlap with wall for better bondi
 
 This setting controls the pattern of the surface. The options are:
 
-- **Concentric:** Fills the surface with inward-tracing loops that follow the outer contour.
-- **Rectilinear:** Fills the surface with straight lines alternating direction per layer.
+- **[Concentric](strength_settings_infill#concentric):** Fills the surface with inward-tracing loops that follow the outer contour.
+- **[Rectilinear](strength_settings_infill#rectilinear):** Fills the surface with straight lines alternating direction per layer.
 - **Monotonic:** Prints lines in a uniform direction for a smoother visual surface.
 - **Monotonic Lines:** Similar to Monotonic but avoids overlapping with the perimeter, reducing excess material at joints. May introduce visible seams.
-- **Aligned Rectilinear:** The surface is printed with rectilinear lines that are aligned with the infill pattern.
-- **Hilbert Curve:** Applies a space-filling curve for even material distribution and a unique appearance. Slow to print but useful in esthetic applications.
-- **Archimedean Chords:** Generates concentric arc-like lines, promoting uniform material spread.
-- **Octagram Spiral:** Creates an octagonal spiral for decorative, esthetic surfaces.
+- **[Aligned Rectilinear](strength_settings_infill#aligned-rectilinear):** The surface is printed with rectilinear lines that are aligned with the infill pattern.
+- **[Hilbert Curve](strength_settings_infill#hilbert-curve):** Applies a space-filling curve for even material distribution and a unique appearance. Slow to print but useful in esthetic applications.
+- **[Archimedean Chords](strength_settings_infill#archimedean-chords):** Generates concentric arc-like lines, promoting uniform material spread.
+- **[Octagram Spiral](strength_settings_infill#octagram-spiral):** Creates an octagonal spiral for decorative, esthetic surfaces.
 
 > [!NOTE]
 > Some patterns may have further information in its [Sparse Infill Pattern Wiki](strength_settings_infill#sparse-infill-pattern)
