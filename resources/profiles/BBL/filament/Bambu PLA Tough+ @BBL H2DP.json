@@ -149,7 +149,7 @@
         "10"
     ],
     "compatible_printers": [
-        "Bambu Lab H2DP 0.4 nozzle"
+        "Bambu Lab H2D Pro 0.4 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"
