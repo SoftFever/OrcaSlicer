@@ -204,7 +204,7 @@ void Slic3r::DevFan::ParseV2_0(const json &print_json) {
 
                         AirParts part;
                         part.type        = m_owner->get_flag_bits((*it_part)["id"].get<int>(), 0, 4);
-                        part.id          = m_owner->get_flag_bits((*it_part)["id"].get<int>(), 4, 9);
+                        part.id          = m_owner->get_flag_bits((*it_part)["id"].get<int>(), 4, 8);
                         part.func        = (*it_part)["func"].get<int>();
                         part.state       = m_owner->get_flag_bits(state, 0, 8);
                         part.range_start = m_owner->get_flag_bits(range, 0, 16);

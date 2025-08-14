@@ -66,6 +66,7 @@ public:
 
     /*fan*/
     static std::string get_fan_text(const std::string& type_str, const std::string& key);
+    static std::string get_fan_text(const std::string& type_str, int airduct_mode, int airduct_func, int submode);
 
     /*extruder*/
     static bool get_printer_can_set_nozzle(std::string type_str) { return get_value_from_config<bool>(type_str, "enable_set_nozzle_info"); }// can set nozzle from studio

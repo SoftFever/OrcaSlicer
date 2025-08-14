@@ -237,12 +237,12 @@ private:
     int            m_fan_set_time_out{ 0 };
 
     std::map<AIR_DUCT, wxString> radio_btn_name;
-    std::map<AIR_FUN, wxString> fan_func_name;
     std::map<AIR_DOOR, wxString> air_door_func_name;
     std::map<AIR_DUCT, wxString> label_text;
 
 private:
     void  init_names(MachineObject* obj);
+    wxString get_fan_func_name(int mode, int submode, AIR_FUN func) const;
 
     void  CreateDuct();
           

@@ -11,7 +11,7 @@ typedef std::function<void(const json &)> CommandCallBack;
 
 
 
-enum AIR_FUN {
+enum AIR_FUN : int {
     FAN_HEAT_BREAK_0_IDX      = 0,
     FAN_COOLING_0_AIRDOOR     = 1,
     FAN_REMOTE_COOLING_0_IDX  = 2,
@@ -19,13 +19,14 @@ enum AIR_FUN {
     FAN_HEAT_BREAK_1_IDX      = 4,
     FAN_MC_BOARD_0_IDX        = 5,
     FAN_INNNER_LOOP_FAN_0_IDX = 6,
-    FAN_TOTAL_COUNT           = 7
+    FAN_TOTAL_COUNT           = 7,
+    FAN_REMOTE_COOLING_1_IDX  = 10
 };
 
 enum AIR_DOOR { AIR_DOOR_FUNC_CHAMBER = 0, AIR_DOOR_FUNC_INNERLOOP, AIR_DOOR_FUNC_TOP };
 
 
-enum AIR_DUCT {
+enum AIR_DUCT : int {
     AIR_DUCT_NONE         = -1,
     AIR_DUCT_COOLING_FILT = 0,
     AIR_DUCT_HEATING_INTERNAL_FILT,
@@ -87,7 +88,7 @@ public:
     };
 
     bool IsSupportCoolingFilter() const { return m_support_cooling_filter; }
-    bool IsCoolingFilerOn() const { return m_sub_mode == 0; }
+    bool IsCoolingFilerOn() const { return m_sub_mode == 1; }
 };
 
 class DevFan
