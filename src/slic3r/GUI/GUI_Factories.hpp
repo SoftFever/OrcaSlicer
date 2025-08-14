@@ -165,6 +165,7 @@ private:
     void        append_menu_item_locked(wxMenu* menu);
     void        append_menu_item_fill_bed(wxMenu *menu);
     void        append_menu_item_plate_name(wxMenu *menu);
+    void        append_menu_item_move_plate(wxMenu* menu);
 };
 
 }}

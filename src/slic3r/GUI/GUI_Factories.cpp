@@ -16,6 +16,7 @@
 #include "format.hpp"
 //BBS: add partplate related logic
 #include "PartPlate.hpp"
+#include "PlateSettingsDialog.hpp"
 #include "Gizmos/GLGizmoEmboss.hpp"
 #include "Gizmos/GLGizmoSVG.hpp"
 
@@ -1749,6 +1750,7 @@ wxMenu* MenuFactory::plate_menu()
 {
     append_menu_item_locked(&m_plate_menu);
     append_menu_item_plate_name(&m_plate_menu);
+    append_menu_item_move_plate(&m_plate_menu);
     return &m_plate_menu;
 }
 
@@ -2055,6 +2057,77 @@ void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
         wxEVT_UPDATE_UI,
         [](wxUpdateUIEvent &evt) {
             PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            plater()->set_current_canvas_as_dirty();
+        },
+        item->GetId());
+}
+
+
+void MenuFactory::append_menu_item_move_plate(wxMenu* menu)
+{
+    wxString name = _L("Move Plate");
+    // Delete old menu item
+    const int item_id = menu->FindItem(name);
+    if (item_id != wxNOT_FOUND)
+        menu->Destroy(item_id);
+
+    PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+    assert(plate);
+
+    auto item = append_menu_item(
+        menu, wxID_ANY, name, "",
+        [](wxCommandEvent& e) {
+            Plater*        plater_ptr    = plater();
+            PartPlateList& plate_list    = plater_ptr->get_partplate_list();
+            PartPlate*     current_plate = plate_list.get_selected_plate();
+            if (!current_plate)
+                return;
+
+            int current_index = current_plate->get_index();
+            int total_count   = plate_list.get_plate_count();
+
+            // Don't show dialog if there's only one plate
+            if (total_count <= 1) {
+                MessageDialog msg_dlg(nullptr, _L("Cannot move plate - only one plate exists."), _L("Move Plate"),
+                                      wxICON_INFORMATION | wxOK);
+                msg_dlg.ShowModal();
+                return;
+            }
+
+            MovePlateDialog dlg(plater_ptr, current_index, total_count, wxID_ANY, _L("Move Plate"));
+            if (dlg.ShowModal() == wxID_YES && dlg.is_valid_input()) {
+                int target_position = dlg.get_target_position();
+
+                // Don't move if target is same as current
+                if (target_position == current_index) {
+                    return;
+                }
+
+                // Take snapshot for undo
+                plater_ptr->take_snapshot("Move plate");
+
+                // Move the plate
+                int ret = plate_list.move_plate_to_index(current_index, target_position);
+                if (ret == 0) {
+                    // Update UI after successful move - using the same pattern as "move to front"
+                    plater_ptr->update_slicing_context_to_current_partplate();
+                    wxGetApp().obj_list()->reload_all_plates();
+                    plate_list.update_plates();
+                    plater_ptr->update();
+                    plate_list.select_plate(target_position);
+                } else {
+                    MessageDialog msg_dlg(nullptr, _L("Failed to move plate."), _L("Move Plate"), wxICON_ERROR | wxOK);
+                    msg_dlg.ShowModal();
+                }
+            }
+        },
+        "", nullptr, []() { return true; }, m_parent);
+
+    m_parent->Bind(
+        wxEVT_UPDATE_UI,
+        [](wxUpdateUIEvent& evt) {
+            PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
             plater()->set_current_canvas_as_dirty();
         },

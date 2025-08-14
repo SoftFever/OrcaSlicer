@@ -195,6 +195,38 @@ public:
 protected:
     TextInput *m_ti_plate_name;
 };
+
+class MovePlateDialog : public DPIDialog
+{
+public:
+    enum ButtonStyle { ONLY_CONFIRM = 0, CONFIRM_AND_CANCEL = 1, MAX_STYLE_NUM = 2 };
+    MovePlateDialog(wxWindow*       parent,
+                    int             current_plate_index,
+                    int             total_plate_count,
+                    wxWindowID      id    = wxID_ANY,
+                    const wxString& title = wxEmptyString,
+                    const wxPoint&  pos   = wxDefaultPosition,
+                    const wxSize&   size  = wxDefaultSize,
+                    long            style = wxCLOSE_BOX | wxCAPTION);
+
+    ~MovePlateDialog();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+
+    int  get_target_position() const;
+    bool is_valid_input() const { return m_valid_input; }
+
+protected:
+    void validate_input();
+
+private:
+    TextInput*    m_ti_position;
+    int           m_current_plate_index;
+    int           m_total_plate_count;
+    int           m_target_position;
+    bool          m_valid_input;
+    wxStaticText* m_info_text;
+};
+
 }} // namespace Slic3r::GUI
 
 #endif
