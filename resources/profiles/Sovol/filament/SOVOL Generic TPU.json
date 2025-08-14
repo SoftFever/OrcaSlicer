@@ -1,0 +1,49 @@
+{
+    "type": "filament",
+	"filament_id": "GFL99",
+    "setting_id": "GFSL99",
+    "name": "SOVOL Generic TPU",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_tpu",
+	"filament_flow_ratio": [
+        "0.98"
+    ],
+    "filament_max_volumetric_speed": [
+        "15"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "overhang_fan_threshold": [
+        "50%"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "250"
+    ],
+	"nozzle_temperature": [
+        "245"
+    ],
+    "nozzle_temperature_range_low": [
+        "190"
+    ],
+    "nozzle_temperature_range_high": [
+        "300"
+	],
+	"hot_plate_temp_initial_layer": [
+        "65"
+    ],
+	"hot_plate_temp": [
+        "65"
+    ],
+	"compatible_printers": [
+		"SOVOL SV01 PRO 0.4 nozzle",
+		"SOVOL SV02 0.4 nozzle",
+		"SOVOL SV05 0.4 nozzle",
+		"SOVOL SV06 0.4 nozzle",
+        "SOVOL SV06 PLUS 0.4 nozzle"
+	]
+}
