@@ -3529,7 +3529,7 @@ void TabFilament::build()
         //};
         //optgroup->append_line(line);
         optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling_specific_layer");
-        optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
+        optgroup->append_single_option_line("close_fan_the_first_x_layers");
         optgroup->append_single_option_line("full_fan_speed_layer");
 
         optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_part_fan");
@@ -3544,13 +3544,13 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("slow_down_layer_time"));
         optgroup->append_line(line);
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
-        optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
+        optgroup->append_single_option_line("slow_down_for_layer_cooling");
         optgroup->append_single_option_line("dont_slow_down_outer_wall");
         optgroup->append_single_option_line("slow_down_min_speed");
 
-        optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
-        optgroup->append_single_option_line("overhang_fan_threshold", "auto-cooling");
-        optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
+        optgroup->append_single_option_line("enable_overhang_bridge_fan");
+        optgroup->append_single_option_line("overhang_fan_threshold");
+        optgroup->append_single_option_line("overhang_fan_speed");
         optgroup->append_single_option_line("internal_bridge_fan_speed"); // ORCA: Add support for separate internal bridge fan speed control
         optgroup->append_single_option_line("support_material_interface_fan_speed");
         optgroup->append_single_option_line("ironing_fan_speed"); // ORCA: Add support for ironing fan speed control
