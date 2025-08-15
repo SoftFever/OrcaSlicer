@@ -110,8 +110,12 @@ std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, cons
 
 std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_subseries(std::string type_str)
 {
-    std::map<std::string, std::vector<std::string>> subseries;
     std::vector<wxString> m_files;
+    std::map<std::string, std::vector<std::string>> subseries;
+
+#if !BBL_RELEASE_TO_PUBLIC
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": path= " << m_resource_file_path + "/printers/";
+#endif
 
     wxDir dir(m_resource_file_path + "/printers/");
     if (!dir.IsOpened()) { return subseries; }
@@ -137,7 +141,6 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
                 json_file >> jj;
                 if (jj.contains("00.00.00.00"))
                 {
-
                     json const& printer = jj["00.00.00.00"];
                     if (printer.contains("subseries"))
                     {
@@ -153,12 +156,36 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
                         }
                         subseries.insert(make_pair(model_id, subs));
                     }
-
-
                 }
             }
         }
-        catch (...) {}
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to load " << file;
+        }
+    }
+
+#if !BBL_RELEASE_TO_PUBLIC
+    wxString result_str;
+    for (auto item : subseries)
+    {
+        wxString item_str = item.first;
+        item_str += ": ";
+        for (auto to_item : item.second)
+        {
+            item_str += to_item;
+            item_str += " ";
+        }
+
+        result_str += item_str + ", ";
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": result= " << result_str;
+#endif
+
+    if (subseries.empty())
+    {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": result= " << "empty";
     }
 
     return subseries;
