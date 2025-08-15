@@ -7,8 +7,8 @@
 >
 > - [Maximum Volumetric Speed](volumetric-speed-calib)
 > - Machine / Motion ability
-> - [Acceleration](speed-settings-acceleration)
-> - [Jerk settings](speed-settings-jerk)
+> - [Acceleration](speed_settings_acceleration)
+> - [Jerk settings](speed_settings_jerk_xy)
 
 - [Speed limitations](#speed-limitations)
 - [Outer wall](#outer-wall)
