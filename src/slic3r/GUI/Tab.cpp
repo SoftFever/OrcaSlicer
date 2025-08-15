@@ -2654,10 +2654,10 @@ void TabPrintModel::build()
 
     auto page = add_options_page(L("Frequent"), "empty");
         auto optgroup = page->new_optgroup("");
-            optgroup->append_single_option_line("layer_height");
-            optgroup->append_single_option_line("sparse_infill_density");
-            optgroup->append_single_option_line("wall_loops");
-            optgroup->append_single_option_line("enable_support", "support");
+            optgroup->append_single_option_line("layer_height", "quality_settings_layer_height");
+            optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
+            optgroup->append_single_option_line("wall_loops", "strength_settings_walls");
+            optgroup->append_single_option_line("enable_support", "support_settings_support");
     m_pages.pop_back();
     m_pages.insert(m_pages.begin(), page);
 
