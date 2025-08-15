@@ -18,10 +18,18 @@ Infill is the internal structure of a 3D print, providing strength and support. 
 
 ## Sparse infill density
 
-Density usually should be calculated as a % of the total infill volume, not the total print volume.
-Higher density increases strength but also material usage and print time. Lower density saves material and time but reduces strength.
+Infill density determines the amount of material used to fill the interior of a 3D print. It is usually expressed as a percentage, with 100% being completely solid.
 
-Nevertheless, **not all patterns interpret density the same way**, so the actual material usage may vary. You can see each pattern's material usage in the [Sparse Infill Pattern](#sparse-infill-pattern) section.
+> [!NOTE]
+> Density usually is calculated as a % of the total infill volume, not the total print volume.
+> But not all [patterns](strength_settings_patterns) interpret density the same way.
+
+- Higher density increases
+  - Strength
+  - Material usage
+  - Print time.
+
+Nevertheless, **not all patterns interpret density the same way**, so the actual material usage may vary. You can see each pattern's material usage in the [Patterns section](strength_settings_patterns).
 
 ## Fill Multiline
 
@@ -48,9 +56,9 @@ This setting allows you to generate your selected [infill pattern](#sparse-infil
 
 ### Use cases
 
-- Increasing the number of lines (e.g., 2 or 3) can improve part strength and print speed without increasing material usage.
-- Fire-retardant applications: Some flame-resistant materials (like PolyMax PC-FR) require a minimum printed wall/infill thickness—often 1.5–3 mm—to comply with standards. Since infill contributes to overall part thickness, using multiple lines helps achieve the necessary thickness without switching to a large nozzle or printing with 100% infill. This is especially useful for high-temperature materials like PC, which are prone to warping when fully solid.
-- Creating aesthetically pleasing infill patterns (like [Grid](strength_settings_patterns#grid) or [Honeycomb](strength_settings_patterns#honeycomb)) with multiple line widths—without relying on CAD modeling or being limited to a single extrusion width.
+- Increasing the number of lines (e.g., 2 or 3) can **improve part strength** and **print speed** without increasing material usage.
+- **Fire-retardant applications:** Some flame-resistant materials (like PolyMax PC-FR) require a minimum printed wall/infill thickness—often 1.5–3 mm—to comply with standards. Since infill contributes to overall part thickness, using multiple lines helps achieve the necessary thickness without switching to a large nozzle or printing with 100% infill. This is especially useful for high-temperature materials like PC, which are prone to warping when fully solid.
+- Creating **aesthetic** infill patterns (like [Grid](strength_settings_patterns#grid) or [Honeycomb](strength_settings_patterns#honeycomb)) with multiple line widths—without relying on CAD modeling or being limited to a single extrusion width.
 
 ![infill-multiline-esthetic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-esthetic.gif?raw=true)
 
@@ -68,6 +76,8 @@ This setting allows you to generate your selected [infill pattern](#sparse-infil
 
 Controls the direction of the infill lines to optimize or strengthen the print.
 
+![fill-direction](../../images/fill/fill-direction.png)
+
 ### Rotation
 
 This parameter adds a rotation to the sparse infill direction for each layer according to the specified template.  
@@ -78,6 +88,8 @@ For example:
 ```c++
 0,90
 ```
+
+![fill-rotation](../../images/fill/fill-rotation.png)
 
 The first layer uses 0°, the second uses 90°, and the pattern repeats for subsequent layers.
 
@@ -95,7 +107,7 @@ Other examples:
 > If there are more layers than angles, the sequence repeats.
 
 > [!IMPORTANT]
-> Not all sparse infill patterns support rotation.
+> Not all sparse [patterns](strength_settings_patterns) support rotation.
 
 ## Infill Wall Overlap
 
@@ -111,7 +123,8 @@ Infill area is enlarged slightly to overlap with wall for better bonding. The pe
 
 ## Apply gap fill
 
-Enables gap fill for the selected solid surfaces. The minimum gap length that will be filled can be controlled from the filter out tiny gaps option.
+Enables gap fill for the selected solid surfaces.  
+The minimum gap length that will be filled can be controlled from the filter out tiny gaps option.
 
 1. **Everywhere:** Applies gap fill to top, bottom and internal solid surfaces for maximum strength.
 2. **Top and Bottom surfaces:** Applies gap fill to top and bottom surfaces only, balancing print speed, reducing potential over extrusion in the solid infill and making sure the top and bottom surfaces have no pinhole gaps.
@@ -126,7 +139,8 @@ However this is not advised, as gap fill between perimeters is contributing to t
 
 ## Filter out tiny gaps
 
-Don't print gap fill with a length is smaller than the threshold specified (in mm). This setting applies to top, bottom and solid infill and, if using the classic perimeter generator, to wall gap fill.
+Don't print gap fill with a length is smaller than the threshold specified (in mm).  
+This setting applies to top, bottom and solid infill and, if using the [classic perimeter generator](quality_settings_wall_generator#classic), to wall gap fill.
 
 ## Anchor
 
@@ -143,7 +157,7 @@ OrcaSlicer tries to connect two close infill lines to a short perimeter segment.
 
 ## Internal Solid Infill
 
-Line pattern of internal solid infill. If the [detect narrow internal solid infill](strength_settings_advanced#detect-narrow-internal-solid-infill) be enabled, the concentric pattern will be used for the small area.
+Line pattern of internal solid infill. If the [detect narrow internal solid infill](strength_settings_advanced#detect-narrow-internal-solid-infill) be enabled, the [concentric pattern](strength_settings_patterns#concentric) will be used for the small area.
 
 ## Sparse Infill Pattern
 
