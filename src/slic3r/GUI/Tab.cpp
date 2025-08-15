@@ -3893,8 +3893,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option, "thumbnails");
-        // optgroup->append_single_option_line("thumbnails_format", "thumbnails");
+        optgroup->append_single_option_line(option);
+        // optgroup->append_single_option_line("thumbnails_format");
         optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
             wxTheApp->CallAfter([this, opt_key, value]() {
                 if (opt_key == "thumbnails" && m_config->has("thumbnails_format")) {
