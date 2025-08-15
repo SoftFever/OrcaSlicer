@@ -3,7 +3,7 @@
     "name": "Bambu PLA Tough+ @BBL H2DP 0.8 nozzle",
     "inherits": "Bambu PLA Tough+ @base",
     "from": "system",
-    "setting_id": "GFSA10_38",
+    "setting_id": "GFSA10_10",
     "instantiation": "true",
     "filament_deretraction_speed": [
         "nil",

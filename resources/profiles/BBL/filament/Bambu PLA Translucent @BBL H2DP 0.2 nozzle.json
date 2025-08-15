@@ -3,7 +3,7 @@
     "name": "Bambu PLA Translucent @BBL H2DP 0.2 nozzle",
     "inherits": "Bambu PLA Translucent @base",
     "from": "system",
-    "setting_id": "GFSA17_16",
+    "setting_id": "GFSA17_33",
     "instantiation": "true",
     "filament_deretraction_speed": [
         "nil",

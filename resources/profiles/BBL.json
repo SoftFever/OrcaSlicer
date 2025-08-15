@@ -2930,12 +2930,16 @@
             "sub_path": "filament/Bambu PLA Lite @BBL H2D 0.8 nozzle.json"
         },
         {
-            "name": "Bambu PLA Lite @BBL H2DP",
-            "sub_path": "filament/Bambu PLA Lite @BBL H2DP.json"
-        },
-        {
             "name": "Bambu PLA Lite @BBL H2DP 0.2 nozzle",
             "sub_path": "filament/Bambu PLA Lite @BBL H2DP 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL H2DP 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL H2DP 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL H2DP 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL H2DP 0.6 nozzle.json"
         },
         {
             "name": "Bambu PLA Lite @BBL H2DP 0.8 nozzle",

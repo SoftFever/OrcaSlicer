@@ -1,26 +1,40 @@
 {
     "type": "filament",
-    "name": "Bambu PLA Tough+ @BBL H2DP",
-    "inherits": "Bambu PLA Tough+ @base",
+    "name": "Bambu PLA Lite @BBL H2DP 0.4 nozzle",
+    "inherits": "Bambu PLA Lite @base",
     "from": "system",
-    "setting_id": "GFSA10_11",
+    "setting_id": "GFSA18_27",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "75"
+    ],
     "counter_coef_2": [
-        "0.003"
+        "0.06"
     ],
     "counter_coef_3": [
-        "0.01"
+        "-0.32"
+    ],
+    "counter_limit_min": [
+        "-0.4"
     ],
     "counter_limit_max": [
-        "0.088"
+        "0.05"
+    ],
+    "fan_max_speed": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "60"
+    ],
+    "filament_cost": [
+        "24.99"
+    ],
+    "filament_density": [
+        "1.32"
     ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
     ],
     "filament_flow_ratio": [
         "0.98",
@@ -39,16 +53,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "21",
-        "21"
-    ],
-    "filament_pre_cooling_temperature": [
-        "0",
-        "0"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
+        "20",
+        "30"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
@@ -98,48 +104,32 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "filament_enable_overhang_speed": [
-        "1",
-        "1"
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
     ],
-    "filament_overhang_1_4_speed": [
+    "filament_pre_cooling_temperature": [
         "0",
         "0"
     ],
-    "filament_overhang_2_4_speed": [
-        "50",
-        "50"
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
-    "filament_overhang_3_4_speed": [
-        "30",
-        "30"
-    ],
-    "filament_overhang_4_4_speed": [
-        "10",
-        "10"
-    ],
-    "filament_overhang_totally_speed": [
-        "10",
-        "10"
-    ],
-    "hole_coef_3": [
-        "0.18"
+    "hole_coef_2": [
+        "-0.0081"
     ],
     "long_retractions_when_ec": [
         "1",
         "1"
     ],
     "nozzle_temperature": [
-        "245",
-        "245"
+        "220",
+        "220"
     ],
     "nozzle_temperature_initial_layer": [
-        "245",
-        "245"
-    ],
-    "override_process_overhang_speed": [
-        "0",
-        "0"
+        "220",
+        "220"
     ],
     "pre_start_fan_time": [
         "2"

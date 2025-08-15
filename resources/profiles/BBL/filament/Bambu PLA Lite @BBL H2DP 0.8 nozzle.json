@@ -3,7 +3,7 @@
     "name": "Bambu PLA Lite @BBL H2DP 0.8 nozzle",
     "inherits": "Bambu PLA Lite @base",
     "from": "system",
-    "setting_id": "GFSA18_14",
+    "setting_id": "GFSA18_29",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
         "75"
@@ -24,10 +24,6 @@
         "nil",
         "nil"
     ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
@@ -47,14 +43,6 @@
     "filament_max_volumetric_speed": [
         "20",
         "30"
-    ],
-    "filament_pre_cooling_temperature": [
-        "0",
-        "0"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
@@ -103,6 +91,18 @@
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "long_retractions_when_ec": [
         "1",
