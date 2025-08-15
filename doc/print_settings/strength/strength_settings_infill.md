@@ -76,7 +76,7 @@ This setting allows you to generate your selected [infill pattern](#sparse-infil
 
 Controls the direction of the infill lines to optimize or strengthen the print.
 
-![fill-direction](../../images/fill/fill-direction.png)
+![fill-direction](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/fill-direction.png?raw=true)
 
 ### Rotation
 
@@ -89,7 +89,7 @@ For example:
 0,90
 ```
 
-![fill-rotation](../../images/fill/fill-rotation.png)
+![fill-rotation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/fill-rotation.png?raw=true)
 
 The first layer uses 0°, the second uses 90°, and the pattern repeats for subsequent layers.
 

@@ -3,7 +3,7 @@
 In 3D printing, "walls" refer to the outer layers of a printed object that provide its shape and structural integrity.  
 Adjusting wall settings can significantly affect layer adhesion, strength, appearance and print time of your model.
 
-![alt text](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/walls/walls.png?raw=true)
+![walls](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/walls/walls.png?raw=true)
 
 - [Wall loops](#wall-loops)
 - [Alternate extra wall](#alternate-extra-wall)
