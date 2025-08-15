@@ -12,6 +12,7 @@ When developing new features, please consider updating the wiki to reflect these
   - [Home](#home)
     - [Index and Navigation](#index-and-navigation)
   - [File Naming and Organization](#file-naming-and-organization)
+- [Orca to Wiki Redirection](#orca-to-wiki-redirection)
 - [Formatting and Style](#formatting-and-style)
   - [Markdown Formatting](#markdown-formatting)
   - [Alerts and Callouts](#alerts-and-callouts)
@@ -75,6 +76,27 @@ When creating new pages, follow these file naming conventions:
 - Use kebab-case for filenames (e.g., `How-to-wiki.md`).
 - If the page belongs to a specific section, include the section name in the file name. For example, calibration pages should end with `-calib.md` (e.g., `flow-rate-calib.md`, `pressure-advance-calib.md`).
 - Place files in the appropriate subdirectory when applicable (e.g., `doc/calibration/` for calibration-related content).
+
+## Orca to Wiki Redirection
+
+Orca can automatically redirect users from the GUI to the appropriate wiki pages. This ensures that users can easily access the most relevant information without having to search for it manually.
+
+The option/wiki mapping is defined in the [tab.cpp](https://github.com/SoftFever/OrcaSlicer/blob/main/src/slic3r/GUI/Tab.cpp) file.  
+Any option instanced with `append_single_option_line` can be mapped to a wiki page using a second string argument.
+
+```cpp
+optgroup->append_single_option_line("OPTION_NAME"); //Option without wiki page/redirection
+optgroup->append_single_option_line("OPTION_NAME", "WIKI_PAGE"); //Option with wiki page and redirection
+```
+
+You can also point to a specific section within a wiki page by using a fragment identifier. This is done by appending `#section-name` to the wiki page link.
+
+Example:
+
+```cpp
+optgroup->append_single_option_line("seam_gap","quality_settings_seam"); //Wiki page and redirection
+optgroup->append_single_option_line("seam_slope_type", "quality_settings_seam#scarf-joint-seam"); //Wiki page and redirection at scarf-joint-seam section
+```
 
 ## Formatting and Style
 
