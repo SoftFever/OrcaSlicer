@@ -28,7 +28,7 @@ wxString get_cali_mode_caption_string(CalibMode mode)
     if (mode == CalibMode::Calib_Flow_Rate)
         return _L("Flow Rate Calibration");
     if (mode == CalibMode::Calib_Vol_speed_Tower)
-        return _L("Max Volumetric Speed Calibration");
+        return _L("Max Volumetric Flow Calibration");
     return "no cali_mode_caption";
 }
 

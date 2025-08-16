@@ -3223,8 +3223,8 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
         break;
     case FILAMENT: 
         success_text = new wxStaticText(this, wxID_ANY, _L("Filament Created")); 
-        wxString prompt_text = _L("Please go to filament setting to edit your presets if you need.\nPlease note that nozzle temperature, hot bed temperature, and maximum "
-                                  "volumetric speed has a significant impact on printing quality. Please set them carefully.");
+        wxString prompt_text = _L("Please go to filament setting to edit your presets if you need.\nPlease note that nozzle temperature, hot bed temperature, and Maximum "
+                                  "Volumetric Flow has a significant impact on printing quality. Please set them carefully.");
         wxString sync_text = sync_user_preset_need_enabled ? _L("\n\nOrca has detected that your user presets synchronization function is not enabled, "
                                                                 "which may result in unsuccessful Filament settings on the Device page.\n"
                                                                 "Click \"Sync user presets\" to enable the synchronization function.") : "";
