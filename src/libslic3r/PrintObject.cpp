@@ -3785,10 +3785,10 @@ void PrintObject::combine_infill()
                 ((infill_pattern == ipRectilinear   ||
                   infill_pattern == ipMonotonic     ||
                   infill_pattern == ipGrid          ||
-                  infill_pattern == ip2DLattice     ||
+                  infill_pattern == ipLateralLattice     ||
                   infill_pattern == ipLine          ||
                   infill_pattern == ipHoneycomb     ||
-                  infill_pattern == ip2DHoneycomb) ? 1.5f : 0.5f) *
+                  infill_pattern == ipLateralHoneycomb) ? 1.5f : 0.5f) *
                     layerms.back()->flow(frSolidInfill).scaled_width();
             for (ExPolygon &expoly : intersection)
                 polygons_append(intersection_with_clearance, offset(expoly, clearance_offset));

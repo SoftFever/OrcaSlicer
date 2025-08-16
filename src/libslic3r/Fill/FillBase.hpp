@@ -84,7 +84,7 @@ struct FillParams
     coordf_t    lattice_angle_2    { 0.f };
     InfillPattern pattern{ ipRectilinear };
 
-    // For 2D Honeycomb
+    // For Lateral Honeycomb
     float       infill_overhang_angle    { 60 };
 
     // BBS

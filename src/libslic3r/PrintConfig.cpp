@@ -161,8 +161,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "lightning", ipLightning },
     { "honeycomb", ipHoneycomb },
     { "3dhoneycomb", ip3DHoneycomb },
-    { "2dhoneycomb", ip2DHoneycomb },
-    { "2dlattice", ip2DLattice },
+    { "lateral-honeycomb", ipLateralHoneycomb },
+    { "lateral-lattice", ipLateralLattice },
     { "crosshatch", ipCrossHatch },
     { "tpmsd", ipTpmsD },
     { "tpmsfk", ipTpmsFK },
@@ -2414,8 +2414,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("3dhoneycomb");
-    def->enum_values.push_back("2dhoneycomb");
-    def->enum_values.push_back("2dlattice");
+    def->enum_values.push_back("lateral-honeycomb");
+    def->enum_values.push_back("lateral-lattice");
     def->enum_values.push_back("crosshatch");
     def->enum_values.push_back("tpmsd");
     def->enum_values.push_back("tpmsfk");
@@ -2440,8 +2440,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("3D Honeycomb"));
-    def->enum_labels.push_back(L("2D Honeycomb"));
-    def->enum_labels.push_back(L("2D Lattice"));
+    def->enum_labels.push_back(L("Lateral Honeycomb"));
+    def->enum_labels.push_back(L("Lateral Lattice"));
     def->enum_labels.push_back(L("Cross Hatch"));
     def->enum_labels.push_back(L("TPMS-D"));
     def->enum_labels.push_back(L("TPMS-FK"));

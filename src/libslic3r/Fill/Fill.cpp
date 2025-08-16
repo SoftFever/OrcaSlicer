@@ -74,7 +74,7 @@ struct SurfaceFillParams
     float skin_infill_depth          = 0;
     bool symmetric_infill_y_axis = false;
 
-    // Params for 2D honeycomb
+    // Params for Lateral honeycomb
     float infill_overhang_angle = 60.f;
 
 	bool operator<(const SurfaceFillParams &rhs) const {
@@ -1320,14 +1320,14 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipMonotonicLine:
         case ipAlignedRectilinear:
         case ipGrid:
-        case ip2DLattice:
+        case ipLateralLattice:
         case ipTriangles:
         case ipStars:
         case ipCubic:
         case ipLine:
         case ipConcentric:
         case ipHoneycomb:
-        case ip2DHoneycomb:
+        case ipLateralHoneycomb:
         case ip3DHoneycomb:
         case ipGyroid:
         case ipTpmsD:
