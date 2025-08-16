@@ -585,7 +585,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
-    def->tooltip = L("Orca Slicer can upload G-code files to a printer host. This field should contain "
+    def->tooltip = L("OrcaSlicer can upload G-code files to a printer host. This field should contain "
         "the hostname, IP address or URL of the printer host instance. "
         "Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL "
         "in the following format: https://username:password@your-octopi-address/");
@@ -602,7 +602,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("printhost_apikey", coString);
     def->label = L("API Key / Password");
-    def->tooltip = L("Orca Slicer can upload G-code files to a printer host. This field should contain "
+    def->tooltip = L("OrcaSlicer can upload G-code files to a printer host. This field should contain "
         "the API Key or the password required for authentication.");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
@@ -2200,7 +2200,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Minimal purge on wipe tower");
     def->tooltip = L("After a tool change, the exact position of the newly loaded filament inside "
                      "the nozzle may not be known, and the filament pressure is likely not yet stable. "
-                     "Before purging the print head into an infill or a sacrificial object, Orca Slicer will always prime "
+                     "Before purging the print head into an infill or a sacrificial object, OrcaSlicer will always prime "
                      "this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.");
     def->sidetext = u8"mm³";	// cubic milimeters, don't need translation
     def->min = 0;
@@ -2487,7 +2487,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Connect an infill line to an internal perimeter with a short segment of an additional perimeter. "
                      "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. "
-                     "Orca Slicer tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
+                     "OrcaSlicer tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
                      "shorter than infill_anchor_max is found, the infill line is connected to a perimeter segment at just one side "
                      "and the length of the perimeter segment taken is limited to this parameter, but no longer than anchor_length_max.\n"
                      "Set this parameter to zero to disable anchoring perimeters connected to a single infill line.");
@@ -2515,7 +2515,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Connect an infill line to an internal perimeter with a short segment of an additional perimeter. "
                      "If expressed as percentage (example: 15%) it is calculated over infill extrusion width. "
-                     "Orca Slicer tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
+                     "OrcaSlicer tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment "
                      "shorter than this parameter is found, the infill line is connected to a perimeter segment at just one side "
                      "and the length of the perimeter segment taken is limited to infill_anchor, but no longer than this parameter.\n"
                      "If set to 0, the old algorithm for infill connection will be used, it should create the same result as with 1000 & 0.");
@@ -3789,13 +3789,13 @@ void PrintConfigDef::init_fff_params()
                      "It defines the maximum rate by which the extruded volumetric flow in mm³/s can change over time. "
                      "Higher values mean higher extrusion rate changes are allowed, resulting in faster speed transitions.\n\n" 
                      "A value of 0 disables the feature.\n\n"
-                     "For a high speed, high flow direct drive printer (like the Bambu lab or Voron) this value is usually not needed. "
+                     "For a high speed, high flow direct drive printer (like the Bambu Lab or Voron) this value is usually not needed. "
                      "However it can provide some marginal benefit in certain cases where feature speeds vary greatly. For example, "
                      "when there are aggressive slowdowns due to overhangs. In these cases a high value of around 300-350 mm³/s² is "
                      "recommended as this allows for just enough smoothing to assist pressure advance achieve a smoother flow transition.\n\n"
                      "For slower printers without pressure advance, the value should be set much lower. "
                      "A value of 10-15 mm³/s² is a good starting point for direct drive extruders and 5-10 mm³/s² for Bowden style.\n\n"
-                     "This feature is known as Pressure Equalizer in Prusa slicer.\n\n"
+                     "This feature is known as Pressure Equalizer in PrusaSlicer.\n\n"
                      "Note: this parameter disables arc fitting.");
     def->sidetext = u8"mm³/s²";	// cubic milimeters per second per second, don't need translation
     def->min = 0;
@@ -3879,7 +3879,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("host_type", coEnum);
     def->label = L("Host Type");
-    def->tooltip = L("Orca Slicer can upload G-code files to a printer host. This field must contain "
+    def->tooltip = L("OrcaSlicer can upload G-code files to a printer host. This field must contain "
                    "the kind of the host.");
     def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
     def->enum_values.push_back("prusalink");
@@ -4084,7 +4084,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If you want to process the output G-code through custom scripts, "
                    "just list their absolute paths here. Separate multiple scripts with a semicolon. "
                    "Scripts will be passed the absolute path to the G-code file as the first argument, "
-                   "and they can access the Orca Slicer config settings by reading environment variables.");
+                   "and they can access the OrcaSlicer config settings by reading environment variables.");
     def->gui_flags = "serialized";
     def->multiline = true;
     def->full_width = true;

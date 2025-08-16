@@ -135,7 +135,7 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
 
 
-    operation_tips = new ::Label(this, Label::Body_12, _L("Click OK to update the Network plug-in when Orca Slicer launches next time."), LB_AUTO_WRAP);
+    operation_tips = new ::Label(this, Label::Body_12, _L("Click OK to update the Network plug-in when OrcaSlicer launches next time."), LB_AUTO_WRAP);
     operation_tips->SetMinSize(wxSize(FromDIP(260), -1));
     operation_tips->SetMaxSize(wxSize(FromDIP(260), -1));
 
@@ -251,7 +251,7 @@ void UpdatePluginDialog::update_info(std::string json_path)
 }
 
 UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
-    : DPIDialog(parent, wxID_ANY, _L("New version of Orca Slicer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, _L("New version of OrcaSlicer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -292,7 +292,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_vebview_release_note->Bind(wxEVT_WEBVIEW_NAVIGATING,[=](wxWebViewEvent& event){
         static bool load_url_first = false;
         if(load_url_first){
-            // Orca: not used in Orca Slicer
+            // Orca: not used in OrcaSlicer
             // wxLaunchDefaultBrowser(url_line);
             event.Veto();
         }else{
@@ -497,7 +497,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     //bbs check whether the web display is used
     bool use_web_link = false;
     url_line          = "";
-    // Orca: not used in Orca Slicer
+    // Orca: not used in OrcaSlicer
     // auto split_array = splitWithStl(release_note.ToStdString(), "###");
     // if (split_array.size() >= 3) {
     //     for (auto i = 0; i < split_array.size(); i++) {
@@ -1462,7 +1462,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     auto        m_line_top         = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-    comfirm_before_enter_text = _L("Step 1. Please confirm Orca Slicer and your printer are in the same LAN.");
+    comfirm_before_enter_text = _L("Step 1. Please confirm that OrcaSlicer and your printer are on the same LAN.");
     comfirm_after_enter_text  = _L("Step 2. If the IP and Access Code below are different from the actual values on your printer, please correct them.");
     comfirm_last_enter_text   = _L("Step 3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen.");
 
