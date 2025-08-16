@@ -35,7 +35,7 @@ Use either absolute mm values (eg. 0.32mm for a 0.4mm nozzle) or % values (eg 80
 
 ## Detect narrow internal solid infill
 
-This option will auto-detect narrow internal solid infill areas. If enabled, the concentric pattern will be used for the area to speed up printing. Otherwise, the rectilinear pattern will be used by default.
+This option will auto-detect narrow internal solid infill areas. If enabled, the [concentric pattern](strength_settings_patterns#concentric) will be used for the area to speed up printing. Otherwise, the [rectilinear pattern](strength_settings_patterns#rectilinear) will be used by default.
 
 ## Ensure vertical shell thickness
 

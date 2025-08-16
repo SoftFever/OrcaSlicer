@@ -1,6 +1,6 @@
 # Infill rotation template metalanguage
 
-This metalanguage provides a way to define the [direction and rotation](strength_settings_infill#direction-and-rotation) of patterns in 3D printing.
+This metalanguage provides a way to define the [direction and rotation](strength_settings_infill#direction-and-rotation) of [patterns](strength_settings_patterns) in 3D printing.
 
 - [Basic instructions](#basic-instructions)
   - [Defined angle](#defined-angle)
