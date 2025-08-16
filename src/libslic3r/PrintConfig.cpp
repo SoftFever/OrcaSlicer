@@ -118,6 +118,14 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 
+static t_config_enum_values s_keys_map_CenterOfSurfacePattern
+{
+    {"each_surface", int(CenterOfSurfacePattern::Each_Surface)}, 
+    {"each_model", int(CenterOfSurfacePattern::Each_Model)},
+    {"each_assemble", int(CenterOfSurfacePattern::Each_Assembly)}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CenterOfSurfacePattern)
+
 static t_config_enum_values s_keys_map_FuzzySkinType {
     { "none",           int(FuzzySkinType::None) },
     { "external",       int(FuzzySkinType::External) },
@@ -5559,6 +5567,113 @@ void PrintConfigDef::init_fff_params()
     def->max      = 100;
     def->set_default_value(new ConfigOptionPercent(100));
 
+    def           = this->add("anisotropic_surfaces", coBool);
+    def->label    = L("Anisotropic surfaces");
+    def->category = L("Strength");
+    def->tooltip  = L("Anisotropic patterns on the top and bottom surfaces."
+                      "Cancellation of reverse filling for some patterns to reduce color dispersion when using multi-colored or silk plastics."
+                      "This option can increase a printing time.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def                = this->add("center_of_surface_pattern", coEnum);
+    def->label         = L("Center of surface pattern to");
+    def->category      = L("Strength");
+    def->tooltip       = L("Align centering point of pattern to the indeed place. Need for aesthetic purpose.\n"
+                           "For patchwork, this parameter defines the surface of each tile within the entire masonry.");
+    def->enum_keys_map = &ConfigOptionEnum<CenterOfSurfacePattern>::get_enum_values();
+    def->enum_values.push_back("each_surface");
+    def->enum_values.push_back("each_model");
+    def->enum_values.push_back("each_assembly");
+    def->enum_labels.push_back(L("Each surface"));
+    def->enum_labels.push_back(L("Each model"));
+    def->enum_labels.push_back(L("Each assembly"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<CenterOfSurfacePattern>(CenterOfSurfacePattern::Each_Surface));
+
+    def           = this->add("precision_surfaces", coBool);
+    def->label    = L("Precision surfaces");
+    def->category = L("Strength");
+    def->tooltip  = L("It sets the precision overlay of patterns on the top and bottom surfaces, and partially fills the pores when using Fuzzy Skin.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("patchwork_surfaces", coBool);
+    def->label    = L("Patchwork surfaces");
+    def->category = L("Strength");
+    def->tooltip  = L("Enable a mode for surface generating like a patchwork quilt");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("patchwork_angle", coFloat);
+    def->label    = L("Patchwork direction");
+    def->category = L("Strength");
+    def->tooltip  = L("*** Need description ***");
+    def->sidetext = "°"; // degrees, don't need translation
+    def->mode     = comAdvanced;
+    def->min      = 0;
+    def->max      = 360;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def           = this->add("patchwork_tile_height", coFloat);
+    def->label    = L("Height of tile");
+    def->category = L("Strength");
+    def->tooltip  = L("(in surface lines)  *** Need description ***");
+    def->sidetext = L("lines");
+    def->mode     = comAdvanced;
+    def->min      = 5;
+    def->max      = 100;
+    def->set_default_value(new ConfigOptionFloat(20.));
+
+    def           = this->add("patchwork_tile_width", coFloat);
+    def->label    = L("Width of tile");
+    def->category = L("Strength");
+    def->tooltip  = L("(in surface lines) *** Need description ***");
+    def->sidetext = L("lines");
+    def->mode     = comAdvanced;
+    def->min      = 5;
+    def->max      = 100;
+    def->set_default_value(new ConfigOptionFloat(20.));
+
+    def           = this->add("patchwork_tile_horizontal_joint", coFloat);
+    def->label    = L("Width of horizontal joint");
+    def->category = L("Strength");
+    def->tooltip  = L("(between tiles in lines) *** Need description ***\n"
+                       "Negative value indicates an empty padding.");
+    def->sidetext = L("lines");
+    def->mode     = comAdvanced;
+    def->min      = -20;
+    def->max      = 20;
+    def->set_default_value(new ConfigOptionFloat(1.));
+
+    def           = this->add("patchwork_tile_vertical_joint", coFloat);
+    def->label    = L("Width of vertical joint");
+    def->category = L("Strength");
+    def->tooltip  = L("(between tiles in lines) *** Need description ***\n"
+                      "Negative value indicates an empty padding.");
+    def->sidetext = L("lines");
+    def->mode     = comAdvanced;
+    def->min      = -20;
+    def->max      = 20;
+    def->set_default_value(new ConfigOptionFloat(1.));
+
+    def           = this->add("patchwork_tiles_alternate_angle", coString);
+    def->label    = L("Alternate tiles direction");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of rotation of the adjacent tile. They depend on the solid_inill_direction parameter.\n"
+                      "When you enter an unsigned value, all tile patterns will be positioned in that direction.\n"
+                      "When you enter an signed value (+ or -), the tile patterns will change direction by this value from one to the other.\n"
+                      "If you enter a '+0' value, the direction of the tile patterns will be random.");
+    def->sidetext = "°"; // degrees, don't need translation
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionString("+90"));
+
+    def           = this->add("patchwork_subway_tiling", coBool);
+    def->label    = L("Patchwork subway tiling");
+    def->category = L("Strength");
+    def->tooltip  = L("Enable subway tiling for a patchwork.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("travel_speed", coFloat);
     def->label = L("Travel");
