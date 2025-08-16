@@ -3093,8 +3093,8 @@ Polylines FillGrid::fill_surface(const Surface *surface, const FillParams &param
 Polylines FillLateralLattice::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    coordf_t dx1 = tan(Geometry::deg2rad(params.lattice_angle_1)) * z;
-    coordf_t dx2 = tan(Geometry::deg2rad(params.lattice_angle_2)) * z;
+    coordf_t dx1 = tan(Geometry::deg2rad(params.lateral_lattice_angle_1)) * z;
+    coordf_t dx2 = tan(Geometry::deg2rad(params.lateral_lattice_angle_2)) * z;
     if (! this->fill_surface_by_multilines(
             surface, params,
             { { float(M_PI / 2.), float(dx1) }, { float(M_PI / 2.), float(dx2) } },

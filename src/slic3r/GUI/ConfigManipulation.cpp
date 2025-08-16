@@ -876,7 +876,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
 
     bool lattice_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ipLateralLattice;
-    for (auto el : { "lattice_angle_1", "lattice_angle_2"})
+    for (auto el : { "lateral_lattice_angle_1", "lateral_lattice_angle_2"})
         toggle_line(el, lattice_options);
 
     //Orca: hide rotate template for solid infill if not support

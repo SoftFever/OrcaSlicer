@@ -2452,20 +2452,20 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Octagram Spiral"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
-    def           = this->add("lattice_angle_1", coFloat);
-    def->label    = L("Lattice angle 1");
+    def           = this->add("lateral_lattice_angle_1", coFloat);
+    def->label    = L("Lateral lattice angle 1");
     def->category = L("Strength");
-    def->tooltip  = L("The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->tooltip  = L("The angle of the first set of Lateral lattice elements in the Z direction. Zero is vertical.");
     def->sidetext = "°";	// degrees, don't need translation
     def->min      = -75;
     def->max      = 75;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(-45));
 
-    def           = this->add("lattice_angle_2", coFloat);
-    def->label    = L("Lattice angle 2");
+    def           = this->add("lateral_lattice_angle_2", coFloat);
+    def->label    = L("Lateral lattice angle 2");
     def->category = L("Strength");
-    def->tooltip  = L("The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->tooltip  = L("The angle of the second set of Lateral lattice elements in the Z direction. Zero is vertical.");
     def->sidetext = "°";	// degrees, don't need translation
     def->min      = -75;
     def->max      = 75;
