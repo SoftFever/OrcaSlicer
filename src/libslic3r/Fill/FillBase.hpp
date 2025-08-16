@@ -79,12 +79,12 @@ struct FillParams
     // Layer height for Concentric infill with Arachne.
     coordf_t    layer_height    { 0.f };
 
-    // For 2D lattice
-    coordf_t    lattice_angle_1    { 0.f };
-    coordf_t    lattice_angle_2    { 0.f };
+    // For Lateral lattice
+    coordf_t    lateral_lattice_angle_1    { 0.f };
+    coordf_t    lateral_lattice_angle_2    { 0.f };
     InfillPattern pattern{ ipRectilinear };
 
-    // For 2D Honeycomb
+    // For Lateral Honeycomb
     float       infill_overhang_angle    { 60 };
 
     // BBS

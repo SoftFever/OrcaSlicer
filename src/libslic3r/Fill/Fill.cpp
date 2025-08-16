@@ -68,13 +68,13 @@ struct SurfaceFillParams
 	float			solid_infill_speed = 0;
 
     // Params for lattice infill angles
-    float lattice_angle_1 = 0.f;
-    float lattice_angle_2 = 0.f;
+    float lateral_lattice_angle_1 = 0.f;
+    float lateral_lattice_angle_2 = 0.f;
     float infill_lock_depth          = 0;
     float skin_infill_depth          = 0;
     bool symmetric_infill_y_axis = false;
 
-    // Params for 2D honeycomb
+    // Params for Lateral honeycomb
     float infill_overhang_angle = 60.f;
 
 	bool operator<(const SurfaceFillParams &rhs) const {
@@ -103,8 +103,8 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(sparse_infill_speed);
 		RETURN_COMPARE_NON_EQUAL(top_surface_speed);
 		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
-        RETURN_COMPARE_NON_EQUAL(lattice_angle_1);
-		RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
+        RETURN_COMPARE_NON_EQUAL(lateral_lattice_angle_1);
+		RETURN_COMPARE_NON_EQUAL(lateral_lattice_angle_2);
 		RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
 		RETURN_COMPARE_NON_EQUAL(infill_lock_depth);
 		RETURN_COMPARE_NON_EQUAL(skin_infill_depth);		RETURN_COMPARE_NON_EQUAL(infill_overhang_angle);
@@ -130,8 +130,8 @@ struct SurfaceFillParams
 				this->sparse_infill_speed	== rhs.sparse_infill_speed &&
 				this->top_surface_speed		== rhs.top_surface_speed &&
 				this->solid_infill_speed	== rhs.solid_infill_speed &&
-                this->lattice_angle_1		== rhs.lattice_angle_1 &&
-				this->lattice_angle_2	    == rhs.lattice_angle_2 &&
+                this->lateral_lattice_angle_1		== rhs.lateral_lattice_angle_1 &&
+				this->lateral_lattice_angle_2	    == rhs.lateral_lattice_angle_2 &&
 				this->infill_lock_depth      ==  rhs.infill_lock_depth &&
 				this->skin_infill_depth      ==  rhs.skin_infill_depth &&
                 this->infill_overhang_angle == rhs.infill_overhang_angle;
@@ -653,8 +653,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
                 params.multiline     = int(region_config.fill_multiline);
-                params.lattice_angle_1 = region_config.lattice_angle_1;
-                params.lattice_angle_2 = region_config.lattice_angle_2;
+                params.lateral_lattice_angle_1 = region_config.lateral_lattice_angle_1;
+                params.lateral_lattice_angle_2 = region_config.lateral_lattice_angle_2;
                 params.infill_overhang_angle = region_config.infill_overhang_angle;
                 params.angle        = 0.;
                 if (params.pattern == ipLockedZag) {
@@ -1041,8 +1041,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.resolution        = resolution;
         params.use_arachne       = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipConcentricInternal;
         params.layer_height      = layerm->layer()->height;
-        params.lattice_angle_1   = surface_fill.params.lattice_angle_1;
-        params.lattice_angle_2   = surface_fill.params.lattice_angle_2;
+        params.lateral_lattice_angle_1   = surface_fill.params.lateral_lattice_angle_1;
+        params.lateral_lattice_angle_2   = surface_fill.params.lateral_lattice_angle_2;
         params.infill_overhang_angle   = surface_fill.params.infill_overhang_angle;
 
 		// BBS
@@ -1320,14 +1320,14 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipMonotonicLine:
         case ipAlignedRectilinear:
         case ipGrid:
-        case ip2DLattice:
+        case ipLateralLattice:
         case ipTriangles:
         case ipStars:
         case ipCubic:
         case ipLine:
         case ipConcentric:
         case ipHoneycomb:
-        case ip2DHoneycomb:
+        case ipLateralHoneycomb:
         case ip3DHoneycomb:
         case ipGyroid:
         case ipTpmsD:
@@ -1381,8 +1381,8 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         params.resolution        = resolution;
         params.use_arachne       = false;
         params.layer_height      = layerm.layer()->height;
-        params.lattice_angle_1   = surface_fill.params.lattice_angle_1;
-        params.lattice_angle_2   = surface_fill.params.lattice_angle_2;
+        params.lateral_lattice_angle_1   = surface_fill.params.lateral_lattice_angle_1;
+        params.lateral_lattice_angle_2   = surface_fill.params.lateral_lattice_angle_2;
         params.infill_overhang_angle   = surface_fill.params.infill_overhang_angle;
         params.multiline         = surface_fill.params.multiline;
 

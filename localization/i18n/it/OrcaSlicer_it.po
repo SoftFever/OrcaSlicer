@@ -12359,10 +12359,10 @@ msgstr "Nido d'ape"
 msgid "3D Honeycomb"
 msgstr "Nido d'ape 3D"
 
-msgid "2D Honeycomb"
+msgid "Lateral Honeycomb"
 msgstr ""
 
-msgid "2D Lattice"
+msgid "Lateral Lattice"
 msgstr "Reticolo 2D"
 
 msgid "Cross Hatch"
@@ -12377,21 +12377,21 @@ msgstr ""
 msgid "Gyroid"
 msgstr "Giroide"
 
-msgid "Lattice angle 1"
+msgid "Lateral lattice angle 1"
 msgstr "Angolo reticolo 1"
 
 msgid ""
-"The angle of the first set of 2D lattice elements in the Z direction. Zero "
+"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr ""
 "L'angolo della prima serie di elementi reticolari 2D nell'asse Z. Zero è "
 "verticale."
 
-msgid "Lattice angle 2"
+msgid "Lateral lattice angle 2"
 msgstr "Angolo reticolo 2"
 
 msgid ""
-"The angle of the second set of 2D lattice elements in the Z direction. Zero "
+"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr ""
 "L'angolo della seconda serie di elementi reticolari 2D nell'asse Z. Zero è "

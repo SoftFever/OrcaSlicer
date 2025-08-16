@@ -2221,8 +2221,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("symmetric_infill_y_axis", "strength_settings_infill#zig-zag");
         optgroup->append_single_option_line("infill_shift_step", "strength_settings_infill#cross-hatch");
 
-        optgroup->append_single_option_line("lattice_angle_1", "strength_settings_infill#2d-lattice");
-        optgroup->append_single_option_line("lattice_angle_2", "strength_settings_infill#2d-lattice");
+        optgroup->append_single_option_line("lateral_lattice_angle_1", "strength_settings_infill#2d-lattice");
+        optgroup->append_single_option_line("lateral_lattice_angle_2", "strength_settings_infill#2d-lattice");
         optgroup->append_single_option_line("infill_overhang_angle", "strength_settings_infill#2d-honeycomb");
         optgroup->append_single_option_line("infill_anchor_max", "strength_settings_infill#anchor");
         optgroup->append_single_option_line("infill_anchor", "strength_settings_infill#anchor");

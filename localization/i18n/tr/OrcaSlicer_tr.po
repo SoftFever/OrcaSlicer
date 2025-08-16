@@ -12080,10 +12080,10 @@ msgstr "Petek"
 msgid "3D Honeycomb"
 msgstr "3D petek"
 
-msgid "2D Honeycomb"
+msgid "Lateral Honeycomb"
 msgstr "2D petek"
 
-msgid "2D Lattice"
+msgid "Lateral Lattice"
 msgstr "2D Kafes"
 
 msgid "Cross Hatch"
@@ -12098,20 +12098,20 @@ msgstr "Tpms-fk"
 msgid "Gyroid"
 msgstr "Jiroid"
 
-msgid "Lattice angle 1"
+msgid "Lateral lattice angle 1"
 msgstr "Kafes açısı 1"
 
 msgid ""
-"The angle of the first set of 2D lattice elements in the Z direction. Zero is "
+"The angle of the first set of Lateral lattice elements in the Z direction. Zero is "
 "vertical."
 msgstr ""
 "İlk 2 boyutlu kafes elemanları grubunun Z yönündeki açısı. Sıfır dikeydir."
 
-msgid "Lattice angle 2"
+msgid "Lateral lattice angle 2"
 msgstr "Kafes açısı 2"
 
 msgid ""
-"The angle of the second set of 2D lattice elements in the Z direction. Zero is "
+"The angle of the second set of Lateral lattice elements in the Z direction. Zero is "
 "vertical."
 msgstr ""
 "İkinci 2 boyutlu kafes elemanları grubunun Z yönündeki açısı. Sıfır dikeydir."
