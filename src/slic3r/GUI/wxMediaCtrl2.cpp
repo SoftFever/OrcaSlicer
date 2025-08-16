@@ -123,7 +123,7 @@ void wxMediaCtrl2::Load(wxURI url)
                 });
             } else {
                 CallAfter([] {
-                    wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStudio or seek after-sales help."), _L("Error"), wxOK);
+                    wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install Bambu Studio or seek after-sales help."), _L("Error"), wxOK);
                 });
             }
             m_error = clsid != CLSID_BAMBU_SOURCE ? 101 : path.empty() ? 102 : 103;
@@ -186,7 +186,7 @@ void wxMediaCtrl2::Load(wxURI url)
     
     if (!hasplugins) {
         CallAfter([] {
-            wxMessageBox(_L("Your system is missing H.264 codecs for GStreamer, which are required to play video. (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Orca Slicer?)"), _L("Error"), wxOK);
+            wxMessageBox(_L("Your system is missing H.264 codecs for GStreamer, which are required to play video. (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart OrcaSlicer?)"), _L("Error"), wxOK);
         });
         m_error = 101;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
