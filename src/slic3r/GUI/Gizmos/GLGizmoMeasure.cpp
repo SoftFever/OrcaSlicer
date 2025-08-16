@@ -445,7 +445,7 @@ bool GLGizmoMeasure::on_init()
     m_shortcut_key = WXK_CONTROL_U;
 
     m_desc["feature_selection"]         = _L("Select feature");
-    m_desc["point_selection_caption"]   = _L("Shift + Left mouse button");
+    m_desc["point_selection_caption"]   = _L("Shift+") + _L("Left mouse button");
     m_desc["point_selection"]           = _L("Select point");
     m_desc["reset_caption"]             = _L("Delete");
     m_desc["reset"]                     = _L("Restart selection");

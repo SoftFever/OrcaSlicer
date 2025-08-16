@@ -55,7 +55,7 @@ GizmoObjectManipulation::GizmoObjectManipulation(GLCanvas3D& glcanvas)
     m_imperial_units = wxGetApp().app_config->get("use_inches") == "1";
     m_new_unit_string = m_imperial_units ? L("in") : L("mm");
 
-    const wxString shift                   = "Shift+";
+    const wxString shift                   = _L("Shift+");
     const wxString alt                     = GUI::shortkey_alt_prefix();
     const wxString ctrl                    = GUI::shortkey_ctrl_prefix();
     m_desc_move["part_selection_caption"] = alt + _L("Left mouse button");
