@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -31,8 +31,6 @@ msgstr "Temperatuur"
 
 msgid "Left Time"
 msgstr ""
-
-
 
 msgid "Serial:"
 msgstr "Serienummer:"
@@ -188,6 +186,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "Schakel draadmodel in of uit"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Annuleren"
+
 msgid "Shortcut Key "
 msgstr "Sneltoest "
 
@@ -209,6 +216,9 @@ msgstr "Geschilderd kleur verwijderen"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Geschilderd met filament %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Verplaats"
@@ -473,9 +483,6 @@ msgstr ""
 
 msgid "Confirm connectors"
 msgstr "Verbindingen bevestigen"
-
-msgid "Cancel"
-msgstr "Annuleren"
 
 msgid "Build Volume"
 msgstr ""
@@ -2822,6 +2829,8 @@ msgstr "Downloaden"
 msgid "Download failed"
 msgstr "Downloaden mislukt"
 
+msgid "Canceled"
+msgstr "Geannuleerd"
 
 msgid "Installed successfully"
 msgstr "Succesvol geïnstalleerd."
@@ -3792,7 +3801,6 @@ msgid ""
 "Reset to 0."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10047,6 +10055,13 @@ msgstr ""
 msgid "Smooth High Temp Plate"
 msgstr ""
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Afdrukvolgorde van de eerste laag"
 
@@ -11543,6 +11558,9 @@ msgid "Cross Hatch"
 msgstr "Cross Hatch"
 
 msgid "TPMS-D"
+msgstr ""
+
+msgid "TPMS-FK"
 msgstr ""
 
 msgid "Gyroid"
@@ -13192,6 +13210,9 @@ msgstr "Dichtstbijzijnde"
 
 msgid "Aligned"
 msgstr "Uitgelijnd"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Achterzijde"
@@ -15321,9 +15342,6 @@ msgstr ""
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 
-msgid "Canceled"
-msgstr "Geannuleerd"
-
 msgid "load_obj: failed to parse"
 msgstr ""
 
@@ -16026,7 +16044,6 @@ msgstr ""
 
 msgid "Frequency settings"
 msgstr ""
-
 
 msgid "Damp: "
 msgstr ""
