@@ -2984,10 +2984,10 @@ msgstr "步驟"
 msgid "AMS Slots"
 msgstr "AMS 槽內線材"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -4282,7 +4282,7 @@ msgstr "順序"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4393,9 +4393,6 @@ msgstr "剖面視圖"
 
 msgid "Assemble Control"
 msgstr "拼裝視角控制"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
@@ -5164,11 +5161,6 @@ msgstr "從列印機重新載入檔案清單。"
 
 msgid "No printers."
 msgstr "未選擇列印設備。"
-
-msgid ""
-"Please check the network and try again, You can restart or update the "
-"printer if the issue persists."
-msgstr ""
 
 msgid "Loading file list..."
 msgstr "載入檔案清單..."
@@ -8908,10 +8900,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
-msgid "Laser 10w"
+msgid "Laser 10 W"
 msgstr ""
 
-msgid "Laser 40w"
+msgid "Laser 40 W"
 msgstr ""
 
 msgid "Cutting Module"
@@ -9541,7 +9533,7 @@ msgstr "受列印設備硬體限制的最大可列印高度"
 msgid "Preferred orientation"
 msgstr "首選方向"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr "匯入 STL 時自動對齊 Z 軸"
 
 msgid "Printer preset names"
@@ -10260,9 +10252,11 @@ msgstr "耳狀 Brim 偵測半徑"
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
+"在偵測尖銳角度之前，幾何形狀將被簡化。此參數表示簡化的最小偏差長度。\n"
+"設為 0 以停用"
 
 msgid "Select printers"
 msgstr ""
@@ -12122,9 +12116,9 @@ msgstr ""
 msgid ""
 "The remaining part of the model contour after removing a certain depth from "
 "the surface is called the skeleton. This parameter is used to adjust the "
-"density of this section.When two regions have the same sparse infill "
+"density of this section. When two regions have the same sparse infill "
 "settings but different skeleton densities, their skeleton areas will develop "
-"overlapping sections.default is as same as infill density."
+"overlapping sections. Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill density"
@@ -12133,9 +12127,9 @@ msgstr ""
 msgid ""
 "The portion of the model's outer surface within a certain depth range is "
 "called the skin. This parameter is used to adjust the density of this "
-"section.When two regions have the same sparse infill settings but different "
-"skin densities, This area will not be split into two separate "
-"regions.default is as same as infill density."
+"section. When two regions have the same sparse infill settings but different "
+"skin densities, this area will not be split into two separate regions. "
+"Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill depth"
@@ -12162,11 +12156,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -12515,8 +12509,7 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -14210,7 +14203,7 @@ msgstr "換料塔寬度"
 msgid "Wipe tower rotation angle"
 msgstr "換料塔旋轉角度"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "換料塔相對於 x 軸的旋轉角度。"
 
 msgid "Width of the brim."
@@ -14279,7 +14272,7 @@ msgstr ""
 
 msgid ""
 "Positive values can increase the size of the rib wall, while negative values "
-"can reduce the size.However, the size of the rib wall can not be smaller "
+"can reduce the size. However, the size of the rib wall can not be smaller "
 "than that determined by the cleaning volume."
 msgstr ""
 
@@ -14857,7 +14850,7 @@ msgstr "載入自訂 G-code"
 msgid "Load custom G-code from json."
 msgstr "從 json 載入自訂 G-code"
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "載入耗材識別碼"
 
 msgid "Load filament IDs for each object."
@@ -15168,7 +15161,7 @@ msgstr "層數"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr "當層數 (第一層為一)"
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "層 z 高"
 
 msgid ""
@@ -15176,7 +15169,7 @@ msgid ""
 "layer."
 msgstr "目前這一層距離熱床的高度，從層頂開始計算。"
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "層的最大 Z 軸高度"
 
 msgid "Height of the last layer above the print bed."
@@ -16536,8 +16529,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
 
@@ -17707,15 +17700,6 @@ msgstr ""
 #~ msgid "Enable this option to use classic mode."
 #~ msgstr "開啟此選項以使用經典模式"
 
-#~ msgid ""
-#~ "The geometry will be decimated before detecting sharp angles. This "
-#~ "parameter indicates the minimum length of the deviation for the "
-#~ "decimation.\n"
-#~ "0 to deactivate."
-#~ msgstr ""
-#~ "在偵測尖銳角度之前，幾何形狀將被簡化。此參數表示簡化的最小偏差長度。\n"
-#~ "設為 0 以停用"
-
 #~ msgid "Compatible machine"
 #~ msgstr "相容的設備"
 
@@ -17828,7 +17812,7 @@ msgstr ""
 #~ msgid "Downward machines settings"
 #~ msgstr "相容機器設定"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "載入每個物件的耗材識別碼"
 
 #~ msgid ""
