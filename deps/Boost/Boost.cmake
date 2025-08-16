@@ -10,6 +10,7 @@ if (APPLE AND CMAKE_OSX_ARCHITECTURES)
     set(_context_arch_line "-DBOOST_CONTEXT_ARCHITECTURE:STRING=${CMAKE_OSX_ARCHITECTURES}")
 endif ()
 
+# If you change the version here, you must update the root CMakeLists.txt to match.
 orcaslicer_add_cmake_project(Boost
     URL "https://github.com/boostorg/boost/releases/download/boost-1.84.0/boost-1.84.0.tar.gz"
     URL_HASH SHA256=4d27e9efed0f6f152dc28db6430b9d3dfb40c0345da7342eaa5a987dde57bd95
