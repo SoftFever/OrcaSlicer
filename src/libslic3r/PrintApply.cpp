@@ -1122,6 +1122,27 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_scarf_joint_seam:" << has_scarf_joint_seam;
     }
+	{
+        const auto opt_has_painted_fuzzy_skin = [](const DynamicConfig& c) {
+            return c.has("fuzzy_skin_painted") && c.opt_bool("fuzzy_skin_painted");
+        };
+        
+        const bool has_painted_fuzzy_skin = std::any_of(o.begin(), o.end(), [&new_full_config, &opt_has_painted_fuzzy_skin](ModelObject* obj) {
+            return (obj->config.has("fuzzy_skin_painted") && obj->config.opt_bool("fuzzy_skin_painted")) ||
+                   std::any_of(obj->volumes.begin(), obj->volumes.end(), [&opt_has_painted_fuzzy_skin](const ModelVolume* v) { 
+                       return opt_has_painted_fuzzy_skin(v->config.get());
+                   }) ||
+                   std::any_of(obj->layer_config_ranges.begin(), obj->layer_config_ranges.end(), [&opt_has_painted_fuzzy_skin](const auto& r) { 
+                       return opt_has_painted_fuzzy_skin(r.second.get());
+                   });
+        });
+        
+        if (has_painted_fuzzy_skin) {
+            new_full_config.set("has_painted_fuzzy_skin", true);
+        }
+        
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_painted_fuzzy_skin:" << has_painted_fuzzy_skin;
+    }
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
     DynamicPrintConfig   filament_overrides;
