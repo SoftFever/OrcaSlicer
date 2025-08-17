@@ -1797,7 +1797,7 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
         used = 0.f;
 
     m_old_temperature = -1; // reset last temperature written in the gcode
-    int index = 0;
+
     std::vector<WipeTower::ToolChangeResult> layer_result;
     int index = 0;
 	for (auto layer : m_plan)
