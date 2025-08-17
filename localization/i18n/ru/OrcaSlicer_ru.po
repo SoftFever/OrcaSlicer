@@ -12416,6 +12416,7 @@ msgstr "3D соты"
 msgid "Lateral Honeycomb"
 msgstr ""
 
+#, fuzzy
 msgid "Lateral Lattice"
 msgstr "2D решётка"
 
@@ -12431,9 +12432,11 @@ msgstr ""
 msgid "Gyroid"
 msgstr "Гироид"
 
+#, fuzzy
 msgid "Lateral lattice angle 1"
 msgstr "Угол №1 (2D решётка)"
 
+#, fuzzy
 msgid ""
 "The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
@@ -12441,9 +12444,11 @@ msgstr ""
 "Угол наклона первой линии для шаблона заполнения «2D решётка» относительно "
 "вертикальной оси Z (0 - вертикально)."
 
+#, fuzzy
 msgid "Lateral lattice angle 2"
 msgstr "Угол №2 (2D решётка)"
 
+#, fuzzy
 msgid ""
 "The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."

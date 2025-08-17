@@ -12213,6 +12213,7 @@ msgstr "Plaster miodu 3D"
 msgid "Lateral Honeycomb"
 msgstr ""
 
+#, fuzzy
 msgid "Lateral Lattice"
 msgstr "Siatka 2D"
 
@@ -12228,9 +12229,11 @@ msgstr ""
 msgid "Gyroid"
 msgstr "Gyroidalny"
 
+#, fuzzy
 msgid "Lateral lattice angle 1"
 msgstr "Kąt siatki 1"
 
+#, fuzzy
 msgid ""
 "The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
@@ -12238,9 +12241,11 @@ msgstr ""
 "Kąt nachylenia pierwszej linii dla wzorca wypełnienia „siatka 2D” względem "
 "osi Z. Zero oznacza pionową."
 
+#, fuzzy
 msgid "Lateral lattice angle 2"
 msgstr "Kąt siatki 2"
 
+#, fuzzy
 msgid ""
 "The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."

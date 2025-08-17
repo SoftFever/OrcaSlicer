@@ -12437,9 +12437,11 @@ msgstr "Bienenwabe"
 msgid "3D Honeycomb"
 msgstr "3D-Waben"
 
+#, fuzzy
 msgid "Lateral Honeycomb"
 msgstr "2D-Waben"
 
+#, fuzzy
 msgid "Lateral Lattice"
 msgstr "2D-Gitter"
 
@@ -12455,9 +12457,11 @@ msgstr "TPMS-FK"
 msgid "Gyroid"
 msgstr "Gyroid"
 
+#, fuzzy
 msgid "Lateral lattice angle 1"
 msgstr "Gitterwinkel 1"
 
+#, fuzzy
 msgid ""
 "The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
@@ -12465,9 +12469,11 @@ msgstr ""
 "Der Winkel des ersten Satzes von 2D-Gitterelementen in der Z-Richtung. Null "
 "ist vertikal."
 
+#, fuzzy
 msgid "Lateral lattice angle 2"
 msgstr "Gitterwinkel 2"
 
+#, fuzzy
 msgid ""
 "The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."

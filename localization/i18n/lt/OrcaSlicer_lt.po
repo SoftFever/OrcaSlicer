@@ -12162,6 +12162,7 @@ msgstr "3D korys"
 msgid "Lateral Honeycomb"
 msgstr ""
 
+#, fuzzy
 msgid "Lateral Lattice"
 msgstr "2D grotelės"
 
@@ -12177,9 +12178,11 @@ msgstr ""
 msgid "Gyroid"
 msgstr "Giroidas"
 
+#, fuzzy
 msgid "Lateral lattice angle 1"
 msgstr "Rašto kampas 1"
 
+#, fuzzy
 msgid ""
 "The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
@@ -12187,9 +12190,11 @@ msgstr ""
 "Pirmojo 2D grotelių elementų rinkinio kampas Z kryptimi. Nulis yra "
 "vertikalus."
 
+#, fuzzy
 msgid "Lateral lattice angle 2"
 msgstr "Rašto kampas 2"
 
+#, fuzzy
 msgid ""
 "The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."

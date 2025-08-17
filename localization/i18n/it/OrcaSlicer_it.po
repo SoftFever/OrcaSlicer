@@ -12362,6 +12362,7 @@ msgstr "Nido d'ape 3D"
 msgid "Lateral Honeycomb"
 msgstr ""
 
+#, fuzzy
 msgid "Lateral Lattice"
 msgstr "Reticolo 2D"
 
@@ -12377,9 +12378,11 @@ msgstr ""
 msgid "Gyroid"
 msgstr "Giroide"
 
+#, fuzzy
 msgid "Lateral lattice angle 1"
 msgstr "Angolo reticolo 1"
 
+#, fuzzy
 msgid ""
 "The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
@@ -12387,9 +12390,11 @@ msgstr ""
 "L'angolo della prima serie di elementi reticolari 2D nell'asse Z. Zero è "
 "verticale."
 
+#, fuzzy
 msgid "Lateral lattice angle 2"
 msgstr "Angolo reticolo 2"
 
+#, fuzzy
 msgid ""
 "The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."

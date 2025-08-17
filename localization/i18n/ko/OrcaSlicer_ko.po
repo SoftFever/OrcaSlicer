@@ -11783,6 +11783,7 @@ msgstr "3D 벌집"
 msgid "Lateral Honeycomb"
 msgstr ""
 
+#, fuzzy
 msgid "Lateral Lattice"
 msgstr "2D 격자"
 
@@ -11798,17 +11799,21 @@ msgstr ""
 msgid "Gyroid"
 msgstr "자이로이드"
 
+#, fuzzy
 msgid "Lateral lattice angle 1"
 msgstr "격자 각도 1"
 
+#, fuzzy
 msgid ""
 "The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr "Z 방향의 첫 번째 2D 격자 요소 집합의 각도입니다. 0은 수직입니다."
 
+#, fuzzy
 msgid "Lateral lattice angle 2"
 msgstr "격자 각도 2"
 
+#, fuzzy
 msgid ""
 "The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."

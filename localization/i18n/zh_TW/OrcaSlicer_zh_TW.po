@@ -11415,6 +11415,7 @@ msgstr "3D 蜂窩"
 msgid "Lateral Honeycomb"
 msgstr ""
 
+#, fuzzy
 msgid "Lateral Lattice"
 msgstr "2D 網格結構"
 
@@ -11430,17 +11431,21 @@ msgstr ""
 msgid "Gyroid"
 msgstr "螺旋體"
 
+#, fuzzy
 msgid "Lateral lattice angle 1"
 msgstr "網格結構角度 1"
 
+#, fuzzy
 msgid ""
 "The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr "Z 軸方向第一組 2D 網格結構的角度，0° 表示垂直方向。"
 
+#, fuzzy
 msgid "Lateral lattice angle 2"
 msgstr "網格結構角度 2"
 
+#, fuzzy
 msgid ""
 "The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."

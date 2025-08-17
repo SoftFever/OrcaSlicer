@@ -12218,6 +12218,7 @@ msgstr "3D медові стільники"
 msgid "Lateral Honeycomb"
 msgstr ""
 
+#, fuzzy
 msgid "Lateral Lattice"
 msgstr "2D Решітка"
 
@@ -12233,9 +12234,11 @@ msgstr ""
 msgid "Gyroid"
 msgstr "Гіроїд"
 
+#, fuzzy
 msgid "Lateral lattice angle 1"
 msgstr "Кут решітки 1"
 
+#, fuzzy
 msgid ""
 "The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
@@ -12243,9 +12246,11 @@ msgstr ""
 "Кут першого набору 2D-решіткових елементів у напрямку Z. Нуль означає "
 "вертикальне розташування."
 
+#, fuzzy
 msgid "Lateral lattice angle 2"
 msgstr "Кут решітки 1"
 
+#, fuzzy
 msgid ""
 "The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
