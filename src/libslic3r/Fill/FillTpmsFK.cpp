@@ -353,12 +353,12 @@ void drawContour(double                                            contourValue,
 
 inline static float get_sin(float angle)
 {
-    return std::sinf(angle);
+    return sinf(angle);
 }
 
 inline static float get_cos(float angle)
 {
-    return std::cosf(angle);
+    return cosf(angle);
 }
 
 void FillTpmsFK::_fill_surface_single(const FillParams&              params,
