@@ -351,14 +351,6 @@ static void drawContour(double                                            contou
 
 } // namespace MarchingSquares
 
-inline static float get_sin(float angle){
-    return sinf(angle);
-}
-
-inline static float get_cos(float angle){
-    return cosf(angle);
-}
-
 void FillTpmsFK::_fill_surface_single(const FillParams&              params,
                                       unsigned int                   thickness_layers,
                                       const std::pair<float, Point>& direction,
@@ -388,13 +380,12 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     auto scalar_field = [&](float x, float y) -> float {
         float a_x       = myperiod * x;
         float b_y       = myperiod * y;
-        const float c_z_local = c_z; // myperiod * this->z
 
         // Fischer - Koch S equation:
         // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y) = 0
-        return get_cos(2.f * a_x) * get_sin(b_y) * get_cos(c_z_local)
-             + get_cos(2.f * b_y) * get_sin(c_z_local) * get_cos(a_x) 
-             + get_cos(2.f * c_z_local) * get_sin(a_x) * get_cos(b_y);
+        return cosf(2.f * a_x) * sinf(b_y) * cosf(c_z)
+             + cosf(2.f * b_y) * sinf(c_z) * cosf(a_x) 
+             + cosf(2.f * c_z) * sinf(a_x) * cosf(b_y);
     };
 
     // Mesh generation
