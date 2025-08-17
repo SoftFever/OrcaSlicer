@@ -156,8 +156,8 @@ vector<double> getGridValues(int i, int j, vector<vector<double>>& data)
     values.push_back(data[i][j]);
     return values;
 }
-bool  needContour(double value, double contourValue) { return value >= contourValue; }
-Point interpolate(std::vector<std::vector<MarchingSquares::Point>>& posxy,
+static bool  needContour(double value, double contourValue) { return value >= contourValue; }
+static Point interpolate(std::vector<std::vector<MarchingSquares::Point>>& posxy,
                   std::vector<int>                                  p1ij,
                   std::vector<int>                                  p2ij,
                   double                                            v1,
@@ -185,7 +185,7 @@ Point interpolate(std::vector<std::vector<MarchingSquares::Point>>& posxy,
     return p;
 }
 
-void process_block(int                                               i,
+static void process_block(int                                               i,
                    int                                               j,
                    vector<vector<double>>&                           data,
                    double                                            contourValue,
@@ -287,7 +287,7 @@ void process_block(int                                               i,
     }
 }
 
-void drawContour(double                                            contourValue,
+static void drawContour(double                                            contourValue,
                  int                                               gridSize_w,
                  int                                               gridSize_h,
                  vector<vector<double>>&                           data,
@@ -351,13 +351,11 @@ void drawContour(double                                            contourValue,
 
 } // namespace MarchingSquares
 
-inline static float get_sin(float angle)
-{
+inline static float get_sin(float angle){
     return sinf(angle);
 }
 
-inline static float get_cos(float angle)
-{
+inline static float get_cos(float angle){
     return cosf(angle);
 }
 
@@ -390,23 +388,13 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     auto scalar_field = [&](float x, float y) -> float {
         float a_x       = myperiod * x;
         float b_y       = myperiod * y;
-        float c_z_local = c_z; // myperiod * this->z
-
-        // Precompute repeated trigonometric terms
-        float cos2ax = get_cos(2.f * a_x);
-        float cos2by = get_cos(2.f * b_y);
-        float cos2cz = get_cos(2.f * c_z_local);
-
-        float sinax = get_sin(a_x);
-        float cosax = get_cos(a_x);
-        float sinby = get_sin(b_y);
-        float cosby = get_cos(b_y);
-        float sincz = get_sin(c_z_local);
-        float coscz = get_cos(c_z_local);
+        const float c_z_local = c_z; // myperiod * this->z
 
         // Fischer - Koch S equation:
         // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y) = 0
-        return cos2ax * sinby * coscz + cos2by * sincz * cosax + cos2cz * sinax * cosby;
+        return get_cos(2.f * a_x) * get_sin(b_y) * get_cos(c_z_local)
+             + get_cos(2.f * b_y) * get_sin(c_z_local) * get_cos(a_x) 
+             + get_cos(2.f * c_z_local) * get_sin(a_x) * get_cos(b_y);
     };
 
     // Mesh generation
