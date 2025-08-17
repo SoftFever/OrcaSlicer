@@ -7,7 +7,6 @@
 #include <unordered_set>
 #include <utility>
 #include <tbb/parallel_for.h>
-#include <mutex> 
 
 namespace Slic3r {
 
