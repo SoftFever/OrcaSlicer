@@ -1,8 +1,8 @@
 # How to Contribute to the Wiki
 
-This guide explains how to contribute to the Orca Slicer wiki.
+This guide explains how to contribute to the OrcaSlicer wiki.
 
-Orca Slicer uses GitHub's wiki feature, which allows users and developers to create and edit documentation collaboratively.
+OrcaSlicer uses GitHub's wiki feature, which allows users and developers to create and edit documentation collaboratively.
 
 We encourage all developers and users to contribute to the wiki by updating existing pages and adding new content. This helps keep the documentation up-to-date and useful for everyone.
 
@@ -35,13 +35,13 @@ Each wiki page is a Markdown file located in the `doc` directory of the reposito
 
 ### Home
 
-The starting point of the Orca Slicer wiki is the **Home** page. From there, you can navigate to different sections and topics related to the project.
+The starting point of the OrcaSlicer wiki is the **Home** page. From there, you can navigate to different sections and topics related to the project.
 
 When creating a new page or section, be sure to link it from the Home page under the appropriate category.
 
 - **Print Settings:** Detailed explanations of print settings, tips, and tricks for optimizing print quality.
-- **Printer Calibration:** Step-by-step calibration tests in Orca Slicer, including how to interpret the results.
-- **Developer Section:** Information for developers and contributors on building Orca Slicer, localization, and developer resources.
+- **Printer Calibration:** Step-by-step calibration tests in OrcaSlicer, including how to interpret the results.
+- **Developer Section:** Information for developers and contributors on building OrcaSlicer, localization, and developer resources.
 
 #### Index and Navigation
 
@@ -243,7 +243,7 @@ To ensure clarity:
 Each wiki page should have a clear objective, which helps determine the structure of the content. After a brief introduction, use one of the following formats:
 
 - **Step-by-Step Guide:** Organize content into sections and subsections for tasks requiring sequential actions (e.g., calibration procedures).
-- **GUI-Based Reference:** If sequence isn’t crucial, structure the content following Orca Slicer’s GUI. This format works well for configurable settings or feature overviews.
+- **GUI-Based Reference:** If sequence isn’t crucial, structure the content following OrcaSlicer’s GUI. This format works well for configurable settings or feature overviews.
   - Example: Explain **Layer Height** before **Initial Layer Height**, as the former applies globally while the latter is specific to the first layer.
 
 ## Commands and Code Blocks

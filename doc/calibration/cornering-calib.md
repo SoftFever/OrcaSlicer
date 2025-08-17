@@ -26,7 +26,7 @@ JD = 0,4 \cdot \frac{\text{Jerk}^2}{\text{Accel.}}
 
    ![jd_first_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_first_menu.png?raw=true)
 
-   1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+   1. Measure the X and Y heights and read the frequency set at that point in OrcaSlicer.
 
    ![jd_first_print_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_first_print_measure.jpg?raw=true)
    ![jd_first_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_first_slicer_measure.png?raw=true)
@@ -36,7 +36,7 @@ JD = 0,4 \cdot \frac{\text{Jerk}^2}{\text{Accel.}}
 
    ![jd_second_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_second_menu.png?raw=true)
 
-   4. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+   4. Measure the X and Y heights and read the frequency set at that point in OrcaSlicer.
 
    ![jd_second_print_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_second_print_measure.jpg?raw=true)
    ![jd_second_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_second_slicer_measure.png?raw=true)

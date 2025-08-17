@@ -77,12 +77,12 @@ Please note that the wiki is a work in progress. We appreciate your patience as 
 ## Stable Release
 
 📥 **[Download the Latest Stable Release](https://github.com/SoftFever/OrcaSlicer/releases/latest)**  
-Visit our GitHub Releases page for the latest stable version of Orca Slicer, recommended for most users.
+Visit our GitHub Releases page for the latest stable version of OrcaSlicer, recommended for most users.
 
 ## Nightly Builds
 
 🌙 **[Download the Latest Nightly Build](https://github.com/SoftFever/OrcaSlicer/releases/tag/nightly-builds)**  
-Explore the latest developments in Orca Slicer with our nightly builds. Feedback on these versions is highly appreciated.
+Explore the latest developments in OrcaSlicer with our nightly builds. Feedback on these versions is highly appreciated.
 
 # How to install
 
@@ -162,7 +162,7 @@ resolution: 0.1
 
 # Supports
 
-**Orca Slicer** is an open-source project and I'm deeply grateful to all my sponsors and backers.  
+**OrcaSlicer** is an open-source project and I'm deeply grateful to all my sponsors and backers.  
 Their generous support enables me to purchase filaments and other essential 3D printing materials for the project.  
 Thank you! :)
 
@@ -198,15 +198,15 @@ Thank you! :)
 OrcaSlicer was originally forked from Bambu Studio, it was previously known as BambuStudio-SoftFever.
 
 [Bambu Studio](https://github.com/bambulab/BambuStudio) is forked from [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community.
-Orca Slicer incorporates a lot of features from [SuperSlicer](https://github.com/supermerill/SuperSlicer) by @supermerill
-Orca Slicer's logo is designed by community member Justin Levine (@freejstnalxndr).
+OrcaSlicer incorporates a lot of features from [SuperSlicer](https://github.com/supermerill/SuperSlicer) by @supermerill
+OrcaSlicer's logo is designed by community member Justin Levine (@freejstnalxndr).
 
 # License
 
-- **Orca Slicer** is licensed under the GNU Affero General Public License, version 3. Orca Slicer is based on Bambu Studio by BambuLab.
+- **OrcaSlicer** is licensed under the GNU Affero General Public License, version 3. OrcaSlicer is based on Bambu Studio by BambuLab.
 - **Bambu Studio** is licensed under the GNU Affero General Public License, version 3. Bambu Studio is based on PrusaSlicer by PrusaResearch.
 - **PrusaSlicer** is licensed under the GNU Affero General Public License, version 3. PrusaSlicer is owned by Prusa Research. PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci.
 - **Slic3r** is licensed under the GNU Affero General Public License, version 3. Slic3r was created by Alessandro Ranellucci with the help of many other contributors.
 - The **GNU Affero General Public License**, version 3 ensures that if you use any part of this software in any way (even behind a web server), your software must be released under the same license.
-- Orca Slicer includes a **pressure advance calibration pattern test** adapted from Andrew Ellis' generator, which is licensed under GNU General Public License, version 3. Ellis' generator is itself adapted from a generator developed by Sineos for Marlin, which is licensed under GNU General Public License, version 3.
-- The **Bambu networking plugin** is based on non-free libraries from BambuLab. It is optional to the Orca Slicer and provides extended functionalities for Bambulab printer users.
+- OrcaSlicer includes a **pressure advance calibration pattern test** adapted from Andrew Ellis' generator, which is licensed under GNU General Public License, version 3. Ellis' generator is itself adapted from a generator developed by Sineos for Marlin, which is licensed under GNU General Public License, version 3.
+- The **Bambu networking plugin** is based on non-free libraries from BambuLab. It is optional to the OrcaSlicer and provides extended functionalities for Bambulab printer users.
