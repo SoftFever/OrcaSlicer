@@ -377,6 +377,8 @@ void MachineInfoPanel::createLaserWidgets(wxBoxSizer* main_left_sizer)
     main_left_sizer->Add(m_laser_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
 
     m_lazer_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+
+
     m_lazer_img->SetBitmap(m_img_laser.bmp());
 
     wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
@@ -430,25 +432,29 @@ void MachineInfoPanel::msw_rescale()
 
 void MachineInfoPanel::init_bitmaps()
 {
-    m_img_printer        = ScalableBitmap(this, "printer_thumbnail", 160);
-    m_img_monitor_ams    = ScalableBitmap(this, "monitor_upgrade_ams", 160);
-    m_img_ext            = ScalableBitmap(this, "monitor_upgrade_ext", 160);
-    if (wxGetApp().dark_mode()) {
-        m_img_air_pump = ScalableBitmap(this, "air_pump_dark", 160);
-        m_img_extra_ams = ScalableBitmap(this, "extra_icon_dark", 160);
-    }
-    else {
+    try {
+        m_img_printer        = ScalableBitmap(this, "printer_thumbnail_png", 160);
+        m_img_monitor_ams    = ScalableBitmap(this, "monitor_upgrade_ams_png", 160);
+        m_img_ext            = ScalableBitmap(this, "monitor_upgrade_ext", 160);
+
         m_img_air_pump  = ScalableBitmap(this, "air_pump", 160);
-        m_img_extra_ams = ScalableBitmap(this, "extra_icon", 160);
+        m_img_extra_ams = ScalableBitmap(this, "extra_icon_png", 160);
+
+        m_img_laser          = ScalableBitmap(this, "laser", 160);
+        m_img_cutting        = ScalableBitmap(this, "cut", 160);
+        m_img_extinguish     = ScalableBitmap(this, "extinguish", 160);
+
+        upgrade_green_icon   = ScalableBitmap(this, "monitor_upgrade_online", 5);
+        upgrade_gray_icon    = ScalableBitmap(this, "monitor_upgrade_offline", 5);
+        upgrade_yellow_icon  = ScalableBitmap(this, "monitor_upgrade_busy", 5);
     }
-
-    m_img_laser          = ScalableBitmap(this, "laser", 160);
-    m_img_cutting        = ScalableBitmap(this, "cut", 160);
-    m_img_extinguish     = ScalableBitmap(this, "extinguish", 160);
-
-    upgrade_green_icon   = ScalableBitmap(this, "monitor_upgrade_online", 5);
-    upgrade_gray_icon    = ScalableBitmap(this, "monitor_upgrade_offline", 5);
-    upgrade_yellow_icon  = ScalableBitmap(this, "monitor_upgrade_busy", 5);
+    catch (const std::exception &e)
+    {
+        BOOST_LOG_TRIVIAL(error) << "init_bitmaps failed to load resources: " << e.what();
+    } catch (...)
+    {
+        BOOST_LOG_TRIVIAL(error) << "init_bitmaps failed to load resources: unknown error";
+    }
 }
 
 void MachineInfoPanel::rescale_bitmaps()
@@ -478,21 +484,25 @@ void MachineInfoPanel::update_printer_imgs(MachineObject* obj)
 {
     if (!obj) {return;}
     auto img = obj->get_printer_thumbnail_img_str();
-    if (wxGetApp().dark_mode()) {
-        img += "_dark";
-        m_img_extra_ams = ScalableBitmap(this, "extra_icon_dark", 160);
+    img += "_png";
+
+    try
+    {
+        m_img_extra_ams = ScalableBitmap(this, "extra_icon_png", 160);
+        m_img_printer   = ScalableBitmap(this, img, 160);
+        m_printer_img->SetBitmap(m_img_printer.bmp());
+        m_printer_img->Refresh();
+        m_extra_ams_img->SetBitmap(m_img_extra_ams.bmp());
+        m_extra_ams_img->Refresh();
     }
-    else {
-        m_img_extra_ams = ScalableBitmap(this, "extra_icon", 160);
-
+    catch (const std::exception &e)
+    {
+        BOOST_LOG_TRIVIAL(error) << "update_printer_imgs error : " << e.what();
     }
-
-    m_img_printer = ScalableBitmap(this, img, 160);
-    m_printer_img->SetBitmap(m_img_printer.bmp());
-    m_printer_img->Refresh();
-    m_extra_ams_img->SetBitmap(m_img_extra_ams.bmp());
-    m_extra_ams_img->Refresh();
-
+    catch (...)
+    {
+        BOOST_LOG_TRIVIAL(error) << "update_printer_imgs failed: unknown error";
+    }
 }
 
 void MachineInfoPanel::update(MachineObject* obj)
@@ -1015,7 +1025,7 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 
     if (contain_four_slot) {
         if (m_img_monitor_ams.name() != "monitor_upgrade_ams") {
-            m_img_monitor_ams = ScalableBitmap(this, "monitor_upgrade_ams", 160);
+            m_img_monitor_ams = ScalableBitmap(this, "monitor_upgrade_ams_png", 160);
             m_ams_img->SetBitmap(m_img_monitor_ams.bmp());
         }
     } else if (contain_one_slot) {
@@ -1060,6 +1070,26 @@ void MachineInfoPanel::update_laszer(MachineObject* obj)
     if (obj && obj->laser_version_info.isValid())
     {
         m_laser_version->UpdateInfo(obj->laser_version_info);
+
+        std::string current_product_name = obj->laser_version_info.product_name.ToStdString();
+
+        if (m_last_laser_product_name != current_product_name) {
+            std::string laser_image_name = "laser";
+
+            if (current_product_name.find("10W") != std::string::npos) {
+                laser_image_name = "laser";
+            } else if (current_product_name.find("40W") != std::string::npos) {
+                laser_image_name = "laser_40";
+            }
+
+            m_img_laser = ScalableBitmap(this, laser_image_name, 160);
+            if (m_lazer_img) {
+                m_lazer_img->SetBitmap(m_img_laser.bmp());
+                m_lazer_img->Refresh();
+            }
+
+            m_last_laser_product_name = current_product_name;
+        }
         show_laszer(true);
     }
     else

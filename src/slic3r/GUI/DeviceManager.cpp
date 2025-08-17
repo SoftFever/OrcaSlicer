@@ -330,18 +330,22 @@ std::string MachineObject::get_printer_thumbnail_img_str() const
     std::string img_str = DevPrinterConfigUtil::get_printer_thumbnail_img(printer_type);
     std::string img_url;
 
-    if (!img_str.empty()) {
-        img_url =  Slic3r::resources_dir() + "\\printers\\image\\" + img_str;
-        if (fs::exists(img_url + ".svg")) {
+     if (!img_str.empty())
+     {
+        img_url = Slic3r::resources_dir() + "\\images\\" + img_str ;
+        if (fs::exists(img_url + ".svg"))
+        {
             return img_url;
         }
-        else {
+        else
+        {
             img_url = img_str;
         }
-    }
-    else {
+     }
+     else
+     {
         img_url =  "printer_thumbnail";
-    }
+     }
 
     return img_url;
 }
@@ -4151,7 +4155,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             }
                             catch (...) { }
                         }
-                        
+
                         if (check_studio_cmd && j["upgrade"].contains("err_code")) {
                             if (j["upgrade"]["err_code"].is_number()) {
                                 add_command_error_code_dlg(j["upgrade"]["err_code"].get<int>());

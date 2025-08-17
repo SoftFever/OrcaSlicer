@@ -52,11 +52,11 @@ public:
                      long            style = wxTAB_TRAVERSAL,
                      const wxString &name  = wxEmptyString);
     ~AmsPanel();
-    
+
     void msw_rescale();
 };
 
-class ExtraAmsPanel : public AmsPanel 
+class ExtraAmsPanel : public AmsPanel
 {
 public:
     ExtraAmsPanel(wxWindow* parent,
@@ -158,6 +158,8 @@ protected:
     ScalableBitmap upgrade_yellow_icon;
     int last_status = -1;
     std::string last_status_str = "";
+
+    std::string m_last_laser_product_name = "";
 
     SecondaryCheckDialog* confirm_dlg = nullptr;
 
