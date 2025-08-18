@@ -11,10 +11,10 @@ As most settings in 3D printing, experience is the best way to determine which p
 
 | | Pattern | Applies to | X-Y Strength | Z Strength | Material Usage | Print Time |
 |---|---|---|---|---|---|---|
-| ![param_monotonic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_monotonic.svg?raw=true) | [Monotonic](#monotonic) | - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Normal | Normal | Normal-High | Normal-Low |
-| ![param_monotonicline](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_monotonicline.svg?raw=true) | [Monotonic line](#monotonic-line) | - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Normal | Normal | Normal | Normal |
-| ![param_rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_rectilinear.svg?raw=true) | [Rectilinear](#rectilinear) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** - **[Ironing](quality_settings_ironing)** | Normal-Low | Low | Normal | Normal-Low |
-| ![param_alignedrectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_alignedrectilinear.svg?raw=true) | [Aligned Rectilinear](#aligned-rectilinear) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Normal-Low | Normal | Normal | Normal-Low |
+| ![param_monotonic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_monotonic.svg?raw=true) | [Monotonic](#monotonic) | - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Normal | Normal | Normal-High | Normal-Low |
+| ![param_monotonicline](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_monotonicline.svg?raw=true) | [Monotonic line](#monotonic-line) | - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Normal | Normal | Normal | Normal |
+| ![param_rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_rectilinear.svg?raw=true) | [Rectilinear](#rectilinear) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** - **[Ironing](quality_settings_ironing)** | Normal-Low | Low | Normal | Normal-Low |
+| ![param_alignedrectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_alignedrectilinear.svg?raw=true) | [Aligned Rectilinear](#aligned-rectilinear) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Normal-Low | Normal | Normal | Normal-Low |
 | ![param_zigzag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_zigzag.svg?raw=true) | [Zig Zag](#zig-zag) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-Low | Low | Normal | Normal-Low |
 | ![param_crosszag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_crosszag.svg?raw=true) | [Cross Zag](#cross-zag) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal | Low | Normal | Normal-Low |
 | ![param_lockedzag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lockedzag.svg?raw=true) | [Locked Zag](#locked-zag) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-Low | Normal-Low | Low | Extra-High |
@@ -35,10 +35,10 @@ As most settings in 3D printing, experience is the best way to determine which p
 | ![param_tpmsd](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tpmsd.svg?raw=true) | [TPMS-D](#tpms-d) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | High | High | Normal-Low | High |
 | ![param_tpmsfk](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tpmsfk.svg?raw=true) | [TPMS-FK](#tpms-fk) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-High | Normal-High | Low | High |
 | ![param_gyroid](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_gyroid.svg?raw=true) | [Gyroid](#gyroid) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | High | High | Normal-Low | Normal-High |
-| ![param_concentric](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_concentric.svg?raw=true) | [Concentric](#concentric) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** - **[Ironing](quality_settings_ironing)** | Low | Normal | Normal-High | Normal-Low |
-| ![param_hilbertcurve](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_hilbertcurve.svg?raw=true) | [Hilbert Curve](#hilbert-curve) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Low | Normal | Low | High |
-| ![param_archimedeanchords](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_archimedeanchords.svg?raw=true) | [Archimedean Chords](#archimedean-chords) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Low | Normal | Normal-High | Normal-Low |
-| ![param_octagramspiral](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_octagramspiral.svg?raw=true) | [Octagram Spiral](#octagram-spiral) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Low | Normal | Normal-Low | Normal |
+| ![param_concentric](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_concentric.svg?raw=true) | [Concentric](#concentric) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** - **[Ironing](quality_settings_ironing)** | Low | Normal | Normal-High | Normal-Low |
+| ![param_hilbertcurve](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_hilbertcurve.svg?raw=true) | [Hilbert Curve](#hilbert-curve) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Low | Normal | Low | High |
+| ![param_archimedeanchords](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_archimedeanchords.svg?raw=true) | [Archimedean Chords](#archimedean-chords) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Low | Normal | Normal-High | Normal-Low |
+| ![param_octagramspiral](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_octagramspiral.svg?raw=true) | [Octagram Spiral](#octagram-spiral) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Low | Normal | Normal-Low | Normal |
 
 > [!NOTE]
 > You can download [infill_desc_calculator.xlsx](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/print_settings/strength/infill_desc_calculator.xlsx?raw=true) used to calculate the values above.
@@ -54,7 +54,7 @@ As most settings in 3D printing, experience is the best way to determine which p
 - **Print Time:** Normal-Low
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
-  - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)**
+  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
 
 ![infill-top-monotonic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-monotonic.png?raw=true)
@@ -70,7 +70,7 @@ As most settings in 3D printing, experience is the best way to determine which p
 - **Print Time:** Normal
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
-  - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)**
+  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
 
 ![infill-top-monotonic-line](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-monotonic-line.png?raw=true)
@@ -86,7 +86,7 @@ Parallel lines spaced according to infill density. Each layer is printed perpend
 - **Print Time:** Normal-Low
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
   - **[Ironing](quality_settings_ironing)**
 
@@ -104,7 +104,7 @@ Recommended with layer anchoring to improve not perpendicular strength.
 - **Print Time:** Normal-Low
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
 
 ![infill-top-aligned-rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-aligned-rectilinear.png?raw=true)
@@ -421,7 +421,7 @@ Fills the area with progressively smaller versions of the outer contour, creatin
 - **Print Time:** Normal-Low
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
   - **[Ironing](quality_settings_ironing)**
 
@@ -439,7 +439,7 @@ Print speed is very low due to the complexity of the path, which can lead to lon
 - **Print Time:** High
 - **Material/Time (Higher better):** Low
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
 
 ![infill-top-hilbert-curve](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-hilbert-curve.png?raw=true)
@@ -455,7 +455,7 @@ Spiral pattern that fills the area with concentric arcs, creating a smooth and c
 - **Print Time:** Normal-Low
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
 
 ![infill-top-archimedean-chords](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-archimedean-chords.png?raw=true)
@@ -471,7 +471,7 @@ Esthetic pattern with low strength and high print time.
 - **Print Time:** Normal
 - **Material/Time (Higher better):** Normal-Low
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_top_bottom_shells#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
 
 ![infill-top-octagram-spiral](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-octagram-spiral.png?raw=true)

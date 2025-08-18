@@ -51,7 +51,7 @@ If this value is set to 0, the ironing toolpath will start directly at the perim
 ## Angle
 
 The angle ironing is done at.  
-A negative number disables this function and uses the [sparse infill direction](strength_settings_infill#sparse-infill-direction).
+A negative number disables this function and uses the [sparse infill direction](strength_settings_infill#direction).
 
 ## Speed
 

@@ -32,7 +32,7 @@ This setting controls the pattern of the surface.
 - **[Concentric](strength_settings_patterns#concentric)**
 - **[Rectilinear](strength_settings_patterns#rectilinear)**
 - **[Monotonic](strength_settings_patterns#monotonic)**
-- **[Monotonic Lines](strength_settings_patterns#monotonic-lines)**
+- **[Monotonic Lines](strength_settings_patterns#monotonic-line)**
 - **[Aligned Rectilinear](strength_settings_patterns#aligned-rectilinear)**
 - **[Hilbert Curve](strength_settings_patterns#hilbert-curve)**
 - **[Archimedean Chords](strength_settings_patterns#archimedean-chords)**

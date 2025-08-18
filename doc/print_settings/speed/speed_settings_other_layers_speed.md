@@ -62,7 +62,7 @@ For example, if the threshold is set to 5 mm, then the perimeter length must be 
 
 ## Sparse infill
 
-Speed of [sparse infill](strength_settings_infill#sparse-infill) which is printed faster than solid infill to reduce print time.  
+Speed of [sparse infill](strength_settings_infill) which is printed faster than solid infill to reduce print time.  
 In case you are using your [Infill Pattern](strength_settings_infill) as aesthetic feature, you may want to set it closer to the [outer wall speed](#outer-wall) to get better quality.
 
 ## Internal solid infill

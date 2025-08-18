@@ -2118,10 +2118,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("slice_closing_radius", "quality_settings_precision#slice-gap-closing-radius");
         optgroup->append_single_option_line("resolution", "quality_settings_precision#resolution");
         optgroup->append_single_option_line("enable_arc_fitting", "quality_settings_precision#arc-fitting");
-        optgroup->append_single_option_line("xy_hole_compensation", "quality_settings_precision#xy-compensation");
-        optgroup->append_single_option_line("xy_contour_compensation", "quality_settings_precision#xy-compensation");
-        optgroup->append_single_option_line("elefant_foot_compensation", "quality_settings_precision#elefant-foot-compensation");
-        optgroup->append_single_option_line("elefant_foot_compensation_layers", "quality_settings_precision#elefant-foot-compensation");
+        optgroup->append_single_option_line("xy_hole_compensation", "quality_settings_precision#x-y-compensation");
+        optgroup->append_single_option_line("xy_contour_compensation", "quality_settings_precision#x-y-compensation");
+        optgroup->append_single_option_line("elefant_foot_compensation", "quality_settings_precision#elephant-foot-compensation");
+        optgroup->append_single_option_line("elefant_foot_compensation_layers", "quality_settings_precision#elephant-foot-compensation");
         optgroup->append_single_option_line("precise_outer_wall", "quality_settings_precision#precise-wall");
         optgroup->append_single_option_line("precise_z_height", "quality_settings_precision#precise-z-height");
         optgroup->append_single_option_line("hole_to_polyhole", "quality_settings_precision#polyholes");
@@ -2132,7 +2132,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_type", "quality_settings_ironing#type");
         optgroup->append_single_option_line("ironing_pattern", "quality_settings_ironing#pattern");
         optgroup->append_single_option_line("ironing_flow", "quality_settings_ironing#flow");
-        optgroup->append_single_option_line("ironing_spacing", "quality_settings_ironing#spacing");
+        optgroup->append_single_option_line("ironing_spacing", "quality_settings_ironing#line-spacing");
         optgroup->append_single_option_line("ironing_inset", "quality_settings_ironing#inset");
         optgroup->append_single_option_line("ironing_angle", "quality_settings_ironing#angle");
 
@@ -2190,7 +2190,7 @@ void TabPrint::build()
 
     page = add_options_page(L("Strength"), "custom-gcode_strength"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
-    optgroup->append_single_option_line("wall_loops", "strength_settings_walls#wall-loop");
+    optgroup->append_single_option_line("wall_loops", "strength_settings_walls#wall-loops");
         optgroup->append_single_option_line("alternate_extra_wall", "strength_settings_walls#alternate-extra-wall");
         optgroup->append_single_option_line("detect_thin_wall", "strength_settings_walls#detect-thin-wall");
 
@@ -2208,7 +2208,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
-        optgroup->append_single_option_line("fill_multiline", "strength_settings_infill##fill-multiline");
+        optgroup->append_single_option_line("fill_multiline", "strength_settings_infill#fill-multiline");
         optgroup->append_single_option_line("sparse_infill_pattern", "strength_settings_infill#sparse-infill-pattern");
         optgroup->append_single_option_line("infill_direction", "strength_settings_infill#direction");
         optgroup->append_single_option_line("sparse_infill_rotate_template", "strength_settings_infill#rotation");
