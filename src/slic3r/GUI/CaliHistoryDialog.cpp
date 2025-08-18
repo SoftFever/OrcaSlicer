@@ -19,7 +19,7 @@ namespace GUI {
 #define HISTORY_WINDOW_SIZE                wxSize(FromDIP(700), FromDIP(600))
 #define EDIT_HISTORY_DIALOG_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
 #define NEW_HISTORY_DIALOG_INPUT_SIZE      wxSize(FromDIP(250), FromDIP(24))
-#define HISTORY_WINDOW_ITEMS_COUNT         5
+#define HISTORY_WINDOW_ITEMS_COUNT         6
 
 enum CaliColumnType : int {
     Cali_Name = 0,
