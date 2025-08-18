@@ -2479,15 +2479,6 @@ void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
             BOOST_LOG_TRIVIAL(info) << "monitor: pause current print task dev_id =" << obj->get_dev_id();
             obj->command_task_pause();
         }
-<<<<<<< HEAD   (21aff5 FIX: CLI: fix the size related issue in set_with_restore_2)
-        if (m_print_error_dlg) {
-            m_print_error_dlg->on_hide();
-        }if (m_print_error_dlg_no_action) {
-            m_print_error_dlg_no_action->on_hide();
-        }
-
-=======
->>>>>>> CHANGE (40d58f ENH: apply DeviceErrorDialog to project)
     }
 }
 
@@ -2717,18 +2708,10 @@ void StatusPanel::update_error_message()
         /* clear old dialog */
         if (m_print_error_dlg) { delete m_print_error_dlg; }
 
-<<<<<<< HEAD   (21aff5 FIX: CLI: fix the size related issue in set_with_restore_2)
-        if (wxGetApp().get_hms_query()) {
-            char buf[32];
-            ::sprintf(buf, "%08X", obj->print_error);
-            std::string print_error_str = std::string(buf);
-            if (print_error_str.size() > 4) { print_error_str.insert(4, "-"); }
-=======
         /* show device error message*/
         m_print_error_dlg = new DeviceErrorDialog(obj, this);
         wxString error_msg = m_print_error_dlg->show_error_code(obj->print_error);
         BOOST_LOG_TRIVIAL(info) << "print error: device error code = "<< obj->print_error;
->>>>>>> CHANGE (40d58f ENH: apply DeviceErrorDialog to project)
 
         /* show error message on task panel */
         if(!error_msg.IsEmpty()) { m_project_task_panel->show_error_msg(error_msg); }
@@ -4566,113 +4549,6 @@ void StatusPanel::on_ams_retry(wxCommandEvent& event)
     }
 }
 
-<<<<<<< HEAD   (21aff5 FIX: CLI: fix the size related issue in set_with_restore_2)
-void StatusPanel::on_print_error_done(wxCommandEvent& event)
-{
-    BOOST_LOG_TRIVIAL(info) << "on_print_error_done";
-    if (obj) {
-        obj->command_ams_control("done");
-        if (m_print_error_dlg) {
-            m_print_error_dlg->on_hide();
-        }if (m_print_error_dlg_no_action) {
-            m_print_error_dlg_no_action->on_hide();
-        }
-    }
-}
-
-void StatusPanel::on_print_error_dlg_btn_clicked(wxCommandEvent& event)
-{
-    if (obj)
-    {
-        PrintErrorDialog::PrintErrorButton btn_id = static_cast<PrintErrorDialog::PrintErrorButton>(event.GetInt());
-        switch (btn_id) {
-            case Slic3r::GUI::PrintErrorDialog::RESUME_PRINTING: {
-                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::RESUME_PRINTING_DEFECTS: {
-                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::RESUME_PRINTING_PROBELM_SOLVED: {
-                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::STOP_PRINTING: {
-                obj->command_hms_stop(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::CHECK_ASSISTANT: {
-                wxGetApp().mainframe->m_monitor->jump_to_HMS(); // go to assistant page
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::FILAMENT_EXTRUDED: {
-                obj->command_ams_control("done");
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::RETRY_FILAMENT_EXTRUDED: {
-                obj->command_ams_control("resume");
-                return;// do not hide the dialogs
-            }
-            case Slic3r::GUI::PrintErrorDialog::CONTINUE: {
-                obj->command_ams_control("resume");
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::LOAD_VIRTUAL_TRAY: {
-                m_ams_control->SwitchAms(std::to_string(VIRTUAL_TRAY_MAIN_ID));
-                on_ams_load_curr();
-                break;/*AP, unknown what it is*/
-            }
-            case Slic3r::GUI::PrintErrorDialog::OK_BUTTON: {
-                obj->command_clean_print_error(obj->subtask_id_, obj->print_error);
-                break;/*do nothing*/
-            }
-            case Slic3r::GUI::PrintErrorDialog::FILAMENT_LOAD_RESUME: {
-                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::JUMP_TO_LIVEVIEW: {
-                m_media_play_ctrl->jump_to_play();
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::NO_REMINDER_NEXT_TIME: {
-                obj->command_hms_idle_ignore(std::to_string(before_error_code), 0); /*the type is 0, supported by AP*/
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::IGNORE_NO_REMINDER_NEXT_TIME: {
-                obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::IGNORE_RESUME: {
-                obj->command_hms_ignore(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::PROBLEM_SOLVED_RESUME: {
-                obj->command_hms_resume(std::to_string(before_error_code), obj->job_id_);
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::TURN_OFF_FIRE_ALARM: {
-                obj->command_stop_buzzer();
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::RETRY_PROBLEM_SOLVED: {
-                obj->command_ams_control("resume");
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::STOP_DRYING: {
-                obj->command_ams_drying_stop();
-                break;
-            }
-            case Slic3r::GUI::PrintErrorDialog::ERROR_BUTTON_COUNT: break;
-            default: break;
-        }
-
-        if (m_print_error_dlg) { m_print_error_dlg->on_hide(); }
-        if (m_print_error_dlg_no_action) { m_print_error_dlg_no_action->on_hide();}
-    }
-}
-=======
->>>>>>> CHANGE (40d58f ENH: apply DeviceErrorDialog to project)
 
 void StatusPanel::on_fan_changed(wxCommandEvent& event)
 {
