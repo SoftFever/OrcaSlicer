@@ -566,7 +566,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     // Infill patterns that support multiline infill.
     InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
-    bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear || pattern == ipTpmsD || pattern == ipTpmsFK || pattern == ipCrossHatch || pattern == ipHoneycomb || pattern == ip2DLattice || pattern == ip2DHoneycomb ||
+    bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear || pattern == ipTpmsD || pattern == ipTpmsFK || pattern == ipCrossHatch || pattern == ipHoneycomb || pattern == ipLateralLattice || pattern == ipLateralHoneycomb ||
                                                   pattern == ipCubic || pattern == ipStars || pattern == ipAlignedRectilinear || pattern == ipLightning || pattern == ip3DHoneycomb || pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
     toggle_line("fill_multiline", have_multiline_infill_pattern);
 
@@ -875,8 +875,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("interlocking_depth", use_beam_interlocking);
     toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
 
-    bool lattice_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ip2DLattice;
-    for (auto el : { "lattice_angle_1", "lattice_angle_2"})
+    bool lattice_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ipLateralLattice;
+    for (auto el : { "lateral_lattice_angle_1", "lateral_lattice_angle_2"})
         toggle_line(el, lattice_options);
 
     //Orca: hide rotate template for solid infill if not support
@@ -895,7 +895,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("solid_infill_rotate_template", show_solid_infill_rotate_template);
 
 
-    toggle_line("infill_overhang_angle", config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ip2DHoneycomb);
+    toggle_line("infill_overhang_angle", config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ipLateralHoneycomb);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
