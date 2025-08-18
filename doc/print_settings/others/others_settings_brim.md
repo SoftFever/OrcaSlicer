@@ -2,6 +2,16 @@
 
 Brim is a flat layer printed around the base of a model to help with adhesion to the print bed. It can be useful for models with small footprints or those that are prone to warping.
 
+- [Type](#type)
+  - [Painted](#painted)
+  - [Outer](#outer)
+  - [Inner](#inner)
+  - [Mouse Ears](#mouse-ears)
+    - [Ear max angle](#ear-max-angle)
+    - [Ear detection radius](#ear-detection-radius)
+- [Width](#width)
+- [Brim-Object Gap](#brim-object-gap)
+
 ## Type
 
 This controls the generation of the brim at outer and/or inner side of models.  
