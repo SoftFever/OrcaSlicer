@@ -514,11 +514,17 @@ public:
             //backup original ones
             std::vector<T> backup_values = this->values;
 
-            if (this->values.size() < (start+len))
+            if (this->values.size() < start) {
                 throw ConfigurationError("ConfigOptionVector::set_with_restore_2(): invalid size found");
+            }
+            else {
+                if (this->values.size() < start + len)
+                    len = this->values.size() - start;
 
-            //erase the original ones
-            this->values.erase(this->values.begin() + start, this->values.begin() + start + len);
+                //erase the original ones
+                if (len > 0)
+                    this->values.erase(this->values.begin() + start, this->values.begin() + start + len);
+            }
 
             // Assign the new value from the rhs vector.
             auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
