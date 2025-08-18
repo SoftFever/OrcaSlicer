@@ -127,6 +127,9 @@
     "slow_down_layer_time": [
         "10"
     ],
+    "slow_down_min_speed": [
+        "20"
+    ],
     "volumetric_speed_coefficients": [
         "0 0 0 0 0 0",
         "0 0 0 0 0 0"
