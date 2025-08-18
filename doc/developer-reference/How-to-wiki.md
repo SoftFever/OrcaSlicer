@@ -169,7 +169,7 @@ Images are encouraged to enhance the clarity and quality of the wiki content. Th
 
 Always use raw GitHub URLs for image links to ensure correct display:
 
-Format = `![[filename]](` + Base URL + filename.extension + Raw tag + `)`
+Format = `![`filename`](` + Base URL + filename.extension + Raw tag + `)`
 
 - Base URL:
 
