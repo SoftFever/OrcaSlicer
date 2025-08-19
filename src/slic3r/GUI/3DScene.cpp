@@ -1094,8 +1094,9 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     {
                         std::vector<bool> inside_extruders;
                         state = plate_build_volume.check_volume_bbox_state_with_extruder_areas(bb, inside_extruders);
-                }
+                    }
                     break;
+                }
                 case BuildVolume_Type::Circle:
                 case BuildVolume_Type::Convex:
                 //FIXME doing test on convex hull until we learn to do test on non-convex polygons efficiently.

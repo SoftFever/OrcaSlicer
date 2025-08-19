@@ -689,7 +689,7 @@ class Print;
         bool m_wiping;
         bool m_flushing;
         bool m_wipe_tower;
-        float m_remaining_volume;
+        std::vector<float> m_remaining_volume;
         bool m_manual_filament_change;
 
         //BBS: x, y offset for gcode generated

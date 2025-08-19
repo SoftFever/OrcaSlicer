@@ -114,7 +114,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
 
                 if (extruder_shape.size() >= 4 && std::abs((poly_area - double(extruder_volume.bbox.size().x()) * double(extruder_volume.bbox.size().y()))) < sqr(SCALED_EPSILON))
                 {
-                    extruder_volume.type = Type::Rectangle;
+                    extruder_volume.type = BuildVolume_Type::Rectangle;
                     extruder_volume.circle.center = 0.5 * (extruder_volume.bbox.min.cast<double>() + extruder_volume.bbox.max.cast<double>());
                     extruder_volume.circle.radius = 0.5 * extruder_volume.bbox.size().cast<double>().norm();
                 }
@@ -134,13 +134,13 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
                         prev = p;
                     }
                     if (is_circle) {
-                        extruder_volume.type = Type::Circle;
+                        extruder_volume.type = BuildVolume_Type::Circle;
                         extruder_volume.circle.center = scaled<double>(extruder_volume.circle.center);
                         extruder_volume.circle.radius = scaled<double>(extruder_volume.circle.radius);
                     }
                 }
 
-                if (m_type == Type::Invalid) {
+                if (m_type == BuildVolume_Type::Invalid) {
                     //not supported currently, use the same as bed
                     extruder_volume.same_with_bed = true;
                     extruder_volume.type = m_type;
@@ -428,25 +428,25 @@ BuildVolume::ObjectState  BuildVolume::check_object_state_with_extruder_area(con
 
     if (!extruder_volume.same_with_bed) {
          switch (extruder_volume.type) {
-            case Type::Rectangle:
+            case BuildVolume_Type::Rectangle:
             {
                 BoundingBox3Base<Vec3d> build_volume = extruder_volume.bboxf.inflated(SceneEpsilon);
                 if (m_max_print_height == 0.0)
                     build_volume.max.z() = std::numeric_limits<double>::max();
                 BoundingBox3Base<Vec3f> build_volumef(build_volume.min.cast<float>(), build_volume.max.cast<float>());
 
-                return_state = object_state_templ(its, trafo, false, [build_volumef](const Vec3f &pt) { return build_volumef.contains(pt); });
+                return_state = object_state_templ(its, trafo, false, true, [build_volumef](const Vec3f &pt) { return build_volumef.contains(pt); });
                 break;
             }
-            case Type::Circle:
+            case BuildVolume_Type::Circle:
             {
                 Geometry::Circlef circle { unscaled<float>(extruder_volume.circle.center), unscaled<float>(extruder_volume.circle.radius + SceneEpsilon) };
                 return_state = (m_max_print_height == 0.0) ?
-                        object_state_templ(its, trafo, false, [circle](const Vec3f &pt) { return circle.contains(to_2d(pt)); }) :
-                        object_state_templ(its, trafo, false, [circle, z = m_max_print_height + SceneEpsilon](const Vec3f &pt) { return pt.z() < z && circle.contains(to_2d(pt)); });
+                        object_state_templ(its, trafo, false, true, [circle](const Vec3f &pt) { return circle.contains(to_2d(pt)); }) :
+                        object_state_templ(its, trafo, false, true, [circle, z = m_max_print_height + SceneEpsilon](const Vec3f &pt) { return pt.z() < z && circle.contains(to_2d(pt)); });
                 break;
             }
-            case Type::Invalid:
+            case BuildVolume_Type::Invalid:
             default:
                 break;
         }

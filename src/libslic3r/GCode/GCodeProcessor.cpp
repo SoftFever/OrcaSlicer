@@ -716,7 +716,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     // sanity check
     if(m_preheat_steps < 1)
         m_preheat_steps = 1;
-    m_result.backtrace_enabled = m_preheat_time > 0 && (m_is_XL_printer || (!m_single_extruder_multi_material && extruders_count > 1));
+    m_result.backtrace_enabled = m_preheat_time > 0 && (m_is_XL_printer || (!m_single_extruder_multi_material && filament_count > 1));
 
     assert(config.nozzle_volume.size() == config.nozzle_diameter.size());
     m_nozzle_volume.resize(config.nozzle_volume.size());
@@ -5198,10 +5198,11 @@ void GCodeProcessor::update_slice_warnings()
 
     std::vector<int>nozzle_hrc_lists(m_result.nozzle_type.size(), 0);
     // store the nozzle hrc of each extruder
-    for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx)
+    for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx) {
         nozzle_hrc_lists[idx] = m_result.nozzle_hrc;
         if(nozzle_hrc_lists[idx] <= 0)
             nozzle_hrc_lists[idx] = Print::get_hrc_by_nozzle_type(m_result.nozzle_type[idx]);
+    }
 
     for (size_t idx = 0; idx < used_filaments.size(); ++idx) {
         int filament_hrc = 0;
