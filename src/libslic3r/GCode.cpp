@@ -5981,8 +5981,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     }
     //BBS: if not set the speed, then use the filament_max_volumetric_speed directly
-    double filament_max_volumetric_speed = calc_max_volumetric_speed(path.height, path.width, FILAMENT_CONFIG(volumetric_speed_coefficients));
-    filament_max_volumetric_speed        = std::min(filament_max_volumetric_speed, FILAMENT_CONFIG(filament_max_volumetric_speed));
+    double filament_max_volumetric_speed = FILAMENT_CONFIG(filament_max_volumetric_speed);
+    if (FILAMENT_CONFIG(filament_adaptive_volumetric_speed)){
+        double fitted_value = calc_max_volumetric_speed(path.height, path.width, FILAMENT_CONFIG(volumetric_speed_coefficients));
+        filament_max_volumetric_speed = std::min(filament_max_volumetric_speed, fitted_value);
+    }
+
     if (speed == 0)
         speed = filament_max_volumetric_speed / _mm3_per_mm;
     if (this->on_first_layer()) {

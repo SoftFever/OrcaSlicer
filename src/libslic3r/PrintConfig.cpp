@@ -2320,6 +2320,15 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats{ 0.4157 });
 
+    def = this->add("filament_adaptive_volumetric_speed", coBools);
+    def->label = L("Adaptive volumetric speed");
+    def->tooltip = L("When enabled, the extrusion flow is limited by the smaller of "
+        "the fitted value (calculated from line width and layer height) and the user-defined maximum flow."
+        " When disabled, only the user-defined maximum flow is applied.");
+    def->mode = comAdvanced;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionBoolsNullable {false});
+
     def        = this->add("volumetric_speed_coefficients", coStrings);
     def->label = L("Max volumetric speed multinomial coefficients");
     def->set_default_value(new ConfigOptionStrings{""});
@@ -7523,7 +7532,8 @@ std::set<std::string> filament_options_with_variant = {
     "nozzle_temperature",
     "filament_flush_volumetric_speed",
     "filament_flush_temp",
-    "volumetric_speed_coefficients"
+    "volumetric_speed_coefficients",
+    "filament_adaptive_volumetric_speed"
 };
 
 // Parameters that are the same as the number of extruders
