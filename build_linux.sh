@@ -51,6 +51,7 @@ function usage() {
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
+BUILD_DIR=build
 while getopts ":1j:bcCdhiprsul" opt ; do
   case ${opt} in
     1 )
@@ -61,6 +62,7 @@ while getopts ":1j:bcCdhiprsul" opt ; do
         ;;
     b )
         BUILD_DEBUG="1"
+        BUILD_DIR=build-dbg
         ;;
     c )
         CLEAN_BUILD=1
@@ -152,32 +154,32 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
     echo "Configuring dependencies..."
     if [[ -n "${CLEAN_BUILD}" ]]
     then
-        rm -fr deps/build
+        rm -fr deps/$BUILD_DIR
     fi
-    if [ ! -d "deps/build" ]
+    if [ ! -d "deps/$BUILD_DIR" ]
     then
-        mkdir deps/build
+        mkdir deps/$BUILD_DIR
     fi
     if [[ -n "${BUILD_DEBUG}" ]] ; then
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
-    echo "cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${BUILD_ARGS}"
-    cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}
-    cmake --build deps/build
+    echo "cmake -S deps -B deps/$BUILD_DIR ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${BUILD_ARGS}"
+    cmake -S deps -B deps/$BUILD_DIR ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}
+    cmake --build deps/$BUILD_DIR
 fi
 
 if [[ -n "${BUILD_ORCA}" ]] ; then
     echo "Configuring OrcaSlicer..."
     if [[ -n "${CLEAN_BUILD}" ]] ; then
-        rm --force --recursive build
+        rm --force --recursive $BUILD_DIR
     fi
     BUILD_ARGS="${ORCA_EXTRA_BUILD_ARGS}"
     if [[ -n "${BUILD_DEBUG}" ]] ; then
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
-    CMAKE_CMD="cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja \
+    CMAKE_CMD="cmake -S . -B $BUILD_DIR ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
 -DORCA_TOOLS=ON \
 ${COLORED_OUTPUT} \
@@ -186,9 +188,9 @@ ${BUILD_ARGS}"
     ${CMAKE_CMD}
     echo "done"
     echo "Building OrcaSlicer ..."
-    cmake --build build --target OrcaSlicer
+    cmake --build $BUILD_DIR --target OrcaSlicer
     echo "Building OrcaSlicer_profile_validator .."
-    cmake --build build --target OrcaSlicer_profile_validator
+    cmake --build $BUILD_DIR --target OrcaSlicer_profile_validator
     ./run_gettext.sh
     echo "done"
 fi
