@@ -887,29 +887,8 @@ Sidebar::Sidebar(Plater *parent)
     // add wiping dialog
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
     p->m_flushing_volume_btn = new Button(p->m_panel_filament_title, _L("Flushing volumes"));
-    p->m_flushing_volume_btn->SetFont(Label::Body_10);
-    p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8),FromDIP(3)));
-    p->m_flushing_volume_btn->SetCornerRadius(FromDIP(8));
-
-    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour("#BFE1DE"), StateColor::Pressed), // ORCA
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
-
-    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
-
-    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
-
-    p->m_flushing_volume_btn->SetBackgroundColor(flush_bg_col);
-    p->m_flushing_volume_btn->SetBorderColor(flush_bd_col);
-    p->m_flushing_volume_btn->SetTextColor(flush_fg_col);
-    p->m_flushing_volume_btn->SetFocus();
+    p->m_flushing_volume_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
     p->m_flushing_volume_btn->SetId(wxID_RESET);
-    p->m_flushing_volume_btn->Rescale();
-
     p->m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent &e)
         {
             auto& project_config = wxGetApp().preset_bundle->project_config;
@@ -5704,6 +5683,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
     new_volume->supported_facets.assign(old_volume->supported_facets);
     new_volume->seam_facets.assign(old_volume->seam_facets);
     new_volume->mmu_segmentation_facets.assign(old_volume->mmu_segmentation_facets);
+    new_volume->fuzzy_skin_facets.assign(old_volume->fuzzy_skin_facets);
     std::swap(old_model_object->volumes[volume_idx], old_model_object->volumes.back());
     old_model_object->delete_volume(old_model_object->volumes.size() - 1);
     if (!sinking)
@@ -9525,7 +9505,8 @@ void Plater::calib_pa(const Calib_Params& params)
             break;
         default: break;
     }
-
+    auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     p->background_process.fff_print()->set_calib_params(params);
 }
 
@@ -9535,14 +9516,15 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     std::vector<double> accels{params.accelerations};
     std::vector<size_t> object_idxs{};
     /* Set common parameters */
-    DynamicPrintConfig& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
-    double nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+    double nozzle_diameter = printer_config->option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
     filament_config->set_key_value("filament_retract_when_changing_layer", new ConfigOptionBoolsNullable{false});
     filament_config->set_key_value("filament_wipe", new ConfigOptionBoolsNullable{false});
-    printer_config.set_key_value("wipe", new ConfigOptionBools{false});
-    printer_config.set_key_value("retract_when_changing_layer", new ConfigOptionBools{false});
+    printer_config->set_key_value("wipe", new ConfigOptionBools{false});
+    printer_config->set_key_value("retract_when_changing_layer", new ConfigOptionBools{false});
+    printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
 
     //Orca: find acceleration to use in the test
     auto accel = print_config.option<ConfigOptionFloat>("outer_wall_acceleration")->value; // get the outer wall acceleration
@@ -9555,7 +9537,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     if (accels.empty()) {
         accels.assign({accel});
         const auto msg{_L("INFO:") + "\n" +
-                       _L("No accelerations provided for calibration. Use default acceleration value ") + std::to_string(long(accel)) + _L("mm/s²")};
+                       _L("No accelerations provided for calibration. Use default acceleration value ") + std::to_string(long(accel)) + wxString::FromUTF8("mm/s²")};
         get_notification_manager()->push_notification(msg.ToStdString());
     } else {
         // set max acceleration in case of batch mode to get correct test pattern size
@@ -9920,6 +9902,7 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("solid_infill_direction", new ConfigOptionFloat(135));
+        _obj->config.set_key_value("align_infill_direction_to_model", new ConfigOptionBool(true));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
         _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));
@@ -10000,6 +9983,8 @@ void Plater::calib_flowrate(bool is_linear, int pass) {
 
     adjust_settings_for_flowrate_calib(model().objects, is_linear, pass);
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+    auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
 
     // Refresh object after scaling
     const std::vector<size_t> object_idx(boost::counting_iterator<size_t>(0), boost::counting_iterator<size_t>(model().objects.size()));
@@ -10015,8 +10000,10 @@ void Plater::calib_temp(const Calib_Params& params) {
         return;
     
     add_model(false, Slic3r::resources_dir() + "/calib/temperature_tower/temperature_tower.stl");
+    auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto start_temp = lround(params.start);
+    printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     filament_config->set_key_value("nozzle_temperature_initial_layer", new ConfigOptionInts(1,(int)start_temp));
     filament_config->set_key_value("nozzle_temperature", new ConfigOptionInts(1,(int)start_temp));
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
@@ -10089,7 +10076,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
 
     filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats { 200 });
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{0.0});
-    
+    printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     obj_cfg.set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
     obj_cfg.set_key_value("wall_loops", new ConfigOptionInt(1));
     obj_cfg.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
@@ -10153,6 +10140,7 @@ void Plater::calib_retraction(const Calib_Params& params)
     if (max_lh->values[0] < layer_height)
         max_lh->values[0] = { layer_height };
 
+    printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     printer_config->set_key_value("use_firmware_retraction", new ConfigOptionBool(false));
     obj->config.set_key_value("wall_loops", new ConfigOptionInt(2));
     obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -10185,6 +10173,8 @@ void Plater::calib_VFA(const Calib_Params& params)
     add_model(false, Slic3r::resources_dir() + "/calib/vfa/VFA.stl");
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 0.0 });
     print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool { false });
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
@@ -10229,6 +10219,7 @@ void Plater::calib_input_shaping_freq(const Calib_Params& params)
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     printer_config->set_key_value("machine_max_junction_deviation", new ConfigOptionFloats {0.3});
+    printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 0.0 });
     filament_config->set_key_value("slow_down_min_speed", new ConfigOptionFloats { 0.0 });
     filament_config->set_key_value("slow_down_for_layer_cooling", new ConfigOptionBools{false});
@@ -10275,6 +10266,7 @@ void Plater::calib_input_shaping_damp(const Calib_Params& params)
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     printer_config->set_key_value("machine_max_junction_deviation", new ConfigOptionFloats{0.3});
+    printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 0.0 });
     filament_config->set_key_value("slow_down_min_speed", new ConfigOptionFloats { 0.0 });
     filament_config->set_key_value("slow_down_for_layer_cooling", new ConfigOptionBools{false});
@@ -10321,6 +10313,7 @@ void Plater::calib_junction_deviation(const Calib_Params& params)
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     printer_config->set_key_value("machine_max_junction_deviation", new ConfigOptionFloats{1.0});
+    printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 0.0 });
     filament_config->set_key_value("slow_down_min_speed", new ConfigOptionFloats { 0.0 });
     filament_config->set_key_value("slow_down_for_layer_cooling", new ConfigOptionBools{false});
@@ -13495,14 +13488,15 @@ void Plater::clear_before_change_mesh(int obj_idx)
 {
     ModelObject* mo = model().objects[obj_idx];
 
-    // If there are custom supports/seams/mmu segmentation, remove them. Fixed mesh
+    // If there are custom supports/seams/mmu/fuzzy skin segmentation, remove them. Fixed mesh
     // may be different and they would make no sense.
     bool paint_removed = false;
     for (ModelVolume* mv : mo->volumes) {
-        paint_removed |= ! mv->supported_facets.empty() || ! mv->seam_facets.empty() || ! mv->mmu_segmentation_facets.empty();
+        paint_removed |= ! mv->supported_facets.empty() || ! mv->seam_facets.empty() || ! mv->mmu_segmentation_facets.empty() || !mv->fuzzy_skin_facets.empty();
         mv->supported_facets.reset();
         mv->seam_facets.reset();
         mv->mmu_segmentation_facets.reset();
+        mv->fuzzy_skin_facets.reset();
     }
     if (paint_removed) {
         // snapshot_time is captured by copy so the lambda knows where to undo/redo to.

@@ -97,7 +97,20 @@ endif()
 
 if(ORCA_TOOLS)
     # OrcaSlicer_profile_validator
-    add_executable(OrcaSlicer_profile_validator OrcaSlicer_profile_validator.cpp)
+    if(APPLE)
+        add_executable(OrcaSlicer_profile_validator MACOSX_BUNDLE OrcaSlicer_profile_validator.cpp)
+        set_target_properties(OrcaSlicer_profile_validator PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_BUNDLE_NAME "OrcaSlicer Profile Validator"
+            MACOSX_BUNDLE_BUNDLE_VERSION "${SLIC3R_VERSION}"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "${SLIC3R_VERSION}"
+            MACOSX_BUNDLE_IDENTIFIER "com.softfever.orcaslicer.profile-validator"
+            MACOSX_BUNDLE_COPYRIGHT "© 2024 SoftFever"
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.softfever.orcaslicer.profile-validator"
+        )
+    else()
+        add_executable(OrcaSlicer_profile_validator OrcaSlicer_profile_validator.cpp)
+    endif()
     target_link_libraries(OrcaSlicer_profile_validator libslic3r boost_headeronly libcurl OpenSSL::SSL OpenSSL::Crypto)
     target_compile_definitions(OrcaSlicer_profile_validator PRIVATE -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x602 -DBOOST_SYSTEM_USE_UTF8)
     if(WIN32)
