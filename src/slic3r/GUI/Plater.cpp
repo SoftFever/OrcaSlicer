@@ -761,11 +761,17 @@ struct DynamicFilamentList : DynamicList
         for (auto i : items) {
             cb->Append(i.first, i.second ? *i.second : wxNullBitmap);
         }
-        int new_index = cb->FindString(old_selection);
-        if (new_index != wxNOT_FOUND) {
-            cb->SetSelection(new_index);
-        } else if ((unsigned int) old_index < cb->GetCount()) {
+
+        if (old_index >= 0 && (unsigned int) old_index < cb->GetCount()) {
             cb->SetSelection(old_index);
+            return;
+        }
+
+        int new_index = cb->FindString(old_selection);
+        if (old_index == cb->GetCount()) {
+            cb->SetSelection(old_index - 1);
+        } else if (new_index != wxNOT_FOUND) {
+            cb->SetSelection(new_index);
         } else {
             cb->SetSelection(0);
         }
