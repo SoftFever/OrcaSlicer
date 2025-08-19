@@ -1,0 +1,59 @@
+name: Build 2.3.0 测试
+
+# 触发条件：手动 或 推送到 my-2.3.0-custom 分支
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - my-2.3.0-custom
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      # 1. 拉取你推送的 my-2.3.0-custom 分支
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: my-2.3.0-custom
+          lfs: true
+
+      # 2. 安装 CMake 3.31.x（避免 4.x 不兼容）
+      - name: Install CMake 3.31.6
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "3.31.6"
+
+      # 3. 安装 NSIS 安装器制作工具
+      - name: Install NSIS
+        run: choco install nsis
+
+      # 4. 安装 Perl（部分依赖需要）
+      - name: Install Strawberry Perl
+        run: choco install strawberryperl
+
+      # 5. 编译依赖
+      - name: Build Dependencies
+        shell: cmd
+        run: |
+          call build_release_vs2022.bat deps
+          call build_release_vs2022.bat pack
+
+      # 6. 编译 OrcaSlicer
+      - name: Build OrcaSlicer
+        shell: cmd
+        run: call build_release_vs2022.bat slicer
+
+      # 7. 生成 NSIS 安装包
+      - name: Create Installer
+        shell: cmd
+        working-directory: build
+        run: cpack -G NSIS
+
+      # 8. 上传成品（Artifact）
+      - name: Upload Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: 测试_2_3_0_installer
+          path: build/测试.exe
