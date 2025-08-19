@@ -55,6 +55,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
     this->current_temperature = ams->current_temperature;
     this->ams_type = AMSModel(ams->type);
 
+    nozzle_id = ams->nozzle;
     cans.clear();
     for (int i = 0; i < ams->trayList.size(); i++) {
         auto    it = ams->trayList.find(std::to_string(i));
@@ -117,6 +118,25 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
         cans.push_back(info);
     }
     return true;
+}
+
+void AMSinfo::ReadExtInfo(AmsTray tray) {
+    this->ams_id = tray.id;
+    this->ams_type = AMSModel::EXT_AMS;
+    Caninfo can;
+    can.can_id = std::to_string(0);
+    can.material_name = tray.filament_setting_id;
+    this->cans.push_back(can);
+    if (tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
+        this->nozzle_id = 0;
+    }
+    else {
+        this->nozzle_id = 1;
+    }
+    this->cans[0].material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
+    this->cans[0].material_colour = tray.decode_color(tray.color);
+    this->cans[0].material_remain = tray.remain;
+    this->cans[0].material_name = tray.type;
 }
 
 /*************************************************

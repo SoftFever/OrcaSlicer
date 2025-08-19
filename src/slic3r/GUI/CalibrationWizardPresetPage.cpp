@@ -782,7 +782,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
             m_main_ams_preview_list.push_back(preview_ams_item);
             size_t index = m_main_ams_preview_list.size() - 1;
             preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, index](wxMouseEvent &e) {
-                update_multi_extruder_filament_combobox(m_main_ams_preview_list[index]->m_amsinfo.ams_id, 0);
+                update_multi_extruder_filament_combobox(m_main_ams_preview_list[index]->get_ams_id(), 0);
                 e.Skip();
             });
             ams_items_sizer->Add(preview_ams_item, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
@@ -841,7 +841,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
             m_deputy_ams_preview_list.push_back(preview_ams_item);
             size_t index = m_deputy_ams_preview_list.size() - 1;
             preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, index](wxMouseEvent &e) {
-                update_multi_extruder_filament_combobox(m_deputy_ams_preview_list[index]->m_amsinfo.ams_id, 1);
+                update_multi_extruder_filament_combobox(m_deputy_ams_preview_list[index]->get_ams_id(), 1);
                 e.Skip();
             });
             ams_items_sizer->Add(preview_ams_item, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
@@ -1780,7 +1780,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     if (obj->is_multi_extruders()) {
         for (int i = 0; i < m_comboBox_nozzle_volume_types.size(); ++i) {
             m_comboBox_nozzle_volume_types[i]->Show();
-            m_comboBox_nozzle_volume_types[i]->SetSelection(obj->m_nozzle_data.nozzles[i].flow_type);
+            m_comboBox_nozzle_volume_types[i]->SetSelection(0);
         }
 
         if (obj->printer_type.find("O1D") != std::string::npos && m_main_extruder_on_left) {

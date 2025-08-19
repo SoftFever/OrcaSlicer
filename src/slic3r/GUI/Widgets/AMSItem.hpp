@@ -176,6 +176,7 @@ struct AMSinfo
 public:
     std::string             ams_id;
     std::vector<Caninfo>    cans;
+    int                     nozzle_id = 0;
     std::string             current_can_id;
     AMSPassRoadSTEP         current_step;
     AMSAction               current_action;
@@ -191,6 +192,7 @@ public:
     {
         if (ams_id == other.ams_id &&
             cans == other.cans &&
+            nozzle_id == other.nozzle_id &&
             current_can_id == other.current_can_id &&
             current_step == other.current_step &&
             current_action == other.current_action &&
@@ -217,7 +219,7 @@ public:
     };
 
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
-
+    void ReadExtInfo(AmsTray tray);
     bool support_drying() const { return (ams_type == AMSModel::N3S_AMS) || (ams_type == AMSModel::N3F_AMS); };
 };
 
