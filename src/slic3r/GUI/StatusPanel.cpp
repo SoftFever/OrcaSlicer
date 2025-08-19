@@ -2648,7 +2648,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     for (auto slot : obj->vt_slot) {
         AMSinfo info;
         info.parse_ext_info(obj, slot);
-        if (ams_mode == AMSModel::AMS_LITE) info.ext_type = AMSModelOriginType::LITE_EXT;
+        //if (ams_mode == AMSModel::AMS_LITE) info.ext_type = AMSModelOriginType::LITE_EXT; TODO: Orca hack
         ext_info.push_back(info);
     }
     std::string dev_id = obj->dev_id;
