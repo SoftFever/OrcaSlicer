@@ -35,6 +35,10 @@
         "12",
         "12"
     ],
+    "filament_ramming_volumetric_speed": [
+        "4.5",
+        "4.5"
+    ],
     "filament_retract_before_wipe": [
         "nil",
         "nil"
@@ -83,10 +87,6 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_ramming_volumetric_speed": [
-        "4.5",
-        "4.5"
-    ],
     "filament_pre_cooling_temperature": [
         "200",
         "200"
@@ -110,6 +110,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "volumetric_speed_coefficients": [
+        "0;0;0;0;0;0",
+        "0;0;0;0;0;0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D Pro 0.4 nozzle",

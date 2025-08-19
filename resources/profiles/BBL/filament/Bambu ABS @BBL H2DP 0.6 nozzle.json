@@ -8,6 +8,9 @@
     "chamber_temperatures": [
         "65"
     ],
+    "fan_max_speed": [
+        "60"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -92,9 +95,6 @@
         "0",
         "0"
     ],
-    "fan_max_speed": [
-        "60"
-    ],
     "long_retractions_when_ec": [
         "1",
         "1"
@@ -113,6 +113,10 @@
     ],
     "slow_down_layer_time": [
         "12"
+    ],
+    "volumetric_speed_coefficients": [
+        "0;0;0;0;0;0",
+        "0;0;0;0;0;0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D Pro 0.6 nozzle"
