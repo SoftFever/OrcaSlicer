@@ -18,7 +18,7 @@
 #include "Camera.hpp"
 #include "SceneRaycaster.hpp"
 #include "IMToolbar.hpp"
-
+#include "slic3r/GUI/3DBed.hpp"
 #include "libslic3r/Slicing.hpp"
 
 #include <float.h>
@@ -216,7 +216,7 @@ class GLCanvas3D
         };
 
         static const float THICKNESS_BAR_WIDTH;
-        
+
         // Orca: Shrinkage compensation
         void set_shrinkage_compensation(const Vec3d &shrinkage_compensation) { m_shrinkage_compensation = shrinkage_compensation; };
 
@@ -232,7 +232,7 @@ class GLCanvas3D
         // Owned by LayersEditing.
         SlicingParameters* m_slicing_parameters{ nullptr };
         std::vector<double>         m_layer_height_profile;
-        
+
         // Orca: Shrinkage compensation to apply when we need to use object_max_z with Z compensation.
         Vec3d                       m_shrinkage_compensation{ Vec3d::Ones() };
 
@@ -512,6 +512,7 @@ private:
     wxGLContext* m_context;
     SceneRaycaster m_scene_raycaster;
     Bed3D &m_bed;
+    std::map<std::string, wxString> m_assembly_view_desc;
 #if ENABLE_RETINA_GL
     std::unique_ptr<RetinaHelper> m_retina_helper;
 #endif
@@ -611,8 +612,8 @@ private:
 
     PrinterTechnology current_printer_technology() const;
 
-
-
+    bool        m_show_world_axes{false};
+    Bed3D::Axes m_axes;
     //BBS:record key botton frequency
     int auto_orient_count = 0;
     int auto_arrange_count = 0;
@@ -807,6 +808,7 @@ public:
     void set_color_clip_plane(const Vec3d& cp_normal, double offset) { m_volumes.set_color_clip_plane(cp_normal, offset); }
     void set_color_clip_plane_colors(const std::array<ColorRGBA, 2>& colors) { m_volumes.set_color_clip_plane_colors(colors); }
 
+    void set_show_world_axes(bool flag) { m_show_world_axes = flag; }
     void refresh_camera_scene_box();
     void set_color_by(const std::string& value);
 
@@ -966,8 +968,8 @@ public:
     void on_set_focus(wxFocusEvent& evt);
     void force_set_focus();
 
-    bool is_camera_rotate(const wxMouseEvent& evt) const;
-    bool is_camera_pan(const wxMouseEvent& evt) const;
+    bool is_camera_rotate(const wxMouseEvent& evt, const bool buttonsSwapped) const;
+    bool is_camera_pan(const wxMouseEvent& evt, const bool buttonsSwapped) const;
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;
@@ -1061,7 +1063,7 @@ public:
 
     bool is_overhang_shown() const { return m_slope.is_GlobalUsed(); }
     void show_overhang(bool show) { m_slope.globalUse(show); }
-    
+
     bool is_using_slope() const { return m_slope.is_used(); }
     void use_slope(bool use) { m_slope.use(use); }
     void set_slope_normal_angle(float angle_in_deg) { m_slope.set_normal_angle(angle_in_deg); }
@@ -1111,6 +1113,7 @@ public:
         m_sequential_print_clearance.set_polygons(polygons, height_polygons);
     }
 
+    bool can_sequential_clearance_show_in_gizmo();
     void update_sequential_clearance();
 
     const Print* fff_print() const;
@@ -1189,7 +1192,8 @@ private:
     // BBS
     //void _render_view_toolbar() const;
     void _render_paint_toolbar() const;
-    void _render_assemble_control() const;
+    float _show_assembly_tooltip_information(float caption_max, float x, float y) const;
+    void _render_assemble_control();
     void _render_assemble_info() const;
 #if ENABLE_SHOW_CAMERA_TARGET
     void _render_camera_target();

@@ -82,7 +82,8 @@ public:
         MeshBoolean,
         FdmSupports,
         Seam,
-        MmuSegmentation,
+        FuzzySkin,
+        MmSegmentation,
         Emboss,
         Svg,
         Measure,
@@ -164,6 +165,8 @@ public:
     enum MENU_ICON_NAME {
         IC_TOOLBAR_RESET            = 0,
         IC_TOOLBAR_RESET_HOVER,
+        IC_TOOLBAR_RESET_ZERO,
+        IC_TOOLBAR_RESET_ZERO_HOVER,
         IC_TOOLBAR_TOOLTIP,
         IC_TOOLBAR_TOOLTIP_HOVER,
         IC_NAME_COUNT,
@@ -261,6 +264,8 @@ public:
             return nullptr;
     }
 
+    bool is_paint_gizmo();
+    bool is_allow_select_all();
     ClippingPlane get_clipping_plane() const;
     ClippingPlane get_assemble_view_clipping_plane() const;
     bool wants_reslice_supports_on_undo() const;

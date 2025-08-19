@@ -307,9 +307,6 @@ MultiMachinePickPage::MultiMachinePickPage(Plater* plater /*= nullptr*/)
     app_config = get_app_config();
 
     SetBackgroundColour(*wxWHITE);
-    // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 

@@ -290,6 +290,10 @@ static void add_config_substitutions(const ConfigSubstitutions& conf_substitutio
 			bool is_infill = def->opt_key == "top_surface_pattern"	   ||
 							 def->opt_key == "bottom_surface_pattern" ||
 							 def->opt_key == "internal_solid_infill_pattern" ||
+							 def->opt_key == "support_base_pattern" ||
+							 def->opt_key == "support_interface_pattern" ||
+							 def->opt_key == "ironing_pattern" ||
+							 def->opt_key == "support_ironing_pattern" ||
 							 def->opt_key == "sparse_infill_pattern";
 
 			// Each infill doesn't use all list of infill declared in PrintConfig.hpp.

@@ -136,6 +136,42 @@ ExPolygons Layer::merged(float offset_scaled) const
     return out;
 }
 
+bool Layer::is_perimeter_compatible(const PrintRegion& a, const PrintRegion& b)
+{
+    const PrintRegionConfig& config       = a.config();
+    const PrintRegionConfig& other_config = b.config();
+
+    return config.wall_filament             == other_config.wall_filament
+		&& config.wall_loops                  == other_config.wall_loops
+		&& config.wall_sequence               == other_config.wall_sequence
+		&& config.is_infill_first             == other_config.is_infill_first
+		&& config.inner_wall_speed             == other_config.inner_wall_speed
+		&& config.outer_wall_speed    == other_config.outer_wall_speed
+		&& config.small_perimeter_speed    == other_config.small_perimeter_speed
+        && config.gap_infill_speed.value == other_config.gap_infill_speed.value
+        && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
+		&& config.detect_overhang_wall                   == other_config.detect_overhang_wall
+		&& config.overhang_reverse                       == other_config.overhang_reverse
+		&& config.overhang_reverse_threshold             == other_config.overhang_reverse_threshold
+		&& config.wall_direction                         == other_config.wall_direction
+		&& config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
+		&& config.opt_serialize("outer_wall_line_width") == other_config.opt_serialize("outer_wall_line_width")
+		&& config.detect_thin_wall                  == other_config.detect_thin_wall
+		&& config.infill_wall_overlap              == other_config.infill_wall_overlap
+        && config.top_bottom_infill_wall_overlap              == other_config.top_bottom_infill_wall_overlap
+        && config.seam_slope_type         == other_config.seam_slope_type
+        && config.seam_slope_conditional == other_config.seam_slope_conditional
+        && config.scarf_angle_threshold  == other_config.scarf_angle_threshold
+        && config.scarf_overhang_threshold  == other_config.scarf_overhang_threshold
+        && config.scarf_joint_speed       == other_config.scarf_joint_speed
+        && config.scarf_joint_flow_ratio       == other_config.scarf_joint_flow_ratio
+        && config.seam_slope_start_height == other_config.seam_slope_start_height
+        && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
+        && config.seam_slope_min_length   == other_config.seam_slope_min_length
+        && config.seam_slope_steps        == other_config.seam_slope_steps
+        && config.seam_slope_inner_walls  == other_config.seam_slope_inner_walls;
+}
+
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
 // The perimeter paths and the thin fills (ExtrusionEntityCollection) are assigned to the first compatible layer region.
 // The resulting fill surface is split back among the originating regions.
@@ -157,7 +193,7 @@ void Layer::make_perimeters()
 	            continue;
 	        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id;
 	        done[region_id] = true;
-	        const PrintRegionConfig &config = (*layerm)->region().config();
+	        const PrintRegion &this_region = (*layerm)->region();
 	        
 	        // find compatible regions
 	        LayerRegionPtrs layerms;
@@ -165,36 +201,8 @@ void Layer::make_perimeters()
 	        for (LayerRegionPtrs::const_iterator it = layerm + 1; it != m_regions.end(); ++it)
 	            if (! (*it)->slices.empty()) {
 		            LayerRegion* other_layerm = *it;
-		            const PrintRegionConfig &other_config = other_layerm->region().config();
-		            if (config.wall_filament             == other_config.wall_filament
-		                && config.wall_loops                  == other_config.wall_loops
-		                && config.wall_sequence               == other_config.wall_sequence
-		                && config.is_infill_first             == other_config.is_infill_first
-		                && config.inner_wall_speed             == other_config.inner_wall_speed
-		                && config.outer_wall_speed    == other_config.outer_wall_speed
-		                && config.small_perimeter_speed    == other_config.small_perimeter_speed
-                        && config.gap_infill_speed.value == other_config.gap_infill_speed.value
-                        && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
-		                && config.detect_overhang_wall                   == other_config.detect_overhang_wall
-		                && config.overhang_reverse                       == other_config.overhang_reverse
-		                && config.overhang_reverse_threshold             == other_config.overhang_reverse_threshold
-		                && config.wall_direction                         == other_config.wall_direction
-		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
-		                && config.opt_serialize("outer_wall_line_width") == other_config.opt_serialize("outer_wall_line_width")
-		                && config.detect_thin_wall                  == other_config.detect_thin_wall
-		                && config.infill_wall_overlap              == other_config.infill_wall_overlap
-                        && config.top_bottom_infill_wall_overlap              == other_config.top_bottom_infill_wall_overlap
-                        && config.seam_slope_type         == other_config.seam_slope_type
-                        && config.seam_slope_conditional == other_config.seam_slope_conditional
-                        && config.scarf_angle_threshold  == other_config.scarf_angle_threshold
-                        && config.scarf_overhang_threshold  == other_config.scarf_overhang_threshold
-                        && config.scarf_joint_speed       == other_config.scarf_joint_speed
-                        && config.scarf_joint_flow_ratio       == other_config.scarf_joint_flow_ratio
-                        && config.seam_slope_start_height == other_config.seam_slope_start_height
-                        && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
-                        && config.seam_slope_min_length   == other_config.seam_slope_min_length
-                        && config.seam_slope_steps        == other_config.seam_slope_steps
-                        && config.seam_slope_inner_walls  == other_config.seam_slope_inner_walls)
+		            const PrintRegion &other_region = other_layerm->region();
+                    if (is_perimeter_compatible(this_region, other_region))
 		            {
 			 			other_layerm->perimeters.clear();
 			 			other_layerm->fills.clear();
@@ -383,15 +391,18 @@ coordf_t Layer::get_sparse_infill_max_void_area()
             case ipRectilinear:
             case ipLine:
             case ipGyroid:
+            case ipTpmsD:
+            case ipTpmsFK:
             case ipAlignedRectilinear:
             case ipOctagramSpiral:
             case ipHilbertCurve:
+            case ipLateralHoneycomb:
             case ip3DHoneycomb:
             case ipArchimedeanChords:
                 max_void_area = std::max(max_void_area, spacing * spacing);
                 break;
             case ipGrid:
-            case ip2DLattice:
+            case ipLateralLattice:
             case ipHoneycomb:
             case ipLightning:
                 max_void_area = std::max(max_void_area, 4.0 * spacing * spacing);

@@ -32,7 +32,6 @@ RUN apt-get update && apt-get install  -y \
     libgstreamer-plugins-good1.0-dev \
     libgtk-3-dev \
     libgtk-3-dev \
-    libosmesa6-dev \
     libsecret-1-dev \
     libsoup2.4-dev \
     libssl3 \
@@ -40,7 +39,7 @@ RUN apt-get update && apt-get install  -y \
     libtool \
     libudev-dev \
     libwayland-dev \
-    libwebkit2gtk-4.0-dev \
+    libwebkit2gtk-4.1-dev \
     libxkbcommon-dev \
     locales \
     locales-all \
@@ -65,17 +64,17 @@ WORKDIR OrcaSlicer
 
 # These can run together, but we run them seperate for podman caching
 # Update System dependencies
-RUN ./BuildLinux.sh -u
+RUN ./build_linux.sh -u
 
 # Build dependencies in ./deps
-RUN ./BuildLinux.sh -dr
+RUN ./build_linux.sh -dr
 
 # Build slic3r
-RUN ./BuildLinux.sh -sr
+RUN ./build_linux.sh -sr
 
 # Build AppImage
 ENV container podman
-RUN ./BuildLinux.sh -ir
+RUN ./build_linux.sh -ir
 
 # It's easier to run Orca Slicer as the same username,
 # UID and GID as your workstation.  Since we bind mount
@@ -86,10 +85,16 @@ SHELL ["/bin/bash", "-l", "-c"]
 ARG USER=root
 ARG UID=0
 ARG GID=0
-RUN [[ "$UID" != "0" ]] \
-  && groupadd -f -g $GID $USER \
-  && useradd -u $UID -g $GID $USER
-
+RUN if [[ "$UID" != "0" ]]; then \
+      # Create group if it doesn't exist \
+      groupadd -f -g $GID $USER; \
+      # Check if user with this UID already exists \
+      if getent passwd $UID > /dev/null 2>&1; then \
+        echo "User with UID $UID already exists, skipping user creation"; \
+      else \
+        useradd -u $UID -g $GID $USER; \
+      fi \
+    fi
 # Using an entrypoint instead of CMD because the binary
 # accepts several command line arguments.
 ENTRYPOINT ["/OrcaSlicer/build/package/bin/orca-slicer"]
