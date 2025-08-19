@@ -3,7 +3,7 @@
     "name": "Bambu PETG HF @BBL H2S 0.6 nozzle",
     "inherits": "Bambu PETG HF @base",
     "from": "system",
-    "setting_id": "GFSG02_30",
+    "setting_id": "GFSG02_32",
     "instantiation": "true",
     "fan_cooling_layer_time": [
         "20"

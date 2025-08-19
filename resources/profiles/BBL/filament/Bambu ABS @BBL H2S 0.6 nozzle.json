@@ -3,7 +3,7 @@
     "name": "Bambu ABS @BBL H2S 0.6 nozzle",
     "inherits": "Bambu ABS @base",
     "from": "system",
-    "setting_id": "GFSB00_31",
+    "setting_id": "GFSB00_33",
     "instantiation": "true",
     "chamber_temperatures": [
         "60"

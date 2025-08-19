@@ -3,7 +3,7 @@
     "name": "Bambu ASA @BBL H2S 0.6 nozzle",
     "inherits": "Bambu ASA @base",
     "from": "system",
-    "setting_id": "GFSB01_34",
+    "setting_id": "GFSB01_36",
     "instantiation": "true",
     "chamber_temperatures": [
         "60"

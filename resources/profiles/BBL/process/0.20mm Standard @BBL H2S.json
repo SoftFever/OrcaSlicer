@@ -3,7 +3,7 @@
     "name": "0.20mm Standard @BBL H2S",
     "inherits": "fdm_process_single_0.20",
     "from": "system",
-    "setting_id": "GP131",
+    "setting_id": "GP158",
     "instantiation": "true",
     "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
     "bridge_speed": [

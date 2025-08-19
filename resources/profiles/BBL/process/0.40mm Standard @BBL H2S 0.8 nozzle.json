@@ -3,7 +3,7 @@
     "name": "0.40mm Standard @BBL H2S 0.8 nozzle",
     "inherits": "fdm_process_single_0.40_nozzle_0.8",
     "from": "system",
-    "setting_id": "GP129",
+    "setting_id": "GP156",
     "instantiation": "true",
     "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
     "bridge_speed": [

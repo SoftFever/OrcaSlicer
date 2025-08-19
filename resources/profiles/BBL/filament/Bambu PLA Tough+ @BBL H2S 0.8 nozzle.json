@@ -1,16 +1,10 @@
 {
     "type": "filament",
-    "name": "Bambu PLA Basic @BBL H2S 0.6 nozzle",
-    "inherits": "Bambu PLA Basic @base",
+    "name": "Bambu PLA Tough+ @BBL H2S 0.8 nozzle",
+    "inherits": "Bambu PLA Tough+ @base",
     "from": "system",
-    "setting_id": "GFSA00_30",
+    "setting_id": "GFSA10_14",
     "instantiation": "true",
-    "additional_cooling_fan_speed": [
-        "75"
-    ],
-    "fan_min_speed": [
-        "60"
-    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -32,8 +26,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "30",
-        "40"
+        "21",
+        "21"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
@@ -100,12 +94,12 @@
         "0"
     ],
     "nozzle_temperature": [
-        "220",
-        "220"
+        "245",
+        "245"
     ],
     "nozzle_temperature_initial_layer": [
-        "220",
-        "220"
+        "245",
+        "245"
     ],
     "pre_start_fan_time": [
         "2"
@@ -114,12 +108,8 @@
         "0",
         "0"
     ],
-    "volumetric_speed_coefficients": [
-        "0;0;0;0;0;0",
-        "0;0;0;0;0;0"
-    ],
     "compatible_printers": [
-        "Bambu Lab H2S 0.6 nozzle"
+        "Bambu Lab H2S 0.8 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"
