@@ -98,10 +98,6 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "filament_extruder_id": [
-        "1",
-        "1"
-    ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
@@ -113,6 +109,14 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
+    "filament_extruder_id": [
+        "1",
+        "1"
     ],
     "hole_coef_2": [
         "-0.0081"

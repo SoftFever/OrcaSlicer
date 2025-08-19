@@ -265,6 +265,9 @@
     "filament_end_gcode": [
         "; filament end gcode \nM106 P3 S0\n"
     ],
+	"filament_adaptive_volumetric_speed":[
+		"0"
+	],
     "volumetric_speed_coefficients":[
         "0;0;0;0;0;0"
     ]

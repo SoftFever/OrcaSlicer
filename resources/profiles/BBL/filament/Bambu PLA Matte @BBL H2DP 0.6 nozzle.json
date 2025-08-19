@@ -110,6 +110,10 @@
         "0",
         "0"
     ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "hole_coef_2": [
         "-0.0081"
     ],

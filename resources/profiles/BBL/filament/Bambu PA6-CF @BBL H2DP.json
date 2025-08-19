@@ -101,6 +101,10 @@
         "0",
         "0"
     ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "long_retractions_when_ec": [
         "1",
         "1"

@@ -8,6 +8,9 @@
     "chamber_temperatures": [
         "65"
     ],
+    "fan_max_speed": [
+        "60"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -80,10 +83,6 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "filament_extruder_id": [
-        "1",
-        "1"
-    ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
@@ -96,8 +95,13 @@
         "0",
         "0"
     ],
-    "fan_max_speed": [
-        "60"
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
+    "filament_extruder_id": [
+        "1",
+        "1"
     ],
     "long_retractions_when_ec": [
         "1",

@@ -9,16 +9,10 @@
         "50"
     ],
     "counter_coef_2": [
-        "3860"
+        "0.0075"
     ],
     "counter_coef_3": [
-        "-32000"
-    ],
-    "counter_limit_min": [
-        "-35000"
-    ],
-    "counter_limit_max": [
-        "33000"
+        "-0.052"
     ],
     "filament_deretraction_speed": [
         "nil",
@@ -47,6 +41,9 @@
     "filament_ramming_volumetric_speed": [
         "-1",
         "-1"
+    ],
+    "filament_printable": [
+        "1"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -96,8 +93,26 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "filament_printable": [
-        "1"
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
+    "hole_coef_2": [
+        "-0.012"
+    ],
+    "hole_coef_3": [
+        "0.35043"
+    ],
+    "hole_limit_min": [
+        "0.07"
     ],
     "long_retractions_when_ec": [
         "1",
@@ -123,18 +138,6 @@
         "Bambu Lab H2D 0.4 nozzle",
         "Bambu Lab H2D 0.6 nozzle",
         "Bambu Lab H2D 0.8 nozzle"
-    ],
-    "hole_coef_2": [
-        "-8000"
-    ],
-    "hole_coef_3": [
-        "135000"
-    ],
-    "hole_limit_min": [
-        "88000"
-    ],
-    "hole_limit_max": [
-        "220000"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

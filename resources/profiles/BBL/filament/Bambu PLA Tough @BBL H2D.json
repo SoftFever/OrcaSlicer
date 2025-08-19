@@ -5,6 +5,15 @@
     "from": "system",
     "setting_id": "GFSA09_06",
     "instantiation": "true",
+    "counter_coef_2": [
+        "0.003"
+    ],
+    "counter_coef_3": [
+        "0.024"
+    ],
+    "counter_limit_max": [
+        "0.1"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -80,6 +89,27 @@
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
+    "hole_coef_2": [
+        "-0.0081"
+    ],
+    "hole_coef_3": [
+        "0.2041"
+    ],
+    "hole_limit_min": [
+        "0.08"
     ],
     "long_retractions_when_ec": [
         "1",

@@ -5,6 +5,15 @@
     "from": "system",
     "setting_id": "GFSG50_08",
     "instantiation": "true",
+    "counter_coef_2": [
+        "0.00565"
+    ],
+    "counter_coef_3": [
+        "-0.0112"
+    ],
+    "counter_limit_max": [
+        "0.065"
+    ],
     "fan_cooling_layer_time": [
         "30"
     ],
@@ -89,6 +98,27 @@
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
+    "hole_coef_2": [
+        "-0.0121"
+    ],
+    "hole_coef_3": [
+        "0.145"
+    ],
+    "hole_limit_min": [
+        "0.068"
     ],
     "long_retractions_when_ec": [
         "1",

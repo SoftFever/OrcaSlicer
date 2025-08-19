@@ -89,6 +89,10 @@
         "0",
         "0"
     ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "filament_enable_overhang_speed": [
         "1",
         "1"

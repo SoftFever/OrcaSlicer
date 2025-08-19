@@ -8,6 +8,18 @@
     "additional_cooling_fan_speed": [
         "75"
     ],
+    "counter_coef_2": [
+        "0.06"
+    ],
+    "counter_coef_3": [
+        "-0.32"
+    ],
+    "counter_limit_min": [
+        "-0.4"
+    ],
+    "counter_limit_max": [
+        "0.05"
+    ],
     "fan_max_speed": [
         "80"
     ],
@@ -97,6 +109,16 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
+    "hole_coef_2": [
+        "-0.0081"
+    ],
+    "hole_coef_3": [
+        "0.18"
     ],
     "long_retractions_when_ec": [
         "1",

@@ -89,6 +89,10 @@
         "0",
         "0"
     ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "first_x_layer_fan_speed": [
         "40"
     ],

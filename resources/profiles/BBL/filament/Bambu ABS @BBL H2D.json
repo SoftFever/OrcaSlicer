@@ -8,6 +8,9 @@
     "chamber_temperatures": [
         "65"
     ],
+    "fan_max_speed": [
+        "60"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -84,8 +87,17 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "fan_max_speed": [
-        "60"
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
     ],
     "long_retractions_when_ec": [
         "1",

@@ -98,6 +98,10 @@
         "0",
         "0"
     ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0"
+    ],
     "hot_plate_temp": [
         "90"
     ],
