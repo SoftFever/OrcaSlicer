@@ -541,8 +541,8 @@ bool is_multiline_pattern(InfillPattern pattern) {
         case ipTpmsFK:
         case ipCrossHatch:
         case ipHoneycomb:
-        case ip2DLattice:
-        case ip2DHoneycomb:
+        case ipLateralLattice:
+        case ipLateralHoneycomb:
         case ipCubic:
         case ipStars:
         case ipAlignedRectilinear:
