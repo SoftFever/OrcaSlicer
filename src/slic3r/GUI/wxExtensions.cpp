@@ -4,7 +4,6 @@
 #include <cmath>
 
 #include <wx/sizer.h>
-
 #include <boost/algorithm/string/replace.hpp>
 
 #include "GUI.hpp"
@@ -19,6 +18,7 @@
 #include "Widgets/Label.hpp"
 #include "../Utils/WxFontUtils.hpp"
 #include "FilamentBitmapUtils.hpp"
+#include "../Utils/ColorSpaceConvert.hpp"
 #ifndef __linux__
 // msw_menuitem_bitmaps is used for MSW and OSX
 static std::map<int, std::string> msw_menuitem_bitmaps;
@@ -583,14 +583,38 @@ std::vector<std::vector<std::string>> read_color_pack(std::vector<std::string> c
 
 wxColourData show_sys_picker_dialog(wxWindow *parent, const wxColourData &clr_data)
 {
-    wxColourData data;
+    wxColourData data = clr_data;
     data.SetChooseFull(true);
-    data.SetColour(clr_data.GetColour());
+
+    // Load custom colors from config (support both "r,g,b,a" and "#RRGGBB" formats)
+    std::vector<std::string> colors = Slic3r::GUI::wxGetApp().app_config->get_custom_color_from_config();
+    for (int i = 0; i < (int)colors.size(); i++) {
+        wxColour c;
+        if (colors[i].find(',') != std::string::npos)
+            c = string_to_wxColor(colors[i]);
+        else
+            c = wxColour(colors[i]);
+        if (c.IsOk())
+            data.SetCustomColour(i, c);
+    }
+
     wxColourDialog dialog(parent, &data);
     dialog.SetTitle(_L("Please choose the filament colour"));
+
     if (dialog.ShowModal() == wxID_OK) {
         data = dialog.GetColourData();
+
+        // Save custom colors to config (use RGBA string format for consistency)
+        std::vector<std::string> colors;
+        colors.resize(CUSTOM_COLOR_COUNT);
+        for (int i = 0; i < CUSTOM_COLOR_COUNT; i++) {
+            wxColour custom_clr = data.GetCustomColour(i);
+            if (custom_clr.IsOk())
+                colors[i] = color_to_string(custom_clr);
+        }
+        Slic3r::GUI::wxGetApp().app_config->save_custom_color_to_config(colors);
     }
+
     return data;
 }
 
