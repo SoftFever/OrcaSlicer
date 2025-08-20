@@ -19,6 +19,10 @@
         "1",
         "1"
     ],
+    "enable_height_slowdown": [
+        "0",
+        "0"
+    ],
     "gap_infill_speed": [
         "50",
         "50"
@@ -114,6 +118,30 @@
         "80"
     ],
     "smooth_coefficient": "4",
+    "slowdown_start_height": [
+        "0",
+        "0"
+    ],
+    "slowdown_start_speed": [
+        "1000",
+        "1000"
+    ],
+    "slowdown_start_acc": [
+        "100000",
+        "100000"
+    ],
+    "slowdown_end_height": [
+        "400",
+        "400"
+    ],
+    "slowdown_end_speed": [
+        "1000",
+        "1000"
+    ],
+    "slowdown_end_acc": [
+        "100000",
+        "100000"
+    ],
     "travel_speed": [
         "1000",
         "1000"

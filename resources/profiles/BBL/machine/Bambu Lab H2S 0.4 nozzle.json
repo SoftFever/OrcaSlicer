@@ -29,6 +29,14 @@
     "extruder_clearance_max_radius": "81",
     "extruder_clearance_radius": "30",
     "fan_direction": "left",
+    "hotend_cooling_rate": [
+        "2",
+        "2"
+    ],
+    "hotend_heating_rate": [
+        "2",
+        "2"
+    ],
     "long_retractions_when_cut": [
         "0",
         "0"
