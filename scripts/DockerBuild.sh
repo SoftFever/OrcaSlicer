@@ -1,5 +1,6 @@
 #!/bin/bash
-PROJECT_ROOT=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)")
+SCRIPT_DIR=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)")
+PROJECT_ROOT=$(dirname "$SCRIPT_DIR")
 
 set -x
 # Wishlist hint:  For developers, creating a Docker Compose 
@@ -12,4 +13,5 @@ docker build -t orcaslicer \
   --build-arg UID=$(id -u) \
   --build-arg GID=$(id -g) \
   --build-arg NCORES=$NCORES \
+  -f "$SCRIPT_DIR/Dockerfile" \
   $PROJECT_ROOT
