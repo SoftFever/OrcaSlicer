@@ -1890,16 +1890,32 @@
             "sub_path": "filament/Bambu Support G @BBL X1C.json"
         },
         {
+            "name": "Fiberon PA12-CF @BBL H2D",
+            "sub_path": "filament/Polymaker/Fiberon PA12-CF @BBL H2D.json"
+        },
+        {
             "name": "Fiberon PA12-CF @BBL X1C",
             "sub_path": "filament/Polymaker/Fiberon PA12-CF @BBL X1C.json"
+        },
+        {
+            "name": "Fiberon PA6-CF @BBL H2D",
+            "sub_path": "filament/Polymaker/Fiberon PA6-CF @BBL H2D.json"
         },
         {
             "name": "Fiberon PA6-CF @BBL X1C",
             "sub_path": "filament/Polymaker/Fiberon PA6-CF @BBL X1C.json"
         },
         {
+            "name": "Fiberon PA6-GF @BBL H2D",
+            "sub_path": "filament/Polymaker/Fiberon PA6-GF @BBL H2D.json"
+        },
+        {
             "name": "Fiberon PA6-GF @BBL X1C",
             "sub_path": "filament/Polymaker/Fiberon PA6-GF @BBL X1C.json"
+        },
+        {
+            "name": "Fiberon PA612-CF @BBL H2D",
+            "sub_path": "filament/Polymaker/Fiberon PA612-CF @BBL H2D.json"
         },
         {
             "name": "Fiberon PA612-CF @BBL X1C",
@@ -2398,12 +2414,24 @@
             "sub_path": "filament/Bambu PETG-CF @BBL X1C 0.4 nozzle.json"
         },
         {
+            "name": "Fiberon PET-CF @BBL H2D",
+            "sub_path": "filament/Polymaker/Fiberon PET-CF @BBL H2D.json"
+        },
+        {
             "name": "Fiberon PET-CF @BBL X1C",
             "sub_path": "filament/Polymaker/Fiberon PET-CF @BBL X1C.json"
         },
         {
+            "name": "Fiberon PETG-ESD @BBL H2D",
+            "sub_path": "filament/Polymaker/Fiberon PETG-ESD @BBL H2D.json"
+        },
+        {
             "name": "Fiberon PETG-ESD @BBL X1C",
             "sub_path": "filament/Polymaker/Fiberon PETG-ESD @BBL X1C.json"
+        },
+        {
+            "name": "Fiberon PETG-rCF @BBL H2D",
+            "sub_path": "filament/Polymaker/Fiberon PETG-rCF @BBL H2D.json"
         },
         {
             "name": "Fiberon PETG-rCF @BBL X1C",
