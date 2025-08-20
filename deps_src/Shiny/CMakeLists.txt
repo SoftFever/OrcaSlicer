@@ -23,3 +23,7 @@ add_library(Shiny STATIC
     ShinyZone.c
     ShinyZone.h
 )
+
+target_include_directories(Shiny PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)

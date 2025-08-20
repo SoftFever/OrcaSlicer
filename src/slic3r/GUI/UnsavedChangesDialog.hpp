@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 
+#include "Event.hpp"
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "libslic3r/PresetBundle.hpp"

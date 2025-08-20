@@ -4,31 +4,16 @@ project(OrcaSlicer-native)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Include dependencies from deps_src directory
 add_subdirectory(build-utils)
-add_subdirectory(admesh)
 # add_subdirectory(avrdude)
-add_subdirectory(clipper)
-add_subdirectory(miniz)
-add_subdirectory(minilzo)
-add_subdirectory(glu-libtess)
-add_subdirectory(qhull)
-add_subdirectory(Shiny)
 add_subdirectory(semver)
-add_subdirectory(libigl)
 add_subdirectory(hints)
-add_subdirectory(mcut)
-add_subdirectory(qoi)
-
-# Adding libnest2d project for bin packing...
-add_subdirectory(libnest2d)
 
 add_subdirectory(libslic3r)
 
 if (SLIC3R_GUI)
-    add_subdirectory(imgui)
-    add_subdirectory(imguizmo)
-    add_subdirectory(hidapi)
-    include_directories(hidapi/include)
+    # imgui, imguizmo, and hidapi are now included from deps_src
 
     if(WIN32)
         message(STATUS "WXWIN environment set to: $ENV{WXWIN}")
@@ -142,6 +127,7 @@ if (NOT WIN32 AND NOT APPLE)
 endif ()
 
 target_link_libraries(OrcaSlicer libslic3r cereal::cereal)
+# target_include_directories(OrcaSlicer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/slic3r)
 if (APPLE)
 #    add_compile_options(-stdlib=libc++)
 #    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)

@@ -796,6 +796,7 @@ endfunction()
 
 
 # libslic3r, OrcaSlicer GUI and the OrcaSlicer executable.
+add_subdirectory(deps_src)
 add_subdirectory(src)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT OrcaSlicer_app_gui)
 

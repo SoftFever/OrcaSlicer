@@ -11,6 +11,7 @@ endif()
 include_directories(include)
 
 add_library(hidapi STATIC ${HIDAPI_IMPL})
+target_include_directories(hidapi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	# Don't link the udev library, as there are two versions out there (libudev.so.0, libudev.so.1), so they are linked explicitely.

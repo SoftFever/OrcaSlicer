@@ -9,4 +9,11 @@ add_library(clipper STATIC
     clipper_z.hpp
 )
 
-target_link_libraries(clipper TBB::tbb TBB::tbbmalloc)
+target_include_directories(clipper PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(clipper 
+    PUBLIC eigen
+    PRIVATE TBB::tbb TBB::tbbmalloc
+)
