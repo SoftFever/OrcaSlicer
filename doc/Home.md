@@ -2,24 +2,24 @@
 
 OrcaSlicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki page aims to provide an detailed explanation of the slicer settings, how to get the most out of them as well as how to calibrate and setup your printer.
 
-- [Printer Settings](#printer-settings)
-- [Material Settings](#material-settings)
-- [Prepare](#prepare)
-- [Process Settings](#process-settings)
+- [ Printer Settings](#-printer-settings)
+- [ Material Settings](#-material-settings)
+- [ Process Settings](#-process-settings)
   - [Quality Settings](#quality-settings)
   - [Strength Settings](#strength-settings)
   - [Speed Settings](#speed-settings)
   - [Support Settings](#support-settings)
   - [Multimaterial Settings](#multimaterial-settings)
   - [Others Settings](#others-settings)
-- [Calibrations](#calibrations)
-- [Developer Section](#developer-section)
+- [ Prepare](#-prepare)
+- [ Calibrations](#-calibrations)
+- [ Developer Section](#-developer-section)
 
 > [!NOTE]
 > The Wiki is **Work In Progress** so bear with us while we get it up and running!  
 > Please consider contributing to the wiki following the [How to contribute to the wiki](How-to-wiki) guide.
 
-## Printer Settings
+## ![printer](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/printer.svg?raw=true) Printer Settings
 
 ![printer-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/printer-preset.png?raw=true)
 
@@ -29,20 +29,14 @@ OrcaSlicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki
 - [Adaptive Bed Mesh](adaptive-bed-mesh)
 - [Using different bed types in Orca](bed-types)
 
-## Material Settings
+## ![filament](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/filament.svg?raw=true) Material Settings
 
 ![filament-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/filament-preset.png?raw=true)
 
 - [Single Extruder Multimaterial](semm)
 - [Pellet Printers (pellet flow coefficient)](pellet-flow-coefficient)
 
-## Prepare
-
-First steps to prepare your model/s for printing.
-
-- [STL Transformation](stl-transformation)
-
-## Process Settings
+## ![process](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/process.svg?raw=true) Process Settings
 
 ![process-preset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process-preset.png?raw=true)
 
@@ -118,7 +112,13 @@ The below sections provide a detailed settings explanation as well as tips and t
 - ![param_gcode](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_gcode.svg?raw=true) [Post Processing Scripts](others_settings_post_processing_scripts)
 - ![note](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/note.svg?raw=true) [Notes](others_settings_notes)
 
-## Calibrations
+## ![tab_3d_active](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/tab_3d_active.svg?raw=true) Prepare
+
+First steps to prepare your model/s for printing.
+
+- [STL Transformation](stl-transformation)
+
+## ![tab_calibration_active](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/tab_calibration_active.svg?raw=true) Calibrations
 
 The [Calibration Guide](Calibration) outlines Orca’s key calibration tests and their suggested order of execution.
 
@@ -134,7 +134,7 @@ The [Calibration Guide](Calibration) outlines Orca’s key calibration tests and
   - [Input Shaping](input-shaping-calib)
   - [VFA](vfa-calib)
 
-## Developer Section
+## ![im_code](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/im_code.svg?raw=true) Developer Section
 
 This is a documentation from someone exploring the code and is by no means complete or even completely accurate. Please edit the parts you might find inaccurate. This is probably going to be helpful nonetheless.
 
