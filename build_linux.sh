@@ -203,7 +203,7 @@ ${BUILD_ARGS}"
     cmake --build build --target OrcaSlicer
     echo "Building OrcaSlicer_profile_validator .."
     cmake --build build --target OrcaSlicer_profile_validator
-    ./run_gettext.sh
+    ./scripts/run_gettext.sh
     echo "done"
 fi
 

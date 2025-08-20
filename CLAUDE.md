@@ -160,7 +160,7 @@ perl support.t  # example test file
 ### Internationalization and Localization  
 - `localization/i18n/` - Source translation files (.pot, .po)
 - `resources/i18n/` - Runtime language resources
-- Translation managed via `run_gettext.sh` / `run_gettext.bat`
+- Translation managed via `scripts/run_gettext.sh` / `scripts/run_gettext.bat`
 
 ### Platform-Specific Code
 - `src/libslic3r/Platform.cpp` - Platform abstractions and utilities
