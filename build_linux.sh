@@ -189,7 +189,7 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
         BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
     fi
 
-    CMAKE_CMD="cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja \
+    CMAKE_CMD="cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja Multi-Config \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
 -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
 -DSLIC3R_STATIC=1 \
