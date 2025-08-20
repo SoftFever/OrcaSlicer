@@ -4554,7 +4554,7 @@ if (is_marlin_flavor)
 
                 auto optgroup = page->new_optgroup(L("Size"), L"param_extruder_size");
                 optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
-                optgroup->append_single_option_line("nozzle_volume_type", "", extruder_idx);
+                //optgroup->append_single_option_line("nozzle_volume_type", "", extruder_idx);
 
                 optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
                 {
