@@ -478,7 +478,7 @@ class AMSPreview : public wxWindow
 {
 public:
     AMSPreview();
-    AMSPreview(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size = wxSize(14, 14), const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSPreview(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, AMSModel itemType = AMSModel::GENERIC_AMS, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 
     bool m_open = {false};
     void Open();
@@ -504,6 +504,8 @@ protected:
     int      m_space             = {5};
     bool     m_hover             = {false};
     bool     m_selected          = {false};
+    AMSModel m_ams_item_type = AMSModel::GENERIC_AMS;
+
     ScalableBitmap* m_ts_bitmap_cube;
 
     void         paintEvent(wxPaintEvent &evt);

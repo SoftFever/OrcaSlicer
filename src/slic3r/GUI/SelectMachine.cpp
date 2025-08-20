@@ -1061,7 +1061,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1){
         //get nozzle property, the nozzles are same?
-        if (!can_hybrid_mapping(obj_->m_nozzle_data)){
+        if (!can_hybrid_mapping(obj_->m_extder_data)){
             std::vector<FilamentInfo>           m_ams_mapping_result_left, m_ams_mapping_result_right;
             std::vector<FilamentInfo>           m_filament_left, m_filament_right;
             for (auto it = m_filaments.begin(); it != m_filaments.end(); it++){
@@ -1283,17 +1283,17 @@ bool SelectMachineDialog::build_nozzles_info(std::string& nozzles_info)
     return true;
 }
 
-bool SelectMachineDialog::can_hybrid_mapping(NozzleData data) {
-    if (data.total_nozzle_count <= 1 || data.nozzles.size() <= 1 || !wxGetApp().preset_bundle)
+bool SelectMachineDialog::can_hybrid_mapping(ExtderData data) {
+    if (data.total_extder_count <= 1 || data.extders.size() <= 1 || !wxGetApp().preset_bundle)
         return false;
 
     //The default two extruders are left, right, but the order of the extruders on the machine is right, left.
     //Therefore, some adjustments need to be made.
     std::vector<std::string>flow_type_of_machine;
-    for (auto it = data.nozzles.rbegin(); it != data.nozzles.rend(); it++){
+    for (auto it = data.extders.rbegin(); it != data.extders.rend(); it++){
         //exist field is not updated, wait add
         //if (it->exist < 3) return false;
-        std::string type_str = it->flow_type ? "Big Traffic" : "Normal";
+        std::string type_str = /*it->flow_type ? "Big Traffic" :*/ "Normal";
         flow_type_of_machine.push_back(type_str);
     }
     //get the nozzle type of preset --> flow_types
@@ -1335,14 +1335,14 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<AmsTray> slots) {
     }
 }
 
-bool SelectMachineDialog::is_nozzle_type_match(NozzleData data) {
-    if (data.total_nozzle_count <= 1 || data.nozzles.size() <= 1 || !wxGetApp().preset_bundle)
+bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
+    if (data.total_extder_count <= 1 || data.extders.size() <= 1 || !wxGetApp().preset_bundle)
         return false;
 
     //The default two extruders are left, right, but the order of the extruders on the machine is right, left.
     std::vector<std::string>flow_type_of_machine;
-    for (auto it = data.nozzles.rbegin(); it != data.nozzles.rend(); it++) {
-        std::string str_flow = it->flow_type ? "Big Traffic" : "Normal";
+    for (auto it = data.extders.begin(); it != data.extders.end(); it++) {
+        std::string str_flow = /*it->flow_type ? "Big Traffic" :*/ "Normal";
         flow_type_of_machine.push_back(str_flow);
     }
     //get the nozzle type of preset --> flow_types
@@ -2983,7 +2983,7 @@ void SelectMachineDialog::update_show_status()
     size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     //the nozzle type of preset and machine are different
-    if (nozzle_nums > 1 && !is_nozzle_type_match(obj_->m_nozzle_data)) {
+    if (nozzle_nums > 1 && !is_nozzle_type_match(obj_->m_extder_data)) {
         show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid);
         return;
     }
@@ -3507,7 +3507,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
             if (nozzle_nums > 1)
             {
-                if (obj_ && can_hybrid_mapping(obj_->m_nozzle_data))
+                if (obj_ && can_hybrid_mapping(obj_->m_extder_data))
                 {
                     m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
                 }

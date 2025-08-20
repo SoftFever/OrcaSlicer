@@ -1674,11 +1674,13 @@ Description:AMSPreview
 **************************************************/
 AMSPreview::AMSPreview() {}
 
-AMSPreview::AMSPreview(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size, const wxPoint &pos, const wxSize &size) : AMSPreview()
+AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, AMSModel itemType, const wxPoint& pos, const wxSize& size) : AMSPreview()
 {
+    wxWindow::Create(parent, id, pos);
     create(parent, id, pos, AMS_ITEM_SIZE);
     m_amsinfo = amsinfo;
-    m_cube_size = cube_size;
+    m_ams_item_type = itemType;
+    //create(parent, id, pos, AMS_PREVIEW_SIZE);
     Bind(wxEVT_PAINT, &AMSPreview::paintEvent, this);
     Bind(wxEVT_ENTER_WINDOW, &AMSPreview::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &AMSPreview::OnLeaveWindow, this);
@@ -1704,9 +1706,8 @@ void AMSPreview::Update(AMSinfo amsinfo)
 void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
     m_ts_bitmap_cube = new ScalableBitmap(this, "ts_bitmap_cube", 14);
-    wxWindow::Create(parent, id, pos, size);
-    SetMinSize(AMS_ITEM_SIZE);
-    SetMaxSize(AMS_ITEM_SIZE);
+    SetMinSize(size);
+    SetMaxSize(size);
     SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_WHITE_COLOUR));
     Refresh();
 }
