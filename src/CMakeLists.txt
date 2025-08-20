@@ -22,6 +22,8 @@ add_subdirectory(qoi)
 # Adding libnest2d project for bin packing...
 add_subdirectory(libnest2d)
 
+find_package(libnoise REQUIRED)
+
 add_subdirectory(libslic3r)
 
 if (SLIC3R_GUI)
