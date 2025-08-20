@@ -166,7 +166,7 @@ perl support.t  # example test file
 - `src/libslic3r/Platform.cpp` - Platform abstractions and utilities
 - `src/libslic3r/MacUtils.mm` - macOS-specific utilities (Objective-C++)
 - Windows-specific build scripts and configurations
-- Linux distribution support scripts in `linux.d/`
+- Linux distribution support scripts in `scripts/linux.d/`
 
 ### Build and Development Tools
 - `cmake/modules/` - Custom CMake find modules and utilities
