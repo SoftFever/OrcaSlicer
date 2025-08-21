@@ -1,6 +1,10 @@
 #ifndef SLIC3R_SPOOLMAN_HPP
 #define SLIC3R_SPOOLMAN_HPP
 
+#include <boost/property_tree/ptree.hpp>
+#include <map>
+#include <libslic3r/Config.hpp>
+
 namespace pt = boost::property_tree;
 
 namespace Slic3r {

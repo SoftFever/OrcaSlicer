@@ -3,6 +3,7 @@
 #include <utility>
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 #include <boost/regex.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include "Spoolman.hpp"
 #include "Http.hpp"
 
