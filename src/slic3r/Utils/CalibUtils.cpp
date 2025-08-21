@@ -22,8 +22,8 @@
 
 namespace Slic3r {
 namespace GUI {
-const float MIN_PA_K_VALUE = 0.0;
-const float MAX_PA_K_VALUE = 2.0;
+const double MIN_PA_K_VALUE = 0.0;
+const double MAX_PA_K_VALUE = 2.0;
 
 std::unique_ptr<Worker> CalibUtils::print_worker;
 wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
@@ -1805,9 +1805,9 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     print_job->plate_data = plate_data;
     print_job->m_print_type = "from_normal";
 
-    print_job->task_ams_mapping = select_ams;
+    print_job->task_ams_mapping = "[" + select_ams + "]";
     print_job->task_ams_mapping_info = "";
-    print_job->task_use_ams = select_ams == "[254]" ? false : true;
+    print_job->task_use_ams = devPrinterUtil::IsVirtualSlot(select_ams);
 
     std::string new_ams_mapping = "[{\"ams_id\":" + std::to_string(calib_info.ams_id) + ", \"slot_id\":" + std::to_string(calib_info.slot_id) + "}]";
     print_job->task_ams_mapping2 = new_ams_mapping;
@@ -1871,7 +1871,7 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
     }
 
     auto print_job                = std::make_shared<PrintJob>(dev_id);
-    print_job->m_dev_ip = obj_->get_dev_ip();
+    print_job->m_dev_ip      = obj_->get_dev_ip();
     print_job->m_ftp_folder  = obj_->get_ftp_folder();
     print_job->m_access_code = obj_->get_access_code();
 
