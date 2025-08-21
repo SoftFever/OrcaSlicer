@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
     // clang-format off
     desc.add_options()("help,h", "help")
 #ifdef __APPLE__
-    ("path,p", po::value<std::string>()->default_value("../../../../../../resources/profiles"), "profile folder")
+    ("path,p", po::value<std::string>()->default_value("../../../../../../../resources/profiles"), "profile folder")
 #else
     ("path,p", po::value<std::string>()->default_value("../../../resources/profiles"), "profile folder")
 #endif
