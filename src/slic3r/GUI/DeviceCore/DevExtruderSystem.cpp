@@ -193,7 +193,12 @@ namespace Slic3r
             if (!tray_now.empty())
             {
                 int tray_now_int = atoi(tray_now.c_str());
-                if (tray_now_int == VIRTUAL_TRAY_MAIN_ID || tray_now_int == VIRTUAL_TRAY_DEPUTY_ID)
+                if (tray_now_int == VIRTUAL_TRAY_MAIN_ID)
+                {
+                    system->m_extders[MAIN_EXTRUDER_ID].m_snow.ams_id = "";
+                    system->m_extders[MAIN_EXTRUDER_ID].m_snow.slot_id = "";
+                }
+                else if (tray_now_int == VIRTUAL_TRAY_DEPUTY_ID)
                 {
                     system->m_extders[MAIN_EXTRUDER_ID].m_snow.ams_id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
                     system->m_extders[MAIN_EXTRUDER_ID].m_snow.slot_id = "0";
