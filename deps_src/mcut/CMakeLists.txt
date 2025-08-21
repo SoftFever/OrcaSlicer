@@ -34,7 +34,7 @@
 #	MCUT_INCLUDE_DIR - the MCUT include directory
 # 	MCUT_LIB_PATH - path to the MCUT library (i.e. .so/.dll or .a/.lib files)
 
-cmake_minimum_required(VERSION 3.12...3.13 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.13)
 
 project(mcut LANGUAGES CXX C) 
 
