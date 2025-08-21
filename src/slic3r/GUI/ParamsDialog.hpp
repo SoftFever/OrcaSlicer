@@ -5,7 +5,6 @@
 #include <wx/intl.h>
 #include <wx/collpane.h>
 
-#include "Event.hpp"
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 

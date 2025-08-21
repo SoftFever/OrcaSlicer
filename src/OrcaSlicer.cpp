@@ -73,7 +73,7 @@ using namespace nlohmann;
 //BBS: add exception handler for win32
 #include <wx/stdpaths.h>
 #ifdef WIN32
-#include "BaseException.h"
+#include "dev-utils/BaseException.h"
 #endif
 #include "slic3r/GUI/PartPlate.hpp"
 #include "slic3r/GUI/BitmapCache.hpp"

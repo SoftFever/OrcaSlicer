@@ -21,7 +21,7 @@
 #include <wx/statbox.h>
 
 #include <chrono>
-
+#include "Event.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Color.hpp"
 
