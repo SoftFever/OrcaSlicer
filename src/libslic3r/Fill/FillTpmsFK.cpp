@@ -287,7 +287,7 @@ static void process_block(int                                               i,
     }
 }
 
-static void drawContour(double                                            contourValue,
+static void drawContour(double                                     contourValue,
                  int                                               gridSize_w,
                  int                                               gridSize_h,
                  vector<vector<double>>&                           data,
@@ -371,30 +371,33 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     float       xlen    = boxsize.x();
     float       ylen    = boxsize.y();
 
-    const float delta = 0.9 * spacing; // mesh step (adjust for quality/performance)
+    const float delta = std::max(0.5f,vari_T/100); // mesh step (adjust for quality/performance)
 
     float myperiod = 2 * PI / vari_T;
     float c_z      = myperiod * this->z; // z height
 
     // scalar field Fischer-Koch
     auto scalar_field = [&](float x, float y) -> float {
-        float a_x       = myperiod * x;
-        float b_y       = myperiod * y;
+        const float a_x       = myperiod * x;
+        const float b_y       = myperiod * y;
+        const float cos2x     = 2 * cosf(a_x) * cosf(a_x) - 1;
+        const float cos2y     = 2 * cosf(b_y) * cosf(b_y) - 1;
+        const float cos2z     = 2 * cosf(c_z) * cosf(c_z) - 1;
 
         // Fischer - Koch S equation:
         // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y) = 0
-        return cosf(2.f * a_x) * sinf(b_y) * cosf(c_z)
-             + cosf(2.f * b_y) * sinf(c_z) * cosf(a_x) 
-             + cosf(2.f * c_z) * sinf(a_x) * cosf(b_y);
+        return cos2x * sinf(b_y) * cosf(c_z)
+             + cos2y * sinf(c_z) * cosf(a_x) 
+             + cos2z * sinf(a_x) * cosf(b_y);
     };
 
     // Mesh generation
     std::vector<std::vector<MarchingSquares::Point>> posxy;
     int                                              i = 0, j = 0;
-    for (float y = -(ylen) / 2.0f - 2; y < (ylen) / 2.0f + 2; y = y + delta, i++) {
+    for (float y = -(ylen) / 2.0f - 0.5f; y < (ylen) / 2.0f + 0.5f; y = y + delta, i++) {
         j = 0;
         std::vector<MarchingSquares::Point> colposxy;
-        for (float x = -(xlen) / 2.0f - 2; x < (xlen) / 2.0f + 2; x = x + delta, j++) {
+        for (float x = -(xlen) / 2.0f - 0.5f; x < (xlen) / 2.0f + 0.5f; x = x + delta, j++) {
             MarchingSquares::Point pt;
             pt.x = cenpos.x() + x;
             pt.y = cenpos.y() + y;
