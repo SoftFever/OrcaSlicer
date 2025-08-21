@@ -371,8 +371,7 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     float       xlen    = boxsize.x();
     float       ylen    = boxsize.y();
 
-    const float delta = std::max(0.4f,vari_T/100); // mesh step (adjust for quality/performance)
-
+    const float delta = 0.4f; // mesh step (adjust for quality/performance)
     float myperiod = 2 * PI / vari_T;
     float c_z      = myperiod * this->z; // z height
 
@@ -380,15 +379,12 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     auto scalar_field = [&](float x, float y) -> float {
         const float a_x       = myperiod * x;
         const float b_y       = myperiod * y;
-        const float cos2x     = 2 * cosf(a_x) * cosf(a_x) - 1;
-        const float cos2y     = 2 * cosf(b_y) * cosf(b_y) - 1;
-        const float cos2z     = 2 * cosf(c_z) * cosf(c_z) - 1;
 
         // Fischer - Koch S equation:
         // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y) = 0
-        return cos2x * sinf(b_y) * cosf(c_z)
-             + cos2y * sinf(c_z) * cosf(a_x) 
-             + cos2z * sinf(a_x) * cosf(b_y);
+        return cosf(2 * a_x) * sinf(b_y) * cosf(c_z)
+             + cosf(2 * b_y) * sinf(c_z) * cosf(a_x) 
+             + cosf(2 * c_z) * sinf(a_x) * cosf(b_y);
     };
 
     // Mesh generation
@@ -442,7 +438,10 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
 	if (! polylines.empty()) {
 		// connect lines
 		size_t polylines_out_first_idx = polylines_out.size();
-        chain_or_connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
+
+        //chain_or_connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
+        //chain_infill not situable for this pattern due to internal "islands", this also affect performance a lot.
+        connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
 
 	    // new paths must be rotated back
         if (std::abs(infill_angle) >= EPSILON) {
