@@ -3,35 +3,8 @@
     "name": "Fiberon PA612-CF @BBL H2D",
     "inherits": "Fiberon PA612-CF @base",
     "from": "system",
-    "filament_id": "GFL53",
     "setting_id": "GFL53_10",
     "instantiation": "true",
-    "compatible_printers": [
-        "Bambu Lab H2D 0.4 nozzle",
-        "Bambu Lab H2D 0.6 nozzle",
-        "Bambu Lab H2D 0.8 nozzle"
-    ],
-    "eng_plate_temp": [
-        "100"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "100"
-    ],
-    "fan_cooling_layer_time": [
-        "5"
-    ],
-    "fan_max_speed": [
-        "30"
-    ],
-    "fan_min_speed": [
-        "10"
-    ],
-    "filament_cost": [
-        "94.99"
-    ],
-    "filament_density": [
-        "1.06"
-    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -92,9 +65,6 @@
         "nil",
         "nil"
     ],
-    "filament_vendor": [
-        "Polymaker"
-    ],
     "filament_wipe": [
         "nil",
         "nil"
@@ -111,11 +81,17 @@
         "nil",
         "nil"
     ],
-    "hot_plate_temp": [
-        "100"
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
-    "hot_plate_temp_initial_layer": [
-        "100"
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
     ],
     "nozzle_temperature": [
         "290",
@@ -133,16 +109,17 @@
         "260",
         "260"
     ],
-    "slow_down_layer_time": [
-        "2"
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
     ],
-    "temperature_vitrification": [
-        "180"
+    "volumetric_speed_coefficients": [
+        "0;0;0;0;0;0",
+        "0;0;0;0;0;0"
     ],
-    "textured_plate_temp": [
-        "100"
-    ],
-    "textured_plate_temp_initial_layer": [
-        "100"
+    "compatible_printers": [
+        "Bambu Lab H2D 0.4 nozzle",
+        "Bambu Lab H2D 0.6 nozzle",
+        "Bambu Lab H2D 0.8 nozzle"
     ]
 }

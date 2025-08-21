@@ -3,34 +3,10 @@
     "name": "Fiberon PETG-rCF @BBL H2D",
     "inherits": "Fiberon PETG-rCF @base",
     "from": "system",
-    "filament_id": "GFL55",
     "setting_id": "GFL55_10",
     "instantiation": "true",
-    "compatible_printers": [
-        "Bambu Lab H2D 0.4 nozzle",
-        "Bambu Lab H2D 0.6 nozzle",
-        "Bambu Lab H2D 0.8 nozzle"
-    ],
-    "cool_plate_temp": [
-        "0"
-    ],
-    "cool_plate_temp_initial_layer": [
-        "0"
-    ],
-    "eng_plate_temp": [
-        "70"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "70"
-    ],
     "fan_cooling_layer_time": [
         "15"
-    ],
-    "fan_max_speed": [
-        "100"
-    ],
-    "fan_min_speed": [
-        "0"
     ],
     "filament_cost": [
         "29.99"
@@ -55,6 +31,7 @@
         "1"
     ],
     "filament_max_volumetric_speed": [
+        "12",
         "12"
     ],
     "filament_pre_cooling_temperature": [
@@ -97,9 +74,6 @@
         "nil",
         "nil"
     ],
-    "filament_vendor": [
-        "Polymaker"
-    ],
     "filament_wipe": [
         "nil",
         "nil"
@@ -116,11 +90,17 @@
         "nil",
         "nil"
     ],
-    "hot_plate_temp": [
-        "70"
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
-    "hot_plate_temp_initial_layer": [
-        "70"
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
     ],
     "nozzle_temperature": [
         "270",
@@ -138,16 +118,17 @@
         "240",
         "240"
     ],
-    "slow_down_layer_time": [
-        "2"
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
     ],
-    "temperature_vitrification": [
-        "70"
+    "volumetric_speed_coefficients": [
+        "0;0;0;0;0;0",
+        "0;0;0;0;0;0"
     ],
-    "textured_plate_temp": [
-        "70"
-    ],
-    "textured_plate_temp_initial_layer": [
-        "70"
+    "compatible_printers": [
+        "Bambu Lab H2D 0.4 nozzle",
+        "Bambu Lab H2D 0.6 nozzle",
+        "Bambu Lab H2D 0.8 nozzle"
     ]
 }
