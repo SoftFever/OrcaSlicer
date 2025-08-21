@@ -8,7 +8,7 @@
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/SoftFever/OrcaSlicer)](https://github.com/SoftFever/OrcaSlicer/stargazers) [![Build all](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/SoftFever/OrcaSlicer/actions/workflows/build_all.yml)
 
-OrcaSlicer: an open source Next-Gen Slicing Software for Precision 3D Prints.  
+OrcaSlicer: an open-source Next-Gen Slicing Software for Precision 3D Prints.  
 Optimize your prints with ultra-fast slicing, intelligent support generation, and seamless printer compatibility—engineered for perfection.
 <h3>
 
@@ -29,10 +29,28 @@ Optimize your prints with ultra-fast slicing, intelligent support generation, an
 <table border="2" style="border-color: #ffa500; background-color:rgb(232, 220, 180); color: #856404;">
 <tr>
 <td>
-<strong>⚠️ CAUTION:</strong><br><br>
+<strong>🚨🚨🚨⚠️ CAUTION:🚨🚨🚨</strong><br><br>
 There are several clickbait and malicious websites pretending to be Official OrcaSlicer. These sites may redirect you to dangerous downloads or contain misleading information.
 <br><br>
 If you come across any of these in search results, please report them as unsafe or spam to help keep the community secure.
+<br><br>List of known malicious sites:
+<ul>
+<li><a href="https://orca-slicer.com/">orca-slicer.com</a></li>
+<li><a href="https://orca-slicer.net/">orca-slicer.net</a></li>
+<li><a href="https://orca-slicer.org/">orca-slicer.org</a></li>
+<li><a href="https://orcaslicers.com/">orcaslicers.com</a></li>
+<li><a href="https://orcaslicerr.com/">orcaslicerr.com</a></li>
+<li><a href="https://orcaslicer.us/">orcaslicer.us</a></li>
+<li><a href="https://orcaslicers.org/">orcaslicers.org</a></li>
+<li><a href="https://orcaslicer.online/">orcaslicer.online</a></li>
+<li><a href="https://orcaslicer.cn/">orcaslicer.cn</a></li>
+<li><a href="https://orcaslicer.download/">orcaslicer.download</a></li>
+<li><a href="https://orcaslicer.net/">orcaslicer.net</a></li>
+<li><a href="https://orcaslicer.org/">orcaslicer.org</a></li>
+<li><a href="https://theorcaslicer.com/">theorcaslicer.com</a></li>
+<li><a href="https://orcaslicer3d.com/">orcaslicer3d.com</a></li>
+<li><a href="https://orcaslicer.pro/">orcaslicer.pro</a></li>
+</ul>
 </td>
 </tr>
 </table>
