@@ -371,7 +371,7 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     float       xlen    = boxsize.x();
     float       ylen    = boxsize.y();
 
-    const float delta = std::max(0.5f,vari_T/100); // mesh step (adjust for quality/performance)
+    const float delta = std::max(0.4f,vari_T/100); // mesh step (adjust for quality/performance)
 
     float myperiod = 2 * PI / vari_T;
     float c_z      = myperiod * this->z; // z height
@@ -425,19 +425,21 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     const double contour_value = 0; // offset from theoretical surface
     MarchingSquares::drawContour(contour_value, width , height , data, posxy, polylines, params);
 
-    if (!polylines.empty()) {
-        // Apply multiline offset if needed
-        multiline_fill(polylines, params, spacing);
+    // Apply multiline offset if needed
+    multiline_fill(polylines, params, spacing);
 
-        polylines = intersection_pl(polylines, expolygon);
+	polylines = intersection_pl(polylines, expolygon);
 
-        // Remove very small bits, but be careful to not remove infill lines connecting thin walls!
+    if (! polylines.empty()) {
+		// Remove very small bits, but be careful to not remove infill lines connecting thin walls!
         // The infill perimeter lines should be separated by around a single infill line width.
         const double minlength = scale_(0.8 * this->spacing);
 		polylines.erase(
 			std::remove_if(polylines.begin(), polylines.end(), [minlength](const Polyline &pl) { return pl.length() < minlength; }),
 			polylines.end());
+    }
 
+	if (! polylines.empty()) {
 		// connect lines
 		size_t polylines_out_first_idx = polylines_out.size();
         chain_or_connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
@@ -447,7 +449,6 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
 	        for (auto it = polylines_out.begin() + polylines_out_first_idx; it != polylines_out.end(); ++ it)
 	        	it->rotate(infill_angle);
 	    }
-        
     }
 }
 
