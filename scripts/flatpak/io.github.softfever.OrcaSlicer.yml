@@ -104,8 +104,12 @@ modules:
         url: https://github.com/SoftFever/Orca-deps-wxWidgets
         branch: master
         path: ../
-      - type: patch
+      - type: file
         path: patches/0001-Enable-using-a-dark-theme-when-Gnome-dark-style-is-s.patch
+        dest-filename: wxwidgets-dark-theme.patch
+      - type: shell
+        commands:
+          - patch -p1 < wxwidgets-dark-theme.patch
     cleanup:
       - "*.la"
       - "*.a"
@@ -118,23 +122,21 @@ modules:
     build-commands:
       # start build
       - |
-        mkdir deps/build && cd deps/build
+        mkdir -p deps/build_flatpak && cd deps/build_flatpak
         cmake ../ \
           -DDEP_WX_GTK3=ON \
           -DDEP_DOWNLOAD_DIR=/run/build/orca_deps/external-packages \
           -DCMAKE_PREFIX_PATH=/app \
           -DDESTDIR=/app \
-          -DCMAKE_INSTALL_LIBDIR=/app/lib \
           -DFLATPAK=ON \
           -DCMAKE_INSTALL_PREFIX=/app
-        cmake --build . 
-        rm -r /run/build/orca_deps/external-packages
+        cmake --build . --parallel
+        rm -rf /run/build/orca_deps/external-packages
     
     cleanup:
       - /app/include
       - "*.a"
       - "*.la"
-      - /app/lib/cmake
     
     sources:
       # -
@@ -146,7 +148,7 @@ modules:
       
       # OrcaSlicer Source Archive
       - type: dir 
-        path: ../
+        path: ../../
 
       # Blosc
       - type: file
@@ -259,8 +261,8 @@ modules:
     buildsystem: simple
     build-commands:
       - |
-        mkdir -p build
-        CXXFLAGS=-std=gnu++20 cmake . -B build \
+        mkdir -p build_flatpak
+        CXXFLAGS=-std=gnu++20 cmake . -B build_flatpak \
           -DSLIC3R_PCH=OFF \
           -DSLIC3R_FHS=ON \
           -DSLIC3R_GTK=3 \
@@ -272,9 +274,9 @@ modules:
           -DBBL_RELEASE_TO_PUBLIC=1 \
           -DCMAKE_PREFIX_PATH=/app \
           -DCMAKE_INSTALL_PREFIX=/app
-        CXXFLAGS=-std=gnu++20 cmake --build build --target OrcaSlicer -j$FLATPAK_BUILDER_N_JOBS
+        CXXFLAGS=-std=gnu++20 cmake --build build_flatpak --target OrcaSlicer -j$FLATPAK_BUILDER_N_JOBS
         ./scripts/run_gettext.sh
-        CXXFLAGS=-std=gnu++20 cmake --build build --target install -j$FLATPAK_BUILDER_N_JOBS
+        CXXFLAGS=-std=gnu++20 cmake --build build_flatpak --target install -j$FLATPAK_BUILDER_N_JOBS
 
     cleanup:
       - /include
@@ -299,7 +301,7 @@ modules:
 
       # OrcaSlicer Source Archive
       - type: dir 
-        path: ../
+        path: ../../
 
       # AppData metainfo for Gnome Software & Co.
       - type: file
