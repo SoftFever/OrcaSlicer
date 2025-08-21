@@ -17,16 +17,13 @@ add_library(qhull INTERFACE)
 if(Qhull_FOUND)
 
 message(STATUS "Using qhull from system.")
-if(SLIC3R_STATIC)
-    slic3r_remap_configs("Qhull::qhullcpp;Qhull::qhullstatic_r" RelWithDebInfo Release)
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        target_link_libraries(qhull INTERFACE Qhull::qhullcpp_d Qhull::qhullstatic_rd)
-    else()
-        target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhullstatic_r)
-    endif()
+slic3r_remap_configs("qhullcpp;qhullstatic_r" RelWithDebInfo Release)
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    # QHull's CMakeLists.txt does something weird to name debug libraries
+    # This shouldn't be necessary if that's fixed
+    target_link_libraries(qhull INTERFACE qhullcpp_d qhullstatic_rd)
 else()
-    slic3r_remap_configs("Qhull::qhullcpp;Qhull::qhull_r" RelWithDebInfo Release)
-    target_link_libraries(qhull INTERFACE Qhull::qhullcpp Qhull::qhull_r)
+    target_link_libraries(qhull INTERFACE qhullcpp qhullstatic_r)
 endif()
 
 else(Qhull_FOUND)
