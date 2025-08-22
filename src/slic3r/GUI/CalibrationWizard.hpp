@@ -1,7 +1,7 @@
 #ifndef slic3r_GUI_CalibrationWizard_hpp_
 #define slic3r_GUI_CalibrationWizard_hpp_
 
-#include "../slic3r/Utils/CalibUtils.hpp"
+#include "slic3r/Utils/CalibUtils.hpp"
 
 #include "DeviceManager.hpp"
 #include "CalibrationWizardPage.hpp"
