@@ -189,7 +189,7 @@ function build_slicer() {
         echo "Verify localization with gettext..."
         (
             cd "$PROJECT_DIR"
-            ./run_gettext.sh
+            ./scripts/run_gettext.sh
         )
 
         echo "Fix macOS app package..."

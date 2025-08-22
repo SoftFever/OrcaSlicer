@@ -13,7 +13,7 @@ on:
      - 'localization/**'
      - 'resources/**'
      - ".github/workflows/build_*.yml"
-     - 'flatpak/**'
+     - 'scripts/flatpak/**'
 
   pull_request:
     branches:
@@ -28,7 +28,7 @@ on:
      - 'build_linux.sh'
      - 'build_release_vs2022.bat'
      - 'build_release_macos.sh'
-     - 'flatpak/**'
+     - 'scripts/flatpak/**'
 
   workflow_dispatch: # allows for manual dispatch
     inputs:
@@ -103,7 +103,7 @@ jobs:
     - uses: flathub-infra/flatpak-github-actions/flatpak-builder@master
       with:
         bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
-        manifest-path: flatpak/io.github.softfever.OrcaSlicer.yml
+        manifest-path: scripts/flatpak/io.github.softfever.OrcaSlicer.yml
         cache: true
         arch: ${{ matrix.variant.arch }}
         upload-artifact: false
