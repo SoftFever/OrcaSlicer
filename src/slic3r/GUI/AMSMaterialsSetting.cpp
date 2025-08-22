@@ -1169,9 +1169,6 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         std::vector<PACalibResult> cali_history = this->obj->pa_calib_tab;
         for (auto cali_item : cali_history) {
             if (cali_item.filament_id == ams_filament_id) {
-                if (obj->is_multi_extruders() && (cali_item.extruder_id != extruder_id || cali_item.nozzle_volume_type != nozzle_volume_type)) {
-                    continue;
-                }
                 items.push_back(from_u8(cali_item.name));
                 m_pa_profile_items.push_back(cali_item);
             }
