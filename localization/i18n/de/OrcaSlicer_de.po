@@ -30,7 +30,7 @@ msgid "Temperature"
 msgstr "Temperatur"
 
 msgid "Left Time"
-msgstr ""
+msgstr "Verbleibende Zeit"
 
 msgid "Serial:"
 msgstr "Seriennummer:"
@@ -188,10 +188,10 @@ msgid "Toggle Wireframe"
 msgstr "Gittermodell ein-/ausblenden"
 
 msgid "Remap filaments"
-msgstr ""
+msgstr "Filament zuordnen"
 
 msgid "Remap"
-msgstr ""
+msgstr "Zuordnung"
 
 msgid "Cancel"
 msgstr "Abbrechen"
@@ -219,7 +219,7 @@ msgid "Painted using: Filament %1%"
 msgstr "Gemalt mit: Filament %1%"
 
 msgid "Filament remapping finished."
-msgstr ""
+msgstr "Filamentzuordnung abgeschlossen."
 
 msgid "Move"
 msgstr "Bewegen"
@@ -228,7 +228,7 @@ msgid "Please select at least one object."
 msgstr "Bitte wählen Sie mindestens ein Objekt aus."
 
 msgid "Gizmo-Move"
-msgstr "Gizmo-Bewegen"
+msgstr "Gizmo-Bewegen" 
 
 msgid "Rotate"
 msgstr "Drehen"
@@ -317,7 +317,7 @@ msgid "Reset current rotation to real zeros."
 msgstr "Setze die aktuelle Rotation auf die realen Nullen zurück."
 
 msgid "Part coordinates"
-msgstr ""
+msgstr "Teile Koordinaten"
 
 #. TRN - Input label. Be short as possible
 msgid "Size"
@@ -1581,7 +1581,7 @@ msgstr "WebView2-Runtime"
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
-msgstr ""
+msgstr "Ressourcenpfad existiert nicht oder ist kein Verzeichnis: %s"
 
 #, c-format, boost-format
 msgid ""
@@ -4287,7 +4287,7 @@ msgid "Some extension in the input is invalid"
 msgstr "Erweiterung in der Eingabe ist ungültig"
 
 msgid "This parameter expects a valid template."
-msgstr ""
+msgstr "Dieser Parameter erwartet eine gültige Vorlage."
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
@@ -7723,7 +7723,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle in preset: %.1f %s"
-msgstr ""
+msgstr "Düse im Preset: %.1f %s"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
@@ -8633,6 +8633,9 @@ msgid ""
 "If the preset corresponds to a filament currently in use on your printer, "
 "please reset the filament information for that slot."
 msgstr ""
+"Sind Sie sicher die gewählte Voreinstellung zu löschen? \n"
+"Wenn die Voreinstellung einem Filament entspricht, das derzeit auf Ihrem Drucker "
+"verwendet wird, setzen Sie bitte die Filamentinformationen für diesen Slot zurück."
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -8887,7 +8890,7 @@ msgid "Obj file Import color"
 msgstr "Obj-Datei Importfarbe"
 
 msgid "Specify number of colors:"
-msgstr ""
+msgstr "Anzahl der Farben angeben:"
 
 #, c-format, boost-format
 msgid "The color count should be in range [%d, %d]."
@@ -10471,11 +10474,12 @@ msgid "Smooth High Temp Plate"
 msgstr "Glatte Hochtemperatur-Druckplatte"
 
 msgid "Default bed type"
-msgstr ""
+msgstr "Standard Druckbett-Typ"
 
 msgid ""
 "Default bed type for the printer (supports both numeric and string format)."
 msgstr ""
+"Standard Druckbett-Typ für den Drucker (unterstützt sowohl numerisches als auch "
 
 msgid "First layer print sequence"
 msgstr "Erste Schicht Druckreihenfolge"
@@ -12446,7 +12450,7 @@ msgid "TPMS-D"
 msgstr "TPMS-D"
 
 msgid "TPMS-FK"
-msgstr ""
+msgstr "TPMS-FK"
 
 msgid "Gyroid"
 msgstr "Gyroid"
@@ -12811,7 +12815,7 @@ msgid "Whether to apply fuzzy skin on the first layer."
 msgstr "Ob Fuzzy Skin auf die erste Schicht angewendet werden soll"
 
 msgid "Fuzzy skin generator mode"
-msgstr ""
+msgstr "Fuzzy Skin Generierungsmodus"
 
 #, c-format, boost-format
 msgid ""
@@ -14420,7 +14424,7 @@ msgid "Aligned"
 msgstr "Ausgerichtet"
 
 msgid "Aligned back"
-msgstr ""
+msgstr "Ausgerichtet hinten"
 
 msgid "Back"
 msgstr "Rückseite"
@@ -18464,7 +18468,7 @@ msgid "Daily Tips"
 msgstr "Tägliche Tipps"
 
 msgid "BigTraffic"
-msgstr ""
+msgstr "Großer Verkehr"
 
 #, c-format, boost-format
 msgid "nozzle in preset: %s %s"
@@ -18915,12 +18919,20 @@ msgid ""
 "height. This results in very apparent layer lines and much lower print "
 "quality, but shorter print time in some cases."
 msgstr ""
+"Im Vergleich zum Standardprofil einer 0,8 mm Düse hat es eine größere "
+"Schichthöhe und führt zu deutlich sichtbaren Schichtlinien und einer "
+"niedrigeren Druckqualität, aber in einigen Fällen zu einer kürzeren "
+"Druckzeit."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
 "layer height. This results in extremely apparent layer lines and much lower "
 "print quality, but much shorter print time in some cases."
 msgstr ""
+"Im Vergleich zum Standardprofil einer 0,8 mm Düse hat es eine viel größere "
+"Schichthöhe und führt zu extrem deutlichen Schichtlinien und einer viel "
+"niedrigeren Druckqualität, aber in einigen Fällen zu einer viel kürzeren "
+"Druckzeit."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
@@ -18937,6 +18949,11 @@ msgid ""
 "height. This results in less but still apparent layer lines and slightly "
 "higher print quality but longer print time in some cases."
 msgstr ""
+"Im Vergleich zum Standardprofil einer 0,8 mm Düse hat es eine kleinere "
+"Schichthöhe und führt zu weniger, aber immer noch deutlichen "
+"Schichtlinien und einer leicht höheren Druckqualität, aber einer längeren "
+"Druckzeit in einigen Fällen."
+
 
 msgid "Connected to Obico successfully!"
 msgstr "Erfolgreich mit Obico verbunden!"
@@ -19032,7 +19049,7 @@ msgid "Brim Ears"
 msgstr "Mausohren"
 
 msgid "Please select single object."
-msgstr ""
+msgstr "Bitte wählen Sie ein einzelnes Objekt aus."
 
 #: resources/data/hints.ini: [hint:Precise wall]
 msgid ""
