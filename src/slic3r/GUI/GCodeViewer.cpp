@@ -961,12 +961,14 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     reset();
 
     //BBS: add mutex for protection of gcode result
+    wxGetApp().plater()->suppress_background_process(true);
     gcode_result.lock();
     //BBS: add safe check
     if (gcode_result.moves.size() == 0) {
         //result cleaned before slicing ,should return here
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result reset before, return directly!");
         gcode_result.unlock();
+        wxGetApp().plater()->schedule_background_process();
         return;
     }
 
@@ -1002,6 +1004,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     //BBS: add mutex for protection of gcode result
     if (m_layers.empty()) {
         gcode_result.unlock();
+        wxGetApp().plater()->schedule_background_process();
         return;
     }
 
@@ -1104,6 +1107,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     filament_printable_reuslt = gcode_result.filament_printable_reuslt;
     //BBS: add mutex for protection of gcode result
     gcode_result.unlock();
+    wxGetApp().plater()->schedule_background_process();
     //BBS: add logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, m_buffers size %1%!")%m_buffers.size();
 }
