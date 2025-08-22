@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2025-03-07 09:30+0200\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
@@ -36,14 +36,6 @@ msgid "Temperature"
 msgstr "Температура"
 
 msgid "Left Time"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
 msgstr ""
 
 msgid "Serial:"
@@ -200,6 +192,15 @@ msgstr "Alt + Shift + Enter"
 msgid "Toggle Wireframe"
 msgstr "Перемикання каркасу"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Скасувати"
+
 msgid "Shortcut Key "
 msgstr "Комбінація клавіш "
 
@@ -221,6 +222,9 @@ msgstr "Видалити зафарбований колір"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Забарвлений за допомогою: Філамент %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Перемістити"
@@ -490,9 +494,6 @@ msgstr "Пропорція простору в залежності від ра�
 
 msgid "Confirm connectors"
 msgstr "Підтвердити з'єднувачі"
-
-msgid "Cancel"
-msgstr "Скасувати"
 
 msgid "Build Volume"
 msgstr "Робочий об'єм"
@@ -2883,8 +2884,8 @@ msgstr "Завантаження"
 msgid "Download failed"
 msgstr "Помилка завантаження"
 
-msgid "Cancelled"
-msgstr ""
+msgid "Canceled"
+msgstr "Скасовано"
 
 msgid "Installed successfully"
 msgstr "Успішне встановлення."
@@ -3880,7 +3881,6 @@ msgstr ""
 "seam_slope_start_height має бути менше висоти шару.\n"
 "Значення скинуто на 0."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10290,6 +10290,13 @@ msgstr "Гладка Холодна Пластина"
 msgid "Smooth High Temp Plate"
 msgstr "Гладка Високотемпературна Пластина"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Послідовність друку першого шару"
 
@@ -12208,10 +12215,10 @@ msgstr "Медові стільники"
 msgid "3D Honeycomb"
 msgstr "3D медові стільники"
 
-msgid "2D Honeycomb"
+msgid "Lateral Honeycomb"
 msgstr ""
 
-msgid "2D Lattice"
+msgid "Lateral Lattice"
 msgstr "2D Решітка"
 
 msgid "Cross Hatch"
@@ -12220,24 +12227,27 @@ msgstr "Перехресний штрих"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Гіроїд"
 
-msgid "Lattice angle 1"
+msgid "Lateral lattice angle 1"
 msgstr "Кут решітки 1"
 
 msgid ""
-"The angle of the first set of 2D lattice elements in the Z direction. Zero "
+"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr ""
 "Кут першого набору 2D-решіткових елементів у напрямку Z. Нуль означає "
 "вертикальне розташування."
 
-msgid "Lattice angle 2"
+msgid "Lateral lattice angle 2"
 msgstr "Кут решітки 1"
 
 msgid ""
-"The angle of the second set of 2D lattice elements in the Z direction. Zero "
+"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr ""
 "Кут другого набору 2D-решіткових елементів у напрямку Z. Нуль означає "
@@ -14099,6 +14109,9 @@ msgstr "Найближче"
 
 msgid "Aligned"
 msgstr "Вирівняне"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Ззаду"
@@ -16464,9 +16477,6 @@ msgstr ""
 "Невідомий формат файлу: вхідний файл повинен мати розширення .3mf "
 "або .zip.amf."
 
-msgid "Canceled"
-msgstr "Скасовано"
-
 msgid "load_obj: failed to parse"
 msgstr "помилка завантаження файлу OBJ: не вдалося розпізнати формат"
 
@@ -16568,7 +16578,7 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 "Будь ласка, введіть дійсні значення:\n"
 "Початкове значення: >= %.1f\n"
@@ -17109,7 +17119,7 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 "Введіть допустимі значення:\n"
 "Початковий PA: >= 0,0\n"
@@ -17156,7 +17166,7 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 "Будь ласка, введіть правильні значення:\n"
 "Початкова температура: <= 350\n"
@@ -17174,9 +17184,9 @@ msgstr "Кінцева об'ємна швидкість: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Будь ласка, введіть дійсні значення:\n"
 "старт > 0 \n"
@@ -17194,9 +17204,9 @@ msgstr "Кінцева швидкість: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Будь ласка, введіть коректні значення:\n"
 "початок > 10\n"
@@ -17227,9 +17237,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
-
 msgid "Damp: "
 msgstr ""
 
@@ -17239,8 +17246,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
@@ -17259,8 +17266,8 @@ msgid "Note: Use previously calculated frequencies."
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
 
 msgid ""
@@ -17283,7 +17290,7 @@ msgid "Note: Lower values = sharper corners but slower speeds"
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
 
@@ -17345,7 +17352,7 @@ msgstr "У черзі"
 msgid "Uploading"
 msgstr "Завантаження"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Скасування"
 
 msgid "Error uploading to print host"
@@ -18176,8 +18183,8 @@ msgstr "Підключення до Repetier працює правильно."
 msgid "Could not connect to Repetier"
 msgstr "Не вдалося підключитися до Repetier"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "Примітка: потрібна версія Repetier принаймні 0.90.0."
 
 #, boost-format
 msgid ""
@@ -19223,9 +19230,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "Оновити принтери"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "Примітка: потрібна версія Repetier принаймні 0.90.0."
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "

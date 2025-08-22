@@ -115,13 +115,13 @@ elif [[ "${DISTRIBUTION_LIKE}" == *"arch"* ]] ; then
     DISTRIBUTION="arch"
 fi
 
-if [ ! -f ./linux.d/${DISTRIBUTION} ] ; then
-    echo "Your distribution \"${DISTRIBUTION}\" is not supported by system-dependency scripts in ./linux.d/"
+if [ ! -f ./scripts/linux.d/${DISTRIBUTION} ] ; then
+    echo "Your distribution \"${DISTRIBUTION}\" is not supported by system-dependency scripts in ./scripts/linux.d/"
     echo "Please resolve dependencies manually and contribute a script for your distribution to upstream."
     exit 1
 else
     echo "resolving system dependencies for distribution \"${DISTRIBUTION}\" ..."
-    source ./linux.d/${DISTRIBUTION}
+    source ./scripts/linux.d/${DISTRIBUTION}
 fi
 
 echo "FOUND_GTK3=${FOUND_GTK3}"
@@ -189,7 +189,7 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
         BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
     fi
 
-    CMAKE_CMD="cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja \
+    CMAKE_CMD="cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja Multi-Config \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
 -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
 -DSLIC3R_STATIC=1 \
@@ -203,7 +203,7 @@ ${BUILD_ARGS}"
     cmake --build build --target OrcaSlicer
     echo "Building OrcaSlicer_profile_validator .."
     cmake --build build --target OrcaSlicer_profile_validator
-    ./run_gettext.sh
+    ./scripts/run_gettext.sh
     echo "done"
 fi
 

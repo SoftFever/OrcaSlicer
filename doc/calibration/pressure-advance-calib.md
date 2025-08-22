@@ -13,7 +13,7 @@ Orca Slicer includes three approaches for calibrating the pressure advance value
 
 > [!WARNING]
 > **Bambulab Printers:** make sure you do not select the 'Flow calibration' option.
-> ![flow-rate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.png?raw=true)
+> ![flowrate-Bambulab-uncheck](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Flow-Rate/flowrate-Bambulab-uncheck.png?raw=true)
 
 ## Line method
 
@@ -41,20 +41,20 @@ The pattern method is adapted from [Andrew Ellis' pattern method generator](http
 Test configuration window allow user to generate one or more tests in a single projects. Multiple tests will be placed on each plate with extra plates added if needed.
 
 1. Single test \
-   ![PA pattern single test](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-single.png?raw=true)
+   ![pa-pattern-single](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-single.png?raw=true)
 2. Batch mode testing (multiple tests on a single plate) \
-   ![PA pattern batch mode](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch.png?raw=true)
+   ![pa-pattern-batch](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch.png?raw=true)
 
 Once test generated, one or more small rectangular prisms could be found on the plate, one for each test case. This object serves a few purposes:
 
 1. The test pattern itself is added in as custom G-Code at each layer, same as you could do by hand actually. The rectangular prism gives us the layers in which to insert that G-Code. This also means that **you'll see the full test pattern when you move to the Preview pane:**
 
-![PA pattern batch mode plater](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch-plater.png?raw=true)
+![pa-pattern-batch-plater](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch-plater.png?raw=true)
 
 1. The prism acts as a handle, enabling you to move the test pattern wherever you'd like on the plate by moving the prism
 2. Each test object is pre-configured with target parameters which are reflected in the objects name. However, test parameters may be adjusted for each prism individually by referring to the object list pane:
 
-![PA pattern batch mode object list](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch-objects.png?raw=true)
+![pa-pattern-batch-objects](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch-objects.png?raw=true)
 
 Next, Ellis' generator provided the ability to adjust specific printer, filament, and print profile settings. You can make these same changes in Orca Slicer by adjusting the settings in the Prepare pane as you would with any other print. When you initiate the calibration test, Ellis' default settings are applied. A few things to note about these settings:
 

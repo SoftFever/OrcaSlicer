@@ -36,7 +36,7 @@
         "0.95"
     ],
     "filament_vendor": [
-        "Tiertime Lab"
+        "Tiertime"
     ],
     "hot_plate_temp": [
         "70"
@@ -76,6 +76,8 @@
     ],
     "compatible_printers": [
         "Tiertime UP400 Pro 0.4 nozzle",
+        "Tiertime UP400 Pro 0.6 nozzle",
+        "Tiertime UP400 Pro 0.8 nozzle",
         "Tiertime UP310 Pro 0.4 nozzle"
     ],
     "filament_start_gcode": [
