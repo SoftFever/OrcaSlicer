@@ -2361,9 +2361,9 @@ Preset* CalibrationPresetPage::get_printer_preset(MachineObject* obj, float nozz
         if (!printer_it->is_system) continue;
 
         ConfigOption* printer_nozzle_opt = printer_it->config.option("nozzle_diameter");
-        ConfigOptionFloatsNullable *printer_nozzle_vals = nullptr;
+        ConfigOptionFloats *printer_nozzle_vals = nullptr;
         if (printer_nozzle_opt)
-            printer_nozzle_vals = dynamic_cast<ConfigOptionFloatsNullable*>(printer_nozzle_opt);
+            printer_nozzle_vals = dynamic_cast<ConfigOptionFloats*>(printer_nozzle_opt);
         std::string model_id = printer_it->get_current_printer_type(preset_bundle);
 
         std::string printer_type = obj->printer_type;
