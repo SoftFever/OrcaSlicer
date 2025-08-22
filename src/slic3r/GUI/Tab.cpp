@@ -3823,7 +3823,7 @@ void TabFilament::build()
 
         //BBS
         optgroup = page->new_optgroup(L("Volumetric speed limitation"), L"param_volumetric_speed");
-        optgroup->append_single_option_line("filament_adaptive_volumetric_speed");
+        optgroup->append_single_option_line("filament_adaptive_volumetric_speed", "", 0);
         optgroup->append_single_option_line("filament_max_volumetric_speed");
 
         //line = { "", "" };
@@ -4090,8 +4090,8 @@ void TabFilament::toggle_options()
         toggle_line("chamber_temperature", support_chamber_temp_control);
 
         std::string volumetric_speed_cos = m_config->opt_string("volumetric_speed_coefficients", 0u);
-        bool enable_fit = volumetric_speed_cos != "0;0;0;0;0;0";
-        toggle_option("filament_adaptive_volumetric_speed", enable_fit);
+        bool enable_fit = volumetric_speed_cos != "0 0 0 0 0 0";
+        toggle_option("filament_adaptive_volumetric_speed", enable_fit, 256 + 0u);
     }
 
     if (m_active_page->title() == L("Setting Overrides"))

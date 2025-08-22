@@ -119,8 +119,8 @@
         "6"
     ],
     "volumetric_speed_coefficients": [
-        "0;0;0;0;0;0",
-        "0;0;0;0;0;0"
+        "0 0 0 0 0 0",
+        "0 0 0 0 0 0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D Pro 0.2 nozzle"

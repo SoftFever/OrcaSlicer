@@ -5803,7 +5803,7 @@ double GCode::calc_max_volumetric_speed(const double layer_height, const double 
     std::stringstream   ss(co_str);
     std::string         token;
 
-    while (std::getline(ss, token, ';')) {
+    while (std::getline(ss, token, ' ')) {
         try {
             cs.push_back(std::stod(token));
         } catch (...) {

@@ -12,13 +12,17 @@
         "nil",
         "nil"
     ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
     "filament_flow_ratio": [
         "0.95",
         "0.95"
+    ],
+    "filament_flush_temp": [
+        "0",
+        "0"
+    ],
+    "filament_flush_volumetric_speed": [
+        "0",
+        "0"
     ],
     "filament_long_retractions_when_cut": [
         "1",
@@ -27,14 +31,6 @@
     "filament_max_volumetric_speed": [
         "12",
         "12"
-    ],
-    "filament_pre_cooling_temperature": [
-        "0",
-        "0"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
     ],
     "filament_ramming_volumetric_speed": [
         "-1",
@@ -84,17 +80,29 @@
         "nil",
         "nil"
     ],
-    "filament_flush_volumetric_speed": [
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "filament_pre_cooling_temperature": [
         "0",
         "0"
     ],
-    "filament_flush_temp": [
+    "filament_ramming_travel_time": [
         "0",
         "0"
     ],
     "long_retractions_when_ec": [
         "0",
         "0"
+    ],
+    "nozzle_temperature_range_low": [
+        "280",
+        "280"
+    ],
+    "nozzle_temperature_range_high": [
+        "300",
+        "300"
     ],
     "nozzle_temperature": [
         "300",
@@ -104,21 +112,13 @@
         "300",
         "300"
     ],
-    "nozzle_temperature_range_high": [
-        "300",
-        "300"
-    ],
-    "nozzle_temperature_range_low": [
-        "280",
-        "280"
-    ],
     "retraction_distances_when_ec": [
         "0",
         "0"
     ],
     "volumetric_speed_coefficients": [
-        "0;0;0;0;0;0",
-        "0;0;0;0;0;0"
+        "0 0 0 0 0 0",
+        "0 0 0 0 0 0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

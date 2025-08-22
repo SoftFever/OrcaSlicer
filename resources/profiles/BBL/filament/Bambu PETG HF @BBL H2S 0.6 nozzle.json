@@ -131,8 +131,8 @@
         "20"
     ],
     "volumetric_speed_coefficients": [
-        "0;0;0;0;0;0",
-        "0;0;0;0;0;0"
+        "0 0 0 0 0 0",
+        "0 0 0 0 0 0"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.6 nozzle"
