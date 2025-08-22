@@ -261,6 +261,7 @@ public:
     void parse_ext_info(MachineObject* obj, DevAmsTray tray);
 
     bool support_drying() const { return (ams_type == AMSModel::N3S_AMS) || (ams_type == AMSModel::N3F_AMS); };
+    bool support_humidity() const { return  1 <= get_humidity_display_idx() && get_humidity_display_idx() <= 5; }
     Caninfo get_caninfo(const std::string& can_id, bool& found) const;
 
     int  get_humidity_display_idx() const;
@@ -739,9 +740,6 @@ public:
     ScalableBitmap ams_sun_img;
     ScalableBitmap ams_drying_img;
 
-
-    int      m_humidity = { 0 };
-    bool     m_show_humidity = { false };
     bool     m_vams_loading{ false };
     AMSModel m_ams_model;
 
