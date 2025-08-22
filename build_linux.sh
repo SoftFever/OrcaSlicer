@@ -30,7 +30,7 @@ function check_available_memory_and_disk() {
 }
 
 function usage() {
-    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-u][-l]"
+    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-t][-u][-l]"
     echo "   -1: limit builds to one core (where possible)"
     echo "   -j N: limit builds to N cores (where possible)"
     echo "   -b: build in debug mode"
@@ -42,16 +42,18 @@ function usage() {
     echo "   -p: boost ccache hit rate by disabling precompiled headers (default: ON)"
     echo "   -r: skip RAM and disk checks (low RAM compiling)"
     echo "   -s: build the Orca Slicer (optional)"
+    echo "   -t: build tests (optional)"
     echo "   -u: install system dependencies (asks for sudo password; build prerequisite)"
     echo "   -l: use Clang instead of GCC (default: GCC)"
     echo "For a first use, you want to './${SCRIPT_NAME} -u'"
     echo "   and then './${SCRIPT_NAME} -dsi'"
+    echo "To build with tests: './${SCRIPT_NAME} -st' or './${SCRIPT_NAME} -dst'"
 }
 
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
-while getopts ":1j:bcCdhiprsul" opt ; do
+while getopts ":1j:bcCdhiprstul" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -85,6 +87,9 @@ while getopts ":1j:bcCdhiprsul" opt ; do
         ;;
     s )
         BUILD_ORCA="1"
+        ;;
+    t )
+        BUILD_TESTS="1"
         ;;
     u )
         UPDATE_LIB="1"
@@ -188,16 +193,18 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     else
         BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
     fi
+    if [[ -n "${BUILD_TESTS}" ]] ; then
+        BUILD_ARGS="${BUILD_ARGS} -DBUILD_TESTS=ON"
+    fi
 
-    CMAKE_CMD="cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja Multi-Config \
+    echo "Configuring OrcaSlicer..."
+    cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G "Ninja Multi-Config" \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
 -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
 -DSLIC3R_STATIC=1 \
 -DORCA_TOOLS=ON \
 ${COLORED_OUTPUT} \
-${BUILD_ARGS}"
-    echo -e "${CMAKE_CMD}"
-    ${CMAKE_CMD}
+${BUILD_ARGS}
     echo "done"
     echo "Building OrcaSlicer ..."
     cmake --build build --target OrcaSlicer
