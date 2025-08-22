@@ -20,16 +20,15 @@ Infill is the internal structure of a 3D print, providing strength and support. 
 
 Infill density determines the amount of material used to fill the interior of a 3D print. It is usually expressed as a percentage, with 100% being completely solid.
 
-> [!NOTE]
-> Density usually is calculated as a % of the total infill volume, not the total print volume.
-> But not all [patterns](strength_settings_patterns) interpret density the same way.
-
 - Higher density increases
   - Strength
   - Material usage
   - Print time.
 
-Nevertheless, **not all patterns interpret density the same way**, so the actual material usage may vary. You can see each pattern's material usage in the [Patterns section](strength_settings_patterns).
+> [!NOTE]
+> Density usually is calculated as a % of the total infill volume, not the total print volume.  
+> Nevertheless, **not all patterns interpret density the same way**, so the actual material usage may vary.  
+> You can see each pattern's material usage in the [Patterns section](strength_settings_patterns).
 
 ## Fill Multiline
 
