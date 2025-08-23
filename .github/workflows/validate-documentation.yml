@@ -7,6 +7,11 @@ on:
       - 'doc/**/*.md'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   validate:
     runs-on: windows-latest

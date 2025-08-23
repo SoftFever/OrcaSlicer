@@ -2930,8 +2930,10 @@ void TabPrintPlate::reset_model_config()
         }
         auto plate = dynamic_cast<PartPlate*>(plate_item.first);
         plate->reset_bed_type();
+        plate->reset_skirt_start_angle();
         plate->set_print_seq(PrintSequence::ByDefault);
         plate->set_first_layer_print_sequence({});
+        plate->set_other_layers_print_sequence({});
         plate->set_spiral_vase_mode(false, true);
         notify_changed(plate_item.first);
     }
