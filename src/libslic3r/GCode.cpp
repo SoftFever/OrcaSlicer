@@ -1839,9 +1839,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_last_layer_z = 0.f;
     m_max_layer_z  = 0.f;
     m_last_width = 0.f;
-    m_is_overhang_fan_on = false;
-    m_is_internal_bridge_fan_on = false;
-    m_is_supp_interface_fan_on = false;
+    m_is_role_based_fan_on.fill(false);
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_last_mm3_per_mm = 0.;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -2041,6 +2039,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser_integration.parser = print.placeholder_parser();
     m_placeholder_parser_integration.parser.update_timestamp();
+    m_placeholder_parser_integration.parser.update_user_name();
     m_placeholder_parser_integration.context.rng = std::mt19937(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     // Enable passing global variables between PlaceholderParser invocations.
     m_placeholder_parser_integration.context.global_config = std::make_unique<DynamicConfig>();
@@ -3722,6 +3721,7 @@ LayerResult GCode::process_layer(
     if(is_BBL_Printer()){
         if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
             std::string timepals_gcode = insert_timelapse_gcode();
+            if(!timepals_gcode.empty()){
             gcode += timepals_gcode;
             m_writer.set_current_position_clear(false);
             //BBS: check whether custom gcode changes the z position. Update if changed
@@ -3730,6 +3730,7 @@ LayerResult GCode::process_layer(
                 Vec3d pos = m_writer.get_position();
                 pos(2) = temp_z_after_timepals_gcode;
                 m_writer.set_position(pos);
+            }
             }
         }
     } else {
@@ -3904,7 +3905,7 @@ LayerResult GCode::process_layer(
         if (layer_to_print.object_layer) {
             const auto& regions = layer_to_print.object_layer->regions();
             const bool  enable_overhang_speed = std::any_of(regions.begin(), regions.end(), [](const LayerRegion* r) {
-                return r->has_extrusions() && r->region().config().enable_overhang_speed && !r->region().config().overhang_speed_classic;
+                return r->has_extrusions() && r->region().config().enable_overhang_speed;
             });
             if (enable_overhang_speed) {
                 m_extrusion_quality_estimator.prepare_for_new_layer(layer_to_print.original_object,
@@ -4135,6 +4136,7 @@ LayerResult GCode::process_layer(
                     m_writer.add_object_change_labels(gcode);
 
                     std::string timepals_gcode = insert_timelapse_gcode();
+                    if(!timepals_gcode.empty()){
                     gcode += timepals_gcode;
                     m_writer.set_current_position_clear(false);
                     //BBS: check whether custom gcode changes the z position. Update if changed
@@ -4143,6 +4145,7 @@ LayerResult GCode::process_layer(
                         Vec3d pos = m_writer.get_position();
                         pos(2) = temp_z_after_timepals_gcode;
                         m_writer.set_position(pos);
+                    }
                     }
                     has_insert_timelapse_gcode = true;
                 }
@@ -4325,10 +4328,16 @@ LayerResult GCode::process_layer(
 
                     ExtrusionRole support_extrusion_role = instance_to_print.object_by_extruder.support_extrusion_role;
                     bool is_overridden = support_extrusion_role == erSupportMaterialInterface ? support_intf_overridden : support_overridden;
-                    if (is_overridden == (print_wipe_extrusions != 0))
+                    if (is_overridden == (print_wipe_extrusions != 0)) {
                         gcode += this->extrude_support(
                             // support_extrusion_role is erSupportMaterial, erSupportTransition, erSupportMaterialInterface or erMixed for all extrusion paths.
-                            instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, support_extrusion_role));
+                            *instance_to_print.object_by_extruder.support, support_extrusion_role);
+
+                        // Make sure ironing is the last
+                        if (support_extrusion_role == erMixed || support_extrusion_role == erSupportMaterialInterface) {
+                            gcode += this->extrude_support(*instance_to_print.object_by_extruder.support, erIroning);
+                        }
+                    }
 
                     m_layer = layer_to_print.layer();
                     m_object_layer_over_raft = object_layer_over_raft;
@@ -4374,6 +4383,7 @@ LayerResult GCode::process_layer(
                             gcode += this->retract(false, false, LiftType::NormalLift);
 
                             std::string timepals_gcode = insert_timelapse_gcode();
+                            if(!timepals_gcode.empty()){
                             gcode += timepals_gcode;
                             m_writer.set_current_position_clear(false);
                             //BBS: check whether custom gcode changes the z position. Update if changed
@@ -4383,7 +4393,7 @@ LayerResult GCode::process_layer(
                                 pos(2) = temp_z_after_timepals_gcode;
                                 m_writer.set_position(pos);
                             }
-
+                            }
                             has_insert_timelapse_gcode = true;
                         }
                         // Then print infill
@@ -4459,6 +4469,7 @@ LayerResult GCode::process_layer(
         m_writer.add_object_change_labels(gcode);
 
         std::string timepals_gcode = insert_timelapse_gcode();
+        if(!timepals_gcode.empty()){
         gcode += timepals_gcode;
         m_writer.set_current_position_clear(false);
         //BBS: check whether custom gcode changes the z position. Update if changed
@@ -4467,6 +4478,7 @@ LayerResult GCode::process_layer(
             Vec3d pos = m_writer.get_position();
             pos(2) = temp_z_after_timepals_gcode;
             m_writer.set_position(pos);
+        }
         }
     }
 
@@ -4781,7 +4793,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     const auto speed_for_path = [&speed, &small_peri_speed](const ExtrusionPath& path) {
         // don't apply small perimeter setting for overhangs/bridges/non-perimeters
-        const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0 && (path.get_overhang_degree() == 0 || path.get_overhang_degree() > 5);
+        const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0;
         return is_small_peri ? small_peri_speed : speed;
     };
 
@@ -5036,21 +5048,37 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
     return gcode;
 }
 
-std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fills)
+std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fills, const ExtrusionRole support_extrusion_role)
 {
     static constexpr const char *support_label            = "support material";
     static constexpr const char *support_interface_label  = "support material interface";
-    const char* support_transition_label = "support transition";
+    static constexpr const char* support_transition_label = "support transition";
+    static constexpr const char* support_ironing_label    = "support ironing";
 
     std::string gcode;
     if (! support_fills.entities.empty()) {
+
+        ExtrusionEntitiesPtr extrusions;
+        extrusions.reserve(support_fills.entities.size());
+        for (ExtrusionEntity* ee : support_fills.entities) {
+            const auto role = ee->role();
+            if ((role == support_extrusion_role) || (support_extrusion_role == erMixed && role != erIroning)) {
+                extrusions.emplace_back(ee);
+            }
+        }
+        if (extrusions.empty())
+            return gcode;
+
+        chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+
         const double  support_speed            = m_config.support_speed.value;
         const double  support_interface_speed  = m_config.get_abs_value("support_interface_speed");
-        for (const ExtrusionEntity *ee : support_fills.entities) {
+        for (const ExtrusionEntity *ee : extrusions) {
             ExtrusionRole role = ee->role();
-            assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition);
+            assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition || role == erIroning);
             const char* label = (role == erSupportMaterial) ? support_label :
-                ((role == erSupportMaterialInterface) ? support_interface_label : support_transition_label);
+                ((role == erSupportMaterialInterface) ? support_interface_label : 
+                ((role == erIroning) ? support_ironing_label : support_transition_label));
             // BBS
             //const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
             const double speed = -1.0;
@@ -5067,7 +5095,7 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
                 gcode += this->extrude_loop(*loop, label, speed);
             }
             else if (collection) {
-                gcode += extrude_support(*collection);
+                gcode += extrude_support(*collection, support_extrusion_role);
             }
             else {
                 throw Slic3r::InvalidArgument("Unknown extrusion type");
@@ -5142,39 +5170,6 @@ void GCode::GCodeOutputStream::write_format(const char* format, ...)
         free(bufptr);
 
     va_end(args);
-}
-
-static std::map<int, std::string> overhang_speed_key_map =
-{
-    {1, "overhang_1_4_speed"},
-    {2, "overhang_2_4_speed"},
-    {3, "overhang_3_4_speed"},
-    {4, "overhang_4_4_speed"},
-    {5, "bridge_speed"},
-};
-
-double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_degree) {
-
-    //BBS: protection: overhang degree is float, make sure it not excess degree range
-    if (path_degree <= 0)
-        return normal_speed;
-
-    if (path_degree >= 5 )
-        return m_config.get_abs_value(overhang_speed_key_map[5].c_str());
-
-    int lower_degree_bound = int(path_degree);
-    if (path_degree==lower_degree_bound)
-        return m_config.get_abs_value(overhang_speed_key_map[lower_degree_bound].c_str());
-    int upper_degree_bound = lower_degree_bound + 1;
-
-    double lower_speed_bound = lower_degree_bound == 0 ? normal_speed : m_config.get_abs_value(overhang_speed_key_map[lower_degree_bound].c_str());
-    double upper_speed_bound = upper_degree_bound == 0 ? normal_speed : m_config.get_abs_value(overhang_speed_key_map[upper_degree_bound].c_str());
-
-    lower_speed_bound = lower_speed_bound == 0 ? normal_speed : lower_speed_bound;
-    upper_speed_bound = upper_speed_bound == 0 ? normal_speed : upper_speed_bound;
-
-    double speed_out = lower_speed_bound + (upper_speed_bound - lower_speed_bound) * (path_degree - lower_degree_bound);
-    return speed_out;
 }
 
 bool GCode::_needSAFC(const ExtrusionPath &path)
@@ -5316,22 +5311,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (speed == -1) {
         if (path.role() == erPerimeter) {
             speed = m_config.get_abs_value("inner_wall_speed");
-            if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value) {
-                double new_speed = 0;
-                new_speed = get_overhang_degree_corr_speed(speed, path.overhang_degree);
-                speed = new_speed == 0.0 ? speed : new_speed;
-            }
-
             if (sloped) {
                 speed = std::min(speed, m_config.scarf_joint_speed.get_abs_value(m_config.get_abs_value("inner_wall_speed")));
             }
         } else if (path.role() == erExternalPerimeter) {
             speed = m_config.get_abs_value("outer_wall_speed");
-            if (m_config.overhang_speed_classic.value && m_config.enable_overhang_speed.value ) {
-                double new_speed = 0;
-                new_speed = get_overhang_degree_corr_speed(speed, path.overhang_degree);
-                speed = new_speed == 0.0 ? speed : new_speed;
-            }
             if (sloped) {
                 speed = std::min(speed, m_config.scarf_joint_speed.get_abs_value(m_config.get_abs_value("outer_wall_speed")));
             }
@@ -5404,17 +5388,42 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //}
     if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
-        speed = std::min(
-            speed,
-            EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm
-        );
+        speed = std::min(speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm);
     }
+    // ORCA: resonance‑avoidance on short external perimeters
+{
+    double ref_speed = speed;  // stash the pre‑cap speed
+    if (path.role() == erExternalPerimeter
+        && m_config.resonance_avoidance.value) {
 
+        // if our original speed was above “max”, disable RA for this loop
+        if (ref_speed > m_config.max_resonance_avoidance_speed.value) {
+            m_resonance_avoidance = false;
+        }
+
+        // re‑apply volumetric cap
+        if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
+            speed = std::min(
+                speed,
+                EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm
+            );
+        }
+
+        // if still in avoidance mode and under “max”, clamp to “min”
+        if (m_resonance_avoidance
+            && speed <= m_config.max_resonance_avoidance_speed.value) {
+            speed = std::min(speed, m_config.min_resonance_avoidance_speed.value);
+        }
+
+        // reset flag for next segment
+        m_resonance_avoidance = true;
+    }
+}
     
     bool variable_speed = false;
     std::vector<ProcessedPoint> new_points {};
 
-    if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic && !this->on_first_layer() &&
+    if (m_config.enable_overhang_speed && !this->on_first_layer() &&
         (is_bridge(path.role()) || is_perimeter(path.role()))) {
             bool is_external = is_external_perimeter(path.role());
             double ref_speed   = is_external ? m_config.get_abs_value("outer_wall_speed") : m_config.get_abs_value("inner_wall_speed");
@@ -5598,9 +5607,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     auto overhang_fan_threshold = EXTRUDER_CONFIG(overhang_fan_threshold);
     auto enable_overhang_bridge_fan = EXTRUDER_CONFIG(enable_overhang_bridge_fan);
-    
-    auto supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed);
-
 
     //    { "0%", Overhang_threshold_none },
     //    { "10%", Overhang_threshold_1_4 },
@@ -5642,6 +5648,37 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (is_external_perimeter(path.role()))
             comment += ";_EXTERNAL_PERIMETER";
     }
+
+    // Change fan speed based on current extrusion role
+    auto append_role_based_fan_marker = [this, &gcode](const ExtrusionRole role, const std::string_view& marker_prefix, const bool fan_on) {
+        assert(m_enable_cooling_markers);
+
+        if (fan_on) {
+            if (!m_is_role_based_fan_on[role]) {
+                gcode += ";";
+                gcode += marker_prefix;
+                gcode += "_FAN_START\n";
+                m_is_role_based_fan_on[role] = true;
+            }
+        } else {
+            if (m_is_role_based_fan_on[role]) {
+                gcode += ";";
+                gcode += marker_prefix;
+                gcode += "_FAN_END\n";
+                m_is_role_based_fan_on[role] = false;
+            }
+        }
+    };
+    auto apply_role_based_fan_speed = [
+        &path, &append_role_based_fan_marker,
+        supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed),
+        ironing_fan_speed        = EXTRUDER_CONFIG(ironing_fan_speed)
+    ] {
+        append_role_based_fan_marker(erSupportMaterialInterface, "_SUPP_INTERFACE"sv,
+                                     supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface);
+        append_role_based_fan_marker(erIroning, "_IRONING"sv,
+                                     ironing_fan_speed >= 0 && path.role() == erIroning);
+    };
 
     if (!variable_speed) {
         // F is mm per minute.
@@ -5699,44 +5736,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 if (enable_overhang_bridge_fan) {
                     // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
                     // perimeter
-                    int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
-                    : overhang_fan_threshold - 1;
-                    if ((overhang_fan_threshold == Overhang_threshold_none && is_external_perimeter(path.role())) ||
-                        (path.get_overhang_degree() > overhang_threshold ||
-                         (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter))) { // ORCA: Add support for separate internal bridge fan speed control
-                        if (!m_is_overhang_fan_on) {
-                            gcode += ";_OVERHANG_FAN_START\n";
-                            m_is_overhang_fan_on = true;
-                        }
-                    } else {
-                        if (m_is_overhang_fan_on) {
-                            m_is_overhang_fan_on = false;
-                            gcode += ";_OVERHANG_FAN_END\n";
-                        }
-                    }
-                    if (path.role() == erInternalBridgeInfill) { // ORCA: Add support for separate internal bridge fan speed control
-                        if (!m_is_internal_bridge_fan_on) {
-                            gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
-                            m_is_internal_bridge_fan_on = true;
-                        }
-                    } else {
-                        if (m_is_internal_bridge_fan_on) {
-                            m_is_internal_bridge_fan_on = false;
-                            gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
-                        }
-                    }
+                    append_role_based_fan_marker(erOverhangPerimeter, "_OVERHANG"sv,
+                                                 (overhang_fan_threshold == Overhang_threshold_none && is_external_perimeter(path.role())) ||
+                                                 (path.role() == erBridgeInfill || path.role() == erOverhangPerimeter)); // ORCA: Add support for separate internal bridge fan speed control
+
+                    // ORCA: Add support for separate internal bridge fan speed control
+                    append_role_based_fan_marker(erInternalBridgeInfill, "_INTERNAL_BRIDGE"sv, path.role() == erInternalBridgeInfill);
                 }
-                if (supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
-                    if (!m_is_supp_interface_fan_on) {
-                        gcode += ";_SUPP_INTERFACE_FAN_START\n";
-                        m_is_supp_interface_fan_on = true;
-                    }
-                } else {
-                    if (m_is_supp_interface_fan_on) {
-                        gcode += ";_SUPP_INTERFACE_FAN_END\n";
-                        m_is_supp_interface_fan_on = false;
-                    }
-                }
+
+                apply_role_based_fan_speed();
             }
             // BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode or we are doing sloped extrusion
             // Attention: G2 and G3 is not supported in spiral_mode mode
@@ -5869,43 +5877,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             if (m_enable_cooling_markers) {
                 if (enable_overhang_bridge_fan) {
                     cur_fan_enabled = check_overhang_fan(processed_point.overlap, path.role());
-                    if (pre_fan_enabled && cur_fan_enabled) {
-                        if (!m_is_overhang_fan_on) {
-                            gcode += ";_OVERHANG_FAN_START\n";
-                            m_is_overhang_fan_on = true;
-                        }
-                    } else {
-                        if (m_is_overhang_fan_on) {
-                            m_is_overhang_fan_on = false;
-                            gcode += ";_OVERHANG_FAN_END\n";
-                        }
-                    }
+                    append_role_based_fan_marker(erOverhangPerimeter, "_OVERHANG"sv, pre_fan_enabled && cur_fan_enabled);
                     pre_fan_enabled = cur_fan_enabled;
+
+                    // ORCA: Add support for separate internal bridge fan speed control
+                    append_role_based_fan_marker(erInternalBridgeInfill, "_INTERNAL_BRIDGE"sv, path.role() == erInternalBridgeInfill);
                 }
-                // ORCA: Add support for separate internal bridge fan speed control
-                if (path.role() == erInternalBridgeInfill) {
-                    if (!m_is_internal_bridge_fan_on) {
-                        gcode += ";_INTERNAL_BRIDGE_FAN_START\n";
-                        m_is_internal_bridge_fan_on = true;
-                    }
-                } else {
-                    if (m_is_internal_bridge_fan_on) {
-                        gcode += ";_INTERNAL_BRIDGE_FAN_END\n";
-                        m_is_internal_bridge_fan_on = false;
-                    }
-                }
-                
-                if (supp_interface_fan_speed >= 0 && path.role() == erSupportMaterialInterface) {
-                    if (!m_is_supp_interface_fan_on) {
-                        gcode += ";_SUPP_INTERFACE_FAN_START\n";
-                        m_is_supp_interface_fan_on = true;
-                    }
-                } else {
-                    if (m_is_supp_interface_fan_on) {
-                        gcode += ";_SUPP_INTERFACE_FAN_END\n";
-                        m_is_supp_interface_fan_on = false;
-                    }
-                }
+
+                apply_role_based_fan_speed();
             }
 
             const double line_length = (p - prev).norm();
@@ -6106,11 +6085,11 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
 
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
     // multi-hop travel path inside the configuration space
-    if (needs_retraction
-        && m_config.reduce_crossing_wall
-        && ! m_avoid_crossing_perimeters.disabled_once()
-        //BBS: don't generate detour travel paths when current position is unclear
-        && m_writer.is_current_position_clear()) {
+    if (m_config.reduce_crossing_wall
+        && !m_avoid_crossing_perimeters.disabled_once()
+        && m_writer.is_current_position_clear())
+        //BBS: don't generate detour travel paths when current position is unclea
+    {
         travel = m_avoid_crossing_perimeters.travel_to(*this, point, &could_be_wipe_disabled);
         // check again whether the new travel path still needs a retraction
         needs_retraction = this->needs_retraction(travel, role, lift_type);
@@ -6141,9 +6120,18 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
             if (used_external_mp_once)
                 m_avoid_crossing_perimeters.reset_once_modifiers();
         }
-    } else
+    } else {
         // Reset the wipe path when traveling, so one would not wipe along an old path.
         m_wipe.reset_path();
+        // if (m_config.reduce_crossing_wall) {
+        //     // If in the previous call of m_avoid_crossing_perimeters.travel_to was use_external_mp_once set to true restore this value for next call.
+        //     if (used_external_mp_once) m_avoid_crossing_perimeters.use_external_mp_once();
+        //     travel = m_avoid_crossing_perimeters.travel_to(*this, point);
+        //     // If state of use_external_mp_once was changed reset it to right value.
+        //     if (used_external_mp_once) m_avoid_crossing_perimeters.reset_once_modifiers();
+        // }
+    }
+        
 
     // if needed, write the gcode_label_objects_end then gcode_label_objects_start
     m_writer.add_object_change_labels(gcode);
@@ -6227,7 +6215,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         z_range.first = std::max(0.f, z_range.second - protect_z);
         std::vector<LayerPtrs> layers_of_objects;
         std::vector<BoundingBox> boundingBox_for_objects;
-        std::vector<Points> objects_instances_shift;
+        VecOfPoints objects_instances_shift;
         std::vector<size_t> idx_of_object_sorted = m_curr_print->layers_sorted_for_object(z_range.first, z_range.second, layers_of_objects, boundingBox_for_objects, objects_instances_shift);
 
         std::vector<bool> is_layers_of_objects_sorted(layers_of_objects.size(), false);

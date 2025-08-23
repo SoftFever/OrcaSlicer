@@ -48,7 +48,7 @@
 #include "slic3r/GUI/HMSPanel.hpp"
 #include "slic3r/GUI/AmsWidgets.hpp"
 #include "Widgets/SideTools.hpp"
-#include "SelectMachine.hpp"
+#include "SelectMachinePop.hpp"
 
 namespace Slic3r {
 namespace GUI {

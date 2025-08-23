@@ -1,3 +1,7 @@
+src/slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h
+src/slic3r/GUI/DeviceTab/uiAmsHumidityPopup.cpp
+src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.h
+src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp

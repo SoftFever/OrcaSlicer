@@ -104,13 +104,14 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
 {
     { L("Quality"), {{"ironing_type", "",8},{"ironing_flow", "",9},{"ironing_spacing", "",10},{"ironing_inset", "", 11},{"bridge_flow", "",11},{"make_overhang_printable", "",11},{"bridge_density", "", 1}
                     }},
-    { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},
-                    {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
-                    {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"lattice_angle_1", "",1},{"lattice_angle_2", "",1},{"infill_anchor", "",1},{"infill_anchor_max", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
-        {"infill_combination", "",1}, {"infill_combination_max_layer_height", "",1}, {"infill_wall_overlap", "",1},{"top_bottom_infill_wall_overlap", "",1}, {"solid_infill_direction", "",1}, {"rotate_solid_infill_direction", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1}, {"internal_bridge_angle", "",1}, {"minimum_sparse_infill_area", "",1}
+    { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},{"top_surface_density", L("Top Surface Density"),1},
+                    {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},{"bottom_surface_density", L("Bottom Surface Density"),1},
+                    {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"lateral_lattice_angle_1", "",1},{"lateral_lattice_angle_2", "",1},{"infill_overhang_angle", "",1},{"infill_anchor", "",1},{"infill_anchor_max", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
+                    {"align_infill_direction_to_model", "", 1},
+        {"infill_combination", "",1}, {"infill_combination_max_layer_height", "",1}, {"infill_wall_overlap", "",1},{"top_bottom_infill_wall_overlap", "",1}, {"solid_infill_direction", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1}, {"internal_bridge_angle", "",1}, {"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
-                    {"enable_overhang_speed", "",6}, {"overhang_speed_classic", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10},
+                    {"enable_overhang_speed", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10},
                     {"bridge_speed", "",11}, {"gap_infill_speed", "",12}, {"internal_bridge_speed", "", 13}
                     }}
 };
@@ -523,7 +524,7 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
 
     append_menu_item_add_text(sub_menu, type);
     append_menu_item_add_svg(sub_menu, type);
-    
+
     return sub_menu;
 }
 
@@ -531,7 +532,7 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
 wxMenu* MenuFactory::append_submenu_add_handy_model(wxMenu* menu, ModelVolumeType type) {
     auto sub_menu = new wxMenu;
 
-    for (auto &item : {L("Orca Cube"), L("3DBenchy"), L("Autodesk FDM Test"),
+    for (auto &item : {L("Orca Cube"), L("Orca Tolerance Test"), L("3DBenchy"), L("Autodesk FDM Test"),
                        L("Voron Cube"), L("Stanford Bunny"), L("Orca String Hell") }) {
         append_menu_item(
             sub_menu, wxID_ANY, _(item), "",
@@ -541,6 +542,8 @@ wxMenu* MenuFactory::append_submenu_add_handy_model(wxMenu* menu, ModelVolumeTyp
                 std::string                          file_name     = item;
                 if (file_name == L("Orca Cube"))
                     file_name = "OrcaCube_v2.3mf";
+                else if (file_name == L("Orca Tolerance Test"))
+                    file_name = "OrcaToleranceTest.stl";
                 else if (file_name == L("3DBenchy"))
                     file_name = "3DBenchy.3mf";
                 else if (file_name == L("Autodesk FDM Test"))
@@ -619,7 +622,7 @@ static void append_menu_itemm_add_(const wxString& name, GLGizmosManager::EType 
             } else {
                 svg->create_volume(volume_type);
             }
-        }        
+        }
     };
 
     if (type == ModelVolumeType::MODEL_PART || type == ModelVolumeType::NEGATIVE_VOLUME || type == ModelVolumeType::PARAMETER_MODIFIER ||
@@ -1131,7 +1134,7 @@ void MenuFactory::append_menu_item_edit_text(wxMenu *menu)
 
     auto can_edit_text = []() {
         if (plater() == nullptr)
-            return false;        
+            return false;
         const Selection& selection = plater()->get_selection();
         if (selection.volumes_count() != 1)
             return false;
@@ -1141,7 +1144,7 @@ void MenuFactory::append_menu_item_edit_text(wxMenu *menu)
         const ModelVolume *volume = get_model_volume(*gl_volume, selection.get_model()->objects);
         if (volume == nullptr)
             return false;
-        return volume->is_text();        
+        return volume->is_text();
     };
 
     if (menu != &m_text_part_menu) {
@@ -1168,7 +1171,7 @@ void MenuFactory::append_menu_item_edit_svg(wxMenu *menu)
     wxString name = _L("Edit SVG");
     auto can_edit_svg = []() {
         if (plater() == nullptr)
-            return false;        
+            return false;
         const Selection& selection = plater()->get_selection();
         if (selection.volumes_count() != 1)
             return false;
@@ -1178,7 +1181,7 @@ void MenuFactory::append_menu_item_edit_svg(wxMenu *menu)
         const ModelVolume *volume = get_model_volume(*gl_volume, selection.get_model()->objects);
         if (volume == nullptr)
             return false;
-        return volume->is_svg();        
+        return volume->is_svg();
     };
 
     if (menu != &m_svg_part_menu) {
@@ -1298,7 +1301,7 @@ void MenuFactory::create_object_menu()
 
 void MenuFactory::create_extra_object_menu()
 {
-    append_menu_item_fill_bed(&m_object_menu);
+    //append_menu_item_fill_bed(&m_object_menu);
     // Object Clone
     append_menu_item_clone(&m_object_menu);
     // Object Repair

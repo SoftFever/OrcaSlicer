@@ -193,6 +193,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "exclude_object",
         "support_material_interface_fan_speed",
         "internal_bridge_fan_speed", // ORCA: Add support for separate internal bridge fan speed control
+        "ironing_fan_speed",
         "single_extruder_multi_material_priming",
         "activate_air_filtration",
         "during_print_exhaust_fan_speed",
@@ -529,7 +530,7 @@ bool Print::has_brim() const
 }
 
 //BBS
-std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, std::vector<Points> &objects_instances_shift)
+std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, VecOfPoints &objects_instances_shift)
 {
     std::vector<size_t> idx_of_object_sorted;
     size_t              idx = 0;
@@ -1097,8 +1098,15 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         if (total_copies_count > 1 && m_config.print_sequence != PrintSequence::ByObject)
             return {L("Please select \"By object\" print sequence to print multiple objects in spiral vase mode."), nullptr, "spiral_mode"};
         assert(m_objects.size() == 1);
-        if (m_objects.front()->all_regions().size() > 1)
-            return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
+        const auto all_regions = m_objects.front()->all_regions();
+        if (all_regions.size() > 1) {
+            // Orca: make sure regions are not compatible
+            if (std::any_of(all_regions.begin() + 1, all_regions.end(), [ra = all_regions.front()](const auto rb) {
+                return !Layer::is_perimeter_compatible(ra, rb);
+            })) {
+                return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
+            }
+        }
     }
 
     // Cache of layer height profiles for checking:
@@ -1299,7 +1307,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         	} else if (extrusion_width_min <= layer_height) {
                 err_msg = L("Too small line width");
 				return false;
-			} else if (extrusion_width_max > max_nozzle_diameter * 5) {
+			} else if (extrusion_width_max > max_nozzle_diameter * MAX_LINE_WIDTH_MULTIPLIER) {
                 err_msg = L("Too large line width");
 				return false;
 			}
@@ -1387,7 +1395,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 if (!validate_extrusion_width(object->config(), "support_line_width", layer_height, err_msg))
                     return {err_msg, object, "support_line_width"};
             }
-            for (const char *opt_key : { "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width", "top_surface_line_width" })
+            for (const char *opt_key : { "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width", "top_surface_line_width","skin_infill_line_width" ,"skeleton_infill_line_width"})
 				for (const PrintRegion &region : object->all_regions())
                     if (!validate_extrusion_width(region.config(), opt_key, layer_height, err_msg))
 		            	return  {err_msg, object, opt_key};
@@ -1879,6 +1887,8 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             if (!model_volume1.seam_facets.equals(model_volume2.seam_facets))
                 return false;
             if (!model_volume1.mmu_segmentation_facets.equals(model_volume2.mmu_segmentation_facets))
+                return false;
+            if (!model_volume1.fuzzy_skin_facets.equals(model_volume2.fuzzy_skin_facets))
                 return false;
             if (model_volume1.config.get() != model_volume2.config.get())
                 return false;
@@ -2450,9 +2460,9 @@ Polygons Print::first_layer_islands() const
     return islands;
 }
 
-std::vector<Point> Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existance) const
+Points Print::first_layer_wipe_tower_corners(bool check_wipe_tower_existance) const
 {
-    std::vector<Point> corners;
+    Points corners;
     if (check_wipe_tower_existance && (!has_wipe_tower() || m_wipe_tower_data.tool_changes.empty()))
         return corners;
     {
@@ -3168,8 +3178,6 @@ const std::string PrintStatistics::TotalFilamentUsedWipeTowerValueMask = "; tota
 #define JSON_EXTRUSION_TYPE_LOOP               "loop"
 #define JSON_EXTRUSION_TYPE_COLLECTION         "collection"
 #define JSON_EXTRUSION_POLYLINE                "polyline"
-#define JSON_EXTRUSION_OVERHANG_DEGREE         "overhang_degree"
-#define JSON_EXTRUSION_CURVE_DEGREE            "curve_degree"
 #define JSON_EXTRUSION_MM3_PER_MM              "mm3_per_mm"
 #define JSON_EXTRUSION_WIDTH                   "width"
 #define JSON_EXTRUSION_HEIGHT                  "height"
@@ -3263,8 +3271,6 @@ static void to_json(json& j, const Polyline& poly_line) {
 
 static void to_json(json& j, const ExtrusionPath& extrusion_path) {
     j[JSON_EXTRUSION_POLYLINE] = extrusion_path.polyline;
-    j[JSON_EXTRUSION_OVERHANG_DEGREE] = extrusion_path.overhang_degree;
-    j[JSON_EXTRUSION_CURVE_DEGREE] = extrusion_path.curve_degree;
     j[JSON_EXTRUSION_MM3_PER_MM] = extrusion_path.mm3_per_mm;
     j[JSON_EXTRUSION_WIDTH] = extrusion_path.width;
     j[JSON_EXTRUSION_HEIGHT] = extrusion_path.height;
@@ -3541,8 +3547,6 @@ static void from_json(const json& j, Polyline& poly_line) {
 
 static void from_json(const json& j, ExtrusionPath& extrusion_path) {
     extrusion_path.polyline               =    j[JSON_EXTRUSION_POLYLINE];
-    extrusion_path.overhang_degree        =    j[JSON_EXTRUSION_OVERHANG_DEGREE];
-    extrusion_path.curve_degree           =    j[JSON_EXTRUSION_CURVE_DEGREE];
     extrusion_path.mm3_per_mm             =    j[JSON_EXTRUSION_MM3_PER_MM];
     extrusion_path.width                  =    j[JSON_EXTRUSION_WIDTH];
     extrusion_path.height                 =    j[JSON_EXTRUSION_HEIGHT];
@@ -4334,6 +4338,23 @@ Point PrintInstance::shift_without_plate_offset() const
     const Print* print = print_object->print();
     const Vec3d plate_offset = print->get_plate_origin();
     return shift - Point(scaled(plate_offset.x()), scaled(plate_offset.y()));
+}
+
+PrintRegion *PrintObjectRegions::FuzzySkinPaintedRegion::parent_print_object_region(const LayerRangeRegions &layer_range) const
+{
+    using FuzzySkinParentType = PrintObjectRegions::FuzzySkinPaintedRegion::ParentType;
+
+    if (this->parent_type == FuzzySkinParentType::PaintedRegion) {
+        return layer_range.painted_regions[this->parent].region;
+    }
+
+    assert(this->parent_type == FuzzySkinParentType::VolumeRegion);
+    return layer_range.volume_regions[this->parent].region;
+}
+
+int PrintObjectRegions::FuzzySkinPaintedRegion::parent_print_object_region_id(const LayerRangeRegions &layer_range) const
+{
+    return this->parent_print_object_region(layer_range)->print_object_region_id();
 }
 
 } // namespace Slic3r
