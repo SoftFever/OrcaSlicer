@@ -2,7 +2,7 @@
 #include "../ShortestPath.hpp"
 #include "../Surface.hpp"
 #include <cmath>
-
+#include "FillBase.hpp"
 #include "FillCrossHatch.hpp"
 
 namespace Slic3r {
@@ -186,7 +186,8 @@ void FillCrossHatch ::_fill_surface_single(
     BoundingBox bb = expolygon.contour.bounding_box();
 
     // linespace modifier
-    coord_t line_spacing = coord_t(scale_(this->spacing) / params.density);
+    double density_adjusted = params.density / params.multiline;
+    coord_t line_spacing = coord_t(scale_(this->spacing) / density_adjusted);
 
     // reduce density
     if (params.density < 0.999) line_spacing *= 1.08;
@@ -203,6 +204,9 @@ void FillCrossHatch ::_fill_surface_single(
 
     // shift the pattern to the actual space
     for (Polyline &pl : polylines) { pl.translate(bb.min); }
+
+    // Apply multiline offset if needed
+    multiline_fill(polylines, params, spacing);
 
     polylines = intersection_pl(polylines, to_polygons(expolygon));
 

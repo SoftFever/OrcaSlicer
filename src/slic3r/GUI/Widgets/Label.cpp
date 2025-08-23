@@ -254,10 +254,10 @@ wxSize Label::split_lines(wxDC &dc, int width, const wxString &text, wxString &m
     return dc.GetMultiLineTextExtent(multiline_text);
 }
 
-Label::Label(wxWindow *parent, wxString const &text, long style) : Label(parent, Body_14, text, style) {}
+Label::Label(wxWindow *parent, wxString const &text, long style, wxSize size) : Label(parent, Body_14, text, style, size) {}
 
-Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long style)
-    : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, style)
+Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long style, wxSize size)
+    : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, size, style)
 {
     this->m_font = font;
     this->m_text = text;
