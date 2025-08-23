@@ -734,7 +734,7 @@ void Tab::update_label_colours()
                 continue;
 
             bool is_modified = (page->m_is_modified_values || m_type >= Preset::TYPE_COUNT);
-            bool sys_page    = !page->m_is_nonsys_values;
+            //bool sys_page    = !page->m_is_nonsys_values;
 
             const StateColor tab_fg_color(
                 std::make_pair(
@@ -6003,7 +6003,7 @@ void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::strin
     line.set_undo_to_sys_bitmap(&m_bmp_white_bullet);
     line.set_undo_tooltip(&m_tt_white_bullet);
     line.set_undo_to_sys_tooltip(&m_tt_white_bullet);
-    line.set_label_colour(&m_sys_label_clr);
+    line.set_label_colour(&m_default_text_clr);
 
     optgroup->append_line(line);
 }
