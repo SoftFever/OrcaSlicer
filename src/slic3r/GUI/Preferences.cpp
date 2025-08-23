@@ -1253,11 +1253,14 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<string> projectSwitchConfigOptions = { OPTION_PRINTER_SWITCH_BEHAVIOUR_ASK, OPTION_PRINTER_SWITCH_BEHAVIOUR_TRANSFER, OPTION_PRINTER_SWITCH_BEHAVIOUR_DISCARD };
     auto item_switch_printer_behaviour = create_item_combobox(_L("Switch Printer Behaviour"), page, _L("Should changing printer ask, transfer or discard settings."), SETTING_PRINTER_SWITCH_BEHAVIOUR, projectSwitchBehaviourOptions, projectSwitchConfigOptions, 50);
 
-    auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
+    auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", page, _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
         long max = 0;
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
     });
+
+    auto item_recent_models = create_item_checkbox(_L("Add model files (stl/step) to recent file list."), page, _L("Add model files (stl/step) to recent file list."), 50, "recent_models");
+
     auto item_save_choise = create_item_button(_L("Clear my choice on the unsaved projects."), _L("Clear"), page, L"", _L("Clear my choice on the unsaved projects."), []() {
         wxGetApp().app_config->set("save_project_choise", "");
     });
@@ -1335,6 +1338,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_project_load_behaviour, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_switch_printer_behaviour, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_recent_models, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
