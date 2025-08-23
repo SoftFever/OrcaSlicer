@@ -5103,9 +5103,9 @@ int CLI::run(int argc, char **argv)
                                     {
                                         DynamicPrintConfig temp_config;
                                         std::vector<std::string> temp_colors(1, "#FFFFFFFF");
-                                        if (filament_color) {
-                                            temp_colors[0] = colors[color_count % colors.size()];
-                                        }
+                                        //if (filament_color) {
+                                        //    temp_colors[0] = colors[color_count % colors.size()];
+                                        //}
                                         temp_config.option<ConfigOptionStrings>("filament_colour", true)->values = temp_colors;
                                         extruder_filament_info[e_index].push_back(std::move(temp_config));
                                         color_count++;
