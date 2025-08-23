@@ -1877,7 +1877,7 @@ msgid ""
 msgstr ""
 msgstr "Tento model má na horní ploše reliéfní text. Pro dosažení optimálních výsledků "
 msgstr "je vhodné nastavit hodnotu 'Prahová hodnota jedné stěny (min_width_top_surface)' na 0, "
-msgstr "aby možnost '„'Pouze jedna stěna na horních plochách'“' fungovala co nejlépe.\n"
+msgstr "aby možnost 'Pouze jedna stěna na horních plochách' fungovala co nejlépe.\n"
 msgstr "Ano – Tato nastavení se mají měnit automaticky\n"
 msgstr "Ne – Tato nastavení se mi nemění."
 
