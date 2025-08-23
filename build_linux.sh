@@ -118,13 +118,13 @@ elif [[ "${DISTRIBUTION_LIKE}" == *"arch"* ]] ; then
     DISTRIBUTION="arch"
 fi
 
-if [ ! -f ./scripts/linux.d/${DISTRIBUTION} ] ; then
+if [ ! -f "./scripts/linux.d/${DISTRIBUTION}" ] ; then
     echo "Your distribution \"${DISTRIBUTION}\" is not supported by system-dependency scripts in ./scripts/linux.d/"
     echo "Please resolve dependencies manually and contribute a script for your distribution to upstream."
     exit 1
 else
     echo "resolving system dependencies for distribution \"${DISTRIBUTION}\" ..."
-    source ./scripts/linux.d/${DISTRIBUTION}
+    source "./scripts/linux.d/${DISTRIBUTION}"
 fi
 
 echo "FOUND_GTK3=${FOUND_GTK3}"
