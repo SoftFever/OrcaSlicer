@@ -1014,6 +1014,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<IroningType>, ironing_type))
     ((ConfigOptionEnum<InfillPattern>, ironing_pattern))
     ((ConfigOptionPercent, ironing_flow))
+    ((ConfigOptionInt,   ironing_retract))
+    ((ConfigOptionInt,   ironing_unretract_extra))
     ((ConfigOptionFloat, ironing_spacing))
     ((ConfigOptionFloat, ironing_inset))
     ((ConfigOptionFloat, ironing_direction))
