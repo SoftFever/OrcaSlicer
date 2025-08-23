@@ -15,12 +15,11 @@ CheckList::CheckList(
     long scroll_style
 )
     : wxWindow(parent, wxID_ANY)
-    , m_cb_on (this, "check_on" , 18)
-    , m_cb_off(this, "check_off", 18)
     , m_search(this, "search", 16)
-    , m_menu(this, "menu", 18)
+    , m_menu(this, "filter", 16)
     , m_first_load(true)
 {
+    Freeze();
     w_sizer = new wxBoxSizer(wxVERTICAL);
 
     f_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -93,9 +92,13 @@ CheckList::CheckList(
 
     m_checks.reserve(m_list_size);
 
+    auto margin = FromDIP(2);
+    wxCheckBox* cb;
+
     for (size_t i = 0; i < m_list_size; ++i){
-        m_checks.emplace_back(new wxCheckBox(m_scroll_area, wxID_ANY, choices[i]));
-        s_sizer->Add(m_checks[i], 0, wxALL, FromDIP(2));
+        cb = new wxCheckBox(m_scroll_area, wxID_ANY, choices[i]);
+        m_checks.emplace_back(cb);
+        s_sizer->Add(cb, 0, wxALL, margin);
     }
 
     m_scroll_area->FitInside();
@@ -103,6 +106,7 @@ CheckList::CheckList(
 
     SetSizer(w_sizer);
     Layout();
+    Thaw();
 };
 
 void CheckList::SetSelections(wxArrayInt sel_array){

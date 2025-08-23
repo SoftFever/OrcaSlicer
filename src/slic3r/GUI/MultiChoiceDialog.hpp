@@ -58,8 +58,6 @@ private:
     wxString          m_info_allsel;
     wxString          m_info_empty;
 
-    ScalableBitmap    m_cb_on;
-    ScalableBitmap    m_cb_off;
     ScalableBitmap    m_search;
     ScalableBitmap    m_menu;
 };
