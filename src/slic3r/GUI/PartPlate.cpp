@@ -235,6 +235,11 @@ void PartPlate::reset_bed_type()
     m_config.erase("curr_bed_type");
 }
 
+void PartPlate::reset_skirt_start_angle()
+{
+    m_config.erase("skirt_start_angle");
+}
+
 void PartPlate::set_print_seq(PrintSequence print_seq)
 {
     std::string print_seq_key = "print_sequence";
