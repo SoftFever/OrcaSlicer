@@ -860,19 +860,7 @@ wxBoxSizer* PreferencesDialog::create_item_button(
     m_staticTextPath->SetToolTip(tooltip);
 
     auto m_button_download = new Button(parent, title2);
-
-    StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-                        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    m_button_download->SetBackgroundColor(abort_bg);
-    StateColor abort_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_download->SetBorderColor(abort_bd);
-    StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_download->SetTextColor(abort_text);
-    m_button_download->SetFont(Label::Body_10);
-    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetCornerRadius(FromDIP(12));
+    m_button_download->SetStyle(ButtonStyle::Regular, ButtonType::Window);
     m_button_download->SetToolTip(tooltip2);
 
     m_button_download->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
@@ -903,19 +891,7 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
     m_staticTextPath->Wrap(-1);
 
     auto m_button_download = new Button(item_panel, _L("Browse"));
-
-    StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-    std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-    std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    m_button_download->SetBackgroundColor(abort_bg);
-    StateColor abort_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_download->SetBorderColor(abort_bd);
-    StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_download->SetTextColor(abort_text);
-    m_button_download->SetFont(Label::Body_10);
-    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
-    m_button_download->SetCornerRadius(FromDIP(12));
+    m_button_download->SetStyle(ButtonStyle::Regular, ButtonType::Window);
 
     m_button_download->Bind(wxEVT_BUTTON, [this, m_staticTextPath, item_panel](auto& e) {
         wxString defaultPath = wxT("/");
@@ -1273,11 +1249,14 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<string> projectLoadSettingsConfigOptions = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
     auto item_project_load_behaviour = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
 
-    auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
+    auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", page, _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
         long max = 0;
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
     });
+
+    auto item_recent_models = create_item_checkbox(_L("Add model files (stl/step) to recent file list."), page, _L("Add model files (stl/step) to recent file list."), 50, "recent_models");
+
     auto item_save_choise = create_item_button(_L("Clear my choice on the unsaved projects."), _L("Clear"), page, L"", _L("Clear my choice on the unsaved projects."), []() {
         wxGetApp().app_config->set("save_project_choise", "");
     });
@@ -1354,6 +1333,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_project_load_behaviour, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_recent_models, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
@@ -1491,10 +1471,7 @@ wxWindow* PreferencesDialog::create_debug_page()
     StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
     Button* debug_button = new Button(page, _L("debug save button"));
-    debug_button->SetBackgroundColor(btn_bg_white);
-    debug_button->SetBorderColor(btn_bd_white);
-    debug_button->SetFont(Label::Body_13);
-
+    debug_button->SetStyle(ButtonStyle::Regular, ButtonType::Window);
 
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box
