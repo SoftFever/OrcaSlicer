@@ -15,129 +15,134 @@ struct myPoint
 {
     coord_t x, y;
 };
-class LineSegmentMerger
+class LineSegmentMerger 
 {
 public:
-    void mergeSegments(const vector<pair<myPoint, myPoint>>& segments, vector<vector<myPoint>>& polylines2)
+    void mergeSegments(const std::vector<std::pair<myPoint, myPoint>>& segments, 
+                      std::vector<std::vector<myPoint>>& polylines_out) 
     {
-        std::unordered_map<int, myPoint> point_id_xy;
-        std::set<std::pair<int, int>>    segment_ids;
-        std::unordered_map<int64_t, int> map_keyxy_pointid;
+        const coord_t merge_tolerance = 50;     // Tolerance for connecting segments and loop detection
+        const coord_t snap_tolerance = 10;      // Tolerance for point consolidation
+        
+        std::unordered_map<int64_t, myPoint> point_map;
+        std::vector<std::pair<myPoint, myPoint>> consolidated_segments;
 
-        auto get_itr = [&](coord_t x, coord_t y) {
-            for (auto i : {0}) //,-2,2
-            {
-                for (auto j : {0}) //,-2,2
-                {
-                    int64_t combined_key1 = static_cast<int64_t>(x + i) << 32 | static_cast<uint32_t>(y + j);
-                    auto    itr1          = map_keyxy_pointid.find(combined_key1);
-                    if (itr1 != map_keyxy_pointid.end()) {
-                        return itr1;
-                    }
+        // Consolidate nearby points to a grid
+        auto consolidate_point = [&](const myPoint& pt) -> myPoint {
+            coord_t grid_x = (pt.x / snap_tolerance) * snap_tolerance;
+            coord_t grid_y = (pt.y / snap_tolerance) * snap_tolerance;
+            int64_t key = static_cast<int64_t>(grid_x) << 32 | grid_y;
+            
+            if (point_map.find(key) != point_map.end()) {
+                const myPoint& existing = point_map[key];
+                coord_t dx = std::abs(existing.x - pt.x);
+                coord_t dy = std::abs(existing.y - pt.y);
+                if (dx <= snap_tolerance && dy <= snap_tolerance) {
+                    return existing;
                 }
             }
-            return map_keyxy_pointid.end();
+            point_map[key] = pt;
+            return pt;
         };
+        
+        // Pre-process segments with point consolidation
+        for (const auto& seg : segments) {
+            myPoint p1 = consolidate_point(seg.first);
+            myPoint p2 = consolidate_point(seg.second);
+            
+            if (p1.x != p2.x || p1.y != p2.y) {
+                consolidated_segments.emplace_back(p1, p2);
+            }
+        }
+        
+        // Build open chains from consolidated segments
+        std::vector<std::vector<myPoint>> open_chains;
+        for (const auto& seg : consolidated_segments) {
+            bool connected = false;
+            
+            for (auto& chain : open_chains) {
+                if (isNear(chain.back(), seg.first, merge_tolerance)) {
+                    chain.push_back(seg.second);
+                    connected = true;
+                    break;
+                }
 
-        int pointid = 0;
-        for (const auto& segment : segments) {
-            coord_t x          = segment.first.x;
-            coord_t y          = segment.first.y;
-            auto    itr        = get_itr(x, y);
-            int     segmentid0 = -1;
-            if (itr == map_keyxy_pointid.end()) {
-                int64_t combined_key            = static_cast<int64_t>(x) << 32 | static_cast<uint32_t>(y);
-                segmentid0                      = pointid;
-                point_id_xy[pointid]            = segment.first;
-                map_keyxy_pointid[combined_key] = pointid++;
+                if (isNear(chain.front(), seg.second, merge_tolerance)) {
+                    chain.insert(chain.begin(), seg.first);
+                    connected = true;
+                    break;
+                }
+
+                if (chain.size() > 1 && isNear(chain[chain.size()-2], seg.first, merge_tolerance)) {
+                    chain.back() = seg.second;
+                    connected = true;
+                    break;
+                }
+            }
+            
+            if (!connected) {
+                open_chains.push_back({seg.first, seg.second});
+            }
+        }
+        
+        // Merge connectable chains iteratively
+        bool merged;
+        do {
+            merged = false;
+            for (size_t i = 0; i < open_chains.size(); i++) {
+                for (size_t j = i + 1; j < open_chains.size(); j++) {
+                    if (isNear(open_chains[i].back(), open_chains[j].front(), merge_tolerance)) {
+                        open_chains[i].insert(open_chains[i].end(), 
+                                            open_chains[j].begin() + 1, 
+                                            open_chains[j].end());
+                        open_chains.erase(open_chains.begin() + j);
+                        merged = true;
+                        break;
+                    }
+                    if (isNear(open_chains[i].front(), open_chains[j].back(), merge_tolerance)) {
+                        open_chains[i].insert(open_chains[i].begin(),
+                                            open_chains[j].begin(),
+                                            open_chains[j].end() - 1);
+                        open_chains.erase(open_chains.begin() + j);
+                        merged = true;
+                        break;
+                    }
+                    if (isNear(open_chains[i].back(), open_chains[j].back(), merge_tolerance)) {
+                        std::reverse(open_chains[j].begin(), open_chains[j].end());
+                        open_chains[i].insert(open_chains[i].end(),
+                                            open_chains[j].begin() + 1,
+                                            open_chains[j].end());
+                        open_chains.erase(open_chains.begin() + j);
+                        merged = true;
+                        break;
+                    }
+                }
+                if (merged) break;
+            }
+        } while (merged);
+        
+        // Detect and close loops
+        std::vector<std::vector<myPoint>> closed_loops;
+        polylines_out.clear();
+        
+        for (auto& chain : open_chains) {
+            if (chain.size() > 2 && isNear(chain.front(), chain.back(), merge_tolerance)) {
+                chain.push_back(chain.front()); // Close the loop
+                closed_loops.push_back(std::move(chain));
             } else {
-                segmentid0 = itr->second;
-            }
-            int segmentid1 = -1;
-            x              = segment.second.x;
-            y              = segment.second.y;
-            itr            = get_itr(x, y);
-            if (itr == map_keyxy_pointid.end()) {
-                int64_t combined_key            = static_cast<int64_t>(x) << 32 | static_cast<uint32_t>(y);
-                segmentid1                      = pointid;
-                point_id_xy[pointid]            = segment.second;
-                map_keyxy_pointid[combined_key] = pointid++;
-            } else {
-                segmentid1 = itr->second;
-            }
-
-            if (segmentid0 != segmentid1) {
-                segment_ids.insert(segmentid0 < segmentid1 ? std::make_pair(segmentid0, segmentid1) :
-                                                             std::make_pair(segmentid1, segmentid0));
+                polylines_out.push_back(std::move(chain));
             }
         }
-
-        unordered_map<int, vector<int>> graph;
-        unordered_set<int>              visited;
-        vector<vector<int>>             polylines;
-
-        // Build the graph
-        for (const auto& segment : segment_ids) {
-            graph[segment.first].push_back(segment.second);
-            graph[segment.second].push_back(segment.first);
-        }
-
-        vector<int> startnodes;
-        for (const auto& node : graph) {
-            if (node.second.size() == 1) {
-                startnodes.push_back(node.first);
-            }
-        }
-
-        // Find all connected components
-        for (const auto& point_first : startnodes) {
-            if (visited.find(point_first) == visited.end()) {
-                vector<int> polyline;
-                dfs(point_first, graph, visited, polyline);
-                polylines.push_back(std::move(polyline));
-            }
-        }
-
-        for (const auto& point : graph) {
-            if (visited.find(point.first) == visited.end()) {
-                vector<int> polyline;
-                dfs(point.first, graph, visited, polyline);
-                polylines.push_back(std::move(polyline));
-            }
-        }
-
-        for (auto& pl : polylines) {
-            vector<myPoint> tmpps;
-            for (auto& pid : pl) {
-                tmpps.push_back(point_id_xy[pid]);
-            }
-            polylines2.push_back(tmpps);
+        
+        // Add closed loops to final output
+        for (auto& loop : closed_loops) {
+            polylines_out.push_back(std::move(loop));
         }
     }
 
-private:
-    void dfs(const int&                                 start_node,
-             std::unordered_map<int, std::vector<int>>& graph,
-             std::unordered_set<int>&                   visited,
-             std::vector<int>&                          polyline)
-    {
-        std::vector<int> stack;
-        stack.reserve(graph.size());
-        stack.push_back(start_node);
-        while (!stack.empty()) {
-            int node = stack.back();
-            stack.pop_back();
-            if (!visited.insert(node).second) {
-                continue;
-            }
-            polyline.push_back(node);
-            auto& neighbors = graph[node];
-            for (const auto& neighbor : neighbors) {
-                if (visited.find(neighbor) == visited.end()) {
-                    stack.push_back(neighbor);
-                }
-            }
-        }
+    //Check if two points are within tolerance distance 
+    static bool isNear(const myPoint& a, const myPoint& b, coord_t tolerance) {
+        return std::abs(a.x - b.x) < tolerance && std::abs(a.y - b.y) < tolerance;
     }
 };
 
