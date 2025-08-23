@@ -4477,8 +4477,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
                 //ImGui::PopStyleVar(1);
                 // ORCA replace checkboxes with eye icon
-                ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x - (16.f + 6.f) * m_scale - ImGui::GetStyle().FramePadding.x * 2);
+                // ImGui::SameLine(ImGui::GetWindowWidth() - (16.f + 6.f) * m_scale - window_padding * 2 - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0));
+                ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x - (16.f + 20.f) * m_scale /* icon size + padding from previous style (not window_padding) */ + 4.f * m_scale /* spacing */);
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0)); // ensure no padding active
                 ImGui::Text(into_u8(visible ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str(), ImVec2(16 * m_scale, 16 * m_scale));
+                ImGui::PopStyleVar(1);
             }
         }
 
@@ -4555,13 +4558,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 12.f * m_scale + ImGui::GetTextLineHeight()); 
             for (size_t i = 1; i < title_columns.size() - 1; i++)
                 offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + 12.f * m_scale); // ORCA increase spacing for more readable format. Using direct number requires much less code change in here
-            if (title_columns.back().first == _u8L("Display")) {
+            //if (title_columns.back().first == _u8L("Display")) {
                 //const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
-                const auto preferred_offset = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x - (16.f + 6.f) * m_scale - ImGui::GetStyle().FramePadding.x * 2;
-                if (preferred_offset > offsets.back()) {
-                    offsets.back() = preferred_offset;
-                }
-            }
+                //const auto preferred_offset = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x - (16.f + 6.f) * m_scale - ImGui::GetStyle().FramePadding.x * 2;
+                //if (preferred_offset > offsets.back()) {
+                //    offsets.back() = preferred_offset;
+                //}
+            //}
 
             float average_col_width = ImGui::GetWindowWidth() / static_cast<float>(title_columns.size());
             std::vector<float> ret;
