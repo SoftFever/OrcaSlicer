@@ -61,6 +61,13 @@ jobs:
 
 
       # Build Dependencies
+      - name: Install Windows 10 SDK (for Netfabb STL fixing)
+        if: inputs.os == 'windows-latest'
+        run: |
+          choco install windows-sdk-10-version-2004-all -y
+          echo "WIN10SDK_PATH=C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0" >> $env:GITHUB_ENV
+        shell: pwsh
+
       - name: Build on Windows
         if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}
@@ -69,6 +76,7 @@ jobs:
             .\build_release_vs2022.bat deps
             .\build_release_vs2022.bat pack
             cd ${{ github.workspace }}/deps/build
+
 
       - name: Build on Mac ${{ inputs.arch }}
         if: inputs.os == 'macos-14'
