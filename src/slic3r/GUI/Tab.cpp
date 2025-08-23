@@ -354,7 +354,7 @@ void Tab::create_preset_tab()
     // Colors for ui "decoration"
     m_sys_label_clr			= wxGetApp().get_label_clr_sys();
     m_modified_label_clr	= wxGetApp().get_label_clr_modified();
-    m_user_label_clr        = wxGetApp().get_label_clr_user();
+    m_default_text_clr      = m_sys_label_clr; // wxGetApp().get_label_clr_default(); ORCA use same color for user values
 
     m_main_sizer = new wxBoxSizer( wxVERTICAL );
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
@@ -695,7 +695,7 @@ void Tab::update_label_colours()
         return;
     m_sys_label_clr = wxGetApp().get_label_clr_sys();
     m_modified_label_clr = wxGetApp().get_label_clr_modified();
-    m_user_label_clr = wxGetApp().get_label_clr_user();
+    m_default_text_clr = m_sys_label_clr; // wxGetApp().get_label_clr_default(); ORCA use same color for user values
 
     //update options "decoration"
     for (const auto& opt : m_options_list)
@@ -706,7 +706,7 @@ void Tab::update_label_colours()
         if ((opt.second & osSystemValue) == 0) {
             // value is equal to last saved
             if ((opt.second & osInitValue) != 0)
-                color = &m_user_label_clr;
+                color = &m_default_text_clr;
             // value is modified
             else
                 color = &m_modified_label_clr;
@@ -778,7 +778,7 @@ void Tab::decorate()
         const ScalableBitmap* sys_icon  = &m_bmp_value_lock;
         const ScalableBitmap* icon      = &m_bmp_value_revert;
 
-        const wxColour* color = m_is_default_preset ? &m_user_label_clr : &m_sys_label_clr;
+        const wxColour* color = m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr;
 
         const wxString* sys_tt  = &m_tt_value_lock;
         const wxString* tt      = &m_tt_value_revert;
@@ -790,7 +790,7 @@ void Tab::decorate()
             sys_tt = m_tt_non_system;
             // value is equal to last saved
             if ((opt.second & osInitValue) != 0)
-                color = &m_user_label_clr;
+                color = &m_default_text_clr;
             // value is modified
             else
                 color = &m_modified_label_clr;
@@ -831,7 +831,7 @@ void Tab::decorate()
                 sys_tt          = m_tt_non_system;
 
                 if (!modified_page)
-                    color = &m_user_label_clr;
+                    color = &m_default_text_clr;
                 else
                     color = &m_modified_label_clr;
             }

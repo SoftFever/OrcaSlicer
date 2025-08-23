@@ -215,7 +215,7 @@ protected:
 	// Colors for ui "decoration"
 	wxColour			m_sys_label_clr;
 	wxColour			m_modified_label_clr;
-	wxColour			m_user_label_clr;
+	wxColour			m_default_text_clr;
 
 	// Tooltip text for reset buttons (for whole options group)
 	wxString			m_ttg_value_lock;
