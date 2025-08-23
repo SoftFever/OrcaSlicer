@@ -117,7 +117,6 @@ private:
 
     friend class PartPlateList;
 
-    Pointfs m_raw_shape;
     Pointfs m_shape;
     Pointfs m_exclude_area;
     BoundingBoxf3 m_bounding_box;
@@ -228,6 +227,9 @@ public:
     BedType get_bed_type(bool load_from_project = false) const;
     void set_bed_type(BedType bed_type);
     void reset_bed_type();
+
+    void reset_skirt_start_angle();
+
     DynamicPrintConfig* config() { return &m_config; }
 
     // set print sequence per plate

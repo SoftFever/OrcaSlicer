@@ -831,7 +831,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     const ConfigOptionPoints* printable_area = config.option<ConfigOptionPoints>("printable_area");
     if (printable_area != nullptr)
-        m_result.printable_area = printable_area->values;
+        m_result.printable_area = make_counter_clockwise(printable_area->values);
 
     //BBS: add bed_exclude_area
     const ConfigOptionPoints* bed_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area");
@@ -1150,6 +1150,7 @@ void GCodeProcessor::reset()
     m_forced_width = 0.0f;
     m_forced_height = 0.0f;
     m_mm3_per_mm = 0.0f;
+    m_travel_dist = 0.0f;
     m_fan_speed = 0.0f;
     m_z_offset = 0.0f;
 
@@ -2648,7 +2649,8 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line, const std::o
 
     EMoveType type = move_type(delta_pos);
     if (type == EMoveType::Extrude) {
-        float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+        const float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
+        m_travel_dist = delta_xyz;
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
 
@@ -3125,7 +3127,8 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     EMoveType type = move_type(delta_pos[E]);
 
 
-    float delta_xyz = std::sqrt(sqr(arc_length) + sqr(delta_pos[Z]));
+    const float delta_xyz = std::sqrt(sqr(arc_length) + sqr(delta_pos[Z]));
+    m_travel_dist         = delta_xyz;
     if (type == EMoveType::Extrude) {
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
@@ -4230,15 +4233,19 @@ void GCodeProcessor::run_post_process()
         }
 
         // add the given gcode line to the cache
-        void append_line(const std::string& line) {
+        void append_line(const std::string& line, const bool ignore_from_move = false) {
+            if (line.empty()) return;
+
             m_lines.push_back({ line, m_times });
 #ifndef NDEBUG
             m_statistics.add_line(line.length());
 #endif // NDEBUG
             m_size += line.length();
             ++m_added_lines_counter;
-            assert(!m_gcode_lines_map.empty());
-            m_gcode_lines_map.back().second = m_added_lines_counter;
+            if (!ignore_from_move) {
+                assert(!m_gcode_lines_map.empty());
+                m_gcode_lines_map.back().second = m_added_lines_counter;
+            }
         }
 
         // Insert the gcode lines required by the command cmd by backtracing into the cache
@@ -4455,6 +4462,7 @@ void GCodeProcessor::run_post_process()
                 char buf[128];
                 sprintf(buf, "; total layer number: %u\n", m_layer_id);
                 export_lines.append_line(buf);
+                processed = true;
             }
         }
 
@@ -4531,7 +4539,7 @@ void GCodeProcessor::run_post_process()
                                                                 time_in_minutes(machine.time - it->elapsed_time) };
                         if (last_exported_main[i] != to_export_main) {
                             export_lines.append_line(format_line_M73_main(machine.line_m73_main_mask.c_str(),
-                                to_export_main.first, to_export_main.second));
+                                to_export_main.first, to_export_main.second), true);
                             last_exported_main[i] = to_export_main;
                         }
                         // export remaining time to next printer stop
@@ -4542,7 +4550,7 @@ void GCodeProcessor::run_post_process()
                             if (last_exported_stop[i] != to_export_stop) {
                                 if (to_export_stop > 0) {
                                     if (last_exported_stop[i] != to_export_stop) {
-                                        export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop));
+                                        export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop), true);
                                         last_exported_stop[i] = to_export_stop;
                                     }
                                 }
@@ -4563,9 +4571,9 @@ void GCodeProcessor::run_post_process()
 
                                     if (is_last) {
                                         if (std::distance(machine.stop_times.begin(), it_stop) == static_cast<ptrdiff_t>(machine.stop_times.size() - 1))
-                                            export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop));
+                                            export_lines.append_line(format_line_M73_stop_int(machine.line_m73_stop_mask.c_str(), to_export_stop), true);
                                         else
-                                            export_lines.append_line(format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time)));
+                                            export_lines.append_line(format_line_M73_stop_float(machine.line_m73_stop_mask.c_str(), time_in_last_minute(it_stop->elapsed_time - it->elapsed_time)), true);
 
                                         last_exported_stop[i] = to_export_stop;
                                     }
@@ -4783,6 +4791,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_width,
         m_height,
         m_mm3_per_mm,
+        m_travel_dist,
         m_fan_speed,
         m_extruder_temps[m_extruder_id],
         static_cast<float>(m_result.moves.size()),
