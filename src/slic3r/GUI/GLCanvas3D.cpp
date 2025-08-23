@@ -1445,13 +1445,14 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
                     auto gizmo_type = gm.get_current_type();
                     if (  (gizmo_type == GLGizmosManager::FdmSupports
                         || gizmo_type == GLGizmosManager::Seam
-                        || gizmo_type == GLGizmosManager::Cut)
+                        || gizmo_type == GLGizmosManager::Cut
+                        || gizmo_type == GLGizmosManager::FuzzySkin)
                         && !vol->is_modifier) {
                         vol->force_neutral_color = true;
                     }
                     else if (gizmo_type == GLGizmosManager::BrimEars)
                         vol->force_neutral_color = false;
-                    else if (gizmo_type == GLGizmosManager::MmuSegmentation)
+                    else if (gizmo_type == GLGizmosManager::MmSegmentation)
                         vol->is_active = false;
                     else
                         vol->force_native_color = true;
@@ -1658,6 +1659,11 @@ void GLCanvas3D::enable_legend_texture(bool enable)
 void GLCanvas3D::enable_picking(bool enable)
 {
     m_picking_enabled = enable;
+
+    // Orca: invalidate hover state when dragging is toggled, otherwise if we turned off dragging
+    // while hovering above a volume, the hovering state won't update even if mouse has moved away.
+    // Fixes https://github.com/SoftFever/OrcaSlicer/pull/9979#issuecomment-3065575889
+    m_hover_volume_idxs.clear();
 }
 
 void GLCanvas3D::enable_moving(bool enable)
@@ -1919,7 +1925,7 @@ void GLCanvas3D::render(bool only_init)
         //only_body = true;
         only_current = true;
     }
-    else if ((gizmo_type == GLGizmosManager::FdmSupports) || (gizmo_type == GLGizmosManager::Seam) || (gizmo_type == GLGizmosManager::MmuSegmentation))
+    else if ((gizmo_type == GLGizmosManager::FdmSupports) || (gizmo_type == GLGizmosManager::Seam) || (gizmo_type == GLGizmosManager::MmSegmentation) || (gizmo_type == GLGizmosManager::FuzzySkin))
         no_partplate = true;
     else if (gizmo_type == GLGizmosManager::BrimEars && !camera.is_looking_downward())
         show_grid = false;
@@ -3286,7 +3292,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 if (keyCode < '7')  keyCode += 10;
                 m_timer_set_color.Stop();
             }
-            if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation)
+            if (m_gizmos.get_current_type() != GLGizmosManager::MmSegmentation)
                 obj_list->set_extruder_for_selected_items(keyCode - '0');
             break;
         }
@@ -3829,7 +3835,7 @@ void GLCanvas3D::on_render_timer(wxTimerEvent& evt)
 void GLCanvas3D::on_set_color_timer(wxTimerEvent& evt)
 {
     auto obj_list = wxGetApp().obj_list();
-    if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation)
+    if (m_gizmos.get_current_type() != GLGizmosManager::MmSegmentation)
         obj_list->set_extruder_for_selected_items(1);
     m_timer_set_color.Stop();
 }
@@ -3984,7 +3990,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_dirty = true;
         // do not return if dragging or tooltip not empty to allow for tooltip update
         // also, do not return if the mouse is moving and also is inside MM gizmo to allow update seed fill selection
-        if (!m_mouse.dragging && m_tooltip.is_empty() && (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation || !evt.Moving()))
+        if (!m_mouse.dragging && m_tooltip.is_empty() && (m_gizmos.get_current_type() != GLGizmosManager::MmSegmentation || !evt.Moving()))
             return;
     }
 
@@ -4104,6 +4110,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     bool any_gizmo_active = m_gizmos.get_current() != nullptr;
+    bool swapMouseButtons = wxGetApp().app_config->get_bool("swap_mouse_buttons");
 
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos)) {
         m_mouse.drag.move_requires_threshold = false;
@@ -4173,7 +4180,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     &&*/ m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
                     && m_gizmos.get_current_type() != GLGizmosManager::Seam
                     && m_gizmos.get_current_type() != GLGizmosManager::Cut
-                    && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation) {
+                    && m_gizmos.get_current_type() != GLGizmosManager::MmSegmentation
+                    && m_gizmos.get_current_type() != GLGizmosManager::FuzzySkin) {
                     m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
                     m_dirty = true;
                 }
@@ -4305,7 +4313,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_dirty = true;
         }
     }
-    else if (evt.Dragging() || is_camera_rotate(evt) || is_camera_pan(evt)) {
+    else if (evt.Dragging() || is_camera_rotate(evt, swapMouseButtons) || is_camera_pan(evt, swapMouseButtons)) {
         m_mouse.dragging = true;
 
         if (m_layers_editing.state != LayersEditing::Unknown && layer_editing_object_idx != -1) {
@@ -4315,16 +4323,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
         // do not process the dragging if the left mouse was set down in another canvas
-        else if (is_camera_rotate(evt)) {
+        else if (is_camera_rotate(evt, swapMouseButtons)) {
             // Orca: Sphere rotation for painting view
-            // if dragging over blank area with left button, rotate
-            if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
+            // if dragging over blank area with left button or button functions swapped then rotate
+            if ((any_gizmo_active || swapMouseButtons || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
                 Camera& camera = wxGetApp().plater()->get_camera();
                 auto mult_pref = wxGetApp().app_config->get("camera_orbit_mult");
                 const double mult = mult_pref.empty() ? 1.0 : std::stod(mult_pref);
                 const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.) * mult;
                 if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.get_current_type() == GLGizmosManager::FdmSupports ||
-                    m_gizmos.get_current_type() == GLGizmosManager::Seam || m_gizmos.get_current_type() == GLGizmosManager::MmuSegmentation) {
+                    m_gizmos.get_current_type() == GLGizmosManager::Seam || m_gizmos.get_current_type() == GLGizmosManager::MmSegmentation ||
+                    m_gizmos.get_current_type() == GLGizmosManager::FuzzySkin) {
                     Vec3d rotate_target = Vec3d::Zero();
                     if (!m_selection.is_empty())
                         rotate_target = m_selection.get_bounding_box().center();
@@ -4381,15 +4390,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         }
                     }
                 }
-                camera.auto_type(Camera::EType::Perspective);
 
+                camera.auto_type(Camera::EType::Perspective);
                 m_dirty = true;
+                m_mouse.ignore_right_up = true;  // will be reset on button up event even if not right button is pressed
             }
+
             m_camera_movement = true;
             m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
         }
-        else if (is_camera_pan(evt)) {
-            // If dragging over blank area with right button, pan.
+        else if (is_camera_pan(evt, swapMouseButtons)) {
+            // if dragging with right button or if button functions swapped and dragging with left button over blank area then pan
             if (m_mouse.is_start_position_2D_defined()) {
                 // get point in model space at Z = 0
                 float z = 0.0f;
@@ -4407,7 +4418,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                 camera.set_target(camera.get_target() + orig - cur_pos);
                 m_dirty = true;
-                m_mouse.ignore_right_up = true;
+                m_mouse.ignore_right_up = true;  // will be reset on button up event even if not right button is pressed
             }
 
             m_camera_movement = true;
@@ -4415,10 +4426,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if ((evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) ||
-               (m_camera_movement && !is_camera_rotate(evt) && !is_camera_pan(evt))) {
+               (m_camera_movement && !is_camera_rotate(evt, swapMouseButtons) && !is_camera_pan(evt, swapMouseButtons))) {
         m_mouse.position = pos.cast<double>();
 
-        if (evt.LeftUp()) {
+        if (swapMouseButtons ? evt.RightUp() : evt.LeftUp()) {
             m_rotation_center(0) = m_rotation_center(1) = m_rotation_center(2) = 0.f;
         }
 
@@ -4603,21 +4614,21 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
     m_is_touchpad_navigation = wxGetApp().app_config->get_bool("camera_navigation_style");
 }
 
-bool GLCanvas3D::is_camera_rotate(const wxMouseEvent& evt) const
+bool GLCanvas3D::is_camera_rotate(const wxMouseEvent& evt, const bool buttonsSwapped) const
 {
     if (m_is_touchpad_navigation) {
         return evt.Moving() && evt.AltDown() && !evt.ShiftDown();
     } else {
-        return evt.Dragging() && evt.LeftIsDown();
+        return evt.Dragging() && (buttonsSwapped ? evt.RightIsDown() : evt.LeftIsDown());
     }
 }
 
-bool GLCanvas3D::is_camera_pan(const wxMouseEvent& evt) const
+bool GLCanvas3D::is_camera_pan(const wxMouseEvent& evt, const bool buttonsSwapped) const
 {
     if (m_is_touchpad_navigation) {
         return evt.Moving() && evt.ShiftDown() && !evt.AltDown();
     } else {
-        return evt.Dragging() && (evt.MiddleIsDown() || evt.RightIsDown());
+        return evt.Dragging() && (evt.MiddleIsDown() || (buttonsSwapped ? evt.LeftIsDown() : evt.RightIsDown()));
     }
 }
 
@@ -7250,7 +7261,8 @@ void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& 
           && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
           && m_gizmos.get_current_type() != GLGizmosManager::Hollow
           && m_gizmos.get_current_type() != GLGizmosManager::Seam
-          && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation);
+          && m_gizmos.get_current_type() != GLGizmosManager::MmSegmentation
+          && m_gizmos.get_current_type() != GLGizmosManager::FuzzySkin);
     */
     //bool show_texture = true;
     //BBS set axes mode
@@ -8216,7 +8228,7 @@ void GLCanvas3D::_render_return_toolbar() const
 
     float font_size = ImGui::GetFontSize();
     ImVec2 real_size = ImVec2(font_size * 4, font_size * 1.7);
-    ImVec2 button_icon_size = ImVec2(font_size * 1.3, font_size * 1.3);
+    ImVec2 button_icon_size = ImVec2(font_size * .55, font_size * 1.1); // ORCA
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     Size cnv_size = get_canvas_size();
@@ -8232,12 +8244,16 @@ void GLCanvas3D::_render_return_toolbar() const
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
 #endif
 
+    ImVec4 fg_color = m_is_dark ? ImVec4(1.f, 1.f, 1.f, 0.88f) : ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, 1.f);
+    ImVec4 bg_color = m_is_dark ? ImGuiWrapper::COL_TOOLBAR_BG_DARK : ImGuiWrapper::COL_TOOLBAR_BG;
+    ImVec4 bg_color_hover = bg_color +  (m_is_dark ? ImVec4(.03f, .03f, .03f, 0) : ImVec4(-.02f, -.02f, -.02f, 0));
+
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 18.0f);
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.149f, 0.180f, 0.188f, 0.3f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.149f, 0.180f, 0.188f, 0.15f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.149f, 0.180f, 0.188f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_Button,        bg_color); // ORCA Toolbar color
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, bg_color_hover);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  bg_color);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, fg_color);
 
     imgui.begin(_L("Assembly Return"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground
         | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
@@ -8249,7 +8265,7 @@ void GLCanvas3D::_render_return_toolbar() const
     ImVec2 uv1 = ImVec2(1.0f, 1.0f);
 
     ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-    ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ImVec4 tint_col = fg_color; // icon color
     ImVec2 margin = ImVec2(10.0f, 5.0f);
 
     if (ImGui::ImageTextButton(real_size,_utf8(L("Return")).c_str(), m_return_toolbar.get_return_texture_id(), button_icon_size, uv0, uv1, -1, bg_col, tint_col, margin)) {
@@ -8360,7 +8376,7 @@ void GLCanvas3D::_render_paint_toolbar() const
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(spacing, spacing));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, 0));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.f, 0.f, 0.f, 0.4f });
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark ? ImGuiWrapper::COL_TOOLBAR_BG_DARK : ImGuiWrapper::COL_TOOLBAR_BG); // ORCA Toolbar color
 
     imgui.set_next_window_pos(0.5f * canvas_w, 0, ImGuiCond_Always, 0.5f, 0.0f);
     float constraint_window_width = canvas_w - 2 * return_button_margin;
@@ -8501,7 +8517,7 @@ void GLCanvas3D::_render_assemble_control()
         GLVolume::explosion_ratio = m_explosion_ratio = 1.0;
         return;
     }
-    if (m_gizmos.get_current_type() == GLGizmosManager::EType::MmuSegmentation) {
+    if (m_gizmos.get_current_type() == GLGizmosManager::EType::MmSegmentation) {
         m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(0.0, true);
         return;
     }

@@ -3,7 +3,11 @@
 During high-speed movements, vibrations can cause a phenomenon called "ringing," where periodic ripples appear on the print surface. Input Shaping provides an effective solution by counteracting these vibrations, improving print quality and reducing wear on components without needing to significantly lower print speeds.
 
 - [Klipper](#klipper)
+  - [Resonance Compensation](#resonance-compensation)
 - [Marlin](#marlin)
+  - [ZV Input Shaping](#zv-input-shaping)
+  - [Fixed-Time Motion](#fixed-time-motion)
+- [Credits](#credits)
 
 ## Klipper
 
@@ -35,7 +39,7 @@ Ussualy the recommended values modes are `MZV` or `EI` for Delta printers.
 
    ![IS_freq_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_freq_menu.png?raw=true)
 
-   1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+   1. Measure the X and Y heights and read the frequency set at that point in OrcaSlicer.
 
    ![IS_damp_klipper_print_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_klipper_print_measure.jpg?raw=true)
    ![IS_freq_klipper_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_freq_klipper_slicer_measure.png?raw=true)
@@ -49,7 +53,7 @@ Ussualy the recommended values modes are `MZV` or `EI` for Delta printers.
 
    ![IS_damp_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_menu.png?raw=true)
 
-   1. Measure the X and Y heights and read the damping set at that point in Orca Slicer.
+   1. Measure the X and Y heights and read the damping set at that point in OrcaSlicer.
 
    ![IS_damp_klipper_print_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_klipper_print_measure.jpg?raw=true)
    ![IS_damp_klipper_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_klipper_slicer_measure.png?raw=true)
@@ -83,7 +87,7 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
    ![IS_freq_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_freq_menu.png?raw=true)
 
-   1. Measure the X and Y heights and read the frequency set at that point in Orca Slicer.
+   1. Measure the X and Y heights and read the frequency set at that point in OrcaSlicer.
 
    ![IS_freq_marlin_print_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_freq_marlin_print_measure.jpg?raw=true)
    ![IS_freq_marlin_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_freq_marlin_slicer_measure.png?raw=true)
@@ -97,7 +101,7 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
    ![IS_damp_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_menu.png?raw=true)
 
-   1. Measure the X and Y heights and read the damping set at that point in Orca Slicer.
+   1. Measure the X and Y heights and read the damping set at that point in OrcaSlicer.
 
    ![IS_damp_marlin_print_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_marlin_print_measure.jpg?raw=true)
    ![IS_damp_marlin_slicer_measure](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_marlin_slicer_measure.png?raw=true)
@@ -125,5 +129,9 @@ ZV Input Shaping introduces an anti-vibration signal into the stepper motion for
 
 ### Fixed-Time Motion
 
-WIP...
-This calibration test is currently under development. See the [Marlin documentation](https://marlinfw.org/docs/gcode/M493.html) for more information.
+TODO: This calibration test is currently under development. See the [Marlin documentation](https://marlinfw.org/docs/gcode/M493.html) for more information.
+
+## Credits
+
+- **Input Shaping Calibration:** [@IanAlexis](https://github.com/IanAlexis) and [@RF47](https://github.com/RF47)
+- **Klipper testing:** [@ShaneDelmore](https://github.com/ShaneDelmore)

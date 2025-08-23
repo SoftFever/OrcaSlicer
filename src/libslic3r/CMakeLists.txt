@@ -3,9 +3,6 @@ project(libslic3r)
 
 include(PrecompiledHeader)
 
-string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
-set(SLIC3R_BUILD_TIME ${COMPILE_TIME})
-
 if(NOT DEFINED ORCA_CHECK_GCODE_PLACEHOLDERS)
     set(ORCA_CHECK_GCODE_PLACEHOLDERS "0")
 endif()
@@ -80,7 +77,13 @@ set(lisbslic3r_sources
     ExtrusionEntityCollection.hpp
     ExtrusionSimulator.cpp
     ExtrusionSimulator.hpp
+    Feature/Interlocking/InterlockingGenerator.cpp
+    Feature/Interlocking/InterlockingGenerator.hpp
+    Feature/Interlocking/VoxelUtils.cpp
+    Feature/Interlocking/VoxelUtils.hpp
     FileParserError.hpp
+    Feature/FuzzySkin/FuzzySkin.cpp
+    Feature/FuzzySkin/FuzzySkin.hpp
     Fill/Fill.cpp
     Fill/Fill.hpp
     Fill/Fill3DHoneycomb.cpp
@@ -101,6 +104,8 @@ set(lisbslic3r_sources
     Fill/FillGyroid.hpp
     Fill/FillTpmsD.cpp
     Fill/FillTpmsD.hpp
+    Fill/FillTpmsFK.cpp
+    Fill/FillTpmsFK.hpp
     Fill/FillPlanePath.cpp
     Fill/FillPlanePath.hpp
     Fill/FillLine.cpp
@@ -448,10 +453,6 @@ set(lisbslic3r_sources
     calib.cpp
     GCode/Thumbnails.cpp
     GCode/Thumbnails.hpp
-    Interlocking/InterlockingGenerator.hpp
-    Interlocking/InterlockingGenerator.cpp
-    Interlocking/VoxelUtils.hpp
-    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)
@@ -503,7 +504,7 @@ if (_opts)
     target_compile_options(libslic3r_cgal PRIVATE "${_opts_bad}")
 endif()
 
-target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut boost_libs)
+target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} eigen admesh libigl mcut boost_libs)
 
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     target_compile_definitions(libslic3r_cgal PRIVATE CGAL_DO_NOT_USE_MPZF)
@@ -556,6 +557,7 @@ target_link_libraries(libslic3r
     libnest2d
     admesh
     cereal::cereal
+    eigen
     libigl
     miniz
     boost_libs
