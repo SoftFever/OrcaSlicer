@@ -795,6 +795,12 @@ void Tab::decorate()
             else
                 color = &m_modified_label_clr;
         }
+        // ORCA always prefer modified color if value not matches with preset value
+        // previous behaviour; it uses different color if value matches with system value
+        // value is equal to system value & isn't equal to last saved
+        if ((opt.second & osSystemValue) != 0 && (opt.second & osInitValue) == 0) {
+            color = &m_modified_label_clr;
+        }
         if ((opt.second & osInitValue) != 0)
         {
             is_modified_value = false;

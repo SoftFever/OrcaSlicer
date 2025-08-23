@@ -3007,7 +3007,8 @@ void GUI_App::init_label_colours()
     bool is_dark_mode = dark_mode();
     m_color_label_modified = is_dark_mode ? wxColour("#F1754E") : wxColour("#F1754E"); // ORCA text color for modified preset values
     m_color_label_sys      = is_dark_mode ? wxColour("#CCCCCC") : wxColour("#363636"); // ORCA text color for sys preset values
-    m_color_label_user     = is_dark_mode ? wxColour("#F8DECB") : wxColour("#796236"); // ORCA text color for user preset values
+    m_color_label_user     = m_color_label_sys; // ORCA use same color because this feature confusing for most users. 
+    //m_color_label_user     = is_dark_mode ? wxColour("#F8DECB") : wxColour("#796236"); // ORCA text color for user preset values
     m_color_label_default  = is_dark_mode ? wxColour("#EFEFF0") : wxColour("#262E30"); // ORCA default text color
 
 #if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
