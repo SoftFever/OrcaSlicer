@@ -109,7 +109,7 @@ Disadvantages:
 - Requires tuning of parameters like length, speed, and flow for best results
 
 > [!NOTE]
-> Read more here: [Better Seams - An Orca Slicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
+> Read more here: [Better Seams - An OrcaSlicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
 
 #### Scarf joint seam Type
 
