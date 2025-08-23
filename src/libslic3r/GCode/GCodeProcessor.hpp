@@ -431,6 +431,7 @@ class Print;
 
 
     private:
+        friend class ExportLines;
         struct TimeMachine
         {
             struct State
