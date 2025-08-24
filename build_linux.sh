@@ -45,6 +45,7 @@ function usage() {
     echo "   -t: build tests (optional)"
     echo "   -u: install system dependencies (asks for sudo password; build prerequisite)"
     echo "   -l: use Clang instead of GCC (default: GCC)"
+    echo "   -L: use ld.lld as linker (if available)"
     echo "For a first use, you want to './${SCRIPT_NAME} -u'"
     echo "   and then './${SCRIPT_NAME} -dsi'"
     echo "To build with tests: './${SCRIPT_NAME} -st' or './${SCRIPT_NAME} -dst'"
@@ -53,7 +54,7 @@ function usage() {
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
-while getopts ":1j:bcCdhiprstul" opt ; do
+while getopts ":1j:bcCdhiprstulL" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -96,6 +97,9 @@ while getopts ":1j:bcCdhiprstul" opt ; do
         ;;
     l )
         USE_CLANG="1"
+        ;;
+    L )
+        USE_LLD="1"
         ;;
   esac
 done
@@ -153,6 +157,18 @@ if [[ -n "${USE_CLANG}" ]] ; then
     export CMAKE_C_CXX_COMPILER_CLANG="-DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++"
 fi
 
+# Configure use of ld.lld as the linker when requested
+export CMAKE_LLD_LINKER_ARGS=""
+if [[ -n "${USE_LLD}" ]] ; then
+    if command -v ld.lld >/dev/null 2>&1 ; then
+        LLD_BIN=$(command -v ld.lld)
+        export CMAKE_LLD_LINKER_ARGS="-DCMAKE_LINKER=${LLD_BIN} -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_MODULE_LINKER_FLAGS=-fuse-ld=lld"
+    else
+        echo "Error: ld.lld not found. Please install the 'lld' package (e.g., sudo apt install lld) or omit -L."
+        exit 1
+    fi
+fi
+
 if [[ -n "${BUILD_DEPS}" ]] ; then
     echo "Configuring dependencies..."
     BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON"
@@ -169,13 +185,13 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
         if [ ! -d "deps/build/release" ] ; then
             mkdir deps/build/release
         fi
-        cmake ${CMAKE_C_CXX_COMPILER_CLANG} -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${COLORED_OUTPUT} ${BUILD_ARGS}
+        cmake ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" ${COLORED_OUTPUT} ${BUILD_ARGS}
         cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
-    echo "cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${BUILD_ARGS}"
-    cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}
+    echo "cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G Ninja ${BUILD_ARGS}"
+    cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}
     cmake --build deps/build
 fi
 
@@ -198,7 +214,7 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     fi
 
     echo "Configuring OrcaSlicer..."
-    cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G "Ninja Multi-Config" \
+    cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G "Ninja Multi-Config" \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
 -DCMAKE_PREFIX_PATH="${SCRIPT_PATH}/deps/build/destdir/usr/local" \
 -DSLIC3R_STATIC=1 \
@@ -207,9 +223,17 @@ ${COLORED_OUTPUT} \
 ${BUILD_ARGS}
     echo "done"
     echo "Building OrcaSlicer ..."
-    cmake --build build --target OrcaSlicer
+    if [[ -n "${BUILD_DEBUG}" ]] ; then
+        cmake --build build --config Debug --target OrcaSlicer
+    else
+        cmake --build build --config Release --target OrcaSlicer
+    fi
     echo "Building OrcaSlicer_profile_validator .."
-    cmake --build build --target OrcaSlicer_profile_validator
+    if [[ -n "${BUILD_DEBUG}" ]] ; then
+        cmake --build build --config Debug --target OrcaSlicer_profile_validator
+    else
+        cmake --build build --config Release --target OrcaSlicer_profile_validator
+    fi
     ./scripts/run_gettext.sh
     echo "done"
 fi
