@@ -11,7 +11,7 @@
 #include "wxExtensions.hpp"
 #include "PresetComboBoxes.hpp"
 
-#include "../slic3r/Utils/CalibUtils.hpp"
+#include "slic3r/Utils/CalibUtils.hpp"
 #include "../../libslic3r/calib.hpp"
 
 namespace Slic3r { namespace GUI {

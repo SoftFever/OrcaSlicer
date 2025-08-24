@@ -221,7 +221,7 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiEndPA->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
     read_double = read_double && m_tiPAStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
     if (!read_double || m_params.start < 0 || m_params.step < EPSILON || m_params.end < m_params.start + m_params.step) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart PA: >= 0.0\nEnd PA: > Start PA\nPA step: >= 0.001)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart PA: >= 0.0\nEnd PA: > Start PA\nPA step: >= 0.001"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -312,7 +312,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     // start temp
     auto start_temp_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_temp_text = new wxStaticText(this, wxID_ANY, start_temp_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiStart = new TextInput(this, std::to_string(230), "\u2103" /* °C */, "", wxDefaultPosition, ti_size);
+    m_tiStart = new TextInput(this, std::to_string(230), wxString::FromUTF8("\u2103") /* °C */, "", wxDefaultPosition, ti_size);
     m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     start_temp_sizer->Add(start_temp_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     start_temp_sizer->Add(m_tiStart      , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -321,7 +321,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     // end temp
     auto end_temp_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto end_temp_text = new wxStaticText(this, wxID_ANY, end_temp_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiEnd = new TextInput(this, std::to_string(190), "\u2103" /* °C */, "", wxDefaultPosition, ti_size);
+    m_tiEnd = new TextInput(this, std::to_string(190), wxString::FromUTF8("\u2103") /* °C */, "", wxDefaultPosition, ti_size);
     m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_temp_sizer->Add(end_temp_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     end_temp_sizer->Add(m_tiEnd      , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -330,7 +330,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     // temp step
     auto temp_step_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto temp_step_text = new wxStaticText(this, wxID_ANY, temp_step_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiStep = new TextInput(this, wxString::FromDouble(5),"\u2103" /* °C */, "", wxDefaultPosition, ti_size);
+    m_tiStep = new TextInput(this, wxString::FromDouble(5), wxString::FromUTF8("\u2103") /* °C */, "", wxDefaultPosition, ti_size);
     m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_tiStep->Enable(false);
     temp_step_sizer->Add(temp_step_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -364,7 +364,9 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
         if(!ti->GetTextCtrl()->GetValue().ToULong(&t))
             return;
         if(t> 350 || t < 170){
-            MessageDialog msg_dlg(nullptr, wxString::Format(L"Supported range: 170%s - 350%s","\u2103" /* °C */,"\u2103" /* °C */), wxEmptyString, wxICON_WARNING | wxOK);
+            MessageDialog msg_dlg(nullptr, wxString::Format(L"Supported range: 170%s - 350%s",
+                wxString::FromUTF8("\u2103") /* °C */, wxString::FromUTF8("\u2103") /* °C */),
+                wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             if(t > 350)
                 t = 350;
@@ -400,7 +402,7 @@ void Temp_Calibration_Dlg::on_start(wxCommandEvent& event) {
     read_long = read_long && m_tiEnd->GetTextCtrl()->GetValue().ToULong(&end);
 
     if (!read_long || start > 350 || end < 170  || end > (start - 5)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart temp: <= 350\nEnd temp: >= 170\nStart temp > End temp + 5)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart temp: <= 350\nEnd temp: >= 170\nStart temp > End temp + 5"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -490,7 +492,7 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     // start vol
     auto start_vol_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_vol_text = new wxStaticText(this, wxID_ANY, start_vol_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiStart = new TextInput(this, std::to_string(5), "mm³/s", "", wxDefaultPosition, ti_size);
+    m_tiStart = new TextInput(this, std::to_string(5), wxString::FromUTF8("mm³/s"), "", wxDefaultPosition, ti_size);
     m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 
     start_vol_sizer->Add(start_vol_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -500,7 +502,7 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     // end vol
     auto end_vol_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto end_vol_text = new wxStaticText(this, wxID_ANY, end_vol_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiEnd = new TextInput(this, std::to_string(20), "mm³/s", "", wxDefaultPosition, ti_size);
+    m_tiEnd = new TextInput(this, std::to_string(20), wxString::FromUTF8("mm³/s"), "", wxDefaultPosition, ti_size);
     m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_vol_sizer->Add(end_vol_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     end_vol_sizer->Add(m_tiEnd     , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -509,7 +511,7 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     // vol step
     auto vol_step_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto vol_step_text = new wxStaticText(this, wxID_ANY, vol_step_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiStep = new TextInput(this, wxString::FromDouble(0.5), "mm³/s", "", wxDefaultPosition, ti_size);
+    m_tiStep = new TextInput(this, wxString::FromDouble(0.5), wxString::FromUTF8("mm³/s"), "", wxDefaultPosition, ti_size);
     m_tiStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     vol_step_sizer->Add(vol_step_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     vol_step_sizer->Add(m_tiStep     , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -545,7 +547,7 @@ void MaxVolumetricSpeed_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
 
     if (!read_double || m_params.start <= 0 || m_params.step <= 0 || m_params.end < (m_params.start + m_params.step)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0 \nstep >= 0\nend > start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0\nstep >= 0\nend > start + step"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -648,7 +650,7 @@ void VFA_Test_Dlg::on_start(wxCommandEvent& event)
     read_double = read_double && m_tiStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
 
     if (!read_double || m_params.start <= 10 || m_params.step <= 0 || m_params.end < (m_params.start + m_params.step)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 10 \nstep >= 0\nend > start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 10\nstep >= 0\nend > start + step"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -753,7 +755,7 @@ void Retraction_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
 
     if (!read_double || m_params.start < 0 || m_params.step <= 0 || m_params.end < (m_params.start + m_params.step)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0 \nstep >= 0\nend > start + step)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nstart > 0\nstep >= 0\nend > start + step"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -807,9 +809,9 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     // X axis frequencies
     auto x_freq_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_x_text = new wxStaticText(this, wxID_ANY, x_axis_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiFreqStartX = new TextInput(this, std::to_string(15) , _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqStartX = new TextInput(this, std::to_string(15) , "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqStartX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    m_tiFreqEndX   = new TextInput(this, std::to_string(110), _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqEndX   = new TextInput(this, std::to_string(110), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqEndX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     
     x_freq_sizer->Add(start_x_text  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -820,9 +822,9 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     // Y axis frequencies
     auto y_freq_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_y_text = new wxStaticText(this, wxID_ANY, y_axis_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiFreqStartY = new TextInput(this, std::to_string(15) , _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqStartY = new TextInput(this, std::to_string(15) , "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqStartY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    m_tiFreqEndY =   new TextInput(this, std::to_string(110), _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqEndY =   new TextInput(this, std::to_string(110), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqEndY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     
     y_freq_sizer->Add(start_y_text  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -880,17 +882,17 @@ void Input_Shaping_Freq_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiFreqStartY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartY);
     read_double = read_double && m_tiFreqEndY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqEndY);
     read_double = read_double && m_tiDampingFactor->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
-    
+
     if (!read_double ||
         m_params.freqStartX < 0 || m_params.freqEndX > 500 ||
         m_params.freqStartY < 0 || m_params.freqEndX > 500 ||
         m_params.freqStartX >= m_params.freqEndX ||
         m_params.freqStartY >= m_params.freqEndY) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values\n(0 < FreqStart < FreqEnd < 500"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\n(0 < FreqStart < FreqEnd < 500)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
-    
+
     if (m_params.start < 0 || m_params.start >= 1) {
         MessageDialog msg_dlg(nullptr, _L("Please input a valid damping factor (0 < Damping/zeta factor <= 1)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
@@ -947,9 +949,9 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
 
     auto freq_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto freq_text = new wxStaticText(this, wxID_ANY, freq_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiFreqX = new TextInput(this, std::to_string(30), _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqX = new TextInput(this, std::to_string(30), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    m_tiFreqY = new TextInput(this, std::to_string(30), _L("hz"), "", wxDefaultPosition, ti_size);
+    m_tiFreqY = new TextInput(this, std::to_string(30), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     freq_sizer->Add(freq_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     freq_sizer->Add(m_tiFreqX, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -1007,11 +1009,10 @@ void Input_Shaping_Damp_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiDampingFactorStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double = read_double && m_tiDampingFactorEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
 
-        
     if (!read_double ||
         m_params.freqStartX < 0 || m_params.freqStartX > 500 ||
         m_params.freqStartY < 0 || m_params.freqStartY > 500 ) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values\n(0 < Freq < 500"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\n(0 < Freq < 500)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -1126,7 +1127,7 @@ void Junction_Deviation_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiJDEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
 
     if (!read_double || m_params.start < 0 || m_params.end >= 1 || m_params.start >= m_params.end) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values\n(0 <= Junction Deviation < 1)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\n(0 <= Junction Deviation < 1)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     } else if (m_params.end > 0.3) {

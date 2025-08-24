@@ -412,7 +412,7 @@ message(STATUS "LIBDIR_BIN: ${LIBDIR_BIN}")
 # For the bundled boost libraries (boost::nowide)
 include_directories(SYSTEM ${LIBDIR})
 # For generated header files
-include_directories(SYSTEM ${LIBDIR_BIN}/platform)
+include_directories(SYSTEM ${LIBDIR_BIN}/dev-utils/platform)
 # For ligigl
 include_directories(SYSTEM ${LIBDIR}/libigl)
 
@@ -699,10 +699,12 @@ endif()
 
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
 function(orcaslicer_copy_dlls target config postfix output_dlls)
-    if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-        set(_bits 64)
-    elseif ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
-        set(_bits 32)
+    if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
+        set(_arch "x64")
+    elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "X86")
+        set(_arch "x86")
+    else ()
+        message(FATAL_ERROR "Unable to detect architecture")
     endif ()
 
     get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -719,9 +721,9 @@ function(orcaslicer_copy_dlls target config postfix output_dlls)
         message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
     endif ()
 
-    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win${_bits}/WebView2Loader.dll
+    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win-${_arch}/libgmp-10.dll
+            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win-${_arch}/libmpfr-4.dll
+            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win-${_arch}/WebView2Loader.dll
         DESTINATION ${_out_dir})
 
     file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll
@@ -794,6 +796,7 @@ endfunction()
 
 
 # libslic3r, OrcaSlicer GUI and the OrcaSlicer executable.
+add_subdirectory(deps_src)
 add_subdirectory(src)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT OrcaSlicer_app_gui)
 
@@ -816,7 +819,7 @@ endif()
 
 if (NOT WIN32 AND NOT APPLE)
     set(SLIC3R_APP_CMD "orca-slicer")
-    configure_file(${LIBDIR}/platform/unix/build_appimage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_appimage.sh USE_SOURCE_PERMISSIONS @ONLY)
+    configure_file(${LIBDIR}/dev-utils/platform/unix/build_appimage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_appimage.sh USE_SOURCE_PERMISSIONS @ONLY)
 endif()
 
 option(BUILD_BBS_TEST_TOOLS          "Build bbs test tools" OFF)
@@ -837,7 +840,7 @@ elseif (SLIC3R_FHS)
     install(DIRECTORY ${SLIC3R_RESOURCES_DIR}/ DESTINATION ${SLIC3R_FHS_RESOURCES}
         PATTERN "*/udev" EXCLUDE
     )
-    install(FILES src/platform/unix/OrcaSlicer.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+    install(FILES src/dev-utils/platform/unix/OrcaSlicer.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
     foreach(SIZE 32 128 192)
         install(FILES ${SLIC3R_RESOURCES_DIR}/images/OrcaSlicer_${SIZE}px.png
             DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${SIZE}x${SIZE}/apps RENAME OrcaSlicer.png
@@ -846,12 +849,12 @@ elseif (SLIC3R_FHS)
 elseif (CMAKE_MACOSX_BUNDLE)
     # install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/OrcaSlicer.app/Contents/resources")
 else ()
-    install(FILES src/platform/unix/OrcaSlicer.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/resources/applications)
+    install(FILES src/dev-utils/platform/unix/OrcaSlicer.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/resources/applications)
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources")
 endif ()
 
 install(FILES ${CMAKE_SOURCE_DIR}/LICENSE.txt DESTINATION ".")
-configure_file(${LIBDIR}/platform/unix/fhs.hpp.in ${LIBDIR_BIN}/platform/unix/fhs.hpp)
+configure_file(${LIBDIR}/dev-utils/platform/unix/fhs.hpp.in ${LIBDIR_BIN}/dev-utils/platform/unix/fhs.hpp)
 
 set (CPACK_PACKAGE_NAME "OrcaSlicer")
 set (CPACK_PACKAGE_VENDOR "SoftFever")

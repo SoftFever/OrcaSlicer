@@ -698,7 +698,9 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_sizer_main->Add(m_sizer_right, 0, wxBOTTOM | wxEXPAND, FromDIP(5));
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->on_hide();});
-    Bind(wxEVT_ACTIVATE, [this](auto& e) { if (!e.GetActive()) this->RequestUserAttention(wxUSER_ATTENTION_ERROR); });
+    // Fix for #9874: Remove RequestUserAttention on deactivation to prevent focus stealing
+    // This was causing random window activation when multiple instances were running
+    // Bind(wxEVT_ACTIVATE, [this](auto& e) { if (!e.GetActive()) this->RequestUserAttention(wxUSER_ATTENTION_ERROR); });
 
     SetSizer(m_sizer_main);
     Layout();
@@ -891,7 +893,9 @@ PrintErrorDialog::PrintErrorDialog(wxWindow* parent, wxWindowID id, const wxStri
     m_sizer_main->Add(m_sizer_right, 0, wxBOTTOM | wxEXPAND, FromDIP(5));
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->on_hide(); });
-    Bind(wxEVT_ACTIVATE, [this](auto& e) { if (!e.GetActive()) this->RequestUserAttention(wxUSER_ATTENTION_ERROR); });
+    // Fix for #9874: Remove RequestUserAttention on deactivation to prevent focus stealing
+    // This was causing random window activation when multiple instances were running
+    // Bind(wxEVT_ACTIVATE, [this](auto& e) { if (!e.GetActive()) this->RequestUserAttention(wxUSER_ATTENTION_ERROR); });
     Bind(wxEVT_WEBREQUEST_STATE, &PrintErrorDialog::on_webrequest_state, this);
 
 

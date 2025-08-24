@@ -64,6 +64,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/TempInput.hpp
     GUI/Widgets/AMSControl.cpp
     GUI/Widgets/AMSControl.hpp
+    GUI/Widgets/AMSItem.cpp
+    GUI/Widgets/AMSItem.hpp
     GUI/Widgets/FanControl.cpp
     GUI/Widgets/FanControl.hpp
     GUI/Widgets/Scrollbar.cpp
@@ -135,6 +137,8 @@ set(SLIC3R_GUI_SOURCES
     #GUI/Gizmos/GLGizmoSlaSupports.hpp
     GUI/Gizmos/GLGizmoFdmSupports.cpp
     GUI/Gizmos/GLGizmoFdmSupports.hpp
+    GUI/Gizmos/GLGizmoFuzzySkin.cpp
+    GUI/Gizmos/GLGizmoFuzzySkin.hpp
     GUI/Gizmos/GLGizmoFlatten.cpp
     GUI/Gizmos/GLGizmoFlatten.hpp
     GUI/Gizmos/GLGizmoCut.cpp
@@ -446,6 +450,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ModelMall.cpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
+    GUI/SelectMachinePop.hpp
+    GUI/SelectMachinePop.cpp
     GUI/SendToPrinter.hpp
     GUI/SendToPrinter.cpp
     GUI/AmsMappingPopup.hpp
@@ -472,6 +478,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/CalibrationWizardSavePage.hpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
+    GUI/CloneDialog.hpp
+    GUI/CloneDialog.cpp
     GUI/PrintOptionsDialog.hpp
     GUI/PrintOptionsDialog.cpp
     GUI/BonjourDialog.hpp
@@ -582,7 +590,10 @@ set(SLIC3R_GUI_SOURCES
     Utils/ElegooLink.hpp
     Utils/ElegooLink.cpp
     Utils/WebSocketClient.hpp
+    Utils/bambu_networking.hpp
 )
+
+add_subdirectory(GUI/DeviceTab)
 
 if (WIN32)
     list(APPEND SLIC3R_GUI_SOURCES

@@ -18,7 +18,7 @@ else ()
 endif ()
 
 # Note: The flatpak build builds wxwidgets separately due to CI size constraints.
-# ANY CHANGES MADE IN HERE MUST ALSO BE REFLECTED IN `flatpak/io.github.SoftFever.OrcaSlicer.yml`.
+# ANY CHANGES MADE IN HERE MUST ALSO BE REFLECTED IN `scripts/flatpak/io.github.SoftFever.OrcaSlicer.yml`.
 # ** THIS INCLUDES BUILD ARGS. **
 # ...if you can find a way around this size limitation, be my guest.
 
