@@ -4793,7 +4793,8 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     bool base_id_error = false;
     if (preset->inherits() == "" && preset->base_id != "") base_id_error = true;
     if (base_id_error) {
-        HyperLink *m_download_hyperlink = new HyperLink(panel, _L("[Delete Required]"), HyperLink::For(HyperLinkType::BBL_CustomFilamentIssue));
+        // ORCA standardized HyperLink
+        HyperLink *m_download_hyperlink = new HyperLink(panel, _L("[Delete Required]"), "https://wiki.bambulab.com/en/software/bambu-studio/custom-filament-issue");
         sizer->Add(m_download_hyperlink, 0, wxEXPAND | wxALL, 5);
     }
     sizer->Add(0, 0, 1, wxEXPAND, 0);

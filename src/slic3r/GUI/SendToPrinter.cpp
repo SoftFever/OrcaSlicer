@@ -393,8 +393,8 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
     sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
 
-
-    m_link_network_state = new HyperLink(m_sw_print_failed_info, _L("Check the status of current system services"), HyperLink::For(HyperLinkType::BBL_NetworkCheck));
+    // ORCA standardized HyperLink
+    m_link_network_state = new HyperLink(m_sw_print_failed_info, _L("Check the status of current system services"), wxGetApp().link_to_network_check());
 
     sizer_print_failed_info->Add(m_link_network_state, 0, wxLEFT, 5);
     sizer_print_failed_info->Add(sizer_error_code, 0, wxLEFT, 5);

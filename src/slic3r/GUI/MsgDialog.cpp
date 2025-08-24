@@ -536,7 +536,8 @@ wxBoxSizer *Newer3mfVersionDialog::get_msg_sizer()
     if (file_version_newer) { 
         text1 = new wxStaticText(this, wxID_ANY, _L("The 3mf file version is in Beta and it is newer than the current OrcaSlicer version."));
         wxStaticText *   text2       = new wxStaticText(this, wxID_ANY, _L("If you would like to try Orca Slicer Beta, you may click to"));
-        HyperLink *      github_link = new HyperLink(this, _L("Download Beta Version"), HyperLink::For(HyperLinkType::Releases));
+        // ORCA standardized HyperLink
+        HyperLink *      github_link = new HyperLink(this, _L("Download Beta Version"), "https://github.com/SoftFever/OrcaSlicer/releases");
         horizontal_sizer->Add(text2, 0, wxEXPAND, 0);
         horizontal_sizer->Add(github_link, 0, wxEXPAND | wxLEFT, 5);
         
@@ -622,7 +623,8 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
 
     wxBoxSizer* sizer_link = new wxBoxSizer(wxVERTICAL);
 
-    m_link_server_state = new HyperLink(this, _L("Check the status of current system services"), HyperLink::For(HyperLinkType::BBL_NetworkCheck));
+    // ORCA standardized HyperLink
+    m_link_server_state = new HyperLink(this, _L("Check the status of current system services"), wxGetApp().link_to_network_check());
 
     sizer_link->Add(m_link_server_state, 0, wxALL, 0);
 
@@ -636,7 +638,8 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     m_text_proposal->SetFont(::Label::Body_14);
     m_text_proposal->SetForegroundColour(0x323A3C);
 
-    m_text_wiki = new HyperLink(this, _L("How to use LAN only mode"), HyperLink::For(HyperLinkType::BBL_LANonly));
+    // ORCA standardized HyperLink
+    m_text_wiki = new HyperLink(this, _L("How to use LAN only mode"), wxGetApp().link_to_lan_only_wiki());
 
     sizer_help->Add(m_text_proposal, 0, wxEXPAND, 0);
     sizer_help->Add(m_text_wiki, 0, wxALL, 0);

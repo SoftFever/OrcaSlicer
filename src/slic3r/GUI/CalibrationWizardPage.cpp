@@ -442,7 +442,8 @@ void CaliPageCaption::init_bitmaps() {
 
 void CaliPageCaption::create_wiki(wxWindow* parent)
 {
-    m_wiki_text = new HyperLink(parent, _L("Show Wiki"), m_wiki_url);
+    // ORCA standardized HyperLink
+    m_wiki_text = new HyperLink(parent, _L("Wiki"), m_wiki_url);
 }
 
 void CaliPageCaption::show_prev_btn(bool show)

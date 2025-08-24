@@ -25,7 +25,7 @@
 
 #include <sstream>
 #include <slic3r/GUI/Widgets/WebView.hpp>
-#include <slic3r/GUI/Widgets/HyperLink.hpp>
+#include <slic3r/GUI/Widgets/HyperLink.hpp> // ORCA
 using namespace std;
 
 using namespace nlohmann;
@@ -58,6 +58,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
         m_message->SetForegroundColour(*wxBLACK);
         m_message->Wrap(FromDIP(360));
 
+        // ORCA standardized HyperLink
         auto m_download_hyperlink = new HyperLink(this, _L("Click here to download it."));
         m_download_hyperlink->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event) {
             this->Close();

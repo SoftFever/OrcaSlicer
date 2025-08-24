@@ -469,7 +469,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(12));
 
-    m_hyperlink = new HyperLink(m_panel_prepare, _L("Click here if you can't connect to the printer"), HyperLink::For(HyperLinkType::BBL_FailedConnect));
+    // ORCA standardized HyperLink
+    m_hyperlink = new HyperLink(m_panel_prepare, _L("Click here if you can't connect to the printer"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"));
 
     m_sizer_prepare->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 10);
 
@@ -591,8 +592,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
     sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
 
-
-    m_link_network_state = new HyperLink(m_sw_print_failed_info, _L("Check the status of current system services"), HyperLink::For(HyperLinkType::BBL_NetworkCheck));
+    // ORCA standardized HyperLink
+    m_link_network_state = new HyperLink(m_sw_print_failed_info, _L("Check the status of current system services"), wxGetApp().link_to_network_check());
 
     sizer_print_failed_info->Add(m_link_network_state, 0, wxLEFT, 5);
     sizer_print_failed_info->Add(sizer_error_code, 0, wxLEFT, 5);

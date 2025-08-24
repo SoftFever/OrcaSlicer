@@ -33,6 +33,8 @@ namespace GUI {
 DownloadProgressDialog::DownloadProgressDialog(wxString title)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
+    wxString download_failed_url = wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-get-network-plugin");
+    wxString install_failed_url = wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-get-network-plugin");
     wxString download_failed_msg = _L("Failed to download the plug-in. Please check your firewall settings and vpn software, check and retry.");
     wxString install_failed_msg = _L("Failed to install the plug-in. Please check whether it is blocked or deleted by anti-virus software.");
 
@@ -69,7 +71,8 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
 
     sizer_download_failed->Add(m_statictext_download_failed, 0, wxALIGN_CENTER | wxALL, 5);
 
-    auto m_download_hyperlink = new HyperLink(m_panel_download_failed, _L("click here to see more info"), HyperLink::For(HyperLinkType::BBL_NetworkPlugin));
+    // ORCA standardized HyperLink
+    auto m_download_hyperlink = new HyperLink(m_panel_download_failed, _L("click here to see more info"), download_failed_url);
     sizer_download_failed->Add(m_download_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
 
 
@@ -90,7 +93,8 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
 
     sizer_install_failed->Add(m_statictext_install_failed, 0, wxALIGN_CENTER | wxALL, 5);
 
-    auto m_install_hyperlink = new HyperLink(m_panel_install_failed, _L("click here to see more info"), HyperLink::For(HyperLinkType::BBL_NetworkPlugin));
+    // ORCA standardized HyperLink
+    auto m_install_hyperlink = new HyperLink(m_panel_install_failed, _L("click here to see more info"), install_failed_url);
     sizer_install_failed->Add(m_install_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
 
 

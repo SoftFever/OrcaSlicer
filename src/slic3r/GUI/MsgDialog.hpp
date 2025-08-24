@@ -421,9 +421,9 @@ public:
 
 private:
     Label* m_text_basic;
-    HyperLink* m_link_server_state;
+    HyperLink* m_link_server_state; // ORCA
     Label* m_text_proposal;
-    HyperLink* m_text_wiki;
+    HyperLink* m_text_wiki; // ORCA
     Button *         m_button_confirm;
 
 public:

@@ -38,7 +38,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
 #include "Widgets/PopupWindow.hpp"
-#include "Widgets/HyperLink.hpp"
+#include "Widgets/HyperLink.hpp" // ORCA
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
@@ -248,7 +248,7 @@ protected:
     Label*                              m_st_txt_error_desc{nullptr};
     Label*                              m_st_txt_extra_info{nullptr};
     Label*                              m_ams_backup_tip{nullptr};
-    HyperLink*                          m_link_network_state{ nullptr };
+    HyperLink*                          m_link_network_state{ nullptr }; // ORCA
     wxSimplebook*                       m_rename_switch_panel{nullptr};
     wxSimplebook*                       m_simplebook{nullptr};
     wxStaticText*                       m_rename_text{nullptr};
@@ -263,11 +263,9 @@ protected:
     TextInput*                          m_rename_input{nullptr};
     wxTimer*                            m_refresh_timer{ nullptr };
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
-
-    wxHyperlinkCtrl*                    m_hyperlink{nullptr};
+    HyperLink*                          m_hyperlink{nullptr}; // ORCA
     ScalableBitmap *                    rename_editable{nullptr};
     ScalableBitmap *                    rename_editable_light{nullptr};
-
     wxStaticBitmap *                    timeimg{nullptr};
     ScalableBitmap *                    print_time{nullptr};
     wxStaticBitmap *                    weightimg{nullptr};

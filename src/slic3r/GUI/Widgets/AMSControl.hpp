@@ -94,7 +94,7 @@ protected:
     Button *m_button_retry = {nullptr};
     wxWindow* m_button_area = {nullptr};
 
-    HyperLink* m_hyperlink = {nullptr};
+    HyperLink* m_hyperlink = {nullptr}; // ORCA
     AmsHumidityTipPopup m_Humidity_tip_popup;
     uiAmsPercentHumidityDryPopup* m_percent_humidity_dry_popup;
 

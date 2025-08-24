@@ -3325,6 +3325,43 @@ void GUI_App::set_side_menu_popup_status(bool status)
     m_side_popup_status = status;
 }
 
+std::string GUI_App::link_to_network_check()
+{
+    std::string url;
+    std::string country_code = app_config->get_country_code();
+
+
+    if (country_code == "US") {
+        url = "https://status.bambulab.com";
+    }
+    else if (country_code == "CN") {
+        url = "https://status.bambulab.cn";
+    }
+    else {
+        url = "https://status.bambulab.com";
+    }
+    //wxLaunchDefaultBrowser(url);
+    return url;
+}
+
+std::string GUI_App::link_to_lan_only_wiki()
+{
+    std::string url;
+    std::string country_code = app_config->get_country_code();
+
+    if (country_code == "US") {
+        url = "https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode";
+    }
+    else if (country_code == "CN") {
+        url = "https://wiki.bambulab.com/zh/knowledge-sharing/enable-lan-mode";
+    }
+    else {
+        url = "https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode";
+    }
+    //wxLaunchDefaultBrowser(url);
+    return url;
+}
+
 bool GUI_App::tabs_as_menu() const
 {
     return false;

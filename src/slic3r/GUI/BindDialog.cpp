@@ -96,7 +96,8 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     m_status_text->Wrap(FromDIP(440));
     m_status_text->SetForegroundColour(wxColour(38, 46, 48));
 
-    m_link_show_ping_code_wiki = new HyperLink(request_bind_panel, _L("Can't find Pin Code?"), HyperLink::For(HyperLinkType::BBL_PinCode));
+    // ORCA standardized HyperLink
+    m_link_show_ping_code_wiki = new HyperLink(request_bind_panel, _L("Can't find Pin Code?"), "https://wiki.bambulab.com/en/bambu-studio/manual/pin-code");
 
     m_text_input_title = new wxStaticText(request_bind_panel, wxID_ANY, _L("Pin Code"));
     m_text_input_title->SetFont(Label::Body_14);
@@ -460,6 +461,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_st_privacy_title->SetFont(Label::Body_13);
      m_st_privacy_title->SetForegroundColour(wxColour(38, 46, 48));
 
+     // ORCA standardized HyperLink
      auto m_link_Terms_title = new HyperLink(m_panel_agreement, _L("Terms and Conditions"));
      m_link_Terms_title->Wrap(FromDIP(450));
      m_link_Terms_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
@@ -476,8 +478,21 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_st_and_title->SetFont(Label::Body_13);
      m_st_and_title->SetForegroundColour(wxColour(38, 46, 48));
 
-     auto m_link_privacy_title = new HyperLink(m_panel_agreement, _L("Privacy Policy"), HyperLink::For(HyperLinkType::BBL_Privacy));
+     // ORCA standardized HyperLink
+     auto m_link_privacy_title = new HyperLink(m_panel_agreement, _L("Privacy Policy"));
      m_link_privacy_title->Wrap(FromDIP(450));
+     m_link_privacy_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         std::string url;
+         std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
+
+         if (country_code == "CN") {
+             url = "https://www.bambulab.cn/policies/privacy";
+         }
+         else{
+             url = "https://www.bambulab.com/policies/privacy";
+         }
+         wxLaunchDefaultBrowser(url);
+     });
 
      sizere_notice_agreement->Add(0, 0, 0, wxTOP, FromDIP(4));
      sizer_privacy_agreement->Add(m_st_privacy_title, 0, wxALIGN_CENTER, 0);
@@ -499,6 +514,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_st_notice_title->SetFont(Label::Body_13);
      m_st_notice_title->SetForegroundColour(wxColour(38, 46, 48));
 
+     // ORCA standardized HyperLink
      auto m_link_notice_title = new HyperLink(m_panel_agreement, notice_link_title);
      m_link_notice_title->Wrap(FromDIP(450));
      m_link_notice_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
@@ -560,7 +576,8 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      wxBoxSizer* m_sizer_bind_failed_info = new wxBoxSizer(wxVERTICAL);
      m_sw_bind_failed_info->SetSizer( m_sizer_bind_failed_info );
 
-     auto network_state_link = new HyperLink(m_sw_bind_failed_info, _L("Check the status of current system services"), HyperLink::For(HyperLinkType::BBL_NetworkCheck));
+     // ORCA standardized HyperLink
+     m_link_network_state = new HyperLink(m_sw_bind_failed_info, _L("Check the status of current system services"), wxGetApp().link_to_network_check());
 
      wxBoxSizer* sizer_error_code = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
@@ -618,7 +635,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
      sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
 
-     m_sizer_bind_failed_info->Add(network_state_link, 0, wxLEFT, 0);
+     m_sizer_bind_failed_info->Add(m_link_network_state, 0, wxLEFT, 0);
      m_sizer_bind_failed_info->Add(sizer_error_code, 0, wxLEFT, 0);
      m_sizer_bind_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
      m_sizer_bind_failed_info->Add(sizer_error_desc, 0, wxLEFT, 0);
