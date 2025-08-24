@@ -336,10 +336,10 @@ jobs:
 
       - name: Build orca_custom_preset_tests
         if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-24.04'
-        working-directory: ${{ github.workspace }}/build/src
+        working-directory: ${{ github.workspace }}/build/src/Release
         shell: bash
         run: |
-          ./build/src/OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -g 1
+          ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -g 1
           cd ${{ github.workspace }}/resources/profiles
           zip -r orca_custom_preset_tests.zip user/
 
