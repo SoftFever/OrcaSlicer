@@ -7,7 +7,7 @@ SCRIPT_PATH=$(dirname "$(readlink -f "${0}")")
 pushd "${SCRIPT_PATH}" > /dev/null
 
 function usage() {
-    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-u][-l]"
+    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-t][-u][-l][-L]"
     echo "   -1: limit builds to one core (where possible)"
     echo "   -j N: limit builds to N cores (where possible)"
     echo "   -b: build in debug mode"
@@ -19,16 +19,19 @@ function usage() {
     echo "   -p: boost ccache hit rate by disabling precompiled headers (default: ON)"
     echo "   -r: skip RAM and disk checks (low RAM compiling)"
     echo "   -s: build the Orca Slicer (optional)"
+    echo "   -t: build tests (optional)"
     echo "   -u: install system dependencies (asks for sudo password; build prerequisite)"
     echo "   -l: use Clang instead of GCC (default: GCC)"
+    echo "   -L: use ld.lld as linker (if available)"
     echo "For a first use, you want to './${SCRIPT_NAME} -u'"
     echo "   and then './${SCRIPT_NAME} -dsi'"
+    echo "To build with tests: './${SCRIPT_NAME} -st' or './${SCRIPT_NAME} -dst'"
 }
 
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
-while getopts ":1j:bcCdhiprsul" opt ; do
+while getopts ":1j:bcCdhiprstulL" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -63,11 +66,17 @@ while getopts ":1j:bcCdhiprsul" opt ; do
     s )
         BUILD_ORCA="1"
         ;;
+    t )
+        BUILD_TESTS="1"
+        ;;
     u )
         export UPDATE_LIB="1"
         ;;
     l )
         USE_CLANG="1"
+        ;;
+    L )
+        USE_LLD="1"
         ;;
     * )
 	echo "Unknown argument '${opt}', aborting."
@@ -151,6 +160,18 @@ if [[ -n "${USE_CLANG}" ]] ; then
     export CMAKE_C_CXX_COMPILER_CLANG="-DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++"
 fi
 
+# Configure use of ld.lld as the linker when requested
+export CMAKE_LLD_LINKER_ARGS=""
+if [[ -n "${USE_LLD}" ]] ; then
+    if command -v ld.lld >/dev/null 2>&1 ; then
+        LLD_BIN=$(command -v ld.lld)
+        export CMAKE_LLD_LINKER_ARGS="-DCMAKE_LINKER=${LLD_BIN} -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_MODULE_LINKER_FLAGS=-fuse-ld=lld"
+    else
+        echo "Error: ld.lld not found. Please install the 'lld' package (e.g., sudo apt install lld) or omit -L."
+        exit 1
+    fi
+fi
+
 if [[ -n "${BUILD_DEPS}" ]] ; then
     echo "Configuring dependencies..."
     BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON"
@@ -162,7 +183,7 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
     if [[ -n "${BUILD_DEBUG}" ]] ; then
         # build deps with debug and release else cmake will not find required sources
         mkdir -p deps/build/release
-	CMAKE_CMD="cmake ${CMAKE_C_CXX_COMPILER_CLANG} -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR=${SCRIPT_PATH}/deps/build/destdir -DDEP_DOWNLOAD_DIR=${SCRIPT_PATH}/deps/DL_CACHE ${COLORED_OUTPUT} ${BUILD_ARGS}"
+	CMAKE_CMD="cmake ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR=${SCRIPT_PATH}/deps/build/destdir -DDEP_DOWNLOAD_DIR=${SCRIPT_PATH}/deps/DL_CACHE ${COLORED_OUTPUT} ${BUILD_ARGS}"
 	echo "${CMAKE_CMD}"
 	${CMAKE_CMD}
         cmake --build deps/build/release
@@ -170,7 +191,7 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
     fi
 
     # If this isn't in one quote, then empty variables can add two single quotes and mess up argument parsing for cmake.
-    CMAKE_CMD="cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}"
+    CMAKE_CMD="cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}"
     echo "${CMAKE_CMD}"
     ${CMAKE_CMD}
     cmake --build deps/build
@@ -190,21 +211,33 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     else
         BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
     fi
+    if [[ -n "${BUILD_TESTS}" ]] ; then
+        BUILD_ARGS="${BUILD_ARGS} -DBUILD_TESTS=ON"
+    fi
 
-    CMAKE_CMD="cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja Multi-Config \
+    echo "Configuring OrcaSlicer..."
+    cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G "Ninja Multi-Config" \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
 -DCMAKE_PREFIX_PATH=${SCRIPT_PATH}/deps/build/destdir/usr/local \
 -DSLIC3R_STATIC=1 \
 -DORCA_TOOLS=ON \
 ${COLORED_OUTPUT} \
-${BUILD_ARGS}"
+${BUILD_ARGS}
     echo "${CMAKE_CMD}"
     ${CMAKE_CMD}
     echo "done"
     echo "Building OrcaSlicer ..."
-    cmake --build build --target OrcaSlicer
+    if [[ -n "${BUILD_DEBUG}" ]] ; then
+        cmake --build build --config Debug --target OrcaSlicer
+    else
+        cmake --build build --config Release --target OrcaSlicer
+    fi
     echo "Building OrcaSlicer_profile_validator .."
-    cmake --build build --target OrcaSlicer_profile_validator
+    if [[ -n "${BUILD_DEBUG}" ]] ; then
+        cmake --build build --config Debug --target OrcaSlicer_profile_validator
+    else
+        cmake --build build --config Release --target OrcaSlicer_profile_validator
+    fi
     ./scripts/run_gettext.sh
     echo "done"
 fi
