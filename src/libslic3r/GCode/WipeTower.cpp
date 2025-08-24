@@ -874,18 +874,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
             box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED) ? m_layer_info->toolchanges_depth() - m_layer_info->depth : 0.f), m_wipe_tower_width,
                                    m_layer_info->depth + m_perimeter_width);
 
-            Vec2f pos = initial_position;
-            switch (m_cur_layer_id % 4) {
-            case 0: pos = wt_box.ld; break;
-            case 1: pos = wt_box.rd; break;
-            case 2: pos = wt_box.ru; break;
-            case 3: pos = wt_box.lu; break;
-            default: break;
-            }
-            writer.set_initial_position(pos, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
-
             // align the perimeter
-
             Vec2f pos = initial_position;
             switch (m_cur_layer_id % 4){
             case 0:
