@@ -1,7 +1,7 @@
 # Filament Tolerance Calibration
 
 Each filament and printer combination can result in different tolerances. This means that even using the same filament and print profile, tolerances may vary from one printer to another.
-To correct for these variations, Orca Slicer provides:
+To correct for these variations, OrcaSlicer provides:
 
 - Filament Compensation:
 
@@ -20,7 +20,7 @@ To correct for these variations, Orca Slicer provides:
 
 ## Handy Models
 
-Orca Slicer includes several handy models to help you test and calibrate your printer.  
+OrcaSlicer includes several handy models to help you test and calibrate your printer.  
 Right-click on your plate in Prepare mode and select "Add Handy Model" to access these models.  
 ![handy-models-list](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Handy-Models/handy-models-list.png?raw=true)
 
