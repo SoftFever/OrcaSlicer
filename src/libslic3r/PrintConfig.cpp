@@ -161,10 +161,11 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "lightning", ipLightning },
     { "honeycomb", ipHoneycomb },
     { "3dhoneycomb", ip3DHoneycomb },
-    { "2dhoneycomb", ip2DHoneycomb },
-    { "2dlattice", ip2DLattice },
+    { "lateral-honeycomb", ipLateralHoneycomb },
+    { "lateral-lattice", ipLateralLattice },
     { "crosshatch", ipCrossHatch },
     { "tpmsd", ipTpmsD },
+    { "tpmsfk", ipTpmsFK },
     { "gyroid", ipGyroid },
     { "concentric", ipConcentric },
     { "hilbertcurve", ipHilbertCurve },
@@ -232,8 +233,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SlicingMode)
 static t_config_enum_values s_keys_map_SupportMaterialPattern {
     { "rectilinear",        smpRectilinear },
     { "rectilinear-grid",   smpRectilinearGrid },
-    { "lightning",          smpLightning },
     { "honeycomb",          smpHoneycomb },
+    { "lightning",          smpLightning },
     { "default",            smpDefault},
     { "hollow",               smpNone},
 };
@@ -838,6 +839,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back(L("Textured Cool Plate"));
     def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
+
+    // Orca: allow profile maker to set default bed type in machine profile
+    // This option won't be shown in the UI
+    def = this->add("default_bed_type", coString);
+    def->label = L("Default bed type");
+    def->tooltip = L("Default bed type for the printer (supports both numeric and string format).");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
 
     // BBS
     def             = this->add("first_layer_print_sequence", coInts);
@@ -2405,10 +2414,11 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("3dhoneycomb");
-    def->enum_values.push_back("2dhoneycomb");
-    def->enum_values.push_back("2dlattice");
+    def->enum_values.push_back("lateral-honeycomb");
+    def->enum_values.push_back("lateral-lattice");
     def->enum_values.push_back("crosshatch");
     def->enum_values.push_back("tpmsd");
+    def->enum_values.push_back("tpmsfk");
     def->enum_values.push_back("gyroid");
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("hilbertcurve");
@@ -2430,10 +2440,11 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("3D Honeycomb"));
-    def->enum_labels.push_back(L("2D Honeycomb"));
-    def->enum_labels.push_back(L("2D Lattice"));
+    def->enum_labels.push_back(L("Lateral Honeycomb"));
+    def->enum_labels.push_back(L("Lateral Lattice"));
     def->enum_labels.push_back(L("Cross Hatch"));
     def->enum_labels.push_back(L("TPMS-D"));
+    def->enum_labels.push_back(L("TPMS-FK"));
     def->enum_labels.push_back(L("Gyroid"));
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Hilbert Curve"));
@@ -2441,20 +2452,20 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Octagram Spiral"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
-    def           = this->add("lattice_angle_1", coFloat);
-    def->label    = L("Lattice angle 1");
+    def           = this->add("lateral_lattice_angle_1", coFloat);
+    def->label    = L("Lateral lattice angle 1");
     def->category = L("Strength");
-    def->tooltip  = L("The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->tooltip  = L("The angle of the first set of Lateral lattice elements in the Z direction. Zero is vertical.");
     def->sidetext = "°";	// degrees, don't need translation
     def->min      = -75;
     def->max      = 75;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(-45));
 
-    def           = this->add("lattice_angle_2", coFloat);
-    def->label    = L("Lattice angle 2");
+    def           = this->add("lateral_lattice_angle_2", coFloat);
+    def->label    = L("Lateral lattice angle 2");
     def->category = L("Strength");
-    def->tooltip  = L("The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->tooltip  = L("The angle of the second set of Lateral lattice elements in the Z direction. Zero is vertical.");
     def->sidetext = "°";	// degrees, don't need translation
     def->min      = -75;
     def->max      = 75;
@@ -4736,7 +4747,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
                      "The value is not used when 'idle_temperature' in filament settings "
                      "is set to non-zero value.");
-    def->sidetext = "∆\u2103";	// delta degrees Celsius, don't need translation
+    def->sidetext = u8"∆\u2103";	// delta degrees Celsius, don't need translation
     def->min = -max_temp;
     def->max = max_temp;
     def->mode = comAdvanced;
@@ -5091,14 +5102,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("default");
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
-    def->enum_values.push_back("lightning");
     def->enum_values.push_back("honeycomb");
+    def->enum_values.push_back("lightning");
     def->enum_values.push_back("hollow");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear grid"));
-    def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Honeycomb"));
+    def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Hollow"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpDefault));
