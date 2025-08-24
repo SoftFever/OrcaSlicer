@@ -995,6 +995,54 @@
         {
             "name": "NIT PLA @System",
             "sub_path": "filament/NIT/NIT PLA @System.json"
+        },
+        {
+            "name": "FDplast ABS @base",
+            "sub_path": "filament/FDplast/FDplast ABS @base.json"
+        },
+        {
+            "name": "FDplast ABS @System",
+            "sub_path": "filament/FDplast/FDplast ABS @System.json"
+        },
+        {
+            "name": "FDplast HIPS @base",
+            "sub_path": "filament/FDplast/FDplast HIPS @base.json"
+        },
+        {
+            "name": "FDplast HIPS @System",
+            "sub_path": "filament/FDplast/FDplast HIPS @System.json"
+        },
+        {
+            "name": "FDplast PETG @base",
+            "sub_path": "filament/FDplast/FDplast PETG @base.json"
+        },
+        {
+            "name": "FDplast PETG @System",
+            "sub_path": "filament/FDplast/FDplast PETG @System.json"
+        },
+        {
+            "name": "FDplast PLA @base",
+            "sub_path": "filament/FDplast/FDplast PLA @base.json"
+        },
+        {
+            "name": "FDplast PLA @System",
+            "sub_path": "filament/FDplast/FDplast PLA @System.json"
+        },
+        {
+            "name": "FDplast SBS @base",
+            "sub_path": "filament/FDplast/FDplast SBS @base.json"
+        },
+        {
+            "name": "FDplast SBS @System",
+            "sub_path": "filament/FDplast/FDplast SBS @System.json"
+        },
+        {
+            "name": "FDplast TPU @base",
+            "sub_path": "filament/FDplast/FDplast TPU @base.json"
+        },
+        {
+            "name": "FDplast TPU @System",
+            "sub_path": "filament/FDplast/FDplast TPU @System.json"
         }
     ]
 }

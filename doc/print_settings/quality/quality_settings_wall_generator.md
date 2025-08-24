@@ -2,6 +2,17 @@
 
 The Wall Generator defines how the outer and inner walls (perimeters) of the model are printed.
 
+- [Classic](#classic)
+- [Arachne](#arachne)
+  - [Wall transitioning threshhold angle](#wall-transitioning-threshhold-angle)
+  - [Wall transitioning filter margin](#wall-transitioning-filter-margin)
+  - [Wall transitioning length](#wall-transitioning-length)
+  - [Wall distribution count](#wall-distribution-count)
+  - [Minimum wall width](#minimum-wall-width)
+    - [First layer minimum wall width](#first-layer-minimum-wall-width)
+  - [Minimum feature size](#minimum-feature-size)
+  - [Minimum wall length](#minimum-wall-length)
+
 ## Classic
 
 The Classic wall generator is a simple and reliable method used in many slicers. It creates as many walls as possible (limited by [Wall Loops](strength_settings_walls#wall-loops)) by extruding along the model’s perimeter using the defined [Line Width](quality_settings_line_width).
@@ -14,6 +25,9 @@ This method does not vary extrusion width and is ideal for fast, predictable sli
 The Arachne wall generator dynamically adjusts extrusion width to follow the shape of the model more closely. This allows better handling of thin features and smooth transitions between wall counts.
 
 ![wallgenerator-arachne](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/WallGenerator/wallgenerator-arachne.png?raw=true)
+
+> [!NOTE]
+> [A Framework for Adaptive Width Control of Dense Contour-Parallel Toolpaths in Fused Deposition Modeling](https://www.sciencedirect.com/science/article/pii/S0010448520301007?via%3Dihub)
 
 ### Wall transitioning threshhold angle
 
@@ -47,11 +61,12 @@ Specifies the minimum wall width for the first layer. It is recommended to match
 
 ### Minimum feature size
 
-Minimum width required for a model feature to be printed. Features below this value are skipped; features above it are widened to match the **Minimum Wall Width**. Expressed as a percentage of nozzle diameter.
+Minimum width required for a model feature to be printed. Features below this value are skipped; features above it are widened to match the [Minimum Wall Width](#minimum-wall-width). Expressed as a percentage of nozzle diameter.
 
 ### Minimum wall length
 
-Avoids very short or isolated wall segments that add unnecessary time. Increasing this value removes short unconnected walls, improving efficiency.
+Avoids very short or isolated wall segments that add unnecessary time.  
+Increasing this value removes short unconnected walls, **improving efficiency**.
 
 > [!NOTE]
 > Top and bottom surfaces are not affected by this setting to avoid visual artifacts.

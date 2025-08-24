@@ -17,7 +17,7 @@
     "initial_layer_jerk": "3",
     "travel_jerk": "8",
   "elefant_foot_compensation": "0.1",
-  "enable_prime_tower": "1",
+  "enable_prime_tower": "0",
   "extra_perimeters_on_overhangs": "1",
   "flush_into_support": "0",
   "infill_wall_overlap": "20%",
@@ -54,8 +54,8 @@
   "wipe_before_external_loop": "1",
   "wipe_on_loops": "1",
   "compatible_printers": [
-    "D12 300 PRO SMARTPAD MONO DUAL 0.4 nozzle PoopTool",
-        "D12 300 PRO M2 MONO DUAL 0.4 nozzle PoopTool"
+        "D12 300 PRO M2 MONO DUAL PoopTool 0.4 nozzle",
+        "D12 300 PRO SMARTPAD MONO DUAL PoopTool 0.4 nozzle"
   ]
   
 }
