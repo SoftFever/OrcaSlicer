@@ -1,0 +1,38 @@
+on:
+  push:
+    paths:
+      - build_linux.sh
+  pull_request:
+    paths:
+      - build_linux.sh
+  workflow_dispatch: # allows for manual dispatch
+
+name: "Shellcheck"
+permissions: {}
+
+jobs:
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache shellcheck download
+        id: cache-shellcheck-v0_11
+        uses: actions/cache@v4
+        with:
+          path: ~/shellcheck
+          key: ${{ runner.os }}-shellcheck-v0_11
+
+      - name: Download shellcheck
+        if: steps.cache-shellcheck-v0_11.outputs.cache-hit != 'true'
+        shell: bash
+        env:
+          INPUT_VERSION: "v0.11.0"
+        run: |
+          curl -L#o ~/sc.tar.xz "https://github.com/koalaman/shellcheck/releases/download/${INPUT_VERSION}/shellcheck-${INPUT_VERSION}.linux.x86_64.tar.xz"
+          tar -xvf ~/sc.tar.xz -C ~
+          mv ~/shellcheck-"${INPUT_VERSION}"/shellcheck ~/shellcheck
+
+      - uses: actions/checkout@v4
+
+      - name: Shellcheck build_linux.sh
+        run: ~/shellcheck -e SC1090 build_linux.sh
