@@ -3785,7 +3785,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Velocità volumetrica massima troppo bassa.\n"
 "Il valore è stato ripristinato a 0,5"
@@ -3802,14 +3802,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Altezza delo strato troppo piccola.\n"
 "È stata ripristinata a 0,2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Spaziatura di stiratura troppo piccola.\n"
 "È stata ripristinata a 0,1"
@@ -3916,8 +3916,8 @@ msgstr ""
 "È stato ripristinato a 0."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -11933,7 +11933,7 @@ msgid "Default color"
 msgstr "Colore predefinito"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -12535,7 +12535,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -13433,8 +13433,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Velocità stiratura"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Indica la velocità di stampa per le linee di stiratura."
 
 msgid "Ironing angle"
 msgstr "Angolo di stiratura"
@@ -13779,7 +13779,7 @@ msgstr ""
 "durata minima stimata dello strato definito sopra, quando è abilitata "
 "l'opzione 'Rallenta stampa per miglior raffreddamento degli strati'."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Diametro ugello"
 
 msgid "Configuration notes"
@@ -13941,7 +13941,7 @@ msgstr ""
 "utilizza un velocità di stampa differente. Per una sporgenza del 100%%, "
 "viene utilizzata la velocità dei ponti."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Filamento per stampa pareti"
 
 msgid ""
@@ -13997,7 +13997,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Tipo stampante"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "Tipo di stampante"
 
 msgid "Printer notes"
@@ -14505,7 +14505,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Distanza gonna"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Distanza dalla gonna alla tesa o all'oggetto"
 
 msgid "Skirt start point"
@@ -14633,7 +14633,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Riempimento solido"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Filamento utilizzato per stampare il riempimento solido"
 
 msgid ""
@@ -16309,25 +16309,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr "Nome MakerLab"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "Nome MakerLab per generare questo 3mf"
 
 msgid "MakerLab version"
 msgstr "Versione MakerLab"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "Versione MakerLab per generare questo 3mf"
 
 msgid "metadata name list"
 msgstr "elenco nomi metadati"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "elenco dei nomi dei metadati aggiunti nel 3mf"
 
 msgid "metadata value list"
 msgstr "elenco valori metadati"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "elenco dei valori dei metadati aggiunti nel 3mf"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -19410,20 +19410,11 @@ msgstr ""
 #~ msgid "Default filament color"
 #~ msgstr "Colore predefinito del filamento"
 
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
 #~ msgid "Rotate solid infill direction"
 #~ msgstr "Ruota direzione riempimento solido"
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "Ruota la direzione del riempimento solido di 90° per ogni strato."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Indica la velocità di stampa per le linee di stiratura."
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "

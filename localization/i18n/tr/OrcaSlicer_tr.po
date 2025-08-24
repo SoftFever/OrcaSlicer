@@ -3651,7 +3651,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Maksimum hacimsel hız çok küçük.\n"
 "0,5'e sıfırla"
@@ -3668,14 +3668,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Katman yüksekliği çok küçük.\n"
 "0,2'ye sıfırla"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Çok küçük ütüleme aralığı.\n"
 "0,1'e sıfırla"
@@ -3779,8 +3779,8 @@ msgstr ""
 "0 a sıfırla."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 "Kilit derinliği cilt derinliğinden daha küçük olmalıdır.\n"
 "Cilt derinliğinin %50'sine sıfırlayın"
@@ -11438,7 +11438,7 @@ msgid "Default color"
 msgstr "Varsayılan renk"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 "Varsayılan filament rengi\n"
@@ -11993,7 +11993,7 @@ msgstr "Klipper'ın max_accel_to_decel değeri ivmenin bu %%'sine göre ayarlana
 msgid "Default jerk."
 msgstr "Varsayılan sarsıntı."
 
-msgid "Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+msgid "Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr "Marlin Firmware Köşe Sapması (geleneksel XY Sarsıntı ayarının yerini alır)"
 
 msgid "Jerk of outer walls."
@@ -12886,7 +12886,7 @@ msgstr "Kenarlardan korunacak mesafe. 0 değeri bunu nozül çapının yarısın
 msgid "Ironing speed"
 msgstr "Ütüleme hızı"
 
-msgid "Print speed of ironing lines"
+msgid "Print speed of ironing lines."
 msgstr "Ütüleme çizgilerinin baskı hızı"
 
 msgid "Ironing angle"
@@ -13227,7 +13227,7 @@ msgstr ""
 "Daha iyi katman soğutması için yavaşlama etkinleştirildiğinde, yukarıda tanımlanan "
 "minimum katman süresini korumak için yazıcının yavaşladığı minimum yazdırma hızı."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Nozul çapı"
 
 msgid "Configuration notes"
@@ -13373,7 +13373,7 @@ msgstr ""
 "Çizgi genişliğine göre çıkıntı yüzdesini tespit edin ve yazdırmak için farklı hızlar "
 "kullanın. %%100 çıkıntı için köprü hızı kullanılır."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Duvarları yazdırmak için filament"
 
 msgid ""
@@ -13425,7 +13425,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Yazıcı türü"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "Yazıcı türü"
 
 msgid "Printer notes"
@@ -13899,7 +13899,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Etek mesafesi"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Etekten kenara veya nesneye olan mesafe"
 
 msgid "Skirt start point"
@@ -14019,7 +14019,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Katı dolgu"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Katı dolguyu yazdırmak için filament"
 
 msgid ""
@@ -15611,25 +15611,25 @@ msgstr "Yazıcı veya filament Ön Ayarlarından 3mf’deki değiştirilmiş gco
 msgid "MakerLab name"
 msgstr "MakerLab adı"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "Bu 3mf’yi oluşturmak için MakerLab adı"
 
 msgid "MakerLab version"
 msgstr "MakerLab version"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "Bu 3mf’yi oluşturmak için MakerLab sürümü"
 
 msgid "metadata name list"
 msgstr "meta veri adı listesi"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "3mf’ye meta veri adı listesi eklendi"
 
 msgid "metadata value list"
 msgstr "meta veri değer listesi"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "3mf’ye meta veri değeri listesi eklendi"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -18597,9 +18597,6 @@ msgstr ""
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "Katı dolgu yönünü her katman için 90° döndürün."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Ütüleme çizgilerinin baskı hızı"
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. The "

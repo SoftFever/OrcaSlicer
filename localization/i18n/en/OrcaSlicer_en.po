@@ -3555,7 +3555,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Too small max volumetric speed.\n"
 "Value was reset to 0.5"
@@ -3572,14 +3572,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Layer height too small\n"
 "It has been reset to 0.2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Ironing spacing too small\n"
 "It has been reset to 0.1"
@@ -3660,8 +3660,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -10700,7 +10700,7 @@ msgid "Default color"
 msgstr ""
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -11198,7 +11198,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -11953,8 +11953,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr ""
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "This is the print speed for ironing lines."
 
 msgid "Ironing angle"
 msgstr ""
@@ -12235,8 +12235,8 @@ msgid ""
 "is enabled."
 msgstr ""
 
-msgid "Diameter of nozzle"
-msgstr "The diameter of the nozzle"
+msgid "The diameter of nozzle."
+msgstr ""
 
 msgid "Configuration notes"
 msgstr ""
@@ -12363,7 +12363,7 @@ msgstr ""
 "This detects the overhang percentage relative to line width and uses a "
 "different speed to print. For 100%% overhang, bridging speed is used."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr ""
 
 msgid ""
@@ -12402,7 +12402,7 @@ msgstr ""
 msgid "Printer type"
 msgstr ""
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr ""
 
 msgid "Printer notes"
@@ -12813,7 +12813,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr ""
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "This is the distance from the skirt to the brim or the object."
 
 msgid "Skirt start point"
@@ -12913,7 +12913,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr ""
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr ""
 
 msgid ""
@@ -14304,25 +14304,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr ""
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr ""
 
 msgid "MakerLab version"
 msgstr ""
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr ""
 
 msgid "metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr ""
 
 msgid "metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr ""
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -16808,9 +16808,6 @@ msgstr ""
 #~ msgstr ""
 #~ "The configuration package is incompatible with the current version of "
 #~ "Bambu Studio."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "This is the print speed for ironing lines."
 
 #~ msgid ""
 #~ "The highest printable layer height for the extruder. Used to limit the "

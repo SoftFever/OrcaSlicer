@@ -3753,7 +3753,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Надто маленька максимальна об'ємна швидкість.\n"
 "Скинути до 0,5"
@@ -3770,14 +3770,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Надто маленька висота шару.\n"
 "Скинути на 0.2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Занадто маленька відстань між розглажуванням.\n"
 "Скинути на 0,1"
@@ -3882,8 +3882,8 @@ msgstr ""
 "Значення скинуто на 0."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -11797,7 +11797,7 @@ msgid "Default color"
 msgstr "Колір за замовчуванням"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -12390,7 +12390,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -13277,8 +13277,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Швидкість розглажування"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Швидкість друку прасувальних ліній"
 
 msgid "Ironing angle"
 msgstr "Кут прасування"
@@ -13619,7 +13619,7 @@ msgstr ""
 "мінімального часу шару, визначеного вище, коли увімкнено уповільнення для "
 "кращого охолодження шару."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Діаметр сопла"
 
 msgid "Configuration notes"
@@ -13771,7 +13771,7 @@ msgstr ""
 "друку іншу швидкість. Для 100%%-вого нависання використовується швидкість "
 "моста."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Філамент для друку стінок"
 
 msgid ""
@@ -13827,7 +13827,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Тип принтеру"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "Тип принтера"
 
 msgid "Printer notes"
@@ -14321,7 +14321,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Відступ спідниці"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Відстань між спідницею та каймою або моделлю"
 
 msgid "Skirt start point"
@@ -14445,7 +14445,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Суцільне заповнення"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Філамент для друку суцільного заповнення"
 
 msgid ""
@@ -16063,25 +16063,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr "Назва MakerLab"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "Назва MakerLab для створення цього 3mf"
 
 msgid "MakerLab version"
 msgstr "Версія MakerLab"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "Версія MakerLab для створення цього 3mf"
 
 msgid "metadata name list"
 msgstr "список назв метаданих"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "список назв метаданих додано в 3mf"
 
 msgid "metadata value list"
 msgstr "список значень метаданих"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "список значень метаданих додано в 3mf"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -19103,9 +19103,6 @@ msgstr ""
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "Повертати напрямок суцільного заповнення на 90° для кожного шару."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Швидкість друку прасувальних ліній"
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "

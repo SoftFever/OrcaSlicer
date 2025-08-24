@@ -3740,7 +3740,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Per mažas maksimalus tūrinis greitis.\n"
 "Atstatyta į 0,5"
@@ -3757,14 +3757,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Per mažas sluoksnio aukštis.\n"
 "Atstatyta į 0,2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Per mažas lyginimo tarpas.\n"
 "Atstatyta į 0,1"
@@ -3870,8 +3870,8 @@ msgstr ""
 "Atstatoma į 0."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -11750,7 +11750,7 @@ msgid "Default color"
 msgstr "Numatytoji spalva"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -12329,7 +12329,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -13209,8 +13209,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Lyginimo greitis"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Lyginimo linijų spausdinimo greitis"
 
 msgid "Ironing angle"
 msgstr "Lyginimo kampas"
@@ -13535,7 +13535,7 @@ msgstr ""
 "išlaikytų pirmiau apibrėžtą minimalų sluoksnio laiką, kai įjungtas "
 "sulėtinimas dėl geresnio sluoksnių aušinimo."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Purkštuvo skersmuo"
 
 msgid "Configuration notes"
@@ -13688,7 +13688,7 @@ msgstr ""
 "naudokite skirtingą spausdinimo greitį. Jei iškyša 100 %%, naudojamas tilto "
 "greitis."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Gijos sienoms spausdinti"
 
 msgid ""
@@ -13743,7 +13743,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Spausdintuvo tipas"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "Spausdintuvo tipas"
 
 msgid "Printer notes"
@@ -14221,7 +14221,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Apvado atstumas"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Tai atstumas nuo apvado iki krašto arba objekto"
 
 msgid "Skirt start point"
@@ -14342,7 +14342,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Vientisas užpildas"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Filamentas vientisam užpildui spausdinti"
 
 msgid ""
@@ -15972,25 +15972,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr "MakerLab pavadinimas"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "„MakerLab“ pavadinimas šiam 3mf generuoti"
 
 msgid "MakerLab version"
 msgstr "„MakerLab“ versija"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "„MakerLab“ versija šiam 3mf generuoti"
 
 msgid "metadata name list"
 msgstr "metaduomenų pavadinimų sąrašas"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "metaduomenų pavadinimų sąrašas įtrauktas į 3mf"
 
 msgid "metadata value list"
 msgstr "metaduomenų reikšmių sąrašas"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "į 3mf įtrauktas metaduomenų reikšmių sąrašas"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -19115,9 +19115,6 @@ msgstr ""
 #~ msgid "Enable this option to add EXCLUDE OBJECT command in G-code"
 #~ msgstr ""
 #~ "Įjunkite šią parinktį, jei norite į G-kodą įtraukti komandą EXCLUDE OBJECT"
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Lyginimo linijų spausdinimo greitis"
 
 #~ msgid "This G-code part is inserted at every layer change after lift z"
 #~ msgstr ""

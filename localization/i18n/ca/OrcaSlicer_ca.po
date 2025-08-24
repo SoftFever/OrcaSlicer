@@ -3756,7 +3756,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Velocitat volumètrica màxima massa petita.\n"
 "Restableix a 0.5"
@@ -3773,14 +3773,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Alçada de capa massa petita.\n"
 "Restableix a 0.2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Espaiat de planxa massa petit.\n"
 "Restableix a 0.1"
@@ -3888,8 +3888,8 @@ msgstr ""
 "Restablert a 0."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -11862,7 +11862,7 @@ msgid "Default color"
 msgstr "Color predeterminat"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -12459,7 +12459,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -13348,8 +13348,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Velocitat de planxat"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Velocitat d'impressió de les línies de planxat"
 
 msgid "Ironing angle"
 msgstr "Angle de planxat"
@@ -13692,7 +13692,7 @@ msgstr ""
 "intentar mantenir el temps mínim de capa anterior, quan \"alentir per a un "
 "millor refredament de la capa\" està habilitat."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Diàmetre del broquet"
 
 msgid "Configuration notes"
@@ -13849,7 +13849,7 @@ msgstr ""
 "utilitzar una velocitat diferent per imprimir. Per al voladís del 100%%, "
 "s'utilitza la velocitat de pont."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Filament per imprimir parets"
 
 msgid ""
@@ -13904,7 +13904,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Tipus d'impressora"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "Tipus d'impressora"
 
 msgid "Printer notes"
@@ -14410,7 +14410,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Distància de la faldilla"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Distància de la faldilla a la Vora d'Adherència o a l'objecte"
 
 msgid "Skirt start point"
@@ -14533,7 +14533,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Farciment sòlid"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Filament per imprimir farciment sòlid"
 
 msgid ""
@@ -16196,25 +16196,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr "Nom MakerLab"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "Nom de MakerLab per generar aquest 3mf"
 
 msgid "MakerLab version"
 msgstr "Versió MakerLab"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "Versió de MakerLab per generar aquest 3mf"
 
 msgid "metadata name list"
 msgstr "llista de noms de metadades"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "llista de noms de metadades afegida a 3MF"
 
 msgid "metadata value list"
 msgstr "llista de valors de metadades"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "llista de valors de metadades afegida a 3MF"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -19267,20 +19267,11 @@ msgstr ""
 #~ msgid "Default filament color"
 #~ msgstr "Color del filament predeterminat"
 
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
 #~ msgid "Rotate solid infill direction"
 #~ msgstr "Rotar la direcció de farciment sòlid"
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "Rotar la direcció de farciment sòlid 90° per a cada capa."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Velocitat d'impressió de les línies de planxat"
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "

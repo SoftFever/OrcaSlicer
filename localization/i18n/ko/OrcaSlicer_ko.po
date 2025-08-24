@@ -3654,7 +3654,7 @@ msgstr "이 필라멘트 유형의 권장 노즐 온도는 [%d, %d]°C입니다"
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "최대 압출 속도가 너무 작습니다.\n"
 "0.5로 재설정"
@@ -3670,14 +3670,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "레이어 높이가 너무 작습니다.\n"
 "0.2로 재설정"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "다림질 간격이 너무 작습니다.\n"
 "0.1로 재설정"
@@ -3777,8 +3777,8 @@ msgstr ""
 "0으로 재설정합니다."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -11381,7 +11381,7 @@ msgid "Default color"
 msgstr "기본 색상"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -11942,7 +11942,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12786,8 +12786,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "다림질 속도"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "다림질 선의 출력 속도"
 
 msgid "Ironing angle"
 msgstr "다림질 각도"
@@ -13114,7 +13114,7 @@ msgstr ""
 "레이어 냉각을 위한 감속이 활성화된 경우 위에 정의된 최소 레이어 시간을 유지하"
 "기 위해 프린터가 감속하는 최소 출력 속도입니다."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "노즐 직경"
 
 msgid "Configuration notes"
@@ -13258,7 +13258,7 @@ msgstr ""
 "선 너비에 비례하여 오버행 백분율을 감지하고 다른 속도를 사용하여 출력합니다. "
 "100%% 오버행의 경우 브릿지 속도가 사용됩니다."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "벽을 출력하는 필라멘트"
 
 msgid ""
@@ -13308,7 +13308,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "프린터 유형"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "프린터 유형"
 
 msgid "Printer notes"
@@ -13783,7 +13783,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "스커트 거리"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "스커트와 브림 또는 객체와의 거리"
 
 msgid "Skirt start point"
@@ -13902,7 +13902,7 @@ msgstr "임계값보다 작은 드문 채우기 영역은 꽉찬 내부 채우�
 msgid "Solid infill"
 msgstr "솔리드 채우기"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "솔리드 인필을 출력하는 필라멘트"
 
 msgid ""
@@ -15456,25 +15456,25 @@ msgstr "프린터 또는 필라멘트 사전 설정에서 3mf의 수정된 Gcode
 msgid "MakerLab name"
 msgstr "메이커 랩 이름"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "이 3mf를 생성하는 메이커랩 이름"
 
 msgid "MakerLab version"
 msgstr "메이커 랩 버전"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "이 3mf를 생성하기 위한 메이커랩 버전"
 
 msgid "metadata name list"
 msgstr "메타데이터 이름 목록"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "3mf에 메타데이터 이름 목록 추가됨"
 
 msgid "metadata value list"
 msgstr "메타데이터 값 목록"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "메타데이터 값 목록이 3MF에 추가됨"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -18413,20 +18413,11 @@ msgstr ""
 #~ msgid "Default filament color"
 #~ msgstr "기본 필라멘트 색상"
 
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
 #~ msgid "Rotate solid infill direction"
 #~ msgstr "솔리드 채우기 방향 회전"
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "각 레이어에 대해 솔리드 채우기 방향을 90° 회전합니다."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "다림질 선의 출력 속도"
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "

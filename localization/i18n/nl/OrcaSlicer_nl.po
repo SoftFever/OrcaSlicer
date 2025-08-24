@@ -3680,7 +3680,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Te kleine maximale volumetrische snelheid.\n"
 "De waarde is teruggezet naar 0,5"
@@ -3697,14 +3697,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Laaghoogte is te klein\n"
 "Teruggezet naar 0.2mm"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "De ruimte voor het strijken is te klein\n"
 "Teruggezet naar 0.1"
@@ -3802,8 +3802,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -11175,7 +11175,7 @@ msgid "Default color"
 msgstr "Standaardkleur"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -11689,7 +11689,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12457,8 +12457,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Snelheid tijdens het strijken"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Dit is de print snelheid van de strijk lijnen"
 
 msgid "Ironing angle"
 msgstr ""
@@ -12743,7 +12743,7 @@ msgid ""
 "is enabled."
 msgstr ""
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Diameter van het mondstuk"
 
 msgid "Configuration notes"
@@ -12893,7 +12893,7 @@ msgstr ""
 "lijnbreedte te detecteren en gebruikt verschillende snelheden om af te "
 "drukken. Voor 100%% overhang wordt de brugsnelheid gebruikt."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr ""
 
 msgid ""
@@ -12932,7 +12932,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Printertype"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr ""
 
 msgid "Printer notes"
@@ -13371,7 +13371,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Rand (skirt) afstand"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Dit is de afstand van de skirt tot de rand van het object."
 
 msgid "Skirt start point"
@@ -13475,7 +13475,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Dichte vulling"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr ""
 
 msgid ""
@@ -14969,25 +14969,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr ""
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr ""
 
 msgid "MakerLab version"
 msgstr ""
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr ""
 
 msgid "metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr ""
 
 msgid "metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr ""
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -17776,15 +17776,6 @@ msgstr ""
 
 #~ msgid "Default filament color"
 #~ msgstr "Standaard filamentkleur"
-
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Dit is de print snelheid van de strijk lijnen"
 
 #~ msgid ""
 #~ "The highest printable layer height for the extruder. Used to limit the "

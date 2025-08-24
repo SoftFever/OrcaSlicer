@@ -1988,8 +1988,8 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("default_filament_colour", coStrings);
     def->label    = L("Default color");
-    def->tooltip  = L("Default filament color"
-                      "\nRight click to reset value to system default.");
+    def->tooltip  = L("Default filament color.\n"
+                      "Right click to reset value to system default.");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{""});
@@ -2633,7 +2633,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("default_junction_deviation", coFloat);
     def->label = L("Junction Deviation");
-    def->tooltip = L("Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)");
+    def->tooltip = L("Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting).");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
@@ -3510,7 +3510,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("ironing_speed", coFloat);
     def->label = L("Ironing speed");
     def->category = L("Quality");
-    def->tooltip = L("Print speed of ironing lines");
+    def->tooltip = L("Print speed of ironing lines.");
     def->sidetext = "mm/s";	// milimeters per second, don't need translation
     def->min = 1;
     def->mode = comAdvanced;
@@ -3861,7 +3861,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("nozzle_diameter", coFloats);
     def->label = L("Nozzle diameter");
-    def->tooltip = L("Diameter of nozzle");
+    def->tooltip = L("The diameter of nozzle.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->mode = comAdvanced;
     def->max = 100;
@@ -4035,7 +4035,7 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Walls");
     def->category = L("Extruders");
-    def->tooltip = L("Filament to print walls");
+    def->tooltip = L("Filament to print walls.");
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
@@ -4094,7 +4094,7 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("printer_model", coString);
     def->label = L("Printer type");
-    def->tooltip = L("Type of the printer");
+    def->tooltip = L("Type of the printer.");
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
@@ -4537,10 +4537,10 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(80,true));
-    
+
     def = this->add("skirt_distance", coFloat);
     def->label = L("Skirt distance");
-    def->tooltip = L("Distance from skirt to brim or object");
+    def->tooltip = L("The distance from the skirt to the brim or the object.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->min = 0;
     def->max = 60;
@@ -4649,7 +4649,7 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Solid infill");
     def->category = L("Extruders");
-    def->tooltip = L("Filament to print solid infill");
+    def->tooltip = L("Filament to print solid infill.");
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
@@ -5728,7 +5728,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("wipe_tower_rib_width", coFloat);
     def->label    = L("Rib width");
-    def->tooltip  = L("Rib width");
+    def->tooltip  = L("Rib width.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->mode     = comAdvanced;
     def->min      = 0;
@@ -8035,25 +8035,25 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("makerlab_name", coString);
     def->label = L("MakerLab name");
-    def->tooltip = L("MakerLab name to generate this 3mf");
+    def->tooltip = L("MakerLab name to generate this 3mf.");
     def->cli_params = "name";
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("makerlab_version", coString);
     def->label = L("MakerLab version");
-    def->tooltip = L("MakerLab version to generate this 3mf");
+    def->tooltip = L("MakerLab version to generate this 3mf.");
     def->cli_params = "version";
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("metadata_name", coStrings);
     def->label = L("metadata name list");
-    def->tooltip = L("metadata name list added into 3mf");
+    def->tooltip = L("metadata name list added into 3mf.");
     def->cli_params = "\"name1;name2;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("metadata_value", coStrings);
     def->label = L("metadata value list");
-    def->tooltip = L("metadata value list added into 3mf");
+    def->tooltip = L("metadata value list added into 3mf.");
     def->cli_params = "\"value1;value2;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
@@ -8417,32 +8417,32 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
 // change_filament_gcode
     new_def("previous_extruder", coInt, "Previous extruder", "Index of the extruder that is being unloaded. The index is zero based (first extruder has index 0).");
     new_def("next_extruder", coInt, "Next extruder", "Index of the extruder that is being loaded. The index is zero based (first extruder has index 0).");
-    new_def("relative_e_axis", coBool, "Relative e-axis", "Indicates if relative positioning is being used");
-    new_def("toolchange_count", coInt, "Toolchange count", "The number of toolchanges throught the print");
+    new_def("relative_e_axis", coBool, "Relative e-axis", "Indicates if relative positioning is being used.");
+    new_def("toolchange_count", coInt, "Toolchange count", "The number of toolchanges throught the print.");
     new_def("fan_speed", coNone, "", ""); //Option is no longer used and is zeroed by placeholder parser for compatability
-    new_def("old_retract_length", coFloat, "Old retract length", "The retraction length of the previous filament");
-    new_def("new_retract_length", coFloat, "New retract length", "The retraction lenght of the new filament");
-    new_def("old_retract_length_toolchange", coFloat, "Old retract length toolchange", "The toolchange retraction length of the previous filament");
-    new_def("new_retract_length_toolchange", coFloat, "New retract length toolchange", "The toolchange retraction length of the new filament");
-    new_def("old_filament_temp", coInt, "Old filament temp", "The old filament temp");
-    new_def("new_filament_temp", coInt, "New filament temp", "The new filament temp");
-    new_def("x_after_toolchange", coFloat, "X after toolchange", "The x pos after toolchange");
-    new_def("y_after_toolchange", coFloat, "Y after toolchange", "The y pos after toolchange");
-    new_def("z_after_toolchange", coFloat, "Z after toolchange", "The z pos after toolchange");
-    new_def("first_flush_volume", coFloat, "First flush volume", "The first flush volume");
-    new_def("second_flush_volume", coFloat, "Second flush volume", "The second flush volume");
-    new_def("old_filament_e_feedrate", coInt, "Old filament e feedrate", "The old filament extruder feedrate");
-    new_def("new_filament_e_feedrate", coInt, "New filament e feedrate", "The new filament extruder feedrate");
-    new_def("travel_point_1_x", coFloat, "Travel point 1 x", "The travel point 1 x");
-    new_def("travel_point_1_y", coFloat, "Travel point 1 y", "The travel point 1 y");
-    new_def("travel_point_2_x", coFloat, "Travel point 2 x", "The travel point 2 x");
-    new_def("travel_point_2_y", coFloat, "Travel point 2 y", "The travel point 2 y");
-    new_def("travel_point_3_x", coFloat, "Travel point 3 x", "The travel point 3 x");
-    new_def("travel_point_3_y", coFloat, "Travel point 3 y", "The travel point 3 y");
-    new_def("flush_length_1", coFloat, "Flush Length 1", "The first flush length");
-    new_def("flush_length_2", coFloat, "Flush Length 2", "The second flush length");
-    new_def("flush_length_3", coFloat, "Flush Length 3", "The third flush length");
-    new_def("flush_length_4", coFloat, "Flush Length 4", "The fourth flush length");
+    new_def("old_retract_length", coFloat, "Old retract length", "The retraction length of the previous filament.");
+    new_def("new_retract_length", coFloat, "New retract length", "The retraction lenght of the new filament.");
+    new_def("old_retract_length_toolchange", coFloat, "Old retract length toolchange", "The toolchange retraction length of the previous filament.");
+    new_def("new_retract_length_toolchange", coFloat, "New retract length toolchange", "The toolchange retraction length of the new filament.");
+    new_def("old_filament_temp", coInt, "Old filament temp", "The old filament temp.");
+    new_def("new_filament_temp", coInt, "New filament temp", "The new filament temp.");
+    new_def("x_after_toolchange", coFloat, "X after toolchange", "The X pos after toolchange.");
+    new_def("y_after_toolchange", coFloat, "Y after toolchange", "The Y pos after toolchange.");
+    new_def("z_after_toolchange", coFloat, "Z after toolchange", "The Z pos after toolchange.");
+    new_def("first_flush_volume", coFloat, "First flush volume", "The first flush volume.");
+    new_def("second_flush_volume", coFloat, "Second flush volume", "The second flush volume.");
+    new_def("old_filament_e_feedrate", coInt, "Old filament e feedrate", "The old filament extruder feedrate.");
+    new_def("new_filament_e_feedrate", coInt, "New filament e feedrate", "The new filament extruder feedrate.");
+    new_def("travel_point_1_x", coFloat, "Travel point 1 X", "The travel point 1 X.");
+    new_def("travel_point_1_y", coFloat, "Travel point 1 Y", "The travel point 1 Y.");
+    new_def("travel_point_2_x", coFloat, "Travel point 2 X", "The travel point 2 X.");
+    new_def("travel_point_2_y", coFloat, "Travel point 2 Y", "The travel point 2 Y.");
+    new_def("travel_point_3_x", coFloat, "Travel point 3 X", "The travel point 3 X.");
+    new_def("travel_point_3_y", coFloat, "Travel point 3 Y", "The travel point 3 Y.");
+    new_def("flush_length_1", coFloat, "Flush Length 1", "The first flush length.");
+    new_def("flush_length_2", coFloat, "Flush Length 2", "The second flush length.");
+    new_def("flush_length_3", coFloat, "Flush Length 3", "The third flush length.");
+    new_def("flush_length_4", coFloat, "Flush Length 4", "The fourth flush length.");
 
 // change_extrusion_role_gcode
     std::string extrusion_role_types = "Possible Values:\n[\"Perimeter\", \"ExternalPerimeter\", "

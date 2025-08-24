@@ -3793,7 +3793,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Слишком маленький максимальный объёмный расход.\n"
 "Значение будет сброшено на 0,5."
@@ -3810,14 +3810,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Слишком маленькая высота слоя.\n"
 "Значение будет сброшено на 0,2."
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Слишком маленькое расстояние между линиями разглаживания.\n"
 "Значение будет сброшено на 0,1."
@@ -3925,8 +3925,8 @@ msgstr ""
 "Значение сброшено на 0."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -11988,7 +11988,7 @@ msgid "Default color"
 msgstr "Цвет по умолчанию"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -12586,7 +12586,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -13517,8 +13517,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Скорость разглаживания"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Скорость разглаживания."
 
 msgid "Ironing angle"
 msgstr "Угол разглаживания"
@@ -13883,7 +13883,7 @@ msgstr ""
 "сохранить минимальное время слоя, указанное выше, если включена опция "
 "«Замедлять печать для лучшего охлаждения слоёв»."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Диаметр сопла"
 
 msgid "Configuration notes"
@@ -14036,7 +14036,7 @@ msgstr ""
 "Определяет процент нависания относительно ширины линии и использует разную "
 "скорость печати. Для 100%%-го свеса используется скорость печати мостов."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Пластиковая нить для печати периметров."
 
 msgid ""
@@ -14092,7 +14092,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Тип принтера"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "Тип принтера"
 
 msgid "Printer notes"
@@ -14603,7 +14603,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Расстояние до юбки"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Расстояние между юбкой и каймой, или моделью."
 
 msgid "Skirt start point"
@@ -14727,7 +14727,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Сплошное заполнение"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Пластиковая нить для печати сплошного заполнения."
 
 msgid ""
@@ -16494,25 +16494,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr "Имя MakerLab"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "Имя MakerLab, использованное для создания этого 3mf-файла."
 
 msgid "MakerLab version"
 msgstr "Версия MakerLab"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "Версия MakerLab, использованная для создания этого 3mf-файла."
 
 msgid "metadata name list"
 msgstr "Список имён метаданных"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "Список имён метаданных добавляемых в 3mf"
 
 msgid "metadata value list"
 msgstr "Список значений метаданных"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "Список значений метаданных добавляемых в 3mf"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -19559,9 +19559,6 @@ msgstr ""
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr ""
 #~ "Разрешить поворот шаблона сплошного заполнение на 90° на каждом слое."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Скорость разглаживания."
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "

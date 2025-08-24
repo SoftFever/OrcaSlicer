@@ -3793,7 +3793,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Vitesse volumétrique maximale trop faible.\n"
 "La valeur a été réinitialisée à 0,5"
@@ -3810,12 +3810,12 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr "Hauteur de couche trop petite. Réinitialiser à 0,2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr "Espacement de lissage trop petit. Réinitialiser à 0.1"
 
 msgid ""
@@ -3916,8 +3916,8 @@ msgstr ""
 "Remise à 0."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -12018,7 +12018,7 @@ msgid "Default color"
 msgstr "Couleur par défaut"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -12621,7 +12621,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -13518,8 +13518,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Vitesse de lissage"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Vitesse d'impression des lignes de lissage."
 
 msgid "Ironing angle"
 msgstr "Angle de lissage"
@@ -13865,7 +13865,7 @@ msgstr ""
 "maintenir le temps de couche minimal défini ci-dessus lorsque le "
 "ralentissement pour un meilleur refroidissement de la couche est activé."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Diamètre de la buse"
 
 msgid "Configuration notes"
@@ -14028,7 +14028,7 @@ msgstr ""
 "utilisez une vitesse différente pour imprimer. Pour un surplomb de 100%% la "
 "vitesse du pont est utilisée."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Filament pour imprimer les parois"
 
 msgid ""
@@ -14084,7 +14084,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Type d’imprimante"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "Type de l’imprimante"
 
 msgid "Printer notes"
@@ -14589,7 +14589,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Distance de la jupe"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Distance de la jupe au bord ou à l'objet"
 
 msgid "Skirt start point"
@@ -14717,7 +14717,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Remplissage solide"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Filament pour l’impression de remplissage solide"
 
 msgid ""
@@ -16402,25 +16402,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr "Nom dans MakerLab"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "Nom de MakerLab pour générer ce 3mf"
 
 msgid "MakerLab version"
 msgstr "Version de MakerLab"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "Version de MakerLab pour générer ce 3mf"
 
 msgid "metadata name list"
 msgstr "liste de noms de métadonnées"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "liste de noms de métadonnées ajoutée dans le 3mf"
 
 msgid "metadata value list"
 msgstr "liste des valeurs des métadonnées"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "liste des valeurs de métadonnées ajoutée au 3mf"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -19514,12 +19514,6 @@ msgstr ""
 #~ msgid "Default filament color"
 #~ msgstr "Couleur du filament par défaut"
 
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
 #~ msgid "Rotate solid infill direction"
 #~ msgstr "Faire pivoter la direction du remplissage solide"
 
@@ -19527,9 +19521,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Faire pivoter la direction du remplissage solide de 90° pour chaque "
 #~ "couche."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Vitesse d'impression des lignes de lissage."
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "

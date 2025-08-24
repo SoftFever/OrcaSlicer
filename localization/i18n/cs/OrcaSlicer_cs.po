@@ -3680,7 +3680,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Příliš malá maximální objemová rychlost.\n"
 "Obnovit na 0,5"
@@ -3697,14 +3697,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Příliš malá výška vrstvy.\n"
 "Obnovit na 0,2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Příliš malá rozteč žehlení.\n"
 "Obnovit na 0,1"
@@ -3800,8 +3800,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -11123,7 +11123,7 @@ msgid "Default color"
 msgstr "Výchozí barva"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -11673,7 +11673,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12480,8 +12480,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Rychlost žehlení"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Rychlost tisku žehlících linek"
 
 msgid "Ironing angle"
 msgstr "Úhel žehlení"
@@ -12797,7 +12797,7 @@ msgid ""
 "is enabled."
 msgstr ""
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Průměr trysky"
 
 msgid "Configuration notes"
@@ -12946,7 +12946,7 @@ msgstr ""
 "Zjistěte procento převisů vzhledem k šířce extruze a použijte jinou rychlost "
 "tisku. Pro 100%% převisy se použije rychlost mostu."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr ""
 
 msgid ""
@@ -12991,7 +12991,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Typ tiskárny"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr ""
 
 msgid "Printer notes"
@@ -13434,7 +13434,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Vzdálenost obrysu"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Vzdálenost od Obrysu k Límci nebo předmětu"
 
 msgid "Skirt start point"
@@ -13539,7 +13539,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Plná výplň"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr ""
 
 msgid ""
@@ -15045,25 +15045,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr ""
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr ""
 
 msgid "MakerLab version"
 msgstr ""
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr ""
 
 msgid "metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr ""
 
 msgid "metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr ""
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -17771,15 +17771,6 @@ msgstr ""
 
 #~ msgid "Default filament color"
 #~ msgstr "Výchozí barva filamentu"
-
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Rychlost tisku žehlících linek"
 
 #~ msgid ""
 #~ "The highest printable layer height for the extruder. Used to limit the "

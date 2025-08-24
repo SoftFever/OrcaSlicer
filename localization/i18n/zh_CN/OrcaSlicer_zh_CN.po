@@ -3587,7 +3587,7 @@ msgstr "该耗材的推荐喷嘴温度是[%d, %d]摄氏度"
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "最大体积流量设置过小\n"
 "重置为0.5"
@@ -3603,12 +3603,12 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr "层高过小。将重置为0.2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr "熨烫线距过小。将重置为0.1"
 
 msgid ""
@@ -3703,8 +3703,8 @@ msgstr ""
 "重置为0。"
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -10858,7 +10858,7 @@ msgid "Default color"
 msgstr "缺省颜色"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -11372,7 +11372,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12141,8 +12141,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "熨烫速度"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "熨烫的打印速度"
 
 msgid "Ironing angle"
 msgstr "熨烫角度"
@@ -12444,7 +12444,7 @@ msgid ""
 "is enabled."
 msgstr ""
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "喷嘴直径"
 
 msgid "Configuration notes"
@@ -12578,7 +12578,7 @@ msgid ""
 msgstr ""
 "检测悬空相对于线宽的百分比，并应用不同的速度打印。100%%的悬空将使用桥接速度。"
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "打印外墙的耗材丝"
 
 msgid ""
@@ -12627,7 +12627,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "打印机类型"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "打印机类型"
 
 msgid "Printer notes"
@@ -13059,7 +13059,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Skirt距离"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "从skirt到模型或者brim的距离"
 
 msgid "Skirt start point"
@@ -13169,7 +13169,7 @@ msgstr "小于这个阈值的稀疏填充区域将会被内部实心填充替代
 msgid "Solid infill"
 msgstr "实心填充"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr ""
 
 msgid ""
@@ -14621,25 +14621,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr ""
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr ""
 
 msgid "MakerLab version"
 msgstr ""
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr ""
 
 msgid "metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr ""
 
 msgid "metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr ""
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -17385,20 +17385,11 @@ msgstr ""
 #~ msgid "Default filament color"
 #~ msgstr "缺省材料颜色"
 
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
 #~ msgid "Rotate solid infill direction"
 #~ msgstr "旋转实心填充方向"
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "每层都旋转实心填充方向90°。"
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "熨烫的打印速度"
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "

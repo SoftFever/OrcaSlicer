@@ -3774,7 +3774,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Velocidad volumétrica máxima demasiado baja.\n"
 "Restableciendo a 0,5"
@@ -3791,14 +3791,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Altura de la capa demasiado pequeña.\n"
 "Restableciendo a 0,2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Espaciado del alisado demasiado pequeño.\n"
 "Restableciendo a 0,1"
@@ -3907,8 +3907,8 @@ msgstr ""
 "Restableciendo a 0."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -11772,7 +11772,7 @@ msgid "Default color"
 msgstr "Color por defecto"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -12371,7 +12371,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -13229,8 +13229,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Velocidad de alisado"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Velocidad de impresión de las líneas de alisado."
 
 msgid "Ironing angle"
 msgstr "Ángulo de alisado"
@@ -13556,7 +13556,7 @@ msgid ""
 "is enabled."
 msgstr ""
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Diámetro de boquilla"
 
 msgid "Configuration notes"
@@ -13719,7 +13719,7 @@ msgstr ""
 "utiliza diferentes velocidades para imprimir. Para el 100%% de voladizo, se "
 "utiliza la velocidad de puente."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Filamento usado para imprimir perímetros"
 
 msgid ""
@@ -13774,7 +13774,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Tipo de impresora"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "El tipo de impresora"
 
 msgid "Printer notes"
@@ -14280,7 +14280,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Distancia de falda"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Distancia de la falda al borde de adherencia o al objeto"
 
 msgid "Skirt start point"
@@ -14405,7 +14405,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Relleno sólido interno"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Filamento para imprimir relleno sólido interno"
 
 msgid ""
@@ -16048,25 +16048,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr ""
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr ""
 
 msgid "MakerLab version"
 msgstr ""
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr ""
 
 msgid "metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr ""
 
 msgid "metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr ""
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -19111,20 +19111,11 @@ msgstr ""
 #~ msgid "Default filament color"
 #~ msgstr "Color de filamento por defecto"
 
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
 #~ msgid "Rotate solid infill direction"
 #~ msgstr "Rotar la dirección del relleno sólido"
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "Rotar 90° la dirección del relleno sólido en cada capa."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Velocidad de impresión de las líneas de alisado."
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "
@@ -21296,10 +21287,10 @@ msgstr ""
 
 #~ msgid ""
 #~ "Too large layer height.\n"
-#~ "Reset to 0.2"
+#~ "Reset to 0.2."
 #~ msgstr ""
 #~ "Altura de la capa demasiado grande.\n"
-#~ "Reajustar a 0,2"
+#~ "Reajustar a 0,2."
 
 #~ msgid ""
 #~ "\n"
