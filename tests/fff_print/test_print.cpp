@@ -99,7 +99,11 @@ SCENARIO("Print: Brim generation", "[Print]") {
 	        	{ "brim_width", 					3 }
 	        });
             THEN("Brim Extrusion collection has 3 loops in it") {
-                REQUIRE(print.brim().items_count() == 3);
+                size_t total_items = 0;
+                for (const auto& pair : print.get_brimMap()) {
+                    total_items += pair.second.items_count();
+                }
+                REQUIRE(total_items == 3);
             }
         }
         WHEN("Brim is set to 6mm")  {
@@ -109,7 +113,11 @@ SCENARIO("Print: Brim generation", "[Print]") {
 	        	{ "brim_width", 					6 }
 	        });
             THEN("Brim Extrusion collection has 6 loops in it") {
-                REQUIRE(print.brim().items_count() == 6);
+                size_t total_items = 0;
+                for (const auto& pair : print.get_brimMap()) {
+                    total_items += pair.second.items_count();
+                }
+                REQUIRE(total_items == 6);
             }
         }
         WHEN("Brim is set to 6mm, extrusion width 0.5mm")  {
@@ -121,7 +129,11 @@ SCENARIO("Print: Brim generation", "[Print]") {
 	        });
 			print.process();
             THEN("Brim Extrusion collection has 12 loops in it") {
-                REQUIRE(print.brim().items_count() == 14);
+                size_t total_items = 0;
+                for (const auto& pair : print.get_brimMap()) {
+                    total_items += pair.second.items_count();
+                }
+                REQUIRE(total_items == 14);
             }
         }
     }

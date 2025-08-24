@@ -1,6 +1,6 @@
 # Localization and translation guide
 
-The purpose of this guide is to describe how to contribute to the Orca Slicer translations. We use GNUgettext for extracting string resources from the project and PoEdit for editing translations.
+The purpose of this guide is to describe how to contribute to the OrcaSlicer translations. We use GNUgettext for extracting string resources from the project and PoEdit for editing translations.
 
 Those can be downloaded here:
 
@@ -34,9 +34,9 @@ Notice. When the translation is complete you need to:
     - copy OrcaSlicer_xx.mo into resources/i18n/xx and rename it to OrcaSlicer.mo, then push the changed file.
 ( name of folder "fr" means "French" - the translation language).
 
-### Scenario 3. How do I add a new text resource when implementing a feature to Orca Slicer
+### Scenario 3. How do I add a new text resource when implementing a feature to OrcaSlicer
 
-Each string resource in Orca Slicer available for translation needs to be explicitly marked using L() macro like this:
+Each string resource in OrcaSlicer available for translation needs to be explicitly marked using L() macro like this:
 
 ```C++
 auto msg = L("This message to be localized")
@@ -45,7 +45,7 @@ auto msg = L("This message to be localized")
 To get translated text use one of needed macro/function (`_(s)` or `_CHB(s)` ).
 If you add new file resource, add it to the list of files containing macro `L()`
 
-### Scenario 4. How do I use GNUgettext to localize my own application taking Orca Slicer as an example
+### Scenario 4. How do I use GNUgettext to localize my own application taking OrcaSlicer as an example
 
 1. For convenience create a list of files with this macro `L(s)`. We have
     https://github.com/softfever/OrcaSlicer/blob/master/localization/i18n/list.txt.
@@ -86,13 +86,13 @@ If you add new file resource, add it to the list of files containing macro `L()`
 
 When you have Catalog to translation open POT or PO file in PoEdit and start translating.
 
-## General guidelines for Orca Slicer translators
+## General guidelines for OrcaSlicer translators
 
 - We recommend using _PoEdit_ application for translation (as described above). It will help you eliminate most punctuation errors and will show you strings with "random" translations (if the fuzzy parameter was used).
 
-- To check how the translated text looks on the UI elements, test it :) If you use _PoEdit_, all you need to do is save the file. At this point, a MO file will be created. Rename it Orca Slicer.mo, and you can run Orca Slicer (see above).
+- To check how the translated text looks on the UI elements, test it :) If you use _PoEdit_, all you need to do is save the file. At this point, a MO file will be created. Rename it OrcaSlicer.mo, and you can run OrcaSlicer (see above).
 
-- If you see an encoding error (garbage characters instead of Unicode) somewhere in Orca Slicer, report it. It is likely not a problem of your translation, but a bug in the software.
+- If you see an encoding error (garbage characters instead of Unicode) somewhere in OrcaSlicer, report it. It is likely not a problem of your translation, but a bug in the software.
 
 - See on which UI elements the translated phrase will be used. Especially if it's a button, it is very important to decide on the translation and not write alternative translations in parentheses, as this will significantly increase the width of the button, which is sometimes highly undesirable:
 
