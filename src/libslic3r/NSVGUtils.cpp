@@ -1,11 +1,6 @@
+#include "NSVGUtils.hpp"
 #include <array>
 #include <charconv> // to_chars
-
-#define NANOSVG_IMPLEMENTATION
-#include "nanosvg/nanosvg.h"
-#define NANOSVGRAST_IMPLEMENTATION
-#include "nanosvg/nanosvgrast.h"
-#include "NSVGUtils.hpp"
 
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
