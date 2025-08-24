@@ -463,6 +463,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
      // ORCA standardized HyperLink
      auto m_link_Terms_title = new HyperLink(m_panel_agreement, _L("Terms and Conditions"));
+     m_link_Terms_title->SetMaxSize(wxSize(FromDIP(450), -1));
      m_link_Terms_title->Wrap(FromDIP(450));
      m_link_Terms_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
          wxString txt = _L("Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. "
@@ -480,6 +481,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
      // ORCA standardized HyperLink
      auto m_link_privacy_title = new HyperLink(m_panel_agreement, _L("Privacy Policy"));
+     m_link_privacy_title->SetMaxSize(wxSize(FromDIP(450), -1));
      m_link_privacy_title->Wrap(FromDIP(450));
      m_link_privacy_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
          std::string url;
@@ -516,6 +518,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
      // ORCA standardized HyperLink
      auto m_link_notice_title = new HyperLink(m_panel_agreement, notice_link_title);
+     m_link_notice_title->SetMaxSize(wxSize(FromDIP(450), -1));
      m_link_notice_title->Wrap(FromDIP(450));
      m_link_notice_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
          wxString txt = _L("In the 3D Printing community, we learn from each other's successes and failures to adjust "

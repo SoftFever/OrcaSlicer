@@ -327,8 +327,9 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
     wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
 
     // ORCA standardized HyperLink
-    m_link_network_state = new HyperLink(m_side_error_panel, _L("Check the status of current system services"), wxGetApp().link_to_network_check());
+    m_link_network_state = new HyperLink(m_side_error_panel, _L("Check the status of current system services"), wxGetApp().link_to_network_check(), wxST_ELLIPSIZE_END);
     m_link_network_state->SetMaxSize(wxSize(FromDIP(220), -1));
+    m_link_network_state->SetFont(::Label::Body_12);
 
     auto st_title_error_code = new wxStaticText(m_side_error_panel, wxID_ANY, _L("code"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     auto st_title_error_code_doc = new wxStaticText(m_side_error_panel, wxID_ANY, ": ");

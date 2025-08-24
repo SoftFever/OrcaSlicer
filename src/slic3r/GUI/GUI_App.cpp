@@ -3341,7 +3341,7 @@ std::string GUI_App::link_to_network_check()
         url = "https://status.bambulab.com";
     }
     //wxLaunchDefaultBrowser(url);
-    return url;
+    return url; // ORCA
 }
 
 std::string GUI_App::link_to_lan_only_wiki()
@@ -3359,7 +3359,7 @@ std::string GUI_App::link_to_lan_only_wiki()
         url = "https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode";
     }
     //wxLaunchDefaultBrowser(url);
-    return url;
+    return url; // ORCA
 }
 
 bool GUI_App::tabs_as_menu() const

@@ -6,7 +6,8 @@ namespace GUI {
 HyperLink::HyperLink(
     wxWindow* parent,
     const wxString& label,
-    const wxString& url
+    const wxString& url,
+    long style
 )
     : wxStaticText(parent, wxID_ANY, label)
     , m_url(url)

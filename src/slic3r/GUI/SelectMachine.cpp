@@ -594,6 +594,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     // ORCA standardized HyperLink
     m_link_network_state = new HyperLink(m_sw_print_failed_info, _L("Check the status of current system services"), wxGetApp().link_to_network_check());
+    m_link_network_state->SetFont(::Label::Body_12);
 
     sizer_print_failed_info->Add(m_link_network_state, 0, wxLEFT, 5);
     sizer_print_failed_info->Add(sizer_error_code, 0, wxLEFT, 5);

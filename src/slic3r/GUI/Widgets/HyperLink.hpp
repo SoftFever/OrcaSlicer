@@ -11,7 +11,12 @@ namespace GUI {
 class HyperLink : public wxStaticText
 {
 public:
-    HyperLink(wxWindow* parent, const wxString& label = wxEmptyString, const wxString& url = wxEmptyString);
+    HyperLink(
+        wxWindow* parent,
+        const wxString& label = wxEmptyString,
+        const wxString& url = wxEmptyString,
+        const long style = 0
+);
 
     void     SetURL(const wxString& url);
     wxString GetURL() const;
