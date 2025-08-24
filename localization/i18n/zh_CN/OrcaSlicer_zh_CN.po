@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2024-07-28 07:12+0000\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -33,14 +33,6 @@ msgid "Temperature"
 msgstr "温度"
 
 msgid "Left Time"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
 msgstr ""
 
 msgid "Serial:"
@@ -195,6 +187,15 @@ msgstr ""
 msgid "Toggle Wireframe"
 msgstr "显示/隐藏线框"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "取消"
+
 msgid "Shortcut Key "
 msgstr "快捷键 "
 
@@ -216,6 +217,9 @@ msgstr "移除已绘制的颜色"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "绘制使用：耗材丝%1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "移动"
@@ -485,9 +489,6 @@ msgstr ""
 
 msgid "Confirm connectors"
 msgstr "确认"
-
-msgid "Cancel"
-msgstr "取消"
 
 msgid "Build Volume"
 msgstr "零件体积"
@@ -2780,8 +2781,8 @@ msgstr "下载中"
 msgid "Download failed"
 msgstr "下载失败"
 
-msgid "Cancelled"
-msgstr ""
+msgid "Canceled"
+msgstr "已取消"
 
 msgid "Installed successfully"
 msgstr "安装成功。"
@@ -3701,7 +3702,6 @@ msgstr ""
 "seam_slope_start_height需要小于layer_height。\n"
 "重置为0。"
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9676,6 +9676,13 @@ msgstr "光滑的低温打印床"
 msgid "Smooth High Temp Plate"
 msgstr "光滑高温打印热床"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "第一层打印顺序"
 
@@ -11216,10 +11223,10 @@ msgstr "蜂窝"
 msgid "3D Honeycomb"
 msgstr "3D 蜂窝"
 
-msgid "2D Honeycomb"
+msgid "Lateral Honeycomb"
 msgstr ""
 
-msgid "2D Lattice"
+msgid "Lateral Lattice"
 msgstr ""
 
 msgid "Cross Hatch"
@@ -11228,22 +11235,25 @@ msgstr "交叉层叠"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "螺旋体"
 
-msgid "Lattice angle 1"
+msgid "Lateral lattice angle 1"
 msgstr ""
 
 msgid ""
-"The angle of the first set of 2D lattice elements in the Z direction. Zero "
+"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr "第一组二维晶格单元在Z方向的角度。零表示垂直。"
 
-msgid "Lattice angle 2"
+msgid "Lateral lattice angle 2"
 msgstr ""
 
 msgid ""
-"The angle of the second set of 2D lattice elements in the Z direction. Zero "
+"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr "第二组二维晶格单元在Z方向的角度。零表示垂直。"
 
@@ -12868,6 +12878,9 @@ msgstr "最近"
 
 msgid "Aligned"
 msgstr "对齐"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "背面"
@@ -14982,9 +14995,6 @@ msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .amf。"
 
-msgid "Canceled"
-msgstr "已取消"
-
 msgid "load_obj: failed to parse"
 msgstr "加载对象：无法分析"
 
@@ -15083,7 +15093,7 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 "请输入有效值：\n"
 "起始值：>= %.1f\n"
@@ -15580,7 +15590,7 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 "请输入有效值：\n"
 "起始PA: >= 0.0\n"
@@ -15627,7 +15637,7 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 "请输入有效值：\n"
 "起始温度：<= 350\n"
@@ -15645,9 +15655,9 @@ msgstr "结束流量"
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "请输入有效值：\n"
 "起始 > 0\n"
@@ -15665,9 +15675,9 @@ msgstr "结束速度"
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "请输入有效值：\n"
 "开始 > 10\n"
@@ -15698,9 +15708,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
-
 msgid "Damp: "
 msgstr ""
 
@@ -15710,8 +15717,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
@@ -15730,8 +15737,8 @@ msgid "Note: Use previously calculated frequencies."
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
 
 msgid ""
@@ -15754,7 +15761,7 @@ msgid "Note: Lower values = sharper corners but slower speeds"
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
 
@@ -15814,7 +15821,7 @@ msgstr "已加入队列"
 msgid "Uploading"
 msgstr "正在上传"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "取消中"
 
 msgid "Error uploading to print host"
@@ -16566,8 +16573,8 @@ msgstr "与 Repetier 的连接正常。"
 msgid "Could not connect to Repetier"
 msgstr "无法连接到Repetier"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "注意：需要 Repetier 版本至少为 0.90.0。"
 
 #, boost-format
 msgid ""
@@ -17501,9 +17508,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "刷新打印机"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "注意：需要 Repetier 版本至少为 0.90.0。"
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "
