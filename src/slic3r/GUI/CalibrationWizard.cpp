@@ -775,7 +775,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.filament_prest = temp_filament_preset;
 
             std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();
-            calib_info.filament_color = filament_list[selected_tray_id].opt_string("filament_colour", 0u);
+            calib_info.filament_color = filament_list[selected_filaments.begin()->first].opt_string("filament_colour", 0u);
 
             wxArrayString values = preset_page->get_custom_range_values();
             if (values.size() != 3) {
@@ -860,7 +860,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.print_prest    = preset_page->get_print_preset();
             calib_info.filament_prest = temp_filament_preset;
             std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();
-            calib_info.filament_color = filament_list[selected_tray_id].opt_string("filament_colour", 0u);
+            calib_info.filament_color = filament_list[item.first].opt_string("filament_colour", 0u);
             calib_info.params.mode    = CalibMode::Calib_Auto_PA_Line;
             calib_infos.emplace_back(calib_info);
         }
@@ -1325,7 +1325,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             calib_info.filament_prest = temp_filament_preset;
 
             std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();
-            calib_info.filament_color = filament_list[selected_tray_id].opt_string("filament_colour", 0u);
+            calib_info.filament_color = filament_list[selected_filaments.begin()->first].opt_string("filament_colour", 0u);
 
             if (cali_stage > 0) {
                 if (!CalibUtils::calib_flowrate(cali_stage, calib_info, wx_err_string)) {
@@ -1707,7 +1707,7 @@ void MaxVolumetricSpeedWizard::on_cali_start()
         calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
         calib_info.filament_prest = selected_filaments.begin()->second;
         std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();
-        calib_info.filament_color = filament_list[selected_tray_id].opt_string("filament_colour", 0u);
+        calib_info.filament_color = filament_list[selected_filaments.begin()->first].opt_string("filament_colour", 0u);
     }
 
     calib_info.bed_type      = plate_type;
