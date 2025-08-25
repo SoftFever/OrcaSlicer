@@ -581,7 +581,9 @@ target_link_libraries(libslic3r
     )
 
 if(NOT WIN32)
-    target_link_libraries(libslic3r freetype)
+    # Link freetype for OCCT dependency (CAD operations need font rendering)
+    target_link_libraries(libslic3r ${FREETYPE_LIBRARIES})
+    target_link_libraries(libslic3r OpenSSL::Crypto)
     if (NOT APPLE)
         target_link_libraries(libslic3r fontconfig)
     endif()
