@@ -680,6 +680,141 @@ void PlateNameEditDialog::set_plate_name(const wxString &name) {
     m_ti_plate_name->GetTextCtrl()->SetInsertionPointEnd();
 }
 
+// MovePlateDialog
+MovePlateDialog::MovePlateDialog(wxWindow*       parent,
+                                 int             current_plate_index,
+                                 int             total_plate_count,
+                                 wxWindowID      id,
+                                 const wxString& title,
+                                 const wxPoint&  pos,
+                                 const wxSize&   size,
+                                 long            style)
+    : DPIDialog(parent, id, title, pos, size, style)
+    , m_current_plate_index(current_plate_index)
+    , m_total_plate_count(total_plate_count)
+    , m_target_position(-1)
+    , m_valid_input(false)
+{
+    SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    auto        m_line_top   = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(400), -1));
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+    wxFlexGridSizer* top_sizer = new wxFlexGridSizer(0, 2, FromDIP(5), 0);
+    top_sizer->AddGrowableCol(0, 1);
+    top_sizer->SetFlexibleDirection(wxBOTH);
+    top_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+    // Info text
+    wxString info_str = wxString::Format(_L("Enter position (1-%d):"), m_total_plate_count);
+    m_info_text       = new wxStaticText(this, wxID_ANY, info_str);
+    m_info_text->SetFont(Label::Body_14);
+
+    // Position input
+    m_ti_position = new TextInput(this, wxString::FromDouble(0.0), "", "", wxDefaultPosition, wxSize(FromDIP(240), -1), wxTE_PROCESS_ENTER);
+    m_ti_position->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent& e) {
+        validate_input();
+        if (m_valid_input) {
+            if (this->IsModal())
+                EndModal(wxID_YES);
+            else
+                this->Close();
+        }
+    });
+
+    // Bind text change event for real-time validation
+    m_ti_position->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) {
+        validate_input();
+        e.Skip();
+    });
+
+    top_sizer->Add(m_info_text, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_ti_position, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+
+    // Set initial value to current position + 1 (convert to 1-indexed)
+    m_ti_position->GetTextCtrl()->SetValue(wxString::Format("%d", m_current_plate_index + 1));
+    m_ti_position->GetTextCtrl()->SetMaxLength(10);
+
+    m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxALL, FromDIP(30));
+
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
+
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        validate_input();
+        if (m_valid_input) {
+            if (this->IsModal())
+                EndModal(wxID_YES);
+            else
+                this->Close();
+        } else {
+            wxString      error_msg = wxString::Format(_L("Please enter a valid position between 1 and %d."), m_total_plate_count);
+            MessageDialog msg_dlg(this, error_msg, _L("Invalid Input"), wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+        }
+    });
+
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        if (this->IsModal())
+            EndModal(wxID_NO);
+        else
+            this->Close();
+    });
+
+    m_sizer_main->Add(dlg_btns, 0, wxEXPAND, FromDIP(20));
+
+    SetSizer(m_sizer_main);
+    Layout();
+    m_sizer_main->Fit(this);
+
+    CenterOnParent();
+
+    wxGetApp().UpdateDlgDarkUI(this);
+
+    // Initial validation
+    validate_input();
+
+    // Set focus and select all text
+    m_ti_position->GetTextCtrl()->SetFocus();
+    m_ti_position->GetTextCtrl()->SetSelection(-1, -1);
+}
+
+MovePlateDialog::~MovePlateDialog() {}
+
+void MovePlateDialog::on_dpi_changed(const wxRect& suggested_rect) {}
+
+void MovePlateDialog::validate_input()
+{
+    wxString input = m_ti_position->GetTextCtrl()->GetValue();
+    long     position;
+
+    m_valid_input     = false;
+    m_target_position = -1;
+
+    if (input.ToLong(&position)) {
+        if (position >= 1 && position <= m_total_plate_count) {
+            m_target_position = (int) position - 1; // Convert to 0-indexed
+            m_valid_input     = true;
+
+            // Update info text color to indicate valid input
+            m_info_text->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
+        } else {
+            // Invalid range
+            m_info_text->SetForegroundColour(*wxRED);
+        }
+    } else {
+        // Invalid number
+        m_info_text->SetForegroundColour(*wxRED);
+    }
+
+    // Refresh the info text to show color change
+    m_info_text->Refresh();
+}
+
+int MovePlateDialog::get_target_position() const { return m_target_position; }
+
+
 
 }
 } // namespace Slic3r::GUI
