@@ -53,12 +53,21 @@ GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::detect_graphics_e
 GraphicsBackendManager::SessionType GraphicsBackendManager::detect_session_type()
 {
 #ifdef __linux__
+    // In Flatpak, we should check both the host session and the sandbox session
+    bool in_flatpak = (std::getenv("FLATPAK_ID") != nullptr);
+    
     const char* xdg_session_type = std::getenv("XDG_SESSION_TYPE");
     if (xdg_session_type) {
         std::string session_type(xdg_session_type);
         if (boost::iequals(session_type, "wayland")) {
+            if (in_flatpak) {
+                BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Flatpak with Wayland session detected";
+            }
             return SessionType::Wayland;
         } else if (boost::iequals(session_type, "x11")) {
+            if (in_flatpak) {
+                BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Flatpak with X11 session detected";
+            }
             return SessionType::X11;
         }
     }
@@ -66,11 +75,17 @@ GraphicsBackendManager::SessionType GraphicsBackendManager::detect_session_type(
     // Fallback detection methods
     const char* wayland_display = std::getenv("WAYLAND_DISPLAY");
     if (wayland_display) {
+        if (in_flatpak) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Flatpak with WAYLAND_DISPLAY=" << wayland_display;
+        }
         return SessionType::Wayland;
     }
     
     const char* display = std::getenv("DISPLAY");
     if (display) {
+        if (in_flatpak) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Flatpak with DISPLAY=" << display;
+        }
         return SessionType::X11;
     }
 #endif
@@ -84,6 +99,7 @@ GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_d
     // First try container-aware detection methods
     GraphicsDriver container_driver = detect_graphics_driver_container_aware();
     if (container_driver != GraphicsDriver::Unknown) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected driver via container-aware method";
         return container_driver;
     }
     
@@ -211,11 +227,31 @@ GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_d
     }
     
     // Try to detect NVIDIA via filesystem access
-    // Check for NVIDIA driver files
+    // Check for NVIDIA driver files (also check Flatpak-specific paths)
     std::string nvidia_version = read_file_content("/proc/driver/nvidia/version");
     if (!nvidia_version.empty()) {
         BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA driver via /proc/driver/nvidia/version";
         return GraphicsDriver::NVIDIA;
+    }
+    
+    // In Flatpak, NVIDIA libs might be exposed via runtime extensions
+    if (in_container) {
+        // Check for NVIDIA libraries in Flatpak runtime paths
+        std::string nvidia_lib_check = execute_command("find /usr/lib* /run/host/usr/lib* -name 'libGLX_nvidia.so*' 2>/dev/null | head -1");
+        if (!nvidia_lib_check.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA driver via Flatpak runtime libraries";
+            return GraphicsDriver::NVIDIA;
+        }
+        
+        // Check if nvidia-smi is available in Flatpak
+        std::string nvidia_smi_check = execute_command("which nvidia-smi 2>/dev/null");
+        if (!nvidia_smi_check.empty()) {
+            std::string gpu_info = execute_command("nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -n1");
+            if (!gpu_info.empty() && gpu_info != "N/A") {
+                BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA driver via nvidia-smi in Flatpak";
+                return GraphicsDriver::NVIDIA;
+            }
+        }
     }
     
     // Check for DRM devices to detect graphics hardware
@@ -252,16 +288,26 @@ GraphicsBackendManager::GraphicsDriver GraphicsBackendManager::detect_graphics_d
         return GraphicsDriver::Mesa;
     }
     
-    // If we're in a container and couldn't detect anything specific, check if we're supposed to use host graphics
+    // If we're in a container and couldn't detect anything specific, check environment
     if (in_container) {
+        // Check for common Flatpak environment variables that might hint at graphics setup
+        const char* flatpak_gl_drivers = std::getenv("FLATPAK_GL_DRIVERS");
+        if (flatpak_gl_drivers) {
+            std::string drivers(flatpak_gl_drivers);
+            BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: FLATPAK_GL_DRIVERS=" << drivers;
+            if (boost::icontains(drivers, "nvidia")) {
+                BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Detected NVIDIA via FLATPAK_GL_DRIVERS";
+                return GraphicsDriver::NVIDIA;
+            }
+        }
+        
         // In containers, we often rely on the host system's graphics
         const char* display = std::getenv("DISPLAY");
         const char* wayland_display = std::getenv("WAYLAND_DISPLAY");
         
         if (display || wayland_display) {
-            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Container with display forwarding, defaulting to DRI backend";
-            // Return Mesa as a safe default for containers with display forwarding
-            return GraphicsDriver::Mesa;
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Container with display forwarding, will try additional detection";
+            // Don't immediately default to Mesa - let other detection methods run
         }
     }
     
@@ -277,7 +323,19 @@ bool GraphicsBackendManager::is_running_in_container()
     // Check for Flatpak
     const char* flatpak_id = std::getenv("FLATPAK_ID");
     if (flatpak_id) {
-        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Running in Flatpak: " << flatpak_id;
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Running in Flatpak: " << flatpak_id;
+        
+        // Log additional Flatpak environment information for debugging
+        const char* flatpak_sandbox = std::getenv("FLATPAK_SANDBOX_DIR");
+        if (flatpak_sandbox) {
+            BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Flatpak sandbox dir: " << flatpak_sandbox;
+        }
+        
+        const char* xdg_runtime_dir = std::getenv("XDG_RUNTIME_DIR");
+        if (xdg_runtime_dir) {
+            BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: XDG_RUNTIME_DIR: " << xdg_runtime_dir;
+        }
+        
         return true;
     }
     
@@ -520,7 +578,32 @@ std::string GraphicsBackendManager::get_opengl_info_direct()
             BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: X11 display not available, trying EGL";
             
             // Try EGL as fallback (for Wayland or headless)
-            EGLDisplay egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+            // In Flatpak on Wayland, we should try to get the Wayland display
+            EGLDisplay egl_display = EGL_NO_DISPLAY;
+            
+            // First try to get Wayland display if we're on Wayland
+            const char* wayland_display_env = std::getenv("WAYLAND_DISPLAY");
+            if (wayland_display_env) {
+                BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Attempting EGL with Wayland display: " << wayland_display_env;
+                // Try to get platform display for Wayland (requires EGL 1.5 or EGL_EXT_platform_wayland)
+                typedef EGLDisplay (*PFNEGLGETPLATFORMDISPLAYPROC)(EGLenum platform, void *native_display, const EGLint *attrib_list);
+                PFNEGLGETPLATFORMDISPLAYPROC eglGetPlatformDisplay = 
+                    (PFNEGLGETPLATFORMDISPLAYPROC) eglGetProcAddress("eglGetPlatformDisplay");
+                
+                if (eglGetPlatformDisplay) {
+                    // EGL_PLATFORM_WAYLAND_KHR = 0x31D8
+                    egl_display = eglGetPlatformDisplay(0x31D8, EGL_DEFAULT_DISPLAY, nullptr);
+                    if (egl_display != EGL_NO_DISPLAY) {
+                        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Got EGL display via Wayland platform";
+                    }
+                }
+            }
+            
+            // Fallback to default display if Wayland-specific didn't work
+            if (egl_display == EGL_NO_DISPLAY) {
+                egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+            }
+            
             if (egl_display != EGL_NO_DISPLAY) {
                 EGLint major, minor;
                 if (eglInitialize(egl_display, &major, &minor)) {
@@ -627,11 +710,12 @@ std::string GraphicsBackendManager::get_glx_info()
     }
     
     // Final fallback: Use glxinfo command if direct detection failed
-    // This may not work in containers or restricted environments
-    if (is_running_in_container()) {
-        return "";
+    // In Flatpak, this might actually work if the runtime has the tools
+    std::string glxinfo_result = execute_command("glxinfo 2>/dev/null | grep -E 'OpenGL vendor|OpenGL renderer' | head -10");
+    if (!glxinfo_result.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: glxinfo fallback succeeded in container/host environment";
     }
-    return execute_command("glxinfo 2>/dev/null | grep -E 'OpenGL vendor|OpenGL renderer' | head -10");
+    return glxinfo_result;
 }
 
 std::string GraphicsBackendManager::get_egl_info()
@@ -644,11 +728,12 @@ std::string GraphicsBackendManager::get_egl_info()
     }
     
     // Final fallback: Use eglinfo command if direct detection failed
-    // This may not work in containers or restricted environments
-    if (is_running_in_container()) {
-        return "";
+    // In Flatpak, this might actually work if the runtime has the tools
+    std::string eglinfo_result = execute_command("eglinfo 2>/dev/null | grep -E 'EGL vendor|EGL renderer' | head -10");
+    if (!eglinfo_result.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: eglinfo fallback succeeded in container/host environment";
     }
-    return execute_command("eglinfo 2>/dev/null | grep -E 'EGL vendor|EGL renderer' | head -10");
+    return eglinfo_result;
 }
 
 void GraphicsBackendManager::set_environment_variable(const std::string& name, const std::string& value)
@@ -675,6 +760,9 @@ GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::get_nvidia_waylan
     config.session_type = SessionType::Wayland;
     config.driver = GraphicsDriver::NVIDIA;
     
+    // Check if we're running in Flatpak
+    bool in_flatpak = (std::getenv("FLATPAK_ID") != nullptr);
+    
     // For NVIDIA on Wayland, we need specific configuration
     if (is_nvidia_driver_newer_than(555)) {
         // Newer NVIDIA drivers (555+) work better with Zink
@@ -683,12 +771,45 @@ GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::get_nvidia_waylan
         config.mesa_loader_driver = "zink";
         config.gallium_driver = "zink";
         config.glx_vendor_library = "mesa";
-        config.egl_vendor_library = "/usr/share/glvnd/egl_vendor.d/50_mesa.json";
+        
+        // In Flatpak, the EGL vendor library path might be different
+        if (in_flatpak) {
+            // Try multiple possible paths for Flatpak
+            std::string egl_paths[] = {
+                "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+                "/run/host/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+                "/usr/lib/x86_64-linux-gnu/GL/egl_vendor.d/50_mesa.json"
+            };
+            
+            for (const auto& path : egl_paths) {
+                std::ifstream test_file(path);
+                if (test_file.good()) {
+                    config.egl_vendor_library = path;
+                    BOOST_LOG_TRIVIAL(debug) << "GraphicsBackendManager: Found EGL vendor file at " << path;
+                    break;
+                }
+            }
+            
+            if (config.egl_vendor_library.empty()) {
+                // Use default if not found
+                config.egl_vendor_library = "/usr/share/glvnd/egl_vendor.d/50_mesa.json";
+            }
+        } else {
+            config.egl_vendor_library = "/usr/share/glvnd/egl_vendor.d/50_mesa.json";
+        }
+        
         config.disable_dmabuf = true;
     } else {
         // Older NVIDIA drivers need different approach
         config.gbm_backend = "dri";
         config.force_dri_backend = true;
+        
+        // In Flatpak with older drivers, we might need additional settings
+        if (in_flatpak) {
+            // Force software rendering fallback if needed
+            config.glx_vendor_library = "mesa";
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Using mesa GLX vendor for Flatpak with older NVIDIA drivers";
+        }
     }
     
     return config;
@@ -749,32 +870,70 @@ GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::get_mesa_config()
 GraphicsBackendManager::GraphicsConfig GraphicsBackendManager::get_recommended_config()
 {
     GraphicsConfig detected = detect_graphics_environment();
+    GraphicsConfig config;
     
     switch (detected.driver) {
         case GraphicsDriver::NVIDIA:
             if (detected.session_type == SessionType::Wayland) {
-                return get_nvidia_wayland_config();
+                config = get_nvidia_wayland_config();
             } else {
-                return get_nvidia_x11_config();
+                config = get_nvidia_x11_config();
             }
+            break;
         case GraphicsDriver::AMD:
-            return get_amd_config();
+            config = get_amd_config();
+            break;
         case GraphicsDriver::Intel:
-            return get_intel_config();
+            config = get_intel_config();
+            break;
         case GraphicsDriver::Mesa:
-            return get_mesa_config();
+            config = get_mesa_config();
+            break;
         default:
             // Fallback to basic configuration
-            GraphicsConfig fallback;
-            fallback.gbm_backend = "dri";
-            fallback.force_dri_backend = true;
-            return fallback;
+            config.gbm_backend = "dri";
+            config.force_dri_backend = true;
+            break;
     }
+    
+    // Special handling for Flatpak environments
+    if (std::getenv("FLATPAK_ID")) {
+        // Ensure GBM_BACKEND is always set to "dri" in Flatpak
+        if (config.gbm_backend.empty() || config.gbm_backend != "dri") {
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Forcing GBM_BACKEND=dri for Flatpak environment";
+            config.gbm_backend = "dri";
+        }
+        
+        // In Flatpak with Wayland, we might need to disable dmabuf
+        if (detected.session_type == SessionType::Wayland) {
+            config.disable_dmabuf = true;
+            BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Disabling DMABUF for Flatpak Wayland session";
+        }
+        
+        // For unknown drivers in Flatpak, use safe defaults
+        if (detected.driver == GraphicsDriver::Unknown) {
+            BOOST_LOG_TRIVIAL(warning) << "GraphicsBackendManager: Unknown driver in Flatpak, using safe Mesa defaults";
+            config.driver = GraphicsDriver::Mesa;
+            config.gbm_backend = "dri";
+            config.force_dri_backend = true;
+            config.disable_dmabuf = true;
+        }
+    }
+    
+    // Copy detected session type to config
+    config.session_type = detected.session_type;
+    
+    return config;
 }
 
 void GraphicsBackendManager::apply_graphics_config(const GraphicsConfig& config)
 {
     BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Applying graphics configuration...";
+    
+    // Log if we're in Flatpak for debugging
+    if (std::getenv("FLATPAK_ID")) {
+        BOOST_LOG_TRIVIAL(info) << "GraphicsBackendManager: Applying configuration in Flatpak environment";
+    }
     
     // Validate configuration before applying
     if (!validate_configuration(config)) {
