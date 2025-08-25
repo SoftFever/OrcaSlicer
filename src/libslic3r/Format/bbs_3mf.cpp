@@ -8172,10 +8172,10 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
                 std::replace(dst_in_3mf.begin(), dst_in_3mf.end(), '\\', '/');
                 if (_3MF_COVER_FILE.compare(1, _3MF_COVER_FILE.length() - 1, dst_in_3mf) == 0) {
                     data._3mf_thumbnail = dst_in_3mf;
-                } else if (m_thumbnail_small.compare(1, m_thumbnail_small.length() - 1, dst_in_3mf) == 0) {
+                } else if (!m_thumbnail_small.empty() && m_thumbnail_small.compare(1, m_thumbnail_small.length() - 1, dst_in_3mf) == 0) {
                     data._3mf_printer_thumbnail_small = dst_in_3mf;
                     if (m_thumbnail_middle == m_thumbnail_small) data._3mf_printer_thumbnail_middle = dst_in_3mf;
-                } else if (m_thumbnail_middle.compare(1, m_thumbnail_middle.length() - 1, dst_in_3mf) == 0) {
+                } else if (!m_thumbnail_middle.empty() && m_thumbnail_middle.compare(1, m_thumbnail_middle.length() - 1, dst_in_3mf) == 0) {
                     data._3mf_printer_thumbnail_middle = dst_in_3mf;
                 }
                 result &= _add_file_to_archive(archive, dst_in_3mf, src_file);
