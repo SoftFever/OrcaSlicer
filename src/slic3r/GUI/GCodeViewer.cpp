@@ -4529,7 +4529,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         for (size_t i = 0; i < title_offsets.size(); i++) {
             if (title_offsets[i].first == _u8L("Display")) { // ORCA Hide Display header
                 ImGui::SameLine(title_offsets[i].second);
-                ImGui::Dummy({(16.f + 4.f) * m_scale, 1}); // 16(icon_size) + (extra spacing for fixing endless expandion on window width)*/
+                ImGui::Dummy({16.f * m_scale, 1}); // 16(icon_size)
                 continue;
             }
             ImGui::SameLine(title_offsets[i].second);
@@ -4553,9 +4553,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             const ImGuiStyle& style = ImGui::GetStyle();
             std::vector<float> offsets;
             // ORCA increase spacing for more readable format. Using direct number requires much less code change in here. GetTextLineHeight for additional spacing for icon_size
-            offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 12.f * m_scale + ImGui::GetTextLineHeight()); 
-            for (size_t i = 1; i < title_columns.size() - 1; i++)
-                offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + 12.f * m_scale); // ORCA increase spacing for more readable format. Using direct number requires much less code change in here
+            offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 12.f * m_scale + ImGui::GetTextLineHeight());
+            for (size_t i = 1; i < title_columns.size() - 1; i++) // ORCA dont add extra spacing after icon / "Display" header
+                offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + ((title_columns[i].first == _u8L("Display") ? 0 : 12.f) * m_scale));
+            if (title_columns.back().first == _u8L("Display") && title_columns.size() > 2)
+                offsets[title_columns.size() - 2] -= 3.f; // ORCA reduce spacing after previous header
 
             float average_col_width = ImGui::GetWindowWidth() / static_cast<float>(title_columns.size());
             std::vector<float> ret;
