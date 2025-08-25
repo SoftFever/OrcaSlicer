@@ -239,6 +239,8 @@ public:
     std::chrono::system_clock::time_point   last_request_push;  /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_start; /* last received print push from machine */
 
+    bool device_cert_installed = false;
+
     int m_active_state = 0; // 0 - not active, 1 - active, 2 - update-to-date
     bool is_tunnel_mqtt = false;
 
@@ -801,6 +803,7 @@ public:
     void set_online_state(bool on_off);
     bool is_online() { return m_is_online; }
     bool is_info_ready(bool check_version = true) const;
+    bool is_security_control_ready() const;
     bool is_camera_busy_off();
 
     std::vector<std::string> get_resolution_supported();
@@ -814,6 +817,7 @@ public:
     int local_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int parse_json(std::string tunnel, std::string payload, bool key_filed_only = false);
     int publish_gcode(std::string gcode_str);
+    void update_device_cert_state(bool ready);
 
     static std::string setting_id_to_type(std::string setting_id, std::string tray_type);
     BBLSubTask* get_subtask();

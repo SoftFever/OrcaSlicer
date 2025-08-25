@@ -4904,6 +4904,15 @@ void GUI_App::process_network_msg(std::string dev_id, std::string msg)
     if (dev_id.empty()) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << msg;
     }
+    else if (msg == "device_cert_installed") {
+        BOOST_LOG_TRIVIAL(info) << "process_network_msg, device_cert_installed";
+        Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (!dev) return;
+        MachineObject* obj = dev->get_my_machine(dev_id);
+        if (obj) {
+            obj->update_device_cert_state(true);
+        }
+    }
 }
 
 //BBS pop up a dialog and download files

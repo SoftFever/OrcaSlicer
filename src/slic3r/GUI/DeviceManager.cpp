@@ -2299,6 +2299,7 @@ void MachineObject::reset()
     job_id_ = "";
     jobState_ = 0;
     m_plate_index = -1;
+    device_cert_installed = false;
 
     // reset print_json
     json empty_j;
@@ -2394,6 +2395,11 @@ bool MachineObject::is_info_ready(bool check_version) const
     return false;
 }
 
+
+bool MachineObject::is_security_control_ready() const
+{
+    return device_cert_installed;
+}
 
 std::vector<std::string> MachineObject::get_resolution_supported()
 {
@@ -4228,6 +4234,11 @@ int MachineObject::publish_gcode(std::string gcode_str)
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
     return publish_json(j);
+}
+
+void MachineObject::update_device_cert_state(bool ready)
+{
+    device_cert_installed = ready;
 }
 
 BBLSubTask* MachineObject::get_subtask()
