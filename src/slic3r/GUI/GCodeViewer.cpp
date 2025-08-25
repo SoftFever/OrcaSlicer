@@ -4718,6 +4718,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     pop_combo_style();
     ImGui::SameLine(0, window_padding);               // ORCA Without (0,window_padding) it adds unnecessary item spacing after combo box
+    // predictable_icon_pos helpful when window size determined by combo box. ensure all translations fits when using
+    float predictable_icon_pos = ImGui::GetCursorPosX() - window_padding - icon_size - ImGui::GetStyle().ItemSpacing.x - 4.f * m_scale;
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::Dummy({ window_padding, window_padding }); // ORCA Matches top-bottom window paddings
     float window_width = ImGui::GetWindowWidth();     // ORCA Store window width
@@ -4935,6 +4937,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         if ((displayed_columns & ~ColumnData::Model) > 0) {
             title_columns.push_back({ _u8L("Total"), total_filaments });
         }
+        title_columns.push_back({ _u8L("Display"), {""}}); // ORCA Add spacing for eye icon
         auto offsets_ = calculate_offsets(title_columns, icon_size);
         std::vector<std::pair<std::string, float>> title_offsets;
         for (int i = 0; i < offsets_.size(); i++) {
@@ -5034,7 +5037,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
         const bool travel_visible = m_buffers[buffer_id(EMoveType::Travel)].visible;
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 3.0f));
-        append_item(EItemType::None, Travel_Colors[0], { {_u8L("travel"), offsets[0] }}, true, offsets.back(), travel_visible, [this, travel_visible]() {
+        append_item(EItemType::None, Travel_Colors[0], { {_u8L("travel"), offsets[0] }}, true, predictable_icon_pos, travel_visible, [this, travel_visible]() {
             m_buffers[buffer_id(EMoveType::Travel)].visible = !m_buffers[buffer_id(EMoveType::Travel)].visible;
             // update buffers' render paths, and update m_tools.m_tool_colors and m_extrusions.ranges
             refresh(*m_gcode_result, wxGetApp().plater()->get_extruder_colors_from_plater_config(m_gcode_result));
@@ -5121,7 +5124,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                     columns_offsets.push_back({ buf, color_print_offsets[_u8L("Total")] });
                 }
 
-                append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, false, 0.f, filament_visible, [this, extruder_idx]() {
+                float eye_icon_pos = std::max(predictable_icon_pos, color_print_offsets[_u8L("Display")]); // ORCA prefer predictable pos when header not reacing end
+                append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, true, eye_icon_pos, filament_visible, [this, extruder_idx]() {
                         m_tools.m_tool_visibles[extruder_idx] = !m_tools.m_tool_visibles[extruder_idx];
                         // update buffers' render paths
                         refresh_render_paths(false, false);
@@ -5724,7 +5728,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
         offsets = calculate_offsets({ { _u8L("Options"), { ""}}, { _u8L("Display"), {""}} }, icon_size);
-        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
+        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), color_print_offsets[_u8L("Display")]} });
+        offsets.back() = std::max(predictable_icon_pos, color_print_offsets[_u8L("Display")]); // ORCA prefer predictable pos when header not reacing end
         for (auto item : options_items)
             append_option_item(item, offsets);
     }
