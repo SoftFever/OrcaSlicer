@@ -318,8 +318,8 @@ void MaterialItem::doRender(wxDC &dc)
      title_panel->Layout();
      title_panel->Fit();
 
-     auto left_ams_title_text = new wxStaticText(this, wxID_ANY, _L("Left Ams"));
-     auto right_ams_title_text = new wxStaticText(this, wxID_ANY, _L("Right Ams"));
+     auto left_ams_title_text = new wxStaticText(this, wxID_ANY, _L("Left AMS"));
+     auto right_ams_title_text = new wxStaticText(this, wxID_ANY, _L("Right AMS"));
 
      m_sizer_ams_left->Add(left_ams_title_text, 0, wxALIGN_CENTER, 0);
      m_sizer_ams_right->Add(right_ams_title_text, 0, wxALIGN_CENTER, 0);

@@ -2982,10 +2982,10 @@ msgstr "手順"
 msgid "AMS Slots"
 msgstr "AMSスロット"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -3590,7 +3590,7 @@ msgstr "このフィラメントで推奨ノズル温度は %d ~ %d ℃です。
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr "値が小さすぎます、0.5に戻します"
 
 #, c-format, boost-format
@@ -3602,12 +3602,12 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr "積層ピッチが小さすぎます、0.2にリセットされました"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr "値が小さいです、0.1にリセットします"
 
 msgid ""
@@ -3695,8 +3695,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -4258,7 +4258,7 @@ msgstr "順番"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4368,9 +4368,6 @@ msgstr "断面"
 
 msgid "Assemble Control"
 msgstr "組立て"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
@@ -5130,11 +5127,6 @@ msgstr ""
 
 msgid "No printers."
 msgstr "プリンタなし"
-
-msgid ""
-"Please check the network and try again, You can restart or update the "
-"printer if the issue persists."
-msgstr ""
 
 msgid "Loading file list..."
 msgstr "ファイルリストを読込み中"
@@ -8810,10 +8802,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
-msgid "Laser 10w"
+msgid "Laser 10 W"
 msgstr ""
 
-msgid "Laser 40w"
+msgid "Laser 40 W"
 msgstr ""
 
 msgid "Cutting Module"
@@ -9459,7 +9451,7 @@ msgstr "造形可能の最大高さです。"
 msgid "Preferred orientation"
 msgstr ""
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr ""
 
 msgid "Printer preset names"
@@ -10085,7 +10077,7 @@ msgstr ""
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
 
@@ -10745,7 +10737,7 @@ msgid "Default color"
 msgstr "デフォルト色"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -11256,7 +11248,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -11423,7 +11415,7 @@ msgid ""
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
 "fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop.At the same time, the width of the extrusion for a particular layer "
+"loop. At the same time, the width of the extrusion for a particular layer "
 "should also not be below a certain level. It is usually equal 15-25%% of a "
 "layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
 "width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
@@ -11772,9 +11764,9 @@ msgstr ""
 msgid ""
 "The remaining part of the model contour after removing a certain depth from "
 "the surface is called the skeleton. This parameter is used to adjust the "
-"density of this section.When two regions have the same sparse infill "
+"density of this section. When two regions have the same sparse infill "
 "settings but different skeleton densities, their skeleton areas will develop "
-"overlapping sections.default is as same as infill density."
+"overlapping sections. Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill density"
@@ -11783,9 +11775,9 @@ msgstr ""
 msgid ""
 "The portion of the model's outer surface within a certain depth range is "
 "called the skin. This parameter is used to adjust the density of this "
-"section.When two regions have the same sparse infill settings but different "
-"skin densities, This area will not be split into two separate "
-"regions.default is as same as infill density."
+"section. When two regions have the same sparse infill settings but different "
+"skin densities, this area will not be split into two separate regions. "
+"Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill depth"
@@ -11812,11 +11804,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -12013,8 +12005,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "アイロン時の移動速度"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "アイロン時の造形速度です。"
 
 msgid "Ironing angle"
 msgstr ""
@@ -12148,8 +12140,7 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -12294,7 +12285,7 @@ msgid ""
 "is enabled."
 msgstr ""
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "ノズル直径"
 
 msgid "Configuration notes"
@@ -12433,7 +12424,7 @@ msgstr ""
 "この設定により、線幅に対するオーバーハングの割合を検出し、異なる速度で造形し"
 "ます。100%%のオーバーハングの場合、ブリッジの速度が使用されます。"
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr ""
 
 msgid ""
@@ -12472,7 +12463,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "プリンタータイプ"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr ""
 
 msgid "Printer notes"
@@ -12892,7 +12883,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "スカート距離"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "スカートからブリム或はオブジェクトまでの距離です。"
 
 msgid "Skirt start point"
@@ -12992,7 +12983,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "ソリッドインフィル"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr ""
 
 msgid ""
@@ -13754,7 +13745,7 @@ msgstr "プライムタワーの幅です。"
 msgid "Wipe tower rotation angle"
 msgstr "ワイプタワーの回転角"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "x軸に対するワイプタワーの回転角度。"
 
 msgid "Width of the brim."
@@ -13812,7 +13803,7 @@ msgstr ""
 
 msgid ""
 "Positive values can increase the size of the rib wall, while negative values "
-"can reduce the size.However, the size of the rib wall can not be smaller "
+"can reduce the size. However, the size of the rib wall can not be smaller "
 "than that determined by the cleaning volume."
 msgstr ""
 
@@ -14368,7 +14359,7 @@ msgstr ""
 msgid "Load custom G-code from json."
 msgstr ""
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr ""
 
 msgid "Load filament IDs for each object."
@@ -14403,25 +14394,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr ""
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr ""
 
 msgid "MakerLab version"
 msgstr ""
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr ""
 
 msgid "metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr ""
 
 msgid "metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr ""
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -14696,7 +14687,7 @@ msgstr "レイヤーナンバー"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr ""
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr ""
 
 msgid ""
@@ -14704,7 +14695,7 @@ msgid ""
 "layer."
 msgstr "プリント ベッド上の現在のレイヤーの高さ (レイヤーの最上部までの計測)。"
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr ""
 
 msgid "Height of the last layer above the print bed."
@@ -15991,8 +15982,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
 
@@ -17022,15 +17013,6 @@ msgstr ""
 
 #~ msgid "Default filament color"
 #~ msgstr "フィラメントのデフォルト色"
-
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "アイロン時の造形速度です。"
 
 #~ msgid ""
 #~ "The highest printable layer height for the extruder. Used to limit the "

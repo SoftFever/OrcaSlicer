@@ -3086,10 +3086,10 @@ msgstr "Krok"
 msgid "AMS Slots"
 msgstr "Gniazda AMS"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -3748,7 +3748,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Zbyt mała maksymalna prędkość przepływu.\n"
 "Zresetowano do 0,5"
@@ -3765,14 +3765,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Zbyt mała wysokość warstwy.\n"
 "Zresetowano do 0,2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Zbyt mała odległość między ścieżkami przy prasowaniu.\n"
 "Zresetowano do 0,1"
@@ -3879,8 +3879,8 @@ msgstr ""
 "Zresetuj do wartości 0"
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -4461,7 +4461,7 @@ msgstr "Kolejność"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4571,9 +4571,6 @@ msgstr "Widok przekroju"
 
 msgid "Assemble Control"
 msgstr "Kontrola montażu"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
@@ -5374,11 +5371,6 @@ msgstr "Przeładuj listę plików z drukarki."
 
 msgid "No printers."
 msgstr "Brak drukarek."
-
-msgid ""
-"Please check the network and try again, You can restart or update the "
-"printer if the issue persists."
-msgstr ""
 
 msgid "Loading file list..."
 msgstr "Wczytywanie listy plików..."
@@ -9343,10 +9335,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
-msgid "Laser 10w"
+msgid "Laser 10 W"
 msgstr ""
 
-msgid "Laser 40w"
+msgid "Laser 40 W"
 msgstr ""
 
 msgid "Cutting Module"
@@ -10061,7 +10053,7 @@ msgstr ""
 msgid "Preferred orientation"
 msgstr "Preferowana orientacja"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr ""
 "Automatyczne orientowanie plików STL na osi Z przy początkowym imporcie"
 
@@ -10898,9 +10890,12 @@ msgstr "Promień wykrywania ucha brim"
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
+"Kształt zostanie zredukowany przed wykryciem ostrych kątów. Ten parametr "
+"wskazuje minimalną długość odchylenia dla redukcji.\n"
+"0, aby dezaktywować"
 
 msgid "Select printers"
 msgstr ""
@@ -11798,7 +11793,7 @@ msgid "Default color"
 msgstr "Domyślny kolor"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -12394,7 +12389,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12589,7 +12584,7 @@ msgid ""
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
 "fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop.At the same time, the width of the extrusion for a particular layer "
+"loop. At the same time, the width of the extrusion for a particular layer "
 "should also not be below a certain level. It is usually equal 15-25%% of a "
 "layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
 "width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
@@ -12999,9 +12994,9 @@ msgstr ""
 msgid ""
 "The remaining part of the model contour after removing a certain depth from "
 "the surface is called the skeleton. This parameter is used to adjust the "
-"density of this section.When two regions have the same sparse infill "
+"density of this section. When two regions have the same sparse infill "
 "settings but different skeleton densities, their skeleton areas will develop "
-"overlapping sections.default is as same as infill density."
+"overlapping sections. Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill density"
@@ -13010,9 +13005,9 @@ msgstr ""
 msgid ""
 "The portion of the model's outer surface within a certain depth range is "
 "called the skin. This parameter is used to adjust the density of this "
-"section.When two regions have the same sparse infill settings but different "
-"skin densities, This area will not be split into two separate "
-"regions.default is as same as infill density."
+"section. When two regions have the same sparse infill settings but different "
+"skin densities, this area will not be split into two separate regions. "
+"Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill depth"
@@ -13039,11 +13034,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -13273,8 +13268,8 @@ msgstr "Odległość od krawędzi. Wartość 0 ustawia ją na połowę średnicy
 msgid "Ironing speed"
 msgstr "Szybkość prasowania"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Prędkość drukowania linii dla prasowania"
 
 msgid "Ironing angle"
 msgstr "Kąt prasowania"
@@ -13422,8 +13417,7 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -13622,7 +13616,7 @@ msgstr ""
 "minimalny czas warstwy określony powyżej, jeśli włączona jest opcja "
 "spowalnianie druku dla lepszego chłodzenia warstw."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Średnica dyszy"
 
 msgid "Configuration notes"
@@ -13776,7 +13770,7 @@ msgstr ""
 "Określ procentowy udział nawisów w stosunku do szerokości ekstruzji i użyj "
 "różnych prędkości do druku. Dla 100%% nawisów, zostanie użyta prędkość mostu."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Ten filament będzie używany do drukowania ścian"
 
 msgid ""
@@ -13832,7 +13826,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Typ drukarki"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "Rodzaj drukarki"
 
 msgid "Printer notes"
@@ -14333,7 +14327,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Odstęp skirtu od obiektu"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Odległość skirtu do brumu albo do obiektu"
 
 msgid "Skirt start point"
@@ -14460,7 +14454,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Pełne wypełnienie"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Ten filament będzie używany do drukowania pełnego wypełnienia"
 
 msgid ""
@@ -15353,7 +15347,7 @@ msgstr "Szerokość wieży czyszczącej"
 msgid "Wipe tower rotation angle"
 msgstr "Kąt obrotu wieży czyszczącej"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "Kąt obrotu wieży czyszczącej względem osi x."
 
 msgid "Width of the brim."
@@ -15428,7 +15422,7 @@ msgstr ""
 
 msgid ""
 "Positive values can increase the size of the rib wall, while negative values "
-"can reduce the size.However, the size of the rib wall can not be smaller "
+"can reduce the size. However, the size of the rib wall can not be smaller "
 "than that determined by the cleaning volume."
 msgstr ""
 
@@ -16062,7 +16056,7 @@ msgstr "Załaduj własny G-code"
 msgid "Load custom G-code from json."
 msgstr "Załaduj własny G-code z json."
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "Wczytaj identyfikatory filamentu"
 
 msgid "Load filament IDs for each object."
@@ -16103,25 +16097,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr "Nazwa MakerLab"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "Nazwa MakerLab do generowania tego 3mf"
 
 msgid "MakerLab version"
 msgstr "Wersja MakerLab"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "Wersja MakerLab do generowania tego 3mf"
 
 msgid "metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr ""
 
 msgid "metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr ""
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -16410,7 +16404,7 @@ msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr ""
 "Indeks aktualnej warstwy uwzględniający zero (pierwsza warstwa ma wartość 1)."
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "Warstwa Z"
 
 msgid ""
@@ -16420,7 +16414,7 @@ msgstr ""
 "Wysokość bieżącej warstwy nad stołem roboczym, mierzona do górnej krawędzi "
 "warstwy"
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "Maksymalna warstwa Z"
 
 msgid "Height of the last layer above the print bed."
@@ -17862,8 +17856,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
 
@@ -19129,16 +19123,6 @@ msgstr ""
 #~ msgid "Enable this option to use classic mode."
 #~ msgstr "Włącz tę opcję, aby używać trybu klasycznego"
 
-#~ msgid ""
-#~ "The geometry will be decimated before detecting sharp angles. This "
-#~ "parameter indicates the minimum length of the deviation for the "
-#~ "decimation.\n"
-#~ "0 to deactivate."
-#~ msgstr ""
-#~ "Kształt zostanie zredukowany przed wykryciem ostrych kątów. Ten parametr "
-#~ "wskazuje minimalną długość odchylenia dla redukcji.\n"
-#~ "0, aby dezaktywować"
-
 #~ msgid "Compatible machine"
 #~ msgstr "Kompatybilna maszyna"
 
@@ -19151,20 +19135,11 @@ msgstr ""
 #~ msgid "Default filament color"
 #~ msgstr "Domyślny kolor filamentu"
 
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
 #~ msgid "Rotate solid infill direction"
 #~ msgstr "Zmień kierunek pełnego wypełnienia"
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "Zmień kierunek pełnego wypełnienia o 90° dla każdej warstwy."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Prędkość drukowania linii dla prasowania"
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "
@@ -19267,7 +19242,7 @@ msgstr ""
 #~ msgid "Downward machines settings"
 #~ msgstr "ustawienia wstecznej kompatybilności maszyn"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "Wczytaj identyfikatory filamentu dla każdego obiektu"
 
 #~ msgid ""
