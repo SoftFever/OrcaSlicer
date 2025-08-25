@@ -9,8 +9,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-  issues: write
 
 jobs:
   validate:
@@ -316,20 +314,16 @@ jobs:
               exit 0
           }
       
-      - name: Comment on PR
-        if: failure() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const validationErrors = process.env.VALIDATION_ERRORS || '';
-            
-            const body = `❌ **Documentation validation failed**
-            
-            ${validationErrors || 'Please check the workflow logs for details about the validation errors.'}`;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            })
+      - name: Show validation results
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host "=== VALIDATION RESULTS ===" -ForegroundColor Cyan
+          
+          if ($env:VALIDATION_ERRORS) {
+              Write-Host "❌ Documentation validation failed" -ForegroundColor Red
+              Write-Host ""
+              Write-Host $env:VALIDATION_ERRORS
+          } else {
+              Write-Host "✅ All documentation is valid!" -ForegroundColor Green
+          }
