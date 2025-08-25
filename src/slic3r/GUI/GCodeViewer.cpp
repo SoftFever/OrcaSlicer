@@ -4707,8 +4707,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     pop_combo_style();
     ImGui::SameLine(0, window_padding);               // ORCA Without (0,window_padding) it adds unnecessary item spacing after combo box
                                                       // ORCA predictable_icon_pos helpful when window size determined by combo box.
-                                                      //      ensure all translations fits when using
-    float predictable_icon_pos = ImGui::GetCursorPosX() - window_padding - icon_size - ImGui::GetStyle().ItemSpacing.x - 4.f * m_scale;
+    float predictable_icon_pos = ImGui::GetCursorPosX() - icon_size - window_padding - ImGui::GetStyle().ItemSpacing.x - 1.f * m_scale; // 1 for border
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::Dummy({ window_padding, window_padding }); // ORCA Matches top-bottom window paddings
     float window_width = ImGui::GetWindowWidth();     // ORCA Store window width
