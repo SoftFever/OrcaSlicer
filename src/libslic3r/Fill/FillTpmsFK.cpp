@@ -7,7 +7,6 @@
 #include <unordered_set>
 #include <utility>
 #include <tbb/parallel_for.h>
-#include <mutex> 
 
 namespace Slic3r {
 
@@ -157,8 +156,8 @@ vector<double> getGridValues(int i, int j, vector<vector<double>>& data)
     values.push_back(data[i][j]);
     return values;
 }
-bool  needContour(double value, double contourValue) { return value >= contourValue; }
-Point interpolate(std::vector<std::vector<MarchingSquares::Point>>& posxy,
+static bool  needContour(double value, double contourValue) { return value >= contourValue; }
+static Point interpolate(std::vector<std::vector<MarchingSquares::Point>>& posxy,
                   std::vector<int>                                  p1ij,
                   std::vector<int>                                  p2ij,
                   double                                            v1,
@@ -186,7 +185,7 @@ Point interpolate(std::vector<std::vector<MarchingSquares::Point>>& posxy,
     return p;
 }
 
-void process_block(int                                               i,
+static void process_block(int                                               i,
                    int                                               j,
                    vector<vector<double>>&                           data,
                    double                                            contourValue,
@@ -288,43 +287,7 @@ void process_block(int                                               i,
     }
 }
 
-// --- Chaikin Smooth ---
-
-static Polyline chaikin_smooth(Polyline poly, int iterations , double weight )
-{
-    if (poly.points.size() < 3) return poly;
-
-    const double w1 = 1.0 - weight;
-    decltype(poly.points) buffer;
-    buffer.reserve(poly.points.size() * 2);
-
-    for (int it = 0; it < iterations; ++it) {
-        buffer.clear();
-        buffer.push_back(poly.points.front());
-
-        for (size_t i = 0; i < poly.points.size() - 1; ++i) {
-            const auto &p0 = poly.points[i];
-            const auto &p1 = poly.points[i + 1];
-
-            buffer.emplace_back(
-                p0.x() * w1 + p1.x() * weight,
-                p0.y() * w1 + p1.y() * weight
-            );
-            buffer.emplace_back(
-                p0.x() * weight + p1.x() * w1,
-                p0.y() * weight + p1.y() * w1
-            );
-        }
-
-        buffer.push_back(poly.points.back());
-        poly.points.swap(buffer); 
-    }
-
-    return poly; 
-}
-
-
-void drawContour(double                                            contourValue,
+static void drawContour(double                                     contourValue,
                  int                                               gridSize_w,
                  int                                               gridSize_h,
                  vector<vector<double>>&                           data,
@@ -382,53 +345,11 @@ void drawContour(double                                            contourValue,
         for (myPoint& pt : p) {
             repltmp.points.push_back(Slic3r::Point(pt.x, pt.y));
         }
-        // symplify tolerance based on density
-        const float min_tolerance      = 0.005f;
-        const float max_tolerance      = 0.2f;
-        float       simplify_tolerance = (0.005f / params.density);
-        simplify_tolerance             = std::clamp(simplify_tolerance, min_tolerance, max_tolerance);
-        repltmp.simplify(scale_(simplify_tolerance));
-        repltmp = chaikin_smooth(repltmp, 2, 0.25);
         repls.push_back(repltmp);
     }
 }
 
 } // namespace MarchingSquares
-
-static float sin_table[360];
-static float cos_table[360];
-static std::once_flag trig_tables_once_flag; 
-
-#define PIratio 57.29577951308232 // 180/PI
-
-static void initialize_lookup_tables()
-{
-    for (int i = 0; i < 360; ++i) {
-        float angle  = i * (M_PI / 180.0);
-        sin_table[i] = std::sin(angle);
-        cos_table[i] = std::cos(angle);
-    }
-}
-
-
-inline static void ensure_trig_tables_initialized()
-{
-    std::call_once(trig_tables_once_flag, initialize_lookup_tables);
-}
-
-inline static float get_sin(float angle)
-{
-    angle     = angle * PIratio;
-    int index = static_cast<int>(std::fmod(angle, 360) + 360) % 360;
-    return sin_table[index];
-}
-
-inline static float get_cos(float angle)
-{
-    angle     = angle * PIratio;
-    int index = static_cast<int>(std::fmod(angle, 360) + 360) % 360;
-    return cos_table[index];
-}
 
 void FillTpmsFK::_fill_surface_single(const FillParams&              params,
                                       unsigned int                   thickness_layers,
@@ -436,8 +357,6 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
                                       ExPolygon                      expolygon,
                                       Polylines&                     polylines_out)
 {
-    ensure_trig_tables_initialized(); 
-
     auto infill_angle = float(this->angle + (CorrectionAngle * 2 * M_PI) / 360.);
     if(std::abs(infill_angle) >= EPSILON)
         expolygon.rotate(-infill_angle);
@@ -452,40 +371,29 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     float       xlen    = boxsize.x();
     float       ylen    = boxsize.y();
 
-    const float delta = 0.5f; // mesh step (adjust for quality/performance)
-
+    const float delta = 0.4f; // mesh step (adjust for quality/performance)
     float myperiod = 2 * PI / vari_T;
     float c_z      = myperiod * this->z; // z height
 
     // scalar field Fischer-Koch
-    auto scalar_field = [&](float x, float y) {
-        float a_x = myperiod * x;
-        float b_y = myperiod * y;
-       
+    auto scalar_field = [&](float x, float y) -> float {
+        const float a_x       = myperiod * x;
+        const float b_y       = myperiod * y;
+
         // Fischer - Koch S equation:
         // cos(2x)sin(y)cos(z) + cos(2y)sin(z)cos(x) + cos(2z)sin(x)cos(y) = 0
-        const float cos2ax = get_cos(2*a_x);
-        const float cos2by = get_cos(2*b_y);
-        const float cos2cz = get_cos(2*c_z);
-        const float sinby = get_sin(b_y);
-        const float cosax = get_cos(a_x);
-        const float sinax = get_sin(a_x);
-        const float cosby = get_cos(b_y);
-        const float sincz = get_sin(c_z);
-        const float coscz = get_cos(c_z);
-
-        return cos2ax * sinby * coscz
-             + cos2by * sincz * cosax
-             + cos2cz * sinax * cosby;
+        return cosf(2 * a_x) * sinf(b_y) * cosf(c_z)
+             + cosf(2 * b_y) * sinf(c_z) * cosf(a_x) 
+             + cosf(2 * c_z) * sinf(a_x) * cosf(b_y);
     };
 
     // Mesh generation
     std::vector<std::vector<MarchingSquares::Point>> posxy;
     int                                              i = 0, j = 0;
-    for (float y = -(ylen) / 2.0f - 2; y < (ylen) / 2.0f + 2; y = y + delta, i++) {
+    for (float y = -(ylen) / 2.0f - 0.5f; y < (ylen) / 2.0f + 0.5f; y = y + delta, i++) {
         j = 0;
         std::vector<MarchingSquares::Point> colposxy;
-        for (float x = -(xlen) / 2.0f - 2; x < (xlen) / 2.0f + 2; x = x + delta, j++) {
+        for (float x = -(xlen) / 2.0f - 0.5f; x < (xlen) / 2.0f + 0.5f; x = x + delta, j++) {
             MarchingSquares::Point pt;
             pt.x = cenpos.x() + x;
             pt.y = cenpos.y() + y;
@@ -510,33 +418,36 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
 
 
     Polylines polylines;
-    const double contour_value = 0.075; // offset from zero to avoid numerical issues
+    const double contour_value = 0; // offset from theoretical surface
     MarchingSquares::drawContour(contour_value, width , height , data, posxy, polylines, params);
 
-    if (!polylines.empty()) {
-        // Apply multiline offset if needed
-        multiline_fill(polylines, params, spacing);
+    // Apply multiline offset if needed
+    multiline_fill(polylines, params, spacing);
 
+	polylines = intersection_pl(polylines, expolygon);
 
-        polylines = intersection_pl(polylines, expolygon);
-
-        // Remove very small bits, but be careful to not remove infill lines connecting thin walls!
+    if (! polylines.empty()) {
+		// Remove very small bits, but be careful to not remove infill lines connecting thin walls!
         // The infill perimeter lines should be separated by around a single infill line width.
         const double minlength = scale_(0.8 * this->spacing);
 		polylines.erase(
 			std::remove_if(polylines.begin(), polylines.end(), [minlength](const Polyline &pl) { return pl.length() < minlength; }),
 			polylines.end());
+    }
 
+	if (! polylines.empty()) {
 		// connect lines
 		size_t polylines_out_first_idx = polylines_out.size();
-        chain_or_connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
+
+        //chain_or_connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
+        //chain_infill not situable for this pattern due to internal "islands", this also affect performance a lot.
+        connect_infill(std::move(polylines), expolygon, polylines_out, this->spacing, params);
 
 	    // new paths must be rotated back
         if (std::abs(infill_angle) >= EPSILON) {
 	        for (auto it = polylines_out.begin() + polylines_out_first_idx; it != polylines_out.end(); ++ it)
 	        	it->rotate(infill_angle);
 	    }
-        
     }
 }
 
