@@ -4400,7 +4400,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     bool show_estimated = time_mode.time > 0.0f && (m_view_type == EViewType::FeatureType || m_view_type == EViewType::ColorPrint);
 
     const float icon_size = ImGui::GetTextLineHeight() * 0.7;
-    float icon_pos; 
     //BBS GUI refactor
     //const float percent_bar_size = 2.0f * ImGui::GetTextLineHeight();
     const float percent_bar_size = 0;
@@ -4415,7 +4414,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     //ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(),pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
     //ImGui::GetColorU32(ImVec4(0,0,0,0.3)));
 
-    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this, icon_pos](
+    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](
         EItemType type,
         const ColorRGBA& color,
         const std::vector<std::pair<std::string, float>>& columns_offsets,
@@ -4473,13 +4472,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (b_menu_item)
                 callback();
             if (checkbox) {
-                //ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
-                //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
-                //ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-                //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
-                //ImGui::PopStyleVar(1);
                 // ORCA replace checkboxes with eye icon
-                // ImGui::SameLine(ImGui::GetWindowWidth() - (16.f + 6.f) * m_scale - window_padding * 2 - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0));
+                // Use calculated position from argument. this method has predictable result compared to alingning button using window width
+                // fixes slowly resizing window and endlessly expanding window when there is a miscalculation on position
                 ImGui::SameLine(checkbox_pos);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0)); // ensure no padding active
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 0.0)); // ensure no item spacing active
@@ -4530,11 +4525,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
     };
 
-    auto append_headers = [&imgui, window_padding, this, &icon_pos](const std::vector<std::pair<std::string, float>>& title_offsets) {
+    auto append_headers = [&imgui, window_padding, this](const std::vector<std::pair<std::string, float>>& title_offsets) {
         for (size_t i = 0; i < title_offsets.size(); i++) {
             if (title_offsets[i].first == _u8L("Display")) { // ORCA Hide Display header
                 ImGui::SameLine(title_offsets[i].second);
-                //icon_pos = title_offsets[i].second;
                 ImGui::Dummy({(16.f + 4.f) * m_scale, 1}); // 16(icon_size) + (extra spacing for fixing endless expandion on window width)*/
                 continue;
             }
@@ -4555,21 +4549,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return ret;
     };
 
-    auto calculate_offsets = [&imgui, max_width, window_padding, this, &icon_pos](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
+    auto calculate_offsets = [&imgui, max_width, window_padding, this](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
             const ImGuiStyle& style = ImGui::GetStyle();
             std::vector<float> offsets;
             // ORCA increase spacing for more readable format. Using direct number requires much less code change in here. GetTextLineHeight for additional spacing for icon_size
             offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 12.f * m_scale + ImGui::GetTextLineHeight()); 
             for (size_t i = 1; i < title_columns.size() - 1; i++)
                 offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + 12.f * m_scale); // ORCA increase spacing for more readable format. Using direct number requires much less code change in here
-            if (title_columns.back().first == _u8L("Display")) {
-                //const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
-                //const auto preferred_offset = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x - (16.f + 6.f) * m_scale - ImGui::GetStyle().FramePadding.x * 2;
-                //if (preferred_offset > offsets.back()) {
-                //    offsets.back() = preferred_offset;
-                //}
-                //icon_pos = offsets.back();
-            }
 
             float average_col_width = ImGui::GetWindowWidth() / static_cast<float>(title_columns.size());
             std::vector<float> ret;
@@ -5023,7 +5009,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                     });
             }
         }
-        //icon_pos = offsets[5];
         break;
     }
     case EViewType::Height:         { append_range(m_extrusions.ranges.height, 2); break; }
@@ -5045,7 +5030,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
             });
         ImGui::PopStyleVar(1);
-        //icon_pos = offsets[1];
         break;
     }
     case EViewType::FanSpeed:       { append_range(m_extrusions.ranges.fan_speed, 0); break; }
