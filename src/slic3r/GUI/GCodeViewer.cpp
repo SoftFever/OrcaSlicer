@@ -5706,8 +5706,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
         offsets = calculate_offsets({ { _u8L("Options"), { ""}}, { _u8L("Display"), {""}} }, icon_size);
-        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), color_print_offsets[_u8L("Display")]} });
-        offsets.back() = std::max(predictable_icon_pos, color_print_offsets[_u8L("Display")]); // ORCA prefer predictable pos when header not reacing end
+        offsets[1] = std::max(predictable_icon_pos, color_print_offsets[_u8L("Display")]); // ORCA prefer predictable_icon_pos when header not reacing end
+        append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
         for (auto item : options_items)
             append_option_item(item, offsets);
     }
