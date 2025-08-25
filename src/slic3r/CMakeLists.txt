@@ -14,6 +14,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/Button.hpp
     GUI/Widgets/CheckBox.cpp
     GUI/Widgets/CheckBox.hpp
+    GUI/Widgets/CheckList.cpp
+    GUI/Widgets/CheckList.hpp
     GUI/Widgets/DialogButtons.cpp
     GUI/Widgets/DialogButtons.hpp
     GUI/Widgets/RadioBox.hpp
@@ -490,6 +492,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp
     GUI/KBShortcutsDialog.cpp
+    GUI/MultiChoiceDialog.hpp
+    GUI/MultiChoiceDialog.cpp
     GUI/MultiMachine.hpp
     GUI/MultiMachine.cpp
     GUI/MultiMachinePage.hpp
