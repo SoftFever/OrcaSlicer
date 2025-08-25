@@ -1,34 +1,322 @@
 {
     "result": 0,
-    "t": 1749692474,
-    "ver": 202506120009,
+    "t": 1755870814,
+    "ver": 202508192303,
     "data": {
         "device_hms": {
-            "ver": 202506120009,
+            "ver": 202508191204,
             "nl": [
                 {
-                    "ecode": "0300D10000010002",
-                    "intro": "De Hall-sensor voor het detecteren van de gasfles is opengesloten; controleer of de Hall-sensor defect is."
+                    "ecode": "0C00020000010001",
+                    "intro": "De laser voor hoogtemeting brandt niet. Controleer op obstakels of een losse camerakabel van de gereedschapskop."
                 },
                 {
-                    "ecode": "0300D10000010003",
-                    "intro": "De Hall-sensor voor het detecteren van de gasfles is kortgesloten; controleer of de Hall-sensor defect is."
+                    "ecode": "0300D70000020001",
+                    "intro": "De vierde as van de laser is niet aangesloten"
+                },
+                {
+                    "ecode": "0300D80000010002",
+                    "intro": "Motorfout in de vierde as van de laser. Schakel de vierde as van de laser uit en vervolgens weer in om hem opnieuw te starten."
+                },
+                {
+                    "ecode": "0300D80000010001",
+                    "intro": "De vierde-asmotor van de laser heeft een open circuit. Mogelijk is er een losse verbinding of is de motor defect."
+                },
+                {
+                    "ecode": "0500050000010021",
+                    "intro": "Authenticatie van time-lapse kit mislukt. Sluit de kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0300D50000020004",
+                    "intro": "De gasfles van de brandblusser zit niet goed."
+                },
+                {
+                    "ecode": "0501040000030002",
+                    "intro": "De draadstang moet nu gesmeerd worden."
+                },
+                {
+                    "ecode": "0500050000020030",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300910000010008",
+                    "intro": "De kamerverwarming heeft de gewenste temperatuur niet gehaald."
+                },
+                {
+                    "ecode": "030018000001000C",
+                    "intro": "Er is een rare sprong in de extruder extrusion force sensor-gegevens gevonden, waarschijnlijk door een slecht contact of een kapotte sensor."
+                },
+                {
+                    "ecode": "0C00040000020029",
+                    "intro": "De laser- of snijmodule is niet gekalibreerd. Kalibreer deze eerst op de printer."
+                },
+                {
+                    "ecode": "0501040000030004",
+                    "intro": "Maak de lineaire rail van de X-as en de lineaire stangen van de YZ-as schoon en smeer ze in."
+                },
+                {
+                    "ecode": "0501040000030010",
+                    "intro": "De lasermodule is stoffig en moet nu schoongemaakt worden."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "Uitvoeren van de eerste hogetemperatuurbednivellering."
+                },
+                {
+                    "ecode": "03002D0000030009",
+                    "intro": "Uitvoeren van de eerste hogetemperatuurbednivellering."
+                },
+                {
+                    "ecode": "0300D60000010007",
+                    "intro": "De resetknop van de brandblusser zit vast. Draai het noodwiel voorzichtig naar links en rechts totdat je minder weerstand voelt. Zet daarna de brandblusser uit en weer aan."
+                },
+                {
+                    "ecode": "0C0001000002000E",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000010053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500040000030054",
+                    "intro": "Automatisch brandblussysteem gedetecteerd. Het is een goed idee om een brandoefening te doen om te weten hoe alles werkt."
+                },
+                {
+                    "ecode": "1800020000020002",
+                    "intro": "AMS-HT A de odometer heeft geen signaal. De connector van de odometer heeft mogelijk slecht contact."
+                },
+                {
+                    "ecode": "0500050000010009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500050000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020013",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020014",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020017",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020018",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05000600000200A1",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020013",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020023",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020024",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020011",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020022",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020014",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020019",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C0001000002001B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C0001000002001A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000030028",
+                    "intro": "De offsetkalibratie van de snijmodule is mislukt, waardoor de sneden misschien niet goed uitkomen. Zorg ervoor dat het witte printerpapier van 80 g (letterformaat) goed ligt en check of het mesje nog scherp is."
+                },
+                {
+                    "ecode": "0C00040000030026",
+                    "intro": "Om de nauwkeurigheid van de vlamdetectie te verbeteren, wordt de juiste kamerverlichting nu automatisch uitgeschakeld."
+                },
+                {
+                    "ecode": "0500030000020010",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020011",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000030007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000030009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05000600000200A0",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020021",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300D50000020005",
+                    "intro": "De gascilinder van de brandblusser is leeg. Vervang de gascilinder en bevestig de vervanging op de pagina Automatisch brandblussysteem."
+                },
+                {
+                    "ecode": "0300D10000010002",
+                    "intro": "Fout in de motor van de brandblusser. Schakel de brandblusser uit en weer in om hem opnieuw te starten."
+                },
+                {
+                    "ecode": "0300D40000010002",
+                    "intro": "De sensor voor aanwezigheidsdetectie van de brandblusser werkt niet goed. Controleer of de sensorkabel los zit of beschadigd is."
+                },
+                {
+                    "ecode": "0300D30000020001",
+                    "intro": "Brandblusser niet gedetecteerd. Controleer of de signaalkabel goed is aangesloten en of de stekker goed in het stopcontact zit."
+                },
+                {
+                    "ecode": "0300D60000010006",
+                    "intro": "Het resetten van de brandblussermotor is mislukt. Schakel de brandblusser uit en weer in om hem opnieuw te starten."
+                },
+                {
+                    "ecode": "03002D0000010006",
+                    "intro": "Het waterpas stellen van het verwarmde bed is mislukt, mogelijk door vreemde voorwerpen op het bed of door het kantelen van het bed. Doorgaan met printen kan de bouwplaat beschadigen. Verwijder vuil of stel het bed handmatig waterpas voordat je het opnieuw probeert."
+                },
+                {
+                    "ecode": "0500030000020055",
+                    "intro": "Gebruikersinformatie is verlopen, log opnieuw in."
+                },
+                {
+                    "ecode": "0300D10000010001",
+                    "intro": "De motor van de brandblusser heeft een open circuit. Er is mogelijk een losse aansluiting of is de motor defect."
+                },
+                {
+                    "ecode": "0300290000010001",
+                    "intro": "Vision Encoder patronen kunnen niet worden herkend; mogelijke redenen zijn vervorming van het Vision Encoder patroon, overbelichting van het licht en verkeerde plaatsing van de plaat."
                 },
                 {
                     "ecode": "0500050000010019",
-                    "intro": "Brandblussermodulecertificering is mislukt. Gelieve de modulekabel opnieuw aan te sluiten of de printer opnieuw op te starten."
+                    "intro": "De certificering van de brandblusmodule is mislukt. Sluit de kabel van de module opnieuw aan of start de printer opnieuw op."
                 },
                 {
                     "ecode": "0500050000010018",
-                    "intro": "Laser Fourth Axis module certificering is mislukt. Gelieve de modulekabel opnieuw aan te sluiten of de printer opnieuw op te starten."
-                },
-                {
-                    "ecode": "0701900000010004",
-                    "intro": "De stroomsensor van AMS B uitlaatklep 1 is afwijkend. Neem contact op met de klantenservice om het AMS-moederbord te vervangen."
-                },
-                {
-                    "ecode": "0707910000010004",
-                    "intro": "De stroomsensor van AMS H uitlaatklep 2 is niet goed. Neem contact op met de klantenservice om het AMS-moederbord te vervangen."
+                    "intro": "De certificering van de Laser Fourth Axis module is mislukt. Sluit de kabel van de module opnieuw aan of start de printer opnieuw op."
                 },
                 {
                     "ecode": "1803900000010004",
@@ -99,10 +387,6 @@
                     "intro": "De stroomsensor van AMS C uitlaatklep 1 is niet goed. Neem contact op met de klantenservice om het AMS-moederbord te vervangen."
                 },
                 {
-                    "ecode": "03002D0000030009",
-                    "intro": "Dit is de eerste afdruk van de printer met een hoge temperatuur van het warmtebed. Om een betere afdrukkwaliteit van de eerste laag te verkrijgen, wordt de bednivellering bij hoge temperatuur automatisch uitgevoerd."
-                },
-                {
                     "ecode": "0706910000010004",
                     "intro": "De stroomsensor van AMS G uitlaatklep 2 is niet goed. Neem contact op met de klantenservice om het AMS-moederbord te vervangen."
                 },
@@ -156,311 +440,143 @@
                 },
                 {
                     "ecode": "0702960000020004",
-                    "intro": "AMS C De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS C De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "1800960000020004",
-                    "intro": "AMS-HT A De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale werking van de verwarming."
+                    "intro": "AMS-HT A De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "0704960000020004",
-                    "intro": "AMS E De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale werking van de verwarming."
+                    "intro": "AMS E De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "1801250000020001",
-                    "intro": "AMS-HT B gebruikt printerstroom voor drogen tijdens laden/printen. Voor betere droogprestaties, sluit alstublieft een voedingsadapter aan."
+                    "intro": "De AMS-HT B gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "1803250000020001",
-                    "intro": "AMS-HT D gebruikt printerstroom voor drogen tijdens laden/printen. Voor betere droogprestaties, sluit alstublieft een voedingsadapter aan."
+                    "intro": "De AMS-HT D gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "1807250000020001",
-                    "intro": "AMS-HT H gebruikt printerstroom voor drogen tijdens laden/printen. Voor betere droogprestaties, sluit alstublieft een voedingsadapter aan."
+                    "intro": "De AMS-HT H gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "1806250000020001",
-                    "intro": "AMS-HT G gebruikt printerstroom voor drogen tijdens laden/printen. Voor betere droogprestaties, sluit alstublieft een voedingsadapter aan."
+                    "intro": "De AMS-HT G gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "0703960000020004",
-                    "intro": "AMS D De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS D De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "0707960000020004",
-                    "intro": "AMS H De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS H De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "1802960000020004",
-                    "intro": "AMS-HT C De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS-HT C De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de heater."
                 },
                 {
                     "ecode": "1803960000020004",
-                    "intro": "AMS-HT D De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS-HT D De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de heater."
                 },
                 {
                     "ecode": "0706960000020004",
-                    "intro": "AMS G De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS G De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de vervarming."
                 },
                 {
                     "ecode": "1804960000020004",
-                    "intro": "AMS-HT E De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS-HT E De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "0701960000020004",
-                    "intro": "AMS B De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale werking van de verwarming."
+                    "intro": "AMS B De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "1807960000020004",
-                    "intro": "AMS-HT H De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS-HT H De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "1804250000020001",
-                    "intro": "AMS-HT E gebruikt printerstroom voor drogen tijdens laden/printen. Voor betere droogprestaties, sluit alstublieft een voedingsadapter aan."
+                    "intro": "De AMS-HT E gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "1805960000020004",
-                    "intro": "AMS-HT F De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS-HT F De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "1805250000020001",
-                    "intro": "AMS-HT F gebruikt printerstroom voor drogen tijdens laden/printen. Voor betere droogprestaties, sluit alstublieft een voedingsadapter aan."
+                    "intro": "De AMS-HT F gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "1800250000020001",
-                    "intro": "AMS-HT A gebruikt printerstroom voor drogen tijdens laden/printen. Voor betere droogprestaties, sluit alstublieft een voedingsadapter aan."
+                    "intro": "De AMS-HT A gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "1801960000020004",
-                    "intro": "AMS-HT B De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS-HT B De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "1806960000020004",
-                    "intro": "AMS-HT G De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale situatie met de verwarmingselement."
+                    "intro": "AMS-HT G De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "1802250000020001",
-                    "intro": "AMS-HT C gebruikt printerstroom voor drogen tijdens laden/printen. Voor betere droogprestaties, sluit alstublieft een voedingsadapter aan."
+                    "intro": "De AMS-HT C gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "0700960000020004",
-                    "intro": "AMS A De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale werking van de verwarming."
+                    "intro": "AMS A De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "0705960000020004",
-                    "intro": "AMS F De temperatuurregelingsfout is te groot, wat kan worden veroorzaakt door het deksel dat open staat of een abnormale werking van de verwarming."
-                },
-                {
-                    "ecode": "0500010000020003",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020010",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020011",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020012",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020013",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020014",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020015",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020016",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020017",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020018",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000030007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000030009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020001",
-                    "intro": "De gereedschapskop-camera is niet op zijn plaats; Controleer de hardwareverbinding"
-                },
-                {
-                    "ecode": "05000600000200A1",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020013",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020012",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020023",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020005",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020024",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05000600000200A0",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020011",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020022",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020014",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020021",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0300180000030009",
-                    "intro": "Voor het eerst wordt er geprint met een hoge heatbedtemperatuur. Om een betere afdrukkwaliteit van de eerste laag te verkrijgen, wordt automatisch bednivellering op hoge temperatuur uitgevoerd."
-                },
-                {
-                    "ecode": "0C00010000020019",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C0001000002001A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C0001000002001B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020016",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020015",
-                    "intro": ""
+                    "intro": "AMS F De fout in de temperatuurregeling is te groot, wat kan komen doordat het deksel open is of door een afwijking in de verwarming."
                 },
                 {
                     "ecode": "0703250000020001",
-                    "intro": "Gedetecteerde AMS met printerkracht voor drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
+                    "intro": "AMS D gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "0700250000020001",
-                    "intro": "Gedetecteerde AMS met printerkracht voor drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
+                    "intro": "De AMS A gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "0701250000020001",
-                    "intro": "Gedetecteerde AMS met printerkracht voor drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
+                    "intro": "AMS B gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit een voedingsadapter aan voor betere droogprestaties."
                 },
                 {
                     "ecode": "0706250000020001",
-                    "intro": "Gedetecteerde AMS met printerkracht voor drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
+                    "intro": "De AMS G gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "0702250000020001",
-                    "intro": "Gedetecteerde AMS met printerkracht voor drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
+                    "intro": "De AMS C gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "0705250000020001",
-                    "intro": "Gedetecteerde AMS met printerkracht voor drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
+                    "intro": "De AMS F gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "0707250000020001",
-                    "intro": "Gedetecteerde AMS met printerkracht voor drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
+                    "intro": "De AMS H gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
                 },
                 {
                     "ecode": "0704250000020001",
-                    "intro": "Gedetecteerde AMS met printerkracht voor drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
+                    "intro": "De AMS E gebruikt printervoeding voor het drogen tijdens het laden/printen. Sluit voor betere droogprestaties een voedingsadapter aan."
+                },
+                {
+                    "ecode": "0500060000020001",
+                    "intro": "De Toolhead Camera zit niet op zijn plaats; controleer de hardwareverbinding."
+                },
+                {
+                    "ecode": "0701900000010004",
+                    "intro": "De stroomsensor van AMS B uitlaatklep 1 is afwijkend. Neem contact op met de klantenservice om het AMS-moederbord te vervangen."
+                },
+                {
+                    "ecode": "0707910000010004",
+                    "intro": "De stroomsensor van AMS H uitlaatklep 2 is niet goed. Neem contact op met de klantenservice om het AMS-moederbord te vervangen."
                 },
                 {
                     "ecode": "0700610000020001",
@@ -537,6 +653,82 @@
                 {
                     "ecode": "0706630000020001",
                     "intro": "De AMS G-sleuf 4 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1802600000020001",
+                    "intro": "Slot 1 van de AMS-HT C is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1801630000020001",
+                    "intro": "Slot 4 van de AMS-HT B is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1806630000020001",
+                    "intro": "De AMS-HT G-sleuf 4 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "0704630000020001",
+                    "intro": "De AMS E-sleuf 4 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1805610000020001",
+                    "intro": "De AMS-HT F-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1802630000020001",
+                    "intro": "Slot 4 van de AMS-HT C is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1804620000020001",
+                    "intro": "De AMS-HT E-sleuf 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1805620000020001",
+                    "intro": "De AMS-HT F-sleuf 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1800620000020001",
+                    "intro": "De AMS-HT A Slot 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "0706610000020001",
+                    "intro": "De AMS G-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "0705620000020001",
+                    "intro": "De AMS F-sleuf 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1805600000020001",
+                    "intro": "De AMS-HT F-sleuf 1 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1803610000020001",
+                    "intro": "De AMS-HT D-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1801600000020001",
+                    "intro": "Slot 1 van de AMS-HT B is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1807620000020001",
+                    "intro": "De AMS-HT H-sleuf 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1807630000020001",
+                    "intro": "De AMS-HT H-sleuf 4 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1804600000020001",
+                    "intro": "De AMS-HT E-sleuf 1 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "0707610000020001",
+                    "intro": "De AMS H-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1806620000020001",
+                    "intro": "De AMS-HT G-sleuf 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
                 },
                 {
                     "ecode": "0300180000010005",
@@ -619,94 +811,6 @@
                     "intro": "De AMS-HT A Slot 4 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
                 },
                 {
-                    "ecode": "1802600000020001",
-                    "intro": "Slot 1 van de AMS-HT C is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1801630000020001",
-                    "intro": "Slot 4 van de AMS-HT B is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1806630000020001",
-                    "intro": "De AMS-HT G-sleuf 4 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "0704630000020001",
-                    "intro": "De AMS E-sleuf 4 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1805610000020001",
-                    "intro": "De AMS-HT F-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1802630000020001",
-                    "intro": "Slot 4 van de AMS-HT C is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1804620000020001",
-                    "intro": "De AMS-HT E-sleuf 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1805620000020001",
-                    "intro": "De AMS-HT F-sleuf 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1800620000020001",
-                    "intro": "De AMS-HT A Slot 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "0706610000020001",
-                    "intro": "De AMS G-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "0705620000020001",
-                    "intro": "De AMS F-sleuf 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1805600000020001",
-                    "intro": "De AMS-HT F-sleuf 1 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1803610000020001",
-                    "intro": "De AMS-HT D-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1801600000020001",
-                    "intro": "Slot 1 van de AMS-HT B is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1807620000020001",
-                    "intro": "De AMS-HT H-sleuf 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1807630000020001",
-                    "intro": "De AMS-HT H-sleuf 4 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1804600000020001",
-                    "intro": "De AMS-HT E-sleuf 1 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "0707610000020001",
-                    "intro": "De AMS H-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1806620000020001",
-                    "intro": "De AMS-HT G-sleuf 3 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "1801620000020001",
-                    "intro": "Slot 3 van de AMS-HT B is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "0705600000020001",
-                    "intro": "De AMS F-sleuf 1 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
-                    "ecode": "0704610000020001",
-                    "intro": "De AMS E-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
-                },
-                {
                     "ecode": "1807610000020001",
                     "intro": "De AMS-HT H-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
                 },
@@ -721,6 +825,18 @@
                 {
                     "ecode": "1800610000020001",
                     "intro": "De AMS-HT A-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "1801620000020001",
+                    "intro": "Slot 3 van de AMS-HT B is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "0705600000020001",
+                    "intro": "De AMS F-sleuf 1 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
+                },
+                {
+                    "ecode": "0704610000020001",
+                    "intro": "De AMS E-sleuf 2 is overbelast. Het filament kan in de knoop zitten of de filamentbuffer kan vastlopen."
                 },
                 {
                     "ecode": "050003000002000E",
@@ -741,22 +857,6 @@
                 {
                     "ecode": "0300950000010009",
                     "intro": "De omgevingstemperatuursensor onderaan de lasermodule is abnormaal; de sensor is kortgesloten."
-                },
-                {
-                    "ecode": "0500030000020055",
-                    "intro": "De gebruikersinformatie is verlopen, bind het apparaat opnieuw."
-                },
-                {
-                    "ecode": "030018000001000B",
-                    "intro": "Aanwezigheidsdetectie nozzle mislukt: Nozzle niet geïnstalleerd of onjuist geïnstalleerd."
-                },
-                {
-                    "ecode": "07FF450000020003",
-                    "intro": "De handgreep van de filamentsnijder is niet losgemaakt. Het handvat of het mes kan vastzitten of er kan een probleem zijn met de aansluiting van de filamentsensor."
-                },
-                {
-                    "ecode": "18FF450000020003",
-                    "intro": "De handgreep van de filamentsnijder is niet losgemaakt. Het handvat of het mes kan vastzitten of er kan een probleem zijn met de aansluiting van de filamentsensor."
                 },
                 {
                     "ecode": "0706230000020025",
@@ -825,10 +925,6 @@
                 {
                     "ecode": "1805230000020006",
                     "intro": "PTFE-slang losgekoppeld tijdens het laden van filament. Controleer of de PTFE-slang van de AMS-HT F naar de extruder correct is aangesloten."
-                },
-                {
-                    "ecode": "0300D20000010003",
-                    "intro": "De weerstand van de motor van de brandblusser is abnormaal; de motor kan defect zijn."
                 },
                 {
                     "ecode": "0701220000020015",
@@ -1651,14 +1747,6 @@
                     "intro": "PTFE-slang losgekoppeld tijdens het laden van filament. Controleer of de PTFE-slang van AMS D naar de extruder correct is aangesloten."
                 },
                 {
-                    "ecode": "0300D10000030001",
-                    "intro": "Geen brandblusseraansluiting gedetecteerd"
-                },
-                {
-                    "ecode": "0300D20000010002",
-                    "intro": "De motor van de brandblusser heeft kortsluiting. Deze kan zijn uitgevallen."
-                },
-                {
                     "ecode": "1802200000020006",
                     "intro": "PTFE-slang losgemaakt tijdens het voedingsproces. Controleer of de PTFE-slang is aangesloten van AMS-HT op de extruder."
                 },
@@ -2291,16 +2379,8 @@
                     "intro": "PTFE-slang losgekoppeld tijdens het laden van filament. Controleer of de PTFE-slang van AMS A naar de extruder correct is aangesloten."
                 },
                 {
-                    "ecode": "0300D10000030004",
-                    "intro": "De gasfles van het brandblusapparaat is niet geïnstalleerd"
-                },
-                {
                     "ecode": "07FFA00000020001",
                     "intro": "Het koude trekproces van het mondstuk is uitgetimed. Klik op \"Opnieuw proberen\" en trek het filament er dan handmatig uit."
-                },
-                {
-                    "ecode": "0300D20000010001",
-                    "intro": "De motor van de brandblusser heeft een open circuit. Er kan een losse verbinding zijn of de motor kan defect zijn."
                 },
                 {
                     "ecode": "0702230000020025",
@@ -2609,22 +2689,6 @@
                 {
                     "ecode": "0300930000010005",
                     "intro": "De kamertemperatuur is abnormaal. De kamertemperatuursensor kan kortsluiting hebben."
-                },
-                {
-                    "ecode": "0300980000010003",
-                    "intro": "De Hall-sensor (onder) van het linker raam geeft een storing. Controleer of de verbindingsdraad los zit."
-                },
-                {
-                    "ecode": "0300980000010002",
-                    "intro": "De Hall-sensor (boven) van het linker raam geeft een storing. Controleer of de verbindingsdraad los zit."
-                },
-                {
-                    "ecode": "0300990000010003",
-                    "intro": "De Hall-sensor (boven) van het rechterraam geeft een storing. Controleer of de verbindingsdraad los zit."
-                },
-                {
-                    "ecode": "0300990000010002",
-                    "intro": "De Hall-sensor (onder) van het rechterraam geeft een storing. Controleer of de verbindingsdraad los zit."
                 },
                 {
                     "ecode": "0300960000010003",
@@ -3104,7 +3168,7 @@
                 },
                 {
                     "ecode": "050001000001000A",
-                    "intro": "De BirdsEye-camera werkt niet goed. Probeer het apparaat opnieuw op te starten. Als het probleem zich blijft voordoen nadat je het probleem meerdere keren opnieuw hebt opgestart, controleer je de verbindingsstatus van de camera of neem je contact op met de klantenservice."
+                    "intro": ""
                 },
                 {
                     "ecode": "0500060000020003",
@@ -3388,11 +3452,23 @@
                 },
                 {
                     "ecode": "0C00010000010018",
-                    "intro": "De BirdsEye-camera werkt niet goed. Probeer het apparaat opnieuw op te starten. Als het probleem zich blijft voordoen nadat je het probleem meerdere keren opnieuw hebt opgestart, controleer je de verbindingsstatus van de camera of neem je contact op met de klantenservice."
+                    "intro": ""
                 },
                 {
                     "ecode": "0C00010000010001",
                     "intro": "De camera van de gereedschapskop is offline. Controleer de hardwareverbinding."
+                },
+                {
+                    "ecode": "0C00010000010003",
+                    "intro": "Synchronisatie tussen de gereedschapskop-camera en MC is abnormaal. Start uw printer opnieuw op."
+                },
+                {
+                    "ecode": "0C00010000010004",
+                    "intro": "De lens van de gereedschappskop van de camera lijkt vuil te zijn. Maak de lens schoon."
+                },
+                {
+                    "ecode": "0C00010000010005",
+                    "intro": "De cameraparameter van het gereedschappskop is abnormaal. Neem contact op met de klantenservice."
                 },
                 {
                     "ecode": "0300A40000010008",
@@ -3463,6 +3539,10 @@
                     "intro": "De firmware van AMS-HT C komt niet overeen met de printer. Upgrade het op de pagina \"Firmware\"."
                 },
                 {
+                    "ecode": "050005000001000E",
+                    "intro": "De firmware van de lasermodule komt niet overeen met de printer. Upgrade het op de pagina \"Firmware\"."
+                },
+                {
                     "ecode": "0505050000010010",
                     "intro": "De firmware van AMS F komt niet overeen met de printer. Upgrade het op de pagina \"Firmware\"."
                 },
@@ -3497,6 +3577,14 @@
                 {
                     "ecode": "0503050000010010",
                     "intro": "De firmware van AMS D komt niet overeen met de printer. Upgrade het op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0500050000010012",
+                    "intro": "De firmware van de snijmodule komt niet overeen met de printer. Upgrade het op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0500050000010011",
+                    "intro": "De firmware van de luchtpomp komt niet overeen met de printer. Upgrade het op de pagina \"Firmware\"."
                 },
                 {
                     "ecode": "0584050000010010",
@@ -7783,6 +7871,10 @@
                     "intro": "Kan de AMS-mappingtabel niet krijgen; selecteer \"Hervatten\" om het opnieuw te proberen."
                 },
                 {
+                    "ecode": "0300280000010001",
+                    "intro": "De gegevens van de krachtsensor van de snijmodule zijn afwijkend. De magneet op de gereedschapshouder kan eraf vallen of de krachtsensor kan beschadigd raken."
+                },
+                {
                     "ecode": "0300180000010007",
                     "intro": "De frequentie van de extrusiekrachtsensor is te hoog. De sensor is mogelijk beschadigd of het koellichaam van de nozzle bevindt zich mogelijk te dicht bij de sensor."
                 },
@@ -7791,8 +7883,8 @@
                     "intro": "Het signaal van de extrusiekrachtsensor is afwijkend. De sensor kan beschadigd zijn of de MC-TH-communicatie kan abnormaal zijn."
                 },
                 {
-                    "ecode": "030025000001000B",
-                    "intro": "Aanwezigheidsdetectie nozzle mislukt: Nozzle niet geïnstalleerd of onjuist geïnstalleerd."
+                    "ecode": "0300280000010004",
+                    "intro": "De krachtsensor van de snijmodule is defect. Mogelijk is de kabel van de krachtsensor losgekoppeld of is de krachtsensor beschadigd."
                 },
                 {
                     "ecode": "0C00040000010005",
@@ -7801,6 +7893,10 @@
                 {
                     "ecode": "0300180000010008",
                     "intro": "De nozzle raakt het verwarmingsbed abnormaal. Controleer of er filamentresten op de nozzle achterblijven of vreemde voorwerpen op de plaats waar de nozzle het bed raakt."
+                },
+                {
+                    "ecode": "0300280000010007",
+                    "intro": "Communicatiefout tussen de snijmodule en de gereedschapskopmodule. Controleer of de signaalkabel van de snijmodule los of gebroken is. Het kan ook te wijten zijn aan een kapotte spoel van de krachtsensor."
                 },
                 {
                     "ecode": "0300180000010001",
@@ -8039,6 +8135,10 @@
                     "intro": "Laserveiligheidsraam niet geïnstalleerd."
                 },
                 {
+                    "ecode": "0C00030000020017",
+                    "intro": "De focuskalibratie van de Z-as van het lasergraveren is mislukt. Controleer of het lasertestmateriaal (350 g karton) goed is geplaatst en of het oppervlak schoon en intact is."
+                },
+                {
                     "ecode": "1803800000010004",
                     "intro": "AMS-HT D De kachel 1 verwarmt abnormaal."
                 },
@@ -8061,10 +8161,6 @@
                 {
                     "ecode": "1801810000010004",
                     "intro": "AMS-HT B De kachel 2 verwarmt abnormaal."
-                },
-                {
-                    "ecode": "0C00030000020017",
-                    "intro": "De focuskalibratie van de Z-as van het lasergraveren is mislukt. Controleer of het lasertestmateriaal (350 g karton) goed is geplaatst en of het oppervlak schoon en intact is."
                 },
                 {
                     "ecode": "0300A40000010002",
@@ -9647,6 +9743,10 @@
                     "intro": "De externe spoel kan in de knoop raken of vastlopen."
                 },
                 {
+                    "ecode": "0300280000010008",
+                    "intro": "Z-as homing mislukt. Controleer of de beweging van de meshouder soepel is en zorg ervoor dat er zich geen vreemde voorwerpen op de contactpositie op het warmtebed bevinden."
+                },
+                {
                     "ecode": "0500030000020020",
                     "intro": "De capaciteit van een USB-stick is onvoldoende om afdrukbestanden in de cache op te slaan."
                 },
@@ -9771,6 +9871,30 @@
                     "intro": "Kan AMS-HT E Slot 3-filament niet extruderen; De extruder kan verstopt zijn of het filament kan te dun zijn, waardoor de extruder wegglijdt."
                 },
                 {
+                    "ecode": "180620000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT G-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070522000002000A",
+                    "intro": "Kan de filamentpositie van AMS F Slot 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180022000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT A-sleuf 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180722000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT H-sleuf 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180421000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT E Slot 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180422000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT E Slot 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
                     "ecode": "1803210000020009",
                     "intro": "Kan AMS-HT D Slot 2-filament niet extruderen; De extruder kan verstopt zijn of het filament kan te dun zijn, waardoor de extruder wegglijdt."
                 },
@@ -9879,8 +10003,240 @@
                     "intro": "Kan AMS-HT B Slot 4-filament niet extruderen; De extruder kan verstopt zijn of het filament kan te dun zijn, waardoor de extruder wegglijdt."
                 },
                 {
+                    "ecode": "070723000002000A",
+                    "intro": "Kan de filamentpositie van AMS H Slot 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180222000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT C-sleuf 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070223000002000A",
+                    "intro": "Kan de filamentpositie van AMS C Slot 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180522000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT F-sleuf 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070722000002000A",
+                    "intro": "Kan de filamentpositie van AMS H Slot 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070023000002000A",
+                    "intro": "Kan de filamentpositie van AMS A Slot 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180020000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT A-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180120000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT B-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180322000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT D Slot 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180321000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT D Slot 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180720000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT H-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070122000002000A",
+                    "intro": "Kan de filamentpositie van AMS B-sleuf 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070123000002000A",
+                    "intro": "Kan de filamentpositie van AMS B-sleuf 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070620000002000A",
+                    "intro": "Kan de filamentpositie van AMS G Slot 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070321000002000A",
+                    "intro": "Kan de filamentpositie van AMS D Slot 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070623000002000A",
+                    "intro": "Kan de filamentpositie van AMS G Slot 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180023000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT A-sleuf 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180521000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT F-sleuf 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180122000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT B-sleuf 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070221000002000A",
+                    "intro": "Kan de filamentpositie van AMS C Slot 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070323000002000A",
+                    "intro": "Kan de filamentpositie van AMS D-sleuf 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070422000002000A",
+                    "intro": "Kan de filamentpositie van AMS E-sleuf 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070420000002000A",
+                    "intro": "Kan de filamentpositie van AMS E-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070121000002000A",
+                    "intro": "Kan de filamentpositie van AMS B-sleuf 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070721000002000A",
+                    "intro": "Kan de filamentpositie van AMS H Slot 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070523000002000A",
+                    "intro": "Kan de filamentpositie van AMS F Slot 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180420000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT E Slot 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180123000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT B Slot 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070622000002000A",
+                    "intro": "Kan de filamentpositie van AMS G Slot 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180323000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT D Slot 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070322000002000A",
+                    "intro": "Kan de filamentpositie van AMS D-sleuf 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070220000002000A",
+                    "intro": "Kan de filamentpositie van AMS C Slot 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070320000002000A",
+                    "intro": "Kan de filamentpositie van AMS D-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180721000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT H-sleuf 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070521000002000A",
+                    "intro": "Kan de filamentpositie van AMS F Slot 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180520000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT F-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070120000002000A",
+                    "intro": "Kan de filamentpositie van AMS B-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180623000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT G Slot 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070720000002000A",
+                    "intro": "Kan de filamentpositie van AMS H-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180223000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT C-sleuf 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070520000002000A",
+                    "intro": "Kan de filamentpositie van AMS F-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180320000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT D Slot 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070421000002000A",
+                    "intro": "Kan de filamentpositie van AMS E-sleuf 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180220000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT C-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180621000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT G Slot 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180523000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT F-sleuf 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070621000002000A",
+                    "intro": "Kan de filamentpositie van AMS G Slot 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070020000002000A",
+                    "intro": "Kan de filamentpositie van AMS A-sleuf 1 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070222000002000A",
+                    "intro": "Kan de filamentpositie van AMS C Slot 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180021000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT A-sleuf 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070423000002000A",
+                    "intro": "Kan de filamentpositie van AMS E-sleuf 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070022000002000A",
+                    "intro": "Kan de filamentpositie van AMS A Slot 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
                     "ecode": "0C0003000002000E",
                     "intro": "De nozzle lijkt bedekt te zijn met vastgelopen of verstopt materiaal."
+                },
+                {
+                    "ecode": "180221000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT C-sleuf 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "070021000002000A",
+                    "intro": "Kan de filamentpositie van AMS A Slot 2 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180622000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT G Slot 3 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180423000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT E Slot 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180723000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT H-sleuf 4 niet aanpassen. Het filament of de buffer kan vastzitten."
+                },
+                {
+                    "ecode": "180121000002000A",
+                    "intro": "Kan de filamentpositie van AMS-HT B Slot 2 niet aanpassen. Het filament of de buffer kan vastzitten."
                 },
                 {
                     "ecode": "0703200000030001",
@@ -9905,18 +10261,6 @@
                 {
                     "ecode": "0704200000020005",
                     "intro": "AMS E Slot 1 filament is op en het spoelen van het oude filament ging abnormaal; Controleer of het filament vastzit in de gereedschapskop."
-                },
-                {
-                    "ecode": "1807230000020002",
-                    "intro": "AMS-HT H Slot 4 is leeg; Plaats a.u.b. een nieuw filament."
-                },
-                {
-                    "ecode": "1807210000020002",
-                    "intro": "AMS-HT H Slot2 is leeg; Plaats a.u.b. een nieuw filament."
-                },
-                {
-                    "ecode": "1802560000030001",
-                    "intro": "AMS-HT C ondergaat droge koeling; Wacht tot het is afgekoeld voordat u het gebruikt."
                 },
                 {
                     "ecode": "1807220000020008",
@@ -10131,6 +10475,18 @@
                     "intro": "AMS-HT G Slot 1 filament kan gebroken zijn in de gereedschapskop."
                 },
                 {
+                    "ecode": "1807230000020002",
+                    "intro": "AMS-HT H Slot 4 is leeg; Plaats a.u.b. een nieuw filament."
+                },
+                {
+                    "ecode": "1807210000020002",
+                    "intro": "AMS-HT H Slot2 is leeg; Plaats a.u.b. een nieuw filament."
+                },
+                {
+                    "ecode": "1802560000030001",
+                    "intro": "AMS-HT C ondergaat droge koeling; Wacht tot het is afgekoeld voordat u het gebruikt."
+                },
+                {
                     "ecode": "0700120000020002",
                     "intro": "De AMS A slot 3 motor is overbelast. Het filament kan in de knoop raken of vastzitten."
                 },
@@ -10219,10 +10575,6 @@
                     "intro": "Het filament van AMS-HT C Slot3 kan gebroken zijn in AMS-HT."
                 },
                 {
-                    "ecode": "1805550000010003",
-                    "intro": "AMS-HT F werd offline gedetecteerd tijdens het AMS-initialisatieproces."
-                },
-                {
                     "ecode": "1800220000030001",
                     "intro": "AMS-HT Het filament van een Slot 3 is op. Even geduld a.u.b. terwijl het oude filament wordt gezuiverd."
                 },
@@ -10241,10 +10593,6 @@
                 {
                     "ecode": "0707560000030001",
                     "intro": "AMS H ondergaat droge afkoeling; Wacht tot het is afgekoeld voordat u het gebruikt."
-                },
-                {
-                    "ecode": "1806550000010003",
-                    "intro": "AMS-HT G werd offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
                     "ecode": "1801230000030001",
@@ -10361,10 +10709,6 @@
                 {
                     "ecode": "1804210000020003",
                     "intro": "Het filament van AMS-HT E Slot2 kan gebroken zijn in AMS-HT."
-                },
-                {
-                    "ecode": "1804550000010003",
-                    "intro": "AMS-HT E werd offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
                     "ecode": "1806210000020002",
@@ -10559,10 +10903,6 @@
                     "intro": "AMS-HT B Slot 3 is leeg; Plaats a.u.b. een nieuw filament."
                 },
                 {
-                    "ecode": "1802550000010003",
-                    "intro": "AMS-HT C werd offline gedetecteerd tijdens het AMS-initialisatieproces."
-                },
-                {
                     "ecode": "0704230000020003",
                     "intro": "Het filament van AMS E Slot4 is mogelijk gebroken in AMS."
                 },
@@ -10693,10 +11033,6 @@
                 {
                     "ecode": "1806350000010001",
                     "intro": "De temperatuur- en vochtigheidssensor heeft een fout. De chip is mogelijk defect."
-                },
-                {
-                    "ecode": "1806210000030001",
-                    "intro": "Het filament van AMS-HT G Slot 2 is op. Even geduld a.u.b. terwijl het oude filament wordt gezuiverd."
                 },
                 {
                     "ecode": "1801210000030002",
@@ -10887,6 +11223,10 @@
                     "intro": "De AMS-HT E slot 3 motor is weggegleden. Het extrusiewiel werkt mogelijk niet goed of het filament is mogelijk te dun."
                 },
                 {
+                    "ecode": "1806210000030001",
+                    "intro": "Het filament van AMS-HT G Slot 2 is op. Even geduld a.u.b. terwijl het oude filament wordt gezuiverd."
+                },
+                {
                     "ecode": "0700110000010001",
                     "intro": "De AMS A slot 2 motor is weggegleden. Het extrusiewiel werkt mogelijk niet goed of het filament is mogelijk te dun."
                 },
@@ -11045,10 +11385,6 @@
                 {
                     "ecode": "0706220000020005",
                     "intro": "Het AMS G Slot 3-filament is op en het doorspoelen van het oude filament is abnormaal verlopen; Controleer of het filament vastzit in de gereedschapskop."
-                },
-                {
-                    "ecode": "1800550000010003",
-                    "intro": "AMS-HT A werd offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
                     "ecode": "1806110000010001",
@@ -12223,10 +12559,6 @@
                     "intro": "Het AMS H Slot4-filament is op en het spoelen van het oude filament ging abnormaal; Controleer of het filament vastzit in de gereedschapskop."
                 },
                 {
-                    "ecode": "1801550000010003",
-                    "intro": "AMS-HT B werd offline gedetecteerd tijdens het AMS-initialisatieproces."
-                },
-                {
                     "ecode": "0707200000020005",
                     "intro": "Het AMS H Slot 1-filament is op en het doorspoelen van het oude filament is abnormaal verlopen; Controleer of het filament vastzit in de gereedschapskop."
                 },
@@ -12283,10 +12615,6 @@
                     "intro": "Fout in versleutelingspaan"
                 },
                 {
-                    "ecode": "1803110000010001",
-                    "intro": "De AMS-HT D slot2 motor is weggegleden. Het extrusiewiel werkt mogelijk niet goed of het filament is mogelijk te dun."
-                },
-                {
                     "ecode": "1807120000020002",
                     "intro": "De AMS-HT H slot 3 motor is overbelast. Het filament kan in de knoop raken of vastzitten."
                 },
@@ -12321,10 +12649,6 @@
                 {
                     "ecode": "1801210000020008",
                     "intro": "AMS-HT B Slot 2 feed-in Hall-sensor is losgekoppeld, wat te wijten kan zijn aan een slecht contact met de connector."
-                },
-                {
-                    "ecode": "1807550000010003",
-                    "intro": "AMS H is offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
                     "ecode": "1802210000020001",
@@ -12433,6 +12757,10 @@
                 {
                     "ecode": "1805110000010001",
                     "intro": "De AMS-HT F slot 2 motor is weggegleden. Het extrusiewiel werkt mogelijk niet goed of het filament is mogelijk te dun."
+                },
+                {
+                    "ecode": "1803110000010001",
+                    "intro": "De AMS-HT D slot2 motor is weggegleden. Het extrusiewiel werkt mogelijk niet goed of het filament is mogelijk te dun."
                 },
                 {
                     "ecode": "0700200000020005",
@@ -13111,10 +13439,6 @@
                     "intro": "De AMS-HT H slot 4 motor torque control is defect. De huidige sensor is mogelijk defect."
                 },
                 {
-                    "ecode": "1803550000010003",
-                    "intro": "AMS-HT D werd offline gedetecteerd tijdens het AMS-initialisatieproces."
-                },
-                {
                     "ecode": "0701220000020008",
                     "intro": "AMS B Slot 3 feed-in Hall-sensor is losgekoppeld, wat te wijten kan zijn aan een slecht contact met de connector."
                 },
@@ -13251,10 +13575,6 @@
                     "intro": "AMS-HT H Kan niet beginnen met drogen; Trek het filament uit de filamentnaaf en probeer het opnieuw."
                 },
                 {
-                    "ecode": "1804550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
                     "ecode": "1806960000010003",
                     "intro": "AMS-HT G Kan niet beginnen met drogen; Trek het filament uit de filamentnaaf en probeer het opnieuw."
                 },
@@ -13267,24 +13587,12 @@
                     "intro": "AMS-HT D De omgevingstemperatuur is te laag, wat invloed heeft op het droogvermogen."
                 },
                 {
-                    "ecode": "1807550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
                     "ecode": "1803960000010003",
                     "intro": "AMS-HT D Kan niet beginnen met drogen; Trek het filament uit de filamentnaaf en probeer het opnieuw."
                 },
                 {
                     "ecode": "1804960000020002",
                     "intro": "AMS-HT E De omgevingstemperatuur is te laag, wat invloed heeft op het droogvermogen."
-                },
-                {
-                    "ecode": "1806550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
-                    "ecode": "0706550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
                 },
                 {
                     "ecode": "1800960000020002",
@@ -13303,28 +13611,12 @@
                     "intro": "De omgevingstemperatuur is te laag, wat invloed heeft op het droogvermogen."
                 },
                 {
-                    "ecode": "1800550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
-                    "ecode": "1802550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
                     "ecode": "1805960000020002",
                     "intro": "AMS-HT F De omgevingstemperatuur is te laag, wat invloed heeft op het droogvermogen."
                 },
                 {
-                    "ecode": "1803550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
                     "ecode": "1805960000010003",
                     "intro": "AMS-HT F Kan niet beginnen met drogen; Trek het filament uit de filamentnaaf en probeer het opnieuw."
-                },
-                {
-                    "ecode": "0705550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
                 },
                 {
                     "ecode": "0707960000010003",
@@ -13347,40 +13639,20 @@
                     "intro": "AMS-HT B Kan niet beginnen met drogen; Trek het filament uit de filamentnaaf en probeer het opnieuw."
                 },
                 {
-                    "ecode": "0704550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
                     "ecode": "0705960000020002",
                     "intro": "AMS F De omgevingstemperatuur is te laag, wat invloed heeft op het droogvermogen."
-                },
-                {
-                    "ecode": "0700550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
                 },
                 {
                     "ecode": "1802960000010003",
                     "intro": "AMS-HT C Kan niet beginnen met drogen; Trek het filament uit de filamentnaaf en probeer het opnieuw."
                 },
                 {
-                    "ecode": "0707550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
                     "ecode": "1802960000020002",
                     "intro": "De omgevingstemperatuur is te laag, wat invloed heeft op het droogvermogen."
                 },
                 {
-                    "ecode": "1801550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
                     "ecode": "0706960000010003",
                     "intro": "AMS G Kan niet beginnen met drogen; Trek het filament uit de filamentnaaf en probeer het opnieuw."
-                },
-                {
-                    "ecode": "1805550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
                 },
                 {
                     "ecode": "0706960000020002",
@@ -13427,20 +13699,12 @@
                     "intro": "Fout in serienummer van de snijmodule"
                 },
                 {
-                    "ecode": "0300990000010001",
-                    "intro": "Het rechter zijraam lijkt open te staan; De taak is gepauzeerd."
-                },
-                {
                     "ecode": "0701960000010003",
                     "intro": "AMS B Kan niet beginnen met drogen; Trek het filament uit de filamentnaaf en probeer het opnieuw."
                 },
                 {
                     "ecode": "0700960000010003",
                     "intro": "AMS A Kan niet beginnen met drogen; Trek het filament uit de filamentnaaf en probeer het opnieuw."
-                },
-                {
-                    "ecode": "0300290000010001",
-                    "intro": "Het patroon van de encoder kan niet worden herkend; Mogelijke redenen zijn: patroonvervorming, overbelichting van licht, verkeerde plaatsing van de plaat..."
                 },
                 {
                     "ecode": "0300180000010006",
@@ -13451,24 +13715,12 @@
                     "intro": "Niet genoeg ruimte op de USB-stick; Maak alstublieft wat ruimte vrij."
                 },
                 {
-                    "ecode": "0703550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
                     "ecode": "0707960000020002",
                     "intro": "AMS H De omgevingstemperatuur is te laag, wat invloed heeft op het droogvermogen."
                 },
                 {
                     "ecode": "1804960000010003",
                     "intro": "AMS-HT E Kan niet beginnen met drogen; Trek het filament uit de filamentnaaf en probeer het opnieuw."
-                },
-                {
-                    "ecode": "0702550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
-                },
-                {
-                    "ecode": "0701550000010002",
-                    "intro": "De PTFE-slang is verkeerd aangesloten tussen de gereedschapskop en de buffer. Sluit de bovenkant van de buffer aan op de rechter extruder en de onderkant op de linker extruder."
                 },
                 {
                     "ecode": "0300180000010003",
@@ -13867,10 +14119,6 @@
                     "intro": "De voedingsspanning komt niet overeen met de machine; Het heatbed is uitgeschakeld."
                 },
                 {
-                    "ecode": "0300980000010001",
-                    "intro": "Het linker zijvenster lijkt open te staan, de taak is gepauzeerd."
-                },
-                {
                     "ecode": "0300330000010001",
                     "intro": "De snelheid van de kameruitlaatventilator is te laag of gestopt. Het kan zijn dat het vastzit of dat de connector niet goed is aangesloten."
                 },
@@ -14043,10 +14291,6 @@
                     "intro": "De RFID-tag op AMS F Slot4 is beschadigd of de inhoud kan niet worden geïdentificeerd."
                 },
                 {
-                    "ecode": "1807940000010001",
-                    "intro": "AMS-HT H De temperatuursensor van verwarming 1 werkt niet goed, wat te wijten kan zijn aan een slecht contact met de connector."
-                },
-                {
                     "ecode": "0706010000020008",
                     "intro": "AMS G De fasewikkeling van de hulpmotor heeft een open circuit. De hulpmotor is mogelijk defect."
                 },
@@ -14211,10 +14455,6 @@
                     "intro": "Fout coderingschip"
                 },
                 {
-                    "ecode": "0C00020000010001",
-                    "intro": "De horizontale laser brandt niet. Controleer of het gedekt is of dat er een probleem is met de hardwareverbinding."
-                },
-                {
                     "ecode": "0C0003000002000F",
                     "intro": "Onderdelen die zijn overgeslagen vóór de inspectie van de eerste laag; De inspectie wordt niet ondersteund voor de huidige afdruk."
                 },
@@ -14313,6 +14553,10 @@
                 {
                     "ecode": "1804330000020002",
                     "intro": "De RFID-tag op AMS-HT E Slot4 is beschadigd of de inhoud kan niet worden geïdentificeerd."
+                },
+                {
+                    "ecode": "1807940000010001",
+                    "intro": "AMS-HT H De temperatuursensor van verwarming 1 werkt niet goed, wat te wijten kan zijn aan een slecht contact met de connector."
                 },
                 {
                     "ecode": "030001000001000A",
@@ -14667,10 +14911,6 @@
                     "intro": "AMS C De uitlaatklep 2 is niet aangesloten, wat te wijten kan zijn aan een slecht contact met de connector."
                 },
                 {
-                    "ecode": "0300980000030001",
-                    "intro": "Het linker zijraam lijkt open te staan."
-                },
-                {
                     "ecode": "0701810000010003",
                     "intro": "AMS B De kachel 2 is kortgesloten, wat te wijten kan zijn aan kortsluiting in de bedrading of schade aan de verwarming."
                 },
@@ -14811,16 +15051,8 @@
                     "intro": "Het AMS-HT A RFID 2-bord heeft een fout."
                 },
                 {
-                    "ecode": "1800020000020002",
-                    "intro": "AMS-HT A De odometer heeft geen signaal. De connector van de odometer heeft mogelijk een slecht contact."
-                },
-                {
                     "ecode": "1803010000020010",
                     "intro": "AMS-HT D De weerstand van de hulpmotor is abnormaal. De hulpmotor is mogelijk defect."
-                },
-                {
-                    "ecode": "0700550000010003",
-                    "intro": "AMS A is offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
                     "ecode": "1800930000010001",
@@ -14877,10 +15109,6 @@
                 {
                     "ecode": "1800010000010001",
                     "intro": "De AMS-HT A hulpmotor is weggegleden. Het extrusiewiel kan versleten zijn of het filament kan te dun zijn."
-                },
-                {
-                    "ecode": "0702550000010003",
-                    "intro": "AMS C is offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
                     "ecode": "0706010000010001",
@@ -15001,10 +15229,6 @@
                 {
                     "ecode": "1804120000020004",
                     "intro": "AMS-HT E De geborstelde motor 3 heeft geen signaal, wat te wijten kan zijn aan een slecht contact in de motorconnector of een motorstoring."
-                },
-                {
-                    "ecode": "0703550000010003",
-                    "intro": "AMS D is offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
                     "ecode": "1807010000020010",
@@ -15587,20 +15811,12 @@
                     "intro": "AMS E De motor met borstel 2 heeft geen signaal, wat te wijten kan zijn aan een slecht contact in de motorconnector of een motorstoring."
                 },
                 {
-                    "ecode": "0701550000010003",
-                    "intro": "AMS B is offline gedetecteerd tijdens het AMS-initialisatieproces."
-                },
-                {
                     "ecode": "0707910000020001",
                     "intro": "AMS H De werking van de uitlaatklep 2 is abnormaal, wat te wijten kan zijn aan een te hoge weerstand."
                 },
                 {
                     "ecode": "1807010000010011",
                     "intro": "AMS-HT H De parameterfout van de kalibratie van de hulpmotor. Trek het filament uit de filamentnaaf en start de AMS opnieuw op."
-                },
-                {
-                    "ecode": "0704550000010003",
-                    "intro": "AMS E is offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
                     "ecode": "1805900000020001",
@@ -15915,10 +16131,6 @@
                     "intro": "De koppelregeling van de AMS-HT B-hulpmotor werkt niet goed. De stroomsensor is mogelijk defect."
                 },
                 {
-                    "ecode": "0706550000010003",
-                    "intro": "AMS G is offline gedetecteerd tijdens het AMS-initialisatieproces."
-                },
-                {
                     "ecode": "1807930000020002",
                     "intro": "AMS-HT H De snelheid van de koelventilator van verwarming 2 is te laag, wat te wijten kan zijn aan een te hoge ventilatorweerstand."
                 },
@@ -15949,10 +16161,6 @@
                 {
                     "ecode": "0707900000020001",
                     "intro": "AMS H De werking van de uitlaatklep 1 is abnormaal, wat te wijten kan zijn aan een te hoge weerstand."
-                },
-                {
-                    "ecode": "0707550000010003",
-                    "intro": "AMS H is offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
                     "ecode": "1802500000020001",
@@ -16001,10 +16209,6 @@
                 {
                     "ecode": "0706010000010011",
                     "intro": "AMS G Fout in de kalibratieparameter van de hulpmotor. Trek het filament uit de filamentnaaf en start de AMS opnieuw op."
-                },
-                {
-                    "ecode": "0705550000010003",
-                    "intro": "AMS F is offline gedetecteerd tijdens het AMS-initialisatieproces."
                 },
                 {
                     "ecode": "1805010000020011",
@@ -16119,6 +16323,14 @@
                     "intro": "Abnormaal Y-as homing: controleer of de gereedschapskop vastzit of dat de Y-wagen te veel weerstand heeft."
                 },
                 {
+                    "ecode": "0500030000010007",
+                    "intro": "De uitbreidingsmodule van de gereedschapskop werkt niet goed. Schakel het apparaat uit, controleer de verbinding en start het apparaat opnieuw op."
+                },
+                {
+                    "ecode": "0500030000010026",
+                    "intro": "De uitbreidingsmodule van de gereedschapskop werkt niet goed. Schakel het apparaat uit, controleer de verbinding en start het apparaat opnieuw op."
+                },
+                {
                     "ecode": "0300200000010001",
                     "intro": "Abnormale homing van de X-as: controleer of de gereedschapskop vastzit of dat de weerstand op de lineaire rail op de X-as te hoog is."
                 },
@@ -16129,10 +16341,6 @@
                 {
                     "ecode": "0500040000020039",
                     "intro": "Sluit a.u.b. de moduleconnector aan"
-                },
-                {
-                    "ecode": "0300990000030001",
-                    "intro": "Er wordt gedetecteerd dat het rechter zijraam open is."
                 },
                 {
                     "ecode": "0701010000010001",
@@ -17951,10 +18159,6 @@
                     "intro": "De temperatuur van kamerverwarming 1 is abnormaal. De sensor heeft mogelijk een kortsluiting."
                 },
                 {
-                    "ecode": "0300910000010008",
-                    "intro": "Kamerverwarming 1 kon niet naar de doeltemperatuur stijgen."
-                },
-                {
                     "ecode": "030091000001000A",
                     "intro": "De temperatuur van kamerverwarmer 1 is abnormaal. De AC-kaart is mogelijk kapot."
                 },
@@ -17977,10 +18181,6 @@
                 {
                     "ecode": "0300920000010007",
                     "intro": "De temperatuur van kamerverwarming 2 is abnormaal. De sensor heeft mogelijk een kortsluiting."
-                },
-                {
-                    "ecode": "0300920000010008",
-                    "intro": "Kamerverwarming 2 kon niet naar de doeltemperatuur stijgen."
                 },
                 {
                     "ecode": "030092000001000A",
@@ -18177,19 +18377,147 @@
             ]
         },
         "device_error": {
-            "ver": 202506120009,
+            "ver": 202508192303,
             "nl": [
                 {
-                    "ecode": "0502400C",
-                    "intro": ""
+                    "ecode": "0502C014",
+                    "intro": "De AMS Remaining Filament Estimation is standaard ingeschakeld en kan niet worden uitgeschakeld."
                 },
                 {
-                    "ecode": "05024009",
-                    "intro": ""
+                    "ecode": "050040A1",
+                    "intro": "Niet-gecertificeerd brandblusapparaat gedetecteerd; het apparaat kan niet verder werken.  Sluit de kabel van de module opnieuw aan of start de printer opnieuw op."
                 },
                 {
-                    "ecode": "0502400B",
-                    "intro": ""
+                    "ecode": "050040A0",
+                    "intro": "Niet-gecertificeerde Laser Vierde As gedetecteerd; het apparaat kan niet verder werken. Sluit de kabel van de module opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Plaats a.u.b. een StrongGrip snijmat op de snijbeschermingsbasis."
+                },
+                {
+                    "ecode": "0500409F",
+                    "intro": "Niet-gecertificeerde luchtpomp gedetecteerd; Het apparaat kan niet verder werken.  Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05004097",
+                    "intro": "Niet-gecertificeerde lasermodule gedetecteerd; Het apparaat kan niet verder werken. Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05864096",
+                    "intro": "Niet-gecertificeerde AMS-HT G gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05024098",
+                    "intro": "Niet-gecertificeerde AMS C gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05014098",
+                    "intro": "Niet-gecertificeerde AMS B gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05814096",
+                    "intro": "Niet-gecertificeerde AMS-HT B gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05844096",
+                    "intro": "Niet-gecertificeerde AMS-HT F gedetecteerd, het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05824096",
+                    "intro": "Niet-gecertificeerde AMS-HT C gedetecteerd, het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05034098",
+                    "intro": "Niet-gecertificeerde AMS D gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05854096",
+                    "intro": "Niet-gecertificeerde AMS-HT E gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05804096",
+                    "intro": "Niet-gecertificeerde AMS-HT A gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05834096",
+                    "intro": "Niet-gecertificeerde AMS-HT D gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0500409E",
+                    "intro": "Niet-gecertificeerde snijmodule gedetecteerd; Het apparaat kan niet verder werken. Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05874096",
+                    "intro": "Niet-gecertificeerde AMS-HT H gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05004098",
+                    "intro": "Niet-gecertificeerde AMS A gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05008062",
+                    "intro": "De printplaatmarkering is niet gedetecteerd. Controleer of de printplaat correct op het verhittingsbed is geplaatst met alle vier de hoeken uitgelijnd en de markering zichtbaar is."
+                },
+                {
+                    "ecode": "0502C012",
+                    "intro": "De kalibratietaak kan niet worden gepauzeerd."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "De installatie van de BirdsEye-camera is mislukt. Maak het warmtebed leeg, verwijder alle voorwerpen en de mat en zorg ervoor dat de heatbedmarkeringen zichtbaar zijn. Maak ondertussen de BirdsEye-camera en de Toolhead-camera schoon en verwijder alle obstakels die de camera's kunnen blokkeren."
+                },
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Steek de filament erin tot hij niet verder kan. Er kan lichte rookontwikkeling zijn tijdens het doorspoelen, dus sluit de voorklep en bovenklep na het plaatsen."
+                },
+                {
+                    "ecode": "03008081",
+                    "intro": "De gasfles van de brandblusser zit niet goed."
+                },
+                {
+                    "ecode": "05024013",
+                    "intro": "Dit apparaat is niet compatibel met de 40W lasermodule. Vervang deze door een 10W lasermodule of verwijder deze."
+                },
+                {
+                    "ecode": "0300C070",
+                    "intro": "De brandblusser is gevonden en kan worden gebruikt zodra de lasermodule is aangesloten."
+                },
+                {
+                    "ecode": "05008092",
+                    "intro": "Het opstarten van de toolheadcamera is mislukt. Je kunt gewoon doorgaan met printen, maar sommige AI-functies werken niet meer. Als je dit probleem na het opnieuw opstarten nog steeds hebt, neem dan even contact op met de klantenservice."
+                },
+                {
+                    "ecode": "05024002",
+                    "intro": "Ga naar \"Instellingen > Kalibratie\" om de Motion Accuracy Enhancement-kalibratie uit te voeren voordat u de Motion Accuracy Enhancement-modus inschakelt."
+                },
+                {
+                    "ecode": "05008041",
+                    "intro": "Het filament in de hotend is te koud. Extrusie kan de extruder beschadigen. Wordt het filament nog steeds in- of uitgevoerd?"
+                },
+                {
+                    "ecode": "0300404B",
+                    "intro": "Taak gestopt omdat de voordeur of bovenklep open is."
+                },
+                {
+                    "ecode": "0502C011",
+                    "intro": "Nu in 2D-productiemodus. Ga gewoon door met de printer."
+                },
+                {
+                    "ecode": "0300807E",
+                    "intro": "Brandblusser niet gevonden, dus de automatische blusfunctie werkt niet."
+                },
+                {
+                    "ecode": "0300807D",
+                    "intro": "Brandblusser niet gevonden, dus de automatische blusfunctie werkt niet."
+                },
+                {
+                    "ecode": "05008091",
+                    "intro": "De offsetkalibratie van de snijmodule is mislukt, waardoor de sneden misschien niet goed uitkomen. Zorg ervoor dat het witte printerpapier van 80 g (letterformaat) goed ligt en check of het mesje nog scherp is."
+                },
+                {
+                    "ecode": "0500808D",
+                    "intro": "De offsetkalibratie van de snijmodule is mislukt, wat kan leiden tot onnauwkeurige sneden. Zorg ervoor dat het snijmateriaal correct is gepositioneerd en controleer of de punt van het snijblad versleten is."
                 },
                 {
                     "ecode": "05024008",
@@ -18208,24 +18536,152 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0502400C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502400B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300807F",
+                    "intro": "Brandblusser werkt niet goed."
+                },
+                {
+                    "ecode": "03008082",
+                    "intro": "De gascilinder van de brandblusser is leeg."
+                },
+                {
+                    "ecode": "03008080",
+                    "intro": "Reset van brandblussermotor mislukt."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "Het filament dat in de slicer is ingesteld, is op. Het printen is even gestopt. Ga naar de printer om het materiaal te vervangen en ga verder met printen."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "Het filament dat in de slicer is ingesteld, is op. Het printen is even gestopt. Ga naar de printer om het materiaal te vervangen en ga verder met printen."
+                },
+                {
+                    "ecode": "0300C056",
+                    "intro": "Er is een kleine brand in de kamer ontdekt en het automatische brandblussysteem is uitgeschakeld."
+                },
+                {
+                    "ecode": "05004030",
+                    "intro": "Het apparaat is momenteel aan het upgraden. Probeer het opnieuw als het niet actief is."
+                },
+                {
+                    "ecode": "0300C012",
+                    "intro": "Verwarm de nozzle tot boven de 170°C."
+                },
+                {
+                    "ecode": "05004010",
+                    "intro": "AMS is aan het drogen en kan momenteel niet worden geüpgraded. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "05004011",
+                    "intro": "De printer is bezig met het laden of lossen van filament en kan op dit moment niet worden geüpgraded. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "05004012",
+                    "intro": "Het apparaat is bezig met afdrukken en kan momenteel niet worden geüpgraded. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "0500400F",
+                    "intro": "AMS wordt geïnitialiseerd en kan momenteel niet worden geüpgraded. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "05004013",
+                    "intro": "AMS is in bedrijf en kan momenteel niet worden geüpgraded. Probeer het opnieuw als het niet actief is."
+                },
+                {
+                    "ecode": "07008023",
+                    "intro": "Koeling AMS A is mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "07028023",
+                    "intro": "Koeling AMS C is mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "07038023",
+                    "intro": "Koeling AMS D mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "07018023",
+                    "intro": "Koeling AMS B is mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "07058023",
+                    "intro": "Koeling AMS F mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "07048023",
+                    "intro": "Koeling AMS E is mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "18018023",
+                    "intro": "Koeling AMS-HT B is mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "07068023",
+                    "intro": "Koeling AMS G is mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "07078023",
+                    "intro": "Koeling AMS H mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "18048023",
+                    "intro": "Koeling AMS-HT E mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "18068023",
+                    "intro": "Koeling AMS-HT G is mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "18038023",
+                    "intro": "Koeling AMS-HT D mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "18058023",
+                    "intro": "Koeling AMS-HT F mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "18008023",
+                    "intro": "AMS-HT A koeling mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "18078023",
+                    "intro": "Koeling AMS-HT H mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "18028023",
+                    "intro": "Koeling AMS-HT C is mislukt. De omgevingstemperatuur is mogelijk te hoog. Gebruik het apparaat in een geschikte omgeving."
+                },
+                {
+                    "ecode": "03008022",
+                    "intro": "Het is mogelijk dat het verwarmingsbed tijdens de neerwaartse beweging wordt geblokkeerd. Verwijder voorwerpen onder het verwarmingsbed en controleer op weerstand of vastlopen tijdens de beweging."
+                },
+                {
                     "ecode": "05004042",
-                    "intro": "De AMS wordt momenteel gebruikt voor het printen en kan niet beginnen met drogen."
+                    "intro": "Vanwege stroombeperkingen zal het starten van het AMS drogen de huidige bewerkingen zoals het verwarmen van de nozzle en het draaien van de ventilator onderbreken. Wil je doorgaan met drogen?"
                 },
                 {
                     "ecode": "05004040",
-                    "intro": "Vanwege stroombeperkingen is het AMS niet toegestaan om de stroom van het apparaat te gebruiken voor het drogen tijdens het printen. Moet het drogen worden gestopt?"
+                    "intro": "De printer heeft zijn stroomlimiet bereikt. Sluit een speciale voedingsadapter aan op deze AMS om te kunnen drogen."
                 },
                 {
                     "ecode": "05004041",
-                    "intro": "Vanwege stroombeperkingen mag slechts één AMS de stroom van het apparaat gebruiken voor het drogen tijdens het printen. Moet het drogen worden gestopt?"
+                    "intro": "Het AMS-drogen kan niet worden gestart tijdens het printen."
                 },
                 {
                     "ecode": "0500806B",
                     "intro": "De snelspanhendel is niet vergrendeld. Druk de externe gereedschapskopmodule naar beneden om te controleren of deze goed vastzit en druk vervolgens de waterpas naar beneden om deze te vergrendelen."
-                },
-                {
-                    "ecode": "0500808D",
-                    "intro": "De kalibratie van de snijmodule is mislukt, wat kan leiden tot onnauwkeurige sneden. Zorg ervoor dat het witte printerpapier van 80 g goed is geplaatst en controleer of de punt van het snijmes versleten is."
                 },
                 {
                     "ecode": "0502C010",
@@ -18238,10 +18694,6 @@
                 {
                     "ecode": "07FFC011",
                     "intro": "Houd de beugel van het aangedreven wiel vast, trek het filament langzaam uit de extruder en druk vervolgens op 'Continue'."
-                },
-                {
-                    "ecode": "03008022",
-                    "intro": "Er wordt een obstakel gedetecteerd aan de onderkant van het verwarmingsbed."
                 },
                 {
                     "ecode": "0502C00F",
@@ -18560,10 +19012,6 @@
                     "intro": "De firmware van AMS B komt niet overeen met de printer; het apparaat kan niet verder werken. Werk de firmware bij op de pagina \"Firmware\"."
                 },
                 {
-                    "ecode": "0500409F",
-                    "intro": "Niet-gecertificeerde luchtpomp gedetecteerd; Het apparaat kan niet verder werken.  Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
                     "ecode": "0500409B",
                     "intro": "De firmware van de lasermodule komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
                 },
@@ -18572,28 +19020,12 @@
                     "intro": "De firmware van AMS-HT H komt niet overeen met de printer, het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
                 },
                 {
-                    "ecode": "05004097",
-                    "intro": "Niet-gecertificeerde lasermodule gedetecteerd; Het apparaat kan niet verder werken. Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
                     "ecode": "0503409D",
                     "intro": "De firmware van AMS D komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
                 },
                 {
-                    "ecode": "05864096",
-                    "intro": "Niet-gecertificeerde AMS-HT G gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05024098",
-                    "intro": "Niet-gecertificeerde AMS C gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
                     "ecode": "0581409C",
                     "intro": "De firmware van AMS-HT B komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05014098",
-                    "intro": "Niet-gecertificeerde AMS B gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
                 },
                 {
                     "ecode": "0585409C",
@@ -18604,48 +19036,12 @@
                     "intro": "De firmware van AMS C komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
                 },
                 {
-                    "ecode": "05814096",
-                    "intro": "Niet-gecertificeerde AMS-HT B gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05844096",
-                    "intro": "Niet-gecertificeerde AMS-HT F gedetecteerd, het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05824096",
-                    "intro": "Niet-gecertificeerde AMS-HT C gedetecteerd, het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05854096",
-                    "intro": "Niet-gecertificeerde AMS-HT E gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05804096",
-                    "intro": "Niet-gecertificeerde AMS-HT A gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05834096",
-                    "intro": "Niet-gecertificeerde AMS-HT D gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0500409E",
-                    "intro": "Niet-gecertificeerde snijmodule gedetecteerd; Het apparaat kan niet verder werken. Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
                     "ecode": "0500409D",
                     "intro": "De firmware van AMS A komt niet overeen met de printer, het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
                 },
                 {
-                    "ecode": "05874096",
-                    "intro": "Niet-gecertificeerde AMS-HT H gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
                     "ecode": "0500409A",
                     "intro": "De firmware van de luchtpomp komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05004098",
-                    "intro": "Niet-gecertificeerde AMS A gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
                 },
                 {
                     "ecode": "0586409C",
@@ -18654,10 +19050,6 @@
                 {
                     "ecode": "03004050",
                     "intro": "Time-out voor kalibratie van de LiveView-camera; Start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05034098",
-                    "intro": "Niet-gecertificeerde AMS D gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
                 },
                 {
                     "ecode": "05004099",
@@ -18680,10 +19072,6 @@
                     "intro": "AI detecteerde klontering van de nozzle. Controleer de nozzleconditie. Raadpleeg de assistent voor oplossingen."
                 },
                 {
-                    "ecode": "03004070",
-                    "intro": "Verwarm de nozzle tot boven de 170°C."
-                },
-                {
                     "ecode": "0500808E",
                     "intro": "De initialisatie van de BirdsEye-camera is mislukt. De camera van het gereedschapshoofd heeft de Heatbed-functies niet gedetecteerd. Maak het verwarmingsbed schoon, verwijder alle voorwerpen en kussentjes en zorg ervoor dat de bedmarkeringen zichtbaar zijn. Kijk op de Assistent voor een gedetailleerde oplossing."
                 },
@@ -18704,16 +19092,16 @@
                     "intro": "Toolhead Camera is vuil, wat de AI-functie beïnvloedt; Reinig het lensoppervlak."
                 },
                 {
-                    "ecode": "0500808B",
-                    "intro": "De installatie van de BirdsEye-camera is mislukt. Maak het warmtebed leeg, verwijder alle voorwerpen en de mat en zorg ervoor dat de heatbedmarkeringen zichtbaar zijn. Maak ondertussen de BirdsEye-camera en de Toolhead-camera schoon en verwijder alle obstakels die de camera's kunnen blokkeren."
-                },
-                {
                     "ecode": "05004033",
                     "intro": "De AMS-firmware komt niet overeen met de printer. Upgrade het op de pagina \"Firmware\"."
                 },
                 {
                     "ecode": "05004031",
                     "intro": "De firmware van het accessoire komt niet overeen met de printer. Upgrade het op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05004034",
+                    "intro": "De firmware van de lasermodule komt niet overeen met de printer. Upgrade het op de pagina \"Firmware\"."
                 },
                 {
                     "ecode": "05008085",
@@ -18726,10 +19114,6 @@
                 {
                     "ecode": "03004044",
                     "intro": "De vlamsensor is abnormaal. De sensor kan kortgesloten zijn. Los het probleem op voordat u een afdruktaak start."
-                },
-                {
-                    "ecode": "05008062",
-                    "intro": "De printplaatmarkering is niet gedetecteerd. Controleer of de printplaat correct op het verhittingsbed is geplaatst met alle vier de hoeken uitgelijnd en de markering zichtbaar is."
                 },
                 {
                     "ecode": "07FF8007",
@@ -18750,10 +19134,6 @@
                 {
                     "ecode": "0500808C",
                     "intro": "Offset van de buildplaat gedetecteerd. Lijn de bouwplaat uit met het warmtebed en ga dan verder."
-                },
-                {
-                    "ecode": "07FFC010",
-                    "intro": "Steek de filament erin tot hij niet verder kan. Er kan lichte rookontwikkeling zijn tijdens het doorspoelen, dus sluit de voorklep en bovenklep na het plaatsen."
                 },
                 {
                     "ecode": "07FFC012",
@@ -19198,6 +19578,10 @@
                 {
                     "ecode": "0300804B",
                     "intro": "Taak gepauzeerd. Het laserveiligheidsvenster is geopend."
+                },
+                {
+                    "ecode": "03004042",
+                    "intro": "Het Laser Safety Window is niet goed geïnstalleerd. De taak is gestopt."
                 },
                 {
                     "ecode": "0300404D",
@@ -19876,10 +20260,6 @@
                     "intro": "Lokalisatie Z-as blad mislukt"
                 },
                 {
-                    "ecode": "0500807E",
-                    "intro": "Plaats a.u.b. een StrongGrip snijmat op de snijbeschermingsbasis."
-                },
-                {
                     "ecode": "05008058",
                     "intro": "Plaats de snijmat met lichte grip op de juiste manier en zorg ervoor dat de marker zichtbaar is."
                 },
@@ -20076,10 +20456,6 @@
                     "intro": "Tijdens het afdrukken is gedetecteerd dat de nozzles niet overeenkomen. Start de afdruk na het opnieuw slicen of ga door met afdrukken nadat u de juiste nozzle hebt vervangen. Let op: de hotend-temperatuur is hoog."
                 },
                 {
-                    "ecode": "05024002",
-                    "intro": "De printer beschikt niet over kalibratiegegevens voor bewegingsprecisieverbetering; De verbetering van de bewegingsprecisie kan niet worden ingeschakeld."
-                },
-                {
                     "ecode": "07FF8003",
                     "intro": "Trek het filament op de spoelhouder naar buiten. Als dit bericht aanhoudt, controleer dan of er filament kapot is in de extruder. (Sluit een PTFE-slang aan als u op het punt staat een AMS te gebruiken.)"
                 },
@@ -20184,76 +20560,12 @@
                     "intro": "Materiaal niet gedetecteerd. Bevestig de plaatsing en ga verder."
                 },
                 {
-                    "ecode": "18028023",
-                    "intro": "Het koelproces na droging is mislukt in AMS-HT C."
-                },
-                {
-                    "ecode": "18078023",
-                    "intro": "Het koelproces na droging is bij AMS-HT H mislukt."
-                },
-                {
-                    "ecode": "18058023",
-                    "intro": "Het koelproces na droging is mislukt in AMS-HT F."
-                },
-                {
-                    "ecode": "18008023",
-                    "intro": "Het koelproces na droging is mislukt in AMS-HT A."
-                },
-                {
                     "ecode": "0C004022",
                     "intro": "De installatie van de BirdsEye Camera is mislukt.  Controleer of de lasermodule goed werkt."
                 },
                 {
-                    "ecode": "18038023",
-                    "intro": "Het afkoelproces na droging is mislukt in AMS-HT D."
-                },
-                {
-                    "ecode": "18068023",
-                    "intro": "Het koelproces na droging is mislukt in AMS-HT G."
-                },
-                {
-                    "ecode": "18048023",
-                    "intro": "Het koelproces na droging is mislukt in AMS-HT E."
-                },
-                {
-                    "ecode": "07078023",
-                    "intro": "Het koelproces na droging is bij AMS H mislukt."
-                },
-                {
-                    "ecode": "07068023",
-                    "intro": "Het koelproces na droging is bij AMS G mislukt."
-                },
-                {
-                    "ecode": "07048023",
-                    "intro": "Het koelproces na droging is bij AMS E mislukt."
-                },
-                {
-                    "ecode": "18018023",
-                    "intro": "Het koelproces na droging is mislukt in AMS-HT B."
-                },
-                {
-                    "ecode": "07058023",
-                    "intro": "Het koelproces na droging is bij AMS F mislukt."
-                },
-                {
                     "ecode": "0300801D",
                     "intro": "De positiesensor van de extruderservomotor werkt niet goed. Schakel eerst de printer uit en controleer of de aansluitkabel los zit."
-                },
-                {
-                    "ecode": "07008023",
-                    "intro": "Het koelproces na droging is bij AMS A mislukt."
-                },
-                {
-                    "ecode": "07028023",
-                    "intro": "Het koelproces na droging is in AMS C mislukt."
-                },
-                {
-                    "ecode": "07038023",
-                    "intro": "Het koelproces na droging is bij AMS D mislukt."
-                },
-                {
-                    "ecode": "07018023",
-                    "intro": "Het koelproces na droging is bij AMS B mislukt."
                 },
                 {
                     "ecode": "07038002",

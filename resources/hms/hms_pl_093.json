@@ -1,34 +1,322 @@
 {
     "result": 0,
-    "t": 1749692474,
-    "ver": 202506120009,
+    "t": 1755870814,
+    "ver": 202508192303,
     "data": {
         "device_hms": {
-            "ver": 202506120009,
+            "ver": 202508191204,
             "pl": [
                 {
-                    "ecode": "0300D10000010002",
-                    "intro": "Czujnik Halla do wykrywania butli ma obwód otwarty. Proszę sprawdzić, czy czujnik Halla nie jest uszkodzony."
+                    "ecode": "0C00020000010001",
+                    "intro": "Laser do pomiaru wysokości nie świeci. Sprawdź czy nie ma przeszkód lub luźnego kabla kamery narzędziowej."
                 },
                 {
-                    "ecode": "0300D10000010003",
-                    "intro": "Czujnik Halla wykrywający butlę uległ zwarciu. Sprawdź, czy czujnik Halla działa prawidłowo."
+                    "ecode": "0300D70000020001",
+                    "intro": "Laser czwartej osi nie jest podłączony."
+                },
+                {
+                    "ecode": "0300D80000010002",
+                    "intro": "Błąd silnika czwartego osi lasera. Proszę wyłączyć zasilanie, a następnie ponownie włączyć, aby ponownie uruchomić czwartą oś lasera."
+                },
+                {
+                    "ecode": "0300D80000010001",
+                    "intro": "Silnik czwartego osi lasera ma zwarcie. Może to być luźne połączenie lub silnik może być uszkodzony."
+                },
+                {
+                    "ecode": "0500050000010021",
+                    "intro": "Autoryzacja zestawu do zdjęć time-lapse nie powiodła się. Proszę ponownie podłączyć kabel lub zrestartować drukarkę."
+                },
+                {
+                    "ecode": "0300D50000020004",
+                    "intro": "Zbiornik gaśnicy nie został zainstalowany."
+                },
+                {
+                    "ecode": "0501040000030002",
+                    "intro": "Pręty gwintowane wymagają smarowania."
+                },
+                {
+                    "ecode": "0500050000020030",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300910000010008",
+                    "intro": "Podgrzewacz komory 1 nie osiągnął temperatury docelowej."
+                },
+                {
+                    "ecode": "030018000001000C",
+                    "intro": "Wykryto nietypowy skok w danych czujnika siły wytłaczania ekstrudera, potencjalnie spowodowany słabym kontaktem czujnika lub wadliwym czujnikiem."
+                },
+                {
+                    "ecode": "0C00040000020029",
+                    "intro": "Moduł Laser lub Cutting nie został skalibrowany. Proszę najpierw skalibrować go na drukarce."
+                },
+                {
+                    "ecode": "0501040000030004",
+                    "intro": "Proszę wyczyścić i nasmarować szynę liniową osi X oraz pręty liniowe osi YZ."
+                },
+                {
+                    "ecode": "0501040000030010",
+                    "intro": "Moduł laserowy jest zakurzony i wymaga teraz czyszczenia."
+                },
+                {
+                    "ecode": "0300180000030009",
+                    "intro": "Po raz pierwszy wykonywany jest wydruk przy wysokiej temperaturze podgrzewanego stołu. Rozpoczęto automatyczną kalibracja stołu, aby uzyskać lepszą jakość druku pierwszej warstwy."
+                },
+                {
+                    "ecode": "03002D0000030009",
+                    "intro": "Po raz pierwszy wykonywany jest wydruk przy wysokiej temperaturze podgrzewanego stołu. Rozpoczęto automatyczną kalibracja stołu, aby uzyskać lepszą jakość druku pierwszej warstwy."
+                },
+                {
+                    "ecode": "0300D60000010007",
+                    "intro": "Silnik gaśnicy zablokował się podczas resetowania. Obracaj pokrętłem w prawo do momentu zmniejszenia się oporu, a następnie uruchom gaśnicę ponownie."
+                },
+                {
+                    "ecode": "0C0001000002000E",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000010053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500040000030054",
+                    "intro": "Wykryto system automatycznego gaszenia pożaru. Zaleca się przeprowadzenie ćwiczeń przeciwpożarowych, aby zapoznać się z procesem działania."
+                },
+                {
+                    "ecode": "1800020000020002",
+                    "intro": "AMS-HT A Brak sygnału odometrii. Złącze czujnika odometrii może mieć słaby styk."
+                },
+                {
+                    "ecode": "0500050000010009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500050000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050005000001000C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020013",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020014",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020016",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020017",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020018",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05000600000200A1",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020013",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020012",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020023",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020024",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020011",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020022",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020014",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00010000020019",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020051",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020054",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020043",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020053",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020044",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020061",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C0001000002001B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C0001000002001A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020041",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020062",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0C00040000030028",
+                    "intro": "Kalibracja przesunięcia modułu cięcia nie powiodła się, co może skutkować niedokładnymi cięciami. Upewnij się, że biały papier drukarki o gramaturze 80g (grubość papieru listowego) jest prawidłowo umieszczony i sprawdź, czy końcówka ostrza tnącego jest zużyta."
+                },
+                {
+                    "ecode": "0C00040000030026",
+                    "intro": "Aby poprawić dokładność wykrywania płomienia, światło w prawej komorze zostało automatycznie wyłączone."
+                },
+                {
+                    "ecode": "0500030000020010",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000020011",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500030000030007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000030009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05000600000200A0",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020021",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300D50000020005",
+                    "intro": "Zbiornik gaśnicy jest pusty. Wymień zbiornik, a następnie potwierdź wymianę na stronie Automatyczny system gaśniczy."
+                },
+                {
+                    "ecode": "0300D10000010002",
+                    "intro": "Błąd silnika gaśnicy. Proszę wyłączyć, a następnie włączyć zasilanie, aby ponownie uruchomić gaśnicę."
+                },
+                {
+                    "ecode": "0300D40000010002",
+                    "intro": "Czujnik wykrywania obecności gaśnicy działa nieprawidłowo. Sprawdź, czy kabel czujnika nie jest poluzowany lub uszkodzony."
+                },
+                {
+                    "ecode": "0300D30000020001",
+                    "intro": "Nie wykryto gaśnicy. Proszę sprawdzić, czy kabel sygnałowy jest podłączony prawidłowo, a wtyczka została wsunięta do końca."
+                },
+                {
+                    "ecode": "0300D60000010006",
+                    "intro": "Zresetowanie silnika gaśnicy nie powiodło się. Proszę wyłączyć, a następnie włącz zasilanie, aby ponownie uruchomić gaśnicę."
+                },
+                {
+                    "ecode": "03002D0000010006",
+                    "intro": "Poziomowanie podgrzewanego stołu nie powiodło się, prawdopodobnie z powodu obcych przedmiotów na stole lub przechylenia stołu. Kontynuowanie drukowania może uszkodzić płytę roboczą. Proszę usunąć wszelkie zanieczyszczenia lub ręcznie wypoziomować stół przed ponowną próbą."
+                },
+                {
+                    "ecode": "0500030000020055",
+                    "intro": "Informacje o użytkowniku wygasły, zaloguj się ponownie."
+                },
+                {
+                    "ecode": "0300D10000010001",
+                    "intro": "Silnik gaśnicy ma otwarty obwód. Może to być spowodowane luźnym połączeniem lub uszkodzeniem silnika."
+                },
+                {
+                    "ecode": "0300290000010001",
+                    "intro": "Wzór Vision Enkodera nie może być rozpoznany. Możliwe przyczyny to: zniekształcenie wzoru, nadmierne oświetlenie, nieprawidłowe umiejscowienie płyty."
                 },
                 {
                     "ecode": "0500050000010019",
-                    "intro": "Nie udało się zatwierdzić modułu gaśnicy. Proszę ponownie podłączyć kabel modułu lub zrestartować drukarkę."
+                    "intro": "Certyfikacja modułu gaśnicy nie powiodła się. Podłącz przewód modułu ponownie lub zrestartuj drukarkę."
                 },
                 {
                     "ecode": "0500050000010018",
-                    "intro": "Moduł czwartej osi laserowego certyfikatu nie przeszedł. Proszę ponownie podłączyć kabel modułu lub zrestartować drukarkę."
-                },
-                {
-                    "ecode": "0701900000010004",
-                    "intro": "Czujnik prądu zaworu wylotowego 1 w AMS B jest uszkodzony. Proszę skontaktować się z obsługą klienta w celu wymiany płyty głównej AMS."
-                },
-                {
-                    "ecode": "0707910000010004",
-                    "intro": "Czujnik prądu zaworu wylotowego 2 w AMS H jest uszkodzony. Proszę skontaktować się z obsługą klienta w celu wymiany płyty głównej AMS."
+                    "intro": "Certyfikacja modułu 4-osi lasera nie powiodła się. Podłącz przewód modułu ponownie lub zrestartuj drukarkę."
                 },
                 {
                     "ecode": "1803900000010004",
@@ -99,10 +387,6 @@
                     "intro": "Czujnik prądu zaworu wylotowego 1 w AMS C jest uszkodzony. Proszę skontaktować się z obsługą klienta w celu wymiany płyty głównej AMS."
                 },
                 {
-                    "ecode": "03002D0000030009",
-                    "intro": "Po raz pierwszy wykonywany jest wydruk przy wysokiej temperaturze podgrzewanego stołu. Rozpoczęto automatyczną kalibracja stołu, aby uzyskać lepszą jakość druku pierwszej warstwy."
-                },
-                {
                     "ecode": "0706910000010004",
                     "intro": "Czujnik prądu zaworu wylotowego 2 w AMS G jest uszkodzony. Proszę skontaktować się z obsługą klienta w celu wymiany płyty głównej AMS."
                 },
@@ -156,311 +440,143 @@
                 },
                 {
                     "ecode": "0702960000020004",
-                    "intro": "AMS C Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS C Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "1800960000020004",
-                    "intro": "AMS-HT A Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS-HT A Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "0704960000020004",
-                    "intro": "AMS E Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS E Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "1801250000020001",
-                    "intro": "AMS-HT B używa zasilania drukarki do suszenia podczas ładowania/drukowania. Dla lepszej wydajności suszenia, proszę podłączyć zasilacz."
+                    "intro": "AMS-HT B wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "1803250000020001",
-                    "intro": "AMS-HT D używa zasilania drukarki do suszenia podczas ładowania/drukowania. Dla lepszej wydajności suszenia, proszę podłączyć adapter zasilania."
+                    "intro": "AMS-HT D wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "1807250000020001",
-                    "intro": "AMS-HT H używa zasilania drukarki do suszenia podczas ładowania/drukowania. Dla lepszej wydajności suszenia, proszę podłączyć adapter zasilania."
+                    "intro": "AMS-HT H wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "1806250000020001",
-                    "intro": "AMS-HT G używa zasilania drukarki do suszenia podczas ładowania/drukowania. Dla lepszej wydajności suszenia, proszę podłączyć adapter zasilania."
+                    "intro": "AMS-HT G wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "0703960000020004",
-                    "intro": "AMS D Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS D Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "0707960000020004",
-                    "intro": "AMS H Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS H Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "1802960000020004",
-                    "intro": "AMS-HT C Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS-HT C Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "1803960000020004",
-                    "intro": "AMS-HT D Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS-HT D Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "0706960000020004",
-                    "intro": "AMS G Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS G Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "1804960000020004",
-                    "intro": "AMS-HT E Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS-HT E Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "0701960000020004",
-                    "intro": "AMS B Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS B Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "1807960000020004",
-                    "intro": "AMS-HT H Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS-HT H Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "1804250000020001",
-                    "intro": "AMS-HT E używa zasilania drukarki do suszenia podczas ładowania/drukowania. Dla lepszej wydajności suszenia, proszę podłączyć adapter zasilania."
+                    "intro": "AMS-HT E wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "1805960000020004",
-                    "intro": "AMS-HT F Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS-HT F Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "1805250000020001",
-                    "intro": "AMS-HT F używa zasilania drukarki do suszenia podczas ładowania/drukowania. Dla lepszej wydajności suszenia, proszę podłączyć zasilacz."
+                    "intro": "AMS-HT F wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "1800250000020001",
-                    "intro": "AMS-HT A używa zasilania drukarki do suszenia podczas ładowania/drukowania. Dla lepszej wydajności suszenia, proszę podłączyć adapter zasilania."
+                    "intro": "AMS-HT A wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "1801960000020004",
-                    "intro": "AMS-HT B Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS-HT B Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "1806960000020004",
-                    "intro": "AMS-HT G Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS-HT G Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "1802250000020001",
-                    "intro": "AMS-HT C używa zasilania drukarki do suszenia podczas ładowania/drukowania. Dla lepszej wydajności suszenia, proszę podłączyć adapter zasilania."
+                    "intro": "AMS-HT C wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "0700960000020004",
-                    "intro": "AMS A Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
+                    "intro": "AMS A Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "0705960000020004",
-                    "intro": "AMS F Błąd kontroli temperatury jest zbyt duży, co może być spowodowane otwarciem pokrywy lub nieprawidłowościami w grzałce."
-                },
-                {
-                    "ecode": "0500010000020003",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020010",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020011",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020012",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020013",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020014",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020015",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020016",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020017",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000020018",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500030000030007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000030009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020001",
-                    "intro": "Kamera głowicy nie jest na miejscu. Proszę sprawdzić połączenie sprzętowe"
-                },
-                {
-                    "ecode": "05000600000200A1",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020013",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020012",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020023",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020005",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020024",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05000600000200A0",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020011",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020022",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500010000020008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020014",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020021",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0300180000030009",
-                    "intro": "Po raz pierwszy wykonywany jest wydruk przy wysokiej temperaturze podgrzewanego stołu. Rozpoczęto automatyczną kalibracja stołu, aby uzyskać lepszą jakość druku pierwszej warstwy."
-                },
-                {
-                    "ecode": "0C00010000020019",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C0001000002001A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020051",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020054",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020041",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020044",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020062",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500060000020061",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C0001000002001B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0500050000010008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "050005000001000C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020016",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0C00010000020015",
-                    "intro": ""
+                    "intro": "AMS F Zbyt duże odchylenia podczas kontroli temperatury, co może być spowodowane otwartą pokrywą lub nieprawidłowym działaniem grzałki."
                 },
                 {
                     "ecode": "0703250000020001",
-                    "intro": "Wykryto, że AMS wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
+                    "intro": "AMS D wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "0700250000020001",
-                    "intro": "Wykryto, że AMS wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
+                    "intro": "AMS A wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "0701250000020001",
-                    "intro": "Wykryto, że AMS wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
+                    "intro": "AMS B wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "0706250000020001",
-                    "intro": "Wykryto, że AMS wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
+                    "intro": "AMS G wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "0702250000020001",
-                    "intro": "Wykryto, że AMS wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
+                    "intro": "AMS C wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "0705250000020001",
-                    "intro": "Wykryto, że AMS wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
+                    "intro": "AMS F wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "0707250000020001",
-                    "intro": "Wykryto, że AMS wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
+                    "intro": "AMS H wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
                 },
                 {
                     "ecode": "0704250000020001",
-                    "intro": "Wykryto, że AMS wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
+                    "intro": "AMS E wykorzystuje zasilanie drukarki do suszenia podczas ładowania/drukowania. Aby poprawić efektywność suszenia, proszę podłączyć zasilacz."
+                },
+                {
+                    "ecode": "0500060000020001",
+                    "intro": "Kamera głowicy nie jest na miejscu. Proszę sprawdzić połączenie sprzętowe."
+                },
+                {
+                    "ecode": "0701900000010004",
+                    "intro": "Czujnik prądu zaworu wylotowego 1 w AMS B jest uszkodzony. Proszę skontaktować się z obsługą klienta w celu wymiany płyty głównej AMS."
+                },
+                {
+                    "ecode": "0707910000010004",
+                    "intro": "Czujnik prądu zaworu wylotowego 2 w AMS H jest uszkodzony. Proszę skontaktować się z obsługą klienta w celu wymiany płyty głównej AMS."
                 },
                 {
                     "ecode": "0700610000020001",
@@ -537,6 +653,82 @@
                 {
                     "ecode": "0706630000020001",
                     "intro": "Gniazdo 4 modułu AMS G jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1802600000020001",
+                    "intro": "Gniazdo 1 modułu AMS-HT C jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1801630000020001",
+                    "intro": "Gniazdo 4 modułu AMS-HT B jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1806630000020001",
+                    "intro": "Gniazdo 4 modułu AMS-HT G jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "0704630000020001",
+                    "intro": "Gniazdo 4 modułu AMS E jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1805610000020001",
+                    "intro": "Gniazdo 2 modułu AMS-HT F jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1802630000020001",
+                    "intro": "Gniazdo 4 modułu AMS-HT C jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1804620000020001",
+                    "intro": "Gniazdo 3 modułu AMS-HT E jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1805620000020001",
+                    "intro": "Gniazdo 3 modułu AMS-HT F jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1800620000020001",
+                    "intro": "Gniazdo 3 modułu AMS-HT A jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "0706610000020001",
+                    "intro": "Gniazdo 2 modułu AMS G jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "0705620000020001",
+                    "intro": "Gniazdo 3 modułu AMS F jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1805600000020001",
+                    "intro": "Gniazdo 1 modułu AMS-HT F jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1803610000020001",
+                    "intro": "Gniazdo 2 modułu AMS-HT D jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1801600000020001",
+                    "intro": "Gniazdo 1 modułu AMS-HT B jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1807620000020001",
+                    "intro": "Gniazdo 3 modułu AMS-HT H jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1807630000020001",
+                    "intro": "Gniazdo 4 modułu AMS-HT H jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1804600000020001",
+                    "intro": "Gniazdo 1 modułu AMS-HT E jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "0707610000020001",
+                    "intro": "Gniazdo 2 modułu AMS H jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1806620000020001",
+                    "intro": "Gniazdo 3 modułu AMS-HT G jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
                 },
                 {
                     "ecode": "0300180000010005",
@@ -619,94 +811,6 @@
                     "intro": "Gniazdo 4 modułu AMS-HT A jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
                 },
                 {
-                    "ecode": "1802600000020001",
-                    "intro": "Gniazdo 1 modułu AMS-HT C jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1801630000020001",
-                    "intro": "Gniazdo 4 modułu AMS-HT B jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1806630000020001",
-                    "intro": "Gniazdo 4 modułu AMS-HT G jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "0704630000020001",
-                    "intro": "Gniazdo 4 modułu AMS E jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1805610000020001",
-                    "intro": "Gniazdo 2 modułu AMS-HT F jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1802630000020001",
-                    "intro": "Gniazdo 4 modułu AMS-HT C jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1804620000020001",
-                    "intro": "Gniazdo 3 modułu AMS-HT E jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1805620000020001",
-                    "intro": "Gniazdo 3 modułu AMS-HT F jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1800620000020001",
-                    "intro": "Gniazdo 3 modułu AMS-HT A jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "0706610000020001",
-                    "intro": "Gniazdo 2 modułu AMS G jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "0705620000020001",
-                    "intro": "Gniazdo 3 modułu AMS F jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1805600000020001",
-                    "intro": "Gniazdo 1 modułu AMS-HT F jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1803610000020001",
-                    "intro": "Gniazdo 2 modułu AMS-HT D jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1801600000020001",
-                    "intro": "Gniazdo 1 modułu AMS-HT B jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1807620000020001",
-                    "intro": "Gniazdo 3 modułu AMS-HT H jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1807630000020001",
-                    "intro": "Gniazdo 4 modułu AMS-HT H jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1804600000020001",
-                    "intro": "Gniazdo 1 modułu AMS-HT E jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "0707610000020001",
-                    "intro": "Gniazdo 2 modułu AMS H jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1806620000020001",
-                    "intro": "Gniazdo 3 modułu AMS-HT G jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "1801620000020001",
-                    "intro": "Gniazdo 3 modułu AMS-HT B jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "0705600000020001",
-                    "intro": "Gniazdo 1 modułu AMS F jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
-                    "ecode": "0704610000020001",
-                    "intro": "Gniazdo 2 modułu AMS E jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
-                },
-                {
                     "ecode": "1807610000020001",
                     "intro": "Gniazdo 2 modułu AMS-HT H jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
                 },
@@ -721,6 +825,18 @@
                 {
                     "ecode": "1800610000020001",
                     "intro": "Gniazdo 2 modułu AMS-HT A jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "1801620000020001",
+                    "intro": "Gniazdo 3 modułu AMS-HT B jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "0705600000020001",
+                    "intro": "Gniazdo 1 modułu AMS F jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
+                },
+                {
+                    "ecode": "0704610000020001",
+                    "intro": "Gniazdo 2 modułu AMS E jest przeciążone. Filament może być splątany lub bufor filamentu może być zablokowany."
                 },
                 {
                     "ecode": "050003000002000E",
@@ -741,22 +857,6 @@
                 {
                     "ecode": "0300950000010009",
                     "intro": "Czujnik temperatury otoczenia w dolnej części modułu lasera działa nieprawidłowo. Doszło do zwarcia w czujniku."
-                },
-                {
-                    "ecode": "0500030000020055",
-                    "intro": "Informacje o użytkowniku wygasły, powiąż ponownie urządzenie."
-                },
-                {
-                    "ecode": "030018000001000B",
-                    "intro": "Nie udało się wykryć obecności dyszy: Dysza nie została zainstalowana lub została zainstalowana nieprawidłowo."
-                },
-                {
-                    "ecode": "07FF450000020003",
-                    "intro": "Dźwignia obcinacza filamentu nie została zwolniona. Dźwignia lub ostrze mogą być zablokowane, a także może występować problem z połączeniem czujnika filamentu."
-                },
-                {
-                    "ecode": "18FF450000020003",
-                    "intro": "Dźwignia obcinacza filamentu nie została zwolniona. Dźwignia lub ostrze mogą być zablokowane, a także może występować problem z połączeniem czujnika filamentu."
                 },
                 {
                     "ecode": "0706230000020025",
@@ -825,10 +925,6 @@
                 {
                     "ecode": "1805230000020006",
                     "intro": "AMS-HT F wykrył uszkodzenie rurki PTFE podczas ładowania filamentu. Sprawdź, czy rurki PTFE wewnątrz i na zewnątrz AMS nie odłączyły się lub nie zostały uszkodzone."
-                },
-                {
-                    "ecode": "0300D20000010003",
-                    "intro": "Rezystancja silnika gaśnicy jest nieprawidłowa. Silnik mógł ulec awarii."
                 },
                 {
                     "ecode": "0701220000020015",
@@ -1651,14 +1747,6 @@
                     "intro": "AMS D wykrył uszkodzenie rurki PTFE podczas ładowania filamentu. Sprawdź, czy rurki PTFE wewnątrz i na zewnątrz AMS nie odłączyły się lub nie zostały uszkodzone."
                 },
                 {
-                    "ecode": "0300D10000030001",
-                    "intro": "Nie wykryto podłączenia gaśnicy"
-                },
-                {
-                    "ecode": "0300D20000010002",
-                    "intro": "Zwarcie w silniku gaśnicy. Silnik może być uszkodzony."
-                },
-                {
                     "ecode": "1802200000020006",
                     "intro": "AMS-HT C wykrył uszkodzenie rurki PTFE podczas ładowania filamentu. Sprawdź, czy rurki PTFE wewnątrz i na zewnątrz AMS nie odłączyły się lub nie zostały uszkodzone."
                 },
@@ -2291,16 +2379,8 @@
                     "intro": "AMS A wykrył uszkodzenie rurki PTFE podczas ładowania filamentu. Sprawdź, czy rurki PTFE wewnątrz i na zewnątrz AMS nie odłączyły się lub nie zostały uszkodzone."
                 },
                 {
-                    "ecode": "0300D10000030004",
-                    "intro": "Butla gaśnicy nie została zainstalowana"
-                },
-                {
                     "ecode": "07FFA00000020001",
                     "intro": "Upłynął limit czasu na cold pull. Kliknij \"Spróbuj ponownie\", a następnie ręcznie wyciągnij filament."
-                },
-                {
-                    "ecode": "0300D20000010001",
-                    "intro": "Silnik gaśnicy ma otwarty obwód. Może to być spowodowane luźnym połączeniem lub uszkodzeniem silnika."
                 },
                 {
                     "ecode": "0702230000020025",
@@ -2609,22 +2689,6 @@
                 {
                     "ecode": "0300930000010005",
                     "intro": "Temperatura w komorze jest nieprawidłowa. Czujnik temperatury nagrzewnicy komory na wlocie powietrza może mieć zwarcie."
-                },
-                {
-                    "ecode": "0300980000010003",
-                    "intro": "Czujnik Halla (dolny) okna po lewej stronie działa nieprawidłowo. Sprawdź, czy kabel połączeniowy nie jest poluzowany."
-                },
-                {
-                    "ecode": "0300980000010002",
-                    "intro": "Czujnik Halla (górny) okna po lewej stronie działa nieprawidłowo. Sprawdź, czy kabel połączeniowy nie jest poluzowany."
-                },
-                {
-                    "ecode": "0300990000010003",
-                    "intro": "Czujnik Halla (górny) okna po prawej stronie działa nieprawidłowo. Sprawdź, czy kabel połączeniowy nie jest poluzowany."
-                },
-                {
-                    "ecode": "0300990000010002",
-                    "intro": "Czujnik Halla (dolny) okna po prawej stronie działa nieprawidłowo. Sprawdź, czy kabel połączeniowy nie jest poluzowany."
                 },
                 {
                     "ecode": "0300960000010003",
@@ -3104,7 +3168,7 @@
                 },
                 {
                     "ecode": "050001000001000A",
-                    "intro": "Kamera BirdsEye nie działa prawidłowo. Spróbuj ponownie uruchomić urządzenie. Jeśli problem nie ustąpi po wielokrotnym ponownym uruchomieniu, sprawdź stan połączenia kamery lub skontaktuj się z obsługą klienta."
+                    "intro": ""
                 },
                 {
                     "ecode": "0500060000020003",
@@ -3388,11 +3452,23 @@
                 },
                 {
                     "ecode": "0C00010000010018",
-                    "intro": "Kamera BirdsEye nie działa prawidłowo. Spróbuj ponownie uruchomić urządzenie. Jeśli problem nie ustąpi po wielokrotnym ponownym uruchomieniu, sprawdź stan połączenia kamery lub skontaktuj się z obsługą klienta."
+                    "intro": ""
                 },
                 {
                     "ecode": "0C00010000010001",
                     "intro": "Kamera głowicy jest w trybie offline. Sprawdź połączenie sprzętowe."
+                },
+                {
+                    "ecode": "0C00010000010003",
+                    "intro": "Synchronizacja między kamerą głowicy, a MC jest nieprawidłowa. Uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0C00010000010004",
+                    "intro": "Obiektyw kamery głowicy wydaje się być brudny. Wyczyść soczewkę."
+                },
+                {
+                    "ecode": "0C00010000010005",
+                    "intro": "Parametr kamery głowicy jest nieprawidłowy. Skontaktuj się z obsługą klienta."
                 },
                 {
                     "ecode": "0300A40000010008",
@@ -3463,6 +3539,10 @@
                     "intro": "Firmware AMS-HT C nie jest zgodny z drukarką. Zaktualizuj go na stronie \"Firmware\"."
                 },
                 {
+                    "ecode": "050005000001000E",
+                    "intro": "Firmware modułu lasera nie pasuje do drukarki. Uaktualnij go na stronie „Firmware”."
+                },
+                {
                     "ecode": "0505050000010010",
                     "intro": "Firmware AMS F nie jest zgodny z drukarką. Zaktualizuj go na stronie \"Firmware\"."
                 },
@@ -3497,6 +3577,14 @@
                 {
                     "ecode": "0503050000010010",
                     "intro": "Firmware AMS D nie jest zgodny z drukarką. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0500050000010012",
+                    "intro": "Firmware modułu tnącego nie jest zgodny z drukarką. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0500050000010011",
+                    "intro": "Firmware pompy powietrza nie jest zgodny z drukarką. Zaktualizuj go na stronie \"Firmware\"."
                 },
                 {
                     "ecode": "0584050000010010",
@@ -7783,6 +7871,10 @@
                     "intro": "Nie udało się pobrać tabeli mapowania z AMS. Wybierz \"Wznów\", aby spróbować ponownie."
                 },
                 {
+                    "ecode": "0300280000010001",
+                    "intro": "Dane z czujnika siły modułu tnącego są nieprawidłowe. Magnes na uchwycie narzędzia mógł odpaść lub czujnik siły może być uszkodzony."
+                },
+                {
                     "ecode": "0300180000010007",
                     "intro": "Częstotliwość czujnika siły ekstruzji jest zbyt wysoka. Czujnik może być uszkodzony lub radiator dyszy może być zbyt blisko czujnika."
                 },
@@ -7791,8 +7883,8 @@
                     "intro": "Sygnał z czujnika siły ekstruzji jest nieprawidłowy. Czujnik może być uszkodzony, lub komunikacja MC-TH może działać nieprawidłowo."
                 },
                 {
-                    "ecode": "030025000001000B",
-                    "intro": "Nie udało się wykryć obecności dyszy: Dysza nie została zainstalowana lub została zainstalowana nieprawidłowo."
+                    "ecode": "0300280000010004",
+                    "intro": "Czujnik nacisku modułu tnącego jest uszkodzony. Przewód czujnika może być odłączony lub czujnik jest uszkodzony."
                 },
                 {
                     "ecode": "0C00040000010005",
@@ -7801,6 +7893,10 @@
                 {
                     "ecode": "0300180000010008",
                     "intro": "Dysza nieprawidłowo dotyka podgrzewanego stołu. Proszę sprawdzić, czy na dyszy nie ma resztek filamentu lub ciał obcych w miejscu, w którym dysza styka się ze stołem."
+                },
+                {
+                    "ecode": "0300280000010007",
+                    "intro": "Nie udało się nawiązać komunikacji pomiędzy modułem tnącym a modułem głowicy. Proszę skontrolować połączenie kabla sygnałowego modułu tnącego, oraz zweryfikować stan cewki czujnika siły."
                 },
                 {
                     "ecode": "0300180000010001",
@@ -8039,6 +8135,10 @@
                     "intro": "Okno ochronne lasera nie zostało zainstalowane."
                 },
                 {
+                    "ecode": "0C00030000020017",
+                    "intro": "Kalibracja ostrości na osi Z dla grawerowania laserowego nie powiodła się. Proszę sprawdzić, czy materiał testowy lasera (tektura 350g) jest poprawnie ustawiony, a jego powierzchnia jest czysta i nieuszkodzona."
+                },
+                {
                     "ecode": "1803800000010004",
                     "intro": "AMS-HT D Grzałka 1 nagrzewa się w sposób nieprawidłowy."
                 },
@@ -8061,10 +8161,6 @@
                 {
                     "ecode": "1801810000010004",
                     "intro": "AMS-HT B Grzałka 2 nagrzewa się w sposób nieprawidłowy"
-                },
-                {
-                    "ecode": "0C00030000020017",
-                    "intro": "Kalibracja ostrości na osi Z dla grawerowania laserowego nie powiodła się. Proszę sprawdzić, czy materiał testowy lasera (tektura 350g) jest poprawnie ustawiony, a jego powierzchnia jest czysta i nieuszkodzona."
                 },
                 {
                     "ecode": "0300A40000010002",
@@ -9647,6 +9743,10 @@
                     "intro": "Szpula zewnętrzna może być zablokowana lub splątana."
                 },
                 {
+                    "ecode": "0300280000010008",
+                    "intro": "Bazowanie osi Z nie powiodło się. Sprawdź, czy ruch uchwytu ostrza jest płynny i upewnij się, że żadne niepożądane obiekty nie znajdują się w miejscu styku z podgrzewanym stołem."
+                },
+                {
                     "ecode": "0500030000020020",
                     "intro": "Pojemność dysku USB jest niewystarczająca do buforowania plików do druku."
                 },
@@ -9771,6 +9871,30 @@
                     "intro": "Nie udało się wytłoczyć filamentu w gnieździe 3 modułu AMS-HT E. Ekstruder może być zatkany lub filament może być zbyt cienki, powodując ślizganie się ekstrudera."
                 },
                 {
+                    "ecode": "180620000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS-HT G. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070522000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS F. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180022000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS-HT A. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180722000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS-HT H. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180421000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS-HT E. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180422000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS-HT E. Filament lub bufor może być zablokowany."
+                },
+                {
                     "ecode": "1803210000020009",
                     "intro": "Nie udało się wytłoczyć filamentu w gnieździe 2 modułu AMS-HT D. Ekstruder może być zatkany lub filament może być zbyt cienki, powodując ślizganie się ekstrudera."
                 },
@@ -9879,8 +10003,240 @@
                     "intro": "Nie udało się wytłoczyć filamentu w gnieździe 4 modułu AMS-HT B. Ekstruder może być zatkany lub filament może być zbyt cienki, powodując ślizganie się ekstrudera."
                 },
                 {
+                    "ecode": "070723000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS H. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180222000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS-HT C. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070223000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS C. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180522000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS-HT F. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070722000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS H. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070023000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS A. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180020000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS-HT A. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180120000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS-HT B. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180322000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS-HT D. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180321000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS-HT D. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180720000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS-HT H. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070122000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS B. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070123000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS B. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070620000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS G. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070321000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS D. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070623000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS G. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180023000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS-HT A. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180521000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS-HT F. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180122000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS-HT B. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070221000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS C. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070323000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS D. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070422000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS E. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070420000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS E. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070121000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS B. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070721000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS H. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070523000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS F. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180420000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS-HT E. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180123000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS-HT B. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070622000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS G. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180323000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS-HT D. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070322000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS D. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070220000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS C. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070320000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS D. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180721000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS-HT H. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070521000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS F. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180520000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS-HT F. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070120000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS B. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180623000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS-HT G. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070720000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS H. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180223000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS-HT C. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070520000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS F. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180320000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS-HT D. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070421000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS E. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180220000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS-HT C. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180621000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS-HT G. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180523000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS-HT F. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070621000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS G. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070020000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 1 AMS A. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070222000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS C. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180021000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS-HT A. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070423000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS E. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070022000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS A. Filament lub bufor może być zablokowany."
+                },
+                {
                     "ecode": "0C0003000002000E",
                     "intro": "Wygląda na to, że dysza jest zatkana lub zablokowana materiałem."
+                },
+                {
+                    "ecode": "180221000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS-HT C. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "070021000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS A. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180622000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 3 AMS-HT G. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180423000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS-HT E. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180723000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 4 AMS-HT H. Filament lub bufor może być zablokowany."
+                },
+                {
+                    "ecode": "180121000002000A",
+                    "intro": "Nie udało się dostosować położenia filamentu w gnieździe 2 AMS-HT B. Filament lub bufor może być zablokowany."
                 },
                 {
                     "ecode": "0703200000030001",
@@ -9905,18 +10261,6 @@
                 {
                     "ecode": "0704200000020005",
                     "intro": "Skończył się filament w AMS E gniazdo 1, a oczyszczenie ze starego filamentu przebiegło nieprawidłowo. Sprawdź, czy filament nie utknął w głowicy."
-                },
-                {
-                    "ecode": "1807230000020002",
-                    "intro": "Gniazdo 4 modułu AMS-HT H jest puste. Proszę załaduj nowy filament."
-                },
-                {
-                    "ecode": "1807210000020002",
-                    "intro": "Gniazdo 2 modułu AMS-HT H jest puste. Proszę załaduj nowy filament."
-                },
-                {
-                    "ecode": "1802560000030001",
-                    "intro": "AMS-HT schładza się po procesie suszenia. Proszę odczekać, aż się schłodzi przed dalszym użyciem."
                 },
                 {
                     "ecode": "1807220000020008",
@@ -10131,6 +10475,18 @@
                     "intro": "Gniazdo 1 modułu AMS-HT G. Filament może być uszkodzony w głowicy."
                 },
                 {
+                    "ecode": "1807230000020002",
+                    "intro": "Gniazdo 4 modułu AMS-HT H jest puste. Proszę załaduj nowy filament."
+                },
+                {
+                    "ecode": "1807210000020002",
+                    "intro": "Gniazdo 2 modułu AMS-HT H jest puste. Proszę załaduj nowy filament."
+                },
+                {
+                    "ecode": "1802560000030001",
+                    "intro": "AMS-HT schładza się po procesie suszenia. Proszę odczekać, aż się schłodzi przed dalszym użyciem."
+                },
+                {
                     "ecode": "0700120000020002",
                     "intro": "Silnik gniazda 3 modułu AMS A jest przeciążony. Filament może być splątany lub zablokowany."
                 },
@@ -10219,10 +10575,6 @@
                     "intro": "Filament w module AMS-HT C w gnieździe 3 może być uszkodzony."
                 },
                 {
-                    "ecode": "1805550000010003",
-                    "intro": "AMS F został wykryty jako offline podczas procesu inicjalizacji AMS."
-                },
-                {
                     "ecode": "1800220000030001",
                     "intro": "Skończył się filament w gnieździe 3 modułu AMS-HT A. Poczekaj, aż stary filament zostanie usunięty."
                 },
@@ -10241,10 +10593,6 @@
                 {
                     "ecode": "0707560000030001",
                     "intro": "AMS schładza się po procesie suszenia. Proszę odczekać, aż się schłodzi przed dalszym użyciem."
-                },
-                {
-                    "ecode": "1806550000010003",
-                    "intro": "AMS G został wykryty jako offline podczas procesu inicjalizacji AMS."
                 },
                 {
                     "ecode": "1801230000030001",
@@ -10361,10 +10709,6 @@
                 {
                     "ecode": "1804210000020003",
                     "intro": "Filament w module AMS-HT E w gnieździe 2 może być uszkodzony."
-                },
-                {
-                    "ecode": "1804550000010003",
-                    "intro": "AMS E został wykryty jako offline podczas procesu inicjalizacji AMS."
                 },
                 {
                     "ecode": "1806210000020002",
@@ -10559,10 +10903,6 @@
                     "intro": "Gniazdo 3 modułu AMS-HT B jest puste. Proszę załaduj nowy filament."
                 },
                 {
-                    "ecode": "1802550000010003",
-                    "intro": "AMS C został wykryty jako offline podczas procesu inicjalizacji AMS."
-                },
-                {
                     "ecode": "0704230000020003",
                     "intro": "Filament w module AMS E w gnieździe 4 może być uszkodzony."
                 },
@@ -10693,10 +11033,6 @@
                 {
                     "ecode": "1806350000010001",
                     "intro": "Wystąpił błąd czujnika temperatury i wilgotności. Chip może być uszkodzony."
-                },
-                {
-                    "ecode": "1806210000030001",
-                    "intro": "Skończył się filament w gnieździe 2 modułu AMS-HT G. Poczekaj, aż stary filament zostanie usunięty."
                 },
                 {
                     "ecode": "1801210000030002",
@@ -10887,6 +11223,10 @@
                     "intro": "Silnik gniazda 3 modułu AMS-HT E ślizga się. Koło ekstruzji może działać nieprawidłowo lub filament może być zbyt cienki."
                 },
                 {
+                    "ecode": "1806210000030001",
+                    "intro": "Skończył się filament w gnieździe 2 modułu AMS-HT G. Poczekaj, aż stary filament zostanie usunięty."
+                },
+                {
                     "ecode": "0700110000010001",
                     "intro": "Silnik gniazda 2 modułu AMS A ślizga się. Koło ekstruzyji może działać nieprawidłowo lub filament może być zbyt cienki."
                 },
@@ -11045,10 +11385,6 @@
                 {
                     "ecode": "0706220000020005",
                     "intro": "Skończył się filament w AMS G gniazdo 3, a oczyszczenie ze starego filamentu przebiegło nieprawidłowo. Sprawdź, czy filament nie utknął w głowicy."
-                },
-                {
-                    "ecode": "1800550000010003",
-                    "intro": "AMS A został wykryty jako offline podczas procesu inicjalizacji AMS."
                 },
                 {
                     "ecode": "1806110000010001",
@@ -12223,10 +12559,6 @@
                     "intro": "Skończył się filament w AMS H gniazdo 4, a oczyszczenie ze starego filamentu przebiegło nieprawidłowo. Sprawdź, czy filament nie utknął w głowicy."
                 },
                 {
-                    "ecode": "1801550000010003",
-                    "intro": "AMS B został wykryty jako offline podczas procesu inicjalizacji AMS."
-                },
-                {
                     "ecode": "0707200000020005",
                     "intro": "Skończył się filament w AMS H gniazdo 1, a oczyszczenie ze starego filamentu przebiegło nieprawidłowo. Sprawdź, czy filament nie utknął w głowicy."
                 },
@@ -12283,10 +12615,6 @@
                     "intro": "Awaria układu szyfrującego"
                 },
                 {
-                    "ecode": "1803110000010001",
-                    "intro": "Silnik gniazda 2 modułu AMS-HT D ślizga się. Koło ekstruzji może działać nieprawidłowo lub filament może być zbyt cienki."
-                },
-                {
                     "ecode": "1807120000020002",
                     "intro": "Silnik gniazda 3 modułu AMS-HT H jest przeciążony. Filament może być splątany lub zablokowany."
                 },
@@ -12321,10 +12649,6 @@
                 {
                     "ecode": "1801210000020008",
                     "intro": "AMS-HT B Czujnik Halla na wejściu gniazda 2 jest odłączony, co może wynikać ze słabego styku złącza."
-                },
-                {
-                    "ecode": "1807550000010003",
-                    "intro": "AMS H został wykryty jako offline podczas procesu inicjalizacji AMS."
                 },
                 {
                     "ecode": "1802210000020001",
@@ -12433,6 +12757,10 @@
                 {
                     "ecode": "1805110000010001",
                     "intro": "Silnik gniazda 2 modułu AMS-HT F ślizga się. Koło ekstruzji może działać nieprawidłowo lub filament może być zbyt cienki."
+                },
+                {
+                    "ecode": "1803110000010001",
+                    "intro": "Silnik gniazda 2 modułu AMS-HT D ślizga się. Koło ekstruzji może działać nieprawidłowo lub filament może być zbyt cienki."
                 },
                 {
                     "ecode": "0700200000020005",
@@ -13111,10 +13439,6 @@
                     "intro": "Sterowanie momentem obrotowym silnika AMS-HT H gniazda 4 działa nieprawidłowo. Czujnik prądu może być uszkodzony."
                 },
                 {
-                    "ecode": "1803550000010003",
-                    "intro": "AMS D został wykryty jako offline podczas procesu inicjalizacji AMS."
-                },
-                {
                     "ecode": "0701220000020008",
                     "intro": "AMS B Czujnik Halla na wejściu gniazda 3 jest odłączony, co może wynikać ze słabego styku złącza."
                 },
@@ -13251,10 +13575,6 @@
                     "intro": "AMS-HT H Nie udało się rozpocząć suszenia. Proszę wyciągnąć filament z huba i spróbować ponownie."
                 },
                 {
-                    "ecode": "1804550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
                     "ecode": "1806960000010003",
                     "intro": "AMS-HT H Nie udało się rozpocząć suszenia. Proszę wyciągnąć filament z huba i spróbować ponownie."
                 },
@@ -13267,24 +13587,12 @@
                     "intro": "AMS-HT D Temperatura otoczenia jest zbyt niska, co wpłynie na efektywność suszenia."
                 },
                 {
-                    "ecode": "1807550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
                     "ecode": "1803960000010003",
                     "intro": "AMS-HT D Nie udało się rozpocząć suszenia. Proszę wyciągnąć filament z huba i spróbować ponownie."
                 },
                 {
                     "ecode": "1804960000020002",
                     "intro": "AMS-HT E Temperatura otoczenia jest zbyt niska, co wpłynie na efektywność suszenia."
-                },
-                {
-                    "ecode": "1806550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
-                    "ecode": "0706550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
                 },
                 {
                     "ecode": "1800960000020002",
@@ -13303,28 +13611,12 @@
                     "intro": "AMS-HT G Temperatura otoczenia jest zbyt niska, co wpłynie na efektywność suszenia."
                 },
                 {
-                    "ecode": "1800550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
-                    "ecode": "1802550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
                     "ecode": "1805960000020002",
                     "intro": "AMS-HT F Temperatura otoczenia jest zbyt niska, co wpłynie na efektywność suszenia."
                 },
                 {
-                    "ecode": "1803550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
                     "ecode": "1805960000010003",
                     "intro": "AMS-HT F Nie udało się rozpocząć suszenia. Proszę wyciągnąć filament z huba i spróbować ponownie."
-                },
-                {
-                    "ecode": "0705550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
                 },
                 {
                     "ecode": "0707960000010003",
@@ -13347,40 +13639,20 @@
                     "intro": "AMS-HT B Nie udało się rozpocząć suszenia. Proszę wyciągnąć filament z huba i spróbować ponownie."
                 },
                 {
-                    "ecode": "0704550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
                     "ecode": "0705960000020002",
                     "intro": "AMS F Temperatura otoczenia jest zbyt niska, co wpłynie na efektywność suszenia."
-                },
-                {
-                    "ecode": "0700550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
                 },
                 {
                     "ecode": "1802960000010003",
                     "intro": "AMS-HT C Nie udało się rozpocząć suszenia. Proszę wyciągnąć filament z huba i spróbować ponownie."
                 },
                 {
-                    "ecode": "0707550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
                     "ecode": "1802960000020002",
                     "intro": "AMS-HT C Temperatura otoczenia jest zbyt niska, co wpłynie na efektywność suszenia."
                 },
                 {
-                    "ecode": "1801550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
                     "ecode": "0706960000010003",
                     "intro": "AMS G Nie udało się rozpocząć suszenia. Proszę wyciągnąć filament z huba i spróbować ponownie."
-                },
-                {
-                    "ecode": "1805550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
                 },
                 {
                     "ecode": "0706960000020002",
@@ -13427,20 +13699,12 @@
                     "intro": "Błąd numeru seryjnego modułu tnącego"
                 },
                 {
-                    "ecode": "0300990000010001",
-                    "intro": "Okno po prawej stronie wydaje się być otwarte. Zadanie zostało wstrzymane."
-                },
-                {
                     "ecode": "0701960000010003",
                     "intro": "AMS B Nie udało się rozpocząć suszenia. Proszę wyciągnąć filament z huba i spróbować ponownie."
                 },
                 {
                     "ecode": "0700960000010003",
                     "intro": "AMS A Nie udało się rozpocząć suszenia. Proszę wyciągnąć filament z huba i spróbować ponownie."
-                },
-                {
-                    "ecode": "0300290000010001",
-                    "intro": "Wzór enkodera nie może być rozpoznany. Możliwe przyczyny to: zniekształcenie wzoru, nadmierne oświetlenie, nieprawidłowe umiejscowienie płyty..."
                 },
                 {
                     "ecode": "0300180000010006",
@@ -13451,24 +13715,12 @@
                     "intro": "Brak miejsca na pamięci USB. Proszę zwolnij trochę miejsca."
                 },
                 {
-                    "ecode": "0703550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
                     "ecode": "0707960000020002",
                     "intro": "AMS H Temperatura otoczenia jest zbyt niska, co wpłynie na efektywność suszenia."
                 },
                 {
                     "ecode": "1804960000010003",
                     "intro": "AMS-HT E Nie udało się rozpocząć suszenia. Proszę wyciągnąć filament z huba i spróbować ponownie."
-                },
-                {
-                    "ecode": "0702550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
-                },
-                {
-                    "ecode": "0701550000010002",
-                    "intro": "Rurka PTFE jest nieprawidłowo połączona między głowicą a buforem. Podłącz górną część bufora do prawego, a dolną do lewego ekstrudera."
                 },
                 {
                     "ecode": "0300180000010003",
@@ -13867,10 +14119,6 @@
                     "intro": "Napięcie zasilania jest niezgodne z urządzeniem. Stół grzewczy został wyłączony."
                 },
                 {
-                    "ecode": "0300980000010001",
-                    "intro": "Okno po lewej stronie wydaje się być otwarte, zadanie zostało wstrzymane."
-                },
-                {
                     "ecode": "0300330000010001",
                     "intro": "Prędkość wentylatora wyciągowego komory jest zbyt niska lub został zatrzymany. Mógł się zablokować lub wtyczka nie jest prawidłowo podłączona."
                 },
@@ -14043,10 +14291,6 @@
                     "intro": "RFID-tag w gnieździe 4 modułu AMS F jest uszkodzony lub nie można zidentyfikować jego zawartości."
                 },
                 {
-                    "ecode": "1807940000010001",
-                    "intro": "AMS-HT H Czujnik temperatury grzałki 1 działa nieprawidłowo, co może być spowodowane słabym stykiem złącza."
-                },
-                {
                     "ecode": "0706010000020008",
                     "intro": "AMS G Uzwojenie fazowe silnika pomocniczego ma obwód otwarty. Silnik pomocniczy może być uszkodzony."
                 },
@@ -14211,10 +14455,6 @@
                     "intro": "Awaria układu szyfrującego"
                 },
                 {
-                    "ecode": "0C00020000010001",
-                    "intro": "Laser poziomy nie świeci. Sprawdź, czy nie jest zasłonięty lub czy połączenie sprzętowe jest poprawne."
-                },
-                {
                     "ecode": "0C0003000002000F",
                     "intro": "Pominięto drukowanie części przed inspekcją pierwszej warstwy. Inspekcja nie jest obsługiwana dla bieżącego wydruku."
                 },
@@ -14313,6 +14553,10 @@
                 {
                     "ecode": "1804330000020002",
                     "intro": "RFID-tag w gnieździe 4 modułu AMS-HT E jest uszkodzony lub nie można zidentyfikować jego zawartości."
+                },
+                {
+                    "ecode": "1807940000010001",
+                    "intro": "AMS-HT H Czujnik temperatury grzałki 1 działa nieprawidłowo, co może być spowodowane słabym stykiem złącza."
                 },
                 {
                     "ecode": "030001000001000A",
@@ -14667,10 +14911,6 @@
                     "intro": "AMS C Zawór wylotowy 2 nie jest podłączony, co może być spowodowane słabym stykiem złącza."
                 },
                 {
-                    "ecode": "0300980000030001",
-                    "intro": "Okno po lewej stronie wydaje się być otwarte."
-                },
-                {
                     "ecode": "0701810000010003",
                     "intro": "AMS B W grzałce 2 doszło do zwarcia, co może być spowodowane zwarciem w okablowaniu lub uszkodzeniem grzałki."
                 },
@@ -14811,16 +15051,8 @@
                     "intro": "Na płytce RFID 2 w AMS-HT A wystąpił błąd."
                 },
                 {
-                    "ecode": "1800020000020002",
-                    "intro": "AMS-HT A Brak sygnału odometrii. Złącze czujnika odometrii może mieć słaby styk."
-                },
-                {
                     "ecode": "1803010000020010",
                     "intro": "AMS-HT D Rezystancja silnika pomocniczego jest nieprawidłowy. Silnik pomocniczy może być uszkodzony."
-                },
-                {
-                    "ecode": "0700550000010003",
-                    "intro": "AMS A został wykryty jako offline podczas procesu inicjalizacji AMS."
                 },
                 {
                     "ecode": "1800930000010001",
@@ -14877,10 +15109,6 @@
                 {
                     "ecode": "1800010000010001",
                     "intro": "Silnik wspomagania AMS-HT A ślizga się. Koło ekstruzji może być zużyte lub filament może być zbyt cienki."
-                },
-                {
-                    "ecode": "0702550000010003",
-                    "intro": "AMS C został wykryty jako offline podczas procesu inicjalizacji AMS."
                 },
                 {
                     "ecode": "0706010000010001",
@@ -15001,10 +15229,6 @@
                 {
                     "ecode": "1804120000020004",
                     "intro": "AMS-HT E Silnik szczotkowy 3 nie generuje sygnału, co może być spowodowane słabym stykiem na złączu silnika lub awarią silnika."
-                },
-                {
-                    "ecode": "0703550000010003",
-                    "intro": "AMS D został wykryty jako offline podczas procesu inicjalizacji AMS."
                 },
                 {
                     "ecode": "1807010000020010",
@@ -15587,20 +15811,12 @@
                     "intro": "AMS E Silnik szczotkowy 2 nie generuje sygnału, co może być spowodowane słabym stykiem na złączu silnika lub awarią silnika."
                 },
                 {
-                    "ecode": "0701550000010003",
-                    "intro": "AMS B został wykryty jako offline podczas procesu inicjalizacji AMS."
-                },
-                {
                     "ecode": "0707910000020001",
                     "intro": "AMS H Zawór wentylacyjny 2 działa nieprawidłowo, może to być spowodowane zbyt dużym oporem."
                 },
                 {
                     "ecode": "1807010000010011",
                     "intro": "AMS-HT H Błąd parametru kalibracji silnika pomocniczego. Proszę wyjąć filament z huba, a następnie uruchomić ponownie AMS."
-                },
-                {
-                    "ecode": "0704550000010003",
-                    "intro": "AMS E został wykryty jako offline podczas procesu inicjalizacji AMS."
                 },
                 {
                     "ecode": "1805900000020001",
@@ -15915,10 +16131,6 @@
                     "intro": "Sterowanie momentem obrotowym silnika pomocniczego AMS-HT B działa nieprawidłowo. Czujnik prądu może być uszkodzony."
                 },
                 {
-                    "ecode": "0706550000010003",
-                    "intro": "AMS G został wykryty jako offline podczas procesu inicjalizacji AMS."
-                },
-                {
                     "ecode": "1807930000020002",
                     "intro": "AMS-HT H Prędkość wentylatora chłodzącego grzałkę 2 jest zbyt niska, co może być spowodowane nadmiernym oporem wentylatora."
                 },
@@ -15949,10 +16161,6 @@
                 {
                     "ecode": "0707900000020001",
                     "intro": "AMS H Zawór wentylacyjny 1 działa nieprawidłowo, może to być spowodowane zbyt dużym oporem."
-                },
-                {
-                    "ecode": "0707550000010003",
-                    "intro": "AMS H został wykryty jako offline podczas procesu inicjalizacji AMS."
                 },
                 {
                     "ecode": "1802500000020001",
@@ -16001,10 +16209,6 @@
                 {
                     "ecode": "0706010000010011",
                     "intro": "AMS G Błąd parametru kalibracji silnika pomocniczego. Proszę wyjąć filament z huba, a następnie uruchomić ponownie AMS."
-                },
-                {
-                    "ecode": "0705550000010003",
-                    "intro": "AMS F został wykryty jako offline podczas procesu inicjalizacji AMS."
                 },
                 {
                     "ecode": "1805010000020011",
@@ -16119,6 +16323,14 @@
                     "intro": "Nieprawidłowe bazowanie osi Y: sprawdź, czy głowica narzędzia nie jest zablokowana lub czy karetka osi Y nie ma zbyt dużego oporu."
                 },
                 {
+                    "ecode": "0500030000010007",
+                    "intro": "Moduł rozszerzeń głowicy narzędziowej nie działa prawidłowo. Wyłącz zasilanie, sprawdź połączenie i uruchom urządzenie ponownie."
+                },
+                {
+                    "ecode": "0500030000010026",
+                    "intro": "Moduł rozszerzeń głowicy narzędziowej nie działa prawidłowo. Wyłącz zasilanie, sprawdź połączenie i uruchom urządzenie ponownie."
+                },
+                {
                     "ecode": "0300200000010001",
                     "intro": "Nieprawidłowe bazowanie osi X: sprawdź, czy głowica nie jest zablokowana lub czy prowadnica liniowa osi X nie ma zbyt dużego oporu."
                 },
@@ -16129,10 +16341,6 @@
                 {
                     "ecode": "0500040000020039",
                     "intro": "Proszę podłączyć wtyczkę modułu"
-                },
-                {
-                    "ecode": "0300990000030001",
-                    "intro": "Wykryto, że okno po prawej stronie jest otwarte."
                 },
                 {
                     "ecode": "0701010000010001",
@@ -17951,10 +18159,6 @@
                     "intro": "Temperatura nagrzewnicy komory 1 jest nieprawidłowa. Czujnik może mieć przerwany obwód."
                 },
                 {
-                    "ecode": "0300910000010008",
-                    "intro": "Podgrzewacz komory 1 nie osiągnął temperatury docelowej."
-                },
-                {
                     "ecode": "030091000001000A",
                     "intro": "Temperatura podgrzewacza komory 1 jest nieprawidłowa. Płyta AC może być uszkodzona."
                 },
@@ -17977,10 +18181,6 @@
                 {
                     "ecode": "0300920000010007",
                     "intro": "Temperatura podgrzewacza komory 2 jest nieprawidłowa. Czujnik może mieć przerwany obwód."
-                },
-                {
-                    "ecode": "0300920000010008",
-                    "intro": "Podgrzewacz komory 2 nie osiągnął temperatury docelowej."
                 },
                 {
                     "ecode": "030092000001000A",
@@ -18177,19 +18377,147 @@
             ]
         },
         "device_error": {
-            "ver": 202506120009,
+            "ver": 202508192303,
             "pl": [
                 {
-                    "ecode": "0502400C",
-                    "intro": ""
+                    "ecode": "0502C014",
+                    "intro": "Oszacowanie pozostałego filamentu AMS jest domyślnie włączone i nie można go wyłączyć."
                 },
                 {
-                    "ecode": "05024009",
-                    "intro": ""
+                    "ecode": "050040A1",
+                    "intro": "Wykryto niecertyfikowaną gaśnicę. Urządzenie nie może kontynuować pracy.  Podłącz ponownie kabel modułu lub uruchom drukarkę ponownie."
                 },
                 {
-                    "ecode": "0502400B",
-                    "intro": ""
+                    "ecode": "050040A0",
+                    "intro": "Wykryto niecertyfikowaną 4-oś lasera. Urządzenie nie może kontynuować pracy.  Proszę ponownie podłączyć kabel modułu lub zrestartować drukarkę."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Proszę położyć matę StrongGrip na podstawie ochronnej do cięcia."
+                },
+                {
+                    "ecode": "0500409F",
+                    "intro": "Wykryto niecertyfikowaną pompę powietrza, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05004097",
+                    "intro": "Wykryto niecertyfikowany moduł lasera, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05864096",
+                    "intro": "Wykryto niecertyfikowany AMS-HT G, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05024098",
+                    "intro": "Wykryto niecertyfikowany AMS C, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05014098",
+                    "intro": "Wykryto niecertyfikowany AMS B, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05814096",
+                    "intro": "Wykryto niecertyfikowany AMS-HT B, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05844096",
+                    "intro": "Wykryto niecertyfikowany AMS-HT F, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05824096",
+                    "intro": "Wykryto niecertyfikowany AMS-HT C, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05034098",
+                    "intro": "Wykryto niecertyfikowany AMS D, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05854096",
+                    "intro": "Wykryto niecertyfikowany AMS-HT E, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05804096",
+                    "intro": "Wykryto niecertyfikowany AMS-HT A, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05834096",
+                    "intro": "Wykryto niecertyfikowany AMS-HT D, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0500409E",
+                    "intro": "Wykryto niecertyfikowany moduł tnący, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05874096",
+                    "intro": "Wykryto niecertyfikowany AMS-HT H, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05004098",
+                    "intro": "Wykryto niecertyfikowany AMS A, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05008062",
+                    "intro": "Znacznik płyty roboczej nie został wykryty. Potwierdź, że płyta robocza jest prawidłowo ustawiona na stole grzewczym, wszystkie cztery rogi są wyrównane, a znacznik jest widoczny."
+                },
+                {
+                    "ecode": "0502C012",
+                    "intro": "Zadanie kalibracji nie można zostać wstrzymane."
+                },
+                {
+                    "ecode": "0500808B",
+                    "intro": "Konfiguracja kamery BirdsEye nie powiodła się. Wyczyść stół grzewczy, usuń wszystkie obiekty i matę oraz upewnij się, że znaczniki podgrzewanego stołu są widoczne. W międzyczasie wyczyść kamerę BirdsEye i kamerę głowicy oraz usuń wszelkie przeszkody, które mogą zasłaniać kamery."
+                },
+                {
+                    "ecode": "07FFC010",
+                    "intro": "Włóż filament, aż nie będzie można go dalej popchnąć. Podczas czyszczenia może pojawić się niewielki dym, więc po włożeniu zamknij przednie drzwi i górną pokrywę."
+                },
+                {
+                    "ecode": "03008081",
+                    "intro": "Zbiornik gaśnicy został nieprawidłowo zainstalowany."
+                },
+                {
+                    "ecode": "05024013",
+                    "intro": "To urządzenie nie jest kompatybilne z modułem laserowym 40W. Proszę wymień go na moduł laserowy 10W lub usuń."
+                },
+                {
+                    "ecode": "0300C070",
+                    "intro": "Gaśnica została wykryta i jest gotowa do użycia po podłączeniu modułu laserowego."
+                },
+                {
+                    "ecode": "05008092",
+                    "intro": "Inicjalizacja kamery narzędziowej nie powiodła się. Drukowanie może nadal trwać, ale niektóre funkcje sztucznej inteligencji zostaną wyłączone. Jeśli napotkasz ten problem ponownie po ponownym uruchomieniu, skontaktuj się z obsługą klienta."
+                },
+                {
+                    "ecode": "05024002",
+                    "intro": "Drukarka nie posiada danych kalibracyjnych poprawy precyzji ruchu. Poprawa precyzji ruchu nie może zostać włączona."
+                },
+                {
+                    "ecode": "05008041",
+                    "intro": "Filament w hotendzie jest zbyt zimny. Ekstruzja może uszkodzić ekstruder. Nadal podajesz/wyjmujesz filament?"
+                },
+                {
+                    "ecode": "0300404B",
+                    "intro": "Zadanie zostało przerwane, ponieważ drzwi frontowe lub górna pokrywa są otwarte."
+                },
+                {
+                    "ecode": "0502C011",
+                    "intro": "Aktualny tryb to produkcja 2D. Proszę operować bezpośrednio na drukarce."
+                },
+                {
+                    "ecode": "0300807E",
+                    "intro": "Gaśnica nie została wykryta."
+                },
+                {
+                    "ecode": "0300807D",
+                    "intro": "Nie wykryto gaśnicy, funkcja automatycznego gaszenia będzie niedostępna."
+                },
+                {
+                    "ecode": "05008091",
+                    "intro": "Kalibracja przesunięcia modułu cięcia nie powiodła się, co może skutkować niedokładnymi cięciami. Upewnij się, że biały papier drukarki o gramaturze 80g (grubość papieru listowego) jest prawidłowo umieszczony i sprawdź, czy końcówka ostrza tnącego jest zużyta."
+                },
+                {
+                    "ecode": "0500808D",
+                    "intro": "Kalibracja offsetu modułu tnącego nie powiodła się, co może wpłynąć na dokładność cięcia. Upewnij się, że biały papier do drukarki o gramaturze 80 g jest prawidłowo umieszczony i sprawdź, czy końcówka ostrza tnącego nie jest zużyta."
                 },
                 {
                     "ecode": "05024008",
@@ -18208,24 +18536,152 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0502400C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502400B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300807F",
+                    "intro": "Gaśnica działa nieprawidłowo."
+                },
+                {
+                    "ecode": "03008082",
+                    "intro": "Zbiornik gaśnicy jest pusty."
+                },
+                {
+                    "ecode": "03008080",
+                    "intro": "Reset silnika gaśnicy nie powiodło się."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "Filament określony w slicerze został zużyty. Drukowanie zostało wstrzymane. Proszę podejść do urządzenia, aby wymienić materiał i wznowić drukowanie."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "Filament określony w slicerze został zużyty. Drukowanie zostało wstrzymane. Proszę podejść do urządzenia, aby wymienić materiał i wznowić drukowanie."
+                },
+                {
+                    "ecode": "0300C056",
+                    "intro": "Wewnątrz komory wykryto niewielki pożar, w wyniku czego proces automatycznego gaszenia został przerwany."
+                },
+                {
+                    "ecode": "05004030",
+                    "intro": "Urządzenie jest w trakcie aktualizacji. Spróbuj ponownie, gdy będzie w stanie bezczynności."
+                },
+                {
+                    "ecode": "0300C012",
+                    "intro": "Podgrzej dyszę do temperatury powyżej 170°C."
+                },
+                {
+                    "ecode": "05004010",
+                    "intro": "AMS jest w trakcie suszenia i nie można go obecnie zaktualizować. Spróbuj ponownie później."
+                },
+                {
+                    "ecode": "05004011",
+                    "intro": "Drukarka jest w trakcie załadunku lub rozładunku filamentu i nie można jej w tej chwili zaktualizować. Spróbuj ponownie później."
+                },
+                {
+                    "ecode": "05004012",
+                    "intro": "Urządzenie jest w trakcie druku i nie można go w tej chwili zaktualizować. Spróbuj ponownie później."
+                },
+                {
+                    "ecode": "0500400F",
+                    "intro": "Obecnie trwa inicjalizacja AMS, dlatego nie można przeprowadzić aktualizacji. Spróbuj ponownie później."
+                },
+                {
+                    "ecode": "05004013",
+                    "intro": "AMS jest w trakcie działania i nie można w tej chwili przeprowadzić aktualizacji. Spróbuj ponownie, gdy będzie w stanie bezczynności."
+                },
+                {
+                    "ecode": "07008023",
+                    "intro": "Chłodzenie AMS A nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "07028023",
+                    "intro": "Chłodzenie AMS C nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "07038023",
+                    "intro": "Chłodzenie AMS D nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "07018023",
+                    "intro": "Chłodzenie AMS B nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "07058023",
+                    "intro": "Chłodzenie AMS F nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "07048023",
+                    "intro": "Chłodzenie AMS E nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "18018023",
+                    "intro": "Chłodzenie AMS-HT B nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "07068023",
+                    "intro": "Chłodzenie AMS G nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "07078023",
+                    "intro": "Chłodzenie AMS H nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "18048023",
+                    "intro": "Chłodzenie AMS-HT E nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "18068023",
+                    "intro": "Chłodzenie AMS-HT G nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "18038023",
+                    "intro": "Chłodzenie AMS-HT D nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "18058023",
+                    "intro": "Chłodzenie AMS-HT F nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "18008023",
+                    "intro": "Chłodzenie AMS-HT A nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "18078023",
+                    "intro": "Chłodzenie AMS-HT H nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "18028023",
+                    "intro": "Chłodzenie AMS-HT C nie powiodło się. Temperatura otoczenia może być zbyt wysoka. Proszę korzystać z urządzenia w odpowiednich warunkach."
+                },
+                {
+                    "ecode": "03008022",
+                    "intro": "Podgrzewany stół może zostać zablokowany podczas jego opuszczania. Usuń wszelkie przedmioty znajdujące się pod stołem grzewczym i sprawdź, czy nie stawia on oporu lub nie blokuje się podczas ruchu."
+                },
+                {
                     "ecode": "05004042",
-                    "intro": "AMS jest obecnie używany do drukowania i nie może zainicjować suszenia."
+                    "intro": "Ze względu na ograniczenia zasilania, uruchomienie suszenia w AMS wstrzyma bieżące operacje, takie jak nagrzewanie dyszy i działanie wentylatora. Czy chcesz kontynuować suszenie?"
                 },
                 {
                     "ecode": "05004040",
-                    "intro": "Ze względu na ograniczenia mocy tylko jeden AMS może być wykorzystywany do suszenia podczas druku. Czy suszenie powinno zostać zatrzymane?"
+                    "intro": "Osiągnięto maksymalne obciążenie zasilania drukarki. Podłącz dedykowany zasilacz do tego modułu AMS, aby włączyć funkcję suszenia."
                 },
                 {
                     "ecode": "05004041",
-                    "intro": "Ze względu na ograniczenia mocy tylko jeden AMS może być wykorzystywany do suszenia podczas druku. Czy suszenie powinno zostać zatrzymane?"
+                    "intro": "Suszenie w AMS nie może zostać uruchomione podczas drukowania."
                 },
                 {
                     "ecode": "0500806B",
                     "intro": "Dźwignia szybkiego zwalniania nie jest zablokowana. Dociśnij zewnętrzny moduł głowicy, aby upewnić się, że jest prawidłowo osadzony, a następnie opuść dźwignię, aby go zablokować."
-                },
-                {
-                    "ecode": "0500808D",
-                    "intro": "Kalibracja offsetu modułu tnącego nie powiodła się, co może wpłynąć na dokładność cięcia. Upewnij się, że biały papier do drukarki o gramaturze 80 g jest prawidłowo umieszczony i sprawdź, czy końcówka ostrza tnącego nie jest zużyta."
                 },
                 {
                     "ecode": "0502C010",
@@ -18238,10 +18694,6 @@
                 {
                     "ecode": "07FFC011",
                     "intro": "Trzymając uchwyt koła napędowego, powoli wyciągnij filament z ekstrudera i kliknij \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "03008022",
-                    "intro": "Wykryto przeszkodę w dolnej części podgrzewanego stołu."
                 },
                 {
                     "ecode": "0502C00F",
@@ -18560,10 +19012,6 @@
                     "intro": "Firmware AMS B nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
                 },
                 {
-                    "ecode": "0500409F",
-                    "intro": "Wykryto niecertyfikowaną pompę powietrza, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
-                },
-                {
                     "ecode": "0500409B",
                     "intro": "Firmware modułu lasera nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
                 },
@@ -18572,28 +19020,12 @@
                     "intro": "Firmware AMS-HT H nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
                 },
                 {
-                    "ecode": "05004097",
-                    "intro": "Wykryto niecertyfikowany moduł lasera, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
-                },
-                {
                     "ecode": "0503409D",
                     "intro": "Firmware AMS D nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
                 },
                 {
-                    "ecode": "05864096",
-                    "intro": "Wykryto niecertyfikowany AMS-HT G, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05024098",
-                    "intro": "Wykryto niecertyfikowany AMS C, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
-                },
-                {
                     "ecode": "0581409C",
                     "intro": "Firmware AMS-HT B nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "05014098",
-                    "intro": "Wykryto niecertyfikowany AMS B, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
                 },
                 {
                     "ecode": "0585409C",
@@ -18604,48 +19036,12 @@
                     "intro": "Firmware AMS C nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
                 },
                 {
-                    "ecode": "05814096",
-                    "intro": "Wykryto niecertyfikowany AMS-HT B, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05844096",
-                    "intro": "Wykryto niecertyfikowany AMS-HT F, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05824096",
-                    "intro": "Wykryto niecertyfikowany AMS-HT C, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05854096",
-                    "intro": "Wykryto niecertyfikowany AMS-HT E, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05804096",
-                    "intro": "Wykryto niecertyfikowany AMS-HT A, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05834096",
-                    "intro": "Wykryto niecertyfikowany AMS-HT D, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "0500409E",
-                    "intro": "Wykryto niecertyfikowany moduł tnący, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
-                },
-                {
                     "ecode": "0500409D",
                     "intro": "Firmware AMS A nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
                 },
                 {
-                    "ecode": "05874096",
-                    "intro": "Wykryto niecertyfikowany AMS-HT H, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
                     "ecode": "0500409A",
                     "intro": "Firmware pompy powietrza nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "05004098",
-                    "intro": "Wykryto niecertyfikowany AMS A, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
                 },
                 {
                     "ecode": "0586409C",
@@ -18654,10 +19050,6 @@
                 {
                     "ecode": "03004050",
                     "intro": "Upłynął limit czasu kalibracji kamery Liveview. Uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05034098",
-                    "intro": "Wykryto niecertyfikowany AMS D, urządzenie nie może kontynuować pracy. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
                 },
                 {
                     "ecode": "05004099",
@@ -18680,10 +19072,6 @@
                     "intro": "AI wykryło zlepianie się dyszy. Sprawdź stan dyszy. Rozwiązania można znaleźć w Asystencie."
                 },
                 {
-                    "ecode": "03004070",
-                    "intro": "Podgrzej dyszę do temperatury powyżej 170°C."
-                },
-                {
                     "ecode": "0500808E",
                     "intro": "Nieudana inicjalizacja kamery BirdsEye. Kamera głowicy nie wykryła cech stołu grzewczego. Wyczyść stół grzewczy, usuń wszystkie obiekty oraz podkładki i upewnij się, że znaczniki na stole są widoczne. Sprawdź Asystenta, aby uzyskać szczegółowe rozwiązanie."
                 },
@@ -18704,16 +19092,16 @@
                     "intro": "Kamera głowicy jest zabrudzona, co wpływa na funkcję AI. Wyczyść powierzchnię soczewki."
                 },
                 {
-                    "ecode": "0500808B",
-                    "intro": "Konfiguracja kamery BirdsEye nie powiodła się. Wyczyść stół grzewczy, usuń wszystkie obiekty i matę oraz upewnij się, że znaczniki podgrzewanego stołu są widoczne. W międzyczasie wyczyść kamerę BirdsEye i kamerę głowicy oraz usuń wszelkie przeszkody, które mogą zasłaniać kamery."
-                },
-                {
                     "ecode": "05004033",
                     "intro": "Firmware AMS nie jest zgodny z drukarką. Zaktualizuj go na stronie \"Firmware\"."
                 },
                 {
                     "ecode": "05004031",
                     "intro": "Firmware akcesorium nie jest zgodny z drukarką. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "05004034",
+                    "intro": "Firmware modułu lasera nie jest zgodny z drukarką. Zaktualizuj go na stronie \"Firmware\"."
                 },
                 {
                     "ecode": "05008085",
@@ -18726,10 +19114,6 @@
                 {
                     "ecode": "03004044",
                     "intro": "Czujnik płomienia nie działa prawidłowo. Czujnik może być zwarty. Proszę rozwiązać problem przed rozpoczęciem drukowania."
-                },
-                {
-                    "ecode": "05008062",
-                    "intro": "Znacznik płyty roboczej nie został wykryty. Potwierdź, że płyta robocza jest prawidłowo ustawiona na stole grzewczym, wszystkie cztery rogi są wyrównane, a znacznik jest widoczny."
                 },
                 {
                     "ecode": "07FF8007",
@@ -18750,10 +19134,6 @@
                 {
                     "ecode": "0500808C",
                     "intro": "Wykryto przesunięcie płyty roboczej. Wyrównaj płytę roboczą ze stołem roboczym, a następnie kontynuuj."
-                },
-                {
-                    "ecode": "07FFC010",
-                    "intro": "Włóż filament, aż nie będzie można go dalej popchnąć. Podczas czyszczenia może pojawić się niewielki dym, więc po włożeniu zamknij przednie drzwi i górną pokrywę."
                 },
                 {
                     "ecode": "07FFC012",
@@ -19198,6 +19578,10 @@
                 {
                     "ecode": "0300804B",
                     "intro": "Zadanie zostało wstrzymane. Okno ochronne lasera jest otwarte."
+                },
+                {
+                    "ecode": "03004042",
+                    "intro": "Okno ochronne lasera nie jest prawidłowo zainstalowane. Zadanie zostało zatrzymane."
                 },
                 {
                     "ecode": "0300404D",
@@ -19876,10 +20260,6 @@
                     "intro": "Błąd bazowania ostrza w osi Z"
                 },
                 {
-                    "ecode": "0500807E",
-                    "intro": "Proszę położyć matę StrongGrip na podstawie ochronnej do cięcia."
-                },
-                {
                     "ecode": "05008058",
                     "intro": "Proszę prawidłowo umieścić matę LightGrip do cięcia i upewnić się, że znacznik jest widoczny."
                 },
@@ -20076,10 +20456,6 @@
                     "intro": "Wykryto niezgodność dyszy podczas druku. Proszę rozpocząć drukowanie po ponownym pocięciu modelu lub wymienić dyszę na prawidłową. Uwaga: temperatura głowicy jest wysoka."
                 },
                 {
-                    "ecode": "05024002",
-                    "intro": "Drukarka nie posiada danych kalibracyjnych poprawy precyzji ruchu. Poprawa precyzji ruchu nie może zostać włączona."
-                },
-                {
                     "ecode": "07FF8003",
                     "intro": "Proszę wyciągnąć filament z uchwytu szpuli. Jeśli ten komunikat będzie się powtarzał, sprawdź, czy w ekstruderze nie ma uszkodzonego filamentu. (Podłącz rurkę PTFE, jeśli masz zamiar użyć AMS)"
                 },
@@ -20184,76 +20560,12 @@
                     "intro": "Nie wykryto materiału. Proszę upewnić się, że materiał jest odpowiednio umieszczony i kontynuować."
                 },
                 {
-                    "ecode": "18028023",
-                    "intro": "AMS-HT C Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "18078023",
-                    "intro": "AMS-HT H Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "18058023",
-                    "intro": "AMS-HT F Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "18008023",
-                    "intro": "AMS-HT A Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
                     "ecode": "0C004022",
                     "intro": "Konfiguracja kamery BirdsEye nie powiodła się.  Sprawdź, czy moduł lasera działa prawidłowo."
                 },
                 {
-                    "ecode": "18038023",
-                    "intro": "AMS-HT D Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "18068023",
-                    "intro": "AMS-HT G Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "18048023",
-                    "intro": "AMS-HT E Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "07078023",
-                    "intro": "AMS H Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "07068023",
-                    "intro": "AMS G Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "07048023",
-                    "intro": "AMS E Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "18018023",
-                    "intro": "AMS-HT B Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "07058023",
-                    "intro": "AMS F Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
                     "ecode": "0300801D",
                     "intro": "Czujnik pozycji silnika serwomotoru ekstrudera działa nieprawidłowo. Proszę wyłączyć drukarkę i skontrolować, czy przewód nie jest poluzowany."
-                },
-                {
-                    "ecode": "07008023",
-                    "intro": "AMS A Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "07028023",
-                    "intro": "AMS C Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "07038023",
-                    "intro": "AMS D Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
-                },
-                {
-                    "ecode": "07018023",
-                    "intro": "AMS B Proces chłodzenia po suszeniu zakończył się niepowodzeniem."
                 },
                 {
                     "ecode": "07038002",
