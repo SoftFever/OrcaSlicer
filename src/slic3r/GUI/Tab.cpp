@@ -2135,7 +2135,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_retract", "quality_settings_ironing#flow");
         optgroup->append_single_option_line("ironing_unretract_extra", "quality_settings_ironing#flow");
         optgroup->append_single_option_line("ironing_spacing", "quality_settings_ironing#line-spacing");
-        optgroup->append_single_option_line("ironing_unretract_extra", "quality_settings_ironing#flow");
         optgroup->append_single_option_line("ironing_inset", "quality_settings_ironing#inset");
         optgroup->append_single_option_line("ironing_angle", "quality_settings_ironing#angle");
 
