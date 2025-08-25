@@ -1002,7 +1002,7 @@ ExtruderType CalibrationPresetPage::get_extruder_type(int extruder_id) const
     return ExtruderType::etDirectDrive;
 }
 
-wxBoxSizer* CalibrationPresetPage::create_ams_items_sizer(wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, int nozzle_id){
+wxBoxSizer* CalibrationPresetPage::create_ams_items_sizer(MachineObject* obj, wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, int nozzle_id){
     /* clear ams_preview_list */
     for (auto &item : ams_preview_list) {
         delete item;
@@ -1017,8 +1017,13 @@ wxBoxSizer* CalibrationPresetPage::create_ams_items_sizer(wxPanel* ams_preview_p
         preview_ams_item->Open();
         ams_preview_list.push_back(preview_ams_item);
         std::string ams_id = preview_ams_item->get_ams_id();
-        preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, ams_id, nozzle_id](wxMouseEvent &e) {
-            update_multi_extruder_filament_combobox(ams_id, nozzle_id);
+        bool is_single = !obj->is_multi_extruders();
+        preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, ams_id, nozzle_id, is_single](wxMouseEvent &e) {
+            if(is_single){
+                update_filament_combobox(ams_id);
+            } else{
+                update_multi_extruder_filament_combobox(ams_id, nozzle_id);
+            }
             e.Skip();
         });
         ams_items_sizer->Add(preview_ams_item, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
@@ -2313,14 +2318,14 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
     }
 
     /* update ams preview */
-    auto ams_items_sizer = create_ams_items_sizer(m_multi_ams_panel, m_ams_preview_list, ams_info, MAIN_EXTRUDER_ID);
+    auto ams_items_sizer = create_ams_items_sizer(obj, m_multi_ams_panel, m_ams_preview_list, ams_info, MAIN_EXTRUDER_ID);
     auto multi_ams_sizer = new wxBoxSizer(wxVERTICAL);
     multi_ams_sizer->Add(ams_items_sizer, 0);
     multi_ams_sizer->AddSpacer(FromDIP(10));
     m_multi_ams_panel->SetSizer(multi_ams_sizer);
 
-    m_main_ams_preview_panel->SetSizer(create_ams_items_sizer(m_main_ams_preview_panel, m_main_ams_preview_list, main_ams_info, MAIN_EXTRUDER_ID));
-    m_deputy_ams_preview_panel->SetSizer(create_ams_items_sizer(m_deputy_ams_preview_panel, m_deputy_ams_preview_list, deputy_ams_info, DEPUTY_EXTRUDER_ID));
+    m_main_ams_preview_panel->SetSizer(create_ams_items_sizer(obj, m_main_ams_preview_panel, m_main_ams_preview_list, main_ams_info, MAIN_EXTRUDER_ID));
+    m_deputy_ams_preview_panel->SetSizer(create_ams_items_sizer(obj, m_deputy_ams_preview_panel, m_deputy_ams_preview_list, deputy_ams_info, DEPUTY_EXTRUDER_ID));
 
     Layout();
 }
