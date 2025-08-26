@@ -6710,7 +6710,7 @@ msgstr "顯示 STEP 網格參數設定視窗。"
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
-msgstr 啟用後，匯入 STEP 檔案時會顯示參數設定視窗。"
+msgstr "啟用後，匯入 STEP 檔案時會顯示參數設定視窗。"
 
 msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
 msgstr "多臺設備管理 (需重開 Orca)"
@@ -7490,7 +7490,7 @@ msgstr ""
 msgid ""
 "Enabling both precise Z height and the prime tower may cause the size of "
 "prime tower to increase. Do you still want to enable?"
-msgstr 同時啟用精確 Z 軸高度與換料塔功能，可能會讓換料塔變大。是否仍要啟用？"
+msgstr "同時啟用精確 Z 軸高度與換料塔功能，可能會讓換料塔變大。是否仍要啟用？"
 
 msgid ""
 "A prime tower is required for smooth timelapse. There may be flaws on the "
@@ -8690,7 +8690,7 @@ msgid "Gizmo text emboss/engrave"
 msgstr "浮雕/雕刻文字工具"
 
 msgid "Gizmo measure"
-msgstr  測量"
+msgstr "測量"
 
 msgid "Gizmo assemble"
 msgstr "組裝"
