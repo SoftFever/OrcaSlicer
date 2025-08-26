@@ -131,6 +131,9 @@ private:
     GLModel m_logo_triangles;
     GLModel m_gridlines;
     GLModel m_gridlines_bolder;
+    GLModel m_plate_axis_x;
+    GLModel m_plate_axis_y;
+    bool m_axis_on_plate;
     GLModel m_height_limit_common;
     GLModel m_height_limit_bottom;
     GLModel m_height_limit_top;

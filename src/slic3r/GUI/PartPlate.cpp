@@ -471,14 +471,32 @@ static void init_raycaster_from_model(PickingModel& model)
 void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
     m_gridlines.reset();
     m_gridlines_bolder.reset();
+    m_plate_axis_x.reset();
+    m_plate_axis_y.reset();
 
     // calculate and generate grid
     int   step          = Bed_2D::calculate_grid_step(pp_bbox, scale_(1.00));
-    Vec2d scaled_origin = Vec2d(scale_(m_origin.x()),scale_(m_origin.x()));
+    Vec2d scaled_origin = Vec2d(scale_(m_origin.x()),scale_(m_origin.y()));
     auto  grid_lines    = Bed_2D::generate_grid(poly, pp_bbox, scaled_origin, scale_(step), SCALED_EPSILON);
 
     Lines lines_thin = to_lines(grid_lines[0]);
 	Lines lines_bold = to_lines(grid_lines[1]);
+
+    // add axis lines
+    Point o_pt = Point(scaled_origin.x(), scaled_origin.y());
+    m_axis_on_plate = pp_bbox.contains(o_pt);
+    coord_t axis_end_x = m_axis_on_plate ? pp_bbox.max(0) : (o_pt.x() + scale_(step * 2));
+    coord_t axis_end_y = m_axis_on_plate ? pp_bbox.max(1) : (o_pt.y() + scale_(step * 2));
+
+    Polylines axis_pl_x = { Polyline(o_pt, Point(axis_end_x, o_pt.y())) };
+    Polylines axis_pl_y = { Polyline(o_pt, Point(o_pt.x(), axis_end_y)) };
+    if(m_axis_on_plate){ // reqired for custom / circular plates to prevent overflow
+        axis_pl_x = intersection_pl(axis_pl_x, offset(poly, SCALED_EPSILON));
+        axis_pl_y = intersection_pl(axis_pl_y, offset(poly, SCALED_EPSILON));
+    } // else its IDEX with clone or mirror mode. dont use clipping to show axis outside
+
+    Lines lines_axis_x = to_lines(axis_pl_x);
+	Lines lines_axis_y = to_lines(axis_pl_y);
 
 	// append bed contours
 	Lines contour_lines = to_lines(poly);
@@ -489,6 +507,12 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 
 	if (!init_model_from_lines(m_gridlines_bolder, lines_bold, GROUND_Z_GRIDLINE))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
+
+	if (!init_model_from_lines(m_plate_axis_x, lines_axis_x, GROUND_Z_GRIDLINE + 0.01))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid x axis\n";
+
+	if (!init_model_from_lines(m_plate_axis_y, lines_axis_y, GROUND_Z_GRIDLINE + 0.01))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid y axis\n";
 }
 
 void PartPlate::calc_height_limit() {
@@ -892,6 +916,13 @@ void PartPlate::render_grid(bool bottom) {
 	glsafe(::glLineWidth(2.0f * m_scale_factor));
     m_gridlines_bolder.set_color(color);
     m_gridlines_bolder.render();
+    if (m_selected){
+        float opacity = m_axis_on_plate ? .15f : .5f;
+        m_plate_axis_x.set_color({ ColorRGB::X().r(), ColorRGB::X().g(), ColorRGB::X().b(), opacity });
+        m_plate_axis_x.render();
+        m_plate_axis_y.set_color({ ColorRGB::Y().r(), ColorRGB::Y().g(), ColorRGB::Y().b(), opacity });
+        m_plate_axis_y.render();
+    }
 }
 
 void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode)
