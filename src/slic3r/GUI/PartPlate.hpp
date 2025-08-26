@@ -134,6 +134,7 @@ private:
     GLModel m_plate_axis_x;
     GLModel m_plate_axis_y;
     bool m_axis_on_plate;
+    //bool m_axis_on_plate_min;
     GLModel m_height_limit_common;
     GLModel m_height_limit_bottom;
     GLModel m_height_limit_top;

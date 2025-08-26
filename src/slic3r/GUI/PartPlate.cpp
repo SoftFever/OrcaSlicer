@@ -485,6 +485,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
     // add axis lines
     Point o_pt = Point(scaled_origin.x(), scaled_origin.y());
     m_axis_on_plate = pp_bbox.contains(o_pt);
+    //m_axis_on_plate_min = pp_bbox.min == o_pt;
     coord_t axis_end_x = m_axis_on_plate ? pp_bbox.max(0) : (o_pt.x() + scale_(step * 2));
     coord_t axis_end_y = m_axis_on_plate ? pp_bbox.max(1) : (o_pt.y() + scale_(step * 2));
 
@@ -916,9 +917,12 @@ void PartPlate::render_grid(bool bottom) {
 	glsafe(::glLineWidth(2.0f * m_scale_factor));
     m_gridlines_bolder.set_color(color);
     m_gridlines_bolder.render();
+
     if (m_selected){
+        //if(m_axis_on_plate_min) // use 2x width if lines on edge because half of it clipping
+        //    glsafe(::glLineWidth(2.0f * m_scale_factor));
         float opacity = m_partplate_list->m_is_dark ? (m_axis_on_plate ? .15f : .5f)
-                                                    : (m_axis_on_plate ? .20f : .5f);
+                                                    : (m_axis_on_plate ? .21f : .5f);
         m_plate_axis_x.set_color({ ColorRGB::X().r(), ColorRGB::X().g(), ColorRGB::X().b(), opacity });
         m_plate_axis_x.render();
         m_plate_axis_y.set_color({ ColorRGB::Y().r(), ColorRGB::Y().g(), ColorRGB::Y().b(), opacity });
