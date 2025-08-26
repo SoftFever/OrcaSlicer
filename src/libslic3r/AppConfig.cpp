@@ -362,6 +362,10 @@ void AppConfig::set_defaults()
         set("max_recent_count", "18");
     }
 
+    if (get("recent_models").empty()) {
+        set("recent_models", "0");
+    }
+
     // if (get("staff_pick_switch").empty()) {
     //     set_bool("staff_pick_switch", false);
     // }
@@ -837,6 +841,10 @@ void AppConfig::save()
 #endif
 
     c.close();
+    if (c.fail()) {
+      BOOST_LOG_TRIVIAL(error) << "Failed to write new configuration to " << path_pid << "; aborting attempt to overwrite original configuration";
+      return;
+    }
 
 #ifdef WIN32
     // Make a backup of the configuration file before copying it to the final destination.
@@ -1042,6 +1050,10 @@ void AppConfig::save()
     c << appconfig_md5_hash_line(config_str);
 #endif
     c.close();
+    if (c.fail()) {
+      BOOST_LOG_TRIVIAL(error) << "Failed to write new configuration to " << path_pid << "; aborting attempt to overwrite original configuration";
+      return;
+    }
 
 #ifdef WIN32
     // Make a backup of the configuration file before copying it to the final destination.

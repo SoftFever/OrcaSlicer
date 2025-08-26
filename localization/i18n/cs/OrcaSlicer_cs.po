@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: 2024-11-03 20:59+0100\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -34,14 +34,6 @@ msgid "Temperature"
 msgstr "Teplota"
 
 msgid "Left Time"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
 msgstr ""
 
 msgid "Serial:"
@@ -198,6 +190,15 @@ msgstr ""
 msgid "Toggle Wireframe"
 msgstr "Přepnout drátový model"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Zrušit"
+
 msgid "Shortcut Key "
 msgstr "Klávesová Zkratka "
 
@@ -219,6 +220,9 @@ msgstr "Odbarvení"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Namalováno pomocí: Filament %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Přesunout"
@@ -488,9 +492,6 @@ msgstr "Velikost mezery vůči poloměru"
 
 msgid "Confirm connectors"
 msgstr "Potvrzení spojek"
-
-msgid "Cancel"
-msgstr "Zrušit"
 
 msgid "Build Volume"
 msgstr "Maximální rozměry tisku"
@@ -2842,8 +2843,8 @@ msgstr "Stahování"
 msgid "Download failed"
 msgstr "Stahování se nezdařilo"
 
-msgid "Cancelled"
-msgstr ""
+msgid "Canceled"
+msgstr "Zrušeno"
 
 msgid "Installed successfully"
 msgstr "Instalace proběhla úspěšně."
@@ -3798,7 +3799,6 @@ msgid ""
 "Reset to 0."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -9983,6 +9983,13 @@ msgstr ""
 msgid "Smooth High Temp Plate"
 msgstr ""
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Sekvence tisku první vrstvy"
 
@@ -11502,10 +11509,10 @@ msgstr "Plástev"
 msgid "3D Honeycomb"
 msgstr "3D Plástev"
 
-msgid "2D Honeycomb"
+msgid "Lateral Honeycomb"
 msgstr ""
 
-msgid "2D Lattice"
+msgid "Lateral Lattice"
 msgstr ""
 
 msgid "Cross Hatch"
@@ -11514,22 +11521,25 @@ msgstr ""
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Gyroid"
 
-msgid "Lattice angle 1"
+msgid "Lateral lattice angle 1"
 msgstr ""
 
 msgid ""
-"The angle of the first set of 2D lattice elements in the Z direction. Zero "
+"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr ""
 
-msgid "Lattice angle 2"
+msgid "Lateral lattice angle 2"
 msgstr ""
 
 msgid ""
-"The angle of the second set of 2D lattice elements in the Z direction. Zero "
+"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr ""
 
@@ -13249,6 +13259,9 @@ msgstr "Nejbližší"
 
 msgid "Aligned"
 msgstr "Zarovnaný"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Zezadu"
@@ -15432,9 +15445,6 @@ msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 "Neznámý formát souboru. Vstupní soubor musí mít příponu .3mf nebo .zip.amf."
 
-msgid "Canceled"
-msgstr "Zrušeno"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: nepodařilo se zpracovat"
 
@@ -15533,7 +15543,7 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 "Prosím, zadejte platné hodnoty:\n"
 "Počáteční hodnota: >= %.1f\n"
@@ -16036,7 +16046,7 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 "Zadejte prosím platné hodnoty:\n"
 "Spustit PA: >= 0,0\n"
@@ -16083,7 +16093,7 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 "Prosím zadejte platné hodnoty:\n"
 "Startovní teplota: <= 350\n"
@@ -16101,12 +16111,12 @@ msgstr "Konec objemové rychlosti: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Zadejte prosím platné hodnoty:\n"
-"start > 0 \n"
+"start > 0\n"
 "krok >= 0\n"
 "konec > začátek + krok)"
 
@@ -16121,12 +16131,12 @@ msgstr "Koncová rychlost: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Zadejte prosím platné hodnoty:\n"
-"start > 10 \n"
+"start > 10\n"
 "krok >= 0\n"
 "konec > začátek + krok)"
 
@@ -16154,9 +16164,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
-
 msgid "Damp: "
 msgstr ""
 
@@ -16166,8 +16173,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
@@ -16186,8 +16193,8 @@ msgid "Note: Use previously calculated frequencies."
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
 
 msgid ""
@@ -16210,7 +16217,7 @@ msgid "Note: Lower values = sharper corners but slower speeds"
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
 
@@ -16270,7 +16277,7 @@ msgstr "Ve frontě"
 msgid "Uploading"
 msgstr "Nahrávání"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Ruší se"
 
 msgid "Error uploading to print host"
@@ -17003,8 +17010,8 @@ msgstr "Připojení k Repetieru funguje správně."
 msgid "Could not connect to Repetier"
 msgstr "Nelze se připojit k Repetieru"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "Poznámka: Je vyžadována verze Repetier alespoň 0.90.0."
 
 #, boost-format
 msgid ""
@@ -17873,9 +17880,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "Obnovit tiskárny"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "Poznámka: Je vyžadována verze Repetier alespoň 0.90.0."
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
@@ -18871,7 +18875,7 @@ msgstr ""
 #~ msgid ""
 #~ "Please input valid values:\n"
 #~ "start > 0 step >= 0\n"
-#~ "end > start + step)"
+#~ "end > start + step"
 #~ msgstr ""
 #~ "Zadejte prosím platné hodnoty:\n"
 #~ "start > 0 krok >= 0\n"
@@ -18880,7 +18884,7 @@ msgstr ""
 #~ msgid ""
 #~ "Please input valid values:\n"
 #~ "start > 10 step >= 0\n"
-#~ "end > start + step)"
+#~ "end > start + step"
 #~ msgstr ""
 #~ "Zadejte prosím platné hodnoty:\n"
 #~ "start > 10 kroků >= 0\n"

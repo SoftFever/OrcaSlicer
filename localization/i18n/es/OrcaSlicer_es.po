@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-08-12 00:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -30,14 +30,6 @@ msgid "Temperature"
 msgstr "Temperatura"
 
 msgid "Left Time"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
 msgstr ""
 
 msgid "Serial:"
@@ -194,6 +186,15 @@ msgstr "Alt + Shift + Intro"
 msgid "Toggle Wireframe"
 msgstr "Alternar Malla Alámbrica"
 
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Cancelar"
+
 msgid "Shortcut Key "
 msgstr "Tecla de acceso directo "
 
@@ -215,6 +216,9 @@ msgstr "Eliminar color pintado"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Pintado con: Filamento %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Mover"
@@ -485,9 +489,6 @@ msgstr "Proporción de espacio en relación al radio"
 
 msgid "Confirm connectors"
 msgstr "Confirmar conectores"
-
-msgid "Cancel"
-msgstr "Cancelar"
 
 msgid "Build Volume"
 msgstr "Volumen de Construcción"
@@ -2898,8 +2899,8 @@ msgstr "Descargando"
 msgid "Download failed"
 msgstr "Descarga fallida"
 
-msgid "Cancelled"
-msgstr ""
+msgid "Canceled"
+msgstr "Cancelado"
 
 msgid "Installed successfully"
 msgstr "Instalación exitosa."
@@ -3905,7 +3906,6 @@ msgstr ""
 "seam_slope_start_height debe ser menor que layer_height.\n"
 "Restableciendo a 0."
 
-#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
@@ -10343,6 +10343,13 @@ msgstr "Bandeja Fría Lisa"
 msgid "Smooth High Temp Plate"
 msgstr "Bandeja Lisa de Alta Temperatura"
 
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
+
 msgid "First layer print sequence"
 msgstr "Secuencia de impresión de primera capa"
 
@@ -12193,10 +12200,10 @@ msgstr "Panal de abeja"
 msgid "3D Honeycomb"
 msgstr "Panal 3D"
 
-msgid "2D Honeycomb"
+msgid "Lateral Honeycomb"
 msgstr ""
 
-msgid "2D Lattice"
+msgid "Lateral Lattice"
 msgstr ""
 
 msgid "Cross Hatch"
@@ -12205,22 +12212,25 @@ msgstr "Rayado Cruzado"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Giroide"
 
-msgid "Lattice angle 1"
+msgid "Lateral lattice angle 1"
 msgstr ""
 
 msgid ""
-"The angle of the first set of 2D lattice elements in the Z direction. Zero "
+"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr ""
 
-msgid "Lattice angle 2"
+msgid "Lateral lattice angle 2"
 msgstr ""
 
 msgid ""
-"The angle of the second set of 2D lattice elements in the Z direction. Zero "
+"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
 "is vertical."
 msgstr ""
 
@@ -14052,6 +14062,9 @@ msgstr "Más cercano"
 
 msgid "Aligned"
 msgstr "Alineado"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "Trasera"
@@ -16462,9 +16475,6 @@ msgstr ""
 "Formato de archivo desconocido: el archivo de entrada debe tener extensión "
 ".3mf o .zip.amf."
 
-msgid "Canceled"
-msgstr "Cancelado"
-
 msgid "load_obj: failed to parse"
 msgstr "load_obj: fallo al parsear"
 
@@ -16563,13 +16573,13 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 "Por favor, introduzca valores válidos:\n"
 "Valor inicial: >= %.1f\n"
 "Valor final <= %.1f\n"
 "Valor final: > Valor inicial\n"
-"Valor de incremento: >= %.3f)"
+"Valor de incremento: >= %.3f"
 
 msgid "The name cannot be empty."
 msgstr "El nombre no puede estar vacío."
@@ -17124,12 +17134,12 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 "Por favor, introduzca valores válidos:\n"
 "PA inicial: >=0.0\n"
 "PA final:> Iniciar PA\n"
-"Incremento de PA:>=0.001)"
+"Incremento de PA:>=0.001"
 
 msgid "Temperature calibration"
 msgstr "Calibración de temperatura"
@@ -17171,12 +17181,12 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 "Por favor, introduzca valores válidos:\n"
 "Temp inicial: <= 350\n"
 "Temp final: >=170\n"
-"Temp inicial > Temp final + 5)"
+"Temp inicial > Temp final + 5"
 
 msgid "Max volumetric speed test"
 msgstr "Test de velocidad volumétrica máxima"
@@ -17189,14 +17199,14 @@ msgstr "Velocidad volumétrica final: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Por favor, introduzca valores válidos:\n"
 "inicio > 0\n"
 "incremento >=0\n"
-"final > inicio + paso)"
+"final > inicio + paso"
 
 msgid "VFA test"
 msgstr "Test VFA"
@@ -17209,14 +17219,14 @@ msgstr "Velocidad final: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Por favor, introduzca valores válidos:\n"
 "inicio > 10\n"
 "incremento >=0\n"
-"final > inicio + paso)"
+"final > inicio + paso"
 
 msgid "Start retraction length: "
 msgstr "Longitud de retracción inicial: "
@@ -17242,9 +17252,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
-
 msgid "Damp: "
 msgstr ""
 
@@ -17254,8 +17261,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
@@ -17274,8 +17281,8 @@ msgid "Note: Use previously calculated frequencies."
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
 
 msgid ""
@@ -17298,7 +17305,7 @@ msgid "Note: Lower values = sharper corners but slower speeds"
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
 
@@ -17359,7 +17366,7 @@ msgstr "En cola"
 msgid "Uploading"
 msgstr "Subiendo"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Cancelado"
 
 msgid "Error uploading to print host"
@@ -18192,8 +18199,8 @@ msgstr "La conexión con Repetier funciona correctamente."
 msgid "Could not connect to Repetier"
 msgstr "No se ha podido conectar con Repetier"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "Nota: Se requiere la versión 0.90.0 de Repetier como mínimo."
 
 #, boost-format
 msgid ""
@@ -19260,9 +19267,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "Refrescar Impresoras"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "Nota: Se requiere la versión 0.90.0 de Repetier como mínimo."
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "
@@ -20920,20 +20924,20 @@ msgstr ""
 #~ msgid ""
 #~ "Please input valid values:\n"
 #~ "start > 0 step >= 0\n"
-#~ "end > start + step)"
+#~ "end > start + step"
 #~ msgstr ""
 #~ "Por favor, introduzca valores válidos:\n"
 #~ "inicio>paso 0 >= 0\n"
-#~ "fin > inicio + paso)"
+#~ "final > inicio + paso"
 
 #~ msgid ""
 #~ "Please input valid values:\n"
 #~ "start > 10 step >= 0\n"
-#~ "end > start + step)"
+#~ "end > start + step"
 #~ msgstr ""
 #~ "Por favor, introduzca valores válidos:\n"
 #~ "inicio > paso 10 >= 0\n"
-#~ "final > inicio + paso)"
+#~ "final > inicio + paso"
 
 #~ msgid "Send to print"
 #~ msgstr "Mandar a imprimir"
