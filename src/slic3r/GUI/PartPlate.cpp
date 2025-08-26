@@ -81,7 +81,7 @@ ColorRGBA PartPlate::UNSELECT_DARK_COLOR		= { 0.384f, 0.384f, 0.412f, 1.0f };
 ColorRGBA PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
 ColorRGBA PartPlate::LINE_TOP_COLOR		= { 0.89f, 0.89f, 0.89f, 1.0f };
 ColorRGBA PartPlate::LINE_TOP_DARK_COLOR		= { 0.431f, 0.431f, 0.463f, 1.0f };
-ColorRGBA PartPlate::LINE_TOP_SEL_COLOR  = { 0.5294f, 0.5451, 0.5333f, 1.0f};
+ColorRGBA PartPlate::LINE_TOP_SEL_COLOR  = { 0.4294f, 0.4451, 0.4333f, 1.0f};
 ColorRGBA PartPlate::LINE_TOP_SEL_DARK_COLOR = { 0.298f, 0.298f, 0.3333f, 1.0f};
 ColorRGBA PartPlate::LINE_BOTTOM_COLOR	= { 0.8f, 0.8f, 0.8f, 0.4f };
 ColorRGBA PartPlate::HEIGHT_LIMIT_TOP_COLOR		= { 0.6f, 0.6f, 1.0f, 1.0f };
@@ -917,7 +917,8 @@ void PartPlate::render_grid(bool bottom) {
     m_gridlines_bolder.set_color(color);
     m_gridlines_bolder.render();
     if (m_selected){
-        float opacity = m_axis_on_plate ? .15f : .5f;
+        float opacity = m_partplate_list->m_is_dark ? (m_axis_on_plate ? .15f : .5f)
+                                                    : (m_axis_on_plate ? .20f : .5f);
         m_plate_axis_x.set_color({ ColorRGB::X().r(), ColorRGB::X().g(), ColorRGB::X().b(), opacity });
         m_plate_axis_x.render();
         m_plate_axis_y.set_color({ ColorRGB::Y().r(), ColorRGB::Y().g(), ColorRGB::Y().b(), opacity });
