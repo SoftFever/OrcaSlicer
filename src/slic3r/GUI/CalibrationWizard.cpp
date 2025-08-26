@@ -844,7 +844,7 @@ void PressureAdvanceWizard::on_cali_start()
             CalibInfo calib_info;
             calib_info.dev_id = curr_obj->get_dev_id();
             get_tray_ams_and_slot_id(curr_obj, item.first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
-            calib_info.index              = preset_page->get_index_by_tray_id(selected_tray_id);
+            calib_info.index              = preset_page->get_index_by_tray_id(item.first);
             calib_info.extruder_id        = preset_page->get_extruder_id(calib_info.ams_id);
             calib_info.nozzle_diameter    = preset_page->get_nozzle_diameter(calib_info.extruder_id);
             calib_info.extruder_type      = preset_page->get_extruder_type(calib_info.extruder_id);
