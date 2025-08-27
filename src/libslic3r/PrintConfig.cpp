@@ -53,6 +53,87 @@ namespace Slic3r {
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
 
+// Define filament types with their temperature ranges
+struct FilamentType {
+    std::string name;
+    int min_temp;
+    int max_temp;
+};
+
+static std::vector<FilamentType> filament_types = {
+        {"ABS", 190, 300},
+        {"ABS-CF", 220, 300},
+        {"ABS-GF", 240, 280},
+        {"ASA", 220, 300},
+        {"ASA-CF", 230, 300},
+        {"ASA-GF", 240, 300},
+        {"ASA-Aero", 240, 280},
+        {"BVOH", 190, 240},
+        {"EVA", 175, 220},
+        {"FLEX", 210, 230},
+        {"HIPS", 220, 270},
+        {"PA", 235, 350},
+        {"PA-CF", 240, 315},
+        {"PA-GF", 240, 290},
+        {"PA6", 260, 300},
+        {"PA6-CF", 230, 300},
+        {"PA6-GF", 260, 300},
+        {"PA11", 275, 295},
+        {"PA11-CF", 275, 295},
+        {"PA11-GF", 275, 295},
+        {"PA12", 250, 270},
+        {"PA12-CF", 250, 300},
+        {"PA12-GF", 255, 270},
+        {"PAHT", 260, 310},
+        {"PAHT-CF", 270, 310},
+        {"PAHT-GF", 270, 310},
+        {"PC", 240, 300},
+        {"PC-ABS", 230, 270},
+        {"PC-CF", 270, 295},
+        {"PCL", 130, 170},
+        {"PCTG", 220, 300},
+        {"PE", 175, 260},
+        {"PE-CF", 175, 260},
+        {"PE-GF", 230, 270},
+        {"PEI", 350, 390},
+        {"PEI-CF", 365, 390},
+        {"PEI-GF", 370, 390},
+        {"PEEK", 350, 460},
+        {"PEEK-CF", 380, 410},
+        {"PEEK-GF", 375, 410},
+        {"PEKK", 325, 400},
+        {"PEKK-CF", 360, 400},
+        {"PES", 340, 390},
+        {"PET", 200, 290},
+        {"PET-CF", 240, 320},
+        {"PET-GF", 280, 320},
+        {"PETG", 190, 300},
+        {"PETG-CF", 210, 290},
+        {"PETG-CF10", 220, 260},
+        {"PETG-GF", 230, 250},
+        {"PHA", 190, 240},
+        {"PI", 390, 410},
+        {"PLA", 160, 300},
+        {"PLA-AERO", 230, 270},
+        {"PLA-CF", 190, 250},
+        {"POM", 210, 220},
+        {"PP", 220, 290},
+        {"PP-CF", 220, 270},
+        {"PP-GF", 220, 270},
+        {"PPA-CF", 260, 300},
+        {"PPA-GF", 260, 290},
+        {"PPS", 300, 345},
+        {"PPS-CF", 295, 350},
+        {"PPSU", 360, 420},
+        {"PSU", 350, 380},
+        {"PVA", 185, 250},
+        {"PVB", 190, 250},
+        {"PVDF", 245, 265},
+        {"SBS", 195, 250},
+        {"TPI", 420, 445},
+        {"TPU", 175, 300}
+};
+
 static t_config_enum_names enum_names_from_keys_map(const t_config_enum_values &enum_keys_map)
 {
     t_config_enum_names names;
@@ -2261,63 +2342,7 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->gui_flags = "show_value";
 
-    // Define filament types with their temperature ranges
-    struct FilamentType {
-        std::string name;
-        int min_temp;
-        int max_temp;
-    };
-
-    std::vector<FilamentType> filament_types = {
-        {"ABS", 230, 270},
-        {"ABS-GF", 240, 270},
-        {"ASA", 240, 260},
-        {"ASA-Aero", 240, 280},
-        {"BVOH", 190, 210},
-        {"EVA", 180, 220},
-        {"FLEX", 210, 230},
-        {"HIPS", 230, 245},
-        {"PA", 250, 270},
-        {"PA-CF", 250, 300},
-        {"PA-GF", 250, 290},
-        {"PA6-CF", 260, 300},
-        {"PA11-CF", 275, 295},
-        {"PAHT", 260, 290},
-        {"PC", 250, 270},
-        {"PC-ABS", 250, 270},
-        {"PC-CF", 250, 270},
-        {"PCL", 60, 90},
-        {"PCTG", 200, 250},
-        {"PE", 230, 260},
-        {"PE-CF", 230, 260},
-        {"PEEK", 360, 400},
-        {"PEKK", 360, 400},
-        {"PET-CF", 240, 260},
-        {"PETG", 230, 250},
-        {"PETG-CF", 230, 250},
-        {"PETG-CF10", 230, 250},
-        {"PETG-GF", 230, 250},
-        {"PHA", 200, 230},
-        {"PI", 300, 320},
-        {"PLA", 190, 220},
-        {"PLA-AERO", 230, 270},
-        {"PLA-CF", 210, 230},
-        {"POM", 210, 220},
-        {"PP", 220, 270},
-        {"PP-CF", 220, 270},
-        {"PP-GF", 220, 270},
-        {"PPA-CF", 260, 300},
-        {"PPA-GF", 260, 290},
-        {"PPS", 300, 320},
-        {"PPS-CF", 295, 350},
-        {"PPSU", 360, 420},
-        {"PVA", 185, 225},
-        {"PVB", 190, 225},
-        {"SBS", 195, 250},
-        {"TPU", 210, 250}
-    };
-
-    // Populate the enum values
+    // Populate the enum values using the global filament_types vector
     for (const auto& filament : filament_types) {
         def->enum_values.push_back(filament.name);
     }
@@ -7302,6 +7327,21 @@ std::map<std::string, std::string> DynamicPrintConfig::validate(bool under_cli)
         //FIXME no validation on SLA data?
         return std::map<std::string, std::string>();
     }
+}
+
+bool get_filament_temp_range(const std::string& filament_type, int& min_temp, int& max_temp)
+{
+    min_temp = 190;
+    max_temp = 300;
+
+    for (const auto& filament : filament_types) {
+        if (filament.name == filament_type) {
+            min_temp = filament.min_temp;
+            max_temp = filament.max_temp;
+            return true;
+        }
+    }
+    return false; // Filament type not found
 }
 
 std::string DynamicPrintConfig::get_filament_type(std::string &displayed_filament_type, int id)
