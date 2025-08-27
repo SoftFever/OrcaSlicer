@@ -268,6 +268,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { "E", L("Gizmo brim ears") },
             { "I", L("Zoom in") },
             { "O", L("Zoom out") },
+            { "G", L("Show/Hide Plate gridlines")},
             { "Tab", L("Switch between Prepare/Preview") },
 
         };
