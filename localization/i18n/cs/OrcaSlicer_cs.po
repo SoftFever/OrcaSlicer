@@ -19,22 +19,22 @@ msgstr ""
 "X-Generator: Poedit 3.5\n"
 
 msgid "Current AMS humidity"
-msgstr ""
+msgstr "Aktuální vlhkost AMS"
 
 msgid "Drying"
-msgstr ""
+msgstr "Sušení"
 
 msgid "Idle"
 msgstr "Nečinný"
 
 msgid "Humidity"
-msgstr ""
+msgstr "Vlhkost"
 
 msgid "Temperature"
 msgstr "Teplota"
 
 msgid "Left Time"
-msgstr ""
+msgstr "Zbývající čas"
 
 msgid "Serial:"
 msgstr "Sériové číslo:"
@@ -125,7 +125,7 @@ msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr "Umožňuje malovat pouze na fasety vybrané pomocí: \"%1%\""
 
 msgid "Highlight faces according to overhang angle."
-msgstr "Zvýrazněte plochy podle úhlu převisů."
+msgstr "Zvýrazní plochy podle úhlu převisu."
 
 msgid "No auto support"
 msgstr "Žádné automatické podpěry"
@@ -161,7 +161,7 @@ msgid "Key 1~9"
 msgstr "Klávesa 1~9"
 
 msgid "Choose filament"
-msgstr "Vyberte Filament"
+msgstr "Vyberte filament"
 
 msgid "Edge detection"
 msgstr "Detekce hran"
@@ -185,50 +185,50 @@ msgid "Height range"
 msgstr "Rozsah výšky"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+msgstr "Alt + Shift + Enter"
 
 msgid "Toggle Wireframe"
 msgstr "Přepnout drátový model"
 
 msgid "Remap filaments"
-msgstr ""
+msgstr "Přemapovat filamenty"
 
 msgid "Remap"
-msgstr ""
+msgstr "Přemapovat"
 
 msgid "Cancel"
 msgstr "Zrušit"
 
 msgid "Shortcut Key "
-msgstr "Klávesová Zkratka "
+msgstr "Klávesová zkratka "
 
 msgid "Triangle"
 msgstr "Trojúhelník"
 
 msgid "Height Range"
-msgstr "Rozsah výš"
+msgstr "Rozsah výšky"
 
 msgid "Vertical"
-msgstr "Verikální"
+msgstr "Vertikální"
 
 msgid "Horizontal"
 msgstr "Horizontální"
 
 msgid "Remove painted color"
-msgstr "Odbarvení"
+msgstr "Odstranit namalovanou barvu"
 
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Namalováno pomocí: Filament %1%"
 
 msgid "Filament remapping finished."
-msgstr ""
+msgstr "Přemapování filamentů dokončeno."
 
 msgid "Move"
 msgstr "Přesunout"
 
 msgid "Please select at least one object."
-msgstr ""
+msgstr "Prosím, vyberte alespoň jeden objekt."
 
 msgid "Gizmo-Move"
 msgstr "Gizmo-Posuv"
@@ -261,19 +261,19 @@ msgid "mm"
 msgstr "mm"
 
 msgid "Part selection"
-msgstr ""
+msgstr "Výběr části"
 
 msgid "Fixed step drag"
-msgstr ""
+msgstr "Tažení po pevných krocích"
 
 msgid "Single sided scaling"
-msgstr ""
+msgstr "Jednostranné škálování"
 
 msgid "Position"
 msgstr "Pozice"
 
 msgid "Rotate (relative)"
-msgstr ""
+msgstr "Rotace (relativní)"
 
 msgid "Scale ratios"
 msgstr "Poměry měřítka"
@@ -309,16 +309,16 @@ msgid "World coordinates"
 msgstr "Světové souřadnice"
 
 msgid "Reset current rotation to the value when open the rotation tool."
-msgstr ""
+msgstr "Resetovat aktuální rotaci na hodnotu při otevření nástroje rotace."
 
 msgid "Rotate (absolute)"
-msgstr ""
+msgstr "Rotace (absolutní)"
 
 msgid "Reset current rotation to real zeros."
-msgstr ""
+msgstr "Resetovat aktuální rotaci na skutečnou nulu."
 
 msgid "Part coordinates"
-msgstr ""
+msgstr "Souřadnice součásti"
 
 #. TRN - Input label. Be short as possible
 msgid "Size"
@@ -443,7 +443,7 @@ msgid "Drag"
 msgstr "Táhnutí"
 
 msgid "Draw cut line"
-msgstr ""
+msgstr "Kreslit přímku řezu"
 
 msgid "Left click"
 msgstr "Levý klik"
@@ -587,7 +587,7 @@ msgid "Cut by Plane"
 msgstr "Řez Rovinou"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
-msgstr ""
+msgstr "Řezací nástroj způsobil ne‑manifold hrany, chcete je nyní opravit?"
 
 msgid "Repairing model object"
 msgstr "Oprava objektu modelu"
@@ -1058,7 +1058,7 @@ msgstr "Orientovat text směrem ke kameře."
 
 #, boost-format
 msgid "Font \"%1%\" can't be used. Please select another."
-msgstr ""
+msgstr "Font \"%1%\" nelze použít. Prosím vyberte jiný."
 
 #, boost-format
 msgid ""
@@ -1317,7 +1317,7 @@ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
 msgstr "SVG soubor neobsahuje jedinou cestu, kterou lze embosovat (%1%)."
 
 msgid "No feature"
-msgstr ""
+msgstr "Žádný prvek"
 
 msgid "Vertex"
 msgstr "Vertex"
@@ -1359,7 +1359,7 @@ msgid "Esc"
 msgstr "Esc"
 
 msgid "Cancel a feature until exit"
-msgstr ""
+msgstr "Zrušit zvolený prvek"
 
 msgid "Measure"
 msgstr "Měření"
@@ -1367,13 +1367,14 @@ msgstr "Měření"
 msgid ""
 "Please confirm explosion ratio = 1, and please select at least one object."
 msgstr ""
+"Potvrďte, že poměr explodovaného zobrazení = 1, a vyberte alespoň jeden objekt."
 
 msgid "Edit to scale"
 msgstr "Změna rozměru"
 
 msgctxt "Verb"
 msgid "Scale all"
-msgstr ""
+msgstr "Škálovat vše"
 
 msgid "None"
 msgstr "Žádné"
@@ -1388,40 +1389,46 @@ msgid "Selection"
 msgstr "Výběr"
 
 msgid " (Moving)"
-msgstr ""
+msgstr " (Pohyb)"
 
 msgid ""
 "Select 2 faces on objects and \n"
 " make objects assemble together."
 msgstr ""
+"Vyberte 2 plochy na objektech a\n"
+"sestavte objekty k sobě."
 
 msgid ""
 "Select 2 points or circles on objects and \n"
 " specify distance between them."
 msgstr ""
+"Vyberte 2 body nebo kružnice na objektech a\n"
+"zadejte vzdálenost mezi nimi."
 
 msgid "Face"
-msgstr ""
+msgstr "Plocha"
 
 msgid " (Fixed)"
-msgstr ""
+msgstr " (Opraveno)"
 
 msgid "Point"
-msgstr ""
+msgstr "Bod"
 
 msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
 msgstr ""
+"Prvek 1 byl resetován,\n"
+"prvek 2 byl přeřazen na pozici prvku 1"
 
 msgid "Warning: please select Plane's feature."
-msgstr ""
+msgstr "Varování: vyberte prosím prvek typu rovina."
 
 msgid "Warning: please select Point's or Circle's feature."
-msgstr ""
+msgstr "Varování: vyberte prosím prvek typu bod nebo kružnice."
 
 msgid "Warning: please select two different meshes."
-msgstr ""
+msgstr "Varování: vyberte prosím dvě odlišné sítě."
 
 msgid "Copy to clipboard"
 msgstr "Kopírovat do schránky"
@@ -1439,25 +1446,25 @@ msgid "Distance XYZ"
 msgstr "Vzdálenost XYZ"
 
 msgid "Parallel"
-msgstr ""
+msgstr "Rovnoběžné"
 
 msgid "Center coincidence"
-msgstr ""
+msgstr "Shoda středů"
 
 msgid "Feature 1"
-msgstr ""
+msgstr "Prvek 1"
 
 msgid "Reverse rotation"
-msgstr ""
+msgstr "Obrátit rotaci"
 
 msgid "Rotate around center:"
-msgstr ""
+msgstr "Otáčet kolem středu:"
 
 msgid "Parallel distance:"
-msgstr ""
+msgstr "Rovnoběžná vzdálenost:"
 
 msgid "Flip by Face 2"
-msgstr ""
+msgstr "Překlopit podle plochy 2"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -1499,7 +1506,7 @@ msgstr ""
 "rozpoznány."
 
 msgid "Based on PrusaSlicer and BambuStudio"
-msgstr ""
+msgstr "Založeno na PrusaSlicer a Bambustudio"
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory. It may be a bug. "
@@ -1555,7 +1562,7 @@ msgstr "WebView2 Runtime"
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
-msgstr ""
+msgstr "Cesta ke zdrojům neexistuje anebo není ve složce: %s"
 
 #, c-format, boost-format
 msgid ""
@@ -1655,9 +1662,11 @@ msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr ""
+"Počet uživatelských předvoleb uložených v cloudu překročil horní limit, "
+"nově vytvořené uživatelské předvolby lze použít pouze lokálně."
 
 msgid "Sync user presets"
-msgstr ""
+msgstr "Synchronizovat uživatelské předvolby"
 
 msgid "Loading user preset"
 msgstr "Načítání uživatelské předvolby"
@@ -1743,7 +1752,7 @@ msgid "Top Minimum Shell Thickness"
 msgstr "Minimální tloušťka skořepiny nahoře"
 
 msgid "Top Surface Density"
-msgstr ""
+msgstr "Vrchní povrchová hustota"
 
 msgid "Bottom Solid Layers"
 msgstr "Spodní plné vrstvy"
@@ -1752,7 +1761,7 @@ msgid "Bottom Minimum Shell Thickness"
 msgstr "Minimální tloušťka skořepiny dole"
 
 msgid "Bottom Surface Density"
-msgstr ""
+msgstr "Spodní povrchová hustota"
 
 msgid "Ironing"
 msgstr "Žehlení"
@@ -1833,10 +1842,10 @@ msgid "Cone"
 msgstr "Kužel"
 
 msgid "Disc"
-msgstr ""
+msgstr "Disk"
 
 msgid "Torus"
-msgstr ""
+msgstr "Torus"
 
 msgid "Orca Cube"
 msgstr "Orca Kostka"
@@ -1854,7 +1863,7 @@ msgid "Voron Cube"
 msgstr "Voron Kostka"
 
 msgid "Stanford Bunny"
-msgstr ""
+msgstr "Stanfordský králík"
 
 msgid "Orca String Hell"
 msgstr ""
@@ -1866,6 +1875,11 @@ msgid ""
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
 msgstr ""
+"Tento model má na horní ploše reliéfní text. Pro dosažení optimálních výsledků, "
+"je vhodné nastavit hodnotu 'Prahová hodnota jedné stěny (min_width_top_surface)' na 0, "
+"aby možnost 'Pouze jedna stěna na horních plochách' fungovala co nejlépe.\n"
+"Ano – Tato nastavení se mají měnit automaticky\n"
+"Ne – Tato nastavení se mi nemění."
 
 msgid "Text"
 msgstr "Text"
@@ -1898,10 +1912,10 @@ msgid "Fix model"
 msgstr "Opravit model"
 
 msgid "Export as one STL"
-msgstr ""
+msgstr "Exportovat jako jedno STL"
 
 msgid "Export as STLs"
-msgstr ""
+msgstr "Exportovat jako STL"
 
 msgid "Reload from disk"
 msgstr "Znovu načíst z disku"
@@ -2070,10 +2084,10 @@ msgid "arrange current plate"
 msgstr "uspořádat aktuální podložku"
 
 msgid "Reload All"
-msgstr ""
+msgstr "Přenačíst vše"
 
 msgid "reload all from disk"
-msgstr ""
+msgstr "Přenačíst vše z disku"
 
 msgid "Auto Rotate"
 msgstr "Automatické otáčení"
@@ -2151,7 +2165,7 @@ msgstr[1] "%1$d nespojitelné hrany"
 msgstr[2] "%1$d nespojitelných hran"
 
 msgid "Click the icon to repair model object"
-msgstr ""
+msgstr "Kliknutím na ikonu opravíte objekt modelu"
 
 msgid "Right button click the icon to drop the object settings"
 msgstr "Kliknutím pravým tlačítkem na ikonu zrušíte nastavení objektu"
@@ -2241,7 +2255,7 @@ msgid "Deleting the last solid part is not allowed."
 msgstr "Smazání poslední pevné části není povoleno."
 
 msgid "The target object contains only one part and can not be split."
-msgstr ""
+msgstr "Cílový objekt obsahuje pouze jednu část a nelze jej rozdělit."
 
 msgid "Assembly"
 msgstr "Sestavení"
@@ -2677,10 +2691,10 @@ msgid "Orienting"
 msgstr "Orientování"
 
 msgid "Orienting canceled."
-msgstr ""
+msgstr "Orientování zrušeno"
 
 msgid "Filling"
-msgstr ""
+msgstr "Výplň"
 
 msgid "Bed filling canceled."
 msgstr "Vyplnění podložky zrušeno."
@@ -3046,10 +3060,10 @@ msgstr "Krok"
 msgid "AMS Slots"
 msgstr "AMS sloty"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -3426,22 +3440,22 @@ msgid "Printing"
 msgstr "Tisk"
 
 msgid "Upgrading"
-msgstr ""
+msgstr "Aktualizace"
 
 msgid "Incompatible"
 msgstr "Nekompatibilní"
 
 msgid "syncing"
-msgstr ""
+msgstr "synchronizace"
 
 msgid "Printing Finish"
-msgstr ""
+msgstr "Tisk dokončen"
 
 msgid "Printing Failed"
-msgstr ""
+msgstr "Tisk selhal"
 
 msgid "Printing Pause"
-msgstr ""
+msgstr "Tisk pozastaven"
 
 msgid "Prepare"
 msgstr "Připravit"
@@ -3450,28 +3464,28 @@ msgid "Slicing"
 msgstr "Slicování"
 
 msgid "Pending"
-msgstr ""
+msgstr "Čeká"
 
 msgid "Sending"
-msgstr ""
+msgstr "Odesílání"
 
 msgid "Sending Finish"
-msgstr ""
+msgstr "Odesílání dokončeno"
 
 msgid "Sending Cancel"
-msgstr ""
+msgstr "Odesílání zrušeno"
 
 msgid "Sending Failed"
-msgstr ""
+msgstr "Odeslání selhalo"
 
 msgid "Print Success"
-msgstr ""
+msgstr "Tisk úspěšný"
 
 msgid "Print Failed"
-msgstr ""
+msgstr "Tisk neúspěšný"
 
 msgid "Removed"
-msgstr ""
+msgstr "Odstraněno"
 
 msgid "Resume"
 msgstr "Pokračovat"
@@ -3480,25 +3494,25 @@ msgid "Stop"
 msgstr "Zastavit"
 
 msgid "Task Status"
-msgstr ""
+msgstr "Stav úlohy"
 
 msgid "Sent Time"
-msgstr ""
+msgstr "Čas odeslání"
 
 msgid "There are no tasks to be sent!"
-msgstr ""
+msgstr "Nejsou žádné úlohy k odeslání!"
 
 msgid "No historical tasks!"
-msgstr ""
+msgstr "Žádné historické úlohy!"
 
 msgid "Loading..."
 msgstr "Načítání..."
 
 msgid "No AMS"
-msgstr ""
+msgstr "Žádné AMS"
 
 msgid "Send to Multi-device"
-msgstr ""
+msgstr "Odeslat na více zařízení"
 
 msgid "Preparing print job"
 msgstr "Příprava tiskové úlohy"
@@ -3680,7 +3694,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Příliš malá maximální objemová rychlost.\n"
 "Obnovit na 0,5"
@@ -3697,14 +3711,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Příliš malá výška vrstvy.\n"
 "Obnovit na 0,2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Příliš malá rozteč žehlení.\n"
 "Obnovit na 0,1"
@@ -3800,8 +3814,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -4211,7 +4225,7 @@ msgid "Flushed"
 msgstr "Čištění"
 
 msgid "Tower"
-msgstr ""
+msgstr "Věž"
 
 msgid "Total"
 msgstr "Celkem"
@@ -4238,7 +4252,7 @@ msgid "Time"
 msgstr "Čas"
 
 msgid "Usage"
-msgstr ""
+msgstr "Využití"
 
 msgid "Layer Height (mm)"
 msgstr "Výška vrstvy (mm)"
@@ -4301,7 +4315,7 @@ msgid "Printer"
 msgstr "Tiskárna"
 
 msgid "Tool Change"
-msgstr ""
+msgstr "Změna nástroje"
 
 msgid "Time Estimation"
 msgstr "Časový odhad"
@@ -4379,9 +4393,6 @@ msgid "Sequence"
 msgstr "Sekvence"
 
 msgid "object selection"
-msgstr ""
-
-msgid "part selectiont"
 msgstr ""
 
 msgid "number keys"
@@ -4469,10 +4480,10 @@ msgid "Failed"
 msgstr "Selhalo"
 
 msgid "All Plates"
-msgstr ""
+msgstr "Všechny podložky"
 
 msgid "Stats"
-msgstr ""
+msgstr "Statistiky"
 
 msgid "Assembly Return"
 msgstr "Návrat k sestavení"
@@ -4492,11 +4503,8 @@ msgstr "Sekce Zobrazení"
 msgid "Assemble Control"
 msgstr "Ovládání sestavy"
 
-msgid "part selection"
-msgstr ""
-
 msgid "Selection Mode"
-msgstr ""
+msgstr "Režim výběru"
 
 msgid "Total Volume:"
 msgstr "Celkový objem:"
@@ -5272,11 +5280,6 @@ msgstr ""
 
 msgid "No printers."
 msgstr "Žádné tiskárny."
-
-msgid ""
-"Please check the network and try again, You can restart or update the "
-"printer if the issue persists."
-msgstr ""
 
 msgid "Loading file list..."
 msgstr "Načítání seznamu souborů..."
@@ -9105,10 +9108,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
-msgid "Laser 10w"
+msgid "Laser 10 W"
 msgstr ""
 
-msgid "Laser 40w"
+msgid "Laser 40 W"
 msgstr ""
 
 msgid "Cutting Module"
@@ -9771,7 +9774,7 @@ msgstr "Maximální tisknutelná výška, která je omezena mechanismem tiskárn
 msgid "Preferred orientation"
 msgstr ""
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr ""
 
 msgid "Printer preset names"
@@ -10437,9 +10440,12 @@ msgstr "Poloměr detekce uší límce"
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
+"Geometrie bude zredukována před detekcí ostrých úhlů. Tento parametr udává "
+"minimální délku odchylky pro redukci.\n"
+"0 pro deaktivaci"
 
 msgid "Select printers"
 msgstr ""
@@ -11128,7 +11134,7 @@ msgid "Default color"
 msgstr "Výchozí barva"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -11678,7 +11684,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -11859,7 +11865,7 @@ msgid ""
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
 "fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop.At the same time, the width of the extrusion for a particular layer "
+"loop. At the same time, the width of the extrusion for a particular layer "
 "should also not be below a certain level. It is usually equal 15-25%% of a "
 "layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
 "width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
@@ -12235,9 +12241,9 @@ msgstr ""
 msgid ""
 "The remaining part of the model contour after removing a certain depth from "
 "the surface is called the skeleton. This parameter is used to adjust the "
-"density of this section.When two regions have the same sparse infill "
+"density of this section. When two regions have the same sparse infill "
 "settings but different skeleton densities, their skeleton areas will develop "
-"overlapping sections.default is as same as infill density."
+"overlapping sections. Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill density"
@@ -12246,9 +12252,9 @@ msgstr ""
 msgid ""
 "The portion of the model's outer surface within a certain depth range is "
 "called the skin. This parameter is used to adjust the density of this "
-"section.When two regions have the same sparse infill settings but different "
-"skin densities, This area will not be split into two separate "
-"regions.default is as same as infill density."
+"section. When two regions have the same sparse infill settings but different "
+"skin densities, this area will not be split into two separate regions. "
+"Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill depth"
@@ -12275,11 +12281,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -12485,8 +12491,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Rychlost žehlení"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Rychlost tisku žehlících linek"
 
 msgid "Ironing angle"
 msgstr "Úhel žehlení"
@@ -12624,8 +12630,7 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -12803,7 +12808,7 @@ msgid ""
 "is enabled."
 msgstr ""
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Průměr trysky"
 
 msgid "Configuration notes"
@@ -12952,7 +12957,7 @@ msgstr ""
 "Zjistěte procento převisů vzhledem k šířce extruze a použijte jinou rychlost "
 "tisku. Pro 100%% převisy se použije rychlost mostu."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr ""
 
 msgid ""
@@ -12997,7 +13002,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Typ tiskárny"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr ""
 
 msgid "Printer notes"
@@ -13440,7 +13445,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Vzdálenost obrysu"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Vzdálenost od Obrysu k Límci nebo předmětu"
 
 msgid "Skirt start point"
@@ -13545,7 +13550,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Plná výplň"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr ""
 
 msgid ""
@@ -14357,7 +14362,7 @@ msgstr "Šířka pro čistící věž"
 msgid "Wipe tower rotation angle"
 msgstr "Úhel natočení čistící věže"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "Úhel natočení čistící věže s ohledem na osu X."
 
 msgid "Width of the brim."
@@ -14415,7 +14420,7 @@ msgstr ""
 
 msgid ""
 "Positive values can increase the size of the rib wall, while negative values "
-"can reduce the size.However, the size of the rib wall can not be smaller "
+"can reduce the size. However, the size of the rib wall can not be smaller "
 "than that determined by the cleaning volume."
 msgstr ""
 
@@ -15016,7 +15021,7 @@ msgstr "Načíst vlastní G-kód"
 msgid "Load custom G-code from json."
 msgstr "Načíst vlastní G-kód z JSON"
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr ""
 
 msgid "Load filament IDs for each object."
@@ -15051,25 +15056,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr ""
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr ""
 
 msgid "MakerLab version"
 msgstr ""
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr ""
 
 msgid "metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr ""
 
 msgid "metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr ""
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -15336,7 +15341,7 @@ msgstr "Číslo vrstvy"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr ""
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr ""
 
 msgid ""
@@ -15345,7 +15350,7 @@ msgid ""
 msgstr ""
 "Výška aktuální vrstvy nad tiskovou podložkou, měřeno k hornímu okraji vrstvy."
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr ""
 
 msgid "Height of the last layer above the print bed."
@@ -16696,8 +16701,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
 
@@ -17376,6 +17381,9 @@ msgid ""
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
 "problems on the Windows system?"
 msgstr ""
+"Oprava modelu\n"
+"Věděli jste, že můžete opravit poškozený 3D model abyste se vyvarovali spoustě problémů se slicování "
+"na systému Windows?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -17432,6 +17440,9 @@ msgid ""
 "Did you know that you use the Search tool to quickly find a specific Orca "
 "Slicer setting?"
 msgstr ""
+"Funkce hledání\n"
+"Věděli jste, že můžete použít nástroj hledání pro rychlé nalezení specifického nastavení "
+"Orca Slicer?"
 
 #: resources/data/hints.ini: [hint:Simplify Model]
 msgid ""
@@ -17439,6 +17450,9 @@ msgid ""
 "Did you know that you can reduce the number of triangles in a mesh using the "
 "Simplify mesh feature? Right-click the model and select Simplify model."
 msgstr ""
+"Zjednodušení modelu\n"
+"Věděli jste, že můžete zmenšit počet trojúhelníků mřížky použitím "
+"funkce zjednodušení mřížky? Kliknětě pravým tlačítkem na model a vyberte zjednodušit model."
 
 #: resources/data/hints.ini: [hint:Slicing Parameter Table]
 msgid ""
@@ -17622,8 +17636,8 @@ msgid ""
 "extruder/hotend clogging when printing lower temperature filament with a "
 "higher enclosure temperature? More info about this in the Wiki."
 msgstr ""
-"Kdy potřebujete tisknout s otevřenými dveřmi tiskárny\n"
-"Otevření dveří tiskárny může snížit pravděpodobnost ucpaní extruderu/hotendu "
+"Kdy potřebujete tisknout s otevřenými dvířky tiskárny\n"
+"Otevření dvířek tiskárny může snížit pravděpodobnost ucpaní extruderu/hotendu "
 "při tisku filamentu s nižší teplotou a vyšší teplotě uzavřeného prostoru. "
 "Další informace naleznete ve Wiki."
 
@@ -17766,16 +17780,6 @@ msgstr ""
 #~ msgid "Enable this option to use classic mode."
 #~ msgstr "Povolte tuto možnost pro použití klasického režimu"
 
-#~ msgid ""
-#~ "The geometry will be decimated before detecting sharp angles. This "
-#~ "parameter indicates the minimum length of the deviation for the "
-#~ "decimation.\n"
-#~ "0 to deactivate."
-#~ msgstr ""
-#~ "Geometrie bude zredukována před detekcí ostrých úhlů. Tento parametr "
-#~ "udává minimální délku odchylky pro redukci.\n"
-#~ "0 pro deaktivaci"
-
 #~ msgid "Compatible machine"
 #~ msgstr "Kompatibilní stroj"
 
@@ -17787,15 +17791,6 @@ msgstr ""
 
 #~ msgid "Default filament color"
 #~ msgstr "Výchozí barva filamentu"
-
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Rychlost tisku žehlících linek"
 
 #~ msgid ""
 #~ "The highest printable layer height for the extruder. Used to limit the "

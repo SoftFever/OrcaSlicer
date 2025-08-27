@@ -29,6 +29,8 @@ MimeType=model/stl;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;
 EOF
 
 
+export ARCH=$(uname -m)
+
 if [ -f /.dockerenv ] ; then # Only run if inside of a Docker Container
   ../appimagetool.AppImage --appimage-extract-and-run . $([ ! -z "${container}" ] && echo '--appimage-extract-and-run')
 else
