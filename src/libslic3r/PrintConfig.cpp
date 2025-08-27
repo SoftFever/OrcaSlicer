@@ -2261,52 +2261,67 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->gui_flags = "show_value";
 
-    def->enum_values.push_back("ABS");
-    def->enum_values.push_back("ABS-GF");
-    def->enum_values.push_back("ASA");
-    def->enum_values.push_back("ASA-Aero");
-    def->enum_values.push_back("BVOH");
-    def->enum_values.push_back("EVA");
-    def->enum_values.push_back("FLEX");
-    def->enum_values.push_back("HIPS");
-    def->enum_values.push_back("PA");
-    def->enum_values.push_back("PA-CF");
-    def->enum_values.push_back("PA-GF");
-    def->enum_values.push_back("PA6-CF");
-    def->enum_values.push_back("PA11-CF");
-    def->enum_values.push_back("PAHT");
-    def->enum_values.push_back("PC");
-    def->enum_values.push_back("PC-ABS");
-    def->enum_values.push_back("PC-CF");
-    def->enum_values.push_back("PCL");
-    def->enum_values.push_back("PCTG");
-    def->enum_values.push_back("PE");
-    def->enum_values.push_back("PE-CF");
-    def->enum_values.push_back("PEEK");
-    def->enum_values.push_back("PEKK");
-    def->enum_values.push_back("PET-CF");
-    def->enum_values.push_back("PETG");
-    def->enum_values.push_back("PETG-CF");
-    def->enum_values.push_back("PETG-CF10");
-    def->enum_values.push_back("PETG-GF");
-    def->enum_values.push_back("PHA");
-    def->enum_values.push_back("PI");
-    def->enum_values.push_back("PLA");
-    def->enum_values.push_back("PLA-AERO");
-    def->enum_values.push_back("PLA-CF");
-    def->enum_values.push_back("POM");
-    def->enum_values.push_back("PP");
-    def->enum_values.push_back("PP-CF");
-    def->enum_values.push_back("PP-GF");
-    def->enum_values.push_back("PPA-CF");
-    def->enum_values.push_back("PPA-GF");
-    def->enum_values.push_back("PPS");
-    def->enum_values.push_back("PPS-CF");
-    def->enum_values.push_back("PPSU");
-    def->enum_values.push_back("PVA");
-    def->enum_values.push_back("PVB");
-    def->enum_values.push_back("SBS");
-    def->enum_values.push_back("TPU");
+    // Define filament types with their temperature ranges
+    struct FilamentType {
+        std::string name;
+        int min_temp;
+        int max_temp;
+    };
+
+    std::vector<FilamentType> filament_types = {
+        {"ABS", 230, 270},
+        {"ABS-GF", 240, 270},
+        {"ASA", 240, 260},
+        {"ASA-Aero", 240, 280},
+        {"BVOH", 190, 210},
+        {"EVA", 180, 220},
+        {"FLEX", 210, 230},
+        {"HIPS", 230, 245},
+        {"PA", 250, 270},
+        {"PA-CF", 250, 300},
+        {"PA-GF", 250, 290},
+        {"PA6-CF", 260, 300},
+        {"PA11-CF", 275, 295},
+        {"PAHT", 260, 290},
+        {"PC", 250, 270},
+        {"PC-ABS", 250, 270},
+        {"PC-CF", 250, 270},
+        {"PCL", 60, 90},
+        {"PCTG", 200, 250},
+        {"PE", 230, 260},
+        {"PE-CF", 230, 260},
+        {"PEEK", 360, 400},
+        {"PEKK", 360, 400},
+        {"PET-CF", 240, 260},
+        {"PETG", 230, 250},
+        {"PETG-CF", 230, 250},
+        {"PETG-CF10", 230, 250},
+        {"PETG-GF", 230, 250},
+        {"PHA", 200, 230},
+        {"PI", 300, 320},
+        {"PLA", 190, 220},
+        {"PLA-AERO", 230, 270},
+        {"PLA-CF", 210, 230},
+        {"POM", 210, 220},
+        {"PP", 220, 270},
+        {"PP-CF", 220, 270},
+        {"PP-GF", 220, 270},
+        {"PPA-CF", 260, 300},
+        {"PPA-GF", 260, 290},
+        {"PPS", 300, 320},
+        {"PPS-CF", 295, 350},
+        {"PPSU", 360, 420},
+        {"PVA", 185, 225},
+        {"PVB", 190, 225},
+        {"SBS", 195, 250},
+        {"TPU", 210, 250}
+    };
+
+    // Populate the enum values
+    for (const auto& filament : filament_types) {
+        def->enum_values.push_back(filament.name);
+    }
+
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
