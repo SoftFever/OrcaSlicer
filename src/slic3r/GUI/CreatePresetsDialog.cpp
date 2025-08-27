@@ -3441,7 +3441,7 @@ std::string ExportConfigsDialog::initial_file_name(const wxString &path, const s
             }
             catch(...) {
                 MessageDialog dlg(this,
-                                  wxString::Format(_L("The file: %s \nmay have been opened by another program. \nPlease close it and try again."),
+                                  wxString::Format(_L("The file: %s\nmay have been opened by another program.\nPlease close it and try again."),
                                                       encode_path(printer_export_path.string().c_str())),
                                   wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
                 dlg.ShowModal();
@@ -4104,7 +4104,7 @@ void ExportConfigsDialog::data_init()
         
         std::string preset_name        = printer_preset.name;
         if (!printer_preset.is_visible || printer_preset.is_default || printer_preset.is_project_embedded) continue;
-        if (preset_bundle.printers.select_preset_by_name(preset_name, false)) {
+        if (preset_bundle.printers.select_preset_by_name(preset_name, true)) {
             preset_bundle.update_compatible(PresetSelectCompatibleType::Always);
 
             const std::deque<Preset> &filament_presets = preset_bundle.filaments.get_presets();

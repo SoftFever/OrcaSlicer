@@ -139,7 +139,7 @@ typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS2)(
 #endif
 
 #ifdef WIN32
-#include "BaseException.h"
+#include "dev-utils/BaseException.h"
 #endif
 
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG

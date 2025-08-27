@@ -1171,7 +1171,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     m_assembly_view_desc["object_selection_caption"] = _L("Left mouse button");
     m_assembly_view_desc["object_selection"]         = _L("object selection");
     m_assembly_view_desc["part_selection_caption"]   = "Alt +" + _L("Left mouse button");
-    m_assembly_view_desc["part_selection"]         = _L("part selectiont");
+    m_assembly_view_desc["part_selection"]           = _L("part selection");
     m_assembly_view_desc["number_key_caption"]       = "1~16 " + _L("number keys");
     m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
 }
