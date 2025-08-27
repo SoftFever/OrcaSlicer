@@ -76,11 +76,11 @@ protected:
     float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
-class Fill2DLattice : public FillRectilinear
+class FillLateralLattice : public FillRectilinear
 {
 public:
-    Fill* clone() const override { return new Fill2DLattice(*this); }
-    ~Fill2DLattice() override = default;
+    Fill* clone() const override { return new FillLateralLattice(*this); }
+    ~FillLateralLattice() override = default;
     Polylines fill_surface(const Surface *surface, const FillParams &params) override;
 
 protected:
@@ -140,11 +140,11 @@ protected:
     float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
-class Fill2DHoneycomb : public FillAlignedRectilinear
+class FillLateralHoneycomb : public FillAlignedRectilinear
 {
 public:
-    Fill* clone() const override { return new Fill2DHoneycomb(*this); }
-    ~Fill2DHoneycomb() override = default;
+    Fill* clone() const override { return new FillLateralHoneycomb(*this); }
+    ~FillLateralHoneycomb() override = default;
     Polylines fill_surface(const Surface *surface, const FillParams &params) override;
 };
 

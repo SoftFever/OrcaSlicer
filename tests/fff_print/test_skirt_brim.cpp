@@ -161,7 +161,11 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[SkirtBrim]") {
             THEN("2 brim lines") {
 		        Slic3r::Print print;
 		        Slic3r::Test::init_and_process_print({TestMesh::cube_20x20x20}, print, config);
-                REQUIRE(print.brim().entities.size() == 2);
+                size_t total_entities = 0;
+                for (const auto& pair : print.get_brimMap()) {
+                    total_entities += pair.second.entities.size();
+                }
+                REQUIRE(total_entities == 2);
             }
         }
 
