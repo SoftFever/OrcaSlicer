@@ -1807,7 +1807,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
 
     print_job->task_ams_mapping = "[" + select_ams + "]";
     print_job->task_ams_mapping_info = "";
-    print_job->task_use_ams = devPrinterUtil::IsVirtualSlot(select_ams);
+    print_job->task_use_ams = !devPrinterUtil::IsVirtualSlot(select_ams);
 
     std::string new_ams_mapping = "[{\"ams_id\":" + std::to_string(calib_info.ams_id) + ", \"slot_id\":" + std::to_string(calib_info.slot_id) + "}]";
     print_job->task_ams_mapping2 = new_ams_mapping;
@@ -1920,11 +1920,12 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
     print_job->task_ams_mapping_info = "";
     print_job->task_ams_mapping2     = new_select_ams;
 
-    if (calib_infos.size() == 1 && (calib_infos[0].select_ams == VIRTUAL_AMS_MAIN_ID_STR || calib_infos[0].select_ams == VIRTUAL_AMS_DEPUTY_ID_STR)) {
-        print_job->task_use_ams          = false;
-    }
-    else {
-        print_job->task_use_ams          = true;
+    print_job->task_use_ams = false;
+    for (const CalibInfo& calib_info : calib_infos) {
+        if (calib_info.select_ams != VIRTUAL_AMS_MAIN_ID_STR && calib_info.select_ams != VIRTUAL_AMS_DEPUTY_ID_STR) {
+            print_job->task_use_ams = true;
+            break;
+        }
     }
 
     CalibMode cali_mode       = calib_infos[0].params.mode;
