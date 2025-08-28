@@ -44,7 +44,7 @@ The computed brim width is capped at 20 mm and at 1.5× the thermal length. If t
 
 ### Painted
 
-Generates a brim only on areas that have been painted in the Prepare tab.
+Generates a brim only on areas that have been painted ![toolbar_brimears_dark](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/toolbar_brimears_dark.svg?raw=true) in the Prepare tab .
 
 ### Outer
 
