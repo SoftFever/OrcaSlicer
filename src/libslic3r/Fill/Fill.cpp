@@ -1141,11 +1141,11 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                                     angle_add *= 3.6;
                                     cs = &cs[1];
                                 } else if (cs[0] == ':') {          // fractional of full turn
-                                    if (angle_add != 0.)
+                                    if (angle_add == 0.)
                                         angle_add = 1.;
                                     cs = &cs[1];
                                     double angle_frac = strtod(cs, &cs);
-                                    if (angle_frac != 0.)
+                                    if (angle_frac == 0.)
                                         angle_frac = 1.;
                                     angle_add *= 360 / angle_frac;
                                 }
@@ -1175,11 +1175,11 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                                             if (cs[0] == '%')       // value in the percents of fill_z
                                                 limit_fill_z = angle_steps * this->object()->height() * 1e-8;
                                             else if (cs[0] == ':') { // fractional of full height
-                                                if (angle_steps != 0.)
+                                                if (angle_steps == 0.)
                                                     angle_steps = 1.;
                                                 cs = &cs[1];
                                                 double angle_frac = strtod(cs, &cs);
-                                                if (angle_frac != 0.)
+                                                if (angle_frac == 0.)
                                                     angle_frac = 1.;
                                                 limit_fill_z = angle_steps / angle_frac * this->object()->height() * 1e-6;
                                             }
