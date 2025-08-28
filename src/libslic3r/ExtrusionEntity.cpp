@@ -53,7 +53,7 @@ void ExtrusionPath::_inflate_collection(const Polylines &polylines, ExtrusionEnt
 
 void ExtrusionPath::polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const
 {
-    polygons_append(out, offset(this->polyline, float(scale_(this->width/2)) + scaled_epsilon));
+    polygons_append(out, offset(this->polyline, float(scale_(this->width / 2)) + scaled_epsilon, ClipperLib::JoinType::jtRound)); // PPS: get polygon with round joint like nozzle hole
 }
 
 void ExtrusionPath::polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const
@@ -64,7 +64,7 @@ void ExtrusionPath::polygons_covered_by_spacing(Polygons &out, const float scale
     // SoftFever: TODO Mac trigger assersion errors
 //    assert(! bridge || this->width == this->height);
     auto flow = bridge ? Flow::bridging_flow(this->width, 0.f) : Flow(this->width, this->height, 0.f);
-    polygons_append(out, offset(this->polyline, 0.5f * float(flow.scaled_spacing()) + scaled_epsilon));
+    polygons_append(out, offset(this->polyline, 0.5f * float(flow.scaled_spacing()) + scaled_epsilon, ClipperLib::JoinType::jtRound)); // PPS: get polygon with round joint like nozzle hole
 }
 
 void ExtrusionMultiPath::reverse()

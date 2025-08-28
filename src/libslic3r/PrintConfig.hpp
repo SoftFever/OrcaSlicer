@@ -54,6 +54,15 @@ enum class CenterOfSurfacePattern {
     Each_Assembly,
 };
 
+enum class PatchworkPosition {
+    Nowhere,
+    Bottom,
+    Topmost,
+    Topmost_Bottom,
+    All_Upper,
+    Everywhere
+};
+
 enum class NoiseType {
     Classic,
     Perlin,
@@ -945,6 +954,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              travel_jerk))
     ((ConfigOptionBool,               precise_z_height))
     ((ConfigOptionFloat,              default_junction_deviation))
+
+    ((ConfigOptionEnum<PatchworkPosition>, patchwork_surfaces))
+    ((ConfigOptionFloat,              patchwork_direction))
+    ((ConfigOptionBool,               precision_infill))
         
     ((ConfigOptionBool, interlocking_beam))
     ((ConfigOptionFloat,interlocking_beam_width))
@@ -993,15 +1006,17 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 align_infill_direction_to_model))
     ((ConfigOptionBool,                 anisotropic_surfaces))
     ((ConfigOptionEnum<CenterOfSurfacePattern>, center_of_surface_pattern))
-    ((ConfigOptionBool,                 precision_surfaces))
-    ((ConfigOptionBool,                 patchwork_surfaces))
-    ((ConfigOptionFloat,                patchwork_angle))
+    ((ConfigOptionBool,                 precision_infill))
+    ((ConfigOptionEnum<PatchworkPosition>,  patchwork_surfaces))
+    ((ConfigOptionFloat,                patchwork_direction))
     ((ConfigOptionFloat,                patchwork_tile_height))
     ((ConfigOptionFloat,                patchwork_tile_width))
     ((ConfigOptionFloat,                patchwork_tile_horizontal_joint))
     ((ConfigOptionFloat,                patchwork_tile_vertical_joint))
-    ((ConfigOptionString,               patchwork_tiles_alternate_angle))
+    ((ConfigOptionString,               patchwork_tiles_alternate_direction))
+    ((ConfigOptionBool,                 patchwork_centering))
     ((ConfigOptionBool,                 patchwork_subway_tiling))
+    ((ConfigOptionFloat,                patchwork_joints_flow_ratio))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))

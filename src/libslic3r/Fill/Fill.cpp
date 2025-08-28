@@ -77,6 +77,8 @@ struct SurfaceFillParams
     // Params for 2D honeycomb
     float infill_overhang_angle = 60.f;
 
+    bool is_patchwork = false;
+
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
 #define RETURN_COMPARE_NON_EQUAL_TYPED(TYPE, KEY) if (TYPE(this->KEY) < TYPE(rhs.KEY)) return true; if (TYPE(this->KEY) > TYPE(rhs.KEY)) return false;
@@ -107,6 +109,7 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
 		RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
 		RETURN_COMPARE_NON_EQUAL(infill_lock_depth);
+        RETURN_COMPARE_NON_EQUAL(is_patchwork);
 		RETURN_COMPARE_NON_EQUAL(skin_infill_depth);		RETURN_COMPARE_NON_EQUAL(infill_overhang_angle);
 
 		return false;
@@ -134,6 +137,7 @@ struct SurfaceFillParams
 				this->lattice_angle_2	    == rhs.lattice_angle_2 &&
 				this->infill_lock_depth      ==  rhs.infill_lock_depth &&
 				this->skin_infill_depth      ==  rhs.skin_infill_depth &&
+                this->is_patchwork          == rhs.is_patchwork &&
                 this->infill_overhang_angle == rhs.infill_overhang_angle;
 	}
 };
@@ -706,14 +710,28 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 }
                 params.bridge_angle = float(surface.bridge_angle);
                 
+                params.is_patchwork = false;
+                if (surface.is_external()) {
+                    PatchworkPosition _patchwork = region_config.patchwork_surfaces.value;
+                    switch (_patchwork) {
+                        case PatchworkPosition::Bottom : if (surface.is_bottom()) params.is_patchwork = true; break;
+                        case PatchworkPosition::Topmost : if (layer.upper_layer == NULL) params.is_patchwork = true; break;
+                        case PatchworkPosition::Topmost_Bottom : if (layer.upper_layer == NULL || surface.is_bottom()) params.is_patchwork = true; break;
+                        case PatchworkPosition::All_Upper : if (surface.is_top()) params.is_patchwork = true; break;
+                        case PatchworkPosition::Everywhere : params.is_patchwork = true;
+                    }
+                }
+
                 if (region_config.align_infill_direction_to_model) {
                     auto m = layer.object()->trafo().matrix();
                     params.angle += atan2((float) m(1, 0), (float) m(0, 0));
                 }
-                if (params.extrusion_role == erInternalInfill) {
-                    params.angle += float(Geometry::deg2rad(region_config.infill_direction.value));
-                } else if (!region_config.patchwork_surfaces)
-                    params.angle += float(Geometry::deg2rad(region_config.solid_infill_direction.value));
+
+                if (!params.is_patchwork || surface.is_internal())
+                    if (params.extrusion_role == erInternalInfill) 
+                        params.angle += float(Geometry::deg2rad(region_config.infill_direction.value));
+                    else 
+                        params.angle += float(Geometry::deg2rad(region_config.solid_infill_direction.value));
 
                 // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
@@ -1054,17 +1072,17 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         params.pattern              = surface_fill.params.pattern;
         bool _top_or_bottom         = params.extrusion_role == erTopSolidInfill || params.extrusion_role == erBottomSurface;
         if (_top_or_bottom) {
-            params.anisotropic_surface        = region_config.anisotropic_surfaces.value;
+            params.is_anisotropic        = region_config.anisotropic_surfaces.value;
             params.center_of_surface_pattern  = region_config.center_of_surface_pattern.value;
-            params.patchwork_surface          = region_config.patchwork_surfaces.value;
         }
-        //params.precision_surface = region_config.precision_surfaces.value;
+        
+        params.is_patchwork = surface_fill.params.is_patchwork;
 
         ConfigOptionFloats rotate_angles;
         const std::string  search_string = "/NnZz$LlUuQq~^|#";
         std::string        v(params.extrusion_role == erInternalInfill ? region_config.sparse_infill_rotate_template.value :
                                                                                       region_config.solid_infill_rotate_template.value);
-        if (regex_search(v, std::regex("[+\\-%*@\'\"cmSODMR" + search_string + "]"))) { // template metalanguage of rotating infill
+        if (regex_search(v, std::regex("[+\\-%:*@\'\"cmSODMR" + search_string + "]"))) { // template metalanguage of rotating infill
             std::regex                 del("[\\s,]+");
             std::sregex_token_iterator it(v.begin(), v.end(), del, -1);
             std::vector<std::string>   tk;
@@ -1122,6 +1140,14 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                                 if (cs[0] == '%') {                 // percentage of angles
                                     angle_add *= 3.6;
                                     cs = &cs[1];
+                                } else if (cs[0] == ':') {          // fractional of full turn
+                                    if (angle_add != 0.)
+                                        angle_add = 1.;
+                                    cs = &cs[1];
+                                    double angle_frac = strtod(cs, &cs);
+                                    if (angle_frac != 0.)
+                                        angle_frac = 1.;
+                                    angle_add *= 360 / angle_frac;
                                 }
 
                                 int tit = tk[t].find('*');
@@ -1148,6 +1174,15 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                                         if (angle_steps && cs[0] != '\0' && cs[0] != '!') {
                                             if (cs[0] == '%')       // value in the percents of fill_z
                                                 limit_fill_z = angle_steps * this->object()->height() * 1e-8;
+                                            else if (cs[0] == ':') { // fractional of full height
+                                                if (angle_steps != 0.)
+                                                    angle_steps = 1.;
+                                                cs = &cs[1];
+                                                double angle_frac = strtod(cs, &cs);
+                                                if (angle_frac != 0.)
+                                                    angle_frac = 1.;
+                                                limit_fill_z = angle_steps / angle_frac * this->object()->height() * 1e-6;
+                                            }
                                             else if (cs[0] == '#')  // value in the feet
                                                 limit_fill_z = angle_steps * this->object()->config().layer_height;
                                             else if (cs[0] == '\'') // value in the feet
@@ -1276,8 +1311,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                 params.dont_adjust = true;
             }
 			// BBS: make fill
-
-            if (region_config.patchwork_surfaces.value && (params.extrusion_role == erTopSolidInfill || params.extrusion_role == erBottomSurface))
+            if (params.is_patchwork && surface_fill.surface.is_external())
                 f->fill_patchwork(&surface_fill.surface, params, m_regions[surface_fill.region_id]->fills.entities);
             else    
 			    f->fill_surface_extrusion(&surface_fill.surface, params, m_regions[surface_fill.region_id]->fills.entities);

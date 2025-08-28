@@ -103,8 +103,8 @@ struct FillParams
     bool            locked_zag{false};
     float           infill_lock_depth{0.0};
     float           skin_infill_depth{0.0};
-    bool            anisotropic_surface{false};
-    bool            patchwork_surface{false};
+    bool            is_anisotropic{false};
+    bool            is_patchwork{false};
     CenterOfSurfacePattern center_of_surface_pattern{CenterOfSurfacePattern::Each_Surface};
     //bool            precision_surface{false};
 };

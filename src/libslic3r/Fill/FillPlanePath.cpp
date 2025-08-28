@@ -78,7 +78,7 @@ void FillPlanePath::_fill_surface_single(
     //FIXME Vojtech: We are not sure whether the user expects the fill patterns on visible surfaces to be aligned across all the islands of a single layer.
     // One may align for this->centered() to align the patterns for Archimedean Chords and Octagram Spiral patterns.
     // PPS: Disable when patchwork surface
-    const bool align = params.density < 0.995 && !params.patchwork_surface;
+    const bool align = params.density < 0.995 && !params.is_patchwork;
 
     BoundingBox bounding_box;
     BoundingBox snug_bounding_box = get_extents(expolygon).inflated(SCALED_EPSILON);
@@ -128,7 +128,7 @@ void FillPlanePath::_fill_surface_single(
         Polylines polylines = intersection_pl(polyline, expolygon);
         if (!polylines.empty()) {
             Polylines chained;
-            if (!params.anisotropic_surface) { // not aesthetic surface
+            if (!params.is_anisotropic) { // not aesthetic surface
                 if ((params.dont_connect() || params.density > 0.5)) {
                     // ORCA: special flag for flow rate calibration
                     auto is_flow_calib = params.extrusion_role == erTopSolidInfill &&

@@ -150,6 +150,16 @@ static t_config_enum_values s_keys_map_FuzzySkinMode {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FuzzySkinMode)
 
+static t_config_enum_values s_keys_map_PatchworkPosition{
+    { "nowhere",        int(PatchworkPosition::Nowhere) },
+    { "bottom",         int(PatchworkPosition::Bottom) },
+    { "topmost",        int(PatchworkPosition::Topmost)},
+    { "topmost_bottom", int(PatchworkPosition::Topmost_Bottom)},
+    { "all_upper",      int(PatchworkPosition::All_Upper) },
+    { "everywhere",     int(PatchworkPosition::Everywhere) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PatchworkPosition)
+
 static t_config_enum_values s_keys_map_InfillPattern {
     { "monotonic", ipMonotonic },
     { "monotonicline", ipMonotonicLine },
@@ -5572,6 +5582,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip  = L("Anisotropic patterns on the top and bottom surfaces."
                       "Cancellation of reverse filling for some patterns to reduce color dispersion when using multi-colored or silk plastics."
+                      "This option disable the gap fill. "
                       "This option can increase a printing time.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
@@ -5585,27 +5596,41 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("each_surface");
     def->enum_values.push_back("each_model");
     def->enum_values.push_back("each_assembly");
-    def->enum_labels.push_back(L("Each surface"));
-    def->enum_labels.push_back(L("Each model"));
-    def->enum_labels.push_back(L("Each assembly"));
+    def->enum_labels.push_back(L("Each Surface"));
+    def->enum_labels.push_back(L("Each Model"));
+    def->enum_labels.push_back(L("Each Assembly"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<CenterOfSurfacePattern>(CenterOfSurfacePattern::Each_Surface));
 
-    def           = this->add("precision_surfaces", coBool);
+    def           = this->add("precision_infill", coBool);
     def->label    = L("Precision surfaces");
     def->category = L("Strength");
-    def->tooltip  = L("It sets the precision overlay of patterns on the top and bottom surfaces, and partially fills the pores when using Fuzzy Skin.");
+    def->tooltip  = L("It sets the precision overlay of any patterns on each layer. It's also partially fills the pores when using Fuzzy Skin. "
+                      "This option may slow down the G-code calculation time.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def           = this->add("patchwork_surfaces", coBool);
+    def           = this->add("patchwork_surfaces", coEnum);
     def->label    = L("Patchwork surfaces");
     def->category = L("Strength");
     def->tooltip  = L("Enable a mode for surface generating like a patchwork quilt");
+    def->enum_keys_map = &ConfigOptionEnum<PatchworkPosition>::get_enum_values();
+    def->enum_values.push_back("nowhere");
+    def->enum_values.push_back("bottom");
+    def->enum_values.push_back("topmost");
+    def->enum_values.push_back("topmost_bottom");
+    def->enum_values.push_back("all_upper");
+    def->enum_values.push_back("everywhere");
+    def->enum_labels.push_back(L("Nowhere"));
+    def->enum_labels.push_back(L("Bottom"));
+    def->enum_labels.push_back(L("Topmost"));
+    def->enum_labels.push_back(L("Topmost and Bottom"));
+    def->enum_labels.push_back(L("All Upper"));
+    def->enum_labels.push_back(L("Everywhere"));
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionEnum<PatchworkPosition>(PatchworkPosition::Nowhere));
 
-    def           = this->add("patchwork_angle", coFloat);
+    def           = this->add("patchwork_direction", coFloat);
     def->label    = L("Patchwork direction");
     def->category = L("Strength");
     def->tooltip  = L("*** Need description ***");
@@ -5636,7 +5661,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(20.));
 
     def           = this->add("patchwork_tile_horizontal_joint", coFloat);
-    def->label    = L("Width of horizontal joint");
+    def->label    = L("Width of the horizontal patchwork joint");
     def->category = L("Strength");
     def->tooltip  = L("(between tiles in lines) *** Need description ***\n"
                        "Negative value indicates an empty padding.");
@@ -5647,7 +5672,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(1.));
 
     def           = this->add("patchwork_tile_vertical_joint", coFloat);
-    def->label    = L("Width of vertical joint");
+    def->label    = L("Width of the vertical patchwork joint");
     def->category = L("Strength");
     def->tooltip  = L("(between tiles in lines) *** Need description ***\n"
                       "Negative value indicates an empty padding.");
@@ -5657,7 +5682,7 @@ void PrintConfigDef::init_fff_params()
     def->max      = 20;
     def->set_default_value(new ConfigOptionFloat(1.));
 
-    def           = this->add("patchwork_tiles_alternate_angle", coString);
+    def           = this->add("patchwork_tiles_alternate_direction", coString);
     def->label    = L("Alternate tiles direction");
     def->category = L("Strength");
     def->tooltip  = L("The angle of rotation of the adjacent tile. They depend on the solid_inill_direction parameter.\n"
@@ -5668,12 +5693,27 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString("+90"));
 
+    def           = this->add("patchwork_centering", coBool);
+    def->label    = L("Patchwork centering");
+    def->category = L("Strength");
+    def->tooltip  = L("Put center of tile at model center.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def           = this->add("patchwork_subway_tiling", coBool);
     def->label    = L("Patchwork subway tiling");
     def->category = L("Strength");
     def->tooltip  = L("Enable subway tiling for a patchwork.");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("patchwork_joints_flow_ratio", coFloat);
+    def->label    = L("Joints flow ratio");
+    def->tooltip  = L("Volume compensation of extruded material for even joint filling.");
+    def->min      = 0.5;
+    def->max      = 1.;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.8));
 
     def = this->add("travel_speed", coFloat);
     def->label = L("Travel");

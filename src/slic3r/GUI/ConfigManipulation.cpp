@@ -555,15 +555,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "small_perimeter_threshold" })
         toggle_field(el, have_perimeters);
 
-    bool patchwork_enable = config->opt_bool("patchwork_surfaces");
-    for (auto el : {"patchwork_angle", "patchwork_tile_height", "patchwork_tile_width",
+    bool patchwork_enable = config->opt_enum<PatchworkPosition>("patchwork_surfaces") != PatchworkPosition::Nowhere;
+    for (auto el : {"patchwork_direction", "patchwork_tile_height", "patchwork_tile_width",
                     "patchwork_tile_horizontal_joint", "patchwork_tile_vertical_joint",
-                    "patchwork_tiles_alternate_angle", "patchwork_subway_tiling"})
+                    "patchwork_tiles_alternate_direction", "patchwork_centering", "patchwork_subway_tiling", "patchwork_joints_flow_ratio"})
         toggle_line(el, patchwork_enable);
 
-    toggle_field("patchwork_tiles_alternate_angle",
-                 config->opt_enum<CenterOfSurfacePattern>("center_of_surface_pattern") != CenterOfSurfacePattern::Each_Assembly);
-
+    toggle_field("patchwork_tiles_alternate_direction", config->opt_enum<CenterOfSurfacePattern>("center_of_surface_pattern") != CenterOfSurfacePattern::Each_Assembly);
+    
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "infill_combination",
@@ -625,6 +624,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "solid_infill_direction", "solid_infill_rotate_template", "internal_solid_infill_pattern", "solid_infill_filament",
         })
         toggle_field(el, have_infill || has_solid_infill);
+
+    toggle_field("gap_fill_target", !config->opt_bool("anisotropic_surfaces"));
 
     toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_shell);
     toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_shell);

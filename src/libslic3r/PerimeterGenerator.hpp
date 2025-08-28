@@ -62,7 +62,7 @@ namespace Slic3r {
 class PerimeterGenerator {
 public:
     // Inputs:
-    const SurfaceCollection     *slices;
+    SurfaceCollection           *slices; // PPS: remove const for precision infill
     const LayerRegionPtrs       *compatible_regions;
     const ExPolygons            *upper_slices;
     const SurfaceCollection     *upper_slices_same_region;
@@ -96,7 +96,7 @@ public:
     
     PerimeterGenerator(
         // Input:
-        const SurfaceCollection*    slices,
+        SurfaceCollection*          slices, // PPS: remove const for precision infill
         const LayerRegionPtrs       *compatible_regions,
         double                      layer_height,
         coordf_t                    slice_z,

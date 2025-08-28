@@ -2196,26 +2196,27 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
 
+        optgroup->append_single_option_line("top_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
         optgroup->append_single_option_line("top_shell_layers", "strength_settings_top_bottom_shells#shells-layers");
         optgroup->append_single_option_line("top_shell_thickness", "strength_settings_top_bottom_shells#shell-thickness");
         optgroup->append_single_option_line("top_surface_density", "strength_settings_top_bottom_shells#surface-density");
-        optgroup->append_single_option_line("top_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
+        optgroup->append_single_option_line("bottom_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
         optgroup->append_single_option_line("bottom_shell_layers", "strength_settings_top_bottom_shells#shells-layers");
         optgroup->append_single_option_line("bottom_shell_thickness", "strength_settings_top_bottom_shells#shell-thickness");
         optgroup->append_single_option_line("bottom_surface_density", "strength_settings_top_bottom_shells#surface-density");
-        optgroup->append_single_option_line("bottom_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
-        optgroup->append_single_option_line("top_bottom_infill_wall_overlap", "strength_settings_top_bottom_shells#infillwall-overlap");
         optgroup->append_single_option_line("patchwork_surfaces", "strength_settings_top_bottom_shells#patchwork-surfaces");
-        optgroup->append_single_option_line("patchwork_angle", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_direction", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_tiles_alternate_direction", "strength_settings_top_bottom_shells#patchwork-surfaces");
         optgroup->append_single_option_line("patchwork_tile_height", "strength_settings_top_bottom_shells#patchwork-surfaces");
         optgroup->append_single_option_line("patchwork_tile_width", "strength_settings_top_bottom_shells#patchwork-surfaces");
         optgroup->append_single_option_line("patchwork_tile_horizontal_joint", "strength_settings_top_bottom_shells#patchwork-surfaces");
         optgroup->append_single_option_line("patchwork_tile_vertical_joint", "strength_settings_top_bottom_shells#patchwork-surfaces");
-        optgroup->append_single_option_line("patchwork_tiles_alternate_angle", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_joints_flow_ratio", "strength_settings_top_bottom_shells#patchwork-surfaces");
+        optgroup->append_single_option_line("patchwork_centering", "strength_settings_top_bottom_shells#patchwork-surfaces");
         optgroup->append_single_option_line("patchwork_subway_tiling", "strength_settings_top_bottom_shells#patchwork-surfaces");
-        optgroup->append_single_option_line("anisotropic_surfaces", "strength_settings_top_bottom_shells#aesthetic-surfaces");
-        optgroup->append_single_option_line("precision_surfaces", "strength_settings_top_bottom_shells#precision-surfaces");
         optgroup->append_single_option_line("center_of_surface_pattern", "strength_settings_top_bottom_shells#align-center-of-surfaces");
+        optgroup->append_single_option_line("anisotropic_surfaces", "strength_settings_top_bottom_shells#aesthetic-surfaces");
+        optgroup->append_single_option_line("top_bottom_infill_wall_overlap", "strength_settings_top_bottom_shells#infillwall-overlap");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
@@ -2240,6 +2241,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("internal_solid_infill_pattern", "strength_settings_infill#internal-solid-infill");
         optgroup->append_single_option_line("solid_infill_direction", "strength_settings_infill");
         optgroup->append_single_option_line("solid_infill_rotate_template", "strength_settings_infill");
+        optgroup->append_single_option_line("precision_infill", "strength_settings_infill#precision-surfaces");
         optgroup->append_single_option_line("gap_fill_target", "strength_settings_infill#apply-gap-fill");
         optgroup->append_single_option_line("filter_out_gap_fill", "strength_settings_infill#filter-out-tiny-gaps");
         optgroup->append_single_option_line("infill_wall_overlap", "strength_settings_infill#infill-wall-overlap");
