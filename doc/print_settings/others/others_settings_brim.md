@@ -2,13 +2,14 @@
 
 Brim is a flat layer printed around a model's base to improve adhesion to the print bed. It is useful for models with small footprints or those prone to warping.
 
-![brim](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/brim/brim.png)
+![brim](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/brim/brim.png?raw=true)
 
 - [Type](#type)
   - [Auto](#auto)
   - [Painted](#painted)
   - [Outer](#outer)
   - [Inner](#inner)
+  - [Outer and Inner](#outer-and-inner)
   - [Mouse Ears](#mouse-ears)
     - [Ear max angle](#ear-max-angle)
     - [Ear detection radius](#ear-detection-radius)
@@ -50,15 +51,31 @@ Generates a brim only on areas that have been painted in the Prepare tab.
 Creates a brim around the model's outer perimeter.  
 Easier to remove than an inner brim, but may affect the model's appearance if not removed cleanly.
 
+![brim-outer](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/brim/brim-outer.png?raw=true)
+
 ### Inner
 
 Creates a brim around inner perimeters.  
 More difficult to remove and less effective than an outer brim and may obscure fine inner details, but it can hide the brim removal seam.
 
+![brim-inner](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/brim/brim-inner.png?raw=true)
+
+### Outer and Inner
+
+Creates a brim around both the outer and inner perimeters of the model.  
+This approach combines the **disadvantages** of both brim types, making it more difficult to remove while potentially obscuring fine details but improving overall adhesion.
+
+![brim-outer-inner](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/brim/brim-outer-inner.png?raw=true)
+
+> [!TIP]
+>> Consider using a [raft](support_settings_raft) on complex models/materials.
+
 ### Mouse Ears
 
 Mouse ears are small, local brim extensions (typically placed near corners and sharp features) that improve bed adhesion and reduce warping while using less material than a full brim.  
 The geometry analysis routine selects candidate locations based on the configured angle threshold and detection radius.
+
+![brim-mouse-ears](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/brim/brim-mouse-ears.png?raw=true)
 
 #### Ear max angle
 
