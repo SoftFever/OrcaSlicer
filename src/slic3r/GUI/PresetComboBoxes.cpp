@@ -542,31 +542,56 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
 #endif
 }
 
-wxBitmap *PresetComboBox::get_bmp(Preset const &preset)
+wxBitmap* PresetComboBox::get_bmp(Preset const& preset)
 {
-    static wxBitmap sbmp;
-    if (m_type == Preset::TYPE_FILAMENT) {
-        Preset const & preset2 = &m_collection->get_selected_preset() == &preset ? m_collection->get_edited_preset() : preset;
-        wxString color = preset2.config.opt_string("default_filament_colour", 0);
-        wxColour clr(color);
-        if (clr.IsOk()) {
-            std::string bitmap_key = "default_filament_colour_" + color.ToStdString();
-            wxBitmap *bmp        = bitmap_cache().find(bitmap_key);
-            if (bmp == nullptr) {
-                wxImage img(16, 16);
-                if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
-                    img.SetRGB(wxRect({0, 0}, img.GetSize()), 128, 128, 128);
-                    img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
-                } else {
-                    img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
-                }
-                bmp = new wxBitmap(img);
-                bmp = bitmap_cache().insert(bitmap_key, *bmp);
-            }
-            return bmp;
-        }
+    // Create bitmap key for caching
+    std::string bitmap_key = preset.name;
+    bitmap_key += preset.is_compatible ? ",cmpt" : ",ncmpt";
+    bitmap_key += preset.is_system ? ",syst" : ",nsyst";
+    bitmap_key += ",h" + std::to_string(icon_height);
+    if (wxGetApp().dark_mode())
+        bitmap_key += ",dark";
+
+    // Check cache first
+    wxBitmap* cached_bmp = bitmap_cache().find(bitmap_key);
+    if (cached_bmp != nullptr) {
+        return cached_bmp;
     }
-    return &sbmp;
+
+    // Create new composite bitmap
+    std::vector<wxBitmap> bmps;
+
+    // Add compatibility flag
+    if (preset.is_compatible) {
+        bmps.emplace_back(m_bitmapCompatible.bmp());
+    } else {
+        bmps.emplace_back(m_bitmapIncompatible.bmp());
+    }
+
+    // Handle filament color swatch
+    if (m_type == Preset::TYPE_FILAMENT) {
+        Preset const& preset2 = &m_collection->get_selected_preset() == &preset ? m_collection->get_edited_preset() : preset;
+        wxString      color   = preset2.config.opt_string("default_filament_colour", 0);
+        wxColour      clr(color);
+        if (clr.IsOk()) {
+            wxImage img(icon_height, icon_height);
+            if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
+                img.SetRGB(wxRect({0, 0}, img.GetSize()), 128, 128, 128);
+                img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
+            } else {
+                img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
+            }
+            bmps.emplace_back(wxBitmap(img));
+        } else {
+            bmps.emplace_back(bitmap_cache().mkclear(norm_icon_width, icon_height));
+        }
+    } else {
+        // Add spacing for non-filament presets
+        bmps.emplace_back(bitmap_cache().mkclear(space_icon_width, icon_height));
+    }
+    // Cache and return the composite bitmap
+    wxBitmap* bmp = bitmap_cache().insert(bitmap_key, bmps);
+    return bmp;
 }
 
 wxBitmap *PresetComboBox::get_bmp(std::string        bitmap_key,
