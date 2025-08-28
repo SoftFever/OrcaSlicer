@@ -1,0 +1,39 @@
+{
+    "type": "filament",
+    "name": "Bambu PC @Eryone ER20",
+    "inherits": "Bambu PC @base",
+    "from": "system",
+    "instantiation": "true",
+    "eng_plate_temp": [
+        "100"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "100"
+    ],
+    "fan_max_speed": [
+        "20"
+    ],
+    "hot_plate_temp": [
+        "100"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "100"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
+    ],
+    "slow_down_layer_time": [
+        "12"
+    ],
+    "textured_plate_temp": [
+        "100"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "100"
+    ],
+    "compatible_printers": [
+        "Eryone ER20 0.4 nozzle","Eryone ER20 Klipper 0.4 nozzle","Eryone ER20 0.5 nozzle","Eryone ER20 Klipper 0.5 nozzle",
+        "Eryone ER20 0.6 nozzle","Eryone ER20 Klipper 0.6 nozzle",
+        "Eryone ER20 0.8 nozzle","Eryone ER20 Klipper 0.8 nozzle"
+    ]
+}

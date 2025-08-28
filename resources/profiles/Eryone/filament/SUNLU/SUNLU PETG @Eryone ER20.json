@@ -1,0 +1,16 @@
+{
+    "type": "filament",
+    "name": "SUNLU PETG @Eryone ER20",
+    "inherits": "SUNLU PETG @base",
+    "from": "system",
+    "instantiation": "true",
+    "filament_flow_ratio": [
+        "0.94"
+    ],
+    "filament_max_volumetric_speed": [
+        "9"
+    ],
+    "compatible_printers": [
+        "Eryone ER20 0.4 nozzle","Eryone ER20 Klipper 0.4 nozzle","Eryone ER20 0.5 nozzle","Eryone ER20 Klipper 0.5 nozzle"
+    ]
+}

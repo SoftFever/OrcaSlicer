@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "Generic PHA @Eryone ER20",
+    "inherits": "Generic PHA @base",
+    "from": "system",
+    "instantiation": "true",
+    "description": "This is neither a commonly used filament, nor one of Bambu filaments, and it varies a lot from brand to brand. So, it's highly recommended to ask its vendor for suitable profile before printing and adjust some parameters according to its performances.",
+    "compatible_printers": [
+        "Eryone ER20 0.6 nozzle","Eryone ER20 Klipper 0.6 nozzle",
+        "Eryone ER20 0.8 nozzle","Eryone ER20 Klipper 0.8 nozzle",
+        "Eryone ER20 0.4 nozzle","Eryone ER20 Klipper 0.4 nozzle","Eryone ER20 0.5 nozzle","Eryone ER20 Klipper 0.5 nozzle"
+    ]
+}
