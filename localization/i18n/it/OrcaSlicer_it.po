@@ -305,7 +305,7 @@ msgid "World coordinates"
 msgstr "Coordinate reali"
 
 msgid "Reset current rotation to the value when open the rotation tool."
-msgstr "Reimposta la rotazione corrente al valore di apertura dello strumento.
+msgstr "Reimposta la rotazione corrente al valore di apertura dello strumento."
 
 msgid "Rotate (absolute)"
 msgstr ""
