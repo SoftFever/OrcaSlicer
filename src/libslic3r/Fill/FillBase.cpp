@@ -41,7 +41,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     switch (type) {
     case ipConcentric:          return new FillConcentric();
     case ipHoneycomb:           return new FillHoneycomb();
-    case ip2DHoneycomb:         return new Fill2DHoneycomb();
+    case ipLateralHoneycomb:         return new FillLateralHoneycomb();
     case ip3DHoneycomb:         return new Fill3DHoneycomb();
     case ipGyroid:              return new FillGyroid();
     case ipTpmsD:               return new FillTpmsD();//from creality print
@@ -52,7 +52,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipMonotonic:           return new FillMonotonic();
     case ipLine:                return new FillLine();
     case ipGrid:                return new FillGrid();
-    case ip2DLattice:           return new Fill2DLattice();
+    case ipLateralLattice:           return new FillLateralLattice();
     case ipTriangles:           return new FillTriangles();
     case ipStars:               return new FillStars();
     case ipCubic:               return new FillCubic();

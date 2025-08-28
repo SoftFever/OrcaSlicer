@@ -23,11 +23,11 @@ The default acceleration of both normal printing and travel.
 
 ## Outer wall
 
-Acceleration for [outer wall](speed_settings_walls#outer-wall) printing. This is usually set to a lower value than normal printing to ensure better quality.
+Acceleration for [outer wall](speed_settings_other_layers_speed#outer-wall) printing. This is usually set to a lower value than normal printing to ensure better quality.
 
 ## Inner wall
 
-Acceleration for [inner wall](speed_settings_walls#inner-wall) printing. This is usually set to a higher value than outer wall printing to improve speed.
+Acceleration for [inner wall](speed_settings_other_layers_speed#inner-wall) printing. This is usually set to a higher value than outer wall printing to improve speed.
 
 ## Bridge
 
