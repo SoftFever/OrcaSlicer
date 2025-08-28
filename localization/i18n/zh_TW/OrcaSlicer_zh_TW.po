@@ -2984,10 +2984,10 @@ msgstr "步驟"
 msgid "AMS Slots"
 msgstr "AMS 槽內線材"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -3591,7 +3591,7 @@ msgstr "該線材的推薦噴嘴溫度是攝氏 [%d, %d] 度"
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "最大體積速度設定過小\n"
 "重設為 0.5"
@@ -3607,14 +3607,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "層高過小。\n"
 "將重設為 0.2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "熨燙線距過小。\n"
 "將重設為 0.1"
@@ -3710,8 +3710,8 @@ msgstr ""
 "重設為 0。"
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -4282,7 +4282,7 @@ msgstr "順序"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4393,9 +4393,6 @@ msgstr "剖面視圖"
 
 msgid "Assemble Control"
 msgstr "拼裝視角控制"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
@@ -5164,11 +5161,6 @@ msgstr "從列印機重新載入檔案清單。"
 
 msgid "No printers."
 msgstr "未選擇列印設備。"
-
-msgid ""
-"Please check the network and try again, You can restart or update the "
-"printer if the issue persists."
-msgstr ""
 
 msgid "Loading file list..."
 msgstr "載入檔案清單..."
@@ -8908,10 +8900,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
-msgid "Laser 10w"
+msgid "Laser 10 W"
 msgstr ""
 
-msgid "Laser 40w"
+msgid "Laser 40 W"
 msgstr ""
 
 msgid "Cutting Module"
@@ -9541,7 +9533,7 @@ msgstr "受列印設備硬體限制的最大可列印高度"
 msgid "Preferred orientation"
 msgstr "首選方向"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr "匯入 STL 時自動對齊 Z 軸"
 
 msgid "Printer preset names"
@@ -10260,9 +10252,11 @@ msgstr "耳狀 Brim 偵測半徑"
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
+"在偵測尖銳角度之前，幾何形狀將被簡化。此參數表示簡化的最小偏差長度。\n"
+"設為 0 以停用"
 
 msgid "Select printers"
 msgstr ""
@@ -11042,7 +11036,7 @@ msgid "Default color"
 msgstr "預設顏色"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -11568,7 +11562,7 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -11746,7 +11740,7 @@ msgid ""
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
 "fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop.At the same time, the width of the extrusion for a particular layer "
+"loop. At the same time, the width of the extrusion for a particular layer "
 "should also not be below a certain level. It is usually equal 15-25%% of a "
 "layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
 "width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
@@ -12122,9 +12116,9 @@ msgstr ""
 msgid ""
 "The remaining part of the model contour after removing a certain depth from "
 "the surface is called the skeleton. This parameter is used to adjust the "
-"density of this section.When two regions have the same sparse infill "
+"density of this section. When two regions have the same sparse infill "
 "settings but different skeleton densities, their skeleton areas will develop "
-"overlapping sections.default is as same as infill density."
+"overlapping sections. Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill density"
@@ -12133,9 +12127,9 @@ msgstr ""
 msgid ""
 "The portion of the model's outer surface within a certain depth range is "
 "called the skin. This parameter is used to adjust the density of this "
-"section.When two regions have the same sparse infill settings but different "
-"skin densities, This area will not be split into two separate "
-"regions.default is as same as infill density."
+"section. When two regions have the same sparse infill settings but different "
+"skin densities, this area will not be split into two separate regions. "
+"Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill depth"
@@ -12162,11 +12156,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -12379,8 +12373,8 @@ msgstr "與邊緣保持的距離。設定為 0 時，距離將自動設為噴嘴
 msgid "Ironing speed"
 msgstr "熨燙速度"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "熨燙的列印速度"
 
 msgid "Ironing angle"
 msgstr "熨燙角度"
@@ -12515,8 +12509,7 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -12679,7 +12672,7 @@ msgstr ""
 "當啟用了為改善層冷卻而減速的功能時，這個參數設定列印設備能減速到的最低列印速"
 "度，以確保達到上面設定的最短層時間。"
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "噴嘴直徑"
 
 msgid "Configuration notes"
@@ -12814,7 +12807,7 @@ msgstr ""
 "偵測懸空相對於線寬的百分比，並套用不同的速度列印。100%% 的懸空將使用橋接速"
 "度。"
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "用於列印牆體的線材"
 
 msgid ""
@@ -12863,7 +12856,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "列印設備類型"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "列印設備類型"
 
 msgid "Printer notes"
@@ -13296,7 +13289,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Skirt 距離"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "從 Skirt 到模型或者 Brim 的距離"
 
 msgid "Skirt start point"
@@ -13407,7 +13400,7 @@ msgstr "小於設定閾值的稀疏填充區域將替換為內部實心填充"
 msgid "Solid infill"
 msgstr "實心填充"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "列印實心填充所使用的線材"
 
 msgid ""
@@ -14210,7 +14203,7 @@ msgstr "換料塔寬度"
 msgid "Wipe tower rotation angle"
 msgstr "換料塔旋轉角度"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "換料塔相對於 x 軸的旋轉角度。"
 
 msgid "Width of the brim."
@@ -14279,7 +14272,7 @@ msgstr ""
 
 msgid ""
 "Positive values can increase the size of the rib wall, while negative values "
-"can reduce the size.However, the size of the rib wall can not be smaller "
+"can reduce the size. However, the size of the rib wall can not be smaller "
 "than that determined by the cleaning volume."
 msgstr ""
 
@@ -14857,7 +14850,7 @@ msgstr "載入自訂 G-code"
 msgid "Load custom G-code from json."
 msgstr "從 json 載入自訂 G-code"
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "載入耗材識別碼"
 
 msgid "Load filament IDs for each object."
@@ -14892,25 +14885,25 @@ msgstr "忽略 3MF 檔案內來自印表機或耗材預設的已修改 G-code"
 msgid "MakerLab name"
 msgstr "MakerLab 名稱"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "產生此 3MF 檔案時所使用的 MakerLab 名稱"
 
 msgid "MakerLab version"
 msgstr "MakerLab 版本"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "產生此 3MF 檔案時所使用的 MakerLab 版本"
 
 msgid "metadata name list"
 msgstr "中繼資料名稱清單"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "新增至 3MF 檔案的中繼資料名稱清單"
 
 msgid "metadata value list"
 msgstr "中繼資料值清單"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "新增至 3MF 檔案的中繼資料值清單"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -15168,7 +15161,7 @@ msgstr "層數"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr "當層數 (第一層為一)"
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "層 z 高"
 
 msgid ""
@@ -15176,7 +15169,7 @@ msgid ""
 "layer."
 msgstr "目前這一層距離熱床的高度，從層頂開始計算。"
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "層的最大 Z 軸高度"
 
 msgid "Height of the last layer above the print bed."
@@ -16536,8 +16529,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
 
@@ -17707,15 +17700,6 @@ msgstr ""
 #~ msgid "Enable this option to use classic mode."
 #~ msgstr "開啟此選項以使用經典模式"
 
-#~ msgid ""
-#~ "The geometry will be decimated before detecting sharp angles. This "
-#~ "parameter indicates the minimum length of the deviation for the "
-#~ "decimation.\n"
-#~ "0 to deactivate."
-#~ msgstr ""
-#~ "在偵測尖銳角度之前，幾何形狀將被簡化。此參數表示簡化的最小偏差長度。\n"
-#~ "設為 0 以停用"
-
 #~ msgid "Compatible machine"
 #~ msgstr "相容的設備"
 
@@ -17728,20 +17712,11 @@ msgstr ""
 #~ msgid "Default filament color"
 #~ msgstr "預設線材顏色"
 
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
 #~ msgid "Rotate solid infill direction"
 #~ msgstr "旋轉實心填充方向"
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "每層實心填充的列印方向旋轉 90°。"
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "熨燙的列印速度"
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "
@@ -17828,7 +17803,7 @@ msgstr ""
 #~ msgid "Downward machines settings"
 #~ msgstr "相容機器設定"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "載入每個物件的耗材識別碼"
 
 #~ msgid ""
