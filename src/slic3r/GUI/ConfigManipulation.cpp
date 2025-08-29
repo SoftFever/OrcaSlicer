@@ -74,9 +74,14 @@ void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrint
 
     wxString msg_text;
     bool     need_check = false;
-    if (temperature_range_low < min_recommended_temp || temperature_range_high > max_recommended_temp) {
-        msg_text += wxString::Format(_L("%s recommended temperature range is [%d, %d]°C."),
-                                        filament_type, min_recommended_temp, max_recommended_temp);
+    if (temperature_range_low < min_recommended_temp) {
+        msg_text += wxString::Format(_L("A minimum temperature above %d\u2103 is recommended for %s.\n"),
+                                        min_recommended_temp, filament_type);
+        need_check = true;
+    }
+    if (temperature_range_high > max_recommended_temp) {
+        msg_text += wxString::Format(_L("A maximum temperature below %d\u2103 is recommended for %s.\n"),
+                                        max_recommended_temp, filament_type);
         need_check = true;
     }
     if (temperature_range_low > temperature_range_high) {
