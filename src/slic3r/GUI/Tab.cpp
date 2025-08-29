@@ -2466,15 +2466,15 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
         optgroup->append_single_option_line("timelapse_type", "others_settings_special_mode#timelapse");
 
         optgroup = page->new_optgroup(L("Fuzzy Skin"), L"fuzzy_skin");
-        optgroup->append_single_option_line("fuzzy_skin", "others_settings_special_mode#fuzzy-skin");
-        optgroup->append_single_option_line("fuzzy_skin_mode", "others_settings_special_mode#fuzzy-skin-generator-mode");
-        optgroup->append_single_option_line("fuzzy_skin_noise_type", "others_settings_special_mode#fuzzy-skin-mode");
-        optgroup->append_single_option_line("fuzzy_skin_point_distance", "others_settings_special_mode#point-distance");
-        optgroup->append_single_option_line("fuzzy_skin_thickness", "others_settings_special_mode#skin-thickness");
-        optgroup->append_single_option_line("fuzzy_skin_scale", "others_settings_special_mode#skin-feature-size");
-        optgroup->append_single_option_line("fuzzy_skin_octaves", "others_settings_special_mode#skin-noise-octaves");
-        optgroup->append_single_option_line("fuzzy_skin_persistence", "others_settings_special_mode#skin-noise-persistence");
-        optgroup->append_single_option_line("fuzzy_skin_first_layer", "others_settings_special_mode#apply-fuzzy-skin-to-first-layer");
+        optgroup->append_single_option_line("fuzzy_skin", "others_settings_fuzzy_skin");
+        optgroup->append_single_option_line("fuzzy_skin_mode", "others_settings_fuzzy_skin#fuzzy-skin-mode");
+        optgroup->append_single_option_line("fuzzy_skin_noise_type", "others_settings_fuzzy_skin#noise-type");
+        optgroup->append_single_option_line("fuzzy_skin_point_distance", "others_settings_fuzzy_skin#point-distance");
+        optgroup->append_single_option_line("fuzzy_skin_thickness", "others_settings_fuzzy_skin#skin-thickness");
+        optgroup->append_single_option_line("fuzzy_skin_scale", "others_settings_fuzzy_skin#skin-feature-size");
+        optgroup->append_single_option_line("fuzzy_skin_octaves", "others_settings_fuzzy_skin#skin-noise-octaves");
+        optgroup->append_single_option_line("fuzzy_skin_persistence", "others_settings_fuzzy_skin#skin-noise-persistence");
+        optgroup->append_single_option_line("fuzzy_skin_first_layer", "others_settings_fuzzy_skin#apply-fuzzy-skin-to-first-layer");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction", "others_settings_g_code_output#reduce-infill-retraction");

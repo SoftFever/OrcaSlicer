@@ -625,7 +625,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         })
         toggle_field(el, have_infill || has_solid_infill);
 
-    toggle_field("gap_fill_target", !config->opt_bool("anisotropic_surfaces"));
+    for (auto el : { "gap_fill_target", "filter_out_gap_fill" })
+        toggle_field(el, !config->opt_bool("anisotropic_surfaces"));
 
     toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_shell);
     toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_shell);
