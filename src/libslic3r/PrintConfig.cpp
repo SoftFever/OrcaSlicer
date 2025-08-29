@@ -113,7 +113,6 @@ static std::vector<FilamentType> filament_types = {
         {"PET-GF", 280, 320},
         {"PETG", 190, 300},
         {"PETG-CF", 210, 290},
-        {"PETG-CF10", 220, 260},
         {"PETG-GF", 230, 250},
         {"PHA", 190, 240},
         {"PI", 390, 410},
