@@ -59,10 +59,29 @@ void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrint
     int temperature_range_low, temperature_range_high;
     if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
 
+    // Get the selected filament type
+    std::string filament_type = "";
+    if (config->has("filament_type") && config->option<ConfigOptionStrings>("filament_type")->values.size() > 0) {
+        filament_type = config->option<ConfigOptionStrings>("filament_type")->values[0];
+    }
+
+    int min_recommended_temp = 190;
+    int max_recommended_temp = 300;
+
+    if (!get_filament_temp_range(filament_type, min_recommended_temp, max_recommended_temp)){
+        filament_type = "Unknown";
+    }
+
     wxString msg_text;
     bool     need_check = false;
-    if (temperature_range_low < 190 || temperature_range_high > 300) {
-        msg_text += _L("The recommended minimum temperature is less than 190°C or the recommended maximum temperature is greater than 300°C.\n");
+    if (temperature_range_low < min_recommended_temp) {
+        msg_text += wxString::Format(_L("A minimum temperature above %d\u2103 is recommended for %s.\n"),
+                                        min_recommended_temp, filament_type);
+        need_check = true;
+    }
+    if (temperature_range_high > max_recommended_temp) {
+        msg_text += wxString::Format(_L("A maximum temperature below %d\u2103 is recommended for %s.\n"),
+                                        max_recommended_temp, filament_type);
         need_check = true;
     }
     if (temperature_range_low > temperature_range_high) {
