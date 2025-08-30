@@ -131,7 +131,7 @@ void ConfigManipulation::check_filament_max_volumetric_speed(DynamicPrintConfig 
     float max_volumetric_speed = config->has("filament_max_volumetric_speed") ? config->opt_float("filament_max_volumetric_speed", (float) 0.5) : 0.5;
     // BBS: limite the min max_volumetric_speed
     if (max_volumetric_speed < 0.5) {
-        const wxString     msg_text = _(L("Too small max volumetric speed.\nReset to 0.5."));
+        const wxString     msg_text = _(L("Too small Max Volumetric Flow.\nReset to 0.5"));
         MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist    = true;
