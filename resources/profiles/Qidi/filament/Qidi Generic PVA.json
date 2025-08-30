@@ -6,6 +6,7 @@
 	"from": "system",
 	"instantiation": "true",
 	"inherits": "fdm_filament_pva",
+	"filament_type": ["PVA"],
 	"filament_flow_ratio": [
 		"0.95"
 	],
@@ -53,6 +54,10 @@
 		"Qidi X-Plus 4 0.2 nozzle",
 		"Qidi X-Plus 4 0.4 nozzle",
 		"Qidi X-Plus 4 0.6 nozzle",
-		"Qidi X-Plus 4 0.8 nozzle"
+		"Qidi X-Plus 4 0.8 nozzle",
+		"Qidi Q2 0.2 nozzle",
+		"Qidi Q2 0.4 nozzle",
+		"Qidi Q2 0.6 nozzle",
+		"Qidi Q2 0.8 nozzle"
 	]
 }
