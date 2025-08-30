@@ -652,7 +652,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
-                params.multiline     = int(region_config.fill_multiline);
+                params.multiline     = 1;
                 params.lateral_lattice_angle_1 = region_config.lateral_lattice_angle_1;
                 params.lateral_lattice_angle_2 = region_config.lateral_lattice_angle_2;
                 params.infill_overhang_angle = region_config.infill_overhang_angle;
@@ -671,9 +671,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                     if (surface.is_external() && !is_bridge) {
                         if (surface.is_top()) {
                             params.pattern = region_config.top_surface_pattern.value;
+                            params.multiline = int(region_config.top_surface_multiline);
                             params.density = float(region_config.top_surface_density);
                         } else { // Surface is bottom
                             params.pattern = region_config.bottom_surface_pattern.value;
+                            params.multiline = int(region_config.bottom_surface_multiline);
                             params.density = float(region_config.bottom_surface_density);
                         }
                     } else if (surface.is_solid_infill()) {
@@ -712,6 +714,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 }
                 if (params.extrusion_role == erInternalInfill) {
                     params.angle += float(Geometry::deg2rad(region_config.infill_direction.value));
+                    params.multiline = int(region_config.fill_multiline);
                 } else {
                     params.angle += float(Geometry::deg2rad(region_config.solid_infill_direction.value));
                 }
