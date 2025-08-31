@@ -436,15 +436,9 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 string      v;
                 std::smatch match;
                 string      ps = (m_opt.opt_key == "sparse_infill_rotate_template") ?
-                                     u8"[SODMR]?[BT][!]?|[SODMR]?[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[SODMR]?[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[BT]?[!*]?" :
+                                     u8"[BT][!]?|[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[BT]?[!*]?" :
                                      u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[!*]?";
 
-                //if (m_opt.opt_key == "sparse_infill_rotate_template") {
-                //string      ps = u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[SODMR]?[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[";
-                //if (m_opt.opt_key == "sparse_infill_rotate_template") {
-                //    ps = u8"[BT][!]?|" + ps ;
-                //}
-                //ps += u8"BT]?[!*]?";
                 while (std::regex_search(ustr, match, std::regex(ps))) {
                     for (auto x : match) v += x.str() + ", ";
                     ustr = match.suffix().str();

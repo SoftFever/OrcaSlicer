@@ -3184,13 +3184,16 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("sparse_infill_rotate_template", coString);
     def->label    = L("Sparse infill rotatation template");
     def->category = L("Strength");
-    def->tooltip  = L("This parameter adds a rotation of sparse infill direction to each layer according to the specified template. "
-                      "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
-                      "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
-                      "If there are more layers than angles, the angles will be repeated. Note that not all sparse infill patterns support rotation.");
+    def->tooltip  = L(
+        "Rotates sparse infill direction for each layer based on a template of angles. "
+        "Enter comma-separated angles in degrees (e.g., '0,30,60,90'). "
+        "Angles cycle through layers - first angle for layer 1, second for layer 2, etc. "
+        "More advanced template syntax is supported too, e.g. '+5' rotate 5 degree every 1 layer. '+5/5' rotate 5 degree every 5 layer. Check WIKI for more details."
+        "When template is used, the standard infill direction setting is disabled. "
+        "Warning: not all infill patterns support rotation by design. Use this feature with caution.");
     def->sidetext = L("°");
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionString("0,90"));
+    def->set_default_value(new ConfigOptionString(""));
 
     //Orca
     def           = this->add("solid_infill_rotate_template", coString);

@@ -879,20 +879,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "lateral_lattice_angle_1", "lateral_lattice_angle_2"})
         toggle_line(el, lattice_options);
 
-    //Orca: hide rotate template for solid infill if not support
-    const auto _sparse_infill_pattern = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value;
-    bool       show_sparse_infill_rotate_template = _sparse_infill_pattern == ipRectilinear || _sparse_infill_pattern == ipLine ||
-                                              _sparse_infill_pattern == ipZigZag || _sparse_infill_pattern == ipCrossZag ||
-                                              _sparse_infill_pattern == ipLockedZag;
-
-    toggle_line("sparse_infill_rotate_template", show_sparse_infill_rotate_template);
-
-    //Orca: hide rotate template for solid infill if not support
-    const auto _solid_infill_pattern = config->option<ConfigOptionEnum<InfillPattern>>("internal_solid_infill_pattern")->value;
-    bool       show_solid_infill_rotate_template = _solid_infill_pattern == ipRectilinear || _solid_infill_pattern == ipMonotonic ||
-                                              _solid_infill_pattern == ipMonotonicLine || _solid_infill_pattern == ipAlignedRectilinear;
-
-    toggle_line("solid_infill_rotate_template", show_solid_infill_rotate_template);
+    //Orca: disable infill_direction/solid_infill_direction if sparse_infill_rotate_template/solid_infill_rotate_template is not empty value
+    toggle_field("infill_direction", config->opt_string("sparse_infill_rotate_template") == "");
+    toggle_field("solid_infill_direction", config->opt_string("solid_infill_rotate_template") == "");
 
 
     toggle_line("infill_overhang_angle", config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ipLateralHoneycomb);
