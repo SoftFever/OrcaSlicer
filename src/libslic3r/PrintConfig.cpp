@@ -5641,7 +5641,7 @@ void PrintConfigDef::init_fff_params()
     def->max      = 360;
     def->set_default_value(new ConfigOptionFloat(0.));
 
-    def           = this->add("patchwork_tile_height", coFloat);
+    def           = this->add("patchwork_tile_height", coInt);
     def->label    = L("Height of tile");
     def->category = L("Strength");
     def->tooltip  = L("(in surface lines)  *** Need description ***");
@@ -5649,9 +5649,9 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->min      = 5;
     def->max      = 100;
-    def->set_default_value(new ConfigOptionFloat(20.));
+    def->set_default_value(new ConfigOptionInt(20));
 
-    def           = this->add("patchwork_tile_width", coFloat);
+    def           = this->add("patchwork_tile_width", coInt);
     def->label    = L("Width of tile");
     def->category = L("Strength");
     def->tooltip  = L("(in surface lines) *** Need description ***");
@@ -5659,9 +5659,9 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->min      = 5;
     def->max      = 100;
-    def->set_default_value(new ConfigOptionFloat(20.));
+    def->set_default_value(new ConfigOptionInt(20));
 
-    def           = this->add("patchwork_tile_horizontal_joint", coFloat);
+    def           = this->add("patchwork_tile_horizontal_joint", coInt);
     def->label    = L("Width of the horizontal patchwork joint");
     def->category = L("Strength");
     def->tooltip  = L("(between tiles in lines) *** Need description ***\n"
@@ -5670,9 +5670,9 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->min      = -20;
     def->max      = 20;
-    def->set_default_value(new ConfigOptionFloat(1.));
+    def->set_default_value(new ConfigOptionInt(1));
 
-    def           = this->add("patchwork_tile_vertical_joint", coFloat);
+    def           = this->add("patchwork_tile_vertical_joint", coInt);
     def->label    = L("Width of the vertical patchwork joint");
     def->category = L("Strength");
     def->tooltip  = L("(between tiles in lines) *** Need description ***\n"
@@ -5681,7 +5681,7 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->min      = -20;
     def->max      = 20;
-    def->set_default_value(new ConfigOptionFloat(1.));
+    def->set_default_value(new ConfigOptionInt(1));
 
     def           = this->add("patchwork_tiles_alternate_direction", coString);
     def->label    = L("Alternate tiles direction");
@@ -5689,7 +5689,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("The angle of rotation of the adjacent tile. They depend on the solid_inill_direction parameter.\n"
                       "When you enter an unsigned value, all tile patterns will be positioned in that direction.\n"
                       "When you enter an signed value (+ or -), the tile patterns will change direction by this value from one to the other.\n"
-                      "If you enter a '+0' value, the direction of the tile patterns will be random.");
+                      "If you enter a '+0' or '360' value, the direction of the tile patterns will be random.");
     def->sidetext = "°"; // degrees, don't need translation
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString("+90"));

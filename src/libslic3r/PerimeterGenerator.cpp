@@ -168,7 +168,7 @@ static ExPolygons get_precision_surface(ExtrusionEntityCollection& entities, ExP
         if (abs(_pg.area()) > abs(_new_surface.area()))
             _new_surface = _pg;
 
-    ExPolygons _top_fills = union_ex(offset_ex(top_fills, -_scaled_semiwidth));
+    ExPolygons _top_fills = union_ex(offset_ex(diff_ex(top_fills, offset2_ex(_extrusions, -_scaled_semiwidth, _scaled_semiwidth)), -_scaled_semiwidth));
     if (perimeter_generator.upper_slices != NULL && _top_fills.size()) { // calculate new top infill
         for (ExPolygon _expg : _new_infill) // calculate the overlaid polygons
             if (union_ex(intersection_ex(offset_ex(_expg, -_scaled_semiwidth), _top_fills)).size())

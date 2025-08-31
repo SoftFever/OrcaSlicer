@@ -139,46 +139,54 @@ return thick_polylines_out;
 void Fill::fill_patchwork(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out) {
 
 //#define DEBUG_PATCHWORK
-    Polylines                  polylines, _paddings_h, _paddings_v; // overall, horisontal, vertical mesh polylines
-    ExPolygon                  _inner_pg;
-    ExPolygons                 _tiles;
+    Polylines                            polylines, _paddings_h, _paddings_v; // overall, horisontal, vertical mesh polylines
+
     ExtrusionEntityCollection* eec = nullptr;
     out.push_back(eec = new ExtrusionEntityCollection());
-    coord_t _epsylon               = 10;
-    coord_t _scaled_width          = params.flow.scaled_width();
-    coord_t _scaled_semiwidth      = _scaled_width / 2.;
-    coord_t _scaled_quarterwidth   = _scaled_width / 4.;
-    coord_t _scaled_doublewidth    = _scaled_width * 2.;
-    coord_t _minimum_line          = pow(_scaled_width, 2.) * 0.5;
-    bool    _is_assembly           = params.center_of_surface_pattern == CenterOfSurfacePattern::Each_Assembly;
 
-    float       _model_direction     = this->angle;
-    float       _surface_direction   = Geometry::deg2rad(params.config->solid_infill_direction.value);
-    float       _patchwork_direction = Geometry::deg2rad(params.config->patchwork_direction.value) + _model_direction;
-    float       _pattern_direction   = _surface_direction + _model_direction;
-    float       flow_width           = params.flow.width();
-    coord_t     scaled_flow_width    = params.flow.scaled_width();
-    float       flow_mm3_per_mm      = params.flow.mm3_per_mm();
-    Flow        new_flow             = params.flow.with_spacing(float(this->spacing));
-    float       _flow_ratio          = params.config->patchwork_joints_flow_ratio.value;
-    coord_t     _tile_x              = (int) params.config->patchwork_tile_width.value;
-    coord_t     _tile_y              = (int) params.config->patchwork_tile_height.value;
-    int         _lines_h             = params.config->patchwork_tile_horizontal_joint.value;
-    int         _lines_v             = params.config->patchwork_tile_vertical_joint.value;
-    bool        _centering           = params.config->patchwork_centering.value;
-    bool        _is_subway           = params.config->patchwork_subway_tiling.value;
-    ExPolygon   _exp                 = surface->expolygon;
-    ExPolygons  _expgs_crop          = union_ex(offset_ex(_exp, float(scale_(this->overlap - 0.5 * this->spacing)), ClipperLib::JoinType::jtRound));
-    BoundingBox _bbox                = get_extents(_exp);
-    Point       _center              = _bbox.center();
-    Point       _model_center        = this->bounding_box.center();
+    struct PatchBox {
+        ExPolygon patch;
+        int id[2];
+        bool      operator==(const PatchBox& l) const {return (this->patch == l.patch) && (this->id[0] == l.id[0]) && (this->id[1] == l.id[1]); };
+    };
+     
+    std::vector<PatchBox>                _patchboxes;
+
+    coord_t     _epsylon               = 10;
+    coord_t     _scaled_width          = params.flow.scaled_width();
+    coord_t     _scaled_semiwidth      = _scaled_width / 2.;
+    coord_t     _scaled_quarterwidth   = _scaled_width / 4.;
+    coord_t     _scaled_doublewidth    = _scaled_width * 2.;
+    coord_t     _minimum_line          = pow(_scaled_width, 2.) * 0.5;
+    bool        _is_assembly           = params.center_of_surface_pattern == CenterOfSurfacePattern::Each_Assembly;
+    float       _model_direction       = this->angle;
+    float       _surface_direction     = Geometry::deg2rad(params.config->solid_infill_direction.value);
+    float       _patchwork_direction   = Geometry::deg2rad(params.config->patchwork_direction.value) + _model_direction;
+    float       _pattern_direction     = _surface_direction + _model_direction;
+    float       flow_width             = params.flow.width();
+    coord_t     scaled_flow_width      = params.flow.scaled_width();
+    float       flow_mm3_per_mm        = params.flow.mm3_per_mm();
+    Flow        new_flow               = params.flow.with_spacing(float(this->spacing));
+    float       _flow_ratio            = params.config->patchwork_joints_flow_ratio.value;
+    coord_t     _tile_x                = params.config->patchwork_tile_width.value;
+    coord_t     _tile_y                = params.config->patchwork_tile_height.value;
+    int         _lines_h               = params.config->patchwork_tile_horizontal_joint.value;
+    int         _lines_v               = params.config->patchwork_tile_vertical_joint.value;
+    bool        _centering             = params.config->patchwork_centering.value;
+    bool        _is_subway             = params.config->patchwork_subway_tiling.value;
+    ExPolygon   _exp                   = surface->expolygon;
+    ExPolygons  _expgs_crop            = union_ex(offset_ex(_exp, float(scale_(this->overlap - 0.5 * this->spacing)), ClipperLib::JoinType::jtRound));
+    Point       _model_center          = this->bounding_box.center();
+    BoundingBox _bbox                  = get_extents(_exp);
+    Point       _center                = _bbox.center();
+    coord_t     _radius                = _bbox.radius();
     ExPolygons  _expgs;
     for (ExPolygon _expg : _expgs_crop) {
         _expg.rotate(-_patchwork_direction, _center);
-        if (_expg.area() > _minimum_line)
-            _expgs.emplace_back(std::move(_expg));
+        _expgs.emplace_back(std::move(_expg));
     }
-    coord_t     _radius              = _bbox.radius();
+    _bbox                            = get_extents(_expgs); // recalculate rotated bounding box
+    Point       _new_center          = _bbox.center();
     coord_t     _joint_h             = abs(_lines_h * scaled_flow_width);
     coord_t     _joint_v             = abs(_lines_v * scaled_flow_width);
     coord_t     _tile_size_x         = std::min(scaled_flow_width * _tile_x, _bbox.size().x());    // tile width 
@@ -188,21 +196,18 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
     coord_t     _tile_semisize_x     = _tile_size_x / 2;
     coord_t     _tile_semisize_y     = _tile_size_y / 2;
     coord_t     _tile_semisize2_y    = _tile_semisize_y - _scaled_semiwidth;          // with extrusion gap
-    coord_t     _semiwidth           = _center.y() - _bbox.min.y();   
-    int         _nx                  = (_center.x() - _bbox.min.x()) / _tile_joint_x; // number of tiling on x
+    coord_t     _semiwidth           = _new_center.y() - _bbox.min.y();   
+    int         _nx                  = (_new_center.x() - _bbox.min.x()) / _tile_joint_x; // number of tiling on x
     coord_t     _ext_x               = _tile_joint_x * (_nx + 1);
-    int         _ny                  = (_center.y() - _bbox.min.y()) / _tile_joint_y; // number of tiling on y
+    int         _ny                  = (_new_center.y() - _bbox.min.y()) / _tile_joint_y; // number of tiling on y
     coord_t     _ext_y               = _tile_joint_y * (_ny + 1);
     bool        _has_even_rows       = _ny ? (_semiwidth / _ny * _tile_joint_y) % 2 : false;
-    coord_t     _tile_min_x          = _center.x() - _ext_x;
-    coord_t     _tile_min_y          = _center.y() - _ext_y;
-    coord_t     _tile_max_x          = _center.x() + _ext_x;
-    coord_t     _tile_max_y          = _center.y() + _ext_y;
+    coord_t     _tile_min_x          = _new_center.x() - _ext_x;
+    coord_t     _tile_min_y          = _new_center.y() - _ext_y;
+    coord_t     _tile_max_x          = _new_center.x() + _ext_x;
+    coord_t     _tile_max_y          = _new_center.y() + _ext_y;
     float       _scale_factor        = _radius / sqrt(pow(_tile_semisize_x, 2) + pow(_tile_semisize_y, 2));
     bool        _is_polar_pattern    = params.pattern == ipArchimedeanChords || params.pattern == ipOctagramSpiral;
-    Point       _shift               = _center;
-    _shift.rotate(_patchwork_direction, _model_center);
-    _shift -= _center;
 
 #if defined DEBUG_PATCHWORK
     static int i_ptch       = 0;
@@ -218,6 +223,8 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
     Point _singlevector_y(Point(coord_t(0), _exp.contour.bounding_box().max.y()));
     svg_ptch.draw(Line(_orign, _singlevector_x * 2), "black", scaled_flow_width);
     svg_ptch.draw(Line(_orign, _singlevector_y * 2), "black", scaled_flow_width);
+    svg_ptch.draw_outline(get_extents(_exp).polygon(), "blue", scaled_flow_width);
+    svg_ptch.draw_outline(_bbox.polygon(), "red", scaled_flow_width);
     svg_ptch.draw_outline(_exp, "grey", "grey", scaled_flow_width);
 #endif
 
@@ -227,20 +234,20 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
     // *** Defining the padding mesh
     int     _tiles_row    = 0;
     coord_t _tiles_disp   = (!_centering != _has_even_rows) ? _tile_joint_y / 2 : 0;
-    
-    for (coord_t _y = _tile_min_y - _tiles_disp; _y < _tile_max_y + _tiles_disp; _y += _tile_joint_y) {
+    for (coord_t _y = _tile_min_y - _tiles_disp; _y <= _tile_max_y + _tiles_disp; _y += _tile_joint_y) {
+        int     _tiles_col    = 0;
         coord_t _tiles_subway = (_centering != !(_is_subway && (_tiles_row % 2))) ? _tile_joint_x / 2 : 0;
-        for (coord_t _x = _tile_min_x - _tiles_subway; _x < _tile_max_x + _tiles_subway; _x += _tile_joint_x) {
-            BoundingBox _inner_bbox(Point(_x - _tile_semisize_x, _y - _tile_semisize_y),
-                Point(_x + _tile_semisize_x, _y + _tile_semisize_y));
-            //_inner_bbox.translate(_joint_v / 2., _joint_h / 2.);
-            _inner_pg = ExPolygon(_inner_bbox.polygon());
+        for (coord_t _x = _tile_min_x - _tiles_subway; _x <= _tile_max_x + _tiles_subway; _x += _tile_joint_x) {
+            BoundingBox _inner_bbox(Point(_x - _tile_semisize_x, _y - _tile_semisize_y), Point(_x + _tile_semisize_x, _y + _tile_semisize_y));
+            ExPolygon _inner_pg = ExPolygon(_inner_bbox.polygon());
 #if defined DEBUG_PATCHWORK
             svg_ptch.draw(_inner_pg, "grey"); // calculated tiles
 #endif
+            
             for (ExPolygon _p : intersection_ex(_expgs, _inner_pg)) {
-                if (_p.area() && !(std::count(_tiles.begin(), _tiles.end(), _inner_pg))) {
-                    _tiles.emplace_back(_inner_pg);
+                PatchBox _inner_pb = {_inner_pg, {_tiles_row, _tiles_col}};
+                if (_p.area() > 0. && !(std::count(_patchboxes.begin(), _patchboxes.end(), _inner_pb))) {
+                    _patchboxes.emplace_back(_inner_pb);
 #if defined DEBUG_PATCHWORK
                     svg_ptch.draw(_inner_pg, "green"); // needed tiles
                     svg_ptch.draw(_p, "cyan");         // cropped tile
@@ -252,6 +259,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                 Polyline _pl(Point(_j, _inner_bbox.min.y()), Point(_j, _inner_bbox.max.y()));
                 _paddings_v.emplace_back(std::move(_pl));
             }
+            _tiles_col++;
         }
         for (float _i = 0; _i < abs(_lines_h); _i++) {
             coord_t _j = _y + _tile_semisize_y + (0.5l + _i) * scaled_flow_width;
@@ -263,15 +271,15 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
 
     // *** Collect and rotate all paddings
     if (_lines_v > 0) // need for negative lines
-        for (Polyline& _pl : _paddings_v) {
+        for (Polyline _pl : _paddings_v) {
             _pl.rotate(_patchwork_direction, _center);
-            for (Polyline& _pl2 : intersection_pl({_pl}, _expgs_crop))
+            for (Polyline _pl2 : intersection_pl({_pl}, _expgs_crop))
                 polylines.emplace_back(std::move(_pl2));
         }
     if (_lines_h > 0) // need for negative lines
-        for (Polyline& _pl : _paddings_h) {
+        for (Polyline _pl : _paddings_h) {
             _pl.rotate(_patchwork_direction, _center);
-            for (Polyline& _pl2 : intersection_pl({_pl}, _expgs_crop))
+            for (Polyline _pl2 : intersection_pl({_pl}, _expgs_crop))
                 polylines.emplace_back(std::move(_pl2));
         }
 
@@ -297,11 +305,17 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
 
     if (_is_assembly) {  // if a surface just have padding over normal pattern
         Polylines _polylines; // calculate cropping padding
-            for (Polyline& _pl : _paddings_v)
-                _polylines.emplace_back(std::move(_pl));
-            for (Polyline& _pl : _paddings_h)
-                _polylines.emplace_back(std::move(_pl));
-    
+        for (Polyline& _pl : _paddings_v) {
+            _pl.rotate(_patchwork_direction, _center);
+            _polylines.emplace_back(std::move(_pl));
+        }
+        for (Polyline& _pl : _paddings_h) {
+            _pl.rotate(_patchwork_direction, _center);
+            _polylines.emplace_back(std::move(_pl));
+        }
+#if defined DEBUG_PATCHWORK
+        svg_ptch.draw(_polylines, "dark red", scaled_flow_width); // crop polylines
+#endif
         Polygons _tracks_crop             = offset(_polylines, scaled_flow_width / 2); // create cropping polygons 
         this->angle                       = _pattern_direction;                        // store infill angle
         _params.center_of_surface_pattern = CenterOfSurfacePattern::Each_Surface;
@@ -311,7 +325,6 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
             if (_params.use_arachne) {
                 ThickPolylines _thick_polylines(fill_surface_arachne(&_surface, _params));
 #if defined DEBUG_PATCHWORK
-                _surface.expolygon.rotate(_patchwork_direction, _center);
                 svg_ptch.draw(_surface.expolygon, "blue"); // filled area
                 svg_ptch.draw(_thick_polylines, "black"); // path
 #endif
@@ -324,31 +337,30 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
             } else {
                 _polylines = fill_surface(&_surface, _params);
 #if defined DEBUG_PATCHWORK
-                _surface.expolygon.rotate(_patchwork_direction, _center);
                 svg_ptch.draw(_surface.expolygon, "blue"); // filled area
                 svg_ptch.draw(_polylines, "black"); // path
 #endif
                 if (!_polylines.empty()) {
                     _polylines = diff_pl(_polylines, _tracks_crop); // intersect pattern path with padding
-                    extrusion_entities_append_paths_with_wipe(eec->entities, std::move(_polylines), _params.extrusion_role, flow_mm3_per_mm, float(flow_width), _params.flow.height());
+                    extrusion_entities_append_paths(eec->entities, std::move(_polylines), _params.extrusion_role, flow_mm3_per_mm, float(flow_width), _params.flow.height());
                 }
             }
         } catch (InfillFailedException&) {}
 
     } else { // if all tiles infill with own pattern
 
-        for (ExPolygon _tile_pg : _tiles) {
+        for (PatchBox _tile_pg : _patchboxes) {
             
-            BoundingBox _tile_bb     = _tile_pg.contour.bounding_box();
+            BoundingBox _tile_bb     = _tile_pg.patch.contour.bounding_box();
             Point       _tile_center = _tile_bb.center();
             this->overlap            = 0.;
             _params.dont_adjust      = true;
             
             if (params.center_of_surface_pattern != CenterOfSurfacePattern::Each_Assembly) // some direction manipulations
-                if (_degrees == 360.f)
+                if (_degrees == 360.f || (_degrees == 0.f && !_absolute))
                     _tile_direction = (double) rand() / RAND_MAX * PI;
                 else if (!_absolute)
-                    _tile_direction += _additional_angle; 
+                    _tile_direction = (_tile_pg.id[0] + _tile_pg.id[1] % 2) * _additional_angle; // distribute angles among tiles
 
             if (_is_polar_pattern) { // recalculate the tile center
 
@@ -380,7 +392,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
             this->angle        = _tile_direction + _surface_direction; // store temporary angle
 
             // *** fill the choosed tiles
-            Slic3r::ExPolygons expp = intersection_ex(_expgs, _tile_pg, ApplySafetyOffset::No); 
+            Slic3r::ExPolygons expp = intersection_ex(_expgs, _tile_pg.patch, ApplySafetyOffset::No); 
             try {
                 if (params.use_arachne && !params.is_anisotropic) { // anisotripic don't use arachne
                     ThickPolylines _thick_polylines;
@@ -388,8 +400,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                         _surface.expolygon       = _exp2;
                         for (ThickPolyline& _pl : fill_surface_arachne(&_surface, _params)) {
                             if (_pl.length() > _scaled_semiwidth) { // filter tiny paths
-                                _pl.rotate(_patchwork_direction, _model_center);
-                                _pl.translate(-_shift);
+                                _pl.rotate(_patchwork_direction, _center);
                                 _thick_polylines.emplace_back(std::move(_pl));
                             }
                         }
@@ -410,8 +421,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                         _surface.expolygon = _exp2;
                         for (Polyline& _pl : fill_surface(&_surface, _params)) {
                             if (_pl.length() > _scaled_semiwidth) { // filter tiny paths
-                                _pl.rotate(_patchwork_direction, _model_center);
-                                _pl.translate(-_shift);
+                                _pl.rotate(_patchwork_direction, _center);
                                 _polylines.emplace_back(std::move(_pl));
                             }
                         }
@@ -424,7 +434,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                         svg_ptch.draw(_polylines, "black"); // pattern path
 #endif
                     if (!_polylines.empty())
-                        extrusion_entities_append_paths_with_wipe(eec->entities, std::move(_polylines), _params.extrusion_role, flow_mm3_per_mm, float(flow_width), _params.flow.height());
+                        extrusion_entities_append_paths(eec->entities, std::move(_polylines), _params.extrusion_role, flow_mm3_per_mm, float(flow_width), _params.flow.height());
                 } 
             } catch (InfillFailedException&) {}
         }

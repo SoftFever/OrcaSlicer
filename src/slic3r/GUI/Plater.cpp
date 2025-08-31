@@ -9908,10 +9908,10 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("precision_infill", new ConfigOptionBool(false));
         _obj->config.set_key_value("patchwork_surfaces", new ConfigOptionEnum<PatchworkPosition>(PatchworkPosition::Nowhere));
         _obj->config.set_key_value("patchwork_direction", new ConfigOptionFloat(0.f));
-        _obj->config.set_key_value("patchwork_tile_height", new ConfigOptionFloat(20.f));
-        _obj->config.set_key_value("patchwork_tile_width", new ConfigOptionFloat(20.f));
-        _obj->config.set_key_value("patchwork_tile_horizontal_joint", new ConfigOptionFloat(1.f));
-        _obj->config.set_key_value("patchwork_tile_vertical_joint", new ConfigOptionFloat(1.f));
+        _obj->config.set_key_value("patchwork_tile_height", new ConfigOptionInt(20));
+        _obj->config.set_key_value("patchwork_tile_width", new ConfigOptionInt(20));
+        _obj->config.set_key_value("patchwork_tile_horizontal_joint", new ConfigOptionInt(1));
+        _obj->config.set_key_value("patchwork_tile_vertical_joint", new ConfigOptionInt(1));
         _obj->config.set_key_value("patchwork_tiles_alternate_direction", new ConfigOptionString("+90"));
         _obj->config.set_key_value("patchwork_centering", new ConfigOptionBool(true));
         _obj->config.set_key_value("patchwork_subway_tiling", new ConfigOptionBool(false));
