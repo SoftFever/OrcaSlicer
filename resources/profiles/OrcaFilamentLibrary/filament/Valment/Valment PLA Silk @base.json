@@ -18,7 +18,7 @@
   "nozzle_temperature_range_low": ["220"],
   "nozzle_temperature_range_high": ["250"],
   "filament_notes": [
-    "Bu filament ayarları GlauTech tarafından oluşturulmuştur. Filamentin daha verimli çalışması için, slicerdaki kalibrasyon ayarlarının tek tek yapılması önemlidir. Kalibrasyon ayarları için, GlauTech yotube kanalından destek alabilirsiniz.\n\nBoş Makara Ağırlığı: 150gr"
+    "Bu filament ayarları GlauTech tarafından oluşturulmuştur. Filamentin daha verimli çalışması için, slicerdaki kalibrasyon ayarlarının tek tek yapılması önemlidir. Kalibrasyon ayarları için, GlauTech youtube kanalından destek alabilirsiniz.\n\nBoş Makara Ağırlığı: 150gr"
   ],
   "slow_down_min_speed": ["20"],
   "complete_print_exhaust_fan_speed": ["80"],
