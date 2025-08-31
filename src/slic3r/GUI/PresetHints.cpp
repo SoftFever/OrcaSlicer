@@ -195,7 +195,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
         if (limited_by_max_volumetric_speed)
             max_flow = max_volumetric_speed;
 
-        out += (boost::format(_utf8(L("%3.2f mm³/s at filament speed %3.2f mm/s."))) % max_flow % (max_flow / filament_crossection)).str();
+        out += (boost::format(_utf8(L(u8"%3.2f mm\u00b3/s at filament speed %3.2f mm/s."))) % max_flow % (max_flow / filament_crossection)).str();
     }
     */
  	return out;

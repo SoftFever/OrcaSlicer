@@ -1044,7 +1044,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         is_relative_input = true;
     }
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
-    imgui_wrapper->text("°");
+    imgui_wrapper->text(u8"°");
     m_buffered_rotation = rotation;
     if (is_relative_input) {
         m_last_rotate_type = RotateType::Relative;
@@ -1101,7 +1101,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         is_absolute_input = true;
     }
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
-    imgui_wrapper->text("°");
+    imgui_wrapper->text(u8"°");
     m_buffered_absolute_rotation = absolute_rotation;
     if (is_absolute_input) {
         m_last_rotate_type = RotateType::Absolute;

@@ -2885,7 +2885,7 @@ void GLGizmoEmboss::draw_advanced()
     float* def_angle_deg = stored_style ?
         &def_angle_deg_val : nullptr;
     if (rev_slider(tr.rotation, angle_deg, def_angle_deg, _u8L("Undo rotation"), 
-        limits.angle.min, limits.angle.max, u8"%.2f °",
+        limits.angle.min, limits.angle.max, u8"%.2f°",
                    _L("Rotate text Clock-wise."))) {
         // convert back to radians and CCW
         double angle_rad = -angle_deg * M_PI / 180.0;

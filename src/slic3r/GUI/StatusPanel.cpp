@@ -4135,11 +4135,11 @@ void StatusPanel::on_set_chamber_temp()
             if (!obj->GetFan()->is_at_heating_mode() && chamber_temp >= obj->GetConfig()->GetChamberTempSwitchHeat())
             {
 #ifndef __APPLE__
-                MessageDialog champer_switch_head_dlg(this, _L("If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. "
+                MessageDialog champer_switch_head_dlg(this, _L(u8"If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. "
                                                                 "Please confirm whether to switch."), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
 #else
                 /*STUDIO-10386 MessageDialog here may cause block in macOS, use wxMessageDialog*/
-                wxMessageDialog champer_switch_head_dlg(this, _L("If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. "
+                wxMessageDialog champer_switch_head_dlg(this, _L(u8"If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. "
                                                                    "Please confirm whether to switch."), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
 #endif
                 if (champer_switch_head_dlg.ShowModal() != wxID_OK) { return; }
