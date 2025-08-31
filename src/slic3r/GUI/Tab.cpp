@@ -1662,30 +1662,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-    // if (opt_key == "solid_infill_rotate_template") {
-    //     // Orca: show warning dialog if rotate template for solid infill if not support
-    //     const auto _solid_infill_pattern = m_config->option<ConfigOptionEnum<InfillPattern>>("solid_infill_pattern")->value;
-    //     bool       is_safe_to_rotate      = _solid_infill_pattern == ipRectilinear || _solid_infill_pattern == ipMonotonic ||
-    //                                         _solid_infill_pattern == ipMonotonicLine || _solid_infill_pattern == ipAlignedRectilinear;
-    
-    //     if (!is_safe_to_rotate) {
-    //         wxString msg_text = _(
-    //             L("Infill patterns are typically designed to handle rotation automatically to ensure proper printing and achieve their intended effects (e.g., Gyroid, Cubic). Rotating the current sparse infill pattern may lead to insufficient support. "
-    //               "Please proceed with caution and thoroughly check for any potential printing issues."
-    //               "Are you sure you want to enable this option?"));
-    //         msg_text += "\n\n" + _(L("Are you sure you want to enable this option?"));
-    //         MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
-    //         dialog.SetButtonLabel(wxID_YES, _L("Enable"));
-    //         dialog.SetButtonLabel(wxID_NO, _L("Cancel"));
-    //         if (dialog.ShowModal() == wxID_NO) {
-    //             DynamicPrintConfig new_conf = *m_config;
-    //             new_conf.set_key_value("solid_infill_rotate_template", new ConfigOptionString(""));
-    //             m_config_manipulation.apply(m_config, &new_conf);
-    //             wxGetApp().plater()->update();
-    //         }
-    //     }
-    // }
-
     if(opt_key=="layer_height"){
         auto min_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("min_layer_height")->values;
         auto max_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("max_layer_height")->values;
