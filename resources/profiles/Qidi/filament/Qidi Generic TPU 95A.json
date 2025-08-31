@@ -6,6 +6,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",
+    "filament_type": ["TPU"],
     "filament_max_volumetric_speed": [
         "4"
     ],

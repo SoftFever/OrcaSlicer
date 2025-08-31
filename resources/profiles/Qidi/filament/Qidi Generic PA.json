@@ -6,6 +6,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa",
+    "filament_type": ["PA"],
     "required_nozzle_HRC": [
         "3"
     ],
@@ -50,6 +51,9 @@
         "Qidi Q1 Pro 0.8 nozzle",
         "Qidi X-Plus 4 0.4 nozzle",
         "Qidi X-Plus 4 0.6 nozzle",
-        "Qidi X-Plus 4 0.8 nozzle"
+        "Qidi X-Plus 4 0.8 nozzle",
+        "Qidi Q2 0.4 nozzle",
+        "Qidi Q2 0.6 nozzle",
+        "Qidi Q2 0.8 nozzle"
     ]
 }

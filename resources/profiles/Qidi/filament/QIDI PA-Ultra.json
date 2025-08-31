@@ -6,6 +6,7 @@
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_filament_pa",
+  "filament_type": ["UltraPA"],
   "required_nozzle_HRC": [
     "3"
   ],
