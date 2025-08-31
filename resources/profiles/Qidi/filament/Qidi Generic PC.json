@@ -6,6 +6,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pc",
+    "filament_type": ["PC"],
     "filament_max_volumetric_speed": [
         "8"
     ],

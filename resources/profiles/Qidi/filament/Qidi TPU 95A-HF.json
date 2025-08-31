@@ -6,6 +6,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",
+    "filament_type": ["TPU"],
     "filament_max_volumetric_speed": [
         "4"
     ],
@@ -14,6 +15,12 @@
     ],
     "pressure_advance": [
         "0.1"
+    ],
+       "hot_plate_temp": [
+        "35"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "35"
     ],
     "nozzle_temperature_initial_layer": [
         "230"

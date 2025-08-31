@@ -18,19 +18,19 @@ msgid "Current AMS humidity"
 msgstr "Umidità AMS attuale"
 
 msgid "Drying"
-msgstr ""
+msgstr "Asciugatura"
 
 msgid "Idle"
 msgstr "Inattivo"
 
 msgid "Humidity"
-msgstr ""
+msgstr "Umidità"
 
 msgid "Temperature"
 msgstr "Temperatura"
 
 msgid "Left Time"
-msgstr ""
+msgstr "Tempo rimanente"
 
 msgid "Serial:"
 msgstr "Seriale:"
@@ -187,10 +187,10 @@ msgid "Toggle Wireframe"
 msgstr "Attiva/disattiva modello reticolato"
 
 msgid "Remap filaments"
-msgstr ""
+msgstr "Rimappa filamenti"
 
 msgid "Remap"
-msgstr ""
+msgstr "Rimappa"
 
 msgid "Cancel"
 msgstr "Annulla"
@@ -218,7 +218,7 @@ msgid "Painted using: Filament %1%"
 msgstr "Dipinto utilizzando: Filamento %1%"
 
 msgid "Filament remapping finished."
-msgstr ""
+msgstr "Rimappatura filamenti completata."
 
 msgid "Move"
 msgstr "Sposta"
@@ -257,13 +257,13 @@ msgid "mm"
 msgstr "mm"
 
 msgid "Part selection"
-msgstr ""
+msgstr "Selezione parte"
 
 msgid "Fixed step drag"
 msgstr ""
 
 msgid "Single sided scaling"
-msgstr ""
+msgstr "Ridimensionamento su un solo lato"
 
 msgid "Position"
 msgstr "Posizione"
@@ -305,7 +305,7 @@ msgid "World coordinates"
 msgstr "Coordinate reali"
 
 msgid "Reset current rotation to the value when open the rotation tool."
-msgstr ""
+msgstr "Reimposta la rotazione corrente al valore di apertura dello strumento."
 
 msgid "Rotate (absolute)"
 msgstr ""
@@ -1534,7 +1534,7 @@ msgstr ""
 "sono stati riconosciuti."
 
 msgid "Based on PrusaSlicer and BambuStudio"
-msgstr ""
+msgstr "Basato su PrusaSlicer e BambuStudio"
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory. It may be a bug. "
@@ -1782,7 +1782,7 @@ msgid "Top Minimum Shell Thickness"
 msgstr "Spessore minimo del guscio superiore"
 
 msgid "Top Surface Density"
-msgstr ""
+msgstr "Densità superficie superiore"
 
 msgid "Bottom Solid Layers"
 msgstr "Strati solidi inferiori"
@@ -1791,7 +1791,7 @@ msgid "Bottom Minimum Shell Thickness"
 msgstr "Spessore minimo del guscio inferiore"
 
 msgid "Bottom Surface Density"
-msgstr ""
+msgstr "Densità superficie inferiore"
 
 msgid "Ironing"
 msgstr "Stiratura"
@@ -2194,7 +2194,7 @@ msgstr[0] "%1$d geometria con spessore zero"
 msgstr[1] "%1$d geometrie con spessore zero"
 
 msgid "Click the icon to repair model object"
-msgstr ""
+msgstr "Clicca sull'icona per riparare l'oggetto"
 
 msgid "Right button click the icon to drop the object settings"
 msgstr ""
@@ -2289,7 +2289,7 @@ msgid "Deleting the last solid part is not allowed."
 msgstr "Non è consentita l'eliminazione dell'ultima parte solida."
 
 msgid "The target object contains only one part and can not be split."
-msgstr ""
+msgstr "L'oggetto di destinazione contiene solo una parte e non può essere suddiviso."
 
 msgid "Assembly"
 msgstr "Assemblaggio"
@@ -8146,7 +8146,7 @@ msgid "Support filament"
 msgstr "Filamento per supporti"
 
 msgid "Support ironing"
-msgstr ""
+msgstr "Stiratura supporti"
 
 msgid "Tree supports"
 msgstr "Supporti ad albero"
@@ -8254,7 +8254,7 @@ msgstr ""
 "compatibile con la stampa sul Piatto a bassa temperatura."
 
 msgid "Textured Cool Plate"
-msgstr ""
+msgstr "Piatto ruvido a bassa temperatura"
 
 msgid ""
 "Bed temperature when the Textured Cool Plate is installed. A value of 0 "
@@ -8371,7 +8371,7 @@ msgid "Dependencies"
 msgstr "Dipendenze"
 
 msgid "Compatible printers"
-msgstr ""
+msgstr "Stampanti compatibili"
 
 msgid "Compatible process profiles"
 msgstr "Profili di processo compatibili"
@@ -8442,10 +8442,10 @@ msgid "Normal"
 msgstr "Normale"
 
 msgid "Resonance Avoidance"
-msgstr ""
+msgstr "Evita risonanza"
 
 msgid "Resonance Avoidance Speed"
-msgstr ""
+msgstr "Velocità evita risonanza"
 
 msgid "Speed limitation"
 msgstr "Limitazione velocità"
@@ -12294,7 +12294,7 @@ msgstr ""
 "interno."
 
 msgid "Align infill direction to model"
-msgstr ""
+msgstr "Allinea direzione riempimento al modello"
 
 msgid ""
 "Aligns infill and surface fill directions to follow the model's orientation "
@@ -12303,7 +12303,7 @@ msgid ""
 msgstr ""
 
 msgid "Fill Multiline"
-msgstr ""
+msgstr "Riempimento multilinea"
 
 msgid ""
 "Using multiple lines for the infill pattern, if supported by infill pattern."
@@ -12720,7 +12720,7 @@ msgid "Whether to apply fuzzy skin on the first layer."
 msgstr "Se applicare la superficie ruvida sul primo strato."
 
 msgid "Fuzzy skin generator mode"
-msgstr ""
+msgstr "Modalità generatore superficie ruvida"
 
 #, c-format, boost-format
 msgid ""
@@ -13136,7 +13136,7 @@ msgid "°"
 msgstr "°"
 
 msgid "Solid infill rotatation template"
-msgstr ""
+msgstr "Rotazione del riempimento solido"
 
 msgid ""
 "This parameter adds a rotation of solid infill direction to each layer "
@@ -13148,7 +13148,7 @@ msgid ""
 msgstr ""
 
 msgid "Skeleton infill density"
-msgstr ""
+msgstr "Densità del riempimento scheletrico"
 
 msgid ""
 "The remaining part of the model contour after removing a certain depth from "
@@ -15304,10 +15304,10 @@ msgid ""
 msgstr ""
 
 msgid "Support Ironing Pattern"
-msgstr ""
+msgstr "Trama stiratura supporto"
 
 msgid "Support Ironing flow"
-msgstr ""
+msgstr "Flusso stiratura supporto"
 
 msgid ""
 "The amount of material to extrude during ironing. Relative to flow of normal "
@@ -15316,7 +15316,7 @@ msgid ""
 msgstr ""
 
 msgid "Support Ironing line spacing"
-msgstr ""
+msgstr "Spaziatura linee stiratura supporto"
 
 msgid "Activate temperature control"
 msgstr "Attiva controllo della temperatura"
@@ -15455,7 +15455,7 @@ msgstr ""
 "determinato in modo assoluto dagli strati del guscio superiore."
 
 msgid "Top surface density"
-msgstr ""
+msgstr "Densità superficie superiore"
 
 msgid ""
 "Density of top surface layer. A value of 100% creates a fully solid, smooth "
@@ -15466,7 +15466,7 @@ msgid ""
 msgstr ""
 
 msgid "Bottom surface density"
-msgstr ""
+msgstr "Densità superficie inferiore"
 
 msgid ""
 "Density of the bottom surface layer. Intended for aesthetic or functional "
