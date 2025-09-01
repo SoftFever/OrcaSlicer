@@ -157,7 +157,7 @@
   "wall_transition_angle": "10",
   "wall_transition_filter_deviation": "25%",
   "wall_transition_length": "100%",
-  "wipe_on_loops": "1"
+  "wipe_on_loops": "1",
   "xy_contour_compensation": "0",
   "xy_hole_compensation": "0"
 }
