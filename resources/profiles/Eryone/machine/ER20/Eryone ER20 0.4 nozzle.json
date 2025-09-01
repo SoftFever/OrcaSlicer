@@ -1,6 +1,6 @@
 {
   "default_filament_profile": [],
-  "default_print_profile": "",
+  "default_print_profile": "0.20mm Standard @Eryone ER20",
   "from": "system",
   "inherits": "fdm_machine_eryone_ER20_common",
   "instantiation": "true",
