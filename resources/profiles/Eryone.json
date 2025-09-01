@@ -23,10 +23,6 @@
             "sub_path": "process/fdm_process_common.json"
         },
         {
-            "name": "fdm_process_eryone_common",
-            "sub_path": "process/fdm_process_eryone_common.json"
-        },
-        {
             "name": "fdm_process_eryone_ER20_common",
             "sub_path": "process/fdm_process_eryone_ER20_common.json"
         },

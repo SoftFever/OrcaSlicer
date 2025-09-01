@@ -23,10 +23,10 @@
   "machine_end_gcode": "END_PRINT",
   "machine_load_filament_time": "25",
   "machine_max_acceleration_e": [
-    "5000"
+    "4000"
   ],
   "machine_max_acceleration_extruding": [
-    "5000"
+    "4000"
   ],
   "machine_max_acceleration_retracting": [
     "5000"
@@ -44,7 +44,7 @@
     "100"
   ],
   "machine_max_jerk_e": [
-    "5"
+    "3"
   ],
   "machine_max_jerk_x": [
     "15"
