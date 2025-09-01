@@ -44,13 +44,13 @@
     "100"
   ],
   "machine_max_jerk_e": [
-    "3"
+    "5"
   ],
   "machine_max_jerk_x": [
-    "10"
+    "15"
   ],
   "machine_max_jerk_y": [
-    "10"
+    "15"
   ],
   "machine_max_jerk_z": [
     "0.4"
