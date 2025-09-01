@@ -54,7 +54,7 @@ double calculate_infill_rotation_angle(const PrintObject* object,
                                        const std::string& template_string)
 {
     if (template_string.empty()) {
-        return fixed_infill_angle;
+        return Geometry::deg2rad(fixed_infill_angle);
     }
     double             angle = 0.0;
     ConfigOptionFloats rotate_angles;
@@ -1088,8 +1088,12 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                     params.pattern 		 = ipRectilinear;
 	            params.density 		 = 100.f;
 		        params.extrusion_role = erSolidInfill;
-		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().solid_infill_direction.value));
-		        // calculate the actual flow we'll be using for this infill
+		        const PrintRegionConfig &region_config = layerm.region().config();
+                params.angle = calculate_infill_rotation_angle(layer.object(), layer.id(), region_config.solid_infill_direction.value,
+                                                               region_config.solid_infill_rotate_template.value);
+                params.is_using_template_angle = !region_config.solid_infill_rotate_template.value.empty();
+
+                // calculate the actual flow we'll be using for this infill
 				params.flow = layerm.flow(frSolidInfill);
 		        params.spacing = params.flow.spacing();
 				surface_fills.emplace_back(params);
