@@ -1,10 +1,14 @@
 {
   "auxiliary_fan": "0",
+  "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\n",
+  "best_object_pos": "0.5,0.5",
+  "change_extrusion_role_gcode": "",
   "change_filament_gcode": "",
   "deretraction_speed": [
     "30"
   ],
-  "extruder_clearance_height_to_lid": "140",
+  "enable_filament_ramming": "0",
+  "extruder_clearance_height_to_lid": "190",
   "extruder_clearance_height_to_rod": "36",
   "extruder_clearance_max_radius": "68",
   "extruder_clearance_radius": "60",
@@ -15,9 +19,10 @@
     "0x0"
   ],
   "from": "system",
-  "gcode_flavor": "marlin",
+  "gcode_flavor": "marlin2",
   "instantiation": "false",
-  "layer_change_gcode": "",
+  "is_custom_defined": "0",
+  "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
   "machine_end_gcode": "G91 ;Relative positioning\nG1 Z5 F720 ;Raise Z\nG1 E-5 F300 ;Retract a bit to protect nozzle\nM104 S0 ;Turn off extruder\nM140 S0 ;Turn off bed\nM107 ;Turn off all fans\nG90 ;Absolute positioning\nG1 X200 Y200 F4800 ;Parking the hotend\nM84 X Y E ;All steppers off but left Z\n",
   "machine_max_acceleration_e": [
     "1000"
@@ -32,10 +37,10 @@
     "1800"
   ],
   "machine_max_acceleration_x": [
-    "1200"
+    "1500"
   ],
   "machine_max_acceleration_y": [
-    "1200"
+    "1500"
   ],
   "machine_max_acceleration_z": [
     "100"
@@ -56,10 +61,10 @@
     "25"
   ],
   "machine_max_speed_x": [
-    "120"
+    "150"
   ],
   "machine_max_speed_y": [
-    "120"
+    "150"
   ],
   "machine_max_speed_z": [
     "10"
@@ -83,14 +88,13 @@
     "0.4"
   ],
   "nozzle_type": "stainless_steel",
-  "printable_height": "200",
-  "is_custom_defined": "0",
   "printable_area": [
     "0x0",
     "243x0",
     "243x220",
     "0x220"
   ],
+  "printable_height": "200",
   "printer_settings_id": "Eryone ER20 common",
   "printer_technology": "FFF",
   "printer_variant": "0.4",
@@ -100,6 +104,9 @@
   ],
   "retract_length_toolchange": [
     "5"
+  ],
+  "retract_lift_above": [
+    "0"
   ],
   "retract_lift_below": [
     "200"
@@ -114,7 +121,7 @@
     "0"
   ],
   "retract_when_changing_layer": [
-    "1"
+    "0"
   ],
   "retraction_length": [
     "5"
@@ -130,7 +137,13 @@
   "single_extruder_multi_material": "0",
   "support_air_filtration": "0",
   "support_chamber_temp_control": "0",
+  "template_custom_gcode": "",
+  "thumbnails": "48x48/PNG, 300x300/PNG",
+  "thumbnails_format": "PNG",
   "type": "machine",
+  "use_firmware_retraction": "0",
+  "use_relative_e_distances": "0",
+  "version": "1.0.0.0",
   "wipe": [
     "1"
   ],
