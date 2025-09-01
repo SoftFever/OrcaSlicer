@@ -54,7 +54,7 @@
     "z_hop": [
       "0.4"
     ],
-    "z_hop_types": ["slope"],
+    "z_hop_types": ["Slope Lift"],
     "auxiliary_fan": "1",
     "support_air_filtration": "1", 
     "printable_height": "500",
