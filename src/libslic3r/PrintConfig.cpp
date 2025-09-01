@@ -3205,7 +3205,7 @@ void PrintConfigDef::init_fff_params()
                       "If there are more layers than angles, the angles will be repeated. Note that not all solid infill patterns support rotation.");
     def->sidetext = "°";	// degrees, don't need translation
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionString("0,90"));
+    def->set_default_value(new ConfigOptionString(""));
 
     def           = this->add("skeleton_infill_density", coPercent);
     def->label    = L("Skeleton infill density");
