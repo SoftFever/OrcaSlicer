@@ -53,7 +53,9 @@ public:
     std::string set_jerk_xy(double jerk);
     // Orca: set acceleration and jerk in one command for Klipper
     std::string set_accel_and_jerk(unsigned int acceleration, double jerk);
+    std::string set_junction_deviation(double junction_deviation); 
     std::string set_pressure_advance(double pa) const;
+    std::string set_input_shaping(char axis, float damp, float freq) const;
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
     // return false if this extruder was already selected
@@ -136,6 +138,7 @@ public:
     double          m_last_jerk;
     double          m_max_jerk_z;
     double          m_max_jerk_e;
+    double          m_max_junction_deviation;
 
     unsigned int  m_travel_acceleration;
     unsigned int  m_travel_jerk;

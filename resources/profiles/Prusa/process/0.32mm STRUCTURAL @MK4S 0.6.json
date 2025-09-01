@@ -1,0 +1,15 @@
+{
+    "bottom_shell_layers": "4",
+    "bridge_speed": "30",
+    "from": "system",
+    "inherits": "0.32mm SPEED @MK4S 0.6",
+    "inner_wall_acceleration": "2000",
+    "instantiation": "true",
+    "name": "0.32mm STRUCTURAL @MK4S 0.6",
+    "outer_wall_acceleration": "1500",
+    "outer_wall_speed": "45",
+    "small_perimeter_speed": "45",
+    "sparse_infill_speed": "70",
+    "top_shell_layers": "5",
+    "type": "process"
+}

@@ -45,7 +45,7 @@ if (NPROC EQUAL 0)
 endif ()
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
-set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/../DL_CACHE CACHE PATH "Path for downloaded source packages.")
+set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/DL_CACHE CACHE PATH "Path for downloaded source packages.")
 set(FLATPAK FALSE CACHE BOOL "Toggles various build settings for flatpak, like /usr/local in DESTDIR or not building wxwidgets")
 if (NOT FLATPAK)
     set(DESTDIR "${DESTDIR}/usr/local/")
@@ -88,7 +88,7 @@ endif ()
 # option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
 message(STATUS "OrcaSlicer deps DESTDIR: ${DESTDIR}")
-message(STATUS "OrcaSlicer dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
+message(STATUS "OrcaSlicer download dir for source packages: ${DEP_DOWNLOAD_DIR}")
 message(STATUS "OrcaSlicer deps debug build: ${DEP_DEBUG}")
 
 find_package(Git REQUIRED)
@@ -203,13 +203,13 @@ endfunction(orcaslicer_add_cmake_project)
 
 
 if (MSVC)
-    if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-        message(STATUS "\nDetected 64-bit compiler => building 64-bit deps bundle\n")
-        set(DEPS_BITS 64)
+    if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
+        message(STATUS "\nDetected X64 compiler => building X64 deps bundle\n")
+        set(DEPS_ARCH "x64")
         include("deps-windows.cmake")
-    elseif ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
-        message(STATUS "\nDetected 32-bit compiler => building 32-bit deps bundle\n")
-        set(DEPS_BITS 32)
+    elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "X86")
+        message(STATUS "\nDetected X86 compiler => building X86 deps bundle\n")
+        set(DEPS_ARCH "x86")
         include("deps-windows.cmake")
     else ()
         message(FATAL_ERROR "Unable to detect architecture")
@@ -248,7 +248,6 @@ if(FLATPAK)
     find_package(EXPAT)
     find_package(CURL)
     find_package(JPEG)
-    find_package(TIFF)
     find_package(Freetype)
     find_package(OpenSSL 1.1...<3.2)
     find_package(CURL)
@@ -293,6 +292,7 @@ include(MPFR/MPFR.cmake)
 include(CGAL/CGAL.cmake)
 
 include(NLopt/NLopt.cmake)
+include(libnoise/libnoise.cmake)
 
 
 # I *think* 1.1 is used for *just* md5 hashing?
@@ -320,12 +320,6 @@ if (NOT JPEG_FOUND)
     set(JPEG_PKG dep_JPEG)
 endif()
 
-set(TIFF_PKG "")
-if (NOT TIFF_FOUND)
-    include(TIFF/TIFF.cmake)
-    set(TIFF_PKG "dep_TIFF")
-endif()
-
 # flatpak builds wxwidgets separately 
 set(WXWIDGETS_PKG "")
 if (NOT FLATPAK)
@@ -338,6 +332,20 @@ if(NOT FREETYPE_FOUND)
     include(FREETYPE/FREETYPE.cmake)
     set(FREETYPE_PKG "dep_FREETYPE") 
 endif()
+
+execute_process(
+    COMMAND ${GIT_EXECUTABLE} rev-parse --is-inside-work-tree
+    RESULT_VARIABLE REV_PARSE_RESULT
+    OUTPUT_VARIABLE REV_PARSE_OUTPUT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Will output "true" and have a 0 return code if within a git repo
+if((REV_PARSE_RESULT EQUAL 0) AND (REV_PARSE_OUTPUT STREQUAL "true"))
+    set(IN_GIT_REPO TRUE)
+    # Find relative path from root to source used for adjusting patch command
+    file(RELATIVE_PATH BINARY_DIR_REL  ${CMAKE_SOURCE_DIR}/.. ${CMAKE_BINARY_DIR})
+endif ()
 
 include(OCCT/OCCT.cmake)
 include(OpenCV/OpenCV.cmake)
@@ -360,6 +368,7 @@ set(_dep_list
     ${PNG_PKG}
     ${ZLIB_PKG}
     ${EXPAT_PKG}
+    dep_libnoise
     )
 
 if (MSVC)

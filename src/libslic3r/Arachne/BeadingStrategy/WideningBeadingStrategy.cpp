@@ -3,6 +3,11 @@
 
 #include "WideningBeadingStrategy.hpp"
 
+#include <algorithm>
+#include <utility>
+
+#include "libslic3r/Arachne/BeadingStrategy/BeadingStrategy.hpp"
+
 namespace Slic3r::Arachne
 {
 
@@ -24,17 +29,16 @@ WideningBeadingStrategy::Beading WideningBeadingStrategy::compute(coord_t thickn
     if (thickness < optimal_width) {
         Beading ret;
         ret.total_thickness = thickness;
-        if (thickness >= min_input_width)
-        {
+        if (thickness >= min_input_width) {
             ret.bead_widths.emplace_back(std::max(thickness, min_output_width));
             ret.toolpath_locations.emplace_back(thickness / 2);
-        } else {
+            ret.left_over = 0;
+        } else
             ret.left_over = thickness;
-        }
+
         return ret;
-    } else {
+    } else
         return parent->compute(thickness, bead_count);
-    }
 }
 
 coord_t WideningBeadingStrategy::getOptimalThickness(coord_t bead_count) const

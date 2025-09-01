@@ -5,16 +5,28 @@
 #ifndef UTILS_EXTRUSION_LINE_H
 #define UTILS_EXTRUSION_LINE_H
 
+#include <clipper/clipper_z.hpp>
+#include <assert.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <algorithm>
+#include <utility>
+#include <vector>
+#include <cassert>
+#include <cinttypes>
+#include <cstddef>
+
 #include "ExtrusionJunction.hpp"
 #include "../../Polyline.hpp"
 #include "../../Polygon.hpp"
 #include "../../BoundingBox.hpp"
 #include "../../ExtrusionEntity.hpp"
 #include "../../Flow.hpp"
-#include "../../../clipper/clipper_z.hpp"
+#include "libslic3r/Point.hpp"
 
 namespace Slic3r {
 class ThickPolyline;
+class Flow;
 }
 
 namespace Slic3r::Arachne
@@ -135,11 +147,6 @@ struct ExtrusionLine
 
         return ret;
     }
-
-    /*!
-     * Get the minimal width of this path
-     */
-    coord_t getMinimalWidth() const;
 
     /*!
      * Removes vertices of the ExtrusionLines to make sure that they are not too high

@@ -1,13 +1,6 @@
 #ifndef slic3r_GUI_App_hpp_
 #define slic3r_GUI_App_hpp_
 
-#include <wx/app.h>
-#include <wx/colour.h>
-#include <wx/font.h>
-#include <wx/string.h>
-#include <wx/snglinst.h>
-#include <wx/msgdlg.h>
-
 #include <memory>
 #include <string>
 #include "ImGuiWrapper.hpp"
@@ -25,6 +18,13 @@
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
+
+#include <wx/app.h>
+#include <wx/colour.h>
+#include <wx/font.h>
+#include <wx/string.h>
+#include <wx/snglinst.h>
+#include <wx/msgdlg.h>
 
 #include <mutex>
 #include <stack>
@@ -81,6 +81,7 @@ class ParamsDialog;
 class HMSQuery;
 class ModelMallDialog;
 class PingCodeBindDialog;
+class NetworkErrorDialog;
 
 
 enum FileType
@@ -90,6 +91,7 @@ enum FileType
     FT_OBJ,
     FT_AMF,
     FT_3MF,
+    FT_GCODE_3MF,
     FT_GCODE,
     FT_MODEL,
     FT_ZIP,
@@ -236,6 +238,9 @@ private:
 #ifdef __linux__
     bool            m_opengl_initialized{ false };
 #endif
+#if defined(__WINDOWS__)
+    bool            m_is_arm64{false};
+#endif
 
    
 //#ifdef _WIN32
@@ -274,7 +279,7 @@ private:
 	std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
     std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
     std::string m_instance_hash_string;
-	    size_t m_instance_hash_int;
+	size_t m_instance_hash_int;
 
     std::unique_ptr<Downloader> m_downloader;
 
@@ -309,8 +314,8 @@ private:
     HttpServer       m_http_server;
     bool             m_show_gcode_window{true};
     boost::thread    m_check_network_thread;
-  public:
-      //try again when subscription fails
+public:
+    //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
     void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
@@ -393,9 +398,9 @@ private:
     bool            get_side_menu_popup_status();
     void            set_side_menu_popup_status(bool status);
     void            link_to_network_check();
-        
+    void            link_to_lan_only_wiki();
 
-    const wxColour& get_label_clr_modified(){ return m_color_label_modified; }
+    const wxColour& get_label_clr_modified() { return m_color_label_modified; }
     const wxColour& get_label_clr_sys()     { return m_color_label_sys; }
     const wxColour& get_label_clr_default() { return m_color_label_default; }
     const wxColour& get_window_default_clr(){ return m_color_window_default; }
@@ -472,6 +477,7 @@ private:
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
     void            check_new_version_sf(bool show_tips = false, int by_user = 0);
+    void            process_network_msg(std::string dev_id, std::string msg);
     void            request_new_version(int by_user);
     void            enter_force_upgrade();
     void            set_skip_version(bool skip = true);
@@ -556,7 +562,7 @@ private:
 #endif /* __APPLE */
 
     Sidebar&             sidebar();
-    GizmoObjectManipulation*  obj_manipul();
+    GizmoObjectManipulation *obj_manipul();
     ObjectSettings*      obj_settings();
     ObjectList*          obj_list();
     ObjectLayers*        obj_layers();
@@ -574,10 +580,16 @@ private:
     ModelMallDialog*    m_mall_publish_dialog{ nullptr };
     PingCodeBindDialog* m_ping_code_binding_dialog{ nullptr };
 
+    NetworkErrorDialog* m_server_error_dialog { nullptr };
+
     void            set_download_model_url(std::string url) {m_mall_model_download_url = url;}
     void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}
     std::string     get_download_model_url() {return m_mall_model_download_url;}
     std::string     get_download_model_name() {return m_mall_model_download_name;}
+
+#if defined(__WINDOWS__)
+    bool            is_running_on_arm64() { return m_is_arm64; }
+#endif
 
     void            load_url(wxString url);
     void            open_mall_page_dialog();

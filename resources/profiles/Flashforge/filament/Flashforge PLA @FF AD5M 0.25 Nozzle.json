@@ -4,7 +4,7 @@
     "inherits": "Flashforge Generic PLA",
     "from": "system",
     "setting_id": "GFSA04_19",
-    "instantiation": "true",
+    "instantiation": "false",
     "compatible_printers": [
       "Flashforge Adventurer 5M 0.25 Nozzle",
       "Flashforge Adventurer 5M Pro 0.25 Nozzle"

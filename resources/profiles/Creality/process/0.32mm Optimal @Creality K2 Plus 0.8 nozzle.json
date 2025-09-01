@@ -54,6 +54,7 @@
     "overhang_3_4_speed": "20",
     "overhang_4_4_speed": "10",
     "only_one_wall_top": "1",
+    "precise_outer_wall": "1",
     "inner_wall_line_width": "0.82",
     "inner_wall_speed": "150",
     "wall_loops": "2",

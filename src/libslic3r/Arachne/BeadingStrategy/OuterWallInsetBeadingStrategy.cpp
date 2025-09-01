@@ -4,6 +4,9 @@
 #include "OuterWallInsetBeadingStrategy.hpp"
 
 #include <algorithm>
+#include <utility>
+
+#include "libslic3r/Arachne/BeadingStrategy/BeadingStrategy.hpp"
 
 namespace Slic3r::Arachne
 {

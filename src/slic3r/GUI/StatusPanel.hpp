@@ -435,6 +435,7 @@ public:
 
     ~StatusBasePanel();
 
+    MachineObject* obj{nullptr};
     void init_bitmaps();
     wxBoxSizer *create_monitoring_page();
     wxBoxSizer *create_machine_control_page(wxWindow *parent);
@@ -527,7 +528,8 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
-    void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "",wxString image_url="",std::vector<int> used_button=std::vector<int>());
+    void show_error_message(
+        MachineObject *obj, bool is_exist, wxString msg, std::string print_error_str = "", wxString image_url = "", std::vector<int> used_button = std::vector<int>());
     void error_info_reset();
     void show_recenter_dialog();
 
@@ -639,7 +641,6 @@ public:
         STATE_COUNT = 4
     };
 
-    MachineObject *obj {nullptr};
     BBLSubTask *   last_subtask{nullptr};
     std::string    last_profile_id;
     std::string    last_task_id;

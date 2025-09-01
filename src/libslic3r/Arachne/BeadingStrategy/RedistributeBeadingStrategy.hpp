@@ -4,7 +4,10 @@
 #ifndef REDISTRIBUTE_DISTRIBUTED_BEADING_STRATEGY_H
 #define REDISTRIBUTE_DISTRIBUTED_BEADING_STRATEGY_H
 
+#include <string>
+
 #include "BeadingStrategy.hpp"
+#include "libslic3r/libslic3r.h"
 
 namespace Slic3r::Arachne
 {

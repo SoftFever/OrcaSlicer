@@ -50,7 +50,11 @@ float get_axis_value(const std::string& line, char axis)
     char match[3] = " X";
     match[1] = axis;
 
-    size_t pos = line.find(match) + 2;
+    size_t pos = line.find(match);
+    if (pos == std::string::npos) {
+        return NAN;
+    }
+    pos += 2;
     //size_t end = std::min(line.find(' ', pos + 1), line.find(';', pos + 1));
     // Try to parse the numeric value.
     const char* c = line.c_str();
@@ -83,6 +87,15 @@ int16_t get_fan_speed(const std::string &line, GCodeFlavor flavor) {
         if (flavor == (gcfMach3) || flavor == (gcfMachinekit)) {
             return (int16_t)get_axis_value(line, 'P');
         } else {
+            // Bambu machines use both M106 P1(not P0!) and M106 for part cooling fan.
+            // Non-bambu machines usually use M106 (without P parameter) for part cooling fan.
+            // P2 is reserved for auxiliary fan regardless of bambu or not.
+            // To keep compatibility with Bambu machines, we accept M106 and M106 P1 as the only two valid form
+            // of gcode that control the part cooling fan. Any other command will be ignored!
+            const auto idx = get_axis_value(line, 'P');
+            if (!isnan(idx) && idx != 1.0f) {
+                return -1;
+            }
             return (int16_t)get_axis_value(line, 'S');
         }
     } else if (line.compare(0, 4, "M127") == 0 || line.compare(0, 4, "M107") == 0) {
@@ -408,11 +421,12 @@ void FanMover::_process_gcode_line(GCodeReader& reader, const GCodeReader::GCode
                 current_role = ExtrusionEntity::string_to_role(extrusion_string);
             }
             if (line.raw().size() > 16) {
-                if (line.raw().rfind("; custom gcode", 0) != std::string::npos)
+                if (line.raw().rfind("; custom gcode", 0) != std::string::npos) {
                     if (line.raw().rfind("; custom gcode end", 0) != std::string::npos)
                         m_is_custom_gcode = false;
                     else
                         m_is_custom_gcode = true;
+                }
             }
         }
     }

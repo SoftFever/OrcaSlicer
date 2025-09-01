@@ -11,9 +11,9 @@
 class Label : public wxStaticText
 {
 public:
-    Label(wxWindow *parent, wxString const &text = {}, long style = 0);
+    Label(wxWindow *parent, wxString const &text = {}, long style = 0, wxSize size = wxDefaultSize);
 
-	Label(wxWindow *parent, wxFont const &font, wxString const &text = {}, long style = 0);
+	Label(wxWindow *parent, wxFont const &font, wxString const &text = {}, long style = 0, wxSize size = wxDefaultSize);
 
     void SetLabel(const wxString& label) override;
 

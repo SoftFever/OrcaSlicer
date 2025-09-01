@@ -3,13 +3,21 @@
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Surface_sweep_2_algorithms.h>
+#include <boost/variant/get.hpp>
+#include <vector>
+#include <cassert>
 
 #include "libslic3r/Geometry/Voronoi.hpp"
 #include "libslic3r/Geometry/VoronoiUtils.hpp"
 #include "libslic3r/Arachne/utils/PolygonsSegmentIndex.hpp"
 #include "libslic3r/MultiMaterialSegmentation.hpp"
-
 #include "VoronoiUtilsCgal.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Point.hpp"
+
+namespace CGAL {
+class MP_Float;
+}  // namespace CGAL
 
 using VD = Slic3r::Geometry::VoronoiDiagram;
 

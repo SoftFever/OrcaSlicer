@@ -6,6 +6,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",
+    "filament_type": ["TPU"],
     "filament_max_volumetric_speed": [
         "4"
     ],
@@ -26,6 +27,9 @@
     ],
     "filament_flow_ratio": [
         "1"
+    ],
+    "filament_vendor": [
+        "Generic"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

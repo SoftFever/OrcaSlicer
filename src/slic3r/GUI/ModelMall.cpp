@@ -16,10 +16,6 @@ namespace GUI {
     ModelMallDialog::ModelMallDialog(Plater* plater /*= nullptr*/)
         :DPIFrame(nullptr, wxID_ANY, _L("3D Models"), wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER)
     {
-        // icon
-        std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-        SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
         SetSize(MODEL_MALL_PAGE_SIZE);
         SetMinSize(wxSize(MODEL_MALL_PAGE_SIZE.x / 4, MODEL_MALL_PAGE_SIZE.y / 4));
 
@@ -124,7 +120,7 @@ namespace GUI {
     {
         try {
             wxString strInput = evt.GetString();
-            json     j = json::parse(strInput);
+            json     j = json::parse(strInput.utf8_string());
 
             wxString strCmd = j["command"];
             

@@ -1,0 +1,22 @@
+{
+    "type": "filament",
+    "name": "SUNLU PLA Marble @BBL X1",
+    "inherits": "SUNLU PLA Marble @base",
+    "from": "system",
+    "setting_id": "GFSNLS06_00",
+    "instantiation": "true",
+    "filament_long_retractions_when_cut": [
+        "1"
+    ],
+    "filament_retraction_distances_when_cut": [
+        "18"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab X1 0.6 nozzle",
+        "Bambu Lab X1 0.8 nozzle"
+    ]
+}

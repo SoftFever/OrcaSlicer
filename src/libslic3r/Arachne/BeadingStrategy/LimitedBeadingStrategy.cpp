@@ -1,11 +1,14 @@
 //Copyright (c) 2022 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#include <cassert>
 #include <boost/log/trivial.hpp>
+#include <cassert>
+#include <utility>
+#include <cstddef>
 
 #include "LimitedBeadingStrategy.hpp"
-#include "Point.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Arachne/BeadingStrategy/BeadingStrategy.hpp"
 
 namespace Slic3r::Arachne
 {

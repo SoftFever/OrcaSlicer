@@ -10,63 +10,6 @@ namespace Slic3r::Arachne::LinearAlg2D
 {
 
 /*!
-     * Test whether a point is inside a corner.
-     * Whether point \p query_point is left of the corner abc.
-     * Whether the \p query_point is in the circle half left of ab and left of bc, rather than to the right.
-     *
-     * Test whether the \p query_point is inside of a polygon w.r.t a single corner.
- */
-inline static bool isInsideCorner(const Point &a, const Point &b, const Point &c, const Vec2i64 &query_point)
-{
-    //     Visualisation for the algorithm below:
-    //
-    //                 query
-    //                   |
-    //                   |
-    //                   |
-    //    perp-----------b
-    //                  / \       (note that the lines
-    //                 /   \      AB and AC are normalized
-    //                /     \     to 10000 units length)
-    //               a       c
-    //
-
-    auto normal = [](const Point &p0, coord_t len) -> Point {
-        int64_t _len = p0.norm();
-        if (_len < 1)
-            return {len, 0};
-        return (p0.cast<int64_t>() * int64_t(len) / _len).cast<coord_t>();
-    };
-
-    auto rotate_90_degree_ccw = [](const Vec2d &p) -> Vec2d {
-        return {-p.y(), p.x()};
-    };
-
-    constexpr coord_t normal_length = 10000; //Create a normal vector of reasonable length in order to reduce rounding error.
-    const Point ba = normal(a - b, normal_length);
-    const Point bc = normal(c - b, normal_length);
-    const Vec2d bq = query_point.cast<double>() - b.cast<double>();
-    const Vec2d perpendicular = rotate_90_degree_ccw(bq); //The query projects to this perpendicular to coordinate 0.
-
-    const double project_a_perpendicular = ba.cast<double>().dot(perpendicular); //Project vertex A on the perpendicular line.
-    const double project_c_perpendicular = bc.cast<double>().dot(perpendicular); //Project vertex C on the perpendicular line.
-    if ((project_a_perpendicular > 0.) != (project_c_perpendicular > 0.)) //Query is between A and C on the projection.
-    {
-        return project_a_perpendicular > 0.; //Due to the winding order of corner ABC, this means that the query is inside.
-    }
-    else //Beyond either A or C, but it could still be inside of the polygon.
-    {
-        const double project_a_parallel = ba.cast<double>().dot(bq); //Project not on the perpendicular, but on the original.
-        const double project_c_parallel = bc.cast<double>().dot(bq);
-
-        //Either:
-        // * A is to the right of B (project_a_perpendicular > 0) and C is below A (project_c_parallel < project_a_parallel), or
-        // * A is to the left of B (project_a_perpendicular < 0) and C is above A (project_c_parallel > project_a_parallel).
-        return (project_c_parallel < project_a_parallel) == (project_a_perpendicular > 0.);
-    }
-}
-
-/*!
      * Returns the determinant of the 2D matrix defined by the the vectors ab and ap as rows.
      * 
      * The returned value is zero for \p p lying (approximately) on the line going through \p a and \p b

@@ -1,7 +1,12 @@
 // Copyright (c) 2022 Ultimaker B.V.
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 #include <numeric>
+#include <algorithm>
+#include <vector>
+#include <cassert>
+
 #include "DistributedBeadingStrategy.hpp"
+#include "libslic3r/Arachne/BeadingStrategy/BeadingStrategy.hpp"
 
 namespace Slic3r::Arachne
 {

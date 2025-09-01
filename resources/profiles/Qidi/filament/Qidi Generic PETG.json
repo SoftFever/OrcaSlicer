@@ -6,6 +6,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
+    "filament_type": ["PETG"],
 	"reduce_fan_stop_start_freq": [
         "1"
     ],
@@ -47,6 +48,9 @@
     ],
     "filament_density":[
         "1.27"
+    ],
+    "filament_vendor": [
+        "Generic"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.2 nozzle",

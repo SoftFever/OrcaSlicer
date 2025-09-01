@@ -50,8 +50,10 @@
   "machine_pause_gcode": "PAUSE",
   "printing_by_object_gcode": ";BETWEEN_OBJECTS\nG92 E0",
   "printable_height": "500",
+  "time_lapse_gcode": "TIMELAPSE_TAKE_FRAME",
   "thumbnails": [
     "64x64/PNG",
+	"100x100/PNG",
     "400x300/PNG"
   ]
 }

@@ -2,7 +2,16 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "PolylineStitcher.hpp"
+
 #include "ExtrusionLine.hpp"
+#include "libslic3r/Arachne/utils/PolygonsPointIndex.hpp"
+#include "libslic3r/Polygon.hpp"
+
+namespace Slic3r {
+namespace Arachne {
+struct ExtrusionJunction;
+}  // namespace Arachne
+}  // namespace Slic3r
 
 namespace Slic3r::Arachne {
 

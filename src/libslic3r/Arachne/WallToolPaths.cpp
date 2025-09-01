@@ -253,7 +253,7 @@ std::unique_ptr<LocToLineGrid>                                               cre
 void fixSelfIntersections(const coord_t epsilon, Polygons &thiss)
 {
     if (epsilon < 1) {
-        ClipperLib::SimplifyPolygons(ClipperUtils::PolygonsProvider(thiss));
+        ClipperLib::SimplifyPolygons(ClipperUtils::PolygonsProvider(thiss), ClipperLib::pftEvenOdd);
         return;
     }
 
@@ -294,7 +294,7 @@ void fixSelfIntersections(const coord_t epsilon, Polygons &thiss)
         }
     }
 
-    ClipperLib::SimplifyPolygons(ClipperUtils::PolygonsProvider(thiss));
+    ClipperLib::SimplifyPolygons(ClipperUtils::PolygonsProvider(thiss), ClipperLib::pftEvenOdd);
 }
 
 /*!
@@ -361,7 +361,7 @@ void removeSmallAreas(Polygons &thiss, const double min_area_size, const bool re
         }
     } else {
         // For each polygon, computes the signed area, move small outlines at the end of the vector and keep pointer on small holes
-        std::vector<Polygon> small_holes;
+        Polygons small_holes;
         for (auto it = thiss.begin(); it < new_end;) {
             if (double area = ClipperLib::Area(to_path(*it)); fabs(area) < min_area_size) {
                 if (area >= 0) {
