@@ -271,7 +271,6 @@ void CalibrationCaliPage::update(MachineObject* obj)
             } else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
                 if (get_obj_calibration_mode(obj) == m_cali_mode && obj->is_printing_finished()) {
                     // use selected diameter, add a counter to timeout, add a warning tips when get result failed
-                    CalibUtils::emit_get_flow_ratio_calib_results(get_selected_calibration_nozzle_dia(obj));
                     enable_cali = true;
                 }
                 else {
