@@ -1,0 +1,10 @@
+{
+    "type": "filament",
+    "setting_id": "GFSL99",
+    "name": "QIDI PLA Rapido @Qidi Q2 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI PLA Rapido@Q2-Series",
+    "pressure_advance": ["0.016"],
+	"compatible_printers": ["Qidi Q2 0.6 nozzle"]
+}

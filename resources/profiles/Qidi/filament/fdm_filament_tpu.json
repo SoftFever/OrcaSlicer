@@ -83,6 +83,6 @@
         "20"
     ],
     "enable_overhang_bridge_fan": [
-        "0"
+        "1"
     ]
 }
