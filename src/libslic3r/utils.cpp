@@ -1590,7 +1590,7 @@ bool check_layer_id_pattern(const std::string& pattern, int layer_id){
     if (p.empty())
         return false;
 
-    // Explicit list form: "1,7,9"
+    // Explicit list form: "1,7,9" or with counts per entry: "5,9#2,18"
     if (p.find(',') != std::string::npos) {
         size_t start = 0;
         while (start < p.size()) {
@@ -1598,9 +1598,22 @@ bool check_layer_id_pattern(const std::string& pattern, int layer_id){
             std::string token = p.substr(start, (end == std::string::npos) ? std::string::npos : end - start);
             if (!token.empty()) {
                 try {
-                    int value = std::stoi(token);
-                    if (value == layer_id)
-                        return true;
+                    size_t hash_pos_token = token.find('#');
+                    if (hash_pos_token == std::string::npos) {
+                        int value = std::stoi(token);
+                        if (value == layer_id)
+                            return true;
+                    } else {
+                        int base_layer = std::stoi(token.substr(0, hash_pos_token));
+                        std::string count_str = token.substr(hash_pos_token + 1);
+                        int local_count = 1;
+                        if (!count_str.empty())
+                            local_count = std::stoi(count_str);
+                        if (base_layer > 0 && local_count > 0) {
+                            if (layer_id >= base_layer && layer_id < base_layer + local_count)
+                                return true;
+                        }
+                    }
                 } catch (...) {
                     // Ignore invalid tokens
                 }

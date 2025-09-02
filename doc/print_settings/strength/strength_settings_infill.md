@@ -170,23 +170,27 @@ The pattern supports two formats:
 ### Interval Pattern
 - **Simple interval**: `N` - Insert 1 solid layer every N layers, equal to `N#1`
 - **Multiple layers**: `N#K` - Insert K consecutive solid layers every N layers
+- **Optional K**: `N#` - Shorthand for `N#1`
 
 Examples:
 ```
 5 or 5#1    # Insert 1 solid layer every 5 layers
+5#          # Same as 5#1
 10#2        # Insert 2 consecutive solid layers every 10 layers
 ```
 
 ### Explicit Layer List
-Specify exact layer numbers (1-based) using comma-separated values:
+Specify exact layer numbers (1-based) using comma-separated values. Each entry may be a single layer `N` or a range `N#K` to insert K consecutive solid layers starting at layer N:
 
 ```
-1,7,9    # Insert solid layers at layers 1, 7, and 9
-5,15,25  # Insert solid layers at layers 5, 15, and 25
+1,7,9       # Insert solid layers at layers 1, 7, and 9
+5,15,25     # Insert solid layers at layers 5, 15, and 25
+5,9#2,18    # Insert at 5; at 9 and 10 (because #2); and at 18
 ```
 
 > [!NOTE]
 > - Layer numbers are 1-based (first layer is layer 1)
+> - `#K` is optional in both interval and explicit list entries (`N#` equals `N#1`)
 > - Solid layers are inserted in addition to the normal sparse infill pattern
 
 > [!TIP]

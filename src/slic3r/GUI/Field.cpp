@@ -461,10 +461,11 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             string ustr(str.utf8_string());
             // New rule: accept either interval form (N or N#K) or explicit list (e.g. 1,7,9), with optional quotes.
             const std::regex rx_interval(u8R"(^\s*['"]?\s*\d+\s*(?:#\s*\d*)?\s*['"]?\s*$)");
-            const std::regex rx_list(u8R"(^\s*['"]?\s*\d+(?:\s*,\s*\d+)*\s*['"]?\s*$)");
+            // List entries may be plain numbers or number with optional #K count, e.g., 5, 9#2, 18
+            const std::regex rx_list(u8R"(^\s*['"]?\s*\d+(?:\s*#\s*\d*)?(?:\s*,\s*\d+(?:\s*#\s*\d*)?)*\s*['"]?\s*$)");
             bool is_valid = ustr.empty() || std::regex_match(ustr, rx_interval) || std::regex_match(ustr, rx_list);
             if (!is_valid) {
-                show_error(m_parent, format_wxstr(_L("Invalid pattern. Use N, N#K, or a comma-separated list. Examples: 5, 5#2, 1,7,9.")));
+                show_error(m_parent, format_wxstr(_L("Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18.")));
                 wxString old_value(boost::any_cast<std::string>(m_value));
                 this->set_value(old_value, true); // Revert to previous value
             }
