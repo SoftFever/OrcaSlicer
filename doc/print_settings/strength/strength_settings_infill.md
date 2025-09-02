@@ -13,6 +13,7 @@ Infill is the internal structure of a 3D print, providing strength and support. 
 - [Filter out tiny gaps](#filter-out-tiny-gaps)
 - [Anchor](#anchor)
 - [Internal Solid Infill](#internal-solid-infill)
+- [Extra Solid Infill](#extra-solid-infill)
 - [Sparse Infill Pattern](#sparse-infill-pattern)
 - [Credits](#credits)
 
@@ -153,10 +154,47 @@ OrcaSlicer tries to connect two close infill lines to a short perimeter segment.
 - **Anchor On**
 
 ![InfillAnchorOn](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillAnchorOn.png?raw=true)
-
 ## Internal Solid Infill
 
 Line pattern of internal solid infill. If the [detect narrow internal solid infill](strength_settings_advanced#detect-narrow-internal-solid-infill) be enabled, the [concentric pattern](strength_settings_patterns#concentric) will be used for the small area.
+
+
+## Extra Solid Infill
+
+Insert extra solid infills at specific layers to add strength at critical points in your print. This feature allows you to strategically reinforce your part without changing the overall sparse infill density.
+
+![infill-multiline-esthetic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/insert-solid-layers.gif?raw=true)
+
+The pattern supports two formats:
+
+### Interval Pattern
+- **Simple interval**: `N` - Insert 1 solid layer every N layers, equal to `N#1`
+- **Multiple layers**: `N#K` - Insert K consecutive solid layers every N layers
+
+Examples:
+```
+5 or 5#1    # Insert 1 solid layer every 5 layers
+10#2        # Insert 2 consecutive solid layers every 10 layers
+```
+
+### Explicit Layer List
+Specify exact layer numbers (1-based) using comma-separated values:
+
+```
+1,7,9    # Insert solid layers at layers 1, 7, and 9
+5,15,25  # Insert solid layers at layers 5, 15, and 25
+```
+
+> [!NOTE]
+> - Layer numbers are 1-based (first layer is layer 1)
+> - Solid layers are inserted in addition to the normal sparse infill pattern
+
+> [!TIP]
+> Use this feature to:
+> - Add strength at stress concentration points
+> - Reinforce mounting holes or attachment points
+> - Create internal structure for functional parts
+> - Add periodic reinforcement for tall prints
 
 ## Sparse Infill Pattern
 

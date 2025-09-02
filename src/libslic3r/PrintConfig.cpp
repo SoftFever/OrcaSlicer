@@ -2384,6 +2384,13 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def           = this->add("extra_solid_infills", coString);
+    def->label    = L("Insert solid layers");
+    def->category = L("Strength");
+    def->tooltip  = L("Insert solid infill at specific layers. Use N to insert every Nth layer, N#K to insert K consecutive solid layers every N layers (K is optional, e.g. '5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at explicit layers. Layers are 1-based.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
+
 
     // Infill multiline
     def             = this->add("fill_multiline", coInt);
