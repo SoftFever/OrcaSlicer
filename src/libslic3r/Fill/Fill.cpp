@@ -1526,11 +1526,10 @@ void Layer::make_ironing()
 				}
 			}
 			if (ironing_params.extruder != -1) {
-				//TODO just_infill is currently not used.
 				ironing_params.just_infill 	= false;
-				ironing_params.line_spacing = config.ironing_spacing;
-                ironing_params.inset 		= config.ironing_inset;
-				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flow;
+				ironing_params.line_spacing = (config.enable_filament_ironing_spacing ? config.filament_ironing_spacing : config.ironing_spacing);
+                ironing_params.inset 		= (config.enable_filament_ironing_inset ? config.filament_ironing_inset : config.ironing_inset);
+				ironing_params.height 		= default_layer_height * 0.01 * ((config.enable_filament_ironing_flow ? config.filament_ironing_flow : config.ironing_flow));
 				ironing_params.speed 		= config.ironing_speed;
                 ironing_params.angle        = calculate_infill_rotation_angle(this->object(), this->id(), config.solid_infill_direction.value, config.solid_infill_rotate_template.value) + config.ironing_angle * M_PI / 180.;
                 ironing_params.is_using_template_angle = !config.solid_infill_rotate_template.value.empty(); 

@@ -3329,6 +3329,37 @@ void TabFilament::add_filament_overrides_page()
                                         // "filament_seam_gap"
                                      })
         append_single_option_line(opt_key, extruder_idx);
+
+    optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
+
+    auto add_ironing_line = [this, &optgroup](const std::string &enable_key, const std::string &value_key, const char* /*anchor*/){
+        Line line = optgroup->create_single_option_line(optgroup->get_option(value_key));
+        line.near_label_widget = [this, enable_key, value_key, optgroup_wk = ConfigOptionsGroupWkp(optgroup)](wxWindow* parent){
+            auto cb = new ::CheckBox(parent);
+            bool enabled = m_config->opt_bool(enable_key);
+            cb->SetValue(enabled);
+            auto bind_handler = [this, enable_key, value_key, optgroup_wk](wxCommandEvent &evt){
+                bool v = evt.IsChecked();
+                this->on_value_change(enable_key, boost::any(v));
+                if (auto og = optgroup_wk.lock()) {
+                    if (Field *f = og->get_fieldc(value_key, 0)) {
+                        f->toggle(v);
+                    }
+                }
+                evt.Skip();
+            };
+            cb->Bind(wxEVT_TOGGLEBUTTON, bind_handler, cb->GetId());
+            cb->Bind(wxEVT_UPDATE_UI, [cb](wxUpdateUIEvent&){ cb->Refresh(); });
+            return cb;
+        };
+        optgroup->append_line(line);
+        if (Field *f = optgroup->get_fieldc(value_key, 0))
+            f->toggle(m_config->opt_bool(enable_key));
+    };
+
+    add_ironing_line("enable_filament_ironing_flow",    "filament_ironing_flow",    "quality_settings_ironing#flow");
+    add_ironing_line("enable_filament_ironing_spacing", "filament_ironing_spacing", "quality_settings_ironing#line-spacing");
+    add_ironing_line("enable_filament_ironing_inset",   "filament_ironing_inset",   "quality_settings_ironing#inset");
 }
 
 void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* printers_config)
@@ -3613,6 +3644,7 @@ void TabFilament::build()
         optgroup->append_line(line);
         //BBS
         add_filament_overrides_page();
+
         const int gcode_field_height = 15; // 150
         const int notes_field_height = 25; // 250
 

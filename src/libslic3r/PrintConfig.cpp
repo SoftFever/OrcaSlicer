@@ -3604,6 +3604,59 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
+    def = this->add("filament_ironing_flow", coPercent);
+    def->label = L("Ironing flow");
+    def->category = L("Quality");
+    def->tooltip = L("The amount of material to extrude during ironing. Relative to flow of normal layer height. "
+                     "Too high value results in overextrusion on the surface.");
+    def->sidetext = "%";
+    def->ratio_over = "layer_height";
+    def->min = 0;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(10));
+
+    def = this->add("filament_ironing_spacing", coFloat);
+    def->label = L("Ironing line spacing");
+    def->category = L("Quality");
+    def->tooltip = L("The distance between the lines of ironing.");
+    def->sidetext = "mm";	// milimeters, don't need translation
+    def->min = 0;
+    def->max = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.1));
+
+    def           = this->add("filament_ironing_inset", coFloat);
+    def->label    = L("Ironing inset");
+    def->category = L("Quality");
+    def->tooltip  = L("The distance to keep from the edges. A value of 0 sets this to half of the nozzle diameter.");
+    def->sidetext = "mm";	// milimeters, don't need translation
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("enable_filament_ironing_flow", coBool);
+    def->label = L("Enable ironing flow");
+    def->category = L("Quality");
+    def->tooltip = L("Enable override of ironing flow. If disabled, process ironing flow will be used.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("enable_filament_ironing_spacing", coBool);
+    def->label = L("Enable ironing spacing");
+    def->category = L("Quality");
+    def->tooltip = L("Enable override of ironing spacing. If disabled, process ironing spacing will be used.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("enable_filament_ironing_inset", coBool);
+    def->label = L("Enable ironing inset");
+    def->category = L("Quality");
+    def->tooltip = L("Enable override of ironing inset. If disabled, process ironing inset will be used.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("layer_change_gcode", coString);
     def->label = L("Layer change G-code");
     def->tooltip = L("This G-code is inserted at every layer change after the Z lift.");
