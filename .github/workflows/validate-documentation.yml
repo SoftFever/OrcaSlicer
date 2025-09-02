@@ -1,7 +1,7 @@
 name: Validate Documentation
 
 on:
-  pull_request:
+  pull_request_target:
     paths:
       - 'src/slic3r/GUI/Tab.cpp'
       - 'doc/**/*.md'
@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       
       - name: Get changed files
         id: changed-files
@@ -317,7 +319,7 @@ jobs:
           }
       
       - name: Comment on PR
-        if: failure() && github.event_name == 'pull_request'
+        if: failure() && github.event_name == 'pull_request_target'
         uses: actions/github-script@v8
         with:
           script: |
