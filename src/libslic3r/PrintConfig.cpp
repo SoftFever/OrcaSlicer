@@ -3185,12 +3185,12 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Sparse infill rotatation template");
     def->category = L("Strength");
     def->tooltip  = L(
-        "Rotates sparse infill direction for each layer based on a template of angles. "
-        "Enter comma-separated angles in degrees (e.g., '0,30,60,90'). "
-        "Angles cycle through layers - first angle for layer 1, second for layer 2, etc. "
-        "More advanced template syntax is supported too, e.g. '+5' rotate 5 degree every 1 layer. '+5/5' rotate 5 degree every 5 layer. Check WIKI for more details."
-        "When template is used, the standard infill direction setting is disabled. "
-        "Warning: not all infill patterns support rotation by design. Use this feature with caution.");
+        "Rotate the sparse infill direction per layer using a template of angles. "
+        "Enter comma-separated degrees (e.g., '0,30,60,90'). "
+        "Angles are applied in order by layer and repeat when the list ends. "
+        "Advanced syntax is supported: '+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the Wiki for details. "
+        "When a template is set, the standard infill direction setting is ignored. "
+        "Note: some infill patterns (e.g., Gyroid) control rotation themselves; use with care.");
     def->sidetext = L("°");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
