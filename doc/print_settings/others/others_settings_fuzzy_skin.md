@@ -44,7 +44,7 @@ Determines how the fuzzy skin effect will be reproduced:
 
 ### Displacement
 
-![Fuzzy-skin-Displacement-mode](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-Displacement-mode.png?raw=true)
+![Fuzzy-skin-Displacement-mode](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-Displacement-mode.png)
 
 The classic method is when the pattern on the walls is achieved by shifting the printhead perpendicular to the wall.  
 It gives a predictable result, but decreases the strength entire shells and open the pores inside the walls. It also increases the mechanical stress on the kinematics of the printer. The speed of general printing is slowing down.
