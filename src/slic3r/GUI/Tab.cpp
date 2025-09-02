@@ -3603,6 +3603,14 @@ void TabFilament::build()
         optgroup->append_line(line);
         //BBS
         add_filament_overrides_page();
+
+        // Add Ironing Override page after Setting Overrides
+        page = add_options_page(L("Ironing Override"), "param_ironing");
+        optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
+        optgroup->append_single_option_line("filament_ironing_flow", "quality_settings_ironing#flow");
+        optgroup->append_single_option_line("filament_ironing_spacing", "quality_settings_ironing#line-spacing");
+        optgroup->append_single_option_line("filament_ironing_inset", "quality_settings_ironing#inset");
+
         const int gcode_field_height = 15; // 150
         const int notes_field_height = 25; // 250
 
