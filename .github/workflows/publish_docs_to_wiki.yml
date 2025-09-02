@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:  
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # 1. Clone the current wiki master branch to a folder named `tmp_wiki`
       - name: Pull content from wiki
