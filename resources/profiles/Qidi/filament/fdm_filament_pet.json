@@ -68,12 +68,12 @@
         "250"
     ],
     "temperature_vitrification": [
-        "80"
+        "70"
     ],
     "nozzle_temperature_range_low": [
-        "220"
+        "240"
     ],
     "nozzle_temperature_range_high": [
-        "260"
+        "280"
     ]
 }
