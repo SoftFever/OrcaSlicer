@@ -163,7 +163,7 @@ Line pattern of internal solid infill. If the [detect narrow internal solid infi
 
 Insert extra solid infills at specific layers to add strength at critical points in your print. This feature allows you to strategically reinforce your part without changing the overall sparse infill density.
 
-![infill-multiline-esthetic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/insert-solid-layers.gif?raw=true)
+![extra-solid-infill](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/extra-solid-infill.gif?raw=true)
 
 The pattern supports two formats:
 
