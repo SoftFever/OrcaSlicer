@@ -12327,7 +12327,7 @@ msgstr ""
 "Bu parametre, çapraz bir doku oluşturmak için her dolgu katmanına hafif bir yer "
 "değiştirme ekler."
 
-msgid "Sparse infill rotatation template"
+msgid "Sparse infill rotation template"
 msgstr "Seyrek dolgu döndürme şablonu"
 
 msgid ""
@@ -12346,7 +12346,7 @@ msgstr ""
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
+msgid "Solid infill rotation template"
 msgstr "Katı dolgu döndürme şablonu"
 
 msgid ""

@@ -13225,7 +13225,7 @@ msgstr ""
 "Dieser Parameter fügt jeder Schicht der Füllung eine leichte Verschiebung "
 "hinzu, um eine Kreuzstruktur zu erzeugen."
 
-msgid "Sparse infill rotatation template"
+msgid "Sparse infill rotation template"
 msgstr "Infill-Rotationsvorlage"
 
 msgid ""
@@ -13247,7 +13247,7 @@ msgstr ""
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
+msgid "Solid infill rotation template"
 msgstr "Rotationsvorlage für massive Füllung"
 
 msgid ""

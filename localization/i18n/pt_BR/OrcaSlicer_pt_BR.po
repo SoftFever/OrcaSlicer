@@ -13057,7 +13057,7 @@ msgstr ""
 "Este parâmetro adiciona um leve deslocamento a cada camada de preenchimento "
 "para criar uma textura cruzada."
 
-msgid "Sparse infill rotatation template"
+msgid "Sparse infill rotation template"
 msgstr "Gabarito de rotação de preenchimento esparso"
 
 msgid ""
@@ -13079,7 +13079,7 @@ msgstr ""
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
+msgid "Solid infill rotation template"
 msgstr "Gabarito de rotação de preenchimento sólido"
 
 msgid ""
