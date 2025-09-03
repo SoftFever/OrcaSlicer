@@ -6,9 +6,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa",
-    "filament_type": [
-      "PA-CF"
-    ],
+    "filament_type": ["PA12-CF"],
     "nozzle_temperature_initial_layer": [
       "290"
     ],

@@ -6,6 +6,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
+    "filament_type": ["PETG"],
 	"reduce_fan_stop_start_freq": [
         "1"
     ],
