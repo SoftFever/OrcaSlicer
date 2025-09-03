@@ -237,6 +237,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+
     if (config->opt_float("support_ironing_spacing") < 0.05)
     {
         const wxString msg_text = _(L("Too small ironing spacing.\nReset to 0.1."));
@@ -374,6 +375,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     // BBS
     int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
+
 #if 0
     bool has_wipe_tower = filament_cnt > 1 && config->opt_bool("enable_prime_tower");
     if (has_wipe_tower && (config->opt_bool("adaptive_layer_height") || config->opt_bool("independent_support_layer_height"))) {
@@ -433,13 +435,63 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 #endif
 
-    // BBL printers do not support cone wipe tower
-    if (config->opt_bool("enable_prime_tower") && is_BBL_Printer) {
-        auto wipe_tower_wall_type = config->opt_enum<WipeTowerWallType>("wipe_tower_wall_type");
-        if (wipe_tower_wall_type == WipeTowerWallType::wtwCone) {
-            DynamicPrintConfig new_conf = *config;
-            new_conf.set_key_value("wipe_tower_wall_type", new ConfigOptionEnum<WipeTowerWallType>(WipeTowerWallType::wtwRectangle));
+    // Orca - Prime tower conditional check
+    // Orca - 1. Single filament prints don't need prime tower.
+    // Orca - 2. Prime tower doesn't work when Independent Support Layer Height is on.
+    if (config->opt_bool("enable_prime_tower")) {
+        DynamicPrintConfig new_conf = *config;
+
+        if (filament_cnt == 1) {
+            // Prime Tower is not needed when printing with single filament
+            new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(false));
             apply(config, &new_conf);
+        }
+        else if (config->opt_bool("independent_support_layer_height")) {
+            const auto support_type  = config->opt_enum<SupportType>("support_type");
+            const auto support_style = config->opt_enum<SupportMaterialStyle>("support_style");
+            const bool support_is_organic =
+                config->opt_bool("enable_support") && is_tree(support_type) &&
+                (support_style == smsTreeOrganic || support_style == smsDefault);
+
+            if (support_is_organic) {
+                // Organic tree supports don't use independent support layer height anyway
+                new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
+            } else {
+                wxString msg_text = _(L(
+                    "Prime tower and independent support layer height are mutually\n"
+                    "exclusive features. Enabling one will disable the other.\n"
+                    "Do you want to keep the prime tower option?\n"
+                    "\n"
+                    "YES - Keep the prime tower option\n"
+                    "NO  - Keep independent support layer height"
+                ));
+
+                MessageDialog dialog(m_msg_dlg_parent, msg_text, wxEmptyString, wxICON_WARNING | wxYES | wxNO);
+                is_msg_dlg_already_exist = true;
+
+                const auto answer = dialog.ShowModal();
+
+                if (answer == wxID_YES) {
+                    if (config->opt_bool("independent_support_layer_height"))
+                        new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
+                } else {
+                    new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(false));
+                }
+
+                is_msg_dlg_already_exist = false;
+            }
+
+            apply(config, &new_conf);
+        }
+
+        // Orca - BBL printers do not support cone wipe towers
+        if (new_conf.opt_bool("enable_prime_tower") && is_BBL_Printer) {
+            const auto wipe_tower_wipe_type = new_conf.opt_enum<WipeTowerWallType>("wipe_tower_wall_type");
+
+            if (wipe_tower_wipe_type == WipeTowerWallType::wtwCone) {
+                new_conf.set_key_value("wipe_tower_wall_type", new ConfigOptionEnum<WipeTowerWallType>(WipeTowerWallType::wtwRectangle));
+                apply(config, &new_conf);
+            }
         }
     }
 
@@ -516,7 +568,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
-    
+
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     if (config->opt_enum<FuzzySkinMode>("fuzzy_skin_mode") != FuzzySkinMode::Displacement && !have_arachne) {
         wxString msg_text = _(L("Both [Extrusion] and [Combined] modes of Fuzzy Skin require the Arachne Wall Generator to be enabled."));
@@ -529,7 +581,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         auto answer = dialog.ShowModal();
         if (answer == wxID_YES)
             new_conf.set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Arachne));
-        else 
+        else
             new_conf.set_key_value("fuzzy_skin_mode", new ConfigOptionEnum<FuzzySkinMode>(FuzzySkinMode::Displacement));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
@@ -539,8 +591,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
 {
     for (auto &k : keys) {
-        if (/*k == "adaptive_layer_height" || */ k == "independent_support_layer_height" || k == "enable_support" ||
-            k == "detect_thin_wall" || k == "tree_support_adaptive_layer_height")
+        if ( k == "independent_support_layer_height" || k == "enable_support" || k == "detect_thin_wall")
             config->set_key_value(k, new ConfigOptionBool(true));
         else if (k == "wall_loops")
             config->set_key_value(k, new ConfigOptionInt(0));
@@ -624,7 +675,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool is_locked_zig = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipLockedZag;
 
     toggle_line("infill_shift_step", is_cross_zag || is_locked_zig);
-    
+
     for (auto el : { "skeleton_infill_density", "skin_infill_density", "infill_lock_depth", "skin_infill_depth","skin_infill_line_width", "skeleton_infill_line_width" })
         toggle_line(el, is_locked_zig);
 
@@ -721,18 +772,20 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
     bool support_is_normal_tree = support_is_tree && support_style != smsTreeOrganic &&
-    // Orca: use organic as default
-    support_style != smsDefault;
-    bool support_is_organic = support_is_tree && !support_is_normal_tree;
-    // settings shared by normal and organic trees
-    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter" })
-        toggle_line(el, support_is_normal_tree);
+                                // Orca: use organic as default
+                                support_style != smsDefault;
+    bool support_is_organic = support_is_tree && (support_style == smsTreeOrganic || support_style == smsDefault);
+    
     // settings specific to normal trees
-    for (auto el : {"tree_support_auto_brim", "tree_support_brim_width", "tree_support_adaptive_layer_height"})
+    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter",
+                    "tree_support_auto_brim", "tree_support_brim_width"})
         toggle_line(el, support_is_normal_tree);
+
     // settings specific to organic trees
     for (auto el : {"tree_support_branch_angle_organic", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic", "tree_support_angle_slow", "tree_support_tip_diameter", "tree_support_top_rate", "tree_support_branch_diameter_angle"})
         toggle_line(el, support_is_organic);
+        
+    toggle_line("independent_support_layer_height", !support_is_organic);
 
     toggle_field("tree_support_brim_width", support_is_tree && !config->opt_bool("tree_support_auto_brim"));
     // non-organic tree support use max_bridge_length instead of bridge_no_support
@@ -772,7 +825,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
     for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_angle", "ironing_inset"})
         toggle_line(el, has_ironing);
-    
+
     toggle_line("ironing_speed", has_ironing || has_support_ironing);
 
     bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
@@ -818,11 +871,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     toggle_line("prime_volume",have_prime_tower && (!purge_in_primetower || !bSEMM));
 
+    int multifilament = (wxGetApp().preset_bundle->filament_presets.size() > 1);
+    toggle_field("enable_prime_tower", multifilament);
+
     for (auto el : {"flush_into_infill", "flush_into_support", "flush_into_objects"})
         toggle_field(el, have_prime_tower);
-
-    // BBS: MusangKing - Hide "Independent support layer height" option
-    toggle_line("independent_support_layer_height", have_support_material && !have_prime_tower);
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);

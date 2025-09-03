@@ -1151,7 +1151,6 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "bridge_no_support"
             || opt_key == "max_bridge_length"
             || opt_key == "initial_layer_line_width"
-            || opt_key == "tree_support_adaptive_layer_height"
             || opt_key == "tree_support_auto_brim"
             || opt_key == "tree_support_brim_width"
             || opt_key == "tree_support_top_rate"
