@@ -1727,7 +1727,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Inner/Outer"));
     def->enum_labels.push_back(L("Outer/Inner"));
     def->enum_labels.push_back(L("Inner/Outer/Inner"));
-    def->enum_labels.push_back(L("Outer/Inner Odd-Even"));
+    def->enum_labels.push_back(L("Outer/Inner(Odd-Even)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<WallSequence>(WallSequence::InnerOuter));
 

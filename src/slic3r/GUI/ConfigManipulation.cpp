@@ -556,28 +556,33 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field(el, have_perimeters);
 
     WallSequence _wall_sequence = config->option<ConfigOptionEnum<WallSequence>>("wall_sequence")->value;
-    
+    static WallSequence _wall_sequence_trig = WallSequence::Count;
     toggle_line("even_inner_loops_flow_ratio", _wall_sequence == WallSequence::OuterInnerOddEven);
 
-    static int   _wall_loops_trig = -1;
-    int          _wall_loops = config->opt_int("wall_loops");
-    if (_wall_loops_trig != _wall_loops && _wall_loops < 3 &&
-        (_wall_sequence == WallSequence::OuterInnerOddEven || _wall_sequence == WallSequence::InnerOuterInner)) {
-        const wxString     msg_text = _(L("The number of perimeters is not enough for a full-fledged generation.\n"
-                                          "Do you want to increase the number of walls for 3?\n"
-                                          "Otherwise, make sure that the order of the walls matches the desired result."));
-        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxYES | wxNO);
-        is_msg_dlg_already_exist    = true;
-        if (_wall_loops_trig != -1) {
-            if (dialog.ShowModal() == wxID_YES) {
-                DynamicPrintConfig new_conf = *config;
-                new_conf.set_key_value("wall_loops", new ConfigOptionInt(3));
-                apply(config, &new_conf);
-            }
+    int        _wall_loops      = config->opt_int("wall_loops");
+    static int _wall_loops_trig = -1;
+    if (_wall_loops)
+        if (_wall_sequence == WallSequence::OuterInnerOddEven || _wall_sequence == WallSequence::InnerOuterInner) {
+            bool _eq_loops = _wall_loops_trig == _wall_loops;
+            bool _eq_sequence  = _wall_sequence_trig == _wall_sequence;
+            if (_wall_loops < 3 && _wall_loops_trig >= 0 && (_eq_loops != _eq_sequence)) {
+                const wxString     msg_text = format(_(L("The number of perimeters is %d, which is not enough for a full-fledged generation in the %s order.\n"
+                                                         "Do you want to increase the number of walls to 3?\n"
+                                                         "Otherwise, make sure that the order of the walls matches the desired result.")),
+                                                 _wall_loops, _wall_sequence == WallSequence::InnerOuterInner ? L("Inner/Outer/Inner") : L("Outer/Inner(Odd-Even)"));
+                MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxYES | wxNO);
+                is_msg_dlg_already_exist = true;
+                if (dialog.ShowModal() == wxID_YES) {
+                    DynamicPrintConfig new_conf = *config;
+                    new_conf.set_key_value("wall_loops", new ConfigOptionInt(3));
+                    apply(config, &new_conf);
+                }
+                is_msg_dlg_already_exist = false;
+            } 
         }
-        is_msg_dlg_already_exist = false;
-        _wall_loops_trig            = _wall_loops;
-    }
+    _wall_sequence_trig = _wall_sequence;
+    _wall_loops_trig = _wall_loops;
+    
 
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament uses the same logic as in Print::extruders()
