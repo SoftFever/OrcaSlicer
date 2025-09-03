@@ -367,6 +367,12 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         if (extrusion->empty())
             continue;
 
+        if (perimeter_generator.config->wall_sequence == WallSequence::OuterInnerOddEven && extrusion->inset_idx % 2 && extrusion->inset_idx != 0) {
+            float _ratio = perimeter_generator.config->even_inner_loops_flow_ratio; //PPS: Here can put the code of implementation of staggered perimeters 
+            for (Arachne::ExtrusionJunction &ej : extrusion->junctions)
+                ej.w *= _ratio;
+        }
+
         const bool    is_external = extrusion->inset_idx == 0;
         ExtrusionRole role = is_external ? erExternalPerimeter : erPerimeter;
 
@@ -2253,6 +2259,7 @@ void PerimeterGenerator::process_arachne()
 
 		bool is_outer_wall_first =
             	this->config->wall_sequence == WallSequence::OuterInner ||
+                this->config->wall_sequence == WallSequence::OuterInnerOddEven ||
             	this->config->wall_sequence == WallSequence::InnerOuterInner;
         
         if (layer_id == 0){ // disable inner outer inner algorithm after the first layer
@@ -2439,6 +2446,25 @@ void PerimeterGenerator::process_arachne()
                     // go to the next perimeter from the current position to continue scanning for external walls in the same island
                     position = arr_i + 1;
                 }
+            }
+        } else if (this->config->wall_sequence == WallSequence::OuterInnerOddEven && layer_id > 0) {
+            if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
+                std::vector<size_t> _even_odd;   // calculate new order
+                for (size_t _i = 0; _i <= loop_number; _i++)
+                    if (!(_i % 2))
+                        _even_odd.push_back(_i);
+                for (size_t _i = loop_number; _i > 0; _i--)
+                    if (_i % 2)
+                        _even_odd.push_back(_i);
+
+                std::vector<PerimeterGeneratorArachneExtrusion> _new_extrusion; // sort perimeters by the order
+                _new_extrusion.reserve(ordered_extrusions.size());
+                for (size_t _i = 0; _i <= loop_number; _i++)
+                    for (PerimeterGeneratorArachneExtrusion& _extrusion : ordered_extrusions)
+                        if (_even_odd[_i] == _extrusion.extrusion->inset_idx)
+                            _new_extrusion.emplace_back(_extrusion);
+
+                ordered_extrusions = std::move(_new_extrusion);
             }
         }
         

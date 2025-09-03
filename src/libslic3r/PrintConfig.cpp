@@ -189,7 +189,8 @@ static t_config_enum_values s_keys_map_WallInfillOrder {
     { "inner-outer-inner wall/infill",     int(WallInfillOrder::InnerOuterInnerInfill) },
     { "infill/inner wall/outer wall",     int(WallInfillOrder::InfillInnerOuter) },
     { "infill/outer wall/inner wall",     int(WallInfillOrder::InfillOuterInner) },
-    { "inner-outer-inner wall/infill",     int(WallInfillOrder::InnerOuterInnerInfill)}
+    { "inner-outer-inner wall/infill",     int(WallInfillOrder::InnerOuterInnerInfill)},
+    { "outer-odd-even wall/infill",       int(WallInfillOrder::OuterInnerOddEvenInfill)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallInfillOrder)
 
@@ -197,8 +198,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallInfillOrder)
 static t_config_enum_values s_keys_map_WallSequence {
     { "inner wall/outer wall",     int(WallSequence::InnerOuter) },
     { "outer wall/inner wall",     int(WallSequence::OuterInner) },
-    { "inner-outer-inner wall",    int(WallSequence::InnerOuterInner)}
-
+    { "inner-outer-inner wall",    int(WallSequence::InnerOuterInner)},
+    { "outer-odd-even wall",       int(WallSequence::OuterInnerOddEven)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallSequence)
 
@@ -1722,11 +1723,22 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("inner wall/outer wall");
     def->enum_values.push_back("outer wall/inner wall");
     def->enum_values.push_back("inner-outer-inner wall");
+    def->enum_values.push_back("outer-odd-even wall");
     def->enum_labels.push_back(L("Inner/Outer"));
     def->enum_labels.push_back(L("Outer/Inner"));
     def->enum_labels.push_back(L("Inner/Outer/Inner"));
+    def->enum_labels.push_back(L("Outer/Inner Odd-Even"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<WallSequence>(WallSequence::InnerOuter));
+
+    def           = this->add("even_inner_loops_flow_ratio", coFloat);
+    def->label    = L("Even inner walls flow ratio");
+    def->tooltip  = L("Adjust the flow coefficient for even inner walls for a rigid.");
+    def->category = L("Quality");
+    def->max      = 2;
+    def->min      = 0.9;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("is_infill_first",coBool);
     def->label    = L("Print infill first");
@@ -6850,6 +6862,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         } else if (value == "inner-outer-inner wall/infill") {
             opt_key = "wall_sequence";
             value = "inner-outer-inner wall";
+        } else if (value == "outer-odd-even wall/infill") {
+            opt_key = "wall_sequence";
+            value   = "outer-odd-even wall";
         } else {
             opt_key = "wall_sequence";
         }
