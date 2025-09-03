@@ -3184,13 +3184,16 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("sparse_infill_rotate_template", coString);
     def->label    = L("Sparse infill rotatation template");
     def->category = L("Strength");
-    def->tooltip  = L("This parameter adds a rotation of sparse infill direction to each layer according to the specified template. "
-                      "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
-                      "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
-                      "If there are more layers than angles, the angles will be repeated. Note that not all sparse infill patterns support rotation.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->tooltip  = L(
+        "Rotate the sparse infill direction per layer using a template of angles. "
+        "Enter comma-separated degrees (e.g., '0,30,60,90'). "
+        "Angles are applied in order by layer and repeat when the list ends. "
+        "Advanced syntax is supported: '+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the Wiki for details. "
+        "When a template is set, the standard infill direction setting is ignored. "
+        "Note: some infill patterns (e.g., Gyroid) control rotation themselves; use with care.");
+    def->sidetext = L("°");
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionString("0,90"));
+    def->set_default_value(new ConfigOptionString(""));
 
     //Orca
     def           = this->add("solid_infill_rotate_template", coString);
@@ -3202,7 +3205,7 @@ void PrintConfigDef::init_fff_params()
                       "If there are more layers than angles, the angles will be repeated. Note that not all solid infill patterns support rotation.");
     def->sidetext = "°";	// degrees, don't need translation
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionString("0,90"));
+    def->set_default_value(new ConfigOptionString(""));
 
     def           = this->add("skeleton_infill_density", coPercent);
     def->label    = L("Skeleton infill density");
