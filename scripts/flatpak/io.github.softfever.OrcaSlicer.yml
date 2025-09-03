@@ -2,19 +2,28 @@ app-id: io.github.softfever.OrcaSlicer
 runtime: org.gnome.Platform
 runtime-version: "47"
 sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.llvm20
 command: entrypoint
 separate-locales: true
 rename-icon: OrcaSlicer 
 finish-args:
   - --share=ipc
   - --socket=x11
+  - --socket=wayland
+  - --socket=fallback-x11
   - --share=network
   - --device=all
+  - --device=dri
   - --filesystem=home
   - --filesystem=xdg-run/gvfs
   - --filesystem=/run/media
   - --filesystem=/media
   - --filesystem=/run/spnav.sock:ro
+  # Allow access to system graphics information for auto-detection
+  - --filesystem=/sys/class/drm:ro
+  - --filesystem=/proc/driver/nvidia:ro
+  - --filesystem=/usr/share/glvnd:ro
   # Allow OrcaSlicer to talk to other instances
   - --talk-name=io.github.softfever.OrcaSlicer.InstanceCheck.*
   - --system-talk-name=org.freedesktop.UDisks2
@@ -49,6 +58,7 @@ modules:
       - /lib/*.la
       - /lib/pkgconfig
 
+
   - name: kde-extra-cmake-modules
     buildsystem: cmake-ninja
     sources:
@@ -66,10 +76,18 @@ modules:
 
   - name: orca_wxwidgets
     buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/llvm20/bin
+      prepend-ld-library-path: /usr/lib/sdk/llvm20/lib
+      env:
+        CC: clang
+        CXX: clang++
     build-commands:
       - |
         mkdir builddir && cd builddir
         cmake ../ -GNinja \
+          -DCMAKE_C_COMPILER=clang \
+          -DCMAKE_CXX_COMPILER=clang++ \
           -DwxBUILD_PRECOMP=ON \
           -DwxBUILD_TOOLKIT=gtk3 \
           -DwxBUILD_DEBUG_LEVEL=0 \
@@ -119,11 +137,19 @@ modules:
 
   - name: orca_deps
     buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/llvm20/bin
+      prepend-ld-library-path: /usr/lib/sdk/llvm20/lib
+      env:
+        CC: clang
+        CXX: clang++
     build-commands:
       # start build
       - |
         mkdir -p deps/build_flatpak && cd deps/build_flatpak
         cmake ../ \
+          -DCMAKE_C_COMPILER=clang \
+          -DCMAKE_CXX_COMPILER=clang++ \
           -DDEP_WX_GTK3=ON \
           -DDEP_DOWNLOAD_DIR=/run/build/orca_deps/external-packages \
           -DCMAKE_PREFIX_PATH=/app \
@@ -259,10 +285,18 @@ modules:
 
   - name: OrcaSlicer 
     buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/llvm20/bin
+      prepend-ld-library-path: /usr/lib/sdk/llvm20/lib
+      env:
+        CC: clang
+        CXX: clang++
     build-commands:
       - |
         mkdir -p build_flatpak
         CXXFLAGS=-std=gnu++20 cmake . -B build_flatpak \
+          -DCMAKE_C_COMPILER=clang \
+          -DCMAKE_CXX_COMPILER=clang++ \
           -DSLIC3R_PCH=OFF \
           -DSLIC3R_FHS=ON \
           -DSLIC3R_GTK=3 \
