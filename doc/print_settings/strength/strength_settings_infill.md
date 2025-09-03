@@ -199,6 +199,10 @@ Specify exact layer numbers (1-based) using comma-separated values. Each entry m
 > - Reinforce mounting holes or attachment points
 > - Create internal structure for functional parts
 > - Add periodic reinforcement for tall prints
+> - Insert a single solid layer at a specific height by using an explicit list with a leading 0, which will be ignored because layer indices are 1-based. Example: `0,15` inserts a solid layer only at layer 15.
+
+> [!WARNING]
+> Layers that include solid infill can take significantly longer than surrounding layers. This time differential may lead to z-banding-like bulges. Consider adjusting cooling or speeds if you observe artifacts.
 
 ## Sparse Infill Pattern
 
