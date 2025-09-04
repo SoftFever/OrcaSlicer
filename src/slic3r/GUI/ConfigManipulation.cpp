@@ -164,23 +164,14 @@ void ConfigManipulation::check_filament_max_volumetric_speed(DynamicPrintConfig 
 
 void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
 {
-    const static std::map<std::string, int>recommend_temp_map = {
-        {"PLA",45},
-        {"PLA-CF",45},
-        {"PVA",45},
-        {"TPU",50},
-        {"PETG",55},
-        {"PCTG",55},
-        {"PETG-CF",55}
-    };
    bool support_chamber_temp_control=GUI::wxGetApp().preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");
     if (support_chamber_temp_control&&config->has("chamber_temperatures")) {
         std::string filament_type = config->option<ConfigOptionStrings>("filament_type")->get_at(0);
-        auto iter = recommend_temp_map.find(filament_type);
-        if (iter!=recommend_temp_map.end()) {
-            if (iter->second < config->option<ConfigOptionInts>("chamber_temperatures")->get_at(0)) {
+        int chamber_min_temp, chamber_max_temp;
+        if (get_filament_chamber_temp_range(filament_type, chamber_min_temp, chamber_max_temp)) {
+            if (chamber_max_temp < config->option<ConfigOptionInts>("chamber_temperatures")->get_at(0)) {
                 wxString msg_text = wxString::Format(_L("Current chamber temperature is higher than the material's safe temperature, this may result in material softening and clogging. "
-                                                        "The maximum safe temperature for the material is %d"), iter->second);
+                                                        "The maximum safe temperature for the material is %d"), chamber_max_temp);
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
                 is_msg_dlg_already_exist = true;
                 dialog.ShowModal();

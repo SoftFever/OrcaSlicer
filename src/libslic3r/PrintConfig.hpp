@@ -526,6 +526,7 @@ class StaticPrintConfig;
 double min_object_distance(const ConfigBase &cfg);
 
 bool get_filament_temp_range(const std::string& filament_type, int& min_temp, int& max_temp);
+bool get_filament_chamber_temp_range(const std::string& filament_type, int& chamber_min_temp, int& chamber_max_temp);
 
 // Slic3r dynamic configuration, used to override the configuration
 // per object, per modification volume or per printing material.

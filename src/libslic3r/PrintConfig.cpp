@@ -7350,6 +7350,21 @@ bool get_filament_temp_range(const std::string& filament_type, int& min_temp, in
     return false; // Filament type not found
 }
 
+bool get_filament_chamber_temp_range(const std::string& filament_type, int& chamber_min_temp, int& chamber_max_temp)
+{
+    chamber_min_temp = 0;
+    chamber_max_temp = 100;
+
+    for (const auto& filament : filament_types) {
+        if (filament.name == filament_type) {
+            chamber_min_temp = filament.chamber_min_temp;
+            chamber_max_temp = filament.chamber_max_temp;
+            return true;
+        }
+    }
+    return false; // Filament type not found
+}
+
 std::string DynamicPrintConfig::get_filament_type(std::string &displayed_filament_type, int id)
 {
     auto* filament_id = dynamic_cast<const ConfigOptionStrings*>(this->option("filament_id"));
