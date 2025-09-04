@@ -3204,10 +3204,10 @@ void ModelInstance::invalidate_convex_hull_2d()
 //BBS adhesion coefficients from model object class
 double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
 {
-    double adhesionCoeff = 1;
+    double adhesionCoeff = 1.0;
     for (const ModelVolume* modelVolume : objectVolumes) {
         if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end()) {
-            adhesionCoeff = get_filament_adhesion_coefficient(Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName);
+            get_filament_adhesion_coefficient(Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName, adhesionCoeff);
         }
     }
     return adhesionCoeff;
