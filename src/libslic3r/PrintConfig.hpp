@@ -529,6 +529,7 @@ bool get_filament_temp_range(const std::string& filament_type, int& min_temp, in
 bool get_filament_chamber_temp_range(const std::string& filament_type, int& chamber_min_temp, int& chamber_max_temp);
 bool get_filament_adhesion_coefficient(const std::string& filament_type, double& adhesion_coefficient);
 bool get_filament_yield_strength(const std::string& filament_type, double& yield_strength);
+bool get_filament_thermal_length(const std::string& filament_type, double& thermal_length);
 
 // Slic3r dynamic configuration, used to override the configuration
 // per object, per modification volume or per printing material.
