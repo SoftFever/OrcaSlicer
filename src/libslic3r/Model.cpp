@@ -3138,18 +3138,10 @@ double Model::getThermalLength(const ModelVolume* modelVolumePtr) {
     double thermalLength = 200.;
     auto aa = modelVolumePtr->extruder_id();
     if (Model::extruderParamsMap.find(aa) != Model::extruderParamsMap.end()) {
-        if (Model::extruderParamsMap.at(aa).materialName == "ABS" ||
-            Model::extruderParamsMap.at(aa).materialName == "PA-CF" ||
-            Model::extruderParamsMap.at(aa).materialName == "PET-CF") {
-            thermalLength = 100;
+        double thermal_length = 200.0;
+        if (get_filament_thermal_length(Model::extruderParamsMap.at(aa).materialName, thermal_length)) {
+            return thermal_length;
         }
-        if (Model::extruderParamsMap.at(aa).materialName == "PC") {
-            thermalLength = 40;
-        }
-        if (Model::extruderParamsMap.at(aa).materialName == "TPU") {
-            thermalLength = 1000;
-        }
-
     }
     return thermalLength;
 }
