@@ -5,6 +5,7 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_QIDI_0.30_nozzle_0.6",
+    "enable_arc_fitting": "1",
     "compatible_printers": [
       "Qidi X-Plus 4 0.6 nozzle"
     ]
