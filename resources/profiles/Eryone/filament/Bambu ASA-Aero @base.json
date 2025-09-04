@@ -27,9 +27,6 @@
     "filament_max_volumetric_speed": [
         "12"
     ],
-    "filament_retraction_length": [
-        "1.5"
-    ],
     "filament_type": [
         "ASA-Aero"
     ],
