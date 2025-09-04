@@ -786,10 +786,6 @@
             "sub_path": "filament/Generic PLA High Speed @base.json"
         },
         {
-            "name": "Generic PLA @0.2 nozzle",
-            "sub_path": "filament/Generic PLA @0.2 nozzle.json"
-        },
-        {
             "name": "Generic PLA Silk @base",
             "sub_path": "filament/Generic PLA Silk @base.json"
         },
