@@ -3215,13 +3215,7 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
     double adhesionCoeff = 1;
     for (const ModelVolume* modelVolume : objectVolumes) {
         if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end()) {
-            if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG" ||
-                Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
-                adhesionCoeff = 2;
-            }
-            else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
-                adhesionCoeff = 0.5;
-            }
+            adhesionCoeff = get_filament_adhesion_coefficient(Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName);
         }
     }
     return adhesionCoeff;
