@@ -1,0 +1,8 @@
+{
+    "type": "filament",
+    "name": "Generic BVOH @base",
+    "inherits": "fdm_filament_bvoh",
+    "from": "system",
+    "filament_id": "GFS97",
+    "instantiation": "false"
+}
