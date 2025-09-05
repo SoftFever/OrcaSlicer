@@ -2384,6 +2384,13 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def           = this->add("extra_solid_infills", coString);
+    def->label    = L("Insert solid layers");
+    def->category = L("Strength");
+    def->tooltip  = L("Insert solid infill at specific layers. Use N to insert every Nth layer, N#K to insert K consecutive solid layers every N layers (K is optional, e.g. '5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at explicit layers. Layers are 1-based.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
+
 
     // Infill multiline
     def             = this->add("fill_multiline", coInt);
@@ -3184,13 +3191,12 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("sparse_infill_rotate_template", coString);
     def->label    = L("Sparse infill rotatation template");
     def->category = L("Strength");
-    def->tooltip  = L(
-        "Rotate the sparse infill direction per layer using a template of angles. "
-        "Enter comma-separated degrees (e.g., '0,30,60,90'). "
-        "Angles are applied in order by layer and repeat when the list ends. "
-        "Advanced syntax is supported: '+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the Wiki for details. "
-        "When a template is set, the standard infill direction setting is ignored. "
-        "Note: some infill patterns (e.g., Gyroid) control rotation themselves; use with care.");
+    def->tooltip  = L("Rotate the sparse infill direction per layer using a template of angles. "
+                      "Enter comma-separated degrees (e.g., '0,30,60,90'). "
+                      "Angles are applied in order by layer and repeat when the list ends. "
+                      "Advanced syntax is supported: '+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the Wiki for details. "
+                      "When a template is set, the standard infill direction setting is ignored. "
+                      "Note: some infill patterns (e.g., Gyroid) control rotation themselves; use with care.");
     def->sidetext = L("°");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
