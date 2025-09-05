@@ -3874,12 +3874,12 @@
             "sub_path": "filament/FusRock/FusRock ABS-GF @BBL X1C.json"
         },
         {
-            "name": "Generic SBS",
-            "sub_path": "filament/Generic SBS.json"
-        },
-        {
             "name": "Generic SBS @base",
             "sub_path": "filament/Generic SBS @base.json"
+        },
+        {
+            "name": "Generic SBS",
+            "sub_path": "filament/Generic SBS.json"
         },
         {
             "name": "AliZ PA-CF @P1-X1",
