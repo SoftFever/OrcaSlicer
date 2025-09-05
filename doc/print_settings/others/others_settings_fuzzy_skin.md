@@ -82,31 +82,31 @@ Select the noise algorithm used to generate the random offsets. Different noise 
 
 Simple uniform random noise. Produces a coarse, irregular texture.
 
-![Fuzzy-skin-classic](../../images/Fuzzy-skin/Fuzzy-skin-classic.png)
+![Fuzzy-skin-classic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-classic.png?raw=true)
 
 ### Perlin
 
 [Perlin noise](https://en.wikipedia.org/wiki/Perlin_noise) generates smooth, natural-looking variations with coherent structure.
 
-![Fuzzy-skin-perlin](../../images/Fuzzy-skin/Fuzzy-skin-perlin.png)
+![Fuzzy-skin-perlin](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-perlin.png?raw=true)
 
 ### Billow
 
 Billow noise is similar to Perlin noise, but has a clumpier appearance. It can create more pronounced features and is often used for natural textures.
 
-![Fuzzy-skin-billow](../../images/Fuzzy-skin/Fuzzy-skin-billow.png)
+![Fuzzy-skin-billow](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-billow.png?raw=true)
 
 ### Ridged Multifractal
 
 Creates sharp, jagged features and high-contrast detail. Useful for stone- or marble-like textures.
 
-![Fuzzy-skin-ridged-multifractal](../../images/Fuzzy-skin/Fuzzy-skin-ridged-multifractal.png)
+![Fuzzy-skin-ridged-multifractal](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-ridged-multifractal.png?raw=true)
 
 ### Voronoi
 
 [Voronoi noise](https://en.wikipedia.org/wiki/Worley_noise) divides the surface into Voronoi cells and displaces each cell independently, creating a patchwork or cellular texture.
 
-![Fuzzy-skin-voronoi](../../images/Fuzzy-skin/Fuzzy-skin-voronoi.png)
+![Fuzzy-skin-voronoi](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Fuzzy-skin/Fuzzy-skin-voronoi.png?raw=true)
 
 ## Point distance
 
