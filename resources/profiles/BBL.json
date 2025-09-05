@@ -1711,11 +1711,11 @@
         },
         {
             "name": "eSUN PLA+ @BBL H2D",
-            "sub_path": "filament/eSUN PLA+ @BBL H2D.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL H2D.json"
         },
         {
             "name": "eSUN PLA+ @BBL H2D 0.2 nozzle",
-            "sub_path": "filament/eSUN PLA+ @BBL H2D 0.2 nozzle.json"
+            "sub_path": "filament/eSUN/eSUN PLA+ @BBL H2D 0.2 nozzle.json"
         },
         {
             "name": "PolyTerra PLA @BBL X1C",
@@ -1747,7 +1747,7 @@
         },
         {
             "name": "PolyTerra PLA @BBL H2D",
-            "sub_path": "filament/PolyTerra PLA @BBL H2D.json"
+            "sub_path": "filament/Polymaker/PolyTerra PLA @BBL H2D.json"
         },
         {
             "name": "PolyLite PLA @BBL X1C",
@@ -1779,7 +1779,7 @@
         },
         {
             "name": "PolyLite PLA @BBL H2D",
-            "sub_path": "filament/PolyLite PLA @BBL H2D.json"
+            "sub_path": "filament/Polymaker/PolyLite PLA @BBL H2D.json"
         },
         {
             "name": "Generic PLA",
@@ -2559,7 +2559,7 @@
         },
         {
             "name": "PolyLite PETG @BBL H2D",
-            "sub_path": "filament/PolyLite PETG @BBL H2D.json"
+            "sub_path": "filament/Polymaker/PolyLite PETG @BBL H2D.json"
         },
         {
             "name": "Bambu PETG Translucent @BBL X1C",
@@ -3511,7 +3511,7 @@
         },
         {
             "name": "PolyTerra PLA @BBL H2D 0.2 nozzle",
-            "sub_path": "filament/PolyTerra PLA @BBL H2D 0.2 nozzle.json"
+            "sub_path": "filament/Polymaker/PolyTerra PLA @BBL H2D 0.2 nozzle.json"
         },
         {
             "name": "PolyLite PLA @BBL X1C 0.2 nozzle",
@@ -3523,7 +3523,7 @@
         },
         {
             "name": "PolyLite PLA @BBL H2D 0.2 nozzle",
-            "sub_path": "filament/PolyLite PLA @BBL H2D 0.2 nozzle.json"
+            "sub_path": "filament/Polymaker/PolyLite PLA @BBL H2D 0.2 nozzle.json"
         },
         {
             "name": "Overture PLA @BBL X1C 0.2 nozzle",
@@ -3627,7 +3627,7 @@
         },
         {
             "name": "PolyLite PETG @BBL H2D 0.2 nozzle",
-            "sub_path": "filament/PolyLite PETG @BBL H2D 0.2 nozzle.json"
+            "sub_path": "filament/Polymaker/PolyLite PETG @BBL H2D 0.2 nozzle.json"
         },
         {
             "name": "PolyLite PETG @BBL P1P 0.2 nozzle",
@@ -3687,7 +3687,7 @@
         },
         {
             "name": "PolyLite ABS @BBL H2D",
-            "sub_path": "filament/PolyLite ABS @BBL H2D.json"
+            "sub_path": "filament/Polymaker/PolyLite ABS @BBL H2D.json"
         },
         {
             "name": "PolyLite ABS @BBL P1P 0.2 nozzle",
@@ -3815,7 +3815,7 @@
         },
         {
             "name": "PolyLite ASA @BBL H2D",
-            "sub_path": "filament/PolyLite ASA @BBL H2D.json"
+            "sub_path": "filament/Polymaker/PolyLite ASA @BBL H2D.json"
         },
         {
             "name": "PolyLite ASA @BBL P1P 0.2 nozzle",
@@ -3843,7 +3843,7 @@
         },
         {
             "name": "PolyLite ABS @BBL H2D 0.2 nozzle",
-            "sub_path": "filament/PolyLite ABS @BBL H2D 0.2 nozzle.json"
+            "sub_path": "filament/Polymaker/PolyLite ABS @BBL H2D 0.2 nozzle.json"
         },
         {
             "name": "PolyLite ASA @BBL X1E 0.2 nozzle",
@@ -3851,7 +3851,7 @@
         },
         {
             "name": "PolyLite ASA @BBL H2D 0.2 nozzle",
-            "sub_path": "filament/PolyLite ASA @BBL H2D 0.2 nozzle.json"
+            "sub_path": "filament/Polymaker/PolyLite ASA @BBL H2D 0.2 nozzle.json"
         },
         {
             "name": "FusRock ABS-GF @base",
