@@ -1,27 +1,27 @@
 {
     "type": "filament",
-    "name": "Overture TPU @base",
-    "inherits": "fdm_filament_tpu",
+    "name": "Overture ASA @base",
+    "inherits": "fdm_filament_asa",
     "from": "system",
-    "filament_id": "GFOT008",
+    "filament_id": "GFOT009",
     "instantiation": "false",
     "fan_cooling_layer_time": [
-        "100"
+        "45"
     ],
     "fan_max_speed": [
-        "100"
+        "60"
     ],
     "fan_min_speed": [
-        "100"
+        "10"
     ],
     "filament_cost": [
         "29.99"
     ],
     "filament_density": [
-        "1.18"
+        "1.14"
     ],
     "filament_flow_ratio": [
-        "1"
+        "0.95"
     ],
     "filament_max_volumetric_speed": [
         "10"
@@ -29,22 +29,34 @@
     "filament_vendor": [
         "Overture"
     ],
+    "hot_plate_temp": [
+        "100"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "100"
+    ],
     "nozzle_temperature": [
-        "220"
+        "270"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "270"
     ],
     "nozzle_temperature_range_high": [
-        "230"
+        "270"
     ],
     "nozzle_temperature_range_low": [
-        "210"
+        "240"
     ],
     "slow_down_layer_time": [
-        "15"
+        "2"
     ],
     "temperature_vitrification": [
-        "30"
+        "106"
+    ],
+    "textured_plate_temp": [
+        "100"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "100"
     ]
 }
