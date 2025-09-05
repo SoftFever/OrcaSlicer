@@ -1,30 +1,21 @@
 {
     "type": "filament",
-    "name": "Overture TPU @base",
-    "inherits": "fdm_filament_tpu",
+    "name": "Overture Air PLA @base",
+    "inherits": "fdm_filament_pla",
     "from": "system",
-    "filament_id": "GFOT008",
+    "filament_id": "GFOT006",
     "instantiation": "false",
-    "fan_cooling_layer_time": [
-        "100"
-    ],
-    "fan_max_speed": [
-        "100"
-    ],
-    "fan_min_speed": [
-        "100"
-    ],
     "filament_cost": [
-        "29.99"
+        "27.99"
     ],
     "filament_density": [
-        "1.18"
+        "0.82"
     ],
     "filament_flow_ratio": [
-        "1"
+        "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "10"
+        "8"
     ],
     "filament_vendor": [
         "Overture"
@@ -36,15 +27,15 @@
         "220"
     ],
     "nozzle_temperature_range_high": [
-        "230"
+        "220"
     ],
     "nozzle_temperature_range_low": [
-        "210"
+        "190"
     ],
     "slow_down_layer_time": [
-        "15"
+        "4"
     ],
     "temperature_vitrification": [
-        "30"
+        "64"
     ]
 }
