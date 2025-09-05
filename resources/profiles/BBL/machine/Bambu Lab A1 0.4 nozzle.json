@@ -21,6 +21,9 @@
     "extruder_clearance_height_to_rod": "25",
     "extruder_clearance_max_radius": "73",
     "extruder_clearance_dist_to_rod": "56.5",
+    "grab_length": [
+        "17.4"
+    ],
     "head_wrap_detect_zone": [
         "226x224",
         "256x224",
@@ -54,8 +57,12 @@
     ],
     "machine_unload_filament_time": "29",
     "nozzle_height": "4.76",
-    "nozzle_type": "stainless_steel",
-    "nozzle_volume": "92",
+    "nozzle_type": [
+        "stainless_steel"
+    ],
+    "nozzle_volume": [
+        "92"
+    ],
     "printable_height": "256",
     "printer_structure": "i3",
     "retract_lift_below": [

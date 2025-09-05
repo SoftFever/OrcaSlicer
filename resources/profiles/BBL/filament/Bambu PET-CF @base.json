@@ -48,17 +48,17 @@
     "hot_plate_temp_initial_layer": [
         "100"
     ],
+    "nozzle_temperature_range_low": [
+        "260"
+    ],
+    "nozzle_temperature_range_high": [
+        "290"
+    ],
     "nozzle_temperature": [
         "270"
     ],
     "nozzle_temperature_initial_layer": [
         "270"
-    ],
-    "nozzle_temperature_range_high": [
-        "290"
-    ],
-    "nozzle_temperature_range_low": [
-        "260"
     ],
     "overhang_fan_speed": [
         "40"

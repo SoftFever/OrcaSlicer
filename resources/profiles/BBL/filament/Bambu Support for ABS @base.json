@@ -12,6 +12,9 @@
     "filament_cost": [
         "29.98"
     ],
+    "filament_density": [
+        "1.16"
+    ],
     "filament_flow_ratio": [
         "0.95"
     ],

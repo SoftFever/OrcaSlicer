@@ -1,0 +1,16 @@
+{
+    "type": "process",
+    "name": "0.40mm Standard @BBL H2D 0.8 nozzle",
+    "inherits": "fdm_process_dual_0.40_nozzle_0.8",
+    "from": "system",
+    "setting_id": "GP126",
+    "instantiation": "true",
+    "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
+    "prime_tower_width": "60",
+    "prime_tower_brim_width": "8",
+    "prime_tower_outer_first": "1",
+    "travel_speed": "1000",
+    "compatible_printers": [
+        "Bambu Lab H2D 0.8 nozzle"
+    ]
+}

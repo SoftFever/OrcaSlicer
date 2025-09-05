@@ -6,6 +6,9 @@
     "activate_air_filtration": [
         "0"
     ],
+    "additional_cooling_fan_speed": [
+        "0"
+    ],
     "chamber_temperatures": [
         "0"
     ],
@@ -114,6 +117,12 @@
     "full_fan_speed_layer": [
         "0"
     ],
+    "filament_extruder_id": [
+        "1"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard"
+    ],
     "filament_scarf_seam_type": [
         "none"
     ],
@@ -134,6 +143,12 @@
     ],
     "hot_plate_temp_initial_layer": [
         "60"
+    ],
+    "nozzle_temperature_range_low": [
+        "190"
+    ],
+    "nozzle_temperature_range_high": [
+        "240"
     ],
     "nozzle_temperature": [
         "200"
