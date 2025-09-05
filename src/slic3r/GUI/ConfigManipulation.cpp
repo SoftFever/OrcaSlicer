@@ -557,19 +557,20 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     WallSequence _wall_sequence = config->option<ConfigOptionEnum<WallSequence>>("wall_sequence")->value;
     static WallSequence _wall_sequence_trig = WallSequence::Count;
-    toggle_line("even_inner_loops_flow_ratio", _wall_sequence == WallSequence::OuterInnerOddEven);
+    for (auto el : { "even_loops_flow_ratio", "even_loops_speed", "loop_sequence" })
+        toggle_line(el, _wall_sequence == WallSequence::OddEven);
 
     int        _wall_loops      = config->opt_int("wall_loops");
     static int _wall_loops_trig = -1;
     if (_wall_loops)
-        if (_wall_sequence == WallSequence::OuterInnerOddEven || _wall_sequence == WallSequence::InnerOuterInner) {
+        if (_wall_sequence == WallSequence::OddEven || _wall_sequence == WallSequence::InnerOuterInner) {
             bool _eq_loops = _wall_loops_trig == _wall_loops;
             bool _eq_sequence  = _wall_sequence_trig == _wall_sequence;
             if (_wall_loops < 3 && _wall_loops_trig >= 0 && (_eq_loops != _eq_sequence)) {
                 const wxString     msg_text = format(_(L("The number of perimeters is %d, which is not enough for a full-fledged generation in the %s order.\n"
                                                          "Do you want to increase the number of walls to 3?\n"
                                                          "Otherwise, make sure that the order of the walls matches the desired result.")),
-                                                 _wall_loops, _wall_sequence == WallSequence::InnerOuterInner ? L("Inner/Outer/Inner") : L("Outer/Inner(Odd-Even)"));
+                                                 _wall_loops, _wall_sequence == WallSequence::InnerOuterInner ? L("Inner/Outer/Inner") : L("Odd-Even"));
                 MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxYES | wxNO);
                 is_msg_dlg_already_exist = true;
                 if (dialog.ShowModal() == wxID_YES) {

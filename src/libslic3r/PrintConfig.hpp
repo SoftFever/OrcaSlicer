@@ -92,7 +92,7 @@ enum class WallInfillOrder {
     InfillInnerOuter,
     InfillOuterInner,
     InnerOuterInnerInfill,
-    OuterInnerOddEvenInfill,
+    OddEvenInfill,
     Count,
 };
 
@@ -101,7 +101,15 @@ enum class WallSequence {
     InnerOuter,
     OuterInner,
     InnerOuterInner,
-    OuterInnerOddEven,
+    OddEven,
+    Count
+};
+
+enum class LoopSequence {
+    InsideOutside,
+    OutsideOutside,
+    InsideOutsideOuter,
+    OutsideOutsideOuter,
     Count
 };
 
@@ -1080,7 +1088,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       overhang_reverse_threshold))
     ((ConfigOptionEnum<CounterboreHoleBridgingOption>, counterbore_hole_bridging))
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
-    ((ConfigOptionFloat,               even_inner_loops_flow_ratio))
+    ((ConfigOptionEnum<LoopSequence>,  loop_sequence))
+    ((ConfigOptionFloat,               even_loops_flow_ratio))
+    ((ConfigOptionFloatOrPercent,      even_loops_speed))
     ((ConfigOptionBool,                is_infill_first))
     ((ConfigOptionBool,                small_area_infill_flow_compensation))
     ((ConfigOptionEnum<WallDirection>,  wall_direction))

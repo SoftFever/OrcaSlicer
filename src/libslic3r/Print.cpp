@@ -177,7 +177,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "required_nozzle_HRC",
         "upward_compatible_machine",
         "is_infill_first",
-        "even_inner_loops_flow_ratio",
+        "even_loops_flow_ratio",
         // Orca
         "chamber_temperature",
         "thumbnails",
@@ -336,7 +336,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "enable_arc_fitting"
             || opt_key == "print_order"
             || opt_key == "wall_sequence"
-            || opt_key == "even_inner_loops_flow_ratio" ) {
+            || opt_key == "even_loops_speed"
+            || opt_key == "loop_sequence"
+            || opt_key == "even_loops_flow_ratio" ) {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posEstimateCurledExtrusions);
             osteps.emplace_back(posInfill);

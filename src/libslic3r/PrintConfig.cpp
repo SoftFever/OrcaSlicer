@@ -190,7 +190,7 @@ static t_config_enum_values s_keys_map_WallInfillOrder {
     { "infill/inner wall/outer wall",     int(WallInfillOrder::InfillInnerOuter) },
     { "infill/outer wall/inner wall",     int(WallInfillOrder::InfillOuterInner) },
     { "inner-outer-inner wall/infill",     int(WallInfillOrder::InnerOuterInnerInfill)},
-    { "outer-odd-even wall/infill",       int(WallInfillOrder::OuterInnerOddEvenInfill)}
+    { "odd-even wall/infill",             int(WallInfillOrder::OddEvenInfill)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallInfillOrder)
 
@@ -199,9 +199,17 @@ static t_config_enum_values s_keys_map_WallSequence {
     { "inner wall/outer wall",     int(WallSequence::InnerOuter) },
     { "outer wall/inner wall",     int(WallSequence::OuterInner) },
     { "inner-outer-inner wall",    int(WallSequence::InnerOuterInner)},
-    { "outer-odd-even wall",       int(WallSequence::OuterInnerOddEven)}
+    { "odd-even wall",             int(WallSequence::OddEven)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallSequence)
+
+static t_config_enum_values s_keys_map_LoopSequence {
+    { "inner wall/outer wall",     int(LoopSequence::InsideOutside) },
+    { "outer wall/inner wall",     int(LoopSequence::OutsideOutside) },
+    { "inner-outer-inner wall",    int(LoopSequence::InsideOutsideOuter)},
+    { "odd-even wall",             int(LoopSequence::OutsideOutsideOuter)}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LoopSequence)
 
 //Orca
 static t_config_enum_values s_keys_map_WallDirection{
@@ -1723,22 +1731,51 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("inner wall/outer wall");
     def->enum_values.push_back("outer wall/inner wall");
     def->enum_values.push_back("inner-outer-inner wall");
-    def->enum_values.push_back("outer-odd-even wall");
+    def->enum_values.push_back("odd-even wall");
     def->enum_labels.push_back(L("Inner/Outer"));
     def->enum_labels.push_back(L("Outer/Inner"));
     def->enum_labels.push_back(L("Inner/Outer/Inner"));
-    def->enum_labels.push_back(L("Outer/Inner(Odd-Even)"));
+    def->enum_labels.push_back(L("Odd-Even"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<WallSequence>(WallSequence::InnerOuter));
 
-    def           = this->add("even_inner_loops_flow_ratio", coFloat);
-    def->label    = L("Even inner walls flow ratio");
-    def->tooltip  = L("Adjust the flow coefficient for even inner walls for a rigid.");
+    def           = this->add("loop_sequence", coEnum);
+    def->label    = L("Loops printing order");
+    def->category = L("Quality");
+    def->tooltip  = L("Print sequence of the odd and even loops inside the wall. ");
+    def->enum_keys_map = &ConfigOptionEnum<LoopSequence>::get_enum_values();
+    def->enum_values.push_back("inside/outside");
+    def->enum_values.push_back("outside/outside");
+    def->enum_values.push_back("inside/outside/outer");
+    def->enum_values.push_back("outside/outside/outer");
+    def->enum_labels.push_back(L("Inside/Outside"));
+    def->enum_labels.push_back(L("Outside/Outside"));
+    def->enum_labels.push_back(L("Inside/Outside/Outermost"));
+    def->enum_labels.push_back(L("Outside/Outside/Outermost"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<LoopSequence>(LoopSequence::InsideOutside));
+
+    def           = this->add("even_loops_flow_ratio", coFloat);
+    def->label    = L("Even loops flow ratio");
+    def->tooltip  = L("Adjust the flow coefficient for even inner loops for a rigid.");
     def->category = L("Quality");
     def->max      = 2;
     def->min      = 0.9;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
+
+    def             = this->add("even_loops_speed", coFloatOrPercent);
+    def->label      = L("Even loops speed");
+    def->category   = L("Quality");
+    def->tooltip    = L("This separate setting will affect the speed of even perimeters. "
+                        "If expressed as percentage (for example: 80%) it will be calculated "
+                        "on the perimeter speed setting. Set to zero for auto.");
+    def->sidetext   = L("mm/s or %");
+    def->ratio_over = "inner_wall_speed";
+    def->max        = 110;
+    def->min        = 1;
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
     def = this->add("is_infill_first",coBool);
     def->label    = L("Print infill first");
@@ -6871,9 +6908,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         } else if (value == "inner-outer-inner wall/infill") {
             opt_key = "wall_sequence";
             value = "inner-outer-inner wall";
-        } else if (value == "outer-odd-even wall/infill") {
+        } else if (value == "odd-even wall/infill") {
             opt_key = "wall_sequence";
-            value   = "outer-odd-even wall";
+            value   = "odd-even wall";
         } else {
             opt_key = "wall_sequence";
         }
