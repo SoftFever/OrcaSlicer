@@ -733,7 +733,8 @@ bool SendMultiMachinePage::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(4000);
-        wxPostEvent(this, wxTimerEvent());
+        wxCommandEvent event(wxEVT_TIMER);
+        wxPostEvent(this, event);
     }
     else {
         m_refresh_timer->Stop();
