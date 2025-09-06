@@ -1176,16 +1176,16 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 
     struct ExtruderInfo
     {
-        float diameter{0.4};
-        int   nozzle_volue_type{0};
+        //float diameter{0.4};
+        //int   nozzle_volue_type{0};
         int   ams_4{0};
         int   ams_1{0};
 
         bool operator==(const ExtruderInfo &other) const
         {
-            return abs(diameter - other.diameter) < EPSILON
+            return /*abs(diameter - other.diameter) < EPSILON
                 && nozzle_volue_type == other.nozzle_volue_type
-                && ams_4 == other.ams_4
+                &&*/ ams_4 == other.ams_4
                 && ams_1 == other.ams_1;
         }
     };
@@ -1194,9 +1194,9 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     int extruder_nums = preset_bundle->get_printer_extruder_count();
     std::vector<ExtruderInfo> extruder_infos(extruder_nums);
     std::vector<int> nozzle_volume_types = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
-    for (size_t i = 0; i < nozzle_volume_types.size(); ++i) {
-        extruder_infos[i].nozzle_volue_type = nozzle_volume_types[i];
-    }
+    //for (size_t i = 0; i < nozzle_volume_types.size(); ++i) {
+    //    extruder_infos[i].nozzle_volue_type = nozzle_volume_types[i];
+    //}
 
     std::vector<std::map<int, int>> extruder_ams_counts = wxGetApp().preset_bundle->extruder_ams_counts;
     if (extruder_ams_counts.size() >= extruder_nums) {
@@ -1210,26 +1210,26 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         }
     }
 
-    if (extruder_nums == 1) {
-        double value = 0.0;
-        single_extruder->diameter.ToDouble(&value);
-        extruder_infos[0].diameter = float(value);
-    }
-    else if(extruder_nums == 2){
-        double value = 0.0;
-        left_extruder->diameter.ToDouble(&value);
-        extruder_infos[0].diameter = float(value);
-
-        value = 0.0;
-        right_extruder->diameter.ToDouble(&value);
-        extruder_infos[1].diameter = float(value);
-    }
+    //if (extruder_nums == 1) {
+    //    double value = 0.0;
+    //    single_extruder->diameter.ToDouble(&value);
+    //    extruder_infos[0].diameter = float(value);
+    //}
+    //else if(extruder_nums == 2){
+    //    double value = 0.0;
+    //    left_extruder->diameter.ToDouble(&value);
+    //    extruder_infos[0].diameter = float(value);
+    //
+    //    value = 0.0;
+    //    right_extruder->diameter.ToDouble(&value);
+    //    extruder_infos[1].diameter = float(value);
+    //}
 
     std::vector<ExtruderInfo> machine_extruder_infos(obj->m_extder_data.extders.size());
-    for (const Extder &extruder : obj->m_extder_data.extders) {
-        machine_extruder_infos[extruder.id].nozzle_volue_type = int(extruder.current_nozzle_flow_type) - 1;
-        machine_extruder_infos[extruder.id].diameter          = extruder.current_nozzle_diameter;
-    }
+    //for (const Extder &extruder : obj->m_extder_data.extders) {
+    //    machine_extruder_infos[extruder.id].nozzle_volue_type = int(extruder.current_nozzle_flow_type) - 1;
+    //    machine_extruder_infos[extruder.id].diameter          = extruder.current_nozzle_diameter;
+    //}
     for (auto &item : obj->amsList) {
         if (item.second->type == 4) { // N3S
             machine_extruder_infos[item.second->nozzle].ams_1++;
@@ -15714,7 +15714,7 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
 
 void Plater::update_objects_position_when_select_preset(const std::function<void()> &select_prest)
 {
-    p->update_objects_position_when_select_preset(select_prest);
+    //p->update_objects_position_when_select_preset(select_prest); // TODO: Orca hack
 }
 
 bool Plater::check_ams_status()
