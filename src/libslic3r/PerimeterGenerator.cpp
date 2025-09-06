@@ -367,7 +367,12 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         if (extrusion->empty())
             continue;
 
+        // PPS: Odd-Even wall order
+        float _slowdown = 1;
         if (extrusion->is_even) {
+            _slowdown = perimeter_generator.config->even_loops_speed.get_abs_value(1);
+            if (!perimeter_generator.config->even_loops_speed.percent)
+                _slowdown /= perimeter_generator.config->inner_wall_speed;   
             float _flow_ratio = perimeter_generator.config->even_loops_flow_ratio; //PPS: Here can put the code of implementation of staggered perimeters 
             for (Arachne::ExtrusionJunction &ej : extrusion->junctions)
                 ej.w *= _flow_ratio;
@@ -413,7 +418,6 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                                    is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
             
             // apply slowdow to the paths
-            float _slowdown = extrusion->is_even ? perimeter_generator.config->even_loops_speed.get_abs_value(1) : 1.;
             for (ExtrusionPath& path : paths) {
                 path.speed_ratio = _slowdown;
             }

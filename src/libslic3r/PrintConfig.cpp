@@ -1726,7 +1726,11 @@ void PrintConfigDef::init_fff_params()
                      "then the external perimeter and, finally, the first internal perimeter. "
                      "This option is recommended against the Outer/Inner option in most cases.\n\n"
                      "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. "
-                     "However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.\n\n ");
+                     "However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.\n\n "
+                     "Use Odd-Even for making monolithic walls. All loops are divided into odd and even. "
+                     "Odds are printed first. Even fill the already formed grooves with melted extra material. "
+                     "It is also possible to slow down their printing speed, which allows you to create conditions for better adhesion between the loops and layers. "
+                     "It is recommended to use more walls, at least 3. A good result is achieved with 5 ones and more.\n\n");
     def->enum_keys_map = &ConfigOptionEnum<WallSequence>::get_enum_values();
     def->enum_values.push_back("inner wall/outer wall");
     def->enum_values.push_back("outer wall/inner wall");
@@ -1740,18 +1744,24 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<WallSequence>(WallSequence::InnerOuter));
 
     def           = this->add("loop_sequence", coEnum);
-    def->label    = L("Loops printing order");
+    def->label    = L("Odd-Even loop sequence");
     def->category = L("Quality");
-    def->tooltip  = L("Print sequence of the odd and even loops inside the wall. ");
+    def->tooltip  = L("Print sequence of the odd and even loops inside the wall.\n"
+                      "Odds are printed first. Even fill the already formed grooves with melted extra material. "
+                      "It is also possible to slow down their printing speed, which allows you to create conditions for better adhesion between the loops and layers. "
+                      "The order of laying the loops can be either inside (in) or outside (out). "
+                      "This order allows you to set specific printing conditions. For example, the initial inward movement gives to the outer perimeter more time to cooldown, reducing the potential 'debris' during overextrusion by moving its into infill. "  
+                      "Moving from the center will stabilize the filament inside the model during a long retract. "
+                      "The outmost wall (outer) can be printed last to prevent overhanging. "  );
     def->enum_keys_map = &ConfigOptionEnum<LoopSequence>::get_enum_values();
     def->enum_values.push_back("inside/outside");
     def->enum_values.push_back("outside/outside");
     def->enum_values.push_back("inside/outside/outer");
     def->enum_values.push_back("outside/outside/outer");
-    def->enum_labels.push_back(L("Inside/Outside"));
-    def->enum_labels.push_back(L("Outside/Outside"));
-    def->enum_labels.push_back(L("Inside/Outside/Outermost"));
-    def->enum_labels.push_back(L("Outside/Outside/Outermost"));
+    def->enum_labels.push_back(L("In/Out"));
+    def->enum_labels.push_back(L("Out/Out"));
+    def->enum_labels.push_back(L("In/Out/Outer"));
+    def->enum_labels.push_back(L("Out/Out/Outer"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<LoopSequence>(LoopSequence::InsideOutside));
 
@@ -1769,7 +1779,7 @@ void PrintConfigDef::init_fff_params()
     def->category   = L("Quality");
     def->tooltip    = L("This separate setting will affect the speed of even perimeters. "
                         "If expressed as percentage (for example: 80%) it will be calculated "
-                        "on the perimeter speed setting. Set to zero for auto.");
+                        "on the inner perimeter speed setting.");
     def->sidetext   = L("mm/s or %");
     def->ratio_over = "inner_wall_speed";
     def->max        = 110;
