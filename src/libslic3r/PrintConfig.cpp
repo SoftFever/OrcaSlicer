@@ -3546,7 +3546,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 100;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionPercent(0));//Return to 10
+    def->set_default_value(new ConfigOptionPercent(10));
 
     def = this->add("filament_ironing_spacing", coFloat);
     def->label = L("Ironing line spacing");
@@ -3556,7 +3556,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));//Return to 0.1
+    def->set_default_value(new ConfigOptionFloat(0.1));
 
     def           = this->add("filament_ironing_inset", coFloat);
     def->label    = L("Ironing inset");
