@@ -67,7 +67,7 @@ struct ExtrusionLine
      * This part is necessary to determine the filling line in the wall generation sequence (Odd-Even). 
      * It is used to change the extrusion density and speed.
      */
-    bool is_even;
+    bool is_even = 0;
 
     /*!
      * Gets the number of vertices in this polygon.
