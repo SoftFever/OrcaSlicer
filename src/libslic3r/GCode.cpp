@@ -4334,7 +4334,7 @@ LayerResult GCode::process_layer(
                         gcode += this->extrude_support(*instance_to_print.object_by_extruder.support, support_extrusion_role);
 
                         // Make sure ironing is the last
-                        if (support_extrusion_role == erMixed) {
+                        if (support_extrusion_role == erSupportMaterialInterface || support_extrusion_role == erMixed) {
                             gcode += this->extrude_support(*instance_to_print.object_by_extruder.support, erIroning);
                         }
                     }
@@ -5049,9 +5049,26 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
 }
 std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fills, const ExtrusionRole support_extrusion_role){
 
-    return this->_extrude_support(support_fills.chained_path_from(m_last_pos), support_extrusion_role);
+        ExtrusionEntitiesPtr extrusions;
+        extrusions.reserve(support_fills.entities.size());
+        std::function<void(const ExtrusionEntitiesPtr&)> filter_extrusions = [&](const ExtrusionEntitiesPtr& _extrusions) -> void {
+            for (ExtrusionEntity* ee : _extrusions) {
+                    const auto role = ee->role();
+                    if ((role == support_extrusion_role) || (support_extrusion_role == erMixed && role != erIroning)) {
+                        extrusions.emplace_back(ee);
+                    }
+            }
+        };
+
+        filter_extrusions(support_fills.entities);
+        if (extrusions.empty())
+            return "";
+
+        chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+
+        return this->_extrude_support(extrusions, support_extrusion_role);
 }
-std::string GCode::_extrude_support(const ExtrusionEntityCollection &support_fills, const ExtrusionRole support_extrusion_role)
+std::string GCode::_extrude_support(const ExtrusionEntitiesPtr &support_fills, const ExtrusionRole support_extrusion_role)
 {
     static constexpr const char *support_label            = "support material";
     static constexpr const char *support_interface_label  = "support material interface";
@@ -5059,22 +5076,10 @@ std::string GCode::_extrude_support(const ExtrusionEntityCollection &support_fil
     static constexpr const char* support_ironing_label    = "support ironing";
 
     std::string gcode;
-    if (! support_fills.entities.empty()) {
-
-        ExtrusionEntitiesPtr extrusions;
-        extrusions.reserve(support_fills.entities.size());
-        for (ExtrusionEntity* ee : support_fills.entities) {
-            const auto role = ee->role();
-            if ((role == support_extrusion_role) || (support_extrusion_role == erMixed && role != erIroning)) {
-                extrusions.emplace_back(ee);
-            }
-        }
-        if (extrusions.empty())
-            return gcode;
-
+    if (!support_fills.empty()) {
         const double  support_speed            = m_config.support_speed.value;
         const double  support_interface_speed  = m_config.get_abs_value("support_interface_speed");
-        for (const ExtrusionEntity *ee : extrusions) {
+        for (const ExtrusionEntity *ee : support_fills) {
             ExtrusionRole role = ee->role();
             assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition || role == erIroning);
             const char* label = (role == erSupportMaterial) ? support_label :
@@ -5095,7 +5100,7 @@ std::string GCode::_extrude_support(const ExtrusionEntityCollection &support_fil
                 gcode += this->extrude_loop(*loop, label, speed);
             }
             else if (collection) {
-                gcode += _extrude_support(*collection, support_extrusion_role);
+                gcode += _extrude_support(collection->entities, support_extrusion_role);
             }
             else {
                 throw Slic3r::InvalidArgument("Unknown extrusion type");
