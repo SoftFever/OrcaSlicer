@@ -3321,12 +3321,12 @@ void TabFilament::add_filament_overrides_page()
         append_single_option_line(opt_key, extruder_idx);
 
     optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
-    optgroup->append_single_option_line("filament_ironing_flow", "quality_settings_ironing#flow");
-    optgroup->append_single_option_line("filament_ironing_spacing", "quality_settings_ironing#line-spacing");
-    optgroup->append_single_option_line("filament_ironing_inset", "quality_settings_ironing#inset");
     optgroup->append_single_option_line("enable_filament_ironing_flow", "quality_settings_ironing#flow");
+    optgroup->append_single_option_line("filament_ironing_flow", "quality_settings_ironing#flow");
     optgroup->append_single_option_line("enable_filament_ironing_spacing", "quality_settings_ironing#line-spacing");
+    optgroup->append_single_option_line("filament_ironing_spacing", "quality_settings_ironing#line-spacing");
     optgroup->append_single_option_line("enable_filament_ironing_inset", "quality_settings_ironing#inset");
+    optgroup->append_single_option_line("filament_ironing_inset", "quality_settings_ironing#inset");
 }
 
 void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* printers_config)
