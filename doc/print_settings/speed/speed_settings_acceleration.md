@@ -13,6 +13,7 @@ Orca will limit the acceleration to not exceed the acceleration set in the Print
 - [Initial layer](#initial-layer)
 - [Top surface](#top-surface)
 - [Travel](#travel)
+- [Travel short distance](#travel-short-distance)
 
 ## Normal printing
 
@@ -53,3 +54,9 @@ Recommended to use a similar value to the [outer wall acceleration](#outer-wall)
 ## Travel
 
 Acceleration of [travel](speed_settings_travel) moves. This is usually set to a higher value than normal printing to reduce travel time.
+
+## Travel short distance
+
+Acceleration for short travel distances on external perimeters that fall below the retraction travel distance threshold. Using a lower value can help reduce ringing and ghosting on the print, specifically those artifacts that originate at the start of the external perimeter.
+
+[!NOTE] If this value is set to 0, the feature is disabled and the standard travel acceleration will be used instead.

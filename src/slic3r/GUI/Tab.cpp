@@ -2219,7 +2219,7 @@ void TabPrint::build()
 
     page = add_options_page(L("Strength"), "custom-gcode_strength"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
-    optgroup->append_single_option_line("wall_loops", "strength_settings_walls#wall-loops");
+        optgroup->append_single_option_line("wall_loops", "strength_settings_walls#wall-loops");
         optgroup->append_single_option_line("alternate_extra_wall", "strength_settings_walls#alternate-extra-wall");
         optgroup->append_single_option_line("detect_thin_wall", "strength_settings_walls#detect-thin-wall");
 
@@ -2320,6 +2320,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_acceleration", "speed_settings_acceleration#initial-layer");
         optgroup->append_single_option_line("top_surface_acceleration", "speed_settings_acceleration#top-surface");
         optgroup->append_single_option_line("travel_acceleration", "speed_settings_acceleration#travel");
+        optgroup->append_single_option_line("travel_short_distance_acceleration", "speed_settings_acceleration#travel-short-distance");
         optgroup->append_single_option_line("accel_to_decel_enable", "speed_settings_acceleration");
         optgroup->append_single_option_line("accel_to_decel_factor", "speed_settings_acceleration");
 

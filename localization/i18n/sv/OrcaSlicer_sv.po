@@ -11413,6 +11413,16 @@ msgstr "Klippers max_accel_to_decel kommer att justeras automatiskt"
 msgid "accel_to_decel"
 msgstr "accel_to_decel"
 
+msgid "Travel short distance"
+msgstr ""
+
+msgid ""
+"Acceleration for short travel distances on external perimeters "
+"that fall below the retraction travel distance threshold. "
+"Using gentler acceleration reduces ringing and ghosting. "
+"Set to 0 to disable."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "Klipper's max_accel_to_decel will be adjusted to this %% of acceleration."
