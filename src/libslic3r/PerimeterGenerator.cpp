@@ -367,6 +367,17 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         if (extrusion->empty())
             continue;
 
+        // PPS: Odd-Even wall order
+        float _slowdown = 1;
+        if (extrusion->is_even) {
+            _slowdown = perimeter_generator.config->even_loops_speed.get_abs_value(1);
+            if (!perimeter_generator.config->even_loops_speed.percent)
+                _slowdown /= perimeter_generator.config->inner_wall_speed;   
+            float _flow_ratio = perimeter_generator.config->even_loops_flow_ratio; //PPS: Here can put the code of implementation of staggered perimeters 
+            for (Arachne::ExtrusionJunction &ej : extrusion->junctions)
+                ej.w *= _flow_ratio;
+        } 
+
         const bool    is_external = extrusion->inset_idx == 0;
         ExtrusionRole role = is_external ? erExternalPerimeter : erPerimeter;
 
@@ -405,7 +416,12 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             // get non-overhang paths by intersecting this loop with the grown lower slices
             extrusion_paths_append(paths, clip_extrusion(extrusion_path, lower_slices_paths, ClipperLib_Z::ctIntersection), role,
                                    is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
-
+            
+            // apply slowdow to the paths
+            for (ExtrusionPath& path : paths) {
+                path.speed_ratio = _slowdown;
+            }
+            
             // Always reverse extrusion if use fuzzy skin: https://github.com/SoftFever/OrcaSlicer/pull/2413#issuecomment-1769735357
             if (overhangs_reverse && perimeter_generator.has_fuzzy_skin) {
                 if (pg_extrusion.is_contour) {
@@ -420,7 +436,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             if (overhangs_reverse && !found_steep_overhang) {
                 std::map<double, ExtrusionPaths> recognization_paths;
                 for (const ExtrusionPath &path : paths) {
-                    if (recognization_paths.count(path.width))
+                    if (recognization_paths.count(path.width)) 
                         recognization_paths[path.width].emplace_back(std::move(path));
                     else
                         recognization_paths.insert(std::pair<double, ExtrusionPaths>(path.width, {std::move(path)}));
@@ -2253,6 +2269,7 @@ void PerimeterGenerator::process_arachne()
 
 		bool is_outer_wall_first =
             	this->config->wall_sequence == WallSequence::OuterInner ||
+                this->config->wall_sequence == WallSequence::OddEven ||
             	this->config->wall_sequence == WallSequence::InnerOuterInner;
         
         if (layer_id == 0){ // disable inner outer inner algorithm after the first layer
@@ -2439,6 +2456,55 @@ void PerimeterGenerator::process_arachne()
                     // go to the next perimeter from the current position to continue scanning for external walls in the same island
                     position = arr_i + 1;
                 }
+            }
+        } else if (this->config->wall_sequence == WallSequence::OddEven && layer_id > 0) {
+            if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
+                std::vector<int> _even_odd(loop_number + 1, 0); // calculate new order
+
+                int    _loops_count;
+                int _loops_semicount;
+
+                switch (this->config->loop_sequence) { // PPS: Hardcoding! In the final version, this block should be optimized and cached
+                case LoopSequence::InsideOutside:
+                    _loops_count     = loop_number;
+                    _loops_semicount = _loops_count / 2;
+                    for (int _il = 0; _il <= _loops_count; _il++) {
+                        _even_odd[_il] = (_loops_semicount >= _il) ? _il * 2 : -1 - (_loops_count - _il) * 2; 
+                    }
+                    break;
+                case LoopSequence::OutsideOutside:
+                    _loops_count     = loop_number;
+                    _loops_semicount = _loops_count / 2;
+                    for (int _il = 0; _il <= _loops_count; _il++) {
+                        _even_odd[_il] = (_loops_semicount >= _il) ? (_loops_semicount - _il) * 2 : -1 - (_loops_count - _il) * 2; 
+                    }
+                    break;
+                case LoopSequence::InsideOutsideOuter:
+                    _loops_count     = loop_number - 1;
+                    _loops_semicount = _loops_count / 2;
+                    for (int _il = 0; _il <= _loops_count; _il++) {
+                        _even_odd[_il] = (_loops_semicount >= _il) ? _il * 2 + 1 : -2 - (_loops_count - _il) * 2;
+                    }
+                    break;
+                case LoopSequence::OutsideOutsideOuter:
+                    _loops_count     = loop_number - 1;
+                    _loops_semicount = _loops_count / 2;
+                    for (int _il = 0; _il <= _loops_count; _il++) {
+                        _even_odd[_il] = (_loops_semicount >= _il) ? (_loops_semicount - _il) * 2 + 1 : -2 - (_loops_count - _il) * 2;
+                    }
+                    break;
+                }
+
+                std::vector<PerimeterGeneratorArachneExtrusion> _new_extrusion; // sort perimeters by the order
+                _new_extrusion.reserve(ordered_extrusions.size());
+                for (int _ip = 0; _ip <= loop_number; _ip++)
+                    for (PerimeterGeneratorArachneExtrusion& _extrusion : ordered_extrusions) {
+                        if (abs(_even_odd[_ip]) == _extrusion.extrusion->inset_idx) {
+                            _extrusion.extrusion->is_even = _even_odd[_ip] < 0; 
+                            _new_extrusion.emplace_back(_extrusion);
+                        }
+                    }
+                ordered_extrusions = std::move(_new_extrusion);
             }
         }
         
