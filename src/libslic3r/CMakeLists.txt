@@ -519,7 +519,7 @@ target_include_directories(libslic3r SYSTEM PUBLIC ${EXPAT_INCLUDE_DIRS})
 # Find the OCCT and related libraries
 set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
 find_package(OpenCASCADE REQUIRED)
-target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
+target_include_directories(libslic3r SYSTEM PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
 find_package(JPEG REQUIRED)
 
