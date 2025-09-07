@@ -21,7 +21,7 @@ using namespace Slic3r;
 using namespace Slic3r::GUI;
 
 int scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; }
-int ITEM_WIDTH() { return scale(30); }
+int ITEM_WIDTH() { return scale(50); }
 static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 
 #undef  ICON_SIZE
@@ -29,7 +29,7 @@ static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 #define TABLE_BORDER            FromDIP(28)
 #define HEADER_VERT_PADDING     FromDIP(12)
 #define HEADER_BEG_PADDING      FromDIP(30)
-#define ICON_GAP                FromDIP(44)
+#define ICON_GAP                FromDIP(69)
 #define HEADER_END_PADDING      FromDIP(24)
 #define ROW_VERT_PADDING        FromDIP(6)
 #define ROW_BEG_PADDING         FromDIP(20)
