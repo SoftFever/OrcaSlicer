@@ -7,9 +7,83 @@
 #include <algorithm>
 #include <cassert>
 
+// Marching squares
+//
+// This algorithm generates 2D contour rings for a 2D scalar field (height
+// map). See https://en.wikipedia.org/wiki/Marching_squares for details.
+//
+// This algorithm uses square cells (tiles) with corner tags that are set
+// depending on which vertices are inside an ROI (higher than the selected
+// isovalue threshold). We label the vertices counter-clockwise, and for ease
+// of extraction from the m_tags bitmap we put them into a four bit bitmap in
+// little-endian row-column order <cbda>;
+//
+//            ^ u (up)         ----> column "c" direction
+//            |
+//         a ----- d
+//         |       |           |
+//    l <--|       |--> r      | increasing row "r" direction
+// (left)  |       |  (right)  \/
+//         b ----- c
+//             |
+//             \/ d (down)
+//
+// The m_tags bitmap has the top-left "a" corner of each cell packed
+// into uint32_t values stored in little-endian order, with the "a" tag for
+// the first cell (r=0,c=0) in the LSB bit0 of the first 32bit word of the
+// first row. The grid has a one cell border round the raster area that is
+// always clear so lines never extend out of the grid.
+//
+// From this grid of points we can get the <cbda> tags bitmap for the four
+// corners of each cell with "a" in the LSB bit0 and "c" in bit3. Note the
+// bits b,c,d are also the "a" bits of the cell's next-colum/row neighbour
+// cells. Cells in the right-most column get their cleared right-side border
+// <c_b_> tags by wrapping around the grid and getting the cleared values
+// from the left-side border. Note the grid bitmap always includes at least
+// one extra cleared boarder bit for the wrap-around of the last tag in the
+// last cell. Cells in the bottom row get their cleared bottom-side border
+// <cb__> tags by leaving them clear because their grid index exceeds the
+// grid size.
+//
+// These tag bits are then translated into up/down/left/right cell-exit
+// directions indicating the cell edge(s) that any lines will cross and exit
+// the cell. As you walk counter-clock-wise around the cell corners in the
+// order a->b->c->d, any edge from a unset-corner-tag to an set-corner-tag is
+// where a line will cross, exiting the cell into the next cell.
+//
+// Note any set-to-unset-transition edge is where a line will enter a cell,
+// but for marching the lines through the cells we only need to keep the next
+// cell exit directions. The exit directions are stored as 4bit <urdl>
+// left/down/right/up flags packed into uint32_t values in m_dirs, in
+// counter-clockwise little-endian order.
+//
+// To build the line-rings we scan through the m_dirs directions for the
+// cells until we find one with a set-edge. We then start a line and "march"
+// it through the cells following the directions in each cell, recording each
+// edge the line crosses that will become a point in the ring.
+//
+// Note that the outside-edge of the grid extends one cell past the raster
+// grid, and this outer edge is always cleared. This means no line will cross
+// out of the grid, and they will all eventually connect back to their
+// starting cell to become a ring around an island of set tag bits, possibly
+// containing rings around lakes of unset tag bits within them.
+//
+// As we march through the cells and build the lines, we clear the direction
+// bits to indicate the edge-transition has been processed. After completing
+// a ring we return to scanning for the next non-zeroed starting cell for the
+// next ring. Eventually all rings will be found and completed, and the
+// m_dirs map will be completely cleared.
+//
+// Note there are two ambigous cases when the diagonally opposite corner tags
+// are set. In these cases two lines will enter and exit the cell. To avoid
+// messy lines, we consistently choose the exit direction based on what edge
+// the line entered the cell from. This also means when we start scanning for
+// the next ring we should start checking at the same cell the last ring
+// started from, because it could have a second ring passing through it.
+//
 namespace marchsq {
 
-// Marks a square in the grid
+// Marks a square or point in grid or raster coordintes.
 struct Coord {
     long r = 0, c = 0;
 
@@ -73,30 +147,20 @@ void for_each(ExecutionPolicy&& policy, It from, It to, Fn &&fn)
     _Loop<ExecutionPolicy>::for_each(from, to, fn);
 }
 
-// Type of squares (tiles) depending on which vertices are inside an ROI
-// The vertices would be marked a, b, c, d in counter clockwise order from the
-// bottom left vertex of a square.
-// d --- c
-// |     |
-// |     |
-// a --- b
-enum class SquareTag : uint8_t {
-//     0, 1, 2,  3, 4,  5,  6,   7, 8,  9, 10,  11, 12,  13,  14,  15
-    none, a, b, ab, c, ac, bc, abc, d, ad, bd, abd, cd, acd, bcd, full
-};
-
 template<class E> constexpr std::underlying_type_t<E> _t(E e) noexcept
 {
     return static_cast<std::underlying_type_t<E>>(e);
 }
 
+// A set of next direction flags for a cell to indicate what sides(s)
+// any yet-to-be-marched line(s) will cross to leave the cell.
 enum class Dir: uint8_t {
     none      = 0b0000,
-    left      = 0b0001,
-    down      = 0b0010,
-    right     = 0b0100,
+    left      = 0b0001,       /* exit through a-b edge */
+    down      = 0b0010,       /* exit through b-c edge */
+    right     = 0b0100,       /* exit through c-d edge */
     leftright = left | right,
-    up        = 0b1000,
+    up        = 0b1000,       /* exit through d-a edge */
     updown    = up | down,
     all       = 0b1111
 };
@@ -106,28 +170,23 @@ constexpr Dir operator~(const Dir& a) { return static_cast<Dir>(~_t(a)); }
 constexpr Dir operator&(const Dir& a, const Dir& b) { return static_cast<Dir>(_t(a) & _t(b)); }
 constexpr Dir operator|(const Dir& a, const Dir& b) { return static_cast<Dir>(_t(a) | _t(b)); }
 
-// This maps SquareTag values to possible next directions.
-static const constexpr Dir NEXT_CCW[] = {
-    /* 00 */ Dir::none,
-    /* 01 */ Dir::left,
-    /* 02 */ Dir::down,
-    /* 03 */ Dir::left,
-    /* 04 */ Dir::right,
-    /* 05 */ Dir::leftright,
-    /* 06 */ Dir::down,
-    /* 07 */ Dir::left,
-    /* 08 */ Dir::up,
-    /* 09 */ Dir::up,
-    /* 10 */ Dir::updown,
-    /* 11 */ Dir::up,
-    /* 12 */ Dir::right,
-    /* 13 */ Dir::right,
-    /* 14 */ Dir::down,
-    /* 15 */ Dir::none
-};
+
+// This maps square tag column/row order <cbda> bitmaps to the next
+// direction(s) a line will exit the cell. The directions ensure the
+// line-rings circle counter-clock-wise around the clusters of set tags.
+static const constexpr std::array<uint32_t, 16> NEXT_CCW = [] {
+  auto map = decltype(NEXT_CCW){};
+  for (uint32_t cbda=0; cbda<16; cbda++) {
+    const uint32_t dcba = (cbda & 0b0001) | ((cbda>>1) & 0b0110) | ((cbda<<2) & 0b1000);
+    const uint32_t adcb = (dcba>>1) | ((dcba<<3) & 0b1000);
+    map[cbda] = ~dcba & adcb;
+  }
+  return map;
+}();
+
 
 // Step a point in a direction.
-inline Coord step(const Coord &crd, Dir d)
+constexpr Coord step(const Coord &crd, const Dir d)
 {
   switch (d) {
       case Dir::left: return {crd.r, crd.c - 1};
@@ -141,12 +200,15 @@ inline Coord step(const Coord &crd, Dir d)
 
 template<class Rst> class Grid {
     const Rst *            m_rst = nullptr;
-    Coord                  m_window, m_gridsize;
-    std::vector<uint8_t>   m_tags;     // squaretags and unvisited flags for each square.
+    Coord                  m_window, m_rastsize, m_gridsize;
+    size_t                 m_gridlen; // The number of cells in the grid.
+    std::vector<uint32_t>  m_tags;  // bit-packed squaretags for each corner.
+    std::vector<uint32_t>  m_dirs;  // bit-packed next directions for each cell.
 
     // Convert a grid coordinate point into raster coordinates.
-    Coord rastercoord(const Coord &crd) const
+    inline Coord rastercoord(const Coord &crd) const
     {
+      // Note the -1 offset for the grid border around the raster area.
         return {(crd.r - 1) * m_window.r, (crd.c - 1) * m_window.c};
     }
 
@@ -157,45 +219,90 @@ template<class Rst> class Grid {
     Coord tl(const Coord &crd) const { return rastercoord(crd); }
 
     // Test if a raster coordinate point is within the raster area.
-    bool is_within(const Coord &crd)
+    inline bool is_within(const Coord &crd) const
     {
-        long R = rows(*m_rst), C = cols(*m_rst);
-        return crd.r >= 0 && crd.r < R && crd.c >= 0 && crd.c < C;
-    };
+        return crd.r >= 0 && crd.r < m_rastsize.r && crd.c >= 0 && crd.c < m_rastsize.c;
+    }
 
-    // Calculate the tag for a cell (or square). The cell coordinates mark the
-    // top left vertex of a square in the raster. v is the isovalue
-    uint8_t get_tag_for_cell(const Coord &cell, TRasterValue<Rst> v)
+    // Get a block of 32 tags for a block index from the raster isovals.
+    uint32_t get_tags_block32(const size_t bidx, const TRasterValue<Rst> v) const
     {
-        Coord sqr[] = {bl(cell), br(cell), tr(cell), tl(cell)};
-
-        uint8_t t = ((is_within(sqr[0]) && isoval(*m_rst, sqr[0]) >= v)) +
-                    ((is_within(sqr[1]) && isoval(*m_rst, sqr[1]) >= v) << 1) +
-                    ((is_within(sqr[2]) && isoval(*m_rst, sqr[2]) >= v) << 2) +
-                    ((is_within(sqr[3]) && isoval(*m_rst, sqr[3]) >= v) << 3);
-        assert(t < 16);
-        // Set the unvisited flags with the possible next directions set.
-        t = (t << 4) | _t(NEXT_CCW[t]);
-        return t;
+      Coord gcrd = coord(bidx*32); // position in grid coordinates of the block.
+      uint32_t tags = 0;
+      // Set a bit for each corner that has osoval > v.
+      for (uint32_t b=1; b; b<<=1) {
+        Coord p = rastercoord(gcrd);   // position in raster coordinates.
+        if (is_within(p) && isoval(*m_rst, p) > v) tags |= b;
+        step(gcrd, Dir::right);
+        // If we hit the end of the row, start on the next row.
+        if (gcrd.c >= m_gridsize.c ) gcrd = Coord(p.r + 1, 0);
+      }
+      return tags;
     }
 
-    void set_visited(size_t idx, Dir d = Dir::none)
-    {
-        // Clear the corresponding unvisited flag.
-        m_tags[idx] &= _t(~d);
+  // Get a block of 8 directions for a block index from the tags.
+  uint32_t get_dirs_block8(const size_t bidx) const
+  {
+    size_t gidx = bidx*8;
+    uint32_t dirs = 0;
+
+    for (auto s = 0; s<32; s+=4) {
+      dirs |= NEXT_CCW[get_tags(gidx++)] << s;
+    }
+    return dirs;
+  }
+
+  // Get a cell's <cbda> corner tags for a grid index.
+  uint8_t get_tags(size_t gidx) const
+  {
+    uint8_t tags = 0;      // the tags value.
+    size_t i = gidx / 32;  // the tags block index
+    int o = gidx % 32;     // the tags block offset
+
+    // Note that this will get the right side <_b_a> tags for the last cell
+    // in a row from the first column in the next row. However, the grid
+    // borders are all outside the raster area and unset so that's fine.
+    // For any index past the end of the grid return 0.
+    if (gidx >= m_gridlen) return tags;
+    // get the top two <__da> corner tags.
+    tags |= (m_tags[i] >> o) & 0b11;
+    if (o == 31) {
+      // The d corner tag is in bit0 of the next block.
+      tags |= (m_tags[i+1] << 1) & 0b10;
+    }
+    // Now get the two <cb__> corner tags from the next row.
+    gidx += m_gridsize.c;
+    // If the next row is past m_gridlen we don't need to get them.
+    if (gidx >= m_gridlen) return tags;
+    i = gidx / 32;
+    o = gidx % 32;
+    tags |= (m_tags[i] >> (o-2)) & 0b1100;
+    if (o == 31) {
+      // The c corner tag is in bit0 of the next block.
+      tags |= (m_tags[i+1] << 3) & 0b1000;
+    }
+    return tags;
+  }
+
+  // Clear directions in a cell's <urdl> dirs for a grid index.
+  void clr_dirs(const size_t gidx, const Dir d)
+  {
+      size_t i = gidx / 8;  // the dirs block index
+      int o = (gidx % 8);   // the dirs block offset
+
+      m_dirs[i] &= ~(static_cast<uint32_t>(d) << (o*4));
+  }
+
+  // Get directions in a cell's <uldr> dirs from the m_dirs store.
+  Dir get_dirs(const size_t gidx, const Dir d=Dir::all) const
+  {
+      size_t i = gidx / 8;  // the dirs block index
+      int o = (gidx % 8);   // the dirs block offset
+
+      return Dir((m_dirs[i] >> (o*4)) & _t(d));
     }
 
-    // Get the square tag from the cell m_tag value.
-    inline SquareTag squaretag(size_t idx) const {
-        return SquareTag(m_tags[idx] >> 4);
-    }
-
-    // Get the selected unvisited flags from the cell m_tag value.
-    inline Dir unvisited(size_t idx, Dir d=Dir::all) const {
-        return Dir(m_tags[idx] & _t(d));
-    }
-
-    // Get a cell coordinate from a sequential index
+    // Get a cell coordinate from a sequential grid index.
     Coord coord(size_t i) const
     {
         return {long(i) / m_gridsize.c, long(i) % m_gridsize.c};
@@ -206,7 +313,7 @@ template<class Rst> class Grid {
         return crd.seq(m_gridsize);
     }
 
-    // Step a sequential index in a direction.
+    // Step a sequential grid index in a direction.
     size_t stepidx(const size_t idx, const Dir d) const
     {
         switch (d) {
@@ -218,18 +325,32 @@ template<class Rst> class Grid {
       }
     }
 
-    // Search for a new starting square
-    size_t search_start_cell(size_t i = 0) const
+    // Search for a new starting square.
+    size_t search_start_cell(size_t gidx = 0) const
     {
-        // Skip cells without any unvisited edges.
-        while (i < m_tags.size() && !unvisited(i)) ++i;
-        return i;
+      size_t i = gidx / 8;  // The dirs block index.
+      int o = gidx % 8;     // The dirs block offset.
+
+      // Skip cells without any unvisited edges.
+      while (i < m_dirs.size()) {
+        if (!m_dirs[i]) {
+          // Whole block is clear, advance to the next block;
+          i++; o=0;
+        } else {
+          // Block not clear, find the next non-zero tags in the block. Note
+          // all dirs before gidx are cleared, so any set bits must be in
+          // block offsets >= o, not before.
+          for (uint32_t m=0b1111<<(o*4); !(m_dirs[i] & m); m<<=4) o++;
+          break;
+        }
+      }
+      return i*8+o;
     }
 
     // Get the next direction for a cell index after the prev direction.
     Dir next_dir(size_t idx, Dir prev = Dir::all) const
     {
-        Dir next = unvisited(idx);
+        Dir next = get_dirs(idx);
 
         // Treat ambiguous cases as two separate regions in one square. If
         // there are two possible next directions, pick based on the prev
@@ -289,16 +410,14 @@ template<class Rst> class Grid {
 
     Edge edge(const Coord &ringvertex) const
     {
-        const long R = rows(*m_rst), C = cols(*m_rst);
-
         Edge e = _edge(ringvertex);
         e.to.dir = e.from.dir;
         ++e.to;
 
-        e.from.crd.r = std::clamp(e.from.crd.r, 0l, R-1);
-        e.from.crd.c = std::clamp(e.from.crd.c, 0l, C-1);
-        e.to.crd.r = std::clamp(e.to.crd.r, 0l, R);
-        e.to.crd.c = std::clamp(e.to.crd.c, 0l, C);
+        e.from.crd.r = std::clamp(e.from.crd.r, 0l, m_rastsize.r-1);
+        e.from.crd.c = std::clamp(e.from.crd.c, 0l, m_rastsize.c-1);
+        e.to.crd.r = std::clamp(e.to.crd.r, 0l, m_rastsize.r);
+        e.to.crd.c = std::clamp(e.to.crd.c, 0l, m_rastsize.c);
         return e;
     }
 
@@ -306,20 +425,31 @@ public:
     explicit Grid(const Rst &rst, const Coord &window)
         : m_rst{&rst}
         , m_window{window}
-        , m_gridsize{2 + long(rows(rst)) / m_window.r,
-                     2 + long(cols(rst)) / m_window.c}
-        , m_tags(m_gridsize.r * m_gridsize.c, 0)
+        , m_rastsize{rows(rst), cols(rst)}
+        , m_gridsize{2 + m_rastsize.r / m_window.r,
+                     2 + m_rastsize.c / m_window.c}
+        , m_gridlen{m_gridsize.r * m_gridsize.c}
+        // 1 bit per tag means 32 per uint32_t.
+        , m_tags(m_gridlen/32 + 1, 0)
+        // 4 bits per cell means 32/4=8 per uint32_t.
+        , m_dirs(m_gridlen/8 + 1, 0)
     {}
 
-    // Go through the cells and mark them with the appropriate tag.
+    // Go through the cells getting their tags and dirs.
     template<class ExecutionPolicy>
     void tag_grid(ExecutionPolicy &&policy, TRasterValue<Rst> isoval)
     {
-        // parallel for r
+        // Get all the tags. parallel?
         for_each (std::forward<ExecutionPolicy>(policy),
                  m_tags.begin(), m_tags.end(),
-                 [this, isoval](uint8_t& tag, size_t idx) {
-            tag = get_tag_for_cell(coord(idx), isoval);
+                 [this, isoval](uint32_t& tag_block, size_t bidx) {
+            tag_block = get_tags_block32(bidx, isoval);
+        });
+        // Get all the dirs. parallel?
+        for_each (std::forward<ExecutionPolicy>(policy),
+                 m_dirs.begin(), m_dirs.end(),
+                 [this](uint32_t& dirs_block, size_t bidx) {
+            dirs_block = get_dirs_block8(bidx);
         });
     }
 
@@ -330,7 +460,7 @@ public:
     {
         std::vector<Ring> rings;
         size_t startidx = 0;
-        while ((startidx = search_start_cell(startidx)) < m_tags.size()) {
+        while ((startidx = search_start_cell(startidx)) < m_gridlen) {
             Ring ring;
 
             size_t idx = startidx;
@@ -338,7 +468,7 @@ public:
             while (next != Dir::none) {
                 Coord ringvertex{long(idx), long(next)};
                 ring.emplace_back(ringvertex);
-                set_visited(idx, next);
+                clr_dirs(idx, next);
                 idx = stepidx(idx, next);
                 next = next_dir(idx, next);
             }
@@ -350,7 +480,7 @@ public:
     }
 
     // Calculate the exact raster position from the cells which store the
-    // sequantial index of the square and the next direction
+    // sequential index of the square and the next direction
     template<class ExecutionPolicy>
     void interpolate_rings(ExecutionPolicy && policy,
                            std::vector<Ring> &rings,
