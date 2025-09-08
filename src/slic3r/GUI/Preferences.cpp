@@ -39,7 +39,7 @@ public:
         const wxSize& size = wxDefaultSize,
         long style = wxVSCROLL) : wxScrolledWindow(parent, id, pos, size, style) {}
 
-    bool ShouldScrollToChildOnFocus(wxWindow* child) override { return false; } // ???
+    bool ShouldScrollToChildOnFocus(wxWindow* child) override { return false; }
 };
 
 wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *parent)

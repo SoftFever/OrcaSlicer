@@ -287,8 +287,6 @@ void Button::render(wxDC& dc)
         wxSize offset = (size - szContent) / 2;
         if (offset.x < 0) offset.x = 0;
         rcContent.Deflate(offset.x, offset.y);
-    }else{
-        rcContent.SetLeft(paddingSize.x); // use padding size on left Alignment
     }
     // start draw
     wxPoint pt = rcContent.GetLeftTop();
