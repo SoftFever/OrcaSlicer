@@ -7,6 +7,13 @@
 #define BTN_GAP FromDIP(10)
 #define BTN_SIZE wxSize(FromDIP(58), FromDIP(24))
 
+#ifdef _WIN32
+#define GET_COLUMN(dvc, idx) dvc->GetColumnAt(idx)
+#else
+#define GET_COLUMN(dvc, idx) dvc->GetColumn(idx)
+#endif
+
+
 namespace Slic3r { namespace GUI {
 
 //-----------------------------------------
@@ -162,21 +169,52 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
     // Buttons
     main_sizer->Add(create_btn_sizer(), 0, wxCENTER | wxEXPAND | wxALL, EM);
 
-    this->SetSizer(main_sizer);
-
     // Load data into SVC
     for (const auto& spoolman_spool : m_spoolman->get_spoolman_spools(true))
         m_svc->get_model()->AddSpool(spoolman_spool.second);
 
-    int colWidth = 8 * EM; // 4 EM for checkbox (width isn't calculated right), 4 EM for border
-    for (int i = COL_ID; i <= COL_MATERIAL; ++i) {
-#ifdef _WIN32
-        colWidth += m_svc->GetColumnAt(i)->GetWidth();
+#ifdef  __LINUX__
+    // Column width is not updated until shown in wxGTK
+    bool adjusting_width = false;
+
+    m_svc->Bind(wxEVT_SIZE, [&](wxSizeEvent&) {
+        // A column width of 0 means the view has not fully initialized yet. Ignore events while the view is uninitialized.
+        // Ignore any events caused by the adjusting the width
+        if (GET_COLUMN(m_svc, 1)->GetWidth() == 0 || adjusting_width) return;
+
+        int colWidth = 4 * EM; // 4 EM for checkbox (width isn't calculated right)
+        for (int i = COL_ID; i < COL_COUNT; ++i)
+            colWidth += GET_COLUMN(m_svc, i)->GetWidth();
+        // Add buffer to ensure the scrollbars hide
+        colWidth += EM / 2;
+
+        int old_width = m_svc->GetSize().GetWidth();
+        if (old_width == colWidth) return;
+
+        // Start adjusting the width of the view. Ignore any size events caused by this
+        adjusting_width = true;
+        m_svc->SetMinSize({colWidth, -1});
+
+        // Re-center the window
+        auto window_pos = this->GetPosition();
+        window_pos.x -= (colWidth - old_width) / 2;
+        this->SetPosition(window_pos);
+
+        this->Fit();
+        this->CallAfter([&] {
+            this->Layout();
+            adjusting_width = false;
+        });
+    });
 #else
-        colWidth += m_svc->GetColumn(i)->GetWidth();
-#endif // _WIN32
-    }
-    this->SetSize(wxDefaultCoord, wxDefaultCoord, colWidth, wxDefaultCoord, wxSIZE_SET_CURRENT);
+    int colWidth = 4 * EM; // 4 EM for checkbox (width isn't calculated right)
+    for (int i = COL_ID; i < COL_COUNT; ++i)
+        colWidth += GET_COLUMN(m_svc, i)->GetWidth();
+    m_svc->SetMinSize({colWidth, -1});
+#endif
+
+    main_sizer->SetMinSize({-1, 45 * EM});
+    this->SetSizerAndFit(main_sizer);
 
     this->ShowModal();
 }
@@ -187,6 +225,13 @@ void SpoolmanImportDialog::on_dpi_changed(const wxRect& suggested_rect)
         btn->SetMinSize(BTN_SIZE);
         btn->SetCornerRadius(FromDIP(12));
     }
+
+#ifndef __LINUX__
+    int colWidth = 4 * EM; // 4 EM for checkbox (width isn't calculated right)
+    for (int i = COL_ID; i < COL_COUNT; ++i)
+        colWidth += GET_COLUMN(m_svc, i)->GetWidth();
+    m_svc->SetMinSize({colWidth, -1});
+#endif
 
     Fit();
     Refresh();

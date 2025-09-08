@@ -10,7 +10,7 @@
 namespace Slic3r { namespace GUI {
 class SpoolmanViewCtrl;
 
-enum Column { COL_CHECK = 0, COL_ID, COL_COLOR, COL_VENDOR, COL_NAME, COL_MATERIAL };
+enum Column { COL_CHECK = 0, COL_ID, COL_COLOR, COL_VENDOR, COL_NAME, COL_MATERIAL, COL_COUNT };
 
 //-----------------------------------------
 // SpoolmanNode
