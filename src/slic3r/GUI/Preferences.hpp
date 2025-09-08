@@ -14,6 +14,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/StaticLine.hpp"
+#include "Widgets/TabCtrl.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -23,7 +24,7 @@ namespace Slic3r { namespace GUI {
 #define DESIGN_GRAY800_COLOR wxColour(50, 58, 61)
 #define DESIGN_GRAY600_COLOR wxColour(144, 144, 144)
 #define DESIGN_GRAY400_COLOR wxColour(166, 169, 170)
-#define LEFT_MARGIN 40
+#define LEFT_MARGIN 25
 
 class Selector
 {
@@ -64,7 +65,8 @@ private:
 
 protected:
     wxBoxSizer *  m_sizer_body;
-    wxWindow* m_scrolledWindow;
+    wxScrolledWindow* m_scrolledWindow;
+    TabCtrl* m_pref_tabctrl;
 
     // bool								m_settings_layout_changed {false};
     bool m_seq_top_layer_only_changed{false};
@@ -107,7 +109,6 @@ public:
     std::vector<wxFlexGridSizer*> f_sizers;
     // ComboBoxSelectorList    m_comxbo_group;
 
-    wxWindow *create_foldable(wxString title, wxWindow *parent, wxFlexGridSizer* current);
     wxBoxSizer *create_item_title(wxString title, wxWindow *parent);
     wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist);
     wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index);

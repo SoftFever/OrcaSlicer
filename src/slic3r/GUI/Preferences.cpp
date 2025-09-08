@@ -39,62 +39,8 @@ public:
         const wxSize& size = wxDefaultSize,
         long style = wxVSCROLL) : wxScrolledWindow(parent, id, pos, size, style) {}
 
-    bool ShouldScrollToChildOnFocus(wxWindow* child) override { return false; }
+    bool ShouldScrollToChildOnFocus(wxWindow* child) override { return false; } // ???
 };
-
-
-wxWindow *PreferencesDialog::create_foldable(wxString title, wxWindow *parent, wxFlexGridSizer* current)
-{
-    auto bg = new wxWindow(parent, wxID_ANY);
-    bg->SetBackgroundColour(parent->GetBackgroundColour());
-
-
-    auto btn = new Button(bg, title, "arrow_down", 0, 16);
-    btn->SetCornerRadius(0);
-    btn->SetBorderWidth(0);
-    btn->SetCenter(false);
-    btn->SetTextColor(wxColour("#262E30"));
-    btn->SetPaddingSize(FromDIP(wxSize(8,6)));
-    btn->SetBackgroundColor(StateColor(
-        std::pair(wxColour("#F1F1F1"), (int)StateColor::NotHovered),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal)
-    ));
-    btn->SetMinSize(wxSize(600,32)); // Sets min window width
-    btn->SetSize(wxSize(600,32)); // Sets min window width
-
-    wxBoxSizer *f_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    f_sizer->Add(btn, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, FromDIP(2));
-
-    btn->Bind(wxEVT_BUTTON, [this, current, parent](wxCommandEvent& e) {
-        Freeze();
-        for (size_t i = 0; i < f_sizers.size(); ++i) {
-            f_sizers[i]->Show(f_sizers[i] == current);
-        }
-        //m_scrolledWindow->Layout();
-        //Layout();
-        //Fit();
-        //SetMinClientSize(m_scrolledWindow->GetBestSize());
-        //SetClientSize(m_scrolledWindow->GetBestSize());
-        auto best_size = m_scrolledWindow->GetBestSize();
-        //SetMinSize(best_size);
-        //SetSize(best_size);
-        SetMinClientSize(best_size);
-        SetClientSize(best_size);
-        m_scrolledWindow->SetSizerAndFit(m_sizer_body);
-        //m_scrolledWindow->Layout();
-        //m_scrolledWindow->Layout();
-        //m_sizer_body->Layout();
-        Layout();
-        Fit();
-        Thaw();
-    });
-
-    bg->SetSizerAndFit(f_sizer);
-    bg->Layout();
-
-    return bg;
-}
 
 wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *parent)
 {
@@ -104,7 +50,8 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     title_ctrl->SetFont(Label::Head_14);
     title_ctrl->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636")));
     m_sizer_title->AddSpacer(FromDIP(LEFT_MARGIN - 10));
-    m_sizer_title->Add(title_ctrl, 1, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(5));
+    m_sizer_title->Add(title_ctrl, 1, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(8));
+    m_sizer_title->AddSpacer(FromDIP(LEFT_MARGIN - 10));
 
     return m_sizer_title;
 }
@@ -1056,9 +1003,7 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     : DPIDialog(parent, id, _L("Preferences"), pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
-    //m_sys_label_clr			= wxGetApp().get_label_clr_sys();
-    //m_modified_label_clr	= wxGetApp().get_label_clr_modified();
-    //m_default_text_clr      = wxGetApp().get_label_clr_default();
+    SetMinSize(wxSize(640, 640));
     create();
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -1084,37 +1029,51 @@ void PreferencesDialog::create()
     app_config             = get_app_config();
     m_backup_interval_time = app_config->get("backup_interval");
 
-    //SetSizeHints(wxDefaultSize, wxDefaultSize);
-
-    m_scrolledWindow = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    //m_scrolledWindow->SetScrollRate(5, 5);
+    m_scrolledWindow = new MyscrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    m_scrolledWindow->SetScrollRate(5, 5);
 
     m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
     auto general_page = create_general_page();
-#if !BBL_RELEASE_TO_PUBLIC
-    auto debug_page   = create_debug_page();
-#endif
 
-    m_sizer_body->Add(general_page, 0, wxEXPAND);
-#if !BBL_RELEASE_TO_PUBLIC
-    m_sizer_body->Add(debug_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
-#endif
-    m_scrolledWindow->SetSizerAndFit(m_sizer_body);
+    m_pref_tabctrl = new TabCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_NONE | wxWANTS_CHARS | wxTR_FULL_ROW_HIGHLIGHT);
+    m_pref_tabctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable right select
+    m_pref_tabctrl->SetFont(Label::Body_14);
+
+    m_pref_tabctrl->AppendItem(_L("General"));
+    m_pref_tabctrl->AppendItem(_L("Config"));
+    m_pref_tabctrl->AppendItem(_L("Canvas"));
+    m_pref_tabctrl->AppendItem(_L("Network"));
+    #ifdef _WIN32
+    m_pref_tabctrl->AppendItem(_L("Associate"));
+    #endif //_WIN32
+    m_pref_tabctrl->AppendItem(_L("Developer"));
+
+    m_pref_tabctrl->Bind(wxEVT_TAB_SEL_CHANGING, [this](wxCommandEvent& e) {
+
+    });
+
+    m_pref_tabctrl->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent& e) {
+        Freeze();
+        #ifdef __linux__
+            m_tabctrl->SetFocus();
+        #endif
+        m_pref_tabctrl->SetItemBold(e.GetSelection(), true);
+        for (size_t i = 0; i < f_sizers.size(); ++i)
+            f_sizers[i]->Show(i == e.GetSelection());
+        Layout();
+        Thaw();
+    });
+    m_pref_tabctrl->SelectItem(0);
+
+    m_sizer_body->Add(m_pref_tabctrl, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
+    m_sizer_body->Add(m_scrolledWindow, 1, wxEXPAND);
 
     SetSizer(m_sizer_body);
     Layout();
     Fit();
     CenterOnParent();
-    /*
-    int screen_height = wxDisplay(m_parent).GetClientArea().GetHeight();
-    if (this->GetSize().GetY() > screen_height)
-        this->SetSize(this->GetSize().GetX() + FromDIP(40), screen_height * 4 / 5);
-
-    CenterOnParent();
-    wxPoint start_pos = this->GetPosition();
-    if (start_pos.y < 0) { this->SetPosition(wxPoint(start_pos.x, 0)); }
-    */
 
     //select first
     auto event = wxCommandEvent(EVT_PREFERENCES_SELECT_TAB);
@@ -1154,7 +1113,7 @@ void PreferencesDialog::Split(const std::string &src, const std::string &separat
 
 wxWindow* PreferencesDialog::create_general_page()
 {
-    auto page = new wxWindow(m_scrolledWindow, wxID_ANY);
+    auto page = m_scrolledWindow;
     page->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
@@ -1295,27 +1254,14 @@ wxWindow* PreferencesDialog::create_general_page()
 
     auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
-
-    wxFlexGridSizer*   general_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    f_sizers.push_back(general_sizer);
-    wxFlexGridSizer*   config_sizer  = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    f_sizers.push_back(config_sizer );
-    wxFlexGridSizer*   canvas_sizer  = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    f_sizers.push_back(canvas_sizer );
-    wxFlexGridSizer*   online_sizer  = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    f_sizers.push_back(online_sizer );
-    #ifdef _WIN32
-    wxFlexGridSizer*   assoc_sizer   = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    f_sizers.push_back(assoc_sizer  );
+    #if !BBL_RELEASE_TO_PUBLIC
+        auto debug_page   = create_debug_page();
     #endif
-    wxFlexGridSizer*   devel_sizer   = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    f_sizers.push_back(devel_sizer  );
 
-    for (size_t i = 0; i < f_sizers.size(); ++i) {
-        f_sizers[i]->AddGrowableCol(0, 1);
-    }
-
-    sizer_page->Add(create_foldable("General", page, general_sizer));
+    // Add items same order below. otherwise focus events will not work in order
+    auto general_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
+    general_sizer->AddGrowableCol(0, 1);
+    f_sizers.push_back(general_sizer);
     general_sizer->Add(create_item_title(_L("Settings"), page), 1, wxEXPAND);
     general_sizer->Add(item_language);
     general_sizer->Add(item_currency);
@@ -1329,20 +1275,22 @@ wxWindow* PreferencesDialog::create_general_page()
     general_sizer->Add(create_item_title(_L("Features"), page), 1, wxEXPAND);
     general_sizer->Add(item_multi_machine);
     general_sizer->Add(create_item_title(_L("Downloads"), page), 1, wxEXPAND);
-    general_sizer->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
+    general_sizer->Add(item_downloads);
     general_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(general_sizer, 0, wxEXPAND);
 
-    sizer_page->Add(create_foldable("Configuration", page, config_sizer));
+    auto config_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
+    config_sizer->AddGrowableCol(0, 1);
+    f_sizers.push_back(config_sizer);
     config_sizer->Add(create_item_title(_L("Project"), page), 1, wxEXPAND);
-    config_sizer->Add(item_project_load_behaviour, 0, wxTOP, FromDIP(3));
-    config_sizer->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
-    config_sizer->Add(item_recent_models, 0, wxTOP, FromDIP(3));
-    config_sizer->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));
+    config_sizer->Add(item_project_load_behaviour);
+    config_sizer->Add(item_max_recent_count);
+    config_sizer->Add(item_recent_models);
+    config_sizer->Add(item_gcodes_warning);
     config_sizer->Add(item_step_mesh_setting);
-    config_sizer->Add(item_backup, 0, wxTOP,FromDIP(3));
-                      item_backup->Add(item_backup_interval, 0, wxLEFT, 0);
-    config_sizer->Add(item_save_choise, 0, wxTOP, FromDIP(3));
+    config_sizer->Add(item_backup);
+                      item_backup->Add(item_backup_interval);
+    config_sizer->Add(item_save_choise);
     config_sizer->Add(create_item_title(_L("Preset"), page), 1, wxEXPAND);
     config_sizer->Add(item_remember_printer_config);
     config_sizer->Add(item_save_presets);
@@ -1352,7 +1300,9 @@ wxWindow* PreferencesDialog::create_general_page()
     config_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(config_sizer, 0, wxEXPAND);
 
-    sizer_page->Add(create_foldable("Canvas", page, canvas_sizer));
+    auto canvas_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
+    canvas_sizer->AddGrowableCol(0, 1);
+    f_sizers.push_back(canvas_sizer);
     canvas_sizer->Add(create_item_title(_L("Camera"), page), 1, wxEXPAND);
     canvas_sizer->Add(item_camera_navigation_style);
     canvas_sizer->Add(item_mouse_zoom_settings);
@@ -1365,7 +1315,9 @@ wxWindow* PreferencesDialog::create_general_page()
     canvas_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(canvas_sizer, 0, wxEXPAND);
 
-    sizer_page->Add(create_foldable("Online Services", page, online_sizer));
+    auto online_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
+    online_sizer->AddGrowableCol(0, 1);
+    f_sizers.push_back(online_sizer);
     online_sizer->Add(create_item_title(_L("Connection"), page), 1, wxEXPAND);
     online_sizer->Add(item_region);
     online_sizer->Add(item_stealth_mode);
@@ -1380,7 +1332,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(online_sizer, 0, wxEXPAND);
 
 #ifdef _WIN32
-    sizer_page->Add(create_foldable("Association", page, assoc_sizer));
+    auto assoc_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
+    assoc_sizer->AddGrowableCol(0, 1);
+    f_sizers.push_back(assoc_sizer);
     assoc_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer"), page), 1, wxEXPAND);
     assoc_sizer->Add(item_associate_3mf);
     assoc_sizer->Add(item_associate_stl);
@@ -1393,17 +1347,20 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(assoc_sizer, 0, wxEXPAND);
 #endif // _WIN32
 
-    sizer_page->Add(create_foldable("Developer", page, devel_sizer), 0, wxEXPAND);
+    auto devel_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
+    devel_sizer->AddGrowableCol(0, 1);
+    f_sizers.push_back(devel_sizer);
     devel_sizer->Add(create_item_title(_L("Settings"), page), 1, wxEXPAND);
     devel_sizer->Add(item_develop_mode);
     devel_sizer->Add(item_skip_ams_blacklist_check);
+    #if !BBL_RELEASE_TO_PUBLIC
+    devel_sizer->Add(debug_page);
+    #endif
     devel_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(devel_sizer, 0, wxEXPAND);
 
-    for (size_t i = 0; i < f_sizers.size(); ++i) {
+    for (size_t i = 1; i < f_sizers.size(); ++i)
         f_sizers[i]->Show(false);
-    }
-    f_sizers[0]->Show(true);
 
     page->SetSizer(sizer_page);
     page->Layout();
