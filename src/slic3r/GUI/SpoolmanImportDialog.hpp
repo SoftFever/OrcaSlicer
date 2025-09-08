@@ -131,9 +131,6 @@ protected:
 
     void on_import();
 
-    wxBoxSizer* create_btn_sizer();
-
-    std::vector<Button*> m_button_list;
     Spoolman*            m_spoolman{Spoolman::get_instance()};
     SpoolmanViewCtrl*    m_svc;
     TabPresetComboBox*   m_preset_combobox;

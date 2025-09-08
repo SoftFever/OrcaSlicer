@@ -3,6 +3,7 @@
 #include "GUI_App.hpp"
 #include "ExtraRenderers.hpp"
 #include "MsgDialog.hpp"
+#include "Widgets/DialogButtons.hpp"
 
 #define BTN_GAP FromDIP(10)
 #define BTN_SIZE wxSize(FromDIP(58), FromDIP(24))
@@ -166,8 +167,16 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
 
     main_sizer->Add(preset_sizer, 0, wxEXPAND | wxALL, EM);
 
-    // Buttons
-    main_sizer->Add(create_btn_sizer(), 0, wxCENTER | wxEXPAND | wxALL, EM);
+    auto buttons = new DialogButtons(this, {"All", "None", "Import", "Cancel"}, _L("Import"));
+    buttons->SetLeftAlignLabels({_L("All"), _L("None")});
+    buttons->UpdateButtons();
+
+    buttons->GetButtonFromLabel(_L("All"))->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { m_svc->get_model()->SetAllToggles(true); });
+    buttons->GetButtonFromLabel(_L("None"))->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { m_svc->get_model()->SetAllToggles(false); });
+    buttons->GetButtonFromLabel(_L("Import"))->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_import(); });
+    buttons->GetButtonFromLabel(_L("Cancel"))->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { this->EndModal(wxID_CANCEL); });
+
+    main_sizer->Add(buttons, 0, wxCENTER | wxEXPAND | wxALL, EM);
 
     // Load data into SVC
     for (const auto& spoolman_spool : m_spoolman->get_spoolman_spools(true))
@@ -221,11 +230,6 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
 
 void SpoolmanImportDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-    for (auto btn : m_button_list) {
-        btn->SetMinSize(BTN_SIZE);
-        btn->SetCornerRadius(FromDIP(12));
-    }
-
 #ifndef __LINUX__
     int colWidth = 4 * EM; // 4 EM for checkbox (width isn't calculated right)
     for (int i = COL_ID; i < COL_COUNT; ++i)
@@ -308,72 +312,6 @@ void SpoolmanImportDialog::on_import()
         return;
     }
     this->EndModal(wxID_OK);
-}
-
-// Orca: Apply buttons style
-wxBoxSizer* SpoolmanImportDialog::create_btn_sizer()
-{
-    auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    auto apply_highlighted_btn_colors = [](Button* btn) {
-        btn->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-                                           std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                                           std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)));
-
-        btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)));
-
-        btn->SetTextColor(StateColor(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)));
-    };
-
-    auto apply_std_btn_colors = [](Button* btn) {
-        btn->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-                                           std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)));
-
-        btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)));
-
-        btn->SetTextColor(StateColor(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)));
-    };
-
-    auto style_btn = [this, apply_highlighted_btn_colors, apply_std_btn_colors](Button* btn, bool highlight) {
-        btn->SetMinSize(BTN_SIZE);
-        btn->SetCornerRadius(FromDIP(12));
-        if (highlight)
-            apply_highlighted_btn_colors(btn);
-        else
-            apply_std_btn_colors(btn);
-    };
-
-    Button* all_btn = new Button(this, _L("All"));
-    style_btn(all_btn, false);
-    all_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { m_svc->get_model()->SetAllToggles(true); });
-    btn_sizer->Add(all_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_button_list.push_back(all_btn);
-
-    Button* none_btn = new Button(this, _L("None"));
-    style_btn(none_btn, false);
-    none_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { m_svc->get_model()->SetAllToggles(false); });
-    btn_sizer->Add(none_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
-    m_button_list.push_back(none_btn);
-
-    btn_sizer->AddStretchSpacer();
-
-    Button* import_btn = new Button(this, _L("Import"));
-    style_btn(import_btn, true);
-    import_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { on_import(); });
-    import_btn->SetFocus();
-    import_btn->SetId(wxID_OK);
-    btn_sizer->Add(import_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
-    m_button_list.push_back(import_btn);
-
-    Button* cancel_btn = new Button(this, _L("Cancel"));
-    style_btn(cancel_btn, false);
-    cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) { this->EndModal(wxID_CANCEL); });
-    cancel_btn->SetId(wxID_CANCEL);
-    btn_sizer->Add(cancel_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_button_list.push_back(cancel_btn);
-
-    return btn_sizer;
 }
 
 }} // namespace Slic3r::GUI
