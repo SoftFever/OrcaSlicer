@@ -557,7 +557,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     WallSequence _wall_sequence = config->option<ConfigOptionEnum<WallSequence>>("wall_sequence")->value;
     static WallSequence _wall_sequence_trig = WallSequence::Count;
-    for (auto el : {"even_loops_flow_ratio", "even_loops_speed", "loop_sequence", "outer_wall_control"})
+    for (auto el : {"even_loops_flow_ratio", "even_loops_speed", "loop_sequence", "outermost_wall_control"})
         toggle_line(el, _wall_sequence == WallSequence::OddEven);
 
     int        _wall_loops      = config->opt_int("wall_loops");

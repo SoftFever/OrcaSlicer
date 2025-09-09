@@ -338,7 +338,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "wall_sequence"
             || opt_key == "even_loops_speed"
             || opt_key == "loop_sequence"
-            || opt_key == "outer_wall_control"
+            || opt_key == "outermost_wall_control"
             || opt_key == "even_loops_flow_ratio" ) {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posEstimateCurledExtrusions);

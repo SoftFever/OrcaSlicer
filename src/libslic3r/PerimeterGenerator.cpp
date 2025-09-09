@@ -102,17 +102,17 @@ static bool detect_steep_overhang(const PrintRegionConfig *config,
 static void reorder_oddeven_loops(std::vector<int>& even_odd, LoopSequence sequense, int loops_count, int outer_walls) {
     int _loops_semicount = loops_count / 2;
     switch (sequense) {
-    case LoopSequence::InsideOutside:
+    case LoopSequence::InwardOutward:
         for (int _il = 0; _il <= loops_count; _il++) {
             even_odd[_il] = (_loops_semicount >= _il) ? _il * 2 + outer_walls : -outer_walls - 1 - (loops_count - _il) * 2;
         }
         break;
-    case LoopSequence::InsideInside:
+    case LoopSequence::InwardInward:
         for (int _il = 0; _il <= loops_count; _il++) {
             even_odd[_il] = (_loops_semicount >= _il) ? _il * 2 + outer_walls : -outer_walls - 1 - (_il - _loops_semicount - 1) * 2;
         }
         break;
-    case LoopSequence::OutsideOutside:
+    case LoopSequence::OutwardOutward:
         for (int _il = 0; _il <= loops_count; _il++) {
             even_odd[_il] = (_loops_semicount >= _il) ? (_loops_semicount - _il) * 2 + outer_walls : -outer_walls - 1 - (loops_count - _il) * 2;
         }
@@ -1578,7 +1578,7 @@ void PerimeterGenerator::process_classic()
             } else if (this->config->wall_sequence == WallSequence::OddEven && layer_id > 0) {
                 if (entities.entities.size() > 2) {                 // 3 walls minimum needed to do odd-even ordering
                     std::vector<int> _even_odd(loop_number + 1, 0); // calculate new order
-                    int              _outer_walls = this->config->outer_wall_control ? 1 : 0;
+                    int              _outer_walls = this->config->outermost_wall_control ? 1 : 0;
                     int              _loops_count = loop_number - _outer_walls;
                     float            _flow_ratio  = config->even_loops_flow_ratio;
                     float            _slowdown    = config->even_loops_speed.get_abs_value(1);
@@ -2517,7 +2517,7 @@ void PerimeterGenerator::process_arachne()
         } else if (this->config->wall_sequence == WallSequence::OddEven && layer_id > 0) {
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do odd-even ordering
                 std::vector<int> _even_odd(loop_number + 1, 0); // calculate new order
-                int              _outer_walls = this->config->outer_wall_control ? 1 : 0 ;
+                int              _outer_walls = this->config->outermost_wall_control ? 1 : 0 ;
                 int              _loops_count = loop_number - _outer_walls;
 
                 reorder_oddeven_loops(_even_odd, this->config->loop_sequence, _loops_count, _outer_walls);
