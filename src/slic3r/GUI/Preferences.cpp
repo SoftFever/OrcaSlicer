@@ -55,10 +55,12 @@ std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
+    auto tip = tooltip.IsEmpty() ? title : tooltip; // auto fill tooltips with title if its empty
+
     auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     combo_title->SetFont(::Label::Body_14);
-    combo_title->SetToolTip(tooltip);
+    combo_title->SetToolTip(tip);
     combo_title->Wrap(DESIGN_TITLE_SIZE.x);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
 
@@ -122,15 +124,17 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
 }
 
 wxBoxSizer *PreferencesDialog::create_item_language_combobox(
-    wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist)
+    wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<const wxLanguageInfo *> vlist)
 {
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
+    auto tip = tooltip.IsEmpty() ? title : tooltip; // auto fill tooltips with title if its empty
+
     auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     combo_title->SetFont(::Label::Body_14);
-    combo_title->SetToolTip(tooltip);
+    combo_title->SetToolTip(tip);
     combo_title->Wrap(DESIGN_TITLE_SIZE.x);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
 
@@ -286,10 +290,12 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
+    auto tip = tooltip.IsEmpty() ? title : tooltip; // auto fill tooltips with title if its empty
+
     auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     combo_title->SetFont(::Label::Body_14);
-    combo_title->SetToolTip(tooltip);
+    combo_title->SetToolTip(tip);
     combo_title->Wrap(DESIGN_TITLE_SIZE.x);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
 
@@ -396,7 +402,7 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
 
 
 wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
-    wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<wxString> vlista, std::vector<wxString> vlistb)
+    wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlista, std::vector<wxString> vlistb)
 {
     std::vector<wxString> params;
     Split(app_config->get(param), "/", params);
@@ -466,6 +472,7 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
     wxTextValidator validator(wxFILTER_DIGITS);
+    input->SetToolTip(tooltip);
     input->GetTextCtrl()->SetValidator(validator);
 
     auto second_title = new wxStaticText(parent, wxID_ANY, title2, wxDefaultPosition, wxDefaultSize, 0);
@@ -512,6 +519,7 @@ wxBoxSizer *PreferencesDialog::create_camera_orbit_mult_input(wxString title, wx
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
     wxTextValidator validator(wxFILTER_NUMERIC);
+    input->SetToolTip(tooltip);
     input->GetTextCtrl()->SetValidator(validator);
 
     sizer_input->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
@@ -563,6 +571,7 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
     wxTextValidator validator(wxFILTER_DIGITS);
+    input->SetToolTip(tooltip);
     input->GetTextCtrl()->SetValidator(validator);
     input->SetLabel(_L("sec"));
 
@@ -633,7 +642,7 @@ wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *pare
     return m_sizer_switch;
 }
 
-wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxWindow* parent, wxString tooltip, int padding_left, std::string param)
+wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param)
 {
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
 
@@ -668,7 +677,9 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
         e.Skip();
         });
 
-    checkbox->SetToolTip(tooltip);
+    auto tip = tooltip.IsEmpty() ? title : tooltip; // auto fill tooltips with title if its empty
+    checkbox_title->SetToolTip(tip);
+    checkbox->SetToolTip(tip);
     return m_sizer_checkbox;
 }
 
@@ -685,19 +696,23 @@ void PreferencesDialog::set_dark_mode()
 #endif
 }
 
-wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, const wxString secondary_title)
+wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const wxString secondary_title)
 {
     wxBoxSizer *m_sizer_checkbox  = new wxBoxSizer(wxHORIZONTAL);
 
     m_sizer_checkbox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
+    
+    auto tip = tooltip.IsEmpty() ? title : tooltip; // auto fill tooltips with title if its empty
 
     auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
+    checkbox_title->SetToolTip(tip);
 
     auto checkbox = new ::CheckBox(parent);
     checkbox->SetValue(app_config->get_bool(param));
+    checkbox->SetToolTip(tip);
 
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(4));
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(5));
@@ -707,6 +722,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         sec_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
         sec_title->SetFont(::Label::Body_14);
         sec_title->Wrap(-1);
+        sec_title->SetToolTip(tip);
         m_sizer_checkbox->Add(sec_title, 0, wxALIGN_CENTER);
     }
 
@@ -809,8 +825,6 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         checkbox->Enable(pbool);
     }
 
-
-    checkbox->SetToolTip(tooltip);
     return m_sizer_checkbox;
 }
 
@@ -824,11 +838,12 @@ wxBoxSizer* PreferencesDialog::create_item_button(
     m_staticTextPath->SetForegroundColour(DESIGN_GRAY900_COLOR);
     m_staticTextPath->SetFont(::Label::Body_14);
     m_staticTextPath->Wrap(DESIGN_TITLE_SIZE.x);
-    m_staticTextPath->SetToolTip(tooltip);
+    
+    m_staticTextPath->SetToolTip(tooltip.IsEmpty() ? tooltip2 : tooltip); // use button tooltip if label tooltip empty
 
     auto m_button_download = new Button(parent, title2);
-    m_button_download->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
-    m_button_download->SetToolTip(tooltip2);
+    m_button_download->SetStyle(title2 == _L("Clear") ? ButtonStyle::Alert : ButtonStyle::Regular, ButtonType::Parameter);
+    m_button_download->SetToolTip(tooltip2.IsEmpty() ? tooltip : tooltip2); // use label tooltip if button tooltip empty
 
     m_button_download->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
 
@@ -843,7 +858,7 @@ wxBoxSizer* PreferencesDialog::create_item_button(
     return m_sizer_checkbox;
 }
 
-wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding_left, std::string param)
+wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, std::string param)
 {
     wxString download_path = wxString::FromUTF8(app_config->get("download_path"));
     auto item_panel = new wxWindow(parent, wxID_ANY);
@@ -997,7 +1012,6 @@ void PreferencesDialog::create()
 
     m_scrolledWindow = new MyscrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_scrolledWindow->SetScrollRate(5, 5);
-    //m_scrolledWindow->FitInside();
 
     m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
@@ -1122,18 +1136,18 @@ wxWindow* PreferencesDialog::create_general_page()
     }
     sort_remove_duplicates(language_infos);
     std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo *l, const wxLanguageInfo *r) { return l->Description < r->Description; });
-    auto item_language = create_item_language_combobox(_L("Language"), page, _L("Language"), 50, "language", language_infos);
+    auto item_language = create_item_language_combobox(_L("Language"), page, "", "language", language_infos);
 
     std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("China"), _L("Europe"), _L("North America"), _L("Others")};
-    auto                  item_region= create_item_region_combobox(_L("Login Region"), page, _L("Login Region"), Regions);
+    auto                  item_region= create_item_region_combobox(_L("Login Region"), page, "", Regions);
 
-    auto item_stealth_mode = create_item_checkbox(_L("Stealth Mode"), page, _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), 50, "stealth_mode");
-    auto item_enable_plugin = create_item_checkbox(_L("Enable network plugin"), page, _L("Enable network plugin"), 50, "installed_networking");
-    auto item_legacy_network_plugin = create_item_checkbox(_L("Use legacy network plugin"), page, _L("Disable to use latest network plugin that supports new BambuLab firmwares."), 50, "legacy_networking", _L("(Requires restart)"));
-    auto item_check_stable_version_only = create_item_checkbox(_L("Check for stable updates only"), page, _L("Check for stable updates only"), 50, "check_stable_update_only");
+    auto item_stealth_mode = create_item_checkbox(_L("Stealth Mode"), page, _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), "stealth_mode");
+    auto item_enable_plugin = create_item_checkbox(_L("Enable network plugin"), page, "", "installed_networking");
+    auto item_legacy_network_plugin = create_item_checkbox(_L("Use legacy network plugin"), page, _L("Disable to use latest network plugin that supports new BambuLab firmwares."), "legacy_networking", _L("(Requires restart)"));
+    auto item_check_stable_version_only = create_item_checkbox(_L("Check for stable updates only"), page, "", "check_stable_update_only");
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
-    auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
+    auto item_currency = create_item_combobox(_L("Units"), page, "", "use_inches", Units);
     auto item_single_instance = create_item_checkbox(_L("Allow only one OrcaSlicer instance"), page,
     #if __APPLE__
             _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
@@ -1141,7 +1155,7 @@ wxWindow* PreferencesDialog::create_general_page()
     #else
             _L("If this is enabled, when starting OrcaSlicer and another instance of the same OrcaSlicer is already running, that instance will be reactivated instead."),
     #endif
-            50, "single_instance");
+            "single_instance");
 
     std::vector<wxString> DefaultPage = {_L("Home"), _L("Prepare")};
     auto item_default_page = create_item_combobox(_L("Default Page"), page, _L("Set the page opened on startup."), "default_page", DefaultPage);
@@ -1149,32 +1163,32 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<wxString> CameraNavStyle = {_L("Default"), _L("Touchpad")};
     auto item_camera_navigation_style = create_item_combobox(_L("Camera style"), page, _L("Select camera navigation style.\nDefault: LMB+move for rotation, RMB/MMB+move for panning.\nTouchpad: Alt+move for rotation, Shift+move for panning."), "camera_navigation_style", CameraNavStyle);
 
-    auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
-    auto item_use_free_camera_settings = create_item_checkbox(_L("Use free camera"), page, _L("If enabled, use free camera. If not enabled, use constrained camera."), 50, "use_free_camera");
-    auto swap_pan_rotate = create_item_checkbox(_L("Swap pan and rotate mouse buttons"), page, _L("If enabled, swaps the left and right mouse buttons pan and rotate functions."), 50, "swap_mouse_buttons");
-    auto reverse_mouse_zoom = create_item_checkbox(_L("Reverse mouse zoom"), page, _L("If enabled, reverses the direction of zoom with mouse wheel."), 50, "reverse_mouse_wheel_zoom");
+    auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), "zoom_to_mouse");
+    auto item_use_free_camera_settings = create_item_checkbox(_L("Use free camera"), page, _L("If enabled, use free camera. If not enabled, use constrained camera."), "use_free_camera");
+    auto swap_pan_rotate = create_item_checkbox(_L("Swap pan and rotate mouse buttons"), page, _L("If enabled, swaps the left and right mouse buttons pan and rotate functions."), "swap_mouse_buttons");
+    auto reverse_mouse_zoom = create_item_checkbox(_L("Reverse mouse zoom"), page, _L("If enabled, reverses the direction of zoom with mouse wheel."), "reverse_mouse_wheel_zoom");
     auto camera_orbit_mult = create_camera_orbit_mult_input(_L("Orbit speed multiplier"), page, _L("Multiplies the orbit speed for finer or coarser camera movement."));
 
-    auto item_show_splash_screen = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), 50, "show_splash_screen");
-    auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" on start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
+    auto item_show_splash_screen = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), "show_splash_screen");
+    auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" after start"), page, _L("If enabled, useful hints are displayed at startup."), "show_hints");
 
-    auto item_calc_mode = create_item_checkbox(_L("Auto-calculate every time when ..."), page, _L("If enabled, auto-calculate every time the color changed."), 50, "auto_calculate", _L("color changed"));
-    auto item_calc_in_long_retract = create_item_checkbox("", page, _L("If enabled, auto-calculate every time when filament is changed"), 50, "auto_calculate_when_filament_change",  _L("filament changed"));
-    auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), 50, "remember_printer_config");
-    auto item_step_mesh_setting = create_item_checkbox(_L("Show step file options on import"), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
-    auto item_multi_machine = create_item_checkbox(_L("Multi-device Management"), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine", _L("(Requires restart)"));
-    auto item_auto_arrange  = create_item_checkbox(_L("Auto arrange plate after cloning"), page, _L("Auto arrange plate after object cloning"), 50, "auto_arrange");
-    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets (Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
-    auto item_system_sync        = create_item_checkbox(_L("Update built-in Presets automatically."), page, _L("System Sync"), 50, "sync_system_preset");
-    auto item_save_presets = create_item_button(_L("Unsaved presets"), _L("Clear"), page, L"", _L("Clear my choice on the unsaved presets."), []() {
+    auto item_calc_mode = create_item_checkbox(_L("Auto-calculate every time when ..."), page, _L("If enabled, auto-calculate every time the color changed."), "auto_calculate", _L("color changed"));
+    auto item_calc_in_long_retract = create_item_checkbox("", page, _L("If enabled, auto-calculate every time when filament is changed"), "auto_calculate_when_filament_change",  _L("filament changed"));
+    auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), "remember_printer_config");
+    auto item_step_mesh_setting = create_item_checkbox(_L("Show step file options on import"), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
+    auto item_multi_machine = create_item_checkbox(_L("Multi-device Management"), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
+    auto item_auto_arrange  = create_item_checkbox(_L("Auto arrange plate after cloning"), page, "", "auto_arrange");
+    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets (Printer/Filament/Process)"), page, "", "sync_user_preset");
+    auto item_system_sync        = create_item_checkbox(_L("Update built-in Presets automatically."), page, "", "sync_system_preset");
+    auto item_save_presets = create_item_button(_L("Unsaved presets"), _L("Clear"), page, "", _L("Clear my choice on the unsaved presets."), []() {
         wxGetApp().app_config->set("save_preset_choise", "");
     });
 
 #ifdef _WIN32
     // associate file
-    auto item_associate_3mf  = create_item_checkbox(".3mf"      , page, _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , 50, "associate_3mf");
-    auto item_associate_stl  = create_item_checkbox(".stl"      , page, _L("If enabled, sets OrcaSlicer as default application to open .stl files") , 50, "associate_stl");
-    auto item_associate_step = create_item_checkbox(".step/.stp", page, _L("If enabled, sets OrcaSlicer as default application to open .step files"), 50, "associate_step");
+    auto item_associate_3mf  = create_item_checkbox(".3mf"      , page, _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , "associate_3mf");
+    auto item_associate_stl  = create_item_checkbox(".stl"      , page, _L("If enabled, sets OrcaSlicer as default application to open .stl files") , "associate_stl");
+    auto item_associate_step = create_item_checkbox(".step/.stp", page, _L("If enabled, sets OrcaSlicer as default application to open .step files"), "associate_step");
 
     auto associate_url_prusaslicer = create_item_link_association(page, L"prusaslicer", "Printables.com");
     auto associate_url_bambustudio = create_item_link_association(page, L"bambustudio", "Makerworld.com");
@@ -1183,7 +1197,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     // auto title_modelmall = create_item_title(_L("Online Models"), page);
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
-    // auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
+    // auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), "staff_pick_switch");
 
     std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
     std::vector<string> projectLoadSettingsConfigOptions = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
@@ -1195,26 +1209,26 @@ wxWindow* PreferencesDialog::create_general_page()
             wxGetApp().mainframe->set_max_recent_count(max);
     });
 
-    auto item_recent_models = create_item_checkbox(_L("Add .stl/.step files to recent file list"), page, _L("Add .stl/.step files to recent file list"), 50, "recent_models");
+    auto item_recent_models = create_item_checkbox(_L("Add .stl/.step files to recent file list"), page, "", "recent_models");
 
-    auto item_save_choise = create_item_button(_L("Unsaved projects"), _L("Clear"), page, L"", _L("Clear my choice on the unsaved projects."), []() {
+    auto item_save_choise = create_item_button(_L("Unsaved projects"), _L("Clear"), page, "", _L("Clear my choice on the unsaved projects."), []() {
         wxGetApp().app_config->set("save_project_choise", "");
     });
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
-    auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-code"), page, _L("No warnings when loading 3MF with modified G-code"), 50, "no_warn_when_modified_gcodes");
-    auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), 50, "backup_switch");
+    auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-code"), page, "", "no_warn_when_modified_gcodes");
+    auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), "backup_switch");
     auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The period of backup in seconds."), "backup_interval");
 
     //downloads
-    auto item_downloads = create_item_downloads(page,50,"download_path");
+    auto item_downloads = create_item_downloads(page, "download_path");
 
     //dark mode
 #ifdef _WIN32
-    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
+    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page, "", "dark_color_mode");
 #endif
 
-    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
-    auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
+    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, "", "developer_mode");
+    auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, "", "skip_ams_blacklist_check");
     //#if !BBL_RELEASE_TO_PUBLIC
         auto debug_page   = create_debug_page();
     //#endif
@@ -1329,9 +1343,9 @@ void PreferencesDialog::create_sync_page()
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
     auto title_sync_settingy   = create_item_title(_L("Sync settings"), page);
-    auto item_user_sync        = create_item_checkbox(_L("User sync"), page, _L("User sync"), 50, "user_sync_switch");
-    auto item_preset_sync      = create_item_checkbox(_L("Preset sync"), page, _L("Preset sync"), 50, "preset_sync_switch");
-    auto item_preferences_sync = create_item_checkbox(_L("Preferences sync"), page, _L("Preferences sync"), 50, "preferences_sync_switch");
+    auto item_user_sync        = create_item_checkbox(_L("User sync"), page, _L("User sync"), "user_sync_switch");
+    auto item_preset_sync      = create_item_checkbox(_L("Preset sync"), page, _L("Preset sync"), "preset_sync_switch");
+    auto item_preferences_sync = create_item_checkbox(_L("Preferences sync"), page, _L("Preferences sync"), "preferences_sync_switch");
 
     sizer_page->Add(title_sync_settingy, 0, wxTOP, 26);
     sizer_page->Add(item_user_sync, 0, wxTOP, 6);
@@ -1355,13 +1369,13 @@ void PreferencesDialog::create_shortcuts_page()
     std::vector<wxString> mouse_supported;
     Split(app_config->get("mouse_supported"), "/", mouse_supported);
 
-    auto item_rotate_view = create_item_multiple_combobox(_L("Rotate of view"), page, _L("Rotate of view"), 10, "rotate_view", keyboard_supported,
+    auto item_rotate_view = create_item_multiple_combobox(_L("Rotate of view"), page, _L("Rotate of view"), "rotate_view", keyboard_supported,
                                                                mouse_supported);
-    auto item_move_view   = create_item_multiple_combobox(_L("Move of view"), page, _L("Move of view"), 10, "move_view", keyboard_supported, mouse_supported);
-    auto item_zoom_view   = create_item_multiple_combobox(_L("Zoom of view"), page, _L("Zoom of view"), 10, "rotate_view", keyboard_supported, mouse_supported);
+    auto item_move_view   = create_item_multiple_combobox(_L("Move of view"), page, _L("Move of view"), "move_view", keyboard_supported, mouse_supported);
+    auto item_zoom_view   = create_item_multiple_combobox(_L("Zoom of view"), page, _L("Zoom of view"), "rotate_view", keyboard_supported, mouse_supported);
 
     auto title_other = create_item_title(_L("Other"), page);
-    auto item_other  = create_item_checkbox(_L("Mouse wheel reverses when zooming"), page, _L("Mouse wheel reverses when zooming"), 50, "mouse_wheel");
+    auto item_other  = create_item_checkbox(_L("Mouse wheel reverses when zooming"), page, _L("Mouse wheel reverses when zooming"), "mouse_wheel");
 
     sizer_page->Add(title_view_control, 0, wxTOP, 26);
     sizer_page->Add(item_rotate_view, 0, wxTOP, 8);
@@ -1386,9 +1400,9 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
 
     wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
-    auto enable_ssl_for_mqtt = create_item_checkbox(_L("Enable SSL(MQTT)"), page, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_mqtt");
-    auto enable_ssl_for_ftp = create_item_checkbox(_L("Enable SSL(FTP)"), page, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_ftp");
-    auto item_internal_developer = create_item_checkbox(_L("Internal developer mode"), page, _L("Internal developer mode"), 50, "internal_developer_mode");
+    auto enable_ssl_for_mqtt = create_item_checkbox(_L("Enable SSL(MQTT)"), page, _L("Enable SSL(MQTT)"), "enable_ssl_for_mqtt");
+    auto enable_ssl_for_ftp = create_item_checkbox(_L("Enable SSL(FTP)"), page, _L("Enable SSL(MQTT)"), "enable_ssl_for_ftp");
+    auto item_internal_developer = create_item_checkbox(_L("Internal developer mode"), page, _L("Internal developer mode"), "internal_developer_mode");
 
     auto title_log_level = create_item_title(_L("Log Level"), page);
     auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
