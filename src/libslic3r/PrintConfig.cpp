@@ -5570,19 +5570,6 @@ void PrintConfigDef::init_fff_params()
     def->max      = 100;
     def->set_default_value(new ConfigOptionPercent(100));
 
-    def             = this->add("top_surface_multiline", coInt);
-    def->label      = L("Top Surface Multiline");
-    def->tooltip    = L("Using multiple lines for the top pattern, if supported by infill pattern.");
-    def->min = 1;
-    def->max = 5; // Maximum number of lines for top pattern
-    def->set_default_value(new ConfigOptionInt(1));
-
-    def             = this->add("bottom_surface_multiline", coInt);
-    def->label      = L("Bottom Surface Multiline");
-    def->tooltip    = L("Using multiple lines for the bottom pattern, if supported by infill pattern.");
-    def->min = 1;
-    def->max = 5; // Maximum number of lines for bottom pattern
-    def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("travel_speed", coFloat);
     def->label = L("Travel");

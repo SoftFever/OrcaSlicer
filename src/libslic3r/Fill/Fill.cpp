@@ -863,11 +863,9 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                     if (surface.is_external() && !is_bridge) {
                         if (surface.is_top()) {
                             params.pattern = region_config.top_surface_pattern.value;
-                            params.multiline = int(region_config.top_surface_multiline);
                             params.density = float(region_config.top_surface_density);
                         } else { // Surface is bottom
                             params.pattern = region_config.bottom_surface_pattern.value;
-                            params.multiline = int(region_config.bottom_surface_multiline);
                             params.density = float(region_config.bottom_surface_density);
                         }
                     } else if (surface.is_solid_infill()) {
