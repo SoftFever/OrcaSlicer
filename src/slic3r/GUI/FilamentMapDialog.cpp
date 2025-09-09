@@ -1,4 +1,5 @@
 #include "FilamentMapDialog.hpp"
+#include "PartPlate.hpp"
 #include "Widgets/Button.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
