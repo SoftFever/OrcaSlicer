@@ -40,7 +40,7 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     title_ctrl->SetFont(Label::Head_14);
     title_ctrl->SetForegroundColour(DESIGN_GRAY900_COLOR);
     m_sizer_title->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN - 10));
-    m_sizer_title->Add(title_ctrl, 1, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(8));
+    m_sizer_title->Add(title_ctrl, 1, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(6));
     m_sizer_title->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN - 10));
 
     return m_sizer_title;
@@ -71,7 +71,7 @@ std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(
 
     combobox->SetSelection(current_index);
 
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER);
 
     return {m_sizer_combox, combobox};
 }
@@ -259,7 +259,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     }
     combobox->SetSelection(m_current_language_selected);
 
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER);
 
     combobox->Bind(wxEVT_LEFT_DOWN, [this, combobox](wxMouseEvent &e) {
         m_current_language_selected = combobox->GetSelection();
@@ -341,7 +341,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_14);
     combobox->GetDropDown().SetFont(::Label::Body_14);
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER);
 
     std::vector<wxString>::iterator iter;
     for (iter = Regions.begin(); iter != Regions.end(); iter++) { combobox->Append(*iter); }
@@ -427,7 +427,7 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     auto severity_level = app_config->get("log_severity_level");
     if (!severity_level.empty()) { combobox->SetValue(severity_level); }
 
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER);
 
     //// save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
@@ -465,13 +465,13 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
 
    for (iter = vlista.begin(); iter != vlista.end(); iter++) { combobox_left->Append(*iter); }
    combobox_left->SetValue(std::string(params[0].mb_str()));
-   m_sizer_tcombox->Add(combobox_left, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
+   m_sizer_tcombox->Add(combobox_left, 0, wxALIGN_CENTER);
 
    auto combo_title_add = new wxStaticText(parent, wxID_ANY, wxT("+"), wxDefaultPosition, wxDefaultSize, 0);
    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
    combo_title->SetFont(::Label::Body_14);
    combo_title_add->Wrap(-1);
-   m_sizer_tcombox->Add(combo_title_add, 0, wxALIGN_CENTER | wxALL, FromDIP(2));
+   m_sizer_tcombox->Add(combo_title_add, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(5));
 
    auto combobox_right = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
    combobox_right->SetFont(::Label::Body_14);
@@ -479,7 +479,7 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
 
    for (iter = vlistb.begin(); iter != vlistb.end(); iter++) { combobox_right->Append(*iter); }
    combobox_right->SetValue(std::string(params[1].mb_str()));
-   m_sizer_tcombox->Add(combobox_right, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
+   m_sizer_tcombox->Add(combobox_right, 0, wxALIGN_CENTER);
 
     // save config
     combobox_left->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, combobox_right](wxCommandEvent &e) {
@@ -522,8 +522,8 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
 
     sizer_input->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
     sizer_input->Add(input_title , 0, wxALIGN_CENTER_VERTICAL);
-    sizer_input->Add(input       , 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, FromDIP(2));
-    sizer_input->Add(second_title, 0, wxALIGN_CENTER_VERTICAL | wxALL  , FromDIP(2));
+    sizer_input->Add(input       , 0, wxALIGN_CENTER_VERTICAL);
+    sizer_input->Add(second_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
 
     input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, param, input, onchange](wxCommandEvent &e) {
         auto value = input->GetTextCtrl()->GetValue();
@@ -563,7 +563,7 @@ wxBoxSizer *PreferencesDialog::create_camera_orbit_mult_input(wxString title, wx
 
     sizer_input->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
     sizer_input->Add(input_title, 0, wxALIGN_CENTER_VERTICAL);
-    sizer_input->Add(input      , 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, FromDIP(2));
+    sizer_input->Add(input      , 0, wxALIGN_CENTER_VERTICAL);
 
     const double min = 0.05;
     const double max = 2.0;
@@ -614,8 +614,8 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
     input->GetTextCtrl()->SetValidator(validator);
     input->SetLabel(_L("sec"));
 
-    m_sizer_input->Add(input_title , 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
-    m_sizer_input->Add(input       , 0, wxALIGN_CENTER_VERTICAL | wxALL  , FromDIP(2));
+    m_sizer_input->Add(input_title , 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
+    m_sizer_input->Add(input       , 0, wxALIGN_CENTER_VERTICAL);
 
     input->GetTextCtrl()->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this, param, input](wxCommandEvent &e) {
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
@@ -668,8 +668,8 @@ wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *pare
     if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }*/
 
     m_sizer_switch->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
-    m_sizer_switch->Add(switch_title, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(3));
-    m_sizer_switch->Add(switchbox   , 0, wxALIGN_CENTER | wxALL  , FromDIP(3));
+    m_sizer_switch->Add(switch_title, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(5));
+    m_sizer_switch->Add(switchbox   , 0, wxALIGN_CENTER);
     m_sizer_switch->AddSpacer(FromDIP(40));
 
     //// save config
@@ -696,7 +696,7 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
 
-    m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(4));
+    m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(4));
 
     //// save config
@@ -753,7 +753,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox->SetValue(app_config->get_bool(param));
     checkbox->SetToolTip(tip);
 
-    m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(4));
+    m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(5));
 
     if(!secondary_title.IsEmpty()){
@@ -887,11 +887,11 @@ wxBoxSizer* PreferencesDialog::create_item_button(
     m_button_download->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
 
     if (button_on_left) {
-        m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL | wxBOTTOM | wxTOP  , FromDIP(2));
+        m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL);
         m_sizer_checkbox->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL | wxLEFT , FromDIP(5));
     } else {
         m_sizer_checkbox->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL);
-        m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL | wxBOTTOM | wxTOP  , FromDIP(2));
+        m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL);
     }
 
     return m_sizer_checkbox;
@@ -933,7 +933,7 @@ wxBoxSizer* PreferencesDialog::create_item_downloads(wxWindow* parent, std::stri
         });
 
     m_sizer_checkbox->Add(downloads_folder , 0, wxALIGN_CENTER_VERTICAL);
-    m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL | wxBOTTOM | wxTOP, FromDIP(2));
+    m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL);
     m_sizer_checkbox->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL | wxLEFT , FromDIP(10));
 
     return m_sizer_checkbox;
@@ -963,7 +963,7 @@ wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wx
     checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(-1);
-    h_sizer->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(5));
+    h_sizer->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
 
     h_sizer->Add(checkbox, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(5));
 
@@ -1140,12 +1140,13 @@ wxWindow* PreferencesDialog::create_general_page()
     // Create functions for custom controls to keep list clean
     // Tooltips added automatically from related title if its empty
 
-    wxFlexGridSizer* g_sizer; // use same name on all sizers to make easier to ordering
+    wxFlexGridSizer* g_sizer; // use same name on all sizers to make easier to ordering without renaming
+    auto v_gap = FromDIP(4);
 
     //////////////////////////
     //// GENERAL TAB 
     /////////////////////////////////////
-    f_sizers.push_back(new wxFlexGridSizer(1, 1, FromDIP(1), 0));
+    f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
@@ -1232,7 +1233,7 @@ wxWindow* PreferencesDialog::create_general_page()
     //////////////////////////
     //// USABILITY TAB 
     /////////////////////////////////////
-    f_sizers.push_back(new wxFlexGridSizer(1, 1, FromDIP(1), 0));
+    f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
  
@@ -1292,7 +1293,7 @@ wxWindow* PreferencesDialog::create_general_page()
     //////////////////////////
     //// ONLINE TAB 
     /////////////////////////////////////
-    f_sizers.push_back(new wxFlexGridSizer(1, 1, FromDIP(1), 0));
+    f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
@@ -1333,7 +1334,7 @@ wxWindow* PreferencesDialog::create_general_page()
     //// ASSOCIATE TAB 
     /////////////////////////////////////
 #ifdef _WIN32
-    f_sizers.push_back(new wxFlexGridSizer(1, 1, FromDIP(1), 0));
+    f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
@@ -1368,7 +1369,7 @@ wxWindow* PreferencesDialog::create_general_page()
     //////////////////////////
     //// DEVELOPER TAB
     /////////////////////////////////////
-    f_sizers.push_back(new wxFlexGridSizer(1, 1, FromDIP(1), 0));
+    f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
