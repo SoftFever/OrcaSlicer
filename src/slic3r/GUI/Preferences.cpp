@@ -862,7 +862,7 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
     m_staticTextPath->Wrap(-1);
     m_staticTextPath->SetToolTip(download_path);
 
-    auto m_button_download = new Button(item_panel, _L("Browse"));
+    auto m_button_download = new Button(item_panel, _L("Browse") + " " + dots);
     m_button_download->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
     m_button_download->Bind(wxEVT_BUTTON, [this, m_staticTextPath, item_panel](auto& e) {
@@ -1023,7 +1023,7 @@ void PreferencesDialog::create()
     m_pref_tabctrl->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent& e) {
         Freeze();
         #ifdef __linux__
-            m_tabctrl->SetFocus();
+            m_pref_tabctrl->SetFocus();
         #endif
         m_pref_tabctrl->SetItemBold(e.GetSelection(), true);
         for (size_t i = 0; i < f_sizers.size(); ++i)
@@ -1321,24 +1321,6 @@ wxWindow* PreferencesDialog::create_general_page()
     page->Layout();
     sizer_page->Fit(page);
     return page;
-}
-
-void PreferencesDialog::create_gui_page()
-{
-    auto page = new wxWindow(this, wxID_ANY);
-    wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
-
-    auto title_index_and_tip = create_item_title(_L("Home page and daily tips"), page);
-    auto item_home_page      = create_item_checkbox(_L("Show home page on startup"), page, _L("Show home page on startup"), 50, "show_home_page");
-    //auto item_daily_tip      = create_item_checkbox(_L("Show daily tip on startup"), page, _L("Show daily tip on startup"), 50, "show_daily_tips");
-
-    sizer_page->Add(title_index_and_tip, 0, wxTOP, 26);
-    sizer_page->Add(item_home_page, 0, wxTOP, 6);
-    //sizer_page->Add(item_daily_tip, 0, wxTOP, 6);
-
-    page->SetSizer(sizer_page);
-    page->Layout();
-    sizer_page->Fit(page);
 }
 
 void PreferencesDialog::create_sync_page()

@@ -64,7 +64,6 @@ public:
     wxString m_backup_interval_time;
 
     void      create();
-    wxWindow *create_tab_button(int id, wxString text);
 
     // debug mode
     ::CheckBox * m_developer_mode_ckeckbox   = {nullptr};
