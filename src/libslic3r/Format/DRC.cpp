@@ -2,6 +2,8 @@
 #include <utility>
 #include <cstring>
 
+#include <boost/iostreams/device/mapped_file.hpp>
+
 #include <draco/compression/decode.h>
 #include <draco/io/mesh_io.h>
 #include <draco/mesh/mesh.h>
@@ -21,64 +23,56 @@ namespace Slic3r {
 
 bool load_drc(const char *path, TriangleMesh *meshptr)
 {
-    size_t size = boost::filesystem::file_size(path);
-
-    FILE *fp = boost::nowide::fopen(path, "rb");
-    if (fp == nullptr) {
-        return false;
-    }
-
-    char *data = new char[size];
-    if (fread(data, 1, size, fp) != size) {
-        fclose(fp);
-        delete[] data;
-        return false;
-    }
-    fclose(fp);
-    
-    DecoderBuffer buffer;
-    buffer.Init(data, size);
-
-    auto geotype = Decoder::GetEncodedGeometryType(&buffer);
-    if ((!geotype.ok()) || geotype.value() != TRIANGULAR_MESH) {
-        delete[] data;
-        return false;
-    }
-    
-    Decoder decoder;
-    Mesh dracoMesh;
-    Status status = decoder.DecodeBufferToGeometry(&buffer, &dracoMesh);
-    delete[] data;
-    if (!status.ok()) {
-        return false;
-    }
-    
-    indexed_triangle_set its;
-    
-    const PointAttribute *const positions = dracoMesh.GetNamedAttribute(GeometryAttribute::POSITION);    
-    size_t num_vertices = positions->size();
-    its.vertices.reserve(num_vertices);
-    for (AttributeValueIndex i(0); i < num_vertices; ++ i) {
-        float pos[3];
-        positions->ConvertValue<float>(i, 3, pos);
-        its.vertices.emplace_back(pos[0], pos[1], pos[2]);
-    }
-    
-    size_t num_faces = dracoMesh.num_faces();
-    its.indices.reserve(num_faces);
-    for (FaceIndex i(0); i < num_faces; ++ i) {
-        Mesh::Face face = dracoMesh.face(i);
+    try {
+        boost::iostreams::mapped_file_source file(path);
         
-        its.indices.emplace_back(
-            positions->mapped_index(face[0]).value(),
-            positions->mapped_index(face[1]).value(),
-            positions->mapped_index(face[2]).value()
-        );
-    }
+        DecoderBuffer buffer;
+        buffer.Init(file.data(), file.size());        
 
-    *meshptr = TriangleMesh(std::move(its));
-    if (meshptr->volume() < 0)
-        meshptr->flip_triangles();
+        auto geotype = Decoder::GetEncodedGeometryType(&buffer);
+        if ((!geotype.ok()) || geotype.value() != TRIANGULAR_MESH) {
+            return false;
+        }
+        
+        Decoder decoder;
+        Mesh dracoMesh;
+        Status status = decoder.DecodeBufferToGeometry(&buffer, &dracoMesh);
+        if (!status.ok()) {
+            return false;
+        }
+        file.close();
+        
+        
+        indexed_triangle_set its;
+        
+        const PointAttribute *const positions = dracoMesh.GetNamedAttribute(GeometryAttribute::POSITION);    
+        size_t num_vertices = positions->size();
+        its.vertices.reserve(num_vertices);
+        for (AttributeValueIndex i(0); i < num_vertices; ++ i) {
+            float pos[3];
+            positions->ConvertValue<float>(i, 3, pos);
+            its.vertices.emplace_back(pos[0], pos[1], pos[2]);
+        }
+        
+        size_t num_faces = dracoMesh.num_faces();
+        its.indices.reserve(num_faces);
+        for (FaceIndex i(0); i < num_faces; ++ i) {
+            Mesh::Face face = dracoMesh.face(i);
+            
+            its.indices.emplace_back(
+                positions->mapped_index(face[0]).value(),
+                positions->mapped_index(face[1]).value(),
+                positions->mapped_index(face[2]).value()
+            );
+        }
+
+        *meshptr = TriangleMesh(std::move(its));
+        if (meshptr->volume() < 0)
+            meshptr->flip_triangles();
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "load_drc: " << e.what();
+        return false;
+    }
     return true;
 }
 
