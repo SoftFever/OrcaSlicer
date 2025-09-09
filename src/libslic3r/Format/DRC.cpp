@@ -1,6 +1,7 @@
 #include <string>
 #include <utility>
 #include <cstring>
+#include <sys/stat.h>
 
 #include <draco/compression/decode.h>
 #include <draco/io/mesh_io.h>
