@@ -269,7 +269,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         e.Skip();
     });
 
-    combobox->Bind(wxEVT_COMBOBOX, [this, language_infos, combobox, param](wxCommandEvent &e) {
+    combobox->Bind(wxEVT_COMBOBOX, [this, param, vlist, combobox](wxCommandEvent &e) {
         if (combobox->GetSelection() == m_current_language_selected)
             return;
 
@@ -306,10 +306,10 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             };
 
             m_current_language_selected = combobox->GetSelection();
-            if (m_current_language_selected >= 0 && m_current_language_selected < language_infos.size()) {
-                app_config->set(param, language_infos[m_current_language_selected]->CanonicalName.ToUTF8().data());
+            if (m_current_language_selected >= 0 && m_current_language_selected < vlist.size()) {
+                app_config->set(param, vlist[m_current_language_selected]->CanonicalName.ToUTF8().data());
 
-                wxGetApp().load_language(language_infos[m_current_language_selected]->CanonicalName, false);
+                wxGetApp().load_language(vlist[m_current_language_selected]->CanonicalName, false);
                 Close();
                 // Reparent(nullptr);
                 GetParent()->RemoveChild(this);
