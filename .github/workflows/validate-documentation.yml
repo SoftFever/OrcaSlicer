@@ -148,7 +148,7 @@ jobs:
                   }
                   
                   # Find all markdown links, but exclude those that are part of images
-                  foreach ($linkMatch in [regex]::Matches($lineForParsing, '\[([^\]]*)\]\(([^)]+)\)')) {
+                  foreach ($linkMatch in [regex]::Matches($lineForParsing, '(?<!!)\[([^\]]*)\]\(([^)]+)\)')) {
                       $linkStart = $linkMatch.Index
                       $linkEnd = $linkMatch.Index + $linkMatch.Length
                       
