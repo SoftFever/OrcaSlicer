@@ -71,7 +71,7 @@ std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(
 
     combobox->SetSelection(current_index);
 
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER);
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
     return {m_sizer_combox, combobox};
 }
@@ -329,6 +329,8 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("China"), _L("Europe"), _L("North America"), _L("Others")};
     std::vector<wxString> local_regions = {"Asia-Pacific", "China", "Europe", "North America", "Others"};
 
+    auto vlist = Regions;
+
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
@@ -347,14 +349,14 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER);
 
     std::vector<wxString>::iterator iter;
-    for (iter = Regions.begin(); iter != Regions.end(); iter++) { combobox->Append(*iter); }
+    for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
 
     AppConfig * config       = GUI::wxGetApp().app_config;
 
     int         current_region = 0;
     if (!config->get("region").empty()) {
         std::string country_code = config->get("region");
-        for (auto i = 0; i < Regions.size(); i++) {
+        for (auto i = 0; i < vlist.size(); i++) {
             if (local_regions[i].ToStdString() == country_code) {
                 combobox->SetSelection(i);
                 current_region = i;
@@ -430,7 +432,7 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     auto severity_level = app_config->get("log_severity_level");
     if (!severity_level.empty()) { combobox->SetValue(severity_level); }
 
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER);
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
     //// save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
@@ -700,7 +702,7 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
     checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
 
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
-    m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(4));
+    m_sizer_checkbox->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT         , FromDIP(5));
 
     //// save config
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent& e) {
@@ -757,7 +759,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox->SetToolTip(tip);
 
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
-    m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(5));
+    m_sizer_checkbox->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT         , FromDIP(5));
 
     if(!secondary_title.IsEmpty()){
         auto sec_title = new wxStaticText(parent, wxID_ANY, secondary_title);
@@ -966,9 +968,9 @@ wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wx
     checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(-1);
-    h_sizer->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
 
-    h_sizer->Add(checkbox, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(5));
+    h_sizer->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
+    h_sizer->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT         , FromDIP(5));
 
     auto* v_sizer = new wxBoxSizer(wxVERTICAL);
     v_sizer->Add(h_sizer);
@@ -1159,10 +1161,12 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_language         = create_item_language_combobox(_L("Language"), page, "");
     g_sizer->Add(item_language);
 
-    auto item_currency         = create_item_combobox(_L("Units"), page, "", "use_inches", std::vector<wxString>{_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"});
+    std::vector<wxString>Units = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
+    auto item_currency         = create_item_combobox(_L("Units"), page, "", "use_inches", Units);
     g_sizer->Add(item_currency);
 
-    auto item_default_page     = create_item_combobox(_L("Default Page"), page, _L("Set the page opened on startup."), "default_page", std::vector<wxString> {_L("Home"), _L("Prepare")});
+    std::vector<wxString> DefaultPage = {_L("Home"), _L("Prepare")};
+    auto item_default_page     = create_item_combobox(_L("Default Page"), page, _L("Set the page opened on startup."), "default_page", DefaultPage);
     g_sizer->Add(item_default_page);
 
 #ifdef _WIN32
@@ -1596,9 +1600,9 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
     bSizer->Add(enable_ssl_for_mqtt, 0, wxTOP, FromDIP(3));
     bSizer->Add(enable_ssl_for_ftp, 0, wxTOP, FromDIP(3));
     bSizer->Add(item_internal_developer, 0, wxTOP, FromDIP(3));
-    bSizer->Add(title_log_level, 1, wxEXPAND);
+    bSizer->Add(title_log_level, 0, wxEXPAND);
     bSizer->Add(loglevel_combox, 0, wxTOP, FromDIP(3));
-    bSizer->Add(title_host, 1, wxEXPAND);
+    bSizer->Add(title_host, 0, wxEXPAND);
     bSizer->Add(radio_group, 0, wxEXPAND | wxLEFT, FromDIP(DESIGN_LEFT_MARGIN));
     bSizer->Add(debug_button, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(15));
 
