@@ -1070,12 +1070,24 @@ void PreferencesDialog::create()
         #ifdef __linux__
             m_pref_tabctrl->SetFocus();
         #endif
-        m_pref_tabctrl->SetItemBold(e.GetSelection(), true);
+        int selection = e.GetSelection();
+        for (size_t i = 0; i < m_pref_tabctrl->GetCount(); ++i)
+            m_pref_tabctrl->SetItemBold(i, i == selection);
+
         for (size_t i = 0; i < f_sizers.size(); ++i)
-            f_sizers[i]->Show(i == e.GetSelection());
+            f_sizers[i]->Show(i == selection);
         Layout();
         Thaw();
     });
+
+    auto item_color = StateColor(
+        std::make_pair(wxColour("#6B6B6C"), (int) StateColor::NotChecked),
+        std::make_pair(wxColour("#363636"), (int) StateColor::Normal)
+    );
+
+    for (size_t i = 0; i < m_pref_tabctrl->GetCount(); ++i)
+        m_pref_tabctrl->SetItemTextColour(i, item_color);
+
     m_pref_tabctrl->SelectItem(0);
 
     m_sizer_body->Add(m_pref_tabctrl, 0, wxEXPAND | wxBOTTOM, FromDIP(5));
