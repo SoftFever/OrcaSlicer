@@ -3044,7 +3044,7 @@ Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams
 {
     Polylines polylines_out;
     // Orca Todo: fow now don't use fill_surface_by_multilines for zipzag infill
-    if (params.full_infill() || params.pattern == ipCrossZag || params.pattern == ipZigZag || params.pattern == ipLockedZag) {
+    if (params.full_infill() || params.multiline == 1 || params.pattern == ipCrossZag || params.pattern == ipZigZag || params.pattern == ipLockedZag) {
         if (!fill_surface_by_lines(surface, params, 0.f, 0.f, polylines_out))
             BOOST_LOG_TRIVIAL(error) << "FillRectilinear::fill_surface() fill_surface_by_lines() failed to fill a region.";
     } else {
