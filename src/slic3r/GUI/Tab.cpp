@@ -251,7 +251,7 @@ void Tab::create_preset_tab()
                                    "or click this button.")));
 
     add_scaled_button(panel, &m_search_btn, "search");
-    m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));*/
+    m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), _L("Ctrl+") + "F"));*/
 
     // Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
     add_scaled_bitmap(this, m_bmp_value_lock  , "unlock_normal");
@@ -3445,13 +3445,13 @@ void TabFilament::build()
         optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
         optgroup->append_single_option_line("filament_flow_ratio");
 
-        optgroup->append_single_option_line("enable_pressure_advance");
-        optgroup->append_single_option_line("pressure_advance");
+        optgroup->append_single_option_line("enable_pressure_advance", "pressure-advance-calib");
+        optgroup->append_single_option_line("pressure_advance", "pressure-advance-calib");
 
         // Orca: adaptive pressure advance and calibration model
-        optgroup->append_single_option_line("adaptive_pressure_advance");
-        optgroup->append_single_option_line("adaptive_pressure_advance_overhangs");
-        optgroup->append_single_option_line("adaptive_pressure_advance_bridges");
+        optgroup->append_single_option_line("adaptive_pressure_advance", "adaptive-pressure-advance-calib");
+        optgroup->append_single_option_line("adaptive_pressure_advance_overhangs", "adaptive-pressure-advance-calib");
+        optgroup->append_single_option_line("adaptive_pressure_advance_bridges", "adaptive-pressure-advance-calib");
 
         Option option = optgroup->get_option("adaptive_pressure_advance_model");
         option.opt.full_width = true;
