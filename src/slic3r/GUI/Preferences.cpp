@@ -7,8 +7,6 @@
 #include "I18N.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include <wx/language.h>
-#include <wx/notebook.h>
-#include "Notebook.hpp"
 #include "OG_CustomCtrl.hpp"
 #include "wx/graphics.h"
 #include <wx/listimpl.cpp>
@@ -21,8 +19,6 @@
 #endif //__WINDOWS__
 
 namespace Slic3r { namespace GUI {
-
-wxDEFINE_EVENT(EVT_PREFERENCES_SELECT_TAB, wxCommandEvent);
 
 
 class MyscrolledWindow : public wxScrolledWindow {
@@ -124,8 +120,49 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
 }
 
 wxBoxSizer *PreferencesDialog::create_item_language_combobox(
-    wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<const wxLanguageInfo *> vlist)
+    wxString title, wxWindow *parent, wxString tooltip)
 {
+    wxLanguage supported_languages[]{
+        wxLANGUAGE_ENGLISH,
+        wxLANGUAGE_CHINESE_SIMPLIFIED,
+        wxLANGUAGE_CHINESE,
+        wxLANGUAGE_GERMAN,
+        wxLANGUAGE_CZECH,
+        wxLANGUAGE_FRENCH,
+        wxLANGUAGE_SPANISH,
+        wxLANGUAGE_SWEDISH,
+        wxLANGUAGE_DUTCH,
+        wxLANGUAGE_HUNGARIAN,
+        wxLANGUAGE_JAPANESE,
+        wxLANGUAGE_ITALIAN,
+        wxLANGUAGE_KOREAN,
+        wxLANGUAGE_RUSSIAN,
+        wxLANGUAGE_UKRAINIAN,
+        wxLANGUAGE_TURKISH,
+        wxLANGUAGE_POLISH,
+        wxLANGUAGE_CATALAN,
+        wxLANGUAGE_PORTUGUESE_BRAZILIAN,
+        wxLANGUAGE_LITHUANIAN,
+    };
+
+    auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
+    std::vector<const wxLanguageInfo *> language_infos;
+    language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
+    for (size_t i = 0; i < translations.GetCount(); ++i) {
+        const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
+
+        if (langinfo == nullptr) continue;
+        int language_num = sizeof(supported_languages) / sizeof(supported_languages[0]);
+        for (auto si = 0; si < language_num; si++) {
+            if (langinfo == wxLocale::GetLanguageInfo(supported_languages[si])) {
+                language_infos.emplace_back(langinfo);
+            }
+        }
+        //if (langinfo != nullptr) language_infos.emplace_back(langinfo);
+    }
+    sort_remove_duplicates(language_infos);
+    std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo *l, const wxLanguageInfo *r) { return l->Description < r->Description; });
+
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
@@ -142,79 +179,79 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_14);
     combobox->GetDropDown().SetFont(::Label::Body_14);
-    auto language = app_config->get(param);
+    auto language = app_config->get("language");
     m_current_language_selected = -1;
     std::vector<wxString>::iterator iter;
-    for (size_t i = 0; i < vlist.size(); ++i) {
-        auto language_name = vlist[i]->Description;
+    for (size_t i = 0; i < language_infos.size(); ++i) {
+        auto language_name = language_infos[i]->Description;
 
-        if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) {
+        if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) {
             language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\x29");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE)) {
             language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xb9\x81\xe4\xbd\x93\x29");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SPANISH)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SPANISH)) {
             language_name = wxString::FromUTF8("\x45\x73\x70\x61\xc3\xb1\x6f\x6c");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_GERMAN)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_GERMAN)) {
             language_name = wxString::FromUTF8("Deutsch");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CZECH)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CZECH)) {
             language_name = wxString::FromUTF8("Czech");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SWEDISH)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SWEDISH)) {
             language_name = wxString::FromUTF8("\x53\x76\x65\x6e\x73\x6b\x61"); //Svenska
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_DUTCH)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_DUTCH)) {
             language_name = wxString::FromUTF8("Nederlands");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_FRENCH)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_FRENCH)) {
             language_name = wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_HUNGARIAN)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_HUNGARIAN)) {
             language_name = wxString::FromUTF8("Magyar");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_JAPANESE)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_JAPANESE)) {
             language_name = wxString::FromUTF8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_ITALIAN)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_ITALIAN)) {
             language_name = wxString::FromUTF8("\x69\x74\x61\x6c\x69\x61\x6e\x6f");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_KOREAN)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_KOREAN)) {
             language_name = wxString::FromUTF8("\xED\x95\x9C\xEA\xB5\xAD\xEC\x96\xB4");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_RUSSIAN)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_RUSSIAN)) {
             language_name = wxString::FromUTF8("\xd0\xa0\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
             language_name = wxString::FromUTF8("Ukrainian");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_TURKISH)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_TURKISH)) {
             language_name = wxString::FromUTF8("Turkish");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_POLISH)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_POLISH)) {
             language_name = wxString::FromUTF8("Polski");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CATALAN)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CATALAN)) {
             language_name = wxString::FromUTF8("Catalan");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_PORTUGUESE_BRAZILIAN)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_PORTUGUESE_BRAZILIAN)) {
             language_name = wxString::FromUTF8("Português (Brasil)");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_LITHUANIAN)) {
+        else if (language_infos[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_LITHUANIAN)) {
             language_name = wxString::FromUTF8("Lietuvių");
         }
 
-        if (app_config->get(param) == vlist[i]->CanonicalName) {
+        if (app_config->get("language") == language_infos[i]->CanonicalName) {
             m_current_language_selected = i;
         }
         combobox->Append(language_name);
     }
     if (m_current_language_selected == -1 && language.size() >= 5) {
         language = language.substr(0, 2);
-        for (size_t i = 0; i < vlist.size(); ++i) {
-            if (vlist[i]->CanonicalName.StartsWith(language)) {
+        for (size_t i = 0; i < language_infos.size(); ++i) {
+            if (language_infos[i]->CanonicalName.StartsWith(language)) {
                 m_current_language_selected = i;
                 break;
             }
@@ -229,11 +266,11 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         e.Skip();
     });
 
-    combobox->Bind(wxEVT_COMBOBOX, [this, param, vlist, combobox](wxCommandEvent &e) {
+    combobox->Bind(wxEVT_COMBOBOX, [this, language_infos, combobox](wxCommandEvent &e) {
         if (combobox->GetSelection() == m_current_language_selected)
             return;
 
-        if (e.GetString().mb_str() != app_config->get(param)) {
+        if (e.GetString().mb_str() != app_config->get("language")) {
             {
                 //check if the project has changed
                 if (wxGetApp().plater()->is_project_dirty()) {
@@ -266,10 +303,10 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             };
 
             m_current_language_selected = combobox->GetSelection();
-            if (m_current_language_selected >= 0 && m_current_language_selected < vlist.size()) {
-                app_config->set(param, vlist[m_current_language_selected]->CanonicalName.ToUTF8().data());
+            if (m_current_language_selected >= 0 && m_current_language_selected < language_infos.size()) {
+                app_config->set("language", language_infos[m_current_language_selected]->CanonicalName.ToUTF8().data());
 
-                wxGetApp().load_language(vlist[m_current_language_selected]->CanonicalName, false);
+                wxGetApp().load_language(language_infos[m_current_language_selected]->CanonicalName, false);
                 Close();
                 // Reparent(nullptr);
                 GetParent()->RemoveChild(this);
@@ -283,8 +320,10 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     return m_sizer_combox;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist)
+wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip)
 {
+
+    std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("China"), _L("Europe"), _L("North America"), _L("Others")};
     std::vector<wxString> local_regions = {"Asia-Pacific", "China", "Europe", "North America", "Others"};
 
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
@@ -305,14 +344,14 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
 
     std::vector<wxString>::iterator iter;
-    for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
+    for (iter = Regions.begin(); iter != Regions.end(); iter++) { combobox->Append(*iter); }
 
     AppConfig * config       = GUI::wxGetApp().app_config;
 
     int         current_region = 0;
     if (!config->get("region").empty()) {
         std::string country_code = config->get("region");
-        for (auto i = 0; i < vlist.size(); i++) {
+        for (auto i = 0; i < Regions.size(); i++) {
             if (local_regions[i].ToStdString() == country_code) {
                 combobox->SetSelection(i);
                 current_region = i;
@@ -858,29 +897,28 @@ wxBoxSizer* PreferencesDialog::create_item_button(
     return m_sizer_checkbox;
 }
 
-wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, std::string param)
+wxBoxSizer* PreferencesDialog::create_item_downloads(wxWindow* parent, std::string param)
 {
     wxString download_path = wxString::FromUTF8(app_config->get("download_path"));
-    auto item_panel = new wxWindow(parent, wxID_ANY);
-    item_panel->SetBackgroundColour(*wxWHITE);
+
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
 
     m_sizer_checkbox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
-    auto downloads_folder = new wxStaticText(item_panel, wxID_ANY, _L("Downloads folder"), wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto downloads_folder = new wxStaticText(parent, wxID_ANY, _L("Downloads folder"), wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     downloads_folder->SetForegroundColour(DESIGN_GRAY900_COLOR);
     downloads_folder->SetFont(::Label::Body_14);
     downloads_folder->Wrap(DESIGN_TITLE_SIZE.x);
 
-    auto m_staticTextPath = new wxStaticText(item_panel, wxID_ANY, download_path, wxDefaultPosition, wxSize(FromDIP(150), -1), wxST_ELLIPSIZE_END);
+    auto m_staticTextPath = new wxStaticText(parent, wxID_ANY, download_path, wxDefaultPosition, wxSize(FromDIP(150), -1), wxST_ELLIPSIZE_END);
     m_staticTextPath->SetForegroundColour(DESIGN_GRAY900_COLOR);
     m_staticTextPath->SetFont(::Label::Body_14);
     m_staticTextPath->Wrap(-1);
     m_staticTextPath->SetToolTip(download_path);
 
-    auto m_button_download = new Button(item_panel, _L("Browse") + " " + dots);
+    auto m_button_download = new Button(parent, _L("Browse") + " " + dots);
     m_button_download->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
-    m_button_download->Bind(wxEVT_BUTTON, [this, m_staticTextPath, item_panel](auto& e) {
+    m_button_download->Bind(wxEVT_BUTTON, [this, m_staticTextPath, m_sizer_checkbox](auto& e) {
         wxString defaultPath = wxT("/");
         wxDirDialog dialog(this, _L("Choose Download Directory"), defaultPath, wxDD_NEW_DIR_BUTTON);
 
@@ -890,7 +928,7 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, std::string
             app_config->set("download_path", download_path_str);
             m_staticTextPath->SetLabelText(download_path);
             m_staticTextPath->SetToolTip(download_path);
-            item_panel->Layout();
+            m_sizer_checkbox->Layout();
         }
         });
 
@@ -898,10 +936,7 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, std::string
     m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL | wxBOTTOM | wxTOP, FromDIP(2));
     m_sizer_checkbox->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL | wxLEFT , FromDIP(10));
 
-    item_panel->SetSizer(m_sizer_checkbox);
-    item_panel->Layout();
-
-    return item_panel;
+    return m_sizer_checkbox;
 }
 
 #ifdef WIN32
@@ -1030,10 +1065,6 @@ void PreferencesDialog::create()
     #endif //_WIN32
     m_pref_tabctrl->AppendItem(_L("Developer"));
 
-    m_pref_tabctrl->Bind(wxEVT_TAB_SEL_CHANGING, [this](wxCommandEvent& e) {
-
-    });
-
     m_pref_tabctrl->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent& e) {
         Freeze();
         #ifdef __linux__
@@ -1054,12 +1085,6 @@ void PreferencesDialog::create()
     Layout();
     Fit();
     CenterOnParent();
-
-    //select first
-    auto event = wxCommandEvent(EVT_PREFERENCES_SELECT_TAB);
-    event.SetInt(0);
-    event.SetEventObject(this);
-    wxPostEvent(this, event);
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -1095,60 +1120,41 @@ wxWindow* PreferencesDialog::create_general_page()
     page->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
-    // bbs supported languages
-    wxLanguage supported_languages[]{
-        wxLANGUAGE_ENGLISH,
-        wxLANGUAGE_CHINESE_SIMPLIFIED,
-        wxLANGUAGE_CHINESE,
-        wxLANGUAGE_GERMAN,
-        wxLANGUAGE_CZECH,
-        wxLANGUAGE_FRENCH,
-        wxLANGUAGE_SPANISH,
-        wxLANGUAGE_SWEDISH,
-        wxLANGUAGE_DUTCH,
-        wxLANGUAGE_HUNGARIAN,
-        wxLANGUAGE_JAPANESE,
-        wxLANGUAGE_ITALIAN,
-        wxLANGUAGE_KOREAN,
-        wxLANGUAGE_RUSSIAN,
-        wxLANGUAGE_UKRAINIAN,
-        wxLANGUAGE_TURKISH,
-        wxLANGUAGE_POLISH,
-        wxLANGUAGE_CATALAN,
-        wxLANGUAGE_PORTUGUESE_BRAZILIAN,
-        wxLANGUAGE_LITHUANIAN,
-    };
+    /////////////////////////////////////
+    //////////////////////////
 
-    auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
-    std::vector<const wxLanguageInfo *> language_infos;
-    language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
-    for (size_t i = 0; i < translations.GetCount(); ++i) {
-        const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
+    // ORCA
+    // Window focus follows item creation order. so below code has to be in same order with UI
+    // Create functions for custom controls to keep list clean
+    // Tooltips added automatically from related title if its empty
 
-        if (langinfo == nullptr) continue;
-        int language_num = sizeof(supported_languages) / sizeof(supported_languages[0]);
-        for (auto si = 0; si < language_num; si++) {
-            if (langinfo == wxLocale::GetLanguageInfo(supported_languages[si])) {
-                language_infos.emplace_back(langinfo);
-            }
-        }
-        //if (langinfo != nullptr) language_infos.emplace_back(langinfo);
-    }
-    sort_remove_duplicates(language_infos);
-    std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo *l, const wxLanguageInfo *r) { return l->Description < r->Description; });
-    auto item_language = create_item_language_combobox(_L("Language"), page, "", "language", language_infos);
+    wxFlexGridSizer* g_sizer; // use same name on all sizers to make easier to ordering
 
-    std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("China"), _L("Europe"), _L("North America"), _L("Others")};
-    auto                  item_region= create_item_region_combobox(_L("Login Region"), page, "", Regions);
+    //////////////////////////
+    //// GENERAL TAB 
+    /////////////////////////////////////
+    f_sizers.push_back(new wxFlexGridSizer(1, 1, FromDIP(1), 0));
+    g_sizer = f_sizers.back();
+    g_sizer->AddGrowableCol(0, 1);
 
-    auto item_stealth_mode = create_item_checkbox(_L("Stealth Mode"), page, _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), "stealth_mode");
-    auto item_enable_plugin = create_item_checkbox(_L("Enable network plugin"), page, "", "installed_networking");
-    auto item_legacy_network_plugin = create_item_checkbox(_L("Use legacy network plugin"), page, _L("Disable to use latest network plugin that supports new BambuLab firmwares."), "legacy_networking", _L("(Requires restart)"));
-    auto item_check_stable_version_only = create_item_checkbox(_L("Check for stable updates only"), page, "", "check_stable_update_only");
+    //// GENERAL TAB > Settings
+    g_sizer->Add(create_item_title(_L("Settings"), page), 1, wxEXPAND);
 
-    std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
-    auto item_currency = create_item_combobox(_L("Units"), page, "", "use_inches", Units);
-    auto item_single_instance = create_item_checkbox(_L("Allow only one OrcaSlicer instance"), page,
+    auto item_language         = create_item_language_combobox(_L("Language"), page, "");
+    g_sizer->Add(item_language);
+
+    auto item_currency         = create_item_combobox(_L("Units"), page, "", "use_inches", std::vector<wxString>{_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"});
+    g_sizer->Add(item_currency);
+
+    auto item_default_page     = create_item_combobox(_L("Default Page"), page, _L("Set the page opened on startup."), "default_page", std::vector<wxString> {_L("Home"), _L("Prepare")});
+    g_sizer->Add(item_default_page);
+
+#ifdef _WIN32
+    auto item_darkmode         = create_item_darkmode_checkbox(_L("Enable Dark mode"), page, "", "dark_color_mode");
+    g_sizer->Add(item_darkmode);
+#endif
+
+    auto item_single_instance  = create_item_checkbox(_L("Allow only one OrcaSlicer instance"), page,
     #if __APPLE__
             _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
                 "of same app from the command line. In such case this settings will allow only one instance."),
@@ -1156,180 +1162,238 @@ wxWindow* PreferencesDialog::create_general_page()
             _L("If this is enabled, when starting OrcaSlicer and another instance of the same OrcaSlicer is already running, that instance will be reactivated instead."),
     #endif
             "single_instance");
+    g_sizer->Add(item_single_instance);
 
-    std::vector<wxString> DefaultPage = {_L("Home"), _L("Prepare")};
-    auto item_default_page = create_item_combobox(_L("Default Page"), page, _L("Set the page opened on startup."), "default_page", DefaultPage);
+    auto item_show_splash_scr  = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), "show_splash_screen");
+    g_sizer->Add(item_show_splash_scr);
 
-    std::vector<wxString> CameraNavStyle = {_L("Default"), _L("Touchpad")};
-    auto item_camera_navigation_style = create_item_combobox(_L("Camera style"), page, _L("Select camera navigation style.\nDefault: LMB+move for rotation, RMB/MMB+move for panning.\nTouchpad: Alt+move for rotation, Shift+move for panning."), "camera_navigation_style", CameraNavStyle);
+    auto item_hints            = create_item_checkbox(_L("Show \"Tip of the day\" after start"), page, _L("If enabled, useful hints are displayed at startup."), "show_hints");
+    g_sizer->Add(item_hints);
 
-    auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), "zoom_to_mouse");
-    auto item_use_free_camera_settings = create_item_checkbox(_L("Use free camera"), page, _L("If enabled, use free camera. If not enabled, use constrained camera."), "use_free_camera");
-    auto swap_pan_rotate = create_item_checkbox(_L("Swap pan and rotate mouse buttons"), page, _L("If enabled, swaps the left and right mouse buttons pan and rotate functions."), "swap_mouse_buttons");
-    auto reverse_mouse_zoom = create_item_checkbox(_L("Reverse mouse zoom"), page, _L("If enabled, reverses the direction of zoom with mouse wheel."), "reverse_mouse_wheel_zoom");
-    auto camera_orbit_mult = create_camera_orbit_mult_input(_L("Orbit speed multiplier"), page, _L("Multiplies the orbit speed for finer or coarser camera movement."));
+    auto item_downloads        = create_item_downloads(page, "download_path");
+    g_sizer->Add(item_downloads);
 
-    auto item_show_splash_screen = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), "show_splash_screen");
-    auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" after start"), page, _L("If enabled, useful hints are displayed at startup."), "show_hints");
-
-    auto item_calc_mode = create_item_checkbox(_L("Auto-calculate every time when ..."), page, _L("If enabled, auto-calculate every time the color changed."), "auto_calculate", _L("color changed"));
-    auto item_calc_in_long_retract = create_item_checkbox("", page, _L("If enabled, auto-calculate every time when filament is changed"), "auto_calculate_when_filament_change",  _L("filament changed"));
-    auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), "remember_printer_config");
-    auto item_step_mesh_setting = create_item_checkbox(_L("Show step file options on import"), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
-    auto item_multi_machine = create_item_checkbox(_L("Multi-device Management"), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
-    auto item_auto_arrange  = create_item_checkbox(_L("Auto arrange plate after cloning"), page, "", "auto_arrange");
-    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets (Printer/Filament/Process)"), page, "", "sync_user_preset");
-    auto item_system_sync        = create_item_checkbox(_L("Update built-in Presets automatically."), page, "", "sync_system_preset");
-    auto item_save_presets = create_item_button(_L("Unsaved presets"), _L("Clear"), page, "", _L("Clear my choice on the unsaved presets."), []() {
-        wxGetApp().app_config->set("save_preset_choise", "");
-    });
-
-#ifdef _WIN32
-    // associate file
-    auto item_associate_3mf  = create_item_checkbox(".3mf"      , page, _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , "associate_3mf");
-    auto item_associate_stl  = create_item_checkbox(".stl"      , page, _L("If enabled, sets OrcaSlicer as default application to open .stl files") , "associate_stl");
-    auto item_associate_step = create_item_checkbox(".step/.stp", page, _L("If enabled, sets OrcaSlicer as default application to open .step files"), "associate_step");
-
-    auto associate_url_prusaslicer = create_item_link_association(page, L"prusaslicer", "Printables.com");
-    auto associate_url_bambustudio = create_item_link_association(page, L"bambustudio", "Makerworld.com");
-    auto associate_url_cura        = create_item_link_association(page, L"cura", "Thingiverse.com");
-#endif // _WIN32
-
-    // auto title_modelmall = create_item_title(_L("Online Models"), page);
-    // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
-    // auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), "staff_pick_switch");
+    //// GENERAL TAB > Project
+    g_sizer->Add(create_item_title(_L("Project"), page), 1, wxEXPAND);
 
     std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
     std::vector<string> projectLoadSettingsConfigOptions = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
-    auto item_project_load_behaviour = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
+    auto item_project_load     = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
+    g_sizer->Add(item_project_load);
 
     auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", page, _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
         long max = 0;
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
     });
+    g_sizer->Add(item_max_recent_count);
 
-    auto item_recent_models = create_item_checkbox(_L("Add .stl/.step files to recent file list"), page, "", "recent_models");
+    auto item_recent_models    = create_item_checkbox(_L("Add .stl/.step files to recent file list"), page, "", "recent_models");
+    g_sizer->Add(item_recent_models);
 
-    auto item_save_choise = create_item_button(_L("Unsaved projects"), _L("Clear"), page, "", _L("Clear my choice on the unsaved projects."), []() {
+    auto item_gcodes_warning   = create_item_checkbox(_L("No warnings when loading 3MF with modified G-code"), page, "", "no_warn_when_modified_gcodes");
+    g_sizer->Add(item_gcodes_warning);
+
+    auto item_step_dialog      = create_item_checkbox(_L("Show step file options on import"), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
+    g_sizer->Add(item_step_dialog);
+    
+    auto item_backup           = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), "backup_switch");
+    auto item_backup_interval  = create_item_backup_input(_L("every"), page, _L("The period of backup in seconds."), "backup_interval");
+    item_backup->Add(item_backup_interval);
+    g_sizer->Add(item_backup); 
+
+    //// GENERAL TAB > Preset
+    g_sizer->Add(create_item_title(_L("Preset"), page), 1, wxEXPAND);
+
+    auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), "remember_printer_config");
+    g_sizer->Add(item_remember_printer_config);
+
+    //// GENERAL TAB > Features
+    g_sizer->Add(create_item_title(_L("Features"), page), 1, wxEXPAND);
+
+    auto item_multi_machine    = create_item_checkbox(_L("Multi-device Management"), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
+    g_sizer->Add(item_multi_machine);
+
+    g_sizer->AddSpacer(FromDIP(10));
+    sizer_page->Add(g_sizer, 0, wxEXPAND);
+
+    //////////////////////////
+    //// USABILITY TAB 
+    /////////////////////////////////////
+    f_sizers.push_back(new wxFlexGridSizer(1, 1, FromDIP(1), 0));
+    g_sizer = f_sizers.back();
+    g_sizer->AddGrowableCol(0, 1);
+ 
+    //// USABILITY TAB > Camera
+    g_sizer->Add(create_item_title(_L("Camera"), page), 1, wxEXPAND);
+
+    std::vector<wxString> CameraNavStyle = {_L("Default"), _L("Touchpad")};
+    auto item_camera_nav_style = create_item_combobox(_L("Camera style"), page, _L("Select camera navigation style.\nDefault: LMB+move for rotation, RMB/MMB+move for panning.\nTouchpad: Alt+move for rotation, Shift+move for panning."), "camera_navigation_style", CameraNavStyle);
+    g_sizer->Add(item_camera_nav_style);
+
+    auto camera_orbit_mult     = create_camera_orbit_mult_input(_L("Orbit speed multiplier"), page, _L("Multiplies the orbit speed for finer or coarser camera movement."));
+    g_sizer->Add(camera_orbit_mult);
+
+    auto item_zoom_to_mouse    = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), "zoom_to_mouse");
+    g_sizer->Add(item_zoom_to_mouse);
+
+    auto item_use_free_camera  = create_item_checkbox(_L("Use free camera"), page, _L("If enabled, use free camera. If not enabled, use constrained camera."), "use_free_camera");
+    g_sizer->Add(item_use_free_camera);
+
+    auto swap_pan_rotate       = create_item_checkbox(_L("Swap pan and rotate mouse buttons"), page, _L("If enabled, swaps the left and right mouse buttons pan and rotate functions."), "swap_mouse_buttons");
+    g_sizer->Add(swap_pan_rotate);
+
+    auto reverse_mouse_zoom    = create_item_checkbox(_L("Reverse mouse zoom"), page, _L("If enabled, reverses the direction of zoom with mouse wheel."), "reverse_mouse_wheel_zoom");
+    g_sizer->Add(reverse_mouse_zoom);
+
+    //// USABILITY TAB > Behaviour
+    g_sizer->Add(create_item_title(_L("Behavior"), page), 1, wxEXPAND);
+
+    auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), page, "", "auto_arrange");
+    g_sizer->Add(item_auto_arrange);
+
+    //// USABILITY TAB > Flushing volumes
+    g_sizer->Add(create_item_title(_L("Flushing volumes"), page), 1, wxEXPAND);
+
+    auto item_calc_on_color    = create_item_checkbox(_L("Auto-calculate every time when ..."), page, _L("If enabled, auto-calculate every time the color changed."), "auto_calculate", _L("color changed"));
+    g_sizer->Add(item_calc_on_color);
+
+    auto item_calc_on_filament = create_item_checkbox("", page, _L("If enabled, auto-calculate every time when filament is changed"), "auto_calculate_when_filament_change",  _L("filament changed"));
+    g_sizer->Add(item_calc_on_filament);
+
+    //// USABILITY TAB > Clear my choice on ...
+    g_sizer->Add(create_item_title(_L("Clear my choice on ..."), page), 1, wxEXPAND);
+
+    auto item_save_choise      = create_item_button(_L("Unsaved projects"), _L("Clear"), page, "", _L("Clear my choice on the unsaved projects."), []() {
         wxGetApp().app_config->set("save_project_choise", "");
     });
-    // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
-    auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-code"), page, "", "no_warn_when_modified_gcodes");
-    auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), "backup_switch");
-    auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The period of backup in seconds."), "backup_interval");
+    g_sizer->Add(item_save_choise);
 
-    //downloads
-    auto item_downloads = create_item_downloads(page, "download_path");
+    auto item_save_presets     = create_item_button(_L("Unsaved presets"), _L("Clear"), page, "", _L("Clear my choice on the unsaved presets."), []() {
+        wxGetApp().app_config->set("save_preset_choise", "");
+    });
+    g_sizer->Add(item_save_presets);
 
-    //dark mode
+    g_sizer->AddSpacer(FromDIP(10));
+    sizer_page->Add(g_sizer, 0, wxEXPAND);
+
+    //////////////////////////
+    //// ONLINE TAB 
+    /////////////////////////////////////
+    f_sizers.push_back(new wxFlexGridSizer(1, 1, FromDIP(1), 0));
+    g_sizer = f_sizers.back();
+    g_sizer->AddGrowableCol(0, 1);
+
+    //// ONLINE TAB > Connection
+    g_sizer->Add(create_item_title(_L("Connection"), page), 1, wxEXPAND);
+
+    auto item_region           = create_item_region_combobox(_L("Login Region"), page, "");
+    g_sizer->Add(item_region);
+ 
+    auto item_stealth_mode     = create_item_checkbox(_L("Stealth Mode"), page, _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), "stealth_mode");
+    g_sizer->Add(item_stealth_mode);
+
+    //// ONLINE TAB > Update & sync
+    g_sizer->Add(create_item_title(_L("Update & sync"), page), 1, wxEXPAND);
+
+    auto item_stable_updates   = create_item_checkbox(_L("Check for stable updates only"), page, "", "check_stable_update_only");
+    g_sizer->Add(item_stable_updates);
+
+    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets (Printer/Filament/Process)"), page, "", "sync_user_preset");
+    g_sizer->Add(item_user_sync);
+
+    auto item_system_sync      = create_item_checkbox(_L("Update built-in Presets automatically."), page, "", "sync_system_preset");
+    g_sizer->Add(item_system_sync);
+
+    //// ONLINE TAB > Network plugin
+    g_sizer->Add(create_item_title(_L("Network plugin"), page), 1, wxEXPAND);
+
+    auto item_enable_plugin    = create_item_checkbox(_L("Enable network plugin"), page, "", "installed_networking");
+    g_sizer->Add(item_enable_plugin);
+    
+    auto item_legacy_network   = create_item_checkbox(_L("Use legacy network plugin"), page, _L("Disable to use latest network plugin that supports new BambuLab firmwares."), "legacy_networking", _L("(Requires restart)"));
+    g_sizer->Add(item_legacy_network);
+
+    g_sizer->AddSpacer(FromDIP(10));
+    sizer_page->Add(g_sizer, 0, wxEXPAND);
+
+    //////////////////////////
+    //// ASSOCIATE TAB 
+    /////////////////////////////////////
 #ifdef _WIN32
-    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page, "", "dark_color_mode");
-#endif
+    f_sizers.push_back(new wxFlexGridSizer(1, 1, FromDIP(1), 0));
+    g_sizer = f_sizers.back();
+    g_sizer->AddGrowableCol(0, 1);
 
-    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, "", "developer_mode");
-    auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, "", "skip_ams_blacklist_check");
-    //#if !BBL_RELEASE_TO_PUBLIC
-        auto debug_page   = create_debug_page();
-    //#endif
+    //// ASSOCIATE TAB > Extensions
+    g_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer"), page), 1, wxEXPAND);
 
-    // Add items same order below. otherwise focus events will not work in order
-    auto general_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    general_sizer->AddGrowableCol(0, 1);
-    f_sizers.push_back(general_sizer);
-    general_sizer->Add(create_item_title(_L("Settings"), page), 1, wxEXPAND);
-    general_sizer->Add(item_language);
-    general_sizer->Add(item_currency);
-    general_sizer->Add(item_default_page);
-    #ifdef _WIN32
-        general_sizer->Add(item_darkmode);
-    #endif
-    general_sizer->Add(item_single_instance);
-    general_sizer->Add(item_show_splash_screen);
-    general_sizer->Add(item_hints);
-    general_sizer->Add(item_downloads);
-    general_sizer->Add(create_item_title(_L("Project"), page), 1, wxEXPAND);
-    general_sizer->Add(item_project_load_behaviour);
-    general_sizer->Add(item_max_recent_count);
-    general_sizer->Add(item_recent_models);
-    general_sizer->Add(item_gcodes_warning);
-    general_sizer->Add(item_step_mesh_setting);
-    general_sizer->Add(item_backup); item_backup->Add(item_backup_interval);
-    general_sizer->Add(create_item_title(_L("Preset"), page), 1, wxEXPAND);
-    general_sizer->Add(item_remember_printer_config);
-    general_sizer->Add(create_item_title(_L("Features"), page), 1, wxEXPAND);
-    general_sizer->Add(item_multi_machine);
-    general_sizer->AddSpacer(FromDIP(10));
-    sizer_page->Add(general_sizer, 0, wxEXPAND);
+    auto item_associate_3mf    = create_item_checkbox(".3mf", page, _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , "associate_3mf");
+    g_sizer->Add(item_associate_3mf);
 
-    auto usability_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    usability_sizer->AddGrowableCol(0, 1);
-    f_sizers.push_back(usability_sizer);
-    usability_sizer->Add(create_item_title(_L("Camera"), page), 1, wxEXPAND);
-    usability_sizer->Add(item_camera_navigation_style);
-    usability_sizer->Add(camera_orbit_mult);
-    usability_sizer->Add(item_mouse_zoom_settings);
-    usability_sizer->Add(item_use_free_camera_settings);
-    usability_sizer->Add(swap_pan_rotate);
-    usability_sizer->Add(reverse_mouse_zoom);
-    usability_sizer->Add(create_item_title(_L("Behavior"), page), 1, wxEXPAND);
-    usability_sizer->Add(item_auto_arrange);
-    usability_sizer->Add(create_item_title(_L("Flushing volumes"), page), 1, wxEXPAND);
-    usability_sizer->Add(item_calc_mode);
-    usability_sizer->Add(item_calc_in_long_retract);
-    usability_sizer->Add(create_item_title(_L("Clear my choice on ..."), page), 1, wxEXPAND);
-    usability_sizer->Add(item_save_choise);
-    usability_sizer->Add(item_save_presets);
-    usability_sizer->AddSpacer(FromDIP(10));
-    sizer_page->Add(usability_sizer, 0, wxEXPAND);
+    auto item_associate_stl    = create_item_checkbox(".stl", page, _L("If enabled, sets OrcaSlicer as default application to open .stl files") , "associate_stl");
+    g_sizer->Add(item_associate_stl);
 
-    auto online_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    online_sizer->AddGrowableCol(0, 1);
-    f_sizers.push_back(online_sizer);
-    online_sizer->Add(create_item_title(_L("Connection"), page), 1, wxEXPAND);
-    online_sizer->Add(item_region);
-    online_sizer->Add(item_stealth_mode);
-    online_sizer->Add(create_item_title(_L("Update & sync"), page), 1, wxEXPAND);
-    online_sizer->Add(item_check_stable_version_only);
-    online_sizer->Add(item_user_sync);
-    online_sizer->Add(item_system_sync);
-    online_sizer->Add(create_item_title(_L("Network plugin"), page), 1, wxEXPAND);
-    online_sizer->Add(item_enable_plugin);
-    online_sizer->Add(item_legacy_network_plugin);
-    online_sizer->AddSpacer(FromDIP(10));
-    sizer_page->Add(online_sizer, 0, wxEXPAND);
+    auto item_associate_step   = create_item_checkbox(".step/.stp", page, _L("If enabled, sets OrcaSlicer as default application to open .step files"), "associate_step");
+    g_sizer->Add(item_associate_step);
 
-#ifdef _WIN32
-    auto assoc_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    assoc_sizer->AddGrowableCol(0, 1);
-    f_sizers.push_back(assoc_sizer);
-    assoc_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer"), page), 1, wxEXPAND);
-    assoc_sizer->Add(item_associate_3mf);
-    assoc_sizer->Add(item_associate_stl);
-    assoc_sizer->Add(item_associate_step);
-    assoc_sizer->Add(create_item_title(_L("Associate web links to OrcaSlicer"), page), 1, wxEXPAND);
-    assoc_sizer->Add(associate_url_prusaslicer);
-    assoc_sizer->Add(associate_url_bambustudio);
-    assoc_sizer->Add(associate_url_cura);
-    assoc_sizer->AddSpacer(FromDIP(10));
-    sizer_page->Add(assoc_sizer, 0, wxEXPAND);
+    //// ASSOCIATE TAB > WebLinks
+    g_sizer->Add(create_item_title(_L("Associate web links to OrcaSlicer"), page), 1, wxEXPAND);
+
+    auto associate_url_prusa   = create_item_link_association(page, L"prusaslicer", "Printables.com");
+    g_sizer->Add(associate_url_prusa);
+
+    auto associate_url_bambu   = create_item_link_association(page, L"bambustudio", "Makerworld.com");
+    g_sizer->Add(associate_url_bambu);
+
+    auto associate_url_cura    = create_item_link_association(page, L"cura", "Thingiverse.com");
+    g_sizer->Add(associate_url_cura);
+
+    g_sizer->AddSpacer(FromDIP(10));
+    sizer_page->Add(g_sizer, 0, wxEXPAND);
 #endif // _WIN32
 
-    auto devel_sizer = new wxFlexGridSizer(1, 1, FromDIP(1), 0);
-    devel_sizer->AddGrowableCol(0, 1);
-    f_sizers.push_back(devel_sizer);
-    devel_sizer->Add(create_item_title(_L("Settings"), page), 1, wxEXPAND);
-    devel_sizer->Add(item_develop_mode);
-    devel_sizer->Add(item_skip_ams_blacklist_check);
-    //#if !BBL_RELEASE_TO_PUBLIC
-    devel_sizer->Add(create_item_title(_L("Debug"), page), 1, wxEXPAND);
-    devel_sizer->Add(debug_page, 1, wxEXPAND);
-    //#endif
-    devel_sizer->AddSpacer(FromDIP(10));
-    sizer_page->Add(devel_sizer, 0, wxEXPAND);
+    //////////////////////////
+    //// DEVELOPER TAB
+    /////////////////////////////////////
+    f_sizers.push_back(new wxFlexGridSizer(1, 1, FromDIP(1), 0));
+    g_sizer = f_sizers.back();
+    g_sizer->AddGrowableCol(0, 1);
 
+    //// DEVELOPER TAB > Settings
+    g_sizer->Add(create_item_title(_L("Settings"), page), 1, wxEXPAND);
+
+    auto item_develop_mode     = create_item_checkbox(_L("Develop mode"), page, "", "developer_mode");
+    g_sizer->Add(item_develop_mode);
+
+    auto item_ams_blacklist    = create_item_checkbox(_L("Skip AMS blacklist check"), page, "", "skip_ams_blacklist_check");
+    g_sizer->Add(item_ams_blacklist);
+
+    //// DEVELOPER TAB > Debug
+//#if !BBL_RELEASE_TO_PUBLIC
+    g_sizer->Add(create_item_title(_L("Debug"), page), 1, wxEXPAND);
+    auto debug_page            = create_debug_page();
+    g_sizer->Add(debug_page, 1, wxEXPAND);
+//#endif
+
+    g_sizer->AddSpacer(FromDIP(10));
+    sizer_page->Add(g_sizer, 0, wxEXPAND);
+
+    /////////////////////////////////////
+    //////////////////////////
+
+    g_sizer = nullptr;
+
+    // Hide all tabs instead first one
     for (size_t i = 1; i < f_sizers.size(); ++i)
         f_sizers[i]->Show(false);
+
+    /////////////////////////////////////
+    //////////////////////////
+
+    // auto title_modelmall = create_item_title(_L("Online Models"), page);
+    // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
+    // auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), "staff_pick_switch");
 
     page->SetSizer(sizer_page);
     page->Layout();
@@ -1433,7 +1497,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
     }
 
     Button* debug_button = new Button(page, _L("debug save button"));
-    debug_button->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
+    debug_button->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
 
     debug_button->Bind(wxEVT_LEFT_DOWN, [this, radio_group](wxMouseEvent &e) {
         // success message box
