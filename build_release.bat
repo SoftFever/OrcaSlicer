@@ -45,6 +45,6 @@ echo cmake .. -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=%build_type%
 cmake .. -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=%build_type%
 cmake --build . --config %build_type% --target ALL_BUILD -- -m
 cd ..
-call run_gettext.bat
+call scripts/run_gettext.bat
 cd %build_dir%
 cmake --build . --target install --config %build_type%

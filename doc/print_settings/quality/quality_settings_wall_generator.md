@@ -26,6 +26,9 @@ The Arachne wall generator dynamically adjusts extrusion width to follow the sha
 
 ![wallgenerator-arachne](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/WallGenerator/wallgenerator-arachne.png?raw=true)
 
+> [!NOTE]
+> [A Framework for Adaptive Width Control of Dense Contour-Parallel Toolpaths in Fused Deposition Modeling](https://www.sciencedirect.com/science/article/pii/S0010448520301007?via%3Dihub)
+
 ### Wall transitioning threshhold angle
 
 Defines the minimum angle (in degrees) required for the algorithm to create a transition between an even and odd number of walls. If a wedge shape exceeds this angle, no extra center wall will be added. Lowering this value reduces center walls but may cause under- or over-extrusion in sharp corners.

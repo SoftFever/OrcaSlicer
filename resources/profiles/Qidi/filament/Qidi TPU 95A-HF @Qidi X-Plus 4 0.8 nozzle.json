@@ -1,5 +1,5 @@
 {"type": "filament",
-"filament_id": "GFB99",
+"filament_id": "QD_0_1_50",
 "setting_id": "GFSA04",
 "instantiation": "true",
     "fan_cooling_layer_time": [
@@ -12,12 +12,6 @@
         "Qidi TPU 95A-HF @Qidi X-Plus 4 0.8 nozzle"
     ],
     "from": "system",
-    "hot_plate_temp": [
-        "60"
-    ],
-    "hot_plate_temp_initial_layer": [
-        "60"
-    ],
     "inherits": "Qidi TPU 95A-HF",
     "is_custom_defined": "0",
     "name": "Qidi TPU 95A-HF @Qidi X-Plus 4 0.8 nozzle",

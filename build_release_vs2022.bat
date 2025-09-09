@@ -61,6 +61,6 @@ cmake .. -G "Visual Studio 17 2022" -A x64 -DORCA_TOOLS=ON -DCMAKE_BUILD_TYPE=%b
 cmake --build . --config %build_type% --target ALL_BUILD -- -m
 @echo off
 cd ..
-call run_gettext.bat
+call scripts/run_gettext.bat
 cd %build_dir%
 cmake --build . --target install --config %build_type%
