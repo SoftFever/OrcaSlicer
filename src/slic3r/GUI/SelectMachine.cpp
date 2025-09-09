@@ -1800,11 +1800,11 @@ static bool _is_nozzle_data_valid(MachineObject* obj_, const DevExtderSystem &ex
 }
 
 
-/**************************************************************//*
- * @param tag_nozzle_type -- return the mismatch nozzle type
- * @param tag_nozzle_diameter -- return the target nozzle_diameter but mismatch
- * @return is same or not
-/*************************************************************/
+/***************************************************************
+* @param tag_nozzle_type -- return the mismatch nozzle type
+* @param tag_nozzle_diameter -- return the target nozzle_diameter but mismatch
+* @return is same or not
+***************************************************************/
 static bool _is_same_nozzle_diameters(MachineObject* obj, float &tag_nozzle_diameter, int& mismatch_nozzle_id)
 {
     if (obj == nullptr) return false;
@@ -2516,14 +2516,14 @@ void SelectMachineDialog::on_send_print()
     if (build_nozzles_info(m_print_job->task_nozzles_info)) {
         BOOST_LOG_TRIVIAL(error) << "build_nozzle_info errors";
     }
-    
-    m_print_job->sdcard_state = obj_->GetStorage()->get_sdcard_state() ;    
+
+    m_print_job->sdcard_state = obj_->GetStorage()->get_sdcard_state() ;
     m_print_job->has_sdcard =  wxGetApp().app_config->get("allow_abnormal_storage") == "true"
             ? (m_print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL
                || m_print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_ABNORMAL)
-            : m_print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL;        
-    
-    
+            : m_print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
+
+
 
 
     bool timelapse_option = m_checkbox_list["timelapse"]->IsShown()?true:false;
