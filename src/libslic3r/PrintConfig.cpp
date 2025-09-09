@@ -3189,7 +3189,7 @@ void PrintConfigDef::init_fff_params()
 
     //Orca
     def           = this->add("sparse_infill_rotate_template", coString);
-    def->label    = L("Sparse infill rotatation template");
+    def->label    = L("Sparse infill rotation template");
     def->category = L("Strength");
     def->tooltip  = L("Rotate the sparse infill direction per layer using a template of angles. "
                       "Enter comma-separated degrees (e.g., '0,30,60,90'). "
@@ -3203,7 +3203,7 @@ void PrintConfigDef::init_fff_params()
 
     //Orca
     def           = this->add("solid_infill_rotate_template", coString);
-    def->label    = L("Solid infill rotatation template");
+    def->label    = L("Solid infill rotation template");
     def->category = L("Strength");
     def->tooltip  = L("This parameter adds a rotation of solid infill direction to each layer according to the specified template. "
                       "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
