@@ -1,6 +1,6 @@
 # Patterns
 
-Patterns determine how material is distributed within a print. Different patterns can affect strength, flexibility and print speed using the same density setting.
+Patterns determine how material is distributed within a print. Different patterns can affect strength, flexibility and print speed using the same density setting. The infill pattern also impacts the uniformity of the layer times, since the patterns may be constant, or present significant variations between adjacent layers.
 
 There is no one-size-fits-all solution, as the best pattern depends on the specific print and its requirements.
 
@@ -84,6 +84,7 @@ Parallel lines spaced according to infill density. Each layer is printed perpend
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
@@ -102,6 +103,7 @@ Recommended with layer anchoring to improve not perpendicular strength.
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
@@ -118,6 +120,7 @@ Similar to [rectilinear](#rectilinear) with consistent pattern between layers. A
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -133,6 +136,7 @@ Similar to [Zig Zag](#zig-zag) but displacing each layer with Infill shift step 
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -148,6 +152,7 @@ Adaptive version of [Zig Zag](#zig-zag) adding an external skin texture to inter
 - **Density Calculation:** Same as [Zig Zag](#zig-zag) but increasing near walls
 - **Material Usage:** Normal-High
 - **Print Time:** Extra-High
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -163,6 +168,7 @@ Similar to [rectilinear](#rectilinear), but each line is slightly rotated to imp
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -178,6 +184,7 @@ Two-layer pattern of perpendicular lines, forming a grid. Overlapping points may
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -193,6 +200,7 @@ Triangle-based grid, offering strong X-Y strength but with triple overlaps at in
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -208,6 +216,7 @@ Similar to the [triangles](#triangles) pattern but offset to prevent triple over
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -223,6 +232,7 @@ Similar to the [triangles](#triangles) pattern but offset to prevent triple over
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** Minimal
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -238,6 +248,7 @@ Similar to the [triangles](#triangles) pattern but offset to prevent triple over
 - **Density Calculation:** Same as [Cubic](#cubic) but reduced in the center
 - **Material Usage:** Low
 - **Print Time:** Low
+- **Layer time Variability:** Large
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -253,6 +264,7 @@ Similar to the [triangles](#triangles) pattern but offset to prevent triple over
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** Minimal
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -268,6 +280,7 @@ Support |Cubic is a variation of the [Cubic](#cubic) infill pattern that is spec
 - **Density Calculation:** % of layer before top shell layers
 - **Material Usage:** Extra-Low
 - **Print Time:** Extra-Low
+- **Layer time Variability:** Large
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -283,6 +296,7 @@ Ultra-fast, ultra-low material infill. Designed for speed and efficiency, ideal 
 - **Density Calculation:** % of layer before top shell layers
 - **Material Usage:** Ultra-Low
 - **Print Time:** Ultra-Low
+- **Layer time Variability:** Large
 - **Material/Time (Higher better):** Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -298,6 +312,7 @@ Hexagonal pattern balancing strength and material use. Double walls in each hexa
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** High
 - **Print Time:** Ultra-High
+- **Layer time Variability:** Minimal
 - **Material/Time (Higher better):** Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -313,6 +328,7 @@ This infill tries to generate a printable honeycomb structure by printing square
 - **Density Calculation:** Unknown
 - **Material Usage:** Normal-Low
 - **Print Time:** High
+- **Layer time Variability:** Large
 - **Material/Time (Higher better):** Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -328,6 +344,7 @@ Vertical Honeycomb pattern. Acceptable torsional stiffness. Developed for low de
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** Large
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -343,6 +360,7 @@ Low-strength pattern with good flexibility. You can adjust **Angle 1** and **Ang
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** Minimal
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -359,6 +377,7 @@ Easier to slice but consider using [TPMS-D](#tpms-d) or [Gyroid](#gyroid) for be
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-High
+- **Layer time Variability:** Large
 - **Material/Time (Higher better):** Normal-Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -374,6 +393,7 @@ Triply Periodic Minimal Surface (Schwarz Diamond). Hybrid between [Cross Hatch](
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** High
+- **Layer time Variability:** Large
 - **Material/Time (Higher better):** Normal-Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -389,6 +409,7 @@ Triply Periodic Minimal Surface (Fischer–Koch S) pattern. Its smooth, continuo
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** High
+- **Layer time Variability:** Large
 - **Material/Time (Higher better):** Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -404,6 +425,7 @@ Mathematical, isotropic surface providing equal strength in all directions. Exce
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-High
+- **Layer time Variability:** Low
 - **Material/Time (Higher better):** Normal-Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
@@ -419,6 +441,7 @@ Fills the area with progressively smaller versions of the outer contour, creatin
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
@@ -429,14 +452,15 @@ Fills the area with progressively smaller versions of the outer contour, creatin
 
 ## Hilbert Curve
 
-Hilbert Curve is a space-filling curve that can be used to create a continuous infill pattern. It is known for its Aesthetic appeal and ability to fill space efficiently.
-Print speed is very low due to the complexity of the path, which can lead to longer print times. It is not recommended for structural parts but can be used for Aesthetic purposes.
+Hilbert Curve is a space-filling curve that can be used to create a continuous infill pattern. It is known for its aesthetic appeal and ability to fill space efficiently.
+Print speed is very low due to the complexity of the path, which can lead to longer print times. It is not recommended for structural parts but can be used for aesthetic purposes.
 
 - **Horizontal Strength (X-Y):** Low
 - **Vertical Strength (Z):** Normal
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** High
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
@@ -453,6 +477,7 @@ Spiral pattern that fills the area with concentric arcs, creating a smooth and c
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal-Low
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
@@ -469,6 +494,7 @@ Aesthetic pattern with low strength and high print time.
 - **Density Calculation:**  % of  total infill volume
 - **Material Usage:** Normal
 - **Print Time:** Normal
+- **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal-Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
