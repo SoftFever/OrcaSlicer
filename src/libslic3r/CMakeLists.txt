@@ -133,6 +133,8 @@ set(lisbslic3r_sources
     Format/bbs_3mf.hpp
     Format/AMF.cpp
     Format/AMF.hpp
+    Format/DRC.cpp
+    Format/DRC.hpp
     Format/OBJ.cpp
     Format/OBJ.hpp
     Format/objparser.cpp
@@ -522,6 +524,7 @@ find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
 find_package(JPEG REQUIRED)
+find_package(draco REQUIRED)
 
 set(OCCT_LIBS
     TKXDESTEP
@@ -578,6 +581,7 @@ target_link_libraries(libslic3r
     qoi
     opencv_world
     noise::noise
+    draco::draco
     )
 
 if(NOT WIN32)
