@@ -816,8 +816,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : {"flush_into_infill", "flush_into_support", "flush_into_objects"})
         toggle_field(el, have_prime_tower);
 
-    // BBS: MusangKing - Hide "Independent support layer height" option
-    toggle_line("independent_support_layer_height", have_support_material && !have_prime_tower);
+    // Orca: This option enables adaptive layer height for supports, but can't be used with the prime tower
+    int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
+    toggle_line("independent_support_layer_height", have_support_material && (!have_prime_tower || filament_cnt == 1));
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
