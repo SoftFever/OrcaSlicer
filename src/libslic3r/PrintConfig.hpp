@@ -107,9 +107,8 @@ enum class WallSequence {
 
 enum class LoopSequence {
     InsideOutside,
+    InsideInside,
     OutsideOutside,
-    InsideOutsideOuter,
-    OutsideOutsideOuter,
     Count
 };
 
@@ -1091,6 +1090,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<LoopSequence>,  loop_sequence))
     ((ConfigOptionFloat,               even_loops_flow_ratio))
     ((ConfigOptionFloatOrPercent,      even_loops_speed))
+    ((ConfigOptionBool,                outer_wall_control))
     ((ConfigOptionBool,                is_infill_first))
     ((ConfigOptionBool,                small_area_infill_flow_compensation))
     ((ConfigOptionEnum<WallDirection>,  wall_direction))

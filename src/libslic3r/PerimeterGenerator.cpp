@@ -37,6 +37,8 @@ public:
     Polygon                             polygon;
     // Is it a contour or a hole?
     bool                                is_contour;
+    // PPS: property of even wall in odd-even order for control flow and speed rate
+    bool                                is_even = 0;
     // BBS: is perimeter using smaller width
     bool is_smaller_width_perimeter;
     // Depth in the hierarchy. External perimeter has depth = 0. An external perimeter could be both a contour and a hole.
@@ -96,6 +98,28 @@ static bool detect_steep_overhang(const PrintRegionConfig *config,
 
     return false;
 }
+
+static void reorder_oddeven_loops(std::vector<int>& even_odd, LoopSequence sequense, int loops_count, int outer_walls) {
+    int _loops_semicount = loops_count / 2;
+    switch (sequense) {
+    case LoopSequence::InsideOutside:
+        for (int _il = 0; _il <= loops_count; _il++) {
+            even_odd[_il] = (_loops_semicount >= _il) ? _il * 2 + outer_walls : -outer_walls - 1 - (loops_count - _il) * 2;
+        }
+        break;
+    case LoopSequence::InsideInside:
+        for (int _il = 0; _il <= loops_count; _il++) {
+            even_odd[_il] = (_loops_semicount >= _il) ? _il * 2 + outer_walls : -outer_walls - 1 - (_il - _loops_semicount - 1) * 2;
+        }
+        break;
+    case LoopSequence::OutsideOutside:
+        for (int _il = 0; _il <= loops_count; _il++) {
+            even_odd[_il] = (_loops_semicount >= _il) ? (_loops_semicount - _il) * 2 + outer_walls : -outer_walls - 1 - (loops_count - _il) * 2;
+        }
+        break;
+    }
+}
+
 
 static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls,
     bool &steep_overhang_contour, bool &steep_overhang_hole)
@@ -1551,6 +1575,39 @@ void PerimeterGenerator::process_classic()
                         position = arr_i + 1;
                     }
                 }
+            } else if (this->config->wall_sequence == WallSequence::OddEven && layer_id > 0) {
+                if (entities.entities.size() > 2) {                 // 3 walls minimum needed to do odd-even ordering
+                    std::vector<int> _even_odd(loop_number + 1, 0); // calculate new order
+                    int              _outer_walls = this->config->outer_wall_control ? 1 : 0;
+                    int              _loops_count = loop_number - _outer_walls;
+                    float            _flow_ratio  = config->even_loops_flow_ratio;
+                    float            _slowdown    = config->even_loops_speed.get_abs_value(1);
+                    if (!config->even_loops_speed.percent)
+                        _slowdown /= config->inner_wall_speed;
+
+                    reorder_oddeven_loops(_even_odd, this->config->loop_sequence, _loops_count, _outer_walls);
+
+                    ExtrusionEntityCollection _new_extrusion; // sort perimeters by the order
+                    for (int _ip = 0; _ip <= loop_number; _ip++)
+                        for (ExtrusionEntity* _extrusion : entities.entities) {
+                            if (abs(_even_odd[_ip]) == _extrusion->inset_idx) {
+                                if (_even_odd[_ip] < 0) {
+                                    ExtrusionLoop* _loop = static_cast<ExtrusionLoop*>(_extrusion);
+                                    for (ExtrusionPath& _path : _loop->paths) {
+                                        _path.is_even     = true;
+                                        _path.speed_ratio = _slowdown;
+                                        _path.mm3_per_mm *= _flow_ratio;
+                                        _path.width *= _flow_ratio;
+                                    }
+                                }
+                                _new_extrusion.append(*_extrusion);
+                            }
+                        }
+                    entities.entities.clear();
+                    for (auto _extrusion : _new_extrusion) {
+                        entities.append(*_extrusion);
+                    }
+                }
             }
             
             // append perimeters for this slice as a collection
@@ -2458,42 +2515,12 @@ void PerimeterGenerator::process_arachne()
                 }
             }
         } else if (this->config->wall_sequence == WallSequence::OddEven && layer_id > 0) {
-            if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
+            if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do odd-even ordering
                 std::vector<int> _even_odd(loop_number + 1, 0); // calculate new order
+                int              _outer_walls = this->config->outer_wall_control ? 1 : 0 ;
+                int              _loops_count = loop_number - _outer_walls;
 
-                int    _loops_count;
-                int _loops_semicount;
-
-                switch (this->config->loop_sequence) { // PPS: Hardcoding! In the final version, this block should be optimized and cached
-                case LoopSequence::InsideOutside:
-                    _loops_count     = loop_number;
-                    _loops_semicount = _loops_count / 2;
-                    for (int _il = 0; _il <= _loops_count; _il++) {
-                        _even_odd[_il] = (_loops_semicount >= _il) ? _il * 2 : -1 - (_loops_count - _il) * 2; 
-                    }
-                    break;
-                case LoopSequence::OutsideOutside:
-                    _loops_count     = loop_number;
-                    _loops_semicount = _loops_count / 2;
-                    for (int _il = 0; _il <= _loops_count; _il++) {
-                        _even_odd[_il] = (_loops_semicount >= _il) ? (_loops_semicount - _il) * 2 : -1 - (_loops_count - _il) * 2; 
-                    }
-                    break;
-                case LoopSequence::InsideOutsideOuter:
-                    _loops_count     = loop_number - 1;
-                    _loops_semicount = _loops_count / 2;
-                    for (int _il = 0; _il <= _loops_count; _il++) {
-                        _even_odd[_il] = (_loops_semicount >= _il) ? _il * 2 + 1 : -2 - (_loops_count - _il) * 2;
-                    }
-                    break;
-                case LoopSequence::OutsideOutsideOuter:
-                    _loops_count     = loop_number - 1;
-                    _loops_semicount = _loops_count / 2;
-                    for (int _il = 0; _il <= _loops_count; _il++) {
-                        _even_odd[_il] = (_loops_semicount >= _il) ? (_loops_semicount - _il) * 2 + 1 : -2 - (_loops_count - _il) * 2;
-                    }
-                    break;
-                }
+                reorder_oddeven_loops(_even_odd, this->config->loop_sequence, _loops_count, _outer_walls);
 
                 std::vector<PerimeterGeneratorArachneExtrusion> _new_extrusion; // sort perimeters by the order
                 _new_extrusion.reserve(ordered_extrusions.size());

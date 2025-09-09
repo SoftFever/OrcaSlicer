@@ -142,7 +142,7 @@ public:
     int inset_idx = -1;
 
     // PPS: This part is necessary to determine the filling line in the wall generation sequence (Odd-Even). It is used to change the extrusion density and speed.
-    bool  is_even;
+    bool  is_even = 0;
 
     static std::string role_to_string(ExtrusionRole role);
     static ExtrusionRole string_to_role(const std::string_view role);

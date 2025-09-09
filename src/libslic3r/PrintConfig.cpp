@@ -205,9 +205,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallSequence)
 
 static t_config_enum_values s_keys_map_LoopSequence {
     { "inner wall/outer wall",     int(LoopSequence::InsideOutside) },
+    { "inner wall/inner wall",     int(LoopSequence::InsideInside) },
     { "outer wall/inner wall",     int(LoopSequence::OutsideOutside) },
-    { "inner-outer-inner wall",    int(LoopSequence::InsideOutsideOuter)},
-    { "odd-even wall",             int(LoopSequence::OutsideOutsideOuter)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LoopSequence)
 
@@ -1751,41 +1750,44 @@ void PrintConfigDef::init_fff_params()
                       "It is also possible to slow down their printing speed, which allows you to create conditions for better adhesion between the loops and layers. "
                       "The order of laying the loops can be either inside (in) or outside (out). "
                       "This order allows you to set specific printing conditions. For example, the initial inward movement gives to the outer perimeter more time to cooldown, reducing the potential 'debris' during overextrusion by moving its into infill. "  
-                      "Moving from the center will stabilize the filament inside the model during a long retract. "
-                      "The outmost wall (outer) can be printed last to prevent overhanging. "  );
+                      "Moving from the center will stabilize the filament inside the model during a long retract. ");
     def->enum_keys_map = &ConfigOptionEnum<LoopSequence>::get_enum_values();
     def->enum_values.push_back("inside/outside");
+    def->enum_values.push_back("inside/inside");
     def->enum_values.push_back("outside/outside");
-    def->enum_values.push_back("inside/outside/outer");
-    def->enum_values.push_back("outside/outside/outer");
     def->enum_labels.push_back(L("In/Out"));
+    def->enum_labels.push_back(L("In/In"));
     def->enum_labels.push_back(L("Out/Out"));
-    def->enum_labels.push_back(L("In/Out/Outer"));
-    def->enum_labels.push_back(L("Out/Out/Outer"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<LoopSequence>(LoopSequence::InsideOutside));
 
     def           = this->add("even_loops_flow_ratio", coFloat);
     def->label    = L("Even loops flow ratio");
-    def->tooltip  = L("Adjust the flow coefficient for even inner loops for a rigid.");
+    def->tooltip  = L("Adjust the flow coefficient for even inner loops for a rigidity and closing the cavities between the loops.");
     def->category = L("Quality");
     def->max      = 2;
     def->min      = 0.9;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->set_default_value(new ConfigOptionFloat(1.05));
 
     def             = this->add("even_loops_speed", coFloatOrPercent);
     def->label      = L("Even loops speed");
     def->category   = L("Quality");
     def->tooltip    = L("This separate setting will affect the speed of even perimeters. "
-                        "If expressed as percentage (for example: 80%) it will be calculated "
-                        "on the inner perimeter speed setting.");
+                        "If expressed as percentage (for example: 80%) it will be calculated on the inner perimeter speed setting.");
     def->sidetext   = L("mm/s or %");
     def->ratio_over = "inner_wall_speed";
     def->max        = 110;
     def->min        = 1;
     def->mode       = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
+
+    def = this->add("outer_wall_control",coBool);
+    def->label    = L("Outer wall control");
+    def->tooltip  = L("The outer wall is printed last to prevent overhanging.");
+    def->category = L("Quality");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool{false});
 
     def = this->add("is_infill_first",coBool);
     def->label    = L("Print infill first");
