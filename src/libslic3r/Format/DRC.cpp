@@ -1,7 +1,6 @@
 #include <string>
 #include <utility>
 #include <cstring>
-#include <sys/stat.h>
 
 #include <draco/compression/decode.h>
 #include <draco/io/mesh_io.h>
@@ -22,18 +21,15 @@ namespace Slic3r {
 
 bool load_drc(const char *path, TriangleMesh *meshptr)
 {
-    struct stat st;
-    if (stat(path, &st)) {
-        return false;
-    }
+    size_t size = boost::filesystem::file_size(path);
 
-    FILE *fp = fopen(path, "rb");
+    FILE *fp = boost::nowide::fopen(path, "rb");
     if (fp == nullptr) {
         return false;
     }
 
-    char *data = new char[st.st_size];
-    if (fread(data, 1, st.st_size, fp) != st.st_size) {
+    char *data = new char[size];
+    if (fread(data, 1, size, fp) != size) {
         fclose(fp);
         delete[] data;
         return false;
@@ -41,7 +37,7 @@ bool load_drc(const char *path, TriangleMesh *meshptr)
     fclose(fp);
     
     DecoderBuffer buffer;
-    buffer.Init(data, st.st_size);
+    buffer.Init(data, size);
 
     auto geotype = Decoder::GetEncodedGeometryType(&buffer);
     if ((!geotype.ok()) || geotype.value() != TRIANGULAR_MESH) {
