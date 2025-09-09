@@ -15,48 +15,22 @@
 #include "Widgets/TextInput.hpp"
 #include "Widgets/StaticLine.hpp"
 #include "Widgets/TabCtrl.hpp"
+#include "Widgets/RadioGroup.hpp"
 
 namespace Slic3r { namespace GUI {
 
-
-#define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
-#define DESIGN_GRAY900_COLOR wxColour(38, 46, 48)
-#define DESIGN_GRAY800_COLOR wxColour(50, 58, 61)
-#define DESIGN_GRAY600_COLOR wxColour(144, 144, 144)
-#define DESIGN_GRAY400_COLOR wxColour(166, 169, 170)
-#define LEFT_MARGIN 25
-
-class Selector
-{
-public:
-    int       m_index;
-    wxWindow *m_tab_button;
-    wxWindow *m_tab_text;
-};
-WX_DECLARE_HASH_MAP(int, Selector *, wxIntegerHash, wxIntegerEqual, SelectorHash);
-
-class RadioBox;
-class RadioSelector
-{
-public:
-    wxString  m_param_name;
-    int       m_groupid;
-    RadioBox *m_radiobox;
-    bool      m_selected = false;
-};
-
-WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
-class CheckBox;
-class TextInput;
-
-
+#define DESIGN_GRAY900_COLOR wxColour("#363636") // Label color
+#define DESIGN_GRAY600_COLOR wxColour("#ACACAC") // Dimmed text color
 
 #define DESIGN_RESOUTION_PREFERENCES wxSize(FromDIP(540), -1)
-#define DESIGN_TITLE_SIZE wxSize(FromDIP(100), -1)
-#define DESIGN_COMBOBOX_SIZE wxSize(FromDIP(140), -1)
-#define DESIGN_LARGE_COMBOBOX_SIZE wxSize(FromDIP(160), -1)
-#define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
+#define DESIGN_TITLE_SIZE wxSize(FromDIP(280), -1)
+#define DESIGN_COMBOBOX_SIZE wxSize(FromDIP(120), -1)
+#define DESIGN_LARGE_COMBOBOX_SIZE wxSize(FromDIP(120), -1)
+#define DESIGN_INPUT_SIZE wxSize(FromDIP(120), -1)
+#define DESIGN_LEFT_MARGIN 25
 
+class CheckBox;
+class TextInput;
 
 class PreferencesDialog : public DPIDialog
 {
@@ -104,8 +78,6 @@ public:
     wxString m_backup_interval_def;
     wxString m_iot_environment_def;
 
-    SelectorHash      m_hash_selector;
-    RadioSelectorList m_radio_group;
     std::vector<wxFlexGridSizer*> f_sizers;
     // ComboBoxSelectorList    m_comxbo_group;
 
@@ -115,7 +87,7 @@ public:
     wxBoxSizer *create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
-    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
+    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, const wxString secondary_title = "");
     wxBoxSizer *create_item_darkmode_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
     void set_dark_mode();
     wxBoxSizer *create_item_button(wxString title, wxString title2, wxWindow *parent, wxString tooltip, wxString tooltip2, std::function<void()> onclick, bool button_on_left = false);
@@ -126,28 +98,20 @@ public:
     wxBoxSizer *create_item_multiple_combobox(
         wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string parama, std::vector<wxString> vlista, std::vector<wxString> vlistb);
     wxBoxSizer *create_item_switch(wxString title, wxWindow *parent, wxString tooltip, std::string param);
-    wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
 #ifdef WIN32
     wxBoxSizer* create_item_link_association(wxWindow* parent, wxString url_prefix, wxString website_name);
 #endif // WIN32
 
     wxWindow* create_general_page();
-    void create_gui_page();
     void create_sync_page();
     void create_shortcuts_page();
-    wxWindow* create_debug_page();
+    wxBoxSizer* create_debug_page();
 
-    void     on_select_radio(std::string param);
-    wxString get_select_radio(int groupid);
     // BBS
     void create_select_domain_widget();
 
     void Split(const std::string &src, const std::string &separator, std::vector<wxString> &dest);
     int m_current_language_selected = {0};
-
-protected:
-    void OnSelectTabel(wxCommandEvent &event);
-    void OnSelectRadio(wxMouseEvent &event);
 
 private:
     std::tuple<wxBoxSizer*, ComboBox*> create_item_combobox_base(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist, unsigned int current_index);
