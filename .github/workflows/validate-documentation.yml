@@ -366,21 +366,3 @@ jobs:
               Write-Host "::notice::All documentation is valid!"
               exit 0
           }
-      
-      - name: Comment on PR
-        if: failure() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const validationErrors = process.env.VALIDATION_ERRORS || '';
-            
-            const body = `❌ **Documentation validation failed**
-            
-            ${validationErrors || 'Please check the workflow logs for details about the validation errors.'}`;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            })
