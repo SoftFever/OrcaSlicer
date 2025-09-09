@@ -1574,12 +1574,11 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
     return false;
 }
 
-
-/**************************************************************//*
- * @param tag_nozzle_type -- return the mismatch nozzle type
- * @param tag_nozzle_diameter -- return the target nozzle_diameter but mismatch
- * @return is same or not
-/*************************************************************/
+/***************************************************************
+* @param tag_nozzle_type -- return the mismatch nozzle type
+* @param tag_nozzle_diameter -- return the target nozzle_diameter but mismatch
+* @return is same or not
+***************************************************************/
 bool SelectMachineDialog::is_same_nozzle_diameters(float &tag_nozzle_diameter) const
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
