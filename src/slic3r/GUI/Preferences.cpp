@@ -947,7 +947,7 @@ wxBoxSizer* PreferencesDialog::create_item_downloads(wxWindow* parent, std::stri
 #ifdef WIN32
 wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wxString url_prefix, wxString website_name)
 {
-    wxString title = (boost::format("%1%://") % url_prefix.c_str()).str();
+    wxString title = _L("Associate") + (boost::format(" %1%://") % url_prefix.c_str()).str();
     wxString tooltip = _L("Associate") + " " + url_prefix + ":// " + _L("with OrcaSlicer so that Orca can open models from") + " " + website_name;
 
     std::wstring registered_bin; // not used, just here to provide a ref to check fn
@@ -1348,13 +1348,13 @@ wxWindow* PreferencesDialog::create_general_page()
     //// ASSOCIATE TAB > Extensions
     g_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer"), page), 1, wxEXPAND);
 
-    auto item_associate_3mf    = create_item_checkbox(".3mf", page, _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , "associate_3mf");
+    auto item_associate_3mf    = create_item_checkbox(_L("Associate .3mf files to OrcaSlicer"), page, _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , "associate_3mf");
     g_sizer->Add(item_associate_3mf);
 
-    auto item_associate_stl    = create_item_checkbox(".stl", page, _L("If enabled, sets OrcaSlicer as default application to open .stl files") , "associate_stl");
+    auto item_associate_stl    = create_item_checkbox(_L("Associate .stl files to OrcaSlicer"), page, _L("If enabled, sets OrcaSlicer as default application to open .stl files") , "associate_stl");
     g_sizer->Add(item_associate_stl);
 
-    auto item_associate_step   = create_item_checkbox(".step/.stp", page, _L("If enabled, sets OrcaSlicer as default application to open .step files"), "associate_step");
+    auto item_associate_step   = create_item_checkbox(_L("Associate .step/.stp files to OrcaSlicer"), page, _L("If enabled, sets OrcaSlicer as default application to open .step files"), "associate_step");
     g_sizer->Add(item_associate_step);
 
     //// ASSOCIATE TAB > WebLinks
