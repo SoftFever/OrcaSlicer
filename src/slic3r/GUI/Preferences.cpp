@@ -410,6 +410,51 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     return m_sizer_combox;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_autoflush_combobox(wxString title, wxWindow *parent, wxString tooltip)
+{
+    //_L("If enabled, auto-calculate every time the color changed.")
+    //_L("If enabled, auto-calculate every time when filament is changed")
+    wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
+
+    auto combo_title = new wxStaticText(parent, wxID_ANY, title , wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    combo_title->SetFont(::Label::Body_14);
+    combo_title->SetToolTip(tooltip);
+    combo_title->Wrap(DESIGN_TITLE_SIZE.x);
+    m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
+
+    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    combobox->SetFont(::Label::Body_14);
+    combobox->GetDropDown().SetFont(::Label::Body_14);
+
+    std::vector<wxString> FlushOptions = {_L("All"), _L("Color"), _L("Filament"), _L("None")};
+    std::vector<wxString>::iterator iter;
+    for (iter = FlushOptions.begin(); iter != FlushOptions.end(); iter++) { combobox->Append(*iter); }
+
+    auto opt_color = app_config->get("auto_calculate") == "true";
+    auto opt_filam = app_config->get("auto_calculate_when_filament_change") == "true";
+    if (opt_color && opt_filam) {
+        combobox->SetValue(FlushOptions[0]);
+    }else if(opt_color){
+        combobox->SetValue(FlushOptions[1]);
+    }else if(opt_filam){
+        combobox->SetValue(FlushOptions[2]);
+    }else{
+        combobox->SetValue(FlushOptions[3]);
+    }
+
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
+
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
+        auto sel = e.GetSelection();
+        app_config->set("auto_calculate"                     ,(sel == 0 || sel == 1) ? "true" : "false");
+        app_config->set("auto_calculate_when_filament_change",(sel == 0 || sel == 2) ? "true" : "false");
+        e.Skip();
+     });
+    return m_sizer_combox;
+}
+
 wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist)
 {
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
@@ -609,7 +654,7 @@ wxBoxSizer *PreferencesDialog::create_item_backup(wxWindow *parent)
 
     auto tip = _L("Backup your project periodically for restoring from the occasional crash.");
 
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, _L("Auto-Backup"), wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto checkbox_title = new wxStaticText(parent, wxID_ANY, _L("Auto backup"), wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
@@ -1180,11 +1225,11 @@ wxWindow* PreferencesDialog::create_general_page()
     g_sizer->Add(item_currency);
 
     std::vector<wxString> DefaultPage = {_L("Home"), _L("Prepare")};
-    auto item_default_page     = create_item_combobox(_L("Default Page"), page, _L("Set the page opened on startup."), "default_page", DefaultPage);
+    auto item_default_page     = create_item_combobox(_L("Default page"), page, _L("Set the page opened on startup."), "default_page", DefaultPage);
     g_sizer->Add(item_default_page);
 
 #ifdef _WIN32
-    auto item_darkmode         = create_item_darkmode_checkbox(_L("Enable Dark mode"), page, "", "dark_color_mode");
+    auto item_darkmode         = create_item_darkmode_checkbox(_L("Enable dark mode"), page, "", "dark_color_mode");
     g_sizer->Add(item_darkmode);
 #endif
 
@@ -1201,8 +1246,8 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_show_splash_scr  = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), "show_splash_screen");
     g_sizer->Add(item_show_splash_scr);
 
-    auto item_hints            = create_item_checkbox(_L("Show \"Tip of the day\" after start"), page, _L("If enabled, useful hints are displayed at startup."), "show_hints");
-    g_sizer->Add(item_hints);
+    //auto item_hints            = create_item_checkbox(_L("Show \"Daily Tips\" after start"), page, _L("If enabled, useful hints are displayed at startup."), "show_daily_tips");
+    //g_sizer->Add(item_hints);
 
     auto item_downloads        = create_item_downloads(page);
     g_sizer->Add(item_downloads);
@@ -1212,7 +1257,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
     std::vector<string>   projectLoadSettingsConfigOptions    = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
-    auto item_project_load     = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
+    auto item_project_load     = create_item_combobox(_L("Load behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
     g_sizer->Add(item_project_load);
 
     auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", page, _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
@@ -1225,10 +1270,10 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_recent_models    = create_item_checkbox(_L("Add .stl/.step files to recent file list"), page, "", "recent_models");
     g_sizer->Add(item_recent_models);
 
-    auto item_gcodes_warning   = create_item_checkbox(_L("No warnings when loading 3MF with modified G-code"), page, "", "no_warn_when_modified_gcodes");
+    auto item_gcodes_warning   = create_item_checkbox(_L("Don't warn when loading 3mf with modified G-code"), page, "", "no_warn_when_modified_gcodes");
     g_sizer->Add(item_gcodes_warning);
 
-    auto item_step_dialog      = create_item_checkbox(_L("Show step file options on import"), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
+    auto item_step_dialog      = create_item_checkbox(_L("Show options when importing step file"), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
     g_sizer->Add(item_step_dialog);
 
     auto item_backup           = create_item_backup(page);
@@ -1243,7 +1288,7 @@ wxWindow* PreferencesDialog::create_general_page()
     //// GENERAL > Features
     g_sizer->Add(create_item_title(_L("Features"), page), 1, wxEXPAND);
 
-    auto item_multi_machine    = create_item_checkbox(_L("Multi-device Management"), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
+    auto item_multi_machine    = create_item_checkbox(_L("Multi-device management"), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
     g_sizer->Add(item_multi_machine);
 
     g_sizer->AddSpacer(FromDIP(10));
@@ -1279,19 +1324,22 @@ wxWindow* PreferencesDialog::create_general_page()
     g_sizer->Add(reverse_mouse_zoom);
 
     //// USABILITY > Behaviour
-    g_sizer->Add(create_item_title(_L("Behavior"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Behaviour"), page), 1, wxEXPAND);
+
+    auto item_auto_flush       = create_item_autoflush_combobox(_L("Auto calculate flushing volumes on ..."), page, _L("Auto calculate flushing volumes when selected value changed"));
+    g_sizer->Add(item_auto_flush);
 
     auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), page, "", "auto_arrange");
     g_sizer->Add(item_auto_arrange);
 
     //// USABILITY > Flushing volumes
-    g_sizer->Add(create_item_title(_L("Flushing volumes"), page), 1, wxEXPAND);
+    //g_sizer->Add(create_item_title(_L("Flushing volumes"), page), 1, wxEXPAND);
 
-    auto item_calc_on_color    = create_item_checkbox(_L("Auto-calculate every time when ..."), page, _L("If enabled, auto-calculate every time the color changed."), "auto_calculate", _L("color changed"));
-    g_sizer->Add(item_calc_on_color);
+    //auto item_calc_on_color    = create_item_checkbox(_L("Auto-calculate every time when ..."), page, _L("If enabled, auto-calculate every time the color changed."), "auto_calculate", _L("color changed"));
+    //g_sizer->Add(item_calc_on_color);
 
-    auto item_calc_on_filament = create_item_checkbox("", page, _L("If enabled, auto-calculate every time when filament is changed"), "auto_calculate_when_filament_change",  _L("filament changed"));
-    g_sizer->Add(item_calc_on_filament);
+    //auto item_calc_on_filament = create_item_checkbox("", page, _L("If enabled, auto-calculate every time when filament is changed"), "auto_calculate_when_filament_change",  _L("filament changed"));
+    //g_sizer->Add(item_calc_on_filament);
 
     //// USABILITY > Clear my choice on ...
     g_sizer->Add(create_item_title(_L("Clear my choice on ..."), page), 1, wxEXPAND);
@@ -1319,7 +1367,7 @@ wxWindow* PreferencesDialog::create_general_page()
     //// ONLINE > Connection
     g_sizer->Add(create_item_title(_L("Connection"), page), 1, wxEXPAND);
 
-    auto item_region           = create_item_region_combobox(_L("Login Region"), page, "");
+    auto item_region           = create_item_region_combobox(_L("Login region"), page, "");
     g_sizer->Add(item_region);
  
     auto item_stealth_mode     = create_item_checkbox(_L("Stealth Mode"), page, _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), "stealth_mode");

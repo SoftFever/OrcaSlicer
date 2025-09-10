@@ -84,6 +84,7 @@ public:
     wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index);
     wxBoxSizer *create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip);
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip);
+    wxBoxSizer *create_item_autoflush_combobox(wxString title, wxWindow *parent, wxString tooltip);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const wxString secondary_title = "");
     wxBoxSizer *create_item_darkmode_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
