@@ -601,33 +601,53 @@ wxBoxSizer *PreferencesDialog::create_camera_orbit_mult_input(wxString title, wx
     return sizer_input;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param)
+wxBoxSizer *PreferencesDialog::create_item_backup(wxWindow *parent)
 {
     wxBoxSizer *m_sizer_input = new wxBoxSizer(wxHORIZONTAL);
-    auto input_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize);
-    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
-    input_title->SetFont(::Label::Body_14);
-    input_title->SetToolTip(tooltip);
-    input_title->Wrap(-1);
 
-    auto input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(80), -1), wxTE_PROCESS_ENTER);
+    m_sizer_input->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
+
+    auto tip = _L("Backup your project periodically for restoring from the occasional crash.");
+
+    auto checkbox_title = new wxStaticText(parent, wxID_ANY, _L("Auto-Backup"), wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    checkbox_title->SetFont(::Label::Body_14);
+    checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
+    checkbox_title->SetToolTip(tip);
+
+    auto checkbox = new ::CheckBox(parent);
+    checkbox->SetValue(app_config->get_bool("backup_switch"));
+    checkbox->SetToolTip(tip);
+
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox](wxCommandEvent &e) {
+        app_config->set_bool("backup_switch", checkbox->GetValue());
+        app_config->save();
+        bool pbool = app_config->get("backup_switch") == "true" ? true : false;
+        std::string backup_interval = "10";
+        app_config->get("backup_interval", backup_interval);
+        Slic3r::set_backup_interval(pbool ? boost::lexical_cast<long>(backup_interval) : 0);
+        if (m_backup_interval_textinput != nullptr) { m_backup_interval_textinput->Enable(pbool); }
+        e.Skip();
+    });
+
+    auto input = new ::TextInput(parent, wxEmptyString, _L("sec"), "monitor_tasklist_time", wxDefaultPosition, wxSize(FromDIP(97), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
-    input->GetTextCtrl()->SetValue(app_config->get(param));
+    input->GetTextCtrl()->SetValue(app_config->get("backup_interval"));
     wxTextValidator validator(wxFILTER_DIGITS);
-    input->SetToolTip(tooltip);
+    input->SetToolTip(_L("The period of backup in seconds."));
     input->GetTextCtrl()->SetValidator(validator);
-    input->SetLabel(_L("sec"));
 
-    m_sizer_input->Add(input_title , 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
-    m_sizer_input->Add(input       , 0, wxALIGN_CENTER_VERTICAL);
+    m_sizer_input->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
+    m_sizer_input->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT         , FromDIP(5));
+    m_sizer_input->Add(input         , 0, wxALIGN_CENTER_VERTICAL);
 
-    input->GetTextCtrl()->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this, param, input](wxCommandEvent &e) {
+    input->GetTextCtrl()->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this, input](wxCommandEvent &e) {
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
         e.Skip();
     });
 
-    std::function<void()> backup_interval = [this, param, input]() {
+    std::function<void()> backup_interval = [this, input]() {
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
         app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
         app_config->save();
@@ -646,15 +666,10 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
         e.Skip();
     });
 
-    if (app_config->get("backup_switch") == "true") {
-        input->Enable(true);
-        input->Refresh();
-    } else {
-        input->Enable(false);
-        input->Refresh();
-    }
+    input->Enable(app_config->get("backup_switch") == "true");
+    input->Refresh();
 
-    if (param == "backup_interval") { m_backup_interval_textinput = input; }
+    m_backup_interval_textinput = input;
     return m_sizer_input;
 }
 
@@ -780,15 +795,6 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         //     wxGetApp().switch_staff_pick(pbool);
         // }
 
-         // backup
-        if (param == "backup_switch") {
-            bool pbool = app_config->get("backup_switch") == "true" ? true : false;
-            std::string backup_interval = "10";
-            app_config->get("backup_interval", backup_interval);
-            Slic3r::set_backup_interval(pbool ? boost::lexical_cast<long>(backup_interval) : 0);
-            if (m_backup_interval_textinput != nullptr) { m_backup_interval_textinput->Enable(pbool); }
-        }
-
         if (param == "sync_user_preset") {
             bool sync = app_config->get("sync_user_preset") == "true" ? true : false;
             if (sync) {
@@ -907,18 +913,27 @@ wxBoxSizer* PreferencesDialog::create_item_downloads(wxWindow* parent, std::stri
     wxString download_path = wxString::FromUTF8(app_config->get("download_path"));
 
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
+    wxPanel*    label_panel = new wxPanel(parent);
+    wxBoxSizer* label_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_sizer_checkbox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
-    auto downloads_folder = new wxStaticText(parent, wxID_ANY, _L("Downloads folder"), wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+
+    auto downloads_folder = new wxStaticText(label_panel, wxID_ANY, _L("Downloads folder") + ": ", wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE);
     downloads_folder->SetForegroundColour(DESIGN_GRAY900_COLOR);
     downloads_folder->SetFont(::Label::Body_14);
-    downloads_folder->Wrap(DESIGN_TITLE_SIZE.x);
+    downloads_folder->Wrap(-1);
 
-    auto m_staticTextPath = new wxStaticText(parent, wxID_ANY, download_path, wxDefaultPosition, wxSize(FromDIP(150), -1), wxST_ELLIPSIZE_END);
-    m_staticTextPath->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    auto m_staticTextPath = new wxStaticText(label_panel, wxID_ANY, download_path, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    m_staticTextPath->SetForegroundColour(DESIGN_GRAY600_COLOR);
     m_staticTextPath->SetFont(::Label::Body_14);
     m_staticTextPath->Wrap(-1);
     m_staticTextPath->SetToolTip(download_path);
+
+    label_sizer->Add(downloads_folder , 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL);
+    label_panel->SetMaxSize(wxSize(DESIGN_TITLE_SIZE.x, -1));
+    label_panel->SetSizer(label_sizer);
+    label_panel->Layout();
 
     auto m_button_download = new Button(parent, _L("Browse") + " " + dots);
     m_button_download->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
@@ -937,9 +952,8 @@ wxBoxSizer* PreferencesDialog::create_item_downloads(wxWindow* parent, std::stri
         }
         });
 
-    m_sizer_checkbox->Add(downloads_folder , 0, wxALIGN_CENTER_VERTICAL);
+    m_sizer_checkbox->Add(label_panel      , 0, wxALIGN_CENTER_VERTICAL);
     m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL);
-    m_sizer_checkbox->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL | wxLEFT , FromDIP(10));
 
     return m_sizer_checkbox;
 }
@@ -1216,10 +1230,8 @@ wxWindow* PreferencesDialog::create_general_page()
 
     auto item_step_dialog      = create_item_checkbox(_L("Show step file options on import"), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
     g_sizer->Add(item_step_dialog);
-    
-    auto item_backup           = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), "backup_switch");
-    auto item_backup_interval  = create_item_backup_input(_L("every"), page, _L("The period of backup in seconds."), "backup_interval");
-    item_backup->Add(item_backup_interval);
+
+    auto item_backup           = create_item_backup(page);
     g_sizer->Add(item_backup); 
 
     //// GENERAL TAB > Preset
