@@ -1,6 +1,6 @@
 {
     "name": "InfiMech",
-    "version":  "02.03.00.03",
+    "version":  "02.03.01.00",
     "force_update": "1",
     "description": "InfiMech configurations",
     "machine_model_list": [
