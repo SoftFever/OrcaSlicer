@@ -129,6 +129,7 @@
   "seam_slope_type": "none",
   "single_extruder_multi_material_priming": "1",
   "single_loop_draft_shield": "0",
+  "skirt_loops": "0",
   "smooth_coefficient": "80",
   "slow_down_layers": "1",
   "small_perimeter_speed": "50%",
