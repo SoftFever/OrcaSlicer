@@ -2,7 +2,7 @@
 var m_ProfileItem;
 
 var FilamentPriority=new Array( "pla","abs","pet","tpu","pc");
-var VendorPriority=new Array("Orca Built-in","bambu lab","bambulab","bbl","kexcelled","polymaker","esun","Generic");
+var VendorPriority=new Array("Generic","Orca Built-in","bambu lab","bambulab","bbl","kexcelled","polymaker","esun");
   
 function OnInit()
 {
