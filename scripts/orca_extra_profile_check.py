@@ -43,6 +43,7 @@ def no_duplicates_object_pairs_hook(pairs):
         seen[key] = value
     return seen
 
+# NOTE: currently Orca expects compatible_printers to be a defined in every instantiation profile, inheritation is not supported in Profile page
 def check_filament_compatible_printers(vendor_folder):
     """
     Checks JSON files in the vendor folder for missing or empty 'compatible_printers'
@@ -87,6 +88,12 @@ def check_filament_compatible_printers(vendor_folder):
             'content': data,
         }
     
+    def get_property(profile, key):
+        content = profile['content']
+        if key in content:
+            return content[key]
+        return None
+
     def get_inherit_property(profile, key):
         content = profile['content']
         if key in content:
@@ -105,7 +112,7 @@ def check_filament_compatible_printers(vendor_folder):
         instantiation = str(profile['content'].get("instantiation", "")).lower() == "true"
         if instantiation:
             try:
-                compatible_printers = get_inherit_property(profile, "compatible_printers")
+                compatible_printers = get_property(profile, "compatible_printers")
                 if not compatible_printers or (isinstance(compatible_printers, list) and not compatible_printers):
                     print_error(f"'compatible_printers' missing in {profile['file_path']}")
                     error += 1
