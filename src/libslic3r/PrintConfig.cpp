@@ -4823,7 +4823,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("enable_filament_ramming", coBool);
     def->label = L("Enable filament ramming");
-    def->tooltip = L("Enable filament ramming.");
+    def->tooltip = L("Enable filament ramming");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
