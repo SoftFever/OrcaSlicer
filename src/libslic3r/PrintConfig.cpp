@@ -1086,7 +1086,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Precise wall");
     def->category = L("Quality");
     def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.");
-    def->set_default_value(new ConfigOptionBool{false});
+    def->set_default_value(new ConfigOptionBool{true});
     
     def = this->add("only_one_wall_top", coBool);
     def->label = L("Only one wall on top surfaces");
