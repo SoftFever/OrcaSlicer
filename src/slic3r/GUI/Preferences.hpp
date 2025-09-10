@@ -89,7 +89,7 @@ public:
     wxBoxSizer *create_item_darkmode_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     void set_dark_mode();
     wxBoxSizer *create_item_button(wxString title, wxString title2, wxWindow *parent, wxString tooltip, wxString tooltip2, std::function<void()> onclick, bool button_on_left = false);
-    wxBoxSizer* create_item_downloads(wxWindow* parent, std::string param);
+    wxBoxSizer* create_item_downloads(wxWindow* parent);
     wxBoxSizer *create_item_input(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::string param, std::function<void(wxString)> onchange = {});
     wxBoxSizer *create_camera_orbit_mult_input(wxString title, wxWindow *parent, wxString tooltip);
     wxBoxSizer *create_item_backup(wxWindow *parent);

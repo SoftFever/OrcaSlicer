@@ -908,7 +908,7 @@ wxBoxSizer* PreferencesDialog::create_item_button(
     return m_sizer_checkbox;
 }
 
-wxBoxSizer* PreferencesDialog::create_item_downloads(wxWindow* parent, std::string param)
+wxBoxSizer* PreferencesDialog::create_item_downloads(wxWindow* parent)
 {
     wxString download_path = wxString::FromUTF8(app_config->get("download_path"));
 
@@ -1169,7 +1169,7 @@ wxWindow* PreferencesDialog::create_general_page()
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
-    //// GENERAL TAB > Settings
+    //// GENERAL > Settings
     g_sizer->Add(create_item_title(_L("Settings"), page), 1, wxEXPAND);
 
     auto item_language         = create_item_language_combobox(_L("Language"), page, "");
@@ -1204,14 +1204,14 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_hints            = create_item_checkbox(_L("Show \"Tip of the day\" after start"), page, _L("If enabled, useful hints are displayed at startup."), "show_hints");
     g_sizer->Add(item_hints);
 
-    auto item_downloads        = create_item_downloads(page, "download_path");
+    auto item_downloads        = create_item_downloads(page);
     g_sizer->Add(item_downloads);
 
-    //// GENERAL TAB > Project
+    //// GENERAL > Project
     g_sizer->Add(create_item_title(_L("Project"), page), 1, wxEXPAND);
 
     std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
-    std::vector<string> projectLoadSettingsConfigOptions = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
+    std::vector<string>   projectLoadSettingsConfigOptions    = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
     auto item_project_load     = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
     g_sizer->Add(item_project_load);
 
@@ -1234,13 +1234,13 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_backup           = create_item_backup(page);
     g_sizer->Add(item_backup); 
 
-    //// GENERAL TAB > Preset
+    //// GENERAL > Preset
     g_sizer->Add(create_item_title(_L("Preset"), page), 1, wxEXPAND);
 
     auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), "remember_printer_config");
     g_sizer->Add(item_remember_printer_config);
 
-    //// GENERAL TAB > Features
+    //// GENERAL > Features
     g_sizer->Add(create_item_title(_L("Features"), page), 1, wxEXPAND);
 
     auto item_multi_machine    = create_item_checkbox(_L("Multi-device Management"), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
@@ -1256,7 +1256,7 @@ wxWindow* PreferencesDialog::create_general_page()
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
  
-    //// USABILITY TAB > Camera
+    //// USABILITY > Camera
     g_sizer->Add(create_item_title(_L("Camera"), page), 1, wxEXPAND);
 
     std::vector<wxString> CameraNavStyle = {_L("Default"), _L("Touchpad")};
@@ -1278,13 +1278,13 @@ wxWindow* PreferencesDialog::create_general_page()
     auto reverse_mouse_zoom    = create_item_checkbox(_L("Reverse mouse zoom"), page, _L("If enabled, reverses the direction of zoom with mouse wheel."), "reverse_mouse_wheel_zoom");
     g_sizer->Add(reverse_mouse_zoom);
 
-    //// USABILITY TAB > Behaviour
+    //// USABILITY > Behaviour
     g_sizer->Add(create_item_title(_L("Behavior"), page), 1, wxEXPAND);
 
     auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), page, "", "auto_arrange");
     g_sizer->Add(item_auto_arrange);
 
-    //// USABILITY TAB > Flushing volumes
+    //// USABILITY > Flushing volumes
     g_sizer->Add(create_item_title(_L("Flushing volumes"), page), 1, wxEXPAND);
 
     auto item_calc_on_color    = create_item_checkbox(_L("Auto-calculate every time when ..."), page, _L("If enabled, auto-calculate every time the color changed."), "auto_calculate", _L("color changed"));
@@ -1293,7 +1293,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_calc_on_filament = create_item_checkbox("", page, _L("If enabled, auto-calculate every time when filament is changed"), "auto_calculate_when_filament_change",  _L("filament changed"));
     g_sizer->Add(item_calc_on_filament);
 
-    //// USABILITY TAB > Clear my choice on ...
+    //// USABILITY > Clear my choice on ...
     g_sizer->Add(create_item_title(_L("Clear my choice on ..."), page), 1, wxEXPAND);
 
     auto item_save_choise      = create_item_button(_L("Unsaved projects"), _L("Clear"), page, "", _L("Clear my choice on the unsaved projects."), []() {
@@ -1316,7 +1316,7 @@ wxWindow* PreferencesDialog::create_general_page()
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
-    //// ONLINE TAB > Connection
+    //// ONLINE > Connection
     g_sizer->Add(create_item_title(_L("Connection"), page), 1, wxEXPAND);
 
     auto item_region           = create_item_region_combobox(_L("Login Region"), page, "");
@@ -1325,7 +1325,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_stealth_mode     = create_item_checkbox(_L("Stealth Mode"), page, _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), "stealth_mode");
     g_sizer->Add(item_stealth_mode);
 
-    //// ONLINE TAB > Update & sync
+    //// ONLINE > Update & sync
     g_sizer->Add(create_item_title(_L("Update & sync"), page), 1, wxEXPAND);
 
     auto item_stable_updates   = create_item_checkbox(_L("Check for stable updates only"), page, "", "check_stable_update_only");
@@ -1337,7 +1337,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_system_sync      = create_item_checkbox(_L("Update built-in Presets automatically."), page, "", "sync_system_preset");
     g_sizer->Add(item_system_sync);
 
-    //// ONLINE TAB > Network plugin
+    //// ONLINE > Network plugin
     g_sizer->Add(create_item_title(_L("Network plugin"), page), 1, wxEXPAND);
 
     auto item_enable_plugin    = create_item_checkbox(_L("Enable network plugin"), page, "", "installed_networking");
@@ -1357,7 +1357,7 @@ wxWindow* PreferencesDialog::create_general_page()
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
-    //// ASSOCIATE TAB > Extensions
+    //// ASSOCIATE > Extensions
     g_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer"), page), 1, wxEXPAND);
 
     auto item_associate_3mf    = create_item_checkbox(_L("Associate .3mf files to OrcaSlicer"), page, _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , "associate_3mf");
@@ -1369,7 +1369,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_associate_step   = create_item_checkbox(_L("Associate .step/.stp files to OrcaSlicer"), page, _L("If enabled, sets OrcaSlicer as default application to open .step files"), "associate_step");
     g_sizer->Add(item_associate_step);
 
-    //// ASSOCIATE TAB > WebLinks
+    //// ASSOCIATE > WebLinks
     g_sizer->Add(create_item_title(_L("Associate web links to OrcaSlicer"), page), 1, wxEXPAND);
 
     auto associate_url_prusa   = create_item_link_association(page, L"prusaslicer", "Printables.com");
@@ -1392,7 +1392,7 @@ wxWindow* PreferencesDialog::create_general_page()
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
-    //// DEVELOPER TAB > Settings
+    //// DEVELOPER > Settings
     g_sizer->Add(create_item_title(_L("Settings"), page), 1, wxEXPAND);
 
     auto item_develop_mode     = create_item_checkbox(_L("Develop mode"), page, "", "developer_mode");
@@ -1401,7 +1401,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_ams_blacklist    = create_item_checkbox(_L("Skip AMS blacklist check"), page, "", "skip_ams_blacklist_check");
     g_sizer->Add(item_ams_blacklist);
 
-    //// DEVELOPER TAB > Debug
+    //// DEVELOPER > Debug
 //#if !BBL_RELEASE_TO_PUBLIC
     g_sizer->Add(create_item_title(_L("Debug"), page), 1, wxEXPAND);
     auto debug_page            = create_debug_page();
