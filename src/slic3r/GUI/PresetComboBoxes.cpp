@@ -331,7 +331,7 @@ wxString PresetComboBox::get_preset_item_name(unsigned int index)
             auto iter = machine_list.begin();
             std::advance(iter, idx);
             if (iter != machine_list.end()) {
-                m_selected_dev_id = *iter;
+                m_selected_dev_id = iter->first;
                 Preset* machine_preset = get_printer_preset(iter->second);
                 if (machine_preset) {
                     return from_u8(machine_preset->name);
