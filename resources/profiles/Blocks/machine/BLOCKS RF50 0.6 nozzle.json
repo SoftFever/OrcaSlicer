@@ -23,31 +23,40 @@
         "0x500"
     ],
     "machine_max_acceleration_x": [
-      "30000",
-      "30000"
+      "20000",
+      "20000"
     ],
     "machine_max_acceleration_y": [
-      "30000",
-      "30000"
+      "20000",
+      "20000"
+    ],
+    "machine_max_acceleration_z": [
+      "200", 
+      "200"
     ],
     "machine_max_acceleration_extruding": [
-      "30000",
-      "30000"
+      "20000",
+      "20000"
     ],
+    "machine_max_speed_e": ["60"], 
+    "machine_max_speed_x": ["500"], 
+    "machine_max_speed_y": ["500"], 
+    "machine_max_speed_z": ["12"], 
     "retraction_length": [
-      "0.8"
+      "1"
     ],
     "retraction_speed": [
-      "30"
+      "60"
     ],
     "deretraction_speed": [
-      "80"
+      "30"
     ],
     "z_hop": [
-      "0.2"
+      "0.4"
     ],
-    "z_hop_types": "Auto Lift",
+    "z_hop_types": ["Slope Lift"],
     "auxiliary_fan": "1",
+    "support_air_filtration": "1", 
     "printable_height": "500",
     "extruder_clearance_radius": "106",
     "extruder_clearance_height_to_rod": "30",
@@ -59,5 +68,8 @@
       "PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer]",
       "SET_PRESSURE_ADVANCE ADVANCE=0.046"
     ],
-    "printer_variant": "0.6"
+    "printer_variant": "0.6", 
+    "wipe_distance": ["2"], 
+    "retract_before_wipe": ["0"]
+
 }

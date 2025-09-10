@@ -357,7 +357,7 @@ bool GLGizmoAdvancedCut::on_init()
     // initiate info shortcuts
     const wxString ctrl  = GUI::shortkey_ctrl_prefix();
     const wxString alt   = GUI::shortkey_alt_prefix();
-    const wxString shift = "Shift+";
+    const wxString shift = _L("Shift+");
 
     m_shortcuts.push_back(std::make_pair(_L("Left click"), _L("Add connector")));
     m_shortcuts.push_back(std::make_pair(_L("Right click"), _L("Remove connector")));
