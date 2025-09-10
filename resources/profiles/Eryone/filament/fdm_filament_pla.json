@@ -85,5 +85,7 @@
     "enable_overhang_bridge_fan": [
         "0"
     ],
-    "filament_start_gcode": []
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ]
 }
