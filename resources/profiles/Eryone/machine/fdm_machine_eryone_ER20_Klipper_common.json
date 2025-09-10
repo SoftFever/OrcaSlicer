@@ -110,7 +110,7 @@
     "0"
   ],
   "retraction_length": [
-    "0.8"
+    "0.82"
   ],
   "retraction_speed": [
     "25"
@@ -129,5 +129,8 @@
   "use_firmware_retraction": "0",
   "use_relative_e_distances": "0",
   "version": "1.0.0.0",
+  "wipe_distance": [
+    "0.3"
+  ],
   "z_offset": "0"
 }
