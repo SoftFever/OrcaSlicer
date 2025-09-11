@@ -412,8 +412,6 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
 
 wxBoxSizer *PreferencesDialog::create_item_autoflush_combobox(wxString title, wxWindow *parent, wxString tooltip)
 {
-    //_L("If enabled, auto-calculate every time the color changed.")
-    //_L("If enabled, auto-calculate every time when filament is changed")
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
@@ -646,23 +644,21 @@ wxBoxSizer *PreferencesDialog::create_camera_orbit_mult_input(wxString title, wx
     return sizer_input;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_backup(wxWindow *parent)
+wxBoxSizer *PreferencesDialog::create_item_backup(wxString title, wxWindow *parent, wxString tooltip)
 {
     wxBoxSizer *m_sizer_input = new wxBoxSizer(wxHORIZONTAL);
 
     m_sizer_input->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
-    auto tip = _L("Backup your project periodically for restoring from the occasional crash.");
-
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, _L("Auto backup"), wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
-    checkbox_title->SetToolTip(tip);
+    checkbox_title->SetToolTip(tooltip);
 
     auto checkbox = new ::CheckBox(parent);
     checkbox->SetValue(app_config->get_bool("backup_switch"));
-    checkbox->SetToolTip(tip);
+    checkbox->SetToolTip(tooltip);
 
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox](wxCommandEvent &e) {
         app_config->set_bool("backup_switch", checkbox->GetValue());
@@ -675,7 +671,7 @@ wxBoxSizer *PreferencesDialog::create_item_backup(wxWindow *parent)
         e.Skip();
     });
 
-    auto input = new ::TextInput(parent, wxEmptyString, _L("sec"), "monitor_tasklist_time", wxDefaultPosition, wxSize(FromDIP(97), -1), wxTE_PROCESS_ENTER);
+    auto input = new ::TextInput(parent, wxEmptyString, _L("sec"), "loop", wxDefaultPosition, wxSize(FromDIP(97), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get("backup_interval"));
@@ -953,7 +949,7 @@ wxBoxSizer* PreferencesDialog::create_item_button(
     return m_sizer_checkbox;
 }
 
-wxBoxSizer* PreferencesDialog::create_item_downloads(wxWindow* parent)
+wxBoxSizer* PreferencesDialog::create_item_downloads(wxString title, wxWindow* parent, wxString tooltip)
 {
     wxString download_path = wxString::FromUTF8(app_config->get("download_path"));
 
@@ -963,9 +959,10 @@ wxBoxSizer* PreferencesDialog::create_item_downloads(wxWindow* parent)
 
     m_sizer_checkbox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
-    auto downloads_folder = new wxStaticText(label_panel, wxID_ANY, _L("Downloads folder") + ": ", wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE);
+    auto downloads_folder = new wxStaticText(label_panel, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE);
     downloads_folder->SetForegroundColour(DESIGN_GRAY900_COLOR);
     downloads_folder->SetFont(::Label::Body_14);
+    downloads_folder->SetToolTip(tooltip);
     downloads_folder->Wrap(-1);
 
     auto m_staticTextPath = new wxStaticText(label_panel, wxID_ANY, download_path, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
@@ -976,12 +973,15 @@ wxBoxSizer* PreferencesDialog::create_item_downloads(wxWindow* parent)
 
     label_sizer->Add(downloads_folder , 0, wxALIGN_CENTER_VERTICAL);
     label_sizer->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL);
+    label_panel->SetSize(   wxSize(DESIGN_TITLE_SIZE.x, -1));
+    label_panel->SetMinSize(wxSize(DESIGN_TITLE_SIZE.x, -1));
     label_panel->SetMaxSize(wxSize(DESIGN_TITLE_SIZE.x, -1));
     label_panel->SetSizer(label_sizer);
     label_panel->Layout();
 
     auto m_button_download = new Button(parent, _L("Browse") + " " + dots);
     m_button_download->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
+    m_button_download->SetToolTip(_L("Choose folder for downloaded items"));
 
     m_button_download->Bind(wxEVT_BUTTON, [this, m_staticTextPath, m_sizer_checkbox](auto& e) {
         wxString defaultPath = wxT("/");
@@ -1122,7 +1122,7 @@ void PreferencesDialog::create()
     m_pref_tabctrl->SetFont(Label::Body_14);
 
     m_pref_tabctrl->AppendItem(_L("General"));
-    m_pref_tabctrl->AppendItem(_L("Usability"));
+    m_pref_tabctrl->AppendItem(_L("Control"));
     m_pref_tabctrl->AppendItem(_L("Online"));
     #ifdef _WIN32
     m_pref_tabctrl->AppendItem(_L("Associate"));
@@ -1249,7 +1249,7 @@ wxWindow* PreferencesDialog::create_general_page()
     //auto item_hints            = create_item_checkbox(_L("Show \"Daily Tips\" after start"), page, _L("If enabled, useful hints are displayed at startup."), "show_daily_tips");
     //g_sizer->Add(item_hints);
 
-    auto item_downloads        = create_item_downloads(page);
+    auto item_downloads        = create_item_downloads(_L("Downloads folder") + ": " ,page, _L("Target folder for downloaded items"));
     g_sizer->Add(item_downloads);
 
     //// GENERAL > Project
@@ -1276,7 +1276,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_step_dialog      = create_item_checkbox(_L("Show options when importing step file"), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
     g_sizer->Add(item_step_dialog);
 
-    auto item_backup           = create_item_backup(page);
+    auto item_backup           = create_item_backup(_L("Auto backup"), page, _L("Backup your project periodically for restoring from the occasional crash."));
     g_sizer->Add(item_backup); 
 
     //// GENERAL > Preset
@@ -1295,13 +1295,22 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(g_sizer, 0, wxEXPAND);
 
     //////////////////////////
-    //// USABILITY TAB 
+    //// CONTROL TAB 
     /////////////////////////////////////
     f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
+
+    //// CONTROL > Behaviour
+    g_sizer->Add(create_item_title(_L("Behaviour"), page), 1, wxEXPAND);
+
+    auto item_auto_flush       = create_item_autoflush_combobox(_L("Auto calculate flushing volumes on ..."), page, _L("Auto calculate flushing volumes when selected value changed"));
+    g_sizer->Add(item_auto_flush);
+
+    auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), page, "", "auto_arrange");
+    g_sizer->Add(item_auto_arrange);
  
-    //// USABILITY > Camera
+    //// CONTROL > Camera
     g_sizer->Add(create_item_title(_L("Camera"), page), 1, wxEXPAND);
 
     std::vector<wxString> CameraNavStyle = {_L("Default"), _L("Touchpad")};
@@ -1323,25 +1332,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto reverse_mouse_zoom    = create_item_checkbox(_L("Reverse mouse zoom"), page, _L("If enabled, reverses the direction of zoom with mouse wheel."), "reverse_mouse_wheel_zoom");
     g_sizer->Add(reverse_mouse_zoom);
 
-    //// USABILITY > Behaviour
-    g_sizer->Add(create_item_title(_L("Behaviour"), page), 1, wxEXPAND);
-
-    auto item_auto_flush       = create_item_autoflush_combobox(_L("Auto calculate flushing volumes on ..."), page, _L("Auto calculate flushing volumes when selected value changed"));
-    g_sizer->Add(item_auto_flush);
-
-    auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), page, "", "auto_arrange");
-    g_sizer->Add(item_auto_arrange);
-
-    //// USABILITY > Flushing volumes
-    //g_sizer->Add(create_item_title(_L("Flushing volumes"), page), 1, wxEXPAND);
-
-    //auto item_calc_on_color    = create_item_checkbox(_L("Auto-calculate every time when ..."), page, _L("If enabled, auto-calculate every time the color changed."), "auto_calculate", _L("color changed"));
-    //g_sizer->Add(item_calc_on_color);
-
-    //auto item_calc_on_filament = create_item_checkbox("", page, _L("If enabled, auto-calculate every time when filament is changed"), "auto_calculate_when_filament_change",  _L("filament changed"));
-    //g_sizer->Add(item_calc_on_filament);
-
-    //// USABILITY > Clear my choice on ...
+    //// CONTROL > Clear my choice on ...
     g_sizer->Add(create_item_title(_L("Clear my choice on ..."), page), 1, wxEXPAND);
 
     auto item_save_choise      = create_item_button(_L("Unsaved projects"), _L("Clear"), page, "", _L("Clear my choice on the unsaved projects."), []() {
@@ -1372,6 +1363,12 @@ wxWindow* PreferencesDialog::create_general_page()
  
     auto item_stealth_mode     = create_item_checkbox(_L("Stealth Mode"), page, _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), "stealth_mode");
     g_sizer->Add(item_stealth_mode);
+
+    auto item_network_test     = create_item_button(_L("Test Network"), _L("Test") + " " + dots, page, "", _L("Open Network Test"), []() {
+        NetworkTestDialog dlg(wxGetApp().mainframe);
+        dlg.ShowModal();
+    });
+    g_sizer->Add(item_network_test);
 
     //// ONLINE > Update & sync
     g_sizer->Add(create_item_title(_L("Update & sync"), page), 1, wxEXPAND);

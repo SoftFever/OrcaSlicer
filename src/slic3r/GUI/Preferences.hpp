@@ -15,6 +15,7 @@
 #include "Widgets/StaticLine.hpp"
 #include "Widgets/TabCtrl.hpp"
 #include "Widgets/RadioGroup.hpp"
+#include "NetworkTestDialog.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -90,10 +91,10 @@ public:
     wxBoxSizer *create_item_darkmode_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     void set_dark_mode();
     wxBoxSizer *create_item_button(wxString title, wxString title2, wxWindow *parent, wxString tooltip, wxString tooltip2, std::function<void()> onclick, bool button_on_left = false);
-    wxBoxSizer* create_item_downloads(wxWindow* parent);
+    wxBoxSizer* create_item_downloads(wxString title, wxWindow* parent, wxString tooltip);
     wxBoxSizer *create_item_input(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::string param, std::function<void(wxString)> onchange = {});
     wxBoxSizer *create_camera_orbit_mult_input(wxString title, wxWindow *parent, wxString tooltip);
-    wxBoxSizer *create_item_backup(wxWindow *parent);
+    wxBoxSizer *create_item_backup(wxString title, wxWindow *parent, wxString tooltip);
     wxBoxSizer *create_item_multiple_combobox(
         wxString title, wxWindow *parent, wxString tooltip, std::string parama, std::vector<wxString> vlista, std::vector<wxString> vlistb);
     wxBoxSizer *create_item_switch(wxString title, wxWindow *parent, wxString tooltip, std::string param);
