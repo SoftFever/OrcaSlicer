@@ -1085,9 +1085,10 @@ void PrintConfigDef::init_fff_params()
     def = this->add("precise_outer_wall",coBool);
     def->label = L("Precise wall");
     def->category = L("Quality");
-    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency. NOTE: This option will be ignored unless the wall sequence is InnerOuter.");
+    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency. NOTE: This option "
+                       "will be ignored for outer-inner or inner-outer-inner wall sequences.");
     def->set_default_value(new ConfigOptionBool{true});
-    
+
     def = this->add("only_one_wall_top", coBool);
     def->label = L("Only one wall on top surfaces");
     def->category = L("Quality");
