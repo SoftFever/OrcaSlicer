@@ -1,9 +1,9 @@
 {
-    "from": "system",
-    "inherits": "0.10mm STRUCTURAL @MK4S 0.5",
-    "instantiation": "true",
-    "name": "0.10mm STRUCTURAL @CORE One 0.5",
     "type": "process",
+    "name": "0.10mm STRUCTURAL @CORE One 0.5",
+    "inherits": "0.10mm STRUCTURAL @MK4S 0.5",
+    "from": "system",
+    "instantiation": "true",
     "inner_wall_speed": "80",
     "small_perimeter_speed": "45",
     "outer_wall_speed": "45",
