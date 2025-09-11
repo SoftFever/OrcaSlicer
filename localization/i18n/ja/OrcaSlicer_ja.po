@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-11 21:06+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -44,17 +44,23 @@ msgstr "最新バージョン"
 msgid "Support Painting"
 msgstr "サポートペイント"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + マウスホイール"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "マウスホイール"
 
 msgid "Section view"
 msgstr "断面"
 
 msgid "Reset direction"
 msgstr "方向をリセット"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + スクロール"
 
 msgid "Pen size"
 msgstr "ペンサイズ"
@@ -70,9 +76,6 @@ msgstr "右マウスボタン"
 
 msgid "Block supports"
 msgstr "サポートをブロックする"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + マウスの左ボタン"
 
 msgid "Erase"
 msgstr "消去"
@@ -178,8 +181,8 @@ msgstr "塗りつぶしバッチ処理"
 msgid "Height range"
 msgstr "高さ範囲"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "ワイヤフレームの表示/非表示"
@@ -706,7 +709,7 @@ msgstr ""
 msgid "Horizontal text"
 msgstr ""
 
-msgid "Shift + Mouse move up or down"
+msgid "Mouse move up or down"
 msgstr ""
 
 msgid "Rotate text"
@@ -1455,9 +1458,6 @@ msgstr ""
 msgid "Flip by Face 2"
 msgstr ""
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "通知"
 
@@ -1797,6 +1797,9 @@ msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "選択したオブジェクトを削除"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "ファイルを読込む"
@@ -4020,6 +4023,11 @@ msgstr "入力の一部の拡張子が無効"
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "無効なフォーマット、%1%であるはずです。"
@@ -4222,26 +4230,14 @@ msgstr "半径"
 msgid "Keep min"
 msgstr "最小限に抑える"
 
-msgid "Left mouse button:"
-msgstr "マウス左ボタン"
-
 msgid "Add detail"
 msgstr "詳細を追加"
-
-msgid "Right mouse button:"
-msgstr "マウス右ボタン"
 
 msgid "Remove detail"
 msgstr "詳細を削除"
 
-msgid "Shift + Left mouse button:"
-msgstr "Shift + マウス左ボタン"
-
 msgid "Reset to base"
 msgstr "ベースにリセット"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift + マウス右ボタン"
 
 msgid "Smoothing"
 msgstr "スムージング"
@@ -4628,8 +4624,8 @@ msgstr "新しいプロジェクトで始める"
 msgid "Open a project file"
 msgstr "プロジェクトファイルを開く"
 
-msgid "Recent projects"
-msgstr "最近のプロジェクト"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "プロジェクトを保存"
@@ -4639,9 +4635,6 @@ msgstr "現在のプロジェクトを保存"
 
 msgid "Save Project as"
 msgstr "プロジェクトを名前を付けて保存"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "プロジェクトを名前を付けて保存"
@@ -5957,6 +5950,9 @@ msgstr "サイドバーを展開"
 msgid "Collapse sidebar"
 msgstr "サイドバーを折りたたむ"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "ファイルを読込む: %s"
@@ -6728,10 +6724,13 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
-msgid "Maximum recent projects"
+msgid "Maximum recent files"
 msgstr ""
 
-msgid "Maximum count of recent projects"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
@@ -7441,6 +7440,14 @@ msgid ""
 msgstr ""
 
 msgid "Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
 msgstr ""
 
 msgid ""
@@ -8401,12 +8408,6 @@ msgstr "オブジェクト一覧"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Paste from clipboard"
 msgstr "貼り付け"
 
@@ -8428,14 +8429,8 @@ msgstr "回転"
 msgid "Pan View"
 msgstr "移動"
 
-msgid "Mouse wheel"
-msgstr "マウスホイール"
-
 msgid "Zoom View"
 msgstr "ズーム"
-
-msgid "Shift+A"
-msgstr "Shift+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -8445,47 +8440,23 @@ msgstr ""
 "選択したオブジェクトまたはプロジェクト内のすべてのオブジェクトの方向を自動的"
 "に設定します。"
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr "現在のプレート上のすべてのオブジェクトの方向を自動的に設定します。"
-
-msgid "Shift+Tab"
-msgstr "Shift+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "サイドバーを展開/隠す"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+↑↓←→"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "オブジェクト移動"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+マウス左ボタン"
-
 msgid "Select a part"
 msgstr "パーツを選択"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+マウス左ボタン"
-
 msgid "Select multiple objects"
 msgstr "複数のオブジェクトを選択"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+↑↓←→"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+マウス左ボタン"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+マウス左ボタン"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift + マウス左ボタン"
 
 msgid "Select objects by rectangle"
 msgstr "矩形でオブジェクトを選択"
@@ -8513,9 +8484,6 @@ msgstr "→"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "X方向 10mm"
-
-msgid "Shift+Any arrow"
-msgstr "Shift + ↑↓←→"
 
 msgid "Movement step set to 1 mm"
 msgstr "移動ステップを1mmに設定"
@@ -8601,23 +8569,11 @@ msgstr "準備"
 msgid "Move: press to snap by 1mm"
 msgstr "1mm単位で移動"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+マウスホイール"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "サポート/色塗り: 半径のサイズ"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+マウスホイール"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "サポート/色塗り: 断面の位置"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+マウスホイール"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+マウスホイール"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8660,9 +8616,6 @@ msgstr ""
 
 msgid "Move slider 5x faster"
 msgstr "5x"
-
-msgid "Shift+Mouse wheel"
-msgstr "Shift + マウスホイール"
 
 msgid "Horizontal slider - Move to start position"
 msgstr ""
@@ -9376,6 +9329,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -9871,7 +9829,8 @@ msgstr ""
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
 
 msgid "Only one wall on top surfaces"
@@ -11052,6 +11011,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr ""
 
@@ -11126,16 +11095,16 @@ msgid "Lateral lattice angle 1"
 msgstr ""
 
 msgid ""
-"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 
 msgid "Lateral lattice angle 2"
 msgstr ""
 
 msgid ""
-"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 
 msgid "Infill overhang angle"
@@ -11248,7 +11217,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -11414,12 +11384,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop. At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -11731,22 +11701,23 @@ msgid ""
 "a cross texture."
 msgstr ""
 
-msgid "Sparse infill rotatation template"
+msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
+msgid "Solid infill rotation template"
 msgstr ""
 
 msgid ""
@@ -13121,9 +13092,6 @@ msgstr ""
 msgid "Enable filament ramming"
 msgstr ""
 
-msgid "Enable filament ramming."
-msgstr ""
-
 msgid "No sparse layers (beta)"
 msgstr ""
 
@@ -13808,6 +13776,9 @@ msgid ""
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -16885,6 +16856,84 @@ msgstr ""
 "反りを避ける\n"
 "ABSのような反りやすい素材を印刷する場合、ヒートベッドの温度を適切に上げること"
 "で、反りが発生する確率を下げることができることをご存知ですか？"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + マウスホイール"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + スクロール"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + マウスの左ボタン"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "マウス左ボタン"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "マウス右ボタン"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Shift + マウス左ボタン"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift + マウス右ボタン"
+
+#~ msgid "Recent projects"
+#~ msgstr "最近のプロジェクト"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Shift+A"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Shift+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+↑↓←→"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+マウス左ボタン"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+マウス左ボタン"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+↑↓←→"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+マウス左ボタン"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+マウス左ボタン"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift + マウス左ボタン"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift + ↑↓←→"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+マウスホイール"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+マウスホイール"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+マウスホイール"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+マウスホイール"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift + マウスホイール"
 
 #~ msgid "Set Position"
 #~ msgstr "位置を設定"

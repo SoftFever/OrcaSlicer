@@ -1600,6 +1600,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             //    }
             // }
 
+            // check wall sequence and precise outer wall
+            if (m_default_region_config.precise_outer_wall && m_default_region_config.wall_sequence != WallSequence::InnerOuter) {
+                warning->string  = L("The precise wall option will be ignored for outer-inner or inner-outer-inner wall sequences.");
+                warning->opt_key = "precise_outer_wall";
+            }
+
         } catch (std::exception& e) {
             BOOST_LOG_TRIVIAL(warning) << "Orca: validate motion ability failed: " << e.what() << std::endl;
         }

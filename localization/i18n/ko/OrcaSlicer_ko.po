@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-11 21:06+0800\n"
 "PO-Revision-Date: 2025-06-02 17:12+0900\n"
 "Last-Translator: crwusiz <crwusiz@gmail.com>\n"
 "Language-Team: \n"
@@ -48,17 +48,23 @@ msgstr "최신 버전"
 msgid "Support Painting"
 msgstr "서포트 칠하기"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + 마우스 휠"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "마우스 휠"
 
 msgid "Section view"
 msgstr "단면도"
 
 msgid "Reset direction"
 msgstr "방향 초기화"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + 마우스 휠"
 
 msgid "Pen size"
 msgstr "펜 크기"
@@ -74,9 +80,6 @@ msgstr "마우스 오른쪽 버튼"
 
 msgid "Block supports"
 msgstr "서포트 차단"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + 마우스 왼쪽 버튼"
 
 msgid "Erase"
 msgstr "지우기"
@@ -183,8 +186,8 @@ msgstr "버킷 채우기"
 msgid "Height range"
 msgstr "높이 범위"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "와이어프레임 전환"
@@ -714,8 +717,8 @@ msgstr "표면"
 msgid "Horizontal text"
 msgstr "가로 텍스트"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Shift + 마우스 위 or 아래"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "텍스트 회전"
@@ -1460,9 +1463,6 @@ msgstr "평행 거리:"
 msgid "Flip by Face 2"
 msgstr "면 2로 뒤집기"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "공지사항"
 
@@ -1816,6 +1816,9 @@ msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "선택된 객체 삭제"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "불러오기..."
@@ -4116,6 +4119,11 @@ msgstr "입력의 일부 확장자가 유효하지 않습니다"
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "잘못된 형식입니다. 필요한 벡터 형식: \"%1%\""
@@ -4318,26 +4326,14 @@ msgstr "반경"
 msgid "Keep min"
 msgstr "최소로 유지"
 
-msgid "Left mouse button:"
-msgstr "마우스 왼쪽 버튼:"
-
 msgid "Add detail"
 msgstr "세부정보 추가"
-
-msgid "Right mouse button:"
-msgstr "마우스 오른쪽 버튼:"
 
 msgid "Remove detail"
 msgstr "세부정보 삭제"
 
-msgid "Shift + Left mouse button:"
-msgstr "Shift + 마우스 왼쪽 버튼:"
-
 msgid "Reset to base"
 msgstr "기본으로 초기화"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift + 마우스 오른쪽 버튼:"
 
 msgid "Smoothing"
 msgstr "스무딩"
@@ -4728,8 +4724,8 @@ msgstr "새 프로젝트 시작"
 msgid "Open a project file"
 msgstr "프로젝트 파일 열기"
 
-msgid "Recent projects"
-msgstr "최근 프로젝트"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "프로젝트 저장"
@@ -4739,9 +4735,6 @@ msgstr "현재 프로젝트를 파일로 저장"
 
 msgid "Save Project as"
 msgstr "프로젝트 다른 이름으로 저장"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "현재 프로젝트 다른 이름으로 저장"
@@ -6116,6 +6109,9 @@ msgstr "사이드바 확장"
 msgid "Collapse sidebar"
 msgstr "사이드바 접기"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "파일 로드 중: %s"
@@ -6917,11 +6913,14 @@ msgstr "행동 로드"
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ".3mf를 열 때 프린터/필라멘트/프로세스 설정이 로드되어야 합니까?"
 
-msgid "Maximum recent projects"
-msgstr "최근 프로젝트 최대 표시"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "최근 프로젝트의 최대 표시 수"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "저장되지 않은 프로젝트에서 내 선택을 지웁니다."
@@ -7672,6 +7671,14 @@ msgstr ""
 
 msgid "Are you sure you want to enable this option?"
 msgstr "이 옵션을 사용하시겠습니까?"
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -8685,12 +8692,6 @@ msgstr "객체 목록"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "STL/STEP/3MF/OBJ/AMF 파일에서 형상 데이터 가져오기"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Paste from clipboard"
 msgstr "클립보드에서 붙여넣기"
 
@@ -8712,14 +8713,8 @@ msgstr "시점 회전"
 msgid "Pan View"
 msgstr "시점 이동"
 
-msgid "Mouse wheel"
-msgstr "마우스 휠"
-
 msgid "Zoom View"
 msgstr "시점 확대/축소"
-
-msgid "Shift+A"
-msgstr "Shift+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -8730,47 +8725,23 @@ msgstr ""
 "경우 선택한 객체만 조정되고, 그렇지 않은 경우 프로젝트의 모든 객체가 조정됩니"
 "다."
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr "현재 플레이트에 있는 모든 객체의 방향을 자동으로 지정합니다."
-
-msgid "Shift+Tab"
-msgstr "Shift+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "사이드바 접기/펼치기"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+아무 화살표"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "카메라 공간에서 이동"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+마우스 왼쪽 버튼"
-
 msgid "Select a part"
 msgstr "부품 선택"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+마우스 왼쪽 버튼"
-
 msgid "Select multiple objects"
 msgstr "여러 객체 선택"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+화살표"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+마우스 왼쪽 버튼"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+마우스 왼쪽 버튼"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift+마우스 왼쪽 버튼"
 
 msgid "Select objects by rectangle"
 msgstr "사각형으로 객체 선택"
@@ -8798,9 +8769,6 @@ msgstr "화살표 오른쪽으로"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "선택 항목을 +X 방향으로 10mm 이동"
-
-msgid "Shift+Any arrow"
-msgstr "Shift+화살표"
 
 msgid "Movement step set to 1 mm"
 msgstr "1mm로 이동"
@@ -8886,23 +8854,11 @@ msgstr "출력판"
 msgid "Move: press to snap by 1mm"
 msgstr "이동: 눌러서 1mm씩 이동"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+마우스 휠"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "서포트/색상 칠하기: 펜 반경 조정"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+마우스 휠"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "서포트/색상 칠하기: 단면 위치 조정"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+마우스 휠"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+마우스 휠"
 
 msgid "Gizmo"
 msgstr "변형도구"
@@ -8945,9 +8901,6 @@ msgstr "Gcode 창 켜기/끄기"
 
 msgid "Move slider 5x faster"
 msgstr "슬라이더를 5배 빠르게 이동"
-
-msgid "Shift+Mouse wheel"
-msgstr "Shift+마우스 휠"
 
 msgid "Horizontal slider - Move to start position"
 msgstr "수평 슬라이더 - 시작 위치로 이동"
@@ -9687,6 +9640,11 @@ msgstr ""
 "조정할 수 있습니다."
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -10286,10 +10244,9 @@ msgstr "정밀한 벽"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
-"외벽 간격을 조정하여 쉘 정밀도를 향상시킵니다. 이는 또한 레이어 일관성을 향상"
-"시킵니다."
 
 msgid "Only one wall on top surfaces"
 msgstr "상단 표면에 단일 벽 생성"
@@ -10543,8 +10500,8 @@ msgid ""
 "indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
-"날카로운 각도를 감지하기 전에 형상이 무시됩니다. 이 매개변수는 무시하는 형"
-"상의 최소 길이를 나타냅니다.\n"
+"날카로운 각도를 감지하기 전에 형상이 무시됩니다. 이 매개변수는 무시하는 형상"
+"의 최소 길이를 나타냅니다.\n"
 "0으로 비활성화합니다"
 
 msgid "Select printers"
@@ -11723,6 +11680,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr ""
 
@@ -11797,16 +11764,16 @@ msgid "Lateral lattice angle 1"
 msgstr "격자 각도 1"
 
 msgid ""
-"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr "Z 방향의 첫 번째 2D 격자 요소 집합의 각도입니다. 0은 수직입니다."
 
 msgid "Lateral lattice angle 2"
 msgstr "격자 각도 2"
 
 msgid ""
-"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr "Z 방향에서 두 번째 2D 격자 요소 세트의 각도입니다. 0은 수직입니다."
 
 msgid "Infill overhang angle"
@@ -11942,7 +11909,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12126,12 +12094,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop. At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -12491,22 +12459,23 @@ msgid ""
 "a cross texture."
 msgstr ""
 
-msgid "Sparse infill rotatation template"
+msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
+msgid "Solid infill rotation template"
 msgstr ""
 
 msgid ""
@@ -14064,9 +14033,6 @@ msgstr "남은 필라멘트를 프라임 타워에서 제거"
 msgid "Enable filament ramming"
 msgstr ""
 
-msgid "Enable filament ramming."
-msgstr "필라멘트 채워넣기 활성화"
-
 msgid "No sparse layers (beta)"
 msgstr "희소 레이어 없음(베타)"
 
@@ -14819,6 +14785,9 @@ msgid ""
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -18202,6 +18171,103 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 "
 "높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "외벽 간격을 조정하여 쉘 정밀도를 향상시킵니다. 이는 또한 레이어 일관성을 "
+#~ "향상시킵니다."
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "필라멘트 채워넣기 활성화"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + 마우스 휠"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + 마우스 휠"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + 마우스 왼쪽 버튼"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Shift + 마우스 위 or 아래"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "마우스 왼쪽 버튼:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "마우스 오른쪽 버튼:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Shift + 마우스 왼쪽 버튼:"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift + 마우스 오른쪽 버튼:"
+
+#~ msgid "Recent projects"
+#~ msgstr "최근 프로젝트"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "최근 프로젝트 최대 표시"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "최근 프로젝트의 최대 표시 수"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Shift+A"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Shift+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+아무 화살표"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+마우스 왼쪽 버튼"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+마우스 왼쪽 버튼"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+화살표"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+마우스 왼쪽 버튼"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+마우스 왼쪽 버튼"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift+마우스 왼쪽 버튼"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift+화살표"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+마우스 휠"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+마우스 휠"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+마우스 휠"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+마우스 휠"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift+마우스 휠"
 
 #~ msgid "Set Position"
 #~ msgstr "위치 설정"
