@@ -90,7 +90,8 @@ Parallel lines spaced according to infill density. Each layer is printed perpend
 - **Layer time Variability:** Unnoticeable
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
+  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
   - **[Ironing](quality_settings_ironing)**
 
@@ -109,7 +110,8 @@ Recommended with layer anchoring to improve not perpendicular strength.
 - **Layer time Variability:** Unnoticeable
 - **Material/Time (Higher better):** Normal
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
+  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
 
 ![infill-top-aligned-rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-aligned-rectilinear.png?raw=true)
@@ -447,7 +449,8 @@ Fills the area with progressively smaller versions of the outer contour, creatin
 - **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
+  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
   - **[Ironing](quality_settings_ironing)**
 
@@ -466,7 +469,8 @@ Print speed is very low due to the complexity of the path, which can lead to lon
 - **Layer time Variability:** None
 - **Material/Time (Higher better):** Low
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
+  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
 
 ![infill-top-hilbert-curve](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-hilbert-curve.png?raw=true)
@@ -483,7 +487,8 @@ Spiral pattern that fills the area with concentric arcs, creating a smooth and c
 - **Layer time Variability:** Unnoticeable
 - **Material/Time (Higher better):** Normal-High
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
+  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
 
 ![infill-top-archimedean-chords](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-archimedean-chords.png?raw=true)
@@ -500,7 +505,8 @@ Aesthetic pattern with low strength and high print time.
 - **Layer time Variability:** None
 - **Material/Time (Higher better):** Normal-Low
 - **Applies to:**
-  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
+  - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
+  - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
 
 ![infill-top-octagram-spiral](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-top-octagram-spiral.png?raw=true)
