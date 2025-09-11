@@ -160,8 +160,9 @@ public:
     float width;
     // Height of the extrusion, used for visualization purposes.
     float height;
-    // PPS: Speed ratio.
-    float speed_ratio = 1;
+    // PPS: This part is necessary to determine the filling line in the wall generation sequence (Odd-Even).
+    // It is used to change the extrusion density and speed of any inner walls.
+    bool is_even = 0;
 
     ExtrusionPath() : mm3_per_mm(-1), width(-1), height(-1), m_role(erNone), m_no_extrusion(false) {}
     ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), m_role(role), m_no_extrusion(false) {}
@@ -175,7 +176,7 @@ public:
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
-        , speed_ratio(rhs.speed_ratio)
+        , is_even(rhs.is_even)
     {}
     ExtrusionPath(ExtrusionPath &&rhs)
         : polyline(std::move(rhs.polyline))
@@ -185,7 +186,7 @@ public:
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
-        , speed_ratio(rhs.speed_ratio)
+        , is_even(rhs.is_even)
     {}
     ExtrusionPath(const Polyline &polyline, const ExtrusionPath &rhs)
         : polyline(polyline)
@@ -195,7 +196,7 @@ public:
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
-        , speed_ratio(rhs.speed_ratio)
+        , is_even(rhs.is_even)
     {}
     ExtrusionPath(Polyline &&polyline, const ExtrusionPath &rhs)
         : polyline(std::move(polyline))
@@ -205,7 +206,7 @@ public:
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
-        , speed_ratio(rhs.speed_ratio)
+        , is_even(rhs.is_even)
     {}
 
     ExtrusionPath& operator=(const ExtrusionPath& rhs) {

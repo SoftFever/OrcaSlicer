@@ -392,14 +392,9 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             continue;
 
         // PPS: Odd-Even wall order
-        float _slowdown = 1;
+        float _flow_ratio = 1;
         if (extrusion->is_even) {
-            _slowdown = perimeter_generator.config->even_loops_speed.get_abs_value(1);
-            if (!perimeter_generator.config->even_loops_speed.percent)
-                _slowdown /= perimeter_generator.config->inner_wall_speed;   
-            float _flow_ratio = perimeter_generator.config->even_loops_flow_ratio; //PPS: Here can put the code of implementation of staggered perimeters 
-            for (Arachne::ExtrusionJunction &ej : extrusion->junctions)
-                ej.w *= _flow_ratio;
+            _flow_ratio = perimeter_generator.config->even_loops_flow_ratio; //PPS: Here can put the code of implementation of staggered perimeters 
         } 
 
         const bool    is_external = extrusion->inset_idx == 0;
@@ -440,11 +435,6 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             // get non-overhang paths by intersecting this loop with the grown lower slices
             extrusion_paths_append(paths, clip_extrusion(extrusion_path, lower_slices_paths, ClipperLib_Z::ctIntersection), role,
                                    is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
-            
-            // apply slowdow to the paths
-            for (ExtrusionPath& path : paths) {
-                path.speed_ratio = _slowdown;
-            }
             
             // Always reverse extrusion if use fuzzy skin: https://github.com/SoftFever/OrcaSlicer/pull/2413#issuecomment-1769735357
             if (overhangs_reverse && perimeter_generator.has_fuzzy_skin) {
@@ -549,9 +539,18 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
         // Append paths to collection.
         if (!paths.empty()) {
+
+            // apply slowdow to the paths
+            for (ExtrusionPath& path : paths) {
+                path.is_even = extrusion->is_even;
+                path.width *= _flow_ratio;
+                path.mm3_per_mm *= _flow_ratio;
+            }
+
             if (extrusion->is_closed) {
                 ExtrusionLoop extrusion_loop(std::move(paths), pg_extrusion.is_contour ? elrDefault : elrHole);
                 extrusion_loop.make_counter_clockwise();
+                extrusion_loop.is_even = extrusion->is_even;
                 // TODO: it seems in practice that ExtrusionLoops occasionally have significantly disconnected paths,
                 // triggering the asserts below. Is this a problem?
                 for (auto it = std::next(extrusion_loop.paths.begin()); it != extrusion_loop.paths.end(); ++it) {
@@ -572,6 +571,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 }
                 ExtrusionMultiPath multi_path;
                 multi_path.paths.emplace_back(std::move(paths.front()));
+                multi_path.is_even = extrusion->is_even;
 
                 for (auto it_path = std::next(paths.begin()); it_path != paths.end(); ++it_path) {
                     if (multi_path.paths.back().last_point() != it_path->first_point()) {
@@ -1581,9 +1581,6 @@ void PerimeterGenerator::process_classic()
                     int              _outer_walls = this->config->outermost_wall_control ? 1 : 0;
                     int              _loops_count = loop_number - _outer_walls;
                     float            _flow_ratio  = config->even_loops_flow_ratio;
-                    float            _slowdown    = config->even_loops_speed.get_abs_value(1);
-                    if (!config->even_loops_speed.percent)
-                        _slowdown /= config->inner_wall_speed;
 
                     reorder_oddeven_loops(_even_odd, this->config->loop_sequence, _loops_count, _outer_walls);
 
@@ -1595,7 +1592,6 @@ void PerimeterGenerator::process_classic()
                                     ExtrusionLoop* _loop = static_cast<ExtrusionLoop*>(_extrusion);
                                     for (ExtrusionPath& _path : _loop->paths) {
                                         _path.is_even     = true;
-                                        _path.speed_ratio = _slowdown;
                                         _path.mm3_per_mm *= _flow_ratio;
                                         _path.width *= _flow_ratio;
                                     }
@@ -2527,7 +2523,7 @@ void PerimeterGenerator::process_arachne()
                 for (int _ip = 0; _ip <= loop_number; _ip++)
                     for (PerimeterGeneratorArachneExtrusion& _extrusion : ordered_extrusions) {
                         if (abs(_even_odd[_ip]) == _extrusion.extrusion->inset_idx) {
-                            _extrusion.extrusion->is_even = _even_odd[_ip] < 0; 
+                            _extrusion.extrusion->is_even = (_even_odd[_ip] < 0); 
                             _new_extrusion.emplace_back(_extrusion);
                         }
                     }
