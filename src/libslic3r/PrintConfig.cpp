@@ -2564,10 +2564,10 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10000));
 
-    def = this->add("travel_short_distance_acceleration", coFloat);
-    def->label = L("Travel short distance");
-    def->tooltip = L("Acceleration for short travel distances on external perimeters "
-                     "that fall below the retraction travel distance threshold. "
+    def = this->add("short_distance_acceleration", coFloat);
+    def->label = L("Travel/wipe short distance");
+    def->tooltip = L("Acceleration for travel/wipe moves right before external perimeters, "
+                     "if the move length is shorter than the retraction distance threshold. "
                      "Using gentler acceleration reduces ringing and ghosting. "
                      "Set to 0 to disable.");
     def->sidetext = u8"mm/s²";	// millimeters per second squared, don't need translation

@@ -4785,8 +4785,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             ExtrusionPath fake_path_wipe(Polyline{pt, current_point}, paths.front());
             fake_path_wipe.set_force_no_extrusion(true);
             fake_path_wipe.mm3_per_mm = 0;
-            //fake_path_wipe.set_extrusion_role(erExternalPerimeter);
-            gcode += extrude_path(fake_path_wipe, "move inwards before retraction/seam", speed);
+            fake_path_wipe.set_extrusion_role(erWipeBeforeExtLoop);
+            gcode += extrude_path(fake_path_wipe, "wipe before external loop", speed);
         }
     }
 
@@ -5243,21 +5243,28 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else if (this->object_layer_over_raft() && m_config.first_layer_acceleration_over_raft.value > 0) {
             acceleration = m_config.first_layer_acceleration_over_raft.value;
 #endif
-        } else if (m_config.get_abs_value("bridge_acceleration") > 0 && is_bridge(path.role())) {
+        } else if (is_bridge(path.role()) && m_config.get_abs_value("bridge_acceleration") > 0) {
             acceleration = m_config.get_abs_value("bridge_acceleration");
-        } else if (m_config.get_abs_value("sparse_infill_acceleration") > 0 && (path.role() == erInternalInfill)) {
+        } else if (path.role() == erInternalInfill && m_config.get_abs_value("sparse_infill_acceleration") > 0) {
             acceleration = m_config.get_abs_value("sparse_infill_acceleration");
-        } else if (m_config.get_abs_value("internal_solid_infill_acceleration") > 0 && (path.role() == erSolidInfill)) {
+        } else if (path.role() == erSolidInfill && m_config.get_abs_value("internal_solid_infill_acceleration") > 0) {
             acceleration = m_config.get_abs_value("internal_solid_infill_acceleration");
-        } else if (m_config.outer_wall_acceleration.value > 0 && is_external_perimeter(path.role())) {
+        } else if (is_external_perimeter(path.role()) && m_config.outer_wall_acceleration.value > 0) {
             acceleration = m_config.outer_wall_acceleration.value;
-        } else if (m_config.inner_wall_acceleration.value > 0 && is_internal_perimeter(path.role())) {
+        } else if (is_internal_perimeter(path.role()) && m_config.inner_wall_acceleration.value > 0) {
             acceleration = m_config.inner_wall_acceleration.value;
-        } else if (m_config.top_surface_acceleration.value > 0 && is_top_surface(path.role())) {
+        } else if (is_top_surface(path.role()) && m_config.top_surface_acceleration.value > 0) {
             acceleration = m_config.top_surface_acceleration.value;
+        } else if ((path.role() == erWipeBeforeExtLoop)) {
+            if (m_config.short_distance_acceleration.value > 0. && path.length() < scale_(EXTRUDER_CONFIG(retraction_minimum_travel))){
+                acceleration = m_config.short_distance_acceleration.value;    
+            } else if (m_config.outer_wall_acceleration.value > 0) {
+                acceleration = m_config.outer_wall_acceleration.value;
+            }
         } else {
             acceleration = m_config.default_acceleration.value;
         }
+        
         acceleration_i = (unsigned int)floor(acceleration + 0.5);
     }
 
@@ -5319,8 +5326,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             if (sloped) {
                 speed = std::min(speed, m_config.scarf_joint_speed.get_abs_value(m_config.get_abs_value("outer_wall_speed")));
             }
-        } 
-        else if(path.role() == erInternalBridgeInfill) {
+        } else if (path.role() == erWipeBeforeExtLoop) {
+            speed = m_config.get_abs_value("outer_wall_speed");
+        } else if (path.role() == erInternalBridgeInfill) {
             speed = m_config.get_abs_value("internal_bridge_speed");
         } else if (path.role() == erOverhangPerimeter || path.role() == erSupportTransition || path.role() == erBridgeInfill) {
             speed = m_config.get_abs_value("bridge_speed");
@@ -5542,8 +5550,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (path.role() != m_last_processor_extrusion_role) {
         m_last_processor_extrusion_role = path.role();
-        sprintf(buf, ";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(m_last_processor_extrusion_role).c_str());
-        gcode += buf;
+
+        if (path.role() != erWipeBeforeExtLoop) { // skip the wipe before external perimeter in the role tag export as it is not a "real" extrusion path
+            sprintf(buf, ";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(m_last_processor_extrusion_role).c_str());
+            gcode += buf;
+        }
     }
 
     if (last_was_wipe_tower || m_last_width != path.width) {
@@ -6002,6 +6013,7 @@ std::string GCode::extrusion_role_to_string_for_parser(const ExtrusionRole & rol
         case erSupportMaterialInterface: return "SupportMaterialInterface";
         case erSupportTransition: return "SupportTransition";
         case erWipeTower: return "WipeTower";
+        case erWipeBeforeExtLoop: return "WipeBeforeExternalLoop";
         case erCustom:
         case erMixed:
         case erCount:
@@ -6071,8 +6083,8 @@ std::string GCode::travel_to(const Point& point, ExtrusionRole role, std::string
         }
     } else {
         if (m_config.default_acceleration.value > 0) {
-            if (m_config.travel_short_distance_acceleration.value > 0. && role == erExternalPerimeter && travel.length() < scale_(EXTRUDER_CONFIG(retraction_minimum_travel))) {
-                acceleration_to_set = (unsigned int) floor(m_config.travel_short_distance_acceleration.value + 0.5);
+            if (m_config.short_distance_acceleration.value > 0. && (role == erExternalPerimeter || role == erWipeBeforeExtLoop) && travel.length() < scale_(EXTRUDER_CONFIG(retraction_minimum_travel))) {
+                acceleration_to_set = (unsigned int) floor(m_config.short_distance_acceleration.value + 0.5);
             }else if (m_config.travel_acceleration.value > 0) {
                 acceleration_to_set = (unsigned int) floor(m_config.travel_acceleration.value + 0.5);
             }

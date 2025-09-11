@@ -580,6 +580,7 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
         case erSupportMaterialInterface     : return L("Support interface");
         case erSupportTransition            : return L("Support transition");
         case erWipeTower                    : return L("Prime tower");
+        case erWipeBeforeExtLoop            : return L("Wipe before external loop");
         case erCustom                       : return L("Custom");
         case erMixed                        : return L("Multiple");
         default                             : assert(false);
@@ -623,6 +624,8 @@ ExtrusionRole ExtrusionEntity::string_to_role(const std::string_view role)
         return erSupportTransition;
     else if (role == L("Prime tower"))
         return erWipeTower;
+    else if (role == L("Wipe before external loop"))
+        return erWipeBeforeExtLoop;
     else if (role == L("Custom"))
         return erCustom;
     else if (role == L("Multiple"))
