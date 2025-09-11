@@ -8,38 +8,61 @@ There is no one-size-fits-all solution, as the best pattern depends on the speci
 Many patterns may look similar and have similar overall specifications, but they can behave very differently in practice.  
 As most settings in 3D printing, experience is the best way to determine which pattern works best for your specific needs.
 
+## Analysis parameters
+
+### Strength
+
+- **X-Y Direction**: The strength of the print in the "Horizontal" X-Y plane. Affected by the pattern's connections between walls, contact between layers, and path.
+- **Z Direction**: The strength of the print in the "Vertical" Z direction. Affected by contact between layers.
+
+### Material Usage
+
+Not all patterns use the same amount of material due to their **Density Calculations** and adjustments to the paths.  
+This leads to patterns that do not use the specified percentage but rather variations of it.
+
+### Print Time
+
+Print time can vary significantly between patterns due to differences in their pathing and infill strategies.  
+Some patterns may complete faster due to more efficient use of the print head's movement, while others may take longer due to more complex paths.
+
+### Layer Time Variability
+
+Layer time variability refers to the differences in time it takes to print each layer of a pattern. Some patterns may have consistent layer times, while others may experience significant fluctuations.
+
+![fill-layer-time-variability](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/fill-layer-time-variability.png?raw=true)
+
 ## Patterns Quick Reference
 
-| | Pattern | Applies to | X-Y Strength | Z Strength | Material Usage | Print Time |
-|---|---|---|---|---|---|---|
-| ![param_monotonic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_monotonic.svg?raw=true) | [Monotonic](#monotonic) | - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Normal | Normal | Normal-High | Normal-Low |
-| ![param_monotonicline](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_monotonicline.svg?raw=true) | [Monotonic line](#monotonic-line) | - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Normal | Normal | Normal | Normal |
-| ![param_rectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_rectilinear.svg?raw=true) | [Rectilinear](#rectilinear) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** - **[Ironing](quality_settings_ironing)** | Normal-Low | Low | Normal | Normal-Low |
-| ![param_alignedrectilinear](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_alignedrectilinear.svg?raw=true) | [Aligned Rectilinear](#aligned-rectilinear) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Normal-Low | Normal | Normal | Normal-Low |
-| ![param_zigzag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_zigzag.svg?raw=true) | [Zig Zag](#zig-zag) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-Low | Low | Normal | Normal-Low |
-| ![param_crosszag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_crosszag.svg?raw=true) | [Cross Zag](#cross-zag) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal | Low | Normal | Normal-Low |
-| ![param_lockedzag](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lockedzag.svg?raw=true) | [Locked Zag](#locked-zag) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-Low | Normal-Low | Low | Extra-High |
-| ![param_line](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_line.svg?raw=true) | [Line](#line) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Low | Low | Normal-High | Normal-Low |
-| ![param_grid](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_grid.svg?raw=true) | [Grid](#grid) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | High | High | Normal-High | Normal-Low |
-| ![param_triangles](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_triangles.svg?raw=true) | [Triangles](#triangles) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | High | Normal | Normal-High | Normal-Low |
-| ![param_tri-hexagon](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tri-hexagon.svg?raw=true) | [Tri-hexagon](#tri-hexagon) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | High | Normal-High | Normal-High | Normal-Low |
-| ![param_cubic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_cubic.svg?raw=true) | [Cubic](#cubic) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | High | High | Normal-High | Normal-Low |
-| ![param_adaptivecubic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_adaptivecubic.svg?raw=true) | [Adaptive Cubic](#adaptive-cubic) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-High | Normal-High | Normal | Low |
-| ![param_quartercubic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_quartercubic.svg?raw=true) | [Quarter Cubic](#quarter-cubic) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | High | High | Normal-High | Normal-Low |
-| ![param_supportcubic](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_supportcubic.svg?raw=true) | [Support Cubic](#support-cubic) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Low | Low | Normal | Extra-Low |
-| ![param_lightning](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lightning.svg?raw=true) | [Lightning](#lightning) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Low | Low | Low | Ultra-Low |
-| ![param_honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_honeycomb.svg?raw=true) | [Honeycomb](#honeycomb) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | High | High | Low | Ultra-High |
-| ![param_3dhoneycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_3dhoneycomb.svg?raw=true) | [3D Honeycomb](#3d-honeycomb) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-High | Normal-High | Low | High |
-| ![param_lateral-honeycomb](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lateral-honeycomb.svg?raw=true) | [Lateral Honeycomb](#lateral-honeycomb) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-Low | Normal-Low | Normal-High | Normal-Low |
-| ![param_lateral-lattice](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lateral-lattice.svg?raw=true) | [Lateral Lattice](#lateral-lattice) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-Low | Low | Normal-High | Normal-Low |
-| ![param_crosshatch](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_crosshatch.svg?raw=true) | [Cross Hatch](#cross-hatch) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-High | Normal-High | Normal-Low | Normal-High |
-| ![param_tpmsd](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tpmsd.svg?raw=true) | [TPMS-D](#tpms-d) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | High | High | Normal-Low | High |
-| ![param_tpmsfk](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tpmsfk.svg?raw=true) | [TPMS-FK](#tpms-fk) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | Normal-High | Normal-High | Low | High |
-| ![param_gyroid](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_gyroid.svg?raw=true) | [Gyroid](#gyroid) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** | High | High | Normal-Low | Normal-High |
-| ![param_concentric](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_concentric.svg?raw=true) | [Concentric](#concentric) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** - **[Ironing](quality_settings_ironing)** | Low | Normal | Normal-High | Normal-Low |
-| ![param_hilbertcurve](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_hilbertcurve.svg?raw=true) | [Hilbert Curve](#hilbert-curve) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Low | Normal | Low | High |
-| ![param_archimedeanchords](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_archimedeanchords.svg?raw=true) | [Archimedean Chords](#archimedean-chords) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Low | Normal | Normal-High | Normal-Low |
-| ![param_octagramspiral](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_octagramspiral.svg?raw=true) | [Octagram Spiral](#octagram-spiral) | - **[Sparse Infill](strength_settings_infill#sparse-infill-density)** - **[Solid Infill](strength_settings_infill#internal-solid-infill)** - **[Surface](strength_settings_top_bottom_shells)** | Low | Normal | Normal-Low | Normal |
+| - | Pattern | Strength | Material Usage | Print Time | Layer time Variability |
+|---|---|---|---|---|---|
+| <img   alt="param_monotonic"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_monotonic.svg?raw=true"   height="45"> | [Monotonic](#monotonic) | X-Y: ⚪️   Normal<br>     Z: ⚪️ Normal | ⚪️ Normal | 🔘 Normal-Low | N/A |
+| <img   alt="param_monotonicline"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_monotonicline.svg?raw=true"   height="45"> | [Monotonic   line](#monotonic-line) | X-Y: ⚪️ Normal<br>     Z: ⚪️ Normal | ⚪️   Normal | ⚪️   Normal | N/A |
+| <img   alt="param_rectilinear"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_rectilinear.svg?raw=true"   height="45"> | [Rectilinear](#rectilinear) | X-Y: ⚪️   Normal-Low<br>     Z: 🟡 Low | ⚪️ Normal | ⚪️ Normal | 🔵 Unnoticeable |
+| <img   alt="param_alignedrectilinear"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_alignedrectilinear.svg?raw=true"   height="45"> | [Aligned   Rectilinear](#aligned-rectilinear) | X-Y: ⚪️ Normal-Low<br>     Z: ⚪️ Normal | ⚪️   Normal | ⚪️   Normal | 🔵 Unnoticeable |
+| <img   alt="param_zigzag"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_zigzag.svg?raw=true"   height="45"> | [Zig Zag](#zig-zag) | X-Y: ⚪️   Normal-Low<br>     Z: 🟡 Low | ⚪️ Normal | ⚪️ Normal | 🔵 Unnoticeable |
+| <img   alt="param_crosszag"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_crosszag.svg?raw=true"   height="45"> | [Cross   Zag](#cross-zag) | X-Y: ⚪️ Normal<br>     Z: 🟡 Low | ⚪️   Normal | ⚪️   Normal | 🔵 Unnoticeable |
+| <img   alt="param_lockedzag"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lockedzag.svg?raw=true"   height="45"> | [Locked Zag](#locked-zag) | X-Y: ⚪️   Normal-Low<br>     Z: ⚪️ Normal-Low | 🟡 High | 🟠 Extra-High | 🔵 Unnoticeable |
+| <img   alt="param_line"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_line.svg?raw=true"   height="45"> | [Line](#line) | X-Y: 🟡 Low<br>     Z: 🟡 Low | ⚪️   Normal | 🔘   Normal-Low | 🟢 None |
+| <img   alt="param_grid"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_grid.svg?raw=true"   height="45"> | [Grid](#grid) | X-Y: 🟣   High<br>     Z: 🟣 High | ⚪️ Normal | ⚪️ Normal | 🔵 Unnoticeable |
+| <img   alt="param_triangles"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_triangles.svg?raw=true"   height="45"> | [Triangles](#triangles) | X-Y: 🟣 High<br>     Z: ⚪️ Normal | ⚪️   Normal | 🔘   Normal-Low | 🟢 None |
+| <img   alt="param_tri-hexagon"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tri-hexagon.svg?raw=true"   height="45"> | [Tri-hexagon](#tri-hexagon) | X-Y: 🟣   High<br>     Z: 🔘 Normal-High | ⚪️ Normal | 🔘 Normal-Low | 🟢 None |
+| <img   alt="param_cubic"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_cubic.svg?raw=true"   height="45"> | [Cubic](#cubic) | X-Y: 🟣 High<br>     Z: 🟣 High | ⚪️   Normal | 🔘   Normal-Low | 🔵 Unnoticeable |
+| <img   alt="param_adaptivecubic"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_adaptivecubic.svg?raw=true"   height="45"> | [Adaptive   Cubic](#adaptive-cubic) | X-Y: 🔘   Normal-High<br>     Z: 🔘 Normal-High | 🟣 Low | 🟣 Low | 🔵 Unnoticeable |
+| <img   alt="param_quartercubic"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_quartercubic.svg?raw=true"   height="45"> | [Quarter   Cubic](#quarter-cubic) | X-Y: 🟣 High<br>     Z: 🟣 High | ⚪️   Normal | 🔘   Normal-Low | 🔵 Unnoticeable |
+| <img   alt="param_supportcubic"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_supportcubic.svg?raw=true"   height="45"> | [Support Cubic](#support-cubic) | X-Y: 🟡   Low<br>     Z: 🟡 Low | 🔵 Extra-Low | 🔵 Extra-Low | 🔴 Likely Noticeable |
+| <img   alt="param_lightning"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lightning.svg?raw=true"   height="45"> | [Lightning](#lightning) | X-Y: 🟡 Low<br>     Z: 🟡 Low | 🟢   Ultra-Low  | 🔵   Extra-Low | 🔴 Likely Noticeable |
+| <img   alt="param_honeycomb"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_honeycomb.svg?raw=true"   height="45"> | [Honeycomb](#honeycomb) | X-Y: 🟣   High<br>     Z: 🟣 High | 🟡 High | 🔴 Ultra-High | 🟢 None |
+| <img   alt="param_3dhoneycomb"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_3dhoneycomb.svg?raw=true"   height="45"> | [3D   Honeycomb](#3d-honeycomb) | X-Y: 🔘 Normal-High<br>     Z: 🔘 Normal-High | 🔘   Normal-Low | 🟡   High | 🔵 Unnoticeable |
+| <img   alt="param_lateral-honeycomb"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lateral-honeycomb.svg?raw=true"   height="45"> | [Lateral   Honeycomb](#lateral-honeycomb) | X-Y: ⚪️   Normal-Low<br>     Z: ⚪️ Normal-Low | ⚪️ Normal | 🔘 Normal-Low | 🟡 Possibly   Noticeable |
+| <img   alt="param_lateral-lattice"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_lateral-lattice.svg?raw=true"   height="45"> | [Lateral   Lattice](#lateral-lattice) | X-Y: ⚪️ Normal-Low<br>     Z: 🟡 Low | ⚪️   Normal | 🔘   Normal-Low | 🔵 Unnoticeable |
+| <img   alt="param_crosshatch"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_crosshatch.svg?raw=true"   height="45"> | [Cross Hatch](#cross-hatch) | X-Y: 🔘   Normal-High<br>     Z: 🔘 Normal-High | ⚪️ Normal | ⚪️ Normal-High | 🔴 Likely Noticeable |
+| <img   alt="param_tpmsd"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tpmsd.svg?raw=true"   height="45"> | [TPMS-D](#tpms-d) | X-Y: 🟣 High<br>     Z: 🟣 High | ⚪️   Normal | ⚪️   Normal-High | 🔴 Likely Noticeable |
+| <img   alt="param_tpmsfk"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tpmsfk.svg?raw=true"   height="45"> | [TPMS-FK](#tpms-fk) | X-Y: 🔘   Normal-High<br>     Z: 🔘 Normal-High | ⚪️ Normal | 🟡 High | 🟡 Possibly   Noticeable |
+| <img   alt="param_gyroid"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_gyroid.svg?raw=true"   height="45"> | [Gyroid](#gyroid) | X-Y: 🟣 High<br>     Z: 🟣 High | ⚪️   Normal | ⚪️   Normal-High | 🔴 Likely Noticeable |
+| <img   alt="param_concentric"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_concentric.svg?raw=true"   height="45"> | [Concentric](#concentric) | X-Y: 🟡   Low<br>     Z: ⚪️ Normal | ⚪️ Normal | 🔘 Normal-Low | 🟢 None |
+| <img   alt="param_hilbertcurve"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_hilbertcurve.svg?raw=true"   height="45"> | [Hilbert   Curve](#hilbert-curve) | X-Y: 🟡 Low<br>     Z: ⚪️ Normal | ⚪️   Normal | 🟡   High | 🟢 None |
+| <img   alt="param_archimedeanchords"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_archimedeanchords.svg?raw=true"   height="45"> | [Archimedean   Chords](#archimedean-chords) | X-Y: 🟡   Low<br>     Z: ⚪️ Normal | ⚪️ Normal | 🔘 Normal-Low | 🔵 Unnoticeable |
+| <img   alt="param_octagramspiral"   src="https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_octagramspiral.svg?raw=true"   height="45"> | [Octagram   Spiral](#octagram-spiral) | X-Y: 🟡 Low<br>     Z: ⚪️ Normal | ⚪️   Normal | ⚪️   Normal | 🟢 None |
 
 > [!NOTE]
 > You can download [infill_desc_calculator.xlsx](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/print_settings/strength/infill_desc_calculator.xlsx?raw=true) used to calculate the values above.
@@ -48,13 +71,13 @@ As most settings in 3D printing, experience is the best way to determine which p
 
 [Rectilinear](#rectilinear) in a uniform direction for a smoother visual surface.
 
-- **Horizontal Strength (X-Y):** Normal
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** ⚪️ Normal
+- **Vertical Strength (Z):** ⚪️ Normal
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🔘 Normal-Low
+- **Layer time Variability:** N/A
+- **Material/Time (Higher better):** 🔘 Normal-High
 - **Applies to:**
   - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
@@ -65,13 +88,13 @@ As most settings in 3D printing, experience is the best way to determine which p
 
 [Monotonic](#monotonic) but avoids overlapping with the perimeter, reducing excess material at joints. May introduce visible seams and increase print time.
 
-- **Horizontal Strength (X-Y):** Normal
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** ⚪️ Normal
+- **Vertical Strength (Z):** ⚪️ Normal
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal
-- **Layer time Variability:** None
-- **Material/Time (Higher better):** Normal
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** ⚪️ Normal
+- **Layer time Variability:** N/A
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
   - **[Surface](strength_settings_top_bottom_shells)**
@@ -82,13 +105,13 @@ As most settings in 3D printing, experience is the best way to determine which p
 
 Parallel lines spaced according to infill density. Each layer is printed perpendicular to the previous, resulting in low vertical bonding. Consider using new [Zig Zag](#zig-zag) infill instead.
 
-- **Horizontal Strength (X-Y):** Normal-Low
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** ⚪️ Normal-Low
+- **Vertical Strength (Z):** 🟡 Low
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** ⚪️ Normal
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
   - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
@@ -102,13 +125,13 @@ Parallel lines spaced according to infill density. Each layer is printed perpend
 Parallel lines spaced by the infill spacing, each layer printed in the same direction as the previous layer. Good horizontal strength perpendicular to the lines, but terrible in parallel direction.
 Recommended with layer anchoring to improve not perpendicular strength.
 
-- **Horizontal Strength (X-Y):** Normal-Low
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** ⚪️ Normal-Low
+- **Vertical Strength (Z):** ⚪️ Normal
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** ⚪️ Normal
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
   - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
@@ -120,13 +143,13 @@ Recommended with layer anchoring to improve not perpendicular strength.
 
 Similar to [rectilinear](#rectilinear) with consistent pattern between layers. Allows you to add a Symmetric infill Y axis for models with two symmetric parts.
 
-- **Horizontal Strength (X-Y):** Normal-Low
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** ⚪️ Normal-Low
+- **Vertical Strength (Z):** 🟡 Low
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** ⚪️ Normal
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -136,13 +159,13 @@ Similar to [rectilinear](#rectilinear) with consistent pattern between layers. A
 
 Similar to [Zig Zag](#zig-zag) but displacing each layer with Infill shift step parameter.
 
-- **Horizontal Strength (X-Y):** Normal
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** ⚪️ Normal
+- **Vertical Strength (Z):** 🟡 Low
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** ⚪️ Normal
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -152,13 +175,13 @@ Similar to [Zig Zag](#zig-zag) but displacing each layer with Infill shift step 
 
 Adaptive version of [Zig Zag](#zig-zag) adding an external skin texture to interlock layers and a low material skeleton.
 
-- **Horizontal Strength (X-Y):** Normal-Low
-- **Vertical Strength (Z):** Normal-Low
+- **Horizontal Strength (X-Y):** ⚪️ Normal-Low
+- **Vertical Strength (Z):** ⚪️ Normal-Low
 - **Density Calculation:** Same as [Zig Zag](#zig-zag) but increasing near walls
-- **Material Usage:** Normal-High
-- **Print Time:** Extra-High
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Low
+- **Material Usage:** 🟡 High
+- **Print Time:** 🟠 Extra-High
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** ⚪️ Normal-Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -168,13 +191,13 @@ Adaptive version of [Zig Zag](#zig-zag) adding an external skin texture to inter
 
 Similar to [rectilinear](#rectilinear), but each line is slightly rotated to improve print speed.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** 🟡 Low
+- **Vertical Strength (Z):** 🟡 Low
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** None
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🔘 Normal-Low
+- **Layer time Variability:** 🟢 None
+- **Material/Time (Higher better):** 🔘 Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -184,13 +207,13 @@ Similar to [rectilinear](#rectilinear), but each line is slightly rotated to imp
 
 Two-layer pattern of perpendicular lines, forming a grid. Overlapping points may cause noise or artifacts.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 🟣 High
+- **Vertical Strength (Z):** 🟣 High
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** ⚪️ Normal
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -200,13 +223,13 @@ Two-layer pattern of perpendicular lines, forming a grid. Overlapping points may
 
 Triangle-based grid, offering strong X-Y strength but with triple overlaps at intersections.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 🟣 High
+- **Vertical Strength (Z):** ⚪️ Normal
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** None
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🔘 Normal-Low
+- **Layer time Variability:** 🟢 None
+- **Material/Time (Higher better):** 🔘 Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -216,13 +239,13 @@ Triangle-based grid, offering strong X-Y strength but with triple overlaps at in
 
 Similar to the [triangles](#triangles) pattern but offset to prevent triple overlaps at intersections. This design combines triangles and hexagons, providing excellent X-Y strength.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** Normal-High
+- **Horizontal Strength (X-Y):** 🟣 High
+- **Vertical Strength (Z):** 🔘 Normal-High
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** None
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🔘 Normal-Low
+- **Layer time Variability:** 🟢 None
+- **Material/Time (Higher better):** 🔘 Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -232,13 +255,13 @@ Similar to the [triangles](#triangles) pattern but offset to prevent triple over
 
 3D cube pattern with corners facing down, distributing force in all directions. Triangles in the horizontal plane provide good X-Y strength.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 🟣 High
+- **Vertical Strength (Z):** 🟣 High
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🔘 Normal-Low
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -248,13 +271,13 @@ Similar to the [triangles](#triangles) pattern but offset to prevent triple over
 
 [Cubic](#cubic) pattern with adaptive density: denser near walls, sparser in the center. Saves material and time while maintaining strength, ideal for large prints.
 
-- **Horizontal Strength (X-Y):** Normal-High
-- **Vertical Strength (Z):** Normal-High
+- **Horizontal Strength (X-Y):** 🔘 Normal-High
+- **Vertical Strength (Z):** 🔘 Normal-High
 - **Density Calculation:** Same as [Cubic](#cubic) but reduced in the center
-- **Material Usage:** Low
-- **Print Time:** Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal
+- **Material Usage:** 🟣 Low
+- **Print Time:** 🟣 Low
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -264,13 +287,13 @@ Similar to the [triangles](#triangles) pattern but offset to prevent triple over
 
 [Cubic](#cubic) pattern with extra internal divisions, improving X-Y strength.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 🟣 High
+- **Vertical Strength (Z):** 🟣 High
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🔘 Normal-Low
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -280,13 +303,13 @@ Similar to the [triangles](#triangles) pattern but offset to prevent triple over
 
 Support |Cubic is a variation of the [Cubic](#cubic) infill pattern that is specifically designed for support top layers. Will use more material than Lightning infill but will provide better strength. Nevertheless, it is still a low-density infill pattern.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** 🟡 Low
+- **Vertical Strength (Z):** 🟡 Low
 - **Density Calculation:** % of layer before top shell layers
-- **Material Usage:** Extra-Low
-- **Print Time:** Extra-Low
-- **Layer time Variability:** Likely Noticeable
-- **Material/Time (Higher better):** Normal
+- **Material Usage:** 🔵 Extra-Low
+- **Print Time:** 🔵 Extra-Low
+- **Layer time Variability:** 🔴 Likely Noticeable
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -296,13 +319,13 @@ Support |Cubic is a variation of the [Cubic](#cubic) infill pattern that is spec
 
 Ultra-fast, ultra-low material infill. Designed for speed and efficiency, ideal for quick prints or non-structural prototypes.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** 🟡 Low
+- **Vertical Strength (Z):** 🟡 Low
 - **Density Calculation:** % of layer before top shell layers
-- **Material Usage:** Ultra-Low
-- **Print Time:** Ultra-Low
-- **Layer time Variability:** Likely Noticeable
-- **Material/Time (Higher better):** Low
+- **Material Usage:** 🟢 Ultra-Low 
+- **Print Time:** 🔵 Extra-Low
+- **Layer time Variability:** 🔴 Likely Noticeable
+- **Material/Time (Higher better):** 🟡 Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -312,13 +335,13 @@ Ultra-fast, ultra-low material infill. Designed for speed and efficiency, ideal 
 
 Hexagonal pattern balancing strength and material use. Double walls in each hexagon increase material consumption.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 🟣 High
+- **Vertical Strength (Z):** 🟣 High
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** High
-- **Print Time:** Ultra-High
-- **Layer time Variability:** None
-- **Material/Time (Higher better):** Low
+- **Material Usage:** 🟡 High
+- **Print Time:** 🔴 Ultra-High
+- **Layer time Variability:** 🟢 None
+- **Material/Time (Higher better):** 🟡 Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -328,13 +351,13 @@ Hexagonal pattern balancing strength and material use. Double walls in each hexa
 
 This infill tries to generate a printable honeycomb structure by printing squares and octagons maintaining a vertical angle high enough to maintain contact with the previous layer.
 
-- **Horizontal Strength (X-Y):** Normal-High
-- **Vertical Strength (Z):** Normal-High
+- **Horizontal Strength (X-Y):** 🔘 Normal-High
+- **Vertical Strength (Z):** 🔘 Normal-High
 - **Density Calculation:** Unknown
-- **Material Usage:** Normal-Low
-- **Print Time:** High
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Low
+- **Material Usage:** 🔘 Normal-Low
+- **Print Time:** 🟡 High
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** 🟡 Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -344,13 +367,13 @@ This infill tries to generate a printable honeycomb structure by printing square
 
 Vertical Honeycomb pattern. Acceptable torsional stiffness. Developed for low densities structures like wings. Improve over [Lateral Lattice](#lateral-lattice) offers same performance with lower densities.This infill includes a Overhang angle parameter to improve the point of contact between layers and reduce the risk of delamination.
 
-- **Horizontal Strength (X-Y):** Normal-Low
-- **Vertical Strength (Z):** Normal-Low
+- **Horizontal Strength (X-Y):** ⚪️ Normal-Low
+- **Vertical Strength (Z):** ⚪️ Normal-Low
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Possibly Noticeable
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🔘 Normal-Low
+- **Layer time Variability:** 🟡 Possibly Noticeable
+- **Material/Time (Higher better):** 🔘 Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -360,13 +383,13 @@ Vertical Honeycomb pattern. Acceptable torsional stiffness. Developed for low de
 
 Low-strength pattern with good flexibility. You can adjust **Angle 1** and **Angle 2** to optimize the infill for your specific model. Each angle adjusts the plane of each layer generated by the pattern. 0° is vertical.
 
-- **Horizontal Strength (X-Y):** Normal-Low
-- **Vertical Strength (Z):** Low
+- **Horizontal Strength (X-Y):** ⚪️ Normal-Low
+- **Vertical Strength (Z):** 🟡 Low
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🔘 Normal-Low
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** 🔘 Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -377,13 +400,13 @@ Low-strength pattern with good flexibility. You can adjust **Angle 1** and **Ang
 Similar to [Gyroid](#gyroid) but with linear patterns, creating weak points at internal corners.
 Easier to slice but consider using [TPMS-D](#tpms-d) or [Gyroid](#gyroid) for better strength and flexibility.
 
-- **Horizontal Strength (X-Y):** Normal-High
-- **Vertical Strength (Z):** Normal-High
+- **Horizontal Strength (X-Y):** 🔘 Normal-High
+- **Vertical Strength (Z):** 🔘 Normal-High
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-High
-- **Layer time Variability:** Likely Noticeable
-- **Material/Time (Higher better):** Normal-Low
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** ⚪️ Normal-High
+- **Layer time Variability:** 🔴 Likely Noticeable
+- **Material/Time (Higher better):** ⚪️ Normal-Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -393,13 +416,13 @@ Easier to slice but consider using [TPMS-D](#tpms-d) or [Gyroid](#gyroid) for be
 
 Triply Periodic Minimal Surface (Schwarz Diamond). Hybrid between [Cross Hatch](#cross-hatch) and [Gyroid](#gyroid), combining rigidity and smooth transitions. Isotropic and strong in all directions. This geometry is faster to slice than Gyroid, but slower than Cross Hatch.
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 🟣 High
+- **Vertical Strength (Z):** 🟣 High
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** High
-- **Layer time Variability:** Likely Noticeable
-- **Material/Time (Higher better):** Normal-Low
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** ⚪️ Normal-High
+- **Layer time Variability:** 🔴 Likely Noticeable
+- **Material/Time (Higher better):** ⚪️ Normal-Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -409,13 +432,13 @@ Triply Periodic Minimal Surface (Schwarz Diamond). Hybrid between [Cross Hatch](
 
 Triply Periodic Minimal Surface (Fischer–Koch S) pattern. Its smooth, continuous geometry resembles trabecular bone microstructure, offering a balance between rigidity and energy absorption. Compared to [TPMS-D](#tpms-d), it has more complex curvature, which can improve load distribution and shock absorption in functional parts.
 
-- **Horizontal Strength (X-Y):** Normal-High
-- **Vertical Strength (Z):** Normal-High
+- **Horizontal Strength (X-Y):** 🔘 Normal-High
+- **Vertical Strength (Z):** 🔘 Normal-High
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** High
-- **Layer time Variability:** Possibly Noticeable
-- **Material/Time (Higher better):** Low
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🟡 High
+- **Layer time Variability:** 🟡 Possibly Noticeable
+- **Material/Time (Higher better):** 🟡 Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -425,13 +448,13 @@ Triply Periodic Minimal Surface (Fischer–Koch S) pattern. Its smooth, continuo
 
 Mathematical, isotropic surface providing equal strength in all directions. Excellent for strong, flexible prints and resin filling due to its interconnected structure. This pattern may require more time to slice because of all the points needed to generate each curve. If your model has complex geometry, consider using a simpler infill pattern like [TPMS-D](#tpms-d) or [Cross Hatch](#cross-hatch).
 
-- **Horizontal Strength (X-Y):** High
-- **Vertical Strength (Z):** High
+- **Horizontal Strength (X-Y):** 🟣 High
+- **Vertical Strength (Z):** 🟣 High
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-High
-- **Layer time Variability:** Likely Noticeable
-- **Material/Time (Higher better):** Normal-Low
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** ⚪️ Normal-High
+- **Layer time Variability:** 🔴 Likely Noticeable
+- **Material/Time (Higher better):** ⚪️ Normal-Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
 
@@ -441,13 +464,13 @@ Mathematical, isotropic surface providing equal strength in all directions. Exce
 
 Fills the area with progressively smaller versions of the outer contour, creating a concentric pattern. Ideal for 100% infill or flexible prints.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 🟡 Low
+- **Vertical Strength (Z):** ⚪️ Normal
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** None
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🔘 Normal-Low
+- **Layer time Variability:** 🟢 None
+- **Material/Time (Higher better):** 🔘 Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
   - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
@@ -461,13 +484,13 @@ Fills the area with progressively smaller versions of the outer contour, creatin
 Hilbert Curve is a space-filling curve that can be used to create a continuous infill pattern. It is known for its aesthetic appeal and ability to fill space efficiently.
 Print speed is very low due to the complexity of the path, which can lead to longer print times. It is not recommended for structural parts but can be used for aesthetic purposes.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 🟡 Low
+- **Vertical Strength (Z):** ⚪️ Normal
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** High
-- **Layer time Variability:** None
-- **Material/Time (Higher better):** Low
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🟡 High
+- **Layer time Variability:** 🟢 None
+- **Material/Time (Higher better):** 🟡 Low
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
   - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
@@ -479,13 +502,13 @@ Print speed is very low due to the complexity of the path, which can lead to lon
 
 Spiral pattern that fills the area with concentric arcs, creating a smooth and continuous infill. Can be filled with resin thanks to its interconnected hollow structure, which allows the resin to flow through it and cure properly.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 🟡 Low
+- **Vertical Strength (Z):** ⚪️ Normal
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal-Low
-- **Layer time Variability:** Unnoticeable
-- **Material/Time (Higher better):** Normal-High
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** 🔘 Normal-Low
+- **Layer time Variability:** 🔵 Unnoticeable
+- **Material/Time (Higher better):** 🔘 Normal-High
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
   - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
@@ -497,13 +520,13 @@ Spiral pattern that fills the area with concentric arcs, creating a smooth and c
 
 Aesthetic pattern with low strength and high print time.
 
-- **Horizontal Strength (X-Y):** Low
-- **Vertical Strength (Z):** Normal
+- **Horizontal Strength (X-Y):** 🟡 Low
+- **Vertical Strength (Z):** ⚪️ Normal
 - **Density Calculation:**  % of  total infill volume
-- **Material Usage:** Normal
-- **Print Time:** Normal
-- **Layer time Variability:** None
-- **Material/Time (Higher better):** Normal-Low
+- **Material Usage:** ⚪️ Normal
+- **Print Time:** ⚪️ Normal
+- **Layer time Variability:** 🟢 None
+- **Material/Time (Higher better):** ⚪️ Normal
 - **Applies to:**
   - **[Sparse Infill](strength_settings_infill#sparse-infill-density)**
   - **[Solid Infill](strength_settings_infill#internal-solid-infill)**
