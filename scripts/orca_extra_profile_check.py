@@ -214,7 +214,7 @@ def check_machine_default_materials(profiles_dir, vendor_name):
             
     return error_count, 0
 
-def check_filament_name_consistency(profiles_dir, vendor_name):
+def check_name_consistency(profiles_dir, vendor_name):
     """
     Make sure filament profile names match in both vendor json and subpath files.
     Filament profiles work only if the name in <vendor>.json matches the name in sub_path file,
@@ -243,39 +243,40 @@ def check_filament_name_consistency(profiles_dir, vendor_name):
         print_error(f"Error loading vendor profile {vendor_file}: {e}")
         return 1, 0
 
-    if 'filament_list' not in data:
-        return 0, 0
-    
-    for child in data['filament_list']:
-        name_in_vendor = child['name']
-        sub_path = child['sub_path']
-        sub_file = vendor_dir / sub_path
-
-        if not sub_file.exists():
-            print_error(f"Missing sub profile: '{sub_path}' declared in {vendor_file.relative_to(profiles_dir)}")
-            error_count += 1
+    for section in ['filament_list', 'machine_model_list', 'machine_list', 'process_list']:
+        if section not in data:
             continue
+        
+        for child in data[section]:
+            name_in_vendor = child['name']
+            sub_path = child['sub_path']
+            sub_file = vendor_dir / sub_path
 
-        try:
-            with open(sub_file, 'r', encoding='UTF-8') as fp:
-                sub_data = json.load(fp)
-        except Exception as e:
-            print_error(f"Error loading profile {sub_file}: {e}")
-            error_count += 1
-            continue
-
-        name_in_sub = sub_data['name']
-
-        if name_in_sub == name_in_vendor:
-            continue
-
-        if 'renamed_from' in sub_data:
-            renamed_from = [n.strip() for n in sub_data['renamed_from'].split(';')]
-            if name_in_vendor in renamed_from:
+            if not sub_file.exists():
+                print_error(f"Missing sub profile: '{sub_path}' declared in {vendor_file.relative_to(profiles_dir)}")
+                error_count += 1
                 continue
 
-        print_error(f"Filament name mismatch: required '{name_in_vendor}' in {vendor_file.relative_to(profiles_dir)} but found '{name_in_sub}' in {sub_file.relative_to(profiles_dir)}, and none of its `renamed_from` matches the required name either")
-        error_count += 1
+            try:
+                with open(sub_file, 'r', encoding='UTF-8') as fp:
+                    sub_data = json.load(fp)
+            except Exception as e:
+                print_error(f"Error loading profile {sub_file}: {e}")
+                error_count += 1
+                continue
+
+            name_in_sub = sub_data['name']
+
+            if name_in_sub == name_in_vendor:
+                continue
+
+            # if 'renamed_from' in sub_data:
+            #     renamed_from = [n.strip() for n in sub_data['renamed_from'].split(';')]
+            #     if name_in_vendor in renamed_from:
+            #         continue
+
+            print_error(f"{section} name mismatch: required '{name_in_vendor}' in {vendor_file.relative_to(profiles_dir)} but found '{name_in_sub}' in {sub_file.relative_to(profiles_dir)}")
+            error_count += 1
     
     return error_count, 0
 
@@ -385,7 +386,7 @@ def main():
         if args.check_obsolete_keys:
             warnings_found += check_obsolete_keys(profiles_dir, vendor_name)
 
-        new_errors, new_warnings = check_filament_name_consistency(profiles_dir, vendor_name)
+        new_errors, new_warnings = check_name_consistency(profiles_dir, vendor_name)
         errors_found += new_errors
         warnings_found += new_warnings
 

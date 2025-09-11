@@ -1,11 +1,11 @@
 {
     "type": "filament",
-    "filament_id": "BSFI010",
-    "setting_id": "BSSI010",
     "name": "Blocks Generic ASA-CF",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_filament_asa",
+    "from": "system",
+    "setting_id": "BSSI010",
+    "filament_id": "BSFI010",
+    "instantiation": "true",
     "filament_flow_ratio": [
         "0.95"
     ],
@@ -23,7 +23,7 @@
     ],
     "nozzle_temperature": [
         "260"
-    ], 
+    ],
     "nozzle_temperature_range_low": [
         "230"
     ],
@@ -38,21 +38,37 @@
     ],
     "fan_min_speed": [
         "10"
-    ], 
+    ],
     "fan_max_speed": [
         "45"
-    ], 
+    ],
     "fan_cooling_layer_time": [
         "35"
-    ], 
-    "slow_down_layer_time": ["3"], 
-    "close_fan_the_first_x_layers": ["4"], 
-    "slow_down_for_layer_cooling": ["1"],
-    "reduce_fan_stop_start_freq": ["1"],
-    "slow_down_min_speed": ["10"], 
-    "enable_overhang_bridge_fan": ["1"], 
-    "overhang_fan_threshold": ["25%"], 
-    "overhang_fan_speed": ["50%"], 
+    ],
+    "slow_down_layer_time": [
+        "3"
+    ],
+    "close_fan_the_first_x_layers": [
+        "4"
+    ],
+    "slow_down_for_layer_cooling": [
+        "1"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "1"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "enable_overhang_bridge_fan": [
+        "1"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
+    "overhang_fan_speed": [
+        "50%"
+    ],
     "additional_cooling_fan_speed": [
         "0"
     ],

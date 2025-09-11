@@ -1,11 +1,11 @@
 {
     "type": "filament",
-    "filament_id": "BSFI001",
-    "setting_id": "BSSI001",
     "name": "Blocks Generic PLA",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_filament_pla",
+    "from": "system",
+    "setting_id": "BSSI001",
+    "filament_id": "BSFI001",
+    "instantiation": "true",
     "filament_flow_ratio": [
         "0.95"
     ],
@@ -24,13 +24,15 @@
     "nozzle_temperature_range_high": [
         "230"
     ],
-    "slow_down_min_speed": ["30"],
+    "slow_down_min_speed": [
+        "30"
+    ],
     "additional_cooling_fan_speed": [
         "100"
     ],
     "complete_print_exhaust_fan_speed": [
         "80"
-    ], 
+    ],
     "activate_air_filtration": [
         "1"
     ],

@@ -1,9 +1,9 @@
 {
-    "from": "system",
-    "inherits": "0.10mm FAST DETAIL @MK4S 0.4",
-    "instantiation": "true",
-    "name": "0.10mm FAST DETAIL @CORE One 0.4",
     "type": "process",
+    "name": "0.10mm FAST DETAIL @CORE One 0.4",
+    "inherits": "0.10mm FAST DETAIL @MK4S 0.4",
+    "from": "system",
+    "instantiation": "true",
     "inner_wall_acceleration": "3000",
     "sparse_infill_acceleration": "6000",
     "internal_solid_infill_acceleration": "4000",
