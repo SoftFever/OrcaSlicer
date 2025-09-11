@@ -16,13 +16,13 @@
         "45"
     ],
     "fan_max_speed": [
-        "80"
+        "100"
     ],
     "fan_min_speed": [
-        "50"
+        "80"
     ],
     "filament_max_volumetric_speed": [
-      "4"
+      "5"
     ],
     "compatible_printers": [
 	  "EXO42 (0.4 nozzle)",
@@ -30,7 +30,14 @@
 	  "SH65 (0.4 nozzle)",
 	  "VS30MK3 (0.4 nozzle)",
 	  "VS30SC2 (0.4 nozzle)",
+	  "VS30SC (0.4 nozzle)",
+	  "VS30ULTRA (0.4 nozzle)",
 	  "VS30MK2 (0.4 nozzle)",
-	  "VS20MK2 (0.4 nozzle)"
+	  "VS20MK2 (0.4 nozzle)",
+	  "EXO42 Stage 2 (0.4 nozzle)",
+	  "EXO65 Stage 2 (0.6 nozzle)",
+	  "SH65 Stage 2 (0.4 nozzle)",
+	  "VS30SC2 Stage 2 (0.4 nozzle)",
+	  "VS30MK3 Stage 2 (0.4 nozzle)"
     ]
 }

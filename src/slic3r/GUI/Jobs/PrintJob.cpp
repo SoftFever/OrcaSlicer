@@ -16,7 +16,7 @@ static auto check_gcode_failed_str      = _u8L("Abnormal print file data. Please
 static auto     printjob_cancel_str         = _u8L("Task canceled.");
 static auto     timeout_to_upload_str       = _u8L("Upload task timed out. Please check the network status and try again.");
 static auto     failed_in_cloud_service_str = _u8L("Cloud service connection failed. Please try again.");
-static auto     file_is_not_exists_str      = _u8L("Print file not found. please slice again.");
+static auto     file_is_not_exists_str      = _u8L("Print file not found. Please slice again.");
 static auto file_over_size_str = _u8L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again.");
 static auto print_canceled_str    = _u8L("Task canceled.");
 static auto send_print_failed_str = _u8L("Failed to send the print job. Please try again.");
@@ -24,7 +24,7 @@ static auto upload_ftp_failed_str = _u8L("Failed to upload file to ftp. Please t
 
 static auto     desc_network_error          = _u8L("Check the current status of the bambu server by clicking on the link above.");
 static auto     desc_file_too_large         = _u8L("The size of the print file is too large. Please adjust the file size and try again.");
-static auto     desc_fail_not_exist         = _u8L("Print file not found, Please slice it again and send it for printing.");
+static auto     desc_fail_not_exist         = _u8L("Print file not found, please slice it again and send it for printing.");
 
 static auto desc_upload_ftp_failed      = _u8L("Failed to upload print file to FTP. Please check the network status and try again.");
 
@@ -47,12 +47,10 @@ void PrintJob::prepare()
 {
     if (job_data.is_from_plater)
         m_plater->get_print_job_data(&job_data);
-    if (&job_data) {
-        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
-        auto check_access_code_path = temp_file.c_str();
-        BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
-        job_data._temp_path = fs::path(check_access_code_path);
-    }
+    std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
+    auto check_access_code_path = temp_file.c_str();
+    BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
+    job_data._temp_path = fs::path(check_access_code_path);
 }
 
 void PrintJob::on_success(std::function<void()> success)
@@ -233,11 +231,16 @@ void PrintJob::process(Ctl &ctl)
     params.task_layer_inspect   = this->task_layer_inspect;
     params.task_record_timelapse= this->task_record_timelapse;
     params.ams_mapping          = this->task_ams_mapping;
+    params.ams_mapping2         = this->task_ams_mapping2;
     params.ams_mapping_info     = this->task_ams_mapping_info;
+    params.nozzles_info         = this->task_nozzles_info;
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
     params.task_bed_type        = this->task_bed_type;
     params.print_type           = this->m_print_type;
+    params.auto_bed_leveling    = this->auto_bed_leveling;
+    params.auto_flow_cali       = this->auto_flow_cali;
+    params.auto_offset_cali     = this->auto_offset_cali;
 
     if (m_print_type == "from_sdcard_view") {
         params.dst_file = m_dst_path;
@@ -271,7 +274,16 @@ void PrintJob::process(Ctl &ctl)
         auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
         if (model_name != model_info->metadata_items.end()) {
             try {
-                params.project_name = model_name->second;
+
+                std::string mall_model_name = model_name->second;
+                std::replace(mall_model_name.begin(), mall_model_name.end(), ' ', '_');
+                const char* unusable_symbols = "<>[]:/\\|?*\" ";
+                for (const char* symbol = unusable_symbols; *symbol != '\0'; ++symbol) {
+                    std::replace(mall_model_name.begin(), mall_model_name.end(), *symbol, '_');
+                }
+
+                std::regex pattern("_+");
+                params.project_name = std::regex_replace(mall_model_name, pattern, "_");
             }
             catch (...) {}
         }
@@ -501,7 +513,7 @@ void PrintJob::process(Ctl &ctl)
         else if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
 
             if (params.password.empty() || params.dev_ip.empty()) {
-                error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
+                error_text = wxString::Format(_L("Access code:%s IP address:%s"), params.password, params.dev_ip);
                 result = BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED;
             }
             else {
@@ -510,7 +522,7 @@ void PrintJob::process(Ctl &ctl)
                 is_try_lan_mode = true;
                 result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn, wait_fn);
                 if (result < 0) {
-                    error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
+                    error_text = wxString::Format(_L("Access code:%s IP address:%s"), params.password, params.dev_ip);
                     // try to send with cloud
                     BOOST_LOG_TRIVIAL(warning) << "print_job: use ftp send print failed";
                 }

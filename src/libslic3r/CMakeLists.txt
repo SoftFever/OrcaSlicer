@@ -3,9 +3,6 @@ project(libslic3r)
 
 include(PrecompiledHeader)
 
-string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
-set(SLIC3R_BUILD_TIME ${COMPILE_TIME})
-
 if(NOT DEFINED ORCA_CHECK_GCODE_PLACEHOLDERS)
     set(ORCA_CHECK_GCODE_PLACEHOLDERS "0")
 endif()
@@ -20,6 +17,8 @@ set(OpenVDBUtils_SOURCES "")
 if (TARGET OpenVDB::openvdb)
     set(OpenVDBUtils_SOURCES OpenVDBUtils.cpp OpenVDBUtils.hpp)
 endif()
+
+option(BUILD_SHARED_LIBS "Build shared libs" OFF)
 
 set(lisbslic3r_sources
     ArcFitter.cpp
@@ -43,6 +42,7 @@ set(lisbslic3r_sources
     FaceDetector.hpp
     Brim.cpp
     Brim.hpp
+    BrimEarsPoint.hpp
     BuildVolume.cpp
     BuildVolume.hpp
     Circle.cpp
@@ -51,15 +51,11 @@ set(lisbslic3r_sources
     clipper.hpp
     ClipperUtils.cpp
     ClipperUtils.hpp
-    Clipper2Utils.cpp
-    Clipper2Utils.hpp
     ClipperZUtils.hpp
     Color.cpp
     Color.hpp
     Config.cpp
     Config.hpp
-    CurveAnalyzer.cpp
-    CurveAnalyzer.hpp
     EdgeGrid.cpp
     EdgeGrid.hpp
     ElephantFootCompensation.cpp
@@ -81,7 +77,13 @@ set(lisbslic3r_sources
     ExtrusionEntityCollection.hpp
     ExtrusionSimulator.cpp
     ExtrusionSimulator.hpp
+    Feature/Interlocking/InterlockingGenerator.cpp
+    Feature/Interlocking/InterlockingGenerator.hpp
+    Feature/Interlocking/VoxelUtils.cpp
+    Feature/Interlocking/VoxelUtils.hpp
     FileParserError.hpp
+    Feature/FuzzySkin/FuzzySkin.cpp
+    Feature/FuzzySkin/FuzzySkin.hpp
     Fill/Fill.cpp
     Fill/Fill.hpp
     Fill/Fill3DHoneycomb.cpp
@@ -100,6 +102,10 @@ set(lisbslic3r_sources
     Fill/FillHoneycomb.hpp
     Fill/FillGyroid.cpp
     Fill/FillGyroid.hpp
+    Fill/FillTpmsD.cpp
+    Fill/FillTpmsD.hpp
+    Fill/FillTpmsFK.cpp
+    Fill/FillTpmsFK.hpp
     Fill/FillPlanePath.cpp
     Fill/FillPlanePath.hpp
     Fill/FillLine.cpp
@@ -309,16 +315,16 @@ set(lisbslic3r_sources
     Support/SupportLayer.hpp
     Support/SupportMaterial.cpp
     Support/SupportMaterial.hpp
-    Support/SupportParameters.hpp
     Support/SupportSpotsGenerator.cpp
     Support/SupportSpotsGenerator.hpp
     Support/TreeSupport.hpp
     Support/TreeSupport.cpp
-    Support/TreeSupport3D.cpp
     Support/TreeSupport3D.hpp
-    Support/TreeSupportCommon.hpp
-    Support/TreeModelVolumes.cpp
+    Support/TreeSupport3D.cpp
     Support/TreeModelVolumes.hpp
+    Support/TreeModelVolumes.cpp
+    Support/TreeSupportCommon.hpp
+    Support/SupportParameters.hpp
     PrincipalComponents2D.cpp
     PrincipalComponents2D.hpp
     MinimumSpanningTree.hpp
@@ -433,8 +439,6 @@ set(lisbslic3r_sources
     Arachne/utils/PolygonsSegmentIndex.hpp
     Arachne/utils/PolylineStitcher.hpp
     Arachne/utils/PolylineStitcher.cpp
-    Arachne/PerimeterOrder.hpp
-    Arachne/PerimeterOrder.cpp
     Arachne/SkeletalTrapezoidation.hpp
     Arachne/SkeletalTrapezoidation.cpp
     Arachne/SkeletalTrapezoidationEdge.hpp
@@ -449,10 +453,6 @@ set(lisbslic3r_sources
     calib.cpp
     GCode/Thumbnails.cpp
     GCode/Thumbnails.hpp
-    Interlocking/InterlockingGenerator.hpp
-    Interlocking/InterlockingGenerator.cpp
-    Interlocking/VoxelUtils.hpp
-    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)
@@ -514,7 +514,7 @@ encoding_check(libslic3r)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r SYSTEM PUBLIC ${EXPAT_INCLUDE_DIRS})
 
 # Find the OCCT and related libraries
 set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
@@ -552,7 +552,7 @@ set(OCCT_LIBS
     TKernel
 )
 
-
+find_package(libnoise REQUIRED)
 target_link_libraries(libslic3r
     libnest2d
     admesh
@@ -561,7 +561,6 @@ target_link_libraries(libslic3r
     miniz
     boost_libs
     clipper
-    nowide
     ${EXPAT_LIBRARIES}
     glu-libtess
     qhull
@@ -573,11 +572,11 @@ target_link_libraries(libslic3r
     PNG::PNG
     ZLIB::ZLIB
     ${OCCT_LIBS}
-    Clipper2
     mcut
     JPEG::JPEG
     qoi
     opencv_world
+    noise::noise
     )
 
 if(NOT WIN32)

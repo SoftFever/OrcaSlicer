@@ -15,12 +15,12 @@
     ],
     "printable_area": [
       "0x0",
-      "230x0",
-      "230x230",
-      "0x230"
+      "220x0",
+      "220x220",
+      "0x220"
     ],
     "printable_height": "250",
-	"nozzle_type": "hardened_steel",
+	"nozzle_type": "brass",
 	"auxiliary_fan": "0",
 	"machine_max_acceleration_extruding": [
 		"1000",
@@ -86,16 +86,19 @@
 	],
 	"printer_settings_id": "Artillery",
 	"retraction_minimum_travel": [
-		"2"
+		"1"
 	],
 	"retract_before_wipe": [
 		"0%"
 	],
 	"retraction_length": [
-		"2.2"
+		"1"
 	],
 	"retract_length_toolchange": [
-		"10"
+		"4"
+	],
+	"retraction_speed": [
+		"35"
 	],
 	"deretraction_speed": [
 		"0"
@@ -110,5 +113,4 @@
     "machine_end_gcode": "G91; Relative positionning\nG1 E-2 Z0.2 F2400; Retract and raise Z\nG1 X5 Y5 F3000; Wipe out\nG1 Z10; Raise Z more\nG90; Absolute positionning\nG1 X0 Y100; Present print\nM106 S0; Turn-off fan\nM104 S0; Turn-off hotend\nM140 S0; Turn-off bed\nM84 X Y E; Disable all steppers but Z",
     "layer_change_gcode": "",
     "scan_first_layer": "0"
-  }
-  
+}

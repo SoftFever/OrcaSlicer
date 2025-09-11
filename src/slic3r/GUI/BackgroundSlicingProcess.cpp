@@ -81,8 +81,8 @@ std::pair<std::string, std::vector<size_t>> SlicingProcessCompletedEvent::format
 			                  "of the program"))).str());
         error = std::string(errmsg.ToUTF8()) + "\n" + std::string(ex.what());
     } catch (const HardCrash &ex) {
-        error = GUI::format("A fatal error occurred: \"%1%\"", ex.what()) + "\n" +
-        		_u8L("Please save project and restart the program. ");
+        error = GUI::format(_u8L("A fatal error occurred: \"%1%\""), ex.what()) + "\n" +
+                            _u8L("Please save project and restart the program.");
     } catch (PlaceholderParserError &ex) {
 		error = ex.what();
 		monospace = 1;
@@ -199,7 +199,7 @@ void BackgroundSlicingProcess::process_fff()
 	//BBS: add the logic to process from an existed gcode file
 	if (m_print->finished()) {
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: skip slicing, to process previous gcode file")%__LINE__;
-		m_fff_print->set_status(80, _utf8(L("Processing G-Code from Previous file...")));
+		m_fff_print->set_status(80, _utf8(L("Processing G-code from Previous file...")));
 		wxCommandEvent evt(m_event_slicing_completed_id);
 		// Post the Slicing Finished message for the G-code viewer to update.
 		// Passing the timestamp 
@@ -690,6 +690,15 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 	DynamicPrintConfig new_config = config;
 	new_config.apply(*m_current_plate->config());
 	Print::ApplyStatus invalidated = m_print->apply(model, new_config);
+
+	// Orca: prevent resetting under gcode viewer mode
+    if (invalidated != PrintBase::APPLY_STATUS_UNCHANGED) {
+        const auto plater = GUI::wxGetApp().mainframe->m_plater;
+        if (plater && plater->only_gcode_mode()) {
+            invalidated = PrintBase::APPLY_STATUS_UNCHANGED;
+        }
+    }
+
 	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
 		!m_fff_print->is_step_done(psGCodeExport)) {
 		// Some FFF status was invalidated, and the G-code was not exported yet.
@@ -856,7 +865,7 @@ void BackgroundSlicingProcess::export_gcode()
 	}
 	catch (...)
 	{
-		throw Slic3r::ExportError(_utf8(L("Unknown error when export G-code.")));
+		throw Slic3r::ExportError(_utf8(L("Unknown error when exporting G-code.")));
 	}
 	switch (copy_ret_val) {
 	case CopyFileResult::SUCCESS: break; // no error
@@ -877,8 +886,8 @@ void BackgroundSlicingProcess::export_gcode()
 		//break;
 	default:
 		BOOST_LOG_TRIVIAL(error) << "Fail code(" << (int)copy_ret_val << ") when copy "<<output_path<<" to " << export_path << ".";
-		throw Slic3r::ExportError((boost::format(_utf8(L("Failed to save gcode file.\nError message: %1%.\nSource file %2%."))) % error_message % output_path).str());
-		//throw Slic3r::ExportError(_utf8(L("Unknown error when export G-code.")));
+		throw Slic3r::ExportError((boost::format(_utf8(L("Failed to save G-code file.\nError message: %1%.\nSource file %2%."))) % error_message % output_path).str());
+		//throw Slic3r::ExportError(_utf8(L("Unknown error when exporting G-code.")));
 		break;
 	}
 

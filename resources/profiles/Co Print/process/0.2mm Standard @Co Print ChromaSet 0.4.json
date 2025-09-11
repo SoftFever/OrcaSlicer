@@ -7,6 +7,8 @@
     "inherits": "fdm_process_coprint_common",
     "default_acceleration": "5000",
     "compatible_printers": [
-        "Co Print ChromaSet 0.4 nozzle"
+        "Co Print ChromaSet 0.4 nozzle",
+		"Co Print ChromaSet 0.4 nozzle - Ender-3 V3",
+		"Co Print ChromaSet 0.4 nozzle - Ender-3 V3 Plus"
     ]
 }

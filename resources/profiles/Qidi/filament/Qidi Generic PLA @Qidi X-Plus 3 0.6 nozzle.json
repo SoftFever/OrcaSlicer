@@ -1,0 +1,15 @@
+{
+    "type": "filament",
+	"filament_id": "GFL99",
+    "setting_id": "GFSL99",
+    "name": "Qidi Generic PLA @Qidi X-Plus 3 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Qidi Generic PLA",
+    "pressure_advance": [
+        "0.016"
+    ],
+	"compatible_printers": [
+		"Qidi X-Plus 3 0.6 nozzle"
+	]
+}
