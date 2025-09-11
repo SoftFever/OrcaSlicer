@@ -32,11 +32,11 @@ public:
     bool ShouldScrollToChildOnFocus(wxWindow* child) override { return false; }
 };
 
-wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *parent)
+wxBoxSizer *PreferencesDialog::create_item_title(wxString title)
 {
     wxBoxSizer *m_sizer_title = new wxBoxSizer(wxHORIZONTAL);
 
-    auto title_ctrl = new StaticLine(parent, 0, title);
+    auto title_ctrl = new StaticLine(m_parent, 0, title);
     title_ctrl->SetFont(Label::Head_14);
     title_ctrl->SetForegroundColour(DESIGN_GRAY900_COLOR);
     m_sizer_title->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN - 10));
@@ -46,21 +46,21 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     return m_sizer_title;
 }
 
-std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist, unsigned int current_index)
+std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(wxString title, wxString tooltip, std::string param, std::vector<wxString> vlist, unsigned int current_index)
 {
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
     auto tip = tooltip.IsEmpty() ? title : tooltip; // auto fill tooltips with title if its empty
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto combo_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     combo_title->SetFont(::Label::Body_14);
     combo_title->SetToolTip(tip);
     combo_title->Wrap(DESIGN_TITLE_SIZE.x);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
 
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(m_parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_14);
     combobox->GetDropDown().SetFont(::Label::Body_14);
 
@@ -76,7 +76,7 @@ std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(
     return {m_sizer_combox, combobox};
 }
 
-wxBoxSizer* PreferencesDialog::create_item_combobox(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist)
+wxBoxSizer* PreferencesDialog::create_item_combobox(wxString title, wxString tooltip, std::string param, std::vector<wxString> vlist)
 {
     unsigned int current_index = 0;
 
@@ -85,7 +85,7 @@ wxBoxSizer* PreferencesDialog::create_item_combobox(wxString title, wxWindow* pa
         current_index = atoi(current_setting.c_str());
     }
 
-    auto [sizer, combobox] = create_item_combobox_base(title, parent, tooltip, param, vlist, current_index);
+    auto [sizer, combobox] = create_item_combobox_base(title, tooltip, param, vlist, current_index);
 
     //// save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param](wxCommandEvent& e) {
@@ -96,7 +96,7 @@ wxBoxSizer* PreferencesDialog::create_item_combobox(wxString title, wxWindow* pa
     return sizer;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index)
+wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index)
 {
     assert(vlist.size() == config_name_index.size());
     unsigned int current_index = 0;
@@ -108,7 +108,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
         current_index = iterator - config_name_index.begin();
     }
 
-    auto [sizer, combobox] = create_item_combobox_base(title, parent, tooltip, param, vlist, current_index);
+    auto [sizer, combobox] = create_item_combobox_base(title, tooltip, param, vlist, current_index);
 
     //// save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, config_name_index](wxCommandEvent& e) {
@@ -119,8 +119,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     return sizer;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_language_combobox(
-    wxString title, wxWindow *parent, wxString tooltip)
+wxBoxSizer *PreferencesDialog::create_item_language_combobox(wxString title, wxString tooltip)
 {
     wxLanguage supported_languages[]{
         wxLANGUAGE_ENGLISH,
@@ -171,7 +170,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
 
     auto tip = tooltip.IsEmpty() ? title : tooltip; // auto fill tooltips with title if its empty
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto combo_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     combo_title->SetFont(::Label::Body_14);
     combo_title->SetToolTip(tip);
@@ -179,7 +178,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
 
 
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(m_parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_14);
     combobox->GetDropDown().SetFont(::Label::Body_14);
     auto language = app_config->get(param);
@@ -323,7 +322,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     return m_sizer_combox;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip)
+wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxString tooltip)
 {
 
     std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("China"), _L("Europe"), _L("North America"), _L("Others")};
@@ -336,14 +335,14 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
 
     auto tip = tooltip.IsEmpty() ? title : tooltip; // auto fill tooltips with title if its empty
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto combo_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     combo_title->SetFont(::Label::Body_14);
     combo_title->SetToolTip(tip);
     combo_title->Wrap(DESIGN_TITLE_SIZE.x);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
 
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(m_parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_14);
     combobox->GetDropDown().SetFont(::Label::Body_14);
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER);
@@ -410,19 +409,19 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     return m_sizer_combox;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_autoflush_combobox(wxString title, wxWindow *parent, wxString tooltip)
+wxBoxSizer *PreferencesDialog::create_item_autoflush(wxString title, wxString tooltip)
 {
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title , wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto combo_title = new wxStaticText(m_parent, wxID_ANY, title , wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     combo_title->SetFont(::Label::Body_14);
     combo_title->SetToolTip(tooltip);
     combo_title->Wrap(DESIGN_TITLE_SIZE.x);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
 
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(m_parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_14);
     combobox->GetDropDown().SetFont(::Label::Body_14);
 
@@ -453,19 +452,19 @@ wxBoxSizer *PreferencesDialog::create_item_autoflush_combobox(wxString title, wx
     return m_sizer_combox;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist)
+wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxString tooltip, std::vector<wxString> vlist)
 {
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto combo_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     combo_title->SetFont(::Label::Body_14);
     combo_title->SetToolTip(tooltip);
     combo_title->Wrap(DESIGN_TITLE_SIZE.x);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
 
-    auto                            combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(m_parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_14);
     combobox->GetDropDown().SetFont(::Label::Body_14);
 
@@ -487,9 +486,8 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     return m_sizer_combox;
 }
 
-
 wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
-    wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlista, std::vector<wxString> vlistb)
+    wxString title, wxString tooltip, std::string param, std::vector<wxString> vlista, std::vector<wxString> vlistb)
 {
     std::vector<wxString> params;
     Split(app_config->get(param), "/", params);
@@ -499,14 +497,14 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
    wxBoxSizer *m_sizer_tcombox= new wxBoxSizer(wxHORIZONTAL);
    m_sizer_tcombox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
-   auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+   auto combo_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
    combo_title->SetToolTip(tooltip);
    combo_title->Wrap(DESIGN_TITLE_SIZE.x);
    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
    combo_title->SetFont(::Label::Body_14);
    m_sizer_tcombox->Add(combo_title, 0, wxALIGN_CENTER);
 
-   auto combobox_left = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+   auto combobox_left = new ::ComboBox(m_parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
    combobox_left->SetFont(::Label::Body_14);
    combobox_left->GetDropDown().SetFont(::Label::Body_14);
 
@@ -515,13 +513,13 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
    combobox_left->SetValue(std::string(params[0].mb_str()));
    m_sizer_tcombox->Add(combobox_left, 0, wxALIGN_CENTER);
 
-   auto combo_title_add = new wxStaticText(parent, wxID_ANY, wxT("+"), wxDefaultPosition, wxDefaultSize, 0);
+   auto combo_title_add = new wxStaticText(m_parent, wxID_ANY, wxT("+"), wxDefaultPosition, wxDefaultSize, 0);
    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
    combo_title->SetFont(::Label::Body_14);
    combo_title_add->Wrap(-1);
    m_sizer_tcombox->Add(combo_title_add, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(5));
 
-   auto combobox_right = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+   auto combobox_right = new ::ComboBox(m_parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
    combobox_right->SetFont(::Label::Body_14);
    combobox_right->GetDropDown().SetFont(::Label::Body_14);
 
@@ -545,16 +543,16 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
     return m_sizer_tcombox;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::string param, std::function<void(wxString)> onchange)
+wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2, wxString tooltip, std::string param, std::function<void(wxString)> onchange)
 {
     wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
-    auto        input_title   = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto        input_title   = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     input_title->SetFont(::Label::Body_14);
     input_title->SetToolTip(tooltip);
     input_title->Wrap(DESIGN_TITLE_SIZE.x);
 
-    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    auto       input = new ::TextInput(m_parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
@@ -562,7 +560,7 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     input->SetToolTip(tooltip);
     input->GetTextCtrl()->SetValidator(validator);
 
-    auto second_title = new wxStaticText(parent, wxID_ANY, title2, wxDefaultPosition, wxDefaultSize, 0);
+    auto second_title = new wxStaticText(m_parent, wxID_ANY, title2, wxDefaultPosition, wxDefaultSize, 0);
     second_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     second_title->SetFont(::Label::Body_14);
     second_title->SetToolTip(tooltip);
@@ -591,17 +589,17 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     return sizer_input;
 }
 
-wxBoxSizer *PreferencesDialog::create_camera_orbit_mult_input(wxString title, wxWindow *parent, wxString tooltip)
+wxBoxSizer *PreferencesDialog::create_camera_orbit_mult_input(wxString title, wxString tooltip)
 {
     wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
-    auto        input_title   = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto        input_title   = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     input_title->SetFont(::Label::Body_14);
     input_title->SetToolTip(tooltip);
     input_title->Wrap(DESIGN_TITLE_SIZE.x);
     auto param = "camera_orbit_mult";
 
-    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    auto       input = new ::TextInput(m_parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
@@ -644,19 +642,19 @@ wxBoxSizer *PreferencesDialog::create_camera_orbit_mult_input(wxString title, wx
     return sizer_input;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_backup(wxString title, wxWindow *parent, wxString tooltip)
+wxBoxSizer *PreferencesDialog::create_item_backup(wxString title, wxString tooltip)
 {
     wxBoxSizer *m_sizer_input = new wxBoxSizer(wxHORIZONTAL);
 
     m_sizer_input->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto checkbox_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
     checkbox_title->SetToolTip(tooltip);
 
-    auto checkbox = new ::CheckBox(parent);
+    auto checkbox = new ::CheckBox(m_parent);
     checkbox->SetValue(app_config->get_bool("backup_switch"));
     checkbox->SetToolTip(tooltip);
 
@@ -671,10 +669,12 @@ wxBoxSizer *PreferencesDialog::create_item_backup(wxString title, wxWindow *pare
         e.Skip();
     });
 
-    auto input = new ::TextInput(parent, wxEmptyString, _L("sec"), "loop", wxDefaultPosition, wxSize(FromDIP(97), -1), wxTE_PROCESS_ENTER);
+    m_backup_interval_time = app_config->get("backup_interval");
+
+    auto input = new ::TextInput(m_parent, wxEmptyString, _L("sec"), "loop", wxDefaultPosition, wxSize(FromDIP(97), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
-    input->GetTextCtrl()->SetValue(app_config->get("backup_interval"));
+    input->GetTextCtrl()->SetValue(m_backup_interval_time);
     wxTextValidator validator(wxFILTER_DIGITS);
     input->SetToolTip(_L("The period of backup in seconds."));
     input->GetTextCtrl()->SetValidator(validator);
@@ -714,16 +714,15 @@ wxBoxSizer *PreferencesDialog::create_item_backup(wxString title, wxWindow *pare
     return m_sizer_input;
 }
 
-
-wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *parent, wxString tooltip ,std::string param)
+wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxString tooltip ,std::string param)
 {
     wxBoxSizer *m_sizer_switch = new wxBoxSizer(wxHORIZONTAL);
-    auto switch_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto switch_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     switch_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     switch_title->SetFont(::Label::Body_14);
     switch_title->SetToolTip(tooltip);
     switch_title->Wrap(DESIGN_TITLE_SIZE.x);
-    auto switchbox = new ::SwitchButton(parent, wxID_ANY);
+    auto switchbox = new ::SwitchButton(m_parent, wxID_ANY);
 
     /*auto index = app_config->get(param);
     if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }*/
@@ -742,17 +741,17 @@ wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *pare
     return m_sizer_switch;
 }
 
-wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param)
+wxBoxSizer* PreferencesDialog::create_item_darkmode(wxString title,wxString tooltip, std::string param)
 {
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
 
     m_sizer_checkbox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
-    auto checkbox = new ::CheckBox(parent);
+    auto checkbox = new ::CheckBox(m_parent);
     checkbox->SetValue((app_config->get(param) == "1") ? true : false);
     m_dark_mode_ckeckbox = checkbox;
 
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto checkbox_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
@@ -796,7 +795,7 @@ void PreferencesDialog::set_dark_mode()
 #endif
 }
 
-wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const wxString secondary_title)
+wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxString tooltip, std::string param, const wxString secondary_title)
 {
     wxBoxSizer *m_sizer_checkbox  = new wxBoxSizer(wxHORIZONTAL);
 
@@ -804,13 +803,13 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     
     auto tip = tooltip.IsEmpty() ? title : tooltip; // auto fill tooltips with title if its empty
 
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto checkbox_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
     checkbox_title->SetToolTip(tip);
 
-    auto checkbox = new ::CheckBox(parent);
+    auto checkbox = new ::CheckBox(m_parent);
     checkbox->SetValue(app_config->get_bool(param));
     checkbox->SetToolTip(tip);
 
@@ -818,7 +817,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     m_sizer_checkbox->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT         , FromDIP(5));
 
     if(!secondary_title.IsEmpty()){
-        auto sec_title = new wxStaticText(parent, wxID_ANY, secondary_title);
+        auto sec_title = new wxStaticText(m_parent, wxID_ANY, secondary_title);
         sec_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
         sec_title->SetFont(::Label::Body_14);
         sec_title->Wrap(-1);
@@ -919,42 +918,36 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     return m_sizer_checkbox;
 }
 
-wxBoxSizer* PreferencesDialog::create_item_button(
-    wxString title, wxString title2, wxWindow* parent, wxString tooltip, wxString tooltip2, std::function<void()> onclick, bool button_on_left/* = false*/)
+wxBoxSizer* PreferencesDialog::create_item_button(wxString title, wxString title2, wxString tooltip, wxString tooltip2, std::function<void()> onclick)
 {
     wxBoxSizer *m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
 
     m_sizer_checkbox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
-    auto m_staticTextPath = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    auto m_staticTextPath = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
     m_staticTextPath->SetForegroundColour(DESIGN_GRAY900_COLOR);
     m_staticTextPath->SetFont(::Label::Body_14);
     m_staticTextPath->Wrap(DESIGN_TITLE_SIZE.x);
     
     m_staticTextPath->SetToolTip(tooltip.IsEmpty() ? tooltip2 : tooltip); // use button tooltip if label tooltip empty
 
-    auto m_button_download = new Button(parent, title2);
+    auto m_button_download = new Button(m_parent, title2);
     m_button_download->SetStyle(title2 == _L("Clear") ? ButtonStyle::Alert : ButtonStyle::Regular, ButtonType::Parameter);
     m_button_download->SetToolTip(tooltip2.IsEmpty() ? tooltip : tooltip2); // use label tooltip if button tooltip empty
 
     m_button_download->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
 
-    if (button_on_left) {
-        m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL);
-        m_sizer_checkbox->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL | wxLEFT , FromDIP(5));
-    } else {
-        m_sizer_checkbox->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL);
-        m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL);
-    }
+    m_sizer_checkbox->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL);
+    m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL);
 
     return m_sizer_checkbox;
 }
 
-wxBoxSizer* PreferencesDialog::create_item_downloads(wxString title, wxWindow* parent, wxString tooltip)
+wxBoxSizer* PreferencesDialog::create_item_downloads(wxString title, wxString tooltip)
 {
     wxString download_path = wxString::FromUTF8(app_config->get("download_path"));
 
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
-    wxPanel*    label_panel = new wxPanel(parent);
+    wxPanel*    label_panel = new wxPanel(m_parent);
     wxBoxSizer* label_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_sizer_checkbox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
@@ -979,7 +972,7 @@ wxBoxSizer* PreferencesDialog::create_item_downloads(wxString title, wxWindow* p
     label_panel->SetSizer(label_sizer);
     label_panel->Layout();
 
-    auto m_button_download = new Button(parent, _L("Browse") + " " + dots);
+    auto m_button_download = new Button(m_parent, _L("Browse") + " " + dots);
     m_button_download->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
     m_button_download->SetToolTip(_L("Choose folder for downloaded items"));
 
@@ -1004,7 +997,7 @@ wxBoxSizer* PreferencesDialog::create_item_downloads(wxString title, wxWindow* p
 }
 
 #ifdef WIN32
-wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wxString url_prefix, wxString website_name)
+wxBoxSizer* PreferencesDialog::create_item_link_association( wxString url_prefix, wxString website_name)
 {
     wxString title = _L("Associate") + (boost::format(" %1%://") % url_prefix.c_str()).str();
     wxString tooltip = _L("Associate") + " " + url_prefix + ":// " + _L("with OrcaSlicer so that Orca can open models from") + " " + website_name;
@@ -1016,13 +1009,13 @@ wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wx
     h_sizer->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
 
     // build checkbox
-    auto checkbox = new ::CheckBox(parent);
+    auto checkbox = new ::CheckBox(m_parent);
     checkbox->SetToolTip(tooltip);
     checkbox->SetValue(reg_to_current_instance); // If registered to the current instance, checkbox should be checked
     checkbox->Enable(!reg_to_current_instance); // Since unregistering isn't supported, checkbox is disabled when checked
 
     // build text next to checkbox
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE);
+    auto checkbox_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE);
     checkbox_title->SetToolTip(tooltip);
     checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     checkbox_title->SetFont(::Label::Body_14);
@@ -1035,7 +1028,7 @@ wxBoxSizer* PreferencesDialog::create_item_link_association(wxWindow* parent, wx
     v_sizer->Add(h_sizer);
 
     // build text below checkbox that indicates the instance currently registered to handle the link type
-    auto* registered_instance_title = new wxStaticText(parent, wxID_ANY, "");
+    auto* registered_instance_title = new wxStaticText(m_parent, wxID_ANY, "");
     registered_instance_title->SetForegroundColour(DESIGN_GRAY600_COLOR);
     registered_instance_title->SetFont(::Label::Body_14);
     registered_instance_title->Wrap(-1);
@@ -1106,40 +1099,30 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
 
 void PreferencesDialog::create()
 {
-    app_config             = get_app_config();
-    m_backup_interval_time = app_config->get("backup_interval");
+    app_config = get_app_config();
 
-    m_scrolledWindow = new MyscrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
-    m_scrolledWindow->SetScrollRate(5, 5);
+    m_parent = new MyscrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    m_parent->SetScrollRate(5, 5);
+    m_parent->SetBackgroundColour(*wxWHITE);
 
     m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
-    auto general_page = create_general_page();
+    m_pref_tabs = new TabCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_NONE | wxWANTS_CHARS | wxTR_FULL_ROW_HIGHLIGHT);
+    m_pref_tabs->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable right select
+    m_pref_tabs->SetFont(Label::Body_14);
 
-    m_pref_tabctrl = new TabCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-        wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_NONE | wxWANTS_CHARS | wxTR_FULL_ROW_HIGHLIGHT);
-    m_pref_tabctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable right select
-    m_pref_tabctrl->SetFont(Label::Body_14);
+    create_items();
 
-    m_pref_tabctrl->AppendItem(_L("General"));
-    m_pref_tabctrl->AppendItem(_L("Control"));
-    m_pref_tabctrl->AppendItem(_L("Online"));
-    #ifdef _WIN32
-    m_pref_tabctrl->AppendItem(_L("Associate"));
-    #endif //_WIN32
-    m_pref_tabctrl->AppendItem(_L("Developer"));
-
-    m_pref_tabctrl->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent& e) {
+    m_pref_tabs->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent& e) {
         Freeze();
         #ifdef __linux__
-            m_pref_tabctrl->SetFocus();
+            m_pref_tabs->SetFocus();
         #endif
         int selection = e.GetSelection();
-        for (size_t i = 0; i < m_pref_tabctrl->GetCount(); ++i)
-            m_pref_tabctrl->SetItemBold(i, i == selection);
-
-        for (size_t i = 0; i < f_sizers.size(); ++i)
+        for (size_t i = 0; i < m_pref_tabs->GetCount(); ++i){
+            m_pref_tabs->SetItemBold(i, i == selection);
             f_sizers[i]->Show(i == selection);
+        }
         Layout();
         Thaw();
     });
@@ -1149,13 +1132,13 @@ void PreferencesDialog::create()
         std::make_pair(wxColour("#363636"), (int) StateColor::Normal)
     );
 
-    for (size_t i = 0; i < m_pref_tabctrl->GetCount(); ++i)
-        m_pref_tabctrl->SetItemTextColour(i, item_color);
+    for (size_t i = 0; i < m_pref_tabs->GetCount(); ++i)
+        m_pref_tabs->SetItemTextColour(i, item_color);
 
-    m_pref_tabctrl->SelectItem(0);
+    m_pref_tabs->SelectItem(0);
 
-    m_sizer_body->Add(m_pref_tabctrl, 0, wxEXPAND | wxBOTTOM, FromDIP(5));
-    m_sizer_body->Add(m_scrolledWindow, 1, wxEXPAND);
+    m_sizer_body->Add(m_pref_tabs, 0, wxEXPAND | wxBOTTOM, FromDIP(5));
+    m_sizer_body->Add(m_parent, 1, wxEXPAND);
 
     SetSizer(m_sizer_body);
     Layout();
@@ -1190,50 +1173,45 @@ void PreferencesDialog::Split(const std::string &src, const std::string &separat
     dest.push_back(substring);
 }
 
-wxWindow* PreferencesDialog::create_general_page()
+void PreferencesDialog::create_items()
 {
-    auto page = m_scrolledWindow; // ORCA use scrolled window as parent
-    page->SetBackgroundColour(*wxWHITE);
-    wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
-
-    /////////////////////////////////////
-    //////////////////////////
-
     // ORCA
     // Window focus follows item creation order. so below code has to be in same order with UI
     // Create functions for custom controls to keep list clean
     // Tooltips added automatically from related title if its empty
 
+    wxBoxSizer*sizer_page = new wxBoxSizer(wxVERTICAL);
     wxFlexGridSizer* g_sizer; // use same name on all sizers to make easier to ordering without renaming
     auto v_gap = FromDIP(4);
 
     //////////////////////////
     //// GENERAL TAB 
     /////////////////////////////////////
+    m_pref_tabs->AppendItem(_L("General"));
     f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
     //// GENERAL > Settings
-    g_sizer->Add(create_item_title(_L("Settings"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Settings")), 1, wxEXPAND);
 
-    auto item_language         = create_item_language_combobox(_L("Language"), page, "");
+    auto item_language         = create_item_language_combobox(_L("Language"), "");
     g_sizer->Add(item_language);
 
     std::vector<wxString>Units = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
-    auto item_currency         = create_item_combobox(_L("Units"), page, "", "use_inches", Units);
+    auto item_currency         = create_item_combobox(_L("Units"), "", "use_inches", Units);
     g_sizer->Add(item_currency);
 
     std::vector<wxString> DefaultPage = {_L("Home"), _L("Prepare")};
-    auto item_default_page     = create_item_combobox(_L("Default page"), page, _L("Set the page opened on startup."), "default_page", DefaultPage);
+    auto item_default_page     = create_item_combobox(_L("Default page"), _L("Set the page opened on startup."), "default_page", DefaultPage);
     g_sizer->Add(item_default_page);
 
 #ifdef _WIN32
-    auto item_darkmode         = create_item_darkmode_checkbox(_L("Enable dark mode"), page, "", "dark_color_mode");
+    auto item_darkmode         = create_item_darkmode(_L("Enable dark mode"), "", "dark_color_mode");
     g_sizer->Add(item_darkmode);
 #endif
 
-    auto item_single_instance  = create_item_checkbox(_L("Allow only one OrcaSlicer instance"), page,
+    auto item_single_instance  = create_item_checkbox(_L("Allow only one OrcaSlicer instance"),
     #if __APPLE__
             _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
                 "of same app from the command line. In such case this settings will allow only one instance."),
@@ -1243,52 +1221,52 @@ wxWindow* PreferencesDialog::create_general_page()
             "single_instance");
     g_sizer->Add(item_single_instance);
 
-    auto item_show_splash_scr  = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), "show_splash_screen");
+    auto item_show_splash_scr  = create_item_checkbox(_L("Show splash screen"), _L("Show the splash screen during startup."), "show_splash_screen");
     g_sizer->Add(item_show_splash_scr);
 
     //auto item_hints            = create_item_checkbox(_L("Show \"Daily Tips\" after start"), page, _L("If enabled, useful hints are displayed at startup."), "show_daily_tips");
     //g_sizer->Add(item_hints);
 
-    auto item_downloads        = create_item_downloads(_L("Downloads folder") + ": " ,page, _L("Target folder for downloaded items"));
+    auto item_downloads        = create_item_downloads(_L("Downloads folder") + ": ", _L("Target folder for downloaded items"));
     g_sizer->Add(item_downloads);
 
     //// GENERAL > Project
-    g_sizer->Add(create_item_title(_L("Project"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Project")), 1, wxEXPAND);
 
     std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
     std::vector<string>   projectLoadSettingsConfigOptions    = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
-    auto item_project_load     = create_item_combobox(_L("Load behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
+    auto item_project_load     = create_item_combobox(_L("Load behaviour"), _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
     g_sizer->Add(item_project_load);
 
-    auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", page, _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
+    auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
         long max = 0;
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
     });
     g_sizer->Add(item_max_recent_count);
 
-    auto item_recent_models    = create_item_checkbox(_L("Add .stl/.step files to recent file list"), page, "", "recent_models");
+    auto item_recent_models    = create_item_checkbox(_L("Add .stl/.step files to recent file list"), "", "recent_models");
     g_sizer->Add(item_recent_models);
 
-    auto item_gcodes_warning   = create_item_checkbox(_L("Don't warn when loading 3mf with modified G-code"), page, "", "no_warn_when_modified_gcodes");
+    auto item_gcodes_warning   = create_item_checkbox(_L("Don't warn when loading 3mf with modified G-code"), "", "no_warn_when_modified_gcodes");
     g_sizer->Add(item_gcodes_warning);
 
-    auto item_step_dialog      = create_item_checkbox(_L("Show options when importing step file"), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
+    auto item_step_dialog      = create_item_checkbox(_L("Show options when importing step file"), _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
     g_sizer->Add(item_step_dialog);
 
-    auto item_backup           = create_item_backup(_L("Auto backup"), page, _L("Backup your project periodically for restoring from the occasional crash."));
+    auto item_backup           = create_item_backup(_L("Auto backup"), _L("Backup your project periodically for restoring from the occasional crash."));
     g_sizer->Add(item_backup); 
 
     //// GENERAL > Preset
-    g_sizer->Add(create_item_title(_L("Preset"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Preset")), 1, wxEXPAND);
 
-    auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), "remember_printer_config");
-    g_sizer->Add(item_remember_printer_config);
+    auto item_remember_printer = create_item_checkbox(_L("Remember printer configuration"), _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), "remember_printer_config");
+    g_sizer->Add(item_remember_printer);
 
     //// GENERAL > Features
-    g_sizer->Add(create_item_title(_L("Features"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Features")), 1, wxEXPAND);
 
-    auto item_multi_machine    = create_item_checkbox(_L("Multi-device management"), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
+    auto item_multi_machine    = create_item_checkbox(_L("Multi-device management"), _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
     g_sizer->Add(item_multi_machine);
 
     g_sizer->AddSpacer(FromDIP(10));
@@ -1297,50 +1275,51 @@ wxWindow* PreferencesDialog::create_general_page()
     //////////////////////////
     //// CONTROL TAB 
     /////////////////////////////////////
+    m_pref_tabs->AppendItem(_L("Control"));
     f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
     //// CONTROL > Behaviour
-    g_sizer->Add(create_item_title(_L("Behaviour"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Behaviour")), 1, wxEXPAND);
 
-    auto item_auto_flush       = create_item_autoflush_combobox(_L("Auto calculate flushing volumes on ..."), page, _L("Auto calculate flushing volumes when selected value changed"));
+    auto item_auto_flush       = create_item_autoflush(_L("Auto calculate flushing volumes on ..."), _L("Auto calculate flushing volumes when selected value changed"));
     g_sizer->Add(item_auto_flush);
 
-    auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), page, "", "auto_arrange");
+    auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), "", "auto_arrange");
     g_sizer->Add(item_auto_arrange);
  
     //// CONTROL > Camera
-    g_sizer->Add(create_item_title(_L("Camera"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Camera")), 1, wxEXPAND);
 
     std::vector<wxString> CameraNavStyle = {_L("Default"), _L("Touchpad")};
-    auto item_camera_nav_style = create_item_combobox(_L("Camera style"), page, _L("Select camera navigation style.\nDefault: LMB+move for rotation, RMB/MMB+move for panning.\nTouchpad: Alt+move for rotation, Shift+move for panning."), "camera_navigation_style", CameraNavStyle);
+    auto item_camera_nav_style = create_item_combobox(_L("Camera style"), _L("Select camera navigation style.\nDefault: LMB+move for rotation, RMB/MMB+move for panning.\nTouchpad: Alt+move for rotation, Shift+move for panning."), "camera_navigation_style", CameraNavStyle);
     g_sizer->Add(item_camera_nav_style);
 
-    auto camera_orbit_mult     = create_camera_orbit_mult_input(_L("Orbit speed multiplier"), page, _L("Multiplies the orbit speed for finer or coarser camera movement."));
+    auto camera_orbit_mult     = create_camera_orbit_mult_input(_L("Orbit speed multiplier"), _L("Multiplies the orbit speed for finer or coarser camera movement."));
     g_sizer->Add(camera_orbit_mult);
 
-    auto item_zoom_to_mouse    = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), "zoom_to_mouse");
+    auto item_zoom_to_mouse    = create_item_checkbox(_L("Zoom to mouse position"), _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), "zoom_to_mouse");
     g_sizer->Add(item_zoom_to_mouse);
 
-    auto item_use_free_camera  = create_item_checkbox(_L("Use free camera"), page, _L("If enabled, use free camera. If not enabled, use constrained camera."), "use_free_camera");
+    auto item_use_free_camera  = create_item_checkbox(_L("Use free camera"), _L("If enabled, use free camera. If not enabled, use constrained camera."), "use_free_camera");
     g_sizer->Add(item_use_free_camera);
 
-    auto swap_pan_rotate       = create_item_checkbox(_L("Swap pan and rotate mouse buttons"), page, _L("If enabled, swaps the left and right mouse buttons pan and rotate functions."), "swap_mouse_buttons");
+    auto swap_pan_rotate       = create_item_checkbox(_L("Swap pan and rotate mouse buttons"), _L("If enabled, swaps the left and right mouse buttons pan and rotate functions."), "swap_mouse_buttons");
     g_sizer->Add(swap_pan_rotate);
 
-    auto reverse_mouse_zoom    = create_item_checkbox(_L("Reverse mouse zoom"), page, _L("If enabled, reverses the direction of zoom with mouse wheel."), "reverse_mouse_wheel_zoom");
+    auto reverse_mouse_zoom    = create_item_checkbox(_L("Reverse mouse zoom"), _L("If enabled, reverses the direction of zoom with mouse wheel."), "reverse_mouse_wheel_zoom");
     g_sizer->Add(reverse_mouse_zoom);
 
     //// CONTROL > Clear my choice on ...
-    g_sizer->Add(create_item_title(_L("Clear my choice on ..."), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Clear my choice on ...")), 1, wxEXPAND);
 
-    auto item_save_choise      = create_item_button(_L("Unsaved projects"), _L("Clear"), page, "", _L("Clear my choice on the unsaved projects."), []() {
+    auto item_save_choise      = create_item_button(_L("Unsaved projects"), _L("Clear"), "", _L("Clear my choice on the unsaved projects."), []() {
         wxGetApp().app_config->set("save_project_choise", "");
     });
     g_sizer->Add(item_save_choise);
 
-    auto item_save_presets     = create_item_button(_L("Unsaved presets"), _L("Clear"), page, "", _L("Clear my choice on the unsaved presets."), []() {
+    auto item_save_presets     = create_item_button(_L("Unsaved presets"), _L("Clear"), "", _L("Clear my choice on the unsaved presets."), []() {
         wxGetApp().app_config->set("save_preset_choise", "");
     });
     g_sizer->Add(item_save_presets);
@@ -1351,44 +1330,45 @@ wxWindow* PreferencesDialog::create_general_page()
     //////////////////////////
     //// ONLINE TAB 
     /////////////////////////////////////
+    m_pref_tabs->AppendItem(_L("Online"));
     f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
     //// ONLINE > Connection
-    g_sizer->Add(create_item_title(_L("Connection"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Connection")), 1, wxEXPAND);
 
-    auto item_region           = create_item_region_combobox(_L("Login region"), page, "");
+    auto item_region           = create_item_region_combobox(_L("Login region"), "");
     g_sizer->Add(item_region);
  
-    auto item_stealth_mode     = create_item_checkbox(_L("Stealth Mode"), page, _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), "stealth_mode");
+    auto item_stealth_mode     = create_item_checkbox(_L("Stealth Mode"), _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), "stealth_mode");
     g_sizer->Add(item_stealth_mode);
 
-    auto item_network_test     = create_item_button(_L("Test Network"), _L("Test") + " " + dots, page, "", _L("Open Network Test"), []() {
+    auto item_network_test     = create_item_button(_L("Test Network"), _L("Test") + " " + dots, "", _L("Open Network Test"), []() {
         NetworkTestDialog dlg(wxGetApp().mainframe);
         dlg.ShowModal();
     });
     g_sizer->Add(item_network_test);
 
     //// ONLINE > Update & sync
-    g_sizer->Add(create_item_title(_L("Update & sync"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Update & sync")), 1, wxEXPAND);
 
-    auto item_stable_updates   = create_item_checkbox(_L("Check for stable updates only"), page, "", "check_stable_update_only");
+    auto item_stable_updates   = create_item_checkbox(_L("Check for stable updates only"), "", "check_stable_update_only");
     g_sizer->Add(item_stable_updates);
 
-    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets (Printer/Filament/Process)"), page, "", "sync_user_preset");
+    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets (Printer/Filament/Process)"), "", "sync_user_preset");
     g_sizer->Add(item_user_sync);
 
-    auto item_system_sync      = create_item_checkbox(_L("Update built-in Presets automatically."), page, "", "sync_system_preset");
+    auto item_system_sync      = create_item_checkbox(_L("Update built-in Presets automatically."), "", "sync_system_preset");
     g_sizer->Add(item_system_sync);
 
     //// ONLINE > Network plugin
-    g_sizer->Add(create_item_title(_L("Network plugin"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Network plugin")), 1, wxEXPAND);
 
-    auto item_enable_plugin    = create_item_checkbox(_L("Enable network plugin"), page, "", "installed_networking");
+    auto item_enable_plugin    = create_item_checkbox(_L("Enable network plugin"), "", "installed_networking");
     g_sizer->Add(item_enable_plugin);
     
-    auto item_legacy_network   = create_item_checkbox(_L("Use legacy network plugin"), page, _L("Disable to use latest network plugin that supports new BambuLab firmwares."), "legacy_networking", _L("(Requires restart)"));
+    auto item_legacy_network   = create_item_checkbox(_L("Use legacy network plugin"), _L("Disable to use latest network plugin that supports new BambuLab firmwares."), "legacy_networking", _L("(Requires restart)"));
     g_sizer->Add(item_legacy_network);
 
     g_sizer->AddSpacer(FromDIP(10));
@@ -1398,32 +1378,33 @@ wxWindow* PreferencesDialog::create_general_page()
     //// ASSOCIATE TAB 
     /////////////////////////////////////
 #ifdef _WIN32
+    m_pref_tabs->AppendItem(_L("Associate"));
     f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
     //// ASSOCIATE > Extensions
-    g_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer")), 1, wxEXPAND);
 
-    auto item_associate_3mf    = create_item_checkbox(_L("Associate .3mf files to OrcaSlicer"), page, _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , "associate_3mf");
+    auto item_associate_3mf    = create_item_checkbox(_L("Associate .3mf files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , "associate_3mf");
     g_sizer->Add(item_associate_3mf);
 
-    auto item_associate_stl    = create_item_checkbox(_L("Associate .stl files to OrcaSlicer"), page, _L("If enabled, sets OrcaSlicer as default application to open .stl files") , "associate_stl");
+    auto item_associate_stl    = create_item_checkbox(_L("Associate .stl files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open .stl files") , "associate_stl");
     g_sizer->Add(item_associate_stl);
 
-    auto item_associate_step   = create_item_checkbox(_L("Associate .step/.stp files to OrcaSlicer"), page, _L("If enabled, sets OrcaSlicer as default application to open .step files"), "associate_step");
+    auto item_associate_step   = create_item_checkbox(_L("Associate .step/.stp files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open .step files"), "associate_step");
     g_sizer->Add(item_associate_step);
 
     //// ASSOCIATE > WebLinks
-    g_sizer->Add(create_item_title(_L("Associate web links to OrcaSlicer"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Associate web links to OrcaSlicer")), 1, wxEXPAND);
 
-    auto associate_url_prusa   = create_item_link_association(page, L"prusaslicer", "Printables.com");
+    auto associate_url_prusa   = create_item_link_association(L"prusaslicer", "Printables.com");
     g_sizer->Add(associate_url_prusa);
 
-    auto associate_url_bambu   = create_item_link_association(page, L"bambustudio", "Makerworld.com");
+    auto associate_url_bambu   = create_item_link_association(L"bambustudio", "Makerworld.com");
     g_sizer->Add(associate_url_bambu);
 
-    auto associate_url_cura    = create_item_link_association(page, L"cura", "Thingiverse.com");
+    auto associate_url_cura    = create_item_link_association(L"cura", "Thingiverse.com");
     g_sizer->Add(associate_url_cura);
 
     g_sizer->AddSpacer(FromDIP(10));
@@ -1433,22 +1414,23 @@ wxWindow* PreferencesDialog::create_general_page()
     //////////////////////////
     //// DEVELOPER TAB
     /////////////////////////////////////
+    m_pref_tabs->AppendItem(_L("Developer"));
     f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
     g_sizer = f_sizers.back();
     g_sizer->AddGrowableCol(0, 1);
 
     //// DEVELOPER > Settings
-    g_sizer->Add(create_item_title(_L("Settings"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Settings")), 1, wxEXPAND);
 
-    auto item_develop_mode     = create_item_checkbox(_L("Develop mode"), page, "", "developer_mode");
+    auto item_develop_mode     = create_item_checkbox(_L("Develop mode"), "", "developer_mode");
     g_sizer->Add(item_develop_mode);
 
-    auto item_ams_blacklist    = create_item_checkbox(_L("Skip AMS blacklist check"), page, "", "skip_ams_blacklist_check");
+    auto item_ams_blacklist    = create_item_checkbox(_L("Skip AMS blacklist check"), "", "skip_ams_blacklist_check");
     g_sizer->Add(item_ams_blacklist);
 
     //// DEVELOPER > Debug
 //#if !BBL_RELEASE_TO_PUBLIC
-    g_sizer->Add(create_item_title(_L("Debug"), page), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Debug")), 1, wxEXPAND);
     auto debug_page            = create_debug_page();
     g_sizer->Add(debug_page, 1, wxEXPAND);
 //#endif
@@ -1468,14 +1450,9 @@ wxWindow* PreferencesDialog::create_general_page()
     /////////////////////////////////////
     //////////////////////////
 
-    // auto title_modelmall = create_item_title(_L("Online Models"), page);
-    // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
-    // auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), "staff_pick_switch");
-
-    page->SetSizer(sizer_page);
-    page->Layout();
-    sizer_page->Fit(page);
-    return page;
+    m_parent->SetSizer(sizer_page);
+    m_parent->Layout();
+    sizer_page->Fit(m_parent);
 }
 
 void PreferencesDialog::create_sync_page()
@@ -1483,10 +1460,10 @@ void PreferencesDialog::create_sync_page()
     auto page = new wxWindow(this, wxID_ANY);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
-    auto title_sync_settingy   = create_item_title(_L("Sync settings"), page);
-    auto item_user_sync        = create_item_checkbox(_L("User sync"), page, _L("User sync"), "user_sync_switch");
-    auto item_preset_sync      = create_item_checkbox(_L("Preset sync"), page, _L("Preset sync"), "preset_sync_switch");
-    auto item_preferences_sync = create_item_checkbox(_L("Preferences sync"), page, _L("Preferences sync"), "preferences_sync_switch");
+    auto title_sync_settingy   = create_item_title(_L("Sync settings"));
+    auto item_user_sync        = create_item_checkbox(_L("User sync"), _L("User sync"), "user_sync_switch");
+    auto item_preset_sync      = create_item_checkbox(_L("Preset sync"), _L("Preset sync"), "preset_sync_switch");
+    auto item_preferences_sync = create_item_checkbox(_L("Preferences sync"), _L("Preferences sync"), "preferences_sync_switch");
 
     sizer_page->Add(title_sync_settingy, 0, wxTOP, 26);
     sizer_page->Add(item_user_sync, 0, wxTOP, 6);
@@ -1503,20 +1480,20 @@ void PreferencesDialog::create_shortcuts_page()
     auto page = new wxWindow(this, wxID_ANY);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
-    auto title_view_control = create_item_title(_L("View control settings"), page);
+    auto title_view_control = create_item_title(_L("View control settings"));
     std::vector<wxString> keyboard_supported;
     Split(app_config->get("keyboard_supported"), "/", keyboard_supported);
 
     std::vector<wxString> mouse_supported;
     Split(app_config->get("mouse_supported"), "/", mouse_supported);
 
-    auto item_rotate_view = create_item_multiple_combobox(_L("Rotate of view"), page, _L("Rotate of view"), "rotate_view", keyboard_supported,
+    auto item_rotate_view = create_item_multiple_combobox(_L("Rotate of view"), _L("Rotate of view"), "rotate_view", keyboard_supported,
                                                                mouse_supported);
-    auto item_move_view   = create_item_multiple_combobox(_L("Move of view"), page, _L("Move of view"), "move_view", keyboard_supported, mouse_supported);
-    auto item_zoom_view   = create_item_multiple_combobox(_L("Zoom of view"), page, _L("Zoom of view"), "rotate_view", keyboard_supported, mouse_supported);
+    auto item_move_view   = create_item_multiple_combobox(_L("Move of view"), _L("Move of view"), "move_view", keyboard_supported, mouse_supported);
+    auto item_zoom_view   = create_item_multiple_combobox(_L("Zoom of view"), _L("Zoom of view"), "rotate_view", keyboard_supported, mouse_supported);
 
-    auto title_other = create_item_title(_L("Other"), page);
-    auto item_other  = create_item_checkbox(_L("Mouse wheel reverses when zooming"), page, _L("Mouse wheel reverses when zooming"), "mouse_wheel");
+    auto title_other = create_item_title(_L("Other"));
+    auto item_other  = create_item_checkbox(_L("Mouse wheel reverses when zooming"), _L("Mouse wheel reverses when zooming"), "mouse_wheel");
 
     sizer_page->Add(title_view_control, 0, wxTOP, 26);
     sizer_page->Add(item_rotate_view, 0, wxTOP, 8);
@@ -1533,25 +1510,23 @@ void PreferencesDialog::create_shortcuts_page()
 
 wxBoxSizer* PreferencesDialog::create_debug_page()
 {
-    auto page = m_scrolledWindow; // ORCA use scrolled window as parent
-
     m_internal_developer_mode_def = app_config->get("internal_developer_mode");
     m_backup_interval_def = app_config->get("backup_interval");
     m_iot_environment_def = app_config->get("iot_environment");
 
     wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
-    auto enable_ssl_for_mqtt = create_item_checkbox(_L("Enable SSL(MQTT)"), page, _L("Enable SSL(MQTT)"), "enable_ssl_for_mqtt");
-    auto enable_ssl_for_ftp = create_item_checkbox(_L("Enable SSL(FTP)"), page, _L("Enable SSL(MQTT)"), "enable_ssl_for_ftp");
-    auto item_internal_developer = create_item_checkbox(_L("Internal developer mode"), page, _L("Internal developer mode"), "internal_developer_mode");
+    auto enable_ssl_for_mqtt = create_item_checkbox(_L("Enable SSL(MQTT)"), _L("Enable SSL(MQTT)"), "enable_ssl_for_mqtt");
+    auto enable_ssl_for_ftp = create_item_checkbox(_L("Enable SSL(FTP)"), _L("Enable SSL(MQTT)"), "enable_ssl_for_ftp");
+    auto item_internal_developer = create_item_checkbox(_L("Internal developer mode"), _L("Internal developer mode"), "internal_developer_mode");
 
-    auto title_log_level = create_item_title(_L("Log Level"), page);
+    auto title_log_level = create_item_title(_L("Log Level"));
     auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
-    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), page, _L("Log Level"), log_level_list);
+    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), _L("Log Level"), log_level_list);
 
-    auto title_host = create_item_title(_L("Host Setting"), page);
+    auto title_host = create_item_title(_L("Host Setting"));
     // ORCA RadioGroup
-    auto radio_group = new RadioGroup(page, {
+    auto radio_group = new RadioGroup(m_parent, {
         _L("DEV host: api-dev.bambu-lab.com/v1"), // 0
         _L("QA  host: api-qa.bambu-lab.com/v1"),  // 1
         _L("PRE host: api-pre.bambu-lab.com/v1"), // 2
@@ -1573,7 +1548,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
         radio_group->SetSelection(3);
     }
 
-    Button* debug_button = new Button(page, _L("debug save button"));
+    Button* debug_button = new Button(m_parent, _L("debug save button"));
     debug_button->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
 
     debug_button->Bind(wxEVT_LEFT_DOWN, [this, radio_group](wxMouseEvent &e) {
