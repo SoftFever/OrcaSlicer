@@ -1,0 +1,164 @@
+import os
+import tkinter as tk
+from tkinter import filedialog, messagebox
+
+def parse_xy_e(line):
+    parts = line.strip().split()
+    x = y = e = None
+    for p in parts:
+        if p.lower().startswith('x'):
+            try: x = float(p[1:])
+            except: pass
+        elif p.lower().startswith('y'):
+            try: y = float(p[1:])
+            except: pass
+        elif p.lower().startswith('e'):
+            try: e = float(p[1:])
+            except: pass
+    return x, y, e
+
+def format_g1_line(original, dx, dy, de, factor):
+    parts = original.strip().split()
+    result = []
+    for p in parts:
+        if p.lower().startswith('x'):
+            x = float(p[1:])
+            result.append(f"X{x + dx * factor:.5f}")
+        elif p.lower().startswith('y'):
+            y = float(p[1:])
+            result.append(f"Y{y + dy * factor:.5f}")
+        elif p.lower().startswith('e'):
+            e = float(p[1:])
+            result.append(f"E{e + de * factor:.5f}")
+        else:
+            result.append(p)
+    return ' '.join(result) + '\n'
+
+def process_gcode(file_path, layer_height, sublayers):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    extrusion_mode_absolute = True
+    for line in lines:
+        if 'M83' in line:
+            extrusion_mode_absolute = False
+        elif 'M82' in line:
+            extrusion_mode_absolute = True
+
+    output = []
+    restore_z = []
+    for i, line in enumerate(lines):
+        if 'restore layer z' in line.lower():
+            try:
+                z = float(line.split('Z')[1].split()[0])
+                restore_z.append((i, z))
+            except: pass
+
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if '; feature: outer wall' in line.lower():
+            block = [line]
+            i += 1
+            while i < len(lines):
+                if any(x in lines[i].lower() for x in ['feature: inner wall', 'change_layer', 'z_height', 'layer_height', 'stop printing']):
+                    break
+                block.append(lines[i])
+                i += 1
+
+            curr_z = None
+            for idx, z in reversed(restore_z):
+                if idx < i:
+                    curr_z = z
+                    break
+
+            # Next block
+            next_block = []
+            next_z = None
+            for j in range(i, len(lines)):
+                if 'restore layer z' in lines[j].lower():
+                    try:
+                        next_z = float(lines[j].split('Z')[1].split()[0])
+                    except: break
+                if '; feature: outer wall' in lines[j].lower():
+                    k = j
+                    while k < len(lines):
+                        if any(x in lines[k].lower() for x in ['feature: inner wall', 'change_layer', 'z_height', 'layer_height', 'stop printing']):
+                            break
+                        next_block.append(lines[k])
+                        k += 1
+                    break
+
+            if curr_z is None or next_z is None or not next_block:
+                output.extend(block)
+                continue
+
+            dz = (next_z - curr_z) / sublayers
+            for s in range(sublayers):
+                z = curr_z + s * dz
+                output.append(f"G1 Z{z:.5f} ; sublayer {s+1}/{sublayers}\n")
+                for l1, l2 in zip(block, next_block):
+                    if not l1.startswith('G1') or '; perimeter' not in l1:
+                        output.append(l1)
+                        continue
+                    x1, y1, e1 = parse_xy_e(l1)
+                    x2, y2, e2 = parse_xy_e(l2)
+                    dx = (x2 - x1) if x1 is not None and x2 is not None else 0
+                    dy = (y2 - y1) if y1 is not None and y2 is not None else 0
+                    de = (e2 - e1) if e1 is not None and e2 is not None else 0
+                    factor = (s + 1) / sublayers
+                    output.append(format_g1_line(l1, dx, dy, de, factor))
+
+            output.append(f"G1 Z{next_z:.5f} ; restore original Z after sublayers\n")
+        else:
+            output.append(line)
+            i += 1
+
+    out_path = os.path.splitext(file_path)[0] + "_chucha_output.gcode"
+    with open(out_path, 'w', encoding='utf-8') as f:
+        f.writelines(output)
+
+    return out_path
+
+# === GUI ===
+def browse_file(entry):
+    path = filedialog.askopenfilename(filetypes=[("G-code files", "*.gcode")])
+    if path:
+        entry.delete(0, tk.END)
+        entry.insert(0, path)
+
+def run():
+    path = entry_file.get()
+    try:
+        h = float(entry_height.get().replace(',', '.'))
+        n = int(entry_sublayers.get())
+    except:
+        messagebox.showerror("Помилка", "Введено некоректні дані.")
+        return
+    if not os.path.isfile(path):
+        messagebox.showerror("Помилка", "Файл не знайдено.")
+        return
+    out = process_gcode(path, h, n)
+    messagebox.showinfo("Готово", f"Файл збережено:\n{out}")
+
+root = tk.Tk()
+root.title("ChuchaTV SubLayer GUI")
+
+tk.Label(root, text="Файл G-code:").pack()
+entry_file = tk.Entry(root, width=60)
+entry_file.pack()
+tk.Button(root, text="Огляд", command=lambda: browse_file(entry_file)).pack()
+
+tk.Label(root, text="Висота шару (наприклад 0.32):").pack()
+entry_height = tk.Entry(root)
+entry_height.insert(0, "0.32")
+entry_height.pack()
+
+tk.Label(root, text="Кількість підшарів (наприклад 4):").pack()
+entry_sublayers = tk.Entry(root)
+entry_sublayers.insert(0, "4")
+entry_sublayers.pack()
+
+tk.Button(root, text="Обробити G-code", command=run).pack(pady=10)
+
+root.mainloop()
