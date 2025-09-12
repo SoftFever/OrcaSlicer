@@ -105,10 +105,22 @@ struct Coord
         a += b;
         return a;
     }
+    bool operator==(const Coord& o) const { return (r == o.r) && (c == o.c); }
+    bool operator!=(const Coord& o) const { return !(*this == o); }
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Coord& o) { return os << "(r=" << o.r << ",c=" << o.c << ")"; }
 
 // Closed ring of cell coordinates
 using Ring = std::vector<Coord>;
+
+inline std::ostream& operator<<(std::ostream& os, const Ring& r)
+{
+    os << "[" << r.size() << "]:";
+    for (Coord c : r)
+        os << " " << c;
+    return os << "\n";
+}
 
 // Specialize this struct to register a raster type for the Marching squares alg
 template<class T, class Enable = void> struct _RasterTraits
@@ -164,6 +176,12 @@ enum class Dir : uint8_t {
     updown    = up | down,
     all       = 0b1111
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Dir& d)
+{
+    // char *dirmap = ;
+    return os << ".<v#>x##^#X#####"[_t(d)];
+}
 
 // This maps square tag column/row order <cbda> bitmaps to the next
 // direction(s) a line will exit the cell. The directions ensure the
@@ -224,10 +242,10 @@ template<class Rst> class Grid
             Coord p = rastercoord(gcrd); // position in raster coordinates.
             if (is_within(p) && isoval(*m_rst, p) > v)
                 tags |= b;
-            step(gcrd, Dir::right);
+            gcrd = step(gcrd, Dir::right);
             // If we hit the end of the row, start on the next row.
             if (gcrd.c >= m_gridsize.c)
-                gcrd = Coord(p.r + 1, 0);
+                gcrd = Coord(gcrd.r + 1, 0);
         }
         return tags;
     }
@@ -270,7 +288,7 @@ template<class Rst> class Grid
             return tags;
         i = gidx / 32;
         o = gidx % 32;
-        tags |= (m_tags[i] >> (o - 2)) & 0b1100;
+        tags |= ((m_tags[i] >> o) << 2) & 0b1100;
         if (o == 31) {
             // The c corner tag is in bit0 of the next block.
             tags |= (m_tags[i + 1] << 3) & 0b1000;
@@ -281,6 +299,7 @@ template<class Rst> class Grid
     // Clear directions in a cell's <urdl> dirs for a grid index.
     void clr_dirs(const size_t gidx, const Dir d)
     {
+        assert(gidx < m_gridlen);
         size_t i = gidx / 8;   // the dirs block index
         int    o = (gidx % 8); // the dirs block offset
 
@@ -290,6 +309,7 @@ template<class Rst> class Grid
     // Get directions in a cell's <uldr> dirs from the m_dirs store.
     Dir get_dirs(const size_t gidx) const
     {
+        assert(gidx < m_gridlen);
         size_t i = gidx / 8;   // the dirs block index
         int    o = (gidx % 8); // the dirs block offset
 
@@ -305,6 +325,7 @@ template<class Rst> class Grid
     // Step a sequential grid index in a direction.
     size_t stepidx(const size_t idx, const Dir d) const
     {
+        assert(idx < m_gridlen);
         switch (d) {
         case Dir::left: return idx - 1;
         case Dir::down: return idx + m_gridsize.c;
@@ -381,7 +402,7 @@ template<class Rst> class Grid
             ++(*this);
             return it;
         }
-        bool operator!=(const CellIt& it) { return crd.r != it.crd.r || crd.c != it.crd.c; }
+        bool operator!=(const CellIt& it) { return crd != it.crd; }
 
         using value_type        = TRasterValue<Rst>;
         using pointer           = TRasterValue<Rst>*;
@@ -426,6 +447,20 @@ template<class Rst> class Grid
         return e;
     }
 
+    Coord interpolate(const Coord& ecrd, TRasterValue<Rst> isoval) const
+    {
+        Edge  e = edge(ecrd);
+        Coord p = std::lower_bound(e.from, e.to, isoval).crd;
+        // Shift bottom and right side points "out" by one to account for
+        // raster pixel width. Note "dir" is the direction of interpolation
+        // along the cell edge, not the next move direction.
+        if (e.from.dir == Dir::up)
+            p.r += 1;
+        else if (e.from.dir == Dir::left)
+            p.c += 1;
+        return p;
+    }
+
 public:
     explicit Grid(const Rst& rst, const Coord& window)
         : m_rst{&rst}
@@ -443,14 +478,17 @@ public:
         // Get all the tags. parallel?
         for_each(std::forward<ExecutionPolicy>(policy), m_tags.begin(), m_tags.end(),
                  [this, isoval](uint32_t& tag_block, size_t bidx) { tag_block = get_tags_block32(bidx, isoval); });
+        // streamtags(std::cerr);
         // Get all the dirs. parallel?
         for_each(std::forward<ExecutionPolicy>(policy), m_dirs.begin(), m_dirs.end(),
                  [this](uint32_t& dirs_block, size_t bidx) { dirs_block = get_dirs_block8(bidx); });
+        // streamdirs(std::cerr);
     }
 
-    // Scan for the rings on the tagged grid. Each ring vertex stores the
-    // sequential index of the cell and the next direction (Dir).
-    // This info can be used later to calculate the exact raster coordinate.
+    // Scan for the rings on the tagged grid. Each ring vertex uses the Coord
+    // to store the sequential cell index (idx in r) and next direction (Dir
+    // in c) for the next point of the ring. This info can be used later to
+    // calculate the exact raster coordinate of the point.
     std::vector<Ring> scan_rings()
     {
         std::vector<Ring> rings;
@@ -466,6 +504,7 @@ public:
                 clr_dirs(idx, next);
                 idx  = stepidx(idx, next);
                 next = next_dir(idx, next);
+                assert(idx < m_gridlen);
             }
             if (ring.size() > 1) {
                 rings.emplace_back(ring);
@@ -479,13 +518,50 @@ public:
     template<class ExecutionPolicy> void interpolate_rings(ExecutionPolicy&& policy, std::vector<Ring>& rings, TRasterValue<Rst> isov)
     {
         for_each(std::forward<ExecutionPolicy>(policy), rings.begin(), rings.end(), [this, isov](Ring& ring, size_t) {
-            for (Coord& ringvertex : ring) {
-                Edge e = edge(ringvertex);
-
-                CellIt found = std::lower_bound(e.from, e.to, isov);
-                ringvertex   = found.crd;
+            Ring edges;
+            edges.swap(ring);
+            for (Coord& e : edges) {
+                Coord p = interpolate(e, isov);
+                // Only append points different from the previous point. Two
+                // edges at a corner can interpolate to the same corner point.
+                if (ring.empty() || p != ring.back())
+                    ring.push_back(p);
             }
+            // The first and last edge can also interpolate to the same corner point.
+            if (ring.size() > 1 && ring.back() == ring.front())
+                ring.pop_back();
+            // std::cerr << ring;
         });
+    }
+
+    std::ostream& streamtags(std::ostream& os)
+    {
+        os << "   :";
+        for (auto c = 0; c < m_gridsize.c; c++)
+            os << (c % 10);
+        os << "\n";
+        for (auto r = 0; r < m_gridsize.r; r++) {
+            os << std::setw(3) << r << ":";
+            for (auto c = 0; c < m_gridsize.c; c++)
+                os << ((get_tags(seq(Coord(r, c))) & 1) ? "H" : ".");
+            os << "\n";
+        }
+        return os;
+    }
+
+    std::ostream& streamdirs(std::ostream& os)
+    {
+        os << "   :";
+        for (auto c = 0; c < m_gridsize.c; c++)
+            os << (c % 10);
+        os << "\n";
+        for (auto r = 0; r < m_gridsize.r; r++) {
+            os << std::setw(3) << r << ":";
+            for (auto c = 0; c < m_gridsize.c; c++)
+                os << get_dirs(seq(Coord(r, c)));
+            os << std::endl;
+        }
+        return os;
     }
 };
 
