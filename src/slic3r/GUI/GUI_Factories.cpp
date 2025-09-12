@@ -489,7 +489,7 @@ void MenuFactory::append_menu_item_delete(wxMenu* menu)
         [](wxCommandEvent&) { plater()->remove_selected(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 #else
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tBackSpace", _L("Delete the selected object"),
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\t" + _L("Backspace"), _L("Delete the selected object"),
         [](wxCommandEvent&) { plater()->remove_selected(); }, "", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 #endif
@@ -1792,6 +1792,7 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
 #ifdef __APPLE__
     static const wxString ctrl = ("Ctrl+");
 #else
+    // FIXME: maybe should be using GUI::shortkey_ctrl_prefix() or equivalent?
     static const wxString ctrl = _L("Ctrl+");
 #endif
     append_menu_item(menu, wxID_ANY, _L("Clone") + "\t" + ctrl + "K", "",

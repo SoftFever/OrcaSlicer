@@ -40,10 +40,14 @@ GLGizmoBrimEars::GLGizmoBrimEars(GLCanvas3D &parent, const std::string &icon_fil
 
 bool GLGizmoBrimEars::on_init()
 {
-
     m_new_point_head_diameter = get_brim_default_radius();
 
     m_shortcut_key = WXK_CONTROL_E;
+
+    // FIXME: maybe should be using GUI::shortkey_ctrl_prefix() or equivalent?
+    const wxString ctrl  = _L("Ctrl+");
+    // FIXME: maybe should be using GUI::shortkey_alt_prefix() or equivalent?
+    const wxString alt   = _L("Alt+");
 
     m_desc["head_diameter"]    = _L("Head diameter");
     m_desc["max_angle"]        = _L("Max angle");
@@ -57,9 +61,9 @@ bool GLGizmoBrimEars::on_init()
     m_desc["left_click"]               = _L("Add a brim ear");
     m_desc["right_click_caption"]      = _L("Right click");
     m_desc["right_click"]              = _L("Delete a brim ear");
-    m_desc["ctrl_mouse_wheel_caption"] = _L("Ctrl+Mouse wheel");
+    m_desc["ctrl_mouse_wheel_caption"] = ctrl + _L("Mouse wheel");
     m_desc["ctrl_mouse_wheel"]         = _L("Adjust head diameter");
-    m_desc["alt_mouse_wheel_caption"]  = _L("Alt + Mouse wheel");
+    m_desc["alt_mouse_wheel_caption"]  = alt + _L("Mouse wheel");
     m_desc["alt_mouse_wheel"]          = _L("Adjust section view");
 
     return true;
