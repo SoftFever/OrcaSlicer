@@ -189,7 +189,8 @@ static t_config_enum_values s_keys_map_WallInfillOrder {
     { "inner-outer-inner wall/infill",     int(WallInfillOrder::InnerOuterInnerInfill) },
     { "infill/inner wall/outer wall",     int(WallInfillOrder::InfillInnerOuter) },
     { "infill/outer wall/inner wall",     int(WallInfillOrder::InfillOuterInner) },
-    { "inner-outer-inner wall/infill",     int(WallInfillOrder::InnerOuterInnerInfill)}
+    { "inner-outer-inner wall/infill",     int(WallInfillOrder::InnerOuterInnerInfill)},
+    { "odd-even wall/infill",             int(WallInfillOrder::OddEvenInfill)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallInfillOrder)
 
@@ -197,10 +198,17 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallInfillOrder)
 static t_config_enum_values s_keys_map_WallSequence {
     { "inner wall/outer wall",     int(WallSequence::InnerOuter) },
     { "outer wall/inner wall",     int(WallSequence::OuterInner) },
-    { "inner-outer-inner wall",    int(WallSequence::InnerOuterInner)}
-
+    { "inner-outer-inner wall",    int(WallSequence::InnerOuterInner)},
+    { "odd-even wall",             int(WallSequence::OddEven)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallSequence)
+
+static t_config_enum_values s_keys_map_LoopSequence {
+    { "inner wall/outer wall",     int(LoopSequence::InwardOutward) },
+    { "inner wall/inner wall",     int(LoopSequence::InwardInward) },
+    { "outer wall/inner wall",     int(LoopSequence::OutwardOutward) },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LoopSequence)
 
 //Orca
 static t_config_enum_values s_keys_map_WallDirection{
@@ -1718,16 +1726,69 @@ void PrintConfigDef::init_fff_params()
                      "then the external perimeter and, finally, the first internal perimeter. "
                      "This option is recommended against the Outer/Inner option in most cases.\n\n"
                      "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. "
-                     "However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.\n\n ");
+                     "However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.\n\n "
+                     "Use Odd-Even for making monolithic walls. All loops are divided into odd and even. "
+                     "Odds are printed first. Even fill the already formed grooves with melted extra material. "
+                     "It is also possible to slow down their printing speed, which allows you to create conditions for better adhesion between the loops and layers. "
+                     "It is recommended to use more walls, at least 3. A good result is achieved with 5 ones and more.\n\n");
     def->enum_keys_map = &ConfigOptionEnum<WallSequence>::get_enum_values();
     def->enum_values.push_back("inner wall/outer wall");
     def->enum_values.push_back("outer wall/inner wall");
     def->enum_values.push_back("inner-outer-inner wall");
+    def->enum_values.push_back("odd-even wall");
     def->enum_labels.push_back(L("Inner/Outer"));
     def->enum_labels.push_back(L("Outer/Inner"));
     def->enum_labels.push_back(L("Inner/Outer/Inner"));
+    def->enum_labels.push_back(L("Odd-Even"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<WallSequence>(WallSequence::InnerOuter));
+
+    def           = this->add("loop_sequence", coEnum);
+    def->label    = L("Odd-Even loop sequence");
+    def->category = L("Quality");
+    def->tooltip  = L("Print sequence of the odd and even loops inside the wall.\n"
+                      "Odds are printed first. Even fill the already formed grooves with melted extra material. "
+                      "It is also possible to slow down their printing speed, which allows you to create conditions for better adhesion between the loops and layers. "
+                      "The order of laying the loops can be either inward or outward. "
+                      "This order allows you to set specific printing conditions. For example, the initial inward movement gives to the outer perimeter more time to cooldown, reducing the potential 'debris' during overextrusion by moving its into infill. "  
+                      "Moving from the center will stabilize the filament inside the model during a long retract. ");
+    def->enum_keys_map = &ConfigOptionEnum<LoopSequence>::get_enum_values();
+    def->enum_values.push_back("inward/outward");
+    def->enum_values.push_back("inward/inward");
+    def->enum_values.push_back("outward/outward");
+    def->enum_labels.push_back(L("Inward/Outward"));
+    def->enum_labels.push_back(L("Inward/Inward"));
+    def->enum_labels.push_back(L("Outward/Outward"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<LoopSequence>(LoopSequence::InwardOutward));
+
+    def           = this->add("even_loops_flow_ratio", coFloat);
+    def->label    = L("Even loops flow ratio");
+    def->tooltip  = L("Adjust the flow coefficient for even inner loops for a rigidity and closing the cavities between the loops.");
+    def->category = L("Quality");
+    def->max      = 2;
+    def->min      = 0.9;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.05));
+
+    def             = this->add("even_loops_speed", coFloatOrPercent);
+    def->label      = L("Even loops speed");
+    def->category   = L("Quality");
+    def->tooltip    = L("This separate setting will affect the speed of even perimeters. "
+                        "If expressed as percentage (for example: 80%) it will be calculated on the inner perimeter speed setting.");
+    def->sidetext   = L("mm/s or %");
+    def->ratio_over = "inner_wall_speed";
+    def->max        = 110;
+    def->min        = 1;
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
+
+    def = this->add("outermost_wall_control",coBool);
+    def->label    = L("Outermost wall control");
+    def->tooltip  = L("The outermost wall is printed last to prevent overhanging.");
+    def->category = L("Quality");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool{false});
 
     def = this->add("is_infill_first",coBool);
     def->label    = L("Print infill first");
@@ -6860,6 +6921,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         } else if (value == "inner-outer-inner wall/infill") {
             opt_key = "wall_sequence";
             value = "inner-outer-inner wall";
+        } else if (value == "odd-even wall/infill") {
+            opt_key = "wall_sequence";
+            value   = "odd-even wall";
         } else {
             opt_key = "wall_sequence";
         }
