@@ -115,6 +115,14 @@ double calculate_infill_rotation_angle(const PrintObject* object,
                             if (cs[0] == '%') { // percentage of angles
                                 angle_add *= 3.6;
                                 cs = &cs[1];
+                            } else if (cs[0] == ':') { // fractional of full turn
+                                if (angle_add == 0.)
+                                    angle_add = 1.;
+                                cs                = &cs[1];
+                                double angle_frac = strtod(cs, &cs);
+                                if (angle_frac == 0.)
+                                    angle_frac = 1.;
+                                angle_add *= 360 / angle_frac;
                             }
 
                             int tit = tk[t].find('*');
@@ -139,6 +147,15 @@ double calculate_infill_rotation_angle(const PrintObject* object,
                                     if (angle_steps && cs[0] != '\0' && cs[0] != '!') {
                                         if (cs[0] == '%') // value in the percents of fill_z
                                             limit_fill_z = angle_steps * object->height() * 1e-8;
+                                        else if (cs[0] == ':') { // fractional of full height
+                                            if (angle_steps == 0.)
+                                                angle_steps = 1.;
+                                            cs                = &cs[1];
+                                            double angle_frac = strtod(cs, &cs);
+                                            if (angle_frac == 0.)
+                                                angle_frac = 1.;
+                                            limit_fill_z = angle_steps / angle_frac * object->height() * 1e-6;
+                                        }
                                         else if (cs[0] == '#') // value in the feet
                                             limit_fill_z = angle_steps * object->config().layer_height;
                                         else if (cs[0] == '\'') // value in the feet
@@ -902,19 +919,6 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 // Orca: apply fill multiline only for sparse infill
                 params.multiline = params.extrusion_role == erInternalInfill ? int(region_config.fill_multiline) : 1;
             
-                if (!params.is_patchwork || surface.is_internal()) { //PPS: patchwork angle calculate in own function, only the angle of rotation of the model is transmitted there
-                    if (params.extrusion_role == erInternalInfill) {
-                        params.angle = calculate_infill_rotation_angle(layer.object(), layer.id(), region_config.infill_direction.value,
-                                                                       region_config.sparse_infill_rotate_template.value);
-                        params.is_using_template_angle = !region_config.sparse_infill_rotate_template.value.empty();
-                    } else {
-                        params.angle = calculate_infill_rotation_angle(layer.object(), layer.id(), region_config.solid_infill_direction.value,
-                                                                       region_config.solid_infill_rotate_template.value);
-                        params.is_using_template_angle = !region_config.solid_infill_rotate_template.value.empty();
-                    }
-                }  
-                params.bridge_angle = float(surface.bridge_angle);
-                
                 params.is_patchwork = false;
                 if (surface.is_external()) {
                     PatchworkPosition _patchwork = region_config.patchwork_surfaces.value;
@@ -927,9 +931,23 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                     }
                 }
 
+                if (params.extrusion_role == erInternalInfill) {
+                    params.angle = calculate_infill_rotation_angle(layer.object(), layer.id(), region_config.infill_direction.value,
+                                                                    region_config.sparse_infill_rotate_template.value);
+                    params.is_using_template_angle = !region_config.sparse_infill_rotate_template.value.empty();
+                } else if (!(params.is_patchwork && surface.is_external())) { //PPS: patchwork angle calculate in own function, only the angle of rotation of the model is transmitted there
+                    params.angle = calculate_infill_rotation_angle(layer.object(), layer.id(), region_config.solid_infill_direction.value,
+                                                                    region_config.solid_infill_rotate_template.value);
+                    params.is_using_template_angle = !region_config.solid_infill_rotate_template.value.empty();
+                }
+                params.bridge_angle = float(surface.bridge_angle);
+                
+
                 if (region_config.align_infill_direction_to_model) {
                     auto m = layer.object()->trafo().matrix();
-                    params.angle += atan2((float) m(1, 0), (float) m(0, 0));
+                    double _add_angle = atan2((float) m(1, 0), (float) m(0, 0));
+                    params.angle += _add_angle;
+                    params.bridge_angle += _add_angle; // PPS:: user bridges also must to rotate
                 }
 
                 // Calculate the actual flow we'll be using for this infill.

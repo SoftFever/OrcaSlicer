@@ -5614,17 +5614,18 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<CenterOfSurfacePattern>(CenterOfSurfacePattern::Each_Surface));
 
     def           = this->add("precision_infill", coBool);
-    def->label    = L("Precision surfaces");
+    def->label    = L("Precision infill");
     def->category = L("Strength");
     def->tooltip  = L("It sets the precision overlay of any patterns on each layer. It's also partially fills the pores when using Fuzzy Skin. "
-                      "This option may slow down the G-code calculation time.");
+                      "This option may slowdown the G-code calculation time!");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def           = this->add("patchwork_surfaces", coEnum);
     def->label    = L("Patchwork surfaces");
     def->category = L("Strength");
-    def->tooltip  = L("Enable a mode for surface generating like a patchwork quilt");
+    def->tooltip  = L("Enable a mode for surface generating like a patchwork quilt.\n "
+                      "This mode disable gap filling at the choosed surface.");
     def->enum_keys_map = &ConfigOptionEnum<PatchworkPosition>::get_enum_values();
     def->enum_values.push_back("nowhere");
     def->enum_values.push_back("bottom");

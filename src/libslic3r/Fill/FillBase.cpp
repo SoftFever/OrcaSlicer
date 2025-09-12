@@ -291,7 +291,6 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
 #endif
 
     // *** Fill the tiles section
-    this->rotate_angle              = 0.;
     Surface     _surface            = *surface;
     FillParams  _params             = params;
     std::string _ang_s              = _params.config->patchwork_tiles_alternate_direction.value;
@@ -524,7 +523,7 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         }
 
         // Orca: run gap fill
-        if (!params.is_anisotropic) 
+        if (!(params.is_anisotropic || params.is_patchwork)) //PPS: Disable gap filling while anisotropic or patchwork surfaces
             this->_create_gap_fill(surface, params, eec);
     }
 }
