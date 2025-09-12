@@ -7211,13 +7211,13 @@ msgstr ""
 "sollen Drucker/Filament/Prozess Einstellungen geladen werden beim Öffnen "
 "einer .3mf?"
 
-msgid "Maximum recent files"
-msgstr ""
+msgid "Maximum recent projects"
+msgstr "Höchstanzahl an letzten Projekten"
 
-msgid "Maximum count of recent files"
-msgstr ""
+msgid "Maximum count of recent projects"
+msgstr "Maximale Anzahl an zuletzt geöffneten Projekten"
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
@@ -7225,9 +7225,6 @@ msgstr "Meine Auswahl für nicht gespeicherte Projekte löschen."
 
 msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Keine Warnungen beim Laden von 3MF mit modifizierten G-Codes"
-
-msgid "Add STL/STEP files to recent projects"
-msgstr ""
 
 msgid "Auto backup"
 msgstr "Automatische datensicherung"
@@ -19452,12 +19449,6 @@ msgstr ""
 
 #~ msgid "Recent projects"
 #~ msgstr "Letzte Projekte"
-
-#~ msgid "Maximum recent projects"
-#~ msgstr "Höchstanzahl an letzten Projekten"
-
-#~ msgid "Maximum count of recent projects"
-#~ msgstr "Maximale Anzahl an zuletzt geöffneten Projekten"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Umschalttaste+G"

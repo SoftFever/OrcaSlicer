@@ -6591,13 +6591,13 @@ msgstr ""
 msgid "Maximum count of recent projects"
 msgstr ""
 
+msgid "Add STL/STEP files to recent projects"
+msgstr ""
+
 msgid "Clear my choice on the unsaved projects."
 msgstr ""
 
 msgid "Don't warn when loading 3MF with modified G-code"
-msgstr ""
-
-msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Auto backup"

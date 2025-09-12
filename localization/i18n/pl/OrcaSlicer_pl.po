@@ -7100,13 +7100,13 @@ msgstr ""
 "Określa czy ustawienia drukarki/filamentu/procesu mają być wczytywane "
 "podczas otwierania pliku .3mf"
 
-msgid "Maximum recent files"
-msgstr ""
+msgid "Maximum recent projects"
+msgstr "Maksymalna liczba ostatnich projektów"
 
-msgid "Maximum count of recent files"
-msgstr ""
+msgid "Maximum count of recent projects"
+msgstr "Określa maksymalną liczbę ostatnich projektów"
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
@@ -7114,9 +7114,6 @@ msgstr "Wyczyść wybory na niezapisanych projektach."
 
 msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Brak ostrzeżeń przy wczytywaniu plików 3MF z zmodyfikowanymi G-code"
-
-msgid "Add STL/STEP files to recent projects"
-msgstr ""
 
 msgid "Auto backup"
 msgstr "Automatyczne tworzenie kopii zapasowej"
@@ -18983,12 +18980,6 @@ msgstr ""
 
 #~ msgid "Recent projects"
 #~ msgstr "Ostatnie projekty"
-
-#~ msgid "Maximum recent projects"
-#~ msgstr "Maksymalna liczba ostatnich projektów"
-
-#~ msgid "Maximum count of recent projects"
-#~ msgstr "Określa maksymalną liczbę ostatnich projektów"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

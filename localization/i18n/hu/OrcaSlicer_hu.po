@@ -6875,22 +6875,19 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
-msgid "Maximum recent files"
+msgid "Maximum recent projects"
 msgstr ""
 
-msgid "Maximum count of recent files"
+msgid "Maximum count of recent projects"
 msgstr ""
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr ""
 
 msgid "Don't warn when loading 3MF with modified G-code"
-msgstr ""
-
-msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Auto backup"

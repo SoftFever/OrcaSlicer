@@ -7136,13 +7136,13 @@ msgstr ""
 "S'ha de carregar la configuració de la impressora/filament/procés en obrir "
 "un .3mf?"
 
-msgid "Maximum recent files"
-msgstr ""
+msgid "Maximum recent projects"
+msgstr "Màxim projectes recents"
 
-msgid "Maximum count of recent files"
-msgstr ""
+msgid "Maximum count of recent projects"
+msgstr "Màxima quantitat de projectes recents"
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
@@ -7150,9 +7150,6 @@ msgstr "Esborrar la meva elecció sobre els projectes no desats."
 
 msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "No hi ha avisos en carregar 3MF amb Codis-G modificats"
-
-msgid "Add STL/STEP files to recent projects"
-msgstr ""
 
 msgid "Auto backup"
 msgstr "Còpia de seguretat automàtica"
@@ -19115,12 +19112,6 @@ msgstr ""
 
 #~ msgid "Recent projects"
 #~ msgstr "Projectes recents"
-
-#~ msgid "Maximum recent projects"
-#~ msgstr "Màxim projectes recents"
-
-#~ msgid "Maximum count of recent projects"
-#~ msgstr "Màxima quantitat de projectes recents"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Maj+G"

@@ -6922,13 +6922,13 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ".3mf를 열 때 프린터/필라멘트/프로세스 설정이 로드되어야 합니까?"
 
-msgid "Maximum recent files"
-msgstr ""
+msgid "Maximum recent projects"
+msgstr "최근 프로젝트 최대 표시"
 
-msgid "Maximum count of recent files"
-msgstr ""
+msgid "Maximum count of recent projects"
+msgstr "최근 프로젝트의 최대 표시 수"
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
@@ -6936,9 +6936,6 @@ msgstr "저장되지 않은 프로젝트에서 내 선택을 지웁니다."
 
 msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "수정된 Gcode로 3MF를 로드할 때 경고 없음"
-
-msgid "Add STL/STEP files to recent projects"
-msgstr ""
 
 msgid "Auto backup"
 msgstr "자동 백업"
@@ -18229,12 +18226,6 @@ msgstr ""
 
 #~ msgid "Recent projects"
 #~ msgstr "최근 프로젝트"
-
-#~ msgid "Maximum recent projects"
-#~ msgstr "최근 프로젝트 최대 표시"
-
-#~ msgid "Maximum count of recent projects"
-#~ msgstr "최근 프로젝트의 최대 표시 수"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

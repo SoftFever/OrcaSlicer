@@ -7068,14 +7068,14 @@ msgstr "Maksimum son kullanılan proje"
 msgid "Maximum count of recent projects"
 msgstr "Maksimum son kullanılan proje sayısı"
 
+msgid "Add STL/STEP files to recent projects"
+msgstr "STL/STEP dosyalarını son kullanılan projelere ekle"
+
 msgid "Clear my choice on the unsaved projects."
 msgstr "Kaydedilmemiş projelerdeki seçimimi temizle."
 
 msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Değiştirilmiş G-kodları içeren 3MF dosyalarını yüklerken uyarma"
-
-msgid "Add STL/STEP files to recent projects"
-msgstr "STL/STEP dosyalarını son kullanılan projelere ekle"
 
 msgid "Auto backup"
 msgstr "Otomatik yedekleme"

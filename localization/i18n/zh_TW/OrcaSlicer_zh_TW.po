@@ -6786,13 +6786,13 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "開啟 .3mf 檔案時，是否需要載入印表機、線材和參數設定？"
 
-msgid "Maximum recent files"
-msgstr ""
+msgid "Maximum recent projects"
+msgstr "最近專案項目的最大數量"
 
-msgid "Maximum count of recent files"
-msgstr ""
+msgid "Maximum count of recent projects"
+msgstr "近期專案項目的最大統計"
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
@@ -6800,9 +6800,6 @@ msgstr "清除我對未儲存專案項目的選擇。"
 
 msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "載入包含修改過 G-code 的 3MF 時不顯示警告"
-
-msgid "Add STL/STEP files to recent projects"
-msgstr ""
 
 msgid "Auto backup"
 msgstr "自動備份"
@@ -17568,12 +17565,6 @@ msgstr ""
 
 #~ msgid "Recent projects"
 #~ msgstr "最近的專案項目"
-
-#~ msgid "Maximum recent projects"
-#~ msgstr "最近專案項目的最大數量"
-
-#~ msgid "Maximum count of recent projects"
-#~ msgstr "近期專案項目的最大統計"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

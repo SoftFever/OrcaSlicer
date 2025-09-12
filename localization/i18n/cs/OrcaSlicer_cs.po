@@ -6967,22 +6967,19 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
-msgid "Maximum recent files"
-msgstr ""
+msgid "Maximum recent projects"
+msgstr "Maximální počet nedávných projektů"
 
-msgid "Maximum count of recent files"
-msgstr ""
+msgid "Maximum count of recent projects"
+msgstr "Maximální počet nedávných projektů"
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Vymazat moje volby pro neuložené projekty."
 
 msgid "Don't warn when loading 3MF with modified G-code"
-msgstr ""
-
-msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Auto backup"
@@ -17681,12 +17678,6 @@ msgstr ""
 
 #~ msgid "Recent projects"
 #~ msgstr "Nedávné projekty"
-
-#~ msgid "Maximum recent projects"
-#~ msgstr "Maximální počet nedávných projektů"
-
-#~ msgid "Maximum count of recent projects"
-#~ msgstr "Maximální počet nedávných projektů"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

@@ -7084,13 +7084,13 @@ msgstr ""
 "Ar atidarant .3mf failą reikia įkelti spausdintuvo / gijų / proceso "
 "nustatymus?"
 
-msgid "Maximum recent files"
-msgstr ""
+msgid "Maximum recent projects"
+msgstr "Daugiausia buvusių projektų"
 
-msgid "Maximum count of recent files"
-msgstr ""
+msgid "Maximum count of recent projects"
+msgstr "Didžiausias skaičius buvusių projektų"
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
@@ -7098,9 +7098,6 @@ msgstr "Išvalyti mano pasirinkimus neišsaugotuose projektuose."
 
 msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Nerodyti perspėjimų įkeliant 3MF su modifikuotais G-kodais"
-
-msgid "Add STL/STEP files to recent projects"
-msgstr ""
 
 msgid "Auto backup"
 msgstr "Automatinis atsarginis kopijavimas"
@@ -18821,12 +18818,6 @@ msgstr ""
 
 #~ msgid "Recent projects"
 #~ msgstr "Naujausi projektai"
-
-#~ msgid "Maximum recent projects"
-#~ msgstr "Daugiausia buvusių projektų"
-
-#~ msgid "Maximum count of recent projects"
-#~ msgstr "Didžiausias skaičius buvusių projektų"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

@@ -7124,13 +7124,13 @@ msgstr ""
 "Чи повинні бути завантажені налаштування принтера/філаменту/процесу при "
 "відкритті файлу .3mf?"
 
-msgid "Maximum recent files"
-msgstr ""
+msgid "Maximum recent projects"
+msgstr "Максимум останніх проектів"
 
-msgid "Maximum count of recent files"
-msgstr ""
+msgid "Maximum count of recent projects"
+msgstr "Максимальна кількість останніх проектів"
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
@@ -7138,9 +7138,6 @@ msgstr "Очистити мій вибір для незбережених пр�
 
 msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Немає попереджень при завантаженні файлу 3MF із зміненими G-кодами"
-
-msgid "Add STL/STEP files to recent projects"
-msgstr ""
 
 msgid "Auto backup"
 msgstr "Автобекап"
@@ -18949,12 +18946,6 @@ msgstr ""
 
 #~ msgid "Recent projects"
 #~ msgstr "Недавні проєкти"
-
-#~ msgid "Maximum recent projects"
-#~ msgstr "Максимум останніх проектів"
-
-#~ msgid "Maximum count of recent projects"
-#~ msgstr "Максимальна кількість останніх проектів"
 
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+будь-яка стрілка"

@@ -7210,13 +7210,13 @@ msgstr ""
 "Выбор того, следует ли при открытии 3mf проекта загружать настройки "
 "принтера, прутка и процесса."
 
-msgid "Maximum recent files"
-msgstr ""
+msgid "Maximum recent projects"
+msgstr "Максимальное количество недавних проектов"
 
-msgid "Maximum count of recent files"
-msgstr ""
+msgid "Maximum count of recent projects"
+msgstr "Максимальное количество проектов, отображаемое в списке недавних проектов."
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent projects"
 msgstr ""
 
 # ??? Сбросить мой выбор действия для проектов, Сбросить запрос о несохранённых изменениях для проекта при закрытии программы
@@ -7228,9 +7228,6 @@ msgstr ""
 
 msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Отключить предупреждения при загрузке 3MF с модифицированным G-кодом"
-
-msgid "Add STL/STEP files to recent projects"
-msgstr ""
 
 msgid "Auto backup"
 msgstr "Автосоздание резервной копии"
@@ -19383,13 +19380,6 @@ msgstr ""
 
 #~ msgid "Recent projects"
 #~ msgstr "Недавние проекты"
-
-#~ msgid "Maximum recent projects"
-#~ msgstr "Максимальное количество недавних проектов"
-
-#~ msgid "Maximum count of recent projects"
-#~ msgstr ""
-#~ "Максимальное количество проектов, отображаемое в списке недавних проектов."
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"
