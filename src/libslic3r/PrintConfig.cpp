@@ -1081,6 +1081,82 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("override_other_flow_ratios", coBool);
+    def->label = L("Override other flow ratios");
+    def->category = L("Advanced");
+    def->tooltip = L("Override flow ratios for other perimeter types.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("outer_wall_flow_ratio", coFloat);
+    def->label = L("Outer wall flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for outer walls.\n\n"
+                     "The actual outer wall flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("inner_wall_flow_ratio", coFloat);
+    def->label = L("Inner wall flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for inner walls.\n\n"
+                     "The actual inner wall flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("overhang_flow_ratio", coFloat);
+    def->label = L("Overhang flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for overhangs.\n\n"
+                     "The actual overhang flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("sparse_infill_flow_ratio", coFloat);
+    def->label = L("Sparse infill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for sparse infill.\n\n"
+                     "The actual sparse infill flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("internal_solid_infill_flow_ratio", coFloat);
+    def->label = L("Internal solid infill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for internal solid infill.\n\n"
+                     "The actual internal solid infill flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("support_flow_ratio", coFloat);
+    def->label = L("Support flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for support.\n\n"
+                     "The actual support flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("support_interface_flow_ratio", coFloat);
+    def->label = L("Support interface flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for the support interface.\n\n"
+                     "The actual support interface flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("precise_outer_wall",coBool);
     def->label = L("Precise wall");
