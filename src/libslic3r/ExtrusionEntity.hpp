@@ -217,6 +217,7 @@ public:
         this->width = rhs.width;
         this->height = rhs.height;
         this->polyline = rhs.polyline;
+        this->is_even = rhs.is_even;
         return *this;
     }
     ExtrusionPath& operator=(ExtrusionPath&& rhs) {
@@ -227,6 +228,7 @@ public:
         this->width = rhs.width;
         this->height = rhs.height;
         this->polyline = std::move(rhs.polyline);
+        this->is_even = rhs.is_even;
         return *this;
     }
 

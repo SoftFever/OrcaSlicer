@@ -393,9 +393,9 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
         // PPS: Odd-Even wall order
         float _flow_ratio = 1;
-        if (extrusion->is_even) {
+        bool  _is_even    = extrusion->is_even;
+        if (_is_even)
             _flow_ratio = perimeter_generator.config->even_loops_flow_ratio; //PPS: Here can put the code of implementation of staggered perimeters 
-        } 
 
         const bool    is_external = extrusion->inset_idx == 0;
         ExtrusionRole role = is_external ? erExternalPerimeter : erPerimeter;
@@ -542,15 +542,15 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
             // apply slowdow to the paths
             for (ExtrusionPath& path : paths) {
-                path.is_even = extrusion->is_even;
+                path.is_even = _is_even;
                 path.width *= _flow_ratio;
                 path.mm3_per_mm *= _flow_ratio;
             }
 
             if (extrusion->is_closed) {
                 ExtrusionLoop extrusion_loop(std::move(paths), pg_extrusion.is_contour ? elrDefault : elrHole);
+                extrusion_loop.is_even = _is_even;
                 extrusion_loop.make_counter_clockwise();
-                extrusion_loop.is_even = extrusion->is_even;
                 // TODO: it seems in practice that ExtrusionLoops occasionally have significantly disconnected paths,
                 // triggering the asserts below. Is this a problem?
                 for (auto it = std::next(extrusion_loop.paths.begin()); it != extrusion_loop.paths.end(); ++it) {
@@ -570,8 +570,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     assert(std::prev(it)->polyline.last_point() == it->polyline.first_point());
                 }
                 ExtrusionMultiPath multi_path;
+                multi_path.is_even = _is_even;
                 multi_path.paths.emplace_back(std::move(paths.front()));
-                multi_path.is_even = extrusion->is_even;
 
                 for (auto it_path = std::next(paths.begin()); it_path != paths.end(); ++it_path) {
                     if (multi_path.paths.back().last_point() != it_path->first_point()) {
