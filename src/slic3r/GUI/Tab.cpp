@@ -1598,7 +1598,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if (is_support_filament(interface_filament_id) && !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
                                                             m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced)) {
             wxString msg_text = _L("When using support material for the support interface, we recommend the following settings:\n"
-                                   "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
+                                   "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent/adaptive support layer height");
             msg_text += "\n\n" + _L("Change these settings automatically?\n"
                                     "Yes - Change these settings automatically\n"
                                     "No  - Do not change these settings for me");
@@ -1609,9 +1609,26 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
+
+                // Orca:
+                // FIXME: independent_support_layer_height and tree_support_adaptive_layer_height serve the same purpose.
+                // It would be great to have only one variable instead of two.
+                new_conf.set_key_value("tree_support_adaptive_layer_height", new ConfigOptionBool(false));
+
                 m_config_manipulation.apply(m_config, &new_conf);
             }
             wxGetApp().plater()->update();
+        }
+    }
+
+    // Orca:
+    // FIXME: independent_support_layer_height and tree_support_adaptive_layer_height serve the same purpose.
+    // It would be great to have only one variable instead of two.
+    if (opt_key == "tree_support_adaptive_layer_height") {
+        if (m_config->opt_bool("tree_support_adaptive_layer_height") && !m_config->opt_bool("independent_support_layer_height")) {
+            DynamicPrintConfig new_conf = *m_config;
+            new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(true));
+            m_config_manipulation.apply(m_config, &new_conf);
         }
     }
 

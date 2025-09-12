@@ -1329,7 +1329,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
                 // BBS
 #if 0
-                if (this->has_wipe_tower() && object->config().independent_support_layer_height) {
+                // Orca:
+                // FIXME: independent_support_layer_height and tree_support_adaptive_layer_height serve the same purpose.
+                // It would be great to have only one variable instead of two.
+                if (this->has_wipe_tower() && m_config.independent_support_layer_height && object->config().tree_support_adaptive_layer_height) {
                     return {L("The prime tower requires that support has the same layer height with object."), object, "support_filament"};
                 }
 #endif
