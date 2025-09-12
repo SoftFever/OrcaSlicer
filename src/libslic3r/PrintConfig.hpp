@@ -1017,6 +1017,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 patchwork_centering))
     ((ConfigOptionBool,                 patchwork_subway_tiling))
     ((ConfigOptionFloat,                patchwork_joints_flow_ratio))
+    ((ConfigOptionString,               extra_solid_infills))
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))

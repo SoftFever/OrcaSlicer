@@ -1,17 +1,21 @@
 {
     "type": "machine",
+    "name": "Anycubic Kobra 3 0.6 nozzle",
+    "inherits": "fdm_machine_common",
     "from": "system",
     "setting_id": "GM001",
-    "inherits": "fdm_machine_common",
     "instantiation": "true",
     "printer_technology": "FFF",
     "printer_settings_id": "Anycubic Kobra 3 0.6 nozzle",
     "printer_model": "Anycubic Kobra 3",
     "printer_variant": "0.6",
-    "name": "Anycubic Kobra 3 0.6 nozzle",
-    "nozzle_diameter": [ "0.6" ],
+    "nozzle_diameter": [
+        "0.6"
+    ],
     "default_print_profile": "0.30mm Standard @Anycubic Kobra 3 0.6 nozzle",
-    "default_filament_profile": [ "Anycubic PLA @Anycubic Kobra 3 0.6 nozzle" ],
+    "default_filament_profile": [
+        "Anycubic PLA @Anycubic Kobra 3 0.6 nozzle"
+    ],
     "disable_m73": "1",
     "gcode_flavor": "klipper",
     "printable_area": [
@@ -79,7 +83,6 @@
     "head_wrap_detect_zone": [],
     "high_current_on_filament_swap": "0",
     "host_type": "octoprint",
-    "is_custom_defined": "0",
     "layer_change_gcode": "; AFTER_LAYER_CHANGE [layer_num] @ [layer_z]mm",
     "long_retractions_when_cut": [
         "0"
