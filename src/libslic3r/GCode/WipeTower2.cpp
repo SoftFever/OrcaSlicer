@@ -69,7 +69,7 @@ static bool is_valid_gcode(const std::string& gcode)
     return is_valid;
 }
 
-Polygon chamfer_polygon(Polygon& polygon, double chamfer_dis = 2., double angle_tol = 30. / 180. * PI)
+static Polygon chamfer_polygon(Polygon& polygon, double chamfer_dis = 2., double angle_tol = 30. / 180. * PI)
 {
     if (polygon.points.size() < 3)
         return polygon;
@@ -104,7 +104,7 @@ Polygon chamfer_polygon(Polygon& polygon, double chamfer_dis = 2., double angle_
     return res;
 }
 
-Polygon rounding_polygon(Polygon& polygon, double rounding = 2., double angle_tol  = 30. / 180. * PI)
+static Polygon rounding_polygon(Polygon& polygon, double rounding = 2., double angle_tol  = 30. / 180. * PI)
 {
     if (polygon.points.size() < 3)
         return polygon;
@@ -174,7 +174,7 @@ Polygon rounding_polygon(Polygon& polygon, double rounding = 2., double angle_to
     return res;
 }
 
-Polygon rounding_rectangle(Polygon& polygon, double rounding = 2., double angle_tol = 30. / 180. * PI)
+static Polygon rounding_rectangle(Polygon& polygon, double rounding = 2., double angle_tol = 30. / 180. * PI)
 {
     if (polygon.points.size() < 3)
         return polygon;
@@ -234,7 +234,7 @@ Polygon rounding_rectangle(Polygon& polygon, double rounding = 2., double angle_
     return res;
 }
 
-std::pair<bool, Vec2f> ray_intersetion_line(const Vec2f& a, const Vec2f& v1, const Vec2f& b, const Vec2f& c)
+static std::pair<bool, Vec2f> ray_intersetion_line(const Vec2f& a, const Vec2f& v1, const Vec2f& b, const Vec2f& c)
 {
     const Vec2f v2    = c - b;
     double      denom = cross2(v1, v2);
@@ -252,14 +252,14 @@ std::pair<bool, Vec2f> ray_intersetion_line(const Vec2f& a, const Vec2f& v1, con
     }
     return std::pair<bool, Vec2f>(false, Vec2f{0, 0});
 }
-Polygon scale_polygon(const std::vector<Vec2f>& points)
+static Polygon scale_polygon(const std::vector<Vec2f>& points)
 {
     Polygon res;
     for (const auto& p : points)
         res.points.push_back(scaled(p));
     return res;
 }
-std::vector<Vec2f> unscale_polygon(const Polygon& polygon)
+static std::vector<Vec2f> unscale_polygon(const Polygon& polygon)
 {
     std::vector<Vec2f> res;
     for (const auto& p : polygon.points)
@@ -267,7 +267,7 @@ std::vector<Vec2f> unscale_polygon(const Polygon& polygon)
     return res;
 }
 
-Polygon generate_rectange(const Line& line, coord_t offset)
+static Polygon generate_rectange(const Line& line, coord_t offset)
 {
     Point p1 = line.a;
     Point p2 = line.b;
@@ -349,7 +349,7 @@ struct PointWithFlag
     int   pair_idx; // gap_pair idx
     bool  is_forward;
 };
-IntersectionInfo move_point_along_polygon(
+static IntersectionInfo move_point_along_polygon(
     const std::vector<Vec2f>& points, const Vec2f& startPoint, int startIdx, float offset, bool forward, int pair_idx)
 {
     float            remainingDistance = offset;
@@ -412,7 +412,7 @@ IntersectionInfo move_point_along_polygon(
     return res;
 };
 
-void insert_points(std::vector<PointWithFlag>& pl, int idx, Vec2f pos, int pair_idx, bool is_forward)
+static void insert_points(std::vector<PointWithFlag>& pl, int idx, Vec2f pos, int pair_idx, bool is_forward)
 {
     int   next = (idx + 1) % pl.size();
     Vec2f pos1 = pl[idx].pos;
@@ -428,7 +428,7 @@ void insert_points(std::vector<PointWithFlag>& pl, int idx, Vec2f pos, int pair_
     }
 }
 
-Polylines remove_points_from_polygon(
+static Polylines remove_points_from_polygon(
     const Polygon& polygon, const std::vector<Vec2f>& skip_points, double range, bool is_left, Polygon& insert_skip_pg)
 {
     assert(polygon.size() > 2);
@@ -519,7 +519,7 @@ Polylines remove_points_from_polygon(
     return result;
 }
 
-Polylines contrust_gap_for_skip_points(
+static Polylines contrust_gap_for_skip_points(
     const Polygon& polygon, const std::vector<Vec2f>& skip_points, float wt_width, float gap_length, Polygon& insert_skip_polygon)
 {
     if (skip_points.empty()) {
@@ -534,7 +534,7 @@ Polylines contrust_gap_for_skip_points(
     return remove_points_from_polygon(polygon, skip_points, gap_length, is_left, insert_skip_polygon);
 };
 
-Polygon generate_rectange_polygon(const Vec2f& wt_box_min, const Vec2f& wt_box_max)
+static Polygon generate_rectange_polygon(const Vec2f& wt_box_min, const Vec2f& wt_box_max)
 {
     Polygon res;
     res.points.push_back(scaled(wt_box_min));
