@@ -31,6 +31,7 @@ function usage() {
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
+BUILD_DIR=build
 while getopts ":1j:bcCdhiprstulL" opt ; do
   case ${opt} in
     1 )
@@ -41,6 +42,7 @@ while getopts ":1j:bcCdhiprstulL" opt ; do
         ;;
     b )
         BUILD_DEBUG="1"
+        BUILD_DIR=build-dbg
         ;;
     c )
         CLEAN_BUILD=1
@@ -136,7 +138,7 @@ else
     source "./scripts/linux.d/${DISTRIBUTION}"
 fi
 
-echo "FOUND_GTK3=${FOUND_GTK3}"
+echo "FOUND_GTK3_DEV=${FOUND_GTK3_DEV}"
 if [[ -z "${FOUND_GTK3_DEV}" ]] ; then
     echo "Error, you must install the dependencies before."
     echo "Use option -u with sudo"
@@ -174,52 +176,38 @@ fi
 
 if [[ -n "${BUILD_DEPS}" ]] ; then
     echo "Configuring dependencies..."
-    BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON"
     if [[ -n "${CLEAN_BUILD}" ]]
     then
-        rm -fr deps/build
+        rm -fr deps/$BUILD_DIR
     fi
-    mkdir -p deps/build
+    mkdir -p deps/$BUILD_DIR
     if [[ -n "${BUILD_DEBUG}" ]] ; then
-        # build deps with debug and release else cmake will not find required sources
-        mkdir -p deps/build/release
-	CMAKE_CMD="cmake ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR=${SCRIPT_PATH}/deps/build/destdir -DDEP_DOWNLOAD_DIR=${SCRIPT_PATH}/deps/DL_CACHE ${COLORED_OUTPUT} ${BUILD_ARGS}"
-	echo "${CMAKE_CMD}"
-	${CMAKE_CMD}
-        cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
     # If this isn't in one quote, then empty variables can add two single quotes and mess up argument parsing for cmake.
-    CMAKE_CMD="cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}"
+    CMAKE_CMD="cmake -S deps -B deps/$BUILD_DIR ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}"
     echo "${CMAKE_CMD}"
     ${CMAKE_CMD}
-    cmake --build deps/build
+    cmake --build deps/$BUILD_DIR
 fi
 
 if [[ -n "${BUILD_ORCA}" ]] ; then
     echo "Configuring OrcaSlicer..."
     if [[ -n "${CLEAN_BUILD}" ]] ; then
-        rm -fr build
+        rm -fr $BUILD_DIR
     fi
     BUILD_ARGS="${ORCA_EXTRA_BUILD_ARGS}"
-    if [[ -n "${FOUND_GTK3_DEV}" ]] ; then
-        BUILD_ARGS="${BUILD_ARGS} -DSLIC3R_GTK=3"
-    fi
     if [[ -n "${BUILD_DEBUG}" ]] ; then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"
-    else
-        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
+        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
     if [[ -n "${BUILD_TESTS}" ]] ; then
         BUILD_ARGS="${BUILD_ARGS} -DBUILD_TESTS=ON"
     fi
 
     echo "Configuring OrcaSlicer..."
-    cmake -S . -B build ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G "Ninja Multi-Config" \
+    cmake -S . -B $BUILD_DIR ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G "Ninja Multi-Config" \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
--DCMAKE_PREFIX_PATH=${SCRIPT_PATH}/deps/build/destdir/usr/local \
--DSLIC3R_STATIC=1 \
 -DORCA_TOOLS=ON \
 ${COLORED_OUTPUT} \
 ${BUILD_ARGS}
@@ -228,15 +216,15 @@ ${BUILD_ARGS}
     echo "done"
     echo "Building OrcaSlicer ..."
     if [[ -n "${BUILD_DEBUG}" ]] ; then
-        cmake --build build --config Debug --target OrcaSlicer
+        cmake --build $BUILD_DIR --config Debug --target OrcaSlicer
     else
-        cmake --build build --config Release --target OrcaSlicer
+        cmake --build $BUILD_DIR --config Release --target OrcaSlicer
     fi
     echo "Building OrcaSlicer_profile_validator .."
     if [[ -n "${BUILD_DEBUG}" ]] ; then
-        cmake --build build --config Debug --target OrcaSlicer_profile_validator
+        cmake --build $BUILD_DIR --config Debug --target OrcaSlicer_profile_validator
     else
-        cmake --build build --config Release --target OrcaSlicer_profile_validator
+        cmake --build $BUILD_DIR --config Release --target OrcaSlicer_profile_validator
     fi
     ./scripts/run_gettext.sh
     echo "done"

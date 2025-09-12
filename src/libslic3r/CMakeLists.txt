@@ -552,7 +552,6 @@ set(OCCT_LIBS
     TKernel
 )
 
-find_package(libnoise REQUIRED)
 target_link_libraries(libslic3r
     libnest2d
     admesh
