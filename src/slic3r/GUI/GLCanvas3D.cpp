@@ -76,6 +76,42 @@
 
 #include <imguizmo/ImGuizmo.h>
 
+#ifdef _WIN32
+// Windows accessibility support
+// Ensures COM support is available despite TBB interference
+#undef WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <oleacc.h>
+#include <comdef.h>
+#include <winerror.h>
+#include <objbase.h>
+
+#ifndef STATE_SYSTEM_NORMAL
+#define STATE_SYSTEM_NORMAL 0x00000000
+#endif
+
+#ifndef CHILDID_SELF
+#define CHILDID_SELF 0
+#endif
+
+#ifndef S_OK
+#define S_OK ((HRESULT)0L)
+#endif
+
+#ifndef E_FAIL
+#define E_FAIL ((HRESULT)0x80004005L)
+#endif
+
+#ifndef E_NOTIMPL
+#define E_NOTIMPL ((HRESULT)0x80004001L)
+#endif
+
+#ifndef E_NOINTERFACE
+#define E_NOINTERFACE ((HRESULT)0x80004002L)
+#endif
+
+#endif // _WIN32
+
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static Slic3r::ColorRGBA DEFAULT_BG_LIGHT_COLOR      = { 0.906f, 0.906f, 0.906f, 1.0f };
@@ -100,6 +136,591 @@ static constexpr const size_t MAX_VERTEX_BUFFER_SIZE     = 131072 * 6; // 3.15MB
 
 namespace Slic3r {
 namespace GUI {
+
+#ifdef _WIN32
+// Tool accessibility info structure
+struct GLCanvas3DToolInfo {
+    std::wstring name;
+    std::wstring description;
+    std::wstring shortcut;
+    long childId;
+    bool enabled;
+    
+    GLCanvas3DToolInfo(const std::wstring& n, const std::wstring& d, const std::wstring& s, long id, bool e = true)
+        : name(n), description(d), shortcut(s), childId(id), enabled(e) {}
+};
+
+// IAccessible COM interface implementation for 3D canvas tools
+class GLCanvas3DAccessible : public IAccessible
+{
+private:
+    ULONG m_refCount;
+    wxGLCanvas* m_pGLCanvas;
+    GLCanvas3D* m_pCanvas3D;  // Reference to parent GLCanvas3D for toolbar methods
+    std::vector<GLCanvas3DToolInfo> m_tools;
+    long m_currentFocusedChild;
+
+public:
+    GLCanvas3DAccessible(wxGLCanvas* pGLCanvas, GLCanvas3D* pCanvas3D)
+        : m_refCount(1), m_pGLCanvas(pGLCanvas), m_pCanvas3D(pCanvas3D), m_currentFocusedChild(CHILDID_SELF)
+    {
+        // Initializes all tools in the 3D canvas with proper accessible names and shortcuts
+        InitializeToolList();
+        printf("GLCanvas3DAccessible object created with %zu tools\n", m_tools.size());
+        fflush(stdout);
+    }
+
+    virtual ~GLCanvas3DAccessible()
+    {
+        printf("GLCanvas3DAccessible object destroyed\n");
+        fflush(stdout);
+    }
+
+private:
+    void InitializeToolList()
+    {
+        // Main toolbar functions
+        m_tools.push_back(GLCanvas3DToolInfo(L"Add", L"Add models to the 3D scene", L"Ctrl+I", 1));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Add Plate", L"Add a new build plate", L"", 2));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Auto Orient", L"Auto orient all/selected objects", L"Q", 3));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Arrange", L"Arrange all objects on the plate", L"A", 4));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Split to Objects", L"Split selected object into separate objects", L"", 5));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Split to Parts", L"Split selected object into separate parts", L"", 6));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Variable Layer Height", L"Edit layer heights for selected object", L"", 7));
+        
+        // Gizmo functions
+        m_tools.push_back(GLCanvas3DToolInfo(L"Move", L"Move selected objects in 3D space", L"", 8));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Rotate", L"Rotate selected objects", L"", 9));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Scale", L"Scale selected objects", L"", 10));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Lay on Face", L"Place selected objects flat on build plate", L"", 11));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Cut", L"Cut selected objects with a plane", L"", 12));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Mesh Boolean", L"Perform boolean operations on meshes", L"", 13));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Support Painting", L"Paint support areas on objects", L"", 14));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Seam Painting", L"Paint seam locations on objects", L"", 15));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Color Painting", L"Paint colors on object surfaces", L"", 16));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Emboss", L"Emboss text or shapes on objects", L"", 17));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Measure", L"Measure distances and angles", L"", 18));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Assemble", L"Assemble multiple objects", L"", 19));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Brim Ears", L"Add brim ears to objects", L"", 20));
+        m_tools.push_back(GLCanvas3DToolInfo(L"Assembly View", L"View object assembly and parts", L"", 21));
+        
+        printf("Initialized %zu tools for accessibility\n", m_tools.size());
+        fflush(stdout);
+    }
+    
+    const GLCanvas3DToolInfo* GetToolInfo(long childId) const
+    {
+        for (const auto& tool : m_tools) {
+            if (tool.childId == childId) {
+                return &tool;
+            }
+        }
+        return nullptr;
+    }
+
+public:
+    // IUnknown methods
+    STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject)
+    {
+        if (riid == IID_IUnknown || riid == IID_IAccessible)
+        {
+            *ppvObject = this;
+            AddRef();
+            return S_OK;
+        }
+        *ppvObject = NULL;
+        return E_NOINTERFACE;
+    }
+
+    STDMETHODIMP_(ULONG) AddRef()
+    {
+        return InterlockedIncrement(&m_refCount);
+    }
+
+    STDMETHODIMP_(ULONG) Release()
+    {
+        ULONG count = InterlockedDecrement(&m_refCount);
+        if (count == 0)
+        {
+            delete this;
+        }
+        return count;
+    }
+
+    // IDispatch methods (required since IAccessible inherits from IDispatch)
+    STDMETHODIMP GetTypeInfoCount(UINT* pctinfo)
+    {
+        *pctinfo = 0;
+        return S_OK;
+    }
+
+    STDMETHODIMP GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo)
+    {
+        *ppTInfo = NULL;
+        return E_NOTIMPL;
+    }
+
+    STDMETHODIMP GetIDsOfNames(REFIID riid, LPOLESTR* rgszNames, UINT cNames, LCID lcid, DISPID* rgDispId)
+    {
+        return E_NOTIMPL;
+    }
+
+    STDMETHODIMP Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr)
+    {
+        return E_NOTIMPL;
+    }
+
+    // IAccessible methods
+    STDMETHODIMP get_accChildCount(long* pcountChildren)
+    {
+        *pcountChildren = static_cast<long>(m_tools.size());
+        printf("GLCanvas3DAccessible::get_accChildCount returning %ld children\n", *pcountChildren);
+        fflush(stdout);
+        return S_OK;
+    }
+    
+    STDMETHODIMP get_accChild(VARIANT varChild, IDispatch** ppdispChild)
+    {
+        *ppdispChild = NULL;
+        if (varChild.vt == VT_I4 && varChild.lVal >= 1 && varChild.lVal <= static_cast<long>(m_tools.size()))
+        {
+            // Return NULL for simple child elements (use child IDs instead of child objects)
+            return S_FALSE;
+        }
+        return E_INVALIDARG;
+    }
+
+    STDMETHODIMP get_accName(VARIANT varChild, BSTR* pszName)
+    {
+        if (varChild.vt == VT_I4)
+        {
+            if (varChild.lVal == CHILDID_SELF)
+            {
+                *pszName = SysAllocString(L"3D Canvas Tools");
+                printf("GLCanvas3DAccessible::get_accName returning container name='3D Canvas Tools'\n");
+                fflush(stdout);
+                return S_OK;
+            }
+            else
+            {
+                const GLCanvas3DToolInfo* tool = GetToolInfo(varChild.lVal);
+                if (tool)
+                {
+                    std::wstring fullName = tool->name;
+                    if (!tool->shortcut.empty()) {
+                        fullName += L" [" + tool->shortcut + L"]";
+                    }
+                    *pszName = SysAllocString(fullName.c_str());
+                    printf("GLCanvas3DAccessible::get_accName returning tool name='%ls'\n", fullName.c_str());
+                    fflush(stdout);
+                    return S_OK;
+                }
+            }
+        }
+        return E_INVALIDARG;
+    }
+
+    STDMETHODIMP get_accDescription(VARIANT varChild, BSTR* pszDescription)
+    {
+        if (varChild.vt == VT_I4)
+        {
+            if (varChild.lVal == CHILDID_SELF)
+            {
+                *pszDescription = SysAllocString(L"3D canvas containing tools for manipulating 3D objects. Use Tab to navigate between tools.");
+                printf("GLCanvas3DAccessible::get_accDescription returning container description\n");
+                fflush(stdout);
+                return S_OK;
+            }
+            else
+            {
+                const GLCanvas3DToolInfo* tool = GetToolInfo(varChild.lVal);
+                if (tool)
+                {
+                    *pszDescription = SysAllocString(tool->description.c_str());
+                    printf("GLCanvas3DAccessible::get_accDescription returning tool description='%ls'\n", tool->description.c_str());
+                    fflush(stdout);
+                    return S_OK;
+                }
+            }
+        }
+        return E_INVALIDARG;
+    }
+
+    STDMETHODIMP get_accRole(VARIANT varChild, VARIANT* pvarRole)
+    {
+        if (varChild.vt == VT_I4)
+        {
+            pvarRole->vt = VT_I4;
+            if (varChild.lVal == CHILDID_SELF)
+            {
+                pvarRole->lVal = ROLE_SYSTEM_GROUPING;
+                printf("GLCanvas3DAccessible::get_accRole returning container role=ROLE_SYSTEM_GROUPING\n");
+            }
+            else
+            {
+                pvarRole->lVal = ROLE_SYSTEM_PUSHBUTTON;
+                printf("GLCanvas3DAccessible::get_accRole returning tool role=ROLE_SYSTEM_PUSHBUTTON\n");
+            }
+            fflush(stdout);
+            return S_OK;
+        }
+        return E_INVALIDARG;
+    }
+    
+    STDMETHODIMP get_accState(VARIANT varChild, VARIANT* pvarState)
+    {
+        if (varChild.vt == VT_I4)
+        {
+            pvarState->vt = VT_I4;
+            if (varChild.lVal == CHILDID_SELF)
+            {
+                pvarState->lVal = STATE_SYSTEM_NORMAL;
+            }
+            else
+            {
+                const GLCanvas3DToolInfo* tool = GetToolInfo(varChild.lVal);
+                if (tool)
+                {
+                    pvarState->lVal = STATE_SYSTEM_NORMAL;
+                    if (!tool->enabled) {
+                        pvarState->lVal |= STATE_SYSTEM_UNAVAILABLE;
+                    }
+                    if (varChild.lVal == m_currentFocusedChild) {
+                        pvarState->lVal |= STATE_SYSTEM_FOCUSED;
+                    }
+                }
+                else
+                {
+                    return E_INVALIDARG;
+                }
+            }
+            return S_OK;
+        }
+        return E_INVALIDARG;
+    }
+    
+    STDMETHODIMP get_accFocus(VARIANT* pvarChild)
+    {
+        pvarChild->vt = VT_I4;
+        pvarChild->lVal = m_currentFocusedChild;
+        printf("GLCanvas3DAccessible::get_accFocus returning focused child %ld\n", m_currentFocusedChild);
+        fflush(stdout);
+        return S_OK;
+    }
+    
+    STDMETHODIMP accNavigate(long navDir, VARIANT varStart, VARIANT* pvarEndUpAt)
+    {
+        if (varStart.vt != VT_I4) {
+            return E_INVALIDARG;
+        }
+        
+        pvarEndUpAt->vt = VT_EMPTY;
+        
+        switch (navDir)
+        {
+            case NAVDIR_NEXT:
+            case NAVDIR_RIGHT:
+            {
+                if (varStart.lVal == CHILDID_SELF)
+                {
+                    // Navigates to first child
+                    if (!m_tools.empty())
+                    {
+                        pvarEndUpAt->vt = VT_I4;
+                        pvarEndUpAt->lVal = 1;
+                        m_currentFocusedChild = 1;
+                        printf("GLCanvas3DAccessible::accNavigate NEXT from container to child 1\n");
+                        fflush(stdout);
+                        return S_OK;
+                    }
+                }
+                else if (varStart.lVal < static_cast<long>(m_tools.size()))
+                {
+                    // Navigates to next child
+                    pvarEndUpAt->vt = VT_I4;
+                    pvarEndUpAt->lVal = varStart.lVal + 1;
+                    m_currentFocusedChild = pvarEndUpAt->lVal;
+                    printf("GLCanvas3DAccessible::accNavigate NEXT from child %ld to child %ld\n", varStart.lVal, pvarEndUpAt->lVal);
+                    fflush(stdout);
+                    return S_OK;
+                }
+                break;
+            }
+            
+            case NAVDIR_PREVIOUS:
+            case NAVDIR_LEFT:
+            {
+                if (varStart.lVal > 1)
+                {
+                    // Navigates to previous child
+                    pvarEndUpAt->vt = VT_I4;
+                    pvarEndUpAt->lVal = varStart.lVal - 1;
+                    m_currentFocusedChild = pvarEndUpAt->lVal;
+                    printf("GLCanvas3DAccessible::accNavigate PREVIOUS from child %ld to child %ld\n", varStart.lVal, pvarEndUpAt->lVal);
+                    fflush(stdout);
+                    return S_OK;
+                }
+                else if (varStart.lVal == 1)
+                {
+                    // Navigates back to container
+                    pvarEndUpAt->vt = VT_I4;
+                    pvarEndUpAt->lVal = CHILDID_SELF;
+                    m_currentFocusedChild = CHILDID_SELF;
+                    printf("GLCanvas3DAccessible::accNavigate PREVIOUS from child 1 to container\n");
+                    fflush(stdout);
+                    return S_OK;
+                }
+                break;
+            }
+            
+            case NAVDIR_FIRSTCHILD:
+            {
+                if (varStart.lVal == CHILDID_SELF && !m_tools.empty())
+                {
+                    pvarEndUpAt->vt = VT_I4;
+                    pvarEndUpAt->lVal = 1;
+                    m_currentFocusedChild = 1;
+                    printf("GLCanvas3DAccessible::accNavigate FIRSTCHILD to child 1\n");
+                    fflush(stdout);
+                    return S_OK;
+                }
+                break;
+            }
+            
+            case NAVDIR_LASTCHILD:
+            {
+                if (varStart.lVal == CHILDID_SELF && !m_tools.empty())
+                {
+                    pvarEndUpAt->vt = VT_I4;
+                    pvarEndUpAt->lVal = static_cast<long>(m_tools.size());
+                    m_currentFocusedChild = pvarEndUpAt->lVal;
+                    printf("GLCanvas3DAccessible::accNavigate LASTCHILD to child %ld\n", pvarEndUpAt->lVal);
+                    fflush(stdout);
+                    return S_OK;
+                }
+                break;
+            }
+        }
+        
+        return S_FALSE; // No more elements in that direction
+    }
+    
+    STDMETHODIMP accSelect(long flagsSelect, VARIANT varChild)
+    {
+        if (varChild.vt == VT_I4 && varChild.lVal >= 1 && varChild.lVal <= static_cast<long>(m_tools.size()))
+        {
+            if (flagsSelect & SELFLAG_TAKEFOCUS)
+            {
+                m_currentFocusedChild = varChild.lVal;
+                printf("GLCanvas3DAccessible::accSelect focusing child %ld\n", varChild.lVal);
+                fflush(stdout);
+                return S_OK;
+            }
+        }
+        return S_OK;
+    }
+    
+    STDMETHODIMP get_accKeyboardShortcut(VARIANT varChild, BSTR* pszKeyboardShortcut)
+    {
+        if (varChild.vt == VT_I4 && varChild.lVal >= 1 && varChild.lVal <= static_cast<long>(m_tools.size()))
+        {
+            const GLCanvas3DToolInfo* tool = GetToolInfo(varChild.lVal);
+            if (tool && !tool->shortcut.empty())
+            {
+                *pszKeyboardShortcut = SysAllocString(tool->shortcut.c_str());
+                printf("GLCanvas3DAccessible::get_accKeyboardShortcut returning '%ls'\n", tool->shortcut.c_str());
+                fflush(stdout);
+                return S_OK;
+            }
+        }
+        return S_FALSE;
+    }
+    
+    // Other IAccessible methods not implemented
+    STDMETHODIMP get_accParent(IDispatch** ppdispParent) { return E_NOTIMPL; }
+    STDMETHODIMP get_accValue(VARIANT varChild, BSTR* pszValue) { return E_NOTIMPL; }
+    STDMETHODIMP put_accName(VARIANT varChild, BSTR szName) { return E_NOTIMPL; }
+    STDMETHODIMP put_accValue(VARIANT varChild, BSTR szValue) { return E_NOTIMPL; }
+    STDMETHODIMP get_accHelp(VARIANT varChild, BSTR* pszHelp) { return E_NOTIMPL; }
+    STDMETHODIMP get_accHelpTopic(BSTR* pszHelpFile, VARIANT varChild, long* pidTopic) { return E_NOTIMPL; }
+    STDMETHODIMP get_accSelection(VARIANT* pvarChildren) { return E_NOTIMPL; }
+    STDMETHODIMP get_accDefaultAction(VARIANT varChild, BSTR* pszDefaultAction) { return E_NOTIMPL; }
+    STDMETHODIMP accLocation(long* pxLeft, long* pyTop, long* pcxWidth, long* pcyHeight, VARIANT varChild) 
+    { 
+        if (varChild.vt == VT_I4)
+        {
+            if (varChild.lVal == CHILDID_SELF)
+            {
+                // Returns the location of the entire canvas
+                HWND hwnd = (HWND)m_pGLCanvas->GetHandle();
+                RECT rect;
+                if (GetWindowRect(hwnd, &rect))
+                {
+                    *pxLeft = rect.left;
+                    *pyTop = rect.top;
+                    *pcxWidth = rect.right - rect.left;
+                    *pcyHeight = rect.bottom - rect.top;
+                    printf("GLCanvas3DAccessible::accLocation container: left=%ld, top=%ld, width=%ld, height=%ld\n", 
+                           *pxLeft, *pyTop, *pcxWidth, *pcyHeight);
+                    fflush(stdout);
+                    return S_OK;
+                }
+            }
+            else if (varChild.lVal >= 1 && varChild.lVal <= static_cast<long>(m_tools.size()))
+            {
+                // Returns location for individual tool
+                HWND hwnd = (HWND)m_pGLCanvas->GetHandle();
+                RECT canvasRect;
+                if (GetWindowRect(hwnd, &canvasRect))
+                {
+                    int toolIndex = varChild.lVal - 1;
+                    
+                    // Get real toolbar dimensions from GLCanvas3D
+                    int toolbarStartX = m_pCanvas3D->get_main_toolbar_offset();        // X offset from canvas left
+                    int toolbarY = 0;                                                 // Y = 0, touching top edge
+                    float totalToolbarWidth = m_pCanvas3D->get_total_toolbar_width();  // Total width of all toolbar sections
+                    int toolbarHeight = m_pCanvas3D->get_main_toolbar_height();       // toolbar height
+                    
+                    // For comparison, I made the mistake of calling this to get the total toolbar width without knowing what it represents
+                    int oldMainToolbarWidth = m_pCanvas3D->get_main_toolbar_width();
+                    printf("TOOLBAR DIMENSIONS - Start X: %d, Y: %d, Total Width: %.0f, Height: %d\n", 
+                           toolbarStartX, toolbarY, totalToolbarWidth, toolbarHeight);
+                    printf("OLD vs NEW - Main toolbar width: %d, Total toolbar width: %.0f\n", 
+                           oldMainToolbarWidth, totalToolbarWidth);
+                    printf("Canvas screen position: left=%d, top=%d, right=%d, bottom=%d\n", 
+                           canvasRect.left, canvasRect.top, canvasRect.right, canvasRect.bottom);
+                    fflush(stdout);
+                    
+                    // Calculates context window dimensions based on real total toolbar
+                    int contextWidth = (int)(totalToolbarWidth / 21);
+                    int contextHeight = toolbarHeight;
+                    
+                    // Position context window: toolbar start + (tool index * context width)
+                    int contextX = toolbarStartX + (toolIndex * contextWidth);
+                    int contextY = toolbarY;
+                    
+                    int oldContextWidth = oldMainToolbarWidth / 21;  // What it would have been with old method
+                    printf("Tool %d calculation: OLD contextWidth=%d, NEW contextWidth=%d, contextHeight=%d, contextX=%d, contextY=%d\n", 
+                           toolIndex + 1, oldContextWidth, contextWidth, contextHeight, contextX, contextY);
+                    fflush(stdout);
+                    
+                    // Returns coordinates relative to screen (Narrator expects screen coordinates)
+                    *pxLeft = canvasRect.left + contextX;
+                    *pyTop = canvasRect.top + contextY;
+                    *pcxWidth = contextWidth;
+                    *pcyHeight = contextHeight;
+                    
+                    printf("FINAL SCREEN COORDINATES for tool %d: left=%d, top=%d, width=%d, height=%d\n", 
+                           toolIndex + 1, *pxLeft, *pyTop, *pcxWidth, *pcyHeight);
+                    fflush(stdout);
+                    
+                    const GLCanvas3DToolInfo* toolInfo = GetToolInfo(varChild.lVal);
+                    printf("accLocation tool %d (%ls): left=%d, top=%d, width=%d, height=%d\n", 
+                           (int)varChild.lVal, 
+                           toolInfo ? toolInfo->name.c_str() : L"Unknown",
+                           *pxLeft, *pyTop, *pcxWidth, *pcyHeight);
+                    fflush(stdout);
+                    return S_OK;
+                }
+            }
+        }
+        return E_FAIL;
+    }
+
+    STDMETHODIMP accHitTest(long xLeft, long yTop, VARIANT* pvarChild) { return E_NOTIMPL; }
+
+    STDMETHODIMP accDoDefaultAction(VARIANT varChild) {
+        printf("GLCanvas3DAccessible::accDoDefaultAction called with childId=%ld\n", varChild.lVal);
+        fflush(stdout);
+        
+        if (varChild.vt == VT_I4 && varChild.lVal >= 1 && varChild.lVal <= static_cast<long>(m_tools.size()))
+        {
+            int toolIndex = varChild.lVal - 1;
+            
+            std::wstring wideToolName = m_tools[toolIndex].name;
+            std::string narrowToolName(wideToolName.begin(), wideToolName.end());
+            printf("Attempting to activate tool %d (%s)\n", toolIndex + 1, narrowToolName.c_str());
+            fflush(stdout);
+            
+            // Gets hte tool's spatial coordinates that we already calculated for accessibility
+            std::string toolName = narrowToolName;
+            long buttonLeft, buttonTop, buttonWidth, buttonHeight;
+            VARIANT varChildForLocation;
+            varChildForLocation.vt = VT_I4;
+            varChildForLocation.lVal = varChild.lVal;
+            
+            HRESULT locationResult = accLocation(&buttonLeft, &buttonTop, &buttonWidth, &buttonHeight, varChildForLocation);
+            
+            if (locationResult == S_OK) {
+                // center point of the button
+                long clickX = buttonLeft + (buttonWidth / 2);
+                long clickY = buttonTop + (buttonHeight / 2);
+                
+                printf("Activating %s via button click simulation at (%ld, %ld)\n", toolName.c_str(), clickX, clickY);
+                fflush(stdout);
+                
+                // Finds the window at these coordinates to send the click message to
+                POINT clickPoint = { clickX, clickY };
+                HWND targetWindow = WindowFromPoint(clickPoint);
+                
+                if (targetWindow) {
+                    // Gets window class name to understand what type of UI element is being targeted
+                    char windowClass[256];
+                    GetClassNameA(targetWindow, windowClass, sizeof(windowClass));
+                    
+                    // Gets window text/title 
+                    char windowText[256];
+                    GetWindowTextA(targetWindow, windowText, sizeof(windowText));
+                    
+                    printf("Found target window %p (class: %s, text: '%s') for tool %s\n", 
+                           targetWindow, windowClass, windowText, toolName.c_str());
+                    fflush(stdout);
+                    
+                    // Uses direct screen coordinates with mouse_event instead of SendMessage
+                    SetCursorPos(clickX, clickY);
+                    Sleep(10); // ensures cursor position is set
+                    
+                    // Simulates mouse click at current cursor position
+                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                    Sleep(10);
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                    
+                    printf("Simulated mouse click at screen coordinates (%ld, %ld)\n", 
+                           clickX, clickY);
+                    fflush(stdout);
+                    
+                    return S_OK;
+                } else {
+                    printf("Could not find target window at coordinates (%ld, %ld) for tool %s\n", 
+                           clickX, clickY, toolName.c_str());
+                    fflush(stdout);
+                    return S_OK;
+                }
+            } else {
+                printf("Could not get location for tool %s, activation failed\n", toolName.c_str());
+                fflush(stdout);
+                return S_OK;
+            }
+        }
+        
+        return E_FAIL;
+    }
+    
+    // Additional methods for focus management
+public:
+    int GetCurrentFocusedChild() const
+    {
+        return static_cast<int>(m_currentFocusedChild);
+    }
+    
+    void SetCurrentFocusedChild(int childId)
+    {
+        m_currentFocusedChild = static_cast<long>(childId);
+        printf("GLCanvas3DAccessible::SetCurrentFocusedChild set to %d\n", childId);
+        fflush(stdout);
+    }
+};
+#endif
 
 #ifdef __WXGTK3__
 // wxGTK3 seems to simulate OSX behavior in regard to HiDPI scaling support.
@@ -1175,6 +1796,12 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     m_assembly_view_desc["part_selection"]           = _L("part selection");
     m_assembly_view_desc["number_key_caption"]       = "1~16 " + _L("number keys");
     m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
+    
+#ifdef _WIN32
+    // Initializes accessibility
+    m_pAccessible = NULL;
+    SetupAccessibility();
+#endif
 }
 
 GLCanvas3D::~GLCanvas3D()
@@ -1183,7 +1810,246 @@ GLCanvas3D::~GLCanvas3D()
 
     m_sel_plate_toolbar.del_all_item();
     m_sel_plate_toolbar.del_stats_item();
+    
+#ifdef _WIN32
+    // Restores the original window procedure
+    if (m_canvas && m_originalWndProc)
+    {
+        HWND hwnd = (HWND)m_canvas->GetHandle();
+        SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)m_originalWndProc);
+    }
+    
+    // Cleans up accessibility object
+    if (m_pAccessible)
+    {
+        m_pAccessible->Release();
+        m_pAccessible = NULL;
+    }
+#endif
 }
+
+#ifdef _WIN32
+// Static window procedure for subclassing the wxGLCanvas
+long long GLCanvas3D::GLCanvas3DWndProc(void* hwnd, unsigned int msg, unsigned long long wParam, long long lParam)
+{
+    // Gets the GLCanvas3D instance from the window's user data
+    GLCanvas3D* pThis = (GLCanvas3D*)GetWindowLongPtr((HWND)hwnd, GWLP_USERDATA);
+    
+    if (pThis && msg == WM_GETOBJECT)
+    {
+        printf("GLCanvas3DWndProc received WM_GETOBJECT\n");
+        fflush(stdout);
+        
+        LRESULT result = (LRESULT)pThis->HandleGetObject(wParam, lParam);
+        if (result != 0)
+        {
+            return result;
+        }
+    }
+    
+    // Handles Enter key press on focused element
+    if (pThis && msg == WM_KEYDOWN && wParam == VK_RETURN)
+    {
+        printf("GLCanvas3DWndProc received Enter key\n");
+        fflush(stdout);
+        
+        // Gets the focused child and trigger its default action
+        if (pThis->m_pAccessible)
+        {
+            int focusedChild = pThis->m_pAccessible->GetCurrentFocusedChild();
+            printf("Current focused child: %d\n", focusedChild);
+            fflush(stdout);
+            
+            // Adds bounds checking and more detailed debugging
+            printf("Checking bounds: focusedChild=%d, (>0)=%s, (<=21)=%s\n", 
+                   focusedChild, 
+                   (focusedChild > 0) ? "true" : "false",
+                   (focusedChild <= 21) ? "true" : "false");
+            fflush(stdout);
+            
+            if (focusedChild > 0 && focusedChild <= 21)
+            {
+                printf("Triggering accDoDefaultAction for child %d (valid range)\n", focusedChild);
+                fflush(stdout);
+                
+                VARIANT varChild;
+                varChild.vt = VT_I4;
+                varChild.lVal = focusedChild;
+                
+                printf("About to call accDoDefaultAction with childId=%ld\n", varChild.lVal);
+                fflush(stdout);
+                
+                HRESULT result = pThis->m_pAccessible->accDoDefaultAction(varChild);
+                printf("accDoDefaultAction returned HRESULT=0x%lx\n", result);
+                fflush(stdout);
+                
+                return 0;
+            }
+            else
+            {
+                printf("Invalid focused child %d - not triggering accDoDefaultAction\n", focusedChild);
+                fflush(stdout);
+            }
+        }
+        else
+        {
+            printf("No accessibility object available for Enter key handling\n");
+            fflush(stdout);
+        }
+    }
+    
+    // Calls the original window procedure for all other messages
+    if (pThis && pThis->m_originalWndProc)
+    {
+        return CallWindowProc((WNDPROC)pThis->m_originalWndProc, (HWND)hwnd, msg, wParam, lParam);
+    }
+    
+    return DefWindowProc((HWND)hwnd, msg, wParam, lParam);
+}
+
+void GLCanvas3D::SetupAccessibility()
+{
+    // Allocates a console for debug output
+    AllocConsole();
+    freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+    
+    printf("GLCanvas3D::SetupAccessibility() called\n");
+    fflush(stdout);
+    
+    // Initializes accessibility variables
+    m_screenReaderDetected = false;
+    
+    // Creates the accessibility object
+    m_pAccessible = new GLCanvas3DAccessible(m_canvas, this);
+    
+    printf("GLCanvas3DAccessible object created at %p\n", m_pAccessible);
+    fflush(stdout);
+    
+    // Subclasses the wxGLCanvas window to intercept WM_GETOBJECT messages
+    if (m_canvas)
+    {
+        HWND hwnd = (HWND)m_canvas->GetHandle();
+        printf("GLCanvas HWND: %p\n", hwnd);
+        fflush(stdout);
+        
+        // Stores the original window procedure
+        m_originalWndProc = (WNDPROC)SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)(WNDPROC)GLCanvas3DWndProc);
+        
+        // Stores the GLCanvas3D instance in the window's user data
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)this);
+        
+        printf("Window subclassed, original WndProc: %p\n", m_originalWndProc);
+        fflush(stdout);
+    }
+}
+
+// Handles WM_GETOBJECT message for accessibility  
+long long GLCanvas3D::HandleGetObject(unsigned long long wParam, long long lParam)
+{
+    printf("GLCanvas3D::HandleGetObject called with wParam=%llu, lParam=%lld\n", wParam, lParam);
+    fflush(stdout);
+    
+    // Tracks screen reader activity, any WM_GETOBJECT indicates screen reader is active
+    if (!m_screenReaderDetected) {
+        m_screenReaderDetected = true;
+        printf("Screen reader detected via WM_GETOBJECT activity\n");
+        fflush(stdout);
+    }
+    
+    DWORD dwObjId = (DWORD)lParam;
+    
+    if (dwObjId == OBJID_CLIENT)
+    {
+        printf("OBJID_CLIENT requested, returning IAccessible object\n");
+        fflush(stdout);
+        
+        if (m_pAccessible == NULL)
+        {
+            printf("m_pAccessible is NULL, creating new object\n");
+            fflush(stdout);
+            SetupAccessibility();
+        }
+        
+        if (m_pAccessible)
+        {
+            printf("GLCanvas3DAccessible object created\n");
+            fflush(stdout);
+            
+            LRESULT result = LresultFromObject(IID_IAccessible, (WPARAM)wParam, static_cast<IAccessible*>(m_pAccessible));
+            printf("LresultFromObject returned: %lld\n", (long long)result);
+            fflush(stdout);
+            return (long long)result;
+        }
+    }
+    else
+    {
+        printf("Non-OBJID_CLIENT request, returning 0\n");
+        fflush(stdout);
+        return 0;
+    }
+    
+    return 0;
+}
+#endif // _WIN32
+
+#ifdef _WIN32
+bool GLCanvas3D::HandleAccessibilityTabNavigation(bool reverse)
+{
+    printf("GLCanvas3D::HandleAccessibilityTabNavigation called, reverse=%s\n", reverse ? "true" : "false");
+    fflush(stdout);
+    
+    // Checks if screen reader is inactive
+    if (!m_screenReaderDetected) {
+        printf("No screen reader active, using default OrcaSlicer Tab behavior\n");
+        fflush(stdout);
+        return false;
+    }
+    
+    printf("Screen reader detected, handling accessibility Tab navigation\n");
+    fflush(stdout);
+    
+    // If accessibility object exists, handle navigation between tools
+    if (m_pAccessible) {
+        GLCanvas3DAccessible* accessible = static_cast<GLCanvas3DAccessible*>(m_pAccessible);
+        
+        // Gets current focused child
+        int currentChild = accessible->GetCurrentFocusedChild();
+        printf("Current focused child: %d\n", currentChild);
+        fflush(stdout);
+        
+        // Calculates next child based on navigation direction
+        int nextChild;
+        if (reverse) {
+            // Shift+Tab: go to previous tool
+            nextChild = (currentChild <= 1) ? 21 : currentChild - 1;
+            printf("Shift+Tab navigation: currentChild %d -> nextChild %d\n", currentChild, nextChild);
+        } else {
+            // Tab: go to next tool
+            nextChild = (currentChild >= 21) ? 1 : currentChild + 1;
+            printf("Tab navigation: currentChild %d -> nextChild %d\n", currentChild, nextChild);
+        }
+        
+        printf("Navigating to child: %d\n", nextChild);
+        fflush(stdout);
+        
+        // Updates focus to the next child
+        accessible->SetCurrentFocusedChild(nextChild);
+        
+        // Notifeis system of focus change
+        HWND hwnd = (HWND)m_canvas->GetHandle();
+        NotifyWinEvent(EVENT_OBJECT_FOCUS, hwnd, OBJID_CLIENT, nextChild);
+        
+        printf("Focus change notification sent for child %d\n", nextChild);
+        fflush(stdout);
+        
+        return true;
+    }
+    
+    printf("No accessibility object available\n");
+    fflush(stdout);
+    return false;
+}
+#endif
 
 void GLCanvas3D::post_event(wxEvent &&event)
 {
@@ -3523,13 +4389,34 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     m_dirty = true;
                 }
                 else if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
-                    // Enable switching between 3D and Preview with Tab
-                    // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
+#ifdef _WIN32
+                    // Handle Tab navigation between tools on Windows
+                    if (m_pAccessible && HandleAccessibilityTabNavigation(false)) {
+                        printf("Tab navigation handled by accessibility\n");
+                        fflush(stdout);
+                    } else {
+                        // Fallback enables switching between 3D and Preview with Tab
+                        post_event(SimpleEvent(EVT_GLCANVAS_TAB));
+                    }
+#else
+                    // Enables switching between 3D and Preview with Tab for non-windows
                     post_event(SimpleEvent(EVT_GLCANVAS_TAB));
+#endif
                 }
                 else if (keyCode == WXK_TAB && evt.ShiftDown() && !evt.ControlDown() && ! wxGetApp().is_gcode_viewer()) {
-                    // Collapse side-panel with Shift+Tab
+#ifdef _WIN32
+                    // Handle Shift+Tab reverse navigation between tools on Windows
+                    if (m_pAccessible && HandleAccessibilityTabNavigation(true)) {
+                        printf("Shift+Tab navigation handled by accessibility\n");
+                        fflush(stdout);
+                    } else {
+                        // Fallback collapses side-panel with Shift+Tab
+                        post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
+                    }
+#else
+                    // Collapses side-panel with Shift+Tab non-windows
                     post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
+#endif
                 }
                 else if (keyCode == WXK_SHIFT) {
                     translationProcessor.process(evt);
@@ -7787,16 +8674,18 @@ void GLCanvas3D::_render_current_gizmo() const
 //move the size calc to GLCanvas
 void GLCanvas3D::_render_gizmos_overlay()
 {
-/*#if ENABLE_RETINA_GL
-//     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
+/*
+#if ENABLE_RETINA_GL
+     m_gizmos.set_overlay_scale(m_retina_helper->get_scale_factor());
     const float scale = m_retina_helper->get_scale_factor()*wxGetApp().toolbar_icon_scale();
     m_gizmos.set_overlay_scale(scale); //! #ys_FIXME_experiment
 #else
-//     m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
-//     m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);
+     m_gizmos.set_overlay_scale(m_canvas->GetContentScaleFactor());
+     m_gizmos.set_overlay_scale(wxGetApp().em_unit()*0.1f);
     const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
     m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
-#endif */ /* __WXMSW__ */
+#endif
+*/
     m_gizmos.render_overlay();
 
     if (m_gizmo_highlighter.m_render_arrow)
@@ -7820,6 +8709,15 @@ int GLCanvas3D::get_main_toolbar_offset() const
         const float offset = (cnv_width - toolbar_total_width) / 2;
         return is_collapse_toolbar_on_left() ? offset + collapse_toolbar_width : offset;
     }
+}
+
+float GLCanvas3D::get_total_toolbar_width() const
+{
+    // Calculates total width of all toolbar sections for accessibility
+    const float gizmo_width = m_gizmos.get_scaled_total_width();
+    const float assemble_width = m_assemble_view_toolbar.get_width();
+    const float separator_width = m_separator_toolbar.get_width();
+    return m_main_toolbar.get_width() + separator_width + gizmo_width + assemble_width;
 }
 
 //BBS: GUI refactor: GLToolbar adjust

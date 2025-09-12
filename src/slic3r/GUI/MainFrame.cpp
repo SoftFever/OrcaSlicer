@@ -215,6 +215,15 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
 #ifndef __APPLE__
     m_topbar         = new BBLTopbar(this);
+
+    // The BBLTopbar accessibility requires Init() to be called to set up Windows MSAA support.
+    // Init() creates the COM IAccessible interface, sets up window subclassing for WM_GETOBJECT 
+    // messages, and binds keyboard events for Tab navigation between toolbar elements. Because the
+    // BBLTopbar constructor already calls Init(parent) internally, doing so in the MainFrame integration
+    // causes a silent crash, so the BBLTopbar accessibility is currently dormant. Accessibility setup for
+    // BBLTopbar may need to be moved to a separate method called after construction.
+
+    // m_topbar->Init(this);
 #else
     auto panel_topbar = new wxPanel(this, wxID_ANY);
     panel_topbar->SetBackgroundColour(wxColour(38, 46, 48));

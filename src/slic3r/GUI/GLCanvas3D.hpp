@@ -195,6 +195,11 @@ wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
 
+#ifdef _WIN32
+// Forward declaration for Windows accessibility support
+class GLCanvas3DAccessible;
+#endif
+
 class GLCanvas3D
 {
     static const double DefaultCameraZoomToBoxMarginFactor;
@@ -709,6 +714,22 @@ public:
     CameraTarget m_camera_target;
 #endif // ENABLE_SHOW_CAMERA_TARGET
     GLModel m_background;
+    
+#ifdef _WIN32
+    // Windows accessibility member variables
+    GLCanvas3DAccessible* m_pAccessible;
+    void* m_originalWndProc;
+    bool m_screenReaderDetected;  // Tracks if screen reader is actively querying accessibility
+    
+    // Static window procedure for subclassing
+    static long long GLCanvas3DWndProc(void* hwnd, unsigned int msg, unsigned long long wParam, long long lParam);
+    
+    // Accessibility methods
+    void SetupAccessibility();
+    long long HandleGetObject(unsigned long long wParam, long long lParam);
+    bool HandleAccessibilityTabNavigation(bool reverse);
+#endif
+
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed);
     ~GLCanvas3D();
@@ -857,6 +878,7 @@ public:
     int get_main_toolbar_offset() const;
     int get_main_toolbar_height() const { return m_main_toolbar.get_height(); }
     int get_main_toolbar_width() const { return m_main_toolbar.get_width(); }
+    float get_total_toolbar_width() const;  // Returns combined width of all toolbar sections
     float get_assemble_view_toolbar_width() const { return m_assemble_view_toolbar.get_width(); }
     float get_assemble_view_toolbar_height() const { return m_assemble_view_toolbar.get_height(); }
     float get_assembly_paint_toolbar_width() const { return m_paint_toolbar_width; }
