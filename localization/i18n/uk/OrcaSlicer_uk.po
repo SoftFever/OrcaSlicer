@@ -6863,10 +6863,10 @@ msgstr "Північна Америка"
 msgid "Others"
 msgstr "Інші"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "Регіон входу"
 
-msgid "Stealth Mode"
+msgid "Stealth mode"
 msgstr "Прихований режим"
 
 msgid ""
@@ -6877,10 +6877,13 @@ msgstr ""
 "користуються машинами BBL або використовують лише режим локальної мережі, "
 "можуть безпечно ввімкнути цю функцію."
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "Увімкнути мережевий плагін"
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgid "Use legacy network plugin"
 msgstr ""
 
 msgid ""
@@ -6924,7 +6927,7 @@ msgstr ""
 msgid "Home"
 msgstr "Домашня"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr "Початкова сторінка"
 
 msgid "Set the page opened on startup."
@@ -7024,16 +7027,18 @@ msgstr ""
 "Якщо увімкнено, Orca запам'ятовує та автоматично перемикає конфігурацію "
 "нитки/процесу для кожного принтера."
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
+msgid "Multi device management"
+msgstr "Керування кількома пристроями"
+
+msgid "(Requires restart)"
 msgstr ""
-"Керування кількома пристроями (набуває чинності після перезапуску Orca)."
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7112,8 +7117,11 @@ msgstr "Запитувати завжди"
 msgid "Load Geometry Only"
 msgstr "Завантажити Тільки Геометрію"
 
-msgid "Load Behaviour"
+msgid "Load behaviour"
 msgstr "Поведінка завантаження"
+
+msgid "Behaviour"
+msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7129,10 +7137,13 @@ msgstr "Максимальна кількість останніх проект�
 msgid "Clear my choice on the unsaved projects."
 msgstr "Очистити мій вибір для незбережених проектів."
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Немає попереджень при завантаженні файлу 3MF із зміненими G-кодами"
 
-msgid "Auto-Backup"
+msgid "Add STL/STEP files to recent projects"
+msgstr ""
+
+msgid "Auto backup"
 msgstr "Автобекап"
 
 msgid ""
@@ -7150,10 +7161,13 @@ msgstr "Період резервного копіювання в секунда
 msgid "Downloads"
 msgstr "Завантаження"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "Темний режим"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "Увімкнути темний режим"
 
 msgid "Develop mode"
@@ -17410,6 +17424,9 @@ msgid "Delete input"
 msgstr "Видалити початкові об'єкти"
 
 msgid "Network Test"
+msgstr "Тест мережі"
+
+msgid "Network test"
 msgstr "Тест мережі"
 
 msgid "Start Test Multi-Thread"

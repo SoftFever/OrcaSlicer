@@ -20,7 +20,6 @@
 
 namespace Slic3r { namespace GUI {
 
-
 class MyscrolledWindow : public wxScrolledWindow {
 public:
     MyscrolledWindow(wxWindow* parent,
@@ -71,7 +70,7 @@ std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(
 
     combobox->SetSelection(current_index);
 
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
     return {m_sizer_combox, combobox};
 }
@@ -261,7 +260,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(wxString title, wxS
     }
     combobox->SetSelection(m_current_language_selected);
 
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER);
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
     combobox->Bind(wxEVT_LEFT_DOWN, [this, combobox](wxMouseEvent &e) {
         m_current_language_selected = combobox->GetSelection();
@@ -345,7 +344,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxStr
     auto combobox = new ::ComboBox(m_parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_14);
     combobox->GetDropDown().SetFont(::Label::Body_14);
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER);
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
     std::vector<wxString>::iterator iter;
     for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
@@ -441,7 +440,7 @@ wxBoxSizer *PreferencesDialog::create_item_autoflush(wxString title, wxString to
         combobox->SetValue(FlushOptions[3]);
     }
 
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
         auto sel = e.GetSelection();
@@ -474,7 +473,7 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxS
     auto severity_level = app_config->get("log_severity_level");
     if (!severity_level.empty()) { combobox->SetValue(severity_level); }
 
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
     //// save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
@@ -511,7 +510,7 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
 
    for (iter = vlista.begin(); iter != vlista.end(); iter++) { combobox_left->Append(*iter); }
    combobox_left->SetValue(std::string(params[0].mb_str()));
-   m_sizer_tcombox->Add(combobox_left, 0, wxALIGN_CENTER);
+   m_sizer_tcombox->Add(combobox_left, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
    auto combo_title_add = new wxStaticText(m_parent, wxID_ANY, wxT("+"), wxDefaultPosition, wxDefaultSize, 0);
    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
@@ -525,7 +524,7 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
 
    for (iter = vlistb.begin(); iter != vlistb.end(); iter++) { combobox_right->Append(*iter); }
    combobox_right->SetValue(std::string(params[1].mb_str()));
-   m_sizer_tcombox->Add(combobox_right, 0, wxALIGN_CENTER);
+   m_sizer_tcombox->Add(combobox_right, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
     // save config
     combobox_left->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, combobox_right](wxCommandEvent &e) {
@@ -568,7 +567,7 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
 
     sizer_input->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
     sizer_input->Add(input_title , 0, wxALIGN_CENTER_VERTICAL);
-    sizer_input->Add(input       , 0, wxALIGN_CENTER_VERTICAL);
+    sizer_input->Add(input       , 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
     sizer_input->Add(second_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
 
     input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, param, input, onchange](wxCommandEvent &e) {
@@ -609,7 +608,7 @@ wxBoxSizer *PreferencesDialog::create_camera_orbit_mult_input(wxString title, wx
 
     sizer_input->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
     sizer_input->Add(input_title, 0, wxALIGN_CENTER_VERTICAL);
-    sizer_input->Add(input      , 0, wxALIGN_CENTER_VERTICAL);
+    sizer_input->Add(input      , 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
 
     const double min = 0.05;
     const double max = 2.0;
@@ -680,7 +679,7 @@ wxBoxSizer *PreferencesDialog::create_item_backup(wxString title, wxString toolt
     input->GetTextCtrl()->SetValidator(validator);
 
     m_sizer_input->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
-    m_sizer_input->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT         , FromDIP(5));
+    m_sizer_input->Add(checkbox      , 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(5));
     m_sizer_input->Add(input         , 0, wxALIGN_CENTER_VERTICAL);
 
     input->GetTextCtrl()->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this, input](wxCommandEvent &e) {
@@ -728,8 +727,8 @@ wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxString toolt
     if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }*/
 
     m_sizer_switch->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
-    m_sizer_switch->Add(switch_title, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(5));
-    m_sizer_switch->Add(switchbox   , 0, wxALIGN_CENTER);
+    m_sizer_switch->Add(switch_title, 0, wxALIGN_CENTER);
+    m_sizer_switch->Add(switchbox   , 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
     m_sizer_switch->AddSpacer(FromDIP(40));
 
     //// save config
@@ -757,7 +756,7 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode(wxString title,wxString tool
     checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
 
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
-    m_sizer_checkbox->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT         , FromDIP(5));
+    m_sizer_checkbox->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT | wxLEFT, FromDIP(5));
 
     //// save config
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent& e) {
@@ -814,7 +813,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxString too
     checkbox->SetToolTip(tip);
 
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
-    m_sizer_checkbox->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT         , FromDIP(5));
+    m_sizer_checkbox->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT | wxLEFT, FromDIP(5));
 
     if(!secondary_title.IsEmpty()){
         auto sec_title = new wxStaticText(m_parent, wxID_ANY, secondary_title);
@@ -937,7 +936,7 @@ wxBoxSizer* PreferencesDialog::create_item_button(wxString title, wxString title
     m_button_download->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
 
     m_sizer_checkbox->Add(m_staticTextPath , 0, wxALIGN_CENTER_VERTICAL);
-    m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL);
+    m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
 
     return m_sizer_checkbox;
 }
@@ -991,7 +990,7 @@ wxBoxSizer* PreferencesDialog::create_item_downloads(wxString title, wxString to
         });
 
     m_sizer_checkbox->Add(label_panel      , 0, wxALIGN_CENTER_VERTICAL);
-    m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL);
+    m_sizer_checkbox->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
 
     return m_sizer_checkbox;
 }
@@ -1022,13 +1021,13 @@ wxBoxSizer* PreferencesDialog::create_item_link_association( wxString url_prefix
     checkbox_title->Wrap(-1);
 
     h_sizer->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
-    h_sizer->Add(checkbox      , 0, wxALIGN_CENTER | wxRIGHT         , FromDIP(5));
+    h_sizer->Add(checkbox      , 0, wxALIGN_CENTER | wxLEFT          , FromDIP(5));
 
     auto* v_sizer = new wxBoxSizer(wxVERTICAL);
     v_sizer->Add(h_sizer);
 
     // build text below checkbox that indicates the instance currently registered to handle the link type
-    auto* registered_instance_title = new wxStaticText(m_parent, wxID_ANY, "");
+    auto* registered_instance_title = new wxStaticText(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     registered_instance_title->SetForegroundColour(DESIGN_GRAY600_COLOR);
     registered_instance_title->SetFont(::Label::Body_14);
     registered_instance_title->Wrap(-1);
@@ -1050,16 +1049,17 @@ wxBoxSizer* PreferencesDialog::create_item_link_association( wxString url_prefix
             registered_instance_title->SetToolTip(_L("Current Instance Path: ") + registered_bin);
         } else if (registered_bin.empty())
             current_association_str += _L("None");
-        else
+        else{
             current_association_str += registered_bin;
+            registered_instance_title->SetToolTip(current_association_str);
+        }
 
         registered_instance_title->SetLabel(current_association_str);
-        auto size = registered_instance_title->GetTextExtent(current_association_str);
-        registered_instance_title->SetMinSize({ size.x + FromDIP(5), -1 });
+        registered_instance_title->SetMaxSize(wxSize(DESIGN_WINDOW_SIZE.x - FromDIP(DESIGN_LEFT_MARGIN) - FromDIP(40), -1)); // prevent horizontal scroll
     };
     update_current_association_str();
 
-    v_sizer->Add(registered_instance_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(DESIGN_LEFT_MARGIN)); // + checkbox size (18) + margin (5)
+    v_sizer->Add(registered_instance_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(DESIGN_LEFT_MARGIN));
 
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [=](wxCommandEvent& e) {
         wxGetApp().associate_url(url_prefix.ToStdWstring());
@@ -1076,7 +1076,7 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     : DPIDialog(parent, id, _L("Preferences"), pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
-    SetMinSize(wxSize(640, 640));
+    SetMinSize(DESIGN_WINDOW_SIZE);
     create();
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -1238,20 +1238,20 @@ void PreferencesDialog::create_items()
     auto item_project_load     = create_item_combobox(_L("Load behaviour"), _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
     g_sizer->Add(item_project_load);
 
-    auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
+    auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
     });
     g_sizer->Add(item_max_recent_count);
 
-    auto item_recent_models    = create_item_checkbox(_L("Add .stl/.step files to recent file list"), "", "recent_models");
+    auto item_recent_models    = create_item_checkbox(_L("Add STL/STEP files to recent projects"), "", "recent_models");
     g_sizer->Add(item_recent_models);
 
-    auto item_gcodes_warning   = create_item_checkbox(_L("Don't warn when loading 3mf with modified G-code"), "", "no_warn_when_modified_gcodes");
+    auto item_gcodes_warning   = create_item_checkbox(_L("Don't warn when loading 3MF with modified G-code"), "", "no_warn_when_modified_gcodes");
     g_sizer->Add(item_gcodes_warning);
 
-    auto item_step_dialog      = create_item_checkbox(_L("Show options when importing step file"), _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
+    auto item_step_dialog      = create_item_checkbox(_L("Show options when importing STEP file"), _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
     g_sizer->Add(item_step_dialog);
 
     auto item_backup           = create_item_backup(_L("Auto backup"), _L("Backup your project periodically for restoring from the occasional crash."));
@@ -1266,7 +1266,7 @@ void PreferencesDialog::create_items()
     //// GENERAL > Features
     g_sizer->Add(create_item_title(_L("Features")), 1, wxEXPAND);
 
-    auto item_multi_machine    = create_item_checkbox(_L("Multi-device management"), _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
+    auto item_multi_machine    = create_item_checkbox(_L("Multi device management"), _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
     g_sizer->Add(item_multi_machine);
 
     g_sizer->AddSpacer(FromDIP(10));
@@ -1283,7 +1283,7 @@ void PreferencesDialog::create_items()
     //// CONTROL > Behaviour
     g_sizer->Add(create_item_title(_L("Behaviour")), 1, wxEXPAND);
 
-    auto item_auto_flush       = create_item_autoflush(_L("Auto calculate flushing volumes on ..."), _L("Auto calculate flushing volumes when selected value changed"));
+    auto item_auto_flush       = create_item_autoflush(_L("Auto flush after changing ..."), _L("Auto calculate flushing volumes when selected values changed"));
     g_sizer->Add(item_auto_flush);
 
     auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), "", "auto_arrange");
@@ -1341,10 +1341,10 @@ void PreferencesDialog::create_items()
     auto item_region           = create_item_region_combobox(_L("Login region"), "");
     g_sizer->Add(item_region);
  
-    auto item_stealth_mode     = create_item_checkbox(_L("Stealth Mode"), _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), "stealth_mode");
+    auto item_stealth_mode     = create_item_checkbox(_L("Stealth mode"), _L("This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function."), "stealth_mode");
     g_sizer->Add(item_stealth_mode);
 
-    auto item_network_test     = create_item_button(_L("Test Network"), _L("Test") + " " + dots, "", _L("Open Network Test"), []() {
+    auto item_network_test     = create_item_button(_L("Network test"), _L("Test") + " " + dots, "", _L("Open Network Test"), []() {
         NetworkTestDialog dlg(wxGetApp().mainframe);
         dlg.ShowModal();
     });

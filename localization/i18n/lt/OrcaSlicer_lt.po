@@ -6822,10 +6822,10 @@ msgstr "Šiaurės Amerika"
 msgid "Others"
 msgstr "Kita"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "Prisijungimo regionas"
 
-msgid "Stealth Mode"
+msgid "Stealth mode"
 msgstr "Slaptas režimas"
 
 msgid ""
@@ -6836,10 +6836,13 @@ msgstr ""
 "paslaugas. Šią funkciją gali drąsiai įjungti naudotojai, kurie nesinaudoja "
 "„BBL“ įrenginiais arba naudoja tik LAN režimą."
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "Įjungti tinklo papildinį"
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgid "Use legacy network plugin"
 msgstr ""
 
 msgid ""
@@ -6882,7 +6885,7 @@ msgstr ""
 msgid "Home"
 msgstr "Pradžia"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr "Numatytas puslapis"
 
 msgid "Set the page opened on startup."
@@ -6983,16 +6986,18 @@ msgstr ""
 "Jei įjungta, Orca Slicer automatiškai prisimins ir perjungs gijos ir proceso "
 "konfigūracijas kiekvienams spausdintuvui."
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
+msgid "Multi device management"
+msgstr "Kelių įrenginių valdymas"
+
+msgid "(Requires restart)"
 msgstr ""
-"Kelių įrenginių valdymas (įsigalios tik po programos paleidimo iš naujo)."
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7072,8 +7077,11 @@ msgstr "Visada klausti"
 msgid "Load Geometry Only"
 msgstr "Įkelti tik geometriją"
 
-msgid "Load Behaviour"
+msgid "Load behaviour"
 msgstr "Įkelti elgseną"
+
+msgid "Behaviour"
+msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7089,10 +7097,13 @@ msgstr "Didžiausias skaičius buvusių projektų"
 msgid "Clear my choice on the unsaved projects."
 msgstr "Išvalyti mano pasirinkimus neišsaugotuose projektuose."
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Nerodyti perspėjimų įkeliant 3MF su modifikuotais G-kodais"
 
-msgid "Auto-Backup"
+msgid "Add STL/STEP files to recent projects"
+msgstr ""
+
+msgid "Auto backup"
 msgstr "Automatinis atsarginis kopijavimas"
 
 msgid ""
@@ -7110,10 +7121,13 @@ msgstr "Atsarginės kopijos kūrimo laikotarpis sekundėmis."
 msgid "Downloads"
 msgstr "Atsisuntimai"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "Tamsusis režimas"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "Įjungti tamsųjį režimą"
 
 msgid "Develop mode"
@@ -17322,6 +17336,9 @@ msgid "Delete input"
 msgstr "Ištrinti įvestį"
 
 msgid "Network Test"
+msgstr "Tinklo testas"
+
+msgid "Network test"
 msgstr "Tinklo testas"
 
 msgid "Start Test Multi-Thread"
