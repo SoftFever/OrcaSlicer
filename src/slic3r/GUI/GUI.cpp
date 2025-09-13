@@ -82,7 +82,7 @@ const std::string& shortkey_ctrl_prefix()
 {
 	static const std::string str =
 #ifdef __APPLE__
-		"⌘+"
+		u8"\u2318+"  // "⌘+" (Mac Command+)
 #else
 		_u8L("Ctrl+")
 #endif
@@ -94,9 +94,9 @@ const std::string& shortkey_alt_prefix()
 {
 	static const std::string str =
 #ifdef __APPLE__
-		"⌥+"
+		u8"\u2325+"  // "⌥+" (Mac Option+)
 #else
-		"Alt+"
+		_u8L("Alt+")
 #endif
 		;
 	return str;
@@ -290,6 +290,10 @@ static void add_config_substitutions(const ConfigSubstitutions& conf_substitutio
 			bool is_infill = def->opt_key == "top_surface_pattern"	   ||
 							 def->opt_key == "bottom_surface_pattern" ||
 							 def->opt_key == "internal_solid_infill_pattern" ||
+							 def->opt_key == "support_base_pattern" ||
+							 def->opt_key == "support_interface_pattern" ||
+							 def->opt_key == "ironing_pattern" ||
+							 def->opt_key == "support_ironing_pattern" ||
 							 def->opt_key == "sparse_infill_pattern";
 
 			// Each infill doesn't use all list of infill declared in PrintConfig.hpp.

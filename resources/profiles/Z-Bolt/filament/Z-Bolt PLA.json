@@ -3,9 +3,9 @@
     "name": "Z-Bolt PLA",
     "inherits": "fdm_filament_pla",
     "from": "system",
-    "instantiation": "true",
-    "filament_id": "GFL100",
     "setting_id": "GFSL100",
+    "filament_id": "GFL100",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "21"
     ],
@@ -51,6 +51,15 @@
         "Z-Bolt S600 0.8 nozzle",
         "Z-Bolt S600 Dual 0.4 nozzle",
         "Z-Bolt S600 Dual 0.6 nozzle",
-        "Z-Bolt S600 Dual 0.8 nozzle"
+        "Z-Bolt S600 Dual 0.8 nozzle",
+        "Z-Bolt S800 Dual 0.4 nozzle",
+        "Z-Bolt S800 Dual 0.6 nozzle",
+        "Z-Bolt S800 Dual 0.8 nozzle",
+        "Z-Bolt S1000 0.4 nozzle",
+        "Z-Bolt S1000 0.6 nozzle",
+        "Z-Bolt S1000 0.8 nozzle",
+        "Z-Bolt S1000 Dual 0.4 nozzle",
+        "Z-Bolt S1000 Dual 0.6 nozzle",
+        "Z-Bolt S1000 Dual 0.8 nozzle"
     ]
 }

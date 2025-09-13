@@ -61,8 +61,10 @@ Points SinglePathProvider::s_end;
 // Clip source polygon to be used as a clipping polygon with a bouding box around the source (to be clipped) polygon.
 // Useful as an optimization for expensive ClipperLib operations, for example when clipping source polygons one by one
 // with a set of polygons covering the whole layer below.
-template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_templ(const std::vector<PointType> &src, const BoundingBox &bbox, std::vector<PointType> &out, const bool get_entire_polygons=false)
+template<typename PointsType> inline void clip_clipper_polygon_with_subject_bbox_templ(const PointsType &src, const BoundingBox &bbox, PointsType &out, const bool get_entire_polygons=false)
 {
+    using PointType = typename PointsType::value_type;
+
     out.clear();
     const size_t cnt = src.size();
     if (cnt < 3) return;
@@ -94,10 +96,10 @@ template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_
     }
 
     // Never produce just a single point output polygon.
-    if (!out.empty())
-        if(get_entire_polygons){
+    if (!out.empty()) {
+        if (get_entire_polygons) {
             out=src;
-        }else{
+        } else {
             if (int sides_next = sides(out.front());
             // The last point is inside. Take it.
             sides_this == 0 ||
@@ -106,15 +108,15 @@ template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_
             (sides_prev & sides_this & sides_next) == 0)
             out.emplace_back(src.back());
         }
-
+    }
 }
 
 void clip_clipper_polygon_with_subject_bbox(const Points &src, const BoundingBox &bbox, Points &out, const bool get_entire_polygons) { clip_clipper_polygon_with_subject_bbox_templ(src, bbox, out, get_entire_polygons); }
 void clip_clipper_polygon_with_subject_bbox(const ZPoints &src, const BoundingBox &bbox, ZPoints &out) { clip_clipper_polygon_with_subject_bbox_templ(src, bbox, out); }
 
-template<typename PointType> [[nodiscard]] std::vector<PointType> clip_clipper_polygon_with_subject_bbox_templ(const std::vector<PointType> &src, const BoundingBox &bbox)
+template<typename PointsType> [[nodiscard]] PointsType clip_clipper_polygon_with_subject_bbox_templ(const PointsType &src, const BoundingBox &bbox)
 {
-    std::vector<PointType> out;
+    PointsType out;
     clip_clipper_polygon_with_subject_bbox(src, bbox, out);
     return out;
 }
@@ -1001,31 +1003,26 @@ Polygons union_pt_chained_outside_in(const Polygons &subject)
     return retval;
 }
 
-Polygons simplify_polygons(const Polygons &subject, bool preserve_collinear)
+Polygons simplify_polygons(const Polygons &subject)
 {
     ClipperLib::Paths output;
-    if (preserve_collinear) {
-        ClipperLib::Clipper c;
-        c.PreserveCollinear(true);
-        c.StrictlySimple(true);
-        c.AddPaths(ClipperUtils::PolygonsProvider(subject), ClipperLib::ptSubject, true);
-        c.Execute(ClipperLib::ctUnion, output, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
-    } else {
-        output = ClipperLib::SimplifyPolygons(ClipperUtils::PolygonsProvider(subject), ClipperLib::pftNonZero);
-    }
-    
+    ClipperLib::Clipper c;
+//    c.PreserveCollinear(true);
+    //FIXME StrictlySimple is very expensive! Is it needed?
+    c.StrictlySimple(true);
+    c.AddPaths(ClipperUtils::PolygonsProvider(subject), ClipperLib::ptSubject, true);
+    c.Execute(ClipperLib::ctUnion, output, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+
     // convert into Slic3r polygons
     return to_polygons(std::move(output));
 }
 
-ExPolygons simplify_polygons_ex(const Polygons &subject, bool preserve_collinear)
+ExPolygons simplify_polygons_ex(const Polygons &subject)
 {
-    if (! preserve_collinear)
-        return union_ex(simplify_polygons(subject, false));
-
-    ClipperLib::PolyTree polytree;    
+    ClipperLib::PolyTree polytree;
     ClipperLib::Clipper c;
-    c.PreserveCollinear(true);
+//    c.PreserveCollinear(true);
+    //FIXME StrictlySimple is very expensive! Is it needed?
     c.StrictlySimple(true);
     c.AddPaths(ClipperUtils::PolygonsProvider(subject), ClipperLib::ptSubject, true);
     c.Execute(ClipperLib::ctUnion, polytree, ClipperLib::pftNonZero, ClipperLib::pftNonZero);

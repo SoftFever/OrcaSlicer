@@ -88,6 +88,6 @@
     "wipe_before_external_loop": "0",
     "exclude_object": "1",
     "wipe_speed": "100%",
-    "print_flow_ratio": "0.97",
+    "print_flow_ratio": "1.0",
     "wall_sequence": "inner wall/outer wall"
 }
