@@ -1429,11 +1429,11 @@ void PreferencesDialog::create_items()
     g_sizer->Add(item_ams_blacklist);
 
     //// DEVELOPER > Debug
-//#if !BBL_RELEASE_TO_PUBLIC
+#if !BBL_RELEASE_TO_PUBLIC
     g_sizer->Add(create_item_title(_L("Debug")), 1, wxEXPAND);
     auto debug_page            = create_debug_page();
     g_sizer->Add(debug_page, 1, wxEXPAND);
-//#endif
+#endif
 
     g_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(g_sizer, 0, wxEXPAND);
