@@ -7124,6 +7124,9 @@ msgstr ""
 "Чи повинні бути завантажені налаштування принтера/філаменту/процесу при "
 "відкритті файлу .3mf?"
 
+msgid "Recent projects"
+msgstr "Недавні проєкти"
+
 msgid "Maximum recent projects"
 msgstr "Максимум останніх проектів"
 
@@ -18943,9 +18946,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + права кнопка миші:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Недавні проєкти"
 
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+будь-яка стрілка"

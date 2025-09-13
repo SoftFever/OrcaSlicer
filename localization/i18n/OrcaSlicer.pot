@@ -6585,6 +6585,9 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
+msgid "Recent projects"
+msgstr ""
+
 msgid "Maximum recent projects"
 msgstr ""
 

@@ -7152,6 +7152,9 @@ msgstr ""
 "Quando si apre un file .3mf, è necessario caricare le impostazioni della "
 "stampante/filamento/processo?"
 
+msgid "Recent projects"
+msgstr "Progetti recenti"
+
 msgid "Maximum recent projects"
 msgstr "Numero massimo di progetti recenti"
 
@@ -19245,9 +19248,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Maiusc + Tasto destro del mouse:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Progetti recenti"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Maiusc+G"

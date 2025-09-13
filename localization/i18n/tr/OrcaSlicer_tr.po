@@ -7062,6 +7062,9 @@ msgstr "Davranış"
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "Bir .3mf açılırken yazıcı/filament/işlem ayarları yüklenmeli mi?"
 
+msgid "Recent projects"
+msgstr "Son projeler"
+
 msgid "Maximum recent projects"
 msgstr "Maksimum son kullanılan proje"
 
@@ -18986,9 +18989,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + Sağ fare düğmesi:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Son Projeler"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

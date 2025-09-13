@@ -6967,6 +6967,9 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
+msgid "Recent projects"
+msgstr "Nedávné projekty"
+
 msgid "Maximum recent projects"
 msgstr "Maximální počet nedávných projektů"
 
@@ -17675,9 +17678,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + Pravé tlačítko myši:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Nedávné projekty"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

@@ -7122,6 +7122,9 @@ msgstr ""
 "As configurações de impressora/filamento/processo devem ser carregadas ao "
 "abrir um .3mf?"
 
+msgid "Recent projects"
+msgstr "Projetos recentes"
+
 msgid "Maximum recent projects"
 msgstr "Máximo de projetos recentes"
 
@@ -19169,9 +19172,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + Botão direito do mouse:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Projetos recentes"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

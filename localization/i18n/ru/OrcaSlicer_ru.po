@@ -7210,6 +7210,9 @@ msgstr ""
 "Выбор того, следует ли при открытии 3mf проекта загружать настройки "
 "принтера, прутка и процесса."
 
+msgid "Recent projects"
+msgstr "Недавние проекты"
+
 msgid "Maximum recent projects"
 msgstr "Максимальное количество недавних проектов"
 
@@ -19377,9 +19380,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + Правая кнопка мыши:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Недавние проекты"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

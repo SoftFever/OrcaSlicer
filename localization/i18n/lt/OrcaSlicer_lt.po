@@ -7084,6 +7084,9 @@ msgstr ""
 "Ar atidarant .3mf failą reikia įkelti spausdintuvo / gijų / proceso "
 "nustatymus?"
 
+msgid "Recent projects"
+msgstr "Naujausi projektai"
+
 msgid "Maximum recent projects"
 msgstr "Daugiausia buvusių projektų"
 
@@ -18815,9 +18818,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + dešinysis pelės mygtukas:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Naujausi projektai"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

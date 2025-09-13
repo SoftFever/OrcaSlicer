@@ -7100,6 +7100,9 @@ msgstr ""
 "Określa czy ustawienia drukarki/filamentu/procesu mają być wczytywane "
 "podczas otwierania pliku .3mf"
 
+msgid "Recent projects"
+msgstr "Ostatnie projekty"
+
 msgid "Maximum recent projects"
 msgstr "Maksymalna liczba ostatnich projektów"
 
@@ -18977,9 +18980,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + Prawy przycisk myszy:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Ostatnie projekty"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

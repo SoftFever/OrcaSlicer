@@ -6971,8 +6971,7 @@ msgid "Enable network plugin"
 msgstr "Netzwerk-Plugin aktivieren"
 
 msgid "Use legacy network plugin"
-msgstr ""
-"Verwenden Sie das alte Netzwerk-Plugin"
+msgstr "Verwenden Sie das alte Netzwerk-Plugin"
 
 msgid ""
 "Disable to use latest network plugin that supports new BambuLab firmwares."
@@ -7210,6 +7209,9 @@ msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 "sollen Drucker/Filament/Prozess Einstellungen geladen werden beim Öffnen "
 "einer .3mf?"
+
+msgid "Recent projects"
+msgstr "Letzte Projekte"
 
 msgid "Maximum recent projects"
 msgstr "Höchstanzahl an letzten Projekten"
@@ -19446,9 +19448,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Gross + rechte Maustaste:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Letzte Projekte"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Umschalttaste+G"

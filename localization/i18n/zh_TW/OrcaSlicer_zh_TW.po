@@ -6786,6 +6786,9 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "開啟 .3mf 檔案時，是否需要載入印表機、線材和參數設定？"
 
+msgid "Recent projects"
+msgstr "最近的專案項目"
+
 msgid "Maximum recent projects"
 msgstr "最近專案項目的最大數量"
 
@@ -17562,9 +17565,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + 滑鼠右鍵："
-
-#~ msgid "Recent projects"
-#~ msgstr "最近的專案項目"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

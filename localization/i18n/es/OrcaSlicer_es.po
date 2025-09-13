@@ -7152,6 +7152,9 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
+msgid "Recent projects"
+msgstr "Proyectos recientes"
+
 msgid "Maximum recent projects"
 msgstr "Máximos proyectos recientes"
 
@@ -18971,9 +18974,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + Botón derecho del ratón:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Proyectos recientes"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

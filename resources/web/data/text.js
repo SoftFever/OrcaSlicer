@@ -108,7 +108,7 @@ var LangText = {
     t126: "Loading……",
     orca1: "Edit Project Info",
     orca2: "no model information",
-    orca3: "Stealth Mode",
+    orca3: "Stealth mode",
     orca4: "This stops the transmission of data to Bambu's cloud services. Users who don't use BBL machines or use LAN mode only can safely turn on this function.",
     orca5: "Enable Stealth Mode.",
   },

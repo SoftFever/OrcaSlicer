@@ -7136,6 +7136,9 @@ msgstr ""
 "S'ha de carregar la configuració de la impressora/filament/procés en obrir "
 "un .3mf?"
 
+msgid "Recent projects"
+msgstr "Projectes recents"
+
 msgid "Maximum recent projects"
 msgstr "Màxim projectes recents"
 
@@ -19109,9 +19112,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Maj + botó dret del ratolí:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Projectes recents"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Maj+G"

@@ -7198,6 +7198,9 @@ msgstr ""
 "Les paramètres de l’imprimante/du filament/du processus doivent-ils être "
 "chargés lors de l’ouverture d’un fichier .3mf ?"
 
+msgid "Recent projects"
+msgstr "Projets récents"
+
 msgid "Maximum recent projects"
 msgstr "Projets récents maximum"
 
@@ -19361,9 +19364,6 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Maj + Bouton droit de la souris:"
-
-#~ msgid "Recent projects"
-#~ msgstr "Projets récents"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"
