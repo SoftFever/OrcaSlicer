@@ -32,7 +32,7 @@ jobs:
           tar -xvf ~/sc.tar.xz -C ~
           mv ~/shellcheck-"${INPUT_VERSION}"/shellcheck ~/shellcheck
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Shellcheck build_linux.sh
         run: ~/shellcheck -e SC1090 build_linux.sh
