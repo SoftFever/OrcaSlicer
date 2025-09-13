@@ -1,158 +1,144 @@
-<#
-Script: G-Code Infill Layer Time Analyzer
+# Script para ejecutar klipper_estimator.exe en todos los archivos .gcode de la carpeta y guardar layer_times en CSV
 
-Description: Analyzes multiple G-code files in a directory to calculate estimated printing time per layer, focusing on sparse infill movements.
-Considers acceleration, deceleration, and max speed for realistic estimates.
+# Configurar cultura española para formato de números y delimitador CSV
+[System.Threading.Thread]::CurrentThread.CurrentCulture = [System.Globalization.CultureInfo]::GetCultureInfo("es-ES")
 
-How it works:
-- Parses G-code lines to detect layers and movements.
-- Tracks position and feedrate, ignoring non-sparse-infill types.
-- Calculates movement times using trapezoidal/triangular motion profiles.
-- Outputs a CSV with layer heights and times per file, leaving empty fields for missing data.
+# Constantes para cálculo de peso del filamento
+$filamentDiameter = 1.75  # mm
+$density = 1  # g/cm³
+$area = [Math]::PI * [Math]::Pow(($filamentDiameter / 2), 2)  # mm²
+$densityPerMm3 = $density / 1000  # g/mm³
+$weightFactor = $area * $densityPerMm3  # g/mm
 
-Usage: Run in PowerShell. Ensure .gcode files are in the directory. Outputs gcode_analysis.csv.
+# Obtener todos los archivos .gcode en la carpeta actual
+$gcodeFiles = Get-ChildItem -Path . -Filter *.gcode
 
-NOTE:
-  This script is just a estimation tool and will not reflect actual printing times.
-  Is just a rough estimate to Layer time Variability.
-#>
+# Array para almacenar los datos de layer_times
+$allLayerTimes = @()
 
-param (
-    [Parameter(Mandatory = $false)]
-    [string]$DirectoryPath = (Get-Location).Path
-)
+# Hashtable para almacenar totales por archivo
+$fileTotals = @{}
 
-# Get all .gcode files in the directory
-$gcodeFiles = Get-ChildItem -Path $DirectoryPath -Filter "*.gcode" | Where-Object { -not $_.PSIsContainer }
-
-if ($gcodeFiles.Count -eq 0) {
-    Write-Host "No .gcode files found in $DirectoryPath." -ForegroundColor Red
-    exit
-}
-
-# Initialize hashtable to store times by Z and file
-$fileTimes = @{}
-
-# Process each .gcode file
+# Para cada archivo .gcode, ejecutar el comando y procesar la salida
 foreach ($file in $gcodeFiles) {
-    $GCodeFilePath = $file.FullName
-    $content = Get-Content $GCodeFilePath
-    $layers = @()
-    $currentLayer = $null
-    $currentX = 0
-    $currentY = 0
-    $currentZ = 0
-    $currentF = 0
-    $acceleration = 500  # mm/s², assume standard value
-    $deceleration = 500  # mm/s², assume standard value
-
-    $includeMovements = $true  # Flag to include or ignore movements based on type
-
-    foreach ($line in $content) {
-        if ($line -match ";TYPE:Outer wall") {
-            $includeMovements = $false
-        } elseif ($line -match ";TYPE:Sparse infill") {
-            $includeMovements = $true
-        }
-
-        if ($line -match ";Z:([\d.]+)") {
-            $zValue = [double]$matches[1]
-            if ($currentLayer) {
-                $layers += $currentLayer
-            }
-            $currentLayer = @{
-                Z = $zValue
-                LayerTime = 0
-            }
-        } elseif ($line -match "^G1 " -and ($line -match "X|Y|Z")) {
-            # Parse X, Y, Z, F
-            $x = if ($line -match "X([\d.-]+)") { [double]$matches[1] } else { $currentX }
-            $y = if ($line -match "Y([\d.-]+)") { [double]$matches[1] } else { $currentY }
-            $z = if ($line -match "Z([\d.-]+)") { [double]$matches[1] } else { $currentZ }
-            $f = if ($line -match "F([\d.-]+)") { [double]$matches[1] } else { $currentF }
-
-            $dx = $x - $currentX
-            $dy = $y - $currentY
-            $dz = $z - $currentZ
-            $distance = [math]::Sqrt($dx*$dx + $dy*$dy + $dz*$dz)
-
-            if ($distance -gt 0 -and $f -gt 0 -and $currentLayer -and $includeMovements) {
-                $speed = $f / 60  # mm/s
-                $speed = [math]::Min($speed, 60)  # Cap at max achievable speed
-                $accel_time = $speed / $acceleration
-                $decel_time = $speed / $deceleration
-                $accel_dist = 0.5 * $acceleration * $accel_time * $accel_time
-                $decel_dist = 0.5 * $deceleration * $decel_time * $decel_time
-
-                if ($distance -ge ($accel_dist + $decel_dist)) {
-                    $const_dist = $distance - $accel_dist - $decel_dist
-                    $const_time = $const_dist / $speed
-                    $move_time = $accel_time + $const_time + $decel_time
-                } else {
-                    # Triangular movement with different acceleration and deceleration
-                    $avg_accel = ($acceleration + $deceleration) / 2
-                    $v_max = [math]::Sqrt($avg_accel * $distance)
-                    $accel_time_tri = $v_max / $acceleration
-                    $decel_time_tri = $v_max / $deceleration
-                    $move_time = $accel_time_tri + $decel_time_tri
-                }
-                $currentLayer.LayerTime += $move_time
-            }
-
-            $currentX = $x
-            $currentY = $y
-            $currentZ = $z
-            $currentF = $f
-        }
-    }
-    if ($currentLayer) {
-        $layers += $currentLayer
-    }
-
-    # Ignore first and last layer
-    if ($layers.Count -gt 2) {
-        $layers = $layers[1..($layers.Count-2)]
-    }
-
-    # Store in hashtable
-    foreach ($layer in $layers) {
-        $z = $layer.Z.ToString().Replace('.', ',')
-        if (-not $fileTimes.ContainsKey($z)) {
-            $fileTimes[$z] = @{}
-        }
-        if ($layer.LayerTime -gt 0) {
-            $fileTimes[$z][$file.BaseName] = $layer.LayerTime.ToString("F2").Replace('.', ',')
-        }
-    }
-}
-
-# Fill with empty if no layer for some file at a height Z
-$zKeys = $fileTimes.Keys | ForEach-Object { $_ }
-foreach ($z in $zKeys) {
-    # No need to fill, as we will check in output
-}
-
-# Print the result
-$outputFile = Join-Path $DirectoryPath "gcode_analysis.csv"
-if (Test-Path $outputFile) {
+    $baseName = $file.BaseName
+    
+    # Ejecutar el comando y capturar la salida
+    $output = & .\klipper_estimator.exe --config_file config.json estimate --format json $file.Name 2>&1
+    Write-Host "Procesando: $($file.Name)"
+    
+    # Parsear la salida JSON
     try {
-        Remove-Item $outputFile
+        $json = $output | ConvertFrom-Json -AsHashTable
+        if ($json.ContainsKey('sequences') -and $json.sequences.Count -gt 0) {
+            # Usar solo la última sequence (totalizadora)
+            $lastSequence = $json.sequences[-1]
+            
+            # Calcular totales de la última sequence
+            $totalTime = $lastSequence.total_time / 60  # Convertir a minutos
+            $totalExtrude = $lastSequence.total_extrude_distance
+            
+            # Restar tiempos específicos de kind_times si existen
+            if ($lastSequence.ContainsKey('kind_times')) {
+                $kindTimes = $lastSequence.kind_times
+                if ($kindTimes.ContainsKey('perimeter')) { $totalTime -= $kindTimes['perimeter'] / 60 }
+                if ($kindTimes.ContainsKey('move to first perimeter point')) { $totalTime -= $kindTimes['move to first perimeter point'] / 60 }
+                if ($kindTimes.ContainsKey('move to first infill point')) { $totalTime -= $kindTimes['move to first infill point'] / 60 }
+            }
+            
+            $fileTotals[$baseName] = @{ TotalTime = $totalTime; TotalExtrude = $totalExtrude }
+            
+            # Extraer layer_times de la última sequence
+            if ($lastSequence.ContainsKey('layer_times')) {
+                foreach ($pair in $lastSequence.layer_times) {
+                    $allLayerTimes += [PSCustomObject]@{
+                        File = $baseName
+                        ZHeight = $pair[0]
+                        Time = $pair[1]
+                    }
+                }
+            } else {
+                Write-Host "La última sequence no tiene layer_times en $($file.Name)"
+            }
+        } else {
+            Write-Host "No se encontraron sequences en $($file.Name)"
+        }
     } catch {
-        Write-Host "Cannot delete file $outputFile because it is in use. Close the file and run again." -ForegroundColor Red
-        exit
+        Write-Host "Error al parsear JSON para $($file.Name): $_"
+        Write-Host "Salida: $output"
     }
 }
-$header = "Height;" + ($gcodeFiles.BaseName -join ";")
-$header | Out-File -FilePath $outputFile -Encoding UTF8
 
-foreach ($z in ($fileTimes.Keys | Sort-Object { [double]$_.Replace(',', '.') })) {
-    $times = @()
-    foreach ($file in $gcodeFiles) {
-        $time = $fileTimes[$z][$file.BaseName]
-        if ($time) { $times += $time } else { $times += "" }
+# Guardar en CSV pivotado
+if ($allLayerTimes.Count -gt 0) {
+    # Obtener archivos únicos
+    $files = $allLayerTimes | Select-Object -Unique -ExpandProperty File
+    
+    # Obtener alturas únicas ordenadas
+    $heights = $allLayerTimes | Select-Object -Unique -ExpandProperty ZHeight | Sort-Object
+    
+    # Crear hashtable para datos por archivo
+    $fileData = @{}
+    foreach ($file in $files) {
+        $fileData[$file] = @{}
     }
-    $timesStr = $times -join ";"
-    "$z;$timesStr" | Out-File -FilePath $outputFile -Append -Encoding UTF8
+    
+    # Llenar el hashtable con tiempos
+    foreach ($item in $allLayerTimes) {
+        $fileData[$item.File][$item.ZHeight] = $item.Time
+    }
+    
+    # Crear datos para CSV
+    $csvData = @()
+    foreach ($height in $heights) {
+        $row = [PSCustomObject]@{ Height = $height }
+        foreach ($file in $files) {
+            $time = $fileData[$file][$height]
+            if ($time -eq $null) { $time = 0 }  # Usar 0 si no hay tiempo para esa altura
+            $row | Add-Member -MemberType NoteProperty -Name $file -Value $time
+        }
+        $csvData += $row
+    }
+    
+    # Crear líneas para la tabla de totales
+    $tempCsvPath = "layer_times_temp.csv"
+    $summaryLines = @()
+    $summaryLines += "infill;total time (min);g"
+    foreach ($file in $files) {
+        $totals = $fileTotals[$file]
+        $weight = $totals.TotalExtrude * $weightFactor
+        $weightFormatted = $weight.ToString("N", [System.Globalization.CultureInfo]::GetCultureInfo("es-ES"))
+        $timeFormatted = $totals.TotalTime.ToString("N", [System.Globalization.CultureInfo]::GetCultureInfo("es-ES"))
+        $summaryLines += "$file;$timeFormatted;$weightFormatted"
+    }
+    
+    # Crear líneas para la tabla de layer times
+    $layerLines = @()
+    $header = "Height"
+    foreach ($file in $files) { $header += ";$file" }
+    $layerLines += $header
+    foreach ($height in $heights) {
+        $line = $height.ToString([System.Globalization.CultureInfo]::GetCultureInfo("es-ES"))
+        foreach ($file in $files) {
+            $time = $fileData[$file][$height]
+            if ($time -eq $null) { $time = 0 }
+            # Mantener en segundos
+            $line += ";" + $time.ToString("N", [System.Globalization.CultureInfo]::GetCultureInfo("es-ES"))
+        }
+        $layerLines += $line
+    }
+    
+    # Combinar todas las líneas: totales primero, luego vacía, luego layer times
+    $allLines = $summaryLines + "" + $layerLines
+    
+    # Escribir al archivo temporal
+    $allLines | Out-File -FilePath $tempCsvPath -Encoding UTF8
+    
+    # Renombrar el archivo temporal al final con timestamp para evitar conflictos
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    $finalCsvPath = "layer_times_$timestamp.csv"
+    Move-Item -Path $tempCsvPath -Destination $finalCsvPath -Force
+    Write-Host "Datos guardados en $finalCsvPath"
+} else {
+    Write-Host "No se encontraron datos de layer_times para guardar"
 }
-
-Write-Host "Results saved to $outputFile"
