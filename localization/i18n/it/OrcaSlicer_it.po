@@ -69,7 +69,7 @@ msgid "Left mouse button"
 msgstr "Tasto sinistro mouse"
 
 msgid "Enforce supports"
-msgstr "Rinforzi di supporto"
+msgstr "Supporti di rinforzo"
 
 msgid "Right mouse button"
 msgstr "Tasto destro mouse"
