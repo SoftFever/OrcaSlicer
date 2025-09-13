@@ -7,8 +7,50 @@
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
+namespace {
 
-namespace Slic3r { namespace GUI {
+/// parameters to minimize support area
+const Slic3r::orientation::OrientParams ORIENT_PARAMS_MIN_AREA {
+    .TAR_A               = 0.015f,
+    .TAR_B               = 0.177f,
+    .RELATIVE_F          = 20,
+    .CONTOUR_F           = 0.5f,
+    .BOTTOM_F            = 2.5f,
+    .BOTTOM_HULL_F       = 0.1f,
+    .TAR_C               = 0.1f,
+    .TAR_D               = 1,
+    .TAR_E               = 0.0115f,
+    .FIRST_LAY_H         = 0.2f,      // 0.0475;
+    .VECTOR_TOL          = -0.00083f,
+    .NEGL_FACE_SIZE      = 0.01f,
+    .ASCENT              = -0.5f,
+    .PLAFOND_ADV         = 0.0599f,
+    .CONTOUR_AMOUNT      = 0.0182427f,
+    .OV_H                = 2.574f,
+    .height_offset       = 2.3728f,
+    .height_log          = 0.041375f,
+    .height_log_k        = 1.9325457f,
+    .LAF_MAX             = 0.999f,    // cos(1.4\degree) for low angle face 0.9997f
+    .LAF_MIN             = 0.97f,     // cos(14\degree) 0.9703f
+    .TAR_LAF             = 0.001f,    // 0.01f
+    .TAR_PROJ_AREA       = 0.1f,
+    .BOTTOM_MIN          = 0.1f,      // min bottom area. If lower than it the object may be unstable
+    .BOTTOM_MAX          = 2000,      // max bottom area. If get to it the object is stable enough (further increase bottom area won't do more help)
+    .height_to_bottom_hull_ratio_MIN = 1,
+    .BOTTOM_HULL_MAX     = 2000,      // max bottom hull area
+    .APPERANCE_FACE_SUPP = 3,         // penalty of generating supports on appearance face
+    .overhang_angle      = 60.f,
+    .use_low_angle_face  = true,
+    .min_volume          = false,
+    .fun_dir             = {},
+    .parallel            = true,
+    .progressind         = {},
+    .stopcondition       = {}
+};
+} // namespace
+
+namespace Slic3r {
+namespace GUI {
 
 
 void OrientJob::clear_input()
@@ -161,9 +203,8 @@ void OrientJob::process(Ctl &ctl)
     const GLCanvas3D::OrientSettings& settings = m_plater->canvas3D()->get_orient_settings();
 
     orientation::OrientParams params;
-    orientation::OrientParamsArea params_area;
     if (settings.min_area) {
-        memcpy(&params, &params_area, sizeof(params));
+        params = ORIENT_PARAMS_MIN_AREA;
         params.min_volume = false;
     }
     else {
