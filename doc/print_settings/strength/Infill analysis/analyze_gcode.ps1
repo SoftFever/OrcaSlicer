@@ -50,11 +50,18 @@ foreach ($file in $gcodeFiles) {
             
             # Extraer layer_times de la última sequence
             if ($lastSequence.ContainsKey('layer_times')) {
+                $numLayers = $lastSequence.layer_times.Count
+                $perimeterTimePerLayer = 0
+                if ($lastSequence.ContainsKey('kind_times') -and $lastSequence.kind_times.ContainsKey('perimeter')) {
+                    $perimeterTimePerLayer = $lastSequence.kind_times['perimeter'] / $numLayers
+                }
                 foreach ($pair in $lastSequence.layer_times) {
+                    $time = $pair[1] - $perimeterTimePerLayer
+                    if ($time -lt 0) { $time = 0 }
                     $allLayerTimes += [PSCustomObject]@{
                         File = $baseName
                         ZHeight = $pair[0]
-                        Time = $pair[1]
+                        Time = $time
                     }
                 }
             } else {
@@ -74,8 +81,9 @@ if ($allLayerTimes.Count -gt 0) {
     # Obtener archivos únicos
     $files = $allLayerTimes | Select-Object -Unique -ExpandProperty File
     
-    # Obtener alturas únicas ordenadas
+    # Obtener alturas únicas ordenadas y filtrar para excluir primera y última capa
     $heights = $allLayerTimes | Select-Object -Unique -ExpandProperty ZHeight | Sort-Object
+    $heights = $heights[1..($heights.Count-2)]
     
     # Crear hashtable para datos por archivo
     $fileData = @{}
@@ -103,7 +111,7 @@ if ($allLayerTimes.Count -gt 0) {
     # Crear líneas para la tabla de totales
     $tempCsvPath = "layer_times_temp.csv"
     $summaryLines = @()
-    $summaryLines += "infill;total time (min);g"
+    $summaryLines += "infill;Total Time;g"
     foreach ($file in $files) {
         $totals = $fileTotals[$file]
         $weight = $totals.TotalExtrude * $weightFactor
@@ -121,9 +129,12 @@ if ($allLayerTimes.Count -gt 0) {
         $line = $height.ToString([System.Globalization.CultureInfo]::GetCultureInfo("es-ES"))
         foreach ($file in $files) {
             $time = $fileData[$file][$height]
-            if ($time -eq $null) { $time = 0 }
-            # Mantener en segundos
-            $line += ";" + $time.ToString("N", [System.Globalization.CultureInfo]::GetCultureInfo("es-ES"))
+            if ($time -eq $null -or $time -eq 0) {
+                $line += ";"
+            } else {
+                # Mantener en segundos
+                $line += ";" + $time.ToString("N", [System.Globalization.CultureInfo]::GetCultureInfo("es-ES"))
+            }
         }
         $layerLines += $line
     }
