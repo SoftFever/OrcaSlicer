@@ -7206,7 +7206,7 @@ msgstr ""
 "einer .3mf?"
 
 msgid "Maximum recent files"
-msgstr "Maximum zuletzt verwendeten Dateien"
+msgstr "Maximum zuletzt verwendeter Dateien"
 
 msgid "Maximum count of recent files"
 msgstr "Maximale Anzahl der zuletzt verwendeten Dateien"
