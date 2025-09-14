@@ -77,14 +77,14 @@ void FillPlanePath::_fill_surface_single(
 
     //FIXME Vojtech: We are not sure whether the user expects the fill patterns on visible surfaces to be aligned across all the islands of a single layer.
     // One may align for this->centered() to align the patterns for Archimedean Chords and Octagram Spiral patterns.
-    // PPS: Disable when patchwork surface
-    const bool align = params.density < 0.995 && !params.is_patchwork;
+    // PPS: Disable when patchwork surface. Bug remove: since the surfaces became variable density, it's not working properly
+    bool       _top_or_bottom = params.extrusion_role == erTopSolidInfill || params.extrusion_role == erBottomSurface;
+    const bool align          = !_top_or_bottom && params.density < 0.995 && !params.is_patchwork;
 
     BoundingBox bounding_box;
     BoundingBox snug_bounding_box = get_extents(expolygon).inflated(SCALED_EPSILON);
 
-    bool _top_or_bottom = params.extrusion_role == erTopSolidInfill || params.extrusion_role == erBottomSurface;
-    if (!_top_or_bottom || params.center_of_surface_pattern == CenterOfSurfacePattern::Each_Surface) {
+    if (params.center_of_surface_pattern == CenterOfSurfacePattern::Each_Surface) {
         // Rotated bounding box of the area to fill in with the pattern.
         bounding_box = align ?
             // Sparse infill needs to be aligned across layers. Align infill across layers using the object's bounding box.
