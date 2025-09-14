@@ -1093,8 +1093,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("precise_outer_wall",coBool);
     def->label = L("Precise wall");
     def->category = L("Quality");
-    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency. NOTE: This option "
-                       "will be ignored for outer-inner or inner-outer-inner wall sequences.");
+    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency. "
+                      "NOTE: This option will be ignored for outer-inner, inner-outer-inner or odd-even (whithout outermost control) wall sequences. ");
     def->set_default_value(new ConfigOptionBool{true});
 
     def = this->add("only_one_wall_top", coBool);
@@ -1775,6 +1775,7 @@ void PrintConfigDef::init_fff_params()
     def->label      = L("Even loops speed");
     def->category   = L("Quality");
     def->tooltip    = L("This separate setting will affect the speed of even perimeters. "
+                        "This can increase the printing time of the filling perimeter to allow the molten material to interact better with the already formed loops. "    
                         "If expressed as percentage (for example: 80%) it will be calculated on the inner perimeter speed setting.");
     def->sidetext   = L("mm/s or %");
     def->ratio_over = "inner_wall_speed";
@@ -1785,10 +1786,12 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("outermost_wall_control",coBool);
     def->label    = L("Outermost wall control");
-    def->tooltip  = L("The outermost wall is printed last to prevent overhanging.");
+    def->tooltip  = L("If Enabled, the outermost wall is printed last to prevent overhanging."
+                      "If you choose Disable, the outer wall will be calculated together with the rest in the one package. "
+                      "This is useful for cases where need maximum rigidity and solidity of the walls without overhangs.");
     def->category = L("Quality");
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionBool{false});
+    def->set_default_value(new ConfigOptionBool{true});
 
     def = this->add("is_infill_first",coBool);
     def->label    = L("Print infill first");

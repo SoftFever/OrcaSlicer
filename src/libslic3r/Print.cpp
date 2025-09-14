@@ -1586,6 +1586,19 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                }
             }
 
+            // check minimum walls
+            if (m_default_region_config.wall_loops < 3 && 
+                    (m_default_region_config.wall_sequence == WallSequence::OddEven ||
+                    m_default_region_config.wall_sequence == WallSequence::InnerOuterInner)) {
+                WallSequence _wall_sequence = m_default_region_config.wall_sequence;
+                warning->string = format(L("The number of perimeters is %d, which is not enough for a full-fledged generation in the %s order.\n"
+                                         "Minimum is 3. %s"
+                                         "Otherwise, make sure that the order of the walls matches the desired result. "), m_default_region_config.wall_loops, 
+                                         _wall_sequence == WallSequence::InnerOuterInner ? L("Inner/Outer/Inner") : L("Odd-Even"),
+                                         _wall_sequence == WallSequence::InnerOuterInner ? "" : L("To ensure rigidity and solidity, it is recommended to use 5 or more perimeters. "));
+                warning->opt_key = "wall_loops";
+            }
+
             // check speed
             // Orca: disable the speed check for now as we don't cap the speed
             // if (warning_key.empty()) {
@@ -1606,8 +1619,11 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             // }
 
             // check wall sequence and precise outer wall
-            if (m_default_region_config.precise_outer_wall && m_default_region_config.wall_sequence != WallSequence::InnerOuter) {
-                warning->string  = L("The precise wall option will be ignored for outer-inner or inner-outer-inner wall sequences.");
+            if (m_default_region_config.precise_outer_wall && 
+                    (m_default_region_config.wall_sequence == WallSequence::InnerOuter ||
+                     m_default_region_config.wall_sequence == WallSequence::InnerOuterInner ||
+                     (m_default_region_config.wall_sequence == WallSequence::OddEven && !m_default_region_config.outermost_wall_control))) {
+                warning->string  = L("The precise wall option will be ignored for outer-inner, inner-outer-inner or odd-even (without outermost control) wall sequences. ");
                 warning->opt_key = "precise_outer_wall";
             }
 

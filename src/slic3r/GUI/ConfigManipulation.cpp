@@ -560,31 +560,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : {"even_loops_flow_ratio", "even_loops_speed", "loop_sequence", "outermost_wall_control"})
         toggle_line(el, _wall_sequence == WallSequence::OddEven);
 
-    int        _wall_loops      = config->opt_int("wall_loops");
-    static int _wall_loops_trig = -1;
-    if (_wall_loops)
-        if (_wall_sequence == WallSequence::OddEven || _wall_sequence == WallSequence::InnerOuterInner) {
-            bool _eq_loops = _wall_loops_trig == _wall_loops;
-            bool _eq_sequence  = _wall_sequence_trig == _wall_sequence;
-            if (_wall_loops < 3 && _wall_loops_trig >= 0 && (_eq_loops != _eq_sequence)) {
-                const wxString     msg_text = format(_(L("The number of perimeters is %d, which is not enough for a full-fledged generation in the %s order.\n"
-                                                         "Do you want to increase the number of walls to 3?\n"
-                                                         "Otherwise, make sure that the order of the walls matches the desired result.")),
-                                                 _wall_loops, _wall_sequence == WallSequence::InnerOuterInner ? L("Inner/Outer/Inner") : L("Odd-Even"));
-                MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxYES | wxNO);
-                is_msg_dlg_already_exist = true;
-                if (dialog.ShowModal() == wxID_YES) {
-                    DynamicPrintConfig new_conf = *config;
-                    new_conf.set_key_value("wall_loops", new ConfigOptionInt(3));
-                    apply(config, &new_conf);
-                }
-                is_msg_dlg_already_exist = false;
-            } 
-        }
-    _wall_sequence_trig = _wall_sequence;
-    _wall_loops_trig = _wall_loops;
-    
-
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "infill_combination",
