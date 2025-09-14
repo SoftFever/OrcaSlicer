@@ -498,17 +498,22 @@ public:
 
             size_t idx  = startidx;
             Dir    next = next_dir(idx);
-            while (next != Dir::none) {
+            do {
+                // We should never touch a cell with no remaining directions
+                // until we get back to the start cell.
+                assert(next != Dir::none);
                 Coord ringvertex{long(idx), long(next)};
                 ring.emplace_back(ringvertex);
                 clr_dirs(idx, next);
                 idx  = stepidx(idx, next);
                 next = next_dir(idx, next);
                 assert(idx < m_gridlen);
-            }
-            if (ring.size() > 1) {
+            } while (idx != startidx);
+            // The start cell on returning should either have its directions
+            // cleared or have the second ambiguous direction.
+            assert(next == Dir::none || next == Dir::left || next == Dir::up);
+            if (ring.size() > 1)
                 rings.emplace_back(ring);
-            }
         }
         return rings;
     }
