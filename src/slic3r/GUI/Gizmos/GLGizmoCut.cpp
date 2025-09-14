@@ -21,9 +21,9 @@
 namespace Slic3r {
 namespace GUI {
 
-static const ColorRGBA GRABBER_COLOR = ColorRGBA::YELLOW();
-static const ColorRGBA UPPER_PART_COLOR = ColorRGBA::CYAN();                    // CUT GIZMO UPPER COLOR
-static const ColorRGBA LOWER_PART_COLOR = ColorRGBA::MAGENTA();                 // CUT GIZMO LOWER COLOR
+static const ColorRGBA GRABBER_COLOR    = ColorRGBA::YELLOW();
+static const ColorRGBA UPPER_PART_COLOR = ColorRGBA(0   / 255.f, 112 / 255.f, 210 / 255.f, 1.f);//ColorRGBA::CYAN();     // CUT GIZMO UPPER COLOR
+static const ColorRGBA LOWER_PART_COLOR = ColorRGBA(15  / 255.f, 173 / 255.f, 78  / 255.f, 1.f);//ColorRGBA::MAGENTA();  // CUT GIZMO LOWER COLOR
 static const ColorRGBA MODIFIER_COLOR   = ColorRGBA(0.75f, 0.75f, 0.75f, 0.5f); // ?????
 
 // connector colors

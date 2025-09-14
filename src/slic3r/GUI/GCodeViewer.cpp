@@ -735,17 +735,16 @@ const std::vector<ColorRGBA> GCodeViewer::Travel_Colors{ {
 // Normal ranges
 // blue to red
 const std::vector<ColorRGBA> GCodeViewer::Range_Colors{ { // GCODE VIEWER - HEATMAP COLORS
-    decode_color_to_float_array("#0b2c7a"),  // bluish
-    decode_color_to_float_array("#135985"),
-    decode_color_to_float_array("#1c8891"),
-    decode_color_to_float_array("#04d60f"),
-    decode_color_to_float_array("#aaf200"),
-    decode_color_to_float_array("#fcf903"),
-    decode_color_to_float_array("#f5ce0a"),
-    //decode_color_to_float_array("#e38820"),
-    decode_color_to_float_array("#d16830"),
-    decode_color_to_float_array("#c2523c"),
-    decode_color_to_float_array("#942616")    // reddish
+    decode_color_to_float_array("#33004f"), //"#0b2c7a"),  // bluish
+    decode_color_to_float_array("#300093"), //"#135985"),
+    decode_color_to_float_array("#0060ff"), //"#1c8891"),
+    decode_color_to_float_array("#00a1c4"), //"#04d60f"),
+    decode_color_to_float_array("#2fffe4"), //"#aaf200"),
+    decode_color_to_float_array("#c3fb9a"), //"#fcf903"),
+    decode_color_to_float_array("#ffd200"), //"#f5ce0a"),
+    decode_color_to_float_array("#c87b2f"), //"#d16830"),
+    decode_color_to_float_array("#c34a3a"), //"#c2523c"),
+    decode_color_to_float_array("#a9001e")  //"#942616")  // reddish
 }};
 
 const ColorRGBA GCodeViewer::Wipe_Color    = ColorRGBA::YELLOW();
