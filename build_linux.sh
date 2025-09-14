@@ -10,10 +10,12 @@ function usage() {
     echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-t][-u][-l][-L]"
     echo "   -1: limit builds to one core (where possible)"
     echo "   -j N: limit builds to N cores (where possible)"
-    echo "   -b: build in debug mode"
+    echo "   -b: build in Debug mode"
     echo "   -c: force a clean build"
     echo "   -C: enable ANSI-colored compile output (GNU/Clang only)"
     echo "   -d: download and build dependencies in ./deps/ (build prerequisite)"
+    echo "   -D: dry run"
+    echo "   -e: build in RelWithDebInfo mode"
     echo "   -h: prints this help text"
     echo "   -i: build the Orca Slicer AppImage (optional)"
     echo "   -p: boost ccache hit rate by disabling precompiled headers (default: ON)"
@@ -32,7 +34,8 @@ SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
 BUILD_DIR=build
-while getopts ":1j:bcCdhiprstulL" opt ; do
+BUILD_CONFIG=Release
+while getopts ":1j:bcCdDehiprstulL" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -41,8 +44,8 @@ while getopts ":1j:bcCdhiprstulL" opt ; do
         export CMAKE_BUILD_PARALLEL_LEVEL=$OPTARG
         ;;
     b )
-        BUILD_DEBUG="1"
         BUILD_DIR=build-dbg
+        BUILD_CONFIG=Debug
         ;;
     c )
         CLEAN_BUILD=1
@@ -52,6 +55,13 @@ while getopts ":1j:bcCdhiprstulL" opt ; do
         ;;
     d )
         BUILD_DEPS="1"
+        ;;
+    D )
+        DRY_RUN="1"
+        ;;
+    e )
+        BUILD_DIR=build-dbginfo
+        BUILD_CONFIG=RelWithDebInfo
         ;;
     h ) usage
         exit 1
@@ -111,6 +121,21 @@ function check_available_memory_and_disk() {
         echo && df --human-readable . && echo
         echo "Invoke with -r to skip ram and disk checks."
         exit 1
+    fi
+}
+
+function print_and_run() {
+    cmd=()
+    # Remove empty arguments, leading and trailing spaces
+    for item in "$@" ; do
+        if [[ -n $item ]]; then
+            cmd+=( "$(echo "${item}" | xargs)" )
+        fi
+    done
+
+    echo "${cmd[@]}"
+    if [[ -z "${DRY_RUN}" ]] ; then
+        "${cmd[@]}"
     fi
 }
 
@@ -176,20 +201,18 @@ fi
 
 if [[ -n "${BUILD_DEPS}" ]] ; then
     echo "Configuring dependencies..."
+    BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS}"
     if [[ -n "${CLEAN_BUILD}" ]]
     then
         rm -fr deps/$BUILD_DIR
     fi
     mkdir -p deps/$BUILD_DIR
-    if [[ -n "${BUILD_DEBUG}" ]] ; then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
+    if [[ $BUILD_CONFIG != Release ]] ; then
+        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=${BUILD_CONFIG}"
     fi
 
-    # If this isn't in one quote, then empty variables can add two single quotes and mess up argument parsing for cmake.
-    CMAKE_CMD="cmake -S deps -B deps/$BUILD_DIR ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}"
-    echo "${CMAKE_CMD}"
-    ${CMAKE_CMD}
-    cmake --build deps/$BUILD_DIR
+    print_and_run cmake -S deps -B deps/$BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG}" "${CMAKE_LLD_LINKER_ARGS}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS}"
+    print_and_run cmake --build deps/$BUILD_DIR
 fi
 
 if [[ -n "${BUILD_ORCA}" ]] ; then
@@ -198,40 +221,29 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
         rm -fr $BUILD_DIR
     fi
     BUILD_ARGS="${ORCA_EXTRA_BUILD_ARGS}"
-    if [[ -n "${BUILD_DEBUG}" ]] ; then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
+    if [[ $BUILD_CONFIG != Release ]] ; then
+        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=${BUILD_CONFIG}"
     fi
     if [[ -n "${BUILD_TESTS}" ]] ; then
         BUILD_ARGS="${BUILD_ARGS} -DBUILD_TESTS=ON"
     fi
 
-    echo "Configuring OrcaSlicer..."
-    cmake -S . -B $BUILD_DIR ${CMAKE_C_CXX_COMPILER_CLANG} ${CMAKE_LLD_LINKER_ARGS} -G "Ninja Multi-Config" \
+    print_and_run cmake -S . -B $BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG}" "${CMAKE_LLD_LINKER_ARGS}" -G "Ninja Multi-Config" \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
 -DORCA_TOOLS=ON \
-${COLORED_OUTPUT} \
-${BUILD_ARGS}
-    echo "${CMAKE_CMD}"
-    ${CMAKE_CMD}
+"${COLORED_OUTPUT}" \
+"${BUILD_ARGS}"
     echo "done"
     echo "Building OrcaSlicer ..."
-    if [[ -n "${BUILD_DEBUG}" ]] ; then
-        cmake --build $BUILD_DIR --config Debug --target OrcaSlicer
-    else
-        cmake --build $BUILD_DIR --config Release --target OrcaSlicer
-    fi
+    print_and_run cmake --build $BUILD_DIR --config "${BUILD_CONFIG}" --target OrcaSlicer
     echo "Building OrcaSlicer_profile_validator .."
-    if [[ -n "${BUILD_DEBUG}" ]] ; then
-        cmake --build $BUILD_DIR --config Debug --target OrcaSlicer_profile_validator
-    else
-        cmake --build $BUILD_DIR --config Release --target OrcaSlicer_profile_validator
-    fi
+    print_and_run cmake --build $BUILD_DIR --config "${BUILD_CONFIG}" --target OrcaSlicer_profile_validator
     ./scripts/run_gettext.sh
     echo "done"
 fi
 
 if [[ -n "${BUILD_IMAGE}" || -n "${BUILD_ORCA}" ]] ; then
-    pushd build > /dev/null
+    pushd $BUILD_DIR > /dev/null
     echo "[9/9] Generating Linux app..."
     build_linux_image="./src/build_linux_image.sh"
     if [[ -e ${build_linux_image} ]] ; then
@@ -239,7 +251,7 @@ if [[ -n "${BUILD_IMAGE}" || -n "${BUILD_ORCA}" ]] ; then
         if [[ -n "${BUILD_IMAGE}" ]] ; then
             extra_script_args="-i"
         fi
-        ${build_linux_image} ${extra_script_args}
+        print_and_run ${build_linux_image} ${extra_script_args}
 
         echo "done"
     fi
