@@ -17339,7 +17339,7 @@ msgstr ""
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + jobb egérgomb:"
 
-#~ msgid "Recent projects"	
+#~ msgid "Recent projects"
 #~ msgstr "Legutóbbi projektek"
 
 #~ msgid "⌘+Shift+G"

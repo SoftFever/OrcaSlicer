@@ -19110,13 +19110,13 @@ msgstr ""
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Maj + botó dret del ratolí:"
 
-#~ msgid "Recent projects"	
-#~ msgstr "Projectes recents"	
+#~ msgid "Recent projects"
+#~ msgstr "Projectes recents"
 
-#~ msgid "Maximum recent projects"	
-#~ msgstr "Màxim projectes recents"	
+#~ msgid "Maximum recent projects"
+#~ msgstr "Màxim projectes recents"
 
-#~ msgid "Maximum count of recent projects"	
+#~ msgid "Maximum count of recent projects"
 #~ msgstr "Màxima quantitat de projectes recents"
 
 #~ msgid "⌘+Shift+G"

@@ -18816,13 +18816,13 @@ msgstr ""
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + dešinysis pelės mygtukas:"
 
-#~ msgid "Recent projects"	
-#~ msgstr "Naujausi projektai"	
+#~ msgid "Recent projects"
+#~ msgstr "Naujausi projektai"
 
-#~ msgid "Maximum recent projects"	
-#~ msgstr "Daugiausia buvusių projektų"	
+#~ msgid "Maximum recent projects"
+#~ msgstr "Daugiausia buvusių projektų"
 
-#~ msgid "Maximum count of recent projects"	
+#~ msgid "Maximum count of recent projects"
 #~ msgstr "Didžiausias skaičius buvusių projektų"
 
 #~ msgid "⌘+Shift+G"
