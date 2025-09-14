@@ -29,7 +29,7 @@ Some patterns may complete faster due to more efficient use of the print head's 
 
 Layer time variability refers to the differences in time it takes to print each layer of a pattern. Some patterns may have consistent layer times, while others may experience significant fluctuations. These variations can potentially impact the outer appearance of the print due to differences in cooling and material flow between layers.
 
-![fill-layer-time-variability](../../images/fill/fill-layer-time-variability.png?raw=true)
+![fill-layer-time-variability](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/fill-layer-time-variability.png?raw=true)
 
 ## Patterns Quick Reference
 
