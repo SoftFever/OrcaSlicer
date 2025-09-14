@@ -1238,14 +1238,14 @@ void PreferencesDialog::create_items()
     auto item_project_load     = create_item_combobox(_L("Load behaviour"), _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
     g_sizer->Add(item_project_load);
 
-    auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
+    auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
         long max = 0;
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
     });
     g_sizer->Add(item_max_recent_count);
 
-    auto item_recent_models    = create_item_checkbox(_L("Add STL/STEP files to recent projects"), "", "recent_models");
+    auto item_recent_models    = create_item_checkbox(_L("Add STL/STEP files to recent files list"), "", "recent_models");
     g_sizer->Add(item_recent_models);
 
     auto item_gcodes_warning   = create_item_checkbox(_L("Don't warn when loading 3MF with modified G-code"), "", "no_warn_when_modified_gcodes");

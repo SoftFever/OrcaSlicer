@@ -17563,6 +17563,15 @@ msgstr ""
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + 滑鼠右鍵："
 
+#~ msgid "Recent projects"	
+#~ msgstr "最近的專案項目"	
+
+#~ msgid "Maximum recent projects"	
+#~ msgstr "最近專案項目的最大數量"	
+
+#~ msgid "Maximum count of recent projects"	
+#~ msgstr "近期專案項目的最大統計"
+
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"
 

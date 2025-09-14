@@ -7112,7 +7112,7 @@ msgstr ""
 "Drucker und wechselt automatisch."
 
 msgid "Show options when importing STEP file"
-msgstr "Zeige den dialog für die parameter-einstellungen des STEP-netzes."
+msgstr "Zeige den Dialog für die Parameter-Einstellungen des Step-Netzes."
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
@@ -7219,7 +7219,7 @@ msgid "Maximum count of recent files"
 msgstr "Maximale Anzahl der zuletzt verwendeten Dateien"
 
 msgid "Add STL/STEP files to recent files list"
-msgstr "Modell-Dateien STL/STEP zur Liste der zuletzt verwendeten Dateien hinzufügen"
+msgstr "Modell-Dateien STL/STEP zur Liste der zuletzt verwendeten Dateien hinzufügen."
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Meine Auswahl für nicht gespeicherte Projekte löschen."
@@ -19473,6 +19473,15 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Gross + rechte Maustaste:"
+
+#~ msgid "Recent projects"	
+#~ msgstr "Letzte Projekte"	
+
+#~ msgid "Maximum recent projects"	
+#~ msgstr "Höchstanzahl an letzten Projekten"	
+
+#~ msgid "Maximum count of recent projects"	
+#~ msgstr "Maximale Anzahl an zuletzt geöffneten Projekten"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Umschalttaste+G"

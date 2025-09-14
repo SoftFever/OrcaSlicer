@@ -16896,6 +16896,9 @@ msgstr ""
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + マウス右ボタン"
 
+#~ msgid "Recent projects"	
+#~ msgstr "最近のプロジェクト"	
+
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"
 

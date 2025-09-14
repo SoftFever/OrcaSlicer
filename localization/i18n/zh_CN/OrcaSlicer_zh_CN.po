@@ -6770,13 +6770,13 @@ msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "printter/filament/process 设置项文件能否以 .3mf后缀方式打开"
 
 msgid "Maximum recent files"
-msgstr ""
+msgstr "最大最近使用文件数"
 
 msgid "Maximum count of recent files"
-msgstr ""
+msgstr "最近使用文件的最大数量"
 
 msgid "Add STL/STEP files to recent files list"
-msgstr ""
+msgstr "添加模型文件 STL/STEP 到最近文件列表"
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "清除我对未保存的项目的选择。"

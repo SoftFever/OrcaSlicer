@@ -17407,7 +17407,7 @@ msgid "Network Test"
 msgstr "Prueba de Red"
 
 msgid "Network test"
-msgstr "Prueba de Red"
+msgstr "Prueba de red"
 
 msgid "Start Test Multi-Thread"
 msgstr "Iniciar Pruebas Multitarea"
@@ -18971,6 +18971,15 @@ msgstr ""
 
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + Botón derecho del ratón:"
+
+#~ msgid "Recent projects"	
+#~ msgstr "Proyectos recientes"	
+
+#~ msgid "Maximum recent projects"	
+#~ msgstr "Máximos proyectos recientes"	
+
+#~ msgid "Maximum count of recent projects"	
+#~ msgstr "Máxima cantidad de proyectos recientes"
 
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"

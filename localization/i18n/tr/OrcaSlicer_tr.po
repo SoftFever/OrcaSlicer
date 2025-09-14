@@ -18987,6 +18987,15 @@ msgstr ""
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + Sağ fare düğmesi:"
 
+#~ msgid "Recent projects"	
+#~ msgstr "Son Projeler"	
+
+#~ msgid "Maximum recent projects"	
+#~ msgstr "Maksimum yeni proje"	
+
+#~ msgid "Maximum count of recent projects"	
+#~ msgstr "Maksimum yeni proje sayısı"
+
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"
 

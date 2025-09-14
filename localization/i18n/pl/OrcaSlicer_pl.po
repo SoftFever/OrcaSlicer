@@ -18978,6 +18978,15 @@ msgstr ""
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + Prawy przycisk myszy:"
 
+#~ msgid "Recent projects"	
+#~ msgstr "Ostatnie projekty"	
+
+#~ msgid "Maximum recent projects"	
+#~ msgstr "Maksymalna liczba ostatnich projektów"	
+
+#~ msgid "Maximum count of recent projects"	
+#~ msgstr "Określa maksymalną liczbę ostatnich projektów"
+
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"
 

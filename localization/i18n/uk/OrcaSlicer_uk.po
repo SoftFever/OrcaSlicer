@@ -18944,6 +18944,15 @@ msgstr ""
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + права кнопка миші:"
 
+#~ msgid "Recent projects"	
+#~ msgstr "Недавні проєкти"	
+
+#~ msgid "Maximum recent projects"	
+#~ msgstr "Максимум останніх проектів"	
+
+#~ msgid "Maximum count of recent projects"	
+#~ msgstr "Максимальна кількість останніх проектів"
+
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+будь-яка стрілка"
 

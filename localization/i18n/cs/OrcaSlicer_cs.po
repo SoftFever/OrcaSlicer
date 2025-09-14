@@ -17676,6 +17676,15 @@ msgstr ""
 #~ msgid "Shift + Right mouse button:"
 #~ msgstr "Shift + Pravé tlačítko myši:"
 
+#~ msgid "Recent projects"	
+#~ msgstr "Nedávné projekty"	
+
+#~ msgid "Maximum recent projects"	
+#~ msgstr "Maximální počet nedávných projektů"	
+
+#~ msgid "Maximum count of recent projects"	
+#~ msgstr "Maximální počet nedávných projektů"
+
 #~ msgid "⌘+Shift+G"
 #~ msgstr "⌘+Shift+G"
 
