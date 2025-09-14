@@ -6858,16 +6858,13 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
-msgid "Recent projects"
-msgstr "Senaste projekten"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Maximalt antal nyligen genomförda projekt"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Maximalt antal nyligen genomförda projekt"
-
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."

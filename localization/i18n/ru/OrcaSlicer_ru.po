@@ -7210,16 +7210,13 @@ msgstr ""
 "Выбор того, следует ли при открытии 3mf проекта загружать настройки "
 "принтера, прутка и процесса."
 
-msgid "Recent projects"
-msgstr "Недавние проекты"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Максимальное количество недавних проектов"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Максимальное количество проектов, отображаемое в списке недавних проектов."
-
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 # ??? Сбросить мой выбор действия для проектов, Сбросить запрос о несохранённых изменениях для проекта при закрытии программы

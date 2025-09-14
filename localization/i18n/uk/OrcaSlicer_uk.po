@@ -7124,16 +7124,13 @@ msgstr ""
 "Чи повинні бути завантажені налаштування принтера/філаменту/процесу при "
 "відкритті файлу .3mf?"
 
-msgid "Recent projects"
-msgstr "Недавні проєкти"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Максимум останніх проектів"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Максимальна кількість останніх проектів"
-
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."

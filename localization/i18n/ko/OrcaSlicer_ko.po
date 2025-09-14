@@ -6922,16 +6922,13 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ".3mf를 열 때 프린터/필라멘트/프로세스 설정이 로드되어야 합니까?"
 
-msgid "Recent projects"
-msgstr "최근 프로젝트"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "최근 프로젝트 최대 표시"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "최근 프로젝트의 최대 표시 수"
-
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."

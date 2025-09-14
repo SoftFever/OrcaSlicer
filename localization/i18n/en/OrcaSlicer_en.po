@@ -6703,16 +6703,13 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
-msgid "Recent projects"
-msgstr "Recent Projects"
-
-msgid "Maximum recent projects"
+msgid "Maximum recent files"
 msgstr ""
 
-msgid "Maximum count of recent projects"
+msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
@@ -16766,6 +16763,9 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid "Recent projects"
+#~ msgstr "Recent Projects"
 
 #~ msgid "Set Position"
 #~ msgstr "Set position"

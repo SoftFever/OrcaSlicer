@@ -7084,16 +7084,13 @@ msgstr ""
 "Ar atidarant .3mf failą reikia įkelti spausdintuvo / gijų / proceso "
 "nustatymus?"
 
-msgid "Recent projects"
-msgstr "Naujausi projektai"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Daugiausia buvusių projektų"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Didžiausias skaičius buvusių projektų"
-
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."

@@ -6786,16 +6786,13 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "開啟 .3mf 檔案時，是否需要載入印表機、線材和參數設定？"
 
-msgid "Recent projects"
-msgstr "最近的專案項目"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "最近專案項目的最大數量"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "近期專案項目的最大統計"
-
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."

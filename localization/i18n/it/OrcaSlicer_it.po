@@ -7152,16 +7152,13 @@ msgstr ""
 "Quando si apre un file .3mf, è necessario caricare le impostazioni della "
 "stampante/filamento/processo?"
 
-msgid "Recent projects"
-msgstr "Progetti recenti"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Numero massimo di progetti recenti"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Numero massimo di progetti recenti"
-
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."

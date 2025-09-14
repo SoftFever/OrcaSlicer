@@ -7122,16 +7122,13 @@ msgstr ""
 "As configurações de impressora/filamento/processo devem ser carregadas ao "
 "abrir um .3mf?"
 
-msgid "Recent projects"
-msgstr "Projetos recentes"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Máximo de projetos recentes"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Contagem máxima de projetos recentes"
-
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."

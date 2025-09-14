@@ -7218,7 +7218,7 @@ msgstr "Maximum zuletzt verwendeter Dateien"
 msgid "Maximum count of recent files"
 msgstr "Maximale Anzahl der zuletzt verwendeten Dateien"
 
-msgid "Add STL/STEP files to recent file list"
+msgid "Add STL/STEP files to recent files list"
 msgstr "Modell-Dateien STL/STEP zur Liste der zuletzt verwendeten Dateien hinzufügen"
 
 msgid "Clear my choice on the unsaved projects."

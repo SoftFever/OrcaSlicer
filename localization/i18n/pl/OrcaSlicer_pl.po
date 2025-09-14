@@ -7100,16 +7100,13 @@ msgstr ""
 "Określa czy ustawienia drukarki/filamentu/procesu mają być wczytywane "
 "podczas otwierania pliku .3mf"
 
-msgid "Recent projects"
-msgstr "Ostatnie projekty"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Maksymalna liczba ostatnich projektów"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Określa maksymalną liczbę ostatnich projektów"
-
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."

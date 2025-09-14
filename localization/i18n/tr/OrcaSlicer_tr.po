@@ -7062,17 +7062,14 @@ msgstr "Davranış"
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "Bir .3mf açılırken yazıcı/filament/işlem ayarları yüklenmeli mi?"
 
-msgid "Recent projects"
-msgstr "Son projeler"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Maksimum son kullanılan proje"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Maksimum son kullanılan proje sayısı"
-
-msgid "Add STL/STEP files to recent projects"
-msgstr "STL/STEP dosyalarını son kullanılan projelere ekle"
+msgid "Add STL/STEP files to recent files list"
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Kaydedilmemiş projelerdeki seçimimi temizle."

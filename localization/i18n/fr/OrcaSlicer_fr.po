@@ -7198,16 +7198,13 @@ msgstr ""
 "Les paramètres de l’imprimante/du filament/du processus doivent-ils être "
 "chargés lors de l’ouverture d’un fichier .3mf ?"
 
-msgid "Recent projects"
-msgstr "Projets récents"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Projets récents maximum"
+msgid "Maximum count of recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Nombre maximal de projets récents"
-
-msgid "Add STL/STEP files to recent projects"
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
