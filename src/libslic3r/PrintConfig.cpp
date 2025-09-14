@@ -1093,9 +1093,10 @@ void PrintConfigDef::init_fff_params()
     def = this->add("precise_outer_wall",coBool);
     def->label = L("Precise wall");
     def->category = L("Quality");
-    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.");
-    def->set_default_value(new ConfigOptionBool{false});
-    
+    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency. NOTE: This option "
+                       "will be ignored for outer-inner or inner-outer-inner wall sequences.");
+    def->set_default_value(new ConfigOptionBool{true});
+
     def = this->add("only_one_wall_top", coBool);
     def->label = L("Only one wall on top surfaces");
     def->category = L("Quality");
@@ -3250,7 +3251,7 @@ void PrintConfigDef::init_fff_params()
 
     //Orca
     def           = this->add("sparse_infill_rotate_template", coString);
-    def->label    = L("Sparse infill rotatation template");
+    def->label    = L("Sparse infill rotation template");
     def->category = L("Strength");
     def->tooltip  = L("Rotate the sparse infill direction per layer using a template of angles. "
                       "Enter comma-separated degrees (e.g., '0,30,60,90'). "
@@ -3264,7 +3265,7 @@ void PrintConfigDef::init_fff_params()
 
     //Orca
     def           = this->add("solid_infill_rotate_template", coString);
-    def->label    = L("Solid infill rotatation template");
+    def->label    = L("Solid infill rotation template");
     def->category = L("Strength");
     def->tooltip  = L("This parameter adds a rotation of solid infill direction to each layer according to the specified template. "
                       "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
@@ -4884,7 +4885,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("enable_filament_ramming", coBool);
     def->label = L("Enable filament ramming");
-    def->tooltip = L("Enable filament ramming.");
+    def->tooltip = L("Enable filament ramming");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
