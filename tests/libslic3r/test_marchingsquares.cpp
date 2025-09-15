@@ -441,7 +441,7 @@ static void recreate_object_from_rasters(const std::string& objname, float lh)
         //        layer_ = expolygons_simplify(layer_, delta);
 
 #ifndef NDEBUG
-        SVG svg(objname + std::to_string(cntr) + ".svg", BoundingBox(Point{0, 0}, Point{scaled(disp_w), scaled(disp_h)}));
+        SVG svg(objname + std::to_string(cntr) + ".svg", rstBBox(rst));
         svg.draw(layer_);
         svg.draw(layer, "green");
         svg.Close();
