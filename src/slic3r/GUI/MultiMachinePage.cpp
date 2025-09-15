@@ -59,7 +59,7 @@ bool MultiMachinePage::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(2000);
-        wxPostEvent(this, wxTimerEvent());
+        wxPostEvent(this, wxCommandEvent(wxEVT_TIMER));
     }
     else {
         m_refresh_timer->Stop();
@@ -94,7 +94,7 @@ void MultiMachinePage::init_timer()
     m_refresh_timer = new wxTimer();
     //m_refresh_timer->SetOwner(this);
     //m_refresh_timer->Start(8000);
-    //wxPostEvent(this, wxTimerEvent());
+    //wxPostEvent(this, wxCommandEvent(wxEVT_TIMER));
 }
 
 void MultiMachinePage::on_timer(wxTimerEvent& event)
@@ -477,7 +477,7 @@ bool MultiMachinePickPage::Show(bool show)
         //m_refresh_timer->Stop();
         //m_refresh_timer->SetOwner(this);
         //m_refresh_timer->Start(4000);
-        //wxPostEvent(this, wxTimerEvent());
+        //wxPostEvent(this, wxCommandEvent(wxEVT_TIMER));
     }
     else {
         //m_refresh_timer->Stop();
