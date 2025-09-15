@@ -76,7 +76,7 @@ std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(
     combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     combo_title->SetFont(::Label::Body_13);
     combo_title->SetToolTip(tooltip);
-    combo_title->Wrap(-1);
+    combo_title->Wrap(150);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
     auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
