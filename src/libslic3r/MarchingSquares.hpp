@@ -447,18 +447,20 @@ template<class Rst> class Grid
         return e;
     }
 
-    Coord interpolate(const Coord& ecrd, TRasterValue<Rst> isoval) const
+    void interpolate_edge(Coord& ecrd, TRasterValue<Rst> isoval) const
     {
-        Edge  e = edge(ecrd);
-        Coord p = std::lower_bound(e.from, e.to, isoval).crd;
+        // The ecrd must have a grid index in r and a direction in c.
+        assert((0 <= ecrd.r) && (ecrd.r < m_gridlen));
+        assert((ecrd.c == long(Dir::left)) || (ecrd.c == long(Dir::down)) || (ecrd.c == long(Dir::right)) || (ecrd.c == long(Dir::up)));
+        Edge e = edge(ecrd);
+        ecrd   = std::lower_bound(e.from, e.to, isoval).crd;
         // Shift bottom and right side points "out" by one to account for
         // raster pixel width. Note "dir" is the direction of interpolation
         // along the cell edge, not the next move direction.
         if (e.from.dir == Dir::up)
-            p.r += 1;
+            ecrd.r += 1;
         else if (e.from.dir == Dir::left)
-            p.c += 1;
-        return p;
+            ecrd.c += 1;
     }
 
 public:
@@ -523,19 +525,8 @@ public:
     template<class ExecutionPolicy> void interpolate_rings(ExecutionPolicy&& policy, std::vector<Ring>& rings, TRasterValue<Rst> isov)
     {
         for_each(std::forward<ExecutionPolicy>(policy), rings.begin(), rings.end(), [this, isov](Ring& ring, size_t) {
-            Ring edges;
-            edges.swap(ring);
-            for (Coord& e : edges) {
-                Coord p = interpolate(e, isov);
-                // Only append points different from the previous point. Two
-                // edges at a corner can interpolate to the same corner point.
-                if (ring.empty() || p != ring.back())
-                    ring.push_back(p);
-            }
-            // The first and last edge can also interpolate to the same corner point.
-            if (ring.size() > 1 && ring.back() == ring.front())
-                ring.pop_back();
-            // std::cerr << ring;
+            for (Coord& e : ring)
+                interpolate_edge(e, isov);
         });
     }
 
