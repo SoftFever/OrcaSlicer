@@ -4111,17 +4111,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     bool any_gizmo_active = m_gizmos.get_current() != nullptr;
-    bool swapMouseButtons = wxGetApp().app_config->get_bool("swap_mouse_buttons");
 
     std::map<MouseButton, MouseAction> button_mappings;
-    button_mappings[MouseButton::Left] = MouseAction::Rotation;
-    button_mappings[MouseButton::Middle] = MouseAction::Pan;
-    button_mappings[MouseButton::Right] = MouseAction::Pan;
-
-    if (swapMouseButtons) {
-        button_mappings[MouseButton::Left] = MouseAction::Pan;
-        button_mappings[MouseButton::Right] = MouseAction::Rotation;
-    }
+    button_mappings[MouseButton::Left] = static_cast<MouseAction>(std::atoi(wxGetApp().app_config->get("left_mouse_drag_action").c_str()));
+    button_mappings[MouseButton::Middle] = static_cast<MouseAction>(std::atoi(wxGetApp().app_config->get("middle_mouse_drag_action").c_str()));
+    button_mappings[MouseButton::Right] = static_cast<MouseAction>(std::atoi(wxGetApp().app_config->get("right_mouse_drag_action").c_str()));
 
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos)) {
         m_mouse.drag.move_requires_threshold = false;
