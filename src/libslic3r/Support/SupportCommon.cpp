@@ -1656,7 +1656,7 @@ void generate_support_toolpaths(
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
             const float   support_interface_angle = (config.support_interface_pattern == smipRectilinearInterlaced) ?
-                (support_params.interface_angle + (support_layer.interface_id() & 1) * float(M_PI / 2.)) :
+                support_params.raft_interface_angle(support_layer.interface_id()) :
                 ((support_params.support_style == smsGrid || config.support_interface_pattern == smipRectilinear) ?
                 support_params.interface_angle : support_params.raft_interface_angle(support_layer.interface_id()));
 
