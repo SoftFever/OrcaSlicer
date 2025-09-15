@@ -256,42 +256,34 @@ template<class Rst> class Grid
         size_t   gidx = bidx * 8;
         uint32_t dirs = 0;
 
-        for (auto s = 0; s < 32; s += 4) {
-            dirs |= NEXT_CCW[get_tags(gidx++)] << s;
+        // Get the next 9 top-row tags at this grid index into the bottom 16
+        // bits, and the 9 bottom-row tags into the top 16 bits.
+        uint32_t tags9 = get_tags9(gidx) | (get_tags9(gidx + m_gridsize.c) << 16);
+        // Skip generating dirs if the tags are all 1's or all 0's.
+        if ((tags9 != 0) && (tags9 != 0x01ff01ff)) {
+            for (auto s = 0; s < 32; s += 4) {
+                uint8_t tags = (tags9 & 0b11) | ((tags9 >> 14) & 0b1100);
+                dirs |= NEXT_CCW[tags] << s;
+                tags9 >>= 1;
+            }
         }
         return dirs;
     }
 
-    // Get a cell's <cbda> corner tags for a grid index.
-    uint8_t get_tags(size_t gidx) const
+    // Get the next 9 corner tags on a row for building a dirs block at a grid index.
+    uint32_t get_tags9(size_t gidx) const
     {
-        uint8_t tags = 0;         // the tags value.
-        size_t  i    = gidx / 32; // the tags block index
-        int     o    = gidx % 32; // the tags block offset
+        uint32_t tags = 0;         // the tags value.
+        size_t   i    = gidx / 32; // the tags block index
+        int      o    = gidx % 32; // the tags block offset
 
-        // Note that this will get the right side <_b_a> tags for the last cell
-        // in a row from the first column in the next row. However, the grid
-        // borders are all outside the raster area and unset so that's fine.
-        // For any index past the end of the grid return 0.
-        if (gidx >= m_gridlen)
-            return tags;
-        // get the top two <__da> corner tags.
-        tags |= (m_tags[i] >> o) & 0b11;
-        if (o == 31) {
-            // The d corner tag is in bit0 of the next block.
-            tags |= (m_tags[i + 1] << 1) & 0b10;
-        }
-        // Now get the two <cb__> corner tags from the next row.
-        gidx += m_gridsize.c;
-        // If the next row is past m_gridlen we don't need to get them.
-        if (gidx >= m_gridlen)
-            return tags;
-        i = gidx / 32;
-        o = gidx % 32;
-        tags |= ((m_tags[i] >> o) << 2) & 0b1100;
-        if (o == 31) {
-            // The c corner tag is in bit0 of the next block.
-            tags |= (m_tags[i + 1] << 3) & 0b1000;
+        if (gidx < m_gridlen) {
+            // get the next 9 tags in the row.
+            tags = (m_tags[i] >> o) & 0x1ff;
+            // Some of the tags are in the next tags block.
+            if ((o > (32 - 9)) && ((i + 1) < m_tags.size())) {
+                tags |= (m_tags[i + 1] << (32 - o)) & 0x1ff;
+            }
         }
         return tags;
     }
@@ -481,7 +473,7 @@ public:
         for_each(std::forward<ExecutionPolicy>(policy), m_tags.begin(), m_tags.end(),
                  [this, isoval](uint32_t& tag_block, size_t bidx) { tag_block = get_tags_block32(bidx, isoval); });
         // streamtags(std::cerr);
-        // Get all the dirs. parallel?
+        //  Get all the dirs. parallel?
         for_each(std::forward<ExecutionPolicy>(policy), m_dirs.begin(), m_dirs.end(),
                  [this](uint32_t& dirs_block, size_t bidx) { dirs_block = get_dirs_block8(bidx); });
         // streamdirs(std::cerr);
@@ -539,7 +531,7 @@ public:
         for (auto r = 0; r < m_gridsize.r; r++) {
             os << std::setw(3) << r << ":";
             for (auto c = 0; c < m_gridsize.c; c++)
-                os << ((get_tags(seq(Coord(r, c))) & 1) ? "H" : ".");
+                os << ((get_tags9(seq(Coord(r, c))) & 1) ? "H" : ".");
             os << "\n";
         }
         return os;
