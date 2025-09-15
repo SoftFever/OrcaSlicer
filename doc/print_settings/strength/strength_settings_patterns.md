@@ -25,6 +25,10 @@ This leads to patterns that do not use the specified percentage but rather varia
 Print time can vary significantly between patterns due to differences in their pathing and infill strategies.  
 Some patterns may complete faster due to more efficient use of the print head's movement, while others may take longer due to more complex paths.
 
+> [!NOTE]
+> OrcaSlicer Time estimations are not always accurate, especially with complex patterns.  
+> This analysis was estimated with [Klipper Estimator](https://github.com/Annex-Engineering/klipper_estimator).
+
 ### Layer Time Variability
 
 Layer time variability refers to the differences in time it takes to print each layer of a pattern. Some patterns may have consistent layer times, while others may experience significant fluctuations. These variations can potentially impact the outer appearance of the print due to differences in cooling and material flow between layers.
