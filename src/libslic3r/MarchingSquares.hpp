@@ -235,17 +235,20 @@ template<class Rst> class Grid
     // Get a block of 32 tags for a block index from the raster isovals.
     uint32_t get_tags_block32(const size_t bidx, const TRasterValue<Rst> v) const
     {
-        Coord    gcrd = coord(bidx * 32); // position in grid coordinates of the block.
+        Coord    gcrd = coord(bidx * 32);  // position in grid coordinates of the block.
+        Coord    rcrd = rastercoord(gcrd); // position in raster coordinates.
         uint32_t tags = 0;
         // Set a bit for each corner that has osoval > v.
         for (uint32_t b = 1; b; b <<= 1) {
-            Coord p = rastercoord(gcrd); // position in raster coordinates.
-            if (is_within(p) && isoval(*m_rst, p) > v)
+            if (is_within(rcrd) && isoval(*m_rst, rcrd) > v)
                 tags |= b;
-            gcrd = step(gcrd, Dir::right);
+            gcrd.c += 1;
+            rcrd.c += m_window.c;
             // If we hit the end of the row, start on the next row.
-            if (gcrd.c >= m_gridsize.c)
+            if (gcrd.c >= m_gridsize.c) {
                 gcrd = Coord(gcrd.r + 1, 0);
+                rcrd = rastercoord(gcrd);
+            }
         }
         return tags;
     }
