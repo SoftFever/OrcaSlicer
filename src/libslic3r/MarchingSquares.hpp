@@ -462,9 +462,9 @@ public:
     explicit Grid(const Rst& rst, const Coord& window)
         : m_rst{&rst}
         , m_window{window}
-        , m_rastsize{rows(rst), cols(rst)}
+        , m_rastsize{static_cast<long>(rows(rst)), static_cast<long>(cols(rst))}
         , m_gridsize{2 + m_rastsize.r / m_window.r, 2 + m_rastsize.c / m_window.c}
-        , m_gridlen{m_gridsize.r * m_gridsize.c}
+        , m_gridlen{static_cast<size_t>(m_gridsize.r * m_gridsize.c)}
         , m_tags(m_gridlen / 32 + 1, 0) // 1 bit per tag means 32 per uint32_t.
         , m_dirs(m_gridlen / 8 + 1, 0)  // 4 bits per cell means 32/4=8 per uint32_t.
     {}
