@@ -13,6 +13,9 @@ Infill is the internal structure of a 3D print, providing strength and support. 
 - [Filter out tiny gaps](#filter-out-tiny-gaps)
 - [Anchor](#anchor)
 - [Internal Solid Infill](#internal-solid-infill)
+- [Extra Solid Infill](#extra-solid-infill)
+  - [Interval Pattern](#interval-pattern)
+  - [Explicit Layer List](#explicit-layer-list)
 - [Sparse Infill Pattern](#sparse-infill-pattern)
 - [Credits](#credits)
 
@@ -59,7 +62,7 @@ This setting allows you to generate your selected [infill pattern](#sparse-infil
 - **Fire-retardant applications:** Some flame-resistant materials (like PolyMax PC-FR) require a minimum printed wall/infill thickness—often 1.5–3 mm—to comply with standards. Since infill contributes to overall part thickness, using multiple lines helps achieve the necessary thickness without switching to a large nozzle or printing with 100% infill. This is especially useful for high-temperature materials like PC, which are prone to warping when fully solid.
 - Creating **aesthetic** infill patterns (like [Grid](strength_settings_patterns#grid) or [Honeycomb](strength_settings_patterns#honeycomb)) with multiple line widths—without relying on CAD modeling or being limited to a single extrusion width.
 
-![infill-multiline-esthetic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-esthetic.gif?raw=true)
+![infill-multiline-aesthetic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-aesthetic.gif?raw=true)
 
 > [!WARNING]
 > For self intersecting infills (e.g. [Cubic](strength_settings_patterns#cubic), [Grid](strength_settings_patterns#grid)) multiline count greater than 3 may cause layer shift, extruder clog or other issues due to overlapping of lines on intersection points.
@@ -153,10 +156,55 @@ OrcaSlicer tries to connect two close infill lines to a short perimeter segment.
 - **Anchor On**
 
 ![InfillAnchorOn](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/InfillAnchorOn.png?raw=true)
-
 ## Internal Solid Infill
 
 Line pattern of internal solid infill. If the [detect narrow internal solid infill](strength_settings_advanced#detect-narrow-internal-solid-infill) be enabled, the [concentric pattern](strength_settings_patterns#concentric) will be used for the small area.
+
+
+## Extra Solid Infill
+
+Insert extra solid infills at specific layers to add strength at critical points in your print. This feature allows you to strategically reinforce your part without changing the overall sparse infill density.
+
+![extra-solid-infill](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/extra-solid-infill.gif?raw=true)
+
+The pattern supports two formats:
+
+### Interval Pattern
+- **Simple interval**: `N` - Insert 1 solid layer every N layers, equal to `N#1`
+- **Multiple layers**: `N#K` - Insert K consecutive solid layers every N layers
+- **Optional K**: `N#` - Shorthand for `N#1`
+
+Examples:
+```
+5 or 5#1    # Insert 1 solid layer every 5 layers
+5#          # Same as 5#1
+10#2        # Insert 2 consecutive solid layers every 10 layers
+```
+
+### Explicit Layer List
+Specify exact layer numbers (1-based) using comma-separated values. Each entry may be a single layer `N` or a range `N#K` to insert K consecutive solid layers starting at layer N:
+
+```
+1,7,9       # Insert solid layers at layers 1, 7, and 9
+5,15,25     # Insert solid layers at layers 5, 15, and 25
+5,9#2,18    # Insert at 5; at 9 and 10 (because #2); and at 18
+```
+
+> [!NOTE]
+> - Layer numbers are 1-based (first layer is layer 1)
+> - `#K` is optional in both interval and explicit list entries (`N#` equals `N#1`)
+> - Solid layers are inserted in addition to the normal sparse infill pattern
+
+> [!TIP]
+> Use this feature to:
+> - Add strength at stress concentration points
+> - Reinforce mounting holes or attachment points
+> - Create internal structure for functional parts
+> - Add periodic reinforcement for tall prints
+> - Insert a single solid layer at a specific height by using an explicit list with a leading 0, which will be ignored because layer indices are 1-based. Example: `0,15` inserts a solid layer only at layer 15.
+
+> [!WARNING]
+> Layers that include solid infill can take significantly longer than surrounding layers. This time differential may lead to z-banding-like bulges. Consider adjusting cooling or speeds if you observe artifacts.
 
 ## Sparse Infill Pattern
 
