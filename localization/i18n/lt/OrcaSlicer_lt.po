@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-11 21:06+0800\n"
 "PO-Revision-Date: 2025-03-21 21:00+0200\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -50,17 +50,23 @@ msgstr "Paskutinė versija"
 msgid "Support Painting"
 msgstr "Palaiko piešimą"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + pelės ratukas"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "Pelės ratukas"
 
 msgid "Section view"
 msgstr "Sekcijų peržiūra"
 
 msgid "Reset direction"
 msgstr "Atstatyti kryptį"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + pelės ratukas"
 
 msgid "Pen size"
 msgstr "Pieštuko dydis"
@@ -76,9 +82,6 @@ msgstr "Dešinys pelės mygtukas"
 
 msgid "Block supports"
 msgstr "Blokuoti atramas"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + kairys pelės mygtukas"
 
 msgid "Erase"
 msgstr "Ištrinti"
@@ -185,8 +188,8 @@ msgstr "Kibiro užpildymas"
 msgid "Height range"
 msgstr "Aukščio diapazonas"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Perjungti \"vielinį\" vaizdą"
@@ -721,8 +724,8 @@ msgstr "Paviršius"
 msgid "Horizontal text"
 msgstr "Horizontalus tekstas"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Shift + pelės judėjimas aukštyn arba žemyn"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "Sukti tekstą"
@@ -1472,9 +1475,6 @@ msgstr "Lygiagretus atstumas:"
 msgid "Flip by Face 2"
 msgstr "Apversti pagal paviršių 2"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "Įspėjimas"
 
@@ -1838,6 +1838,9 @@ msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "Ištrinti pasirinktą objektą"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "Įkelti..."
@@ -3089,10 +3092,10 @@ msgstr "Žingsnis"
 msgid "AMS Slots"
 msgstr "AMS angos"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -3740,7 +3743,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Per mažas maksimalus tūrinis greitis.\n"
 "Atstatyta į 0,5"
@@ -3757,14 +3760,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Per mažas sluoksnio aukštis.\n"
 "Atstatyta į 0,2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Per mažas lyginimo tarpas.\n"
 "Atstatyta į 0,1"
@@ -3870,8 +3873,8 @@ msgstr ""
 "Atstatoma į 0."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -4213,6 +4216,11 @@ msgstr "Kai kurie įvesties plėtiniai yra netinkami"
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Netinkamas formatas. Tinkamas vektorinis formatas: \"%1%\""
@@ -4415,26 +4423,14 @@ msgstr "Spindulys"
 msgid "Keep min"
 msgstr "Laikyti min"
 
-msgid "Left mouse button:"
-msgstr "Kairysis pelės mygtukas:"
-
 msgid "Add detail"
 msgstr "Pridėti elementą"
-
-msgid "Right mouse button:"
-msgstr "Dešinysis pelės mygtukas:"
 
 msgid "Remove detail"
 msgstr "Pašalinti elementą"
 
-msgid "Shift + Left mouse button:"
-msgstr "Shift + kairysis pelės mygtukas:"
-
 msgid "Reset to base"
 msgstr "Iš naujo nustatyti į pagrindinį"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift + dešinysis pelės mygtukas:"
 
 msgid "Smoothing"
 msgstr "Glotninimas"
@@ -4451,7 +4447,7 @@ msgstr "Seka"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4561,9 +4557,6 @@ msgstr "Sekcijos peržiūra"
 
 msgid "Assemble Control"
 msgstr "Surinkimo valdymas"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
@@ -4829,8 +4822,8 @@ msgstr "Pradėti naują projektą"
 msgid "Open a project file"
 msgstr "Atidaryti projekto failą"
 
-msgid "Recent projects"
-msgstr "Naujausi projektai"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "Išsaugoti projektą"
@@ -4840,9 +4833,6 @@ msgstr "Išsaugoti dabartinį projektą į failą"
 
 msgid "Save Project as"
 msgstr "Išsaugoti projektą kaip"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Išsaugoti dabartinį projektą kaip"
@@ -5357,11 +5347,6 @@ msgstr "Iš naujo iš spausdintuvo įkelti failų sąrašą."
 
 msgid "No printers."
 msgstr "Bėra spausdintuvų."
-
-msgid ""
-"Please check the network and try again, You can restart or update the "
-"printer if the issue persists."
-msgstr ""
 
 msgid "Loading file list..."
 msgstr "Įkeliamas failų sąrašas..."
@@ -6258,6 +6243,9 @@ msgstr "Išskleisti šoninę juostą"
 msgid "Collapse sidebar"
 msgstr "Sutraukti šoninę juostą"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Įkeliamas failas: %s"
@@ -7088,11 +7076,14 @@ msgstr ""
 "Ar atidarant .3mf failą reikia įkelti spausdintuvo / gijų / proceso "
 "nustatymus?"
 
-msgid "Maximum recent projects"
-msgstr "Daugiausia buvusių projektų"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Didžiausias skaičius buvusių projektų"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Išvalyti mano pasirinkimus neišsaugotuose projektuose."
@@ -7880,6 +7871,14 @@ msgstr ""
 
 msgid "Are you sure you want to enable this option?"
 msgstr "Ar norite įjungti šią galimybę?"
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -8931,12 +8930,6 @@ msgstr "Objektų sąrašas"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importuoti geometrijos duomenis iš STL/STEP/3MF/OBJ/AMF failų"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Paste from clipboard"
 msgstr "Įklijuoti iš mainų srities"
 
@@ -8958,14 +8951,8 @@ msgstr "Pasukti vaizdą"
 msgid "Pan View"
 msgstr "Judinti vaizdą"
 
-msgid "Mouse wheel"
-msgstr "Pelės ratukas"
-
 msgid "Zoom View"
 msgstr "Padidinti vaizdą"
-
-msgid "Shift+A"
-msgstr "Shift+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -8973,47 +8960,23 @@ msgid ""
 "the current project."
 msgstr ""
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr ""
-
-msgid "Shift+Tab"
-msgstr "Shift+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Sutraukti / išskleisti šoninę juostą"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Bet kokia rodyklė"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Judėjimas kameros erdvėje"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+ kairysis pelės mygtukas"
-
 msgid "Select a part"
 msgstr "Pasirinkite detalę"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+ kairysis pelės mygtukas"
-
 msgid "Select multiple objects"
 msgstr "Pasirinkite kelis objektus"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl + bet kokia rodyklė"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt + kairysis pelės mygtukas"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl + kairysis pelės mygtukas"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift + kairysis pelės mygtukas"
 
 msgid "Select objects by rectangle"
 msgstr "Objektų pasirinkimas pagal stačiakampį"
@@ -9041,9 +9004,6 @@ msgstr "Rodyklė dešinėn"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Perkelti pasirinktą10 mm teigiama X kryptimi"
-
-msgid "Shift+Any arrow"
-msgstr "Shift + bet kuri rodyklė"
 
 msgid "Movement step set to 1 mm"
 msgstr "Judėjimo žingsnis nustatytas į 1 mm"
@@ -9129,23 +9089,11 @@ msgstr "Plokštė"
 msgid "Move: press to snap by 1mm"
 msgstr "Perkėlimas: paspauskite, jei norite paslinkti 1 mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Pelės ratukas"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Atramų / Spalvų piešimas: sureguliuoti rašiklio spindulį"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Pelės ratukas"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Atramų / spalvų piešimas: koreguoti sekcijos padėtį"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl + pelės ratukas"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt + pelės ratukas"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -9191,9 +9139,6 @@ msgstr "G-kodo lango įjungimas / išjungimas"
 
 msgid "Move slider 5x faster"
 msgstr "Judinkite slankiklį 5 kartus greičiau"
-
-msgid "Shift+Mouse wheel"
-msgstr "Shift + pelės ratukas"
 
 msgid "Horizontal slider - Move to start position"
 msgstr "Horizontalus šliaužiklis - Perkelti į pradinę padėtį"
@@ -9341,10 +9286,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
-msgid "Laser 10w"
+msgid "Laser 10 W"
 msgstr ""
 
-msgid "Laser 40w"
+msgid "Laser 40 W"
 msgstr ""
 
 msgid "Cutting Module"
@@ -9966,6 +9911,11 @@ msgstr ""
 "pakoreguoti machine_max_acceleration_travel reikšmę."
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -10051,7 +10001,7 @@ msgstr ""
 msgid "Preferred orientation"
 msgstr "Pageidautina orientacija"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr "Automatiškai orientuoti stl failus pagal Z ašį pradinio importo metu"
 
 msgid "Printer preset names"
@@ -10595,10 +10545,9 @@ msgstr "Tiksli siena"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
-"Pagerinti korpuso tikslumą reguliuojant atstumus tarp išorinių sienelių. Tai "
-"taip pat pagerina sluoksnių nuoseklumą."
 
 msgid "Only one wall on top surfaces"
 msgstr "Tik viena viršutinių paviršių siena"
@@ -10877,9 +10826,12 @@ msgstr "Kraštų ausies aptikimo spindulys"
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
+"Prieš aptikdami aštrius kampus, geometrija bus išskaidyta. Šis parametras "
+"nurodo mažiausią nuokrypio ilgį decimavimui.\n"
+"0 - išjungti"
 
 msgid "Select printers"
 msgstr ""
@@ -11755,7 +11707,7 @@ msgid "Default color"
 msgstr "Numatytoji spalva"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -12107,6 +12059,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr ""
 
@@ -12181,8 +12143,8 @@ msgid "Lateral lattice angle 1"
 msgstr "Rašto kampas 1"
 
 msgid ""
-"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "Pirmojo 2D grotelių elementų rinkinio kampas Z kryptimi. Nulis yra "
 "vertikalus."
@@ -12191,8 +12153,8 @@ msgid "Lateral lattice angle 2"
 msgstr "Rašto kampas 2"
 
 msgid ""
-"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "Antrojo 2D grotelių elementų rinkinio kampas Z kryptimi. Nulis yra "
 "vertikalus."
@@ -12334,7 +12296,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12531,12 +12494,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop.At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -12907,22 +12870,23 @@ msgid ""
 "a cross texture."
 msgstr ""
 
-msgid "Sparse infill rotatation template"
+msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
+msgid "Solid infill rotation template"
 msgstr ""
 
 msgid ""
@@ -12940,9 +12904,9 @@ msgstr ""
 msgid ""
 "The remaining part of the model contour after removing a certain depth from "
 "the surface is called the skeleton. This parameter is used to adjust the "
-"density of this section.When two regions have the same sparse infill "
+"density of this section. When two regions have the same sparse infill "
 "settings but different skeleton densities, their skeleton areas will develop "
-"overlapping sections.default is as same as infill density."
+"overlapping sections. Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill density"
@@ -12951,9 +12915,9 @@ msgstr ""
 msgid ""
 "The portion of the model's outer surface within a certain depth range is "
 "called the skin. This parameter is used to adjust the density of this "
-"section.When two regions have the same sparse infill settings but different "
-"skin densities, This area will not be split into two separate "
-"regions.default is as same as infill density."
+"section. When two regions have the same sparse infill settings but different "
+"skin densities, this area will not be split into two separate regions. "
+"Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill depth"
@@ -12980,11 +12944,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -13214,8 +13178,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Lyginimo greitis"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Lyginimo linijų spausdinimo greitis"
 
 msgid "Ironing angle"
 msgstr "Lyginimo kampas"
@@ -13353,8 +13317,7 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -13541,7 +13504,7 @@ msgstr ""
 "išlaikytų pirmiau apibrėžtą minimalų sluoksnio laiką, kai įjungtas "
 "sulėtinimas dėl geresnio sluoksnių aušinimo."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Purkštuvo skersmuo"
 
 msgid "Configuration notes"
@@ -13694,7 +13657,7 @@ msgstr ""
 "naudokite skirtingą spausdinimo greitį. Jei iškyša 100 %%, naudojamas tilto "
 "greitis."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Gijos sienoms spausdinti"
 
 msgid ""
@@ -13749,7 +13712,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Spausdintuvo tipas"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "Spausdintuvo tipas"
 
 msgid "Printer notes"
@@ -14227,7 +14190,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Apvado atstumas"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Tai atstumas nuo apvado iki krašto arba objekto"
 
 msgid "Skirt start point"
@@ -14348,7 +14311,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Vientisas užpildas"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Filamentas vientisam užpildui spausdinti"
 
 msgid ""
@@ -14523,9 +14486,6 @@ msgstr "Išstumti likusias gijas į pirminio valymo bokštą"
 
 msgid "Enable filament ramming"
 msgstr ""
-
-msgid "Enable filament ramming."
-msgstr "Įjungti gijų įspaudimą"
 
 msgid "No sparse layers (beta)"
 msgstr "Nėra retų sluoksnių (beta)"
@@ -15236,7 +15196,7 @@ msgstr "Pagrindinio bokšto plotis"
 msgid "Wipe tower rotation angle"
 msgstr "Valymo bokšto sukimosi kampas"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "Valymo bokšto sukimosi kampas x ašies atžvilgiu."
 
 msgid "Width of the brim."
@@ -15313,11 +15273,14 @@ msgstr ""
 
 msgid ""
 "Positive values can increase the size of the rib wall, while negative values "
-"can reduce the size.However, the size of the rib wall can not be smaller "
+"can reduce the size. However, the size of the rib wall can not be smaller "
 "than that determined by the cleaning volume."
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -15942,7 +15905,7 @@ msgstr "Įkelti pasirinktinį G-kodą"
 msgid "Load custom G-code from json."
 msgstr ""
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "Įkelti gijų ID"
 
 msgid "Load filament IDs for each object."
@@ -15978,25 +15941,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr "MakerLab pavadinimas"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "„MakerLab“ pavadinimas šiam 3mf generuoti"
 
 msgid "MakerLab version"
 msgstr "„MakerLab“ versija"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "„MakerLab“ versija šiam 3mf generuoti"
 
 msgid "metadata name list"
 msgstr "metaduomenų pavadinimų sąrašas"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "metaduomenų pavadinimų sąrašas įtrauktas į 3mf"
 
 msgid "metadata value list"
 msgstr "metaduomenų reikšmių sąrašas"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "į 3mf įtrauktas metaduomenų reikšmių sąrašas"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -16280,7 +16243,7 @@ msgstr "Sluoksnio numeris"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr "Dabartinio sluoksnio indeksas (pirmasis sluoksnis turi numerį 1)."
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "Sluoksnis z"
 
 msgid ""
@@ -16290,7 +16253,7 @@ msgstr ""
 "Dabartinio sluoksnio aukštis virš spausdinimo pagrindo, matuojamas iki "
 "sluoksnio viršaus."
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "Maksimalusis sluoksnis z"
 
 msgid "Height of the last layer above the print bed."
@@ -17737,8 +17700,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
 
@@ -18802,6 +18765,103 @@ msgid ""
 "probability of warping?"
 msgstr ""
 
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Pagerinti korpuso tikslumą reguliuojant atstumus tarp išorinių sienelių. "
+#~ "Tai taip pat pagerina sluoksnių nuoseklumą."
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "Įjungti gijų įspaudimą"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + pelės ratukas"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + pelės ratukas"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + kairys pelės mygtukas"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Shift + pelės judėjimas aukštyn arba žemyn"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "Kairysis pelės mygtukas:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "Dešinysis pelės mygtukas:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Shift + kairysis pelės mygtukas:"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift + dešinysis pelės mygtukas:"
+
+#~ msgid "Recent projects"
+#~ msgstr "Naujausi projektai"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "Daugiausia buvusių projektų"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "Didžiausias skaičius buvusių projektų"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Shift+A"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Shift+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Bet kokia rodyklė"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+ kairysis pelės mygtukas"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+ kairysis pelės mygtukas"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl + bet kokia rodyklė"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt + kairysis pelės mygtukas"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl + kairysis pelės mygtukas"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift + kairysis pelės mygtukas"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift + bet kuri rodyklė"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Pelės ratukas"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Pelės ratukas"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl + pelės ratukas"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt + pelės ratukas"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift + pelės ratukas"
+
 #~ msgid "Set Position"
 #~ msgstr "Nustatyti padėtį"
 
@@ -19031,16 +19091,6 @@ msgstr ""
 #~ msgid "Enable this option to use classic mode."
 #~ msgstr "Įjunkite šią parinktį, jei norite naudoti klasikinį režimą"
 
-#~ msgid ""
-#~ "The geometry will be decimated before detecting sharp angles. This "
-#~ "parameter indicates the minimum length of the deviation for the "
-#~ "decimation.\n"
-#~ "0 to deactivate."
-#~ msgstr ""
-#~ "Prieš aptikdami aštrius kampus, geometrija bus išskaidyta. Šis parametras "
-#~ "nurodo mažiausią nuokrypio ilgį decimavimui.\n"
-#~ "0 - išjungti"
-
 #~ msgid "Compatible machine"
 #~ msgstr "Suderinamas įrenginys"
 
@@ -19131,9 +19181,6 @@ msgstr ""
 #~ msgid "Enable this option to add EXCLUDE OBJECT command in G-code"
 #~ msgstr ""
 #~ "Įjunkite šią parinktį, jei norite į G-kodą įtraukti komandą EXCLUDE OBJECT"
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Lyginimo linijų spausdinimo greitis"
 
 #~ msgid "This G-code part is inserted at every layer change after lift z"
 #~ msgstr ""
@@ -19334,7 +19381,7 @@ msgstr ""
 #~ msgid "Load custom G-code from json"
 #~ msgstr "Įkelti pasirinktinį G-kodą iš json"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "Įkelti kiekvieno objekto gijų ID"
 
 #~ msgid "Skip the modified G-code in 3mf from Printer or filament Presets"

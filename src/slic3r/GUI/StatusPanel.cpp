@@ -1452,7 +1452,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     StateColor z_1_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL2_COL, StateColor::Normal));
 
     bSizer_z_ctrl->AddStretchSpacer();
-    m_bpButton_z_10 = new Button(panel, wxString("10"), "monitor_bed_up", 0, FromDIP(15));
+    m_bpButton_z_10 = new Button(panel, wxString("10"), "monitor_bed_up", 0, 15); // Orca Dont scale icon size 
     m_bpButton_z_10->SetFont(::Label::Body_13);
     m_bpButton_z_10->SetBorderWidth(2);
     m_bpButton_z_10->SetBackgroundColor(z_10_ctrl_bg);
@@ -1463,7 +1463,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(m_bpButton_z_10, 0, wxEXPAND | wxALL, 0);
 
-    m_bpButton_z_1 = new Button(panel, wxString(" 1"), "monitor_bed_up", 0, FromDIP(15));
+    m_bpButton_z_1 = new Button(panel, wxString(" 1"), "monitor_bed_up", 0, 15); // Orca Dont scale icon size 
     m_bpButton_z_1->SetFont(::Label::Body_13);
     m_bpButton_z_1->SetBorderWidth(2);
     m_bpButton_z_1->SetBackgroundColor(z_1_ctrl_bg);
@@ -1475,7 +1475,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
-    m_bpButton_z_down_1 = new Button(panel, wxString(" 1"), "monitor_bed_down", 0, FromDIP(15));
+    m_bpButton_z_down_1 = new Button(panel, wxString(" 1"), "monitor_bed_down", 0, 15); // Orca Dont scale icon size 
     m_bpButton_z_down_1->SetFont(::Label::Body_13);
     m_bpButton_z_down_1->SetBorderWidth(2);
     m_bpButton_z_down_1->SetBackgroundColor(z_1_ctrl_bg);
@@ -1485,7 +1485,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(m_bpButton_z_down_1, 0, wxEXPAND | wxALL, 0);
 
-    m_bpButton_z_down_10 = new Button(panel, wxString("10"), "monitor_bed_down", 0, FromDIP(15));
+    m_bpButton_z_down_10 = new Button(panel, wxString("10"), "monitor_bed_down", 0, 15); // Orca Dont scale icon size 
     m_bpButton_z_down_10->SetFont(::Label::Body_13);
     m_bpButton_z_down_10->SetBorderWidth(2);
     m_bpButton_z_down_10->SetBackgroundColor(z_10_ctrl_bg);
@@ -1525,7 +1525,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
 
     StateColor e_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
     StateColor e_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
-    m_bpButton_e_10 = new Button(panel, "", "monitor_extruder_up", 0, FromDIP(22));
+    m_bpButton_e_10 = new Button(panel, "", "monitor_extruder_up", 0, 22); // Orca Dont scale icon size 
     m_bpButton_e_10->SetBorderWidth(2);
     m_bpButton_e_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_10->SetBorderColor(e_ctrl_bd);
@@ -1540,7 +1540,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
 
     bSizer_e_ctrl->Add(m_bitmap_extruder_img, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, FromDIP(5));
     bSizer_e_ctrl->Add(0, FromDIP(7), 0, 0, 0);
-    m_bpButton_e_down_10 = new Button(panel, "", "monitor_extruder_down", 0, FromDIP(22));
+    m_bpButton_e_down_10 = new Button(panel, "", "monitor_extruder_down", 0, 22); // Orca Dont scale icon size 
     m_bpButton_e_down_10->SetBorderWidth(2);
     m_bpButton_e_down_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_down_10->SetBorderColor(e_ctrl_bd);
