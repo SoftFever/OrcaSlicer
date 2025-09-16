@@ -232,6 +232,7 @@ static std::map<BedType, std::string> bed_type_thumbnails = {
     {BedType::btEP, "bed_engineering"},
     {BedType::btPEI, "bed_high_templ"},
     {BedType::btPTE, "bed_pei"},
+    {BedType::btPCT, "bed_pei"}, // TODO: Orca hack
     {BedType::btSuperTack, "bed_cool_supertack"}
 };
 
