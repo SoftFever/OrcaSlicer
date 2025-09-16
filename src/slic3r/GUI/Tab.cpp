@@ -251,7 +251,7 @@ void Tab::create_preset_tab()
                                    "or click this button.")));
 
     add_scaled_button(panel, &m_search_btn, "search");
-    m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));*/
+    m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), _L("Ctrl+") + "F"));*/
 
     // Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
     add_scaled_bitmap(this, m_bmp_value_lock  , "unlock_normal");
