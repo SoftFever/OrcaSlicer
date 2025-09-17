@@ -501,7 +501,7 @@ bool C3DPrinterOS::upload(
 
 void C3DPrinterOS::log_out() const 
 { 
-    boost::nowide::remove(m_api_session_file_path.c_str()); 
+    boost::filesystem::remove(m_api_session_file_path.c_str());
 }
 
 bool C3DPrinterOS::validate_version_text(const boost::optional<std::string> &version_text) const 
