@@ -686,16 +686,11 @@ endif ()
 # link these libraries.
 if (UNIX AND NOT APPLE)
     find_package(GTK${SLIC3R_GTK} REQUIRED)
-    if (FLATPAK)
-        # I don't know why this is needed, but for whatever reason slic3r isn't
-        # linking to X11 and webkit2gtk. force it.
-        find_package(X11 REQUIRED)
-        find_package(PkgConfig REQUIRED)
-        pkg_check_modules(webkit2gtk REQUIRED webkit2gtk-4.1)
-        target_link_libraries (libslic3r_gui ${X11_LIBRARIES} ${webkit2gtk_LIBRARIES})
-    endif()
+    find_package(X11 REQUIRED)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(webkit2gtk REQUIRED webkit2gtk-4.1)
     target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
-    target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES} fontconfig)
+    target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES} ${X11_LIBRARIES} ${webkit2gtk_LIBRARIES} fontconfig)
 
 
     # We add GStreamer for bambu:/// support.
