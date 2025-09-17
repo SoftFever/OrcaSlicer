@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Sovol SV08 MAX",
+    "model_id": "Sovol-SV08 MAX",
+    "nozzle_diameter": "0.4;0.6;0.8",
+    "machine_tech": "FFF",
+    "family": "Sovol",
+    "bed_model": "sovol_sv08_max_buildplate_model.stl",
+    "bed_texture": "sovol_sv08_max_buildplate_texture.png",
+    "hotend_model": "",
+    "default_materials": "Sovol SV08 MAX PLA;Sovol SV08 MAX Silk PLA - Hardened Steel;Sovol SV08 MAX ABS;Sovol SV08 MAX PETG;Sovol SV08 MAX PETG - PolyMaker;Sovol SV08 MAX PETG - SUNLU;Sovol SV08 MAX TPU;Sovol SV08 MAX PC"
+}
