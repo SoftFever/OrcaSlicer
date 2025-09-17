@@ -276,19 +276,33 @@ TEST_CASE("Empty raster should result in empty polygons", "[MarchingSquares]")
 
 TEST_CASE("Marching squares directions", "[MarchingSquares]")
 {
-    marchsq::Coord crd{1, 1};
+    using namespace marchsq;
+    Coord crd{0, 0};
 
-    REQUIRE(step(crd, marchsq::__impl::Dir::left).r == 1);
-    REQUIRE(step(crd, marchsq::__impl::Dir::left).c == 0);
-
-    REQUIRE(step(crd, marchsq::__impl::Dir::down).r == 2);
-    REQUIRE(step(crd, marchsq::__impl::Dir::down).c == 1);
-
-    REQUIRE(step(crd, marchsq::__impl::Dir::right).r == 1);
-    REQUIRE(step(crd, marchsq::__impl::Dir::right).c == 2);
-
-    REQUIRE(step(crd, marchsq::__impl::Dir::up).r == 0);
-    REQUIRE(step(crd, marchsq::__impl::Dir::up).c == 1);
+    __impl::step(crd, __impl::Dir::left);
+    CHECK(crd == Coord(0, -1));
+    __impl::step(crd, __impl::Dir::down);
+    CHECK(crd == Coord(1, -1));
+    __impl::step(crd, __impl::Dir::right);
+    CHECK(crd == Coord(1, 0));
+    __impl::step(crd, __impl::Dir::up);
+    CHECK(crd == Coord(0, 0));
+    __impl::step(crd, __impl::Dir::left, 7);
+    CHECK(crd == Coord(0, -7));
+    __impl::step(crd, __impl::Dir::down, 7);
+    CHECK(crd == Coord(7, -7));
+    __impl::step(crd, __impl::Dir::right, 7);
+    CHECK(crd == Coord(7, 0));
+    __impl::step(crd, __impl::Dir::up, 7);
+    CHECK(crd == Coord(0, 0));
+    __impl::step(crd, __impl::Dir::left, -3);
+    CHECK(crd == Coord(0, 3));
+    __impl::step(crd, __impl::Dir::down, -3);
+    CHECK(crd == Coord(-3, 3));
+    __impl::step(crd, __impl::Dir::right, -3);
+    CHECK(crd == Coord(-3, 0));
+    __impl::step(crd, __impl::Dir::up, -3);
+    CHECK(crd == Coord(0, 0));
 }
 
 TEST_CASE("Fully covered raster should result in a rectangle", "[MarchingSquares]")

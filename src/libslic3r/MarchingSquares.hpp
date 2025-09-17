@@ -177,11 +177,7 @@ enum class Dir : uint8_t {
     all       = 0b1111
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Dir& d)
-{
-    // char *dirmap = ;
-    return os << ".<v#>x##^#X#####"[_t(d)];
-}
+inline std::ostream& operator<<(std::ostream& os, const Dir& d) { return os << ".<v#>x##^#X#####"[_t(d)]; }
 
 // This maps square tag column/row order <cbda> bitmaps to the next
 // direction(s) a line will exit the cell. The directions ensure the
@@ -196,15 +192,14 @@ static const constexpr std::array<uint32_t, 16> NEXT_CCW = [] {
     return map;
 }();
 
-// Step a point in a direction.
-constexpr Coord step(const Coord& crd, const Dir d)
+// Step a point in a direction, optionally by n steps.
+inline void step(Coord& crd, const Dir d, const long n = 1)
 {
     switch (d) {
-    case Dir::left: return {crd.r, crd.c - 1};
-    case Dir::down: return {crd.r + 1, crd.c};
-    case Dir::right: return {crd.r, crd.c + 1};
-    case Dir::up: return {crd.r - 1, crd.c};
-    default: return crd;
+    case Dir::left: crd.c -= n; break;
+    case Dir::down: crd.r += n; break;
+    case Dir::right: crd.c += n; break;
+    case Dir::up: crd.r -= n; break;
     }
 }
 
@@ -381,29 +376,78 @@ template<class Rst> class Grid
 
     struct CellIt
     {
-        Coord      crd;
-        Dir        dir  = Dir::none;
-        const Rst* grid = nullptr;
-
-        TRasterValue<Rst> operator*() const { return isoval(*grid, crd); }
-        CellIt&           operator++()
-        {
-            crd = step(crd, dir);
-            return *this;
-        }
-        CellIt operator++(int)
-        {
-            CellIt it = *this;
-            ++(*this);
-            return it;
-        }
-        bool operator!=(const CellIt& it) { return crd != it.crd; }
-
+        using iterator_category = std::random_access_iterator_tag;
         using value_type        = TRasterValue<Rst>;
         using pointer           = TRasterValue<Rst>*;
         using reference         = TRasterValue<Rst>&;
         using difference_type   = long;
-        using iterator_category = std::forward_iterator_tag;
+
+        Coord      crd;
+        Dir        dir  = Dir::none;
+        const Rst* grid = nullptr;
+
+        inline TRasterValue<Rst>  operator*() const { return isoval(*grid, crd); }
+        inline TRasterValue<Rst>& operator[](long n) const { return *((*this) + n); }
+        inline CellIt&            operator++()
+        {
+            step(crd, dir);
+            return *this;
+        }
+        inline CellIt operator++(int)
+        {
+            CellIt o = *this;
+            ++(*this);
+            return o;
+        }
+        inline CellIt& operator--()
+        {
+            step(crd, dir, -1);
+            return *this;
+        }
+        inline CellIt operator--(int)
+        {
+            CellIt o = *this;
+            --(*this);
+            return o;
+        }
+        inline CellIt& operator+=(long n)
+        {
+            step(crd, dir, n);
+            return *this;
+        }
+        inline CellIt& operator-=(long n)
+        {
+            step(crd, dir, -n);
+            return *this;
+        }
+        inline CellIt operator+(long n) const
+        {
+            CellIt o = *this;
+            o += n;
+            return o;
+        }
+        inline CellIt operator-(long n) const
+        {
+            CellIt o = *this;
+            o -= n;
+            return o;
+        }
+        inline long operator-(const CellIt& o) const
+        {
+            switch (dir) {
+            case Dir::left: return o.crd.c - crd.c;
+            case Dir::down: return crd.r - o.crd.r;
+            case Dir::right: return crd.c - o.crd.c;
+            case Dir::up: return o.crd.r - crd.r;
+            default: return 0;
+            }
+        }
+        inline bool operator==(const CellIt& o) const { return crd == o.crd; }
+        inline bool operator!=(const CellIt& o) const { return crd != o.crd; }
+        inline bool operator<(const CellIt& o) const { return (*this - o) < 0; }
+        inline bool operator>(const CellIt& o) const { return (*this - o) > 0; }
+        inline bool operator<=(const CellIt& o) const { return (*this - o) <= 0; }
+        inline bool operator>=(const CellIt& o) const { return (*this - o) >= 0; }
     };
 
     // Two cell iterators representing an edge of a square. This is then
