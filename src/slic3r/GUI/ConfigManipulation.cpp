@@ -504,6 +504,14 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+
+    if (config->opt_enum<FuzzySkinMode>("fuzzy_skin_mode") != FuzzySkinMode::Displacement) {
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        new_conf.set_key_value("precision_infill", new ConfigOptionBool(false));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 }
 
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
@@ -819,6 +827,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("fuzzy_skin_scale", fuzzy_skin_noise_type != NoiseType::Classic);
     toggle_line("fuzzy_skin_octaves", fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin_noise_type != NoiseType::Voronoi);
     toggle_line("fuzzy_skin_persistence", fuzzy_skin_noise_type == NoiseType::Perlin || fuzzy_skin_noise_type == NoiseType::Billow);
+    toggle_field("precision_infill", config->opt_enum<FuzzySkinMode>("fuzzy_skin_mode") == FuzzySkinMode::Displacement);
 
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",

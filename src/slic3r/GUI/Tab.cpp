@@ -2267,7 +2267,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_anchor", "strength_settings_infill#anchor");
         optgroup->append_single_option_line("internal_solid_infill_pattern", "strength_settings_infill#internal-solid-infill");
         optgroup->append_single_option_line("solid_infill_direction", "strength_settings_infill#direction");
-        optgroup->append_single_option_line("precision_infill");
         optgroup->append_single_option_line("solid_infill_rotate_template", "strength_settings_infill_rotation_template_metalanguage");
         optgroup->append_single_option_line("gap_fill_target", "strength_settings_infill#apply-gap-fill");
         optgroup->append_single_option_line("filter_out_gap_fill", "strength_settings_infill#filter-out-tiny-gaps");
@@ -2505,6 +2504,7 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
         optgroup->append_single_option_line("fuzzy_skin_octaves", "others_settings_fuzzy_skin#skin-noise-octaves");
         optgroup->append_single_option_line("fuzzy_skin_persistence", "others_settings_fuzzy_skin#skin-noise-persistence");
         optgroup->append_single_option_line("fuzzy_skin_first_layer", "others_settings_fuzzy_skin#apply-fuzzy-skin-to-first-layer");
+        optgroup->append_single_option_line("precision_infill");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction", "others_settings_g_code_output#reduce-infill-retraction");

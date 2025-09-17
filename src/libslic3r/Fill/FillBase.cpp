@@ -28,6 +28,7 @@
 #include "FillConcentricInternal.hpp"
 #include "FillCrossHatch.hpp"
 // #define INFILL_DEBUG_OUTPUT
+// #define INFILL_DEBUG_PATCHWORK
 
 namespace Slic3r {
 
@@ -138,7 +139,6 @@ return thick_polylines_out;
 
 void Fill::fill_patchwork(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out) {
 
-//#define DEBUG_PATCHWORK
     Polylines                            polylines, _paddings_h, _paddings_v; // overall, horisontal, vertical mesh polylines
 
     ExtrusionEntityCollection* eec = nullptr;
@@ -209,7 +209,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
     float       _scale_factor        = _radius / sqrt(pow(_tile_semisize_x, 2) + pow(_tile_semisize_y, 2));
     bool        _is_polar_pattern    = params.pattern == ipArchimedeanChords || params.pattern == ipOctagramSpiral;
 
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
     static int i_ptch       = 0;
     static int i_ptch_layer = -1;
     if (i_ptch_layer != this->layer_id) {
@@ -240,7 +240,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
         for (coord_t _x = _tile_min_x - _tiles_subway; _x <= _tile_max_x + _tiles_subway; _x += _tile_joint_x) {
             BoundingBox _inner_bbox(Point(_x - _tile_semisize_x, _y - _tile_semisize_y), Point(_x + _tile_semisize_x, _y + _tile_semisize_y));
             ExPolygon _inner_pg = ExPolygon(_inner_bbox.polygon());
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
             svg_ptch.draw(_inner_pg, "grey"); // calculated tiles
 #endif
             
@@ -248,7 +248,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                 PatchBox _inner_pb = {_inner_pg, {_tiles_row, _tiles_col}};
                 if (_p.area() > 0. && !(std::count(_patchboxes.begin(), _patchboxes.end(), _inner_pb))) {
                     _patchboxes.emplace_back(_inner_pb);
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
                     svg_ptch.draw(_inner_pg, "green"); // needed tiles
                     svg_ptch.draw(_p, "cyan");         // cropped tile
 #endif
@@ -283,7 +283,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                 polylines.emplace_back(std::move(_pl2));
         }
 
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
     svg_ptch.draw(surface->expolygon, "yellow"); // surface
     svg_ptch.draw_outline(_expgs, "orange", "orange", scaled_flow_width); // cropped surface
     // svg_ptch.draw(_paddings_v, "red", scaled_flow_width); // extra lines (mesh and so...)
@@ -312,7 +312,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
             _pl.rotate(_patchwork_direction, _center);
             _polylines.emplace_back(std::move(_pl));
         }
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
         svg_ptch.draw(_polylines, "dark red", scaled_flow_width); // crop polylines
 #endif
         Polygons _tracks_crop             = offset(_polylines, scaled_flow_width / 2); // create cropping polygons 
@@ -323,7 +323,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
         try {
             if (_params.use_arachne) {
                 ThickPolylines _thick_polylines(fill_surface_arachne(&_surface, _params));
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
                 svg_ptch.draw(_surface.expolygon, "blue"); // filled area
                 svg_ptch.draw(_thick_polylines, "black"); // path
 #endif
@@ -335,7 +335,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                 }
             } else {
                 _polylines = fill_surface(&_surface, _params);
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
                 svg_ptch.draw(_surface.expolygon, "blue"); // filled area
                 svg_ptch.draw(_polylines, "black"); // path
 #endif
@@ -363,7 +363,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
 
             if (_is_polar_pattern) { // recalculate the tile center
 
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
                 //svg_ptch.draw(Line(_center, _tile_center), "magenta", scaled_flow_width); // rotated surface
 #endif
                 switch (params.center_of_surface_pattern) {
@@ -381,7 +381,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                 _tile_bb.translate(-_tile_center);
             }
 
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
             svg_ptch.draw_outline(_tile_bb.polygon(), "cyan", _scaled_quarterwidth); // tile center
             //svg_ptch.draw(Line(_center, _tile_bb.center()), "brown", scaled_flow_width); // rotated surface
 #endif
@@ -403,13 +403,13 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                                 _thick_polylines.emplace_back(std::move(_pl));
                             }
                         }
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
                         _exp2.rotate(_patchwork_direction, _center);
                         svg_ptch.draw(_exp2, "blue"); // infilled area
 #endif
                     }
                     if (!_thick_polylines.empty()) {
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
                         svg_ptch.draw(_thick_polylines, "black"); // pattern path
 #endif
                         variable_width(_thick_polylines, _params.extrusion_role, new_flow, eec->entities);
@@ -424,12 +424,12 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
                                 _polylines.emplace_back(std::move(_pl));
                             }
                         }
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
                         _exp2.rotate(_patchwork_direction, _center);
                         svg_ptch.draw(_exp2, "blue"); // infilled area
 #endif
                     }
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
                         svg_ptch.draw(_polylines, "black"); // pattern path
 #endif
                     if (!_polylines.empty())
@@ -438,7 +438,7 @@ void Fill::fill_patchwork(const Surface* surface, const FillParams& params, Extr
             } catch (InfillFailedException&) {}
         }
     }
-#if defined DEBUG_PATCHWORK
+#if defined INFILL_DEBUG_PATCHWORK
     svg_ptch.draw(polylines, "red", scaled_flow_width);    // extra lines (meshes and so...)
     svg_ptch.Close();
 #endif

@@ -5614,10 +5614,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnum<CenterOfSurfacePattern>(CenterOfSurfacePattern::Each_Surface));
 
     def           = this->add("precision_infill", coBool);
-    def->label    = L("Precision infill");
-    def->category = L("Strength");
-    def->tooltip  = L("It sets the precision overlay of any patterns on each layer. It's also partially fills the pores when using Fuzzy Skin. "
-                      "This option may slowdown the G-code calculation time!");
+    def->label    = L("Fuzzy skin precision infill (beta)");
+    def->category = L("Others");
+    def->tooltip  = L("It sets the precision overlay of top or bottom surfaces when Fuzzy Skin in Displacement mode changes perimeters. "
+                      "This mode also paritally close the formed pores between the loops. "   
+                      "This option may critically slowdown the G-code calculation time! ");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
