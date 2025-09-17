@@ -1,12 +1,11 @@
 {
     "type": "filament",
     "name": "Polymaker PETG Polymax black P1 @iQ TiQ2 0.4 Nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_filament_common",
+    "from": "system",
     "filament_id": "IQM3",
+    "instantiation": "true",
     "settings_id": "IQS3",
-    
     "activate_air_filtration": [
         "0"
     ],
@@ -108,7 +107,6 @@
     "filament_flow_ratio": [
         "0.9405"
     ],
-    
     "filament_is_support": [
         "0"
     ],
@@ -220,7 +218,6 @@
     "filament_z_hop_types": [
         "nil"
     ],
-    
     "full_fan_speed_layer": [
         "0"
     ],
@@ -233,15 +230,12 @@
     "idle_temperature": [
         "210"
     ],
-    
     "internal_bridge_fan_speed": [
         "-1"
     ],
     "ironing_fan_speed": [
         "-1"
     ],
-    "is_custom_defined": "0",
-    
     "nozzle_temperature": [
         "250"
     ],
@@ -304,6 +298,5 @@
     ],
     "textured_plate_temp_initial_layer": [
         "60"
-    ],
-    "version": "2.3.0.4"
+    ]
 }

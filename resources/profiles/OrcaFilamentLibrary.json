@@ -1,6 +1,6 @@
 {
     "name": "OrcaFilamentLibrary",
-    "version": "02.03.00.04",
+    "version": "02.03.01.00",
     "force_update": "0",
     "description": "Orca Filament Library",
     "filament_list": [
@@ -1101,5 +1101,7 @@
             "sub_path": "filament/AliZ/AliZ PETG-Metal @System.json"
         }
     ],
-    "process_list": []
+    "process_list": [],
+    "machine_model_list": [],
+    "machine_list": []
 }

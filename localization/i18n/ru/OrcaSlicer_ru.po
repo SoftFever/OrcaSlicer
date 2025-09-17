@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.3.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-11 21:06+0800\n"
 "PO-Revision-Date: 2025-07-06 21:08+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -49,17 +49,23 @@ msgstr "Последняя версия"
 msgid "Support Painting"
 msgstr "Рисование поддержек"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Колесо мыши"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "Колесо мыши"
 
 msgid "Section view"
 msgstr "Отсечение вида"
 
 msgid "Reset direction"
 msgstr "Сброс направления"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Колесо мыши"
 
 msgid "Pen size"
 msgstr "Размер кисти"
@@ -75,9 +81,6 @@ msgstr "Правая кнопка мыши"
 
 msgid "Block supports"
 msgstr "Блокировка поддержки"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + Левая кнопка мыши"
 
 msgid "Erase"
 msgstr "Очистить"
@@ -188,8 +191,8 @@ msgstr "Заливка"
 msgid "Height range"
 msgstr "Диапазон высоты слоёв"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Показать/скрыть каркас"
@@ -731,8 +734,8 @@ msgstr "На поверхности"
 msgid "Horizontal text"
 msgstr "Горизонтальный текст"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Shift + Мышь вверх или вниз"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "Поворот текста"
@@ -1490,9 +1493,6 @@ msgstr ""
 msgid "Flip by Face 2"
 msgstr "Перевернуть грань 2"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "Примечание"
 
@@ -1852,6 +1852,9 @@ msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "Удаление выбранных моделей"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "Загрузить…"
@@ -4285,6 +4288,11 @@ msgstr "Недопустимое расширение на входе"
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Недопустимый формат. Ожидаемый векторный формат: \"%1%\""
@@ -4492,26 +4500,14 @@ msgstr "Радиус"
 msgid "Keep min"
 msgstr "Сохранять минимумы"
 
-msgid "Left mouse button:"
-msgstr "Левая кнопка мыши:"
-
 msgid "Add detail"
 msgstr "Увеличить детализацию"
-
-msgid "Right mouse button:"
-msgstr "Правая кнопка мыши:"
 
 msgid "Remove detail"
 msgstr "Уменьшить детализацию"
 
-msgid "Shift + Left mouse button:"
-msgstr "Shift + Левая кнопка мыши:"
-
 msgid "Reset to base"
 msgstr "Сброс до базовой высоты слоя"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift + Правая кнопка мыши:"
 
 msgid "Smoothing"
 msgstr "Сглаживание"
@@ -4910,8 +4906,8 @@ msgstr "Начать новый проект"
 msgid "Open a project file"
 msgstr "Открыть файл проекта"
 
-msgid "Recent projects"
-msgstr "Недавние проекты"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "Сохранить проект"
@@ -4921,9 +4917,6 @@ msgstr "Сохранить текущий проект в файл"
 
 msgid "Save Project as"
 msgstr "Сохранить проект как"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Сохранить текущий проект как"
@@ -6343,6 +6336,9 @@ msgstr "Развернуть боковую панель"
 msgid "Collapse sidebar"
 msgstr "Свернуть боковую панель"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Загрузка файла: %s"
@@ -7209,12 +7205,14 @@ msgstr ""
 "Выбор того, следует ли при открытии 3mf проекта загружать настройки "
 "принтера, прутка и процесса."
 
-msgid "Maximum recent projects"
-msgstr "Максимальное количество недавних проектов"
-
-msgid "Maximum count of recent projects"
+msgid "Maximum recent files"
 msgstr ""
-"Максимальное количество проектов, отображаемое в списке недавних проектов."
+
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 # ??? Сбросить мой выбор действия для проектов, Сбросить запрос о несохранённых изменениях для проекта при закрытии программы
 msgid "Clear my choice on the unsaved projects."
@@ -8004,6 +8002,14 @@ msgstr ""
 
 msgid "Are you sure you want to enable this option?"
 msgstr "Вы уверены, что хотите включить эту опцию?"
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -9076,12 +9082,6 @@ msgstr "Список моделей"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Импорт геометрических данных из STL/STEP/3MF/OBJ/AMF файлов"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Paste from clipboard"
 msgstr "Вставить из буфера обмена"
 
@@ -9105,14 +9105,8 @@ msgstr "Вращение камеры"
 msgid "Pan View"
 msgstr "Перемещение камеры"
 
-msgid "Mouse wheel"
-msgstr "Колесо мыши"
-
 msgid "Zoom View"
 msgstr "Масштабирование вида"
-
-msgid "Shift+A"
-msgstr "Shift+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -9123,47 +9117,23 @@ msgstr ""
 "ориентация будет применена только к ним; в противном случае ко всем моделям "
 "на текущем столе."
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr "Автоориентация всех моделей на текущей печатной пластине."
-
-msgid "Shift+Tab"
-msgstr "Shift+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Свернуть/Развернуть боковую панель"
 
-msgid "⌘+Any arrow"
-msgstr "⌘ + Любая стрелка"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Перемещение выбранного по отношению к камере"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥ + Левая кнопка мыши"
-
 msgid "Select a part"
 msgstr "Выбор части модели"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘ + Левая кнопка мыши"
-
 msgid "Select multiple objects"
 msgstr "Выбор нескольких моделей"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl + Любая стрелка"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt + Левая кнопка мыши"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl + Левая кнопка мыши"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift + Левая кнопка мыши"
 
 msgid "Select objects by rectangle"
 msgstr "Выбор прямоугольником"
@@ -9191,9 +9161,6 @@ msgstr "Стрелка вправо"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Перемещение выбранного на 10 мм по оси X+"
-
-msgid "Shift+Any arrow"
-msgstr "Shift + Любая стрелка"
 
 msgid "Movement step set to 1 mm"
 msgstr "Зафиксировать шаг перемещения на 1 мм"
@@ -9279,23 +9246,11 @@ msgstr "Печатная пластина"
 msgid "Move: press to snap by 1mm"
 msgstr "Перемещение: Фиксация перемещения на 1 мм"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Колесо мыши"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Рисование поддержек/Шва/Покраски: регулировка радиуса кисти"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Колесо мыши"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Рисование поддержек/Шва/Покраски: регулировка положения сечения"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Колесо мыши"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Колесо мыши"
 
 msgid "Gizmo"
 msgstr "Гизмо"
@@ -9339,9 +9294,6 @@ msgstr "Показать/скрыть окно отображения G-кода
 
 msgid "Move slider 5x faster"
 msgstr "Перемещение ползунка быстрее в 5 раз"
-
-msgid "Shift+Mouse wheel"
-msgstr "Shift + Колесо мыши"
 
 msgid "Horizontal slider - Move to start position"
 msgstr "Горизонтальный ползунок - Перемещение в начальную позицию"
@@ -10137,6 +10089,11 @@ msgstr ""
 "в настройках принтера (вкладка «Ограничение принтера»)."
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -10777,10 +10734,9 @@ msgstr "Точные периметры"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
-"Повышение точности оболочки за счёт регулировки расстояния между внешними "
-"стенками. Это также позволяет уменьшить расслоение слоёв."
 
 msgid "Only one wall on top surfaces"
 msgstr "Только один периметр на верхней поверхности"
@@ -12356,6 +12312,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr ""
 
@@ -12430,8 +12396,8 @@ msgid "Lateral lattice angle 1"
 msgstr "Угол №1 (2D решётка)"
 
 msgid ""
-"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "Угол наклона первой линии для шаблона заполнения «2D решётка» относительно "
 "вертикальной оси Z (0 - вертикально)."
@@ -12440,8 +12406,8 @@ msgid "Lateral lattice angle 2"
 msgstr "Угол №2 (2D решётка)"
 
 msgid ""
-"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "Угол наклона второй линии для шаблона заполнения «2D решётка» относительно "
 "вертикальной оси Z (0 - вертикально)."
@@ -12586,7 +12552,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12798,12 +12765,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop. At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -13201,19 +13168,14 @@ msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
-"Этот параметр поворачивает шаблон разреженного заполнения на каждом слое по "
-"заданному правилу. Шаблон представляет собой список углов в градусах, "
-"разделенных запятыми, например '0,90'. Первый угол применяется к первому "
-"слою, второй угол - ко второму слою и так далее. Если слоёв больше, чем "
-"углов, то углы будут повторяться. Обратите внимание, что не все шаблоны с "
-"разреженной заливкой поддерживают поворот."
 
 msgid "°"
 msgstr "°"
@@ -14912,9 +14874,6 @@ msgstr "Очистка сопла от остатков материала в ч
 msgid "Enable filament ramming"
 msgstr "Включить рэмминг прутка"
 
-msgid "Enable filament ramming."
-msgstr "Включить рэмминг прутка."
-
 msgid "No sparse layers (beta)"
 msgstr "Без разреженных слоёв (beta)"
 
@@ -15790,6 +15749,9 @@ msgstr ""
 
 msgid "Rib width"
 msgstr "Ширина ребра"
+
+msgid "Rib width."
+msgstr ""
 
 # ??? Скругление углов стенки
 msgid "Fillet wall"
@@ -19367,6 +19329,119 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Повышение точности оболочки за счёт регулировки расстояния между внешними "
+#~ "стенками. Это также позволяет уменьшить расслоение слоёв."
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "Включить рэмминг прутка."
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Колесо мыши"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + Колесо мыши"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + Левая кнопка мыши"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Shift + Мышь вверх или вниз"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "Левая кнопка мыши:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "Правая кнопка мыши:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Shift + Левая кнопка мыши:"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift + Правая кнопка мыши:"
+
+#~ msgid "Recent projects"
+#~ msgstr "Недавние проекты"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "Максимальное количество недавних проектов"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr ""
+#~ "Максимальное количество проектов, отображаемое в списке недавних проектов."
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Shift+A"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Shift+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘ + Любая стрелка"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥ + Левая кнопка мыши"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘ + Левая кнопка мыши"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl + Любая стрелка"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt + Левая кнопка мыши"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl + Левая кнопка мыши"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift + Левая кнопка мыши"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift + Любая стрелка"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Колесо мыши"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Колесо мыши"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Колесо мыши"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Колесо мыши"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift + Колесо мыши"
+
+#~ msgid ""
+#~ "This parameter adds a rotation of sparse infill direction to each layer "
+#~ "according to the specified template. The template is a comma-separated "
+#~ "list of angles in degrees, e.g. '0,90'. The first angle is applied to the "
+#~ "first layer, the second angle to the second layer, and so on. If there "
+#~ "are more layers than angles, the angles will be repeated. Note that not "
+#~ "all sparse infill patterns support rotation."
+#~ msgstr ""
+#~ "Этот параметр поворачивает шаблон разреженного заполнения на каждом слое "
+#~ "по заданному правилу. Шаблон представляет собой список углов в градусах, "
+#~ "разделенных запятыми, например '0,90'. Первый угол применяется к первому "
+#~ "слою, второй угол - ко второму слою и так далее. Если слоёв больше, чем "
+#~ "углов, то углы будут повторяться. Обратите внимание, что не все шаблоны с "
+#~ "разреженной заливкой поддерживают поворот."
 
 #~ msgid "Set Position"
 #~ msgstr "Задание позиции"
