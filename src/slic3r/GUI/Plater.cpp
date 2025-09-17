@@ -2280,11 +2280,7 @@ void Sidebar::set_bed_type_accord_combox(BedType bed_type) {
             return;
         }
     }
-    use_default_bed_type();
-    //re save preferred bed type
-    auto        select_bed_type = get_cur_select_bed_type();
-    std::string bed_type_name   = print_config_def.get("curr_bed_type")->enum_values[int(select_bed_type) - 1];
-    save_bed_type_to_config(bed_type_name);
+    p->combo_printer_bed->SelectAndNotify(0);
 }
 
 bool  Sidebar::reset_bed_type_combox_choices() {
