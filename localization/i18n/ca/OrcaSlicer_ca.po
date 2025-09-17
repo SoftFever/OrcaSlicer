@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-11 21:06+0800\n"
 "PO-Revision-Date: 2025-03-15 10:55+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -49,17 +49,23 @@ msgstr "Última versió"
 msgid "Support Painting"
 msgstr "Pintar suports"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Roda del ratolí"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Màj+"
+
+msgid "Mouse wheel"
+msgstr "Roda del ratolí"
 
 msgid "Section view"
 msgstr "Vista de secció"
 
 msgid "Reset direction"
 msgstr "Restablir direcció"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Roda del ratolí"
 
 msgid "Pen size"
 msgstr "Mida del llapis"
@@ -75,9 +81,6 @@ msgstr "Botó dret del ratolí"
 
 msgid "Block supports"
 msgstr "Blocar suports"
-
-msgid "Shift + Left mouse button"
-msgstr "Maj + botó esquerre del ratolí"
 
 msgid "Erase"
 msgstr "Esborrar"
@@ -184,8 +187,8 @@ msgstr "Farciment de cubs"
 msgid "Height range"
 msgstr "Rang d'alçada"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Majúscules + Retorn"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Commuta Malla Alàmbrica"
@@ -719,8 +722,8 @@ msgstr "Superfície"
 msgid "Horizontal text"
 msgstr "Text horitzontal"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Majúscules + Ratolí per pujar o baixar"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "Rotar text"
@@ -1478,9 +1481,6 @@ msgstr "Distància paral·lela:"
 msgid "Flip by Face 2"
 msgstr "Gira per la cara 2"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "Avís"
 
@@ -1848,6 +1848,9 @@ msgstr "Esborrar"
 
 msgid "Delete the selected object"
 msgstr "Eliminar l'objecte seleccionat"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "Carregar..."
@@ -4237,6 +4240,11 @@ msgstr "Alguna extensió de l'entrada no és vàlida"
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Format no vàlid. Format vectorial esperat: \"%1%\""
@@ -4439,26 +4447,14 @@ msgstr "Radi"
 msgid "Keep min"
 msgstr "Mantenir mínim"
 
-msgid "Left mouse button:"
-msgstr "Botó esquerre del ratolí:"
-
 msgid "Add detail"
 msgstr "Afegir detall"
-
-msgid "Right mouse button:"
-msgstr "Botó dret del ratolí:"
 
 msgid "Remove detail"
 msgstr "Retirar detall"
 
-msgid "Shift + Left mouse button:"
-msgstr "Maj + botó esquerre del ratolí:"
-
 msgid "Reset to base"
 msgstr "Tornar a la base"
-
-msgid "Shift + Right mouse button:"
-msgstr "Maj + botó dret del ratolí:"
 
 msgid "Smoothing"
 msgstr "Suavitzat"
@@ -4851,8 +4847,8 @@ msgstr "Començar un nou projecte"
 msgid "Open a project file"
 msgstr "Obrir un fitxer de projecte"
 
-msgid "Recent projects"
-msgstr "Projectes recents"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "Desar projecte"
@@ -4862,9 +4858,6 @@ msgstr "Desar el projecte actual a un fitxer"
 
 msgid "Save Project as"
 msgstr "Desa el projecte com a"
-
-msgid "Shift+"
-msgstr "Màj+"
 
 msgid "Save current project as"
 msgstr "Desar el projecte actual com"
@@ -6284,6 +6277,9 @@ msgstr "Expandir la barra lateral"
 msgid "Collapse sidebar"
 msgstr "Replegar barra lateral"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Carregant fitxer: %s"
@@ -7131,11 +7127,14 @@ msgstr ""
 "S'ha de carregar la configuració de la impressora/filament/procés en obrir "
 "un .3mf?"
 
-msgid "Maximum recent projects"
-msgstr "Màxim projectes recents"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Màxima quantitat de projectes recents"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Esborrar la meva elecció sobre els projectes no desats."
@@ -7921,6 +7920,14 @@ msgstr ""
 
 msgid "Are you sure you want to enable this option?"
 msgstr "Estàs segur que vols activar aquesta opció?"
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -8964,12 +8971,6 @@ msgstr "Llista d'objectes"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importar dades de geometria des de fitxers STL/STEP/3MF/OBJ/AMF"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Maj+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Maj+G"
-
 msgid "Paste from clipboard"
 msgstr "Enganxa des del porta-retalls"
 
@@ -8992,14 +8993,8 @@ msgstr "Rotar la vista"
 msgid "Pan View"
 msgstr "Vista Panoràmica"
 
-msgid "Mouse wheel"
-msgstr "Roda del ratolí"
-
 msgid "Zoom View"
 msgstr "Vista amb Zoom"
-
-msgid "Shift+A"
-msgstr "Maj+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -9010,47 +9005,23 @@ msgstr ""
 "Si hi ha objectes seleccionats, només orientarà/alinearà els seleccionats. "
 "En cas contrari, orientarà/alinearà tots els objectes del projecte actual."
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr "Orienta/alinea automàticament tots els objectes de la placa actual."
-
-msgid "Shift+Tab"
-msgstr "Maj+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Replegar/Expandir barra lateral"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Qualsevol fletxa"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Moviment a l'espai de la càmera"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Botó esquerre del ratolí"
-
 msgid "Select a part"
 msgstr "Seleccionar una peça"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Botó esquerre del ratolí"
-
 msgid "Select multiple objects"
 msgstr "Seleccionar múltiples objectes"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+Qualsevol fletxa"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+Botó esquerre del ratolí"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+Botó esquerre del ratolí"
-
-msgid "Shift+Left mouse button"
-msgstr "Maj+Botó esquerre del ratolí"
 
 msgid "Select objects by rectangle"
 msgstr "Seleccionar objectes per rectangle"
@@ -9078,9 +9049,6 @@ msgstr "Fletxa cap a la dreta"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Moure la selecció 10 mm en direcció X positiva"
-
-msgid "Shift+Any arrow"
-msgstr "Maj+Qualsevol fletxa"
 
 msgid "Movement step set to 1 mm"
 msgstr "Pas de moviment configurat a 1 mm"
@@ -9166,23 +9134,11 @@ msgstr "Plataforma"
 msgid "Move: press to snap by 1mm"
 msgstr "Moure: Clicka per ajustar en passos d'1 mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Roda del ratolí"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Suport/Pintat de color: configuració del radi de la ploma"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Roda del ratolí"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Suport/Pintat de color: configuració de la posició de la secció"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Roda del ratolí"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Roda del ratolí"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -9232,9 +9188,6 @@ msgstr "Activar/Desactivar finestra de Codi-G"
 
 msgid "Move slider 5x faster"
 msgstr "Moure la barra de desplaçament 5 vegades més ràpid"
-
-msgid "Shift+Mouse wheel"
-msgstr "Maj+Roda del ratolí"
 
 msgid "Horizontal slider - Move to start position"
 msgstr "Control lliscant horitzontal - Mou fins a la posició inicial"
@@ -10015,6 +9968,11 @@ msgstr ""
 "la impressora per obtenir velocitats més altes."
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -10653,10 +10611,9 @@ msgstr "Perímetre precís"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
-"Milloreu la precisió de la carcassa ajustant l'espaiat del perímetre "
-"exterior. Això també millora la consistència de la capa."
 
 msgid "Only one wall on top surfaces"
 msgstr "Només un perímetre a les superfícies superiors"
@@ -12229,6 +12186,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr ""
 
@@ -12303,8 +12270,8 @@ msgid "Lateral lattice angle 1"
 msgstr "Angle de gelosia 1"
 
 msgid ""
-"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "L'angle del primer conjunt d'elements de gelosia 2D en la direcció Z. El "
 "zero és vertical."
@@ -12313,8 +12280,8 @@ msgid "Lateral lattice angle 2"
 msgstr "Angle de gelosia 2"
 
 msgid ""
-"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "L'angle del segon conjunt d'elements de gelosia 2D en la direcció Z. El zero "
 "és vertical."
@@ -12459,7 +12426,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12657,12 +12625,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop. At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -13039,22 +13007,23 @@ msgid ""
 "a cross texture."
 msgstr ""
 
-msgid "Sparse infill rotatation template"
+msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
+msgid "Solid infill rotation template"
 msgstr ""
 
 msgid ""
@@ -14705,9 +14674,6 @@ msgstr "Purga el filament restant a la Torre de Purga"
 msgid "Enable filament ramming"
 msgstr ""
 
-msgid "Enable filament ramming."
-msgstr "Habilitar Moldejat de punta( Ramming ) de filament"
-
 msgid "No sparse layers (beta)"
 msgstr "Sense capes poc denses( beta )"
 
@@ -15520,6 +15486,9 @@ msgid ""
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -19088,6 +19057,103 @@ msgstr ""
 "Sabíeu que quan imprimiu materials propensos a deformar-se, com ara l'ABS, "
 "augmentar adequadament la temperatura del llit pot reduir la probabilitat de "
 "deformació?"
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Milloreu la precisió de la carcassa ajustant l'espaiat del perímetre "
+#~ "exterior. Això també millora la consistència de la capa."
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "Habilitar Moldejat de punta( Ramming ) de filament"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Roda del ratolí"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + Roda del ratolí"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Maj + botó esquerre del ratolí"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Majúscules + Retorn"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Majúscules + Ratolí per pujar o baixar"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "Botó esquerre del ratolí:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "Botó dret del ratolí:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Maj + botó esquerre del ratolí:"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Maj + botó dret del ratolí:"
+
+#~ msgid "Recent projects"
+#~ msgstr "Projectes recents"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "Màxim projectes recents"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "Màxima quantitat de projectes recents"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Maj+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Maj+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Maj+A"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Maj+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Qualsevol fletxa"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Botó esquerre del ratolí"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Botó esquerre del ratolí"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+Qualsevol fletxa"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+Botó esquerre del ratolí"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+Botó esquerre del ratolí"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Maj+Botó esquerre del ratolí"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Maj+Qualsevol fletxa"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Roda del ratolí"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Roda del ratolí"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Roda del ratolí"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Roda del ratolí"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Maj+Roda del ratolí"
 
 #~ msgid "Set Position"
 #~ msgstr "Establir Posició"

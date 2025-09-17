@@ -1,4 +1,9 @@
 {
+    "type": "machine",
+    "name": "fdm_machine_common_mk4s",
+    "inherits": "fdm_machine_common",
+    "from": "system",
+    "instantiation": "false",
     "before_layer_change_gcode": [
         ";BEFORE_LAYER_CHANGE\nG92 E0.0\n;[layer_z]\nM201 X{interpolate_table(extruded_weight_total, (0,4000), (1400,2500), (10000,2500))} Y{interpolate_table(extruded_weight_total, (0,4000), (1400,2500), (10000,2500))}\n"
     ],
@@ -11,11 +16,8 @@
     "extruder_clearance_height_to_lid": "220",
     "extruder_clearance_height_to_rod": "14",
     "extruder_clearance_radius": "45",
-    "from": "system",
     "gcode_flavor": "marlin2",
     "host_type": "prusalink",
-    "inherits": "fdm_machine_common",
-    "instantiation": "false",
     "layer_change_gcode": [
         ";AFTER_LAYER_CHANGE\n;[layer_z]\n{if ! spiral_mode}M74 W[extruded_weight_total]{endif}\n"
     ],
@@ -87,7 +89,6 @@
     ],
     "max_layer_height": "0.30",
     "min_layer_height": "0.07",
-    "name": "fdm_machine_common_mk4s",
     "nozzle_diameter": [
         "0.4"
     ],
@@ -98,7 +99,7 @@
         "0x210"
     ],
     "printable_height": "220",
-    "printer_model": "MK4S",
+    "printer_model": "Prusa MK4S",
     "printer_notes": [
         "Don't remove the following keywords! These keywords are used in the \"compatible printer\" condition of the print and filament profiles to link the particular print and filament profiles to this printer profile.\nPRINTER_MODEL_MK4S\nPG\nNO_TEMPLATES"
     ],
@@ -119,7 +120,6 @@
         "640x480/PNG"
     ],
     "travel_slope": "1",
-    "type": "machine",
     "use_firmware_retraction": "0",
     "use_relative_e_distances": "1",
     "wipe": "0",
