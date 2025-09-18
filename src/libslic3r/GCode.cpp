@@ -2666,6 +2666,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
     m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
+    // mark the first filament used in print
+    file.write_format(";VT%d\n",initial_extruder_id);
 
     //flush FanMover buffer to avoid modifying the start gcode if it's manual.
     if (!machine_start_gcode.empty() && this->m_fan_mover.get() != nullptr)
