@@ -4372,7 +4372,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     bool any_gizmo_active = m_gizmos.get_current() != nullptr;
-    bool swapMouseButtons = wxGetApp().app_config->get_bool("swap_mouse_buttons");
+    bool swap_mouse_buttons = wxGetApp().app_config->get_bool("swap_mouse_buttons");
 
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos)) {
         m_mouse.drag.move_requires_threshold = false;
@@ -4575,7 +4575,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_dirty = true;
         }
     }
-    else if (evt.Dragging() || is_camera_rotate(evt, swapMouseButtons) || is_camera_pan(evt, swapMouseButtons)) {
+    else if (evt.Dragging() || is_camera_rotate(evt, swap_mouse_buttons) || is_camera_pan(evt, swap_mouse_buttons)) {
         m_mouse.dragging = true;
 
         if (m_layers_editing.state != LayersEditing::Unknown && layer_editing_object_idx != -1) {
@@ -4585,10 +4585,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
         // do not process the dragging if the left mouse was set down in another canvas
-        else if (is_camera_rotate(evt, swapMouseButtons)) {
+        else if (is_camera_rotate(evt, swap_mouse_buttons)) {
             // Orca: Sphere rotation for painting view
             // if dragging over blank area with left button or button functions swapped then rotate
-            if ((any_gizmo_active || swapMouseButtons || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
+            if ((any_gizmo_active || swap_mouse_buttons || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
                 Camera& camera = wxGetApp().plater()->get_camera();
                 auto mult_pref = wxGetApp().app_config->get("camera_orbit_mult");
                 const double mult = mult_pref.empty() ? 1.0 : std::stod(mult_pref);
@@ -4661,7 +4661,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_camera_movement = true;
             m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
         }
-        else if (is_camera_pan(evt, swapMouseButtons)) {
+        else if (is_camera_pan(evt, swap_mouse_buttons)) {
             // if dragging with right button or if button functions swapped and dragging with left button over blank area then pan
             if (m_mouse.is_start_position_2D_defined()) {
                 // get point in model space at Z = 0
@@ -4688,10 +4688,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if ((evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) ||
-               (m_camera_movement && !is_camera_rotate(evt, swapMouseButtons) && !is_camera_pan(evt, swapMouseButtons))) {
+               (m_camera_movement && !is_camera_rotate(evt, swap_mouse_buttons) && !is_camera_pan(evt, swap_mouse_buttons))) {
         m_mouse.position = pos.cast<double>();
 
-        if (swapMouseButtons ? evt.RightUp() : evt.LeftUp()) {
+        if (swap_mouse_buttons ? evt.RightUp() : evt.LeftUp()) {
             m_rotation_center(0) = m_rotation_center(1) = m_rotation_center(2) = 0.f;
         }
 
