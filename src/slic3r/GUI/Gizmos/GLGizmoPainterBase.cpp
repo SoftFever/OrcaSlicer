@@ -196,18 +196,18 @@ void GLGizmoPainterBase::render_cursor_circle()
         m_circle.reset();
 
         GLModel::Geometry init_data;
-        static const unsigned int StepsCount = 32;
-        static const float StepSize = 2.0f * float(PI) / float(StepsCount);
+        const unsigned int steps_count = 32;
         init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2 };
+        const float step_size = 2.0f * float(PI) / float(steps_count);
         init_data.color  = { 0.0f, 1.0f, 0.3f, 1.0f };
-        init_data.reserve_vertices(StepsCount);
-        init_data.reserve_indices(StepsCount);
+        init_data.reserve_vertices(steps_count);
+        init_data.reserve_indices(steps_count);
 
         // vertices + indices
-        for (unsigned int i = 0; i < StepsCount; ++i) {
-            const float angle = float(i * StepSize);
+        for (unsigned int i = 0; i < steps_count; ++i) {
+            const float angle = float(i * step_size);
             init_data.add_vertex(Vec2f(2.0f * ((center.x() + ::cos(angle) * radius) * cnv_inv_width - 0.5f),
-                                       -2.0f * ((center.y() + ::sin(angle) * radius) * cnv_inv_height - 0.5f)));
+              -2.0f * ((center.y() + ::sin(angle) * radius) * cnv_inv_height - 0.5f)));
             init_data.add_index(i);
         }
 
