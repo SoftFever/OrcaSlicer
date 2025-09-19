@@ -185,17 +185,26 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
     if [[ -n "${BUILD_DEBUG}" ]] ; then
         # build deps with debug and release else cmake will not find required sources
         mkdir -p deps/build/release
-	CMAKE_CMD="cmake ${CMAKE_C_CXX_COMPILER_CLANG[*]} ${CMAKE_LLD_LINKER_ARGS[*]} -S deps -B deps/build/release -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} -G Ninja -DDESTDIR=${SCRIPT_PATH}/deps/build/destdir -DDEP_DOWNLOAD_DIR=${SCRIPT_PATH}/deps/DL_CACHE ${COLORED_OUTPUT} ${BUILD_ARGS[*]}"
-	echo "${CMAKE_CMD}"
-	${CMAKE_CMD}
+	set -x
+	cmake -S deps -B deps/build/release "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" -G Ninja \
+	      -DSLIC3R_PCH="${SLIC3R_PRECOMPILED_HEADERS}" \
+	      -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" \
+	      -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" \
+	      "${COLORED_OUTPUT}" \
+	      "${BUILD_ARGS[@]}"
+	set +x
         cmake --build deps/build/release
         BUILD_ARGS+=(-DCMAKE_BUILD_TYPE=Debug)
     fi
 
-    # If this isn't in one quote, then empty variables can add two single quotes and mess up argument parsing for cmake.
-    CMAKE_CMD="cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG[*]} ${CMAKE_LLD_LINKER_ARGS[*]} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS[*]}"
-    echo "${CMAKE_CMD}"
-    ${CMAKE_CMD}
+    set -x
+    cmake -S deps -B deps/build "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" -G Ninja \
+	  -DSLIC3R_PCH="${SLIC3R_PRECOMPILED_HEADERS}" \
+	  -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" \
+	  -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" \
+	  "${COLORED_OUTPUT}" \
+	  "${BUILD_ARGS[@]}"
+    set +x
     cmake --build deps/build
 fi
 

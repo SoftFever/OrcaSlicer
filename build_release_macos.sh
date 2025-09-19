@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-while getopts ":dpa:snt:xbc1:h" opt; do
+while getopts ":dpa:snt:xbc:1h" opt; do
   case "${opt}" in
     d )
         export BUILD_TARGET="deps"
