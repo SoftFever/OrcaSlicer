@@ -103,6 +103,10 @@ struct FillParams
     bool            locked_zag{false};
     float           infill_lock_depth{0.0};
     float           skin_infill_depth{0.0};
+    bool            is_anisotropic{false};
+    bool            is_patchwork{false};
+    CenterOfSurfacePattern center_of_surface_pattern{CenterOfSurfacePattern::Each_Surface};
+    //bool            precision_surface{false};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 
@@ -172,6 +176,7 @@ public:
     // BBS: this method is used to fill the ExtrusionEntityCollection.
     // It call fill_surface by default
     virtual void fill_surface_extrusion(const Surface *surface, const FillParams &params, ExtrusionEntitiesPtr &out);
+    void fill_patchwork(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out);
 
 protected:
     Fill() :
