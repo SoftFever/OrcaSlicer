@@ -1,4 +1,4 @@
-FOUND_GTK3=$(rpm -qa | grep -P '^gtk3' || true)
+#!/bin/bash
 
 REQUIRED_DEV_PACKAGES=(
     autoconf
