@@ -4318,7 +4318,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_dirty = true;
         }
     }
-    else if (evt.Dragging() || is_camera_rotate(evt, button_mappings) || is_camera_pan(evt, button_mappings)) {        
+    else if (evt.Dragging() || is_camera_rotate(evt, button_mappings) || is_camera_pan(evt, button_mappings)) {
         m_mouse.dragging = true;
 
         if (m_layers_editing.state != LayersEditing::Unknown && layer_editing_object_idx != -1) {
