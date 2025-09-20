@@ -531,6 +531,31 @@ void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::
     }
 }
 
+// Infill patterns that support multiline infill.
+bool is_multiline_pattern(InfillPattern pattern) {
+    switch (pattern) {
+        case ipGyroid:
+        case ipGrid:
+        case ipRectilinear:
+        case ipTpmsD:
+        case ipTpmsFK:
+        case ipCrossHatch:
+        case ipHoneycomb:
+        case ipLateralLattice:
+        case ipLateralHoneycomb:
+        case ipCubic:
+        case ipStars:
+        case ipAlignedRectilinear:
+        case ipLightning:
+        case ip3DHoneycomb:
+        case ipAdaptiveCubic:
+        case ipSupportCubic:
+            return true;
+        default:
+            return false;
+    }
+}
+
 void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, const bool is_global_config)
 {
     PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
@@ -557,24 +582,24 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament uses the same logic as in Print::extruders()
-    for (auto el : { "sparse_infill_pattern", "infill_combination",
+    for (auto el : { "sparse_infill_pattern", "infill_combination", "fill_multiline",
         "minimum_sparse_infill_area", "sparse_infill_filament", "infill_anchor_max","infill_shift_step","sparse_infill_rotate_template","symmetric_infill_y_axis"})
         toggle_line(el, have_infill);
 
     bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
     toggle_line("infill_combination_max_layer_height", have_combined_infill);
 
-    // Infill patterns that support multiline infill.
-    InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
-    bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear || pattern == ipTpmsD || pattern == ipTpmsFK || pattern == ipCrossHatch || pattern == ipHoneycomb || pattern == ipLateralLattice || pattern == ipLateralHoneycomb ||
-                                                  pattern == ipCubic || pattern == ipStars || pattern == ipAlignedRectilinear || pattern == ipLightning || pattern == ip3DHoneycomb || pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
-    toggle_line("fill_multiline", have_multiline_infill_pattern);
-
-    // If the infill pattern does not support multiline infill, set fill_multiline to 1.
-    if (!have_multiline_infill_pattern) {
-        DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("fill_multiline", new ConfigOptionInt(1));
-        apply(config, &new_conf);
+    InfillPattern infill_pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
+    bool have_multiline_infill_pattern = is_multiline_pattern(infill_pattern);
+    if (have_infill) {
+        toggle_field("fill_multiline", have_multiline_infill_pattern);
+        // If the infill pattern does not support multiline fill_multiline is changed to 1.
+        // Necessary when the pattern contains params.multiline (for example, triangles because they belong to the rectilinear class)
+        if (!have_multiline_infill_pattern) {
+            DynamicPrintConfig new_conf = *config;
+            new_conf.set_key_value("fill_multiline", new ConfigOptionInt(1));
+            apply(config, &new_conf);
+            }
     }
 
     // Hide infill anchor max if sparse_infill_pattern is not line or if sparse_infill_pattern is line but infill_anchor_max is 0.
@@ -611,7 +636,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("top_surface_density", has_top_shell);
     toggle_field("bottom_surface_density", has_bottom_shell);
 
-    for (auto el : { "infill_direction", "sparse_infill_line_width", "fill_multiline","gap_fill_target","filter_out_gap_fill","infill_wall_overlap",
+    for (auto el : { "infill_direction", "sparse_infill_line_width", "gap_fill_target","filter_out_gap_fill","infill_wall_overlap",
         "sparse_infill_speed", "bridge_speed", "internal_bridge_speed", "bridge_angle", "internal_bridge_angle",
         "solid_infill_direction", "solid_infill_rotate_template", "internal_solid_infill_pattern", "solid_infill_filament",
         })
