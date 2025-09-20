@@ -20,6 +20,7 @@
 #include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
 #include "format.hpp"
+#include "AABBTreeLines.hpp"
 
 #include <float.h>
 #include <oneapi/tbb/blocked_range.h>

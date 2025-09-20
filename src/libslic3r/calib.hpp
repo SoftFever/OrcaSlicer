@@ -2,10 +2,10 @@
 #include <string>
 #define calib_pressure_advance_dd
 
-#include "GCode.hpp"
 #include "GCodeWriter.hpp"
 #include "PrintConfig.hpp"
 #include "BoundingBox.hpp"
+#include "CustomGCode.hpp"
 
 namespace Slic3r {
 
@@ -319,14 +319,7 @@ protected:
         const double nozzle_diameter = m_config.opt_float("nozzle_diameter", 0);
         return m_config.get_abs_value("initial_layer_line_width", nozzle_diameter);
     };
-    double line_width() const
-    {
-        // TODO: FIXME: find out current filament/extruder?
-        const double nozzle_diameter = m_config.opt_float("nozzle_diameter", 0);
-        const double width = m_config.get_abs_value("line_width", nozzle_diameter);
-        if (width <= 0.) return Flow::auto_extrusion_width(frExternalPerimeter, nozzle_diameter);
-        return width;
-    };
+    double line_width() const;
     int    wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
 
 private:
