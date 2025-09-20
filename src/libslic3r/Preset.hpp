@@ -60,8 +60,10 @@
 #define BBL_JSON_KEY_FAMILY                     "family"
 #define BBL_JSON_KEY_BED_MODEL                  "bed_model"
 #define BBL_JSON_KEY_BED_TEXTURE                "bed_texture"
+#define BBL_JSON_KEY_IMAGE_BED_TYPE             "image_bed_type"
 #define BBL_JSON_KEY_HOTEND_MODEL               "hotend_model"
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
+#define BBL_JSON_KEY_NOT_SUPPORT_BED_TYPE       "not_support_bed_type"
 #define BBL_JSON_KEY_MODEL_ID                   "model_id"
 
 // Orca extension
@@ -113,11 +115,12 @@ public:
         std::string                 family;
         std::vector<PrinterVariant> variants;
         std::vector<std::string>	default_materials;
+        std::vector<std::string>    not_support_bed_types;
         // Vendor & Printer Model specific print bed model & texture.
         std::string 			 	bed_model;
         std::string 				bed_texture;
+        std::string                 image_bed_type;
         std::string                 hotend_model;
-
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
                 if (v.name == name)
@@ -250,7 +253,6 @@ public:
     std::string         user_id;         // preset user_id
     std::string         base_id;         // base id of preset
     std::string         sync_info;       // enum: "delete", "create", "update", ""
-    std::string         custom_defined;  // enum: "1", "0", ""
     std::string         description;     // 
     long long           updated_time{0};    //last updated time
     std::map<std::string, std::string> key_values;
@@ -475,8 +477,8 @@ public:
 
     // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
     // and select it, losing previous modifications.
-    Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
-    Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
+    Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true, Semver file_version = Semver());
+    Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true, Semver file_version = Semver());
 
     bool clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &, Preset::Type &)> modifier, bool force_rewritten = false);
     bool clone_presets_for_printer(
@@ -627,7 +629,7 @@ public:
         int    match_quality = -1;
         for (; i < n; ++i)
             // Since we use the filament selection from Wizard, it's needed to control the preset visibility too
-            if (m_presets[i].is_compatible && m_presets[i].is_visible) {
+            if (m_presets[i].is_compatible) {
                 int this_match_quality = prefered_condition(m_presets[i]);
                 if (this_match_quality > match_quality) {
                     if (match_quality == std::numeric_limits<int>::max())
@@ -664,9 +666,11 @@ public:
     template<typename PreferedCondition>
     void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType select_other_if_incompatible, PreferedCondition prefered_condition)
     {
-        if (this->update_compatible_internal(active_printer, active_print, select_other_if_incompatible) == (size_t)-1)
+        if (this->update_compatible_internal(active_printer, active_print, select_other_if_incompatible) == (size_t)-1) {
             // Find some other compatible preset, or the "-- default --" preset.
-            this->select_preset(this->first_compatible_idx(prefered_condition));
+            size_t index = this->first_compatible_idx(prefered_condition);
+            this->select_preset(index);
+        }
     }
     void            update_compatible(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType select_other_if_incompatible)
         { this->update_compatible(active_printer, active_print, select_other_if_incompatible, [](const Preset&) -> int { return 0; }); }

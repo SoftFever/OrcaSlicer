@@ -13,40 +13,18 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
 
-static void get_default_k_n_value(const std::string &filament_id, float &k, float &n)
-{
-    if (filament_id.compare("GFG00") == 0) {
-        // PETG
-        k = 0.04;
-        n = 1.0;
-    } else if (filament_id.compare("GFB00") == 0 || filament_id.compare("GFB50") == 0) {
-        // ABS
-        k = 0.04;
-        n = 1.0;
-    } else if (filament_id.compare("GFU01") == 0) {
-        // TPU
-        k = 0.2;
-        n = 1.0;
-    } else if (filament_id.compare("GFB01") == 0) {
-        // ASA
-        k = 0.04;
-        n = 1.0;
-    } else {
-        // PLA , other
-        k = 0.02;
-        n = 1.0;
-    }
-}
-
 static std::string float_to_string_with_precision(float value, int precision = 3)
 {
+    if (value < 0)
+        return std::string();
+
     std::stringstream stream;
     stream << std::fixed << std::setprecision(precision) << value;
     return stream.str();
 }
 
 AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id)
-    : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+    : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_color_picker_popup(ColorPickerPopup(this))
 {
     create();
@@ -171,13 +149,15 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER, 0);
 
-    m_readonly_filament = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_READONLY | wxRIGHT);
+    // make the style the same with disable m_input_k_val, FIXME
+    m_readonly_filament = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_readonly_filament->SetBorderColor(StateColor(std::make_pair(0xDBDBDB, (int)StateColor::Focused), std::make_pair(0x009688, (int)StateColor::Hovered),
         std::make_pair(0xDBDBDB, (int)StateColor::Normal)));
     m_readonly_filament->SetFont(::Label::Body_14);
     m_readonly_filament->SetLabelColor(AMS_MATERIALS_SETTING_GREY800);
     m_readonly_filament->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto& e) {});
     m_readonly_filament->GetTextCtrl()->Hide();
+    m_readonly_filament->Disable();
     m_sizer_filament->Add(m_readonly_filament, 1, wxALIGN_CENTER, 0);
     m_readonly_filament->Hide();
 
@@ -283,7 +263,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_panel_SN->Fit();
 
     wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_tip_readonly          = new Label(parent, L"");
+    m_tip_readonly = new Label(parent, "");
     m_tip_readonly->SetForegroundColour(*wxBLACK);
     m_tip_readonly->SetBackgroundColour(*wxWHITE);
     m_tip_readonly->SetMinSize(wxSize(FromDIP(380), -1));
@@ -308,18 +288,24 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
+    auto cali_title_sizer = new wxBoxSizer(wxHORIZONTAL);
     // title
-    m_ratio_text = new wxStaticText(parent, wxID_ANY, _L("Factors of Flow Dynamics Calibration"));
+    m_ratio_text   = new wxStaticText(parent, wxID_ANY, _L("Factors of Flow Dynamics Calibration"));
     m_ratio_text->SetForegroundColour(wxColour(50, 58, 61));
     m_ratio_text->SetFont(Label::Head_14);
 
-    m_ratio_text->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
-    m_ratio_text->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-
-    m_ratio_text->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        wxLaunchDefaultBrowser(wxT("https://wiki.bambulab.com/en/software/bambu-studio/calibration_pa"));
-    });
-
+    std::string language = wxGetApp().app_config->get("language");
+    wxString    region   = "en";
+    if (language.find("zh") == 0)
+        region = "zh";
+    wxString link_url = wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
+    m_wiki_ctrl = new wxHyperlinkCtrl(parent, wxID_ANY, "Wiki", link_url);
+    m_wiki_ctrl->SetNormalColour(*wxBLUE);
+    m_wiki_ctrl->SetHoverColour(wxColour(0, 0, 200));
+    m_wiki_ctrl->SetVisitedColour(*wxBLUE);
+    m_wiki_ctrl->SetFont(Label::Head_14);
+    cali_title_sizer->Add(m_ratio_text, 0, wxALIGN_CENTER_VERTICAL);
+    cali_title_sizer->Add(m_wiki_ctrl, 0, wxALIGN_CENTER_VERTICAL);
 
     wxBoxSizer *m_sizer_cali_resutl = new wxBoxSizer(wxHORIZONTAL);
     // pa profile
@@ -369,8 +355,8 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_input_n_val->Hide();
 
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    sizer->Add(m_ratio_text, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    sizer->Add(cali_title_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
     sizer->Add(m_sizer_cali_resutl, 0, wxLEFT | wxRIGHT, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer->Add(kn_val_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
@@ -438,8 +424,6 @@ void AMSMaterialsSetting::update()
 
 void AMSMaterialsSetting::enable_confirm_button(bool en)
 {
-    m_tip_readonly->SetLabelText(wxEmptyString);
-
     if (!en) {
         m_button_confirm->Show(obj->is_support_filament_setting_inprinting);
     }
@@ -448,6 +432,7 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
     }
 
     if (!m_is_third) {
+        m_tip_readonly->SetLabelText(wxEmptyString);
         m_tip_readonly->Hide();
     }
     else {
@@ -457,6 +442,8 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
             } else {
                 m_tip_readonly->SetLabelText(_L("Setting Virtual slot information while printing is not supported"));
             }
+        } else {
+            m_tip_readonly->SetLabelText(wxEmptyString);
         }
 
         m_tip_readonly->Wrap(FromDIP(380));
@@ -532,12 +519,8 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
             if (is_virtual_tray()) {
                 tray_id = ams_id;
                 if (!obj->is_enable_np) {
-                    tray_id = VIRTUAL_TRAY_ID;
+                    tray_id = VIRTUAL_TRAY_DEPUTY_ID;
                 }
-
-                // TODO: Orca hack
-                ams_id = 255;
-                slot_id = 0;
             }
             select_index_info.tray_id = tray_id;
             select_index_info.ams_id = ams_id;
@@ -567,19 +550,20 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
 
                 //check is it in the filament blacklist
-                if (!is_virtual_tray() && wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
+                if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
                     bool in_blacklist = false;
                     std::string action;
                     std::string info;
                     std::string filamnt_type;
+                    std::string filamnt_name;
                     it->get_filament_type(filamnt_type);
 
-                    auto vendor = dynamic_cast<ConfigOptionStrings*> (it->config.option("filament_vendor"));
+                    auto vendor = dynamic_cast<ConfigOptionStrings *>(it->config.option("filament_vendor"));
+
                     if (vendor && (vendor->values.size() > 0)) {
                         std::string vendor_name = vendor->values[0];
-                        DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, in_blacklist, action, info);
+                        DeviceManager::check_filaments_in_blacklist(obj->printer_type, vendor_name, filamnt_type, ams_id, slot_id, it->name, in_blacklist, action, info);
                     }
-
 
                     if (in_blacklist) {
                         if (action == "prohibition") {
@@ -658,13 +642,13 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
         auto vt_tray = ams_id;
         if (!obj->is_enable_np) {
-            vt_tray = VIRTUAL_TRAY_ID;
+            vt_tray = VIRTUAL_TRAY_DEPUTY_ID;
         }
 
         if (obj->cali_version >= 0) {
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = vt_tray;
-            select_index_info.ams_id = 255; // TODO: Orca hack
+            select_index_info.ams_id = ams_id;
             select_index_info.slot_id = 0;
             select_index_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
 
@@ -794,7 +778,7 @@ void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
 
 bool AMSMaterialsSetting::is_virtual_tray()
 {
-    if (ams_id == VIRTUAL_TRAY_ID)
+    if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID)
         return true;
     return false;
 }
@@ -830,17 +814,8 @@ bool AMSMaterialsSetting::Show(bool show)
         m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         //m_clr_picker->set_color(m_clr_picker->GetParent()->GetBackgroundColour());
 
-        /*if (obj && (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI) || obj->is_high_printer_type())) {
-            m_ratio_text->Show();
-            m_k_param->Show();
-            m_input_k_val->Show();
-        }
-        else {
-            m_ratio_text->Hide();
-            m_k_param->Hide();
-            m_input_k_val->Hide();
-        }*/
         m_ratio_text->Show();
+        m_wiki_ctrl->Show();
         m_k_param->Show();
         m_input_k_val->Show();
         Layout();
@@ -848,6 +823,15 @@ bool AMSMaterialsSetting::Show(bool show)
         wxGetApp().UpdateDarkUI(this);
     }
     return DPIDialog::Show(show);
+}
+
+static void _collect_filament_info(const wxString& shown_name,
+                                   const Preset& filament,
+                                   unordered_map<wxString, wxString>& query_filament_vendors,
+                                   unordered_map<wxString, wxString>& query_filament_types)
+{
+    query_filament_vendors[shown_name] = filament.config.get_filament_vendor();
+    query_filament_vendors[shown_name] = filament.config.get_filament_type();
 }
 
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n)
@@ -863,9 +847,12 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     m_input_k_val->GetTextCtrl()->SetValue(k);
     m_input_n_val->GetTextCtrl()->SetValue(n);
 
-    int selection_idx = -1, idx = 0;
+    int idx = 0;
     wxArrayString filament_items;
     wxString bambu_filament_name;
+    wxString hint_filament_name; // the hint type to be selected
+    std::unordered_map<wxString, wxString> query_filament_vendors;// some information for sort
+    std::unordered_map<wxString, wxString> query_filament_types;  //
 
     std::set<std::string> filament_id_set;
     PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
@@ -897,6 +884,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                         // name matched
                         if (filament_it->is_system) {
                             filament_items.push_back(filament_it->alias);
+                            _collect_filament_info(filament_it->alias, preset, query_filament_vendors, query_filament_types);
+
                             FilamentInfos filament_infos;
                             filament_infos.filament_id             = filament_it->filament_id;
                             filament_infos.setting_id              = filament_it->setting_id;
@@ -910,6 +899,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                                 user_preset_alias                = wx_user_preset_alias.ToStdString();
 
                                 filament_items.push_back(user_preset_alias);
+                                _collect_filament_info(user_preset_alias, preset, query_filament_vendors, query_filament_types);
+
                                 FilamentInfos filament_infos;
                                 filament_infos.filament_id            = filament_it->filament_id;
                                 filament_infos.setting_id             = filament_it->setting_id;
@@ -918,8 +909,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                         }
 
                         if (filament_it->filament_id == ams_filament_id) {
-                            selection_idx = idx;
-                            bambu_filament_name = filament_it->alias;
+                            hint_filament_name = from_u8(filament_it->alias);
+                            bambu_filament_name = from_u8(filament_it->alias);
 
 
                             // update if nozzle_temperature_range is found
@@ -990,6 +981,74 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         //m_button_confirm->Show();
     }
 
+    // Sort the filaments
+    {
+        static std::unordered_map<wxString, int> sorted_names
+        {   {"Bambu PLA Basic",        0},
+            {"Bambu PLA Matte",        1},
+            {"Bambu PETG HF",          2},
+            {"Bambu ABS",              3},
+            {"Bambu PLA Silk",         4},
+            {"Bambu PLA-CF" ,          5},
+            {"Bambu PLA Galaxy",       6},
+            {"Bambu PLA Metal",        7},
+            {"Bambu PLA Marble",       8},
+            {"Bambu PETG-CF",          9},
+            {"Bambu PETG Translucent", 10},
+            {"Bambu ABS-GF",           11}
+        };
+
+        static std::vector<wxString> sorted_vendors { "Bambu Lab", "Generic" };
+        static std::vector<wxString> sorted_types { "PLA", "PETG", "ABS", "TPU" };
+        auto _filament_sorter = [&query_filament_vendors, &query_filament_types](const wxString& left, const wxString& right) -> bool
+        {
+            { // Compare name order
+                const auto& iter1 = sorted_names.find(left);
+                int name_order1 = (iter1 != sorted_names.end()) ? iter1->second : INT_MAX;
+
+                const auto& iter2 = sorted_names.find(right);
+                int name_order2 = (iter2 != sorted_names.end()) ? iter2->second : INT_MAX;
+                if (name_order1 != name_order2)
+                {
+                    return name_order1 < name_order2;
+                }
+            }
+            { // Compare vendor
+                auto iter1 = std::find(sorted_vendors.begin(), sorted_vendors.end(), query_filament_vendors[left]);
+                auto iter2 = std::find(sorted_vendors.begin(), sorted_vendors.end(), query_filament_vendors[right]);
+                if (iter1 != iter2)
+                {
+                    return iter1 < iter2;
+                };
+            }
+            { // Compare type
+                auto iter1 = std::find(sorted_types.begin(), sorted_types.end(), query_filament_types[left]);
+                auto iter2 = std::find(sorted_types.begin(), sorted_types.end(), query_filament_types[right]);
+                if (iter1 != iter2)
+                {
+                    return iter1 < iter2;
+                }
+            }
+
+            return left < right;
+        };
+
+        std::sort(filament_items.begin(), filament_items.end(), _filament_sorter);
+    }
+
+    // traverse the hint selection idx
+    int selection_idx = -1;
+    {
+        for(int i = 0; i < filament_items.size(); i++)
+        {
+            if (hint_filament_name == filament_items[i])
+            {
+                selection_idx = i;
+                break;
+            }
+        }
+    }
+
     m_comboBox_filament->Set(filament_items);
     m_comboBox_filament->SetSelection(selection_idx);
     post_select_event(selection_idx);
@@ -997,6 +1056,9 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     if (selection_idx < 0) {
         m_comboBox_filament->SetValue(wxEmptyString);
     }
+
+    // Set the flag whether to open the filament setting dialog from the device page
+    m_comboBox_filament->SetClientData(new int(1));
 
     update();
     Layout();
@@ -1031,6 +1093,9 @@ void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
 
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
+    // Get the flag whether to open the filament setting dialog from the device page
+    int* from_printer = static_cast<int*>(m_comboBox_filament->GetClientData());
+
     m_filament_type = "";
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
@@ -1113,6 +1178,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         m_comboBox_cali_result->SetValue(wxEmptyString);
         m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
         m_input_n_val->GetTextCtrl()->SetValue(wxEmptyString);
+        m_comboBox_filament->SetClientData(new int(0));
         return;
     }
     else {
@@ -1147,14 +1213,42 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     m_pa_profile_items.clear();
     m_comboBox_cali_result->SetValue(wxEmptyString);
 
-    // TODO: Orca hack
-    int extruder_id = 0;
-    NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtNormal;
+    auto get_cali_index = [this](const std::string& str) -> int{
+        for (int i = 0; i < int(m_pa_profile_items.size()); ++i) {
+            if (m_pa_profile_items[i].name == str)
+                return i;
+        }
+        return 0;
+    };
+
+    int extruder_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+    if (obj->is_nozzle_flow_type_supported() && (obj->get_nozzle_flow_type(extruder_id) == NozzleFlowType::NONE_FLOWTYPE))
+    {
+        MessageDialog dlg(nullptr, _L("The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n'Device -> Print parts'"), _L("Warning"), wxICON_WARNING | wxOK);
+        dlg.ShowModal();
+    }
+
+    NozzleFlowType nozzle_flow_type = obj->get_nozzle_flow_type(extruder_id);
+    NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtStandard;
+    if (nozzle_flow_type != NozzleFlowType::NONE_FLOWTYPE)
+    {
+        nozzle_volume_type = NozzleVolumeType(nozzle_flow_type - 1);
+    }
+
     if (obj->cali_version >= 0) {
         // add default item
         PACalibResult default_item;
         default_item.cali_idx = -1;
-        get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
+        default_item.filament_id = ams_filament_id;
+        std::vector<std::string> machine_list = {"N1", "N2S", "C11", "C12", "C13", "BL-P001", "BL-P002"};
+        auto iter = std::find(machine_list.begin(), machine_list.end(), obj->printer_type);
+        if (iter == machine_list.end()) {
+            default_item.k_value = -1;
+            default_item.n_coef  = -1;
+        }
+        else {
+            get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
+        }
         m_pa_profile_items.emplace_back(default_item);
         items.push_back(_L("Default"));
 
@@ -1171,31 +1265,44 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
 
         m_comboBox_cali_result->Set(items);
-        if (ams_id == VIRTUAL_TRAY_ID) {
-            AmsTray selected_tray = this->obj->vt_tray;
-            cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items,selected_tray.cali_idx);
-            if (cali_select_idx >= 0) {
-                m_comboBox_cali_result->SetSelection(cali_select_idx);
+        if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+            if (from_printer && (*from_printer == 1)) {
+                for (auto slot : obj->vt_slot) {
+                    if (slot.id == std::to_string(ams_id))
+                        cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, slot.cali_idx);
+                }
+
+                if (cali_select_idx >= 0)
+                    m_comboBox_cali_result->SetSelection(cali_select_idx);
+                else
+                    m_comboBox_cali_result->SetSelection(0);
             }
             else {
-                m_comboBox_cali_result->SetSelection(0);
+                int index = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+                m_comboBox_cali_result->SetSelection(index);
             }
         }
         else {
-            if (this->obj->amsList.find(std::to_string(ams_id)) != this->obj->amsList.end()) {
-                Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
-                if (!selected_ams)
-                    return;
-                AmsTray* selected_tray = selected_ams->trayList[std::to_string(slot_id)];
-                if (!selected_tray)
-                    return;
-                cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
-                if (cali_select_idx < 0) {
-                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile, ams_id = " << ams_id
-                        << ", slot_id = " << slot_id << ", cali_idx = " << selected_tray->cali_idx;
-                    cali_select_idx = 0;
+            if (from_printer && (*from_printer == 1)) {
+                if (this->obj->amsList.find(std::to_string(ams_id)) != this->obj->amsList.end()) {
+                    Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
+                    if (!selected_ams)
+                        return;
+                    AmsTray* selected_tray = selected_ams->trayList[std::to_string(slot_id)];
+                    if (!selected_tray)
+                        return;
+                    cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
+                    if (cali_select_idx < 0) {
+                        BOOST_LOG_TRIVIAL(info) << "extrusion_cali_status_error: cannot find pa profile, ams_id = " << ams_id
+                            << ", slot_id = " << slot_id << ", cali_idx = " << selected_tray->cali_idx;
+                        cali_select_idx = 0;
+                    }
+                    m_comboBox_cali_result->SetSelection(cali_select_idx);
                 }
-                m_comboBox_cali_result->SetSelection(cali_select_idx);
+            }
+            else {
+                int index = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+                m_comboBox_cali_result->SetSelection(index);
             }
         }
 
@@ -1218,12 +1325,15 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
             m_input_k_val->Disable();
         }
     }
+
+    m_comboBox_filament->SetClientData(new int(0));
 }
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+    m_input_k_val->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     //m_clr_picker->msw_rescale();
     degree->msw_rescale();
     bitmap_max_degree->SetBitmap(degree->bmp());

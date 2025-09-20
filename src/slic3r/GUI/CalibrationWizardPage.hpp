@@ -98,6 +98,9 @@ public:
     virtual void SetValue(bool value, bool send_event = true);
     void msw_rescale();
 
+    void ShowPanel();
+    void HidePanel();
+
 protected:
     int m_tray_id { -1 };
     std::string m_tray_name;
@@ -160,7 +163,7 @@ protected:
     std::vector<Label*> m_text_steps;
 };
 
-class CaliPagePicture : public wxPanel 
+class CaliPagePicture : public wxPanel
 {
 public:
     CaliPagePicture(wxWindow* parent,
@@ -232,7 +235,7 @@ private:
     CaliPageActionType m_action_type;
 };
 
-class CaliPageSendingPanel : public wxPanel 
+class CaliPageSendingPanel : public wxPanel
 {
 public:
     CaliPageSendingPanel(wxWindow* parent,
@@ -277,7 +280,7 @@ protected:
     std::vector<CaliPageButton*> m_action_btns;
 };
 
-class CalibrationWizardPage : public wxPanel 
+class CalibrationWizardPage : public wxPanel
 {
 public:
     CalibrationWizardPage(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);

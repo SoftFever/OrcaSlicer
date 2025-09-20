@@ -2,9 +2,12 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/Utils.hpp"
+#include "Widgets/SwitchButton.hpp"
+#include "MsgDialog.hpp"
 
 static const wxColour STATIC_BOX_LINE_COL = wxColour(238, 238, 238);
 static const wxColour STATIC_TEXT_CAPTION_COL = wxColour(100, 100, 100);
+static const wxColour STATIC_TEXT_EXPLAIN_COL = wxColour(100, 100, 100);
 
 namespace Slic3r { namespace GUI {
 
@@ -44,6 +47,36 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         if (obj) {
             obj->command_xcam_control_auto_recovery_step_loss(m_cb_auto_recovery->GetValue());
         }
+        evt.Skip();
+    });
+
+    m_cb_open_door->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
+        if (m_cb_open_door->GetValue()) {
+            if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING); }
+        } else {
+            if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_DISABLE); }
+        }
+
+        evt.Skip();
+    });
+
+    open_door_switch_board->Bind(wxCUSTOMEVT_SWITCH_POS, [this](wxCommandEvent &evt)
+    {
+        if (evt.GetInt() == 0)
+        {
+            if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT); }
+        }
+        else if (evt.GetInt() == 1)
+        {
+            if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING); }
+        }
+
+        evt.Skip();
+    });
+
+    m_cb_save_remote_print_file_to_storage->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt)
+    {
+        if (obj) { obj->command_set_save_remote_print_file_to_storage(m_cb_save_remote_print_file_to_storage->GetValue());}
         evt.Skip();
     });
 
@@ -98,6 +131,7 @@ void PrintOptionsDialog::update_ai_monitor_status()
 void PrintOptionsDialog::update_options(MachineObject* obj_)
 {
     if (!obj_) return;
+
     if (obj_->is_support_ai_monitoring) {
         text_ai_monitoring->Show();
         m_cb_ai_monitoring->Show();
@@ -114,6 +148,16 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     }
 
     if (obj_->is_support_build_plate_marker_detect) {
+        if (obj_->m_plate_maker_detect_type == MachineObject::POS_CHECK && (text_plate_mark->GetLabel() != _L("Enable detection of build plate position"))) {
+            text_plate_mark->SetLabel(_L("Enable detection of build plate position"));
+            text_plate_mark_caption->SetLabel(_L("The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."));
+            text_plate_mark_caption->Wrap(FromDIP(260));
+        } else if (obj_->m_plate_maker_detect_type == MachineObject::TYPE_POS_CHECK && (text_plate_mark->GetLabel() != _L("Build Plate Detection"))) {
+            text_plate_mark->SetLabel(_L("Build Plate Detection"));
+            text_plate_mark_caption->SetLabel(_L("Identifies the type and position of the build plate on the heatbed. Pausing printing if a mismatch is detected."));
+            text_plate_mark_caption->Wrap(FromDIP(260));
+        }
+
         text_plate_mark->Show();
         m_cb_plate_mark->Show();
         text_plate_mark_caption->Show();
@@ -180,8 +224,11 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line7->Hide();
     }
 
+    UpdateOptionOpenDoorCheck(obj_);
+    UpdateOptionSavePrintFileToStorage(obj_);
+
     this->Freeze();
-    
+
     m_cb_first_layer->SetValue(obj_->xcam_first_layer_inspector);
     m_cb_plate_mark->SetValue(obj_->xcam_buildplate_marker_detector);
     m_cb_auto_recovery->SetValue(obj_->xcam_auto_recovery_step_loss);
@@ -200,6 +247,50 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     update_ai_monitor_status();
     this->Thaw();
     Layout();
+}
+
+void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj) {
+    if (!obj || !obj->support_door_open_check()) {
+        m_cb_open_door->Hide();
+        text_open_door->Hide();
+        open_door_switch_board->Hide();
+        return;
+    }
+
+    if (obj->get_door_open_check_state() != MachineObject::DOOR_OPEN_CHECK_DISABLE) {
+        m_cb_open_door->SetValue(true);
+        open_door_switch_board->Enable();
+
+        if (obj->get_door_open_check_state() == MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING) {
+            open_door_switch_board->updateState("left");
+            open_door_switch_board->Refresh();
+        } else if (obj->get_door_open_check_state() == MachineObject::DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT) {
+            open_door_switch_board->updateState("right");
+            open_door_switch_board->Refresh();
+        }
+
+    } else {
+        m_cb_open_door->SetValue(false);
+        open_door_switch_board->Disable();
+    }
+
+    m_cb_open_door->Show();
+    text_open_door->Show();
+    open_door_switch_board->Show();
+}
+
+void PrintOptionsDialog::UpdateOptionSavePrintFileToStorage(MachineObject *obj)
+{
+    if (obj && obj->support_save_remote_print_file_to_storage())
+    {
+        m_cb_save_remote_print_file_to_storage->SetValue(obj->get_save_remote_print_file_to_storage());
+    }
+    else
+    {
+        m_cb_save_remote_print_file_to_storage->Hide();
+        text_save_remote_print_file_to_storage->Hide();
+        text_save_remote_print_file_to_storage_explain->Hide();
+    }
 }
 
 wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
@@ -239,7 +330,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     if (ai_monitoring_level_list->GetCount() > 0) {
         ai_monitoring_level_list->SetSelection(0);
     }
-    
+
 
     line_sizer->Add(FromDIP(30), 0, 0, 0);
     line_sizer->Add(text_ai_monitoring_caption, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -301,14 +392,44 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_auto_recovery, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_auto_recovery, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(0,0,0,wxTOP, FromDIP(15));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line4 = new StaticLine(parent, false);
     line4->SetLineColour(wxColour(255,255,255));
     sizer->Add(line4, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    sizer->Add(0,0,0,wxTOP, FromDIP(20));
+
+    //Open Door Detection
+    line_sizer         = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_open_door     = new CheckBox(parent);
+    text_open_door     = new Label(parent, _L("Open Door Dectection"));
+    text_open_door->SetFont(Label::Body_14);
+    open_door_switch_board = new SwitchBoard(parent, _L("Notification"), _L("Pause printing"), wxSize(FromDIP(200), FromDIP(26)));
+    open_door_switch_board->Disable();
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_open_door, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_open_door, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    sizer->Add(open_door_switch_board, 0, wxLEFT, FromDIP(58));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+
+     //Save remote file to local storage
+    line_sizer     = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_save_remote_print_file_to_storage = new CheckBox(parent);
+    text_save_remote_print_file_to_storage = new Label(parent, _L("Store Sent Files on External Storage"));
+    text_save_remote_print_file_to_storage->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_save_remote_print_file_to_storage, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_save_remote_print_file_to_storage, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    text_save_remote_print_file_to_storage_explain = new Label(parent, _L("Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"));
+    text_save_remote_print_file_to_storage_explain->SetForegroundColour(STATIC_TEXT_EXPLAIN_COL);
+    text_save_remote_print_file_to_storage_explain->SetFont(Label::Body_14);
+    text_save_remote_print_file_to_storage_explain->Wrap(FromDIP(260));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    sizer->Add(text_save_remote_print_file_to_storage_explain, 0, wxLEFT, FromDIP(58));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     //Allow prompt sound
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -437,44 +558,33 @@ bool PrintOptionsDialog::Show(bool show)
 PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
 : DPIDialog(parent, wxID_ANY, _L("Printer Parts"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    nozzle_type_map[NozzleType::ntHardenedSteel]    = _L("Hardened Steel");
-    nozzle_type_map[NozzleType::ntStainlessSteel]   = _L("Stainless Steel");
-
-    nozzle_type_selection_map[NozzleType::ntHardenedSteel]  = 0;
-    nozzle_type_selection_map[NozzleType::ntStainlessSteel] = 1;
-
-    nozzle_stainless_diameter_map[0] = 0.2;
-    nozzle_stainless_diameter_map[1] = 0.4;
-
-    nozzle_hard_diameter_map[0] = 0.4;
-    nozzle_hard_diameter_map[1] = 0.6;
-    nozzle_hard_diameter_map[2] = 0.8;
-
     SetBackgroundColour(*wxWHITE);
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    
+
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer* single_sizer = new wxBoxSizer(wxVERTICAL);
+    single_panel = new wxPanel(this);
+    single_panel->SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer* multiple_sizer = new wxBoxSizer(wxVERTICAL);
+    multiple_panel = new wxPanel(this);
+    multiple_panel->SetBackgroundColour(*wxWHITE);
 
     auto m_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line->SetBackgroundColour(wxColour(166, 169, 170));
-    
+
+    /*single nozzle*/
     //nozzle type
     wxBoxSizer* line_sizer_nozzle_type = new wxBoxSizer(wxHORIZONTAL);
 
-    auto nozzle_type  = new Label(this, _L("Nozzle Type"));
+    auto nozzle_type = new Label(single_panel, _L("Nozzle Type"));
     nozzle_type->SetFont(Label::Body_14);
     nozzle_type->SetMinSize(wxSize(FromDIP(180), -1));
     nozzle_type->SetMaxSize(wxSize(FromDIP(180), -1));
     nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     nozzle_type->Wrap(-1);
 
-    ID_NOZZLE_TYPE_CHECKBOX_SINGLE = wxNewId();
-    ID_NOZZLE_DIAMETER_CHECKBOX_SINGLE = wxNewId();
-
-    nozzle_type_checkbox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
-    nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntHardenedSteel]);
-    nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntStainlessSteel]);
-    nozzle_type_checkbox->SetSelection(0);
-
+    nozzle_type_checkbox = new ComboBox(single_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(180), -1), 0, NULL, wxCB_READONLY);
 
     line_sizer_nozzle_type->Add(nozzle_type, 0, wxALIGN_CENTER, 5);
     line_sizer_nozzle_type->Add(0, 0, 1, wxEXPAND, 5);
@@ -483,143 +593,247 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
 
     //nozzle diameter
     wxBoxSizer* line_sizer_nozzle_diameter = new wxBoxSizer(wxHORIZONTAL);
-    auto nozzle_diameter = new Label(this, _L("Nozzle Diameter"));
+    auto nozzle_diameter  = new Label(single_panel, _L("Nozzle Diameter"));
     nozzle_diameter->SetFont(Label::Body_14);
     nozzle_diameter->SetMinSize(wxSize(FromDIP(180), -1));
     nozzle_diameter->SetMaxSize(wxSize(FromDIP(180), -1));
     nozzle_diameter->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     nozzle_diameter->Wrap(-1);
 
-    nozzle_diameter_checkbox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
- 
+    nozzle_diameter_checkbox = new ComboBox(single_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(180), -1), 0, NULL, wxCB_READONLY);
 
     line_sizer_nozzle_diameter->Add(nozzle_diameter, 0, wxALIGN_CENTER, 5);
     line_sizer_nozzle_diameter->Add(0, 0, 1, wxEXPAND, 5);
     line_sizer_nozzle_diameter->Add(nozzle_diameter_checkbox, 0, wxALIGN_CENTER, 5);
 
-    sizer->Add(m_line, 0, wxEXPAND, 0);
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
-    sizer->Add(line_sizer_nozzle_type, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(18));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
-    sizer->Add(line_sizer_nozzle_diameter, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(18));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    //nozzle flow type
+    wxBoxSizer* line_sizer_nozzle_flowtype = new wxBoxSizer(wxHORIZONTAL);
+    nozzle_flow_type_label = new Label(single_panel, _L("Nozzle Flow"));
+    nozzle_flow_type_label->SetFont(Label::Body_14);
+    nozzle_flow_type_label->SetMinSize(wxSize(FromDIP(180), -1));
+    nozzle_flow_type_label->SetMaxSize(wxSize(FromDIP(180), -1));
+    nozzle_flow_type_label->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    nozzle_flow_type_label->Wrap(-1);
 
+    nozzle_flow_type_checkbox = new ComboBox(single_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(180), -1), 0, NULL, wxCB_READONLY);
+
+    line_sizer_nozzle_flowtype->Add(nozzle_flow_type_label, 0, wxALIGN_CENTER, 5);
+    line_sizer_nozzle_flowtype->Add(0, 0, 1, wxEXPAND, 5);
+    line_sizer_nozzle_flowtype->Add(nozzle_flow_type_checkbox, 0, wxALIGN_CENTER, 5);
+
+    change_nozzle_tips = new Label(single_panel, _L("Please change the nozzle settings on the printer."));
+    change_nozzle_tips->SetFont(Label::Body_13);
+    change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+
+    single_sizer->Add(m_line, 0, wxEXPAND, 0);
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    single_sizer->Add(line_sizer_nozzle_type, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    single_sizer->Add(line_sizer_nozzle_diameter, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    single_sizer->Add(line_sizer_nozzle_flowtype, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    single_sizer->Add(change_nozzle_tips, 0, wxLEFT, FromDIP(24));
+    single_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+
+    single_panel->SetSizer(single_sizer);
+    single_panel->Layout();
+    single_panel->Fit();
+
+    /*multiple nozzle*/
+    /*left*/
+    auto leftTitle = new Label(multiple_panel, _L("Left Nozzle"));
+    leftTitle->SetFont(::Label::Head_15);
+    leftTitle->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#2C2C2E")));
+
+    wxBoxSizer *multiple_left_line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto multiple_left_nozzle_type = new Label(multiple_panel, _L("Nozzle Type"));
+    multiple_left_nozzle_type->SetFont(Label::Body_14);
+    multiple_left_nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+
+    multiple_left_nozzle_type_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(180), -1), 0, NULL, wxCB_READONLY);
+
+    auto multiple_left_nozzle_diameter = new Label(multiple_panel, _L("Nozzle Diameter"));
+    multiple_left_nozzle_diameter->SetFont(Label::Body_14);
+    multiple_left_nozzle_diameter->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    multiple_left_nozzle_diameter_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+
+    auto multiple_left_nozzle_flow = new Label(multiple_panel, _L("Nozzle Flow"));
+    multiple_left_nozzle_flow->SetFont(Label::Body_14);
+    multiple_left_nozzle_flow->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    multiple_left_nozzle_flow_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+
+    multiple_left_line_sizer->Add(multiple_left_nozzle_type, 0, wxALIGN_CENTER, 0);
+    multiple_left_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(8));
+    multiple_left_line_sizer->Add(multiple_left_nozzle_type_checkbox, 0, wxALIGN_CENTER, 0);
+    multiple_left_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(15));
+    multiple_left_line_sizer->Add(multiple_left_nozzle_diameter, 0, wxALIGN_CENTER, 0);
+    multiple_left_line_sizer->Add(0, 0, 1, wxLEFT, FromDIP(8));
+    multiple_left_line_sizer->Add(multiple_left_nozzle_diameter_checkbox, 0, wxALIGN_CENTER, 0);
+    multiple_left_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(15));
+    multiple_left_line_sizer->Add(multiple_left_nozzle_flow, 0, wxALIGN_CENTER, 0);
+    multiple_left_line_sizer->Add(0, 0, 1, wxLEFT, FromDIP(8));
+    multiple_left_line_sizer->Add(multiple_left_nozzle_flow_checkbox, 0, wxALIGN_CENTER, 0);
+
+    /*right*/
+    auto rightTitle = new Label(multiple_panel, _L("Right Nozzle"));
+    rightTitle->SetFont(::Label::Head_15);
+    rightTitle->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#2C2C2E")));
+
+    wxBoxSizer *multiple_right_line_sizer  = new wxBoxSizer(wxHORIZONTAL);
+    auto        multiple_right_nozzle_type = new Label(multiple_panel, _L("Nozzle Type"));
+    multiple_right_nozzle_type->SetFont(Label::Body_14);
+    multiple_right_nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+
+    multiple_right_nozzle_type_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(180), -1), 0, NULL, wxCB_READONLY);
+
+    auto multiple_right_nozzle_diameter = new Label(multiple_panel, _L("Nozzle Diameter"));
+    multiple_right_nozzle_diameter->SetFont(Label::Body_14);
+    multiple_right_nozzle_diameter->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    multiple_right_nozzle_diameter_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+
+    auto multiple_right_nozzle_flow = new Label(multiple_panel, _L("Nozzle Flow"));
+    multiple_right_nozzle_flow->SetFont(Label::Body_14);
+    multiple_right_nozzle_flow->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    multiple_right_nozzle_flow_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+
+    multiple_right_line_sizer->Add(multiple_right_nozzle_type, 0, wxALIGN_CENTER, 0);
+    multiple_right_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(8));
+    multiple_right_line_sizer->Add(multiple_right_nozzle_type_checkbox, 0, wxALIGN_CENTER, 0);
+    multiple_right_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(15));
+    multiple_right_line_sizer->Add(multiple_right_nozzle_diameter, 0, wxALIGN_CENTER, 0);
+    multiple_right_line_sizer->Add(0, 0, 1, wxLEFT, FromDIP(8));
+    multiple_right_line_sizer->Add(multiple_right_nozzle_diameter_checkbox, 0, wxALIGN_CENTER, 0);
+    multiple_right_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(15));
+    multiple_right_line_sizer->Add(multiple_right_nozzle_flow, 0, wxALIGN_CENTER, 0);
+    multiple_right_line_sizer->Add(0, 0, 1, wxLEFT, FromDIP(8));
+    multiple_right_line_sizer->Add(multiple_right_nozzle_flow_checkbox, 0, wxALIGN_CENTER, 0);
+
+    multiple_change_nozzle_tips = new Label(multiple_panel, _L("Please change the nozzle settings on the printer."));
+    multiple_change_nozzle_tips->SetFont(Label::Body_13);
+    multiple_change_nozzle_tips->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+
+    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(40));
+    multiple_sizer->Add(leftTitle, 0, wxLEFT, FromDIP(18));
+    multiple_sizer->Add(multiple_left_line_sizer, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(18));
+    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    multiple_sizer->Add(rightTitle, 0, wxLEFT, FromDIP(18));
+    multiple_sizer->Add(multiple_right_line_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(18));
+    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    multiple_sizer->Add(multiple_change_nozzle_tips, 0, wxLEFT, FromDIP(18));
+    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+
+    multiple_panel->SetSizer(multiple_sizer);
+    multiple_panel->Layout();
+    multiple_panel->Fit();
+
+    /*inset data*/
+    sizer->Add(single_panel, 0, wxEXPAND, 0);
+    sizer->Add(multiple_panel, 0, wxEXPAND, 0);
     SetSizer(sizer);
     Layout();
     Fit();
+
+    single_panel->Hide();
+
     wxGetApp().UpdateDlgDarkUI(this);
-
-    nozzle_type_checkbox->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
-    nozzle_diameter_checkbox->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
-
-    nozzle_type_checkbox->SetId(ID_NOZZLE_TYPE_CHECKBOX_SINGLE);
-
-    nozzle_diameter_checkbox->SetId(ID_NOZZLE_DIAMETER_CHECKBOX_SINGLE);
 }
 
-PrinterPartsDialog::~PrinterPartsDialog()
-{
-    nozzle_type_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
-    nozzle_diameter_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
-}
+PrinterPartsDialog::~PrinterPartsDialog() {}
 
-void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
-{
-    ComboBox* current_nozzle_type_combox = nullptr;
-    ComboBox* current_nozzle_diameter_combox = nullptr;
-
-    int nozzle_id = MAIN_NOZZLE_ID;
-
-    if (evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_SINGLE ||
-        evt.GetId() == ID_NOZZLE_DIAMETER_CHECKBOX_SINGLE) {
-        current_nozzle_type_combox = nozzle_type_checkbox;
-        current_nozzle_diameter_combox = nozzle_diameter_checkbox;
-        nozzle_id = MAIN_NOZZLE_ID;
-    }
-
-    if (obj) {
-        try {
-            auto nozzle_type        = NozzleType::ntHardenedSteel;
-            auto nozzle_diameter    = 0.4f;
-
-            for (auto sm : nozzle_type_selection_map) {
-                if (sm.second == current_nozzle_type_combox->GetSelection()) {
-                    nozzle_type = sm.first;
-                }
-            }
-
-
-            /*update nozzle diameter*/
-            if (evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_SINGLE) {
-                nozzle_diameter_checkbox->Clear();
-                std::map<int, float> diameter_map;
-                if (nozzle_type == NozzleType::ntHardenedSteel) {
-                    diameter_map = nozzle_hard_diameter_map;
-                } else if (nozzle_type == NozzleType::ntStainlessSteel) {
-                    diameter_map = nozzle_stainless_diameter_map;
-                }
-
-                for (int i = 0; i < diameter_map.size(); i++) { nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_map[i])); }
-                nozzle_diameter_checkbox->SetSelection(0);
-            }
-
-            nozzle_diameter = std::stof(current_nozzle_diameter_combox->GetStringSelection().ToStdString());
-            nozzle_diameter = round(nozzle_diameter * 10) / 10;
-
-            /*if (!obj->is_enable_np)*/ {
-                if (current_nozzle_type_combox && current_nozzle_type_combox->IsShown() && current_nozzle_type_combox->GetValue().IsEmpty()) { return; }
-                if (current_nozzle_diameter_combox && current_nozzle_diameter_combox->IsShown() && current_nozzle_diameter_combox->GetValue().IsEmpty()) { return; }
-                obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter = nozzle_diameter;
-                obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type     = nozzle_type;
-                obj->command_set_printer_nozzle(NozzleTypeEumnToStr[nozzle_type], nozzle_diameter);
-            }
-        } catch (...) {}
-    }
-}
-
-void PrinterPartsDialog::on_dpi_changed(const wxRect& suggested_rect)
-{
-     Fit();
-}
-
-void PrinterPartsDialog::update_machine_obj(MachineObject* obj_)
-{
-    obj = obj_;
-}
-
+void PrinterPartsDialog::on_dpi_changed(const wxRect& suggested_rect) { Fit(); }
+void PrinterPartsDialog::update_machine_obj(MachineObject* obj_) { if (obj_) { obj = obj_; }}
 bool PrinterPartsDialog::Show(bool show)
 {
     if (show) {
         wxGetApp().UpdateDlgDarkUI(this);
         CentreOnParent();
 
-        auto type     = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type;
-        auto diameter = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter;
+        /*disable editing*/
+        EnableEditing(false);
+        assert(DeviceManager::get_printer_can_set_nozzle(obj->printer_type) == false);/*editing is not supported*/
 
-        nozzle_diameter_checkbox->Clear();
+        if (obj->m_extder_data.extders.size() <= 1) {
+            single_panel->Show();
+            multiple_panel->Hide();
 
-        if (type == NozzleType::ntUndefine) {
-            nozzle_type_checkbox->SetValue(wxEmptyString);
-            nozzle_diameter_checkbox->SetValue(wxEmptyString);
+            auto type     = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type;
+            auto diameter = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter;
+            nozzle_type_checkbox->SetValue(GetString(type));
+            nozzle_diameter_checkbox->SetValue(GetString(diameter));
+
+            // nozzle flow type
+            nozzle_flow_type_label->Show(obj->is_nozzle_flow_type_supported());
+            nozzle_flow_type_checkbox->Show(obj->is_nozzle_flow_type_supported());
+            if (obj->is_nozzle_flow_type_supported())
+            {
+                auto flow_type = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_flow_type;
+                nozzle_flow_type_checkbox->SetValue(GetString(flow_type));
+            }
         } else {
-            std::map<int, float> diameter_map;
-            if (type == NozzleType::ntHardenedSteel) {
-                diameter_map = nozzle_hard_diameter_map;
-            } else if (type == NozzleType::ntStainlessSteel) {
-                diameter_map = nozzle_stainless_diameter_map;
-            }
+            single_panel->Hide();
+            multiple_panel->Show();
 
-            for (int i = 0; i < diameter_map.size(); i++) {
-                nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_map[i]));
-                if (diameter == diameter_map[i]) {
-                    nozzle_diameter_checkbox->SetSelection(i);
-                }
-            }
+            //left
+            auto type      = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_type;
+            auto diameter  = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_diameter;
+            auto flow_type = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_flow_type;
+            multiple_left_nozzle_type_checkbox->SetValue(GetString(type));
+            multiple_left_nozzle_diameter_checkbox->SetValue(GetString(diameter));
+            multiple_left_nozzle_flow_checkbox->SetValue(GetString(flow_type));
 
-            nozzle_type_checkbox->SetSelection(nozzle_type_selection_map[type]);
+            //right
+            type      = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type;
+            diameter  = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter;
+            flow_type = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_flow_type;
+            multiple_right_nozzle_type_checkbox->SetValue(GetString(type));
+            multiple_right_nozzle_diameter_checkbox->SetValue(GetString(diameter));
+            multiple_right_nozzle_flow_checkbox->SetValue(GetString(flow_type));
         }
+
+        Layout();
+        Fit();
     }
     return DPIDialog::Show(show);
+}
+
+void PrinterPartsDialog::EnableEditing(bool enable) {
+
+    nozzle_type_checkbox->Enable(enable);
+    nozzle_diameter_checkbox->Enable(enable);
+    nozzle_flow_type_checkbox->Enable(enable);
+
+    multiple_left_nozzle_type_checkbox->Enable(enable);
+    multiple_left_nozzle_diameter_checkbox->Enable(enable);
+    multiple_left_nozzle_flow_checkbox->Enable(enable);
+
+    multiple_right_nozzle_type_checkbox->Enable(enable);
+    multiple_right_nozzle_diameter_checkbox->Enable(enable);
+    multiple_right_nozzle_flow_checkbox->Enable(enable);
+
+    change_nozzle_tips->Show(!enable);
+    multiple_change_nozzle_tips->Show(!enable);
+}
+
+wxString PrinterPartsDialog::GetString(NozzleType nozzle_type) const {
+    switch (nozzle_type) {
+        case Slic3r::ntHardenedSteel:  return _L("Hardened Steel");
+        case Slic3r::ntStainlessSteel: return _L("Stainless Steel");
+        case Slic3r::ntTungstenCarbide: return _L("Tungsten Carbide");
+        default: break;
+    }
+
+    return wxEmptyString;
+}
+
+wxString PrinterPartsDialog::GetString(NozzleFlowType nozzle_flow_type) const {
+    switch (nozzle_flow_type) {
+        case Slic3r::S_FLOW: return _L("Standard");
+        case Slic3r::H_FLOW: return _L("High flow");
+        default: break;
+    }
+
+    return wxEmptyString;
 }
 
 }} // namespace Slic3r::GUI

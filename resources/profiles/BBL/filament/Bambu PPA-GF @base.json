@@ -1,0 +1,11 @@
+{
+    "type": "filament",
+    "name": "Bambu PPA-GF @base",
+    "inherits": "fdm_filament_ppa",
+    "from": "system",
+    "filament_id": "GFN07",
+    "instantiation": "false",
+    "filament_type": [
+        "PPA-GF"
+    ]
+}

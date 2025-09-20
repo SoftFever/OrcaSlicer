@@ -8,6 +8,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "MsgDialog.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "Plater.hpp"
 
 #include <wx/msgdlg.h>
 
@@ -42,14 +43,14 @@ void ConfigManipulation::toggle_field(const std::string &opt_key, const bool tog
     cb_toggle_field(opt_key, toggle, opt_index);
 }
 
-void ConfigManipulation::toggle_line(const std::string& opt_key, const bool toggle)
+void ConfigManipulation::toggle_line(const std::string& opt_key, const bool toggle, int opt_index)
 {
     if (local_config) {
         if (local_config->option(opt_key) == nullptr)
             return;
     }
     if (cb_toggle_line)
-        cb_toggle_line(opt_key, toggle);
+        cb_toggle_line(opt_key, toggle, opt_index);
 }
 
 void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrintConfig *config) {
@@ -758,8 +759,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("preheat_steps", have_ooze_prevention && (preheat_steps > 0));
 
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
-    for (auto el : { "prime_tower_width", "prime_tower_brim_width"})
+    for (auto el : {"prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_tower_rib_wall", "prime_tower_infill_gap","prime_tower_enable_framework"})
         toggle_line(el, have_prime_tower);
+
+    bool have_rib_wall = config->opt_bool("prime_tower_rib_wall")&&have_prime_tower;
+    for (auto el : {"prime_tower_extra_rib_length", "prime_tower_rib_width", "prime_tower_fillet_wall"})
+        toggle_line(el, have_rib_wall);
+    toggle_field("prime_tower_width", !have_rib_wall);
 
     for (auto el : {"wall_filament", "sparse_infill_filament", "solid_infill_filament", "wipe_tower_filament"})
         toggle_line(el, !bSEMM);
@@ -975,7 +981,7 @@ int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
             "Yes - Change these settings and enable spiral mode automatically\n"
             "No  - Give up using spiral mode this time"));
 
-    MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
+    MessageDialog dialog(wxGetApp().plater(), msg_text, "",
         wxICON_WARNING | (!is_object_config ? wxYES | wxNO : wxOK));
     is_msg_dlg_already_exist = true;
     auto answer = dialog.ShowModal();

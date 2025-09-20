@@ -1,0 +1,163 @@
+#include "PrePrintChecker.hpp"
+#include "GUI_Utils.hpp"
+#include "I18N.hpp"
+
+namespace Slic3r { namespace GUI {
+
+std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
+{
+    switch (status) {
+    case PrintStatusInit: return "PrintStatusInit";
+    case PrintStatusNoUserLogin: return "PrintStatusNoUserLogin";
+    case PrintStatusInvalidPrinter: return "PrintStatusInvalidPrinter";
+    case PrintStatusConnectingServer: return "PrintStatusConnectingServer";
+    case PrintStatusReadingTimeout: return "PrintStatusReadingTimeout";
+    case PrintStatusReading: return "PrintStatusReading";
+    case PrintStatusInUpgrading: return "PrintStatusInUpgrading";
+    case PrintStatusModeNotFDM: return "PrintStatusModeNotFDM";
+    case PrintStatusInSystemPrinting: return "PrintStatusInSystemPrinting";
+    case PrintStatusInPrinting: return "PrintStatusInPrinting";
+    case PrintStatusNozzleMatchInvalid: return "PrintStatusNozzleMatchInvalid";
+    case PrintStatusNozzleDataInvalid: return "PrintStatusNozzleDataInvalid";
+    case PrintStatusNozzleDiameterMismatch: return "PrintStatusNozzleDiameterMismatch";
+    case PrintStatusNozzleTypeMismatch: return "PrintStatusNozzleTypeMismatch";
+    case PrintStatusRefreshingMachineList: return "PrintStatusRefreshingMachineList";
+    case PrintStatusSending: return "PrintStatusSending";
+    case PrintStatusLanModeNoSdcard: return "PrintStatusLanModeNoSdcard";
+    case PrintStatusNoSdcard: return "PrintStatusNoSdcard";
+    case PrintStatusLanModeSDcardNotAvailable: return "PrintStatusLanModeSDcardNotAvailable";
+    case PrintStatusNeedForceUpgrading: return "PrintStatusNeedForceUpgrading";
+    case PrintStatusNeedConsistencyUpgrading: return "PrintStatusNeedConsistencyUpgrading";
+    case PrintStatusNotSupportedPrintAll: return "PrintStatusNotSupportedPrintAll";
+    case PrintStatusBlankPlate: return "PrintStatusBlankPlate";
+    case PrintStatusUnsupportedPrinter: return "PrintStatusUnsupportedPrinter";
+    case PrintStatusInvalidMapping: return "PrintStatusInvalidMapping";
+    // Handle filament errors
+    case PrintStatusAmsOnSettingup: return "PrintStatusAmsOnSettingup";
+    case PrintStatusAmsMappingInvalid: return "PrintStatusAmsMappingInvalid";
+    case PrintStatusAmsMappingU0Invalid: return "PrintStatusAmsMappingU0Invalid";
+    case PrintStatusAmsMappingMixInvalid: return "PrintStatusAmsMappingMixInvalid";
+    case PrintStatusTPUUnsupportAutoCali: return "PrintStatusTPUUnsupportAutoCali";
+    // Handle warnings
+    case PrintStatusTimelapseNoSdcard: return "PrintStatusTimelapseNoSdcard";
+    case PrintStatusTimelapseWarning: return "PrintStatusTimelapseWarning";
+    case PrintStatusMixAmsAndVtSlotWarning: return "PrintStatusMixAmsAndVtSlotWarning";
+    // Handle success statuses
+    case PrintStatusReadingFinished: return "PrintStatusReadingFinished";
+    case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
+    case PrintStatusAmsMappingSuccess: return "PrintStatusAmsMappingSuccess";
+    case PrintStatusNotOnTheSameLAN: return "PrintStatusNotOnTheSameLAN";
+    case PrintStatusNotSupportedSendToSDCard: return "PrintStatusNotSupportedSendToSDCard";
+    case PrintStatusPublicInitFailed: return "PrintStatusPublicInitFailed";
+    case PrintStatusPublicUploadFiled: return "PrintStatusPublicUploadFiled";
+    case PrintStatusReadyToGo: return "PrintStatusReadyToGo";
+    default: return "Unknown status";
+    }
+}
+
+wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
+{
+    switch (status) {
+    case PrintStatusNoUserLogin: return _L("No login account, only printers in LAN mode are displayed");
+    case PrintStatusConnectingServer: return _L("Connecting to server");
+    case PrintStatusReading: return _L("Synchronizing device information");
+    case PrintStatusReadingTimeout: return _L("Synchronizing device information time out");
+    case PrintStatusModeNotFDM: return _L("Cannot send the print job when the printer is not at FDM mode");
+    case PrintStatusInUpgrading: return _L("Cannot send the print job when the printer is updating firmware");
+    case PrintStatusInSystemPrinting: return _L("The printer is executing instructions. Please restart printing after it ends");
+    case PrintStatusInPrinting: return _L("The printer is busy on other print job");
+    case PrintStatusAmsOnSettingup: return _L("AMS is setting up. Please try again later.");
+    case PrintStatusAmsMappingMixInvalid: return _L("Please do not mix-use the Ext with AMS");
+    case PrintStatusNozzleDataInvalid: return _L("Invalid nozzle information, please refresh or manually set nozzle information.");
+    case PrintStatusLanModeNoSdcard: return _L("Storage needs to be inserted before printing via LAN.");
+    case PrintStatusLanModeSDcardNotAvailable: return _L("Storage is not available or is in read-only mode.");
+    case PrintStatusNoSdcard: return _L("Storage needs to be inserted before printing.");
+    case PrintStatusNeedForceUpgrading: return _L("Cannot send the print job to a printer whose firmware is required to get updated.");
+    case PrintStatusNeedConsistencyUpgrading: return _L("Cannot send the print job to a printer whose firmware is required to get updated.");
+    case PrintStatusBlankPlate: return _L("Cannot send the print job for empty plate");
+    case PrintStatusTimelapseNoSdcard: return _L("Storage needs to be inserted to record timelapse.");
+    case PrintStatusMixAmsAndVtSlotWarning: return _L("You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing.");
+    case PrintStatusTPUUnsupportAutoCali: return _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");
+    case PrintStatusWarningKvalueNotUsed: return _L("Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value.");
+    case PrintStatusNotSupportedPrintAll: return _L("This printer does not support printing all plates");
+    }
+    return wxEmptyString;
+}
+
+void PrePrintChecker::clear()
+{
+    printerList.clear();
+    filamentList.clear();
+}
+
+void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip)
+{
+    prePrintInfo info;
+
+    if (is_error(state)) {
+        info.level = prePrintInfoLevel::Error;
+    } else if (is_warning(state)) {
+        info.level = prePrintInfoLevel::Warning;
+    } else {
+        info.level = prePrintInfoLevel::Normal;
+    }
+
+    if (is_error_printer(state)) {
+        info.type = prePrintInfoType::Printer;
+    } else if (is_error_filament(state)) {
+        info.type = prePrintInfoType::Filament;
+    } else if (is_warning_printer(state)) {
+        info.type = prePrintInfoType::Printer;
+    } else if (is_warning_filament(state)) {
+        info.type = prePrintInfoType::Filament;
+    }
+
+    if (!msg.IsEmpty()) {
+        info.msg  = msg;
+        info.tips = tip;
+    } else {
+        info.msg  = get_pre_state_msg(state);
+        info.tips = wxEmptyString;
+    }
+
+    switch (info.type) {
+    case prePrintInfoType::Filament:
+        filamentList.push_back(info);
+        break;
+    case prePrintInfoType::Printer:
+        printerList.push_back(info);
+        break;
+    default: break;
+    }
+}
+
+
+//void PrePrintMsgBoard::add(const wxString &msg, const wxString &tips, bool is_error)
+//{
+//    if (msg.IsEmpty()) { return; }
+//
+//    /*message*/
+//    // create label
+//    if (!m_sizer->IsEmpty()) { m_sizer->AddSpacer(FromDIP(10)); }
+//    Label *msg_label = new Label(this, wxEmptyString);
+//    m_sizer->Add(msg_label, 0, wxLEFT, 0);
+//
+//    // set message
+//    msg_label->SetLabel(msg);
+//    msg_label->SetMinSize(wxSize(FromDIP(420), -1));
+//    msg_label->SetMaxSize(wxSize(FromDIP(420), -1));
+//    msg_label->Wrap(FromDIP(420));
+//
+//    // font color
+//    auto colour = is_error ? wxColour("#D01B1B") : wxColour(0xFF, 0x6F, 0x00);
+//    msg_label->SetForegroundColour(colour);
+//
+//    /*tips*/
+//    if (!tips.IsEmpty()) { /*Not supported yet*/
+//    }
+//
+//    Layout();
+//    Fit();
+//}
+
+}};

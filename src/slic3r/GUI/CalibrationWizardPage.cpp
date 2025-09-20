@@ -34,17 +34,22 @@ wxString get_cali_mode_caption_string(CalibMode mode)
 
 wxString get_calibration_wiki_page(CalibMode cali_mode)
 {
+    std::string language = wxGetApp().app_config->get("language");
+    wxString    region   = "en";
+    if (language.find("zh") == 0)
+        region = "zh";
+
     switch (cali_mode) {
     case CalibMode::Calib_PA_Line:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_pa");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
     case CalibMode::Calib_Flow_Rate:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_flow_rate");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_flow_rate", region);
     case CalibMode::Calib_Vol_speed_Tower:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_volumetric");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_volumetric", region);
     case CalibMode::Calib_Temp_Tower:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_temperature");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_temperature", region);
     case CalibMode::Calib_Retraction_tower:
-        return wxString("https://wiki.bambulab.com/en/software/bambu-studio/calibration_retraction");
+        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_retraction", region);
     default:
         return "";
     }
@@ -273,6 +278,19 @@ FilamentComboBox::FilamentComboBox(wxWindow* parent, const wxPoint& pos, const w
     this->SetSizer(main_sizer);
     this->Layout();
     main_sizer->Fit(this);
+}
+
+void FilamentComboBox::ShowPanel()
+{
+    this->Show();
+    set_select_mode(m_mode);
+}
+
+void FilamentComboBox::HidePanel()
+{
+    this->Hide();
+    m_radioBox->Hide();
+    m_checkBox->Hide();
 }
 
 void FilamentComboBox::set_select_mode(CalibrationFilamentMode mode)
@@ -804,7 +822,7 @@ CaliPageSendingPanel::CaliPageSendingPanel(wxWindow* parent, wxWindowID id, cons
     Layout();
     Fit();
 
-    Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {
+    Bind(EVT_SHOW_ERROR_INFO_SEND, [this](auto& e) {
         show_send_failed_info(true);
         });
 }

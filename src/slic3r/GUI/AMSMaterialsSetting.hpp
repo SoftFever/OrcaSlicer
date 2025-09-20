@@ -171,6 +171,7 @@ protected:
 
     wxPanel *           m_panel_kn;
     wxStaticText*       m_ratio_text;
+    wxHyperlinkCtrl *   m_wiki_ctrl;
     wxStaticText*       m_k_param;
     TextInput*          m_input_k_val;
     wxStaticText*       m_n_param;

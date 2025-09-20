@@ -132,8 +132,6 @@ AddMachinePanel::~AddMachinePanel() {
         update_hms_tag();
         e.Skip();
     });
-
-    Bind(EVT_JUMP_TO_HMS, &MonitorPanel::jump_to_HMS, this);
 }
 
 MonitorPanel::~MonitorPanel()
@@ -198,7 +196,7 @@ MonitorPanel::~MonitorPanel()
     m_tabpanel->AddPage(m_upgrade_panel, _L("Update"), "", false);
 
     m_hms_panel = new HMSPanel(m_tabpanel);
-    m_tabpanel->AddPage(m_hms_panel, "HMS","", false);
+    m_tabpanel->AddPage(m_hms_panel, _L("Assistant(HMS)"),    "", false);
 
     m_initialized = true;
     show_status((int)MonitorStatus::MONITOR_NO_PRINTER);
@@ -216,6 +214,7 @@ void MonitorPanel::set_default()
     //m_bitmap_wifi_signal->SetBitmap(wxNullBitmap);
 
     wxGetApp().sidebar().load_ams_list({}, {});
+    wxGetApp().sidebar().update_sync_status(nullptr);
 }
 
 wxWindow* MonitorPanel::create_side_tools()
@@ -276,8 +275,7 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 {
      if (update_flag) {
          update_all();
-         Layout();
-         Refresh();
+         //Layout();
      }
 }
 
@@ -301,7 +299,10 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
         obj_->last_cali_version = -1;
         obj_->reset_pa_cali_history_result();
         obj_->reset_pa_cali_result();
-        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
+        Sidebar &sidebar = GUI::wxGetApp().sidebar();
+        sidebar.load_ams_list(obj_->dev_id, obj_);
+        sidebar.update_sync_status(obj_);
+        sidebar.set_need_auto_sync_after_connect_printer(sidebar.need_auto_sync_extruder_list_after_connect_priner(obj_));
     }
 
     Layout();
@@ -332,44 +333,16 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 void MonitorPanel::on_size(wxSizeEvent &event)
 {
     Layout();
-    Refresh();
+    //event.Skip();
+    //Refresh();
 }
 
 void MonitorPanel::update_all()
 {
     NetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev)
-        return;
+    if (!dev) return;
     obj = dev->get_selected_machine();
-
-    // check valid machine
-    if (obj && dev->get_my_machine(obj->dev_id) == nullptr) {
-        dev->set_selected_machine("");
-        if (m_agent)
-            m_agent->set_user_selected_machine("");
-        show_status((int)MONITOR_NO_PRINTER);
-        return;
-    }
-
-    //BBS check mqtt connections if user is login
-    if (wxGetApp().is_user_login()) {
-        dev->check_pushing();
-        // check mqtt connection and reconnect if disconnected
-        try {
-            m_agent->refresh_connection();
-        }
-        catch (...) {
-            ;
-        }
-    }
-
-    if (obj) {
-        wxGetApp().reset_to_active();
-        if (obj->connection_type() != last_conn_type) {
-            last_conn_type = obj->connection_type();
-        }
-    }
 
     m_status_info_panel->obj = obj;
     m_upgrade_panel->update(obj);
@@ -381,9 +354,11 @@ void MonitorPanel::update_all()
         show_status((int)MONITOR_NO_PRINTER);
         m_hms_panel->clear_hms_tag();
         m_tabpanel->GetBtnsListCtrl()->showNewTag(3, false);
+        m_status_info_panel->update(obj);
         return;
     }
 
+    if (obj->connection_type() != last_conn_type) { last_conn_type = obj->connection_type(); }
     if (obj->is_connecting()) {
         show_status(MONITOR_CONNECTING);
         return;
@@ -422,6 +397,12 @@ void MonitorPanel::update_all()
 void MonitorPanel::update_hms_tag()
 {
     for (auto hmsitem : m_hms_panel->temp_hms_list) {
+
+        if (!obj) { break;}
+
+        const wxString &msg = wxGetApp().get_hms_query()->query_hms_msg(obj->dev_id, hmsitem.second.get_long_error_code());
+        if (msg.empty()){ continue;} /*STUDIO-10363 it's hidden message*/
+
         if (!hmsitem.second.already_read) {
             //show HMS new tag
             m_tabpanel->GetBtnsListCtrl()->showNewTag(3, true);
@@ -454,10 +435,11 @@ bool MonitorPanel::Show(bool show)
             if (obj == nullptr) {
                 dev->load_last_machine();
                 obj = dev->get_selected_machine();
-                if (obj)
+                if (obj && obj->is_info_ready(false))
                     GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
             } else {
                 obj->reset_update_time();
+                //select_machine(obj->dev_id);
             }
         }
     } else {
@@ -503,12 +485,7 @@ void MonitorPanel::show_status(int status)
 
     BOOST_LOG_TRIVIAL(info) << "monitor: show_status = " << status;
 
-
-#if !BBL_RELEASE_TO_PUBLIC
-    m_upgrade_panel->update(nullptr);
-#endif
-
-Freeze();
+//Freeze();
     // update panels
     if (m_side_tools) { m_side_tools->show_status(status); };
     m_status_info_panel->show_status(status);
@@ -533,7 +510,7 @@ Freeze();
         m_tabpanel->Layout();
     }
     Layout();
-Thaw();
+//Thaw();
 }
 
 std::string MonitorPanel::get_string_from_tab(PrinterTab tab)

@@ -329,7 +329,7 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     m_scrolledWindow->Layout();
     m_sizxer_scrolledWindow->Fit(m_scrolledWindow);
 
-#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+#if defined(__WINDOWS__)
 	m_sizer_search_bar = new wxBoxSizer(wxVERTICAL);
 	m_search_bar = new wxSearchCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	m_search_bar->SetDescriptiveText(_L("Search"));
@@ -520,7 +520,7 @@ void SelectMachinePopup::update_other_devices()
             m_other_list_machine_panel.push_back(mpanel);
             m_sizer_other_devices->Add(op, 0, wxEXPAND, 0);
         }
-#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+#if defined(__WINDOWS__)
         if (!search_for_printer(mobj)) {
             op->Hide();
         }
@@ -647,7 +647,7 @@ void SelectMachinePopup::update_user_devices()
         MachineObjectPanel* op = nullptr;
         if (i < m_user_list_machine_panel.size()) {
             op = m_user_list_machine_panel[i]->mPanel;
-#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+#if defined(__WINDOWS__)
 			if (!search_for_printer(mobj)) {
 				op->Hide();
 			} else {
@@ -694,6 +694,9 @@ void SelectMachinePopup::update_user_devices()
                     mobj->set_access_code("");
                     mobj->erase_user_access_code();
                 }
+
+                if (GUI::wxGetApp().plater())
+                    GUI::wxGetApp().plater()->update_machine_sync_status();
 
                 MessageDialog msg_wingow(nullptr, _L("Log out successful."), "", wxAPPLY | wxOK);
                 if (msg_wingow.ShowModal() == wxOK) { return; }
@@ -766,15 +769,19 @@ void SelectMachinePopup::update_user_devices()
 
 bool SelectMachinePopup::search_for_printer(MachineObject* obj)
 {
-	std::string search_text = std::string((m_search_bar->GetValue()).mb_str());
+	const std::string& search_text = m_search_bar->GetValue().ToStdString();
 	if (search_text.empty()) {
 		return true;
 	}
-	auto name = obj->dev_name;
-	auto ip = obj->dev_ip;
-	auto name_it = name.find(search_text);
-	auto ip_it = ip.find(search_text);
-	if ((name_it != std::string::npos)||(ip_it != std::string::npos)) {
+
+	const auto& name = wxString::FromUTF8(obj->dev_name).ToStdString();
+    const auto& name_it = name.find(search_text);
+    if (name_it != std::string::npos) {
+        return true;
+    }
+
+	const auto& ip_it = obj->dev_ip.find(search_text);
+	if (ip_it != std::string::npos) {
 		return true;
     }
 
@@ -944,8 +951,15 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
         m_valid_type = NoValid;
     }
 
+    if (m_valid_type == Valid && new_dev_name.length() > 32)
+    {
+        info_line    = _L("The name is not allowed to exceeds 32 characters.");
+        m_valid_type = NoValid;
+    }
+
     if (m_valid_type == NoValid) {
         m_static_valid->SetLabel(info_line);
+        m_static_valid->Wrap(m_static_valid->GetSize().GetWidth());
         Layout();
     }
 
@@ -1015,6 +1029,7 @@ PinCodePanel::PinCodePanel(wxWindow* parent, int type, wxWindowID winid /*= wxID
      if (m_type == 0) {txt = _L("Bind with Pin Code");}
      else if (m_type == 1) {txt = _L("Bind with Access Code");}
 
+     WxFontUtils::get_suitable_font_size(0.5 * size.GetHeight(), dc);
      auto txt_size = dc.GetTextExtent(txt);
      dc.DrawText(txt, wxPoint(FromDIP(28), (size.y - txt_size.y) / 2));
 

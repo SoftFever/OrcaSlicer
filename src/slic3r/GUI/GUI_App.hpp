@@ -29,6 +29,11 @@
 #include <mutex>
 #include <stack>
 
+#ifdef __APPLE__
+#include <IOKit/pwr_mgt/IOPMLib.h>
+#include <IOKit/IOMessage.h>
+#endif
+
 //#define BBL_HAS_FIRST_PAGE          1
 #define STUDIO_INACTIVE_TIMEOUT     15*60*1000
 #define LOG_FILES_MAX_NUM           30
@@ -317,7 +322,6 @@ private:
 public:
     //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
-    void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
     bool            OnInit() override;
     int             OnExit() override;
@@ -334,6 +338,7 @@ public:
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
+    bool                   is_blocking_printing(MachineObject *obj_ = nullptr);
     Slic3r::TaskManager*   getTaskManager() { return m_task_manager; }
     HMSQuery* get_hms_query() { return hms_query; }
     NetworkAgent* getAgent() { return m_agent; }
@@ -437,7 +442,8 @@ public:
     void            import_zip(wxWindow* parent, wxString& input_file) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
-    wxString transition_tridid(int trid_id);
+    wxString        transition_tridid(int trid_id) const;
+    wxString        transition_tridid(int trid_id, bool is_n3s) const;
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg();
     void            ShowUserLogin(bool show = true);
@@ -485,7 +491,7 @@ public:
     static std::string format_display_version();
     std::string     format_IP(const std::string& ip);
     void            show_dialog(wxString msg);
-    void            push_notification(wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
+    void            push_notification(const MachineObject* obj, wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);
@@ -521,7 +527,7 @@ public:
     void            update_internal_development();
     void            show_ip_address_enter_dialog(wxString title = wxEmptyString);
     void            show_ip_address_enter_dialog_handler(wxCommandEvent &evt);
-    bool            show_modal_ip_address_enter_dialog(wxString title = wxEmptyString);
+    bool            show_modal_ip_address_enter_dialog(bool input_sn, wxString title = wxEmptyString);
 
     // BBS
     //void            add_config_menu(wxMenuBar *menu);
@@ -710,6 +716,18 @@ private:
     boost::optional<Semver> m_last_config_version;
     bool                    m_config_corrupted { false };
     std::string             m_open_method;
+
+#ifdef __APPLE__
+    void        RegisterMacPowerCallBack();
+    void        UnRegisterMacPowerCallBack();
+    static void MacPowerCallBack(void* refcon, io_service_t service, natural_t messageType, void * messageArgument);
+
+    bool                   m_mac_powercallback_registered = false;
+    void*                  m_mac_refcon;
+    IONotificationPortRef  m_mac_io_notify_port;
+    io_object_t            m_mac_io_obj;
+    io_service_t           m_mac_io_service;
+#endif
 };
 
 DECLARE_APP(GUI_App)

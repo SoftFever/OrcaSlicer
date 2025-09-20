@@ -103,7 +103,25 @@ void CalibrationCaliPage::set_cali_img()
             m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual", 400));
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
-            m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
+            if (curr_obj) {
+                if (curr_obj->is_multi_extruders()) {
+                    if (m_cur_extruder_id == 0) {
+                        m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_multi_extruders_right", 400));
+                    } else {
+                        assert(m_cur_extruder_id == 1);
+                        m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_multi_extruders_left", 400));
+                    }
+                }
+                else if (curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
+                    m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto_i3", 400));
+                }
+                else {
+                    m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
+                }
+            }
+            else {
+                m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_auto", 400));
+            }
         }
     }
     else if (m_cali_mode == CalibMode::Calib_Flow_Rate) {
@@ -169,6 +187,11 @@ void CalibrationCaliPage::update(MachineObject* obj)
     // enable calibration when finished
     bool enable_cali = false;
     if (obj) {
+        if (obj->m_extder_data.current_extder_id != m_cur_extruder_id) {
+            m_cur_extruder_id = obj->m_extder_data.current_extder_id;
+            set_cali_img();
+        }
+
         if (obj->print_error > 0) {
             StatusPanel* status_panel = Slic3r::GUI::wxGetApp().mainframe->m_monitor->get_status_panel();
             status_panel->obj = obj;

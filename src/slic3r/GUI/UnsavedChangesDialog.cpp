@@ -1287,7 +1287,7 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         }
         else {
             auto values = config.opt<ConfigOptionFloats>(opt_key);
-            if (opt_idx < values->size())
+            if (values && opt_idx < values->size())
                 return double_to_string(values->get_at(opt_idx));
         }
         return _L("Undef");
@@ -2214,7 +2214,7 @@ void DiffPresetDialog::update_tree()
             wxString left_val = from_u8((boost::format("%1%") % left_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
             wxString right_val = from_u8((boost::format("%1%") % right_congig.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
 
-            m_tree->Append("extruders_count", type, "General", "Capabilities", local_label, left_val, right_val, category_icon_map.at("General"));
+            m_tree->Append("extruders_count", type, "General", "Capabilities", local_label, left_val, right_val, category_icon_map.at("Basic information"));
         }
 
         for (const std::string& opt_key : dirty_options) {

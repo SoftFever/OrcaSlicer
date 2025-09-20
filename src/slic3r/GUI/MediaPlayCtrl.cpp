@@ -171,7 +171,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_remote_proto = 0;
         m_device_busy = false;
     }
-    Enable(obj && obj->is_connected() && obj->m_push_count > 0);
+    Enable(obj && obj->is_info_ready() && obj->m_push_count > 0);
     if (machine == m_machine) {
         if (m_last_state == MEDIASTATE_IDLE && IsEnabled())
             Play();
@@ -278,6 +278,7 @@ void MediaPlayCtrl::Play()
         return;
     }
 
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::Play: " << m_lan_proto << m_remote_proto << m_disable_lan;
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
     if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto) && !m_disable_lan && !m_lan_ip.empty()) {
@@ -334,7 +335,7 @@ void MediaPlayCtrl::Play()
     if (agent) {
         std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
         agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
-            [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
+                [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
                 url += "&device=" + into_u8(m);
                 url += "&net_ver=" + v;
@@ -353,6 +354,11 @@ void MediaPlayCtrl::Play()
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
                     if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
                         m_failed_code = 3;
+                        if (boost::ends_with(url, "]")) {
+                            size_t n = url.find_last_of('[');
+                            if (n != std::string::npos)
+                                m_failed_code = std::atoi(url.substr(n + 1, url.length() - n - 2).c_str());
+                        }
                         Stop(_L("Connection Failed. Please check the network and try again"), from_u8(url));
                     } else {
                         m_url = url;
@@ -425,7 +431,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
                  tunnel == "rtsps";
     if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
-        if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
+        if (wxGetApp().show_modal_ip_address_enter_dialog(false, _L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
             m_user_triggered = true;
             if (m_last_user_play + wxTimeSpan::Minutes(5) < wxDateTime::Now()) {
@@ -536,7 +542,9 @@ void MediaPlayCtrl::ToggleStream()
     }
     NetworkAgent *agent = wxGetApp().getAgent();
     if (!agent) return;
-    agent->get_camera_url(m_machine, [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
+    std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
+    agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+            [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
         if (boost::algorithm::starts_with(url, "bambu:///")) {
             url += "&device=" + m;
             url += "&net_ver=" + v;
@@ -691,10 +699,7 @@ void MediaPlayCtrl::media_proc()
             continue;
         }
         lock.unlock();
-        if (url.IsEmpty()) {
-            break;
-        }
-        else if (url == "<stop>") {
+        if (url == "<stop>") {
             BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start stop";
             m_media_ctrl->Stop();
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: end stop";

@@ -204,6 +204,8 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     };
     Bind(wxEVT_SHOW, onShowHide);
     parent->GetParent()->Bind(wxEVT_SHOW, onShowHide);
+
+    m_lan_user = "bblp";
 }
 
 MediaFilePanel::~MediaFilePanel()
@@ -235,7 +237,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_remote_proto = 0;
         m_model_download_support = false;
     }
-    Enable(obj && obj->is_connected() && obj->m_push_count > 0);
+    Enable(obj && obj->is_info_ready() && obj->m_push_count > 0);
     if (machine == m_machine) {
         if ((m_waiting_enable && IsEnabled()) || (m_waiting_support && (m_local_proto || m_remote_proto))) {
             auto fs = m_image_grid->GetFileSystem();
@@ -297,7 +299,12 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             case PrinterFileSystem::Initializing: icon = m_bmp_loading; msg = _L("Initializing..."); break;
             case PrinterFileSystem::Connecting: icon = m_bmp_loading; msg = _L("Connecting..."); break;
             case PrinterFileSystem::Failed: icon = m_bmp_failed; if (extra != 1) msg = _L("Please check the network and try again. You can restart or update the printer if the issue persists."); break;
-            case PrinterFileSystem::ListSyncing: icon = m_bmp_loading; msg = _L("Loading file list..."); break;
+            case PrinterFileSystem::ListSyncing: {
+                icon = m_bmp_loading;
+                msg  = _L("Loading file list...");
+                fs->ListAllFiles();
+                break;
+            }
             case PrinterFileSystem::ListReady: icon = extra == 0 ? m_bmp_empty : m_bmp_failed; msg = extra == 0 ? _L("No files") : _L("Load failed"); break;
             }
             int err = fs->GetLastError();
@@ -435,12 +442,12 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     m_waiting_enable = false;
     if (!m_local_proto && !m_remote_proto) {
         m_waiting_support = true;
-        m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in SD card is not supported in current firmware. Please update the printer firmware."));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in storage is not supported in current firmware. Please update the printer firmware."));
         fs->SetUrl("0");
         return;
     }
     if (!m_sdcard_exist) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Please check if the SD card is inserted into the printer.\nIf it still cannot be read, you can try formatting the SD card."));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Please check if the storage is inserted into the printer.\nIf it still cannot be read, you can try formatting the storage."));
         fs->SetUrl("0");
         return;
     }
@@ -449,6 +456,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         fs->SetUrl("0");
         return;
     }
+    BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: " << m_local_proto << m_remote_proto;
     m_waiting_support = false;
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
@@ -466,14 +474,14 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         m_image_grid->SetStatus(m_bmp_failed, _L("Please enter the IP of printer to connect."));
         fs->SetUrl("0");
         fs.reset();
-        if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to view sdcard)"))) {
+        if (wxGetApp().show_modal_ip_address_enter_dialog(false, _L("LAN Connection Failed (Failed to view sdcard)"))) {
             if (auto fs = wfs.lock())
                 fs->Retry();
         }
         return;
     }
     if (m_lan_mode) {
-        m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in SD card is not supported in LAN Only Mode."));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Browsing file in storage is not supported in LAN Only Mode."));
         fs->SetUrl("0");
         return;
     }
@@ -497,7 +505,13 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
                     fs->SetUrl(url);
                 } else {
                     m_image_grid->SetStatus(m_bmp_failed, _L("Connection Failed. Please check the network and try again"));
-                    fs->SetUrl("3");
+                    std::string res = "3";
+                    if (boost::ends_with(url, "]")) {
+                        size_t n = url.find_last_of('[');
+                        if (n != std::string::npos)
+                            res = url.substr(n + 1, url.length() - n - 2);
+                    }
+                    fs->SetUrl(res);
                 }
             });
         });

@@ -146,7 +146,7 @@ void LayerNumberTextInput::update_label()
 
 void LayerNumberTextInput::set_layer_number(int layer_number)
 {
-    m_layer_number = layer_number; 
+    m_layer_number = layer_number;
     if (layer_number == MAX_LAYER_VALUE)
         m_value_type = ValueType::End;
     else
@@ -301,8 +301,8 @@ void OtherLayersSeqPanel::append_layer(const LayerSeqInfo* layer_info)
     auto drag_canvas = new DragCanvas(m_layer_input_panel, extruder_colours, order);
 
     if (layer_info) {
-        begin_layer_input->set_layer_number(layer_info->begin_layer_number);
-        end_layer_input->set_layer_number(layer_info->end_layer_number);
+        begin_layer_input->set_layer_number(std::max(MIN_LAYER_VALUE, layer_info->begin_layer_number));
+        end_layer_input->set_layer_number(std::min(MAX_LAYER_VALUE, layer_info->end_layer_number));
         drag_canvas->set_shape_list(extruder_colours, layer_info->print_sequence);
     }
 
@@ -448,7 +448,7 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
     m_drag_canvas->Hide();
     top_sizer->Add(0, 0, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 0);
     top_sizer->Add(m_drag_canvas, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxBOTTOM, FromDIP(10));
-    
+
     m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(30));
 
     // Other layer filament sequence
