@@ -2,6 +2,7 @@
 #include "BoundingBox.hpp"
 #include "Config.hpp"
 #include "Model.hpp"
+#include "GCode.hpp"
 #include <cmath>
 
 namespace Slic3r {
@@ -754,6 +755,16 @@ Vec3d CalibPressureAdvancePattern::get_start_offset()
 {
     return m_starting_point;
 }
+
+double CalibPressureAdvancePattern::line_width() const
+{
+    // TODO: FIXME: find out current filament/extruder?
+    const double nozzle_diameter = m_config.opt_float("nozzle_diameter", 0);
+    const double width           = m_config.get_abs_value("line_width", nozzle_diameter);
+    if (width <= 0.)
+        return Flow::auto_extrusion_width(frExternalPerimeter, nozzle_diameter);
+    return width;
+};
 
 void CalibPressureAdvancePattern::refresh_setup(const DynamicPrintConfig &config,
                                                 bool                      is_bbl_machine,
