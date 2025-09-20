@@ -713,6 +713,7 @@ const std::vector<ColorRGBA> GCodeViewer::Extrusion_Role_Colors{ {
     { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
     { 0.00f, 0.25f, 0.00f, 1.0f },   // erSupportTransition
     { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
+    { 0.25f, 0.30f, 0.60f, 1.0f },   // erWipeBeforeExtLoop
     { 0.37f, 0.82f, 0.58f, 1.0f }    // erCustom
 }};
 
@@ -3368,10 +3369,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     // update current sequential position
     sequential_view->current.first = !top_layer_only && keep_sequential_current_first ? std::clamp(sequential_view->current.first, global_endpoints.first, global_endpoints.last) : global_endpoints.first;
     if (global_endpoints.last == 0) {
-m_no_render_path = true;
+        m_no_render_path = true;
         sequential_view->current.last = global_endpoints.last;
     } else {
-m_no_render_path = false;
+        m_no_render_path = false;
         sequential_view->current.last = keep_sequential_current_last ? std::clamp(sequential_view->current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
     }
 
