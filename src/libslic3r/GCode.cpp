@@ -3334,16 +3334,16 @@ std::string GCode::placeholder_parser_process(const std::string &name, const std
     if (config_override) {
         const auto& custom_gcode_placeholders = custom_gcode_specific_placeholders();
 
-        // 1-st check: custom G-code "name" have to be present in s_CustomGcodeSpecificOptions;
+        // 1-st check: custom G-code "name" have to be present in s_CustomGcodeSpecificPlaceholders;
         //if (custom_gcode_placeholders.count(name) > 0) {
         //    const auto& placeholders = custom_gcode_placeholders.at(name);
         if (auto it = custom_gcode_placeholders.find(name); it != custom_gcode_placeholders.end()) {
             const auto& placeholders = it->second;
 
             for (const std::string& key : config_override->keys()) {
-                // 2-nd check: "key" have to be present in s_CustomGcodeSpecificOptions for "name" custom G-code ;
+                // 2-nd check: "key" have to be present in s_CustomGcodeSpecificPlaceholders for "name" custom G-code ;
                 if (std::find(placeholders.begin(), placeholders.end(), key) == placeholders.end()) {
-                    auto& vector = m_placeholder_error_messages[name + " - option not specified for custom gcode type (s_CustomGcodeSpecificOptions)"];
+                    auto& vector = m_placeholder_error_messages[name + " - option not specified for custom gcode type (s_CustomGcodeSpecificPlaceholders)"];
                     if (std::find(vector.begin(), vector.end(), key) == vector.end())
                         vector.emplace_back(key);
                 }
@@ -3356,7 +3356,7 @@ std::string GCode::placeholder_parser_process(const std::string &name, const std
             }
         }
         else {
-            auto& vector = m_placeholder_error_messages[name + " - gcode type not found in s_CustomGcodeSpecificOptions"];
+            auto& vector = m_placeholder_error_messages[name + " - gcode type not found in s_CustomGcodeSpecificPlaceholders"];
             if (vector.empty())
                 vector.emplace_back("");
         }
