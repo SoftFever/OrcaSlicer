@@ -111,7 +111,7 @@
             "name": "0.20mm High-Speed @Sovol SV06",
             "sub_path": "process/0.20mm High-Speed @Sovol SV06.json"
         },
-		{
+    		{
             "name": "0.20mm Standard @Sovol SV01",
             "sub_path": "process/0.20mm Standard @Sovol SV01.json"
         },

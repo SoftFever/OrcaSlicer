@@ -13,7 +13,7 @@ on:
      - 'localization/**'
      - 'resources/**'
      - ".github/workflows/build_*.yml"
-     - 'flatpak/**'
+     - 'scripts/flatpak/**'
 
   pull_request:
     branches:
@@ -28,7 +28,10 @@ on:
      - 'build_linux.sh'
      - 'build_release_vs2022.bat'
      - 'build_release_macos.sh'
-     - 'flatpak/**'
+     - 'scripts/flatpak/**'
+
+  schedule:
+      - cron: '35 7 * * *' # run once a day near midnight US Pacific time
 
   workflow_dispatch: # allows for manual dispatch
     inputs:
@@ -60,6 +63,7 @@ jobs:
       os: ${{ matrix.os }}
       arch: ${{ matrix.arch }}
       build-deps-only: ${{ inputs.build-deps-only || false }}
+      force-build: ${{ github.event_name == 'schedule' }}
     secrets: inherit
   flatpak:
     name: "Flatpak"
@@ -87,7 +91,7 @@ jobs:
     - name: "Remove unneeded stuff to free disk space"
       run:
         rm -rf /usr/local/lib/android/* /usr/share/dotnet/* /opt/ghc1/* "/usr/local/share/boost1/*"
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Get the version and date
       run: |
         ver_pure=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
@@ -103,7 +107,7 @@ jobs:
     - uses: flathub-infra/flatpak-github-actions/flatpak-builder@master
       with:
         bundle: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
-        manifest-path: flatpak/io.github.softfever.OrcaSlicer.yml
+        manifest-path: scripts/flatpak/io.github.softfever.OrcaSlicer.yml
         cache: true
         arch: ${{ matrix.variant.arch }}
         upload-artifact: false
@@ -119,6 +123,6 @@ jobs:
         upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
         release_id: 137995723
         asset_path: /__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
-        asset_name: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
+        asset_name: OrcaSlicer-Linux-flatpak_nightly_${{ matrix.variant.arch }}.flatpak
         asset_content_type: application/octet-stream
         max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted

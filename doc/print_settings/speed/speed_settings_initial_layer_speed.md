@@ -4,12 +4,12 @@ Printing the first layer slower than the rest of the print is a widely recommend
 
 ## Initial layer
 
-This setting determines the printing speed for the first layer, excluding [solid infill](strength_settings_top_bottom_shells) regions.  It applies to the [outer/inner walls](strength_settings_walls), [sparse infill](strength_settings_infill) when [bottom layers](strength_settings_top_bottom_shells#shells-layers) is set to 0.  
+This setting determines the printing speed for the first layer, excluding [solid infill](strength_settings_top_bottom_shells) regions.  It applies to the [outer/inner walls](strength_settings_walls), [sparse infill](strength_settings_infill) when [bottom layers](strength_settings_top_bottom_shells#shell-layers) is set to 0.  
 Adjusting this speed helps ensure proper adhesion and print quality for the initial layer.
 
 ## Initial layer infill
 
-Defines the speed used specifically for [solid infill](strength_settings_top_bottom_shells#shells-layers) regions on the first layer. These areas require more precise and consistent extrusion to create a flat and stable surface for subsequent layers. Printing this section too fast may result in high internal stresses (increased risk of warping), poor layer uniformity, or adhesion failures.
+Defines the speed used specifically for [solid infill](strength_settings_top_bottom_shells#shell-layers) regions on the first layer. These areas require more precise and consistent extrusion to create a flat and stable surface for subsequent layers. Printing this section too fast may result in high internal stresses (increased risk of warping), poor layer uniformity, or adhesion failures.
 
 ## Initial layer travel speed
 

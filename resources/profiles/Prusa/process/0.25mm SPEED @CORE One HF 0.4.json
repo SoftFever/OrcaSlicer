@@ -1,9 +1,9 @@
 {
-    "from": "system",
-    "inherits": "0.25mm SPEED @MK4S HF0.4",
-    "instantiation": "true",
-    "name": "0.25mm SPEED @CORE One HF 0.4",
     "type": "process",
+    "name": "0.25mm SPEED @CORE One HF 0.4",
+    "inherits": "0.25mm SPEED @MK4S HF0.4",
+    "from": "system",
+    "instantiation": "true",
     "overhang_2_4_speed": "50",
     "overhang_3_4_speed": "60%",
     "sparse_infill_speed": "300",

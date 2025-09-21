@@ -1,10 +1,10 @@
 {
     "type": "process",
-    "setting_id": "GP008",
     "name": "0.20 Support W @Snapmaker U1 (0.4 nozzle)",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_process_U1_0.20",
+    "from": "system",
+    "setting_id": "GP008",
+    "instantiation": "true",
     "enable_support": "1",
     "support_interface_top_layers": "3",
     "support_top_z_distance": "0.2",
@@ -18,8 +18,6 @@
         "Snapmaker U1 (0.4 nozzle)"
     ],
     "ooze_prevention": "1",
-    "prime_tower_width": "50",
-    "prime_volume": "38",
     "slowdown_for_curled_perimeters": "0",
     "standby_temperature_delta": "-150",
     "wipe_tower_filament": "1"

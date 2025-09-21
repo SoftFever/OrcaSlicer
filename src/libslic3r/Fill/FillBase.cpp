@@ -18,6 +18,7 @@
 #include "Fill3DHoneycomb.hpp"
 #include "FillGyroid.hpp"
 #include "FillTpmsD.hpp"
+#include "FillTpmsFK.hpp"
 #include "FillPlanePath.hpp"
 #include "FillLine.hpp"
 #include "FillRectilinear.hpp"
@@ -40,17 +41,18 @@ Fill* Fill::new_from_type(const InfillPattern type)
     switch (type) {
     case ipConcentric:          return new FillConcentric();
     case ipHoneycomb:           return new FillHoneycomb();
-    case ip2DHoneycomb:         return new Fill2DHoneycomb();
+    case ipLateralHoneycomb:         return new FillLateralHoneycomb();
     case ip3DHoneycomb:         return new Fill3DHoneycomb();
     case ipGyroid:              return new FillGyroid();
     case ipTpmsD:               return new FillTpmsD();//from creality print
+    case ipTpmsFK:              return new FillTpmsFK();
     case ipRectilinear:         return new FillRectilinear();
     case ipAlignedRectilinear:  return new FillAlignedRectilinear();
     case ipCrossHatch:          return new FillCrossHatch();
     case ipMonotonic:           return new FillMonotonic();
     case ipLine:                return new FillLine();
     case ipGrid:                return new FillGrid();
-    case ip2DLattice:           return new Fill2DLattice();
+    case ipLateralLattice:           return new FillLateralLattice();
     case ipTriangles:           return new FillTriangles();
     case ipStars:               return new FillStars();
     case ipCubic:               return new FillCubic();
@@ -304,7 +306,9 @@ std::pair<float, Point> Fill::_infill_direction(const Surface *surface) const
         out_angle = float(surface->bridge_angle);
     } else if (this->layer_id != size_t(-1)) {
         // alternate fill direction
-        out_angle += this->_layer_angle(this->layer_id / surface->thickness_layers);
+        //Orca: if template angle is not empty, don't apply layer angle
+        if(!is_using_template_angle) 
+            out_angle += this->_layer_angle(this->layer_id / surface->thickness_layers);
     } else {
 //    	printf("Layer_ID undefined!\n");
     }
