@@ -550,7 +550,7 @@ namespace Slic3r {
                 // connect to websocket, since the upload is successful, the file will be printed
                 std::string     wsUrl = get_host_from_url_no_port(m_host);
                 std::string     wsPort = std::to_string(m_websocket_port);
-                if (wsPort.empty()) {
+                if (wsPort == "0") {
                     wsPort = "3030";
                 }
                 WebSocketClient client;

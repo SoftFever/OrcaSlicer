@@ -618,6 +618,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("elegoo_printhost_websocket_port", coInt);
     def->label = L("Websocket Port");
+    def->min = 1;
     def->max = 65535;
     def->tooltip = L("Port for the printer's websocket");
     def->mode = comAdvanced;
