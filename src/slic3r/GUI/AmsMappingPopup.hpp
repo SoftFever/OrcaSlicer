@@ -34,6 +34,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
+#include "Widgets/SwitchButton.hpp"
 #include "Widgets/PopupWindow.hpp"
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>

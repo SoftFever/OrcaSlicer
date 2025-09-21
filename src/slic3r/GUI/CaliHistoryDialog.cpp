@@ -7,6 +7,7 @@
 #include "format.hpp"
 #include "MsgDialog.hpp"
 #include "slic3r/Utils/CalibUtils.hpp"
+#include <wx/gbsizer.h>
 
 namespace Slic3r {
 namespace GUI {

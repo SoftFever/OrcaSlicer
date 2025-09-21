@@ -4,6 +4,7 @@
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/ComboBox.hpp"
+#include "Widgets/SwitchButton.hpp"
 #include "DeviceManager.hpp"
 
 namespace Slic3r {

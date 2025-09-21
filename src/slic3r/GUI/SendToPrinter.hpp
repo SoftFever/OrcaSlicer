@@ -40,6 +40,7 @@
 #include <wx/hashmap.h>
 #include "Printer/PrinterFileSystem.h"
 #include "Widgets/AnimaController.hpp"
+#include "Widgets/RadioBox.hpp"
 
 namespace Slic3r {
 namespace GUI {
