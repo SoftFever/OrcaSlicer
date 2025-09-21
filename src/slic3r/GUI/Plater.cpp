@@ -1364,7 +1364,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 
     struct ExtruderInfo
     {
-        //float diameter{0.4};
+        float diameter{0.4};
         //int   nozzle_volue_type{0};
         int   ams_4{0};
         int   ams_1{0};
@@ -1373,15 +1373,15 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
 
         bool operator==(const ExtruderInfo &other) const
         {
-            return /*abs(diameter - other.diameter) < EPSILON
-                && nozzle_volue_type == other.nozzle_volue_type
+            return abs(diameter - other.diameter) < EPSILON
+                && /*nozzle_volue_type == other.nozzle_volue_type
                 &&*/ ams_4 == other.ams_4
                 && ams_1 == other.ams_1;
         }
     };
 
     auto is_same_nozzle_info = [](const ExtruderInfo &left, const ExtruderInfo &right) {
-        return abs(left.diameter - right.diameter) < EPSILON && left.nozzle_volue_type == right.nozzle_volue_type;
+        return abs(left.diameter - right.diameter) < EPSILON /*&& left.nozzle_volue_type == right.nozzle_volue_type*/;
     };
 
     // 2. update extruder status
@@ -1407,26 +1407,26 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         }
     }
 
-    //if (extruder_nums == 1) {
-    //    double value = 0.0;
-    //    single_extruder->diameter.ToDouble(&value);
-    //    extruder_infos[0].diameter = float(value);
-    //}
-    //else if(extruder_nums == 2){
-    //    double value = 0.0;
-    //    left_extruder->diameter.ToDouble(&value);
-    //    extruder_infos[0].diameter = float(value);
-    //
-    //    value = 0.0;
-    //    right_extruder->diameter.ToDouble(&value);
-    //    extruder_infos[1].diameter = float(value);
-    //}
+    if (extruder_nums == 1) {
+        double value = 0.0;
+        single_extruder->diameter.ToDouble(&value);
+        extruder_infos[0].diameter = float(value);
+    }
+    else if(extruder_nums == 2){
+        double value = 0.0;
+        left_extruder->diameter.ToDouble(&value);
+        extruder_infos[0].diameter = float(value);
+    
+        value = 0.0;
+        right_extruder->diameter.ToDouble(&value);
+        extruder_infos[1].diameter = float(value);
+    }
 
     std::vector<ExtruderInfo> machine_extruder_infos(obj->m_extder_data.extders.size());
-    //for (const Extder &extruder : obj->m_extder_data.extders) {
-    //    machine_extruder_infos[extruder.id].nozzle_volue_type = int(extruder.current_nozzle_flow_type) - 1;
-    //    machine_extruder_infos[extruder.id].diameter          = extruder.current_nozzle_diameter;
-    //}
+    for (const Extder &extruder : obj->m_extder_data.extders) {
+        //machine_extruder_infos[extruder.id].nozzle_volue_type = int(extruder.current_nozzle_flow_type) - 1;
+        machine_extruder_infos[extruder.id].diameter          = extruder.current_nozzle_diameter;
+    }
     for (auto &item : obj->amsList) {
         if (item.second->nozzle >= machine_extruder_infos.size())
             continue;
