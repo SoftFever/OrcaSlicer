@@ -4677,7 +4677,7 @@ if (is_marlin_flavor)
             auto page = add_options_page(page_name, "custom-gcode_extruder", true); // ORCA: icon only visible on placeholders
             m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
-            auto optgroup = page->new_optgroup(L("Basic information"), L"param_type", -1, true);
+            auto optgroup = page->new_optgroup(L("Basic information"), L"param_information", -1, true);
                 optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
                 //optgroup->append_single_option_line("nozzle_volume_type", "", extruder_idx);
 
