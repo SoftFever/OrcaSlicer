@@ -6,6 +6,10 @@
     "description": "Sovol configurations",
     "machine_model_list": [
         {
+            "name": "Sovol SV01",
+            "sub_path": "machine/Sovol SV01.json"
+        },
+		{
             "name": "Sovol SV01 Pro",
             "sub_path": "machine/Sovol SV01 Pro.json"
         },
@@ -106,6 +110,10 @@
         {
             "name": "0.20mm High-Speed @Sovol SV06",
             "sub_path": "process/0.20mm High-Speed @Sovol SV06.json"
+        },
+    		{
+            "name": "0.20mm Standard @Sovol SV01",
+            "sub_path": "process/0.20mm Standard @Sovol SV01.json"
         },
         {
             "name": "0.20mm Standard @Sovol SV01Pro",
@@ -274,6 +282,10 @@
         {
             "name": "fdm_machine_common",
             "sub_path": "machine/fdm_machine_common.json"
+        },
+		{
+            "name": "Sovol SV01 0.4 nozzle",
+            "sub_path": "machine/Sovol SV01 0.4 nozzle.json"
         },
         {
             "name": "Sovol SV01 Pro 0.4 nozzle",
