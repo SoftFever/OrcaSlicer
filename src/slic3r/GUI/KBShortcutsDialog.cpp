@@ -208,9 +208,16 @@ void KBShortcutsDialog::fill_shortcuts()
         };
         m_full_shortcuts.push_back({{_L("Global shortcuts"), ""}, global_shortcuts});
 
+        
+        // Retrieve mouse actions from config and map to MouseAction
+        std::map<std::string, std::string> mouse_actions;
+        mouse_actions["1"] = "Pan View";
+        mouse_actions["2"] = "Rotate View";
+
         Shortcuts plater_shortcuts = {
-            { L("Left mouse button"), L("Rotate View") },
-            { L("Right mouse button"), L("Pan View") },
+            { L("Left mouse button"), mouse_actions[wxGetApp().app_config->get("left_mouse_drag_action").c_str()]},
+            { L("Middle mouse button"), mouse_actions[wxGetApp().app_config->get("middle_mouse_drag_action").c_str()]},
+            { L("Right mouse button"), mouse_actions[wxGetApp().app_config->get("right_mouse_drag_action").c_str()]},
             { L("Mouse wheel"), L("Zoom View") },
             { "A", L("Arrange all objects") },
             { shift + "A", L("Arrange objects on selected plates") },
