@@ -11,6 +11,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Polygon.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 
 #include "Widgets/LabeledStaticBox.hpp"
 #include "Widgets/DialogButtons.hpp"

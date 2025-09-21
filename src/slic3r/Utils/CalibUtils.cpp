@@ -5,6 +5,7 @@
 #include "../GUI/Jobs/ProgressIndicator.hpp"
 #include "../GUI/PartPlate.hpp"
 #include "libslic3r/CutUtils.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 
 #include "libslic3r/Model.hpp"
 #include "slic3r/GUI/Jobs/BoostThreadWorker.hpp"

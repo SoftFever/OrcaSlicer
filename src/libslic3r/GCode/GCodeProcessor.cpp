@@ -4,6 +4,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/format.hpp"
 #include "GCodeProcessor.hpp"

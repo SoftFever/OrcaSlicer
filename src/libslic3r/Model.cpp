@@ -1,6 +1,7 @@
 #include "Model.hpp"
 #include "libslic3r.h"
 #include "BuildVolume.hpp"
+#include "ClipperUtils.hpp"
 #include "Exception.hpp"
 #include "Model.hpp"
 #include "ModelArrange.hpp"

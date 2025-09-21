@@ -11,6 +11,7 @@ namespace Slic3r {
 
 class GCode;
 class Model;
+class ModelObject;
 
 enum class CalibMode : int {
     Calib_None = 0,
