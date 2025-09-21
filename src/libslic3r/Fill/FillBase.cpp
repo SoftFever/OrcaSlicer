@@ -306,7 +306,9 @@ std::pair<float, Point> Fill::_infill_direction(const Surface *surface) const
         out_angle = float(surface->bridge_angle);
     } else if (this->layer_id != size_t(-1)) {
         // alternate fill direction
-        out_angle += this->_layer_angle(this->layer_id / surface->thickness_layers);
+        //Orca: if template angle is not empty, don't apply layer angle
+        if(!is_using_template_angle) 
+            out_angle += this->_layer_angle(this->layer_id / surface->thickness_layers);
     } else {
 //    	printf("Layer_ID undefined!\n");
     }

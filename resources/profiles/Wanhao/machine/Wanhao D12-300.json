@@ -1,6 +1,7 @@
 {
     "type": "machine_model",
-    "name": "Wanhao D12/300",
+    "name": "Wanhao D12-300",
+    "renamed_from": "Wanhao D12/300",
     "model_id": "D12",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",

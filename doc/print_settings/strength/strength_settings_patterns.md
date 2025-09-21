@@ -429,8 +429,8 @@ Fills the area with progressively smaller versions of the outer contour, creatin
 
 ## Hilbert Curve
 
-Hilbert Curve is a space-filling curve that can be used to create a continuous infill pattern. It is known for its Esthetic appeal and ability to fill space efficiently.
-Print speed is very low due to the complexity of the path, which can lead to longer print times. It is not recommended for structural parts but can be used for Esthetic purposes.
+Hilbert Curve is a space-filling curve that can be used to create a continuous infill pattern. It is known for its Aesthetic appeal and ability to fill space efficiently.
+Print speed is very low due to the complexity of the path, which can lead to longer print times. It is not recommended for structural parts but can be used for Aesthetic purposes.
 
 - **Horizontal Strength (X-Y):** Low
 - **Vertical Strength (Z):** Normal
@@ -462,7 +462,7 @@ Spiral pattern that fills the area with concentric arcs, creating a smooth and c
 
 ## Octagram Spiral
 
-Esthetic pattern with low strength and high print time.
+Aesthetic pattern with low strength and high print time.
 
 - **Horizontal Strength (X-Y):** Low
 - **Vertical Strength (Z):** Normal

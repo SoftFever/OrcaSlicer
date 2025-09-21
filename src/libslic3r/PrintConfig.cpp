@@ -1085,9 +1085,10 @@ void PrintConfigDef::init_fff_params()
     def = this->add("precise_outer_wall",coBool);
     def->label = L("Precise wall");
     def->category = L("Quality");
-    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.");
-    def->set_default_value(new ConfigOptionBool{false});
-    
+    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency. NOTE: This option "
+                       "will be ignored for outer-inner or inner-outer-inner wall sequences.");
+    def->set_default_value(new ConfigOptionBool{true});
+
     def = this->add("only_one_wall_top", coBool);
     def->label = L("Only one wall on top surfaces");
     def->category = L("Quality");
@@ -2384,6 +2385,13 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def           = this->add("extra_solid_infills", coString);
+    def->label    = L("Insert solid layers");
+    def->category = L("Strength");
+    def->tooltip  = L("Insert solid infill at specific layers. Use N to insert every Nth layer, N#K to insert K consecutive solid layers every N layers (K is optional, e.g. '5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at explicit layers. Layers are 1-based.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
+
 
     // Infill multiline
     def             = this->add("fill_multiline", coInt);
@@ -3182,19 +3190,21 @@ void PrintConfigDef::init_fff_params()
 
     //Orca
     def           = this->add("sparse_infill_rotate_template", coString);
-    def->label    = L("Sparse infill rotatation template");
+    def->label    = L("Sparse infill rotation template");
     def->category = L("Strength");
-    def->tooltip  = L("This parameter adds a rotation of sparse infill direction to each layer according to the specified template. "
-                      "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
-                      "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
-                      "If there are more layers than angles, the angles will be repeated. Note that not all sparse infill patterns support rotation.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->tooltip  = L("Rotate the sparse infill direction per layer using a template of angles. "
+                      "Enter comma-separated degrees (e.g., '0,30,60,90'). "
+                      "Angles are applied in order by layer and repeat when the list ends. "
+                      "Advanced syntax is supported: '+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the Wiki for details. "
+                      "When a template is set, the standard infill direction setting is ignored. "
+                      "Note: some infill patterns (e.g., Gyroid) control rotation themselves; use with care.");
+    def->sidetext = L("°");
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionString("0,90"));
+    def->set_default_value(new ConfigOptionString(""));
 
     //Orca
     def           = this->add("solid_infill_rotate_template", coString);
-    def->label    = L("Solid infill rotatation template");
+    def->label    = L("Solid infill rotation template");
     def->category = L("Strength");
     def->tooltip  = L("This parameter adds a rotation of solid infill direction to each layer according to the specified template. "
                       "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
@@ -3202,7 +3212,7 @@ void PrintConfigDef::init_fff_params()
                       "If there are more layers than angles, the angles will be repeated. Note that not all solid infill patterns support rotation.");
     def->sidetext = "°";	// degrees, don't need translation
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionString("0,90"));
+    def->set_default_value(new ConfigOptionString(""));
 
     def           = this->add("skeleton_infill_density", coPercent);
     def->label    = L("Skeleton infill density");
@@ -4814,7 +4824,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("enable_filament_ramming", coBool);
     def->label = L("Enable filament ramming");
-    def->tooltip = L("Enable filament ramming.");
+    def->tooltip = L("Enable filament ramming");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
