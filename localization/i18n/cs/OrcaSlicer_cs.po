@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-11 21:06+0800\n"
 "PO-Revision-Date: 2024-11-03 20:59+0100\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -48,17 +48,23 @@ msgstr "Nejnovější verze"
 msgid "Support Painting"
 msgstr "Malování podpěr"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + kolečko myši"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "Kolečko myši"
 
 msgid "Section view"
 msgstr "Zobrazení sekce"
 
 msgid "Reset direction"
 msgstr "Resetovat směr"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + kolečko myši"
 
 msgid "Pen size"
 msgstr "Velikost pera"
@@ -74,9 +80,6 @@ msgstr "Pravé tlačítko myši"
 
 msgid "Block supports"
 msgstr "Blokování podpěr"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + levé tlačítko myši"
 
 msgid "Erase"
 msgstr "Vymazat"
@@ -184,8 +187,8 @@ msgstr "Vylití barvou"
 msgid "Height range"
 msgstr "Rozsah výšky"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Přepnout drátový model"
@@ -719,8 +722,8 @@ msgstr "Povrch"
 msgid "Horizontal text"
 msgstr "Vodorovný text"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Shift + pohyb myši nahoru nebo dolů"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "Otočit text"
@@ -1367,7 +1370,8 @@ msgstr "Měření"
 msgid ""
 "Please confirm explosion ratio = 1, and please select at least one object."
 msgstr ""
-"Potvrďte, že poměr explodovaného zobrazení = 1, a vyberte alespoň jeden objekt."
+"Potvrďte, že poměr explodovaného zobrazení = 1, a vyberte alespoň jeden "
+"objekt."
 
 msgid "Edit to scale"
 msgstr "Změna rozměru"
@@ -1465,9 +1469,6 @@ msgstr "Rovnoběžná vzdálenost:"
 
 msgid "Flip by Face 2"
 msgstr "Překlopit podle plochy 2"
-
-msgid "Ctrl+"
-msgstr "Ctrl+"
 
 msgid "Notice"
 msgstr "Oznámení"
@@ -1662,8 +1663,8 @@ msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr ""
-"Počet uživatelských předvoleb uložených v cloudu překročil horní limit, "
-"nově vytvořené uživatelské předvolby lze použít pouze lokálně."
+"Počet uživatelských předvoleb uložených v cloudu překročil horní limit, nově "
+"vytvořené uživatelské předvolby lze použít pouze lokálně."
 
 msgid "Sync user presets"
 msgstr "Synchronizovat uživatelské předvolby"
@@ -1829,6 +1830,9 @@ msgstr "Smazat"
 msgid "Delete the selected object"
 msgstr "Smazat vybraný objekt"
 
+msgid "Backspace"
+msgstr ""
+
 msgid "Load..."
 msgstr "Načíst..."
 
@@ -1875,9 +1879,10 @@ msgid ""
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
 msgstr ""
-"Tento model má na horní ploše reliéfní text. Pro dosažení optimálních výsledků, "
-"je vhodné nastavit hodnotu 'Prahová hodnota jedné stěny (min_width_top_surface)' na 0, "
-"aby možnost 'Pouze jedna stěna na horních plochách' fungovala co nejlépe.\n"
+"Tento model má na horní ploše reliéfní text. Pro dosažení optimálních "
+"výsledků, je vhodné nastavit hodnotu 'Prahová hodnota jedné stěny "
+"(min_width_top_surface)' na 0, aby možnost 'Pouze jedna stěna na horních "
+"plochách' fungovala co nejlépe.\n"
 "Ano – Tato nastavení se mají měnit automaticky\n"
 "Ne – Tato nastavení se mi nemění."
 
@@ -4157,6 +4162,11 @@ msgstr "Některá přípona ve vstupu je neplatná"
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Neplatný formát. Očekávaný vektorový formát: \"%1%\""
@@ -4359,26 +4369,14 @@ msgstr "Rádius"
 msgid "Keep min"
 msgstr "Zachovat minima"
 
-msgid "Left mouse button:"
-msgstr "Levé tlačítko myši:"
-
 msgid "Add detail"
 msgstr "Přidat detail"
-
-msgid "Right mouse button:"
-msgstr "Pravé tlačítko myši:"
 
 msgid "Remove detail"
 msgstr "Ubrat detail"
 
-msgid "Shift + Left mouse button:"
-msgstr "Shift + Levé tlačítko myši:"
-
 msgid "Reset to base"
 msgstr "Obnovit na výchozí"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift + Pravé tlačítko myši:"
 
 msgid "Smoothing"
 msgstr "Vyhlazení"
@@ -4393,6 +4391,9 @@ msgid "Sequence"
 msgstr "Sekvence"
 
 msgid "object selection"
+msgstr ""
+
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4767,8 +4768,8 @@ msgstr "Vytvořit nový projekt"
 msgid "Open a project file"
 msgstr "Otevřít soubor s projektem"
 
-msgid "Recent projects"
-msgstr "Nedávné projekty"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "Uložit projekt"
@@ -4778,9 +4779,6 @@ msgstr "Uložit aktuální projekt do souboru"
 
 msgid "Save Project as"
 msgstr "Uložit projekt jako"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Uložit aktuální projekt jako"
@@ -6157,6 +6155,9 @@ msgstr "Rozbalit postranní panel"
 msgid "Collapse sidebar"
 msgstr "Sbalit postranní panel"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Načítání souboru: %s"
@@ -6957,11 +6958,14 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Maximální počet nedávných projektů"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Maximální počet nedávných projektů"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Vymazat moje volby pro neuložené projekty."
@@ -7711,6 +7715,14 @@ msgid ""
 msgstr ""
 
 msgid "Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
 msgstr ""
 
 msgid ""
@@ -8706,12 +8718,6 @@ msgstr "Seznam objektů"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Import geometrických dat ze souborů STL/STEP/3MF/OBJ/AMF"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Paste from clipboard"
 msgstr "Vložit ze schránky"
 
@@ -8733,14 +8739,8 @@ msgstr "Otočit pohled"
 msgid "Pan View"
 msgstr "Zobrazení panorama"
 
-msgid "Mouse wheel"
-msgstr "Kolečko myši"
-
 msgid "Zoom View"
 msgstr "Zvětšit zobrazení"
-
-msgid "Shift+A"
-msgstr "Shift+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -8751,47 +8751,23 @@ msgstr ""
 "vybrány objekty, pouze zorientuje vybrané. Jinak zorientuje všechny objekty "
 "v aktuálním projektu."
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr ""
-
-msgid "Shift+Tab"
-msgstr "Shift+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Sbalit/Rozbalit postranní panel"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+libovolná šipka"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Posun výběru v ortogonálním prostoru kamery"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+levé tlačítko myši"
-
 msgid "Select a part"
 msgstr "Vyberte část"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+levé tlačítko myši"
-
 msgid "Select multiple objects"
 msgstr "Vyberte více objektů"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+libovolná šipka"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+levé tlačítko myši"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+levé tlačítko myši"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift+levé tlačítko myši"
 
 msgid "Select objects by rectangle"
 msgstr "Vyberte objekty podle obdélníku"
@@ -8819,9 +8795,6 @@ msgstr "Šipka vpravo"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Posunout výběr o 10 mm v kladném směru X"
-
-msgid "Shift+Any arrow"
-msgstr "Shift+libovolná šipka"
 
 msgid "Movement step set to 1 mm"
 msgstr "Krok pro posun výběru o velikosti 1 mm"
@@ -8907,23 +8880,11 @@ msgstr "Podložka"
 msgid "Move: press to snap by 1mm"
 msgstr "Posunout: stisknutím přitáhnete o 1 mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+kolečko myši"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Podpěry/Barva: upravit poloměr pera"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+kolečko myši"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Podpěry/Barva: upravit polohu sekce"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+kolečko myši"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+kolečko myši"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8966,9 +8927,6 @@ msgstr "Zapnout/Vypnout okno g-kód"
 
 msgid "Move slider 5x faster"
 msgstr "Posunout posuvník 5x rychleji"
-
-msgid "Shift+Mouse wheel"
-msgstr "Shift+kolečko myši"
 
 msgid "Horizontal slider - Move to start position"
 msgstr ""
@@ -9692,6 +9650,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -10216,10 +10179,9 @@ msgstr "Přesná stěna"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
-"Zlepšete přesnost skořepiny úpravou vzdálenosti vnějších stěn. To také "
-"zlepšuje konzistence vrstev."
 
 msgid "Only one wall on top surfaces"
 msgstr "Pouze jedna stěna na horních plochách"
@@ -11463,6 +11425,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr ""
 
@@ -11537,16 +11509,16 @@ msgid "Lateral lattice angle 1"
 msgstr ""
 
 msgid ""
-"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 
 msgid "Lateral lattice angle 2"
 msgstr ""
 
 msgid ""
-"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 
 msgid "Infill overhang angle"
@@ -11684,7 +11656,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -11864,12 +11837,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop. At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -12208,22 +12181,23 @@ msgid ""
 "a cross texture."
 msgstr ""
 
-msgid "Sparse infill rotatation template"
+msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
+msgid "Solid infill rotation template"
 msgstr ""
 
 msgid ""
@@ -13698,9 +13672,6 @@ msgstr "Očistěte zbývající filament do čistící věže"
 msgid "Enable filament ramming"
 msgstr ""
 
-msgid "Enable filament ramming."
-msgstr "Povolit rapidní extruzi filamentu"
-
 msgid "No sparse layers (beta)"
 msgstr ""
 
@@ -14425,6 +14396,9 @@ msgid ""
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -17382,8 +17356,8 @@ msgid ""
 "problems on the Windows system?"
 msgstr ""
 "Oprava modelu\n"
-"Věděli jste, že můžete opravit poškozený 3D model abyste se vyvarovali spoustě problémů se slicování "
-"na systému Windows?"
+"Věděli jste, že můžete opravit poškozený 3D model abyste se vyvarovali "
+"spoustě problémů se slicování na systému Windows?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -17441,8 +17415,8 @@ msgid ""
 "Slicer setting?"
 msgstr ""
 "Funkce hledání\n"
-"Věděli jste, že můžete použít nástroj hledání pro rychlé nalezení specifického nastavení "
-"Orca Slicer?"
+"Věděli jste, že můžete použít nástroj hledání pro rychlé nalezení "
+"specifického nastavení Orca Slicer?"
 
 #: resources/data/hints.ini: [hint:Simplify Model]
 msgid ""
@@ -17451,8 +17425,9 @@ msgid ""
 "Simplify mesh feature? Right-click the model and select Simplify model."
 msgstr ""
 "Zjednodušení modelu\n"
-"Věděli jste, že můžete zmenšit počet trojúhelníků mřížky použitím "
-"funkce zjednodušení mřížky? Kliknětě pravým tlačítkem na model a vyberte zjednodušit model."
+"Věděli jste, že můžete zmenšit počet trojúhelníků mřížky použitím funkce "
+"zjednodušení mřížky? Kliknětě pravým tlačítkem na model a vyberte "
+"zjednodušit model."
 
 #: resources/data/hints.ini: [hint:Slicing Parameter Table]
 msgid ""
@@ -17637,9 +17612,9 @@ msgid ""
 "higher enclosure temperature? More info about this in the Wiki."
 msgstr ""
 "Kdy potřebujete tisknout s otevřenými dvířky tiskárny\n"
-"Otevření dvířek tiskárny může snížit pravděpodobnost ucpaní extruderu/hotendu "
-"při tisku filamentu s nižší teplotou a vyšší teplotě uzavřeného prostoru. "
-"Další informace naleznete ve Wiki."
+"Otevření dvířek tiskárny může snížit pravděpodobnost ucpaní extruderu/"
+"hotendu při tisku filamentu s nižší teplotou a vyšší teplotě uzavřeného "
+"prostoru. Další informace naleznete ve Wiki."
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
@@ -17648,6 +17623,103 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
 msgstr ""
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Zlepšete přesnost skořepiny úpravou vzdálenosti vnějších stěn. To také "
+#~ "zlepšuje konzistence vrstev."
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "Povolit rapidní extruzi filamentu"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + kolečko myši"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + kolečko myši"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + levé tlačítko myši"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Shift + pohyb myši nahoru nebo dolů"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "Levé tlačítko myši:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "Pravé tlačítko myši:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Shift + Levé tlačítko myši:"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift + Pravé tlačítko myši:"
+
+#~ msgid "Recent projects"
+#~ msgstr "Nedávné projekty"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "Maximální počet nedávných projektů"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "Maximální počet nedávných projektů"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Shift+A"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Shift+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+libovolná šipka"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+levé tlačítko myši"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+levé tlačítko myši"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+libovolná šipka"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+levé tlačítko myši"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+levé tlačítko myši"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift+levé tlačítko myši"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift+libovolná šipka"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+kolečko myši"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+kolečko myši"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+kolečko myši"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+kolečko myši"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift+kolečko myši"
 
 #~ msgid "Set Position"
 #~ msgstr "Nastavení pozice"

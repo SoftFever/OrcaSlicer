@@ -1,12 +1,14 @@
 {
     "type": "filament",
-    "filament_id": "GFN99",
-    "setting_id": "GFSN98",
     "name": "Qidi Generic PA",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_filament_pa",
-    "filament_type": ["PA"],
+    "from": "system",
+    "setting_id": "GFSN98",
+    "filament_id": "GFN99",
+    "instantiation": "true",
+    "filament_type": [
+        "PA"
+    ],
     "required_nozzle_HRC": [
         "3"
     ],

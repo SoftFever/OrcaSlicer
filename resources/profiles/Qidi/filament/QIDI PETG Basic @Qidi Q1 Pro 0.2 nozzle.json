@@ -1,24 +1,24 @@
-{"type": "filament",
-"filament_id": "GFB99",
-"setting_id": "GFSA04",
-"instantiation": "true",
+{
+    "type": "filament",
+    "name": "QIDI PETG Basic @Qidi Q1 Pro 0.2 nozzle",
+    "inherits": "QIDI PETG Basic",
+    "from": "system",
+    "setting_id": "GFSA04",
+    "filament_id": "GFB99",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "1"
     ],
     "filament_settings_id": [
         "QIDI PETG Basic @Qidi Q1 Pro 0.2 nozzle"
     ],
-    "from": "system",
     "hot_plate_temp_initial_layer": [
         "80"
     ],
-    "inherits": "QIDI PETG Basic",
-    "is_custom_defined": "0",
-    "name": "QIDI PETG Basic @Qidi Q1 Pro 0.2 nozzle",
     "pressure_advance": [
         "0.04"
     ],
     "compatible_printers": [
-    "Qidi Q1 Pro 0.2 nozzle"
-        ]
+        "Qidi Q1 Pro 0.2 nozzle"
+    ]
 }

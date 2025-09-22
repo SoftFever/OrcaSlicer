@@ -14,6 +14,8 @@ Infill is the internal structure of a 3D print, providing strength and support. 
 - [Anchor](#anchor)
 - [Internal Solid Infill](#internal-solid-infill)
 - [Extra Solid Infill](#extra-solid-infill)
+  - [Interval Pattern](#interval-pattern)
+  - [Explicit Layer List](#explicit-layer-list)
 - [Sparse Infill Pattern](#sparse-infill-pattern)
 - [Credits](#credits)
 
@@ -60,7 +62,7 @@ This setting allows you to generate your selected [infill pattern](#sparse-infil
 - **Fire-retardant applications:** Some flame-resistant materials (like PolyMax PC-FR) require a minimum printed wall/infill thickness—often 1.5–3 mm—to comply with standards. Since infill contributes to overall part thickness, using multiple lines helps achieve the necessary thickness without switching to a large nozzle or printing with 100% infill. This is especially useful for high-temperature materials like PC, which are prone to warping when fully solid.
 - Creating **aesthetic** infill patterns (like [Grid](strength_settings_patterns#grid) or [Honeycomb](strength_settings_patterns#honeycomb)) with multiple line widths—without relying on CAD modeling or being limited to a single extrusion width.
 
-![infill-multiline-esthetic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-esthetic.gif?raw=true)
+![infill-multiline-aesthetic](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/infill-multiline-aesthetic.gif?raw=true)
 
 > [!WARNING]
 > For self intersecting infills (e.g. [Cubic](strength_settings_patterns#cubic), [Grid](strength_settings_patterns#grid)) multiline count greater than 3 may cause layer shift, extruder clog or other issues due to overlapping of lines on intersection points.

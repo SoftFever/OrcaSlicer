@@ -1,8 +1,8 @@
 {
     "type": "machine_model",
+    "name": "Phrozen Arco",
     "machine_tech": "FFF",
     "family": "Phrozen",
-    "name": "Phrozen Arco",
     "model_id": "Phrozen Arco",
     "nozzle_diameter": "0.4",
     "bed_model": "Phrozen Arco_buildplate_model.stl",

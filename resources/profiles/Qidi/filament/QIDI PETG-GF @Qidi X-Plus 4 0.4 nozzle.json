@@ -1,15 +1,15 @@
-{"type": "filament",
-"filament_id": "QD_0_1_43",
-"setting_id": "GFSA04",
-"instantiation": "true",
-"filament_settings_id": [
+{
+    "type": "filament",
+    "name": "QIDI PETG-GF @Qidi X-Plus 4 0.4 nozzle",
+    "inherits": "QIDI PETG-GF",
+    "from": "system",
+    "setting_id": "GFSA04",
+    "filament_id": "QD_0_1_43",
+    "instantiation": "true",
+    "filament_settings_id": [
         "QIDI PETG-GF @Qidi X-Plus 4 0.4 nozzle"
-],
-"from": "system",
-"inherits": "QIDI PETG-GF",
-"is_custom_defined": "0",
-"name": "QIDI PETG-GF @Qidi X-Plus 4 0.4 nozzle",
-"compatible_printers": [
-    "Qidi X-Plus 4 0.4 nozzle"
-        ]
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.4 nozzle"
+    ]
 }

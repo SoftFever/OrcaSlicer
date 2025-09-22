@@ -1,13 +1,13 @@
 {
     "type": "filament",
-    "filament_id": "BSFI007",
-    "setting_id": "BSSI007",
     "name": "Blocks Generic PA-CF",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_filament_pa",
+    "from": "system",
+    "setting_id": "BSSI007",
+    "filament_id": "BSFI007",
+    "instantiation": "true",
     "filament_type": [
-       "PA-CF"
+        "PA-CF"
     ],
     "filament_flow_ratio": [
         "0.95"
@@ -22,13 +22,13 @@
         "290"
     ],
     "nozzle_temperature_initial_layer": [
-       "255"
+        "255"
     ],
     "filament_density": [
         "1.25"
     ],
     "nozzle_temperature": [
-       "250"
+        "250"
     ],
     "hot_plate_temp_initial_layer": [
         "90"
@@ -37,10 +37,10 @@
         "90"
     ],
     "filament_retraction_length": [
-      "1.2"
+        "1.2"
     ],
     "filament_z_hop": [
-      "0.0"
+        "0.0"
     ],
     "fan_min_speed": [
         "0"
@@ -51,15 +51,30 @@
     "fan_cooling_layer_time": [
         "4"
     ],
-      
-    "close_fan_the_first_x_layers": ["3"], 
-    "slow_down_layer_time": ["2"], 
-    "slow_down_for_layer_cooling": ["1"],
-    "reduce_fan_stop_start_freq": ["0"],
-    "slow_down_min_speed": ["10"], 
-    "enable_overhang_bridge_fan": ["1"], 
-    "overhang_fan_threshold": ["95%"], 
-    "overhang_fan_speed": ["80%"], 
+    "close_fan_the_first_x_layers": [
+        "3"
+    ],
+    "slow_down_layer_time": [
+        "2"
+    ],
+    "slow_down_for_layer_cooling": [
+        "1"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "enable_overhang_bridge_fan": [
+        "1"
+    ],
+    "overhang_fan_threshold": [
+        "95%"
+    ],
+    "overhang_fan_speed": [
+        "80%"
+    ],
     "additional_cooling_fan_speed": [
         "0"
     ],
