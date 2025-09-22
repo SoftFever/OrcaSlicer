@@ -80,5 +80,7 @@
     "prime_tower_width": "60",
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
-    "compatible_printers": ["nil"]
+    "compatible_printers": [
+        "Qidi Q2 0.4 nozzle"
+    ]
 }
