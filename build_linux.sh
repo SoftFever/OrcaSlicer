@@ -7,7 +7,7 @@ SCRIPT_PATH=$(dirname "$(readlink -f "${0}")")
 pushd "${SCRIPT_PATH}" > /dev/null
 
 function usage() {
-    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-i][-j N][-p][-r][-s][-t][-u][-l][-L]"
+    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-g][-i][-j N][-p][-r][-s][-t][-u][-l][-L]"
     echo "   -1: limit builds to one core (where possible)"
     echo "   -j N: limit builds to N cores (where possible)"
     echo "   -b: build in debug mode"
@@ -15,11 +15,12 @@ function usage() {
     echo "   -C: enable ANSI-colored compile output (GNU/Clang only)"
     echo "   -d: download and build dependencies in ./deps/ (build prerequisite)"
     echo "   -h: prints this help text"
+    echo "   -g: build with symbols (does not apply to deps (yet?))"
     echo "   -i: build the Orca Slicer AppImage (optional)"
     echo "   -p: boost ccache hit rate by disabling precompiled headers (default: ON)"
     echo "   -r: skip RAM and disk checks (low RAM compiling)"
     echo "   -s: build the Orca Slicer (optional)"
-    echo "   -t: build tests (optional)"
+    echo "   -t: build tests (optional), requires -s flag"
     echo "   -u: install system dependencies (asks for sudo password; build prerequisite)"
     echo "   -l: use Clang instead of GCC (default: GCC)"
     echo "   -L: use ld.lld as linker (if available)"
@@ -31,7 +32,7 @@ function usage() {
 SLIC3R_PRECOMPILED_HEADERS="ON"
 
 unset name
-while getopts ":1j:bcCdhiprstulL" opt ; do
+while getopts ":1j:bcCdghiprstulL" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -50,6 +51,9 @@ while getopts ":1j:bcCdhiprstulL" opt ; do
         ;;
     d )
         BUILD_DEPS="1"
+        ;;
+    g )
+        BUILD_WITH_SYMBOLS="1"
         ;;
     h ) usage
         exit 1
@@ -87,6 +91,11 @@ done
 
 if [ ${OPTIND} -eq 1 ] ; then
     usage
+    exit 1
+fi
+
+if [[ -n "${BUILD_TESTS}" ]] && [[ -z "${BUILD_ORCA}" ]] ; then
+    echo "-t flag requires -s flag in the same invocation"
     exit 1
 fi
 
@@ -217,17 +226,24 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     if [[ -n "${FOUND_GTK3_DEV}" ]] ; then
         BUILD_ARGS+=(-DSLIC3R_GTK=3)
     fi
-    if [[ -n "${BUILD_DEBUG}" ]] ; then
-        BUILD_ARGS+=(-DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1)
-    else
-        BUILD_ARGS+=(-DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0)
-    fi
     if [[ -n "${BUILD_TESTS}" ]] ; then
         BUILD_ARGS+=(-DBUILD_TESTS=ON)
     fi
     if [[ -n "${ORCA_UPDATER_SIG_KEY}" ]] ; then
         BUILD_ARGS+=(-DORCA_UPDATER_SIG_KEY="${ORCA_UPDATER_SIG_KEY}")
     fi
+    if [[ -n "${BUILD_DEBUG}" ]] ; then
+	CONFIG=Debug
+        BUILD_ARGS+=(-DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1)
+    else
+        BUILD_ARGS+=(-DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0)
+	if [[ -n "${BUILD_WITH_SYMBOLS}" ]]; then
+	    CONFIG=RelWithDebInfo
+	else
+	    CONFIG=Release
+	fi
+    fi
+    echo "CONFIG=${CONFIG}"
 
     echo "Configuring OrcaSlicer..."
     set -x
@@ -241,16 +257,15 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     set +x
     echo "done"
     echo "Building OrcaSlicer ..."
-    if [[ -n "${BUILD_DEBUG}" ]] ; then
-        cmake --build build --config Debug --target OrcaSlicer
-    else
-        cmake --build build --config Release --target OrcaSlicer
-    fi
+    cmake --build build --config "${CONFIG}" --target OrcaSlicer
     echo "Building OrcaSlicer_profile_validator .."
-    if [[ -n "${BUILD_DEBUG}" ]] ; then
-        cmake --build build --config Debug --target OrcaSlicer_profile_validator
-    else
-        cmake --build build --config Release --target OrcaSlicer_profile_validator
+    cmake --build build --config "${CONFIG}" --target OrcaSlicer_profile_validator
+    if [[ -n "${BUILD_TESTS}" ]] ; then
+	echo "Building tests ..."
+	# Should be:
+	# cmake --build build --config "${CONFIG}" --target tests/all
+	# This seems to be the only ones which build ATM:
+	cmake --build build --config "${CONFIG}" --target slic3rutils_tests
     fi
     ./scripts/run_gettext.sh
     echo "done"
