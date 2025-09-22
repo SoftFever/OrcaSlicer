@@ -225,8 +225,8 @@ SCENARIO("Various Clipper operations - t/clipper.t", "[ClipperUtils]") {
     }
 }
 
-template<e_ordering o = e_ordering::OFF, class P, class Tree> 
-double polytree_area(const Tree &tree, std::vector<P> *out)
+template<e_ordering o = e_ordering::OFF, class P, class Tree, class Alloc> 
+double polytree_area(const Tree &tree, std::vector<P, Alloc> *out)
 {
     traverse_pt<o>(tree, out);
     

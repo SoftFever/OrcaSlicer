@@ -230,20 +230,17 @@ void Bed3D::Axes::render()
     shader->start_using();
     //shader->set_uniform("emission_factor", 0.0f);
 
-    // ORCA show axes on current plate
-    Vec3d plate_origin = wxGetApp().plater()->get_partplate_list().get_selected_plate()->get_origin();
-
     // x axis
     m_arrow.set_color(AXIS_X_COLOR);
-    render_axis(shader, Geometry::assemble_transform(plate_origin, { 0.0, 0.5 * M_PI, 0.0 }));
+    render_axis(shader, Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }));
 
     // y axis
     m_arrow.set_color(AXIS_Y_COLOR);
-    render_axis(shader, Geometry::assemble_transform(plate_origin, { -0.5 * M_PI, 0.0, 0.0 }));
+    render_axis(shader, Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }));
 
     // z axis
     m_arrow.set_color(AXIS_Z_COLOR);
-    render_axis(shader, Geometry::assemble_transform(plate_origin));
+    render_axis(shader, Geometry::assemble_transform(m_origin));
 
     shader->stop_using();
 

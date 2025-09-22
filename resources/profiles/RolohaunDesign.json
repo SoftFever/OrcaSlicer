@@ -1,6 +1,6 @@
 {
     "name": "RolohaunDesign",
-    "version":  "02.03.00.03",
+    "version": "02.03.01.00",
     "force_update": "0",
     "description": "RolohaunDesign Printer Profiles",
     "machine_model_list": [
@@ -43,15 +43,15 @@
             "sub_path": "process/0.28mm Extra Draft @Rook MK1 LDO.json"
         },
         {
-            "name": "0.32mm Extra Draft @Rook MK1 LDO",
+            "name": "0.32mm Standard @Rook MK1 LDO",
             "sub_path": "process/0.32mm Extra Draft @Rook MK1 LDO.json"
         },
         {
-            "name": "0.40mm Extra Draft @Rook MK1 LDO",
+            "name": "0.40mm Standard @Rook MK1 LDO",
             "sub_path": "process/0.40mm Extra Draft @Rook MK1 LDO.json"
         },
         {
-            "name": "0.56mm Extra Draft @Rook MK1 LDO",
+            "name": "0.56mm Standard @Rook MK1 LDO",
             "sub_path": "process/0.56mm Extra Draft @Rook MK1 LDO.json"
         }
     ],
@@ -66,12 +66,12 @@
             "sub_path": "machine/fdm_common_Rook MK1 LDO.json"
         },
         {
-            "name": "Rook MK1 LDO 0.4 nozzle",
-            "sub_path": "machine/Rook MK1 LDO 0.4 nozzle.json"
-        },
-        {
             "name": "Rook MK1 LDO 0.2 nozzle",
             "sub_path": "machine/Rook MK1 LDO 0.2 nozzle.json"
+        },
+        {
+            "name": "Rook MK1 LDO 0.4 nozzle",
+            "sub_path": "machine/Rook MK1 LDO 0.4 nozzle.json"
         },
         {
             "name": "Rook MK1 LDO 0.6 nozzle",

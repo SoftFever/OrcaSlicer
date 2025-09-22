@@ -267,7 +267,7 @@ modules:
           -DSLIC3R_FHS=ON \
           -DSLIC3R_GTK=3 \
           -DSLIC3R_STATIC=ON \
-          -DSLIC3R_BUILD_TESTS=OFF \
+          -DBUILD_TESTS=OFF \
           -DSLIC3R_DESKTOP_INTEGRATION=OFF \
           -DCMAKE_BUILD_TYPE=Release \
           -DFLATPAK=ON \

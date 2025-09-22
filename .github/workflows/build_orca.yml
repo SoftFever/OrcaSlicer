@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           lfs: 'true'
 
@@ -217,7 +217,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         env:
           WindowsSdkDir: 'C:\Program Files (x86)\Windows Kits\10\'
-          WindowsSDKVersion: '10.0.22000.0\'
+          WindowsSDKVersion: '10.0.26100.0\'
         run: .\build_release_vs2022.bat slicer
 
       - name: Create installer Win
@@ -336,7 +336,7 @@ jobs:
 
       - name: Build orca_custom_preset_tests
         if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-24.04'
-        working-directory: ${{ github.workspace }}/build/src
+        working-directory: ${{ github.workspace }}/build/src/Release
         shell: bash
         run: |
           ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -g 1
@@ -360,7 +360,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_profile_validator_Linux_ubuntu_${{ env.ubuntu-ver }}_${{ env.ver }}
-          path: './build/src/OrcaSlicer_profile_validator'
+          path: './build/src/Release/OrcaSlicer_profile_validator'
 
       - name: Deploy Ubuntu release
         if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04') }}
@@ -391,7 +391,7 @@ jobs:
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
           release_id: 137995723
-          asset_path: ./build/src/OrcaSlicer_profile_validator
+          asset_path: ./build/src/Release/OrcaSlicer_profile_validator
           asset_name: OrcaSlicer_profile_validator_Linux${{ env.ubuntu-ver-str }}_nightly
           asset_content_type: application/octet-stream
           max_releases: 1

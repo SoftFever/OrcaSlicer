@@ -81,25 +81,35 @@ build_release_vs2022.bat slicer
 - Linux builds use Ninja generator
 
 ### Testing
-Tests are located in the `tests/` directory and use multiple testing frameworks. Test structure:
-- `tests/libslic3r/` - Core library tests (Catch2 framework)
-- `tests/libnest2d/` - 2D nesting algorithm tests  
-- `tests/fff_print/` - FFF printing tests
-- `tests/sla_print/` - SLA printing tests
-- `tests/t/` - Legacy Perl-based unit tests (.t files)
-- `tests/lib/` - Perl test library modules  
-- `tests/xs/` - XS (C/Perl interface) related tests
+Tests are located in the `tests/` directory and use the Catch2 testing framework. Test structure:
+- `tests/libslic3r/` - Core library tests (21 test files)
+  - Geometry processing, algorithms, file formats (STL, 3MF, AMF)
+  - Polygon operations, clipper utilities, Voronoi diagrams
+- `tests/fff_print/` - Fused Filament Fabrication tests (12 test files)
+  - Slicing algorithms, G-code generation, print mechanics
+  - Fill patterns, extrusion, support material
+- `tests/sla_print/` - Stereolithography tests (4 test files)
+  - SLA-specific printing algorithms, support generation
+- `tests/libnest2d/` - 2D nesting algorithm tests
+- `tests/slic3rutils/` - Utility function tests
 - `tests/sandboxes/` - Experimental/sandbox test code
 
-Run tests after building:
+Run all tests after building:
 ```bash
 cd build && ctest
 ```
 
-Legacy Perl tests can be run individually:
+Run tests with verbose output:
 ```bash
-cd tests/t
-perl support.t  # example test file
+cd build && ctest --output-on-failure
+```
+
+Run individual test suites:
+```bash
+# From build directory
+./tests/libslic3r/libslic3r_tests
+./tests/fff_print/fff_print_tests
+./tests/sla_print/sla_print_tests
 ```
 
 ## Architecture

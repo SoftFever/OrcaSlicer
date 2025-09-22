@@ -29,7 +29,17 @@ echo -n "[9/9] Generating Linux app..."
 
     # copy Resources
     cp -Rf ../resources package/resources
-    cp -f src/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@
+    
+    # Find and copy the @SLIC3R_APP_CMD@ binary from Multi-Config build
+    if [ -f "src/Release/@SLIC3R_APP_CMD@" ]; then
+        cp -f src/Release/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@
+    elif [ -f "src/@SLIC3R_APP_CMD@" ]; then
+        # Fallback for single-config builds
+        cp -f src/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@
+    else
+        echo "Error: @SLIC3R_APP_CMD@ binary not found in any configuration directory"
+        exit 1
+    fi
     # remove unneeded po from resources
     ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
 
