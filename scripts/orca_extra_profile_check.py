@@ -181,33 +181,25 @@ def check_machine_default_materials(profiles_dir, vendor_name):
         try:
             with open(file_path, 'r', encoding='UTF-8') as fp:
                 data = json.load(fp)
-                
+
             default_materials = None
             if "default_materials" in data:
                 default_materials = data["default_materials"]
             elif "default_filament_profile" in data:
                 default_materials = data["default_filament_profile"]
-                
-            if default_materials:
-                if isinstance(default_materials, list):
-                    for material in default_materials:
-                        if material not in all_available_filaments:
-                            print_error(f"Missing filament profile: '{material}' referenced in {file_path.relative_to(profiles_dir)}")
-                            error_count += 1
-                else:
-                    # Handle semicolon-separated list of materials in a string
-                    if ";" in default_materials:
-                        for material in default_materials.split(";"):
-                            material = material.strip()
-                            if material and material not in all_available_filaments:
-                                print_error(f"Missing filament profile: '{material}' referenced in {file_path.relative_to(profiles_dir)}")
-                                error_count += 1
-                    else:
-                        # Single material in a string
-                        if default_materials not in all_available_filaments:
-                            print_error(f"Missing filament profile: '{default_materials}' referenced in {file_path.relative_to(profiles_dir)}")
-                            error_count += 1
-                        
+
+            if default_materials is None:
+                continue
+
+            # This always turns the `default_materials` variable into a list, even if there's no `;` character
+            if not isinstance(default_materials, list):
+                default_materials = default_materials.split(";")
+
+            for material in default_materials:
+                if material not in all_available_filaments:
+                    print_error(f"Missing filament profile: '{material}' referenced in {file_path.relative_to(profiles_dir)}")
+                    error_count += 1
+
         except Exception as e:
             print_error(f"Error processing machine profile {file_path}: {e}")
             error_count += 1
