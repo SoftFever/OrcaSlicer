@@ -351,6 +351,7 @@ jobs:
         with:
           path: |
             build/tests
+            scripts
           key: ${{ github.sha }}-tests
 
       - name: Build orca_custom_preset_tests
