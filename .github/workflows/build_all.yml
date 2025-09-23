@@ -82,11 +82,10 @@ jobs:
     needs: build_linux
     if: ${{ success() }}
     steps:
-      - name: Restore binaries from cache
-        uses: actions/cache/restore@v4
+      - name: Restore Test Artifact
+        uses: actions/download-artifact@v4
         with:
-          path: ${{ github.workspace }}
-          key: ${{ github.sha }}-tests
+          name: ${{ github.sha }}-tests
       - uses: lukka/get-cmake@latest
         with:
           cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
