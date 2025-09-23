@@ -345,14 +345,15 @@ jobs:
           mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
           chmod +x ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
 
-      - name: Cache tests
+      - name: Upload Test Artifact
         if: inputs.os == 'ubuntu-24.04'
-        uses: actions/cache/save@v4
+        uses: actions/upload-artifact@v4
         with:
+          name: ${{ github.sha }}-tests
           path: |
             build/tests
             scripts
-          key: ${{ github.sha }}-tests
+          retention-days: 5
 
       - name: Build orca_custom_preset_tests
         if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-24.04'
