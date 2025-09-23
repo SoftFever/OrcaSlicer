@@ -4,7 +4,7 @@
     "inherits": "AliZ PETG-Metal @base",
     "from": "system",
     "setting_id": "AliZPX1FSG50",
-    "instantiation": "true",    
+    "instantiation": "true",
     "enable_pressure_advance": [
         "1"
     ],
