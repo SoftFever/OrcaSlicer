@@ -14,7 +14,7 @@
     ],
     "default_print_profile": "0.20mm Standard @Anycubic Kobra 2 Plus 0.4 nozzle",
     "default_filament_profile": [
-        "Anycubic PLA @Anycubic Kobra 2 Plus 0.4 nozzle"
+        "Anycubic PLA @Anycubic Kobra 2 Plus"
     ],
     "disable_m73": "1",
     "gcode_flavor": "klipper",

@@ -1,31 +1,25 @@
 {
     "type": "filament",
-    "name": "Anycubic PLA @Anycubic Kobra 2 Pro 0.4 nozzle",
-    "inherits": "Anycubic Generic PLA",
+    "name": "Anycubic TPU @Anycubic Kobra S1",
+    "inherits": "fdm_filament_tpu",
     "from": "system",
     "setting_id": "GFSA04",
-    "filament_id": "GFL92",
+    "filament_id": "GFU99",
     "instantiation": "true",
-    "filament_vendor": [
-        "Anycubic"
-    ],
     "filament_settings_id": [
-        "Anycubic PLA @Anycubic Kobra 2 Pro 0.4 nozzle"
-    ],
-    "filament_type": [
-        "PLA"
+        "Anycubic TPU @Anycubic Kobra S1"
     ],
     "filament_flow_ratio": [
-        "0.95"
+        "1"
     ],
     "filament_max_volumetric_speed": [
-        "12"
+        "3.2"
     ],
     "nozzle_temperature": [
-        "200"
+        "205"
     ],
     "compatible_printers": [
-        "Anycubic Kobra 2 Pro 0.4 nozzle"
+        "Anycubic Kobra S1"
     ],
     "activate_air_filtration": [
         "0"
@@ -34,7 +28,7 @@
         "0"
     ],
     "additional_cooling_fan_speed": [
-        "70"
+        "60"
     ],
     "bed_type": [
         "Cool Plate"
@@ -67,7 +61,7 @@
         "1"
     ],
     "enable_pressure_advance": [
-        "1"
+        "0"
     ],
     "eng_plate_temp": [
         "0"
@@ -82,16 +76,16 @@
         "100"
     ],
     "fan_min_speed": [
-        "80"
+        "100"
     ],
     "filament_cooling_final_speed": [
-        "3.4"
+        "0"
     ],
     "filament_cooling_initial_speed": [
-        "2.2"
+        "0"
     ],
     "filament_cooling_moves": [
-        "4"
+        "0"
     ],
     "filament_cost": [
         "20"
@@ -106,19 +100,19 @@
         "1.75"
     ],
     "filament_end_gcode": [
-        "; filament end gcode \n"
+        "; filament end gcode\n"
     ],
     "filament_is_support": [
         "0"
     ],
     "filament_load_time": [
-        "42"
+        "31.925"
     ],
     "filament_loading_speed": [
-        "28"
+        "0"
     ],
     "filament_loading_speed_start": [
-        "3"
+        "0"
     ],
     "filament_long_retractions_when_cut": [
         "nil"
@@ -130,10 +124,10 @@
         "0"
     ],
     "filament_multitool_ramming_flow": [
-        "10"
+        "0"
     ],
     "filament_multitool_ramming_volume": [
-        "10"
+        "0"
     ],
     "filament_notes": [
         ""
@@ -184,13 +178,13 @@
         "0"
     ],
     "filament_unload_time": [
-        "0"
+        "24.75"
     ],
     "filament_unloading_speed": [
-        "90"
+        "0"
     ],
     "filament_unloading_speed_start": [
-        "100"
+        "0"
     ],
     "filament_wipe": [
         "nil"
@@ -205,16 +199,16 @@
         "nil"
     ],
     "full_fan_speed_layer": [
-        "3"
+        "0"
     ],
     "hot_plate_temp": [
-        "60"
+        "55"
     ],
     "hot_plate_temp_initial_layer": [
-        "60"
+        "55"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "215"
     ],
     "nozzle_temperature_range_high": [
         "240"
@@ -226,10 +220,10 @@
         "100"
     ],
     "overhang_fan_threshold": [
-        "50%"
+        "95%"
     ],
     "pressure_advance": [
-        "0.07"
+        "0.02"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -241,16 +235,16 @@
         "1"
     ],
     "slow_down_layer_time": [
-        "9"
+        "8"
     ],
     "slow_down_min_speed": [
-        "20"
+        "10"
     ],
     "support_material_interface_fan_speed": [
         "-1"
     ],
     "temperature_vitrification": [
-        "55"
+        "30"
     ],
     "textured_plate_temp": [
         "55"

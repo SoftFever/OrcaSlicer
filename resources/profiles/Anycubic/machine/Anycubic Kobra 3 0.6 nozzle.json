@@ -13,6 +13,7 @@
         "0.6"
     ],
     "default_print_profile": "0.30mm Standard @Anycubic Kobra 3 0.6 nozzle",
+    "default_materials": "Anycubic PLA @Anycubic Kobra 3 0.6 nozzle",
     "default_filament_profile": [
         "Anycubic PLA @Anycubic Kobra 3 0.6 nozzle"
     ],

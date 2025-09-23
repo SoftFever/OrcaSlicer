@@ -13,6 +13,7 @@
         "0.4"
     ],
     "default_print_profile": "0.16mm Optimal @Anycubic Kobra 2 Pro 0.4 nozzle",
+    "default_materials": "Anycubic PLA;Generic ABS;Generic TPU",
     "default_filament_profile": [
         "Anycubic PLA @Anycubic Kobra 2 Pro 0.4 nozzle"
     ],
