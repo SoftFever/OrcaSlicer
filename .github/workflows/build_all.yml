@@ -46,15 +46,22 @@ concurrency:
   
 
 jobs:
+  build_linux:
+    name: Build Linux
+    strategy:
+      fail-fast: false
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: ubuntu-24.04
+      build-deps-only: ${{ inputs.build-deps-only || false }}
+      force-build: ${{ github.event_name == 'schedule' }}
+    secrets: inherit
   build_all:
-    name: Build All
+    name: Build Non-Linux
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Deprecate 20.04appimage
-          # - os: ubuntu-20.04
-          - os: ubuntu-24.04
           - os: windows-latest
           - os: macos-14
             arch: arm64
@@ -65,6 +72,25 @@ jobs:
       build-deps-only: ${{ inputs.build-deps-only || false }}
       force-build: ${{ github.event_name == 'schedule' }}
     secrets: inherit
+  unit_tests:
+    name: Unit Tests
+    runs-on: ubuntu-24.04
+    needs: build_linux
+    if: ${{ success() }}
+    steps:
+      - name: Restore binaries from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}
+          key: ${{ github.sha }}-tests
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
+      - name: Run unit tests
+        run: |
+          cd build/tests
+          # TODO: github.com/SoftFever/OrcaSlicer/issues/10309 - Run all tests
+          ctest --test-dir slic3rutils
   flatpak:
     name: "Flatpak"
     container:

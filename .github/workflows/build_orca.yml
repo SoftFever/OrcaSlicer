@@ -333,15 +333,25 @@ jobs:
         shell: bash
         run: sudo chown $USER -R ./
 
-      - name: Build slicer
+        # Tests must built at the same time as the slicer;
+        # if you untangle them feel free to separate them here too
+      - name: Build slicer and tests
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         env:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         run: |
-          ./build_linux.sh -isr
+          ./build_linux.sh -istr
           mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
           chmod +x ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
+
+      - name: Cache tests
+        if: inputs.os == 'ubuntu-24.04'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            build/tests
+          key: ${{ github.sha }}-tests
 
       - name: Build orca_custom_preset_tests
         if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-24.04'
