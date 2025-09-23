@@ -188,6 +188,11 @@ def check_machine_default_materials(profiles_dir, vendor_name):
             elif "default_filament_profile" in data:
                 default_materials = data["default_filament_profile"]
 
+            machine_name = ""
+            if "name" in data:
+                machine_name = data["name"]
+
+            # Old logic ignored this 
             if default_materials is None:
                 continue
 
@@ -196,7 +201,11 @@ def check_machine_default_materials(profiles_dir, vendor_name):
                 default_materials = default_materials.split(";")
 
             for material in default_materials:
-                if material not in all_available_filaments:
+                if (
+                    material not in all_available_filaments
+                    and f"{material} @System" not in all_available_filaments
+                    and f"{material} @{machine_name}" not in all_available_filaments
+                ):
                     print_error(f"Missing filament profile: '{material}' referenced in {file_path.relative_to(profiles_dir)}")
                     error_count += 1
 
