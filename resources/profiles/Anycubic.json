@@ -273,16 +273,16 @@
             "sub_path": "filament/fdm_filament_tpu.json"
         },
         {
-            "name": "Anycubic ABS @Anycubic Kobra S1 0.4 nozzle",
-            "sub_path": "filament/Anycubic ABS @Anycubic Kobra S1 0.4 nozzle.json"
+            "name": "Anycubic ABS @Anycubic Kobra S1",
+            "sub_path": "filament/Anycubic ABS @Anycubic Kobra S1.json"
         },
         {
             "name": "Anycubic Generic ABS",
             "sub_path": "filament/Anycubic Generic ABS.json"
         },
         {
-            "name": "Anycubic ASA @Anycubic Kobra S1 0.4 nozzle",
-            "sub_path": "filament/Anycubic ASA @Anycubic Kobra S1 0.4 nozzle.json"
+            "name": "Anycubic ASA @Anycubic Kobra S1",
+            "sub_path": "filament/Anycubic ASA @Anycubic Kobra S1.json"
         },
         {
             "name": "Anycubic Generic ASA",
@@ -305,8 +305,8 @@
             "sub_path": "filament/Anycubic Generic PETG.json"
         },
         {
-            "name": "Anycubic PETG @Anycubic Kobra S1 0.4 nozzle",
-            "sub_path": "filament/Anycubic PETG @Anycubic Kobra S1 0.4 nozzle.json"
+            "name": "Anycubic PETG @Anycubic Kobra S1",
+            "sub_path": "filament/Anycubic PETG @Anycubic Kobra S1.json"
         },
         {
             "name": "Anycubic Generic PLA",
@@ -317,20 +317,20 @@
             "sub_path": "filament/Anycubic Generic PLA-CF.json"
         },
         {
-            "name": "Anycubic PLA @Anycubic Kobra S1 0.4 nozzle",
-            "sub_path": "filament/Anycubic PLA @Anycubic Kobra S1 0.4 nozzle.json"
+            "name": "Anycubic PLA @Anycubic Kobra S1",
+            "sub_path": "filament/Anycubic PLA @Anycubic Kobra S1.json"
         },
         {
-            "name": "Anycubic PLA High Speed @Anycubic Kobra S1 0.4 nozzle",
-            "sub_path": "filament/Anycubic PLA High Speed @Anycubic Kobra S1 0.4 nozzle.json"
+            "name": "Anycubic PLA High Speed @Anycubic Kobra S1",
+            "sub_path": "filament/Anycubic PLA High Speed @Anycubic Kobra S1.json"
         },
         {
-            "name": "Anycubic PLA Silk @Anycubic Kobra S1 0.4 nozzle",
-            "sub_path": "filament/Anycubic PLA Silk @Anycubic Kobra S1 0.4 nozzle.json"
+            "name": "Anycubic PLA Silk @Anycubic Kobra S1",
+            "sub_path": "filament/Anycubic PLA Silk @Anycubic Kobra S1.json"
         },
         {
-            "name": "Anycubic PLA+ @Anycubic Kobra S1 0.4 nozzle",
-            "sub_path": "filament/Anycubic PLA+ @Anycubic Kobra S1 0.4 nozzle.json"
+            "name": "Anycubic PLA+ @Anycubic Kobra S1",
+            "sub_path": "filament/Anycubic PLA+ @Anycubic Kobra S1.json"
         },
         {
             "name": "Anycubic Generic PVA",
@@ -341,8 +341,8 @@
             "sub_path": "filament/Anycubic Generic TPU.json"
         },
         {
-            "name": "Anycubic TPU @Anycubic Kobra S1 0.4 nozzle",
-            "sub_path": "filament/Anycubic TPU @Anycubic Kobra S1 0.4 nozzle.json"
+            "name": "Anycubic TPU @Anycubic Kobra S1",
+            "sub_path": "filament/Anycubic TPU @Anycubic Kobra S1.json"
         },
         {
             "name": "Generic ABS @Anycubic Kobra 3 0.4 nozzle",
@@ -357,20 +357,20 @@
             "sub_path": "filament/Anycubic PETG @Anycubic Kobra 3 0.4 nozzle.json"
         },
         {
-            "name": "Anycubic PLA @Anycubic Kobra 2 Max 0.4 nozzle",
-            "sub_path": "filament/Anycubic PLA @Anycubic Kobra 2 Max 0.4 nozzle.json"
+            "name": "Anycubic PLA @Anycubic Kobra 2 Max",
+            "sub_path": "filament/Anycubic PLA @Anycubic Kobra 2 Max.json"
         },
         {
-            "name": "Anycubic PLA @Anycubic Kobra 2 Neo 0.4 nozzle",
-            "sub_path": "filament/Anycubic PLA @Anycubic Kobra 2 Neo 0.4 nozzle.json"
+            "name": "Anycubic PLA @Anycubic Kobra 2 Neo",
+            "sub_path": "filament/Anycubic PLA @Anycubic Kobra 2 Neo.json"
         },
         {
-            "name": "Anycubic PLA @Anycubic Kobra 2 Plus 0.4 nozzle",
-            "sub_path": "filament/Anycubic PLA @Anycubic Kobra 2 Plus 0.4 nozzle.json"
+            "name": "Anycubic PLA @Anycubic Kobra 2 Plus",
+            "sub_path": "filament/Anycubic PLA @Anycubic Kobra 2 Plus.json"
         },
         {
-            "name": "Anycubic PLA @Anycubic Kobra 2 Pro 0.4 nozzle",
-            "sub_path": "filament/Anycubic PLA @Anycubic Kobra 2 Pro 0.4 nozzle.json"
+            "name": "Anycubic PLA @Anycubic Kobra 2 Pro",
+            "sub_path": "filament/Anycubic PLA @Anycubic Kobra 2 Pro.json"
         },
         {
             "name": "Anycubic PLA @Anycubic Kobra 3 0.2 nozzle",
@@ -405,8 +405,8 @@
             "sub_path": "filament/Anycubic PLA SE @Anycubic Kobra 3 0.4 nozzle.json"
         },
         {
-            "name": "Anycubic PLA Slik @Anycubic Kobra 3 0.4 nozzle",
-            "sub_path": "filament/Anycubic PLA Slik @Anycubic Kobra 3 0.4 nozzle.json"
+            "name": "Anycubic PLA Silk @Anycubic Kobra 3 0.4 nozzle",
+            "sub_path": "filament/Anycubic PLA Silk @Anycubic Kobra 3 0.4 nozzle.json"
         },
         {
             "name": "Anycubic PLA+ @Anycubic Kobra 3 0.4 nozzle",

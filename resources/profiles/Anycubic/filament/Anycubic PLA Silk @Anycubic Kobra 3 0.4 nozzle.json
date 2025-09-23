@@ -1,31 +1,31 @@
 {
     "type": "filament",
-    "name": "Anycubic PLA @Anycubic Kobra 2 Neo 0.4 nozzle",
+    "name": "Anycubic PLA Silk @Anycubic Kobra 3 0.4 nozzle",
     "inherits": "Anycubic Generic PLA",
     "from": "system",
     "setting_id": "GFSA04",
-    "filament_id": "GFL99",
+    "filament_id": "GFL94",
     "instantiation": "true",
     "filament_vendor": [
         "Anycubic"
     ],
     "filament_settings_id": [
-        "Anycubic PLA @Anycubic Kobra 2 Neo 0.4 nozzle"
+        "Anycubic PLA Silk @Anycubic Kobra 3 0.4 nozzle"
     ],
     "filament_type": [
         "PLA"
     ],
     "filament_flow_ratio": [
-        "0.97"
+        "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "12"
+        "7.2"
     ],
     "nozzle_temperature": [
-        "190"
+        "220"
     ],
     "compatible_printers": [
-        "Anycubic Kobra 2 Neo 0.4 nozzle"
+        "Anycubic Kobra 3 0.4 nozzle"
     ],
     "activate_air_filtration": [
         "0"
@@ -112,7 +112,7 @@
         "0"
     ],
     "filament_load_time": [
-        "0"
+        "42"
     ],
     "filament_loading_speed": [
         "0"
@@ -163,13 +163,13 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "nil"
+        "0.5"
     ],
     "filament_retraction_minimum_travel": [
         "nil"
     ],
     "filament_retraction_speed": [
-        "nil"
+        "30"
     ],
     "filament_shrink": [
         "100%"
@@ -208,13 +208,13 @@
         "3"
     ],
     "hot_plate_temp": [
-        "60"
+        "65"
     ],
     "hot_plate_temp_initial_layer": [
-        "60"
+        "65"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "230"
     ],
     "nozzle_temperature_range_high": [
         "230"
@@ -229,7 +229,7 @@
         "50%"
     ],
     "pressure_advance": [
-        "0.04"
+        "0.05"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -241,7 +241,7 @@
         "1"
     ],
     "slow_down_layer_time": [
-        "9"
+        "10"
     ],
     "slow_down_min_speed": [
         "20"
