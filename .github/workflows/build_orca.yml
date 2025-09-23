@@ -350,10 +350,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.sha }}-tests
-          path: |
-            build/tests
-            scripts
+          overwrite: true
+          path: build/tests
           retention-days: 5
+          if-no-files-found: error
 
       - name: Build orca_custom_preset_tests
         if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-24.04'
