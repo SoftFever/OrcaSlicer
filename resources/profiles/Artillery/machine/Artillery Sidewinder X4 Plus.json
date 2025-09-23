@@ -8,5 +8,5 @@
     "bed_model": "artillery_sidewinderx4plus_buildplate_model.stl",
     "bed_texture": "",
     "hotend_model": "",
-    "default_materials": "Artillery PLA Basic;Artillery PLA Matte;Artillery PLA Silk;Artillery PLA Tough;Artillery PETG;Artillery TPU;Artillery ABS;"
+    "default_materials": "Artillery PLA Basic;Artillery PLA Matte;Artillery PLA Silk;Artillery PLA Tough;Artillery PETG;Artillery TPU;Artillery ABS"
 }
