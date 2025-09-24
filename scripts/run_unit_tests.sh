@@ -10,4 +10,4 @@ ROOT_DIR="$(dirname "$0")/.."
 cd "${ROOT_DIR}" || exit 1
 
 # TODO: github.com/SoftFever/OrcaSlicer/issues/10309 - Run all tests
-ctest --test-dir build/tests/slic3rutils --output-junit "$(pwd)/ctest_results.xml"
+ctest --test-dir build/tests/slic3rutils --output-junit "$(pwd)/ctest_results.xml" --output-on-failure

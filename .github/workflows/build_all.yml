@@ -98,11 +98,17 @@ jobs:
         run: |
           tar -xvf build_tests.tar
           scripts/run_unit_tests.sh
+      - name: Upload Test Logs
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: unit-test-logs
+          path: build/tests/**/*.log
       - name: Publish Test Results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          files: "build/tests/ctest_results.xml"
+          files: "ctest_results.xml"
   flatpak:
     name: "Flatpak"
     container:
