@@ -178,7 +178,7 @@ msgid "Smart fill"
 msgstr "Akıllı boyama"
 
 msgid "Bucket fill"
-msgstr "Kova boya aracı"
+msgstr "Boya kovası aracı"
 
 msgid "Height range"
 msgstr "Yükseklik aralığı"
@@ -336,7 +336,7 @@ msgid "Auto"
 msgstr "Otomatik"
 
 msgid "Manual"
-msgstr "Manual"
+msgstr "Manuel"
 
 msgid "Plug"
 msgstr "Tak"
@@ -369,7 +369,7 @@ msgid "Flip upside down"
 msgstr "Baş aşağı çevir"
 
 msgid "Connectors"
-msgstr "Konektörler"
+msgstr "Bağlayıcılar"
 
 msgid "Type"
 msgstr "Tür"
@@ -566,7 +566,7 @@ msgstr[0] "%1$d bağlayıcı nesnenin dışında"
 msgstr[1] "%1$d bağlayıcı nesnenin dışında"
 
 msgid "Some connectors are overlapped"
-msgstr "Bazı konektörler üst üste binmiş"
+msgstr "Bazı bağlayıcılar üst üste binmiş"
 
 msgid "Select at least one object to keep after cutting."
 msgstr "Kesimden sonra saklanacak en az bir nesne seçin."
