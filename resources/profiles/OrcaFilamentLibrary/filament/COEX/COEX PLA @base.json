@@ -1,0 +1,94 @@
+{
+    "name": "COEX PLA @base",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_cost": [
+        "22.99"
+    ],
+    "filament_density": [
+        "1.24"
+    ],
+    "filament_diameter": [
+        "1.75"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "filament_settings_id": [
+        "COEX PLA"
+    ],
+    "filament_vendor": [
+        "COEX"
+    ],
+    "filament_colour": [
+        "#0080FF"
+    ],
+    "bed_temperature": [
+        "60"
+    ],
+    "hot_plate_temp": [
+        "60"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "60"
+    ],
+    "nozzle_temperature": [
+        "210"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "215"
+    ],
+    "temperature_vitrification": [
+        "55"
+    ],
+    "fan_min_speed": [
+        "100"
+    ],
+    "fan_max_speed": [
+        "100"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "slow_down_layer_time": [
+        "6"
+    ],
+    "filament_retraction_minimum_travel": [
+        "2"
+    ],
+    "filament_retract_when_changing_layer": [
+        "0"
+    ],
+    "filament_retract_before_wipe": [
+        "70%"
+    ],
+    "filament_retract_layer_change": [
+        "0"
+    ],
+    "filament_retraction_length": [
+        "0.8"
+    ],
+    "filament_z_hop": [
+        "0.2"
+    ],
+    "filament_retraction_speed": [
+        "40"
+    ],
+    "filament_deretraction_speed": [
+        "30"
+    ],
+    "compatible_printers": [
+        ""
+    ],
+    "compatible_printers_condition": "",
+    "compatible_prints": "",
+    "compatible_prints_condition": "",
+    "version": "1.0.0"
+}
