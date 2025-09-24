@@ -92,19 +92,6 @@ jobs:
         if: inputs.os == 'ubuntu-24.04'
         uses: ./.github/actions/apt-install-deps
 
-        # This happens *after* `Apt-Install Dependencies` because that does an apt update
-      - name: Install Ubuntu Build Dependencies
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
-        working-directory: ${{ github.workspace }}
-        env:
-          apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || '' }}
-        run: |
-            ${{ env.apt-cmd }} install -y libgl1-mesa-dev \
-            libwayland-dev libxkbcommon-dev wayland-protocols pkgconf \
-            libglu1-mesa-dev libcairo2-dev libsoup2.4-dev \
-            libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev \
-            gstreamer1.0-plugins-bad libunwind-dev
-
       - name: Build on Ubuntu
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         working-directory: ${{ github.workspace }}
