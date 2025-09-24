@@ -17,7 +17,7 @@ using Pointf = Vec2d; // (x, y) field point in coordf_t.
 
 struct ScalarField
 {
-    static constexpr float gsizef = 0.50;                        // grid cell size in mm (roughly line segment length).
+    static constexpr float gsizef = 0.40;                        // grid cell size in mm (roughly line segment length).
     static constexpr float rsizef = 0.01;                        // raster pixel size in mm (roughly point accuracy).
     const coord_t          rsize  = scaled(rsizef);              // raster pixel size in coord_t.
     const coordr_t         gsize  = std::round(gsizef / rsizef); // grid cell size in coordr_t.
@@ -116,8 +116,10 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     // Density (field period) adjusted to have a good %of weight.
     const float vari_T = 4.18f * spacing * params.multiline / density_factor;
 
-    BoundingBox          bb        = expolygon.contour.bounding_box();
-    marchsq::ScalarField sf        = marchsq::ScalarField(bb, this->z, vari_T);
+    BoundingBox bbox = expolygon.contour.bounding_box();
+    // Slightly enlarge the bounding box to avoid artifacts at the edges.
+    bbox.offset(scale_(1.));
+    marchsq::ScalarField sf        = marchsq::ScalarField(bbox, this->z, vari_T);
     Polylines            polylines = marchsq::get_polylines(sf);
 
     // Apply multiline offset if needed
