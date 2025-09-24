@@ -160,6 +160,7 @@ if [ ! -f "./scripts/linux.d/${DISTRIBUTION}" ] ; then
     exit 1
 else
     echo "resolving system dependencies for distribution \"${DISTRIBUTION}\" ..."
+    # shellcheck source=/dev/null
     source "./scripts/linux.d/${DISTRIBUTION}"
 fi
 
@@ -182,17 +183,17 @@ if [[ -z "${SKIP_RAM_CHECK}" ]] ; then
     check_available_memory_and_disk
 fi
 
-export CMAKE_C_CXX_COMPILER_CLANG=""
+export CMAKE_C_CXX_COMPILER_CLANG=()
 if [[ -n "${USE_CLANG}" ]] ; then
-    export CMAKE_C_CXX_COMPILER_CLANG="-DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++"
+    export CMAKE_C_CXX_COMPILER_CLANG=(-DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++)
 fi
 
 # Configure use of ld.lld as the linker when requested
-export CMAKE_LLD_LINKER_ARGS=""
+export CMAKE_LLD_LINKER_ARGS=()
 if [[ -n "${USE_LLD}" ]] ; then
     if command -v ld.lld >/dev/null 2>&1 ; then
         LLD_BIN=$(command -v ld.lld)
-        export CMAKE_LLD_LINKER_ARGS="-DCMAKE_LINKER=${LLD_BIN} -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_MODULE_LINKER_FLAGS=-fuse-ld=lld"
+        export CMAKE_LLD_LINKER_ARGS=(-DCMAKE_LINKER="${LLD_BIN}" -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld -DCMAKE_MODULE_LINKER_FLAGS=-fuse-ld=lld)
     else
         echo "Error: ld.lld not found. Please install the 'lld' package (e.g., sudo apt install lld) or omit -L."
         exit 1
@@ -201,17 +202,17 @@ fi
 
 if [[ -n "${BUILD_DEPS}" ]] ; then
     echo "Configuring dependencies..."
-    BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS}"
+    read -r -a BUILD_ARGS <<< "${DEPS_EXTRA_BUILD_ARGS}"
     if [[ -n "${CLEAN_BUILD}" ]]
     then
         rm -fr deps/$BUILD_DIR
     fi
     mkdir -p deps/$BUILD_DIR
     if [[ $BUILD_CONFIG != Release ]] ; then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=${BUILD_CONFIG}"
+        BUILD_ARGS+=(-DCMAKE_BUILD_TYPE=${BUILD_CONFIG})
     fi
 
-    print_and_run cmake -S deps -B deps/$BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG}" "${CMAKE_LLD_LINKER_ARGS}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS}"
+    print_and_run cmake -S deps -B deps/$BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS[@]}"
     print_and_run cmake --build deps/$BUILD_DIR
 fi
 
@@ -220,19 +221,19 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     if [[ -n "${CLEAN_BUILD}" ]] ; then
         rm -fr $BUILD_DIR
     fi
-    BUILD_ARGS="${ORCA_EXTRA_BUILD_ARGS}"
+    read -r -a BUILD_ARGS <<< "${ORCA_EXTRA_BUILD_ARGS}"
     if [[ $BUILD_CONFIG != Release ]] ; then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=${BUILD_CONFIG}"
+        BUILD_ARGS+=(-DCMAKE_BUILD_TYPE=${BUILD_CONFIG})
     fi
     if [[ -n "${BUILD_TESTS}" ]] ; then
-        BUILD_ARGS="${BUILD_ARGS} -DBUILD_TESTS=ON"
+        BUILD_ARGS+=(-DBUILD_TESTS=ON)
     fi
 
-    print_and_run cmake -S . -B $BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG}" "${CMAKE_LLD_LINKER_ARGS}" -G "Ninja Multi-Config" \
+    print_and_run cmake -S . -B $BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" -G "Ninja Multi-Config" \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
 -DORCA_TOOLS=ON \
 "${COLORED_OUTPUT}" \
-"${BUILD_ARGS}"
+"${BUILD_ARGS[@]}"
     echo "done"
     echo "Building OrcaSlicer ..."
     print_and_run cmake --build $BUILD_DIR --config "${BUILD_CONFIG}" --target OrcaSlicer

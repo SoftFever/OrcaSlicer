@@ -27,6 +27,7 @@ REQUIRED_DEV_PACKAGES=(
 
 if [[ -n "$UPDATE_LIB" ]]
 then
+    # shellcheck source=/dev/null
     source /etc/os-release
     if [ "${ID}" == "ubuntu" ] && [ -n "${VERSION_ID}" ]; then
         # It's ubuntu and we have a VERSION_ID like "24.04".
@@ -50,14 +51,13 @@ then
         REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.1-dev)
     fi
 
-    # TODO: optimize this by checking which, if any, packages are already installed
-
     # install them all at once
     sudo apt update
-    sudo apt install -y ${REQUIRED_DEV_PACKAGES[@]}
+    sudo apt install -y "${REQUIRED_DEV_PACKAGES[@]}"
 
     echo -e "done\n"
     exit 0
 fi
 
+export FOUND_GTK3_DEV
 FOUND_GTK3_DEV=$(dpkg -l libgtk* | grep gtk-3-dev || echo '')

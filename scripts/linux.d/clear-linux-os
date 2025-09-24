@@ -25,9 +25,10 @@ export REQUIRED_BUNDLES=(
 if [[ -n "$UPDATE_LIB" ]]
 then
     echo "Updating linux ..."
-    echo swupd bundle-add -y ${REQUIRED_BUNDLES[@]}
+    echo swupd bundle-add -y "${REQUIRED_BUNDLES[@]}"
     echo -e "done\n"
     exit 0
 fi
 
-FOUND_GTK3_DEV=$(ls /usr/lib64/libgtk-3.so 2>/dev/null || true)
+export FOUND_GTK3_DEV
+FOUND_GTK3_DEV=$(find /usr/lib64/libgtk-3.so 2>/dev/null || true)
