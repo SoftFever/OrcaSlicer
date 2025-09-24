@@ -238,7 +238,7 @@ void Tab::create_preset_tab()
     add_scaled_bitmap(this, m_bmp_show_incompatible_presets, "flag_red");
     add_scaled_bitmap(this, m_bmp_hide_incompatible_presets, "flag_green");
 
-    add_scaled_button(m_top_panel, &m_btn_hide_incompatible_presets, "flag_red");
+    add_scaled_button(m_top_panel, &m_btn_hide_incompatible_presets, "flag_green");
 
     //m_btn_compare_preset->SetToolTip(_L("Compare presets"));
     // TRN "Save current Settings"
@@ -379,6 +379,10 @@ void Tab::create_preset_tab()
     m_top_sizer->Add(m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     m_top_sizer->Add(m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::ContentMargin()));
     m_top_sizer->Add(m_btn_hide_incompatible_presets, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    if (m_btn_hide_incompatible_presets) {
+        bool show_dev_button = (m_mode == comDevelop);
+        m_btn_hide_incompatible_presets->Show(show_dev_button);
+    }
 
     if (dynamic_cast<TabPrint*>(this) == nullptr) {
         m_static_title = new Label(m_top_panel, Label::Body_12, _L("Advance"));
@@ -1223,6 +1227,12 @@ void Tab::update_mode()
 void Tab::update_visibility()
 {
     Freeze(); // There is needed Freeze/Thaw to avoid a flashing after Show/Layout
+
+    //pantheon slicer: show compatibility toggle in develop
+    if (m_btn_hide_incompatible_presets) {
+        bool show_dev_button = (wxGetApp().get_mode() == comDevelop); 
+        m_btn_hide_incompatible_presets->Show(show_dev_button);
+    }
 
     for (auto page : m_pages)
         page->update_visibility(m_mode, page.get() == m_active_page);
@@ -5994,8 +6004,7 @@ void Tab::update_ui_from_settings()
 {
     // Show the 'show / hide presets' button only for the print and filament tabs, and only if enabled
     // in application preferences.
-    m_show_btn_incompatible_presets = true;
-    bool show = m_show_btn_incompatible_presets && m_type != Slic3r::Preset::TYPE_PRINTER;
+    bool show = m_type != Slic3r::Preset::TYPE_PRINTER && wxGetApp().get_mode() == comDevelop;
     //BBS: GUI refactor
     //Layout();
     m_parent->Layout();
