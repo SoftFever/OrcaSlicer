@@ -94,8 +94,10 @@ jobs:
       - uses: lukka/get-cmake@latest
         with:
           cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
-      - name: Run unit tests
-        run: scripts/run_unit_tests.sh
+      - name: Unpackage and Run Unit Tests
+        run: |
+          tar -xzf build_tests.tar
+          scripts/run_unit_tests.sh
       - name: Publish Test Results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2

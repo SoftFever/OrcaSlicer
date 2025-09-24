@@ -344,14 +344,17 @@ jobs:
           ./build_linux.sh -istr
           mv -n ./build/OrcaSlicer_Linux_V${{ env.ver_pure }}.AppImage ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
           chmod +x ./build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage
+          tar -cvpf build_tests.tar build/tests
 
+        # Use tar because upload-artifacts won't always preserve directory structure
+        # and doesn't preserve file permissions
       - name: Upload Test Artifact
         if: inputs.os == 'ubuntu-24.04'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.sha }}-tests
           overwrite: true
-          path: build/tests
+          path: build_tests.tar
           retention-days: 5
           if-no-files-found: error
 
