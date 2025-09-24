@@ -3,11 +3,11 @@
 # This file is made to support the unit tests workflow.
 # It should only require the directories build/tests and scripts/ to function,
 # and cmake (with ctest) installed.
-# (otherwise, update the workflow too, but try not to)
+# (otherwise, update the workflow too, but try to avoid to keep things self-contained)
 
-SCRIPT_DIR="$(dirname "$0")"
+ROOT_DIR="$(dirname "$0")/.."
 
-pushd "${SCRIPT_DIR}/../build/tests" || exit 1
+cd "${ROOT_DIR}" || exit 1
 
 # TODO: github.com/SoftFever/OrcaSlicer/issues/10309 - Run all tests
-ctest --test-dir slic3rutils --output-junit ctest_results.xml
+ctest --test-dir build/tests/slic3rutils --output-junit "$(pwd)/ctest_results.xml"
