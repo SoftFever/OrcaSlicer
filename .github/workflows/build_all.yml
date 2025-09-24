@@ -88,6 +88,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           sparse-checkout: |
+            .github
             scripts
       - name: Apt-Install Dependencies
         uses: ./.github/actions/apt-install-deps
