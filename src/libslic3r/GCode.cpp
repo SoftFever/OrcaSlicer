@@ -1061,7 +1061,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 gcodegen.m_wipe.reset_path();                                           // We don't want wiping on the ramming lines.
             toolchange_gcode_str = gcodegen.set_extruder(new_extruder_id, tcr.print_z); // TODO: toolchange_z vs print_z
             if (gcodegen.config().enable_prime_tower) {
-            deretraction_str += gcodegen.writer().travel_to_z(z, "restore layer Z");
+                deretraction_str += gcodegen.writer().travel_to_z(z, "Force restore layer Z", true);
                 Vec3d position{gcodegen.writer().get_position()};
                 position.z() = z;
                 gcodegen.writer().set_position(position);
@@ -5734,10 +5734,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         auto target_z = get_sloped_z(sloped->slope_begin.z_ratio);
         slope_need_z_travel = m_writer.will_move_z(target_z);
     }
-    // go to first point of extrusion path
-    //BBS: path.first_point is 2D point. But in lazy raise case, lift z is done in travel_to function.
-    //Add m_need_change_layer_lift_z when change_layer in case of no lift if m_last_pos is equal to path.first_point() by chance
+    // Move to first point of extrusion path
+    // path is 2D. But in slope lift case, lift z is done in travel_to function.
+    // Add m_need_change_layer_lift_z when change_layer in case of no lift if m_last_pos is equal to path.first_point() by chance
     if (!m_last_pos_defined || m_last_pos != path.first_point() || m_need_change_layer_lift_z || slope_need_z_travel) {
+        const bool _last_pos_undefined = !m_last_pos_defined;
         gcode += this->travel_to(
             path.first_point(),
             path.role(),
@@ -5745,7 +5746,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             sloped == nullptr ? DBL_MAX : get_sloped_z(sloped->slope_begin.z_ratio)
         );
         m_need_change_layer_lift_z = false;
+        // Orca: force restore Z after unknown last pos
+        if (_last_pos_undefined && !slope_need_z_travel) {
+            gcode += this->writer().travel_to_z(m_last_layer_z, "force restore Z after unknown last pos", true);
+        }
     }
+
 
     // if needed, write the gcode_label_objects_end then gcode_label_objects_start
     // should be already done by travel_to, but just in case
@@ -7182,6 +7188,8 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     if (m_config.enable_pressure_advance.get_at(new_filament_id)) {
         gcode += m_writer.set_pressure_advance(m_config.pressure_advance.get_at(new_filament_id));
     }
+    //Orca: tool changer or IDEX's firmware may change Z position, so we set it to unknown/undefined
+    m_last_pos_defined = false;
 
     return gcode;
 }

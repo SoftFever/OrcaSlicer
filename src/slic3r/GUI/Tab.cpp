@@ -4031,6 +4031,10 @@ void TabFilament::toggle_options()
                         "filament_cooling_initial_speed", "filament_cooling_final_speed"})
             toggle_option(el, !is_BBL_printer);
 
+        bool multitool_ramming = m_config->opt_bool("filament_multitool_ramming", 0);
+        toggle_option("filament_multitool_ramming_volume", multitool_ramming);
+        toggle_option("filament_multitool_ramming_flow", multitool_ramming);
+
         const int extruder_idx = 0; // m_variant_combo->GetSelection(); // TODO: Orca hack
         toggle_line("retraction_distances_when_ec", m_config->opt_bool("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
     }

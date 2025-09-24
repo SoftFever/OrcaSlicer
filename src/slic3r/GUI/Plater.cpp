@@ -5399,7 +5399,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     //     }
                     // }
                     // Orca: check if the project is created with OrcaSlicer 2.3.1-alpha and use the sparse infill rotation template for non-safe infill patterns
-                    else if ((file_version < app_version) && file_version == Semver("2.3.1-alpha")) {
+                    else if (load_config && (file_version < app_version) && file_version == Semver("2.3.1-alpha")) {
                         if (!config_loaded.opt_string("sparse_infill_rotate_template").empty()) {
                             const auto _sparse_infill_pattern =
                                 config_loaded.option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value;
