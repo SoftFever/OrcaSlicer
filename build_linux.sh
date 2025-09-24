@@ -209,7 +209,7 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
     fi
     mkdir -p deps/$BUILD_DIR
     if [[ $BUILD_CONFIG != Release ]] ; then
-        BUILD_ARGS+=(-DCMAKE_BUILD_TYPE=${BUILD_CONFIG})
+        BUILD_ARGS+=(-DCMAKE_BUILD_TYPE="${BUILD_CONFIG}")
     fi
 
     print_and_run cmake -S deps -B deps/$BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS[@]}"
@@ -223,7 +223,7 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     fi
     read -r -a BUILD_ARGS <<< "${ORCA_EXTRA_BUILD_ARGS}"
     if [[ $BUILD_CONFIG != Release ]] ; then
-        BUILD_ARGS+=(-DCMAKE_BUILD_TYPE=${BUILD_CONFIG})
+        BUILD_ARGS+=(-DCMAKE_BUILD_TYPE="${BUILD_CONFIG}")
     fi
     if [[ -n "${BUILD_TESTS}" ]] ; then
         BUILD_ARGS+=(-DBUILD_TESTS=ON)
