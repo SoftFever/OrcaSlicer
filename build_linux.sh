@@ -205,7 +205,7 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
     read -r -a BUILD_ARGS <<< "${DEPS_EXTRA_BUILD_ARGS}"
     if [[ -n "${CLEAN_BUILD}" ]]
     then
-        rm -fr deps/$BUILD_DIR
+        print_and_run rm -fr deps/$BUILD_DIR
     fi
     mkdir -p deps/$BUILD_DIR
     if [[ $BUILD_CONFIG != Release ]] ; then
@@ -219,7 +219,7 @@ fi
 if [[ -n "${BUILD_ORCA}" ]] ; then
     echo "Configuring OrcaSlicer..."
     if [[ -n "${CLEAN_BUILD}" ]] ; then
-        rm -fr $BUILD_DIR
+        print_and_run rm -fr $BUILD_DIR
     fi
     read -r -a BUILD_ARGS <<< "${ORCA_EXTRA_BUILD_ARGS}"
     if [[ $BUILD_CONFIG != Release ]] ; then
