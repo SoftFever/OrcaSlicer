@@ -197,39 +197,26 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
        BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
        INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
     )
-elseif(FLATPAK)
-    # the only reason this is here is because of the HACK at the bottom for ci
-    #
-    # note for future devs: shared libs may actually create a size reduction
-    # but orcaslicer_deps tends to get really funny regarding linking after that (notably boost)
-    # so, as much as I would like to use that, it's not happening
-    ExternalProject_Add(
-        dep_${projectname}
-        EXCLUDE_FROM_ALL    ON
-        INSTALL_DIR         ${DESTDIR}
-        DOWNLOAD_DIR        ${DEP_DOWNLOAD_DIR}/${projectname}
-        ${_gen}
-        CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX:STRING=${DESTDIR}
-            -DCMAKE_MODULE_PATH:STRING=${PROJECT_SOURCE_DIR}/../cmake/modules
-            -DCMAKE_PREFIX_PATH:STRING=${DESTDIR}
-            -DCMAKE_DEBUG_POSTFIX:STRING=d
-            -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
-            -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
-            -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
-            -DBUILD_SHARED_LIBS:BOOL=OFF
-            ${_cmake_osx_arch}
-            "${_configs_line}"
-            ${DEP_CMAKE_OPTS}
-            ${P_ARGS_CMAKE_ARGS}
-       ${P_ARGS_UNPARSED_ARGUMENTS}
-       BUILD_COMMAND ${CMAKE_COMMAND} --build . --config Release -- ${_build_j}
-       INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install --config Release
-       # HACK: save space after each compile job, because CI
-       # reasoning: cmake changes directory after this command, so just keep only the folders
-       # so that it can navigate out
-       COMMAND find "${CMAKE_BINARY_DIR}/dep_${projectname}-prefix/" -type f -delete
-    )
+
+    if (FLATPAK)
+        # Free up space during flatpak builds to prevent running out of space during CI/CD
+
+        # note for future devs: shared libs may actually create a size reduction
+        # but orcaslicer_deps tends to get really funny regarding linking after that (notably boost)
+        # so, as much as I would like to use that, it's not happening
+        ExternalProject_Add_Step(dep_${projectname} free_download_space
+                DEPENDEES download # do after download
+                COMMENT "Freeing Space: Removing source archive"
+                WORKING_DIRECTORY ${DEP_DOWNLOAD_DIR}
+                COMMAND ${CMAKE_COMMAND} -E rm -r ${projectname}
+        )
+        ExternalProject_Add_Step(dep_${projectname} free_build_space
+                DEPENDEES install # do after install
+                COMMENT "Freeing Space: Removing source and build files"
+                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/dep_${projectname}-prefix/src
+                COMMAND ${CMAKE_COMMAND} -E rm -rf dep_${projectname} dep_${projectname}-build
+        )
+    endif ()
 else()
     ExternalProject_Add(
         dep_${projectname}
@@ -373,10 +360,10 @@ if (NOT JPEG_FOUND)
     set(JPEG_PKG dep_JPEG)
 endif()
 
-# flatpak builds wxwidgets separately 
+# flatpak builds wxwidgets separately, so it is not included in the deps target
 set(WXWIDGETS_PKG "")
+include(wxWidgets/wxWidgets.cmake)
 if (NOT FLATPAK)
-    include(wxWidgets/wxWidgets.cmake)
     set(WXWIDGETS_PKG "dep_wxWidgets")
 endif()
 
