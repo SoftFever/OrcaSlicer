@@ -68,7 +68,9 @@ jobs:
           - os: macos-14
             arch: arm64
     # Don't run scheduled builds on forks:
-    if: github.event_name != 'schedule' || github.repository == 'SoftFever/OrcaSlicer'
+    # DO_NOT_MERGE: restore before submitting PR
+    # if: github.event_name != 'schedule' || github.repository == 'SoftFever/OrcaSlicer'
+    if: false
     uses: ./.github/workflows/build_check_cache.yml
     with:
       os: ${{ matrix.os }}
@@ -87,6 +89,8 @@ jobs:
         with:
           sparse-checkout: |
             scripts
+      - name: Apt-Install Dependencies
+        uses: ./.github/actions/apt-install-deps
       - name: Restore Test Artifact
         uses: actions/download-artifact@v4
         with:
@@ -127,7 +131,9 @@ jobs:
           - arch: aarch64
             runner: ubuntu-24.04-arm
     # Don't run scheduled builds on forks:
-    if: github.event_name != 'schedule' || github.repository == 'SoftFever/OrcaSlicer'
+    # DO_NOT_MERGE: restore before submitting PR
+    # if: github.event_name != 'schedule' || github.repository == 'SoftFever/OrcaSlicer'
+    if: false
     runs-on: ${{ matrix.variant.runner }}
     env:
       date:
