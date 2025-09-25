@@ -6,12 +6,15 @@
     "description": "COEX 3D filament profiles",
     "machine_list": [],
     "filament_list": [
-        "COEX PLA @COEX",
-        "COEX PETG @COEX",
-        "COEX PLA+ @COEX",
-        "COEX Silk PLA @COEX",
-        "COEX TPU @COEX",
-        "COEX ABS @COEX"
+        "COEX 3D/filament/COEX PLA @base.json",
+        "COEX 3D/filament/COEX PLA Prime @base.json",
+        "COEX 3D/filament/COEX ABS @base.json",
+        "COEX 3D/filament/COEX ABS Prime @base.json",
+        "COEX 3D/filament/COEX PETG @base.json",
+        "COEX 3D/filament/COEX ASA @base.json",
+        "COEX 3D/filament/COEX PLA+Silk @base.json",
+        "COEX 3D/filament/COEX TPU 95A @base.json",
+        "COEX 3D/filament/COEX PCTG @base.json"
     ],
     "process_list": []
 }
