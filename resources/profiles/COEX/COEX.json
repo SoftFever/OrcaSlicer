@@ -7,11 +7,11 @@
     "machine_list": [],
     "filament_list": [
         "COEX 3D/filament/COEX PLA @base.json",
-        "COEX 3D/filament/COEX PLA Prime @base.json",
+        "COEX 3D/filament/COEX PLA PRIME @base.json",
         "COEX 3D/filament/COEX ABS @base.json",
-        "COEX 3D/filament/COEX ABS Prime @base.json",
+        "COEX 3D/filament/COEX ABS PRIME @base.json",
         "COEX 3D/filament/COEX PETG @base.json",
-        "COEX 3D/filament/COEX ASA @base.json",
+        "COEX 3D/filament/COEX ASA PRIME @base.json",
         "COEX 3D/filament/COEX PLA+Silk @base.json",
         "COEX 3D/filament/COEX TPU 60A @base.json",
         "COEX 3D/filament/COEX TPE 60D @base.json",
@@ -19,7 +19,7 @@
         "COEX 3D/filament/COEX TPE 40D @base.json",
         "COEX 3D/filament/COEX NYLEX UNFILLED @base.json",
         "COEX 3D/filament/COEX NYLEX PA6-CF @base.json",
-        "COEX 3D/filament/COEX PCTG @base.json"
+        "COEX 3D/filament/COEX PCTG PRIME @base.json"
     ],
     "process_list": []
 }
