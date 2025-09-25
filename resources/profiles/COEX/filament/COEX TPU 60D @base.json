@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "COEX TPU 60D @base",
+    "name": "COEX TPE 60D @base",
     "inherits": "Generic TPU @base",
     "from": "system",
     "version": "1.0.0.0",
