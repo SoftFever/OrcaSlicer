@@ -1,7 +1,7 @@
 {
   "type": "filament",
-  "name": "Overture ASA @BBL X1C 0.2 nozzle",
-  "inherits": "Overture ASA @base",
+  "name": "COEX ASA PRIME @BBL X1C 0.2 nozzle",
+  "inherits": "COEX ASA PRIME",
   "from": "system",
   "setting_id": "GFOT009_09",
   "instantiation": "true",
