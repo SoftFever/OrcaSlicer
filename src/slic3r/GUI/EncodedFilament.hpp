@@ -5,6 +5,7 @@
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
+#include <cmath>
 
 #include <wx/colour.h>
 #include <wx/string.h>

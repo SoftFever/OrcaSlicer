@@ -19,6 +19,7 @@
 
 #include <wx/object.h>
 #include <wx/timer.h>
+#include <wx/colour.h>
 
 #define USE_LOCAL_SOCKET_BIND 0
 
