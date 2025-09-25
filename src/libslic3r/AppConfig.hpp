@@ -24,6 +24,11 @@ using namespace nlohmann;
 #define OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK "always_ask"
 #define OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY "load_geometry_only"
 
+#define SETTING_PRINTER_SWITCH_BEHAVIOUR "project_switch_behaviour"
+#define OPTION_PRINTER_SWITCH_BEHAVIOUR_ASK "always_ask"
+#define OPTION_PRINTER_SWITCH_BEHAVIOUR_TRANSFER "transfer"
+#define OPTION_PRINTER_SWITCH_BEHAVIOUR_DISCARD "discard"
+
 #define SUPPORT_DARK_MODE
 //#define _MSW_DARK_MODE
 

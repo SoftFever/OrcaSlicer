@@ -5356,6 +5356,16 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     if (presets == nullptr) presets = m_presets;
 
     UnsavedChangesDialog dlg(m_type, presets, new_printer_name, no_transfer);
+    
+    if (m_type == Preset::TYPE_PRINTER) {
+        auto switch_setting = wxGetApp().app_config->get(SETTING_PRINTER_SWITCH_BEHAVIOUR);
+        if (switch_setting == OPTION_PRINTER_SWITCH_BEHAVIOUR_TRANSFER) {
+            goto TRANSFER;
+        } else if (switch_setting == OPTION_PRINTER_SWITCH_BEHAVIOUR_DISCARD) {
+            return true;
+        }
+    }
+    
     if (dlg.ShowModal() == wxID_CANCEL)
         return false;
 
@@ -5389,6 +5399,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     }
     else if (dlg.transfer_changes()) // move selected changes
     {
+    TRANSFER:
         std::vector<std::string> selected_options = dlg.get_selected_options();
         if (m_type == presets->type()) // move changes for the current preset from this tab
         {
