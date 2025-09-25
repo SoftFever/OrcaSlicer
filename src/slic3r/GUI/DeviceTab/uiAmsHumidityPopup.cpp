@@ -1,9 +1,9 @@
-//**********************************************************/
-/* File: uiAmsHumidityPopup.cpp
+/**********************************************************
+* File: uiAmsHumidityPopup.cpp
 *  Description: The popup with Ams Humidity
 *
 * \n class uiAmsHumidityPopup
-//**********************************************************/
+**********************************************************/
 
 #include "uiAmsHumidityPopup.h"
 
