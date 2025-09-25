@@ -1,7 +1,7 @@
 {
     "type": "filament",
-    "name": "Overture ASA @BBL X1",
-    "inherits": "Overture ASA @base",
+    "name": "COEX ASA PRIME @BBL X1",
+    "inherits": "COEX ASA PRIME @base",
     "from": "system",
     "setting_id": "GFOT009_06",
     "instantiation": "true",
