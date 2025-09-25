@@ -1601,13 +1601,13 @@ wxBoxSizer* MainFrame::create_side_tools()
     print_panel->SetSizer(print_sizer);
 
     update_side_button_style();
-    // m_publish_btn->Hide();
     m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
-    // sizer->Add(m_publish_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
-    // sizer->Add(FromDIP(15), 0, 0, 0, 0);
+    sizer->Add(FromDIP(15), 0, 0, 0, 0);
     sizer->Add(slice_panel);
+    sizer->Add(FromDIP(15), 0, 0, 0, 0);
     sizer->Add(print_panel);
+    sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();
 
