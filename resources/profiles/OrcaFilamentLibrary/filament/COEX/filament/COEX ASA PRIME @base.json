@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "COEX ASA @base",
+    "name": "COEX ASA PRIME @base",
     "inherits": "Generic ASA @base",
     "from": "system",
     "version": "1.0.0.0",
