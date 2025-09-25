@@ -1,13 +1,13 @@
 {
     "type": "filament",
-    "name": "COEX TPU 30D @base",
+    "name": "COEX TPE 30D @base",
     "inherits": "Generic TPU @base",
     "from": "system",
     "version": "1.0.0.0",
     "is_custom_defined": "0",
     "filament_vendor": "COEX 3D",
     "filament_cost": "80.00",
-    "filament_density": "1.20",
+    "filament_density": "1.15",
     "filament_type": "TPU",
     "filament_notes": "Flexible filament - print slowly with minimal retraction",
     "nozzle_temperature": [
