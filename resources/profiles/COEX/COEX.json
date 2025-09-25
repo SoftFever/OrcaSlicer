@@ -13,7 +13,12 @@
         "COEX 3D/filament/COEX PETG @base.json",
         "COEX 3D/filament/COEX ASA @base.json",
         "COEX 3D/filament/COEX PLA+Silk @base.json",
-        "COEX 3D/filament/COEX TPU 95A @base.json",
+        "COEX 3D/filament/COEX TPU 60A @base.json",
+        "COEX 3D/filament/COEX TPE 60D @base.json",
+        "COEX 3D/filament/COEX TPE 30D @base.json",
+        "COEX 3D/filament/COEX TPE 40D @base.json",
+        "COEX 3D/filament/COEX NYLEX UNFILLED @base.json",
+        "COEX 3D/filament/COEX NYLEX PA6-CF @base.json",
         "COEX 3D/filament/COEX PCTG @base.json"
     ],
     "process_list": []
