@@ -6,7 +6,7 @@
     "version": "1.0.0.0",
     "is_custom_defined": "0",
     "filament_vendor": "COEX 3D",
-    "filament_cost": "22.00",
+    "filament_cost": "33.00",
     "filament_density": "1.27",
     "filament_type": "PETG",
     "filament_notes": "IMPORTANT: Set travel speed to maximum your machine allows (200-500mm/s) to reduce stringing",
