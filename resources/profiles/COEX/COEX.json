@@ -1,0 +1,17 @@
+{
+    "name": "COEX 3D",
+    "id": "COEX",
+    "version": "01.00.00.00",
+    "force_update": "0",
+    "description": "COEX 3D filament profiles",
+    "machine_list": [],
+    "filament_list": [
+        "COEX PLA @COEX",
+        "COEX PETG @COEX",
+        "COEX PLA+ @COEX",
+        "COEX Silk PLA @COEX",
+        "COEX TPU @COEX",
+        "COEX ABS @COEX"
+    ],
+    "process_list": []
+}
