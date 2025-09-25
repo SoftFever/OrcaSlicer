@@ -235,6 +235,11 @@ void PartPlate::reset_bed_type()
     m_config.erase("curr_bed_type");
 }
 
+void PartPlate::reset_skirt_start_angle()
+{
+    m_config.erase("skirt_start_angle");
+}
+
 void PartPlate::set_print_seq(PrintSequence print_seq)
 {
     std::string print_seq_key = "print_sequence";
@@ -469,7 +474,7 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 
     // calculate and generate grid
     int   step          = Bed_2D::calculate_grid_step(pp_bbox, scale_(1.00));
-    Vec2d scaled_origin = Vec2d(scale_(m_origin.x()),scale_(m_origin.x()));
+    Vec2d scaled_origin = Vec2d(scale_(m_origin.x()),scale_(m_origin.y()));
     auto  grid_lines    = Bed_2D::generate_grid(poly, pp_bbox, scaled_origin, scale_(step), SCALED_EPSILON);
 
     Lines lines_thin = to_lines(grid_lines[0]);

@@ -11,7 +11,7 @@ Ironing is a process used to improve the surface finish of 3D prints by smoothin
 
 This setting controls which layer being ironed.
 
-- **Top Surfaces**: All [top surfaces](strength_settings_top_bottom_shells) will be ironed. This is the most common setting and is used to smooth out the top layers of the print.
+- **Top Surfaces**: All [top surfaces](strength_settings_top_bottom_shells) will be ironed. This is the most common setting and is used to smooth out the top layers of the print.  
   ![ironing-top-surfaces](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/ironing/ironing-top-surfaces.png?raw=true)
 - **Topmost Surface**: Only the last [top layer](strength_settings_top_bottom_shells) of the print will be ironed. This is useful for prints where only the last layer needs to be smoothed.  
   ![ironing-topmost-surface](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/ironing/ironing-topmost-surface.png?raw=true)
@@ -21,7 +21,14 @@ This setting controls which layer being ironed.
 ## Pattern
 
 The pattern that will be used when ironing. Usually, the best pattern is the one with the most efficient coverage of the surface.  
-You can learn more about the different patterns in the [Sparse infill pattern](strength_settings_infill#sparse-infill-pattern) section.
+
+> [!TIP]
+> See [Infill Patterns Wiki List](strength_settings_patterns) with **detailed specifications**, including their strengths and weaknesses.
+
+ The ironing patterns are:
+
+- **[Concentric](strength_settings_patterns#concentric)**
+- **[Rectilinear](strength_settings_patterns#rectilinear)**
 
 ## Flow
 
@@ -39,12 +46,12 @@ The distance to keep from the edges, which can help prevent over-extrusion at th
 
 ![ironing-inset](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/ironing/ironing-inset.png?raw=true)
 
-If this value is set to 0, the ironing toolpath will start directly at the perimeter edges without any inward offset. This means the ironing pattern will extend all the way to the outer boundaries of the top surface being ironed.
+If this value is set to 0, the ironing toolpath will start directly at the perimeter edges without any inward offset. This means the [ironing pattern](#pattern) will extend all the way to the outer boundaries of the top surface being ironed.
 
 ## Angle
 
 The angle ironing is done at.  
-A negative number disables this function and uses the [sparse infill direction](strength_settings_infill#sparse-infill-direction).
+A negative number disables this function and uses the [sparse infill direction](strength_settings_infill#direction).
 
 ## Speed
 

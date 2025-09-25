@@ -45,6 +45,6 @@ echo cmake .. -G "Visual Studio 16 2019" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DCMAK
 cmake .. -G "Visual Studio 16 2019" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0"
 cmake --build . --config %build_type% --target ALL_BUILD -- -m
 cd ..
-call run_gettext.bat
+call scripts/run_gettext.bat
 cd %build_dir%
 cmake --build . --target install --config %build_type%

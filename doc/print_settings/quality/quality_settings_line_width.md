@@ -54,7 +54,7 @@ If you need stronger infill, it's recommended to use [infill line multiplier](st
 
 ### Internal Solid Infill
 
-Used for solid top/bottom layers or [100% infill](strength_settings_infill##sparse-infill-density).  
+Used for solid top/bottom layers or [100% infill](strength_settings_infill#sparse-infill-density).  
 Recommended: **~110%** for good layer adhesion and visual quality.
 
 ### Support

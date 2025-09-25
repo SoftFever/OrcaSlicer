@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-11 21:06+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -18,19 +18,19 @@ msgid "Current AMS humidity"
 msgstr "Umidità AMS attuale"
 
 msgid "Drying"
-msgstr ""
+msgstr "Asciugatura"
 
 msgid "Idle"
 msgstr "Inattivo"
 
 msgid "Humidity"
-msgstr ""
+msgstr "Umidità"
 
 msgid "Temperature"
 msgstr "Temperatura"
 
 msgid "Left Time"
-msgstr ""
+msgstr "Tempo rimanente"
 
 msgid "Serial:"
 msgstr "Seriale:"
@@ -44,17 +44,23 @@ msgstr "Ultima versione"
 msgid "Support Painting"
 msgstr "Dipingi supporti"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Rotellina del mouse"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Maiusc+"
+
+msgid "Mouse wheel"
+msgstr "Rotellina del mouse"
 
 msgid "Section view"
 msgstr "Vista in sezione"
 
 msgid "Reset direction"
 msgstr "Ripristina direzione"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Rotellina del mouse"
 
 msgid "Pen size"
 msgstr "Dimensione penna"
@@ -63,16 +69,13 @@ msgid "Left mouse button"
 msgstr "Tasto sinistro mouse"
 
 msgid "Enforce supports"
-msgstr "Rinforzi supporti"
+msgstr "Supporti di rinforzo"
 
 msgid "Right mouse button"
 msgstr "Tasto destro mouse"
 
 msgid "Block supports"
 msgstr "Blocca supporti"
-
-msgid "Shift + Left mouse button"
-msgstr "Maiusc + Tasto sinistro del mouse"
 
 msgid "Erase"
 msgstr "Elimina"
@@ -180,17 +183,17 @@ msgstr "Riempimento colore"
 msgid "Height range"
 msgstr "Intervallo altezza"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Maiusc + Invio"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Attiva/disattiva modello reticolato"
 
 msgid "Remap filaments"
-msgstr ""
+msgstr "Rimappa filamenti"
 
 msgid "Remap"
-msgstr ""
+msgstr "Rimappa"
 
 msgid "Cancel"
 msgstr "Annulla"
@@ -218,7 +221,7 @@ msgid "Painted using: Filament %1%"
 msgstr "Dipinto utilizzando: Filamento %1%"
 
 msgid "Filament remapping finished."
-msgstr ""
+msgstr "Rimappatura filamenti completata."
 
 msgid "Move"
 msgstr "Sposta"
@@ -257,13 +260,13 @@ msgid "mm"
 msgstr "mm"
 
 msgid "Part selection"
-msgstr ""
+msgstr "Selezione parte"
 
 msgid "Fixed step drag"
 msgstr ""
 
 msgid "Single sided scaling"
-msgstr ""
+msgstr "Ridimensionamento su un solo lato"
 
 msgid "Position"
 msgstr "Posizione"
@@ -305,7 +308,7 @@ msgid "World coordinates"
 msgstr "Coordinate reali"
 
 msgid "Reset current rotation to the value when open the rotation tool."
-msgstr ""
+msgstr "Reimposta la rotazione corrente al valore di apertura dello strumento."
 
 msgid "Rotate (absolute)"
 msgstr ""
@@ -717,8 +720,8 @@ msgstr "Superficie"
 msgid "Horizontal text"
 msgstr "Testo orizzontale"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Maiusc + Sposta il mouse verso l'alto o il basso"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "Ruota testo"
@@ -1491,9 +1494,6 @@ msgstr "Distanza parallela:"
 msgid "Flip by Face 2"
 msgstr "Capovolgi da Faccia 2"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "Avvertenza"
 
@@ -1534,7 +1534,7 @@ msgstr ""
 "sono stati riconosciuti."
 
 msgid "Based on PrusaSlicer and BambuStudio"
-msgstr ""
+msgstr "Basato su PrusaSlicer e BambuStudio"
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory. It may be a bug. "
@@ -1782,7 +1782,7 @@ msgid "Top Minimum Shell Thickness"
 msgstr "Spessore minimo del guscio superiore"
 
 msgid "Top Surface Density"
-msgstr ""
+msgstr "Densità superficie superiore"
 
 msgid "Bottom Solid Layers"
 msgstr "Strati solidi inferiori"
@@ -1791,7 +1791,7 @@ msgid "Bottom Minimum Shell Thickness"
 msgstr "Spessore minimo del guscio inferiore"
 
 msgid "Bottom Surface Density"
-msgstr ""
+msgstr "Densità superficie inferiore"
 
 msgid "Ironing"
 msgstr "Stiratura"
@@ -1821,10 +1821,10 @@ msgid "Add modifier"
 msgstr "Aggiungi modificatore"
 
 msgid "Add support blocker"
-msgstr "Aggiungi blocco supporto"
+msgstr "Aggiungi divieto di supporto"
 
 msgid "Add support enforcer"
-msgstr "Aggiungi rinforzo supporto"
+msgstr "Aggiungi supporto di rinforzo"
 
 msgid "Add text"
 msgstr "Aggiungi testo"
@@ -1858,6 +1858,9 @@ msgstr "Elimina"
 
 msgid "Delete the selected object"
 msgstr "Elimina l'oggetto selezionato"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "Caricamento..."
@@ -2194,7 +2197,7 @@ msgstr[0] "%1$d geometria con spessore zero"
 msgstr[1] "%1$d geometrie con spessore zero"
 
 msgid "Click the icon to repair model object"
-msgstr ""
+msgstr "Clicca sull'icona per riparare l'oggetto"
 
 msgid "Right button click the icon to drop the object settings"
 msgstr ""
@@ -2290,6 +2293,7 @@ msgstr "Non è consentita l'eliminazione dell'ultima parte solida."
 
 msgid "The target object contains only one part and can not be split."
 msgstr ""
+"L'oggetto di destinazione contiene solo una parte e non può essere suddiviso."
 
 msgid "Assembly"
 msgstr "Assemblaggio"
@@ -2354,7 +2358,7 @@ msgid "Support Blocker"
 msgstr "Blocco Supporto"
 
 msgid "Support Enforcer"
-msgstr "Rinforzo Supporto"
+msgstr "Supporto di rinforzo"
 
 msgid "Type:"
 msgstr "Tipo:"
@@ -3117,10 +3121,10 @@ msgstr "Passo"
 msgid "AMS Slots"
 msgstr "Slot AMS"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -3785,7 +3789,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Velocità volumetrica massima troppo bassa.\n"
 "Il valore è stato ripristinato a 0,5"
@@ -3802,14 +3806,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Altezza delo strato troppo piccola.\n"
 "È stata ripristinata a 0,2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Spaziatura di stiratura troppo piccola.\n"
 "È stata ripristinata a 0,1"
@@ -3916,8 +3920,8 @@ msgstr ""
 "È stato ripristinato a 0."
 
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -4266,6 +4270,11 @@ msgstr "Alcune estensioni nell'input non sono valide"
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Formato non valido. Formato vettoriale previsto: \"%1%\""
@@ -4292,7 +4301,7 @@ msgid "Layer Time"
 msgstr "Durata strato"
 
 msgid "Layer Time (log)"
-msgstr "Durata strato (registro)"
+msgstr "Durata strato (log)"
 
 msgid "Height: "
 msgstr "Altezza: "
@@ -4468,26 +4477,14 @@ msgstr "Raggio"
 msgid "Keep min"
 msgstr "Mantieni al minimo"
 
-msgid "Left mouse button:"
-msgstr "Tasto sinistro del mouse:"
-
 msgid "Add detail"
 msgstr "Aggiungi dettaglio"
-
-msgid "Right mouse button:"
-msgstr "Tasto destro del mouse:"
 
 msgid "Remove detail"
 msgstr "Rimuovi dettaglio"
 
-msgid "Shift + Left mouse button:"
-msgstr "Maiusc + Tasto sinistro del mouse:"
-
 msgid "Reset to base"
 msgstr "Ripristina alla base"
-
-msgid "Shift + Right mouse button:"
-msgstr "Maiusc + Tasto destro del mouse:"
 
 msgid "Smoothing"
 msgstr "Levigatura"
@@ -4504,7 +4501,7 @@ msgstr "Sequenza"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4614,9 +4611,6 @@ msgstr "Vista della sezione"
 
 msgid "Assemble Control"
 msgstr "Controllo assemblaggio"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
@@ -4883,8 +4877,8 @@ msgstr "Inizia un nuovo progetto"
 msgid "Open a project file"
 msgstr "Apri un file progetto"
 
-msgid "Recent projects"
-msgstr "Progetti recenti"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "Salva Progetto"
@@ -4894,9 +4888,6 @@ msgstr "Salva progetto corrente su file"
 
 msgid "Save Project as"
 msgstr "Salva Progetto come"
-
-msgid "Shift+"
-msgstr "Maiusc+"
 
 msgid "Save current project as"
 msgstr "Salva Progetto corrente come"
@@ -5408,11 +5399,6 @@ msgstr "Ricarica l'elenco dei file dalla stampante."
 
 msgid "No printers."
 msgstr "Nessuna stampante."
-
-msgid ""
-"Please check the network and try again, You can restart or update the "
-"printer if the issue persists."
-msgstr ""
 
 msgid "Loading file list..."
 msgstr "Caricamento elenco file..."
@@ -6311,6 +6297,9 @@ msgstr "Espandi barra laterale"
 msgid "Collapse sidebar"
 msgstr "Riduci barra laterale"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Caricamento file: %s"
@@ -7154,11 +7143,14 @@ msgstr ""
 "Quando si apre un file .3mf, è necessario caricare le impostazioni della "
 "stampante/filamento/processo?"
 
-msgid "Maximum recent projects"
-msgstr "Numero massimo di progetti recenti"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Numero massimo di progetti recenti"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Cancella la mia scelta sui progetti non salvati."
@@ -7952,6 +7944,14 @@ msgid "Are you sure you want to enable this option?"
 msgstr "Sei sicuro di voler abilitare questa opzione?"
 
 msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
@@ -8154,7 +8154,7 @@ msgid "Support filament"
 msgstr "Filamento per supporti"
 
 msgid "Support ironing"
-msgstr ""
+msgstr "Stiratura supporti"
 
 msgid "Tree supports"
 msgstr "Supporti ad albero"
@@ -8262,7 +8262,7 @@ msgstr ""
 "compatibile con la stampa sul Piatto a bassa temperatura."
 
 msgid "Textured Cool Plate"
-msgstr ""
+msgstr "Piatto ruvido a bassa temperatura"
 
 msgid ""
 "Bed temperature when the Textured Cool Plate is installed. A value of 0 "
@@ -8379,7 +8379,7 @@ msgid "Dependencies"
 msgstr "Dipendenze"
 
 msgid "Compatible printers"
-msgstr ""
+msgstr "Stampanti compatibili"
 
 msgid "Compatible process profiles"
 msgstr "Profili di processo compatibili"
@@ -8450,10 +8450,10 @@ msgid "Normal"
 msgstr "Normale"
 
 msgid "Resonance Avoidance"
-msgstr ""
+msgstr "Evita risonanza"
 
 msgid "Resonance Avoidance Speed"
-msgstr ""
+msgstr "Velocità evita risonanza"
 
 msgid "Speed limitation"
 msgstr "Limitazione velocità"
@@ -9013,12 +9013,6 @@ msgstr "Elenco oggetti"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importa geometrie da file STL/STEP/3MF/OBJ/AMF"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Maiusc+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Maiusc+G"
-
 msgid "Paste from clipboard"
 msgstr "Incolla dagli appunti"
 
@@ -9042,14 +9036,8 @@ msgstr "Ruota vista"
 msgid "Pan View"
 msgstr "Vista panoramica"
 
-msgid "Mouse wheel"
-msgstr "Rotellina del mouse"
-
 msgid "Zoom View"
 msgstr "Ingrandimento vista"
-
-msgid "Shift+A"
-msgstr "Maiusc+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -9060,47 +9048,23 @@ msgstr ""
 "Se ci sono oggetti selezionati, orienta solo quelli selezionati. Altrimenti, "
 "orienterà tutti gli elementi nel progetto corrente."
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr "Questo orienta tutti gli oggetti nel piatto corrente."
-
-msgid "Shift+Tab"
-msgstr "Maiusc+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Riduci/Espandi barra laterale"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Freccia qualsiasi"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Movimento nello spazio della telecamera"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Tasto sinistro del mouse"
-
 msgid "Select a part"
 msgstr "Seleziona parte"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Tasto sinistro del mouse"
-
 msgid "Select multiple objects"
 msgstr "Seleziona più oggetti"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+qualsiasi freccia"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+tasto sinistro del mouse"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+Tasto sinistro del mouse"
-
-msgid "Shift+Left mouse button"
-msgstr "Maiusc+tasto sinistro mouse"
 
 msgid "Select objects by rectangle"
 msgstr "Seleziona oggetti per rettangolo"
@@ -9128,9 +9092,6 @@ msgstr "Freccia Destra"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Sposta selezione di 10 mm in direzione X positiva"
-
-msgid "Shift+Any arrow"
-msgstr "Maiusc+freccia qualsiasi"
 
 msgid "Movement step set to 1 mm"
 msgstr "Passo movimento impostato a 1 mm"
@@ -9216,23 +9177,11 @@ msgstr "Piatto"
 msgid "Move: press to snap by 1mm"
 msgstr "Sposta: premi per muovere di 1 mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Rotellina del mouse"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Supporto/Pittura a colori: regola il raggio della penna"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Rotellina del mouse"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Supporto/Pittura a colori: regola la posizione della sezione"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Rotellina del mouse"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Rotellina del mouse"
 
 msgid "Gizmo"
 msgstr "Strumento"
@@ -9280,9 +9229,6 @@ msgstr "Attiva/Disattiva finestra G-code"
 
 msgid "Move slider 5x faster"
 msgstr "Sposta il cursore 5 volte più velocemente"
-
-msgid "Shift+Mouse wheel"
-msgstr "Maiusc+Rotellina del mouse"
 
 msgid "Horizontal slider - Move to start position"
 msgstr "Cursore di scorrimento orizzontale - Sposta alla posizione iniziale"
@@ -9432,10 +9378,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
-msgid "Laser 10w"
+msgid "Laser 10 W"
 msgstr ""
 
-msgid "Laser 40w"
+msgid "Laser 40 W"
 msgstr ""
 
 msgid "Cutting Module"
@@ -10073,6 +10019,11 @@ msgstr ""
 "machine_max_acceleration_travel nelle impostazioni della stampante."
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -10162,7 +10113,7 @@ msgstr ""
 msgid "Preferred orientation"
 msgstr "Orientamento preferito"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr ""
 "Orienta automaticamente gli STL sull'asse Z al momento dell'importazione "
 "iniziale."
@@ -10727,10 +10678,9 @@ msgstr "Parete precisa"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
-"Migliora la precisione del guscio regolando la spaziatura delle pareti "
-"esterne. Questo migliora anche l'uniformità degli strati."
 
 msgid "Only one wall on top surfaces"
 msgstr "Solo una parete su superfici superiori"
@@ -11015,9 +10965,12 @@ msgstr "Raggio di rilevamento tesa ad orecchio"
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
+"La geometria verrà decimata prima di rilevare gli spigoli vivi. Questo "
+"parametro indica la lunghezza minima dello scostamento per la decimazione.\n"
+"0 per disattivare."
 
 msgid "Select printers"
 msgstr ""
@@ -11938,7 +11891,7 @@ msgid "Default color"
 msgstr "Colore predefinito"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -12299,7 +12252,7 @@ msgstr ""
 "interno."
 
 msgid "Align infill direction to model"
-msgstr ""
+msgstr "Allinea direzione riempimento al modello"
 
 msgid ""
 "Aligns infill and surface fill directions to follow the model's orientation "
@@ -12307,8 +12260,18 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
-msgid "Fill Multiline"
+msgid "Insert solid layers"
 msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
+msgid "Fill Multiline"
+msgstr "Riempimento multilinea"
 
 msgid ""
 "Using multiple lines for the infill pattern, if supported by infill pattern."
@@ -12359,10 +12322,10 @@ msgstr "Nido d'ape"
 msgid "3D Honeycomb"
 msgstr "Nido d'ape 3D"
 
-msgid "2D Honeycomb"
+msgid "Lateral Honeycomb"
 msgstr ""
 
-msgid "2D Lattice"
+msgid "Lateral Lattice"
 msgstr "Reticolo 2D"
 
 msgid "Cross Hatch"
@@ -12377,22 +12340,22 @@ msgstr ""
 msgid "Gyroid"
 msgstr "Giroide"
 
-msgid "Lattice angle 1"
+msgid "Lateral lattice angle 1"
 msgstr "Angolo reticolo 1"
 
 msgid ""
-"The angle of the first set of 2D lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "L'angolo della prima serie di elementi reticolari 2D nell'asse Z. Zero è "
 "verticale."
 
-msgid "Lattice angle 2"
+msgid "Lateral lattice angle 2"
 msgstr "Angolo reticolo 2"
 
 msgid ""
-"The angle of the second set of 2D lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "L'angolo della seconda serie di elementi reticolari 2D nell'asse Z. Zero è "
 "verticale."
@@ -12540,7 +12503,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12725,7 +12689,7 @@ msgid "Whether to apply fuzzy skin on the first layer."
 msgstr "Se applicare la superficie ruvida sul primo strato."
 
 msgid "Fuzzy skin generator mode"
-msgstr ""
+msgstr "Modalità generatore superficie ruvida"
 
 #, c-format, boost-format
 msgid ""
@@ -12741,12 +12705,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop.At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -13125,23 +13089,24 @@ msgid ""
 "a cross texture."
 msgstr ""
 
-msgid "Sparse infill rotatation template"
+msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
-msgstr ""
+msgid "Solid infill rotation template"
+msgstr "Rotazione del riempimento solido"
 
 msgid ""
 "This parameter adds a rotation of solid infill direction to each layer "
@@ -13153,14 +13118,14 @@ msgid ""
 msgstr ""
 
 msgid "Skeleton infill density"
-msgstr ""
+msgstr "Densità del riempimento scheletrico"
 
 msgid ""
 "The remaining part of the model contour after removing a certain depth from "
 "the surface is called the skeleton. This parameter is used to adjust the "
-"density of this section.When two regions have the same sparse infill "
+"density of this section. When two regions have the same sparse infill "
 "settings but different skeleton densities, their skeleton areas will develop "
-"overlapping sections.default is as same as infill density."
+"overlapping sections. Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill density"
@@ -13169,9 +13134,9 @@ msgstr ""
 msgid ""
 "The portion of the model's outer surface within a certain depth range is "
 "called the skin. This parameter is used to adjust the density of this "
-"section.When two regions have the same sparse infill settings but different "
-"skin densities, This area will not be split into two separate "
-"regions.default is as same as infill density."
+"section. When two regions have the same sparse infill settings but different "
+"skin densities, this area will not be split into two separate regions. "
+"Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill depth"
@@ -13198,11 +13163,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -13438,8 +13403,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Velocità stiratura"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Indica la velocità di stampa per le linee di stiratura."
 
 msgid "Ironing angle"
 msgstr "Angolo di stiratura"
@@ -13582,8 +13547,7 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -13785,7 +13749,7 @@ msgstr ""
 "durata minima stimata dello strato definito sopra, quando è abilitata "
 "l'opzione 'Rallenta stampa per miglior raffreddamento degli strati'."
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Diametro ugello"
 
 msgid "Configuration notes"
@@ -13947,7 +13911,7 @@ msgstr ""
 "utilizza un velocità di stampa differente. Per una sporgenza del 100%%, "
 "viene utilizzata la velocità dei ponti."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "Filamento per stampa pareti"
 
 msgid ""
@@ -14003,7 +13967,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "Tipo stampante"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "Tipo di stampante"
 
 msgid "Printer notes"
@@ -14511,7 +14475,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Distanza gonna"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Distanza dalla gonna alla tesa o all'oggetto"
 
 msgid "Skirt start point"
@@ -14639,7 +14603,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr "Riempimento solido"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "Filamento utilizzato per stampare il riempimento solido"
 
 msgid ""
@@ -14815,9 +14779,6 @@ msgstr "Spurga il filamento rimanente nella torre di spurgo."
 
 msgid "Enable filament ramming"
 msgstr ""
-
-msgid "Enable filament ramming."
-msgstr "Abilita modellazione della punta del filamento."
 
 msgid "No sparse layers (beta)"
 msgstr "Nessuno strato sparso (beta)"
@@ -15310,10 +15271,10 @@ msgid ""
 msgstr ""
 
 msgid "Support Ironing Pattern"
-msgstr ""
+msgstr "Trama stiratura supporto"
 
 msgid "Support Ironing flow"
-msgstr ""
+msgstr "Flusso stiratura supporto"
 
 msgid ""
 "The amount of material to extrude during ironing. Relative to flow of normal "
@@ -15322,7 +15283,7 @@ msgid ""
 msgstr ""
 
 msgid "Support Ironing line spacing"
-msgstr ""
+msgstr "Spaziatura linee stiratura supporto"
 
 msgid "Activate temperature control"
 msgstr "Attiva controllo della temperatura"
@@ -15461,7 +15422,7 @@ msgstr ""
 "determinato in modo assoluto dagli strati del guscio superiore."
 
 msgid "Top surface density"
-msgstr ""
+msgstr "Densità superficie superiore"
 
 msgid ""
 "Density of top surface layer. A value of 100% creates a fully solid, smooth "
@@ -15472,7 +15433,7 @@ msgid ""
 msgstr ""
 
 msgid "Bottom surface density"
-msgstr ""
+msgstr "Densità superficie inferiore"
 
 msgid ""
 "Density of the bottom surface layer. Intended for aesthetic or functional "
@@ -15554,7 +15515,7 @@ msgstr "Larghezza della torre di spurgo."
 msgid "Wipe tower rotation angle"
 msgstr "Angolo di rotazione della torre di spurgo"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "Angolo di rotazione della torre di spurgo rispetto all'asse X."
 
 msgid "Width of the brim."
@@ -15632,11 +15593,14 @@ msgstr ""
 
 msgid ""
 "Positive values can increase the size of the rib wall, while negative values "
-"can reduce the size.However, the size of the rib wall can not be smaller "
+"can reduce the size. However, the size of the rib wall can not be smaller "
 "than that determined by the cleaning volume."
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -16274,7 +16238,7 @@ msgstr "Carica G-code personalizzato"
 msgid "Load custom G-code from json."
 msgstr "Carica G-code personalizzato da json."
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "Carica ID dei filamenti"
 
 msgid "Load filament IDs for each object."
@@ -16315,25 +16279,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr "Nome MakerLab"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "Nome MakerLab per generare questo 3mf"
 
 msgid "MakerLab version"
 msgstr "Versione MakerLab"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "Versione MakerLab per generare questo 3mf"
 
 msgid "metadata name list"
 msgstr "elenco nomi metadati"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "elenco dei nomi dei metadati aggiunti nel 3mf"
 
 msgid "metadata value list"
 msgstr "elenco valori metadati"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "elenco dei valori dei metadati aggiunti nel 3mf"
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -16631,7 +16595,7 @@ msgstr ""
 "Indice dello strato attuale. Basato su uno (cioè il primo livello è il "
 "numero 1)."
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "Strato Z"
 
 msgid ""
@@ -16641,7 +16605,7 @@ msgstr ""
 "Altezza dello strato attuale sopra il piano di stampa, misurata fino alla "
 "parte superiore dello strato."
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "Massimale strato Z"
 
 msgid "Height of the last layer above the print bed."
@@ -18128,8 +18092,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
 
@@ -19230,6 +19194,103 @@ msgstr ""
 "aumentare in modo appropriato la temperatura del piano riscaldato può "
 "ridurre la probabilità di deformazione?"
 
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Migliora la precisione del guscio regolando la spaziatura delle pareti "
+#~ "esterne. Questo migliora anche l'uniformità degli strati."
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "Abilita modellazione della punta del filamento."
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Rotellina del mouse"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + Rotellina del mouse"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Maiusc + Tasto sinistro del mouse"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Maiusc + Invio"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Maiusc + Sposta il mouse verso l'alto o il basso"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "Tasto sinistro del mouse:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "Tasto destro del mouse:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Maiusc + Tasto sinistro del mouse:"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Maiusc + Tasto destro del mouse:"
+
+#~ msgid "Recent projects"
+#~ msgstr "Progetti recenti"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "Numero massimo di progetti recenti"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "Numero massimo di progetti recenti"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Maiusc+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Maiusc+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Maiusc+A"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Maiusc+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Freccia qualsiasi"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Tasto sinistro del mouse"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Tasto sinistro del mouse"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+qualsiasi freccia"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+tasto sinistro del mouse"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+Tasto sinistro del mouse"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Maiusc+tasto sinistro mouse"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Maiusc+freccia qualsiasi"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Rotellina del mouse"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Rotellina del mouse"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Rotellina del mouse"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Rotellina del mouse"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Maiusc+Rotellina del mouse"
+
 #~ msgid "Set Position"
 #~ msgstr "Imposta posizione"
 
@@ -19404,17 +19465,6 @@ msgstr ""
 #~ msgid "Enable this option to use classic mode."
 #~ msgstr "Abilita questa opzione per utilizzare la modalità classica."
 
-#~ msgid ""
-#~ "The geometry will be decimated before detecting sharp angles. This "
-#~ "parameter indicates the minimum length of the deviation for the "
-#~ "decimation.\n"
-#~ "0 to deactivate."
-#~ msgstr ""
-#~ "La geometria verrà decimata prima di rilevare gli spigoli vivi. Questo "
-#~ "parametro indica la lunghezza minima dello scostamento per la "
-#~ "decimazione.\n"
-#~ "0 per disattivare."
-
 #~ msgid "Compatible machine"
 #~ msgstr "Macchina compatibile"
 
@@ -19427,20 +19477,11 @@ msgstr ""
 #~ msgid "Default filament color"
 #~ msgstr "Colore predefinito del filamento"
 
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
 #~ msgid "Rotate solid infill direction"
 #~ msgstr "Ruota direzione riempimento solido"
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "Ruota la direzione del riempimento solido di 90° per ogni strato."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Indica la velocità di stampa per le linee di stiratura."
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "
@@ -19547,7 +19588,7 @@ msgstr ""
 #~ msgid "Downward machines settings"
 #~ msgstr "Impostazioni macchine"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "Carica gli ID dei filamenti per ogni oggetto"
 
 #~ msgid ""

@@ -1,11 +1,11 @@
 # Infill rotation template metalanguage
 
-This metalanguage provides a way to define the [direction and rotation](strength_settings_infill#direction-and-rotation) of patterns in 3D printing.
+This metalanguage provides a way to define the [direction and rotation](strength_settings_infill#direction-and-rotation) of [patterns](strength_settings_patterns) in 3D printing.
 
 - [Basic instructions](#basic-instructions)
+  - [Quick examples](#quick-examples)
   - [Defined angle](#defined-angle)
   - [Runtime instructions](#runtime-instructions)
-  - [Solid sign](#solid-sign)
   - [Joint sign](#joint-sign)
   - [Counting](#counting)
   - [Length modifier](#length-modifier)
@@ -15,21 +15,29 @@ This metalanguage provides a way to define the [direction and rotation](strength
   - [Repetitive, adjusting and one-time instructions](#repetitive-adjusting-and-one-time-instructions)
   - [Range instructions](#range-instructions)
   - [Constant layer number instructions](#constant-layer-number-instructions)
-  - [Solid layers into sparse infill instructions](#solid-layers-into-sparse-infill-instructions)
 - [Complex template examples](#complex-template-examples)
 - [Credits](#credits)
 
 ## Basic instructions
 
-`[±]α[*ℤ or !][solid or joint sign, or its combinations][-][ℕ, B or T][length modifier][* or !]` - full length template instruction for the **sparse** infill
+## Quick examples
 
-`[±]α[*ℤ or !][joint sign][-][ℕ][* or !]` - full length template instruction for the **solid** infill
+- `0` - fixed direction at 0° (X-axis)
+- `0, 90` - alternate 0° and 90° each layer
+- `0, 15, 30` - alternate 0°, 15° and 30° each layer
+- `+90` - rotate 90° each layer (sequence 90°, 180°, 270°, 0° ...)
+- `+45` - rotate 45° each layer for higher dispersion
+- `+30/50%` - linearly rotate by 30° over the next 50% of model height
+- `+45/10#` - linearly rotate by 45° across 10 standard layers
+- `+15#10` - keep the same angle for 10 layers, then rotate +15°; repeats every 10 layers
+- `B!, +30` - skip the first bottom shell layers from rotation, then rotate 30° per layer
+- `0, +30, +90` - use a repeating sequence of 0°, +30°, +90°
+
+`[±]α[*ℤ or !][joint sign, or its combinations][-][ℕ, B or T][length modifier][* or !]` - full length template instruction for the **sparse** infill
 
 `[±]α*` - just setting an initial rotation angle
 
-`[solid or joint sign]ℕ[!]` - putting the solid layers ℕ times without them rotating
-
-`[B or T][!]` - putting the solid layers according to the number of bottom or top shell layers without them rotating
+ 
 
 > [!NOTE]
 > `[...]` - values in square brackets are optional
@@ -50,15 +58,7 @@ This metalanguage provides a way to define the [direction and rotation](strength
 - `*ℤ` - repeat the instruction ℤ times
 - `!` - the one-time running instruction
 
-### Solid sign
-
-`[solid sign]` - the mark for inserting a solid layer:
-
-- `D` - insert native sparse patterned layer but with 100% density
-- `S` - insert user-defined solid layer
-- `O` - insert Concentric solid layer
-- `M` - insert Monotonic solid layer
-- `R` - insert Rectilinear solid layer
+ 
 
 ### Joint sign
 
@@ -132,7 +132,7 @@ For more complex instructions, autoformatting is used to make the template easie
 
 ### Simple absolute instructions
 
-They include a simple definition of the angle for each layer. Note that the initial setting of this angle is also affected by the value in the sparse or solid infill angle field.
+They include a simple definition of the angle for each layer. Note that the initial setting of this angle is also affected by the value in the infill angle field.
 
 - `0`, `15`, `45.5`, `256.5605`... - just fill at the existing angle. The initial direction starts at the X-axis, and the acceptable range of values is from 0 to 360  
   - `0` as well as `+0`, `-0` or just empty template  
@@ -190,22 +190,12 @@ It is important to know that this will not be the exact length, but will be tied
 
 ### Constant layer number instructions
 
-There are 2 letter signs `T` and `B` that can determine the number of shell layers on the top and bottom of the model. It is useful for calculating skipping this amount to align the fill, or inserting the required number of horizontal solid bulkheads.
+There are 2 letter signs `T` and `B` that can determine the number of shell layers on the top and bottom of the model. It is useful for calculating skipping this amount to align the fill.
 
 - `B!, +30` - skip the first shell layers from rotation, then fill with 30 degree turn each layer  
 - `+30/1cm, T` - rotate one centimeter of infill linearly at a 30 degree angle, then skip the number of layers equal to the count of the upper shell layers without rotation.  
 
-### Solid layers into sparse infill instructions
-
-The following instructions allow you to embed solid layers in a sparse fill. The following commands are available `D` `S` `O` `M` `R`. For their purpose, see [solid sign](#solid-sign).
-
-It is possible to combine them with the rotation method and layer number constant - `DT` `S/` `M#` `OB`...
-
-- `#14, +15R` - put 14 layers of sparse infill then put one rectilinear layer of solid infill with 15 degree turn  
-  ![14+15R](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/14+15R.png?raw=true)
-- `B!, 240M3, #25` - skip the first shell layers from rotation, fill model with 3 solid monotonic layers at 240 degrees, then put 25 sparse layers at the same angle  
-- `+30/1cm, ST` - rotate one centimeter of infill linearly at 30 degrees, then put solid layers equal to the count of the top shell layers  
-- `+30M3` or `+90M/3` - fill whole model with solid infill with 30 degree turn at each layer  
+ 
 
 ## Complex template examples
 

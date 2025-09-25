@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-while getopts ":dpa:snt:xbc:h" opt; do
+while getopts ":dpa:snt:xbc:1h" opt; do
   case "${opt}" in
     d )
         export BUILD_TARGET="deps"
@@ -26,7 +26,7 @@ while getopts ":dpa:snt:xbc:h" opt; do
     x )
         export SLICER_CMAKE_GENERATOR="Ninja Multi-Config"
         export SLICER_BUILD_TARGET="all"
-        export DEPS_CMAKE_GENERATOR="Ninja Multi-Config"
+        export DEPS_CMAKE_GENERATOR="Ninja"
         ;;
     b )
         export BUILD_ONLY="1"
@@ -189,7 +189,7 @@ function build_slicer() {
         echo "Verify localization with gettext..."
         (
             cd "$PROJECT_DIR"
-            ./run_gettext.sh
+            ./scripts/run_gettext.sh
         )
 
         echo "Fix macOS app package..."
