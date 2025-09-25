@@ -4216,6 +4216,8 @@ struct Plater::priv
     // Call after plater and Canvas#D is initialized
     void init_notification_manager();
 
+    void update_objects_position_when_select_preset(const std::function<void()>& select_prest);
+
     // Caching last value of show_action_buttons parameter for show_action_buttons(), so that a callback which does not know this state will not override it.
     //mutable bool    			ready_to_slice = { false };
     // Flag indicating that the G-code export targets a removable device, therefore the show_action_buttons() needs to be called at any case when the background processing finishes.
@@ -9716,6 +9718,16 @@ void Plater::priv::init_notification_manager()
     notification_manager->init_progress_indicator();
 }
 
+void Plater::priv::update_objects_position_when_select_preset(const std::function<void()> &select_prest)
+{
+    // TODO: Orca hack
+    select_prest();
+
+    wxGetApp().obj_list()->update_object_list_by_printer_technology();
+
+    update();
+}
+
 void Plater::orient()
 {
     auto &w = get_ui_job_worker();
@@ -13789,9 +13801,9 @@ Preset *get_printer_preset(MachineObject *obj)
         if (!printer_it->is_system)
             continue;
 
-        ConfigOption               *printer_nozzle_opt  = printer_it->config.option("nozzle_diameter");
-        ConfigOptionFloatsNullable *printer_nozzle_vals = nullptr;
-        if (printer_nozzle_opt) printer_nozzle_vals = dynamic_cast<ConfigOptionFloatsNullable *>(printer_nozzle_opt);
+        ConfigOption       *printer_nozzle_opt  = printer_it->config.option("nozzle_diameter");
+        ConfigOptionFloats *printer_nozzle_vals = nullptr;
+        if (printer_nozzle_opt) printer_nozzle_vals = dynamic_cast<ConfigOptionFloats *>(printer_nozzle_opt);
         std::string model_id = printer_it->get_current_printer_type(preset_bundle);
 
         std::string printer_type = obj->printer_type;
@@ -16885,7 +16897,7 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
 
 void Plater::update_objects_position_when_select_preset(const std::function<void()> &select_prest)
 {
-    //p->update_objects_position_when_select_preset(select_prest); // TODO: Orca hack
+    p->update_objects_position_when_select_preset(select_prest);
 }
 
 bool Plater::check_ams_status(bool is_slice_all)
