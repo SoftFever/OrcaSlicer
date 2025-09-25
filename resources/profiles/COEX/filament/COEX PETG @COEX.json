@@ -1,27 +1,91 @@
 {
     "type": "filament",
-    "name": "COEX PETG @COEX",
+    "name": "COEX PETG @base",
+    "inherits": "Generic PETG @base",
     "from": "system",
-    "instantiation": "true",
-    "inherits": "fdm_filament_petg",
+    "version": "1.0.0.0",
+    "is_custom_defined": "0",
     "filament_vendor": "COEX 3D",
-    "filament_type": "PETG",
+    "filament_cost": "22.00",
     "filament_density": "1.27",
-    "filament_cost": "33.00",
-    "filament_weight": "1000",
-    "filament_colour": "#FFFFFF",
-    "nozzle_temperature": ["250", "250"],
-    "bed_temperature": ["80", "80"],
+    "filament_type": "PETG",
+    "filament_notes": "IMPORTANT: Set travel speed to maximum your machine allows (200-500mm/s) to reduce stringing",
+    "nozzle_temperature": [
+        "245"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "250"
+    ],
+    "bed_temperature": [
+        "80"
+    ],
+    "bed_temperature_initial_layer": [
+        "85"
+    ],
     "temperature_vitrification": "70",
-    "fan_min_speed": ["30"],
-    "fan_max_speed": ["50"],
-    "slow_down_layer_time": ["5"],
-    "slow_down_min_speed": ["10"],
     "filament_max_volumetric_speed": "8",
-    "filament_retraction_distance": ["0.6"],
-    "filament_retraction_speed": ["35"],
-    "filament_deretraction_speed": ["25"],
-    "filament_retract_before_wipe": ["70%"],
-    "filament_wipe_distance": ["1"],
-    "compatible_printers": []
+    "filament_retraction_minimum_travel": [
+        "2"
+    ],
+    "filament_retract_before_wipe": [
+        "70%"
+    ],
+    "filament_retract_layer_change": [
+        "1"
+    ],
+    "filament_retract_when_changing_layer": [
+        "1"
+    ],
+    "filament_retraction_length": [
+        "4"
+    ],
+    "filament_retraction_speed": [
+        "30"
+    ],
+    "filament_deretraction_speed": [
+        "30"
+    ],
+    "filament_z_hop": [
+        "0.4"
+    ],
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "2"
+    ],
+    "fan_min_speed": [
+        "30"
+    ],
+    "fan_max_speed": [
+        "50"
+    ],
+    "disable_fan_first_layers": [
+        "2"
+    ],
+    "full_fan_speed_layer": [
+        "4"
+    ],
+    "slow_down_layer_time": [
+        "5"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "enable_pressure_advance": [
+        "1"
+    ],
+    "pressure_advance": [
+        "0.045"
+    ],
+    "travel_speed": [
+        "500"
+    ],
+    "travel_speed_z": [
+        "0"
+    ],
+    "compatible_printers": [],
+    "compatible_printers_condition": "",
+    "compatible_prints": [],
+    "compatible_prints_condition": ""
 }
