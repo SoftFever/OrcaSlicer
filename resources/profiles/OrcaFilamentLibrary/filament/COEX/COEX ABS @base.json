@@ -3,6 +3,7 @@
     "name": "COEX ABS @base",
     "inherits": "Generic ABS @base",
     "from": "system",
+    "filament_id": "COEXABSB01",
     "version": "1.0.0.0",
     "is_custom_defined": "0",
     "filament_vendor": "COEX 3D",
