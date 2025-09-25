@@ -1,0 +1,29 @@
+{
+  "max_velocity": 300,
+  "max_accel": 3000,
+  "max_accel_to_decel": 1500,
+  "square_corner_velocity": 5.0,
+  "move_flush_time": 0.050,
+  "axes": [
+    {
+      "name": "x",
+      "max_velocity": 300,
+      "max_accel": 3000
+    },
+    {
+      "name": "y",
+      "max_velocity": 300,
+      "max_accel": 3000
+    },
+    {
+      "name": "z",
+      "max_velocity": 15,
+      "max_accel": 100
+    },
+    {
+      "name": "e",
+      "max_velocity": 120,
+      "max_accel": 10000
+    }
+  ]
+}
