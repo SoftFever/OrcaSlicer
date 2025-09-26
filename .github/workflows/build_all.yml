@@ -166,7 +166,7 @@ jobs:
         name: OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak
         path: '/__w/OrcaSlicer/OrcaSlicer/OrcaSlicer-Linux-flatpak_${{ env.ver }}_${{ matrix.variant.arch }}.flatpak'
     - name: Deploy Flatpak to nightly release
-      if: ${{github.ref == 'refs/heads/main'}}
+      if: github.repository == 'SoftFever/OrcaSlicer' && github.ref == 'refs/heads/main'
       uses: WebFreak001/deploy-nightly@v3.2.0
       with:
         upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
