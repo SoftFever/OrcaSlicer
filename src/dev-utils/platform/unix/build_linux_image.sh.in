@@ -2,15 +2,20 @@
 
 export ROOT=$(echo $ROOT | grep . || pwd)
 export NCORES=`nproc --all`
+CONFIG=Release
 
-while getopts ":ih" opt; do
+while getopts ":ihR:" opt; do
   case ${opt} in
     i )
         export BUILD_IMAGE="1"
         ;;
-    h ) echo "Usage: ./build_linux_image.sh [-i]"
+    h ) echo "Usage: ./build_linux_image.sh [-i][-R config]"
         echo "   -i: Generate Appimage (optional)"
-        exit 0
+        echo "   -R: Specify from which config to obtain the binary: Release, RelWithDebInfo, or Debug"
+        exit 1
+        ;;
+    R )
+        CONFIG=$OPTARG
         ;;
   esac
 done
@@ -31,8 +36,8 @@ echo -n "[9/9] Generating Linux app..."
     cp -Rf ../resources package/resources
     
     # Find and copy the @SLIC3R_APP_CMD@ binary from Multi-Config build
-    if [ -f "src/Release/@SLIC3R_APP_CMD@" ]; then
-        cp -f src/Release/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@
+    if [ -f "src/${CONFIG}/@SLIC3R_APP_CMD@" ]; then
+        cp -f "src/${CONFIG}/@SLIC3R_APP_CMD@" package/bin/@SLIC3R_APP_CMD@
     elif [ -f "src/@SLIC3R_APP_CMD@" ]; then
         # Fallback for single-config builds
         cp -f src/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@

@@ -217,6 +217,13 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
     cmake --build deps/build
 fi
 
+CONFIG=Release
+if [[ -n "${BUILD_DEBUG}" ]] ; then
+    CONFIG=Debug
+elif [[ -n "${BUILD_WITH_SYMBOLS}" ]]; then
+    CONFIG=RelWithDebInfo
+fi
+
 if [[ -n "${BUILD_ORCA}" ]] ; then
     echo "Configuring OrcaSlicer..."
     if [[ -n "${CLEAN_BUILD}" ]] ; then
@@ -233,15 +240,9 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
         BUILD_ARGS+=(-DORCA_UPDATER_SIG_KEY="${ORCA_UPDATER_SIG_KEY}")
     fi
     if [[ -n "${BUILD_DEBUG}" ]] ; then
-	CONFIG=Debug
         BUILD_ARGS+=(-DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1)
     else
         BUILD_ARGS+=(-DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0)
-	if [[ -n "${BUILD_WITH_SYMBOLS}" ]]; then
-	    CONFIG=RelWithDebInfo
-	else
-	    CONFIG=Release
-	fi
     fi
     echo "CONFIG=${CONFIG}"
 
@@ -280,7 +281,7 @@ if [[ -n "${BUILD_IMAGE}" || -n "${BUILD_ORCA}" ]] ; then
         if [[ -n "${BUILD_IMAGE}" ]] ; then
             extra_script_args="-i"
         fi
-        ${build_linux_image} ${extra_script_args}
+        ${build_linux_image} ${extra_script_args} -R "${CONFIG}"
 
         echo "done"
     fi
