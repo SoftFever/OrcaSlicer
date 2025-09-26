@@ -2224,15 +2224,26 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_thin_wall", "strength_settings_walls#detect-thin-wall");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
-
+        optgroup->append_single_option_line("top_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
         optgroup->append_single_option_line("top_shell_layers", "strength_settings_top_bottom_shells#shell-layers");
         optgroup->append_single_option_line("top_shell_thickness", "strength_settings_top_bottom_shells#shell-thickness");
         optgroup->append_single_option_line("top_surface_density", "strength_settings_top_bottom_shells#surface-density");
-        optgroup->append_single_option_line("top_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
+        optgroup->append_single_option_line("bottom_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
         optgroup->append_single_option_line("bottom_shell_layers", "strength_settings_top_bottom_shells#shell-layers");
         optgroup->append_single_option_line("bottom_shell_thickness", "strength_settings_top_bottom_shells#shell-thickness");
         optgroup->append_single_option_line("bottom_surface_density", "strength_settings_top_bottom_shells#surface-density");
-        optgroup->append_single_option_line("bottom_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
+        optgroup->append_single_option_line("patchwork_surfaces");
+        optgroup->append_single_option_line("patchwork_direction");
+        optgroup->append_single_option_line("patchwork_tiles_alternate_direction");
+        optgroup->append_single_option_line("patchwork_tile_height");
+        optgroup->append_single_option_line("patchwork_tile_width");
+        optgroup->append_single_option_line("patchwork_tile_horizontal_joint");
+        optgroup->append_single_option_line("patchwork_tile_vertical_joint");
+        optgroup->append_single_option_line("patchwork_joints_flow_ratio");
+        optgroup->append_single_option_line("patchwork_centering");
+        optgroup->append_single_option_line("patchwork_subway_tiling");
+        optgroup->append_single_option_line("center_of_surface_pattern");
+        optgroup->append_single_option_line("anisotropic_surfaces");
         optgroup->append_single_option_line("top_bottom_infill_wall_overlap", "strength_settings_top_bottom_shells#infillwall-overlap");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
@@ -2493,6 +2504,7 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
         optgroup->append_single_option_line("fuzzy_skin_octaves", "others_settings_fuzzy_skin#skin-noise-octaves");
         optgroup->append_single_option_line("fuzzy_skin_persistence", "others_settings_fuzzy_skin#skin-noise-persistence");
         optgroup->append_single_option_line("fuzzy_skin_first_layer", "others_settings_fuzzy_skin#apply-fuzzy-skin-to-first-layer");
+        optgroup->append_single_option_line("precision_infill");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction", "others_settings_g_code_output#reduce-infill-retraction");
