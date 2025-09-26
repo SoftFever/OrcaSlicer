@@ -1,6 +1,7 @@
 #ifndef MARCHINGSQUARES_HPP
 #define MARCHINGSQUARES_HPP
 
+#include "Execution/ExecutionTBB.hpp"
 #include <type_traits>
 #include <cstdint>
 #include <vector>
@@ -122,7 +123,7 @@ inline std::ostream& operator<<(std::ostream& os, const Ring& r)
     return os << "\n";
 }
 
-// Specialize this struct to register a raster type for the Marching squares alg
+// Specialize this struct to register a raster type for MarchingSquares.
 template<class T, class Enable = void> struct _RasterTraits
 {
     // The type of pixel cell in the raster
@@ -139,10 +140,21 @@ template<class T, class Enable = void> struct _RasterTraits
 // Specialize this to use parellel loops within the algorithm
 template<class ExecutionPolicy, class Enable = void> struct _Loop
 {
-    template<class It, class Fn> static void for_each(It from, It to, Fn&& fn)
+    template<class It, class Fn> static void for_each_idx(It from, It to, Fn&& fn)
     {
         for (auto it = from; it < to; ++it)
             fn(*it, size_t(it - from));
+    }
+};
+
+// Add Specialization for using ExecutionTBB for parallel loops.
+using namespace Slic3r;
+template<> struct _Loop<ExecutionTBB>
+{
+    template<class It, class Fn> static void for_each_idx(It from, It to, Fn&& fn)
+    {
+        execution::for_each(
+            ex_tbb, size_t(0), size_t(to - from), [&from, &fn](size_t i) { fn(from[i], i); }, execution::max_concurrency(ex_tbb));
     }
 };
 
@@ -157,9 +169,9 @@ template<class T> size_t cols(const T& raster) { return RasterTraits<T>::cols(ra
 
 template<class T> TRasterValue<T> isoval(const T& rst, const Coord& crd) { return RasterTraits<T>::get(rst, crd.r, crd.c); }
 
-template<class ExecutionPolicy, class It, class Fn> void for_each(ExecutionPolicy&& policy, It from, It to, Fn&& fn)
+template<class ExecutionPolicy, class It, class Fn> void for_each_idx(ExecutionPolicy&& policy, It from, It to, Fn&& fn)
 {
-    _Loop<ExecutionPolicy>::for_each(from, to, fn);
+    _Loop<ExecutionPolicy>::for_each_idx(from, to, fn);
 }
 
 template<class E> constexpr std::underlying_type_t<E> _t(E e) noexcept { return static_cast<std::underlying_type_t<E>>(e); }
@@ -517,12 +529,12 @@ public:
     template<class ExecutionPolicy> void tag_grid(ExecutionPolicy&& policy, TRasterValue<Rst> isoval)
     {
         // Get all the tags. parallel?
-        for_each(std::forward<ExecutionPolicy>(policy), m_tags.begin(), m_tags.end(),
-                 [this, isoval](uint32_t& tag_block, size_t bidx) { tag_block = get_tags_block32(bidx, isoval); });
+        for_each_idx(std::forward<ExecutionPolicy>(policy), m_tags.begin(), m_tags.end(),
+                     [this, isoval](uint32_t& tag_block, size_t bidx) { tag_block = get_tags_block32(bidx, isoval); });
         // streamtags(std::cerr);
         //  Get all the dirs. parallel?
-        for_each(std::forward<ExecutionPolicy>(policy), m_dirs.begin(), m_dirs.end(),
-                 [this](uint32_t& dirs_block, size_t bidx) { dirs_block = get_dirs_block8(bidx); });
+        for_each_idx(std::forward<ExecutionPolicy>(policy), m_dirs.begin(), m_dirs.end(),
+                     [this](uint32_t& dirs_block, size_t bidx) { dirs_block = get_dirs_block8(bidx); });
         // streamdirs(std::cerr);
     }
 
@@ -563,7 +575,7 @@ public:
     // sequential index of the square and the next direction
     template<class ExecutionPolicy> void interpolate_rings(ExecutionPolicy&& policy, std::vector<Ring>& rings, TRasterValue<Rst> isov)
     {
-        for_each(std::forward<ExecutionPolicy>(policy), rings.begin(), rings.end(), [this, isov](Ring& ring, size_t) {
+        for_each_idx(std::forward<ExecutionPolicy>(policy), rings.begin(), rings.end(), [this, isov](Ring& ring, size_t) {
             for (Coord& e : ring)
                 interpolate_edge(e, isov);
         });
