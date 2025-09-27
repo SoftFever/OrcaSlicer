@@ -17,6 +17,7 @@ wxDEFINE_EVENT(EVT_CALIBRATION_JOB_FINISHED, wxCommandEvent);
 static const wxString NA_STR = _L("N/A");
 static const float MIN_PA_K_VALUE_STEP = 0.001;
 static const int MAX_PA_HISTORY_RESULTS_NUMS = 16;
+
 std::map<int, Preset*> get_cached_selected_filament(MachineObject* obj) {
     std::map<int, Preset*> selected_filament_map;
     if (!obj) return selected_filament_map;
@@ -28,6 +29,32 @@ std::map<int, Preset*> get_cached_selected_filament(MachineObject* obj) {
             continue;
 
         selected_filament_map.emplace(std::make_pair(selected_prest.tray_id, preset));
+    }
+    return selected_filament_map;
+}
+
+struct TrayInfo
+{
+    int     extruder_id;
+    NozzleVolumeType nozzle_volume_type;
+    Preset *preset;
+};
+std::map<int, TrayInfo> get_cached_selected_filament_for_multi_extruder(MachineObject *obj)
+{
+    std::map<int, TrayInfo> selected_filament_map;
+    if (!obj)
+        return selected_filament_map;
+
+    PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
+    for (auto selected_prest : obj->selected_cali_preset) {
+        TrayInfo tray_info;
+        tray_info.preset = filament_presets->find_preset(selected_prest.name);
+        if (!tray_info.preset)
+            continue;
+
+        tray_info.extruder_id = selected_prest.extruder_id;
+        tray_info.nozzle_volume_type = selected_prest.nozzle_volume_type;
+        selected_filament_map.emplace(std::make_pair(selected_prest.tray_id, tray_info));
     }
     return selected_filament_map;
 }
@@ -100,26 +127,6 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowI
 CalibrationWizard::~CalibrationWizard()
 {
     ;
-}
-
-void CalibrationWizard::get_tray_ams_and_slot_id(int in_tray_id, int &ams_id, int &slot_id, int &tray_id)
-{
-    assert(curr_obj);
-    if (!curr_obj)
-        return;
-
-    if (in_tray_id == VIRTUAL_TRAY_ID || in_tray_id == VIRTUAL_TRAY_ID) {
-        ams_id = in_tray_id;
-        slot_id = 0;
-        tray_id = ams_id;
-        if (!curr_obj->is_enable_np)
-            tray_id = VIRTUAL_TRAY_ID;
-    }
-    else {
-        ams_id  = in_tray_id / 4;
-        slot_id = in_tray_id % 4;
-        tray_id = in_tray_id;
-    }
 }
 
 void CalibrationWizard::on_cali_job_finished(wxCommandEvent& event)
@@ -286,6 +293,88 @@ bool CalibrationWizard::save_preset(const std::string &old_preset_name, const st
     return true;
 }
 
+bool CalibrationWizard::save_preset_with_index(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigIndexValue> &key_values, wxString &message)
+{
+    if (new_preset_name.empty()) {
+        message = _L("The name cannot be empty.");
+        return false;
+    }
+
+    PresetCollection *filament_presets = &wxGetApp().preset_bundle->filaments;
+    Preset           *preset           = filament_presets->find_preset(old_preset_name);
+    if (!preset) {
+        message = wxString::Format(_L("The selected preset: %s is not found."), old_preset_name);
+        return false;
+    }
+
+    Preset temp_preset = *preset;
+
+    std::string new_name     = filament_presets->get_preset_name_by_alias(new_preset_name);
+    bool        exist_preset = false;
+    // If name is current, get the editing preset
+    Preset *new_preset = filament_presets->find_preset(new_name);
+    if (new_preset) {
+        if (new_preset->is_system) {
+            message = _L("The name cannot be the same as the system preset name.");
+            return false;
+        }
+
+        if (new_preset != preset) {
+            message = _L("The name is the same as another existing preset name");
+            return false;
+        }
+        if (new_preset != &filament_presets->get_edited_preset())
+            new_preset = &temp_preset;
+        exist_preset = true;
+    } else {
+        new_preset = &temp_preset;
+    }
+
+    for (auto item : key_values) {
+        auto config_opt = new_preset->config.option<ConfigOptionFloatsNullable>(item.first);
+        if (config_opt) {
+            auto& config_value = config_opt->values;
+            config_value[item.second.index] = item.second.value;
+        }
+        else {
+            message = wxString::Format(_L("Could not find parameter: %s."), item.first);
+        }
+    }
+
+    // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
+    filament_presets->save_current_preset(new_name, false, false, new_preset);
+
+    // BBS create new settings
+    new_preset = filament_presets->find_preset(new_name, false, true);
+    // Preset* preset = &m_presets.preset(it - m_presets.begin(), true);
+    if (!new_preset) {
+        BOOST_LOG_TRIVIAL(info) << "create new preset failed";
+        message = _L("create new preset failed.");
+        return false;
+    }
+
+    // set sync_info for sync service
+    if (exist_preset) {
+        new_preset->sync_info = "update";
+        BOOST_LOG_TRIVIAL(info) << "sync_preset: update preset = " << new_preset->name;
+    } else {
+        new_preset->sync_info = "create";
+        if (wxGetApp().is_user_login()) new_preset->user_id = wxGetApp().getAgent()->get_user_id();
+        BOOST_LOG_TRIVIAL(info) << "sync_preset: create preset = " << new_preset->name;
+    }
+    new_preset->save_info();
+
+    // Mark the print & filament enabled if they are compatible with the currently selected preset.
+    // If saving the preset changes compatibility with other presets, keep the now incompatible dependent presets selected, however with a "red flag" icon showing that they are
+    // no more compatible.
+    wxGetApp().preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+
+    // BBS if create a new prset name, preset changed from preset name to new preset name
+    if (!exist_preset) { wxGetApp().plater()->sidebar().update_presets_from_to(Preset::Type::TYPE_FILAMENT, old_preset_name, new_preset->name); }
+
+    return true;
+}
+
 void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
 {
     if (!obj) return;
@@ -302,6 +391,19 @@ void CalibrationWizard::cache_preset_info(MachineObject* obj, float nozzle_dia)
         result.filament_id = item.second->filament_id;
         result.setting_id = item.second->setting_id;
         result.name = item.second->name;
+
+        if (obj->is_multi_extruders()) {
+            int ams_id, slot_id, tray_id;
+            get_tray_ams_and_slot_id(curr_obj, result.tray_id, ams_id, slot_id, tray_id);
+            result.extruder_id = preset_page->get_extruder_id(ams_id);
+            result.nozzle_volume_type = preset_page->get_nozzle_volume_type(result.extruder_id);
+            result.nozzle_diameter  = preset_page->get_nozzle_diameter(result.extruder_id);
+        }
+        else {
+            result.extruder_id = 0;
+            result.nozzle_volume_type = NozzleVolumeType::nvtStandard;
+        }
+
         obj->selected_cali_preset.push_back(result);
     }
 
@@ -549,7 +651,7 @@ static bool get_preset_info(const DynamicConfig& config, const BedType plate_typ
 
 static bool get_flow_ratio(const DynamicConfig& config, float& flow_ratio)
 {
-    const ConfigOptionFloats *flow_ratio_opt = config.option<ConfigOptionFloats>("filament_flow_ratio");
+    const ConfigOptionFloatsNullable *flow_ratio_opt = config.option<ConfigOptionFloatsNullable>("filament_flow_ratio");
     if (flow_ratio_opt) {
         flow_ratio = flow_ratio_opt->get_at(0);
         if (flow_ratio > 0)
@@ -575,7 +677,6 @@ void PressureAdvanceWizard::on_cali_start()
     //clean PA result
     curr_obj->reset_pa_cali_result();
 
-    float nozzle_dia = -1;
     std::string setting_id;
     BedType plate_type = BedType::btDefault;
 
@@ -588,11 +689,11 @@ void PressureAdvanceWizard::on_cali_start()
         return;
     }
 
+    float nozzle_dia = -1;
     preset_page->get_preset_info(nozzle_dia, plate_type);
 
     CalibrationWizard::cache_preset_info(curr_obj, nozzle_dia);
-
-    if (nozzle_dia < 0 || plate_type == BedType::btDefault) {
+    if (/*nozzle_dia < 0 || */ plate_type == BedType::btDefault) {
         BOOST_LOG_TRIVIAL(error) << "CaliPreset: get preset info, nozzle and plate type error";
         return;
     }
@@ -612,8 +713,11 @@ void PressureAdvanceWizard::on_cali_start()
             }
 
             X1CCalibInfos::X1CCalibInfo calib_info;
-            get_tray_ams_and_slot_id(item.first, calib_info.ams_id, calib_info.slot_id, calib_info.tray_id);
-            calib_info.nozzle_diameter      = nozzle_dia;
+            get_tray_ams_and_slot_id(curr_obj, item.first, calib_info.ams_id, calib_info.slot_id, calib_info.tray_id);
+            calib_info.extruder_id          = preset_page->get_extruder_id(calib_info.ams_id);
+            calib_info.extruder_type        = preset_page->get_extruder_type(calib_info.extruder_id);
+            calib_info.nozzle_volume_type   = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
+            calib_info.nozzle_diameter      = preset_page->get_nozzle_diameter(calib_info.extruder_id);
             calib_info.filament_id          = item.second->filament_id;
             calib_info.setting_id           = item.second->setting_id;
             calib_info.bed_temp             = bed_temp;
@@ -621,6 +725,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.max_volumetric_speed = max_volumetric_speed;
             calib_infos.calib_datas.push_back(calib_info);
         }
+        calib_infos.cali_mode = CalibMode::Calib_PA_Line;
         CalibUtils::calib_PA(calib_infos, 0, wx_err_string); // mode = 0 for auto
 
         if (!wx_err_string.empty()) {
@@ -647,15 +752,20 @@ void PressureAdvanceWizard::on_cali_start()
             int selected_tray_id = 0;
             CalibInfo calib_info;
             calib_info.dev_id            = curr_obj->dev_id;
-            get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+            get_tray_ams_and_slot_id(curr_obj, selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+            calib_info.extruder_id       = preset_page->get_extruder_id(calib_info.ams_id);
+            calib_info.extruder_type     = preset_page->get_extruder_type(calib_info.extruder_id);
+            calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
             calib_info.select_ams         = "[" + std::to_string(selected_tray_id) + "]";
             Preset *preset               = selected_filaments.begin()->second;
             Preset * temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
             temp_filament_preset->config = preset->config;
+            if (preset->type == Preset::TYPE_FILAMENT)
+                temp_filament_preset->filament_id = preset->filament_id;
 
             calib_info.bed_type      = plate_type;
             calib_info.process_bar   = preset_page->get_sending_progress_bar();
-            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, nozzle_dia);
+            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
             calib_info.print_prest   = preset_page->get_print_preset();
             calib_info.filament_prest = temp_filament_preset;
 
@@ -715,6 +825,72 @@ void PressureAdvanceWizard::on_cali_start()
     cali_page->clear_last_job_status();
 }
 
+bool PressureAdvanceWizard::can_save_cali_result(const std::vector<PACalibResult> &new_pa_cali_results)
+{
+    if (!curr_obj)
+        return false;
+
+    std::vector<PACalibResult> to_save_result;
+    for (auto &result : new_pa_cali_results) {
+        auto iter = std::find_if(to_save_result.begin(), to_save_result.end(), [this, &result](const PACalibResult &item) {
+            bool has_same_name = (item.name == result.name && item.filament_id == result.filament_id);
+            if (curr_obj && curr_obj->is_multi_extruders()) {
+                has_same_name &= (item.extruder_id == result.extruder_id && item.nozzle_volume_type == result.nozzle_volume_type);
+            }
+            return has_same_name;
+        });
+        if (iter != to_save_result.end()) {
+            MessageDialog msg_dlg(nullptr, wxString::Format(_L("Only one of the results with the same name: %s will be saved. Are you sure you want to override the other results?"), iter->name), wxEmptyString,
+                                  wxICON_WARNING | wxYES_NO);
+            if (msg_dlg.ShowModal() != wxID_YES) {
+                return false;
+            } else {
+                break;
+            }
+        }
+        to_save_result.push_back(result);
+    }
+
+    std::string same_pa_names;
+    for (auto new_pa_cali_result : new_pa_cali_results) {
+        auto iter = std::find_if(curr_obj->pa_calib_tab.begin(), curr_obj->pa_calib_tab.end(), [this, &new_pa_cali_result](const PACalibResult &item) {
+            bool is_same_name = (item.name == new_pa_cali_result.name && item.filament_id == new_pa_cali_result.filament_id &&
+                                 item.nozzle_diameter == new_pa_cali_result.nozzle_diameter);
+            if (curr_obj && curr_obj->is_multi_extruders()) {
+                is_same_name &= (item.extruder_id == new_pa_cali_result.extruder_id && item.nozzle_volume_type == new_pa_cali_result.nozzle_volume_type);
+            }
+            return is_same_name;
+        });
+
+        if (iter != curr_obj->pa_calib_tab.end()) {
+            same_pa_names += new_pa_cali_result.name;
+            same_pa_names += ", ";
+        }
+    }
+
+    if (!same_pa_names.empty()) {
+        same_pa_names.erase(same_pa_names.size() - 2);
+        wxString duplicate_name_info = wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
+                                                  "is saved. Are you sure you want to override the historical result?"), same_pa_names);
+
+        if (curr_obj->is_multi_extruders())
+            duplicate_name_info = wxString::Format(_L("Within the same extruder, the name(%s) must be unique when the filament type, nozzle diameter, and nozzle flow are the same.\n"
+                                                      "Are you sure you want to override the historical result?"), same_pa_names);
+
+        MessageDialog msg_dlg(nullptr, duplicate_name_info, wxEmptyString, wxICON_WARNING | wxYES_NO);
+        if (msg_dlg.ShowModal() != wxID_YES)
+            return false;
+    }
+
+    if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1 && curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
+        MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold %d history results per nozzle. This result will not be saved."), MAX_PA_HISTORY_RESULTS_NUMS),
+                              wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+    return true;
+}
+
 void PressureAdvanceWizard::on_cali_save()
 {
     if (curr_obj) {
@@ -738,7 +914,8 @@ void PressureAdvanceWizard::on_cali_save()
                     show_step(start_step);
                     return;
                 }
-
+                if (!can_save_cali_result(new_pa_cali_results))
+                    return;
                 CalibUtils::set_PA_calib_result(new_pa_cali_results, true);
             }
             else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
@@ -747,6 +924,8 @@ void PressureAdvanceWizard::on_cali_save()
                 if (!save_page->get_manual_result(new_pa_cali_result)) {
                     return;
                 }
+                if (!can_save_cali_result({new_pa_cali_result}))
+                    return;
                 CalibUtils::set_PA_calib_result({ new_pa_cali_result }, false);
             }
 
@@ -761,28 +940,8 @@ void PressureAdvanceWizard::on_cali_save()
                     return;
                 }
 
-
-                auto iter = std::find_if(curr_obj->pa_calib_tab.begin(), curr_obj->pa_calib_tab.end(), [&new_pa_cali_result](const PACalibResult &item) {
-                    return item.name == new_pa_cali_result.name && item.filament_id == item.filament_id;
-                });
-
-                if (iter != curr_obj->pa_calib_tab.end()) {
-                    MessageDialog
-                        msg_dlg(nullptr,
-                                wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
-                                                    "is saved. Are you sure you want to override the historical result?"),
-                                                 new_pa_cali_result.name),
-                                wxEmptyString, wxICON_WARNING | wxYES_NO);
-                    if (msg_dlg.ShowModal() != wxID_YES)
-                        return;
-                }
-                else if (curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
-                    MessageDialog msg_dlg(nullptr,
-                                          wxString::Format(_L("This machine type can only hold %d history results per nozzle. This result will not be saved."), MAX_PA_HISTORY_RESULTS_NUMS),
-                                          wxEmptyString, wxICON_WARNING | wxOK);
-                    msg_dlg.ShowModal();
+                if (!can_save_cali_result({new_pa_cali_result}))
                     return;
-                }
 
                 CalibUtils::set_PA_calib_result({new_pa_cali_result}, false);
             } else {
@@ -1014,8 +1173,11 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
 
             X1CCalibInfos::X1CCalibInfo calib_info;
             calib_info.tray_id          = item.first;
-            get_tray_ams_and_slot_id(item.first, calib_info.ams_id, calib_info.slot_id, calib_info.tray_id);
-            calib_info.nozzle_diameter  = nozzle_dia;
+            get_tray_ams_and_slot_id(curr_obj, item.first, calib_info.ams_id, calib_info.slot_id, calib_info.tray_id);
+            calib_info.extruder_id      = preset_page->get_extruder_id(calib_info.ams_id);
+            calib_info.extruder_type    = preset_page->get_extruder_type(calib_info.extruder_id);
+            calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
+            calib_info.nozzle_diameter  = preset_page->get_nozzle_diameter(calib_info.extruder_id);
             calib_info.filament_id      = item.second->filament_id;
             calib_info.setting_id       = item.second->setting_id;
             calib_info.bed_temp         = bed_temp;
@@ -1026,11 +1188,10 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
                 calib_info.flow_rate = flow_ratio;
             calib_infos.calib_datas.push_back(calib_info);
         }
+        calib_infos.cali_mode = CalibMode::Calib_Flow_Rate;
 
         wxString wx_err_string;
-        std::string error_message;
-        CalibUtils::calib_flowrate_X1C(calib_infos, error_message);
-        wx_err_string = from_u8(error_message);
+        CalibUtils::calib_flowrate_X1C(calib_infos, wx_err_string);
         if (!wx_err_string.empty()) {
             MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
@@ -1066,14 +1227,19 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
 
         if (!selected_filaments.empty()) {
             int selected_tray_id  = 0;
-            get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+            get_tray_ams_and_slot_id(curr_obj, selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
             calib_info.select_ams         = "[" + std::to_string(selected_tray_id) + "]";
+            calib_info.extruder_id = preset_page->get_extruder_id(calib_info.ams_id);
+            calib_info.extruder_type      = preset_page->get_extruder_type(calib_info.extruder_id);
+            calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
             Preset* preset = selected_filaments.begin()->second;
             temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
             temp_filament_preset->config = preset->config;
+            if (preset->type == Preset::TYPE_FILAMENT)
+                temp_filament_preset->filament_id = preset->filament_id;
 
             calib_info.bed_type = plate_type;
-            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, nozzle_dia);
+            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
             calib_info.print_prest = preset_page->get_print_preset();
             calib_info.params.mode = CalibMode::Calib_Flow_Rate;
 
@@ -1083,7 +1249,13 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             }
             else if (stage == CaliPresetStage::CALI_MANUAL_STAGE_2) {
                 cali_stage = 2;
-                temp_filament_preset->config.set_key_value("filament_flow_ratio", new ConfigOptionFloats{ cali_value });
+                auto flow_ratio_values = temp_filament_preset->config.option<ConfigOptionFloatsNullable>("filament_flow_ratio")->values;
+                std::map<std::string, ConfigIndexValue> key_value_map = generate_index_key_value(curr_obj, "filament_flow_ratio", cali_value);
+                if (!key_value_map.empty()) {
+                    flow_ratio_values[key_value_map.begin()->second.index] = key_value_map.begin()->second.value;
+                }
+
+                temp_filament_preset->config.set_key_value("filament_flow_ratio", new ConfigOptionFloatsNullable{flow_ratio_values});
                 if (from_page == FlowRatioCaliSource::FROM_PRESET_PAGE) {
                     calib_info.process_bar = preset_page->get_sending_progress_bar();
                 }
@@ -1161,7 +1333,7 @@ void FlowRateWizard::on_cali_save()
             }
             for (int i = 0; i < new_results.size(); i++) {
                 std::map<std::string, ConfigOption*> key_value_map;
-                key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloats{ new_results[i].second }));
+                key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloatsNullable{ new_results[i].second }));
                 wxString message;
                 if (!save_preset(old_preset_name, into_u8(new_results[i].first), key_value_map, message)) {
                     MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
@@ -1202,15 +1374,15 @@ void FlowRateWizard::on_cali_save()
 
             std::string old_preset_name;
             CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
-            std::map<int, Preset*> selected_filaments = get_cached_selected_filament(curr_obj);
+            std::map<int, TrayInfo> selected_filaments = get_cached_selected_filament_for_multi_extruder(curr_obj);
+            std::map<std::string, ConfigIndexValue> key_value_map = generate_index_key_value(curr_obj, "filament_flow_ratio", new_flow_ratio);
+
             if (!selected_filaments.empty()) {
-                old_preset_name = selected_filaments.begin()->second->name;
+                old_preset_name = selected_filaments.begin()->second.preset->name;
             }
-            std::map<std::string, ConfigOption*> key_value_map;
-            key_value_map.insert(std::make_pair("filament_flow_ratio", new ConfigOptionFloats{ new_flow_ratio }));
 
             wxString message;
-            if (!save_preset(old_preset_name, into_u8(new_preset_name), key_value_map, message)) {
+            if (!save_preset_with_index(old_preset_name, into_u8(new_preset_name), key_value_map, message)) {
                 MessageDialog error_msg_dlg(nullptr, message, wxEmptyString, wxICON_WARNING | wxOK);
                 error_msg_dlg.ShowModal();
                 return;
@@ -1265,6 +1437,28 @@ void FlowRateWizard::on_device_connected(MachineObject* obj)
             }
         }
     }
+}
+
+std::map<std::string, ConfigIndexValue> FlowRateWizard::generate_index_key_value(MachineObject *obj, const std::string &key, float value)
+{
+    std::map<std::string, ConfigIndexValue> key_value_map;
+    if (!obj)
+        return key_value_map;
+
+    std::map<int, TrayInfo> selected_filaments = get_cached_selected_filament_for_multi_extruder(obj);
+    int  index = 0;
+    if (!selected_filaments.empty()) {
+        TrayInfo tray_info = selected_filaments.begin()->second;
+        // todo multi_extruder: get_extruder_type from obj
+        ExtruderType extruder_type = ExtruderType::etDirectDrive;
+        index = get_index_for_extruder_parameter(tray_info.preset->config, "filament_flow_ratio", tray_info.extruder_id, extruder_type, tray_info.nozzle_volume_type);
+        ConfigIndexValue config_value;
+        config_value.index = index;
+        config_value.value = value;
+        key_value_map.insert(std::make_pair("filament_flow_ratio", config_value));
+    }
+
+    return key_value_map;
 }
 
 void FlowRateWizard::set_cali_method(CalibrationMethod method)
@@ -1444,14 +1638,17 @@ void MaxVolumetricSpeedWizard::on_cali_start()
     calib_info.dev_id = curr_obj->dev_id;
     if (!selected_filaments.empty()) {
         int selected_tray_id = 0;
-        get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+        get_tray_ams_and_slot_id(curr_obj, selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
         calib_info.select_ams     = "[" + std::to_string(selected_tray_id) + "]";
+        calib_info.extruder_id        = preset_page->get_extruder_id(calib_info.ams_id);
+        calib_info.extruder_type      = preset_page->get_extruder_type(calib_info.extruder_id);
+        calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
         calib_info.filament_prest = selected_filaments.begin()->second;
     }
 
     calib_info.bed_type      = plate_type;
     calib_info.process_bar   = preset_page->get_sending_progress_bar();
-    calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, nozzle_dia);
+    calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
     calib_info.print_prest   = preset_page->get_print_preset();
 
     wxString wx_err_string;

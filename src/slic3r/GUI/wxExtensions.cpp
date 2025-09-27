@@ -17,7 +17,7 @@
 #include "BitmapComboBox.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/Label.hpp"
-
+#include "../Utils/WxFontUtils.hpp"
 #ifndef __linux__
 // msw_menuitem_bitmaps is used for MSW and OSX
 static std::map<int, std::string> msw_menuitem_bitmaps;
@@ -109,7 +109,7 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
 }
 
 wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon,
-    std::function<bool()> const cb_condition, wxWindow* parent)
+    std::function<bool()> const cb_condition, wxWindow* parent, int insert_pos)
 {
     if (id == wxID_ANY)
         id = wxNewId();
@@ -123,7 +123,10 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
 #endif /* __WXMSW__ */
     }
 
-    menu->Append(item);
+    if (insert_pos == wxNOT_FOUND)
+        menu->Append(item);
+    else
+        menu->Insert(insert_pos, item);
 
     if (parent) {
         parent->Bind(wxEVT_UPDATE_UI, [cb_condition, item, parent](wxUpdateUIEvent& evt) {
@@ -288,7 +291,7 @@ void wxCheckListBoxComboPopup::OnCheckListBox(wxCommandEvent& evt)
 
 void wxCheckListBoxComboPopup::OnListBoxSelection(wxCommandEvent& evt)
 {
-    // transforms list box item selection event into checklistbox item toggle event 
+    // transforms list box item selection event into checklistbox item toggle event
 
     int selId = GetSelection();
     if (selId != wxNOT_FOUND)
@@ -389,8 +392,8 @@ void msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<int
 
 /* Function for getting of em_unit value from correct parent.
  * In most of cases it is m_em_unit value from GUI_App,
- * but for DPIDialogs it's its own value. 
- * This value will be used to correct rescale after moving between 
+ * but for DPIDialogs it's its own value.
+ * This value will be used to correct rescale after moving between
  * Displays with different HDPI */
 int em_unit(wxWindow* win)
 {
@@ -404,7 +407,7 @@ int em_unit(wxWindow* win)
         if (frame)
             return frame->em_unit();
     }
-    
+
     return Slic3r::GUI::wxGetApp().em_unit();
 }
 
@@ -425,9 +428,9 @@ wxBitmap create_menu_bitmap(const std::string& bmp_name)
 // win is used to get a correct em_unit value
 // It's important for bitmaps of dialogs.
 // if win == nullptr, em_unit value of MainFrame will be used
-wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in, 
+wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
                                 wxWindow *win/* = nullptr*/,
-                                const int px_cnt/* = 16*/, 
+                                const int px_cnt/* = 16*/,
                                 const bool grayscale/* = false*/,
                                 const std::string& new_color/* = std::string()*/, // color witch will used instead of orange
                                 const bool menu_bitmap/* = false*/,
@@ -445,7 +448,7 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
     std::string bmp_name = bmp_name_in;
     boost::replace_last(bmp_name, ".png", "");
 
-    bool dark_mode = 
+    bool dark_mode =
 #ifdef _WIN32
     menu_bitmap ? Slic3r::GUI::check_dark_mode() :
 #endif
@@ -569,6 +572,7 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
         wxMemoryDC dc(&cdc);
 #endif
         dc.SetFont(::Label::Body_12);
+        Slic3r::GUI::WxFontUtils::get_suitable_font_size(icon_height - 2, dc);
         dc.SelectObject(*bitmap);
         if (clr.Alpha() == 0) {
             int             size        = icon_height * 2;
@@ -651,9 +655,9 @@ void apply_extruder_selector(Slic3r::GUI::BitmapComboBox** ctrl,
 // LockButton
 // ----------------------------------------------------------------------------
 
-LockButton::LockButton( wxWindow *parent, 
-                        wxWindowID id, 
-                        const wxPoint& pos /*= wxDefaultPosition*/, 
+LockButton::LockButton( wxWindow *parent,
+                        wxWindowID id,
+                        const wxPoint& pos /*= wxDefaultPosition*/,
                         const wxSize& size /*= wxDefaultSize*/):
                         wxButton(parent, id, wxEmptyString, pos, size, wxBU_EXACTFIT | wxNO_BORDER)
 {
@@ -765,22 +769,22 @@ void ModeButton::SetState(const bool state)
 
 void ModeButton::focus_button(const bool focus)
 {
-    const wxFont& new_font = focus ? 
-                             Slic3r::GUI::wxGetApp().bold_font() : 
+    const wxFont& new_font = focus ?
+                             Slic3r::GUI::wxGetApp().bold_font() :
                              Slic3r::GUI::wxGetApp().normal_font();
 
     SetFont(new_font);
 #ifdef _WIN32
     GetParent()->Refresh(); // force redraw a background of the selected mode button
 #else
-    SetForegroundColour(wxSystemSettings::GetColour(focus ? wxSYS_COLOUR_BTNTEXT : 
+    SetForegroundColour(wxSystemSettings::GetColour(focus ? wxSYS_COLOUR_BTNTEXT :
 #if defined (__linux__) && defined (__WXGTK3__)
         wxSYS_COLOUR_GRAYTEXT
 #elif defined (__linux__) && defined (__WXGTK2__)
         wxSYS_COLOUR_BTNTEXT
-#else 
+#else
         wxSYS_COLOUR_BTNSHADOW
-#endif    
+#endif
     ));
 #endif /* no _WIN32 */
 
@@ -810,7 +814,7 @@ ModeSizer::ModeSizer(wxWindow *parent, int hgap/* = 0*/) :
         Slic3r::GUI::wxGetApp().save_mode(mode_id);
         event.Skip();
     };
-    
+
     m_mode_btns.reserve(3);
     for (const auto& button : buttons) {
         m_mode_btns.push_back(new ModeButton(parent, button.first, button.second, mode_icon_px_size()));
@@ -875,9 +879,9 @@ void MenuWithSeparators::SetSecondSeparator()
 // ----------------------------------------------------------------------------
 // BambuBitmap
 // ----------------------------------------------------------------------------
-ScalableBitmap::ScalableBitmap( wxWindow *parent, 
+ScalableBitmap::ScalableBitmap( wxWindow *parent,
                                 const std::string& icon_name/* = ""*/,
-                                const int px_cnt/* = 16*/, 
+                                const int px_cnt/* = 16*/,
                                 const bool grayscale/* = false*/,
                                 const bool resize/* = false*/,
                                 const bool bitmap2/* = false*/,
@@ -885,7 +889,7 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
     m_parent(parent), m_icon_name(icon_name),
     m_px_cnt(px_cnt), m_grayscale(grayscale), m_resize(resize) // BBS: support resize by fill border
 {
-    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, m_grayscale, std::string(), false, resize, bitmap2, new_color);
+    m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, m_grayscale, new_color.empty() ? std::string() : new_color.front(), false, resize, bitmap2, new_color);
     if (px_cnt == 0) {
         m_px_cnt = m_bmp.GetHeight(); // scale
         unsigned int height = (unsigned int) (parent->FromDIP(m_px_cnt) + 0.5f);
@@ -900,6 +904,15 @@ wxSize ScalableBitmap::GetBmpSize() const
     return m_bmp.GetScaledSize();
 #else
     return m_bmp.GetSize();
+#endif
+}
+
+wxSize ScalableBitmap::GetBmpSize(const wxBitmap &bmp)
+{
+#ifdef __APPLE__
+    return bmp.GetScaledSize();
+#else
+    return bmp.GetSize();
 #endif
 }
 
@@ -968,10 +981,10 @@ ScalableButton::ScalableButton( wxWindow *          parent,
 }
 
 
-ScalableButton::ScalableButton( wxWindow *          parent, 
+ScalableButton::ScalableButton( wxWindow *          parent,
                                 wxWindowID          id,
                                 const ScalableBitmap&  bitmap,
-                                const wxString&     label /*= wxEmptyString*/, 
+                                const wxString&     label /*= wxEmptyString*/,
                                 long                style /*= wxBU_EXACTFIT | wxNO_BORDER*/) :
     m_parent(parent),
     m_current_icon_name(bitmap.name()),
@@ -992,6 +1005,11 @@ void ScalableButton::SetBitmap_(const ScalableBitmap& bmp)
 
 bool ScalableButton::SetBitmap_(const std::string& bmp_name)
 {
+    if (m_current_icon_name == bmp_name)
+    {
+        return true;
+    }
+
     m_current_icon_name = bmp_name;
     if (m_current_icon_name.empty())
         return false;
@@ -1034,7 +1052,7 @@ void ScalableButton::msw_rescale()
     if (!m_current_icon_name.empty()) {
         wxBitmap bmp = create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt);
         SetBitmap(bmp);
-        // BBS: why disappear on hover? why current HBITMAP differ from other 
+        // BBS: why disappear on hover? why current HBITMAP differ from other
         //SetBitmapCurrent(bmp);
         //SetBitmapPressed(bmp);
         //SetBitmapFocus(bmp);

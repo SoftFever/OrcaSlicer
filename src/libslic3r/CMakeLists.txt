@@ -207,6 +207,8 @@ set(lisbslic3r_sources
     GCode/ConflictChecker.hpp
     GCode/CoolingBuffer.cpp
     GCode/CoolingBuffer.hpp
+    GCode/TimelapsePosPicker.cpp
+    GCode/TimelapsePosPicker.hpp
     GCode.cpp
     GCode/ExtrusionProcessor.hpp
     GCode/FanMover.cpp
@@ -303,6 +305,7 @@ set(lisbslic3r_sources
     NormalUtils.hpp
     NSVGUtils.cpp
     NSVGUtils.hpp
+    ObjColorUtils.cpp
     ObjColorUtils.hpp
     ObjectID.cpp
     ObjectID.hpp
@@ -451,6 +454,14 @@ set(lisbslic3r_sources
     VariableWidth.hpp
     Zipper.cpp
     Zipper.hpp
+    FilamentGroup.hpp
+    FilamentGroup.cpp
+    FilamentGroupUtils.hpp
+    FilamentGroupUtils.cpp
+    GCode/ToolOrderUtils.hpp
+    GCode/ToolOrderUtils.cpp
+    FlushVolPredictor.hpp
+    FlushVolPredictor.cpp
 )
 
 if (APPLE)

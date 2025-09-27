@@ -32,5 +32,8 @@
     ],
     "slow_down_layer_time": [
         "6"
+    ],
+    "filament_adhesiveness_category": [
+        "703"
     ]
 }

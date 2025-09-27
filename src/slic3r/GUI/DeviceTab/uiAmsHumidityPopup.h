@@ -29,7 +29,7 @@ struct uiAmsHumidityInfo
 /// Note: The popup of Ams Humidity with percentage and dry time
 /// Author: xin.zhang
 /// </summary>
-class uiAmsPercentHumidityDryPopup : public PopupWindow
+class uiAmsPercentHumidityDryPopup : public wxDialog
 {
 public:
     uiAmsPercentHumidityDryPopup(wxWindow *parent);
@@ -40,19 +40,13 @@ public:
 
     std::string get_owner_ams_id() const { return m_ams_id; }
 
-    virtual void OnDismiss() wxOVERRIDE {};
-    virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE { return true;};
-
     void msw_rescale();
 
 private:
     void Update(int humidiy_level, int humidity_percent, int left_dry_time, float current_temperature);
+    void UpdateContents();
 
-    void paintEvent(wxPaintEvent &evt);
-    void render(wxDC &dc);
-    void doRender(wxDC &dc);
-
-    void DrawGridArea(wxDC &dc, wxPoint start_p);
+    void Create();
 
 private:
     /*owner ams id*/
@@ -64,13 +58,25 @@ private:
     float m_current_temperature = 0;
 
     // Bitmap
-    ScalableBitmap close_img;
     ScalableBitmap drying_img;
     ScalableBitmap idle_img;
 
     // Widgets
     wxStaticBitmap* m_humidity_img;
-    wxGrid*         m_grid_area;
+
+    wxStaticBitmap* m_dry_state_img;
+    Label*          m_dry_state;
+    
+    Label* m_humidity_header;
+    Label* m_humidity_label;
+
+    Label* m_temperature_header;
+    Label* m_temperature_label;
+
+    Label* left_dry_time_header;
+    Label* left_dry_time_label;
+
+    wxSizer*       m_sizer;
 };
 
 }} // namespace Slic3r::GUI
