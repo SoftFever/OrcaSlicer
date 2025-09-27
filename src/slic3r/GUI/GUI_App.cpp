@@ -4451,6 +4451,17 @@ std::string detect_updater_os_info()
     if (description.empty())
         description = wxGetOsDescription();
 
+    //Orca: workaround: wxGetOsVersion can't recognize Windows 11
+    // For Windows, use actual version numbers to properly detect Windows 11
+    // Windows 11 starts at build 22000
+#if defined(_WIN32)
+    int major = 0, minor = 0, micro = 0;
+    wxGetOsVersion(&major, &minor, &micro);
+    if (micro >= 22000) {
+        // replace Windows 10 with Windows 11
+        description.Replace("Windows 10", "Windows 11");
+    }
+#endif
     std::string os_info = description.ToStdString();
     boost::replace_all(os_info, "\r", " ");
     boost::replace_all(os_info, "\n", " ");
