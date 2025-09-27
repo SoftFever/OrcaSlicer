@@ -22,6 +22,7 @@ jobs:
       date:
       ver:
       ver_pure:
+      ORCA_UPDATER_SIG_KEY: ${{ secrets.ORCA_UPDATER_SIG_KEY }}
 
     steps:
       - name: Checkout
@@ -317,7 +318,7 @@ jobs:
       - name: Install dependencies from build_linux.sh
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
-        run: sudo ./build_linux.sh -ur
+        run: sudo env "ORCA_UPDATER_SIG_KEY=$ORCA_UPDATER_SIG_KEY" ./build_linux.sh -ur
 
       - name: Fix permissions
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
