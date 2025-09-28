@@ -1093,24 +1093,47 @@ namespace client
                 return;
 
             assert(opt.opt->is_vector());
-            if (! opt.has_index())
-                ctx->throw_exception("Referencing a vector variable when scalar is expected", opt.it_range);
             const ConfigOptionVectorBase* vec = static_cast<const ConfigOptionVectorBase*>(opt.opt);
             if (vec->empty())
                 ctx->throw_exception("Indexing an empty vector variable", opt.it_range);
-            size_t idx = (opt.index < 0) ? 0 : (opt.index >= int(vec->size())) ? 0 : size_t(opt.index);
-            if (vec->is_nil(idx))
-                ctx->throw_exception("Trying to reference an undefined (nil) element of vector of optional values", opt.it_range);
-            switch (opt.opt->type()) {
-            case coFloats:   output.set_d(static_cast<const ConfigOptionFloats*>(opt.opt)->values[idx]); break;
-            case coInts:     output.set_i(static_cast<const ConfigOptionInts*>(opt.opt)->values[idx]); break;
-            case coStrings:  output.set_s(static_cast<const ConfigOptionStrings*>(opt.opt)->values[idx]); break;
-            case coPercents: output.set_d(static_cast<const ConfigOptionPercents*>(opt.opt)->values[idx]); break;
-            case coPoints:   output.set_s(to_string(static_cast<const ConfigOptionPoints*>(opt.opt)->values[idx])); break;
-            case coBools:    output.set_b(static_cast<const ConfigOptionBools*>(opt.opt)->values[idx] != 0); break;
-            case coEnums:    output.set_i(static_cast<const ConfigOptionInts    *>(opt.opt)->values[idx]); break;
-            default:
-                ctx->throw_exception("Unsupported vector variable type", opt.it_range);
+            if (!opt.has_index()) {
+                // Allow omitting extruder id when referencing vectors
+                switch (opt.opt->type()) {
+                case coFloats: {
+                    const ConfigOptionFloatsNullable* opt_floatsnullable = static_cast<const ConfigOptionFloatsNullable *>(opt.opt);
+                    if (opt_floatsnullable) {
+                        if (opt_floatsnullable->size() == 1) { // old version
+                            output.set_d(static_cast<const ConfigOptionFloatsNullable*>(opt.opt)->get_at(0));
+                        } else {
+                            output.set_d(static_cast<const ConfigOptionFloatsNullable*>(opt.opt)->get_at(ctx->get_extruder_id()));
+                        }
+                    } else {
+                        const ConfigOptionFloats* opt_floats = static_cast<const ConfigOptionFloats*>(opt.opt);
+                        if (opt_floats->size() == 1) { // old version
+                            output.set_d(static_cast<const ConfigOptionFloats*>(opt.opt)->get_at(0));
+                        } else {
+                            output.set_d(static_cast<const ConfigOptionFloats*>(opt.opt)->get_at(ctx->get_extruder_id()));
+                        }
+                    }
+                    break;
+                }
+                default: ctx->throw_exception("Referencing a vector variable when scalar is expected", opt.it_range);
+                }
+            } else {
+                size_t idx = (opt.index < 0) ? 0 : (opt.index >= int(vec->size())) ? 0 : size_t(opt.index);
+                if (vec->is_nil(idx))
+                    ctx->throw_exception("Trying to reference an undefined (nil) element of vector of optional values", opt.it_range);
+                switch (opt.opt->type()) {
+                case coFloats:   output.set_d(static_cast<const ConfigOptionFloats*>(opt.opt)->values[idx]); break;
+                case coInts:     output.set_i(static_cast<const ConfigOptionInts*>(opt.opt)->values[idx]); break;
+                case coStrings:  output.set_s(static_cast<const ConfigOptionStrings*>(opt.opt)->values[idx]); break;
+                case coPercents: output.set_d(static_cast<const ConfigOptionPercents*>(opt.opt)->values[idx]); break;
+                case coPoints:   output.set_s(to_string(static_cast<const ConfigOptionPoints*>(opt.opt)->values[idx])); break;
+                case coBools:    output.set_b(static_cast<const ConfigOptionBools*>(opt.opt)->values[idx] != 0); break;
+                case coEnums:    output.set_i(static_cast<const ConfigOptionInts    *>(opt.opt)->values[idx]); break;
+                default:
+                    ctx->throw_exception("Unsupported vector variable type", opt.it_range);
+                }
             }
         }
 
