@@ -125,16 +125,20 @@ jobs:
             codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app
           fi
           
-          # Create main OrcaSlicer DMG
-          ln -s /Applications ${{ github.workspace }}/build/universal/OrcaSlicer/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
+          # Create main OrcaSlicer DMG without the profile validator helper
+          mkdir -p ${{ github.workspace }}/build/universal/OrcaSlicer_dmg
+          rm -rf ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/*
+          cp -R ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer.app ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/
+          ln -sfn /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer_dmg -ov -format UDZO OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
           codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
           
           # Create separate OrcaSlicer_profile_validator DMG if the app exists
           if [ -f "${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
             mkdir -p ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg
+            rm -rf ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/*
             cp -R ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/
-            ln -s /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/Applications
+            ln -sfn /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/Applications
             hdiutil create -volname "OrcaSlicer Profile Validator" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg -ov -format UDZO OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
             codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
           fi
@@ -154,14 +158,18 @@ jobs:
         if: github.ref != 'refs/heads/main' && inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-          ln -s /Applications ${{ github.workspace }}/build/universal/OrcaSlicer/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
+          mkdir -p ${{ github.workspace }}/build/universal/OrcaSlicer_dmg
+          rm -rf ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/*
+          cp -R ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer.app ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/
+          ln -sfn /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer_dmg -ov -format UDZO OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
           
           # Create separate OrcaSlicer_profile_validator DMG if the app exists
           if [ -f "${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
             mkdir -p ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg
+            rm -rf ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/*
             cp -R ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/
-            ln -s /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/Applications
+            ln -sfn /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/Applications
             hdiutil create -volname "OrcaSlicer Profile Validator" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg -ov -format UDZO OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
           fi
 
