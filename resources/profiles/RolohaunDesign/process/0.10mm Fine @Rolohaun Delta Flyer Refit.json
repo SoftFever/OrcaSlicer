@@ -3,6 +3,7 @@
     "name": "0.10mm Fine @Delta Flyer Refit",
     "inherits": "fdm_process_Rook MK1 LDO_common",
     "from": "system",
+    "instantiation": "true",
     "bottom_shell_layers": "4",
     "initial_layer_infill_speed": "100",
     "initial_layer_speed": "80",
