@@ -263,10 +263,7 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     cmake --build build --config "${CONFIG}" --target OrcaSlicer_profile_validator
     if [[ -n "${BUILD_TESTS}" ]] ; then
 	echo "Building tests ..."
-	# Should be:
-	# cmake --build build --config "${CONFIG}" --target tests/all
-	# This seems to be the only ones which build ATM:
-	cmake --build build --config "${CONFIG}" --target slic3rutils_tests
+	cmake --build build --config "${CONFIG}" --target tests/all
     fi
     ./scripts/run_gettext.sh
     echo "done"
