@@ -1014,7 +1014,7 @@ namespace client
                 if (! opt.opt->is_vector())
                     ctx->throw_exception("Cannot index a scalar variable", opt.it_range);
                 if (index < 0)
-                    ctx->throw_exception("Referencing a vector variable with a negative index", opt.it_range);
+                    index = 0; // Orca: fallback to first element if index < 0, this matches the behavior of BambuStudio
                 output = opt;
                 output.index = index;
             } else
