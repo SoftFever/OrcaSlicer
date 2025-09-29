@@ -80,7 +80,8 @@ This metalanguage provides a way to define the [direction and rotation](strength
   ![multiple-joint-initial-angle](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/multiple-joint-initial-angle.png?raw=true)
 - `|` - infill of multiple layers with vertical displacement at middle angle. e.g. `+22.5|50%`  
   ![multiple-joint-middle-angle](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/multiple-joint-middle-angle.png?raw=true)
-- `N` - infill formed by sinus function (vertical connection). e.g. `+22.5N50%`<br>If we reduce the angle and height by two, we get the same rotation of the infill, but with a greater frequency of waves.<br>
+- `N` - infill formed by sinus function (vertical connection). e.g. `+22.5N50%`.  
+  Reducing the angle and height by two gives the same rotation of the infill, the rotation of the infill remains unchanged, but the frequency of waves increases.  
   ![v-sinus-joint](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/v-sinus-joint.png?raw=true)
 - `n` - infill formed by sinus function (vertical connection, lazy). e.g. `+22.5n50%`  
   ![v-sinus-joint-lazy](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/v-sinus-joint-lazy.png?raw=true)
