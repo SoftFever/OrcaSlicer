@@ -76,7 +76,8 @@ This metalanguage provides a way to define the [direction and rotation](strength
   ![linear-joint](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/linear-joint.png?raw=true)
 - `#` - infill of multiple layers with vertical displacement at finish angle. e.g. `+22.5#50%`  
   ![multiple-joint](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/multiple-joint.png?raw=true)
-- `#-` - infill of multiple layers with vertical displacement at initial angle. e.g. `+22.5#-50%`<br>Here and further, a negative sign before the height value indicates that the action of the instruction is reversed: if in a regular instruction the action begins at a certain angle α then ends at α+22.5. In the reverse one the begin at α+22.5, and the end at α.<br>
+- `#-` - infill of multiple layers with vertical displacement at initial angle. e.g. `+22.5#-50%`.  
+  Here and further, a negative sign before the height value indicates that instruction's action is reversed: if in a regular instruction the action begins at angle ´α´ and ends at ´α+22.5´. In the reverse one the begin at ´α+22.5´, and the end at ´α´.  
   ![multiple-joint-initial-angle](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/multiple-joint-initial-angle.png?raw=true)
 - `|` - infill of multiple layers with vertical displacement at middle angle. e.g. `+22.5|50%`  
   ![multiple-joint-middle-angle](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/multiple-joint-middle-angle.png?raw=true)
