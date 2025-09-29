@@ -48,7 +48,8 @@ This metalanguage provides a way to define the [direction and rotation](strength
 
 - `α%` - set the angle α value as a percentage of the full 360 degree rotation.  
   e.g. `100%` means 360°, `50%` = 180°, `25%` = 90°, `75%` = 270°, `12%` = 43.2° and so on.
-- `α:β` - setting the fractional value of the angle of the full 360 degree rotation.<br>If this value is `1:2`, then the result is 180 degrees, `1:4` = 90, `3:4` = 270, `5:8` = 225 and so on.
+- `α:β` - set the fractional value of the angle of the full 360 degree rotation.  
+  e.g. `1:1` means 360 degrees, `1:2` = 180°, `1:4` = 90°, `3:4` = 270°, `5:8` = 225° and so on.
 - `+α` - set positive relative angle CCW
 - `-α` - set negative relative angle CW
 
