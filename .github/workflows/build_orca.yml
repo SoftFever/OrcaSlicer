@@ -309,29 +309,22 @@ jobs:
           max_releases: 1
 
 # Ubuntu
+      - name: Apt-Install Dependencies
+        if: inputs.os == 'ubuntu-24.04'
+        uses: ./.github/actions/apt-install-deps
+
+        # This happens *after* `Apt-Install Dependencies` because that does an apt update
       - name: Install dependencies
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         env:
           apt-cmd: ${{ (inputs.os == 'ubuntu-20.04' && 'apt-fast') || (inputs.os == 'ubuntu-24.04' && 'sudo apt-get') || '' }}
-          webkit-ver: ${{ (inputs.os == 'ubuntu-20.04' && '4.0') || (inputs.os == 'ubuntu-24.04' && '4.1') || '' }}
           libfuse2-pkg: ${{ (inputs.os == 'ubuntu-20.04' && 'libfuse2') || (inputs.os == 'ubuntu-24.04' && 'libfuse2t64') || '' }}
         run: |
-          ${{ env.apt-cmd }} update
-          ${{ env.apt-cmd }} install -y autoconf build-essential cmake curl eglexternalplatform-dev \
-          extra-cmake-modules file git libcairo2-dev libcurl4-openssl-dev libdbus-1-dev libglew-dev libglu1-mesa-dev \
-          libglu1-mesa-dev libgstreamer1.0-dev libgstreamerd-3-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev \
-          libgtk-3-dev libgtk-3-dev libmspack-dev libsecret-1-dev libsoup2.4-dev libssl-dev libudev-dev libwayland-dev \
-          libwebkit2gtk-${{ env.webkit-ver }}-dev libxkbcommon-dev locales locales-all m4 pkgconf sudo wayland-protocols wget ${{ env.libfuse2-pkg }}
-
-      - name: Install dependencies from build_linux.sh
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
-        shell: bash
-        run: sudo env "ORCA_UPDATER_SIG_KEY=$ORCA_UPDATER_SIG_KEY" ./build_linux.sh -ur
-
-      - name: Fix permissions
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
-        shell: bash
-        run: sudo chown $USER -R ./
+          ${{ env.apt-cmd }} install -y \
+          libcairo2-dev libdbus-1-dev libglu1-mesa-dev \
+          libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev \
+          libsoup2.4-dev libwayland-dev \
+          libxkbcommon-dev locales locales-all pkgconf wayland-protocols ${{ env.libfuse2-pkg }}
 
         # Tests must built at the same time as the slicer;
         # if you untangle them feel free to separate them here too
