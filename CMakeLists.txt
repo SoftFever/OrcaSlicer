@@ -69,6 +69,10 @@ endif()
 
 find_package(Git)
 if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    if(DEFINED ENV{git_commit_hash})
+        message(STATUS "Specified git commit hash: $ENV{git_commit_hash}")
+    endif()
+
     # Check current Git commit hash
     execute_process(
         COMMAND ${GIT_EXECUTABLE} log -1 --format=%h
