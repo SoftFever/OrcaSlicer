@@ -1,12 +1,12 @@
 {
     "type": "filament",
-    "name": "COEX ABS @System",
-    "inherits": "COEX ABS @base",
+    "name": "COEX PLA PRIME @System",
+    "inherits": "COEX PLA PRIME @base",
     "from": "system",
-    "setting_id": "COXABS01",
+    "setting_id": "C0XPLA08",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
-        "16"
+        "15"
     ],
     "filament_long_retractions_when_cut": [
         "nil"

@@ -1,8 +1,9 @@
 {
     "type": "filament",
-    "name": "COEX PLA Prime @base",
+    "name": "COEX PLA PRIME @base",
     "inherits": "Generic PLA @base",
     "from": "system",
+	"filament_id": "CXPLAB08",
     "version": "1.0.0.0",
     "is_custom_defined": "0",
     "filament_vendor": "COEX 3D",

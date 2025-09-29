@@ -1,12 +1,12 @@
 {
     "type": "filament",
-    "name": "COEX ABS @System",
-    "inherits": "COEX ABS @base",
+    "name": "COEX TPU 60A @System",
+    "inherits": "COEX TPU 60A @base",
     "from": "system",
-    "setting_id": "COXABS01",
+    "setting_id": "C0X60A17",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
-        "16"
+        "1"
     ],
     "filament_long_retractions_when_cut": [
         "nil"

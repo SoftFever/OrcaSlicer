@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "COEX ABS @System",
-    "inherits": "COEX ABS @base",
+    "name": "COEX ASA PRIME @System",
+    "inherits": "COEX ASA PRIME @base",
     "from": "system",
-    "setting_id": "COXABS01",
+    "setting_id": "CXASAP04",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
         "16"

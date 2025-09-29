@@ -1,12 +1,12 @@
 {
     "type": "filament",
-    "name": "COEX ABS @System",
-    "inherits": "COEX ABS @base",
+    "name": "COEX NYLEX PA6-CF @System",
+    "inherits": "COEX NYLEX PA6-CF @base",
     "from": "system",
-    "setting_id": "COXABS01",
+    "setting_id": "CXPACF23",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
-        "16"
+        "11"
     ],
     "filament_long_retractions_when_cut": [
         "nil"

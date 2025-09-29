@@ -1,12 +1,12 @@
 {
     "type": "filament",
-    "name": "COEX ABS @System",
-    "inherits": "COEX ABS @base",
+    "name": "COEX PCTG PRIME @System",
+    "inherits": "COEX PCTG PRIME @base",
     "from": "system",
-    "setting_id": "COXABS01",
+    "setting_id": "CXPCTG15",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
-        "16"
+        "12"
     ],
     "filament_long_retractions_when_cut": [
         "nil"
