@@ -1,12 +1,12 @@
 {
     "type": "filament",
-    "name": "Overture PLA @BBL A1M 0.2 nozzle",
-    "inherits": "Overture PLA @BBL A1M",
+    "name": "COEX PLA @BBL A1M 0.2 nozzle",
+    "inherits": "COEX PLA @BBL A1M",
     "from": "system",
-    "setting_id": "GFSL04_06",
+    "setting_id": "CXPLAX07",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
-        "1.6"
+        "6"
     ],
     "compatible_printers": [
         "Bambu Lab A1 mini 0.2 nozzle"

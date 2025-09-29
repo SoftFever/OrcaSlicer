@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "COEX PCTG @base",
+    "name": "COEX PCTG PRIME@base",
     "inherits": "Generic PCTG @base",
     "from": "system",
 	"filament_id": "CXPCTB15",

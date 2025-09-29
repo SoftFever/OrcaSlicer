@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Overture TPU @BBL X1",
-    "inherits": "Overture TPU @base",
+    "name": "COEX TPE 60D @BBL X1",
+    "inherits": "COEX TPE 60D @base",
     "from": "system",
-    "setting_id": "GFOT008_06",
+    "setting_id": "CX60DX03",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab X1 0.4 nozzle",
@@ -20,6 +20,6 @@
         "1"
     ],
     "filament_max_volumetric_speed": [
-        "10"
+        "6.5"
     ]
 }

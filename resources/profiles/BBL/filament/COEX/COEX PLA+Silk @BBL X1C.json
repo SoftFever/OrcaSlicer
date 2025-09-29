@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Overture Silk PLA @BBL X1C",
-    "inherits": "Overture Silk PLA @base",
+    "name": "COEX PLA+Silk @BBL X1C",
+    "inherits": "COEX PLA+Silk @base",
     "from": "system",
-    "setting_id": "GFOT002_08",
+    "setting_id": "CXPLSX01",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",

@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Overture PLA @BBL X1C 0.2 nozzle",
-    "inherits": "Overture PLA @BBL X1C",
+    "name": "COEX PLA @BBL X1C 0.2 nozzle",
+    "inherits": "COEX PLA @BBL X1C",
     "from": "system",
-    "setting_id": "GFSL04_02",
+    "setting_id": "CXPLAX02",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
         "1.6"

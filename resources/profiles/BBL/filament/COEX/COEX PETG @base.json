@@ -24,7 +24,7 @@
         "85"
     ],
     "temperature_vitrification": "70",
-    "filament_max_volumetric_speed": "8",
+    "filament_max_volumetric_speed": "12",
     "filament_retraction_minimum_travel": [
         "2"
     ],

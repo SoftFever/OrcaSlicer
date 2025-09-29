@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Overture PLA @BBL P1P",
-    "inherits": "Overture PLA @base",
+    "name": "COEX PLA @BBL P1P",
+    "inherits": "COEX PLA @base",
     "from": "system",
-    "setting_id": "GFSL04_03",
+    "setting_id": "CXPLAX04",
     "instantiation": "true",
     "fan_cooling_layer_time": [
         "80"

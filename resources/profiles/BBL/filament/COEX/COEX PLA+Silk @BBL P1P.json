@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Overture Silk PLA @BBL P1P",
-    "inherits": "Overture Silk PLA @base",
+    "name": "COEX PLA+Silk @BBL P1P",
+    "inherits": "COEX PLA+Silk @base",
     "from": "system",
-    "setting_id": "GFOT002_04",
+    "setting_id": "CXPLSX05",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle",

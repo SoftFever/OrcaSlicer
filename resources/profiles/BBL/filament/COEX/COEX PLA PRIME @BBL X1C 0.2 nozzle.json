@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Overture PLA Pro @BBL X1C 0.2 nozzle",
-    "inherits": "Overture PLA Pro @base",
+    "name": "COEX PLA PRIME @BBL X1C 0.2 nozzle",
+    "inherits": "COEX PLA PRIME @base",
     "from": "system",
-    "setting_id": "GFOT001_09",
+    "setting_id": "CXPLPX02",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.2 nozzle",
@@ -20,6 +20,6 @@
         "0.98"
     ],
     "filament_max_volumetric_speed": [
-        "1.6"
+        "6"
     ]
 }

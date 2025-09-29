@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Overture Silk PLA @BBL X1 0.2 nozzle",
-    "inherits": "Overture Silk PLA @base",
+    "name": "COEX PLA+Silk @BBL X1 0.2 nozzle",
+    "inherits": "COEX PLA+Silk @base",
     "from": "system",
-    "setting_id": "GFOT002_07",
+    "setting_id": "CXPLSX04",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab X1 0.2 nozzle"
@@ -18,6 +18,6 @@
         "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "1.6"
+        "6"
     ]
 }

@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Overture TPU @BBL X1C 0.2 nozzle",
-    "inherits": "Overture TPU @base",
+    "name": "COEX TPE 60D @BBL X1C 0.2 nozzle",
+    "inherits": "COEX TPE 60D @base",
     "from": "system",
-    "setting_id": "GFOT008_09",
+    "setting_id": "CX60DX02",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.2 nozzle",
