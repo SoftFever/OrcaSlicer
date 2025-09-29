@@ -1011,10 +1011,10 @@ namespace client
            OptWithPos       &output)
         {
             if (! ctx->skipping()) {
-                if (! opt.opt->is_vector())
-                    ctx->throw_exception("Cannot index a scalar variable", opt.it_range);
                 if (index < 0)
                     index = 0; // Orca: fallback to first element if index < 0, this matches the behavior of BambuStudio
+                if (!opt.opt->is_vector())
+                    index = -1; // Orca: ignore the index if variable is scalar, this matches the behavior of BambuStudio
                 output = opt;
                 output.index = index;
             } else
