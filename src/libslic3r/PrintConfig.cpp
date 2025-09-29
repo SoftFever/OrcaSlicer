@@ -1,4 +1,5 @@
 #include "PrintConfig.hpp"
+#include "PrintConfigConstants.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
 #include "MaterialType.hpp"
@@ -686,7 +687,7 @@ void PrintConfigDef::init_common_params()
     def->tooltip = L("Slicing height for each layer. Smaller layer height means more accurate and more printing time.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->min = 0;
-    def->set_default_value(new ConfigOptionFloat(0.2));
+    def->set_default_value(new ConfigOptionFloat(INITIAL_LAYER_HEIGHT));
 
     def = this->add("printable_height", coFloat);
     def->label = L("Printable height");
@@ -833,7 +834,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Detour to avoid traveling across walls, which may cause blobs on the surface.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(INITIAL_REDUCE_CROSSING_WALL));
 
     def = this->add("max_travel_detour_distance", coFloatOrPercent);
     def->label = L("Avoid crossing walls - Max detour length");
@@ -4540,7 +4541,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 100;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(0));
+    def->set_default_value(new ConfigOptionInt(INITIAL_RAFT_LAYERS));
 
     def = this->add("resolution", coFloat);
     def->label = L("Resolution");
