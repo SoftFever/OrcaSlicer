@@ -324,6 +324,62 @@
         {
             "name": "Generic PC @Sovol SV08 MAX",
             "sub_path": "filament/Generic PC @Sovol SV08 MAX.json"
+        },
+		{
+            "name": "COEX TPE 30D @base",
+            "sub_path": "filament/COEX/COEX TPE 30D @base.json"
+        },
+		{
+            "name": "COEX TPE 40D @base",
+            "sub_path": "filament/COEX/COEX TPE 40D @base.json"
+        },
+		{
+            "name": "COEX TPE 60D @base",
+            "sub_path": "filament/COEX/COEX TPE 60D @base.json"
+        },
+		{
+            "name": "COEX TPU 60A @base",
+            "sub_path": "filament/COEX/COEX TPU 60A @base.json"
+        },
+		{
+            "name": "COEX PLA PRIME @base",
+            "sub_path": "filament/COEX/COEX PLA PRIME @base.json"
+        },
+		{
+            "name": "COEX PLA+Silk @base",
+            "sub_path": "filament/COEX/COEX PLA+Silk @base.json"
+        },
+		{
+            "name": "COEX PLA @base",
+            "sub_path": "filament/COEX/COEX PLA @base.json"
+        },
+		{
+            "name": "COEX PETG @base",
+            "sub_path": "filament/COEX/COEX PETG @base.json"
+        },
+		{
+            "name": "COEX PCTG PRIME @base",
+            "sub_path": "filament/COEX/COEX PCTG PRIME @base.json"
+        },
+		{
+            "name": "COEX NYLEX PA6-CF @base",
+            "sub_path": "filament/COEX/COEX NYLEX PA6-CF @base.json"
+        },
+		{
+            "name": "COEX NYLEX UNFILLED @base",
+            "sub_path": "filament/COEX/COEX NYLEX UNFILLED @base.json"
+        },
+		{
+            "name": "COEX ASA PRIME @base",
+            "sub_path": "filament/COEX/COEX ASA PRIME @base.json"
+        },
+		{
+            "name": "COEX ABS @base",
+            "sub_path": "filament/COEX/COEX ABS @base.json"
+        },
+		{
+            "name": "COEX ABS PRIME @base",
+            "sub_path": "filament/COEX/COEX ABS PRIME @base.json"
         }
     ],
     "machine_list": [
