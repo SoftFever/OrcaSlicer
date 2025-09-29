@@ -33,7 +33,7 @@ TEST_CASE("Line::parallel_to", "[Geometry]"){
 
     Line l4(l2);
     l4.rotate(1.1 * EPSILON, { 0, 0 });
-    REQUIRE(! l.parallel_to(l4));
+    REQUIRE_FALSE(l.parallel_to(l4));
 
     // The angle epsilon is so low that vectors shorter than 100um rotated by epsilon radians are not rotated at all.
     Line l5{ { 20000, 0 }, { 0, 0 } };
@@ -48,13 +48,13 @@ TEST_CASE("Line::parallel_to", "[Geometry]"){
     l4.rotate(1., { 0, 0 });
     l4.translate(offset);
     REQUIRE(l.parallel_to(l3));
-    REQUIRE(!l.parallel_to(l4));
+    REQUIRE_FALSE(l.parallel_to(l4));
 }
 
 TEST_CASE("Line::perpendicular_to", "[Geometry]") {
     Line l{ { 100000, 0 }, { 0, 0 } };
     Line l2{ { 0, 200000 }, { 0, 0 } };
-    REQUIRE(! l.perpendicular_to(l));
+    REQUIRE_FALSE(l.perpendicular_to(l));
     REQUIRE(l.perpendicular_to(l2));
 
     Line l3(l2);
@@ -63,7 +63,7 @@ TEST_CASE("Line::perpendicular_to", "[Geometry]") {
 
     Line l4(l2);
     l4.rotate(1.1 * EPSILON, { 0, 0 });
-    REQUIRE(! l.perpendicular_to(l4));
+    REQUIRE_FALSE(l.perpendicular_to(l4));
 
     // The angle epsilon is so low that vectors shorter than 100um rotated by epsilon radians are not rotated at all.
     Line l5{ { 0, 20000 }, { 0, 0 } };
@@ -78,7 +78,7 @@ TEST_CASE("Line::perpendicular_to", "[Geometry]") {
     l4.rotate(1., { 0, 0 });
     l4.translate(offset);
     REQUIRE(l.perpendicular_to(l3));
-    REQUIRE(! l.perpendicular_to(l4));
+    REQUIRE_FALSE(l.perpendicular_to(l4));
 }
 
 TEST_CASE("Polygon::contains works properly", "[Geometry]"){
@@ -125,7 +125,7 @@ SCENARIO("polygon_is_convex works") {
         WHEN("Polygon is convex clockwise") {
             Polygon cw_square  { { {0, 0}, {0,10}, {10,10}, {10,0} } };
             THEN("it is not convex") {
-                REQUIRE(! polygon_is_convex(cw_square));
+                REQUIRE_FALSE(polygon_is_convex(cw_square));
             }
         }
         WHEN("Polygon is convex counter-clockwise") {
@@ -138,7 +138,7 @@ SCENARIO("polygon_is_convex works") {
     GIVEN("A concave polygon") {
         Polygon concave = { {0,0}, {10,0}, {10,10}, {0,10}, {0,6}, {4,6}, {4,4}, {0,4} };
         THEN("It is not convex") {
-            REQUIRE(! polygon_is_convex(concave));
+            REQUIRE_FALSE(polygon_is_convex(concave));
         }
     }
 }
@@ -380,14 +380,30 @@ SCENARIO("Polygon convex/concave detection", "[Geometry]"){
             Point(200,100),
             Point(200,200),
             Point(100,200)}));
-        THEN("It has 4 convex points counterclockwise"){
-            REQUIRE(square.concave_points(PI*4/3).size() == 0);
-            REQUIRE(square.convex_points(PI*2/3).size() == 4);
+        THEN("It has 4 convex points counterclockwise no angle limit"){
+	    auto cave_pts = square.concave_points(0);
+	    auto vex_pts = square.convex_points(0);
+	    CAPTURE(cave_pts);
+	    CAPTURE(vex_pts);
+            REQUIRE(cave_pts.size() == 0);
+            REQUIRE(vex_pts.size() == 4);
+        }
+        THEN("It has 4 convex points counterclockwise with angle limit"){
+	    auto cave_pts = square.concave_points(PI*4/3);
+	    auto vex_pts = square.convex_points(PI*4/3);
+	    CAPTURE(cave_pts);
+	    CAPTURE(vex_pts);
+            REQUIRE(cave_pts.size() == 0);
+            REQUIRE(vex_pts.size() == 4);
         }
         THEN("It has 4 concave points clockwise"){
             square.make_clockwise();
-            REQUIRE(square.concave_points(PI*4/3).size() == 4);
-            REQUIRE(square.convex_points(PI*2/3).size() == 0);
+	    auto cave_pts = square.concave_points(0);
+	    auto vex_pts = square.convex_points(0);
+	    CAPTURE(cave_pts);
+	    CAPTURE(vex_pts);
+            REQUIRE(cave_pts.size() == 4);
+            REQUIRE(vex_pts.size() == 0);
         }
     }
     GIVEN("A Square with an extra colinearvertex"){
@@ -399,7 +415,7 @@ SCENARIO("Polygon convex/concave detection", "[Geometry]"){
             Point(100,100)}));
         THEN("It has 4 convex points counterclockwise"){
             REQUIRE(square.concave_points(PI*4/3).size() == 0);
-            REQUIRE(square.convex_points(PI*2/3).size() == 4);
+            REQUIRE(square.convex_points(PI*4/3).size() == 4);
         }
     }
     GIVEN("A Square with an extra collinear vertex in different order"){
@@ -482,8 +498,8 @@ SCENARIO("Ported from xs/t/14_geometry.t", "[Geometry]"){
     	REQUIRE(Slic3r::Geometry::directions_parallel(0, M_PI, 0)); 
     	REQUIRE(Slic3r::Geometry::directions_parallel(0, 0, M_PI / 180));
     	REQUIRE(Slic3r::Geometry::directions_parallel(0, M_PI, M_PI / 180));
-    	REQUIRE(! Slic3r::Geometry::directions_parallel(M_PI /2, M_PI, 0));
-    	REQUIRE(! Slic3r::Geometry::directions_parallel(M_PI /2, PI, M_PI /180));
+    	REQUIRE_FALSE(Slic3r::Geometry::directions_parallel(M_PI /2, M_PI, 0));
+    	REQUIRE_FALSE(Slic3r::Geometry::directions_parallel(M_PI /2, PI, M_PI /180));
     }
 }
 

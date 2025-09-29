@@ -12,8 +12,8 @@ SCENARIO("Reading 3mf file", "[3mf]") {
     GIVEN("umlauts in the path of the file") {
         Model model;
         WHEN("3mf model is read") {
-        	std::string path = std::string(TEST_DATA_DIR) + "/test_3mf/Geräte/Büchse.3mf";
-        	DynamicPrintConfig config;
+            std::string path = std::string(TEST_DATA_DIR) + "/test_3mf/Geräte/Büchse.3mf";
+            DynamicPrintConfig config;
             ConfigSubstitutionContext ctxt{ ForwardCompatibilitySubstitutionRule::Disable };
             bool ret = load_3mf(path.c_str(), config, ctxt, &model, false);
             THEN("load should succeed") {
@@ -85,7 +85,7 @@ SCENARIO("2D convex hull of sinking object", "[3mf]") {
         // load a model
         Model model;
         std::string src_file = std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl";
-        load_stl(src_file.c_str(), &model);
+        REQUIRE(load_stl(src_file.c_str(), &model));
         model.add_default_instances();
 
         WHEN("model is rotated, scaled and set as sinking") {
@@ -112,22 +112,20 @@ SCENARIO("2D convex hull of sinking object", "[3mf]") {
                 { -91501496, 4243 }
             };
 
-            // Allow 1um error due to floating point rounding.
-            bool res = hull_2d.points.size() == result.size();
-            if (res)
-                for (size_t i = 0; i < result.size(); ++ i) {
-                    const Point &p1 = result[i];
-                    const Point &p2 = hull_2d.points[i];
-                    if (std::abs(p1.x() - p2.x()) > 1 || std::abs(p1.y() - p2.y()) > 1) {
-                        res = false;
-                        break;
+            THEN("2D convex hull should match with reference") {
+                // Allow 1um error due to floating point rounding.
+                bool res = hull_2d.points.size() == result.size();
+                if (res) {
+                    for (size_t i = 0; i < result.size(); ++ i) {
+                        const Point &p1 = result[i];
+                        const Point &p2 = hull_2d.points[i];
+                        CHECK((std::abs(p1.x() - p2.x()) > 1 || std::abs(p1.y() - p2.y()) > 1));
                     }
                 }
 
-            THEN("2D convex hull should match with reference") {
+                CAPTURE(hull_2d.points);
                 REQUIRE(res);
             }
         }
     }
 }
-
