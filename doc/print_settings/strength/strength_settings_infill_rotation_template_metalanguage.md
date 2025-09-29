@@ -70,7 +70,9 @@ This metalanguage provides a way to define the [direction and rotation](strength
 
 `[joint sign]` - the symbol which determines the method of connection for turning of the infill:
 
-- `/` - linear displacement of the infill. e.g. `+22.5/50%`<br>This means a smooth rotation of the layers by 22.5 degrees at half the height of the model. Since this is the only instruction, it will be repeated so many times until the entire height of the model is filled.<br>Another equivalent instructions would be this `+1:16/1:2` or this `+6.25%/50%`<br>
+- `/` - linear displacement of the infill. e.g. `+22.5/50%`  
+  This results in the layers rotating smoothly by 22.5 degrees at half the model's height. Since this is the only instruction, it will repeat until the entire height of the model is filled.  
+  Equivalent instructions would be `+1:16/1:2` or `+6.25%/50%`.  
   ![linear-joint](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/linear-joint.png?raw=true)
 - `#` - infill of multiple layers with vertical displacement at finish angle. e.g. `+22.5#50%`  
   ![multiple-joint](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/multiple-joint.png?raw=true)
