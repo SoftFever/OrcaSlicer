@@ -2465,7 +2465,7 @@ void SelectMachineDialog::on_send_print()
         }
     }
 
-    auto m_print_job = std::make_unique<PrintJob>(m_printer_last_select);
+    m_print_job = std::make_shared<PrintJob>(m_printer_last_select);
     m_print_job->m_dev_ip = obj_->dev_ip;
     m_print_job->m_ftp_folder = obj_->get_ftp_folder();
     m_print_job->m_access_code = obj_->get_access_code();
@@ -2573,7 +2573,7 @@ void SelectMachineDialog::on_send_print()
         agent->track_update_property(dev_ota_str, obj_->get_ota_version());
     }
 
-    replace_job(*m_worker, std::move(m_print_job));
+    replace_job(*m_worker, m_print_job);
     BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
 }
 
