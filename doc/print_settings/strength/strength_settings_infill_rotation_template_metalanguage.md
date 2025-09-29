@@ -54,7 +54,7 @@ This metalanguage provides a way to define the [direction and rotation](strength
 - `-α` - set negative relative angle CW
 
 > [!NOTE]
-> Relative instructions indicates that the infill direction will change by this angle from layer to the next one.
+> Relative instructions indicate that the infill direction will change by this angle from one layer to the next.
 
 ### Runtime instructions
 
