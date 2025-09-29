@@ -46,7 +46,8 @@ This metalanguage provides a way to define the [direction and rotation](strength
 
 `[±]α` - command for setting rotation infill angle (for joint infills at some height range, this angle is finite):
 
-- `α%` - set the angle α value as a percentage of the full 360 degree rotation.<br>The `50%` value means 180 degrees, `25%` = 90, `75%` = 270, `12%` = 43.2 and so on.
+- `α%` - set the angle α value as a percentage of the full 360 degree rotation.  
+  e.g. `100%` means 360°, `50%` = 180°, `25%` = 90°, `75%` = 270°, `12%` = 43.2° and so on.
 - `α:β` - setting the fractional value of the angle of the full 360 degree rotation.<br>If this value is `1:2`, then the result is 180 degrees, `1:4` = 90, `3:4` = 270, `5:8` = 225 and so on.
 - `+α` - set positive relative angle CCW
 - `-α` - set negative relative angle CW
