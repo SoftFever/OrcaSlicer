@@ -7,6 +7,6 @@
     "family": "Wanhao France",
     "bed_model": "Wanhao_D12-300_buildplate_model.stl",
     "bed_texture": "D12_texture.svg",
-    "hotend_model": "",
+    "hotend_model": "Wanhao D12-300_hotend.stl",
     "default_materials": "YUMI PLA Bowden;YUMI PETG;"
 }
