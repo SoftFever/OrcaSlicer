@@ -354,7 +354,6 @@ public:
     MaxVolumetricSpeed_Test_Dlg* m_vol_test_dlg { nullptr };
     VFA_Test_Dlg* m_vfa_test_dlg { nullptr };
     Retraction_Test_Dlg* m_retraction_calib_dlg{ nullptr };
-    Input_Shaping_Base_Test_Dlg* m_IS_base_calib_dlg{ nullptr };
     Input_Shaping_Freq_Test_Dlg* m_IS_freq_calib_dlg{ nullptr };
     Input_Shaping_Damp_Test_Dlg* m_IS_damp_calib_dlg{ nullptr };
     Junction_Deviation_Test_Dlg* m_junction_deviation_calib_dlg{ nullptr };
