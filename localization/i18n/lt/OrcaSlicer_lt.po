@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "PO-Revision-Date: 2025-03-21 21:00+0200\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -50,17 +50,23 @@ msgstr "Paskutinė versija"
 msgid "Support Painting"
 msgstr "Palaiko piešimą"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + pelės ratukas"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "Pelės ratukas"
 
 msgid "Section view"
 msgstr "Sekcijų peržiūra"
 
 msgid "Reset direction"
 msgstr "Atstatyti kryptį"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + pelės ratukas"
 
 msgid "Pen size"
 msgstr "Pieštuko dydis"
@@ -76,9 +82,6 @@ msgstr "Dešinys pelės mygtukas"
 
 msgid "Block supports"
 msgstr "Blokuoti atramas"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + kairys pelės mygtukas"
 
 msgid "Erase"
 msgstr "Ištrinti"
@@ -185,8 +188,8 @@ msgstr "Kibiro užpildymas"
 msgid "Height range"
 msgstr "Aukščio diapazonas"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Perjungti \"vielinį\" vaizdą"
@@ -721,8 +724,8 @@ msgstr "Paviršius"
 msgid "Horizontal text"
 msgstr "Horizontalus tekstas"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Shift + pelės judėjimas aukštyn arba žemyn"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "Sukti tekstą"
@@ -1472,9 +1475,6 @@ msgstr "Lygiagretus atstumas:"
 msgid "Flip by Face 2"
 msgstr "Apversti pagal paviršių 2"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "Įspėjimas"
 
@@ -1838,6 +1838,9 @@ msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "Ištrinti pasirinktą objektą"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "Įkelti..."
@@ -4213,6 +4216,11 @@ msgstr "Kai kurie įvesties plėtiniai yra netinkami"
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Netinkamas formatas. Tinkamas vektorinis formatas: \"%1%\""
@@ -4415,26 +4423,14 @@ msgstr "Spindulys"
 msgid "Keep min"
 msgstr "Laikyti min"
 
-msgid "Left mouse button:"
-msgstr "Kairysis pelės mygtukas:"
-
 msgid "Add detail"
 msgstr "Pridėti elementą"
-
-msgid "Right mouse button:"
-msgstr "Dešinysis pelės mygtukas:"
 
 msgid "Remove detail"
 msgstr "Pašalinti elementą"
 
-msgid "Shift + Left mouse button:"
-msgstr "Shift + kairysis pelės mygtukas:"
-
 msgid "Reset to base"
 msgstr "Iš naujo nustatyti į pagrindinį"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift + dešinysis pelės mygtukas:"
 
 msgid "Smoothing"
 msgstr "Glotninimas"
@@ -4826,8 +4822,8 @@ msgstr "Pradėti naują projektą"
 msgid "Open a project file"
 msgstr "Atidaryti projekto failą"
 
-msgid "Recent projects"
-msgstr "Naujausi projektai"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "Išsaugoti projektą"
@@ -4837,9 +4833,6 @@ msgstr "Išsaugoti dabartinį projektą į failą"
 
 msgid "Save Project as"
 msgstr "Išsaugoti projektą kaip"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Išsaugoti dabartinį projektą kaip"
@@ -6250,6 +6243,9 @@ msgstr "Išskleisti šoninę juostą"
 msgid "Collapse sidebar"
 msgstr "Sutraukti šoninę juostą"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Įkeliamas failas: %s"
@@ -6259,6 +6255,17 @@ msgstr "3MF nepalaikomas Orca Slicer. Įkeliami tik geometrijos duomenys."
 
 msgid "Load 3mf"
 msgstr "Įkelti 3MF"
+
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -7080,11 +7087,14 @@ msgstr ""
 "Ar atidarant .3mf failą reikia įkelti spausdintuvo / gijų / proceso "
 "nustatymus?"
 
-msgid "Maximum recent projects"
-msgstr "Daugiausia buvusių projektų"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Didžiausias skaičius buvusių projektų"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Išvalyti mano pasirinkimus neišsaugotuose projektuose."
@@ -7872,6 +7882,14 @@ msgstr ""
 
 msgid "Are you sure you want to enable this option?"
 msgstr "Ar norite įjungti šią galimybę?"
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -8923,12 +8941,6 @@ msgstr "Objektų sąrašas"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importuoti geometrijos duomenis iš STL/STEP/3MF/OBJ/AMF failų"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Paste from clipboard"
 msgstr "Įklijuoti iš mainų srities"
 
@@ -8944,20 +8956,14 @@ msgstr "Rodyti sparčiųjų klavišų sąrašą"
 msgid "Global shortcuts"
 msgstr "Bendrieji spartieji klavišai"
 
-msgid "Rotate View"
-msgstr "Pasukti vaizdą"
-
 msgid "Pan View"
 msgstr "Judinti vaizdą"
 
-msgid "Mouse wheel"
-msgstr "Pelės ratukas"
+msgid "Rotate View"
+msgstr "Pasukti vaizdą"
 
 msgid "Zoom View"
 msgstr "Padidinti vaizdą"
-
-msgid "Shift+A"
-msgstr "Shift+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -8965,47 +8971,23 @@ msgid ""
 "the current project."
 msgstr ""
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr ""
-
-msgid "Shift+Tab"
-msgstr "Shift+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Sutraukti / išskleisti šoninę juostą"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Bet kokia rodyklė"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Judėjimas kameros erdvėje"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+ kairysis pelės mygtukas"
-
 msgid "Select a part"
 msgstr "Pasirinkite detalę"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+ kairysis pelės mygtukas"
-
 msgid "Select multiple objects"
 msgstr "Pasirinkite kelis objektus"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl + bet kokia rodyklė"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt + kairysis pelės mygtukas"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl + kairysis pelės mygtukas"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift + kairysis pelės mygtukas"
 
 msgid "Select objects by rectangle"
 msgstr "Objektų pasirinkimas pagal stačiakampį"
@@ -9033,9 +9015,6 @@ msgstr "Rodyklė dešinėn"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Perkelti pasirinktą10 mm teigiama X kryptimi"
-
-msgid "Shift+Any arrow"
-msgstr "Shift + bet kuri rodyklė"
 
 msgid "Movement step set to 1 mm"
 msgstr "Judėjimo žingsnis nustatytas į 1 mm"
@@ -9121,23 +9100,11 @@ msgstr "Plokštė"
 msgid "Move: press to snap by 1mm"
 msgstr "Perkėlimas: paspauskite, jei norite paslinkti 1 mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Pelės ratukas"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Atramų / Spalvų piešimas: sureguliuoti rašiklio spindulį"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Pelės ratukas"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Atramų / spalvų piešimas: koreguoti sekcijos padėtį"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl + pelės ratukas"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt + pelės ratukas"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -9183,9 +9150,6 @@ msgstr "G-kodo lango įjungimas / išjungimas"
 
 msgid "Move slider 5x faster"
 msgstr "Judinkite slankiklį 5 kartus greičiau"
-
-msgid "Shift+Mouse wheel"
-msgstr "Shift + pelės ratukas"
 
 msgid "Horizontal slider - Move to start position"
 msgstr "Horizontalus šliaužiklis - Perkelti į pradinę padėtį"
@@ -9958,6 +9922,11 @@ msgstr ""
 "pakoreguoti machine_max_acceleration_travel reikšmę."
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -10587,10 +10556,9 @@ msgstr "Tiksli siena"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
-"Pagerinti korpuso tikslumą reguliuojant atstumus tarp išorinių sienelių. Tai "
-"taip pat pagerina sluoksnių nuoseklumą."
 
 msgid "Only one wall on top surfaces"
 msgstr "Tik viena viršutinių paviršių siena"
@@ -12102,6 +12070,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr ""
 
@@ -12176,8 +12154,8 @@ msgid "Lateral lattice angle 1"
 msgstr "Rašto kampas 1"
 
 msgid ""
-"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "Pirmojo 2D grotelių elementų rinkinio kampas Z kryptimi. Nulis yra "
 "vertikalus."
@@ -12186,8 +12164,8 @@ msgid "Lateral lattice angle 2"
 msgstr "Rašto kampas 2"
 
 msgid ""
-"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "Antrojo 2D grotelių elementų rinkinio kampas Z kryptimi. Nulis yra "
 "vertikalus."
@@ -12329,7 +12307,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12526,12 +12505,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop. At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -12906,12 +12885,13 @@ msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
@@ -14518,9 +14498,6 @@ msgstr "Išstumti likusias gijas į pirminio valymo bokštą"
 msgid "Enable filament ramming"
 msgstr ""
 
-msgid "Enable filament ramming."
-msgstr "Įjungti gijų įspaudimą"
-
 msgid "No sparse layers (beta)"
 msgstr "Nėra retų sluoksnių (beta)"
 
@@ -15312,6 +15289,9 @@ msgid ""
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -18795,6 +18775,103 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
 msgstr ""
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Pagerinti korpuso tikslumą reguliuojant atstumus tarp išorinių sienelių. "
+#~ "Tai taip pat pagerina sluoksnių nuoseklumą."
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "Įjungti gijų įspaudimą"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + pelės ratukas"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + pelės ratukas"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + kairys pelės mygtukas"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Shift + pelės judėjimas aukštyn arba žemyn"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "Kairysis pelės mygtukas:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "Dešinysis pelės mygtukas:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Shift + kairysis pelės mygtukas:"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift + dešinysis pelės mygtukas:"
+
+#~ msgid "Recent projects"
+#~ msgstr "Naujausi projektai"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "Daugiausia buvusių projektų"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "Didžiausias skaičius buvusių projektų"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Shift+A"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Shift+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Bet kokia rodyklė"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+ kairysis pelės mygtukas"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+ kairysis pelės mygtukas"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl + bet kokia rodyklė"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt + kairysis pelės mygtukas"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl + kairysis pelės mygtukas"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift + kairysis pelės mygtukas"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift + bet kuri rodyklė"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Pelės ratukas"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Pelės ratukas"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl + pelės ratukas"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt + pelės ratukas"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift + pelės ratukas"
 
 #~ msgid "Set Position"
 #~ msgstr "Nustatyti padėtį"

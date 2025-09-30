@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -44,17 +44,23 @@ msgstr "Ultima versione"
 msgid "Support Painting"
 msgstr "Dipingi supporti"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Rotellina del mouse"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Maiusc+"
+
+msgid "Mouse wheel"
+msgstr "Rotellina del mouse"
 
 msgid "Section view"
 msgstr "Vista in sezione"
 
 msgid "Reset direction"
 msgstr "Ripristina direzione"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Rotellina del mouse"
 
 msgid "Pen size"
 msgstr "Dimensione penna"
@@ -63,16 +69,13 @@ msgid "Left mouse button"
 msgstr "Tasto sinistro mouse"
 
 msgid "Enforce supports"
-msgstr "Rinforzi supporti"
+msgstr "Supporti di rinforzo"
 
 msgid "Right mouse button"
 msgstr "Tasto destro mouse"
 
 msgid "Block supports"
 msgstr "Blocca supporti"
-
-msgid "Shift + Left mouse button"
-msgstr "Maiusc + Tasto sinistro del mouse"
 
 msgid "Erase"
 msgstr "Elimina"
@@ -180,8 +183,8 @@ msgstr "Riempimento colore"
 msgid "Height range"
 msgstr "Intervallo altezza"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Maiusc + Invio"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Attiva/disattiva modello reticolato"
@@ -717,8 +720,8 @@ msgstr "Superficie"
 msgid "Horizontal text"
 msgstr "Testo orizzontale"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Maiusc + Sposta il mouse verso l'alto o il basso"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "Ruota testo"
@@ -1491,9 +1494,6 @@ msgstr "Distanza parallela:"
 msgid "Flip by Face 2"
 msgstr "Capovolgi da Faccia 2"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "Avvertenza"
 
@@ -1821,10 +1821,10 @@ msgid "Add modifier"
 msgstr "Aggiungi modificatore"
 
 msgid "Add support blocker"
-msgstr "Aggiungi blocco supporto"
+msgstr "Aggiungi divieto di supporto"
 
 msgid "Add support enforcer"
-msgstr "Aggiungi rinforzo supporto"
+msgstr "Aggiungi supporto di rinforzo"
 
 msgid "Add text"
 msgstr "Aggiungi testo"
@@ -1858,6 +1858,9 @@ msgstr "Elimina"
 
 msgid "Delete the selected object"
 msgstr "Elimina l'oggetto selezionato"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "Caricamento..."
@@ -2289,7 +2292,8 @@ msgid "Deleting the last solid part is not allowed."
 msgstr "Non è consentita l'eliminazione dell'ultima parte solida."
 
 msgid "The target object contains only one part and can not be split."
-msgstr "L'oggetto di destinazione contiene solo una parte e non può essere suddiviso."
+msgstr ""
+"L'oggetto di destinazione contiene solo una parte e non può essere suddiviso."
 
 msgid "Assembly"
 msgstr "Assemblaggio"
@@ -2354,7 +2358,7 @@ msgid "Support Blocker"
 msgstr "Blocco Supporto"
 
 msgid "Support Enforcer"
-msgstr "Rinforzo Supporto"
+msgstr "Supporto di rinforzo"
 
 msgid "Type:"
 msgstr "Tipo:"
@@ -4266,6 +4270,11 @@ msgstr "Alcune estensioni nell'input non sono valide"
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Formato non valido. Formato vettoriale previsto: \"%1%\""
@@ -4292,7 +4301,7 @@ msgid "Layer Time"
 msgstr "Durata strato"
 
 msgid "Layer Time (log)"
-msgstr "Durata strato (registro)"
+msgstr "Durata strato (log)"
 
 msgid "Height: "
 msgstr "Altezza: "
@@ -4468,26 +4477,14 @@ msgstr "Raggio"
 msgid "Keep min"
 msgstr "Mantieni al minimo"
 
-msgid "Left mouse button:"
-msgstr "Tasto sinistro del mouse:"
-
 msgid "Add detail"
 msgstr "Aggiungi dettaglio"
-
-msgid "Right mouse button:"
-msgstr "Tasto destro del mouse:"
 
 msgid "Remove detail"
 msgstr "Rimuovi dettaglio"
 
-msgid "Shift + Left mouse button:"
-msgstr "Maiusc + Tasto sinistro del mouse:"
-
 msgid "Reset to base"
 msgstr "Ripristina alla base"
-
-msgid "Shift + Right mouse button:"
-msgstr "Maiusc + Tasto destro del mouse:"
 
 msgid "Smoothing"
 msgstr "Levigatura"
@@ -4880,8 +4877,8 @@ msgstr "Inizia un nuovo progetto"
 msgid "Open a project file"
 msgstr "Apri un file progetto"
 
-msgid "Recent projects"
-msgstr "Progetti recenti"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "Salva Progetto"
@@ -4891,9 +4888,6 @@ msgstr "Salva progetto corrente su file"
 
 msgid "Save Project as"
 msgstr "Salva Progetto come"
-
-msgid "Shift+"
-msgstr "Maiusc+"
 
 msgid "Save current project as"
 msgstr "Salva Progetto corrente come"
@@ -6303,6 +6297,9 @@ msgstr "Espandi barra laterale"
 msgid "Collapse sidebar"
 msgstr "Riduci barra laterale"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Caricamento file: %s"
@@ -6314,6 +6311,17 @@ msgstr ""
 
 msgid "Load 3mf"
 msgstr "Carica 3mf"
+
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -7146,11 +7154,14 @@ msgstr ""
 "Quando si apre un file .3mf, è necessario caricare le impostazioni della "
 "stampante/filamento/processo?"
 
-msgid "Maximum recent projects"
-msgstr "Numero massimo di progetti recenti"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Numero massimo di progetti recenti"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Cancella la mia scelta sui progetti non salvati."
@@ -7942,6 +7953,14 @@ msgstr ""
 
 msgid "Are you sure you want to enable this option?"
 msgstr "Sei sicuro di voler abilitare questa opzione?"
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -9005,12 +9024,6 @@ msgstr "Elenco oggetti"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importa geometrie da file STL/STEP/3MF/OBJ/AMF"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Maiusc+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Maiusc+G"
-
 msgid "Paste from clipboard"
 msgstr "Incolla dagli appunti"
 
@@ -9028,20 +9041,14 @@ msgstr "Mostra elenco scorciatoie da tastiera"
 msgid "Global shortcuts"
 msgstr "Scorciatoie globali"
 
-msgid "Rotate View"
-msgstr "Ruota vista"
-
 msgid "Pan View"
 msgstr "Vista panoramica"
 
-msgid "Mouse wheel"
-msgstr "Rotellina del mouse"
+msgid "Rotate View"
+msgstr "Ruota vista"
 
 msgid "Zoom View"
 msgstr "Ingrandimento vista"
-
-msgid "Shift+A"
-msgstr "Maiusc+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -9052,47 +9059,23 @@ msgstr ""
 "Se ci sono oggetti selezionati, orienta solo quelli selezionati. Altrimenti, "
 "orienterà tutti gli elementi nel progetto corrente."
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr "Questo orienta tutti gli oggetti nel piatto corrente."
-
-msgid "Shift+Tab"
-msgstr "Maiusc+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Riduci/Espandi barra laterale"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Freccia qualsiasi"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Movimento nello spazio della telecamera"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Tasto sinistro del mouse"
-
 msgid "Select a part"
 msgstr "Seleziona parte"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Tasto sinistro del mouse"
-
 msgid "Select multiple objects"
 msgstr "Seleziona più oggetti"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+qualsiasi freccia"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+tasto sinistro del mouse"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+Tasto sinistro del mouse"
-
-msgid "Shift+Left mouse button"
-msgstr "Maiusc+tasto sinistro mouse"
 
 msgid "Select objects by rectangle"
 msgstr "Seleziona oggetti per rettangolo"
@@ -9120,9 +9103,6 @@ msgstr "Freccia Destra"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Sposta selezione di 10 mm in direzione X positiva"
-
-msgid "Shift+Any arrow"
-msgstr "Maiusc+freccia qualsiasi"
 
 msgid "Movement step set to 1 mm"
 msgstr "Passo movimento impostato a 1 mm"
@@ -9208,23 +9188,11 @@ msgstr "Piatto"
 msgid "Move: press to snap by 1mm"
 msgstr "Sposta: premi per muovere di 1 mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Rotellina del mouse"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Supporto/Pittura a colori: regola il raggio della penna"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Rotellina del mouse"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Supporto/Pittura a colori: regola la posizione della sezione"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Rotellina del mouse"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Rotellina del mouse"
 
 msgid "Gizmo"
 msgstr "Strumento"
@@ -9272,9 +9240,6 @@ msgstr "Attiva/Disattiva finestra G-code"
 
 msgid "Move slider 5x faster"
 msgstr "Sposta il cursore 5 volte più velocemente"
-
-msgid "Shift+Mouse wheel"
-msgstr "Maiusc+Rotellina del mouse"
 
 msgid "Horizontal slider - Move to start position"
 msgstr "Cursore di scorrimento orizzontale - Sposta alla posizione iniziale"
@@ -10065,6 +10030,11 @@ msgstr ""
 "machine_max_acceleration_travel nelle impostazioni della stampante."
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -10719,10 +10689,9 @@ msgstr "Parete precisa"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
-"Migliora la precisione del guscio regolando la spaziatura delle pareti "
-"esterne. Questo migliora anche l'uniformità degli strati."
 
 msgid "Only one wall on top surfaces"
 msgstr "Solo una parete su superfici superiori"
@@ -12302,6 +12271,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr "Riempimento multilinea"
 
@@ -12376,8 +12355,8 @@ msgid "Lateral lattice angle 1"
 msgstr "Angolo reticolo 1"
 
 msgid ""
-"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "L'angolo della prima serie di elementi reticolari 2D nell'asse Z. Zero è "
 "verticale."
@@ -12386,8 +12365,8 @@ msgid "Lateral lattice angle 2"
 msgstr "Angolo reticolo 2"
 
 msgid ""
-"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "L'angolo della seconda serie di elementi reticolari 2D nell'asse Z. Zero è "
 "verticale."
@@ -12535,7 +12514,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12736,12 +12716,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop. At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -13124,12 +13104,13 @@ msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
@@ -14810,9 +14791,6 @@ msgstr "Spurga il filamento rimanente nella torre di spurgo."
 msgid "Enable filament ramming"
 msgstr ""
 
-msgid "Enable filament ramming."
-msgstr "Abilita modellazione della punta del filamento."
-
 msgid "No sparse layers (beta)"
 msgstr "Nessuno strato sparso (beta)"
 
@@ -15631,6 +15609,9 @@ msgid ""
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -19223,6 +19204,103 @@ msgstr ""
 "Sapevi che quando si stampano materiali soggetti a deformazioni come l'ABS, "
 "aumentare in modo appropriato la temperatura del piano riscaldato può "
 "ridurre la probabilità di deformazione?"
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Migliora la precisione del guscio regolando la spaziatura delle pareti "
+#~ "esterne. Questo migliora anche l'uniformità degli strati."
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "Abilita modellazione della punta del filamento."
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Rotellina del mouse"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + Rotellina del mouse"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Maiusc + Tasto sinistro del mouse"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Maiusc + Invio"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Maiusc + Sposta il mouse verso l'alto o il basso"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "Tasto sinistro del mouse:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "Tasto destro del mouse:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Maiusc + Tasto sinistro del mouse:"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Maiusc + Tasto destro del mouse:"
+
+#~ msgid "Recent projects"
+#~ msgstr "Progetti recenti"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "Numero massimo di progetti recenti"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "Numero massimo di progetti recenti"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Maiusc+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Maiusc+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Maiusc+A"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Maiusc+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Freccia qualsiasi"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Tasto sinistro del mouse"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Tasto sinistro del mouse"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+qualsiasi freccia"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+tasto sinistro del mouse"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+Tasto sinistro del mouse"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Maiusc+tasto sinistro mouse"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Maiusc+freccia qualsiasi"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Rotellina del mouse"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Rotellina del mouse"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Rotellina del mouse"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Rotellina del mouse"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Maiusc+Rotellina del mouse"
 
 #~ msgid "Set Position"
 #~ msgstr "Imposta posizione"

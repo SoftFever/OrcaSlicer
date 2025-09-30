@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "PO-Revision-Date: 2025-03-07 09:30+0200\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
@@ -50,17 +50,23 @@ msgstr "Остання версія"
 msgid "Support Painting"
 msgstr "Малювання Підтримок"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + коліщатко миші"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "Колісок миші"
 
 msgid "Section view"
 msgstr "Вид у розрізі"
 
 msgid "Reset direction"
 msgstr "Скинути напрямок"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + коліщатко миші"
 
 msgid "Pen size"
 msgstr "Розмір пера"
@@ -76,9 +82,6 @@ msgstr "Права кнопка миші"
 
 msgid "Block supports"
 msgstr "Блокувати підтримки"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + Ліва кнопка миші"
 
 msgid "Erase"
 msgstr "Стерти"
@@ -186,8 +189,8 @@ msgstr "Заливка"
 msgid "Height range"
 msgstr "Діапазон висот"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Перемикання каркасу"
@@ -722,8 +725,8 @@ msgstr "Поверхня"
 msgid "Horizontal text"
 msgstr "Горизонтальний текст"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Shift + переміщення миші вгору або вниз"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "Повернути текст"
@@ -1480,9 +1483,6 @@ msgstr "Паралельна відстань:"
 msgid "Flip by Face 2"
 msgstr "Перевернути за Гранню 2"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "Повідомлення"
 
@@ -1839,6 +1839,9 @@ msgstr "Видалити"
 
 msgid "Delete the selected object"
 msgstr "Видалення вибраних моделей"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "Завантажити..."
@@ -4227,6 +4230,11 @@ msgstr "Якесь з розширень вводу некоректне"
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Невірний формат. Очікуваний векторний формат: \"%1%\""
@@ -4429,26 +4437,14 @@ msgstr "Радіус"
 msgid "Keep min"
 msgstr "Зберегти мінімальну висоту"
 
-msgid "Left mouse button:"
-msgstr "Ліва кнопка миші:"
-
 msgid "Add detail"
 msgstr "Додати деталі"
-
-msgid "Right mouse button:"
-msgstr "Права кнопка миші:"
 
 msgid "Remove detail"
 msgstr "Видалити деталі"
 
-msgid "Shift + Left mouse button:"
-msgstr "SHIFT + Ліва кнопка миші:"
-
 msgid "Reset to base"
 msgstr "Скинути на базу"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift + права кнопка миші:"
 
 msgid "Smoothing"
 msgstr "Згладжування"
@@ -4840,8 +4836,8 @@ msgstr "Почати новий проєкт"
 msgid "Open a project file"
 msgstr "Відкрити файл проєкту"
 
-msgid "Recent projects"
-msgstr "Недавні проєкти"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "Зберегти проєкт"
@@ -4851,9 +4847,6 @@ msgstr "Зберегти поточний проєкт у файл"
 
 msgid "Save Project as"
 msgstr "Зберегти проєкт як"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Зберегти поточний проєкт як"
@@ -6288,6 +6281,9 @@ msgstr "Розгорнути бічну панель"
 msgid "Collapse sidebar"
 msgstr "Згорнути бічну панель"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Завантаження файлу: %s"
@@ -6297,6 +6293,17 @@ msgstr "3mf не від Orca Slicer, завантажуйте лише дані 
 
 msgid "Load 3mf"
 msgstr "Завантажити 3mf"
+
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -7120,11 +7127,14 @@ msgstr ""
 "Чи повинні бути завантажені налаштування принтера/філаменту/процесу при "
 "відкритті файлу .3mf?"
 
-msgid "Maximum recent projects"
-msgstr "Максимум останніх проектів"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Максимальна кількість останніх проектів"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Очистити мій вибір для незбережених проектів."
@@ -7901,6 +7911,14 @@ msgstr ""
 
 msgid "Are you sure you want to enable this option?"
 msgstr "Ви впевнені, що хочете ввімкнути цю опцію?"
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -8950,12 +8968,6 @@ msgstr "Список об'єктів"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Імпорт геометричних даних із файлів STL/STEP/3MF/OBJ/AMF"
 
-msgid "⌘+Shift+G"
-msgstr ""
-
-msgid "Ctrl+Shift+G"
-msgstr ""
-
 msgid "Paste from clipboard"
 msgstr "Вставити з буфера обміну"
 
@@ -8971,20 +8983,14 @@ msgstr "Показати список клавіш"
 msgid "Global shortcuts"
 msgstr "Глобальні ярлики"
 
-msgid "Rotate View"
-msgstr "Повернути вигляд"
-
 msgid "Pan View"
 msgstr "Панорамний вигляд"
 
-msgid "Mouse wheel"
-msgstr "Колісок миші"
+msgid "Rotate View"
+msgstr "Повернути вигляд"
 
 msgid "Zoom View"
 msgstr "Перегляд масштабу"
-
-msgid "Shift+A"
-msgstr ""
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -8995,47 +9001,23 @@ msgstr ""
 "він просто орієнтує обрані. В іншому випадку він будеОрієнтувати всі об'єкти "
 "на поточному проєкт."
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr "Автоматично орієнтує всі об'єкти на поточному диску."
-
-msgid "Shift+Tab"
-msgstr ""
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Згорнути/розгорнути бічну панель"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+будь-яка стрілка"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Рух у просторі камери"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Ліва кнопка миші"
-
 msgid "Select a part"
 msgstr "Виберіть частину"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Ліва кнопка миші"
-
 msgid "Select multiple objects"
 msgstr "Вибрати кілька об'єктів"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+будь-яка стрілка"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+Ліва кнопка миші"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+Ліва кнопка миші"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift+Ліва кнопка миші"
 
 msgid "Select objects by rectangle"
 msgstr "Виділити об'єкти прямокутником"
@@ -9063,9 +9045,6 @@ msgstr "Стрілка праворуч"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Перемістити виділення на 10 мм у позитивному напрямку X"
-
-msgid "Shift+Any arrow"
-msgstr "Shift+будь-яка стрілка"
 
 msgid "Movement step set to 1 mm"
 msgstr "Крок переміщення встановлено на 1 мм"
@@ -9151,23 +9130,11 @@ msgstr "Тарілка"
 msgid "Move: press to snap by 1mm"
 msgstr "Переміщення: натисніть для переміщення на 1 мм"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Колесо миші"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Підтримка/Колірне малювання: регулювання радіуса пера"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Колесо миші"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Підтримка/кольорове фарбування: регулювання положення секцій"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Колесо миші"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+колесо миші"
 
 msgid "Gizmo"
 msgstr ""
@@ -9210,9 +9177,6 @@ msgstr "Увімкнення/вимкнення вікна G-коду"
 
 msgid "Move slider 5x faster"
 msgstr "Переміщення повзунка в 5 разів швидше"
-
-msgid "Shift+Mouse wheel"
-msgstr "Shift+колесо миші"
 
 msgid "Horizontal slider - Move to start position"
 msgstr "Горизонтальний повзунок - Перемістити в початкове положення"
@@ -9977,6 +9941,11 @@ msgstr ""
 "принтера, щоб отримати вищу швидкість."
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -10613,10 +10582,9 @@ msgstr "Точна стінка"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
-"Підвищення точності оболонки за рахунок регулювання відстані між "
-"зовнішнімипериметрами. Це також покращує узгодженість шарів."
 
 msgid "Only one wall on top surfaces"
 msgstr "Тільки одна стінка на верхніх поверхнях"
@@ -12158,6 +12126,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr ""
 
@@ -12232,8 +12210,8 @@ msgid "Lateral lattice angle 1"
 msgstr "Кут решітки 1"
 
 msgid ""
-"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "Кут першого набору 2D-решіткових елементів у напрямку Z. Нуль означає "
 "вертикальне розташування."
@@ -12242,8 +12220,8 @@ msgid "Lateral lattice angle 2"
 msgstr "Кут решітки 1"
 
 msgid ""
-"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "Кут другого набору 2D-решіткових елементів у напрямку Z. Нуль означає "
 "вертикальне розташування."
@@ -12390,7 +12368,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -12585,12 +12564,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop. At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -12970,12 +12949,13 @@ msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
@@ -14616,9 +14596,6 @@ msgstr "Очистити від залишків філаменту на під�
 msgid "Enable filament ramming"
 msgstr ""
 
-msgid "Enable filament ramming."
-msgstr "Увімкнути накат нитки"
-
 msgid "No sparse layers (beta)"
 msgstr "Без розріджених шарів (бета)"
 
@@ -15410,6 +15387,9 @@ msgid ""
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -18923,6 +18903,91 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації?"
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Підвищення точності оболонки за рахунок регулювання відстані між "
+#~ "зовнішнімипериметрами. Це також покращує узгодженість шарів."
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "Увімкнути накат нитки"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + коліщатко миші"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + коліщатко миші"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + Ліва кнопка миші"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Shift + переміщення миші вгору або вниз"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "Ліва кнопка миші:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "Права кнопка миші:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "SHIFT + Ліва кнопка миші:"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift + права кнопка миші:"
+
+#~ msgid "Recent projects"
+#~ msgstr "Недавні проєкти"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "Максимум останніх проектів"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "Максимальна кількість останніх проектів"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+будь-яка стрілка"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Ліва кнопка миші"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Ліва кнопка миші"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+будь-яка стрілка"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+Ліва кнопка миші"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+Ліва кнопка миші"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift+Ліва кнопка миші"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift+будь-яка стрілка"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Колесо миші"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Колесо миші"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Колесо миші"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+колесо миші"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift+колесо миші"
 
 #~ msgid "Set Position"
 #~ msgstr "Встановити позицію"

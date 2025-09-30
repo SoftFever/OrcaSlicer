@@ -1,15 +1,15 @@
-{"type": "filament",
-"filament_id": "QD_0_1_32",
-"setting_id": "GFSA04",
-"instantiation": "true",
+{
+    "type": "filament",
+    "name": "QIDI Support For PAHT @Qidi X-Plus 4 0.4 nozzle",
+    "inherits": "QIDI Support For PAHT",
+    "from": "system",
+    "setting_id": "GFSA04",
+    "filament_id": "QD_0_1_32",
+    "instantiation": "true",
     "filament_settings_id": [
         "QIDI Support For PAHT @Qidi X-Plus 4 0.4 nozzle"
     ],
-    "from": "system",
-    "inherits": "QIDI Support For PAHT",
-    "is_custom_defined": "0",
-    "name": "QIDI Support For PAHT @Qidi X-Plus 4 0.4 nozzle",
     "compatible_printers": [
-    "Qidi X-Plus 4 0.4 nozzle"
-        ]
+        "Qidi X-Plus 4 0.4 nozzle"
+    ]
 }

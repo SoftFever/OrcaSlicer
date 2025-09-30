@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-12 00:14+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "PO-Revision-Date: 2025-03-27 19:32+0800\n"
 "Last-Translator: 5idereal <hi@5idereal.cc>\n"
 "Language-Team: \n"
@@ -50,17 +50,23 @@ msgstr "最新版本"
 msgid "Support Painting"
 msgstr "支撐筆刷"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + 滑鼠滾輪"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "滑鼠滾輪"
 
 msgid "Section view"
 msgstr "剖面圖"
 
 msgid "Reset direction"
 msgstr "重置方向"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + 滑鼠滾輪"
 
 msgid "Pen size"
 msgstr "筆刷尺寸"
@@ -76,9 +82,6 @@ msgstr "滑鼠右鍵"
 
 msgid "Block supports"
 msgstr "不產生支撐區"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + 滑鼠左鍵"
 
 msgid "Erase"
 msgstr "擦除"
@@ -183,8 +186,8 @@ msgstr "批次填充"
 msgid "Height range"
 msgstr "高度範圍"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "顯示/隱藏線框"
@@ -709,8 +712,8 @@ msgstr "附著於曲面"
 msgid "Horizontal text"
 msgstr "水平文字"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Shift + 滑鼠上移或下移"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "旋轉文字"
@@ -1449,9 +1452,6 @@ msgstr "平行距離："
 msgid "Flip by Face 2"
 msgstr "通過面 2 翻轉"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "通知"
 
@@ -1795,6 +1795,9 @@ msgstr "刪除"
 
 msgid "Delete the selected object"
 msgstr "刪除所選物件"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "載入..."
@@ -4049,6 +4052,11 @@ msgstr "輸入的副檔名無效"
 msgid "This parameter expects a valid template."
 msgstr "此參數必須對應一個有效的範本"
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "無效格式，應該是「%1%」這種格式"
@@ -4251,26 +4259,14 @@ msgstr "半徑"
 msgid "Keep min"
 msgstr "保留最小"
 
-msgid "Left mouse button:"
-msgstr "滑鼠左鍵："
-
 msgid "Add detail"
 msgstr "減小層高"
-
-msgid "Right mouse button:"
-msgstr "滑鼠右鍵："
 
 msgid "Remove detail"
 msgstr "增大層高"
 
-msgid "Shift + Left mouse button:"
-msgstr "Shift + 滑鼠左鍵："
-
 msgid "Reset to base"
 msgstr "設定到基礎層高"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift + 滑鼠右鍵："
 
 msgid "Smoothing"
 msgstr "平滑"
@@ -4661,8 +4657,8 @@ msgstr "新建一個專案項目"
 msgid "Open a project file"
 msgstr "打開專案項目"
 
-msgid "Recent projects"
-msgstr "最近的專案項目"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "儲存專案項目"
@@ -4672,9 +4668,6 @@ msgstr "儲存目前專案項目到檔案"
 
 msgid "Save Project as"
 msgstr "另存專案項目為"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "將目前專案項目另存為"
@@ -6011,6 +6004,9 @@ msgstr "展開側邊欄"
 msgid "Collapse sidebar"
 msgstr "折疊側邊欄"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "載入檔案：%s"
@@ -6020,6 +6016,17 @@ msgstr "該 3mf 檔案不是來自 Orca Slicer，將只載入幾何資料。"
 
 msgid "Load 3mf"
 msgstr "載入 3mf"
+
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -6781,11 +6788,14 @@ msgstr "載入方式"
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "開啟 .3mf 檔案時，是否需要載入印表機、線材和參數設定？"
 
-msgid "Maximum recent projects"
-msgstr "最近專案項目的最大數量"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "近期專案項目的最大統計"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "清除我對未儲存專案項目的選擇。"
@@ -7522,6 +7532,14 @@ msgid "Are you sure you want to enable this option?"
 msgstr "您確定要啟用此選項嗎？"
 
 msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
 msgstr ""
@@ -8084,8 +8102,7 @@ msgid ""
 "please reset the filament information for that slot."
 msgstr ""
 "確定要刪除這個預設設定嗎？ \n"
-"若該預設目前正用於列印機中的某個材料，"
-"請務必重新設定該位置的材料資訊。"
+"若該預設目前正用於列印機中的某個材料，請務必重新設定該位置的材料資訊。"
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -8504,12 +8521,6 @@ msgstr "物件清單"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "從 STL/STEP/3MF/OBJ/AMF 檔案中匯入幾何模型"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Paste from clipboard"
 msgstr "從剪貼簿貼上"
 
@@ -8525,20 +8536,14 @@ msgstr "顯示鍵盤快捷鍵清單"
 msgid "Global shortcuts"
 msgstr "全域快捷鍵"
 
-msgid "Rotate View"
-msgstr "旋轉視角"
-
 msgid "Pan View"
 msgstr "移動視角"
 
-msgid "Mouse wheel"
-msgstr "滑鼠滾輪"
+msgid "Rotate View"
+msgstr "旋轉視角"
 
 msgid "Zoom View"
 msgstr "縮放視角"
-
-msgid "Shift+A"
-msgstr "Shift+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -8549,47 +8554,23 @@ msgstr ""
 "有选定零件时调整选定零件的朝向,\n"
 "没有选择零件时调整当项目所有零件的朝向"
 
-msgid "Shift+Q"
-msgstr "Shift+Q"
-
 msgid "Auto orients all objects on the active plate."
 msgstr "自动调整活动板上的所有物体的方向。"
-
-msgid "Shift+Tab"
-msgstr "Shift+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "摺疊/展開 側邊欄"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+方向鍵"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "沿相機視角移動物件"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+滑鼠左鍵"
-
 msgid "Select a part"
 msgstr "選擇單一零件"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+滑鼠左鍵"
-
 msgid "Select multiple objects"
 msgstr "選擇多個物件"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+方向鍵"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+滑鼠左鍵"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+滑鼠左鍵"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift+滑鼠左鍵"
 
 msgid "Select objects by rectangle"
 msgstr "框選多個零件"
@@ -8617,9 +8598,6 @@ msgstr "右箭頭"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "X 方向移動 10mm"
-
-msgid "Shift+Any arrow"
-msgstr "Shift+方向鍵"
 
 msgid "Movement step set to 1 mm"
 msgstr "沿 X、Y 軸以 1mm 為單位步進移動"
@@ -8705,23 +8683,11 @@ msgstr "準備"
 msgid "Move: press to snap by 1mm"
 msgstr "移動：以 1mm 為單位步進移動"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+滑鼠滾輪"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "支撐/顏色繪製：調整筆刷半徑"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+滑鼠滾輪"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "支撐/色彩繪製：調整剖面位置"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+滑鼠滾輪"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+滑鼠滾輪"
 
 msgid "Gizmo"
 msgstr "浮雕"
@@ -8764,9 +8730,6 @@ msgstr "開啟/關閉 G-code 視窗"
 
 msgid "Move slider 5x faster"
 msgstr "5 倍速移動滑動條"
-
-msgid "Shift+Mouse wheel"
-msgstr "Shift+滑鼠滾輪"
 
 msgid "Horizontal slider - Move to start position"
 msgstr "水平滑動條 - 移動到起始位置"
@@ -9465,6 +9428,11 @@ msgstr ""
 "如需更高速度，您可以在列印設備配置中調整 machine_max_acceleration_travel 值。"
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr "線材收縮補償將被停用，因為所使用的線材之間的收縮率差異過大。"
@@ -10013,8 +9981,9 @@ msgstr "精準外牆尺寸"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
-msgstr "調整外壁間距以提升外殼精度，同時改善列印層的一致性。"
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
+msgstr ""
 
 msgid "Only one wall on top surfaces"
 msgstr "頂面單層牆"
@@ -11362,6 +11331,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr ""
 
@@ -11436,16 +11415,16 @@ msgid "Lateral lattice angle 1"
 msgstr "網格結構角度 1"
 
 msgid ""
-"The angle of the first set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr "Z 軸方向第一組 2D 網格結構的角度，0° 表示垂直方向。"
 
 msgid "Lateral lattice angle 2"
 msgstr "網格結構角度 2"
 
 msgid ""
-"The angle of the second set of Lateral lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr "Z 軸方向第二組 2D 網格結構的角度，0° 表示垂直方向。"
 
 msgid "Infill overhang angle"
@@ -11570,7 +11549,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)."
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -11747,12 +11727,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop. At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -12095,12 +12075,13 @@ msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
@@ -13565,9 +13546,6 @@ msgstr "沖刷剩餘的線材進入換料塔"
 msgid "Enable filament ramming"
 msgstr ""
 
-msgid "Enable filament ramming."
-msgstr "啟用線材尖端成型"
-
 msgid "No sparse layers (beta)"
 msgstr "取消稀疏層（Beta）"
 
@@ -14285,6 +14263,9 @@ msgid ""
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -17543,6 +17524,104 @@ msgstr ""
 "您知道嗎？當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度\n"
 "可以降低翹曲的機率。"
 
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr "調整外壁間距以提升外殼精度，同時改善列印層的一致性。"
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "啟用線材尖端成型"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + 滑鼠滾輪"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + 滑鼠滾輪"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + 滑鼠左鍵"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Shift + 滑鼠上移或下移"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "滑鼠左鍵："
+
+#~ msgid "Right mouse button:"
+#~ msgstr "滑鼠右鍵："
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Shift + 滑鼠左鍵："
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift + 滑鼠右鍵："
+
+#~ msgid "Recent projects"
+#~ msgstr "最近的專案項目"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "最近專案項目的最大數量"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "近期專案項目的最大統計"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Shift+A"
+
+#~ msgid "Shift+Q"
+#~ msgstr "Shift+Q"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Shift+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+方向鍵"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+滑鼠左鍵"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+滑鼠左鍵"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+方向鍵"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+滑鼠左鍵"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+滑鼠左鍵"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift+滑鼠左鍵"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift+方向鍵"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+滑鼠滾輪"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+滑鼠滾輪"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+滑鼠滾輪"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+滑鼠滾輪"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift+滑鼠滾輪"
+
 #~ msgid "Set Position"
 #~ msgstr "設定位置"
 
@@ -18014,7 +18093,8 @@ msgstr ""
 #~ "Step 2, if the IP and Access Code below are different from the actual "
 #~ "values on your printer, please correct them."
 #~ msgstr ""
-#~ "步驟2, 如果下面的 IP 和訪問代碼與列印設備上的實際值不同，請輸入正確的數值。"
+#~ "步驟2, 如果下面的 IP 和訪問代碼與列印設備上的實際值不同，請輸入正確的數"
+#~ "值。"
 
 #~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
 #~ msgstr "步驟 3：Ping 該 IP 地址以檢查封包遺失和延遲。"
