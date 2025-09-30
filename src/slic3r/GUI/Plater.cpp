@@ -10261,8 +10261,8 @@ void Plater::calib_input_shaping_freq(const Calib_Params& params)
     print_config->set_key_value("spiral_mode_smooth", new ConfigOptionBool(false));
     print_config->set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
     print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(200));
-    print_config->set_key_value("default_acceleration", new ConfigOptionFloat(2000));
-    print_config->set_key_value("outer_wall_acceleration", new ConfigOptionFloat(2000));
+    print_config->set_key_value("default_acceleration", new ConfigOptionFloat(20000));
+    print_config->set_key_value("outer_wall_acceleration", new ConfigOptionFloat(20000));
     print_config->set_key_value("default_jerk", new ConfigOptionFloat(5));
     print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(5));
     print_config->set_key_value("default_junction_deviation", new ConfigOptionFloat(0.25));
@@ -10311,8 +10311,8 @@ void Plater::calib_input_shaping_damp(const Calib_Params& params)
     print_config->set_key_value("spiral_mode_smooth", new ConfigOptionBool(false));
     print_config->set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
     print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(200));
-    print_config->set_key_value("default_acceleration", new ConfigOptionFloat(2000));
-    print_config->set_key_value("outer_wall_acceleration", new ConfigOptionFloat(2000));
+    print_config->set_key_value("default_acceleration", new ConfigOptionFloat(20000));
+    print_config->set_key_value("outer_wall_acceleration", new ConfigOptionFloat(20000));
     print_config->set_key_value("default_jerk", new ConfigOptionFloat(5));
     print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(5));
     print_config->set_key_value("default_junction_deviation", new ConfigOptionFloat(0.25));
