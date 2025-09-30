@@ -273,6 +273,7 @@ public:
     void calib_max_vol_speed(const Calib_Params& params);
     void calib_retraction(const Calib_Params& params);
     void calib_VFA(const Calib_Params& params);
+    void calib_input_shaping_base(const Calib_Params& params);
     void calib_input_shaping_freq(const Calib_Params& params);
     void calib_input_shaping_damp(const Calib_Params& params);
     void calib_junction_deviation(const Calib_Params& params);

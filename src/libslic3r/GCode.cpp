@@ -3786,6 +3786,9 @@ LayerResult GCode::process_layer(
             gcode += buf;
             break;
         }
+        case CalibMode::Calib_Input_shaping_base: {
+            //TODO
+        }
         case CalibMode::Calib_Input_shaping_freq: {
             if (m_layer_index == 1){
                 gcode += writer().set_input_shaping('A', print.calib_params().start, 0.f);
