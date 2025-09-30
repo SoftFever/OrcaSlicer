@@ -121,6 +121,27 @@ protected:
     Plater* m_plater;
 };
 
+class Input_Shaping_Base_Test_Dlg : public DPIDialog
+{
+public:
+    Input_Shaping_Base_Test_Dlg (wxWindow* parent, wxWindowID id, Plater* plater);
+    ~Input_Shaping_Base_Test_Dlg ();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    
+protected:
+
+    virtual void on_start(wxCommandEvent& event);
+    Calib_Params m_params;
+
+    RadioGroup* m_rbModel;
+    TextInput* m_tiFreqStartX;
+    TextInput* m_tiFreqEndX;
+    TextInput* m_tiFreqStartY;
+    TextInput* m_tiFreqEndY;
+    TextInput* m_tiDampingFactor;
+    Plater* m_plater;
+};
+
 class Input_Shaping_Freq_Test_Dlg : public DPIDialog
 {
 public:
