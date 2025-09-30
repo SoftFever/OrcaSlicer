@@ -3786,17 +3786,6 @@ LayerResult GCode::process_layer(
             gcode += buf;
             break;
         }
-        case CalibMode::Calib_Input_shaping_base: {
-            if (m_layer_index == 1){
-                gcode += writer().set_input_shaping('A', print.calib_params().start, 0.f);
-                if (m_writer.get_gcode_flavor() == gcfKlipper) {
-                    gcode += "SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0";
-                }
-            } else {
-                //TODO
-            }
-            break;
-        }
         case CalibMode::Calib_Input_shaping_freq: {
             if (m_layer_index == 1){
                 gcode += writer().set_input_shaping('A', print.calib_params().start, 0.f);

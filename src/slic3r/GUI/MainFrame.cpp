@@ -3002,15 +3002,6 @@ void MainFrame::init_menubar_as_editor()
     // Input Shaping (with submenu)
     auto input_shaping_menu = new wxMenu();
     append_menu_item(
-        input_shaping_menu, wxID_ANY, _L("Input Shaping Base"), _L("Input Shaping Base"),
-        [this](wxCommandEvent&) {
-            if (!m_IS_base_calib_dlg)
-                m_IS_base_calib_dlg = new Input_Shaping_Base_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_IS_base_calib_dlg->ShowModal();
-        },
-        "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(
         input_shaping_menu, wxID_ANY, _L("Input Shaping Frequency"), _L("Input Shaping Frequency"),
         [this](wxCommandEvent&) {
             if (!m_IS_freq_calib_dlg)
@@ -3132,15 +3123,6 @@ void MainFrame::init_menubar_as_editor()
 
     // Input Shaping (with submenu)
     auto input_shaping_menu = new wxMenu();
-    append_menu_item(
-        input_shaping_menu, wxID_ANY, _L("Input Shaping Base"), _L("Input Shaping Base"),
-        [this](wxCommandEvent&) {
-            if (!m_IS_base_calib_dlg)
-                m_IS_base_calib_dlg = new Input_Shaping_Base_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_IS_base_calib_dlg->ShowModal();
-        },
-        "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(
         input_shaping_menu, wxID_ANY, _L("Input Shaping Frequency"), _L("Input Shaping Frequency"),
         [this](wxCommandEvent&) {
