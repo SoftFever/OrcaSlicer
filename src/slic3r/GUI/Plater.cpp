@@ -10243,7 +10243,8 @@ void Plater::calib_input_shaping_freq(const Calib_Params& params)
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     const auto gcode_flavor_option = printer_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
     const float jerk_value = (gcode_flavor_option && gcode_flavor_option->value == GCodeFlavor::gcfKlipper) ? 5.f : 10.f;
-    printer_config->set_key_value("machine_max_junction_deviation", new ConfigOptionFloats {0.3});
+    const float junction_deviation_value = (gcode_flavor_option && gcode_flavor_option->value == GCodeFlavor::gcfMarlinFirmware) ? 0.25f : 0.f;
+    printer_config->set_key_value("machine_max_junction_deviation", new ConfigOptionFloats {junction_deviation_value});
     printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 0.0 });
     filament_config->set_key_value("slow_down_min_speed", new ConfigOptionFloats { 0.0 });
@@ -10267,7 +10268,7 @@ void Plater::calib_input_shaping_freq(const Calib_Params& params)
     print_config->set_key_value("outer_wall_acceleration", new ConfigOptionFloat(20000));
     print_config->set_key_value("default_jerk", new ConfigOptionFloat(jerk_value));
     print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(jerk_value));
-    print_config->set_key_value("default_junction_deviation", new ConfigOptionFloat(0.25));
+    print_config->set_key_value("default_junction_deviation", new ConfigOptionFloat(junction_deviation_value));
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
     model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
@@ -10295,7 +10296,8 @@ void Plater::calib_input_shaping_damp(const Calib_Params& params)
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     const auto gcode_flavor_option = printer_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
     const float jerk_value = (gcode_flavor_option && gcode_flavor_option->value == GCodeFlavor::gcfKlipper) ? 5.f : 10.f;
-    printer_config->set_key_value("machine_max_junction_deviation", new ConfigOptionFloats{0.3});
+    const float junction_deviation_value = (gcode_flavor_option && gcode_flavor_option->value == GCodeFlavor::gcfMarlinFirmware) ? 0.25f : 0.f;
+    printer_config->set_key_value("machine_max_junction_deviation", new ConfigOptionFloats{junction_deviation_value});
     printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 0.0 });
     filament_config->set_key_value("slow_down_min_speed", new ConfigOptionFloats { 0.0 });
@@ -10319,7 +10321,7 @@ void Plater::calib_input_shaping_damp(const Calib_Params& params)
     print_config->set_key_value("outer_wall_acceleration", new ConfigOptionFloat(20000));
     print_config->set_key_value("default_jerk", new ConfigOptionFloat(jerk_value));
     print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(jerk_value));
-    print_config->set_key_value("default_junction_deviation", new ConfigOptionFloat(0.25));
+    print_config->set_key_value("default_junction_deviation", new ConfigOptionFloat(junction_deviation_value));
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
     model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
