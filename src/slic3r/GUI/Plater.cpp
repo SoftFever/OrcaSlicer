@@ -10414,6 +10414,7 @@ void Plater::calib_junction_deviation(const Calib_Params& params)
     print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(200));
     print_config->set_key_value("default_acceleration", new ConfigOptionFloat(2000));
     print_config->set_key_value("outer_wall_acceleration", new ConfigOptionFloat(2000));
+    print_config->set_key_value("default_jerk", new ConfigOptionFloat(0));
     print_config->set_key_value("default_junction_deviation", new ConfigOptionFloat(0.0));
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
