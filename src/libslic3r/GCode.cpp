@@ -3819,7 +3819,7 @@ LayerResult GCode::process_layer(
                     gcode += "SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0";
                 }
                 gcode += writer().set_input_shaping('X', 0.f, print.calib_params().freqStartX);
-            gcode += writer().set_input_shaping('Y', 0.f, print.calib_params().freqStartY);
+                gcode += writer().set_input_shaping('Y', 0.f, print.calib_params().freqStartY);
             } else {
             gcode += writer().set_input_shaping('A', print.calib_params().start + ((print.calib_params().end)-(print.calib_params().start)) * (m_layer_index) / (m_layer_count), 0.f);
             }
