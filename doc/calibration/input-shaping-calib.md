@@ -14,7 +14,7 @@ During high-speed movements, vibrations can cause a phenomenon called "ringing,"
 ### Resonance Compensation
 
 The Klipper Resonance Compensation is a set of Input Shaping modes that can be used to reduce ringing and improve print quality.
-Ussualy the recommended values modes are `MZV` or `EI` for Delta printers.
+Usually the recommended values modes are `MZV` or `EI` for Delta printers.
 
 1. Pre-requisites:
    1. In OrcaSlicer, set:
@@ -24,17 +24,8 @@ Ussualy the recommended values modes are `MZV` or `EI` for Delta printers.
 > [!NOTE]
 > These settings depend on your printer's motion ability and the filament's max volumetric speed. If you can't reach speeds that cause ringing, try increasing the filament's max volumetric speed (avoid materials below 10 mm³/s).
       3. Jerk [Klipper Square Corner Velocity](https://www.klipper3d.org/Kinematics.html?h=square+corner+velocity#look-ahead) to 5 or a high value (e.g., 20).
-
-   2. In printer settigs:
-      1. Set the Shaper Type to `MZV` or `EI`.
-         ```gcode
-         SET_INPUT_SHAPER SHAPER_TYPE=MZV
-         ```
-      2. Disable [Minimun Cruise Ratio](https://www.klipper3d.org/Kinematics.html#minimum-cruise-ratio) with:
-         ```gcode
-         SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0
-         ```
-   3. Use an opaque, high-gloss filament to make the ringing more visible.
+   
+   2. Use an opaque, high-gloss filament to make the ringing more visible.
 2. Print the Input Shaping Frequency test with a range of frequencies.
 
    ![IS_freq_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_freq_menu.png?raw=true)
@@ -63,7 +54,7 @@ Ussualy the recommended values modes are `MZV` or `EI` for Delta printers.
 
 4. Restore your 3D Printer settings to avoid keep using high acceleration and jerk values.
 5. Save the settings
-   1. You need to go to the printer settings and set the X and Y frequency and damp to the value you found in the previous step.
+   1. You need to go to the printer settings and set the SHAPER_TYPE, X and Y frequency and damp to the value you found in the previous step.
 
 ## Marlin
 
