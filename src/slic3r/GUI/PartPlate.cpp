@@ -904,6 +904,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
                 if (part.buffer && part.buffer->is_initialized()) {
                     if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
                         part.offset = Vec2d(m_origin.x(), m_origin.y());
+                        part.update_buffer();
                     }
                     render_logo_texture(*(part.texture), *(part.buffer), bottom);
                 }
