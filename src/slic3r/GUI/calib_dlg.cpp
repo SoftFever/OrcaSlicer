@@ -786,9 +786,9 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
 
     // Input shaper type selection
     auto labeled_box_type = new LabeledStaticBox(this, _L("Input shaper type"));
-    auto type_box = new wxStaticBoxSizer(labeled_box_type, wxHORIZONTAL);
+    auto type_box = new wxStaticBoxSizer(labeled_box_type, wxVERTICAL);
     auto type_labels = make_shaper_type_labels();
-    m_rbType = new RadioGroup(this, type_labels, wxVERTICAL);
+    m_rbType = new RadioGroup(this, type_labels, wxHORIZONTAL);
     type_box->Add(m_rbType, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     m_rbType->SetSelection(0);
@@ -936,9 +936,9 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
 
     // Input shaper type selection
     auto labeled_box_type = new LabeledStaticBox(this, _L("Input shaper type"));
-    auto type_box = new wxStaticBoxSizer(labeled_box_type, wxHORIZONTAL);
+    auto type_box = new wxStaticBoxSizer(labeled_box_type, wxVERTICAL);
     auto type_labels = make_shaper_type_labels();
-    m_rbType = new RadioGroup(this, type_labels, wxVERTICAL);
+    m_rbType = new RadioGroup(this, type_labels, wxHORIZONTAL);
     type_box->Add(m_rbType, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     m_rbType->SetSelection(0);
