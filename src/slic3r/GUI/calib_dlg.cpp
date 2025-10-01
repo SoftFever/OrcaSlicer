@@ -840,7 +840,7 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     m_rbType->SetSelection(0);
 
     // Settings
-    wxString x_axis_str = "X " + _L("Start / End") + ": ";
+    wxString x_axis_str = reprap_firmware ? _L("Frequency (Start / End): ") : "X " + _L("Start / End") + ": ";
     wxString y_axis_str = "Y " + _L("Start / End") + ": ";
     int text_max = GetTextMax(this, std::vector<wxString>{x_axis_str, y_axis_str});
 
@@ -873,17 +873,22 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     m_tiFreqEndY =   new TextInput(this, std::to_string(110), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqEndY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 
-    if (reprap_firmware) {
-        m_tiFreqStartY->Enable(false);
-        m_tiFreqEndY->Enable(false);
-        m_tiFreqStartY->GetTextCtrl()->SetValue(m_tiFreqStartX->GetTextCtrl()->GetValue());
-        m_tiFreqEndY->GetTextCtrl()->SetValue(m_tiFreqEndX->GetTextCtrl()->GetValue());
-    }
-    
     y_freq_sizer->Add(start_y_text  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     y_freq_sizer->Add(m_tiFreqStartY, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     y_freq_sizer->Add(m_tiFreqEndY  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     settings_sizer->Add(y_freq_sizer, 0, wxLEFT, FromDIP(3));
+
+    if (reprap_firmware) {
+        m_tiFreqStartY->GetTextCtrl()->SetValue(m_tiFreqStartX->GetTextCtrl()->GetValue());
+        m_tiFreqEndY->GetTextCtrl()->SetValue(m_tiFreqEndX->GetTextCtrl()->GetValue());
+        start_y_text->Hide();
+        m_tiFreqStartY->Hide();
+        m_tiFreqEndY->Hide();
+        settings_sizer->Hide(y_freq_sizer);
+        start_x_text->SetLabel(_L("Frequency (Start / End): "));
+        m_tiFreqStartX->GetTextCtrl()->SetToolTip(_L("RepRap firmware uses the same frequency range for both axes."));
+        m_tiFreqEndX->GetTextCtrl()->SetToolTip(_L("RepRap firmware uses the same frequency range for both axes."));
+    }
 
     // Damping Factor
     wxString damping_factor_str = _L("Damp: ");
@@ -1023,7 +1028,7 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     m_rbType->SetSelection(0);
 
     // Settings
-    wxString freq_str = _L("Frequency") + " X / Y: ";
+    wxString freq_str = reprap_firmware ? _L("Frequency: ") : _L("Frequency") + " X / Y: ";
     wxString damp_str = _L("Damp") + " " + _L("Start / End") + ": ";
     int text_max = GetTextMax(this, std::vector<wxString>{freq_str, damp_str});
 
@@ -1041,15 +1046,18 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     m_tiFreqX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_tiFreqY = new TextInput(this, std::to_string(30), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    if (reprap_firmware) {
-        m_tiFreqY->Enable(false);
-        m_tiFreqY->GetTextCtrl()->SetToolTip(_L("RepRap firmware uses the same frequency for both axes."));
-    }
     freq_sizer->Add(freq_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     freq_sizer->Add(m_tiFreqX, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     freq_sizer->Add(m_tiFreqY, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     settings_sizer->Add(freq_sizer, 0, wxLEFT, FromDIP(3));
-    
+
+    if (reprap_firmware) {
+        m_tiFreqY->GetTextCtrl()->SetValue(m_tiFreqX->GetTextCtrl()->GetValue());
+        m_tiFreqY->Hide();
+        freq_text->SetLabel(freq_str);
+        m_tiFreqX->GetTextCtrl()->SetToolTip(_L("RepRap firmware uses the same frequency for both axes."));
+    }
+
     // Damping Factor Start and End
     auto damp_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto damp_text = new wxStaticText(this, wxID_ANY, damp_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
