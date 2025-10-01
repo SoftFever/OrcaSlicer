@@ -387,10 +387,8 @@ struct ExtruderGroup : StaticGroup
             return;
         ams_n4 = n4;
         ams_n1 = n1;
-
         if (btn_edit) {
-            if (GUI::wxGetApp().plater())
-                GUI::wxGetApp().plater()->update_machine_sync_status();
+            update_ams();
         }
     }
 
