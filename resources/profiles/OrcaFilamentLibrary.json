@@ -980,6 +980,62 @@
             "name": "Overture Super PLA+ @System",
             "sub_path": "filament/Overture/Overture Super PLA+ @System.json"
         },
+		{
+            "name": "COEX TPE 30D @System",
+            "sub_path": "filament/COEX/COEX TPE 30D @System.json"
+        },
+		{
+            "name": "COEX TPE 40D @System",
+            "sub_path": "filament/COEX/COEX TPE 40D @System.json"
+        },
+		{
+            "name": "COEX TPE 60D @System",
+            "sub_path": "filament/COEX/COEX TPE 60D @System.json"
+        },
+		{
+            "name": "COEX TPU 60A @System",
+            "sub_path": "filament/COEX/COEX TPU 60A @System.json"
+        },
+		{
+            "name": "COEX PLA PRIME @System",
+            "sub_path": "filament/COEX/COEX PLA PRIME @System.json"
+        },
+		{
+            "name": "COEX PLA+Silk @System",
+            "sub_path": "filament/COEX/COEX PLA+Silk @System.json"
+        },
+		{
+            "name": "COEX PLA @System",
+            "sub_path": "filament/COEX/COEX PLA @System.json"
+        },
+		{
+            "name": "COEX PETG @System",
+            "sub_path": "filament/COEX/COEX PETG @System.json"
+        },
+		{
+            "name": "COEX PCTG PRIME @System",
+            "sub_path": "filament/COEX/COEX PCTG PRIME @System.json"
+        },
+		{
+            "name": "COEX NYLEX PA6-CF @System",
+            "sub_path": "filament/COEX/COEX NYLEX PA6-CF @System.json"
+        },
+		{
+            "name": "COEX NYLEX UNFILLED @System",
+            "sub_path": "filament/COEX/COEX NYLEX UNFILLED @System.json"
+        },
+		{
+            "name": "COEX ASA PRIME @System",
+            "sub_path": "filament/COEX/COEX ASA PRIME @System.json"
+        },
+		{
+            "name": "COEX ABS @System",
+            "sub_path": "filament/COEX/COEX ABS @System.json"
+        },
+		{
+            "name": "COEX ABS PRIME @System",
+            "sub_path": "filament/COEX/COEX ABS PRIME @System.json"
+        },
         {
             "name": "Panchroma CoPE @System",
             "sub_path": "filament/Polymaker/Panchroma CoPE @System.json"
