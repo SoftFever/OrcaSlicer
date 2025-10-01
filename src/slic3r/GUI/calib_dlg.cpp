@@ -6,7 +6,8 @@
 #include "MainFrame.hpp"
 #include "Widgets/DialogButtons.hpp"
 #include <string>
-#include <array>
+#include <vector>
+#include "libslic3r/PrintConfig.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -29,14 +30,37 @@ int GetTextMax(wxWindow* parent, const std::vector<wxString>& labels)
     return text_size.x + parent->FromDIP(10);
 }
 
-constexpr std::array<const char*, 6> k_input_shaper_type_labels{{"ZV", "MZV", "ZVD", "EI", "2HUMP_EI", "3HUMP_EI"}};
+std::vector<std::string> get_shaper_type_values()
+{
+    if (auto* preset_bundle = wxGetApp().preset_bundle) {
+        auto printer_config = &preset_bundle->printers.get_edited_preset().config;
+        if (auto* gcode_flavor_option = printer_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")) {
+            switch (gcode_flavor_option->value) {
+            case GCodeFlavor::gcfKlipper:
+                return {"ZV", "MZV", "ZVD", "EI", "2HUMP_EI", "3HUMP_EI"};
+            case GCodeFlavor::gcfRepRapFirmware:
+                return {"ZVD", "ZVDD", "ZVDDD", "MZV", "EI2", "EI3"};
+            case GCodeFlavor::gcfMarlinFirmware:
+                return {"ZV"};
+            default:
+                break;
+            }
+        }
+    }
+
+    return {""};
+}
 
 std::vector<wxString> make_shaper_type_labels()
 {
+    auto values = get_shaper_type_values();
+    if (values.empty())
+        values.emplace_back("");
+
     std::vector<wxString> labels;
-    labels.reserve(k_input_shaper_type_labels.size());
-    for (const char* label : k_input_shaper_type_labels)
-        labels.emplace_back(wxString::FromUTF8(label));
+    labels.reserve(values.size());
+    for (const auto& label : values)
+        labels.emplace_back(wxString::FromUTF8(label.c_str()));
     return labels;
 }
 
@@ -894,10 +918,15 @@ void Input_Shaping_Freq_Test_Dlg::on_start(wxCommandEvent& event) {
         return;
     }
 
+    auto shaper_values = get_shaper_type_values();
     int type_selection = m_rbType->GetSelection();
-    if (type_selection < 0 || type_selection >= static_cast<int>(k_input_shaper_type_labels.size()))
-        type_selection = 0;
-    m_params.shaper_type = std::string(k_input_shaper_type_labels[static_cast<size_t>(type_selection)]);
+    if (shaper_values.empty()) {
+        m_params.shaper_type.clear();
+    } else {
+        if (type_selection < 0 || type_selection >= static_cast<int>(shaper_values.size()))
+            type_selection = 0;
+        m_params.shaper_type = shaper_values[static_cast<size_t>(type_selection)];
+    }
 
     m_params.mode = CalibMode::Calib_Input_shaping_freq;
     
@@ -1028,10 +1057,15 @@ void Input_Shaping_Damp_Test_Dlg::on_start(wxCommandEvent& event) {
         return;
     }
 
+    auto shaper_values = get_shaper_type_values();
     int type_selection = m_rbType->GetSelection();
-    if (type_selection < 0 || type_selection >= static_cast<int>(k_input_shaper_type_labels.size()))
-        type_selection = 0;
-    m_params.shaper_type = std::string(k_input_shaper_type_labels[static_cast<size_t>(type_selection)]);
+    if (shaper_values.empty()) {
+        m_params.shaper_type.clear();
+    } else {
+        if (type_selection < 0 || type_selection >= static_cast<int>(shaper_values.size()))
+            type_selection = 0;
+        m_params.shaper_type = shaper_values[static_cast<size_t>(type_selection)];
+    }
 
     m_params.mode = CalibMode::Calib_Input_shaping_damp;
     
