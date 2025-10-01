@@ -13,6 +13,12 @@ namespace Slic3r { namespace GUI {
 
 namespace {
 
+struct InputShaperOption
+{
+    wxString label;
+    std::string value;
+};
+
 void ParseStringValues(std::string str, std::vector<double> &vec)
 {
     vec.clear();
@@ -30,37 +36,46 @@ int GetTextMax(wxWindow* parent, const std::vector<wxString>& labels)
     return text_size.x + parent->FromDIP(10);
 }
 
-std::vector<std::string> get_shaper_type_values()
+std::vector<InputShaperOption> get_shaper_type_options()
 {
     if (auto* preset_bundle = wxGetApp().preset_bundle) {
         auto printer_config = &preset_bundle->printers.get_edited_preset().config;
         if (auto* gcode_flavor_option = printer_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")) {
             switch (gcode_flavor_option->value) {
             case GCodeFlavor::gcfKlipper:
-                return {"ZV", "MZV", "ZVD", "EI", "2HUMP_EI", "3HUMP_EI"};
+                return {{wxString::FromUTF8("ZV"), "ZV"},
+                        {wxString::FromUTF8("MZV"), "MZV"},
+                        {wxString::FromUTF8("ZVD"), "ZVD"},
+                        {wxString::FromUTF8("EI"), "EI"},
+                        {wxString::FromUTF8("2HUMP_EI"), "2HUMP_EI"},
+                        {wxString::FromUTF8("3HUMP_EI"), "3HUMP_EI"}};
             case GCodeFlavor::gcfRepRapFirmware:
-                return {"ZVD", "ZVDD", "ZVDDD", "MZV", "EI2", "EI3"};
+                return {{wxString::FromUTF8("DAA (RepRap <= 3.3)"), ""},
+                        {wxString::FromUTF8("ZVD (RepRap >= 3.4)"), "ZVD"},
+                        {wxString::FromUTF8("ZVDD (RepRap >= 3.4)"), "ZVDD"},
+                        {wxString::FromUTF8("ZVDDD (RepRap >= 3.4)"), "ZVDDD"},
+                        {wxString::FromUTF8("MZV (RepRap >= 3.4)"), "MZV"},
+                        {wxString::FromUTF8("EI2 (RepRap >= 3.4)"), "EI2"},
+                        {wxString::FromUTF8("EI3 (RepRap >= 3.4)"), "EI3"}};
             case GCodeFlavor::gcfMarlinFirmware:
-                return {"ZV"};
+                return {{wxString::FromUTF8("ZV"), "ZV"}};
             default:
                 break;
             }
         }
     }
-
-    return {""};
+    return {{_L("Unknown (Use printer default)"), ""}};
 }
 
-std::vector<wxString> make_shaper_type_labels()
+std::vector<wxString> make_shaper_type_labels(const std::vector<InputShaperOption>& options)
 {
-    auto values = get_shaper_type_values();
-    if (values.empty())
-        values.emplace_back("");
+    if (options.empty())
+        return { _L("Use printer default") };
 
     std::vector<wxString> labels;
-    labels.reserve(values.size());
-    for (const auto& label : values)
-        labels.emplace_back(wxString::FromUTF8(label.c_str()));
+    labels.reserve(options.size());
+    for (const auto& option : options)
+        labels.emplace_back(option.label);
     return labels;
 }
 
@@ -797,6 +812,12 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     SetForegroundColour(wxColour("#363636"));
     SetFont(Label::Body_14);
 
+    const auto* preset_bundle = wxGetApp().preset_bundle;
+    const auto* gcode_flavor_option = (preset_bundle != nullptr)
+        ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")
+        : nullptr;
+    const bool reprap_firmware = gcode_flavor_option && gcode_flavor_option->value == GCodeFlavor::gcfRepRapFirmware;
+
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
 
@@ -811,8 +832,9 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     // Input shaper type selection
     auto labeled_box_type = new LabeledStaticBox(this, _L("Input shaper type"));
     auto type_box = new wxStaticBoxSizer(labeled_box_type, wxVERTICAL);
-    auto type_labels = make_shaper_type_labels();
-    m_rbType = new RadioGroup(this, type_labels, wxHORIZONTAL);
+    const auto shaper_options_for_labels = get_shaper_type_options();
+    auto type_labels = make_shaper_type_labels(shaper_options_for_labels);
+    m_rbType = new RadioGroup(this, type_labels, wxVERTICAL, 2);
     type_box->Add(m_rbType, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     m_rbType->SetSelection(0);
@@ -850,6 +872,13 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     m_tiFreqStartY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_tiFreqEndY =   new TextInput(this, std::to_string(110), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqEndY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+
+    if (reprap_firmware) {
+        m_tiFreqStartY->Enable(false);
+        m_tiFreqEndY->Enable(false);
+        m_tiFreqStartY->GetTextCtrl()->SetValue(m_tiFreqStartX->GetTextCtrl()->GetValue());
+        m_tiFreqEndY->GetTextCtrl()->SetValue(m_tiFreqEndX->GetTextCtrl()->GetValue());
+    }
     
     y_freq_sizer->Add(start_y_text  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     y_freq_sizer->Add(m_tiFreqStartY, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -898,15 +927,29 @@ void Input_Shaping_Freq_Test_Dlg::on_start(wxCommandEvent& event) {
     bool read_double = false;
     read_double = m_tiFreqStartX->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartX);
     read_double = read_double && m_tiFreqEndX->GetTextCtrl()->GetValue().ToDouble(&m_params.freqEndX);
-    read_double = read_double && m_tiFreqStartY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartY);
-    read_double = read_double && m_tiFreqEndY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqEndY);
+
+    const auto* preset_bundle = wxGetApp().preset_bundle;
+    const auto* gcode_flavor_option = (preset_bundle != nullptr)
+        ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")
+        : nullptr;
+    const bool reprap_firmware = gcode_flavor_option && gcode_flavor_option->value == GCodeFlavor::gcfRepRapFirmware;
+
+    if (!reprap_firmware) {
+        read_double = read_double && m_tiFreqStartY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartY);
+        read_double = read_double && m_tiFreqEndY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqEndY);
+    } else {
+        m_params.freqStartY = m_params.freqStartX;
+        m_params.freqEndY   = m_params.freqEndX;
+        m_tiFreqStartY->GetTextCtrl()->SetValue(m_tiFreqStartX->GetTextCtrl()->GetValue());
+        m_tiFreqEndY->GetTextCtrl()->SetValue(m_tiFreqEndX->GetTextCtrl()->GetValue());
+    }
     read_double = read_double && m_tiDampingFactor->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
 
     if (!read_double ||
         m_params.freqStartX < 0 || m_params.freqEndX > 500 ||
-        m_params.freqStartY < 0 || m_params.freqEndX > 500 ||
+        (!reprap_firmware && (m_params.freqStartY < 0 || m_params.freqEndY > 500)) ||
         m_params.freqStartX >= m_params.freqEndX ||
-        m_params.freqStartY >= m_params.freqEndY) {
+        (!reprap_firmware && m_params.freqStartY >= m_params.freqEndY)) {
         MessageDialog msg_dlg(nullptr, _L("Please input valid values:\n(0 < FreqStart < FreqEnd < 500)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
@@ -918,14 +961,14 @@ void Input_Shaping_Freq_Test_Dlg::on_start(wxCommandEvent& event) {
         return;
     }
 
-    auto shaper_values = get_shaper_type_values();
+    auto shaper_options = get_shaper_type_options();
     int type_selection = m_rbType->GetSelection();
-    if (shaper_values.empty()) {
+    if (shaper_options.empty()) {
         m_params.shaper_type.clear();
     } else {
-        if (type_selection < 0 || type_selection >= static_cast<int>(shaper_values.size()))
+        if (type_selection < 0 || type_selection >= static_cast<int>(shaper_options.size()))
             type_selection = 0;
-        m_params.shaper_type = shaper_values[static_cast<size_t>(type_selection)];
+        m_params.shaper_type = shaper_options[static_cast<size_t>(type_selection)].value;
     }
 
     m_params.mode = CalibMode::Calib_Input_shaping_freq;
@@ -952,6 +995,12 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     SetForegroundColour(wxColour("#363636"));
     SetFont(Label::Body_14);
 
+    const auto* preset_bundle = wxGetApp().preset_bundle;
+    const auto* gcode_flavor_option = (preset_bundle != nullptr)
+        ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")
+        : nullptr;
+    const bool reprap_firmware = gcode_flavor_option && gcode_flavor_option->value == GCodeFlavor::gcfRepRapFirmware;
+
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
 
@@ -966,8 +1015,9 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     // Input shaper type selection
     auto labeled_box_type = new LabeledStaticBox(this, _L("Input shaper type"));
     auto type_box = new wxStaticBoxSizer(labeled_box_type, wxVERTICAL);
-    auto type_labels = make_shaper_type_labels();
-    m_rbType = new RadioGroup(this, type_labels, wxHORIZONTAL);
+    const auto shaper_options_for_labels = get_shaper_type_options();
+    auto type_labels = make_shaper_type_labels(shaper_options_for_labels);
+    m_rbType = new RadioGroup(this, type_labels, wxVERTICAL, 2);
     type_box->Add(m_rbType, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     m_rbType->SetSelection(0);
@@ -991,6 +1041,10 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     m_tiFreqX->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_tiFreqY = new TextInput(this, std::to_string(30), "Hz", "", wxDefaultPosition, ti_size);
     m_tiFreqY->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    if (reprap_firmware) {
+        m_tiFreqY->Enable(false);
+        m_tiFreqY->GetTextCtrl()->SetToolTip(_L("RepRap firmware uses the same frequency for both axes."));
+    }
     freq_sizer->Add(freq_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     freq_sizer->Add(m_tiFreqX, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     freq_sizer->Add(m_tiFreqY, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -1038,13 +1092,24 @@ Input_Shaping_Damp_Test_Dlg::~Input_Shaping_Damp_Test_Dlg() {
 void Input_Shaping_Damp_Test_Dlg::on_start(wxCommandEvent& event) {
     bool read_double = false;
     read_double = m_tiFreqX->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartX);
-    read_double = read_double && m_tiFreqY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartY);
+    const auto* preset_bundle = wxGetApp().preset_bundle;
+    const auto* gcode_flavor_option = (preset_bundle != nullptr)
+        ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")
+        : nullptr;
+    const bool reprap_firmware = gcode_flavor_option && gcode_flavor_option->value == GCodeFlavor::gcfRepRapFirmware;
+
+    if (!reprap_firmware) {
+        read_double = read_double && m_tiFreqY->GetTextCtrl()->GetValue().ToDouble(&m_params.freqStartY);
+    } else {
+        m_params.freqStartY = m_params.freqStartX;
+        m_tiFreqY->GetTextCtrl()->SetValue(m_tiFreqX->GetTextCtrl()->GetValue());
+    }
     read_double = read_double && m_tiDampingFactorStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double = read_double && m_tiDampingFactorEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
 
     if (!read_double ||
         m_params.freqStartX < 0 || m_params.freqStartX > 500 ||
-        m_params.freqStartY < 0 || m_params.freqStartY > 500 ) {
+        (!reprap_firmware && (m_params.freqStartY < 0 || m_params.freqStartY > 500))) {
         MessageDialog msg_dlg(nullptr, _L("Please input valid values:\n(0 < Freq < 500)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
@@ -1057,14 +1122,14 @@ void Input_Shaping_Damp_Test_Dlg::on_start(wxCommandEvent& event) {
         return;
     }
 
-    auto shaper_values = get_shaper_type_values();
+    auto shaper_options = get_shaper_type_options();
     int type_selection = m_rbType->GetSelection();
-    if (shaper_values.empty()) {
+    if (shaper_options.empty()) {
         m_params.shaper_type.clear();
     } else {
-        if (type_selection < 0 || type_selection >= static_cast<int>(shaper_values.size()))
+        if (type_selection < 0 || type_selection >= static_cast<int>(shaper_options.size()))
             type_selection = 0;
-        m_params.shaper_type = shaper_values[static_cast<size_t>(type_selection)];
+        m_params.shaper_type = shaper_options[static_cast<size_t>(type_selection)].value;
     }
 
     m_params.mode = CalibMode::Calib_Input_shaping_damp;
