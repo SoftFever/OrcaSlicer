@@ -43,18 +43,18 @@ std::vector<InputShaperOption> get_shaper_type_options()
         if (auto* gcode_flavor_option = printer_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")) {
             switch (gcode_flavor_option->value) {
             case GCodeFlavor::gcfKlipper:
-                return {{wxString::FromUTF8("ZV"), "ZV"},
-                        {wxString::FromUTF8("MZV"), "MZV"},
+                return {{wxString::FromUTF8("MZV"), "MZV"},
+                        {wxString::FromUTF8("ZV"), "ZV"},
                         {wxString::FromUTF8("ZVD"), "ZVD"},
                         {wxString::FromUTF8("EI"), "EI"},
                         {wxString::FromUTF8("2HUMP_EI"), "2HUMP_EI"},
                         {wxString::FromUTF8("3HUMP_EI"), "3HUMP_EI"}};
             case GCodeFlavor::gcfRepRapFirmware:
-                return {{wxString::FromUTF8("DAA (RepRap <= 3.3)"), ""},
+                return {{wxString::FromUTF8("Default (DAA in RepRap <= 3.3)"), ""},
+                        {wxString::FromUTF8("MZV (RepRap >= 3.4)"), "mzn"},
                         {wxString::FromUTF8("ZVD (RepRap >= 3.4)"), "zvd"},
                         {wxString::FromUTF8("ZVDD (RepRap >= 3.4)"), "zvdd"},
                         {wxString::FromUTF8("ZVDDD (RepRap >= 3.4)"), "zvddd"},
-                        {wxString::FromUTF8("MZV (RepRap >= 3.4)"), "mzn"},
                         {wxString::FromUTF8("EI2 (RepRap >= 3.4)"), "ei2"},
                         {wxString::FromUTF8("EI3 (RepRap >= 3.4)"), "ei3"}};
             case GCodeFlavor::gcfMarlinFirmware:
