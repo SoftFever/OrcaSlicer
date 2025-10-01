@@ -352,7 +352,7 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
     return gcode.str();
 }
 
-std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq) const
+std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq, std::string type) const
 {
     if (freq < 0.0f || damp < 0.f || damp > 1.0f || (axis != 'X' && axis != 'Y' && axis != 'Z' && axis != 'A'))// A = all axis
     {
@@ -361,6 +361,9 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq) co
     std::ostringstream gcode;
     if (FLAVOR_IS(gcfKlipper)) {
         gcode << "SET_INPUT_SHAPER";
+        if (!type.empty()) {
+                gcode << " SHAPER_TYPE=" << type;
+        }
         if (axis != 'A')
         {
             if (freq > 0.0f) {
@@ -368,7 +371,7 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq) co
             }
             if (damp > 0.0f){
                 gcode  << " DAMPING_RATIO_" << axis << "=" << damp;
-            } 
+            }
         } else {
             if (freq > 0.0f) {
                 gcode << " SHAPER_FREQ_X=" << std::fixed << std::setprecision(2) << freq << " SHAPER_FREQ_Y=" << std::fixed << std::setprecision(2) << freq;
@@ -378,6 +381,8 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq) co
             }
         }
     } else {
+        if (!type.empty() || type != "ZV")
+            throw std::runtime_error(type + " is not supported by this firmware.");
         gcode << "M593";
         if (axis != 'A')
         {

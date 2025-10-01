@@ -6,6 +6,7 @@
 #include "MainFrame.hpp"
 #include "Widgets/DialogButtons.hpp"
 #include <string>
+#include <array>
 
 namespace Slic3r { namespace GUI {
 
@@ -26,6 +27,17 @@ int GetTextMax(wxWindow* parent, const std::vector<wxString>& labels)
     for (wxString label : labels)
         text_size.IncTo(parent->GetTextExtent(label));
     return text_size.x + parent->FromDIP(10);
+}
+
+constexpr std::array<const char*, 6> k_input_shaper_type_labels{{"ZV", "MZV", "ZVD", "EI", "2HUMP_EI", "3HUMP_EI"}};
+
+std::vector<wxString> make_shaper_type_labels()
+{
+    std::vector<wxString> labels;
+    labels.reserve(k_input_shaper_type_labels.size());
+    for (const char* label : k_input_shaper_type_labels)
+        labels.emplace_back(wxString::FromUTF8(label));
+    return labels;
 }
 
 }
@@ -772,6 +784,15 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     model_box->Add(m_rbModel, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(model_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
 
+    // Input shaper type selection
+    auto labeled_box_type = new LabeledStaticBox(this, _L("Input shaper type"));
+    auto type_box = new wxStaticBoxSizer(labeled_box_type, wxHORIZONTAL);
+    auto type_labels = make_shaper_type_labels();
+    m_rbType = new RadioGroup(this, type_labels, wxVERTICAL);
+    type_box->Add(m_rbType, 0, wxALL | wxEXPAND, FromDIP(4));
+    v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
+    m_rbType->SetSelection(0);
+
     // Settings
     wxString x_axis_str = "X " + _L("Start / End") + ": ";
     wxString y_axis_str = "Y " + _L("Start / End") + ": ";
@@ -873,6 +894,11 @@ void Input_Shaping_Freq_Test_Dlg::on_start(wxCommandEvent& event) {
         return;
     }
 
+    int type_selection = m_rbType->GetSelection();
+    if (type_selection < 0 || type_selection >= static_cast<int>(k_input_shaper_type_labels.size()))
+        type_selection = 0;
+    m_params.shaper_type = std::string(k_input_shaper_type_labels[static_cast<size_t>(type_selection)]);
+
     m_params.mode = CalibMode::Calib_Input_shaping_freq;
     
     // Set model type based on selection
@@ -907,6 +933,15 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     m_rbModel = new RadioGroup(this, { _L("Ringing Tower"), _L("Fast Tower") }, wxHORIZONTAL);
     model_box->Add(m_rbModel, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(model_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
+
+    // Input shaper type selection
+    auto labeled_box_type = new LabeledStaticBox(this, _L("Input shaper type"));
+    auto type_box = new wxStaticBoxSizer(labeled_box_type, wxHORIZONTAL);
+    auto type_labels = make_shaper_type_labels();
+    m_rbType = new RadioGroup(this, type_labels, wxVERTICAL);
+    type_box->Add(m_rbType, 0, wxALL | wxEXPAND, FromDIP(4));
+    v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
+    m_rbType->SetSelection(0);
 
     // Settings
     wxString freq_str = _L("Frequency") + " X / Y: ";
@@ -992,6 +1027,11 @@ void Input_Shaping_Damp_Test_Dlg::on_start(wxCommandEvent& event) {
         msg_dlg.ShowModal();
         return;
     }
+
+    int type_selection = m_rbType->GetSelection();
+    if (type_selection < 0 || type_selection >= static_cast<int>(k_input_shaper_type_labels.size()))
+        type_selection = 0;
+    m_params.shaper_type = std::string(k_input_shaper_type_labels[static_cast<size_t>(type_selection)]);
 
     m_params.mode = CalibMode::Calib_Input_shaping_damp;
     
