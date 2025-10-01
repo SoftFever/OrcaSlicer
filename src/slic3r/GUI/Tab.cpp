@@ -3787,7 +3787,7 @@ void TabFilament::build()
             else if (opt_key == "nozzle_temperature_initial_layer") {
                 m_config_manipulation.check_nozzle_temperature_initial_layer_range(&filament_config);
             }
-            else if (opt_key == "chamber_temperatures") {
+            else if (opt_key == "chamber_temperature") {
                 m_config_manipulation.check_chamber_temperature(&filament_config);
             }
 
@@ -4066,7 +4066,7 @@ void TabFilament::toggle_options()
         toggle_line("filament_diameter", !is_pellet_printer);
 
         bool support_chamber_temp_control = this->m_preset_bundle->printers.get_edited_preset().config.opt_bool("support_chamber_temp_control");
-        toggle_line("chamber_temperatures", support_chamber_temp_control);
+        toggle_line("chamber_temperature", support_chamber_temp_control);
     }
 
     if (m_active_page->title() == L("Setting Overrides"))

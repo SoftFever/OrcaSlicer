@@ -156,11 +156,11 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
         {"PETG-CF",55}
     };
    bool support_chamber_temp_control=GUI::wxGetApp().preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");
-    if (support_chamber_temp_control&&config->has("chamber_temperatures")) {
+    if (support_chamber_temp_control&&config->has("chamber_temperature")) {
         std::string filament_type = config->option<ConfigOptionStrings>("filament_type")->get_at(0);
         auto iter = recommend_temp_map.find(filament_type);
         if (iter!=recommend_temp_map.end()) {
-            if (iter->second < config->option<ConfigOptionInts>("chamber_temperatures")->get_at(0)) {
+            if (iter->second < config->option<ConfigOptionInts>("chamber_temperature")->get_at(0)) {
                 wxString msg_text = wxString::Format(_L("Current chamber temperature is higher than the material's safe temperature, this may result in material softening and clogging. "
                                                         "The maximum safe temperature for the material is %d"), iter->second);
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);

@@ -3508,7 +3508,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         std::unordered_set<int> known_fila_soften_extruders;
         std::unordered_set<int> unknown_fila_soften_extruders;
         auto preset_full_config = wxGetApp().preset_bundle->full_config();
-        auto chamber_temperatures = preset_full_config.option<ConfigOptionInts>("chamber_temperatures");
+        auto chamber_temperatures = preset_full_config.option<ConfigOptionInts>("chamber_temperature");
         for (const FilamentInfo& item : m_ams_mapping_result) {
             try
             {
