@@ -3095,7 +3095,7 @@ void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projec
             render_background(force_background_color);
 
             render_exclude_area(force_background_color);
-            if(wxGetApp().plater()->get_enable_wrapping_detection()){
+            if(m_selected && wxGetApp().plater()->get_enable_wrapping_detection()){
                 if(!m_wrapping_detection_triangles.is_initialized()){
                     auto points = get_plate_wrapping_detection_area();
                     if (points.size() > 0) {//wrapping_detection_area
