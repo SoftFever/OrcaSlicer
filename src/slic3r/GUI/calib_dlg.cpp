@@ -51,12 +51,12 @@ std::vector<InputShaperOption> get_shaper_type_options()
                         {wxString::FromUTF8("3HUMP_EI"), "3HUMP_EI"}};
             case GCodeFlavor::gcfRepRapFirmware:
                 return {{wxString::FromUTF8("DAA (RepRap <= 3.3)"), ""},
-                        {wxString::FromUTF8("ZVD (RepRap >= 3.4)"), "ZVD"},
-                        {wxString::FromUTF8("ZVDD (RepRap >= 3.4)"), "ZVDD"},
-                        {wxString::FromUTF8("ZVDDD (RepRap >= 3.4)"), "ZVDDD"},
-                        {wxString::FromUTF8("MZV (RepRap >= 3.4)"), "MZV"},
-                        {wxString::FromUTF8("EI2 (RepRap >= 3.4)"), "EI2"},
-                        {wxString::FromUTF8("EI3 (RepRap >= 3.4)"), "EI3"}};
+                        {wxString::FromUTF8("ZVD (RepRap >= 3.4)"), "zvd"},
+                        {wxString::FromUTF8("ZVDD (RepRap >= 3.4)"), "zvdd"},
+                        {wxString::FromUTF8("ZVDDD (RepRap >= 3.4)"), "zvddd"},
+                        {wxString::FromUTF8("MZV (RepRap >= 3.4)"), "mzn"},
+                        {wxString::FromUTF8("EI2 (RepRap >= 3.4)"), "ei2"},
+                        {wxString::FromUTF8("EI3 (RepRap >= 3.4)"), "ei3"}};
             case GCodeFlavor::gcfMarlinFirmware:
                 return {{wxString::FromUTF8("ZV"), "ZV"}};
             default:
