@@ -1974,7 +1974,7 @@ int MachineObject::command_clean_print_error_uiop(int print_error)
     ::sprintf(buf, "%08X", print_error);
     j["system"]["err"] = std::string(buf);
 
-    return this->publish_json(j);
+    return this->publish_json(j.dump());
 }
 
 int MachineObject::command_upgrade_confirm()
