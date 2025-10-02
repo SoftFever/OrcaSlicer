@@ -3523,8 +3523,8 @@ int CLI::run(int argc, char **argv)
         BOOST_LOG_TRIVIAL(info) << boost::format("%1%, process old params for support and wipe tower")%__LINE__;
 
         //wipe tower params process
-        ConfigOptionBool *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
-        prime_tower_rib_wall_option->value = false;
+        ConfigOptionEnum<WipeTowerWallType> *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionEnum<WipeTowerWallType>>("wipe_tower_wall_type", true);
+        prime_tower_rib_wall_option->value = WipeTowerWallType::wtwRectangle;
 
         ConfigOptionPercent *prime_tower_infill_gap_option = m_print_config.option<ConfigOptionPercent>("prime_tower_infill_gap", true);
         prime_tower_infill_gap_option->value = 100;
@@ -4406,7 +4406,7 @@ int CLI::run(int argc, char **argv)
                     ConfigOptionFloat* width_option = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
                     ConfigOptionFloat* rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
                     ConfigOptionFloats *volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
-                    ConfigOptionBool *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
+                    ConfigOptionEnum<WipeTowerWallType> *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionEnum<WipeTowerWallType>>("wipe_tower_wall_type", true);
                     std::vector<double> wipe_volume   = volume_option->values;
 
                     BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%, rib_wall %4%") % width_option->value % rotation_angle_option->value % get_max_element(wipe_volume) %prime_tower_rib_wall_option->value;

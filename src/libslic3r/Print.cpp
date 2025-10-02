@@ -307,10 +307,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "prime_tower_brim_width"
             || opt_key == "prime_tower_skip_points"
             || opt_key == "prime_tower_flat_ironing"
-            || opt_key == "prime_tower_rib_wall"
-            || opt_key == "prime_tower_extra_rib_length"
-            || opt_key == "prime_tower_rib_width"
-            || opt_key == "prime_tower_fillet_wall"
             || opt_key == "first_layer_print_sequence"
             || opt_key == "other_layers_print_sequence"
             || opt_key == "other_layers_print_sequence_nums" 
@@ -972,7 +968,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     float        depth                     = print.wipe_tower_data(filaments_count).depth;
     //float        brim_width                = print.wipe_tower_data(filaments_count).brim_width;
 
-    if (config.prime_tower_rib_wall.value)
+    if (config.wipe_tower_wall_type.value == WipeTowerWallType::wtwRib)
         width = depth;
 
     Polygons convex_hulls_temp;
@@ -2984,9 +2980,9 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
     layer_height        = m_objects.front()->config().layer_height.value;
 
     auto   timelapse_type  = config().option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
-    bool   need_wipe_tower = (timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false) | m_config.prime_tower_rib_wall.value;
+    bool   need_wipe_tower = (timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false) | (m_config.wipe_tower_wall_type.value == WipeTowerWallType::wtwRib);
     double extra_spacing = config().option("prime_tower_infill_gap")->getFloat() / 100.;
-    double rib_width     = config().option("prime_tower_rib_width")->getFloat();
+    double rib_width     = config().option("wipe_tower_rib_width")->getFloat();
 
     double filament_change_volume = 0.;
     {
@@ -3011,12 +3007,12 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
         double volume = wipe_volume * filament_depth_count;
         if (m_config.nozzle_diameter.values.size() == 2) volume += filament_change_volume * (int) (filaments_cnt / 2);
 
-        if (m_config.prime_tower_rib_wall.value) {
+        if (m_config.wipe_tower_wall_type.value == WipeTowerWallType::wtwRib) {
             double depth = std::sqrt(volume / layer_height * extra_spacing);
             if (need_wipe_tower || filaments_cnt > 1) {
                 float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
                 depth  = std::max((double) min_wipe_tower_depth, depth);
-                depth += rib_width / std::sqrt(2) + config().prime_tower_extra_rib_length.value;
+                depth += rib_width / std::sqrt(2) + config().wipe_tower_extra_rib_length.value;
                 const_cast<Print *>(this)->m_wipe_tower_data.depth = depth;
                 const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
             }
@@ -3231,8 +3227,8 @@ void Print::_make_wipe_tower()
 
         m_wipe_tower_data.used_filament         = wipe_tower.get_used_filament();
         m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();
-        m_wipe_tower_data.construct_mesh(wipe_tower.width(), wipe_tower.get_depth(), wipe_tower.get_height(), wipe_tower.get_brim_width(), config().prime_tower_rib_wall.value,
-                                         wipe_tower.get_rib_width(), wipe_tower.get_rib_length(), config().prime_tower_fillet_wall.value);
+        m_wipe_tower_data.construct_mesh(wipe_tower.width(), wipe_tower.get_depth(), wipe_tower.get_height(), wipe_tower.get_brim_width(), config().wipe_tower_wall_type.value == WipeTowerWallType::wtwRib,
+                                         wipe_tower.get_rib_width(), wipe_tower.get_rib_length(), config().wipe_tower_fillet_wall.value);
         const Vec3d origin                      = this->get_plate_origin();
         m_fake_wipe_tower.rib_offset = wipe_tower.get_rib_offset();
         m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position() + m_fake_wipe_tower.rib_offset, wipe_tower.width(), wipe_tower.get_height(), wipe_tower.get_layer_height(),

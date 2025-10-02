@@ -1972,9 +1972,9 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool need_wipe_tower = (timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false) | enable_wrapping_detection;
     double extra_spacing     = config.option("prime_tower_infill_gap")->getFloat() / 100.;
-    const ConfigOptionBool* use_rib_wall_opt = config.option<ConfigOptionBool>("prime_tower_rib_wall");
-    bool use_rib_wall = use_rib_wall_opt ? use_rib_wall_opt->value: true;
-    double rib_width = config.option("prime_tower_rib_width")->getFloat();
+    const ConfigOptionEnum<WipeTowerWallType>* use_rib_wall_opt = config.option<ConfigOptionEnum<WipeTowerWallType>>("wipe_tower_wall_type");
+    bool use_rib_wall = use_rib_wall_opt ? use_rib_wall_opt->value == WipeTowerWallType::wtwRib: false;
+    double rib_width = config.option("wipe_tower_rib_width")->getFloat();
     double depth;
     double filament_change_volume=0.;
     {
@@ -1996,7 +1996,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
         if (need_wipe_tower || plate_extruder_size > 1) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             depth = std::max((double) min_wipe_tower_depth, depth);
-            depth += rib_width / std::sqrt(2) + m_print->config().prime_tower_extra_rib_length.value;
+            depth += rib_width / std::sqrt(2) + m_print->config().wipe_tower_extra_rib_length.value;
             wipe_tower_size(0) = wipe_tower_size(1) = depth;
         }
     }

@@ -6173,23 +6173,6 @@ void PrintConfigDef::init_fff_params()
                      "volumes below.");
     def->set_default_value(new ConfigOptionFloats { 70., 70., 70., 70., 70., 70., 70., 70., 70., 70.  });
 
-    def           = this->add("prime_tower_extra_rib_length", coFloat);
-    def->label    = L("Extra rib length");
-    def->tooltip  = L("Positive values can increase the size of the rib wall, while negative values can reduce the size."
-                       "However, the size of the rib wall can not be smaller than that determined by the cleaning volume.");
-    def->sidetext = L("mm");
-    def->max      = 300;
-    def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
-
-    def           = this->add("prime_tower_rib_width", coFloat);
-    def->label    = L("Rib width");
-    def->tooltip  = L("Rib width");
-    def->sidetext = L("mm");
-    def->mode     = comAdvanced;
-    def->min      = 0;
-    def->set_default_value(new ConfigOptionFloat(8));
-
     def          = this->add("prime_tower_skip_points", coBool);
     def->label   = L("Skip points");
     def->tooltip = L("The wall of prime tower will skip the start points of wipe path");
@@ -6199,19 +6182,6 @@ void PrintConfigDef::init_fff_params()
     def      = this->add("prime_tower_flat_ironing", coBool);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
-
-    def          = this->add("prime_tower_rib_wall", coBool);
-    def->label   = L("Rib wall");
-    def->tooltip = L("The wall of prime tower will add four ribs and make its "
-                     "cross-section as close to a square as possible, so the width will be fixed.");
-    def->mode    = comSimple;
-    def->set_default_value(new ConfigOptionBool(true));
-
-    def          = this->add("prime_tower_fillet_wall", coBool);
-    def->label   = L("Fillet wall");
-    def->tooltip = L("The wall of prime tower will fillet");
-    def->mode    = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
 
     def           = this->add("prime_tower_infill_gap", coPercent);
     def->label    = L("Infill gap");
@@ -7388,6 +7358,21 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
                 value += "\"" + type_list[idx] + "\"";
             }
         }
+    }
+    // Orca: Rename wipe tower ribs related options
+    else if (opt_key == "prime_tower_rib_wall") {
+        if (value == "1") {
+            opt_key = "wipe_tower_wall_type";
+            value   = "rib";
+        } else {
+            opt_key = "";
+        }
+    } else if (opt_key == "prime_tower_extra_rib_length") {
+        opt_key = "wipe_tower_extra_rib_length";
+    } else if (opt_key == "prime_tower_rib_width") {
+        opt_key = "wipe_tower_rib_width";
+    } else if (opt_key == "prime_tower_fillet_wall") {
+        opt_key = "wipe_tower_fillet_wall";
     }
 
     // Ignore the following obsolete configuration keys:

@@ -4348,7 +4348,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 		"nozzle_height", "skirt_type", "skirt_loops", "skirt_speed","min_skirt_length", "skirt_distance", "skirt_start_angle",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material", "preferred_orientation",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_tower_enable_framework",
-        "prime_tower_rib_wall","prime_tower_extra_rib_length", "prime_tower_rib_width","prime_tower_fillet_wall", "prime_tower_infill_gap","filament_prime_volume",
+        "prime_tower_infill_gap","filament_prime_volume",
         "extruder_colour", "filament_colour", "filament_type", "material_colour", "printable_height", "extruder_printable_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
         "layer_height", "initial_layer_print_height", "min_layer_height", "max_layer_height",
@@ -5655,8 +5655,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                         }
                                     }
                                 }
-                                ConfigOptionBool *prime_tower_rib_wall_option = config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
-                                prime_tower_rib_wall_option->value            = false;
+                                ConfigOptionEnum<WipeTowerWallType> *prime_tower_rib_wall_option = config.option<ConfigOptionEnum<WipeTowerWallType>>("wipe_tower_wall_type", true);
+                                prime_tower_rib_wall_option->value            = WipeTowerWallType::wtwRectangle;
 
                                 ConfigOptionPercent *prime_tower_infill_gap_option = config.option<ConfigOptionPercent>("prime_tower_infill_gap", true);
                                 prime_tower_infill_gap_option->value               = 100;
@@ -5684,7 +5684,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 std::vector<std::string> diff_process_keys;
                                 std::string              diff_process_settings = diff_settings[0];
                                 Slic3r::unescape_strings_cstyle(diff_process_settings, diff_process_keys);
-                                diff_process_keys.emplace_back("prime_tower_rib_wall");
+                                diff_process_keys.emplace_back("wipe_tower_wall_type");
                                 diff_process_keys.emplace_back("prime_tower_infill_gap");
                                 diff_process_settings = Slic3r::escape_strings_cstyle(diff_process_keys);
                                 diff_settings[0] = diff_process_settings;
