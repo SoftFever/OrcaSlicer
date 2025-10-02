@@ -13,10 +13,14 @@ struct BBLocalMachine;
 class MachineObject;
 class NetworkAgent;
 
+namespace GUI {
+class GUI_App;
+};
+
 class DeviceManagerRefresher;
 class DeviceManager
 {
-    friend class GUI_App;
+    friend class GUI::GUI_App;
     friend class DeviceManagerRefresher;
 private:
     NetworkAgent* m_agent{ nullptr };
