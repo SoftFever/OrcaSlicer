@@ -159,7 +159,7 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     }
     */
 
-    if (btn_id == wxID_OK || btn_id == wxID_YES) {
+    if (btn_id == wxID_OK || btn_id == wxID_YES || btn_id == wxFORWARD) {
         btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     }
 
@@ -193,7 +193,7 @@ void MsgDialog::apply_style(long style)
     if (style & wxFORWARD)
         add_button(wxFORWARD, true, _L("Go to") + " " + m_forward_str);
     if (style & wxOK) {
-        if (style & wxFORWARD) { add_button(wxID_OK, false, _L("Later")); }
+        if (style & wxFORWARD) { add_button(wxID_CANCEL, false, _L("Later")); }
         else {
             add_button(wxID_OK, true, _L("OK"));
         }
