@@ -6366,11 +6366,17 @@ msgid ""
 "rotation template settings that may not work properly with your current "
 "infill pattern. This could result in weak support or print quality issues."
 msgstr ""
+"Dieses Projekt wurde mit einem OrcaSlicer 2.3.1-alpha erstellt und verwendet "
+"Vorlageneinstellungen für die Infill-Rotation, die möglicherweise nicht "
+"richtig mit Ihrem aktuellen Infill-Muster funktionieren. Dies könnte zu "
+"schwacher Unterstützung oder Druckqualitätsproblemen führen."
 
 msgid ""
 "Would you like OrcaSlicer to automatically fix this by clearing the rotation "
 "template settings?"
 msgstr ""
+"Möchten Sie, dass OrcaSlicer dies automatisch behebt, indem die "
+"Vorlageneinstellungen für die Rotation gelöscht werden?"
 
 #, c-format, boost-format
 msgid ""
