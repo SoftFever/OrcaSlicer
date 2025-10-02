@@ -545,8 +545,10 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
 wxBitmap* PresetComboBox::get_bmp(Preset const& preset)
 {
     static wxBitmap sbmp;
-    // Check compatibility for all preset types
-    bool is_compatible = preset.is_compatible;
+
+    // Only show compatibility indicators in develop mode
+    bool show_compatibility = (wxGetApp().get_mode() == comDevelop);
+    bool is_compatible      = preset.is_compatible;
 
     if (m_type == Preset::TYPE_FILAMENT) {
         Preset const& preset2 = &m_collection->get_selected_preset() == &preset ? m_collection->get_edited_preset() : preset;
@@ -554,19 +556,30 @@ wxBitmap* PresetComboBox::get_bmp(Preset const& preset)
         wxColour      clr(color);
         if (clr.IsOk()) {
             std::string bitmap_key = "default_filament_colour_" + color.ToStdString();
-            // Add compatibility to the bitmap key for caching
-            bitmap_key += is_compatible ? "_compatible" : "_incompatible";
+            // Include mode in bitmap key to cache separately
+            if (show_compatibility) {
+                bitmap_key += is_compatible ? "_compatible" : "_incompatible";
+            } else {
+                bitmap_key += "_nocompat";
+            }
+
             wxBitmap* bmp = bitmap_cache().find(bitmap_key);
             if (bmp == nullptr) {
                 wxImage img(16, 16);
-                // Set border color based on compatibility
-                unsigned char border_r = is_compatible ? 0 : 255; // Green: 0, Red: 255
-                unsigned char border_g = is_compatible ? 255 : 0; // Green: 255, Red: 0
-                unsigned char border_b = 0;                       // Both: 0
-                // Fill entire image with border color
-                img.SetRGB(wxRect({0, 0}, img.GetSize()), border_r, border_g, border_b);
-                // Fill inner area (1px border) with filament color
-                img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
+
+                if (show_compatibility && !is_compatible) {
+                    // Show red border for incompatible in develop mode
+                    img.SetRGB(wxRect({0, 0}, img.GetSize()), 255, 0, 0);
+                    img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
+                } else if (show_compatibility && is_compatible) {
+                    // Show green border for compatible in develop mode
+                    img.SetRGB(wxRect({0, 0}, img.GetSize()), 0, 255, 0);
+                    img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
+                } else {
+                    // No compatibility indicator - just show the color
+                    img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
+                }
+
                 bmp = new wxBitmap(img);
                 bmp = bitmap_cache().insert(bitmap_key, *bmp);
             }
@@ -574,17 +587,15 @@ wxBitmap* PresetComboBox::get_bmp(Preset const& preset)
         }
     }
 
-    // For TYPE_PRINTER, return the default bitmap
     if (m_type == Preset::TYPE_PRINTER) {
         return &sbmp;
     }
 
-    // For all other preset types (including filaments without valid color),
-    // return appropriate compatibility bitmap
-    if (is_compatible) {
-        return &m_bitmapCompatible.bmp();
+    // For other types, only show compatibility icons in develop mode
+    if (show_compatibility) {
+        return is_compatible ? &m_bitmapCompatible.bmp() : &m_bitmapIncompatible.bmp();
     } else {
-        return &m_bitmapIncompatible.bmp();
+        return &sbmp; // Return empty bitmap when not in develop mode
     }
 }
 
