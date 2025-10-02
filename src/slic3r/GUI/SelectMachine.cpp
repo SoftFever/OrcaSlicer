@@ -4305,7 +4305,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         brands.push_back(fo.brand);
     }
 
-    auto opt_nozzle_diameters = m_required_data_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    auto opt_nozzle_diameters = m_required_data_config.option<ConfigOptionFloats>("nozzle_diameter");
     auto diameters_count = 1;
     if (opt_nozzle_diameters) {
         diameters_count = opt_nozzle_diameters->size();
