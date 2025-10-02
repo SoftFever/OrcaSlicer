@@ -18,7 +18,7 @@ using Pointf = Vec2d; // (x, y) field point in coordf_t.
 struct ScalarField
 {
     static constexpr float gsizef = 0.40;                        // grid cell size in mm (roughly line segment length).
-    static constexpr float rsizef = 0.01;                        // raster pixel size in mm (roughly point accuracy).
+    static constexpr float rsizef = 0.004;                       // raster pixel size in mm (roughly point accuracy).
     const coord_t          rsize  = scaled(rsizef);              // raster pixel size in coord_t.
     const coordr_t         gsize  = std::round(gsizef / rsizef); // grid cell size in coordr_t.
     Point                  size;                                 // field size in coord_t.
@@ -75,12 +75,18 @@ template<> struct _RasterTraits<ScalarField>
     static size_t cols(const ScalarField& sf) { return sf.to_coordr(sf.size.x()); }
 };
 
-Polylines get_polylines(const ScalarField& sf)
+// Get the polylines for the scalar field. The tolerance is used for
+// simplifying the polylines to remove redundant points. The default will
+// only remove points on (almost) perfectly straight lines. Set to -1 to turn
+// off simplifying entirely. Note tolerance is the max line deviation from
+// simplifying and should be scaled.
+Polylines get_polylines(const ScalarField& sf, const double tolerance = SCALED_EPSILON)
 {
     std::vector<Ring> rings = execute_with_policy(ex_tbb, sf, sf.isoval, {sf.gsize, sf.gsize});
 
     Polylines polys;
     polys.reserve(rings.size());
+    // size_t old_pts = 0, new_pts = 0;
 
     for (const Ring& ring : rings) {
         Polyline poly;
@@ -90,9 +96,15 @@ Polylines get_polylines(const ScalarField& sf)
             pts.emplace_back(sf.to_Point(crd));
         // MarchingSquare's rings are polygons, so add the first point to the end to make it a PolyLine.
         pts.push_back(pts.front());
-        // TODO: should we simplify these to reduce redundant points?
+        // old_pts += poly.points.size();
+        //  Simplify within specified tolerance to reduce points.
+        if (tolerance >= 0.0)
+            poly.simplify(tolerance);
+        // new_pts += poly.points.size();
         polys.emplace_back(poly);
     }
+    // std::cerr << "MarchingSquares: poly.simplify(" << tolerance << ") reduced points from" <<
+    //     old_pts << " to " << new_pts << " (" << 100*new_pts/old_pts << "%)\n";
     return polys;
 }
 
@@ -119,8 +131,9 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     BoundingBox bbox = expolygon.contour.bounding_box();
     // Slightly enlarge the bounding box to avoid artifacts at the edges.
     bbox.offset(scale_(1.));
-    marchsq::ScalarField sf        = marchsq::ScalarField(bbox, this->z, vari_T);
-    Polylines            polylines = marchsq::get_polylines(sf);
+    marchsq::ScalarField sf = marchsq::ScalarField(bbox, this->z, vari_T);
+    // Get simplified lines using coarse tolerance of 0.1mm (this is infill).
+    Polylines polylines = marchsq::get_polylines(sf, scale_(0.1));
 
     // Apply multiline offset if needed
     multiline_fill(polylines, params, spacing);
