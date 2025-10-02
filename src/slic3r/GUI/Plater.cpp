@@ -792,7 +792,7 @@ struct DynamicFilamentList : DynamicList
             std::string type;
             wxGetApp().preset_bundle->filaments.find_preset(presets[i])->get_filament_type(type);
             str << type;
-            items.push_back({str, icons[i]});
+            items.push_back({str, i < icons.size() ? icons[i] : nullptr});
         }
         DynamicList::update();
     }
@@ -839,7 +839,7 @@ struct DynamicFilamentList1Based : DynamicFilamentList
             std::string type;
             wxGetApp().preset_bundle->filaments.find_preset(presets[i])->get_filament_type(type);
             str << type;
-            items.push_back({str, icons[i]});
+            items.push_back({str, i < icons.size() ? icons[i] : nullptr});
         }
         DynamicList::update();
     }
