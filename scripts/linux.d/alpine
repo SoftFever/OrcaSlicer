@@ -1,0 +1,51 @@
+#!/bin/sh
+# these are the alpine linux specific build functions
+
+if apk info --installed gtk+3.0-dev >/dev/null; then
+  FOUND_GTK3=1
+  export FOUND_GTK3
+fi
+
+# !   eglexternalplatform
+# !   ninja
+# Addtional Dev packages for OrcaSlicer
+dep='
+    cmake
+    curl-dev
+    dbus-dev
+    extra-cmake-modules
+    file-dev
+    gettext-dev
+    git
+    glew-dev
+    gstreamer-dev
+    gstreamermm-dev
+    gtk+3.0-dev
+    libmspack-dev
+    libsecret-dev
+    libspnav-dev
+    mesa-dev
+    mesa-egl
+    openssl-dev
+    samurai
+    texinfo
+    wayland-protocols-dev
+    webkit2gtk-6.0-dev
+    wget
+'
+
+if [ "$UPDATE_LIB" ]; then
+    echo "Updating packages ..."
+    for pkg in $dep; do
+        apk info --installed "$pkg" > /dev/null || req="$req $pkg"
+    done
+
+    if [ "$req" ]; then
+        doas apk add $req
+    fi
+    echo "done"
+    exit 0
+fi
+
+FOUND_GTK3_DEV="$FOUND_GTK3"
+export FOUND_GTK3_DEV
