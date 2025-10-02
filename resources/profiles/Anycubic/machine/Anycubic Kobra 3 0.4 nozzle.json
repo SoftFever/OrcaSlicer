@@ -13,6 +13,7 @@
         "0.4"
     ],
     "default_print_profile": "0.16mm Optimal @Anycubic Kobra 3 0.4 nozzle",
+    "default_materials": "Anycubic PLA @Anycubic Kobra 3 0.4 nozzle;Anycubic PLA SE;Anycubic PLA High Speed @Anycubic Kobra 3 0.4 nozzle;Generic ABS @Anycubic Kobra 3 0.4 nozzle;Anycubic PLA Silk;Anycubic PETG @Anycubic Kobra 3 0.4 nozzle;Generic TPU @Anycubic Kobra 3 0.4 nozzle;Anycubic PLA+ @Anycubic Kobra 3 0.4 nozzle;Anycubic PLA Matte @Anycubic Kobra 3 0.4 nozzle;Anycubic PLA Glow @Anycubic Kobra 3 0.4 nozzle;Anycubic PLA Silk @Anycubic Kobra 3 0.4 nozzle;Anycubic ASA @Anycubic Kobra 3 0.4 nozzle",
     "default_filament_profile": [
         "Anycubic PLA @Anycubic Kobra 3 0.4 nozzle"
     ],
