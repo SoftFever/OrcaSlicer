@@ -1,30 +1,30 @@
 {
     "type": "filament",
-    "name": "COEX PCTG PRIME @base",
-    "inherits": "Generic PCTG @base",
+    "name": "COEX PLA PRIME @base",
+    "inherits": "Generic PLA @base",
     "from": "system",
-	"filament_id": "CXPCTB15",
+	"filament_id": "CXPLAB08",
     "version": "1.0.0.0",
     "is_custom_defined": "0",
     "filament_vendor": "COEX 3D",
-    "filament_cost": "38.00",
-    "filament_density": "1.27",
-    "filament_type": "PCTG",
-    "filament_notes": "High clarity and chemical resistance copolyester",
+    "filament_cost": "32.00",
+    "filament_density": "1.24",
+    "filament_type": "PLA",
+    "filament_notes": "Made with NatureWorks Ingeo 3D850 - improved heat resistance and toughness",
     "nozzle_temperature": [
-        "275"
+        "235"
     ],
     "nozzle_temperature_initial_layer": [
-        "275"
+        "240"
     ],
     "bed_temperature": [
-        "80"
+        "60"
     ],
     "bed_temperature_initial_layer": [
-        "85"
+        "60"
     ],
-    "temperature_vitrification": "80",
-    "filament_max_volumetric_speed": "12",
+    "temperature_vitrification": "60",
+    "filament_max_volumetric_speed": "15",
     "filament_retraction_minimum_travel": [
         "2"
     ],
@@ -38,16 +38,13 @@
         "1"
     ],
     "filament_retraction_length": [
-        "3.5"
+        "1.2"
     ],
     "filament_retraction_speed": [
-        "35"
+        "50"
     ],
     "filament_deretraction_speed": [
-        "35"
-    ],
-    "filament_z_hop": [
-        "0.4"
+        "40"
     ],
     "filament_wipe": [
         "1"
@@ -56,31 +53,22 @@
         "2"
     ],
     "fan_min_speed": [
-        "30"
+        "100"
     ],
     "fan_max_speed": [
-        "50"
+        "100"
     ],
     "disable_fan_first_layers": [
-        "2"
+        "1"
     ],
     "full_fan_speed_layer": [
-        "4"
+        "3"
     ],
     "slow_down_layer_time": [
         "5"
     ],
     "slow_down_min_speed": [
         "10"
-    ],
-    "enable_pressure_advance": [
-        "1"
-    ],
-    "pressure_advance": [
-        "0.045"
-    ],
-    "travel_speed": [
-        "300"
     ],
     "compatible_printers": [],
     "compatible_printers_condition": "",

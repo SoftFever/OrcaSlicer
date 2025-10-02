@@ -1,21 +1,21 @@
 {
     "type": "filament",
-    "name": "COEX PCTG PRIME @base",
-    "inherits": "Generic PCTG @base",
+    "name": "COEX PETG @base",
+    "inherits": "Generic PETG @base",
     "from": "system",
-	"filament_id": "CXPCTB15",
+	"filament_id": "CXPETB13",
     "version": "1.0.0.0",
     "is_custom_defined": "0",
     "filament_vendor": "COEX 3D",
-    "filament_cost": "38.00",
+    "filament_cost": "33.00",
     "filament_density": "1.27",
-    "filament_type": "PCTG",
-    "filament_notes": "High clarity and chemical resistance copolyester",
+    "filament_type": "PETG",
+    "filament_notes": "IMPORTANT: Set travel speed to maximum your machine allows (200-500mm/s) to reduce stringing",
     "nozzle_temperature": [
-        "275"
+        "245"
     ],
     "nozzle_temperature_initial_layer": [
-        "275"
+        "250"
     ],
     "bed_temperature": [
         "80"
@@ -23,7 +23,7 @@
     "bed_temperature_initial_layer": [
         "85"
     ],
-    "temperature_vitrification": "80",
+    "temperature_vitrification": "70",
     "filament_max_volumetric_speed": "12",
     "filament_retraction_minimum_travel": [
         "2"
@@ -38,13 +38,13 @@
         "1"
     ],
     "filament_retraction_length": [
-        "3.5"
+        "4"
     ],
     "filament_retraction_speed": [
-        "35"
+        "30"
     ],
     "filament_deretraction_speed": [
-        "35"
+        "30"
     ],
     "filament_z_hop": [
         "0.4"
@@ -80,7 +80,10 @@
         "0.045"
     ],
     "travel_speed": [
-        "300"
+        "500"
+    ],
+    "travel_speed_z": [
+        "0"
     ],
     "compatible_printers": [],
     "compatible_printers_condition": "",

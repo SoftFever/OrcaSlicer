@@ -1,86 +1,95 @@
 {
     "type": "filament",
-    "name": "COEX PCTG PRIME @base",
-    "inherits": "Generic PCTG @base",
+    "name": "COEX TPE 40D @base",
+    "inherits": "Generic TPU @base",
     "from": "system",
-	"filament_id": "CXPCTB15",
+	"filament_id": "CX40DB20",
     "version": "1.0.0.0",
     "is_custom_defined": "0",
     "filament_vendor": "COEX 3D",
-    "filament_cost": "38.00",
-    "filament_density": "1.27",
-    "filament_type": "PCTG",
-    "filament_notes": "High clarity and chemical resistance copolyester",
+    "filament_cost": "80.00",
+    "filament_density": "1.18",
+    "filament_type": "TPU",
+    "filament_notes": "Flexible filament - print slowly with minimal retraction",
     "nozzle_temperature": [
-        "275"
+        "240"
     ],
     "nozzle_temperature_initial_layer": [
-        "275"
+        "240"
     ],
     "bed_temperature": [
-        "80"
-    ],
-    "bed_temperature_initial_layer": [
-        "85"
-    ],
-    "temperature_vitrification": "80",
-    "filament_max_volumetric_speed": "12",
-    "filament_retraction_minimum_travel": [
-        "2"
-    ],
-    "filament_retract_before_wipe": [
-        "70%"
-    ],
-    "filament_retract_layer_change": [
-        "1"
-    ],
-    "filament_retract_when_changing_layer": [
-        "1"
-    ],
-    "filament_retraction_length": [
-        "3.5"
-    ],
-    "filament_retraction_speed": [
-        "35"
-    ],
-    "filament_deretraction_speed": [
-        "35"
-    ],
-    "filament_z_hop": [
-        "0.4"
-    ],
-    "filament_wipe": [
-        "1"
-    ],
-    "filament_wipe_distance": [
-        "2"
-    ],
-    "fan_min_speed": [
         "30"
     ],
+    "bed_temperature_initial_layer": [
+        "35"
+    ],
+    "temperature_vitrification": "60",
+    "filament_max_volumetric_speed": "5.5",
+    "filament_retraction_minimum_travel": [
+        "3"
+    ],
+    "filament_retract_before_wipe": [
+        "0%"
+    ],
+    "filament_retract_layer_change": [
+        "0"
+    ],
+    "filament_retract_when_changing_layer": [
+        "0"
+    ],
+    "filament_retraction_length": [
+        "0.4"
+    ],
+    "filament_retraction_speed": [
+        "20"
+    ],
+    "filament_deretraction_speed": [
+        "20"
+    ],
+    "filament_wipe": [
+        "0"
+    ],
+    "filament_wipe_distance": [
+        "0"
+    ],
+    "fan_min_speed": [
+        "80"
+    ],
     "fan_max_speed": [
-        "50"
+        "100"
     ],
     "disable_fan_first_layers": [
-        "2"
-    ],
-    "full_fan_speed_layer": [
-        "4"
-    ],
-    "slow_down_layer_time": [
-        "5"
-    ],
-    "slow_down_min_speed": [
-        "10"
-    ],
-    "enable_pressure_advance": [
         "1"
     ],
-    "pressure_advance": [
-        "0.045"
+    "full_fan_speed_layer": [
+        "2"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "slow_down_min_speed": [
+        "5"
+    ],
+    "initial_layer_print_speed": [
+        "15"
+    ],
+    "outer_wall_speed": [
+        "25"
+    ],
+    "inner_wall_speed": [
+        "30"
+    ],
+    "infill_speed": [
+        "30"
+    ],
+    "top_surface_speed": [
+        "25"
     ],
     "travel_speed": [
-        "300"
+        "150"
+    ],
+    "enable_pressure_advance": [
+        "0"
     ],
     "compatible_printers": [],
     "compatible_printers_condition": "",
