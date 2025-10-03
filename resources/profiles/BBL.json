@@ -396,10 +396,6 @@
             "sub_path": "process/0.08mm Extra Fine @BBL A1M.json"
         },
         {
-            "name": "0.08mm Extra Fine @BBL H2S",
-            "sub_path": "process/0.08mm Extra Fine @BBL H2S.json"
-        },
-        {
             "name": "0.08mm Extra Fine @BBL P1P",
             "sub_path": "process/0.08mm Extra Fine @BBL P1P.json"
         },
@@ -416,6 +412,10 @@
             "sub_path": "process/0.08mm High Quality @BBL A1M.json"
         },
         {
+            "name": "0.08mm High Quality @BBL H2S",
+            "sub_path": "process/0.08mm High Quality @BBL H2S.json"
+        },
+        {
             "name": "0.08mm High Quality @BBL P1P",
             "sub_path": "process/0.08mm High Quality @BBL P1P.json"
         },
@@ -424,16 +424,16 @@
             "sub_path": "process/0.08mm High Quality @BBL X1C.json"
         },
         {
-            "name": "0.08mm Extra Fine @BBL H2S 0.2 nozzle",
-            "sub_path": "process/0.08mm Extra Fine @BBL H2S 0.2 nozzle.json"
-        },
-        {
             "name": "0.08mm High Quality @BBL A1 0.2 nozzle",
             "sub_path": "process/0.08mm High Quality @BBL A1 0.2 nozzle.json"
         },
         {
             "name": "0.08mm High Quality @BBL A1M 0.2 nozzle",
             "sub_path": "process/0.08mm High Quality @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm High Quality @BBL H2S 0.2 nozzle",
+            "sub_path": "process/0.08mm High Quality @BBL H2S 0.2 nozzle.json"
         },
         {
             "name": "0.08mm High Quality @BBL P1P 0.2 nozzle",
@@ -500,10 +500,6 @@
             "sub_path": "process/0.12mm Fine @BBL A1M.json"
         },
         {
-            "name": "0.12mm Fine @BBL H2S",
-            "sub_path": "process/0.12mm Fine @BBL H2S.json"
-        },
-        {
             "name": "0.12mm Fine @BBL P1P",
             "sub_path": "process/0.12mm Fine @BBL P1P.json"
         },
@@ -518,6 +514,10 @@
         {
             "name": "0.12mm High Quality @BBL A1M",
             "sub_path": "process/0.12mm High Quality @BBL A1M.json"
+        },
+        {
+            "name": "0.12mm High Quality @BBL H2S",
+            "sub_path": "process/0.12mm High Quality @BBL H2S.json"
         },
         {
             "name": "0.12mm High Quality @BBL P1P",
@@ -564,16 +564,16 @@
             "sub_path": "process/0.14mm Standard @BBL X1C 0.2 nozzle.json"
         },
         {
-            "name": "0.16mm Balanced Quality @BBL H2S",
-            "sub_path": "process/0.16mm Balanced Quality @BBL H2S.json"
-        },
-        {
             "name": "0.16mm High Quality @BBL A1",
             "sub_path": "process/0.16mm High Quality @BBL A1.json"
         },
         {
             "name": "0.16mm High Quality @BBL A1M",
             "sub_path": "process/0.16mm High Quality @BBL A1M.json"
+        },
+        {
+            "name": "0.16mm High Quality @BBL H2S",
+            "sub_path": "process/0.16mm High Quality @BBL H2S.json"
         },
         {
             "name": "0.16mm High Quality @BBL P1P",
@@ -624,8 +624,8 @@
             "sub_path": "process/0.18mm Standard @BBL X1C 0.6 nozzle.json"
         },
         {
-            "name": "0.20mm Balanced Strength @BBL H2S",
-            "sub_path": "process/0.20mm Balanced Strength @BBL H2S.json"
+            "name": "0.20mm High Quality @BBL H2S",
+            "sub_path": "process/0.20mm High Quality @BBL H2S.json"
         },
         {
             "name": "0.20mm Standard @BBL A1",
@@ -676,8 +676,8 @@
             "sub_path": "process/0.24mm Standard @BBL H2S.json"
         },
         {
-            "name": "0.24mm Balanced Strength @BBL H2S 0.6 nozzle",
-            "sub_path": "process/0.24mm Balanced Strength @BBL H2S 0.6 nozzle.json"
+            "name": "0.24mm Balanced Quality @BBL H2S 0.6 nozzle",
+            "sub_path": "process/0.24mm Balanced Quality @BBL H2S 0.6 nozzle.json"
         },
         {
             "name": "0.24mm Optimal @BBL A1 0.6 nozzle",
@@ -768,8 +768,8 @@
             "sub_path": "process/0.30mm Strength @BBL X1C 0.6 nozzle.json"
         },
         {
-            "name": "0.32mm Balanced Strength @BBL H2S 0.8 nozzle",
-            "sub_path": "process/0.32mm Balanced Strength @BBL H2S 0.8 nozzle.json"
+            "name": "0.32mm Balanced Quality @BBL H2S 0.8 nozzle",
+            "sub_path": "process/0.32mm Balanced Quality @BBL H2S 0.8 nozzle.json"
         },
         {
             "name": "0.32mm Optimal @BBL A1 0.8 nozzle",
