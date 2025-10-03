@@ -500,6 +500,8 @@ void Tab::create_preset_tab()
 
     m_main_sizer->Add(m_tabctrl, 0, wxEXPAND | wxALL, 0 );
 
+    // Orca: don't show extruder switch for now
+#if 0
     if (dynamic_cast<TabPrinter *>(this) || dynamic_cast<TabPrint *>(this)) {
         m_extruder_switch = new SwitchButton(panel);
         m_extruder_switch->SetMaxSize({em_unit(this) * 24, -1});
@@ -512,6 +514,7 @@ void Tab::create_preset_tab()
         });
         m_main_sizer->Add(m_extruder_switch, 0, wxALIGN_CENTER | wxTOP, m_em_unit);
     }
+#endif
 
     this->SetSizer(m_main_sizer);
     //this->Layout();
