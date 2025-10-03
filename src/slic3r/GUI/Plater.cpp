@@ -212,7 +212,7 @@ wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 #define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(48), FromDIP(48)))
-#define PRINTER_PANEL_SIZE (wxSize(FromDIP(96), FromDIP(68)))
+#define PRINTER_PANEL_SIZE (wxSize(FromDIP(96), FromDIP(98)))
 #define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
 
 static string get_diameter_string(float diameter)
@@ -523,13 +523,13 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     isDual = isDual && isBBL;  // It indicates a multi-extruder layout.
     // Printer - preset
     if (auto sizer = static_cast<wxBoxSizer *>(panel_printer_preset->GetSizer());
-            sizer == nullptr || isBBL != (sizer->GetOrientation() == wxVERTICAL)) {
+            sizer == nullptr /*|| isBBL != (sizer->GetOrientation() == wxVERTICAL)*/) {
         wxBoxSizer *hsizer_printer_btn = new wxBoxSizer(wxHORIZONTAL);
         hsizer_printer_btn->AddStretchSpacer(1);
         hsizer_printer_btn->Add(btn_edit_printer, 0);
         hsizer_printer_btn->Add(btn_connect_printer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(4));
-        combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | (isBBL ? wxALIGN_CENTER_HORIZONTAL : wxALIGN_RIGHT));
-        if (isBBL) {
+        combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | wxALIGN_CENTER_HORIZONTAL);
+        //if (isBBL) {
             wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
             hsizer->AddStretchSpacer(1);
@@ -540,14 +540,14 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
             vsizer->Add(hsizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
             vsizer->Add(combo_printer, 0, wxEXPAND | wxALL, FromDIP(4));
             panel_printer_preset->SetSizer(vsizer);
-        } else {
-            wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-            hsizer->Add(image_printer, 0, wxLEFT | wxALIGN_CENTER, FromDIP(4));
-            hsizer->Add(combo_printer, 1, wxALIGN_CENTRE | wxLEFT | wxRIGHT, FromDIP(6));
-            hsizer->Add(hsizer_printer_btn, 0, wxALIGN_TOP | wxTOP | wxRIGHT, FromDIP(4));
-            hsizer->AddSpacer(FromDIP(10));
-            panel_printer_preset->SetSizer(hsizer);
-        }
+        //} else {
+        //    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+        //    hsizer->Add(image_printer, 0, wxLEFT | wxALIGN_CENTER, FromDIP(4));
+        //    hsizer->Add(combo_printer, 1, wxALIGN_CENTRE | wxLEFT | wxRIGHT, FromDIP(6));
+        //    hsizer->Add(hsizer_printer_btn, 0, wxALIGN_TOP | wxTOP | wxRIGHT, FromDIP(4));
+        //    hsizer->AddSpacer(FromDIP(10));
+        //    panel_printer_preset->SetSizer(hsizer);
+        //}
     }
 
     if (vsizer_printer->GetItemCount() == 0) {
@@ -574,10 +574,10 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
 
     btn_connect_printer->Show(!isBBL);
     btn_sync_printer->Show(isBBL);
-    panel_printer_bed->Show(isBBL);
+    panel_printer_bed->Show(true); // Orca: always show bed type selector
     vsizer_printer->GetItem(2)->GetSizer()->GetItem(1)->Show(isDual);
-    vsizer_printer->GetItem(2)->Show(isBBL && isDual);
-    vsizer_printer->GetItem(3)->Show(isBBL && !isDual);
+    vsizer_printer->GetItem(2)->Show(isDual); // Orca: always show diameter selection
+    vsizer_printer->GetItem(3)->Show(!isDual);
 }
 
 void Sidebar::priv::flush_printer_sync(bool restart)
