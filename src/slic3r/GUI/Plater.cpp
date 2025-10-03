@@ -2266,10 +2266,10 @@ void Sidebar::update_all_preset_comboboxes()
                         bed_type_value = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
                     }
 
-                    p->combo_printer_bed->SelectAndNotify(bed_type_value - 1);
+                   set_bed_type_accord_combox((BedType) bed_type_value);
                 } else {
                     BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-                    p->combo_printer_bed->SelectAndNotify((int) bed_type - 1);
+                    set_bed_type_accord_combox(bed_type);
                 }
             } else {
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":no need reset_bed_type_combox_choices";
@@ -2278,7 +2278,7 @@ void Sidebar::update_all_preset_comboboxes()
     } else {
         // m_bed_type_list->SelectAndNotify(btPEI - 1);
         BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-        p->combo_printer_bed->SelectAndNotify((int) bed_type - 1);
+        set_bed_type_accord_combox(bed_type);
         p->combo_printer_bed->Disable();
     }
 
