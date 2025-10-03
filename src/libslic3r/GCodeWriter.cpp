@@ -384,7 +384,7 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq, st
         }
     } else if (FLAVOR_IS(gcfRepRapFirmware)) {
         gcode << "M593";
-        if (!type.empty() && type != "Default") {
+        if (!type.empty() && type != "Default" && type != "DAA") {
             gcode << " P\"" << type << "\"";
         }
         if (freq > 0.0f) {

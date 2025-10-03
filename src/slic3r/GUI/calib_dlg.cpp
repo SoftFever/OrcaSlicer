@@ -39,7 +39,7 @@ std::vector<std::string> get_shaper_type_values()
             case GCodeFlavor::gcfKlipper:
                 return {"Default", "MZV", "ZV", "ZVD", "EI", "2HUMP_EI", "3HUMP_EI"};
             case GCodeFlavor::gcfRepRapFirmware:
-                return {"Default", "MZV", "ZVD", "ZVDD", "ZVDDD", "EI2", "EI3"};
+                return {"Default", "MZV", "ZVD", "ZVDD", "ZVDDD", "EI2", "EI3", "DAA"};
             case GCodeFlavor::gcfMarlinFirmware:
                 return {"ZV"};
             default:
