@@ -264,7 +264,7 @@ The build system supports multiple Linux distributions including Ubuntu/Debian a
    ./build_linux.sh -d
    ```
 
-3. **Build OrcaSlicer:**
+3. **Build OrcaSlicer with tests:**
    ```shell
    ./build_linux.sh -s
    ```
@@ -276,14 +276,15 @@ The build system supports multiple Linux distributions including Ubuntu/Debian a
 
 5. **All-in-one build (recommended):**
    ```shell
-   ./build_linux.sh -dsi
+   ./build_linux.sh -dsti
    ```
 
 **Additional build options:**
 
-- `-b`: Build in debug mode
+- `-b`: Build in debug mode (mostly broken at runtime for a long time; avoid unless you want to be fixing failed assertions)
 - `-c`: Force a clean build
 - `-C`: Enable ANSI-colored compile output (GNU/Clang only)
+- `-g`: Build with symbols
 - `-j N`: Limit builds to N cores (useful for low-memory systems)
 - `-1`: Limit builds to one core
 - `-l`: Use Clang instead of GCC
@@ -294,10 +295,14 @@ The build system supports multiple Linux distributions including Ubuntu/Debian a
 > The build script automatically detects your Linux distribution and uses the appropriate package manager (apt, pacman) to install dependencies.
 
 > [!TIP]
-> For first-time builds, use `./build_linux.sh -u` to install dependencies, then `./build_linux.sh -dsi` to build everything.
+> For first-time builds, use `./build_linux.sh -u` to install dependencies, then `./build_linux.sh -dsti` to build everything.
 
 > [!WARNING]
-> If you encounter memory issues during compilation, use `-j 1` or `-1` to limit parallel compilation, or `-r` to skip memory checks.
+> If you encounter memory issues during compilation, use `-j 1` or `-1` to limit parallel compilation and `-r` to skip memory checks.
+
+#### Unit Testing
+
+See [How to Test](How-to-test) for more details.
 
 ---
 
