@@ -819,8 +819,32 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     auto type_labels = make_shaper_type_labels();
     m_rbType = new RadioGroup(this, type_labels, wxVERTICAL, 2);
     type_box->Add(m_rbType, 0, wxALL | wxEXPAND, FromDIP(4));
-    v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     m_rbType->SetSelection(0);
+
+    // Determine firmware-specific note
+    wxString firmware_note = "Please ensure the selected type is compatible with your firmware version.";
+    if (gcode_flavor_option) {
+        switch (gcode_flavor_option->value) {
+        case GCodeFlavor::gcfMarlinFirmware:
+        case GCodeFlavor::gcfMarlinLegacy:
+            firmware_note = "Requires version 2.1.2 or higher\nFixed-Time motion not yet implemented";
+            break;
+        case GCodeFlavor::gcfKlipper:
+            firmware_note = "Minimum Klipper version: 0.9.0";
+            break;
+        case GCodeFlavor::gcfRepRapFirmware:
+            firmware_note = "Check compatibility with your installed version";
+            break;
+        default:
+            break;
+        }
+    }
+
+    auto type_note = new wxStaticText(this, wxID_ANY, firmware_note, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    type_note->SetForegroundColour(wxColour(128, 128, 128));
+    type_box->Add(type_note, 0, wxALL, FromDIP(5));
+
+    v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
 
     // Settings
     wxString x_axis_str = reprap_firmware ? _L("Frequency (Start / End): ") : "X " + _L("Start / End") + ": ";
@@ -886,8 +910,7 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     
     settings_sizer->AddSpacer(FromDIP(5));
 
-    // Add a note explaining that 0 means use default value
-    auto note_text = new wxStaticText(this, wxID_ANY, _L("Recommended: Set Damp to 0.\nThis will use the printer's default or the last saved value."), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    auto note_text = new wxStaticText(this, wxID_ANY, _L("Recommended: Set Damp to 0.\nThis will use the printer's default or saved value."), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     note_text->SetForegroundColour(wxColour(128, 128, 128));
     settings_sizer->Add(note_text, 0, wxALL, FromDIP(5));
 
@@ -1006,8 +1029,32 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     auto type_labels = make_shaper_type_labels();
     m_rbType = new RadioGroup(this, type_labels, wxVERTICAL, 2);
     type_box->Add(m_rbType, 0, wxALL | wxEXPAND, FromDIP(4));
-    v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     m_rbType->SetSelection(0);
+
+    // Determine firmware-specific note
+    wxString firmware_note = "Check firmware compatibility.";
+    if (gcode_flavor_option) {
+        switch (gcode_flavor_option->value) {
+        case GCodeFlavor::gcfMarlinFirmware:
+        case GCodeFlavor::gcfMarlinLegacy:
+            firmware_note = "Requires version 2.1.2 or higher\nFixed-Time motion not yet implemented";
+            break;
+        case GCodeFlavor::gcfKlipper:
+            firmware_note = "Minimum Klipper version: 0.9.0";
+            break;
+        case GCodeFlavor::gcfRepRapFirmware:
+            firmware_note = "Check compatibility with your installed version\n";
+            break;
+        default:
+            break;
+        }
+    }
+
+    auto type_note = new wxStaticText(this, wxID_ANY, firmware_note, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    type_note->SetForegroundColour(wxColour(128, 128, 128));
+    type_box->Add(type_note, 0, wxALL, FromDIP(5));
+
+    v_sizer->Add(type_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
 
     // Settings
     wxString freq_str = reprap_firmware ? _L("Frequency: ") : _L("Frequency") + " X / Y: ";
