@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 21:06+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -69,7 +69,7 @@ msgid "Left mouse button"
 msgstr "Tasto sinistro mouse"
 
 msgid "Enforce supports"
-msgstr "Rinforzi supporti"
+msgstr "Supporti di rinforzo"
 
 msgid "Right mouse button"
 msgstr "Tasto destro mouse"
@@ -1821,10 +1821,10 @@ msgid "Add modifier"
 msgstr "Aggiungi modificatore"
 
 msgid "Add support blocker"
-msgstr "Aggiungi blocco supporto"
+msgstr "Aggiungi divieto di supporto"
 
 msgid "Add support enforcer"
-msgstr "Aggiungi rinforzo supporto"
+msgstr "Aggiungi supporto di rinforzo"
 
 msgid "Add text"
 msgstr "Aggiungi testo"
@@ -2358,7 +2358,7 @@ msgid "Support Blocker"
 msgstr "Blocco Supporto"
 
 msgid "Support Enforcer"
-msgstr "Rinforzo Supporto"
+msgstr "Supporto di rinforzo"
 
 msgid "Type:"
 msgstr "Tipo:"
@@ -4301,7 +4301,7 @@ msgid "Layer Time"
 msgstr "Durata strato"
 
 msgid "Layer Time (log)"
-msgstr "Durata strato (registro)"
+msgstr "Durata strato (log)"
 
 msgid "Height: "
 msgstr "Altezza: "
@@ -6311,6 +6311,17 @@ msgstr ""
 
 msgid "Load 3mf"
 msgstr "Carica 3mf"
+
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -9030,11 +9041,11 @@ msgstr "Mostra elenco scorciatoie da tastiera"
 msgid "Global shortcuts"
 msgstr "Scorciatoie globali"
 
-msgid "Rotate View"
-msgstr "Ruota vista"
-
 msgid "Pan View"
 msgstr "Vista panoramica"
+
+msgid "Rotate View"
+msgstr "Ruota vista"
 
 msgid "Zoom View"
 msgstr "Ingrandimento vista"
