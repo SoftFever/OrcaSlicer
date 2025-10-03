@@ -363,7 +363,7 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq, st
     std::ostringstream gcode;
     if (FLAVOR_IS(gcfKlipper)) {
         gcode << "SET_INPUT_SHAPER";
-        if (!type.empty()) {
+        if (!type.empty() && type != "Default") {
                 gcode << " SHAPER_TYPE=" << type;
         }
         if (axis != 'A')
@@ -384,7 +384,7 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq, st
         }
     } else if (FLAVOR_IS(gcfRepRapFirmware)) {
         gcode << "M593";
-        if (!type.empty()) {
+        if (!type.empty() && type != "Default") {
             gcode << " P\"" << type << "\"";
         }
         if (freq > 0.0f) {
