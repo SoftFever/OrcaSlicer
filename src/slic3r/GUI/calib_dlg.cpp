@@ -37,7 +37,7 @@ std::vector<std::string> get_shaper_type_values()
         if (auto* gcode_flavor_option = printer_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")) {
             switch (gcode_flavor_option->value) {
             case GCodeFlavor::gcfKlipper:
-                return {"Default", "MZV", "ZV", "ZVD", "EI", "2HUMP_EI", "3HUMP_EI"};
+                return {"Default", "ZV", "MZV", "ZVD", "EI", "2HUMP_EI", "3HUMP_EI"};
             case GCodeFlavor::gcfRepRapFirmware:
                 return {"Default", "MZV", "ZVD", "ZVDD", "ZVDDD", "EI2", "EI3", "DAA"};
             case GCodeFlavor::gcfMarlinFirmware:
