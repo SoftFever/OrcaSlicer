@@ -3546,8 +3546,30 @@ void Sidebar::update_printer_thumbnail()
     std::string printer_type    = selected_preset.get_current_printer_type(preset_bundle);
     if (printer_thumbnails.find(printer_type) != printer_thumbnails.end())
         p->image_printer->SetBitmap(create_scaled_bitmap(printer_thumbnails[printer_type], this, 48));
-    else
+    else {
+        // Orca: try to use the printer model cover as the thumbnail
+        const auto model_name = selected_preset.config.opt_string("printer_model");
+        std::string cover_file = model_name + "_cover.png";
+        for (auto vendor_profile : preset_bundle->vendors) {
+            for (auto vendor_model : vendor_profile.second.models) {
+                if (vendor_model.name == model_name) {
+                    // Try to find the printer cover
+                    boost::filesystem::path cover_path = boost::filesystem::absolute(boost::filesystem::path(resources_dir()) /
+                                                                                     "/profiles/" / vendor_profile.second.id / cover_file)
+                                                             .make_preferred();
+                    if (boost::filesystem::exists(cover_path)) {
+                        try {
+                            p->image_printer->SetBitmap(create_scaled_bitmap(cover_path.string(), this, 48));
+                            printer_thumbnails[printer_type] = cover_path.string(); // Cache the path so we don't look up again
+                            return;
+                        } catch (...) {}
+                    }
+                }
+            }
+        }
         p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, 48));
+        printer_thumbnails[printer_type] = "printer_placeholder"; // Avoid unnecessary try
+    }
 }
 
 void Sidebar::auto_calc_flushing_volumes(const int filament_idx, const int extruder_id) {
