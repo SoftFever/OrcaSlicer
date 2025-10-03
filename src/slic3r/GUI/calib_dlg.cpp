@@ -827,13 +827,13 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
         switch (gcode_flavor_option->value) {
         case GCodeFlavor::gcfMarlinFirmware:
         case GCodeFlavor::gcfMarlinLegacy:
-            firmware_note = "Requires version 2.1.2 or higher\nFixed-Time motion not yet implemented";
+            firmware_note = "Marlin version => 2.1.2\nFixed-Time motion not yet implemented.";
             break;
         case GCodeFlavor::gcfKlipper:
-            firmware_note = "Minimum Klipper version: 0.9.0";
+            firmware_note = "Klipper version => 0.9.0";
             break;
         case GCodeFlavor::gcfRepRapFirmware:
-            firmware_note = "Check compatibility with your installed version";
+            firmware_note = "RepRap firmware version => 3.4.0\nCheck your firmware documentation for supported shaper types.";
             break;
         default:
             break;
@@ -1037,13 +1037,13 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
         switch (gcode_flavor_option->value) {
         case GCodeFlavor::gcfMarlinFirmware:
         case GCodeFlavor::gcfMarlinLegacy:
-            firmware_note = "Requires version 2.1.2 or higher\nFixed-Time motion not yet implemented";
+            firmware_note = "Marlin version => 2.1.2\nFixed-Time motion not yet implemented.";
             break;
         case GCodeFlavor::gcfKlipper:
-            firmware_note = "Minimum Klipper version: 0.9.0";
+            firmware_note = "Klipper version => 0.9.0";
             break;
         case GCodeFlavor::gcfRepRapFirmware:
-            firmware_note = "Check compatibility with your installed version\n";
+            firmware_note = "RepRap firmware version => 3.4.0\nCheck your firmware documentation for supported shaper types.";
             break;
         default:
             break;
