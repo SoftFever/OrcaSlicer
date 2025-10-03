@@ -6,6 +6,8 @@ During high-speed movements, vibrations can cause a phenomenon called "ringing,"
 > RepRap can only set one frequency for both X and Y axes so you will need to select a frequency that works well for both axes.
 
 - [Types](#types)
+  - [Default](#default)
+  - [Version Table](#version-table)
 - [Calibration Steps](#calibration-steps)
   - [Fixed-Time Motion](#fixed-time-motion)
 - [Credits](#credits)
@@ -13,22 +15,33 @@ During high-speed movements, vibrations can cause a phenomenon called "ringing,"
 ## Types
 
 It is usually recommended to use MZV, EI (specially for Delta printers) or ZV as a simple and effective solution.  
-Not all Input Shaping types are available in all firmwares and their performance may vary depending on the firmware implementation and the printer's mechanics.
+Not all Input Shaping types are available in all firmware and their performance may vary depending on the firmware implementation and the printer's mechanics.
 
-The following table summarizes the available types and their compatibility:
+### Default
 
-| Type             | Name                             | [Klipper](https://www.klipper3d.org/Resonance_Compensation.html#technical-details) | [RepRap](https://docs.duet3d.com/User_manual/Reference/Gcodes#m593-configure-input-shaping) | [Marlin 2](https://marlinfw.org/docs/features/ft_motion.html#more-complexity-zv-input-shaper) | Marlin Legacy |
-|------------------|----------------------------------|---------|--------|----------|---------------|
-| MZV              | Modified Zero Vibration          | >=0.9.0 | >=3.4  | -        | -             |
-| ZV               | Zero Vibration                   | >=0.9.0 | 3.5    | >2.1.2   | -             |
-| ZVD              | Zero Vibration Derivative        | >=0.9.0 | >=3.4  | -        | -             |
-| ZVDD             | Zero Vibration Double Derivative | -       | >=3.4  | -        | -             |
-| ZVDDD            | Zero Vibration Triple Derivative | -       | >=3.4  | -        | -             |
-| EI               | Extra Insensitive                | >=0.9.0 | -      | -        | -             |
-| 2HUMP_EI / EI2   | Two-Hump Extra Insensitive       | >=0.9.0 | >=3.4  | -        | -             |
-| 3HUMP_EI   / EI3 | Three-Hump Extra Insensitive     | >=0.9.0 | >=3.4  | -        | -             |
-| [FT_MOTION](https://marlinfw.org/docs/features/ft_motion.html#fixed-time-motion-by-ulendo)        | Fixed-Time Motion                | -       | -      | >2.1.3   | -             |
-| DAA              | Damped Anti-Resonance            | -       | < 3.4  | -        | -             |
+When "Default" is selected, the firmware's default input shaper will be used.  
+Every firmware and even its version may have a different default type but usually are:
+
+- Klipper: MZV
+- Marlin: ZV
+- RepRap:
+  - Version >= 3.4: MZV
+  - Version < 3.4: DAA
+
+### Version Table
+
+| Type | Name | [Klipper](https://www.klipper3d.org/Resonance_Compensation.html#technical-details) | [RepRap](https://docs.duet3d.com/User_manual/Reference/Gcodes#m593-configure-input-shaping) | [Marlin 2](https://marlinfw.org/docs/features/ft_motion.html#more-complexity-zv-input-shaper) | Marlin Legacy |
+|---|---|---|---|---|---|
+| MZV | Modified Zero Vibration | >=0.9.0 | >=3.4 | - | - |
+| ZV | Zero Vibration | >=0.9.0 | 3.5 | >2.1.2 | - |
+| ZVD | Zero Vibration Derivative | >=0.9.0 | >=3.4 | - | - |
+| ZVDD | Zero Vibration Double Derivative | - | >=3.4 | - | - |
+| ZVDDD | Zero Vibration Triple Derivative | - | >=3.4 | - | - |
+| EI | Extra Insensitive | >=0.9.0 | - | - | - |
+| 2HUMP_EI / EI2 | Two-Hump Extra Insensitive | >=0.9.0 | >=3.4 | - | - |
+| 3HUMP_EI / EI3 | Three-Hump Extra Insensitive | >=0.9.0 | >=3.4 | - | - |
+| [FT_MOTION](https://marlinfw.org/docs/features/ft_motion.html#fixed-time-motion-by-ulendo) | Fixed-Time Motion | - | - | >2.1.3 | - |
+| DAA | Damped Anti-Resonance | - | < 3.4 | - | - |
 
 ## Calibration Steps
 
