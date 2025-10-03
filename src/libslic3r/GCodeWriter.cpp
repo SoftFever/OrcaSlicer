@@ -385,7 +385,6 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq, st
     } else if (FLAVOR_IS(gcfRepRapFirmware)) {
         gcode << "M593";
         if (!type.empty() && type != "Default") {
-            std::transform(type.begin(), type.end(), type.begin(), ::tolower);// RepRapFirmware expects lowercase input shaper type
             gcode << " P\"" << type << "\"";
         }
         if (freq > 0.0f) {
