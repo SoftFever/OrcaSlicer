@@ -69,12 +69,12 @@ If this option is enabled, the tile will be placed in the center of the surface.
 
 Option to overlap the adjacent row by half a tile.
 
-## Сenter of surface pattern
+## Center of surface pattern
 
 Align assembly/model center to the top and bottom surfaces of polar patterns such as Octagram Spirals or Archimedean Chords. Need for aesthetic purpose.
 There are 3 alignment options:
 - Each Surface - each surface will contain its own center
-- Each Model - the common center will be located in the geometric outline of all surfaces ща the model
+- Each Model - the common center will be located in the geometric outline of all surfaces in the model
 - Each Assemply - the common center will be located in the geometric contour of all independent models of one assembly
 
 > [!NOTE]
