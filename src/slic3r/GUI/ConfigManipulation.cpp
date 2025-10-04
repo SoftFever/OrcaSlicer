@@ -393,6 +393,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
             if (config->opt_bool("independent_support_layer_height"))
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
+
+            // Orca:
+            // FIXME: independent_support_layer_height and tree_support_adaptive_layer_height serve the same purpose.
+            // It would be great to have only one variable instead of two.
+            if (config->opt_bool("tree_support_adaptive_layer_height"))
+                new_conf.set_key_value("tree_support_adaptive_layer_height", new ConfigOptionBool(false));
         }
         else
             new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(false));
