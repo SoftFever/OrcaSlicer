@@ -40,8 +40,8 @@ Sets the rotation of the patchwork on the surface.
 ### Alternate tiles direction
 
 It sets an additional/alternate rotation angle of the tiles inside the masonry.
-Keep in mind that the initial angle is set by the parameter [Solid Infill Direction].
-The [Alternate tiles direction] field allows you to perform several tricks using various instructions:
+Keep in mind that the initial angle is set by the parameter \[Solid Infill Direction\].
+The \[Alternate tiles direction\] field allows you to perform several tricks using various instructions:
 - when you enter a unsigned number, such as '15', this angle will be added to the existing angle.
 - when you enter a signed number, such as '+15' or '-15', each subsequent tile will rotate by that range
 - when you enter the instruction '+0' or '360', each subsequent tile will rotate by a random angle
@@ -49,7 +49,7 @@ The [Alternate tiles direction] field allows you to perform several tricks using
 ### Height and Width of tiles
 
 Parameters that set the tile size. This size is defined in standard infill lines.
-For all upper surfaces, it is calculated from the line width of [Top surface], and for the bottom surface it calculated from the line width of [First layer].
+For all upper surfaces, it is calculated from the line width of \[Top surface\], and for the bottom surface it calculated from the line width of \[First layer\].
 
 For example, if the line width is 0.4 mm, then 20 lines are 8 mm in the natural size.
 
