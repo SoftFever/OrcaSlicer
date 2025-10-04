@@ -42,9 +42,9 @@ Sets the rotation of the patchwork on the surface.
 It sets an additional/alternate rotation angle of the tiles inside the masonry.
 Keep in mind that the initial angle is set by the parameter _Solid Infill Direction_.
 The _Alternate tiles direction_ field allows you to perform several tricks using various instructions:
-- when you enter a unsigned number, such as '15', this angle will be added to the existing angle.
-- when you enter a signed number, such as '+15' or '-15', each subsequent tile will rotate by that range
-- when you enter the instruction '+0' or '360', each subsequent tile will rotate by a random angle
+- when you enter a unsigned number, such as `15`, this angle will be added to the existing angle.
+- when you enter a signed number, such as `+15` or `-15`, each subsequent tile will rotate by that range
+- when you enter the instruction `+0` or `360`, each subsequent tile will rotate by a random angle
 
 ### Height and Width of tiles
 
