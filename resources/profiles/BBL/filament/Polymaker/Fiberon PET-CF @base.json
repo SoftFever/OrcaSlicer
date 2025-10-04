@@ -41,23 +41,26 @@
     "filament_vendor": [
         "Polymaker"
     ],
+    "filament_adhesiveness_category": [
+        "800"
+    ],
     "hot_plate_temp": [
         "70"
     ],
     "hot_plate_temp_initial_layer": [
         "70"
     ],
+    "nozzle_temperature_range_low": [
+        "270"
+    ],
+    "nozzle_temperature_range_high": [
+        "300"
+    ],
     "nozzle_temperature": [
         "300"
     ],
     "nozzle_temperature_initial_layer": [
         "300"
-    ],
-    "nozzle_temperature_range_high": [
-        "300"
-    ],
-    "nozzle_temperature_range_low": [
-        "270"
     ],
     "required_nozzle_HRC": [
         "40"

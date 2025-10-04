@@ -352,7 +352,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         NetworkAgent* agent = wxGetApp().getAgent();
         AppConfig* config = GUI::wxGetApp().app_config;
         if (agent) {
-            MessageDialog msg_wingow(this, _L("Changing the region will log out your account.\n") + "\n" + _L("Do you want to continue?"), L("Region selection"),
+            MessageDialog msg_wingow(this, _L("Changing the region will log out your account.\n") + "\n" + _L("Do you want to continue?"), _L("Region selection"),
                                      wxICON_QUESTION | wxOK | wxCANCEL);
             if (msg_wingow.ShowModal() == wxID_CANCEL) {
                 combobox->SetSelection(current_region);
@@ -829,6 +829,43 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
+        if (param == "enable_high_low_temp_mixed_printing") {
+            if (checkbox->GetValue()) {
+                const wxString warning_title = _L("Bed Temperature Difference Warning");
+                const wxString warning_message = 
+                    _L("Using filaments with significantly different temperatures may cause:\n"
+                        "• Extruder clogging\n"
+                        "• Nozzle damage\n"
+                        "• Layer adhesion issues\n\n"
+                        "Continue with enabling this feature?");
+                std::function<void(const wxString&)> link_callback = [](const wxString&) {
+                            const std::string lang_code = wxGetApp().app_config->get("language");
+                            const wxString region = (lang_code.find("zh") != std::string::npos) ? L"zh" : L"en";
+                            const wxString wiki_url = wxString::Format(
+                                L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit",
+                                region
+                            );
+                            wxGetApp().open_browser_with_warning_dialog(wiki_url);
+                            };
+
+                MessageDialog msg_dialog(
+                    nullptr,
+                    warning_message,
+                    warning_title,
+                    wxICON_WARNING | wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE,
+                    wxEmptyString,
+                    _L("Click Wiki for help."),
+                    link_callback
+                );
+
+                if (msg_dialog.ShowModal() != wxID_YES) {
+                    checkbox->SetValue(false);
+                    app_config->set_bool(param, false);
+                    app_config->save();
+                }
+            }
+        }
+
         e.Skip();
     });
 
@@ -1024,21 +1061,6 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     SetBackgroundColour(*wxWHITE);
     create();
     wxGetApp().UpdateDlgDarkUI(this);
-    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
-        try {
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) {
-                json j;
-                std::string value;
-                value = wxGetApp().app_config->get("auto_calculate");
-                j["auto_flushing"] = value;
-                value = wxGetApp().app_config->get("auto_calculate_when_filament_change");
-                j["auto_calculate_when_filament_change"] = value;
-                agent->track_event("preferences_changed", j.dump());
-            }
-        } catch(...) {}
-        event.Skip();
-        });
 }
 
 void PreferencesDialog::create()
@@ -1207,19 +1229,20 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_show_splash_screen = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), 50, "show_splash_screen");
     auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
 
-    auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time the color changed."), page, _L("If enabled, auto-calculate every time the color changed."), 50, "auto_calculate");
-    auto item_calc_in_long_retract = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the filament is changed."), page, _L("If enabled, auto-calculate every time when filament is changed"), 50, "auto_calculate_when_filament_change");
+    std::vector<wxString> FlushOptions = {_L("all"),_L("color change"),_L("disabled")};
+    auto item_auto_flush = create_item_combobox(_L("Auto Flush"), page ,_L("Auto calculate flush volumes"), "auto_calculate_flush",FlushOptions);
     auto item_remember_printer_config = create_item_checkbox(_L("Remember printer configuration"), page, _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), 50, "remember_printer_config");
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management (Take effect after restarting Orca Slicer)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
+    auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), page, _L("With this option enabled, you can print materials with a large temperature difference together."), 50, "enable_high_low_temp_mixed_printing");
+    auto item_restore_hide_pop_ups = create_item_button(_L("Clear my choice for synchronizing printer preset after loading the file."), _L("Clear"), page, L"", _L("Clear my choice for synchronizing printer preset after loading the file."), []() {
+        wxGetApp().app_config->erase("app", "sync_after_load_file_show_flag");
+    });
     auto item_auto_arrange  = create_item_checkbox(_L("Auto arrange plate after cloning"), page, _L("Auto arrange plate after object cloning"), 50, "auto_arrange");
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto title_network = create_item_title(_L("Network"), page, _L("Network"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets (Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
     auto item_system_sync        = create_item_checkbox(_L("Update built-in Presets automatically."), page, _L("System Sync"), 50, "sync_system_preset");
-    auto item_save_presets = create_item_button(_L("Clear my choice on the unsaved presets."), _L("Clear"), page, L"", _L("Clear my choice on the unsaved presets."), []() {
-        wxGetApp().app_config->set("save_preset_choise", "");
-    });
 
 #ifdef _WIN32
     auto title_associate_file = create_item_title(_L("Associate files to OrcaSlicer"), page, _L("Associate files to OrcaSlicer"));
@@ -1275,6 +1298,13 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
 #endif
 
+#if 0
+    auto title_filament_group = create_item_title(_L("Filament Grouping"), page, _L("Filament Grouping"));
+    //temporarily disable it
+    //auto item_ignore_ext_filament = create_item_checkbox(_L("Ignore ext filament when auto grouping"), page, _L("Ignore ext filament when auto grouping"), 50, "ignore_ext_filament_when_group");
+    auto item_pop_up_filament_map_dialog = create_item_checkbox(_L("Pop up to select filament grouping mode"), page, _L("Pop up to select filament grouping mode"), 50, "pop_up_filament_map_dialog");
+#endif
+
     auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
     auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
@@ -1283,6 +1313,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_auto_flush, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_default_page, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_camera_navigation_style, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
@@ -1293,16 +1324,15 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(camera_orbit_mult, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_splash_screen, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_calc_in_long_retract, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_step_mesh_setting, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_auto_arrange, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_mix_print_high_low_temperature, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_restore_hide_pop_ups, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_calc_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_system_sync, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_remember_printer_config, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_save_presets, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_network, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_check_stable_version_only, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_stealth_mode, 0, wxTOP, FromDIP(3));
@@ -1345,6 +1375,12 @@ wxWindow* PreferencesDialog::create_general_page()
 #ifdef _WIN32
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
+#endif
+
+#if 0
+    sizer_page->Add(title_filament_group, 0, wxTOP | wxEXPAND, FromDIP(20));
+    //sizer_page->Add(item_ignore_ext_filament, 0, wxEXPAND, FromDIP(3));
+    sizer_page->Add(item_pop_up_filament_map_dialog, 0, wxEXPAND, FromDIP(3));
 #endif
 
     sizer_page->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
