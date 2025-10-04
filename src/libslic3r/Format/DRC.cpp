@@ -4,6 +4,7 @@
 
 #include <boost/iostreams/device/mapped_file.hpp>
 
+#include <draco/compression/encode.h>
 #include <draco/compression/decode.h>
 #include <draco/io/mesh_io.h>
 #include <draco/mesh/mesh.h>
@@ -96,22 +97,69 @@ bool load_drc(const char *path, Model *model, const char *object_name_in)
     return ret;
 }
 
-bool store_drc(const char *path, TriangleMesh *mesh, bool binary)
+bool store_drc(const char *path, TriangleMesh *mesh, int bits, int speed)
 {
-    // TODO
-    return false;
+    try {
+        const std::vector<stl_triangle_vertex_indices>* indices = &(mesh->its.indices);
+        const std::vector<stl_vertex>* vertices = &(mesh->its.vertices);
+        
+        Mesh dracoMesh;
+
+        dracoMesh.set_num_points(vertices->size());
+        
+        GeometryAttribute gaPos;
+        gaPos.Init(GeometryAttribute::POSITION, nullptr, 3, DT_FLOAT32, false, sizeof(float)*3, 0);
+        int32_t idPos = dracoMesh.AddAttribute(gaPos, true, indices->size() * 3);
+        
+        dracoMesh.attribute(idPos)->Resize(vertices->size());
+        
+        for (size_t i = 0; i < vertices->size(); ++ i) {
+            float vertex[3];
+            vertex[0] = vertices->at(i)(0);
+            vertex[1] = vertices->at(i)(1);
+            vertex[2] = vertices->at(i)(2);
+            dracoMesh.attribute(idPos)->SetAttributeValue(AttributeValueIndex(i), vertex);
+        }
+        
+        dracoMesh.SetNumFaces(indices->size());
+        for (size_t i = 0; i < indices->size(); ++ i) {
+            Mesh::Face face;
+            face[0] = PointIndex(indices->at(i)[0]);
+            face[1] = PointIndex(indices->at(i)[1]);
+            face[2] = PointIndex(indices->at(i)[2]);
+            dracoMesh.SetFace(FaceIndex(i), face);
+        }
+        
+        Encoder encoder;
+        encoder.SetSpeedOptions(speed, speed);
+        encoder.SetAttributeQuantization(GeometryAttribute::POSITION, bits);
+        
+        EncoderBuffer buffer;
+        encoder.EncodeMeshToBuffer(dracoMesh, &buffer);
+        
+        FILE* fp = boost::nowide::fopen(path, "wb");
+        if (!fp) return false;
+        size_t written = fwrite(buffer.data(), 1, buffer.size(), fp);
+        fclose(fp);
+        
+        if (written != buffer.size()) return false;
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "store_drc: " << e.what();
+        return false;
+    }
+    return true;
 }
 
-bool store_drc(const char *path, ModelObject *model_object, bool binary)
+bool store_drc(const char *path, ModelObject *model_object, int bits, int speed)
 {
     TriangleMesh mesh = model_object->mesh();
-    return store_drc(path, &mesh, binary);
+    return store_drc(path, &mesh, bits, speed);
 }
 
-bool store_drc(const char *path, Model *model, bool binary)
+bool store_drc(const char *path, Model *model, int bits, int speed)
 {
     TriangleMesh mesh = model->mesh();
-    return store_drc(path, &mesh, binary);
+    return store_drc(path, &mesh, bits, speed);
 }
 
 }; // namespace Slic3r

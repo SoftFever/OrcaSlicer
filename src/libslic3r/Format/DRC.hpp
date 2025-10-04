@@ -11,9 +11,9 @@ class Model;
 extern bool load_drc(const char *path, TriangleMesh *meshptr);
 extern bool load_drc(const char *path, Model *model, const char *object_name = nullptr);
 
-extern bool store_drc(const char *path, TriangleMesh *mesh, bool binary);
-extern bool store_drc(const char *path, ModelObject *model_object, bool binary);
-extern bool store_drc(const char *path, Model *model, bool binary);
+extern bool store_drc(const char *path, TriangleMesh *mesh, int bits, int speed);
+extern bool store_drc(const char *path, ModelObject *model_object, int bits, int speed);
+extern bool store_drc(const char *path, Model *model, int bits, int speed);
 
 }; // namespace Slic3r
 

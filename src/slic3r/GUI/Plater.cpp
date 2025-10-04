@@ -47,6 +47,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
+#include "libslic3r/Format/DRC.hpp"
 #include "libslic3r/Format/STEP.hpp"
 #include "libslic3r/Format/AMF.hpp"
 //#include "libslic3r/Format/3mf.hpp"
@@ -4766,6 +4767,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
     wxString wildcard;
     switch (file_type) {
         case FT_STL:
+        case FT_DRC:
         case FT_AMF:
         case FT_3MF:
         case FT_GCODE:
@@ -4785,6 +4787,12 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         {
             output_file.replace_extension("stl");
             dlg_title = _L("Export STL file:");
+            break;
+        }
+        case FT_DRC:
+        {
+            output_file.replace_extension("drc");
+            dlg_title = _L("Export Draco file:");
             break;
         }
         case FT_AMF:
@@ -12134,6 +12142,225 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
         ; // store failed
     }
 }*/
+
+void Plater::export_drc(bool extended, bool selection_only, bool multi_drcs)
+{
+    if (p->model.objects.empty()) { return; }
+
+    wxString path;
+    int bits = 16;
+    int speed = 0;
+    if (multi_drcs) {
+        wxDirDialog dlg(this, _L("Choose a directory"), from_u8(wxGetApp().app_config->get_last_dir()),
+                        wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+        if (dlg.ShowModal() == wxID_OK) {
+            path = dlg.GetPath() + "/";
+        }
+    } else {
+        path = p->get_export_file(FT_DRC);
+    }
+    if (path.empty()) { return; }
+    const std::string path_u8 = into_u8(path);
+
+    wxBusyCursor wait;
+    const auto& selection = p->get_selection();
+    const auto obj_idx = selection.get_object_idx();
+
+#if EXPORT_WITH_BOOLEAN
+    if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
+        return;
+#else
+    // BBS support selecting multiple objects
+    if (selection_only && selection.is_wipe_tower()) return;
+
+    // BBS
+    if (selection_only) {
+        // only support selection single full object and mulitiple full object
+        if (!selection.is_single_full_object() && !selection.is_multiple_full_object()) return;
+    }
+
+    // Following lambda generates a combined mesh for export with normals pointing outwards.
+    auto mesh_to_export_fff_no_boolean = [this](const ModelObject &mo, int instance_id) {
+        TriangleMesh mesh;
+
+        //Prusa export negative parts
+        std::vector<csg::CSGPart> csgmesh;
+        csgmesh.reserve(2 * mo.volumes.size());
+        csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
+                              csg::mpartsPositive | csg::mpartsNegative | csg::mpartsDoSplits);
+
+        auto csgrange = range(csgmesh);
+        if (csg::is_all_positive(csgrange)) {
+            mesh = TriangleMesh{csg::csgmesh_merge_positive_parts(csgrange)};
+        } else if (std::get<2>(csg::check_csgmesh_booleans(csgrange)) == csgrange.end()) {
+            try {
+                auto cgalm = csg::perform_csgmesh_booleans(csgrange);
+                mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*cgalm);
+            } catch (...) {}
+        }
+
+        if (mesh.empty()) {
+            get_notification_manager()->push_plater_error_notification(
+                _u8L("Unable to perform boolean operation on model meshes. "
+                     "Only positive parts will be exported."));
+
+            for (const ModelVolume* v : mo.volumes)
+                if (v->is_model_part()) {
+                    TriangleMesh vol_mesh(v->mesh());
+                    vol_mesh.transform(v->get_matrix(), true);
+                    mesh.merge(vol_mesh);
+                }
+        }
+        if (instance_id == -1) {
+            TriangleMesh vols_mesh(mesh);
+            mesh = TriangleMesh();
+            for (const ModelInstance *i : mo.instances) {
+                TriangleMesh m = vols_mesh;
+                m.transform(i->get_matrix(), true);
+                mesh.merge(m);
+            }
+        } else if (0 <= instance_id && instance_id < int(mo.instances.size()))
+            mesh.transform(mo.instances[instance_id]->get_matrix(), true);
+        return mesh;
+    };
+#endif
+    auto mesh_to_export_sla = [&, this](const ModelObject& mo, int instance_id) {
+        TriangleMesh mesh;
+
+        const SLAPrintObject *object = this->p->sla_print.get_print_object_by_model_object_id(mo.id());
+
+        if (auto m = object->get_mesh_to_print(); m.empty())
+            mesh = combine_mesh_fff(mo, instance_id, [this](const std::string& msg) {return get_notification_manager()->push_plater_error_notification(msg); });
+        else {
+            const Transform3d mesh_trafo_inv = object->trafo().inverse();
+            const bool is_left_handed = object->is_left_handed();
+
+            auto pad_mesh = extended? object->pad_mesh() : TriangleMesh{};
+            pad_mesh.transform(mesh_trafo_inv);
+
+            auto supports_mesh = extended ? object->support_mesh() : TriangleMesh{};
+            supports_mesh.transform(mesh_trafo_inv);
+
+            const std::vector<SLAPrintObject::Instance>& obj_instances = object->instances();
+            for (const SLAPrintObject::Instance& obj_instance : obj_instances) {
+                auto it = std::find_if(object->model_object()->instances.begin(), object->model_object()->instances.end(),
+                                       [&obj_instance](const ModelInstance *mi) { return mi->id() == obj_instance.instance_id; });
+                assert(it != object->model_object()->instances.end());
+
+                if (it != object->model_object()->instances.end()) {
+                    const bool one_inst_only = selection_only && ! selection.is_single_full_object();
+
+                    const int instance_idx = it - object->model_object()->instances.begin();
+                    const Transform3d& inst_transform = one_inst_only
+                                                            ? Transform3d::Identity()
+                                                            : object->model_object()->instances[instance_idx]->get_transformation().get_matrix();
+
+                    TriangleMesh inst_mesh;
+
+                    if (!pad_mesh.empty()) {
+                        TriangleMesh inst_pad_mesh = pad_mesh;
+                        inst_pad_mesh.transform(inst_transform, is_left_handed);
+                        inst_mesh.merge(inst_pad_mesh);
+                    }
+
+                    if (!supports_mesh.empty()) {
+                        TriangleMesh inst_supports_mesh = supports_mesh;
+                        inst_supports_mesh.transform(inst_transform, is_left_handed);
+                        inst_mesh.merge(inst_supports_mesh);
+                    }
+
+                    TriangleMesh inst_object_mesh = object->get_mesh_to_print();
+
+                    inst_object_mesh.transform(mesh_trafo_inv);
+                    inst_object_mesh.transform(inst_transform, is_left_handed);
+
+                    inst_mesh.merge(inst_object_mesh);
+
+                           // ensure that the instance lays on the bed
+                    inst_mesh.translate(0.0f, 0.0f, -inst_mesh.bounding_box().min.z());
+
+                           // merge instance with global mesh
+                    mesh.merge(inst_mesh);
+
+                    if (one_inst_only)
+                        break;
+                }
+            }
+        }
+
+        return mesh;
+    };
+
+    std::function<TriangleMesh(const ModelObject& mo, int instance_id)>
+        mesh_to_export;
+
+    if (p->printer_technology == ptFFF)
+#if EXPORT_WITH_BOOLEAN
+        mesh_to_export = [this](const ModelObject& mo, int instance_id) {return Plater::combine_mesh_fff(mo, instance_id,
+            [this](const std::string& msg) {return get_notification_manager()->push_plater_error_notification(msg); }); };
+#else
+        mesh_to_export = mesh_to_export_fff_no_boolean;
+#endif
+    else
+        mesh_to_export = mesh_to_export_sla;
+
+    auto get_save_file = [](std::string const & dir, std::string const & name) {
+        auto path = dir + name + ".drc";
+        int n = 1;
+        while (boost::filesystem::exists(path))
+            path = dir + name + "(" + std::to_string(n++) + ").drc";
+        return path;
+    };
+
+    TriangleMesh mesh;
+    if (selection_only) {
+        if (selection.is_single_full_object()) {
+            const auto obj_idx = selection.get_object_idx();
+            const ModelObject* model_object = p->model.objects[obj_idx];
+            if (selection.get_mode() == Selection::Instance)
+                mesh = mesh_to_export(*model_object, (model_object->instances.size() > 1) ? -1 : selection.get_instance_idx());
+            else {
+                const GLVolume* volume = selection.get_first_volume();
+                mesh = model_object->volumes[volume->volume_idx()]->mesh();
+                mesh.transform(volume->get_volume_transformation().get_matrix(), true);
+            }
+
+            if (model_object->instances.size() == 1) mesh.translate(-model_object->origin_translation.cast<float>());
+        }
+        else if (selection.is_multiple_full_object() && !multi_drcs) {
+            const std::set<std::pair<int, int>>& instances_idxs = p->get_selection().get_selected_object_instances();
+            for (const std::pair<int, int>& i : instances_idxs) {
+                ModelObject* object = p->model.objects[i.first];
+                mesh.merge(mesh_to_export(*object, i.second));
+            }
+        }
+        else if (selection.is_multiple_full_object() && multi_drcs) {
+            const std::set<std::pair<int, int>> &instances_idxs = p->get_selection().get_selected_object_instances();
+            for (const std::pair<int, int> &i : instances_idxs) {
+                ModelObject *object = p->model.objects[i.first];
+                auto mesh = mesh_to_export(*object, i.second);
+                mesh.translate(-object->origin_translation.cast<float>());
+
+                Slic3r::store_drc(get_save_file(path_u8, object->name).c_str(), &mesh, bits, speed);
+            }
+            return;
+        }
+    }
+    else if (!multi_drcs) {
+        for (const ModelObject* o : p->model.objects) {
+            mesh.merge(mesh_to_export(*o, -1));
+        }
+    } else {
+        for (const ModelObject* o : p->model.objects) {
+            auto mesh = mesh_to_export(*o, -1);
+            mesh.translate(-o->origin_translation.cast<float>());
+            Slic3r::store_drc(get_save_file(path_u8, o->name).c_str(), &mesh, bits, speed);
+        }
+        return;
+    }
+
+    Slic3r::store_drc(path_u8.c_str(), &mesh, bits, speed);
+}
 
 namespace {
 std::string get_file_name(const std::string &file_path)
