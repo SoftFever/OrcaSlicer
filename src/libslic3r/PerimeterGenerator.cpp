@@ -26,6 +26,9 @@ static const double narrow_loop_length_threshold = 10;
 //we think it's small detail area and will generate smaller line width for it
 static constexpr double SMALLER_EXT_INSET_OVERLAP_TOLERANCE = 0.22;
 
+// Orca #precission_infill: new debug code sections for process visualisation. May delete them if not needed.
+//#define DEBUG_PRECISION_INFILL
+
 namespace Slic3r {
     
 using namespace Slic3r::Feature::FuzzySkin;
@@ -95,6 +98,128 @@ static bool detect_steep_overhang(const PrintRegionConfig *config,
     }
 
     return false;
+}
+
+static ExPolygons get_precision_surface(ExtrusionEntityCollection& entities, ExPolygon& expolygon, ExPolygons& infill, ExPolygons& top_fills, const PerimeterGenerator &perimeter_generator, coord_t resolution = 0) {
+    
+#if defined DEBUG_PRECISION_INFILL
+    static int    i_ifl       = 0;
+    ExPolygons    _top_incom = top_fills;
+    SVG svg_pprec(debug_out_path("Perimeters-precision-infill_Layer-%d_%d.svg", (perimeter_generator.layer_id + 1), ++i_ifl).c_str(), get_extents(expolygon));
+#endif
+
+    ExPolygon                     _new_surface;  // new surface for perimeter generator
+    ExPolygons                    _out_surface;  // new surface for infill manipulations
+    ExPolygons                    _new_infill;   // new infill
+    ExPolygons                    _top_polygons; // new top infill
+
+    coord_t                       _epsylon             = 10; 
+    coord_t                       _scaled_width        = perimeter_generator.perimeter_flow.scaled_width();
+    coord_t                       _scaled_semiwidth    = _scaled_width / 2. + _epsylon;
+    coord_t                       _scaled_quarterwidth = _scaled_width / 4. + _epsylon;
+    coord_t                       _minimum_line        = pow(_scaled_width, 2.) * 0.5;
+
+    ExPolygons _extrusions, _external;
+    ExPolygon  _max_expolygon;
+    for (ExtrusionEntity* _ent : entities) { // get precision paths
+        ExPolygons _expgs = union_ex(_ent->polygons_covered_by_spacing(_epsylon));
+        for (ExPolygon& _expg : _expgs) {
+            _expg.simplify(resolution);
+            if (abs(_expg.area()) > _minimum_line) {
+                if (_ent->role() == erExternalPerimeter) {
+                    if (abs(_expg.contour.area()) > abs(_max_expolygon.contour.area()))
+                        _max_expolygon = _expg;
+                    _external.emplace_back(_expg);
+                }
+                _extrusions.emplace_back(std::move(_expg));
+            }
+        }
+    }
+
+    Polygons _contour; // get overall contour
+    for (auto _line : _extrusions)
+        _contour.emplace_back(_line.contour);
+    _contour = union_(_contour);
+
+    Polygons _holes;
+    for (auto _line : _external) // get inner holes
+        if (_line != _max_expolygon)
+            for (auto _hole : _line.holes) {
+                _hole.make_counter_clockwise();
+                _holes.emplace_back(_hole);
+            }
+
+    _out_surface = union_ex(offset2_ex(diff_ex(_contour, _holes), -_scaled_quarterwidth, _scaled_quarterwidth, ClipperLib::JoinType::jtRound)); // calculate new surface  
+    _new_infill  = union_ex(offset2_ex(diff_ex(_out_surface, _extrusions), -_scaled_quarterwidth, _scaled_quarterwidth, ClipperLib::JoinType::jtRound)); // calculate new infill
+
+    for (ExPolygon& _expg : _out_surface)  // clean-up new surface
+            _expg.simplify(resolution);
+
+    for (ExPolygon& _expg : _new_infill)  // clean-up new infill area
+            _expg.simplify(resolution);
+
+    for (auto _pg : _out_surface) // get main infill expolygon
+        if (abs(_pg.area()) > abs(_new_surface.area()))
+            _new_surface = _pg;
+    
+    ExPolygons _top_fills = union_ex(diff_ex(top_fills, offset2_ex(_extrusions, -_scaled_semiwidth, _scaled_semiwidth)));
+    if (_top_fills.size()) { // calculate new top infill
+        ExPolygons _other_fills;
+        for (ExPolygon _expg : _new_infill) // calculate the overlaid polygons and sort into own sets
+            if (union_ex(intersection_ex(offset_ex(_expg, -_scaled_semiwidth), _top_fills)).size()) // define an area what intersected with old top infill
+                _top_polygons.emplace_back(_expg);
+            else
+                _other_fills.emplace_back(_expg);
+        _new_infill = std::move(_other_fills);
+    }  
+
+#if defined DEBUG_PRECISION_INFILL
+    svg_pprec.draw(expolygon, "silver");                              // initial surface
+    svg_pprec.draw(_new_surface, "sandybrown");                       // new calculated surface
+    svg_pprec.draw(_new_infill, "papayawhip");                        // new calculated infill
+    if (perimeter_generator.upper_slices != NULL)
+        svg_pprec.draw(*perimeter_generator.upper_slices, "thistle"); // incoming upper non-precision surfaces
+    svg_pprec.draw(_top_incom, "darkturquoise");                      // incoming upper non-precision infill contours
+    svg_pprec.draw(_top_fills, "darkmagenta");                        // cropped incoming upper non-precision infill contours
+    svg_pprec.draw(_top_polygons, "red");                             // polygons for new top  
+    svg_pprec.draw(top_fills, "darkseagreen");                        // outcoming top infill
+    
+
+    for (ExtrusionEntity* _ent : entities) { // initial loops
+        std::string _color; 
+        switch (_ent->role()) {
+        case erExternalPerimeter: _color = "orange"; break;
+        case erOverhangPerimeter: _color = "blue"; break;
+        case erPerimeter: _color = "yellow"; break;
+        default : _color = "darkslategrey";
+        }
+        svg_pprec.draw(_ent->as_polyline(), _color, _scaled_width); // extrusion loops
+    }
+
+    svg_pprec.draw(Polyline(_new_surface.contour.points), "orange", _scaled_width * 0.2); // orange contour - new infill polygon with holes
+    for (Polygon _ent2 : _new_surface.holes)
+        svg_pprec.draw(Polyline(_ent2.points), "darkorange", _scaled_width * 0.2);
+
+    for (ExPolygon _ent : _new_infill) {
+        svg_pprec.draw(Polyline(_ent.contour.points), "yellow", _scaled_width * 0.2); // orange contour - new infill polygon with holes
+        for (Polygon _ent2 : _ent.holes)
+            svg_pprec.draw(Polyline(_ent2.points), "darkyellow", _scaled_width * 0.2);
+    }
+
+    for (ExPolygon _ent : _out_surface) {
+        svg_pprec.draw(Polyline(_ent.contour.points), _ent.contour.is_counter_clockwise() ? "magenta" : "darkmagenta", _scaled_width * 0.2); // contour - new surface polygons with holes
+        for (Polygon _ent2 : _ent.holes)
+            svg_pprec.draw(Polyline(_ent2.points), _ent2.is_counter_clockwise() ? "cyan" : "darkcyan", _scaled_width * 0.2); // contour - new surface polygons with holes
+    }
+
+    svg_pprec.Close();
+#endif
+
+    // define output
+    top_fills = std::move(_top_polygons);
+    infill    = std::move(_new_infill);
+    expolygon = std::move(_new_surface);
+    return std::move(_out_surface);
 }
 
 static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls,
@@ -1161,7 +1286,7 @@ void PerimeterGenerator::process_classic()
     // internal flow which is unrelated.
     coord_t min_spacing         = coord_t(perimeter_spacing      * (1 - INSET_OVERLAP_TOLERANCE));
     coord_t ext_min_spacing     = coord_t(ext_perimeter_spacing  * (1 - INSET_OVERLAP_TOLERANCE));
-    bool    has_gap_fill 		= this->config->gap_infill_speed.value > 0;
+    bool    has_gap_fill        = this->config->gap_infill_speed.value > 0 && !this->config->precision_infill.value;
 
     // BBS: this flow is for smaller external perimeter for small area
     coord_t ext_min_spacing_smaller = coord_t(ext_perimeter_spacing * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE));
@@ -1181,7 +1306,7 @@ void PerimeterGenerator::process_classic()
     m_smaller_external_lower_polygons_series = generate_lower_polygons_series(this->smaller_ext_perimeter_flow.width());
     // we need to process each island separately because we might have different
     // extra perimeters for each one
-    Surfaces all_surfaces = this->slices->surfaces;
+    Surfaces& all_surfaces = this->slices->surfaces;
 
     process_no_bridge(all_surfaces, perimeter_spacing, ext_perimeter_width);
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
@@ -1192,7 +1317,7 @@ void PerimeterGenerator::process_classic()
         surface_exp.push_back(surface.expolygon);
     std::vector<size_t> surface_order = chain_expolygons(surface_exp);
     for (size_t order_idx = 0; order_idx < surface_order.size(); order_idx++) {
-        const Surface &surface = all_surfaces[surface_order[order_idx]];
+        Surface& surface = this->slices->surfaces[surface_order[order_idx]]; // Orca #precision_infill: remove const
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
         int sparse_infill_density = this->config->sparse_infill_density.value;
@@ -1208,6 +1333,8 @@ void PerimeterGenerator::process_classic()
         ExPolygons gaps;
         ExPolygons top_fills;
         ExPolygons fill_clip;
+
+
         if (loop_number >= 0) {
             // In case no perimeters are to be generated, loop_number will equal to -1.
             std::vector<PerimeterGeneratorLoops> contours(loop_number+1);    // depth => loops
@@ -1421,6 +1548,10 @@ void PerimeterGenerator::process_classic()
                 steep_overhang_hole    = true;
             }
             ExtrusionEntityCollection entities = traverse_loops(*this, contours.front(), thin_walls, steep_overhang_contour, steep_overhang_hole);
+        
+            if (this->config->precision_infill.value) // Orca #precision_infill: It would be good to set the traverse_loops block before recalculating top_fills, last, and fill_clip
+                fill_clip = get_precision_surface(entities, surface.expolygon, last, top_fills, * this, m_scaled_resolution);
+
             // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
             if (wall_direction != WallDirection::CounterClockwise) {
                 reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole,
@@ -1606,22 +1737,37 @@ void PerimeterGenerator::process_classic()
             (loop_number < 0) ? 0 :
             (loop_number == 0) ?
                 // one loop
-                ext_perimeter_spacing / 2 :
+                ext_perimeter_spacing :
                 // two or more loops?
-                perimeter_spacing / 2;
+                perimeter_spacing ;
         
         // only apply infill overlap if we actually have one perimeter
-        coord_t infill_peri_overlap = 0;
-        coord_t top_infill_peri_overlap = 0;
-        if (inset > 0) {
-            if(this->layer_id == 0 || this->upper_slices == nullptr){
-                infill_peri_overlap = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
-            }else{
-                infill_peri_overlap = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
-                top_infill_peri_overlap = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
-            }
-            inset -= infill_peri_overlap;
+        
+        // Orca #perimeter_generator: The old inaccurate Classic inset algorithm has been removed 
+        //coord_t infill_peri_overlap = 0;
+        //coord_t top_infill_peri_overlap = 0;
+
+        //if (inset > 0) { 
+        //    if(this->layer_id == 0 || this->upper_slices == nullptr){
+        //        infill_peri_overlap = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
+        //    }else{
+        //        infill_peri_overlap = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
+        //        top_infill_peri_overlap = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset + solid_infill_spacing / 2))));
+        //    }
+        //    inset -= infill_peri_overlap;
+        //}
+
+        // Orca #perimeter_generator: ...and replace on the Arachne algorithm
+        coord_t top_inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))));
+        if (this->upper_slices == nullptr || this->layer_id == 0)
+            inset = top_inset; // Orca #bug_infill_overlap: reducing code by already defined variables 
+        else
+            inset = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset))));
+        if (!config->precision_infill) {
+            inset -= solid_infill_spacing / 2.;
+            top_inset += solid_infill_spacing / 2.;
         }
+
         // simplify infill contours according to resolution
         Polygons pp;
         for (ExPolygon &ex : last)
@@ -1632,13 +1778,11 @@ void PerimeterGenerator::process_classic()
 
         ExPolygons infill_exp = offset2_ex(
             not_filled_exp,
-            float(-inset - min_perimeter_infill_spacing / 2.),
-            float(min_perimeter_infill_spacing / 2.));
-        // append infill areas to fill_surfaces
-        //if any top_fills, grow them by ext_perimeter_spacing/2 to have the real un-anchored fill
-        ExPolygons top_infill_exp = intersection_ex(fill_clip, offset_ex(top_fills, double(ext_perimeter_spacing / 2)));
+            float(-min_perimeter_infill_spacing / 2.),
+            float(inset + min_perimeter_infill_spacing / 2.)); //Orca #bug_infill_overlap: append infill areas to fill_surfaces. If any top_fills, grow them by ext_perimeter_spacing/2 to have the real un-anchored fill
+        ExPolygons top_infill_exp = intersection_ex(fill_clip, offset_ex(top_fills, double(top_inset)));
         if (!top_fills.empty()) {
-            infill_exp = union_ex(infill_exp, offset_ex(top_infill_exp, double(top_infill_peri_overlap)));
+            infill_exp = union_ex(infill_exp, top_infill_exp); // Orca #bug_infill_overlap: 
         }
         this->fill_surfaces->append(infill_exp, stInternal);
 
@@ -1647,15 +1791,17 @@ void PerimeterGenerator::process_classic()
         // BBS: get the no-overlap infill expolygons
         {
             ExPolygons polyWithoutOverlap;
-            if (min_perimeter_infill_spacing / 2 > infill_peri_overlap)
-                polyWithoutOverlap = offset2_ex(
-                    not_filled_exp,
-                    float(-inset - min_perimeter_infill_spacing / 2.),
-                    float(min_perimeter_infill_spacing / 2 - infill_peri_overlap));
-            else
-                polyWithoutOverlap = offset_ex(
-                    not_filled_exp,
-                    double(-inset - infill_peri_overlap));
+            //if (min_perimeter_infill_spacing / 2 > infill_peri_overlap) // Orca #perimeter_generator: change the archaic algoritm
+            //    polyWithoutOverlap = offset2_ex(
+            //        not_filled_exp,
+            //        float(-inset - min_perimeter_infill_spacing / 2.),
+            //        float(min_perimeter_infill_spacing / 2 - infill_peri_overlap));
+            //else
+            //    polyWithoutOverlap = offset_ex(
+            //        not_filled_exp,
+            //        double(-inset - infill_peri_overlap));
+            polyWithoutOverlap = offset2_ex(not_filled_exp, float(-min_perimeter_infill_spacing / 2.), float(+min_perimeter_infill_spacing / 2.));
+
             if (!top_fills.empty())
                 polyWithoutOverlap = union_ex(polyWithoutOverlap, top_infill_exp);
             this->fill_no_overlap->insert(this->fill_no_overlap->end(), polyWithoutOverlap.begin(), polyWithoutOverlap.end());
@@ -2099,14 +2245,14 @@ void PerimeterGenerator::process_arachne()
         m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter / 2)));
     }
 
-    Surfaces all_surfaces = this->slices->surfaces;
+    Surfaces& all_surfaces = this->slices->surfaces;
 
     process_no_bridge(all_surfaces, perimeter_spacing, ext_perimeter_width);
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
     double surface_simplify_resolution = (print_config->enable_arc_fitting && !this->has_fuzzy_skin) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
     // we need to process each island separately because we might have different
     // extra perimeters for each one
-    for (const Surface& surface : all_surfaces) {
+    for (Surface& surface : all_surfaces) { // Orca #precision_infill: removed const
         coord_t bead_width_0 = ext_perimeter_spacing;
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
@@ -2451,6 +2597,10 @@ void PerimeterGenerator::process_arachne()
             steep_overhang_hole    = true;
         }
         if (ExtrusionEntityCollection extrusion_coll = traverse_extrusions(*this, ordered_extrusions, steep_overhang_contour, steep_overhang_hole); !extrusion_coll.empty()) {
+
+            if (config->precision_infill)
+                get_precision_surface(extrusion_coll, surface.expolygon, infill_contour, top_expolygons, * this, m_scaled_resolution);
+
             // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
             if (wall_direction != WallDirection::CounterClockwise) {
                 reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole,
@@ -2476,11 +2626,9 @@ void PerimeterGenerator::process_arachne()
             ext_perimeter_spacing :
             // two or more loops?
             perimeter_spacing;
-        coord_t top_inset = inset;
-        
-        top_inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))));
-        if(is_topmost_layer || is_bottom_layer)
-            inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))));
+        coord_t top_inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))));
+        if (is_topmost_layer || is_bottom_layer)
+            inset = top_inset; //Orca #bug_infill_overlap: reducing code by already defined variables 
         else
             inset = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset))));
         

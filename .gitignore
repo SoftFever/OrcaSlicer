@@ -38,4 +38,3 @@ src/OrcaSlicer-doc/
 **/.flatpak-builder/
 resources/profiles/user/default
 *.code-workspace
-deps_src/build/
