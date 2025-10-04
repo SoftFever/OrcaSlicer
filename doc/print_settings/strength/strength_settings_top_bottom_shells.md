@@ -22,6 +22,69 @@ The number of solid layers is increased during slicing if the thickness calculat
 This setting controls the density of the top and bottom surfaces. A value of 100% means a solid surface, while lower values create a sparse surface.  
 This can be used for aesthetic purposes, improving grip or creating interfaces.
 
+## Patchwork surfaces
+
+Patchwork surfaces are a pattern generation mode where you can break up the surface into individual tiles, similar to a patchwork quilt or brickwork.
+You can choose which surface this patchwork pattern can be applied to:
+- Nothere - the patchwork tiling off
+- Bottom - only bottom surface will be modified
+- Topmost - only topmost surface will be modified
+- Topmost and bottom 
+- All Upper - topmost and any upper surfaces
+- Everywhere - topmost, any upper and bottom surfaces
+
+### Patchwork direction
+
+Sets the rotation of the patchwork on the surface.
+
+### Alternate tiles direction
+
+It sets an additional/alternate rotation angle of the tiles inside the masonry.
+Keep in mind that the initial angle is set by the parameter [Solid Infill Direction].
+The [Alternate tiles direction] field allows you to perform several tricks using various instructions:
+- when you enter a unsigned number, such as '15', this angle will be added to the existing angle.
+- when you enter a signed number, such as '+15' or '-15', each subsequent tile will rotate by that range
+- when you enter the instruction '+0' or '360', each subsequent tile will rotate by a random angle
+
+### Height and Width of tiles
+
+Parameters that set the tile size. This size is defined in standard infill lines.
+For all upper surfaces, it is calculated from the line width of [Top surface], and for the bottom surface it calculated from the line width of [First layer].
+
+For example, if the line width is 0.4 mm, then 20 lines are 8 mm in the natural size.
+
+### Width of the horizontal and vertical patchwork joint
+
+This is the size of the intermediate padding between the tiles. It is measured in lines. When the value is positive, the gap is filled with solid lines. When the value is negative, the gap is formed but not filled with lines. A zero value can be used, in which case there is no gap.
+
+### Joints flow ratio
+
+If you want to create less filled seams according to the infill density.
+
+### Patchwork centering
+
+If this option is enabled, the tile will be placed in the center of the surface. Otherwise, the seam will be placed.
+
+### Patchwork subway tiling
+
+Option to overlap the adjacent row by half a tile.
+
+## Сenter of surface pattern
+
+Align assembly/model center to the top and bottom surfaces of polar patterns such as Octagram Spirals or Archimedean Chords. Need for aesthetic purpose.
+There are 3 alignment options:
+- Each Surface - each surface will contain its own center
+- Each Model - the common center will be located in the geometric outline of all surfaces ща the model
+- Each Assemply - the common center will be located in the geometric contour of all independent models of one assembly
+
+> [!NOTE]
+> For patchwork, these options will apply to a portion of the tile, the entire tile, and the entire surface divided into tiles.
+
+## Anisotropic surfaces
+
+Anisotropic patterns on the top and bottom surfaces.
+Co-directional printing mode will be applied. For certain patterns, omni-directional filling provides color dispersion when using multi-colored or silk plastics.
+
 ## Infill/Wall Overlap
 
 The top solid infill area is slightly enlarged to overlap with walls for better bonding and to minimize pinholes where the infill meets the walls.  

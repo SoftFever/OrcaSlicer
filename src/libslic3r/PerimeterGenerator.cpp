@@ -26,7 +26,7 @@ static const double narrow_loop_length_threshold = 10;
 //we think it's small detail area and will generate smaller line width for it
 static constexpr double SMALLER_EXT_INSET_OVERLAP_TOLERANCE = 0.22;
 
-// PPS: new debug code sections for process visualisation. May delete them if not needed.
+// Orca #precission_infill: new debug code sections for process visualisation. May delete them if not needed.
 //#define DEBUG_PRECISION_INFILL
 
 namespace Slic3r {
@@ -1317,7 +1317,7 @@ void PerimeterGenerator::process_classic()
         surface_exp.push_back(surface.expolygon);
     std::vector<size_t> surface_order = chain_expolygons(surface_exp);
     for (size_t order_idx = 0; order_idx < surface_order.size(); order_idx++) {
-        Surface& surface = this->slices->surfaces[surface_order[order_idx]]; // PPS: removed const for precision_infill
+        Surface& surface = this->slices->surfaces[surface_order[order_idx]]; // Orca #precision_infill: remove const
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
         int sparse_infill_density = this->config->sparse_infill_density.value;
@@ -1549,7 +1549,7 @@ void PerimeterGenerator::process_classic()
             }
             ExtrusionEntityCollection entities = traverse_loops(*this, contours.front(), thin_walls, steep_overhang_contour, steep_overhang_hole);
         
-            if (this->config->precision_infill.value) // PPS: It would be good to set the traverse_loops block before recalculating top_fills, last, and fill_clip
+            if (this->config->precision_infill.value) // Orca #precision_infill: It would be good to set the traverse_loops block before recalculating top_fills, last, and fill_clip
                 fill_clip = get_precision_surface(entities, surface.expolygon, last, top_fills, * this, m_scaled_resolution);
 
             // All walls are counter-clockwise initially, so we don't need to reorient it if that's what we want
@@ -1743,7 +1743,7 @@ void PerimeterGenerator::process_classic()
         
         // only apply infill overlap if we actually have one perimeter
         
-        // PPS: The old inaccurate Classic inset algorithm has been removed 
+        // Orca #perimeter_generator: The old inaccurate Classic inset algorithm has been removed 
         //coord_t infill_peri_overlap = 0;
         //coord_t top_infill_peri_overlap = 0;
 
@@ -1757,18 +1757,15 @@ void PerimeterGenerator::process_classic()
         //    inset -= infill_peri_overlap;
         //}
 
-        // PPS: ...and replace on the Arachne algorithm
+        // Orca #perimeter_generator: ...and replace on the Arachne algorithm
         coord_t top_inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))));
-        if (config->precision_infill) {
-            if (this->upper_slices == nullptr || this->layer_id == 0)
-                inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))) + solid_infill_spacing / 2.);
-            else
-                inset = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset))));
-        } else {
-            if (this->upper_slices == nullptr || this->layer_id == 0)
-                inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))));
-            else
-                inset = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset))) - solid_infill_spacing / 2.);
+        if (this->upper_slices == nullptr || this->layer_id == 0)
+            inset = top_inset; // Orca #bug_infill_overlap: reducing code by already defined variables 
+        else
+            inset = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset))));
+        if (!config->precision_infill) {
+            inset -= solid_infill_spacing / 2.;
+            top_inset += solid_infill_spacing / 2.;
         }
 
         // simplify infill contours according to resolution
@@ -1782,10 +1779,10 @@ void PerimeterGenerator::process_classic()
         ExPolygons infill_exp = offset2_ex(
             not_filled_exp,
             float(-min_perimeter_infill_spacing / 2.),
-            float(inset + min_perimeter_infill_spacing / 2.)); //PPS: append infill areas to fill_surfaces. If any top_fills, grow them by ext_perimeter_spacing/2 to have the real un-anchored fill
+            float(inset + min_perimeter_infill_spacing / 2.)); //Orca #bug_infill_overlap: append infill areas to fill_surfaces. If any top_fills, grow them by ext_perimeter_spacing/2 to have the real un-anchored fill
         ExPolygons top_infill_exp = intersection_ex(fill_clip, offset_ex(top_fills, double(top_inset)));
         if (!top_fills.empty()) {
-            infill_exp = union_ex(infill_exp, top_infill_exp); //PPS
+            infill_exp = union_ex(infill_exp, top_infill_exp); // Orca #bug_infill_overlap: 
         }
         this->fill_surfaces->append(infill_exp, stInternal);
 
@@ -1794,7 +1791,7 @@ void PerimeterGenerator::process_classic()
         // BBS: get the no-overlap infill expolygons
         {
             ExPolygons polyWithoutOverlap;
-            //if (min_perimeter_infill_spacing / 2 > infill_peri_overlap) //PPS: change the archaic algoritm
+            //if (min_perimeter_infill_spacing / 2 > infill_peri_overlap) // Orca #perimeter_generator: change the archaic algoritm
             //    polyWithoutOverlap = offset2_ex(
             //        not_filled_exp,
             //        float(-inset - min_perimeter_infill_spacing / 2.),
@@ -2255,7 +2252,7 @@ void PerimeterGenerator::process_arachne()
     double surface_simplify_resolution = (print_config->enable_arc_fitting && !this->has_fuzzy_skin) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
     // we need to process each island separately because we might have different
     // extra perimeters for each one
-    for (Surface& surface : all_surfaces) { // PPS: removed const for precision_infill
+    for (Surface& surface : all_surfaces) { // Orca #precision_infill: removed const
         coord_t bead_width_0 = ext_perimeter_spacing;
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
@@ -2631,7 +2628,7 @@ void PerimeterGenerator::process_arachne()
             perimeter_spacing;
         coord_t top_inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))));
         if (is_topmost_layer || is_bottom_layer)
-           inset = coord_t(scale_(this->config->top_bottom_infill_wall_overlap.get_abs_value(unscale<double>(inset))) + solid_infill_spacing / 2.);
+            inset = top_inset; //Orca #bug_infill_overlap: reducing code by already defined variables 
         else
             inset = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(inset))));
         

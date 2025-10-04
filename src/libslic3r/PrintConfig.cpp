@@ -5591,10 +5591,10 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("anisotropic_surfaces", coBool);
     def->label    = L("Anisotropic surfaces");
     def->category = L("Strength");
-    def->tooltip  = L("Anisotropic patterns on the top and bottom surfaces."
-                      "Cancellation of reverse filling for some patterns to reduce color dispersion when using multi-colored or silk plastics."
+    def->tooltip  = L("Anisotropic patterns on the top and bottom surfaces.\n"
+                      "Co-directional printing mode will be applied. For certain patterns, omni-directional filling provides color dispersion when using multi-colored or silk plastics. "
                       "This option disable the gap fill. "
-                      "This option can increase a printing time.");
+                      "This option can increase a printing time. ");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 

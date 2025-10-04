@@ -84,14 +84,6 @@ Adjust this to fine-tune the transition and prevent issues.
 Sets the finishing flow ratio when ending the spiral. Normally, the flow scales from 100% to 0% during the last loop, which can lead to under-extrusion at the end.  
 Use this to control the ending and ensure consistent extrusion.
 
-### Aesthetic surfaces
-
-Aesthetic patterns on the top and bottom surfaces. Cancellation of reverse filling for some patterns to reduce color dispersion when using multi-colored plastics. This option can increase a printing time.
-
-### Align center of surfaces
-
-Align assembly/model center to the top and bottom surface patterns. Need for aesthetic purpose.
-
 ## Timelapse
 
 WIP...
