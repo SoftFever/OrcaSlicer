@@ -1,65 +1,69 @@
 {
     "type": "filament",
-    "filament_id": "GFN98",
-    "setting_id": "GFSN99",
     "name": "QIDI Support For PAHT",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_filament_pa",
-    "filament_type": ["PAHT-S"],
-    "filament_is_support": ["1"],
+    "from": "system",
+    "setting_id": "GFSN99",
+    "filament_id": "GFN98",
+    "instantiation": "true",
+    "filament_type": [
+        "PAHT-S"
+    ],
+    "filament_is_support": [
+        "1"
+    ],
     "nozzle_temperature_initial_layer": [
-      "280"
+        "280"
     ],
     "nozzle_temperature": [
-      "280"
+        "280"
     ],
     "filament_max_volumetric_speed": [
-      "8"
+        "8"
     ],
     "fan_max_speed": [
-      "60"
+        "60"
     ],
     "fan_min_speed": [
-      "0"
+        "0"
     ],
     "overhang_fan_threshold": [
-      "95%"
+        "95%"
     ],
     "overhang_fan_speed": [
-      "30"
+        "30"
     ],
     "fan_cooling_layer_time": [
-      "10"
+        "10"
     ],
     "full_fan_speed_layer": [
-      "0"
+        "0"
     ],
     "enable_pressure_advance": [
-      "1"
-  ],
-  "pressure_advance": [
-      "0.02"
-  ],
-  "hot_plate_temp_initial_layer" : [
-    "80"
-],
-"hot_plate_temp" : [
-  "80"
-],
-"slow_down_layer_time": [
-  "6"
-],
-"filament_density":[
-  "1.26"
-],
-"temperature_vitrification": [
+        "1"
+    ],
+    "pressure_advance": [
+        "0.02"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "80"
+    ],
+    "hot_plate_temp": [
+        "80"
+    ],
+    "slow_down_layer_time": [
+        "6"
+    ],
+    "filament_density": [
+        "1.26"
+    ],
+    "temperature_vitrification": [
         "180"
     ],
-"filament_flow_ratio": [
-  "0.94"
-],
-"slow_down_min_speed": [
+    "filament_flow_ratio": [
+        "0.94"
+    ],
+    "slow_down_min_speed": [
         "20"
     ],
     "nozzle_temperature_range_low": [
@@ -69,6 +73,6 @@
         "280"
     ],
     "compatible_printers": [
-      "Qidi X-CF Pro 0.4 nozzle"
+        "Qidi X-CF Pro 0.4 nozzle"
     ]
 }

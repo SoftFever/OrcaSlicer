@@ -1,17 +1,21 @@
 {
     "type": "machine",
+    "name": "Anycubic Kobra 2 Neo 0.4 nozzle",
+    "inherits": "fdm_machine_common",
     "from": "system",
     "setting_id": "GM005",
-    "inherits": "fdm_machine_common",
     "instantiation": "true",
     "printer_technology": "FFF",
     "printer_settings_id": "Anycubic Kobra 2 Neo 0.4 nozzle",
     "printer_model": "Anycubic Kobra 2 Neo",
     "printer_variant": "0.4",
-    "name": "Anycubic Kobra 2 Neo 0.4 nozzle",
-    "nozzle_diameter": [ "0.4" ],
+    "nozzle_diameter": [
+        "0.4"
+    ],
     "default_print_profile": "0.20mm Standard @Anycubic Kobra 2 Neo 0.4 nozzle",
-    "default_filament_profile": [ "Anycubic PLA @Anycubic Kobra 2 Neo 0.4 nozzle" ],
+    "default_filament_profile": [
+        "Anycubic PLA @Anycubic Kobra 2 Neo 0.4 nozzle"
+    ],
     "disable_m73": "1",
     "gcode_flavor": "marlin2",
     "printable_area": [
@@ -31,7 +35,7 @@
     "bed_custom_model": "",
     "bed_custom_texture": "",
     "bed_exclude_area": [
-    	"0x0"
+        "0x0"
     ],
     "bed_mesh_max": "0,0",
     "bed_mesh_min": "0,0",
@@ -64,7 +68,6 @@
     "head_wrap_detect_zone": [],
     "high_current_on_filament_swap": "0",
     "host_type": "octoprint",
-    "is_custom_defined": "0",
     "layer_change_gcode": "; AFTER_LAYER_CHANGE [layer_num] @ [layer_z]mm",
     "long_retractions_when_cut": [
         "0"

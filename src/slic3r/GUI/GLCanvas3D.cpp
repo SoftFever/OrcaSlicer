@@ -302,10 +302,10 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
 
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + canvas.m_main_toolbar.get_height();
     std::map<wxString, wxString> captions_texts = {
-        {_L("Left mouse button:") ,_L("Add detail")},
-        {_L("Right mouse button:"), _L("Remove detail")},
-        {_L("Shift + Left mouse button:"),_L("Reset to base")},
-        {_L("Shift + Right mouse button:"), _L("Smoothing")},
+        {_L("Left mouse button") + ":" , _L("Add detail")},
+        {_L("Right mouse button") + ":", _L("Remove detail")},
+        {_L("Shift+") + _L("Left mouse button") + ":", _L("Reset to base")},
+        {_L("Shift+") + _L("Right mouse button") + ":", _L("Smoothing")},
         {_L("Mouse wheel:"), _L("Increase/decrease edit area")}
     };
     show_tooltip_information(canvas, captions_texts, x, get_cur_y);
@@ -1170,7 +1170,8 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
 
     m_assembly_view_desc["object_selection_caption"] = _L("Left mouse button");
     m_assembly_view_desc["object_selection"]         = _L("object selection");
-    m_assembly_view_desc["part_selection_caption"]   = "Alt +" + _L("Left mouse button");
+    // FIXME: maybe should be using GUI::shortkey_alt_prefix() or equivalent?
+    m_assembly_view_desc["part_selection_caption"]   = _L("Alt+") + _L("Left mouse button");
     m_assembly_view_desc["part_selection"]           = _L("part selection");
     m_assembly_view_desc["number_key_caption"]       = "1~16 " + _L("number keys");
     m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
@@ -4110,7 +4111,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
 
     bool any_gizmo_active = m_gizmos.get_current() != nullptr;
-    bool swapMouseButtons = wxGetApp().app_config->get_bool("swap_mouse_buttons");
+    bool swap_mouse_buttons = wxGetApp().app_config->get_bool("swap_mouse_buttons");
 
     if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos)) {
         m_mouse.drag.move_requires_threshold = false;
@@ -4313,7 +4314,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_dirty = true;
         }
     }
-    else if (evt.Dragging() || is_camera_rotate(evt, swapMouseButtons) || is_camera_pan(evt, swapMouseButtons)) {
+    else if (evt.Dragging() || is_camera_rotate(evt, swap_mouse_buttons) || is_camera_pan(evt, swap_mouse_buttons)) {
         m_mouse.dragging = true;
 
         if (m_layers_editing.state != LayersEditing::Unknown && layer_editing_object_idx != -1) {
@@ -4323,10 +4324,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
         // do not process the dragging if the left mouse was set down in another canvas
-        else if (is_camera_rotate(evt, swapMouseButtons)) {
+        else if (is_camera_rotate(evt, swap_mouse_buttons)) {
             // Orca: Sphere rotation for painting view
             // if dragging over blank area with left button or button functions swapped then rotate
-            if ((any_gizmo_active || swapMouseButtons || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
+            if ((any_gizmo_active || swap_mouse_buttons || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
                 Camera& camera = wxGetApp().plater()->get_camera();
                 auto mult_pref = wxGetApp().app_config->get("camera_orbit_mult");
                 const double mult = mult_pref.empty() ? 1.0 : std::stod(mult_pref);
@@ -4399,7 +4400,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_camera_movement = true;
             m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
         }
-        else if (is_camera_pan(evt, swapMouseButtons)) {
+        else if (is_camera_pan(evt, swap_mouse_buttons)) {
             // if dragging with right button or if button functions swapped and dragging with left button over blank area then pan
             if (m_mouse.is_start_position_2D_defined()) {
                 // get point in model space at Z = 0
@@ -4426,10 +4427,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if ((evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) ||
-               (m_camera_movement && !is_camera_rotate(evt, swapMouseButtons) && !is_camera_pan(evt, swapMouseButtons))) {
+               (m_camera_movement && !is_camera_rotate(evt, swap_mouse_buttons) && !is_camera_pan(evt, swap_mouse_buttons))) {
         m_mouse.position = pos.cast<double>();
 
-        if (swapMouseButtons ? evt.RightUp() : evt.LeftUp()) {
+        if (swap_mouse_buttons ? evt.RightUp() : evt.LeftUp()) {
             m_rotation_center(0) = m_rotation_center(1) = m_rotation_center(2) = 0.f;
         }
 
@@ -6469,7 +6470,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "orient";
     item.icon_filename = m_is_dark ? "toolbar_orient_dark.svg" : "toolbar_orient.svg";
-    item.tooltip = _utf8(L("Auto orient all/selected objects")) + " [Q]\n" + _utf8(L("Auto orient all objects on current plate")) + " [Shift+Q]";
+    item.tooltip = _utf8(L("Auto orient all/selected objects")) + " [Q]\n" + _utf8(L("Auto orient all objects on current plate")) + " [" + _utf8(L("Shift+")) + "Q]";
     item.sprite_id++;
     item.left.render_callback = nullptr;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
@@ -6491,7 +6492,7 @@ bool GLCanvas3D::_init_main_toolbar()
 
     item.name = "arrange";
     item.icon_filename = m_is_dark ? "toolbar_arrange_dark.svg" : "toolbar_arrange.svg";
-    item.tooltip = _utf8(L("Arrange all objects")) + " [A]\n" + _utf8(L("Arrange objects on selected plates")) + " [Shift+A]";
+    item.tooltip = _utf8(L("Arrange all objects")) + " [A]\n" + _utf8(L("Arrange objects on selected plates")) + " [" + _utf8(L("Shift+")) + "A]";
     item.sprite_id++;
     item.left.action_callback = []() {};
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };

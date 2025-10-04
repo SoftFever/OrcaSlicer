@@ -1,9 +1,9 @@
 {
-    "from": "system",
-    "inherits": "0.05mm DETAIL @MK4S 0.25",
-    "instantiation": "true",
-    "name": "0.05mm DETAIL @CORE One 0.25",
     "type": "process",
+    "name": "0.05mm DETAIL @CORE One 0.25",
+    "inherits": "0.05mm DETAIL @MK4S 0.25",
+    "from": "system",
+    "instantiation": "true",
     "travel_speed": "350",
     "travel_acceleration": "4000",
     "default_acceleration": "3000",
