@@ -1318,7 +1318,7 @@ void UpgradePanel::update(MachineObject *obj)
         if (m_obj->upgrade_force_upgrade) {
             m_show_forced_hint = false;   //lock hint
             if (force_dlg == nullptr) {
-                force_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize);
+                force_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"), SecondaryCheckDialog::VisibleButtons::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize);  // ORCA VisibleButtons instead ButtonStyle 
                 force_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
                     if (m_obj) {
                         m_obj->command_upgrade_confirm();
@@ -1343,7 +1343,7 @@ void UpgradePanel::update(MachineObject *obj)
         if (m_obj->upgrade_consistency_request) {
             m_show_consistency_hint = false;
             if (consistency_dlg == nullptr) {
-                consistency_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize);
+                consistency_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"), SecondaryCheckDialog::VisibleButtons::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize);  // ORCA VisibleButtons instead ButtonStyle 
                 consistency_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
                     if (m_obj) {
                         m_obj->command_consistency_upgrade_confirm();

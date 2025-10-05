@@ -2221,23 +2221,23 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
             wxString error_code_msg = wxString::Format("%S\n[%S %S]", msg, print_error_str, show_time);
 
             if (m_print_error_dlg_no_action == nullptr) {
-                m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+                m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::VisibleButtons::ONLY_CONFIRM); // ORCA VisibleButtons instead ButtonStyle 
             }
 
             if (it_done != message_containing_done.end() && it_retry != message_containing_retry.end()) {
-                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::DONE_AND_RETRY, this);
+                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::VisibleButtons::DONE_AND_RETRY, this);  // ORCA VisibleButtons instead ButtonStyle 
             }
             else if (it_done != message_containing_done.end()) {
-                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_DONE, this);
+                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::VisibleButtons::CONFIRM_AND_DONE, this);  // ORCA VisibleButtons instead ButtonStyle 
             }
             else if (it_retry != message_containing_retry.end()) {
-                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_RETRY, this);
+                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::VisibleButtons::CONFIRM_AND_RETRY, this);  // ORCA VisibleButtons instead ButtonStyle 
             }
             else if (it_resume != message_containing_resume.end()) {
-                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_RESUME, this);
+                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::VisibleButtons::CONFIRM_AND_RESUME, this);  // ORCA VisibleButtons instead ButtonStyle 
             }
             else {
-                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, this);
+                m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::VisibleButtons::ONLY_CONFIRM, this); // ORCA VisibleButtons instead ButtonStyle 
             }
             m_print_error_dlg_no_action->update_text(error_code_msg);
             m_print_error_dlg_no_action->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
@@ -3397,7 +3397,7 @@ void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
 void StatusPanel::axis_ctrl_e_hint(bool up_down)
 {
     if (ctrl_e_hint_dlg == nullptr) {
-        ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX | wxCAPTION, true);
+        ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::VisibleButtons::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX | wxCAPTION, true); // ORCA VisibleButtons instead ButtonStyle 
         ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170°C before loading or unloading filament."));
         ctrl_e_hint_dlg->show_again_config_text = std::string("not_show_ectrl_hint");
     }
@@ -4167,7 +4167,7 @@ void StatusPanel::on_camera_enter(wxMouseEvent& event)
         m_camera_popup->Bind(EVT_VCAMERA_SWITCH, &StatusPanel::on_switch_vcamera, this);
         m_camera_popup->Bind(EVT_SDCARD_ABSENT_HINT, [this](wxCommandEvent &e) {
             if (sdcard_hint_dlg == nullptr) {
-                sdcard_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+                sdcard_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::VisibleButtons::ONLY_CONFIRM); // ORCA VisibleButtons instead ButtonStyle
                 sdcard_hint_dlg->update_text(_L("Can't start this without SD card."));
             }
             sdcard_hint_dlg->on_show();

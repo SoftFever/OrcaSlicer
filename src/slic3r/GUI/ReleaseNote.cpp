@@ -147,32 +147,15 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
     auto m_button_ok = new Button(this, _L("OK"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour(0xFFFFFE));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
+    m_button_ok->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         EndModal(wxID_OK);
         });
 
     auto m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         EndModal(wxID_NO);
@@ -316,36 +299,17 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_simplebook_release_note->AddPage(m_vebview_release_note, wxEmptyString, false);
 
 
-    
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
-
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
     m_button_download = new Button(this, _L("Download"));
-    m_button_download->SetBackgroundColor(btn_bg_green);
-    m_button_download->SetBorderColor(*wxWHITE);
-    m_button_download->SetTextColor(wxColour("#FFFFFE"));
-    m_button_download->SetFont(Label::Body_12);
-    m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_download->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_download->SetCornerRadius(FromDIP(12));
+    m_button_download->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
 
     m_button_download->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         EndModal(wxID_YES);
     });
 
     m_button_skip_version = new Button(this, _L("Skip this Version"));
-    m_button_skip_version->SetBackgroundColor(btn_bg_white);
-    m_button_skip_version->SetBorderColor(wxColour(38, 46, 48));
-    m_button_skip_version->SetFont(Label::Body_12);
-    m_button_skip_version->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_skip_version->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_skip_version->SetCornerRadius(FromDIP(12));
+    m_button_skip_version->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_button_skip_version->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
         wxGetApp().set_skip_version(true);
@@ -365,12 +329,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     stable_only_label->SetFont(Label::Body_12);
 
     m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         EndModal(wxID_NO);
@@ -537,7 +496,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     Fit();
 }
 
-SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
+SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum VisibleButtons btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
     :DPIFrame(parent, id, title, pos, size, style)
 {
     m_button_style = btn_style;
@@ -562,12 +521,6 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
 
     auto bottom_sizer = new wxBoxSizer(wxVERTICAL);
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
-    btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-
-    btn_bg_white = StateColor(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
 
     if (not_show_again_check) {
         auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -581,14 +534,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
         bottom_sizer->Add(checkbox_sizer, 0, wxBOTTOM | wxEXPAND, 0);
     }
     m_button_ok = new Button(this, _L("Confirm"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour("#FFFFFE"));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_ok->SetMaxSize(wxSize(-1, FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
+    m_button_ok->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         wxCommandEvent evt(EVT_SECONDARY_CHECK_CONFIRM, GetId());
@@ -598,14 +544,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     });
 
     m_button_retry = new Button(this, _L("Retry"));
-    m_button_retry->SetBackgroundColor(btn_bg_green);
-    m_button_retry->SetBorderColor(*wxWHITE);
-    m_button_retry->SetTextColor(wxColour("#FFFFFE"));
-    m_button_retry->SetFont(Label::Body_12);
-    m_button_retry->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_retry->SetMaxSize(wxSize(-1, FromDIP(24)));
-    m_button_retry->SetCornerRadius(FromDIP(12));
+    m_button_retry->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_button_retry->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         wxCommandEvent evt(EVT_SECONDARY_CHECK_RETRY, GetId());
@@ -615,13 +554,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     });
 
     m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_cancel->SetMaxSize(wxSize(-1, FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
             wxCommandEvent evt(EVT_SECONDARY_CHECK_CANCEL);
@@ -631,13 +564,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
         });
 
     m_button_fn = new Button(this, _L("Done"));
-    m_button_fn->SetBackgroundColor(btn_bg_white);
-    m_button_fn->SetBorderColor(wxColour(38, 46, 48));
-    m_button_fn->SetFont(Label::Body_12);
-    m_button_fn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_fn->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_fn->SetMaxSize(wxSize(-1, FromDIP(24)));
-    m_button_fn->SetCornerRadius(FromDIP(12));
+    m_button_fn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_button_fn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
             post_event(wxCommandEvent(EVT_SECONDARY_CHECK_DONE));
@@ -645,13 +572,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
         });
 
     m_button_resume = new Button(this, _L("Resume"));
-    m_button_resume->SetBackgroundColor(btn_bg_white);
-    m_button_resume->SetBorderColor(wxColour(38, 46, 48));
-    m_button_resume->SetFont(Label::Body_12);
-    m_button_resume->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_resume->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_resume->SetMaxSize(wxSize(-1, FromDIP(24)));
-    m_button_resume->SetCornerRadius(FromDIP(12));
+    m_button_resume->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_button_resume->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         post_event(wxCommandEvent(EVT_SECONDARY_CHECK_RESUME));
@@ -777,7 +698,7 @@ void SecondaryCheckDialog::on_hide()
     }
 }
 
-void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDialog::ButtonStyle style, wxWindow* parent)
+void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDialog::VisibleButtons style, wxWindow* parent)
 {
     if (m_button_style == style && title == GetTitle()) return;
 
@@ -860,9 +781,6 @@ PrintErrorDialog::PrintErrorDialog(wxWindow* parent, wxWindowID id, const wxStri
     :DPIFrame(parent, id, title, pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
-
-    btn_bg_white = StateColor(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
     auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(350), 1));
@@ -1174,7 +1092,7 @@ void PrintErrorDialog::rescale()
         m_button_list[used_button]->Rescale();
 }
 
-ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
+ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum VisibleButtons btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
     :DPIDialog(parent, id, title, pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
@@ -1197,12 +1115,6 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
 
     auto bottom_sizer = new wxBoxSizer(wxVERTICAL);
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
 
     if (not_show_again_check) {
         auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1216,13 +1128,7 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
         bottom_sizer->Add(checkbox_sizer, 0, wxBOTTOM | wxEXPAND, 0);
     }
     m_button_ok = new Button(this, _L("Confirm"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour("#FFFFFE"));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(-1, FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
+    m_button_ok->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         wxCommandEvent evt(EVT_SECONDARY_CHECK_CONFIRM, GetId());
@@ -1232,12 +1138,7 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
     });
 
     m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(-1, FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         wxCommandEvent evt(EVT_SECONDARY_CHECK_CANCEL);
@@ -1252,12 +1153,7 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
         m_button_cancel->Show();
     
     m_button_update_nozzle = new Button(this, _L("Confirm and Update Nozzle"));
-    m_button_update_nozzle->SetBackgroundColor(btn_bg_white);
-    m_button_update_nozzle->SetBorderColor(wxColour(38, 46, 48));
-    m_button_update_nozzle->SetFont(Label::Body_12);
-    m_button_update_nozzle->SetSize(wxSize(-1, FromDIP(24)));
-    m_button_update_nozzle->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_update_nozzle->SetCornerRadius(FromDIP(12));
+    m_button_update_nozzle->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_button_update_nozzle->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         wxCommandEvent evt(EVT_UPDATE_NOZZLE);
@@ -1424,18 +1320,12 @@ void ConfirmBeforeSendDialog::edit_cancel_button_txt(wxString txt)
 
 void ConfirmBeforeSendDialog::disable_button_ok()
 {
-    m_button_ok->Disable();
-    m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-    m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    m_button_ok->Disable(); // ORCA enabling / disabling buttons with conditions enough to change its style
 }
 
 void ConfirmBeforeSendDialog::enable_button_ok()
 {
-    m_button_ok->Enable();
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(btn_bg_green);
+    m_button_ok->Enable(); // ORCA enabling / disabling buttons with conditions enough to change its style
 }
 
 void ConfirmBeforeSendDialog::rescale()
@@ -1601,50 +1491,26 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
 
     auto m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
     m_button_ok = new Button(this, _L("Connect"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour(0xFFFFFE));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
-    m_button_ok->Bind(wxEVT_LEFT_DOWN, &InputIpAddressDialog::on_ok, this);
+    m_button_ok->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     m_button_ok->Enable(false);
-    m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-    m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    m_button_ok->Bind(wxEVT_LEFT_DOWN, &InputIpAddressDialog::on_ok, this);
 
     m_button_manual_setup = new Button(this, _L("Manual Setup"));
-    m_button_manual_setup->SetBackgroundColor(btn_bg_green);
-    m_button_manual_setup->SetBorderColor(*wxWHITE);
-    m_button_manual_setup->SetTextColor(wxColour(0xFFFFFE));
-    m_button_manual_setup->SetFont(Label::Body_12);
-    m_button_manual_setup->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_manual_setup->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_manual_setup->SetCornerRadius(FromDIP(12));
+    m_button_manual_setup->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
+    m_button_manual_setup->Enable(false);
+
     m_button_manual_setup->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
         wxCommandEvent event(EVT_CHECK_IP_ADDRESS_LAYOUT);
         event.SetEventObject(this);
         event.SetInt(1);
         wxPostEvent(this, event);
     });
-    m_button_manual_setup->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-    m_button_manual_setup->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+
     m_button_manual_setup->Hide();
 
     /*auto m_button_cancel = new Button(this, _L("Close"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
          on_cancel();
@@ -1797,9 +1663,8 @@ void InputIpAddressDialog::switch_input_panel(int index)
         m_step_icon_panel3->Show();
         m_tip3->Show();
 
+        // ORCA enabling / disabling buttons with conditions enough to change its style
         m_button_ok->Enable(false);
-        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
     }
     current_input_index = index;
 }
@@ -1836,18 +1701,8 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
     
     auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
     auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
-    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
-        m_button_ok->Enable(true);
-        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-        m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-        m_button_ok->SetBackgroundColor(btn_bg_green);
-    }
-    else {
-        m_button_ok->Enable(false);
-        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
-    }
+    // ORCA enabling / disabling buttons with conditions enough to change its style
+    m_button_ok->Enable(isIp(str_ip.ToStdString()) && str_access_code.Length() == 8);
 
     Layout();
     Fit();
@@ -1918,12 +1773,9 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
         str_model_id = it->get_left();
     }
 
+    // ORCA enabling / disabling buttons with conditions enough to change its style
     m_button_manual_setup->Enable(false);
-    m_button_manual_setup->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-    m_button_manual_setup->SetBorderColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->Enable(false);
-    m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-    m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
 
     Refresh();
     Layout();
@@ -2061,10 +1913,7 @@ void InputIpAddressDialog::on_check_ip_address_failed(wxCommandEvent& evt)
     }
     
     m_button_ok->Enable(true);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-    m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
+    // ORCA enabling / disabling buttons with conditions enough to change its style
 }
 
 void InputIpAddressDialog::on_text(wxCommandEvent &evt)
@@ -2082,34 +1931,14 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
         }
     }
 
-    const auto enable_btn = [](Button* btn, bool enabled) {
-        btn->Enable(enabled);
-        if (enabled) {
-            StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                                    std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-            btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-            btn->SetBackgroundColor(btn_bg_green);
-        } else {
-            btn->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-            btn->SetBorderColor(wxColour(0x90, 0x90, 0x90));
-        }
-    };
+    // ORCA enabling / disabling buttons with conditions enough to change its style
+    bool enable_btns = isIp(str_ip.ToStdString()) && str_access_code.Length() == 8 && invalid_access_code;
+    m_button_manual_setup->Enable(enable_btns);
+    m_button_ok->Enable(enable_btns);
 
-    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8 && invalid_access_code) {
-        enable_btn(m_button_manual_setup, true);
-        enable_btn(m_button_ok, true);
-    } else {
-        enable_btn(m_button_manual_setup, false);
-        enable_btn(m_button_ok, false);
-    }
+    if (current_input_index == 1)
+        m_button_ok->Enable(!str_name.IsEmpty() && str_sn.length() == 15);
 
-    if (current_input_index == 1){
-        if (!str_name.IsEmpty() && str_sn.length() == 15) {
-            enable_btn(m_button_ok, true);
-        } else {
-            enable_btn(m_button_ok, false);
-        }
-    }
 }
 
 InputIpAddressDialog::~InputIpAddressDialog()

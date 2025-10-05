@@ -480,7 +480,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
          wxString txt = _L("Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. "
                            "By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). "
                            "If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.");
-         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Terms and Conditions"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
+         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Terms and Conditions"), ConfirmBeforeSendDialog::VisibleButtons::ONLY_CONFIRM); // ORCA VisibleButtons instead ButtonStyle 
          confirm_dlg.update_text(txt);
          confirm_dlg.CenterOnParent();
          confirm_dlg.on_show();
@@ -549,7 +549,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
                            "Personal Data by which an individual can be identified directly or indirectly, including "
                            "without limitation names, addresses, payment information, or phone numbers. By enabling "
                            "this service, you agree to these terms and the statement about Privacy Policy.");
-         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Statement on User Experience Improvement Plan"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
+         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Statement on User Experience Improvement Plan"), ConfirmBeforeSendDialog::VisibleButtons::ONLY_CONFIRM); // ORCA VisibleButtons instead ButtonStyle 
 
          wxString model_id_text;
 
