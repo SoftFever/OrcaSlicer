@@ -102,10 +102,7 @@
         "0",
         "0"
     ],
-    "filament_enable_overhang_speed": [
-        "1",
-        "1"
-    ],
+    "filament_enable_overhang_speed": "1",
     "filament_overhang_1_4_speed": [
         "0",
         "0"
