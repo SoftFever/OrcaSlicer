@@ -1866,6 +1866,30 @@ void PresetBundle::update_selections(AppConfig &config)
     }
     filament_colors.resize(filament_presets.size(), "#26A69A");
     project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
+
+    std::vector<std::string> multi_filament_colors;
+    if (config.has_printer_setting(initial_printer_profile_name, "filament_multi_colors")) {
+        boost::algorithm::split(multi_filament_colors, config.get_printer_setting(initial_printer_profile_name, "filament_multi_colors"), boost::algorithm::is_any_of(","));
+    }
+    if (multi_filament_colors.size() == 0) project_config.option<ConfigOptionStrings>("filament_multi_colour")->values = filament_colors;
+    else project_config.option<ConfigOptionStrings>("filament_multi_colour")->values = multi_filament_colors;
+
+    std::vector<std::string> filament_color_types;
+    if (config.has_printer_setting(initial_printer_profile_name, "filament_color_types")) {
+        boost::algorithm::split(filament_color_types, config.get_printer_setting(initial_printer_profile_name, "filament_color_types"), boost::algorithm::is_any_of(","));
+    }
+    filament_color_types.resize(filament_presets.size(), "1");
+    project_config.option<ConfigOptionStrings>("filament_colour_type")->values = filament_color_types;
+
+    std::vector<int> filament_maps(filament_colors.size(), 1);
+    project_config.option<ConfigOptionInts>("filament_map")->values = filament_maps;
+
+    std::vector<std::string> extruder_ams_count_str;
+    if (config.has_printer_setting(initial_printer_profile_name, "extruder_ams_count")) {
+        boost::algorithm::split(extruder_ams_count_str, config.get_printer_setting(initial_printer_profile_name, "extruder_ams_count"), boost::algorithm::is_any_of(","));
+    }
+    this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
+
     std::vector<std::string> matrix;
     if (config.has_printer_setting(initial_printer_profile_name, "flush_volumes_matrix")) {
         boost::algorithm::split(matrix, config.get_printer_setting(initial_printer_profile_name, "flush_volumes_matrix"), boost::algorithm::is_any_of("|"));
@@ -1977,15 +2001,15 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
 
     std::vector<std::string> multi_filament_colors;
-    if (config.has("presets", "filament_multi_colors")) {
-        boost::algorithm::split(multi_filament_colors, config.get("presets", "filament_multi_colors"), boost::algorithm::is_any_of(","));
+    if (config.has_printer_setting(initial_printer_profile_name, "filament_multi_colors")) {
+        boost::algorithm::split(multi_filament_colors, config.get_printer_setting(initial_printer_profile_name, "filament_multi_colors"), boost::algorithm::is_any_of(","));
     }
     if (multi_filament_colors.size() == 0) project_config.option<ConfigOptionStrings>("filament_multi_colour")->values = filament_colors;
     else project_config.option<ConfigOptionStrings>("filament_multi_colour")->values = multi_filament_colors;
 
     std::vector<std::string> filament_color_types;
-    if (config.has("presets", "filament_color_types")) {
-        boost::algorithm::split(filament_color_types, config.get("presets", "filament_color_types"), boost::algorithm::is_any_of(","));
+    if (config.has_printer_setting(initial_printer_profile_name, "filament_color_types")) {
+        boost::algorithm::split(filament_color_types, config.get_printer_setting(initial_printer_profile_name, "filament_color_types"), boost::algorithm::is_any_of(","));
     }
     filament_color_types.resize(filament_presets.size(), "1");
     project_config.option<ConfigOptionStrings>("filament_colour_type")->values = filament_color_types;
@@ -1994,8 +2018,8 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     project_config.option<ConfigOptionInts>("filament_map")->values = filament_maps;
 
     std::vector<std::string> extruder_ams_count_str;
-    if (config.has("presets", "extruder_ams_count")) {
-        boost::algorithm::split(extruder_ams_count_str, config.get("presets", "extruder_ams_count"), boost::algorithm::is_any_of(","));
+    if (config.has_printer_setting(initial_printer_profile_name, "extruder_ams_count")) {
+        boost::algorithm::split(extruder_ams_count_str, config.get_printer_setting(initial_printer_profile_name, "extruder_ams_count"), boost::algorithm::is_any_of(","));
     }
     this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
 
@@ -2106,11 +2130,15 @@ void PresetBundle::export_selections(AppConfig &config)
 
     // Load filament multi color data into app config
     std::string           filament_multi_colors = boost::algorithm::join(project_config.option<ConfigOptionStrings>("filament_multi_colour")->values, ",");
-    config.set("presets", "filament_multi_colors", filament_multi_colors);
+    config.set_printer_setting(printer_name, "filament_multi_colors", filament_multi_colors);
 
     // Load filament color type data into app config
     std::string           filament_color_types = boost::algorithm::join(project_config.option<ConfigOptionStrings>("filament_colour_type")->values, ",");
-    config.set("presets", "filament_color_types", filament_color_types);
+    config.set_printer_setting(printer_name, "filament_color_types", filament_color_types);
+
+    // Load ams counts data into app config
+    std::string           extruder_ams_count_str = boost::algorithm::join(save_extruder_ams_count_to_string(this->extruder_ams_counts), ",");
+    config.set_printer_setting(printer_name, "extruder_ams_count", extruder_ams_count_str);
 
     std::string flush_volumes_matrix = boost::algorithm::join(project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values |
                                                              boost::adaptors::transformed(static_cast<std::string (*)(double)>(std::to_string)),
