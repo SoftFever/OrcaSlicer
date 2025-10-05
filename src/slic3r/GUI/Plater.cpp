@@ -4377,7 +4377,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 		"nozzle_height", "skirt_type", "skirt_loops", "skirt_speed","min_skirt_length", "skirt_distance", "skirt_start_angle",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material", "preferred_orientation",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_tower_enable_framework",
-        "prime_tower_infill_gap","filament_prime_volume",
+        "prime_tower_infill_gap", "prime_volume",
         "extruder_colour", "filament_colour", "filament_type", "material_colour", "printable_height", "extruder_printable_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
         "layer_height", "initial_layer_print_height", "min_layer_height", "max_layer_height",
@@ -5696,17 +5696,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 for (int index = 0; index < filament_count; index++)
                                     filament_adhesiveness_category_values[index] = 100;
 
-                                ConfigOptionFloats *filament_prime_volume_option = config.option<ConfigOptionFloats>("filament_prime_volume", true);
-
-                                std::vector<double> &filament_prime_volume_values = filament_prime_volume_option->values;
-                                filament_prime_volume_values.resize(filament_count);
-                                for (int index = 0; index < filament_count; index++) {
-                                    if (old_filament_prime_volume != 0.)
-                                        filament_prime_volume_values[index] = old_filament_prime_volume;
-                                    else
-                                        filament_prime_volume_values[index] = filament_prime_volume_values[0];
-                                }
-
                                 std::vector<std::string> &diff_settings = config.option<ConfigOptionStrings>("different_settings_to_system", true)->values;
                                 diff_settings.resize(filament_count + 2);
 
@@ -5722,7 +5711,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                     std::vector<std::string> diff_filament_keys;
                                     std::string              diff_filament_settings = diff_settings[index + 1];
                                     Slic3r::unescape_strings_cstyle(diff_filament_settings, diff_filament_keys);
-                                    diff_filament_keys.emplace_back("filament_prime_volume");
                                     diff_filament_keys.emplace_back("filament_adhesiveness_category");
                                     diff_filament_settings   = Slic3r::escape_strings_cstyle(diff_filament_keys);
                                     diff_settings[index + 1] = diff_filament_settings;
@@ -15437,7 +15425,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             boost::starts_with(opt_key, "prime_tower") ||
             boost::starts_with(opt_key, "wipe_tower") ||
             opt_key == "filament_minimal_purge_on_wipe_tower" ||
-            opt_key == "single_extruder_multi_material") {
+            opt_key == "single_extruder_multi_material" ||
+            // BBS
+            opt_key == "prime_volume") {
             update_scheduled = true;
         }
         else if(opt_key == "extruder_colour") {

@@ -2577,15 +2577,6 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts{3});
 
     // BBS
-    def = this->add("filament_prime_volume", coFloats);
-    def->label = L("Filament prime volume");
-    def->tooltip = L("The volume of material to prime extruder on tower.");
-    def->sidetext = L("mm³");
-    def->min = 1.0;
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloats{45.});
-
-    // BBS
     def = this->add("temperature_vitrification", coInts);
     def->label = L("Softening temperature");
     def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than this, "
@@ -6055,14 +6046,14 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "";
     def->set_default_value(new ConfigOptionFloats{0.3});
 
-    // // BBS
-    // def = this->add("prime_volume", coFloat);
-    // def->label = L("Prime volume");
-    // def->tooltip = L("The volume of material to prime extruder on tower.");
-    // def->sidetext = u8"mm³";	// cubic milimeters, don't need translation
-    // def->min = 1.0;
-    // def->mode = comSimple;
-    // def->set_default_value(new ConfigOptionFloat(45.));
+    // BBS
+    def = this->add("prime_volume", coFloat);
+    def->label = L("Prime volume");
+    def->tooltip = L("The volume of material to prime extruder on tower.");
+    def->sidetext = u8"mm³";	// cubic milimeters, don't need translation
+    def->min = 1.0;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloat(45.));
 
     def = this->add("wipe_tower_x", coFloats);
     //def->label = L("Position X");
@@ -7208,12 +7199,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if (opt_key == "wipe_tower_width") {
         opt_key = "prime_tower_width";
     } else if (opt_key == "wiping_volume") {
-        opt_key = "filament_prime_volume";
-    }
-    else if (opt_key == "prime_volume") {
-        opt_key = "filament_prime_volume";
-    }
-    else if (opt_key == "wipe_tower_brim_width") {
+        opt_key = "prime_volume";
+    } else if (opt_key == "wipe_tower_brim_width") {
         opt_key = "prime_tower_brim_width";
     } else if (opt_key == "tool_change_gcode") {
         opt_key = "change_filament_gcode";
@@ -7404,8 +7391,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "retraction_distance_when_cut",
         "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill","filament_load_time","filament_unload_time",
         "smooth_coefficient", "overhang_totally_speed", "silent_mode",
-        "overhang_speed_classic",
-        "prime_volume"
+        "overhang_speed_classic", "filament_prime_volume",
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

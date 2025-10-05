@@ -1181,7 +1181,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         } else {
             // populate wipe_volumes with prime_volume
             for (unsigned int i = 0; i < number_of_extruders; ++i)
-                wipe_volumes.push_back(std::vector<float>(number_of_extruders, print_config->filament_prime_volume.values[i]));
+                wipe_volumes.push_back(std::vector<float>(number_of_extruders, print_config->prime_volume));
         }
         nozzle_flush_mtx.emplace_back(wipe_volumes);
     }

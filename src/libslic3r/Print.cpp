@@ -320,7 +320,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "wipe_tower_extra_flow"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
-            || opt_key == "filament_prime_volume"
+            || opt_key == "prime_volume"
             || opt_key == "flush_into_infill"
             || opt_key == "flush_into_support"
             || opt_key == "initial_layer_infill_speed"
@@ -3002,8 +3002,7 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
 
 
     if (! is_step_done(psWipeTower) && filaments_cnt !=0) {
-        std::vector<double> filament_wipe_volume = m_config.filament_prime_volume.values;
-        double wipe_volume = get_max_element(filament_wipe_volume);
+        double wipe_volume  = m_config.prime_volume;
         int filament_depth_count = m_config.nozzle_diameter.values.size() == 2 ? filaments_cnt : filaments_cnt - 1;
         if (filaments_cnt == 1 && enable_timelapse_print()) filament_depth_count = 1;
         double volume = wipe_volume * filament_depth_count;
@@ -3175,7 +3174,7 @@ void Print::_make_wipe_tower()
                 volume_to_purge = std::max(0.f, volume_to_purge - grab_purge_volume);
 
                 wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_filament_id, filament_id,
-                    m_config.filament_prime_volume.values[filament_id], volume_to_purge);
+                    m_config.prime_volume, volume_to_purge);
                 current_filament_id = filament_id;
                 nozzle_cur_filament_ids[nozzle_id] = filament_id;
             }
@@ -3250,7 +3249,7 @@ void Print::_make_wipe_tower()
             for (unsigned int i = 0; i < number_of_extruders; ++i) {
                 for (unsigned int j = 0; j < number_of_extruders; ++j) {
                     if (wipe_volumes[i][j] > 0) {
-                        wipe_volumes[i][j] = m_config.filament_prime_volume.values[j];
+                        wipe_volumes[i][j] = m_config.prime_volume;
                     }
                 }
             }
@@ -3282,7 +3281,7 @@ void Print::_make_wipe_tower()
                 for (const auto extruder_id : layer_tools.extruders) {
                     if ((first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || extruder_id !=
                         current_extruder_id) {
-                        float volume_to_wipe = m_config.filament_prime_volume.values[extruder_id];
+                        float volume_to_wipe = m_config.prime_volume;
                         if (m_config.purge_in_prime_tower && m_config.single_extruder_multi_material) {
                             volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id]; // total volume to wipe after this toolchange
                             volume_to_wipe *= m_config.flush_multiplier.get_at(0);

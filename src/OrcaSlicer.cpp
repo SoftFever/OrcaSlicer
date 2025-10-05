@@ -1234,7 +1234,7 @@ int CLI::run(int argc, char **argv)
     int current_printable_width, current_printable_depth, current_printable_height, shrink_to_new_bed = 0;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
-    float old_max_radius = 0.f, old_height_to_rod = 0.f, old_height_to_lid = 0.f, old_filament_prime_volume = 0.f;
+    float old_max_radius = 0.f, old_height_to_rod = 0.f, old_height_to_lid = 0.f;
     std::vector<double> old_max_layer_height, old_min_layer_height;
     std::string outfile_dir              =  m_config.opt_string("outputdir", true);
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
@@ -1562,22 +1562,6 @@ int CLI::run(int argc, char **argv)
                     if ((file_version < old_version2) && !config.empty()) {
                         regenerate_thumbnails = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to regenerate_thumbnails for all")%file_version.to_string();
-                    }
-
-                    if ((file_version < old_version3) && !config.empty()) {
-                        keep_old_params = true;
-                        ConfigOptionFloats *filament_prime_volume_option = config.option<ConfigOptionFloats>("filament_prime_volume");
-                        if (filament_prime_volume_option) {
-                            std::vector<double>& filament_prime_volume_values = filament_prime_volume_option->values;
-                            if (!filament_prime_volume_values.empty()) {
-                                old_filament_prime_volume = filament_prime_volume_values[0];
-                                ConfigOptionStrings* filament_colors_option = config.option<ConfigOptionStrings>("filament_colour", true);
-                                if (filament_colors_option->size() > 1)
-                                    filament_prime_volume_values.resize(filament_colors_option->size(), old_filament_prime_volume);
-                            }
-                        }
-
-                        BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to keep old params")%file_version.to_string();
                     }
 
                     if (file_version < old_version4) {
@@ -3734,16 +3718,6 @@ int CLI::run(int argc, char **argv)
         for (int index = 0; index < filament_count; index++)
             filament_adhesiveness_category_values[index] = 100;
 
-        ConfigOptionFloats *filament_prime_volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
-        std::vector<double>& filament_prime_volume_values = filament_prime_volume_option->values;
-        filament_prime_volume_values.resize(filament_count);
-        for (int index = 0; index < filament_count; index++) {
-            if (old_filament_prime_volume != 0.f)
-                filament_prime_volume_values[index] = old_filament_prime_volume;
-            else
-                filament_prime_volume_values[index] = filament_prime_volume_values[0];
-        }
-
         //support params process
         ConfigOptionBool *enable_support_option = m_print_config.option<ConfigOptionBool>("enable_support", true);
         ConfigOptionEnum<SupportType>* support_type_option  = m_print_config.option<ConfigOptionEnum<SupportType>>("support_type", true);
@@ -3850,13 +3824,13 @@ int CLI::run(int argc, char **argv)
         float brim_width = brim_width_option->value;
         if (brim_width < 0) brim_width = WipeTower::get_auto_brim_by_height((float)plate_obj_size_info.obj_bbox.max.z());
 
-        ConfigOptionFloats* volume_option = print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
-        std::vector<double> wipe_volume = volume_option->values;
+        ConfigOptionFloat* volume_option = print_config.option<ConfigOptionFloat>("prime_volume", true);
+        float wipe_volume = volume_option->value;
 
         const ConfigOptionBool * wrapping_detection = print_config.option<ConfigOptionBool>("enable_wrapping_detection");
         bool enable_wrapping = (wrapping_detection != nullptr) && wrapping_detection->value;
 
-        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), new_extruder_count, filaments_cnt, false, enable_wrapping);
+        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, wipe_volume, new_extruder_count, filaments_cnt, false, enable_wrapping);
         plate_obj_size_info.wipe_width = wipe_tower_size(0);
         plate_obj_size_info.wipe_depth = wipe_tower_size(1);
 
@@ -4646,11 +4620,10 @@ int CLI::run(int argc, char **argv)
                     ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
                     ConfigOptionFloat* width_option = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
                     ConfigOptionFloat* rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
-                    ConfigOptionFloats *volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
+                    ConfigOptionFloat* volume_option = m_print_config.option<ConfigOptionFloat>("prime_volume", true);
                     ConfigOptionEnum<WipeTowerWallType> *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionEnum<WipeTowerWallType>>("wipe_tower_wall_type", true);
-                    std::vector<double> wipe_volume   = volume_option->values;
 
-                    BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%, rib_wall %4%") % width_option->value % rotation_angle_option->value % get_max_element(wipe_volume) %prime_tower_rib_wall_option->value;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%, rib_wall %4%") % width_option->value % rotation_angle_option->value % volume_option->value %prime_tower_rib_wall_option->value;
 
                     ConfigOptionFloat wt_x_opt(x);
                     ConfigOptionFloat wt_y_opt(y);
@@ -4944,10 +4917,9 @@ int CLI::run(int argc, char **argv)
                         ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
                         ConfigOptionFloat* width_option = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
                         ConfigOptionFloat* rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
-                        ConfigOptionFloats *volume_option         = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
-                        std::vector<double> wipe_volume           = volume_option->values;
+                        ConfigOptionFloat* volume_option = m_print_config.option<ConfigOptionFloat>("prime_volume", true);
 
-                        BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%")%width_option->value %rotation_angle_option->value %get_max_element(wipe_volume);
+                        BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%")%width_option->value %rotation_angle_option->value %volume_option->value ;
 
 
                         for (int bedid = 0; bedid < MAX_PLATE_COUNT; bedid++) {
@@ -5036,7 +5008,7 @@ int CLI::run(int argc, char **argv)
                         }
                         float w = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_tower_width"))->value;
                         float a = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("wipe_tower_rotation_angle"))->value;
-                        std::vector<double> v = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("filament_prime_volume"))->values;
+                        float v = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_volume"))->value;
                         unsigned int filaments_cnt = plate_data_src[plate_to_slice-1]->slice_filaments_info.size();
                         if ((filaments_cnt == 0) || need_skip)
                         {
@@ -5062,7 +5034,7 @@ int CLI::run(int argc, char **argv)
                             const ConfigOptionBool *wrapping_detection = m_print_config.option<ConfigOptionBool>("enable_wrapping_detection");
                             bool   enable_wrapping    = (wrapping_detection != nullptr) && wrapping_detection->value;
 
-                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), new_extruder_count, filaments_cnt, false, enable_wrapping);
+                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, v, new_extruder_count, filaments_cnt, false, enable_wrapping);
                             Vec3d plate_origin = cur_plate->get_origin();
                             int plate_width, plate_depth, plate_height;
                             partplate_list.get_plate_size(plate_width, plate_depth, plate_height);
@@ -5076,8 +5048,8 @@ int CLI::run(int argc, char **argv)
                             }
                             w = wipe_tower_size(0);
 
-                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%, plate_width=%9%, plate_depth=%10%") %
-                                                           x % y % w % depth % a % get_max_element(v) % filaments_cnt % layer_height % plate_width % plate_depth;
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%, plate_width=%9%, plate_depth=%10%")
+                                                            %x %y %w %depth %a %v %filaments_cnt %layer_height %plate_width %plate_depth;
                             if ((y + depth + margin + wp_brim_width) > (float)plate_depth) {
                                 y = (float)plate_depth - depth - margin - wp_brim_width;
                                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: exceeds the border, change y to %1%, plate_depth=%2%")%y %plate_depth;
