@@ -3,30 +3,17 @@
 
 #include "../wxExtensions.hpp"
 
-#include <wx/statbox.h>
+#include "LabeledStaticBox.hpp"
 
-class StaticGroup : public wxStaticBox
+class StaticGroup : public LabeledStaticBox
 {
 public:
     StaticGroup(wxWindow *parent, wxWindowID id, const wxString &label);
-
-public:
     void ShowBadge(bool show);
-    void SetBorderColor(const wxColour &color);
-private:
-#ifdef __WXMSW__
-    void OnPaint(wxPaintEvent &evt);
-    void PaintForeground(wxDC &dc, const struct tagRECT &rc) override;
-#endif
 
 private:
-#ifdef __WXMSW__
+    void DrawBorderAndLabel(wxDC& dc) override;
     ScalableBitmap badge;
-#endif
-#ifdef __WXOSX__
-    ScalableButton * badge { nullptr };
-#endif
-    wxColour       borderColor_;
 };
 
 #endif // !slic3r_GUI_StaticGroup_hpp_
