@@ -30,6 +30,8 @@ public:
 
 	void Rescale();
 
+    bool SetBackgroundColour(const wxColour& colour) override;
+
 private:
 	void update();
 

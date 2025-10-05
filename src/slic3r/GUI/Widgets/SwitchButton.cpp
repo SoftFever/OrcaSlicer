@@ -38,22 +38,26 @@ void SwitchButton::SetLabels(wxString const& lbl_on, wxString const& lbl_off)
 
 void SwitchButton::SetTextColor(StateColor const& color)
 {
-	text_color = color;
+    text_color = color;
+    Rescale();
 }
 
 void SwitchButton::SetTextColor2(StateColor const &color)
 {
-	text_color2 = color;
+    text_color2 = color;
+    Rescale();
 }
 
 void SwitchButton::SetTrackColor(StateColor const& color)
 {
-	track_color = color;
+    track_color = color;
+    Rescale();
 }
 
 void SwitchButton::SetThumbColor(StateColor const& color)
 {
-	thumb_color = color;
+    thumb_color = color;
+    Rescale();
 }
 
 void SwitchButton::SetValue(bool value)
@@ -63,6 +67,16 @@ void SwitchButton::SetValue(bool value)
 	update();
 }
 
+bool SwitchButton::SetBackgroundColour(const wxColour& colour)
+{
+    if (wxBitmapToggleButton::SetBackgroundColour(colour)) {
+        Rescale();
+        return true;
+    }
+
+    return false;
+}
+
 void SwitchButton::Rescale()
 {
 	if (labels[0].IsEmpty()) {
@@ -70,7 +84,7 @@ void SwitchButton::Rescale()
 		m_off.msw_rescale();
 	}
 	else {
-        SetBackgroundColour(StaticBox::GetParentBackgroundColor(GetParent()));
+        wxBitmapToggleButton::SetBackgroundColour(StaticBox::GetParentBackgroundColor(GetParent()));
 #ifdef __WXOSX__
         auto scale = Slic3r::GUI::mac_max_scaling_factor();
         int BS = (int) scale;
