@@ -21,6 +21,6 @@ void StaticGroup::DrawBorderAndLabel(wxDC& dc)
     LabeledStaticBox::DrawBorderAndLabel(dc);
     if (badge.bmp().IsOk()) {
         auto s = badge.bmp().GetScaledSize();
-        dc.DrawBitmap(badge.bmp(), GetSize().x - s.x, 8);
+        dc.DrawBitmap(badge.bmp(), GetSize().x - s.x, std::max(0, m_pos.y) + m_label_height / 2);
     }
 }
