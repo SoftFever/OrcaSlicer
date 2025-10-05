@@ -1,6 +1,7 @@
 #include "DevConfigUtil.h"
 
 #include <wx/dir.h>
+#include <boost/filesystem.hpp>
 
 using namespace nlohmann;
 
