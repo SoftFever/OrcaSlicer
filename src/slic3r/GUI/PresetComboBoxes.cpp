@@ -542,31 +542,61 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
 #endif
 }
 
-wxBitmap *PresetComboBox::get_bmp(Preset const &preset)
+wxBitmap* PresetComboBox::get_bmp(Preset const& preset)
 {
     static wxBitmap sbmp;
+
+    // Only show compatibility indicators in develop mode
+    bool show_compatibility = (wxGetApp().get_mode() == comDevelop);
+    bool is_compatible      = preset.is_compatible;
+
     if (m_type == Preset::TYPE_FILAMENT) {
-        Preset const & preset2 = &m_collection->get_selected_preset() == &preset ? m_collection->get_edited_preset() : preset;
-        wxString color = preset2.config.opt_string("default_filament_colour", 0);
-        wxColour clr(color);
+        Preset const& preset2 = &m_collection->get_selected_preset() == &preset ? m_collection->get_edited_preset() : preset;
+        wxString      color   = preset2.config.opt_string("default_filament_colour", 0);
+        wxColour      clr(color);
         if (clr.IsOk()) {
             std::string bitmap_key = "default_filament_colour_" + color.ToStdString();
-            wxBitmap *bmp        = bitmap_cache().find(bitmap_key);
+            // Include mode in bitmap key to cache separately
+            if (show_compatibility) {
+                bitmap_key += is_compatible ? "_compatible" : "_incompatible";
+            } else {
+                bitmap_key += "_nocompat";
+            }
+
+            wxBitmap* bmp = bitmap_cache().find(bitmap_key);
             if (bmp == nullptr) {
                 wxImage img(16, 16);
-                if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
-                    img.SetRGB(wxRect({0, 0}, img.GetSize()), 128, 128, 128);
+
+                if (show_compatibility && !is_compatible) {
+                    // Show red border for incompatible in develop mode
+                    img.SetRGB(wxRect({0, 0}, img.GetSize()), 255, 0, 0);
+                    img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
+                } else if (show_compatibility && is_compatible) {
+                    // Show green border for compatible in develop mode
+                    img.SetRGB(wxRect({0, 0}, img.GetSize()), 0, 255, 0);
                     img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
                 } else {
+                    // No compatibility indicator - just show the color
                     img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
                 }
+
                 bmp = new wxBitmap(img);
                 bmp = bitmap_cache().insert(bitmap_key, *bmp);
             }
             return bmp;
         }
     }
-    return &sbmp;
+
+    if (m_type == Preset::TYPE_PRINTER) {
+        return &sbmp;
+    }
+
+    // For other types, only show compatibility icons in develop mode
+    if (show_compatibility) {
+        return is_compatible ? &m_bitmapCompatible.bmp() : &m_bitmapIncompatible.bmp();
+    } else {
+        return &sbmp; // Return empty bitmap when not in develop mode
+    }
 }
 
 wxBitmap *PresetComboBox::get_bmp(std::string        bitmap_key,
