@@ -8,5 +8,5 @@
     "bed_model": "artillery_m1_pro_buildplate_model.stl",
     "bed_texture": "artillery_m1_pro_buildplate_texture.svg",
     "hotend_model": "",
-    "default_materials": "Artillery PLA Basic;"
+    "default_materials": "Artillery PLA Basic"
 }
