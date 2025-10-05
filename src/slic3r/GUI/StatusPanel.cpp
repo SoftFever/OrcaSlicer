@@ -429,18 +429,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     static_text_sizer->Add(m_error_text, 1, wxEXPAND | wxLEFT, FromDIP(17));
 
     m_button_clean = new Button(m_panel_error_txt, _L("Clear"));
-    StateColor clean_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-                        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    StateColor clean_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    StateColor clean_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-
-
-    m_button_clean->SetBackgroundColor(clean_bg);
-    m_button_clean->SetBorderColor(clean_bd);
-    m_button_clean->SetTextColor(clean_text);
-    m_button_clean->SetFont(Label::Body_10);
-    m_button_clean->SetMinSize(TASK_BUTTON_SIZE2);
+    m_button_clean->SetStyle(ButtonStyle::Regular, ButtonType::Window);
 
     static_text_sizer->Add( FromDIP(10), 0, 0, 0, 0 );
     static_text_sizer->Add(m_button_clean, 0, wxALIGN_CENTRE_VERTICAL|wxRIGHT, FromDIP(5));
@@ -470,16 +459,10 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_request_failed_info->SetForegroundColour(*wxRED);
     m_request_failed_info->SetFont(::Label::Body_10);
     static_request_failed_panel_sizer->Add(m_request_failed_info, 0, wxEXPAND | wxALL, FromDIP(10));
-    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-    StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
+
     m_button_market_retry = new Button(m_request_failed_panel, _L("Retry"));
-    m_button_market_retry->SetBackgroundColor(btn_bg_green);
-    m_button_market_retry->SetBorderColor(btn_bd_green);
-    m_button_market_retry->SetTextColor(wxColour("#FFFFFE"));
-    m_button_market_retry->SetSize(wxSize(FromDIP(128), FromDIP(26)));
-    m_button_market_retry->SetMinSize(wxSize(-1, FromDIP(26)));
-    m_button_market_retry->SetCornerRadius(FromDIP(13));
+    m_button_market_retry->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
+
     static_request_failed_panel_sizer->Add(0, 0, 1, wxEXPAND, 0);
     static_request_failed_panel_sizer->Add(m_button_market_retry, 0, wxEXPAND | wxALL, FromDIP(10));
     m_request_failed_panel->SetSizer(static_request_failed_panel_sizer);
@@ -526,12 +509,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     }
 
     m_button_market_scoring = new Button(m_score_subtask_info, _L("Rate"));
-    m_button_market_scoring->SetBackgroundColor(btn_bg_green);
-    m_button_market_scoring->SetBorderColor(btn_bd_green);
-    m_button_market_scoring->SetTextColor(wxColour("#FFFFFE"));
-    m_button_market_scoring->SetSize(wxSize(FromDIP(128), FromDIP(26)));
-    m_button_market_scoring->SetMinSize(wxSize(-1, FromDIP(26)));
-    m_button_market_scoring->SetCornerRadius(FromDIP(13));
+    m_button_market_scoring->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
     m_button_market_scoring->Enable(false);
 
     static_score_star_sizer->Add(0, 0, 1, wxEXPAND, 0);
@@ -1104,31 +1082,14 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     //m_staticText_control->SetFont(PAGE_TITLE_FONT);
     m_staticText_control->SetForegroundColour(PAGE_TITLE_FONT_COL);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-    StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
-
     m_parts_btn = new Button(m_panel_control_title, _L("Printer Parts"));
-    m_parts_btn->SetBackgroundColor(btn_bg_green);
-    m_parts_btn->SetBorderColor(btn_bd_green);
-    m_parts_btn->SetTextColor(wxColour("#FFFFFE"));
-    m_parts_btn->SetSize(wxSize(FromDIP(128), FromDIP(26)));
-    m_parts_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_parts_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
 
     m_options_btn = new Button(m_panel_control_title, _L("Print Options"));
-    m_options_btn->SetBackgroundColor(btn_bg_green);
-    m_options_btn->SetBorderColor(btn_bd_green);
-    m_options_btn->SetTextColor(wxColour("#FFFFFE"));
-    m_options_btn->SetSize(wxSize(FromDIP(128), FromDIP(26)));
-    m_options_btn->SetMinSize(wxSize(-1, FromDIP(26)));
-
+    m_options_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
 
     m_calibration_btn = new Button(m_panel_control_title, _L("Calibration"));
-    m_calibration_btn->SetBackgroundColor(btn_bg_green);
-    m_calibration_btn->SetBorderColor(btn_bd_green);
-    m_calibration_btn->SetTextColor(wxColour("#FFFFFE"));
-    m_calibration_btn->SetSize(wxSize(FromDIP(128), FromDIP(26)));
-    m_calibration_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_calibration_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
 
     bSizer_control_title->Add(m_staticText_control, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
     bSizer_control_title->Add(0, 0, 1, wxEXPAND, 0);
@@ -1550,18 +1511,8 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
 
 
     m_button_unload = new Button(panel, _L("Unload"));
+    m_button_unload->SetStyle(ButtonStyle::Alert, ButtonType::Window);
 
-    StateColor abort_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-                        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    m_button_unload->SetBackgroundColor(abort_bg);
-    StateColor abort_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_unload->SetBorderColor(abort_bd);
-    StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    m_button_unload->SetTextColor(abort_text);
-    m_button_unload->SetFont(Label::Body_10);
-    m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_unload->SetCornerRadius(FromDIP(12));
     bSizer_e_ctrl->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_e_ctrl->Add(m_button_unload, 0, wxALIGN_CENTER_HORIZONTAL| wxTOP|wxBOTTOM, FromDIP(5));
 
@@ -4895,18 +4846,9 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
     wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
     bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-
     m_button_ok = new Button(this, _L("Submit"));
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour(0xFFFFFE));
-    m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_ok, 0, wxRIGHT, FromDIP(24));
+    m_button_ok->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
+    bSizer_button->Add(m_button_ok, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceButtonGap()));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         m_upload_status_code = StatusCode::UPLOAD_PROGRESS;
@@ -5041,17 +4983,9 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
         }
     });
 
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
     m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_button_cancel, 0, wxRIGHT, FromDIP(24));
+    m_button_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
+    bSizer_button->Add(m_button_cancel, 0, wxRIGHT, FromDIP(ButtonProps::ChoiceButtonGap()));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
 
