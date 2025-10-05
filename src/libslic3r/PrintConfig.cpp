@@ -1621,7 +1621,36 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("All"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<EnsureVerticalShellThickness>(EnsureVerticalShellThickness::evstAll));
-    
+
+    def           = this->add("internal_perimeter_flow_ratio", coFloat);
+    def->label    = L("Internal perimeter flow ratio multiplier");
+    def->category = L("Advanced");
+    def->tooltip  = L(
+         "This factor affects the amount of material extruded for internal perimeter.\n"
+         "The actual internal perimeter flow used is calculated by multiplying this value with the filament flow ratio, and "
+         "if set, the object's flow ratio.\n"
+         "Values above 1.00 will to improve wall bonding without having to increase the overall flow ratio at filament setting level.");
+    def->min  = 0;
+    def->max  = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.0f));
+
+    def           = this->add("perimeter_overlap", coPercent);
+    def->label    = L("Perimeter overlap increase");
+    def->category = L("Advanced");
+    def->tooltip  = L("This parameter change the default perimeter overlap by a percentage."
+                      "Increasing this value will improve wall bonding. Together with [Internal perimeter flow ratio multiplier], " 
+                      "these parameters enable precise tuning of perimeter bonding without needing to increasing the overall flow rate,"
+                      "which could otherwise degrade XY dimensional accuracy and cause visual overflow artifacts.\n"
+                      "Works only with classic wall generator."    
+    );
+
+    def->sidetext = "%";
+    def->min      = 100;
+    def->max      = 150;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100.0f));
+
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
     def->category = L("Strength");
