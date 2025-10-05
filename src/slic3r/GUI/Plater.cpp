@@ -12298,7 +12298,7 @@ void Plater::calib_input_shaping_freq(const Calib_Params& params)
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     print_config->set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
-    print_config->set_key_value("spiral_mode_smooth", new ConfigOptionBool(true));
+    print_config->set_key_value("spiral_mode_smooth", new ConfigOptionBool(false));
     print_config->set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
     print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(200));
     print_config->set_key_value("default_acceleration", new ConfigOptionFloat(2000));
@@ -12346,7 +12346,7 @@ void Plater::calib_input_shaping_damp(const Calib_Params& params)
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     print_config->set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
-    print_config->set_key_value("spiral_mode_smooth", new ConfigOptionBool(true));
+    print_config->set_key_value("spiral_mode_smooth", new ConfigOptionBool(false));
     print_config->set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
     print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(200));
     print_config->set_key_value("default_acceleration", new ConfigOptionFloat(2000));
@@ -12395,7 +12395,7 @@ void Plater::calib_junction_deviation(const Calib_Params& params)
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     print_config->set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
-    print_config->set_key_value("spiral_mode_smooth", new ConfigOptionBool(true));
+    print_config->set_key_value("spiral_mode_smooth", new ConfigOptionBool(false));
     print_config->set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
     print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(200));
     print_config->set_key_value("default_acceleration", new ConfigOptionFloat(2000));
