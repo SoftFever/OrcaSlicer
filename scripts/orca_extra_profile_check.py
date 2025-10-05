@@ -64,6 +64,9 @@ def check_filament_compatible_printers(vendor_folder):
 
     # Use rglob to recursively find .json files.
     for file_path in vendor_path.rglob("*.json"):
+        if file_path.name == 'filaments_color_codes.json': # Ignore non-profile file
+            continue
+
         try:
             with open(file_path, 'r', encoding='UTF-8') as fp:
                 # Use custom hook to detect duplicates.
