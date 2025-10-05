@@ -59,15 +59,7 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxHORIZONTAL);
 
     m_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    m_confirm->SetBackgroundColor(btn_bg_green);
-    m_confirm->SetBorderColor(wxColour(0, 150, 136));
-    m_confirm->SetTextColor(wxColour(255, 255, 255));
-    m_confirm->SetSize(TIPS_DIALOG_BUTTON_SIZE);
-    m_confirm->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
-    m_confirm->SetCornerRadius(FromDIP(12));
+    m_confirm->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     m_confirm->Bind(wxEVT_LEFT_DOWN, &TipsDialog::on_ok, this);
     m_sizer_right->Add(m_confirm, 0, wxALL, FromDIP(5));
 
@@ -112,8 +104,7 @@ wxBoxSizer *TipsDialog::create_item_checkbox(wxString title, wxWindow *parent, w
 
 void TipsDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    if (m_confirm) m_confirm->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
-    if (m_cancel) m_cancel->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
+    if (m_confirm) m_confirm->Rescale(); // ORCA
     Fit();
     Refresh();
 }
