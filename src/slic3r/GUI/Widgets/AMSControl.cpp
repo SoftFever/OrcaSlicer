@@ -175,28 +175,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     //m_sizer_left_bottom->Add(0, 0, 0, wxEXPAND, 0);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
-                            std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), 
-                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-
-    StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), 
-                            std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
-                            std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
-
-    StateColor btn_bd_green(std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Disabled), 
-                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
-
-    StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Disabled), 
-                            std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-
-    StateColor btn_text_green(std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Disabled), 
-                              std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Enabled));
-
-    StateColor btn_text_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
-                              std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-
     m_button_area = new wxWindow(m_amswin, wxID_ANY);
     m_button_area->SetBackgroundColour(m_amswin->GetBackgroundColour());
 
@@ -205,12 +183,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_button_area = new wxBoxSizer(wxHORIZONTAL);
 
     m_button_extruder_feed = new Button(m_button_area, _L("Load"));
-    m_button_extruder_feed->SetFont(Label::Body_13);
-
-    m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
-    m_button_extruder_feed->SetBorderColor(btn_bd_green);
-    m_button_extruder_feed->SetTextColor(btn_text_green);
-    
+    m_button_extruder_feed->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
 
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_extruder_feed->SetFont(Label::Body_9);
@@ -223,10 +196,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_extruder_feed->SetFont(Label::Body_9);
 
     m_button_extruder_back = new Button(m_button_area, _L("Unload"));
-    m_button_extruder_back->SetBackgroundColor(btn_bg_white);
-    m_button_extruder_back->SetBorderColor(btn_bd_white);
-    m_button_extruder_back->SetTextColor(btn_text_white);
-    m_button_extruder_back->SetFont(Label::Body_13);
+    m_button_extruder_feed->SetStyle(ButtonStyle::Alert, ButtonType::Window);
 
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_extruder_back->SetFont(Label::Body_9);
@@ -410,7 +380,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_ams_setting->SetBackgroundColour(m_amswin->GetBackgroundColour());
 
     m_button_guide = new Button(m_amswin, _L("Guide"));
-    m_button_guide->SetFont(Label::Body_13);
+    m_button_extruder_feed->SetStyle(ButtonStyle::Regular, ButtonType::Window);
+
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "ru_RU") m_button_guide->SetLabel("Guide");
@@ -421,14 +392,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_guide->SetFont(Label::Body_9);
 
-    m_button_guide->SetCornerRadius(FromDIP(12));
-    m_button_guide->SetBorderColor(btn_bd_white);
-    m_button_guide->SetTextColor(btn_text_white);
-    m_button_guide->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_guide->SetBackgroundColor(btn_bg_white);
-
     m_button_retry = new Button(m_amswin, _L("Retry"));
-    m_button_retry->SetFont(Label::Body_13);
+    m_button_extruder_feed->SetStyle(ButtonStyle::Regular, ButtonType::Window);
+
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "ru_RU") m_button_retry->SetLabel("Retry");
@@ -438,12 +404,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_retry->SetFont(Label::Body_9);
-
-    m_button_retry->SetCornerRadius(FromDIP(12));
-    m_button_retry->SetBorderColor(btn_bd_white);
-    m_button_retry->SetTextColor(btn_text_white);
-    m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_retry->SetBackgroundColor(btn_bg_white);
 
     m_sizer_right_bottom->Add(m_button_ams_setting, 0);
     m_sizer_right_bottom->Add(m_button_guide, 0, wxLEFT, FromDIP(10));
@@ -506,21 +466,13 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
     auto m_button_calibration_again = new Button(m_calibration_err_panel, _L("Calibrate again"));
-    m_button_calibration_again->SetBackgroundColor(btn_bg_green);
-    m_button_calibration_again->SetBorderColor(AMS_CONTROL_BRAND_COLOUR);
-    m_button_calibration_again->SetTextColor(AMS_CONTROL_WHITE_COLOUR);
-    m_button_calibration_again->SetMinSize(AMS_CONTRO_CALIBRATION_BUTTON_SIZE);
-    m_button_calibration_again->SetCornerRadius(FromDIP(12));
+    m_button_calibration_again->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     m_button_calibration_again->Bind(wxEVT_LEFT_DOWN, &AMSControl::on_clibration_again_click, this);
 
     sizer_button->Add(m_button_calibration_again, 0, wxALL, 5);
 
     auto       m_button_calibration_cancel = new Button(m_calibration_err_panel, _L("Cancel calibration"));
-    m_button_calibration_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_calibration_cancel->SetBorderColor(AMS_CONTROL_GRAY700);
-    m_button_calibration_cancel->SetTextColor(AMS_CONTROL_GRAY800);
-    m_button_calibration_cancel->SetMinSize(AMS_CONTRO_CALIBRATION_BUTTON_SIZE);
-    m_button_calibration_cancel->SetCornerRadius(FromDIP(12));
+    m_button_calibration_again->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
     m_button_calibration_cancel->Bind(wxEVT_LEFT_DOWN, &AMSControl::on_clibration_cancel_click, this);
     sizer_button->Add(m_button_calibration_cancel, 0, wxALL, 5);
 
