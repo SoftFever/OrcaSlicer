@@ -3742,10 +3742,11 @@ void TabFilament::build()
         optgroup->append_single_option_line("chamber_temperature", "chamber-temperature");
         optgroup->append_single_option_line("activate_chamber_temp_control", "chamber-temperature");
 
-        optgroup->append_separator();
-
-
         optgroup = page->new_optgroup(L("Print temperature"), L"param_extruder_temp");
+        line = { L("Nozzle"), L("Nozzle temperature when printing") };
+        line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
+        line.append_option(optgroup->get_option("nozzle_temperature"));
+        optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Bed temperature"), L"param_bed_temp");
         line = { L("Cool Plate (SuperTack)"),
@@ -3813,13 +3814,6 @@ void TabFilament::build()
 
             on_value_change(opt_key, value);
         };
-
-        optgroup = page->new_optgroup(L("Nozzle temperature"), L"param_temperature");
-
-        line = { L("Nozzle"), L("Nozzle temperature when printing") };
-        line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
-        line.append_option(optgroup->get_option("nozzle_temperature"));
-        optgroup->append_line(line);
 
         //BBS
         optgroup = page->new_optgroup(L("Volumetric speed limitation"), L"param_volumetric_speed");
