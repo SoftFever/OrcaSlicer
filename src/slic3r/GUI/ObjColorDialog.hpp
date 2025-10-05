@@ -106,7 +106,6 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 private:
     ObjColorPanel*  m_panel_ObjColor  = nullptr;
-    std::unordered_map<int, Button *> m_button_list;
     std::vector<unsigned char>&      m_filament_ids;
     unsigned char &                  m_first_extruder_id;
 };
