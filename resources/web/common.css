@@ -1,10 +1,38 @@
+/*----ORCA UNIFIED STYLING FOR ALL CONTROLS----*/
+
 /*----TODO----*/
 /*----Use variables for colors and values----*/
 /*----Use root for dark colors----*/
 /*----remove all dark.css----*/
 
-/*----ORCA----*/
-/*----Button Styles and types matches with UI----*/
+/*----All values / colors can be controllable from here ----*/
+:root {
+	--main-color         : #009688;
+	--main-color-hover   : #26A69A;
+	--button-fg-light    : #FEFEFE;
+	--button-fg-text     : #262E30;
+	--button-fg-disabled : #6B6B6B;
+	--button-bg-normal   : #DFDFDF;
+	--button-bg-hover    : #D4D4D4;
+	--button-bg-disabled : var(--button-bg-normal);
+	--button-bg-alert    : #E14747;
+}
+  
+@media (prefers-color-scheme: dark) { 
+:root {
+	--main-color         : #00675B;
+	--main-color-hover   : #008172;
+	--button-fg-light    : #FEFEFE;
+	--button-fg-text     : #EFEFF0;
+	--button-fg-disabled : #818183;
+	--button-bg-normal   : #3E3E45;
+	--button-bg-hover    : #4D4D54;
+	--button-bg-disabled : var(--button-bg-normal);
+	--button-bg-alert    : #E14747;
+}
+}
+
+/*----BUTTONS ----*/
 /*----Values slightly different since renderer is different----*/
 /*----Currently no support for focus border----*/
 .ButtonTypeCompact   { font-size: 11px; padding: 0px 8px ; border-radius: 12px; line-height: 23px; height: 24px;}
@@ -17,17 +45,17 @@
 .ButtonTypeWindow,
 .ButtonTypeChoice,
 .ButtonTypeParameter,
-.ButtonTypeExpanded{
+.ButtonTypeExpanded {
 	text-align: center;
 	border: none;
 }
 
 .ButtonTypeWindow,
-.ButtonTypeCompact{
+.ButtonTypeCompact {
 	min-width: 36px; /*----58 - 11*2(padding)----*/
 }
 
-.ButtonTypeChoice{
+.ButtonTypeChoice {
 	min-width: 74px; /*----100 - 13*2(padding)----*/
 	margin-left:10px;
 }
@@ -36,28 +64,10 @@
 	margin-right:10px;
 }
 
-.ButtonStyleConfirm        { background: #009688; color: #FEFEFE;}
-.ButtonStyleConfirm:hover  { background: #26A69A; color: #FEFEFE;}
-.ButtonStyleRegular        { background: #DFDFDF; color: #262E30;}
-.ButtonStyleRegular:hover  { background: #D4D4D4; color: #262E30;}
-.ButtonStyleAlert          { background: #DFDFDF; color: #262E30;}
-.ButtonStyleAlert:hover    { background: #E14747; color: #EFEFF0;}
-.ButtonStyleDisabled       { background: #DFDFDF; color: #262E30;}
-
-@media (prefers-color-scheme: dark) {
-	.ButtonStyleConfirm        { background: #00675B; color: #FEFEFE;}
-	.ButtonStyleConfirm:hover  { background: #008172; color: #FEFEFE;}
-	.ButtonStyleRegular        { background: #3E3E45; color: #EFEFF0;}
-	.ButtonStyleRegular:hover  { background: #4D4D54; color: #EFEFF0;}
-	.ButtonStyleAlert          { background: #3E3E45; color: #EFEFF0;}
-	.ButtonStyleAlert:hover    { background: #E14747; color: #EFEFF0;}
-	.ButtonStyleDisabled       { background: #DFDFDF; color: #262E30;}
-}
-
-
-/*----------------Light Mode-------------------*/
-
-
-
-
-
+.ButtonStyleConfirm        { background: var(--main-color        ); color: var(--button-fg-light   )}
+.ButtonStyleConfirm:hover  { background: var(--main-color-hover  ); color: var(--button-fg-light   )}
+.ButtonStyleRegular        { background: var(--button-bg-normal  ); color: var(--button-fg-text    )}
+.ButtonStyleRegular:hover  { background: var(--button-bg-hover   ); color: var(--button-fg-text    )}
+.ButtonStyleAlert          { background: var(--button-bg-normal  ); color: var(--button-fg-text    )}
+.ButtonStyleAlert:hover    { background: var(--button-bg-alert   ); color: var(--button-fg-light   )}
+.ButtonStyleDisabled       { background: var(--button-bg-disabled); color: var(--button-fg-disabled)}
