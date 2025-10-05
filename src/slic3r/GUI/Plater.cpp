@@ -521,7 +521,6 @@ struct Sidebar::priv
 
 void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
 {
-    isDual = isDual && isBBL;  // It indicates a multi-extruder layout.
     // Printer - preset
     if (auto sizer = static_cast<wxBoxSizer *>(panel_printer_preset->GetSizer());
             sizer == nullptr /*|| isBBL != (sizer->GetOrientation() == wxVERTICAL)*/) {
@@ -2391,7 +2390,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto* nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(printer_preset.config.option("nozzle_diameter"));
 
         bool is_dual_extruder = nozzle_diameter->size() == 2;
-        p->layout_printer(isBBL, is_dual_extruder);
+        p->layout_printer(preset_bundle.use_bbl_network(), isBBL && is_dual_extruder);
         auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
         auto diameter = printer_preset.config.opt_string("printer_variant");
         auto update_extruder_diameter = [&diameters, &diameter](ExtruderGroup & extruder) {
