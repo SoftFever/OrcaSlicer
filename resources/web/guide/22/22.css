@@ -110,7 +110,7 @@ input
 {
 	margin-top: 4mm;
 	display: flex;
-	justify-content:space-around;
+	justify-content:flex-end;
 }
 
 #GotoNetPluginBtn

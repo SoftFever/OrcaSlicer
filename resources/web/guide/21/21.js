@@ -75,8 +75,8 @@ function HandleModelList( pVal )
 			let HtmlNewVendor='<div class="OneVendorBlock" Vendor="'+strVendor+'">'+
 '<div class="BlockBanner">'+
 '	<div class="BannerBtns">'+
-'		<div class="SmallBtn_Green trans" tid="t11" onClick="SelectPrinterAll('+"\'"+strVendor+"\'"+')">all</div>'+
-'		<div class="SmallBtn trans" tid="t12" onClick="SelectPrinterNone('+"\'"+strVendor+"\'"+')">none</div>'+
+'		<div class="ButtonStyleConfirm ButtonTypeWindow trans" tid="t11" onClick="SelectPrinterAll('+"\'"+strVendor+"\'"+')">all</div>'+
+'		<div class="ButtonStyleRegular ButtonTypeWindow trans" tid="t12" onClick="SelectPrinterNone('+"\'"+strVendor+"\'"+')">none</div>'+
 '	</div>'+
 '	<a>'+sVV+'</a>'+
 '</div>'+
@@ -242,8 +242,8 @@ function FilterModelList(keyword) {
 			let HtmlNewVendor = '<div class="OneVendorBlock" Vendor="' + strVendor + '">' +
 				'<div class="BlockBanner">' +
 				'	<div class="BannerBtns">' +
-				'		<div class="SmallBtn_Green trans" tid="t11" onClick="SelectPrinterAll(' + "\'" + strVendor + "\'" + ')">all</div>' +
-				'		<div class="SmallBtn trans" tid="t12" onClick="SelectPrinterNone(' + "\'" + strVendor + "\'" + ')">none</div>' +
+				'		<div class="ButtonStyleConfirm ButtonTypeWindow trans" tid="t11" onClick="SelectPrinterAll(' + "\'" + strVendor + "\'" + ')">all</div>' +
+				'		<div class="ButtonStyleRegular ButtonTypeWindow trans" tid="t12" onClick="SelectPrinterNone(' + "\'" + strVendor + "\'" + ')">none</div>' +
 				'	</div>' +
 				'	<a>' + sVV + '</a>' +
 				'</div>' +

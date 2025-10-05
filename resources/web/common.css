@@ -1,0 +1,63 @@
+/*----TODO----*/
+/*----Use variables for colors and values----*/
+/*----Use root for dark colors----*/
+/*----remove all dark.css----*/
+
+/*----ORCA----*/
+/*----Button Styles and types matches with UI----*/
+/*----Values slightly different since renderer is different----*/
+/*----Currently no support for focus border----*/
+.ButtonTypeCompact   { font-size: 11px; padding: 0px 8px ; border-radius: 12px; line-height: 23px; height: 24px;}
+.ButtonTypeWindow    { font-size: 13px; padding: 0px 11px; border-radius: 12px; line-height: 23px; height: 24px;}
+.ButtonTypeChoice    { font-size: 15px; padding: 0px 13px; border-radius: 4px ; line-height: 31px; height: 32px;}
+.ButtonTypeParameter { font-size: 15px; padding: 0px 12px; border-radius: 4px ; line-height: 25px; height: 26px;}
+.ButtonTypeExpanded  { font-size: 15px; padding: 0px 12px; border-radius: 4px ; line-height: 31px; height: 32px;}
+
+.ButtonTypeCompact,
+.ButtonTypeWindow,
+.ButtonTypeChoice,
+.ButtonTypeParameter,
+.ButtonTypeExpanded{
+	text-align: center;
+	border: none;
+}
+
+.ButtonTypeWindow,
+.ButtonTypeCompact{
+	min-width: 36px; /*----58 - 11*2(padding)----*/
+}
+
+.ButtonTypeChoice{
+	min-width: 74px; /*----100 - 13*2(padding)----*/
+	margin-left:10px;
+}
+
+.ButtonTypeWindow.ButtonStyleConfirm { /*---- Commonly used as "All" button before "Clear All" button----*/
+	margin-right:10px;
+}
+
+.ButtonStyleConfirm        { background: #009688; color: #FEFEFE;}
+.ButtonStyleConfirm:hover  { background: #26A69A; color: #FEFEFE;}
+.ButtonStyleRegular        { background: #DFDFDF; color: #262E30;}
+.ButtonStyleRegular:hover  { background: #D4D4D4; color: #262E30;}
+.ButtonStyleAlert          { background: #DFDFDF; color: #262E30;}
+.ButtonStyleAlert:hover    { background: #E14747; color: #EFEFF0;}
+.ButtonStyleDisabled       { background: #DFDFDF; color: #262E30;}
+
+@media (prefers-color-scheme: dark) {
+	.ButtonStyleConfirm        { background: #00675B; color: #FEFEFE;}
+	.ButtonStyleConfirm:hover  { background: #008172; color: #FEFEFE;}
+	.ButtonStyleRegular        { background: #3E3E45; color: #EFEFF0;}
+	.ButtonStyleRegular:hover  { background: #4D4D54; color: #EFEFF0;}
+	.ButtonStyleAlert          { background: #3E3E45; color: #EFEFF0;}
+	.ButtonStyleAlert:hover    { background: #E14747; color: #EFEFF0;}
+	.ButtonStyleDisabled       { background: #DFDFDF; color: #262E30;}
+}
+
+
+/*----------------Light Mode-------------------*/
+
+
+
+
+
