@@ -112,7 +112,7 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     scroll_sizer->AddSpacer(FromDIP(15));
 
     m_extruder_switch_btn = new SwitchButton(scroll_window);
-    m_extruder_switch_btn->SetBackgroundColour(wxColour(0, 174, 66));
+    m_extruder_switch_btn->SetBackgroundColour(wxColour(0, 150, 136));
     m_extruder_switch_btn->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
     m_extruder_switch_btn->SetMaxSize(wxSize(FromDIP(120), FromDIP(24)));
     m_extruder_switch_btn->SetLabels(_L("Left Nozzle"), _L("Right Nozzle"));

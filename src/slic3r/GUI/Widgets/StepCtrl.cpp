@@ -366,7 +366,7 @@ FilamentStepIndicator::FilamentStepIndicator(wxWindow* parent, wxWindowID id, co
     clr_bar = 0xE1E1E1;
     clr_step = StateColor(
         std::make_pair(0xACACAC, (int)StateColor::Disabled),
-        std::make_pair(0x00AE42, 0));
+        std::make_pair(0x009688, 0));
     clr_text = StateColor(
         std::make_pair(0xACACAC, (int)StateColor::Disabled),
         std::make_pair(0x323A3D, (int)StateColor::Checked),
@@ -404,7 +404,7 @@ void FilamentStepIndicator::doRender(wxDC& dc)
     }
 
     dc.SetFont(::Label::Head_16);
-    dc.SetTextForeground(wxColour(0, 174, 66));
+    dc.SetTextForeground(wxColour(0, 150, 136));
     int circleX = 20;
     int circleY = 20;
     wxSize sz = dc.GetTextExtent(L"Loading");

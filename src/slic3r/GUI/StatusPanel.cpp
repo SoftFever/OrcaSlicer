@@ -1965,7 +1965,7 @@ wxBoxSizer* StatusBasePanel::create_filament_group(wxWindow* parent)
 
     auto m_title_filament_loading = new Label(m_scale_panel, _L("Filament loading..."));
     m_title_filament_loading->SetBackgroundColour(*wxWHITE);
-    m_title_filament_loading->SetForegroundColour(wxColour(27, 136, 68));
+    m_title_filament_loading->SetForegroundColour(wxColour(0, 137, 123));
     m_title_filament_loading->SetFont(::Label::Body_14);
 
     m_img_filament_loading = new wxStaticBitmap(m_scale_panel, wxID_ANY, create_scaled_bitmap("filament_load_fold", this, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);

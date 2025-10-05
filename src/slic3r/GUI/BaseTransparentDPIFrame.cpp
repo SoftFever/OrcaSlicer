@@ -65,30 +65,18 @@ BaseTransparentDPIFrame::BaseTransparentDPIFrame(
     /* m_checkbox = new wxCheckBox(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
      bSizer_button->Add(m_checkbox, 0, wxALIGN_LEFT);*/
     bSizer_button->AddStretchSpacer(1);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(23, 25, 22), StateColor::Pressed), std::pair<wxColour, int>(wxColour(43, 45, 42), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(23, 25, 22), StateColor::Normal));
     m_button_ok = new Button(this, ok_text);
-    m_button_ok->SetBackgroundColor(btn_bg_green);
-    m_button_ok->SetBorderWidth(0);
-    m_button_ok->SetTextColor(wxColour(0xFEFEFE));
-    m_button_ok->SetFont(Label::Body_12);
+    m_button_ok->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
     m_button_ok->SetSize(wxSize(FromDIP(60), FromDIP(30)));
     m_button_ok->SetMinSize(wxSize(FromDIP(90), FromDIP(30)));
-    m_button_ok->SetCornerRadius(FromDIP(6));
     bSizer_button->Add(m_button_ok, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
 
     m_button_ok->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &e) { deal_ok(); });
 
     m_button_cancel = new Button(this, cancel_text);
-    m_button_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_cancel->SetBorderColor(wxColour(93, 93, 91));
-    m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetTextColor(wxColour(0xFEFEFE));
+    m_button_cancel->SetStyle(ButtonStyle::Regular, ButtonType::Window);
     m_button_cancel->SetSize(wxSize(FromDIP(65), FromDIP(30)));
     m_button_cancel->SetMinSize(wxSize(FromDIP(65), FromDIP(30)));
-    m_button_cancel->SetCornerRadius(FromDIP(6));
     bSizer_button->Add(m_button_cancel, 0, wxALIGN_RIGHT | wxLEFT | wxTOP, FromDIP(10));
 
     m_button_cancel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &e) { deal_cancel(); });

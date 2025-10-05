@@ -443,7 +443,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_link_edit_nozzle = new Label(m_scroll_area, wxEmptyString);
     m_link_edit_nozzle->SetFont(::Label::Body_13);
-    m_link_edit_nozzle->SetForegroundColour(0x00ae42);
+    m_link_edit_nozzle->SetForegroundColour("#009688");
     m_link_edit_nozzle->SetBackgroundColour(*wxWHITE);
     m_link_edit_nozzle->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
     m_link_edit_nozzle->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
@@ -575,7 +575,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer *m_sizer_prepare = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_pcont   = new wxBoxSizer(wxVERTICAL);
 
-    m_btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    m_btn_bg_enable = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_button_ensure = new Button(m_panel_prepare, _L("Send"));
     m_button_ensure->SetBackgroundColor(m_btn_bg_enable);
@@ -4872,7 +4872,7 @@ void PrintOptionItem::doRender(wxDC& dc)
 
         if (text_key == selected_key)
         {
-            const wxColour& clr = m_enable ? StateColor::darkModeColorFor("#00AE42") : StateColor::darkModeColorFor(wxColour(144, 144, 144));
+            const wxColour& clr = m_enable ? StateColor::darkModeColorFor("#009688") : StateColor::darkModeColorFor(wxColour(144, 144, 144));
             dc.SetPen(wxPen(clr));
             dc.SetTextForeground(clr);
 
@@ -4975,7 +4975,7 @@ void SendModeSwitchButton::doRender(wxDC &dc)
     if (is_selected) {
         dc.DrawBitmap(m_img_selected.bmp(), wxPoint(0, 0));
         dc.DrawBitmap(m_img_selected_tag.bmp(), wxPoint(left, (size.y - m_img_selected_tag.GetBmpSize().y) / 2));
-        dc.SetTextForeground(0x00AE42);
+        dc.SetTextForeground("#009688");
     }else {
         dc.DrawBitmap(m_img_unselected.bmp(), wxPoint(0, 0));
         dc.DrawBitmap(m_img_unselected_tag.bmp(), wxPoint(left, (size.y - m_img_selected_tag.GetBmpSize().y) / 2));
