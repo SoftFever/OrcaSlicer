@@ -39,12 +39,6 @@ input
 	align-items: center;
 }
 
-#ItemSelectArea .SmallBtn
-{
-	margin-left:5px;
-}
-
-
 #ItemBlockArea
 {
 	flex: 1 0 236px;
