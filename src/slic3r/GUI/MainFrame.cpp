@@ -2986,18 +2986,14 @@ void MainFrame::init_menubar_as_editor()
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
-    // Cornering (with submenu)
-    auto cornering_menu = new wxMenu();
-    append_menu_item(
-        cornering_menu, wxID_ANY, _L("Cornering"), _L("Cornering calibration"),
+    // Cornering
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Cornering"), _L("Cornering calibration"),
         [this](wxCommandEvent&) {
             if (!m_cornering_calib_dlg)
                 m_cornering_calib_dlg = new Cornering_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_cornering_calib_dlg->ShowModal();
-        },
-        "", nullptr,
+        }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    m_topbar->GetCalibMenu()->AppendSubMenu(cornering_menu, _L("Cornering"));
 
     // Input Shaping (with submenu)
     auto input_shaping_menu = new wxMenu();
@@ -3108,18 +3104,14 @@ void MainFrame::init_menubar_as_editor()
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
-    // Cornering (with submenu)
-    auto cornering_menu = new wxMenu();
-    append_menu_item(
-        cornering_menu, wxID_ANY, _L("Cornering"), _L("Cornering calibration"),
+    // Cornering
+    append_menu_item(calib_menu, wxID_ANY, _L("Cornering"), _L("Cornering calibration"),
         [this](wxCommandEvent&) {
             if (!m_cornering_calib_dlg)
                 m_cornering_calib_dlg = new Cornering_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_cornering_calib_dlg->ShowModal();
-        },
-        "", nullptr,
+        }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    calib_menu->AppendSubMenu(cornering_menu, _L("Cornering"));
 
     // Input Shaping (with submenu)
     auto input_shaping_menu = new wxMenu();
