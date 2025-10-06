@@ -1220,7 +1220,13 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     // Start cornering
     auto start_jd_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_jd_text = new wxStaticText(this, wxID_ANY, start_jd_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    // GCodeFlavor::gcfMarlinFirmware
     m_tiJDStart = new TextInput(this, wxString::Format("%.3f", 0.000), "mm", "", wxDefaultPosition, ti_size);
+    // GCodeFlavor::gcfKlipper square_corner_velocity
+    // GCodeFlavor::gcfMarlinLegacy jerk
+    // m_tiJDStart = new TextInput(this, wxString::Format("%.3f", 1), "mm/s", "", wxDefaultPosition, ti_size);
+    // GCodeFlavor::gcfRepRapFirmware Maximum instantaneous speed change
+    // m_tiJDStart = new TextInput(this, wxString::Format("%.3f", 30), "mm/s", "", wxDefaultPosition, ti_size);
     m_tiJDStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     start_jd_sizer->Add(start_jd_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     start_jd_sizer->Add(m_tiJDStart  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -1229,7 +1235,13 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     // End cornering
     auto end_jd_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto end_jd_text = new wxStaticText(this, wxID_ANY, end_jd_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    // GCodeFlavor::gcfMarlinFirmware
     m_tiJDEnd = new TextInput(this, wxString::Format("%.3f", 0.250), "mm", "", wxDefaultPosition, ti_size);
+    // GCodeFlavor::gcfKlipper square_corner_velocity
+    // GCodeFlavor::gcfMarlinLegacy jerk
+    // m_tiJDEnd = new TextInput(this, wxString::Format("%.3f", 15), "mm/s", "", wxDefaultPosition, ti_size);
+    // GCodeFlavor::gcfRepRapFirmware Maximum instantaneous speed change
+    // m_tiJDEnd = new TextInput(this, wxString::Format("%.3f", 300), "mm/s", "", wxDefaultPosition, ti_size);
     m_tiJDEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_jd_sizer->Add(end_jd_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     end_jd_sizer->Add(m_tiJDEnd  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -1238,7 +1250,7 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     settings_sizer->AddSpacer(FromDIP(5));
 
     // Add note about cornering
-    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: Lower values = sharper corners but slower speeds"), 
+    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: Lower values = sharper corners but slower speeds"),
                                     wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     note_text->SetForegroundColour(wxColour(128, 128, 128));
     settings_sizer->Add(note_text, 0, wxALL, FromDIP(5));
