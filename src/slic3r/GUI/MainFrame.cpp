@@ -2989,11 +2989,11 @@ void MainFrame::init_menubar_as_editor()
     // Cornering (with submenu)
     auto cornering_menu = new wxMenu();
     append_menu_item(
-        cornering_menu, wxID_ANY, _L("Junction Deviation"), _L("Junction Deviation calibration"),
+        cornering_menu, wxID_ANY, _L("Cornering"), _L("Cornering calibration"),
         [this](wxCommandEvent&) {
-            if (!m_junction_deviation_calib_dlg)
-                m_junction_deviation_calib_dlg = new Junction_Deviation_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_junction_deviation_calib_dlg->ShowModal();
+            if (!m_cornering_calib_dlg)
+                m_cornering_calib_dlg = new Cornering_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_cornering_calib_dlg->ShowModal();
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
@@ -3111,11 +3111,11 @@ void MainFrame::init_menubar_as_editor()
     // Cornering (with submenu)
     auto cornering_menu = new wxMenu();
     append_menu_item(
-        cornering_menu, wxID_ANY, _L("Junction Deviation"), _L("Junction Deviation calibration"),
+        cornering_menu, wxID_ANY, _L("Cornering"), _L("Cornering calibration"),
         [this](wxCommandEvent&) {
-            if (!m_junction_deviation_calib_dlg)
-                m_junction_deviation_calib_dlg = new Junction_Deviation_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_junction_deviation_calib_dlg->ShowModal();
+            if (!m_cornering_calib_dlg)
+                m_cornering_calib_dlg = new Cornering_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_cornering_calib_dlg->ShowModal();
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
