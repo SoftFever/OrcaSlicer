@@ -3817,7 +3817,13 @@ LayerResult GCode::process_layer(
             break;
         }
         case CalibMode::Calib_Cornering: {
-            gcode += writer().set_junction_deviation(this->interpolate_value_across_layers(print.calib_params().start, print.calib_params().end));
+            if (m_writer.get_gcode_flavor() == gcfMarlinFirmware &&
+                !m_config.machine_max_junction_deviation.values.empty() &&
+                m_config.machine_max_junction_deviation.values.front() > 0) {
+                gcode += writer().set_junction_deviation(this->interpolate_value_across_layers(print.calib_params().start, print.calib_params().end));
+            } else {
+                gcode += writer().set_jerk_xy(this->interpolate_value_across_layers(print.calib_params().start, print.calib_params().end));
+            }
             break;
         }
     }
