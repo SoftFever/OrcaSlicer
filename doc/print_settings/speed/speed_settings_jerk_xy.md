@@ -5,6 +5,10 @@
 ## Cornering Control Types
 
 - **Jerk**: Traditional method, sets a maximum speed for direction changes.
+  - Klipper: [Square corner velocity](https://www.klipper3d.org/Config_Reference.html#printer)
+  - RepRapFirmware: [Maximum instantaneous speed changes](https://docs.duet3d.com/User_manual/Reference/Gcodes#m566-set-allowable-instantaneous-speed-change)
+  - Marlin 2: [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-) (deprecated in favor of [Junction Deviation](https://marlinfw.org/docs/configuration/configuration.html#junction-deviation-)) but can still be used.
+  - Marlin Legacy: [Classic Jerk](https://marlinfw.org/docs/configuration/configuration.html#jerk-).
 - **[Junction Deviation](#junction-deviation)**: Modern method, calculates cornering speed based on acceleration and speed.
 
 ## Key Effects

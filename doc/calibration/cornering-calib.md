@@ -2,11 +2,10 @@
 
 Cornering is a critical aspect of 3D printing that affects print quality and accuracy. It's how the printer handles changes in direction during movement, particularly at corners and curves. Proper cornering settings can reduce artifacts such as ringing, ghosting, and overshooting, resulting in cleaner and more precise prints.
 
-## Jerk
+> [!TIP]
+> Read more in [Jerk XY](speed_settings_jerk_xy).
 
-TODO: Jerk calibration not implemented yet.
-
-## Junction Deviation
+## Calibration
 
 Junction Deviation is the default method for controlling cornering speed in **Marlin firmware (Marlin 2.x)**.  
 Higher values allow more aggressive cornering, while lower values produce smoother, more controlled corners.  
