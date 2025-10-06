@@ -3758,7 +3758,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 0.01, 0.01 });
+    def->set_default_value(new ConfigOptionFloats { 0.01});
 
     // M205 S... [mm/sec]
     def = this->add("machine_min_extruding_rate", coFloats);

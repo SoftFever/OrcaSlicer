@@ -648,9 +648,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool machine_supports_junction_deviation = false;
     if (gcflavor == gcfMarlinFirmware) {
         if (const auto *machine_jd = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation")) {
-            machine_supports_junction_deviation = std::any_of(machine_jd->values.begin(), machine_jd->values.end(), [](double value) {
-                return value > 0.0;
-            });
+            machine_supports_junction_deviation = !machine_jd->values.empty() && machine_jd->values.front() > 0.0;
         }
     }
     toggle_line("default_junction_deviation", gcflavor == gcfMarlinFirmware);
