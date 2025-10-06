@@ -3812,11 +3812,11 @@ LayerResult GCode::process_layer(
                 gcode += writer().set_input_shaping('X', 0.f, print.calib_params().freqStartX, print.calib_params().shaper_type);
                 gcode += writer().set_input_shaping('Y', 0.f, print.calib_params().freqStartY, print.calib_params().shaper_type);
             } else {
-                gcode += writer().set_input_shaping('A', print.calib_params().start + ((print.calib_params().end)-(print.calib_params().start)) * (m_layer_index) / (m_layer_count), 0.f, "");
+                gcode += writer().set_input_shaping('A', this->interpolate_value_across_layers(print.calib_params().start, print.calib_params().end), 0.f, "");
             }
             break;
         }
-        case CalibMode::Calib_Junction_Deviation: {
+        case CalibMode::Calib_Cornering: {
             gcode += writer().set_junction_deviation(this->interpolate_value_across_layers(print.calib_params().start, print.calib_params().end));
             break;
         }

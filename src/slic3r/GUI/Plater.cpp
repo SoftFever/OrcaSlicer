@@ -10371,12 +10371,12 @@ void Plater::calib_input_shaping_damp(const Calib_Params& params)
     p->background_process.fff_print()->set_calib_params(params);
 }
 
-void Plater::calib_junction_deviation(const Calib_Params& params)
+void Plater::Calib_Cornering(const Calib_Params& params)
 {
-    const auto calib_junction_deviation = wxString::Format(L"Junction Deviation test");
-    new_project(false, false, calib_junction_deviation);
+    const auto Calib_Cornering = wxString::Format(L"Cornering test");
+    new_project(false, false, Calib_Cornering);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    if (params.mode != CalibMode::Calib_Junction_Deviation)
+    if (params.mode != CalibMode::Calib_Cornering)
         return;
 
     add_model(false, Slic3r::resources_dir() + (params.test_model < 1 ? "/calib/input_shaping/ringing_tower.stl" : "/calib/input_shaping/fast_tower_test.stl"));
