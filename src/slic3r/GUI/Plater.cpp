@@ -10379,8 +10379,10 @@ void Plater::Calib_Cornering(const Calib_Params& params)
     if (params.mode != CalibMode::Calib_Cornering)
         return;
 
-    add_model(false, Slic3r::resources_dir() + (params.test_model < 1 ? "/calib/input_shaping/ringing_tower.stl" : "/calib/input_shaping/fast_tower_test.stl"));
-    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    const std::string cornering_model_path = params.test_model == 0
+        ? "/calib/input_shaping/ringing_tower.stl"
+        : (params.test_model == 1 ? "/calib/input_shaping/fast_tower_test.stl" : "/calib/cornering/SCV-V2.stl");
+    add_model(false, Slic3r::resources_dir() + cornering_model_path);    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     printer_config->set_key_value("machine_max_junction_deviation", new ConfigOptionFloats{1.0});

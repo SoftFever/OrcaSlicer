@@ -1200,7 +1200,7 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     auto labeled_box_model = new LabeledStaticBox(this, _L("Test model"));
     auto model_box = new wxStaticBoxSizer(labeled_box_model, wxHORIZONTAL);
 
-    m_rbModel = new RadioGroup(this, { _L("Ringing Tower"), _L("Fast Tower") }, wxHORIZONTAL);
+    m_rbModel = new RadioGroup(this, { _L("Ringing Tower"), _L("Fast Tower"), _L("SCV-V2") }, wxHORIZONTAL);
     model_box->Add(m_rbModel, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(model_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
 
@@ -1290,7 +1290,7 @@ void Cornering_Test_Dlg::on_start(wxCommandEvent& event) {
     m_params.mode = CalibMode::Calib_Cornering;
     
     // Set model type based on selection
-    m_params.test_model = m_rbModel->GetSelection() == 0 ? 0 : 1; // 0 = Ringing Tower, 1 = Fast Tower
+    m_params.test_model = m_rbModel->GetSelection();
     
     m_plater->Calib_Cornering(m_params);
     EndModal(wxID_OK);
