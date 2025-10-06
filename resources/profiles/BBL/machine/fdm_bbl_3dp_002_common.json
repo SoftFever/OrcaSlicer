@@ -298,6 +298,12 @@
         "324",
         "324"
     ],
+    "retract_lift_enforce": [
+        "All Surfaces",
+        "All Surfaces",
+        "All Surfaces",
+        "All Surfaces"
+    ],
     "retract_restart_extra": [
         "0",
         "0",
@@ -357,6 +363,12 @@
         "0.4",
         "0.4",
         "0.4"
+    ],
+    "travel_slope": [
+        "3",
+        "3",
+        "3",
+        "3"
     ],
     "z_hop_types": [
         "Auto Lift",

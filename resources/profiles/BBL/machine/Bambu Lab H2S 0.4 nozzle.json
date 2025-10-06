@@ -181,6 +181,10 @@
         "0",
         "0"
     ],
+    "retract_lift_enforce": [
+        "All Surfaces",
+        "All Surfaces"
+    ],
     "retraction_length": [
         "0.8",
         "0.8"
@@ -221,6 +225,10 @@
     "z_hop": [
         "0.4",
         "0.4"
+    ],
+    "travel_slope": [
+        "3",
+        "3"
     ],
     "z_hop_types": [
         "Auto Lift",

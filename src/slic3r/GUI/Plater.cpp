@@ -8505,8 +8505,14 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                 preset->is_visible = true; // force visible
                 preset_name = preset->name;
             }
-
             std::string old_preset_name = wxGetApp().preset_bundle->printers.get_edited_preset().name;
+
+            update_objects_position_when_select_preset([this, &preset_type, &preset_name]() {
+                wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
+                wxGetApp().get_tab(preset_type)->select_preset(preset_name);
+                // update plater with new config
+                q->on_config_change(wxGetApp().preset_bundle->full_config());
+            });
 
 
             if (old_preset_name != preset_name && wxGetApp().app_config->get("auto_calculate_flush") == "all") {
