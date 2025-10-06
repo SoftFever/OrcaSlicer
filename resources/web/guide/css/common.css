@@ -101,8 +101,10 @@ body
 
 #AcceptArea
 {
-	height:12%;
-	padding: 0mm 10mm;
+	height:var(--dialog-button-sizer-height); /*----ORCA Use fixed size to prevent position change----*/
+	max-height:var(--dialog-button-sizer-height);
+	min-height:var(--dialog-button-sizer-height);
+	padding: 0 var(--dialog-button-gap);
 	text-align: left;
 	display: flex;
 	justify-content:flex-end;

@@ -1,12 +1,13 @@
 /*----ORCA UNIFIED STYLING FOR ALL CONTROLS----*/
 
-/*----TODO----*/
-/*----Use variables for colors and values----*/
-/*----Use root for dark colors----*/
-/*----remove all dark.css----*/
-
-/*----All values / colors can be controllable from here ----*/
+/*----GLOBAL VARIABLES ----*/
 :root {
+	--dialog-button-sizer-height : 62px; /*----32 + 15 * 2----*/
+	--dialog-button-gap          : 15px;
+}
+
+/*----GLOBAL COLORS ----*/
+:root { 
 	--main-color         : #009688;
 	--main-color-hover   : #26A69A;
 	--button-fg-light    : #FEFEFE;
@@ -35,33 +36,32 @@
 /*----BUTTONS ----*/
 /*----Values slightly different since renderer is different----*/
 /*----Currently no support for focus border----*/
-.ButtonTypeCompact   { font-size: 11px; padding: 0px 8px ; border-radius: 12px; line-height: 23px; height: 24px;}
-.ButtonTypeWindow    { font-size: 13px; padding: 0px 11px; border-radius: 12px; line-height: 23px; height: 24px;}
-.ButtonTypeChoice    { font-size: 15px; padding: 0px 13px; border-radius: 4px ; line-height: 31px; height: 32px;}
-.ButtonTypeParameter { font-size: 15px; padding: 0px 12px; border-radius: 4px ; line-height: 25px; height: 26px;}
-.ButtonTypeExpanded  { font-size: 15px; padding: 0px 12px; border-radius: 4px ; line-height: 31px; height: 32px;}
-
-.ButtonTypeCompact,
-.ButtonTypeWindow,
-.ButtonTypeChoice,
-.ButtonTypeParameter,
-.ButtonTypeExpanded {
-	text-align: center;
-	border: none;
-}
+.ButtonTypeCompact   { font-size: 11px; padding: 0px 8px ; border-radius: 12px; line-height: 23px; height: 24px; text-align: center}
+.ButtonTypeWindow    { font-size: 13px; padding: 0px 11px; border-radius: 12px; line-height: 23px; height: 24px; text-align: center}
+.ButtonTypeChoice    { font-size: 15px; padding: 0px 13px; border-radius: 4px ; line-height: 31px; height: 32px; text-align: center}
+.ButtonTypeParameter { font-size: 15px; padding: 0px 12px; border-radius: 4px ; line-height: 25px; height: 26px; text-align: center}
+.ButtonTypeExpanded  { font-size: 15px; padding: 0px 12px; border-radius: 4px ; line-height: 31px; height: 32px; text-align: center}
 
 .ButtonTypeWindow,
 .ButtonTypeCompact {
 	min-width: 36px; /*----58 - 11*2(padding)----*/
 }
 
-.ButtonTypeChoice {
-	min-width: 74px; /*----100 - 13*2(padding)----*/
-	margin-left:10px;
-}
-
 .ButtonTypeWindow.ButtonStyleConfirm { /*---- Commonly used as "All" button before "Clear All" button----*/
 	margin-right:10px;
+}
+
+.ButtonTypeChoice {
+	min-width: 74px; /*----100 - 13*2(padding)----*/
+	margin-left:var(--dialog-button-gap);
+}
+
+.ButtonTypeExpanded {
+	width: 100%;
+}
+
+.ButtonTypeExpanded {
+	width: 120px;
 }
 
 .ButtonStyleConfirm        { background: var(--main-color        ); color: var(--button-fg-light   )}
