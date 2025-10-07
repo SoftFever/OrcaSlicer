@@ -7,13 +7,13 @@ Cornering is a critical aspect of 3D printing that affects print quality and acc
 
 ## Calibration
 
-Junction Deviation is the default method for controlling cornering speed in **Marlin firmware (Marlin 2.x)**.  
-Higher values allow more aggressive cornering, while lower values produce smoother, more controlled corners.  
-The default value in Marlin is often `0.08mm`, which may be too high for some printers and may cause ringing. Consider lowering this value to reduce ringing, but avoid setting it too low that could lead to excessively slow cornering speed.
+### Jerk
 
-```math
-JD = 0.4 \cdot \frac{\text{Jerk}^2}{\text{Acceleration}}
-```
+WIP...
+
+### Junction Deviation
+
+This test will be set automatically if your printer uses Marlin 2 and Maximum Junction Deviation in Printer settings/Motion ability/Jerk limitations is bigger than `0`.
 
 1. Pre-requisites:
    1. Check if your printer has Junction Deviation enabled. Look for `Junction deviation` in the printer's advanced settings.
@@ -37,17 +37,17 @@ JD = 0.4 \cdot \frac{\text{Jerk}^2}{\text{Acceleration}}
       ![jd_printer_jerk_limitation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/JunctionDeviation/jd_printer_jerk_limitation.png?raw=true)
    2. Use the following G-code to set the value:
 
-   ```gcode
-   M205 J#JunctionDeviationValue
-   M500
-   ```
+      ```gcode
+      M205 J#JunctionDeviationValue
+      M500
+      ```
 
-   Example
+      Example:
 
-   ```gcode
-   M205 J0.012
-   M500
-   ```
+      ```gcode
+      M205 J0.012
+      M500
+      ```
 
    3. Recompile your MarlinFW
       1. In Configuration.h uncomment and set:
