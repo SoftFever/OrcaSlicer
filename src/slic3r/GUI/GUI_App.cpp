@@ -1767,20 +1767,19 @@ void GUI_App::init_networking_callbacks()
                                 event.SetString(obj->get_dev_id());
                                 GUI::wxGetApp().sidebar().load_ams_list(obj->get_dev_id(), obj);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
-                                // Orca: avoid showing same error message multiple times until next connection attempt.
-                                const auto already_disconnected = m_device_manager->selected_machine.empty();
+                                // Orca: only update status if same device id
+                                if (m_device_manager->selected_machine != dev_id) return;
+
                                 m_device_manager->set_selected_machine("");
-                                if (!already_disconnected) {
-                                    wxString text;
-                                    if (msg == "5") {
-                                        obj->set_access_code("");
-                                        obj->erase_user_access_code();
-                                        text = wxString::Format(_L("Incorrect password"));
-                                        wxGetApp().show_dialog(text);
-                                    } else {
-                                    text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->get_dev_name()), obj->get_dev_id(), msg);
-                                        wxGetApp().show_dialog(text);
-                                    }
+                                wxString text;
+                                if (msg == "5") {
+                                    obj->set_access_code("");
+                                    obj->erase_user_access_code();
+                                    text = wxString::Format(_L("Incorrect password"));
+                                    wxGetApp().show_dialog(text);
+                                } else {
+                                text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->get_dev_name()), obj->get_dev_id(), msg);
+                                    wxGetApp().show_dialog(text);
                                 }
                                 event.SetInt(-1);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
