@@ -667,6 +667,9 @@ namespace Slic3r
 
     void DeviceManager::parse_user_print_info(std::string body)
     {
+        BOOST_LOG_TRIVIAL(trace) << "DeviceManager::parse_user_print_info";
+        std::lock_guard<std::mutex> lock(listMutex);
+
         if (device_subseries.size() <= 0) {
             device_subseries = DevPrinterConfigUtil::get_all_subseries();
             if (device_subseries.size() <= 0) {
@@ -674,8 +677,6 @@ namespace Slic3r
             }
         }
 
-        BOOST_LOG_TRIVIAL(trace) << "DeviceManager::parse_user_print_info";
-        std::lock_guard<std::mutex> lock(listMutex);
         std::set<std::string> new_list;
         try
         {
