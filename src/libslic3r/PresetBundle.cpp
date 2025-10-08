@@ -3879,6 +3879,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             }
             config = *default_config;
             config.apply(config_src);
+            extend_default_config_length(config, true, *default_config);
             if (instantiation == "false" && "Template" != vendor_name) {
                 config_maps.emplace(preset_name, std::move(config));
                 if ((presets_collection->type() == Preset::TYPE_FILAMENT) && (!filament_id.empty()))

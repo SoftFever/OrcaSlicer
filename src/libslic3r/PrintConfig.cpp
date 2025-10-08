@@ -7461,9 +7461,6 @@ void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
 
 const PrintConfigDef print_config_def;
 
-
-// Orca: important! For EVERY options listed in EVERY sets below, you MUST specify the proper default value for H2D(fdm_bbl_3dp_002_common.json) and H2S(Bambu Lab H2S 0.4 nozzle.json) preset!
-// Otherwise you will have modified presets dialog when you switch the profile.
 //todo
 std::set<std::string> print_options_with_variant = {
     //"initial_layer_speed",
