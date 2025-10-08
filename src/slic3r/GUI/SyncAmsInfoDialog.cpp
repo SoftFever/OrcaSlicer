@@ -909,7 +909,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
         m_advace_setting_sizer         = new wxBoxSizer(wxHORIZONTAL);
         m_more_setting_tips    = new wxStaticText(m_scrolledWindow, wxID_ANY, _L("Advanced settings"));
-        m_more_setting_tips->SetForegroundColour(wxColour(0, 174, 100));
+        m_more_setting_tips->SetForegroundColour(wxColour(0, 137, 123));
         m_more_setting_tips->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
             m_expand_more_settings = !m_expand_more_settings;
             update_more_setting(true,true);
@@ -3306,10 +3306,24 @@ void SyncNozzleAndAmsDialog::deal_cancel()
     on_hide();
 }
 
+static inline void UpdatePositionAlignment(wxWindow* w, wxPoint base_position, bool align_right) {
+    if (!align_right) {
+        base_position.x -= w->GetSize().x;
+    }
+    w->SetPosition(base_position);
+}
+
 void SyncNozzleAndAmsDialog::update_info(InputInfo &info) {
     m_input_info = info;
     restart();
-    SetPosition(m_input_info.dialog_pos);
+    UpdatePositionAlignment(this, m_input_info.dialog_pos, m_input_info.dialog_pos_align_right);
+}
+
+bool SyncNozzleAndAmsDialog::Layout()
+{
+    BaseTransparentDPIFrame::Layout();
+    UpdatePositionAlignment(this, m_input_info.dialog_pos, m_input_info.dialog_pos_align_right);
+    return true;
 }
 
 FinishSyncAmsDialog::FinishSyncAmsDialog(InputInfo &input_info)
@@ -3337,7 +3351,14 @@ void FinishSyncAmsDialog::update_info(InputInfo &info)
 {
     m_input_info = info;
     restart();
-    SetPosition(m_input_info.dialog_pos);
+    UpdatePositionAlignment(this, m_input_info.dialog_pos, m_input_info.dialog_pos_align_right);
+}
+
+bool FinishSyncAmsDialog::Layout()
+{
+    BaseTransparentDPIFrame::Layout();
+    UpdatePositionAlignment(this, m_input_info.dialog_pos, m_input_info.dialog_pos_align_right);
+    return true;
 }
 
 }} // namespace Slic3r

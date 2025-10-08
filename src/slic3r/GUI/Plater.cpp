@@ -3385,6 +3385,36 @@ void Sidebar::deal_btn_sync() {
     wxGetApp().plater()->update_machine_sync_status();
 }
 
+template<typename T> void setup_dialog_position(T& info)
+{
+    auto  plater   = wxGetApp().plater();
+    auto& sidebar  = plater->sidebar();
+    auto  docking  = plater->get_sidebar_docking_state();
+    bool  on_right = true;
+
+    if (docking == Sidebar::Left) {
+        on_right = true;
+    } else if (docking == Sidebar::Right) {
+        on_right = false;
+    } else {
+        // If sidebar is too close to screen right edge, then move the dialog to the left side instead
+
+        auto screen_width = wxDisplay(&sidebar).GetClientArea().GetSize().x;
+        auto right_space  = screen_width - sidebar.get_sidebar_pos_right_x();
+        if (right_space < sidebar.FromDIP(400)) {
+            on_right = false;
+        }
+    }
+
+    if (on_right) {
+        info.dialog_pos.x           = sidebar.get_sidebar_pos_right_x() + sidebar.FromDIP(5);
+        info.dialog_pos_align_right = true;
+    } else {
+        info.dialog_pos.x           = sidebar.GetScreenPosition().x - sidebar.FromDIP(5);
+        info.dialog_pos_align_right = false;
+    }
+}
+
 void Sidebar::pop_sync_nozzle_and_ams_dialog() {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " begin pop_sync_nozzle_and_ams_dialog";
     wxTheApp->CallAfter([this]() {
@@ -3394,9 +3424,8 @@ void Sidebar::pop_sync_nozzle_and_ams_dialog() {
         wxGetApp().plater()->sidebar().get_big_btn_sync_pos_size(big_btn_pt, big_btn_size);
         temp_na_info.dialog_pos = big_btn_pt + wxPoint(big_btn_size.x, big_btn_size.y) + wxPoint(FromDIP(big_btn_size.x / 10.f - 5), FromDIP(big_btn_size.y / 10.f));
 
-        int same_dialog_pos_x     = get_sidebar_pos_right_x() + FromDIP(5);
-        temp_na_info.dialog_pos.x = same_dialog_pos_x;
         temp_na_info.dialog_pos.y += FromDIP(2);
+        setup_dialog_position(temp_na_info);
 
         wxPoint small_btn_pt;
         wxSize  small_btn_size;
@@ -3420,9 +3449,8 @@ void Sidebar::pop_finsish_sync_ams_dialog()
         get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
 
         FinishSyncAmsDialog::InputInfo temp_fsa_info;
-        auto                           same_dialog_pos_x = get_sidebar_pos_right_x() + FromDIP(5);
-        temp_fsa_info.dialog_pos.x                       = same_dialog_pos_x;
         temp_fsa_info.dialog_pos.y                       = small_btn_pt.y;
+        setup_dialog_position(temp_fsa_info);
         temp_fsa_info.ams_btn_pos                        = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y / 2);
         if (m_sna_dialog) { m_sna_dialog->on_hide(); }
         if (m_fna_dialog) {

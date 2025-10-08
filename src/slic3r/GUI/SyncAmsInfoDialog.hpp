@@ -347,12 +347,14 @@ public:
     {
         wxPoint dialog_pos{wxPoint(400, 200)};
         wxPoint ams_btn_pos{wxPoint(400, 200)};
+        bool    dialog_pos_align_right{true};
     };
     SyncNozzleAndAmsDialog(InputInfo &input_info);
     ~SyncNozzleAndAmsDialog() override;
     void deal_ok() override;
     void deal_cancel() override;
     void update_info(InputInfo& info);
+    bool Layout() override;
 
 private:
     InputInfo m_input_info;
@@ -365,11 +367,13 @@ public:
     {
         wxPoint dialog_pos{wxPoint(400, 200)};
         wxPoint ams_btn_pos{wxPoint(400, 200)};
+        bool    dialog_pos_align_right{true};
     };
     FinishSyncAmsDialog(InputInfo &input_info);
     ~FinishSyncAmsDialog() override;
     void deal_ok();
-    void update_info(InputInfo &info);
+    void update_info(InputInfo& info);
+    bool Layout() override;
 
 private:
     InputInfo m_input_info;
