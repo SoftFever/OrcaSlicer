@@ -251,7 +251,7 @@ void Tab::create_preset_tab()
                                    "or click this button.")));
 
     add_scaled_button(panel, &m_search_btn, "search");
-    m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));*/
+    m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), _L("Ctrl+") + "F"));*/
 
     // Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
     add_scaled_bitmap(this, m_bmp_value_lock  , "unlock_normal");
@@ -1633,6 +1633,35 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+    if (opt_key == "sparse_infill_rotate_template") {
+        // Orca: show warning dialog if rotate template for solid infill if not support
+        const auto _sparse_infill_pattern = m_config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value;
+        bool       is_safe_to_rotate      = _sparse_infill_pattern == ipRectilinear || _sparse_infill_pattern == ipLine ||
+                                 _sparse_infill_pattern == ipZigZag || _sparse_infill_pattern == ipCrossZag ||
+                                 _sparse_infill_pattern == ipLockedZag;
+        
+        auto new_value = boost::any_cast<std::string>(value);
+        is_safe_to_rotate = is_safe_to_rotate || new_value.empty();
+
+        if (!is_safe_to_rotate) {
+            wxString msg_text = _(
+                L("Infill patterns are typically designed to handle rotation automatically to ensure proper printing and achieve their "
+                  "intended effects (e.g., Gyroid, Cubic). Rotating the current sparse infill pattern may lead to insufficient support. "
+                  "Please proceed with caution and thoroughly check for any potential printing issues."
+                  "Are you sure you want to enable this option?"));
+            msg_text += "\n\n" + _(L("Are you sure you want to enable this option?"));
+            MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+            dialog.SetButtonLabel(wxID_YES, _L("Enable"));
+            dialog.SetButtonLabel(wxID_NO, _L("Cancel"));
+            if (dialog.ShowModal() == wxID_NO) {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("sparse_infill_rotate_template", new ConfigOptionString(""));
+                m_config_manipulation.apply(m_config, &new_conf);
+                wxGetApp().plater()->update();
+            }
+        }
+    }
+
     if(opt_key=="layer_height"){
         auto min_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("min_layer_height")->values;
         auto max_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("max_layer_height")->values;
@@ -2094,9 +2123,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_line_width","quality_settings_line_width");
 
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
-        optgroup->append_single_option_line("seam_position", "quality_settings_seam");
-        optgroup->append_single_option_line("staggered_inner_seams", "quality_settings_seam");
-        optgroup->append_single_option_line("seam_gap","quality_settings_seam");
+        optgroup->append_single_option_line("seam_position", "quality_settings_seam#seam-position");
+        optgroup->append_single_option_line("staggered_inner_seams", "quality_settings_seam#staggered-inner-seams");
+        optgroup->append_single_option_line("seam_gap","quality_settings_seam#seam-gap");
         optgroup->append_single_option_line("seam_slope_type", "quality_settings_seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_conditional", "quality_settings_seam#scarf-joint-seam");
         optgroup->append_single_option_line("scarf_angle_threshold", "quality_settings_seam#scarf-joint-seam");
@@ -2108,20 +2137,20 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_slope_steps", "quality_settings_seam#scarf-joint-seam");
         optgroup->append_single_option_line("scarf_joint_flow_ratio", "quality_settings_seam#scarf-joint-seam");
         optgroup->append_single_option_line("seam_slope_inner_walls", "quality_settings_seam#scarf-joint-seam");
-        optgroup->append_single_option_line("role_based_wipe_speed","quality_settings_seam");
-        optgroup->append_single_option_line("wipe_speed", "quality_settings_seam");
-        optgroup->append_single_option_line("wipe_on_loops","quality_settings_seam");
-        optgroup->append_single_option_line("wipe_before_external_loop","quality_settings_seam");
+        optgroup->append_single_option_line("role_based_wipe_speed","quality_settings_seam#role-based-wipe-speed");
+        optgroup->append_single_option_line("wipe_speed", "quality_settings_seam#wipe-speed");
+        optgroup->append_single_option_line("wipe_on_loops","quality_settings_seam#wipe-on-loop-inward-movement");
+        optgroup->append_single_option_line("wipe_before_external_loop","quality_settings_seam#wipe-before-external");
 
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
         optgroup->append_single_option_line("slice_closing_radius", "quality_settings_precision#slice-gap-closing-radius");
         optgroup->append_single_option_line("resolution", "quality_settings_precision#resolution");
         optgroup->append_single_option_line("enable_arc_fitting", "quality_settings_precision#arc-fitting");
-        optgroup->append_single_option_line("xy_hole_compensation", "quality_settings_precision#xy-compensation");
-        optgroup->append_single_option_line("xy_contour_compensation", "quality_settings_precision#xy-compensation");
-        optgroup->append_single_option_line("elefant_foot_compensation", "quality_settings_precision#elefant-foot-compensation");
-        optgroup->append_single_option_line("elefant_foot_compensation_layers", "quality_settings_precision#elefant-foot-compensation");
+        optgroup->append_single_option_line("xy_hole_compensation", "quality_settings_precision#x-y-compensation");
+        optgroup->append_single_option_line("xy_contour_compensation", "quality_settings_precision#x-y-compensation");
+        optgroup->append_single_option_line("elefant_foot_compensation", "quality_settings_precision#elephant-foot-compensation");
+        optgroup->append_single_option_line("elefant_foot_compensation_layers", "quality_settings_precision#elephant-foot-compensation");
         optgroup->append_single_option_line("precise_outer_wall", "quality_settings_precision#precise-wall");
         optgroup->append_single_option_line("precise_z_height", "quality_settings_precision#precise-z-height");
         optgroup->append_single_option_line("hole_to_polyhole", "quality_settings_precision#polyholes");
@@ -2132,7 +2161,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_type", "quality_settings_ironing#type");
         optgroup->append_single_option_line("ironing_pattern", "quality_settings_ironing#pattern");
         optgroup->append_single_option_line("ironing_flow", "quality_settings_ironing#flow");
-        optgroup->append_single_option_line("ironing_spacing", "quality_settings_ironing#spacing");
+        optgroup->append_single_option_line("ironing_spacing", "quality_settings_ironing#line-spacing");
         optgroup->append_single_option_line("ironing_inset", "quality_settings_ironing#inset");
         optgroup->append_single_option_line("ironing_angle", "quality_settings_ironing#angle");
 
@@ -2179,28 +2208,29 @@ void TabPrint::build()
         optgroup->append_single_option_line("counterbore_hole_bridging", "quality_settings_bridging#bridge-counterbore-hole");
 
         optgroup = page->new_optgroup(L("Overhangs"), L"param_overhang");
-        optgroup->append_single_option_line("detect_overhang_wall");
-        optgroup->append_single_option_line("make_overhang_printable");
-        optgroup->append_single_option_line("make_overhang_printable_angle");
-        optgroup->append_single_option_line("make_overhang_printable_hole_size");
-        optgroup->append_single_option_line("extra_perimeters_on_overhangs");
-        optgroup->append_single_option_line("overhang_reverse");
-        optgroup->append_single_option_line("overhang_reverse_internal_only");
-        optgroup->append_single_option_line("overhang_reverse_threshold");
+        optgroup->append_single_option_line("detect_overhang_wall", "quality_settings_overhangs#detect-overhang-wall");
+        optgroup->append_single_option_line("make_overhang_printable", "quality_settings_overhangs#make-overhang-printable");
+        optgroup->append_single_option_line("make_overhang_printable_angle", "quality_settings_overhangs#maximum-angle");
+        optgroup->append_single_option_line("make_overhang_printable_hole_size", "quality_settings_overhangs#hole-area");
+        optgroup->append_single_option_line("extra_perimeters_on_overhangs", "quality_settings_overhangs#extra-perimeters-on-overhangs");
+        optgroup->append_single_option_line("overhang_reverse", "quality_settings_overhangs#reverse-on-even");
+        optgroup->append_single_option_line("overhang_reverse_internal_only", "quality_settings_overhangs#reverse-internal-only");
+        optgroup->append_single_option_line("overhang_reverse_threshold", "quality_settings_overhangs#reverse-threshold");
 
     page = add_options_page(L("Strength"), "custom-gcode_strength"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
-        optgroup->append_single_option_line("wall_loops", "strength_settings_walls#wall-loop");
+        optgroup->append_single_option_line("wall_loops", "strength_settings_walls#wall-loops");
         optgroup->append_single_option_line("alternate_extra_wall", "strength_settings_walls#alternate-extra-wall");
         optgroup->append_single_option_line("detect_thin_wall", "strength_settings_walls#detect-thin-wall");
         optgroup->append_single_option_line("staggered_perimeters");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
-        optgroup->append_single_option_line("top_shell_layers", "strength_settings_top_bottom_shells#shells-layers");
+
+        optgroup->append_single_option_line("top_shell_layers", "strength_settings_top_bottom_shells#shell-layers");
         optgroup->append_single_option_line("top_shell_thickness", "strength_settings_top_bottom_shells#shell-thickness");
         optgroup->append_single_option_line("top_surface_density", "strength_settings_top_bottom_shells#surface-density");
         optgroup->append_single_option_line("top_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
-        optgroup->append_single_option_line("bottom_shell_layers", "strength_settings_top_bottom_shells#shells-layers");
+        optgroup->append_single_option_line("bottom_shell_layers", "strength_settings_top_bottom_shells#shell-layers");
         optgroup->append_single_option_line("bottom_shell_thickness", "strength_settings_top_bottom_shells#shell-thickness");
         optgroup->append_single_option_line("bottom_surface_density", "strength_settings_top_bottom_shells#surface-density");
         optgroup->append_single_option_line("bottom_surface_pattern", "strength_settings_top_bottom_shells#surface-pattern");
@@ -2208,32 +2238,33 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
-        optgroup->append_single_option_line("fill_multiline", "strength_settings_infill##fill-multiline");
+        optgroup->append_single_option_line("fill_multiline", "strength_settings_infill#fill-multiline");
         optgroup->append_single_option_line("sparse_infill_pattern", "strength_settings_infill#sparse-infill-pattern");
         optgroup->append_single_option_line("infill_direction", "strength_settings_infill#direction");
-        optgroup->append_single_option_line("sparse_infill_rotate_template", "strength_settings_infill#rotation");
-        optgroup->append_single_option_line("skin_infill_density", "strength_settings_infill#locked-zag");
-        optgroup->append_single_option_line("skeleton_infill_density", "strength_settings_infill#locked-zag");
-        optgroup->append_single_option_line("infill_lock_depth", "strength_settings_infill#locked-zag");
-        optgroup->append_single_option_line("skin_infill_depth", "strength_settings_infill#locked-zag");
-        optgroup->append_single_option_line("skin_infill_line_width", "strength_settings_infill#locked-zag");
-        optgroup->append_single_option_line("skeleton_infill_line_width", "strength_settings_infill#locked-zag");
-        optgroup->append_single_option_line("symmetric_infill_y_axis", "strength_settings_infill#zig-zag");
-        optgroup->append_single_option_line("infill_shift_step", "strength_settings_infill#cross-hatch");
-
-        optgroup->append_single_option_line("lattice_angle_1", "strength_settings_infill#2d-lattice");
-        optgroup->append_single_option_line("lattice_angle_2", "strength_settings_infill#2d-lattice");
-        optgroup->append_single_option_line("infill_overhang_angle", "strength_settings_infill#2d-honeycomb");
+        optgroup->append_single_option_line("sparse_infill_rotate_template", "strength_settings_infill_rotation_template_metalanguage");
+        optgroup->append_single_option_line("skin_infill_density", "strength_settings_patterns#locked-zag");
+        optgroup->append_single_option_line("skeleton_infill_density", "strength_settings_patterns#locked-zag");
+        optgroup->append_single_option_line("infill_lock_depth", "strength_settings_patterns#locked-zag");
+        optgroup->append_single_option_line("skin_infill_depth", "strength_settings_patterns#locked-zag");
+        optgroup->append_single_option_line("skin_infill_line_width", "strength_settings_patterns#locked-zag");
+        optgroup->append_single_option_line("skeleton_infill_line_width", "strength_settings_patterns#locked-zag");
+        optgroup->append_single_option_line("symmetric_infill_y_axis", "strength_settings_patterns#zig-zag");
+        optgroup->append_single_option_line("infill_shift_step", "strength_settings_patterns#cross-hatch");
+        optgroup->append_single_option_line("lateral_lattice_angle_1", "strength_settings_patterns#lateral-lattice");
+        optgroup->append_single_option_line("lateral_lattice_angle_2", "strength_settings_patterns#lateral-lattice");
+        optgroup->append_single_option_line("infill_overhang_angle", "strength_settings_patterns#lateral-honeycomb");
         optgroup->append_single_option_line("infill_anchor_max", "strength_settings_infill#anchor");
         optgroup->append_single_option_line("infill_anchor", "strength_settings_infill#anchor");
         optgroup->append_single_option_line("internal_solid_infill_pattern", "strength_settings_infill#internal-solid-infill");
-        optgroup->append_single_option_line("solid_infill_direction", "strength_settings_infill");
-        optgroup->append_single_option_line("solid_infill_rotate_template", "strength_settings_infill");
+        optgroup->append_single_option_line("solid_infill_direction", "strength_settings_infill#direction");
+        optgroup->append_single_option_line("solid_infill_rotate_template", "strength_settings_infill_rotation_template_metalanguage");
         optgroup->append_single_option_line("gap_fill_target", "strength_settings_infill#apply-gap-fill");
-        optgroup->append_single_option_line("filter_out_gap_fill", "strength_settings_infill");
+        optgroup->append_single_option_line("filter_out_gap_fill", "strength_settings_infill#filter-out-tiny-gaps");
         optgroup->append_single_option_line("infill_wall_overlap", "strength_settings_infill#infill-wall-overlap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+        optgroup->append_single_option_line("align_infill_direction_to_model", "strength_settings_advanced#align-infill-direction-to-model");
+        optgroup->append_single_option_line("extra_solid_infills", "strength_settings_infill#extra-solid-infill");
         optgroup->append_single_option_line("bridge_angle", "strength_settings_advanced#bridge-infill-direction");
         optgroup->append_single_option_line("internal_bridge_angle", "strength_settings_advanced#bridge-infill-direction"); // ORCA: Internal bridge angle override
         optgroup->append_single_option_line("minimum_sparse_infill_area", "strength_settings_advanced#minimum-sparse-infill-threshold");
@@ -2454,14 +2485,15 @@ optgroup->append_single_option_line("skirt_loops", "others_settings_skirt#loops"
         optgroup->append_single_option_line("timelapse_type", "others_settings_special_mode#timelapse");
 
         optgroup = page->new_optgroup(L("Fuzzy Skin"), L"fuzzy_skin");
-        optgroup->append_single_option_line("fuzzy_skin", "others_settings_special_mode#fuzzy-skin");
-        optgroup->append_single_option_line("fuzzy_skin_noise_type", "others_settings_special_mode#fuzzy-skin-mode");
-        optgroup->append_single_option_line("fuzzy_skin_point_distance", "others_settings_special_mode#point-distance");
-        optgroup->append_single_option_line("fuzzy_skin_thickness", "others_settings_special_mode#skin-thickness");
-        optgroup->append_single_option_line("fuzzy_skin_scale", "others_settings_special_mode#skin-feature-size");
-        optgroup->append_single_option_line("fuzzy_skin_octaves", "others_settings_special_mode#skin-noise-octaves");
-        optgroup->append_single_option_line("fuzzy_skin_persistence", "others_settings_special_mode#skin-noise-persistence");
-        optgroup->append_single_option_line("fuzzy_skin_first_layer", "others_settings_special_mode#apply-fuzzy-skin-to-first-layer");
+        optgroup->append_single_option_line("fuzzy_skin", "others_settings_fuzzy_skin");
+        optgroup->append_single_option_line("fuzzy_skin_mode", "others_settings_fuzzy_skin#fuzzy-skin-mode");
+        optgroup->append_single_option_line("fuzzy_skin_noise_type", "others_settings_fuzzy_skin#noise-type");
+        optgroup->append_single_option_line("fuzzy_skin_point_distance", "others_settings_fuzzy_skin#point-distance");
+        optgroup->append_single_option_line("fuzzy_skin_thickness", "others_settings_fuzzy_skin#skin-thickness");
+        optgroup->append_single_option_line("fuzzy_skin_scale", "others_settings_fuzzy_skin#skin-feature-size");
+        optgroup->append_single_option_line("fuzzy_skin_octaves", "others_settings_fuzzy_skin#skin-noise-octaves");
+        optgroup->append_single_option_line("fuzzy_skin_persistence", "others_settings_fuzzy_skin#skin-noise-persistence");
+        optgroup->append_single_option_line("fuzzy_skin_first_layer", "others_settings_fuzzy_skin#apply-fuzzy-skin-to-first-layer");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction", "others_settings_g_code_output#reduce-infill-retraction");
@@ -2652,10 +2684,10 @@ void TabPrintModel::build()
 
     auto page = add_options_page(L("Frequent"), "empty");
         auto optgroup = page->new_optgroup("");
-            optgroup->append_single_option_line("layer_height");
-            optgroup->append_single_option_line("sparse_infill_density");
-            optgroup->append_single_option_line("wall_loops");
-            optgroup->append_single_option_line("enable_support", "support");
+            optgroup->append_single_option_line("layer_height", "quality_settings_layer_height");
+            optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
+            optgroup->append_single_option_line("wall_loops", "strength_settings_walls");
+            optgroup->append_single_option_line("enable_support", "support_settings_support");
     m_pages.pop_back();
     m_pages.insert(m_pages.begin(), page);
 
@@ -2928,8 +2960,10 @@ void TabPrintPlate::reset_model_config()
         }
         auto plate = dynamic_cast<PartPlate*>(plate_item.first);
         plate->reset_bed_type();
+        plate->reset_skirt_start_angle();
         plate->set_print_seq(PrintSequence::ByDefault);
         plate->set_first_layer_print_sequence({});
+        plate->set_other_layers_print_sequence({});
         plate->set_spiral_vase_mode(false, true);
         notify_changed(plate_item.first);
     }
@@ -3412,13 +3446,13 @@ void TabFilament::build()
         optgroup->append_single_option_line("pellet_flow_coefficient", "pellet-flow-coefficient");
         optgroup->append_single_option_line("filament_flow_ratio");
 
-        optgroup->append_single_option_line("enable_pressure_advance");
-        optgroup->append_single_option_line("pressure_advance");
+        optgroup->append_single_option_line("enable_pressure_advance", "pressure-advance-calib");
+        optgroup->append_single_option_line("pressure_advance", "pressure-advance-calib");
 
         // Orca: adaptive pressure advance and calibration model
-        optgroup->append_single_option_line("adaptive_pressure_advance");
-        optgroup->append_single_option_line("adaptive_pressure_advance_overhangs");
-        optgroup->append_single_option_line("adaptive_pressure_advance_bridges");
+        optgroup->append_single_option_line("adaptive_pressure_advance", "adaptive-pressure-advance-calib");
+        optgroup->append_single_option_line("adaptive_pressure_advance_overhangs", "adaptive-pressure-advance-calib");
+        optgroup->append_single_option_line("adaptive_pressure_advance_bridges", "adaptive-pressure-advance-calib");
 
         Option option = optgroup->get_option("adaptive_pressure_advance_model");
         option.opt.full_width = true;
@@ -3527,7 +3561,7 @@ void TabFilament::build()
         //};
         //optgroup->append_line(line);
         optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling_specific_layer");
-        optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
+        optgroup->append_single_option_line("close_fan_the_first_x_layers");
         optgroup->append_single_option_line("full_fan_speed_layer");
 
         optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_part_fan");
@@ -3542,13 +3576,13 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("slow_down_layer_time"));
         optgroup->append_line(line);
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
-        optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
+        optgroup->append_single_option_line("slow_down_for_layer_cooling");
         optgroup->append_single_option_line("dont_slow_down_outer_wall");
         optgroup->append_single_option_line("slow_down_min_speed");
 
-        optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
-        optgroup->append_single_option_line("overhang_fan_threshold", "auto-cooling");
-        optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
+        optgroup->append_single_option_line("enable_overhang_bridge_fan");
+        optgroup->append_single_option_line("overhang_fan_threshold");
+        optgroup->append_single_option_line("overhang_fan_speed");
         optgroup->append_single_option_line("internal_bridge_fan_speed"); // ORCA: Add support for separate internal bridge fan speed control
         optgroup->append_single_option_line("support_material_interface_fan_speed");
         optgroup->append_single_option_line("ironing_fan_speed"); // ORCA: Add support for ironing fan speed control
@@ -3776,6 +3810,10 @@ void TabFilament::toggle_options()
                         "filament_unloading_speed_start", "filament_unloading_speed", "filament_toolchange_delay", "filament_cooling_moves",
                         "filament_cooling_initial_speed", "filament_cooling_final_speed"})
             toggle_option(el, !is_BBL_printer);
+
+        bool multitool_ramming = m_config->opt_bool("filament_multitool_ramming", 0);
+        toggle_option("filament_multitool_ramming_volume", multitool_ramming);
+        toggle_option("filament_multitool_ramming_flow", multitool_ramming);
     }
 }
 
@@ -3891,8 +3929,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option, "thumbnails");
-        // optgroup->append_single_option_line("thumbnails_format", "thumbnails");
+        optgroup->append_single_option_line(option);
+        // optgroup->append_single_option_line("thumbnails_format");
         optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
             wxTheApp->CallAfter([this, opt_key, value]() {
                 if (opt_key == "thumbnails" && m_config->has("thumbnails_format")) {
@@ -4220,7 +4258,7 @@ PageShp TabPrinter::build_kinematics_page()
     optgroup->append_single_option_line("resonance_avoidance");
     // Resonance‑avoidance speed inputs
     {
-        Line resonance_line = {L("Resonance Avoidance Speed"), L("")};
+        Line resonance_line = {L("Resonance Avoidance Speed"), L""};
         resonance_line.append_option(optgroup->get_option("min_resonance_avoidance_speed"));
         resonance_line.append_option(optgroup->get_option("max_resonance_avoidance_speed"));
         optgroup->append_line(resonance_line);

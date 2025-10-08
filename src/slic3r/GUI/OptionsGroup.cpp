@@ -727,27 +727,6 @@ void ConfigOptionsGroup::on_kill_focus(const std::string& opt_key)
 
 void ConfigOptionsGroup::reload_config()
 {
-#if 0
-    // BBS
-    auto bed_type_field = this->get_field("bed_type");
-    int default_bed_type = BedType::btPC;
-    if (bed_type_field != nullptr) {
-        auto iter = m_opt_map.find("bed_temperature");
-        const ConfigOptionDef& option = m_options.at("bed_temperature").opt;
-        if (iter != m_opt_map.end()) {
-            for (int bed_type = BedType::btPC; bed_type < BedType::btCount; bed_type++) {
-                int bed_temp = boost::any_cast<int>(config_value("bed_temperature", bed_type, option.gui_flags == "serialized"));
-                if (bed_temp != 0) {
-                    default_bed_type = bed_type;
-                    break;
-                }
-            }
-        }
-
-        bed_type_field->set_value(default_bed_type, false);
-    }
-#endif
-
 	for (auto &kvp : m_opt_map) {
 		// Name of the option field (name of the configuration key, possibly suffixed with '#' and the index of a scalar inside a vector.
 		const std::string &opt_id    = kvp.first;
@@ -756,11 +735,6 @@ void ConfigOptionsGroup::reload_config()
 		// index in the vector option, zero for scalars
 		int 			   opt_index = kvp.second.second;
 		const ConfigOptionDef &option = m_options.at(opt_id).opt;
-#if 0
-        // BBS
-        if ((opt_id == "bed_temperature" || opt_id == "bed_temperature_initial_layer") && bed_type_field != nullptr)
-            opt_index = default_bed_type;
-#endif
 		this->set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
 	}
 }

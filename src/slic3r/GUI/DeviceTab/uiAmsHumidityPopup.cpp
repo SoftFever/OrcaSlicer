@@ -206,12 +206,12 @@ void uiAmsPercentHumidityDryPopup::DrawGridArea(wxDC &dc, wxPoint start_p)
         }
         else if (header == _L("Temperature"))
         {
-            const wxString &temp_str = wxString::Format(_L("%.1f \u2103"), m_current_temperature);
+            const wxString &temp_str = wxString::Format(wxString::FromUTF8(u8"%.1f \u2103"), m_current_temperature);
             dc.DrawText(temp_str, left, start_p.y + row_height);
         }
         else if (header == _L("Left Time"))
         {
-            const wxString &time_str = wxString::Format(_L("%d : %d"), m_left_dry_time / 60, m_left_dry_time % 60);
+            const wxString &time_str = wxString::Format("%d : %d", m_left_dry_time / 60, m_left_dry_time % 60);
             dc.DrawText(time_str, left, start_p.y + row_height);
         }
 

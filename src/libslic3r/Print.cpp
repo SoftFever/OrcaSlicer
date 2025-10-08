@@ -1307,7 +1307,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         	} else if (extrusion_width_min <= layer_height) {
                 err_msg = L("Too small line width");
 				return false;
-			} else if (extrusion_width_max > max_nozzle_diameter * 5) {
+			} else if (extrusion_width_max > max_nozzle_diameter * MAX_LINE_WIDTH_MULTIPLIER) {
                 err_msg = L("Too large line width");
 				return false;
 			}
@@ -1599,6 +1599,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             //         warning->opt_key = warning_key;
             //    }
             // }
+
+            // check wall sequence and precise outer wall
+            if (m_default_region_config.precise_outer_wall && m_default_region_config.wall_sequence != WallSequence::InnerOuter) {
+                warning->string  = L("The precise wall option will be ignored for outer-inner or inner-outer-inner wall sequences.");
+                warning->opt_key = "precise_outer_wall";
+            }
 
         } catch (std::exception& e) {
             BOOST_LOG_TRIVIAL(warning) << "Orca: validate motion ability failed: " << e.what() << std::endl;

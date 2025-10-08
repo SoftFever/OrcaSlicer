@@ -11,17 +11,20 @@ This feature introduces the below options under the filament settings:
 2. **Enable adaptive pressure advance for overhangs:** Enable adaptive PA for overhangs as well as when flow changes within the same feature. This is an experimental option because if the PA profile is not set accurately, it will cause uniformity issues on the external surfaces before and after overhangs. It is recommended to start with this option switched off and enable it after the core adaptive pressure advance feature is calibrated correctly.
 3. **Pressure advance for bridges:** Sets the desired pressure advance value for bridges. Set it to 0 to disable this feature. Experiments have shown that a lower PA value when printing bridges helps reduce the appearance of slight under extrusion immediately after a bridge, which is caused by the pressure drop in the nozzle when printing in the air. Therefore, a lower pressure advance value helps counteract this. A good starting point is approximately half your usual PA value.
 4. **Adaptive pressure advance measurements:** This field contains the calibration values used to generate the pressure advance profile for the nozzle/printer. Input sets of pressure advance (PA) values and the corresponding volumetric flow speeds and accelerations they were measured at, separated by a comma. Add one set of values per line. More information on how to calibrate the model follows in the sections below.
-5. **Pressure advance:** The old field is still needed and is required to be populated with a PA value. A “good enough” median PA value should be entered here, as this will act as a fallback value when performing tool changes, printing a purge/wipe tower for multi-color prints as well as a fallback in case the model fails to identify an appropriate value (unlikely but it’s the ultimate backstop).
-
+5. **Pressure advance:** The old field is still needed and is required to be populated with a PA value. A “good enough” median PA value should be entered here, as this will act as a fallback value when performing tool changes, printing a purge/wipe tower for multi-color prints as well as a fallback in case the model fails to identify an appropriate value (unlikely but it’s the ultimate backstop).  
 ![apa-material-config](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-material-config.png?raw=true)
 
 ## Pre-Requisites
 
-This feature has been tested with Klipper-based printers. While it may work with Marlin or Bambu lab printers, it is currently untested with them. It shouldn’t adversely affect the machine; however, the quality results from enabling it are not validated.
+This feature has been tested with Klipper-based printers. While it may work with Marlin or Bambu lab printers, it is currently untested with them. It shouldn't adversely affect the machine; however, the quality results from enabling it are not validated.
 
-**Older versions of Klipper used to stutter when pressure advance was changed while the toolhead was in motion. This has been fixed with the latest Klipper firmware releases. Therefore, make sure your Klipper installation is updated to the latest version before enabling this feature, in order to avoid any adverse quality impacts.**
+> [!IMPORTANT]
+> Versions of Klipper older than July 11th, 2024 might in some cases produce artifacts when dynamic PA is used.  
+> This has been fixed in Klipper stable version 0.13.0 (20250411), or in developer versions starting [from July 11th, 2024](https://github.com/Klipper3d/klipper/commit/c84d78f3f169bc5163d11b74837f9880b0b7dba4).  
+> If you experience issues or print quality lower than expected you might want to ensure you have a Klipper firmware which contains the fix.
 
-Klipper firmware released after July 11th, 2024 (version greater than approximately v0.12.0-267) contains the above fix and is compatible with adaptive pressure advance. If you are upgrading from an older version, make sure you update both your Klipper installation as well as reflash the printer MCU’s (main board and toolhead board if present).
+> [!TIP]
+> **Advanced users**: the fix to ensure optimal quality when dynamic PA is used does not require flashing the toolhead MCU or the printer MCU, but only an update of the host Python code. If you are using a commercial printer which does not offer straightforward MCU flashing (for example, Qidi printers), you might be able to manually patch the host code yourself.
 
 ## Use case (what to expect)
 
@@ -47,11 +50,14 @@ Finally, if during calibration you notice that there is little to no variance be
 
 With this feature enabled there should be absolutely no bulge in the corners, just the smooth rounding caused by the square corner velocity of your printer.  
 ![apa-expected-results](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-expected-results.jpg?raw=true)
+
 In addition, seams should appear smooth with no bulging or under extrusion.  
 ![apa-expected-seam](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-expected-seam.jpg?raw=true)
+
 Solid infill should have no gaps, pinholes, or separation from the perimeters.  
 ![apa-expected-solid-infill](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-expected-solid-infill.jpg?raw=true)
-Compared to with this feature disabled, where the internal solid infill and external-internal perimeters show signs of separation and under extrusion, when PA is tuned for optimal external perimeter performance as shown below.
+
+Compared to with this feature disabled, where the internal solid infill and external-internal perimeters show signs of separation and under extrusion, when PA is tuned for optimal external perimeter performance as shown below.  
 ![apa-unexpected-solid-infill](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-unexpected-solid-infill.jpg?raw=true)
 
 ## How to calibrate the adaptive pressure advance model
@@ -139,7 +145,7 @@ It is recommended that the PA step is set to a small value, to allow you to make
 
 PA pattern calibration configuration window have been changed to simplify test setup. Now all is needed is to fill list of accelerations and speeds into relevant fields of the calibration window:
 
-![pa-pattern-batch](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch.png?raw=true?raw=true)
+![pa-pattern-batch](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch.png?raw=true)
 
 Test patterns generated for each acceleration-speed pair and all parameters are set accordingly. No additional actions needed from user side. Just slice and print all plates generated.
 
@@ -147,7 +153,7 @@ Refer to [Calibration Guide](Calibration) for more details on batch mode calibra
 
 #### OrcaSlicer 2.2.0 and older
 
-Setup your PA test as usual from the calibration menu in Orca slicer. Once setup, your PA test should look like the below:
+Setup your PA test as usual from the calibration menu in OrcaSlicer. Once setup, your PA test should look like the below:
 
 ![apa-setup-result-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-setup-result-speed.png?raw=true)
 
