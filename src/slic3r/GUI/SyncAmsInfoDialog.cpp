@@ -2976,23 +2976,20 @@ void SyncAmsInfoDialog::clone_thumbnail_data()
             if (item) {
                 auto m = item->item;
                 if (m) {
-                    if (item->id < m_cur_colors_in_thumbnail.size()) {
-                        m_preview_colors_in_thumbnail[item->id] = m->m_material_coloul;
-                        if (m->m_ams_name == "-") {
-                            m_cur_colors_in_thumbnail[item->id] = m->m_material_coloul;
-                        } else {
-                            m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
-                        }
-                    } else { // exist empty or unrecognized type ams in machine
+                    // exist empty or unrecognized type ams in machine
+                    if (item->id >= m_cur_colors_in_thumbnail.size()) {
                         m_cur_colors_in_thumbnail.resize(item->id + 1);
-                        if (m->m_ams_name == "-") {
-                            m_cur_colors_in_thumbnail[item->id] = m->m_material_coloul;
-                        } else {
-                            m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
-                        }
-                        m_preview_colors_in_thumbnail.resize(item->id + 1);
-                        m_preview_colors_in_thumbnail[item->id] = m->m_material_coloul;
                     }
+                    if (item->id >= m_preview_colors_in_thumbnail.size()) {
+                        m_preview_colors_in_thumbnail.resize(item->id + 1);
+                    }
+
+                    if (m->m_ams_name == "-") {
+                        m_cur_colors_in_thumbnail[item->id] = m->m_material_coloul;
+                    } else {
+                        m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+                    }
+                    m_preview_colors_in_thumbnail[item->id] = m->m_material_coloul;
                 }
             }
             else {
