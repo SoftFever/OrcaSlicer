@@ -5,6 +5,7 @@
 #include <boost/filesystem/operations.hpp>
 #include "libslic3r/PrintConfig.hpp"
 #include "Job.hpp"
+#include "slic3r/GUI/DeviceManager.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -82,6 +83,8 @@ public:
     bool        cloud_print_only { false };
     bool        has_sdcard { false };
     bool        task_use_ams { true };
+    
+    MachineObject::SdcardState sdcard_state = MachineObject::SdcardState::NO_SDCARD;        
 
     int         auto_bed_leveling{0};
     int         auto_flow_cali{0};

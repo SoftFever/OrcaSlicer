@@ -290,13 +290,30 @@ void SendJob::process(Ctl &ctl)
             ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
         }
     } else {
-        if (this->has_sdcard) {
-            ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
-            result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn, nullptr);
-        } else {
-            ctl.update_status(curr_percent, _u8L("An SD card needs to be inserted before sending to printer."));
-            return;
-        }
+          switch(this->sdcard_state) {
+                case MachineObject::SdcardState::NO_SDCARD:
+                    ctl.update_status(curr_percent, _u8L("An SD card needs to be inserted before sending to printer."));
+                    return;
+                case MachineObject::SdcardState::HAS_SDCARD_ABNORMAL:
+                    if(this->has_sdcard) {
+                        // means the sdcard is abnormal but can be used option is enabled
+                         ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN, but the SD card in the printer is abnormal and print-issues may be caused by this."));
+                         result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn, nullptr);
+                        break;
+                    }
+                    ctl.update_status(curr_percent, _u8L("The SD card in the printer is abnormal. Please replace it with a normal SD card before sending to printer."));
+                    return;              
+                case MachineObject::SdcardState::HAS_SDCARD_READONLY:
+                    ctl.update_status(curr_percent, _u8L("The SD card in the printer is read-only. Please replace it with a normal SD card before sending to printer."));
+                    return;  
+                case MachineObject::SdcardState::HAS_SDCARD_NORMAL:
+                    ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN"));
+                    result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn, nullptr);       
+                    break;
+                default:
+                    ctl.update_status(curr_percent, _u8L("Encountered an unknown error with the SD card status. Please try again."));
+                    return;        
+            }            
     }
 
     if (ctl.was_canceled()) {
