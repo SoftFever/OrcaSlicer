@@ -23,6 +23,7 @@ uiAmsPercentHumidityDryPopup::uiAmsPercentHumidityDryPopup(wxWindow *parent)
     : wxDialog(parent, wxID_ANY, "")
 {
     Create();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void uiAmsPercentHumidityDryPopup::Create()

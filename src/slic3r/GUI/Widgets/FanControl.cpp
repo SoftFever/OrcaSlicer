@@ -896,7 +896,7 @@ void FanControlPopupNew::post_event(int fan_type, wxString speed)
 
 void FanControlPopupNew::on_show(wxShowEvent& evt)
 {
-    wxGetApp().UpdateDarkUIWin(this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void FanControlPopupNew::command_control_air_duct(int mode_id, int submode)
