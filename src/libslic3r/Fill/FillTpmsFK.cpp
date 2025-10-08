@@ -133,13 +133,13 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     bbox.offset(scale_(1.));
     marchsq::ScalarField sf = marchsq::ScalarField(bbox, this->z, vari_T);
     // Get simplified lines using coarse tolerance of 0.1mm (this is infill).
-    Polylines polylines = marchsq::get_polylines(sf, scale_(0.1));
+    Polylines polylines = marchsq::get_polylines(sf, SCALED_SPARSE_INFILL_RESOLUTION);
 
     // Apply multiline offset if needed
     multiline_fill(polylines, params, spacing);
 
     // Prune the lines within the expolygon.
-    polylines = intersection_pl(polylines, expolygon);
+    polylines = intersection_pl(std::move(polylines), expolygon);
 
     if (!polylines.empty()) {
         // Remove very small bits, but be careful to not remove infill lines connecting thin walls!
