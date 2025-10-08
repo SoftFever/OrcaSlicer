@@ -106,7 +106,7 @@ public:
 
     wxBoxSizer *create_item_title(wxString title, wxWindow *parent, wxString tooltip);
     wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist);
-    wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index);
+    wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index, int label_padding);
     wxBoxSizer *create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
@@ -145,7 +145,7 @@ protected:
     void OnSelectRadio(wxMouseEvent &event);
 
 private:
-    std::tuple<wxBoxSizer*, ComboBox*> create_item_combobox_base(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist, unsigned int current_index);
+    std::tuple<wxBoxSizer*, ComboBox*> create_item_combobox_base(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist, unsigned int current_index, int label_padding);
 };
 
 wxDECLARE_EVENT(EVT_PREFERENCES_SELECT_TAB, wxCommandEvent);

@@ -356,6 +356,10 @@ void AppConfig::set_defaults()
     if (get(SETTING_PROJECT_LOAD_BEHAVIOUR).empty()) {
         set(SETTING_PROJECT_LOAD_BEHAVIOUR, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT);
     }
+    
+    if (get(SETTING_PRINTER_SWITCH_BEHAVIOUR).empty()) {
+        set(SETTING_PRINTER_SWITCH_BEHAVIOUR, OPTION_PRINTER_SWITCH_BEHAVIOUR_ASK);
+    }
 
     if (get("max_recent_count").empty()) {
         set("max_recent_count", "18");
