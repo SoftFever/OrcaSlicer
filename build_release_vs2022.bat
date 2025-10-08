@@ -149,7 +149,10 @@ if "%build_deps%" == "ON" (
     echo building deps...
 
     cmake -S deps -B deps/%build_dir% -G "Visual Studio 17 2022" -A x64 -DDESTDIR="%DEPS%" -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
+    %error_check%
+
     cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
+    %error_check%
 )
 
 @REM Pack deps
@@ -160,6 +163,7 @@ if "%pack_deps%" == "ON" (
     echo packing deps: OrcaSlicer_dep_win64_!build_date!_vs2022.zip
 
     %WP%/tools/7z.exe a OrcaSlicer_dep_win64_!build_date!_vs2022.zip OrcaSlicer_dep
+    %error_check%
     endlocal
 )
 
@@ -167,9 +171,15 @@ if "%build_slicer%" == "ON" (
     echo building Orca Slicer...
 
     cmake -B %build_dir% -G "Visual Studio 17 2022" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
+    %error_check%
+
     cmake --build %build_dir% --config %build_type% --target ALL_BUILD -- -m
+    %error_check%
+
     call scripts/run_gettext.bat
+
     cmake --build %build_dir% --target install --config %build_type%
+    %error_check%
 )
 
 :: End of script
