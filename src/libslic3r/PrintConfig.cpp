@@ -696,8 +696,8 @@ void PrintConfigDef::init_common_params()
 
     def           = this->add("extruder_printable_height", coFloats);
     def->label    = L("Extruder printable height");
-    def->tooltip  = L("Maximum printable height of this extruder which is limited by mechanism of printer");
-    def->sidetext = L("mm");
+    def->tooltip  = L("Maximum printable height of this extruder which is limited by mechanism of printer.");
+    def->sidetext = "mm";	// milimeters, don't need translation
     def->min      = 0;
     def->max      = 1000;
     def->mode     = comAdvanced;
@@ -1986,7 +1986,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("grab_length",coFloats);
     def->label = L("Grab length");
-    def->sidetext = L("mm");
+    def->sidetext = "mm";	// milimeters, don't need translation
     def->min = 0;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats({0}));
@@ -2183,19 +2183,19 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_map", coInts);
     def->label = L("Filament map to extruder");
-    def->tooltip = L("Filament map to extruder");
+    def->tooltip = L("Filament map to extruder.");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInts{1});
 
     def = this->add("physical_extruder_map",coInts);
     def->label = "Map the logical extruder to physical extruder";
-    def->tooltip = "Map the logical extruder to physical extruder";
+    def->tooltip = "Map the logical extruder to physical extruder.";
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInts{0});
 
     def                = this->add("filament_map_mode", coEnum);
     def->label         = L("filament mapping mode");
-    def->tooltip = ("filament mapping mode used as plate param");
+    def->tooltip = ("Filament mapping mode used as plate param.");
     def->enum_keys_map = &ConfigOptionEnum<FilamentMapMode>::get_enum_values();
     def->enum_values.push_back("Auto For Flush");
     def->enum_values.push_back("Auto For Match");
@@ -2210,7 +2210,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_flush_temp", coInts);
     def->label = L("Flush temperature");
-    def->tooltip = L("temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range");
+    def->tooltip = L("Temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range.");
     def->mode = comAdvanced;
     def->nullable = true;
     def->min = 0;
@@ -2220,12 +2220,12 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_flush_volumetric_speed", coFloats);
     def->label = L("Flush volumetric speed");
-    def->tooltip = L("Volumetric speed when flushing filament. 0 indicates the max volumetric speed");
+    def->tooltip = L("Volumetric speed when flushing filament. 0 indicates the max volumetric speed.");
     def->mode = comAdvanced;
     def->nullable = true;
     def->min = 0;
     def->max = 200;
-    def->sidetext = L("mm³/s");
+    def->sidetext = u8"mm³/s";	// cubic milimeters per second, don't need translation
     def->set_default_value(new ConfigOptionFloatsNullable{ 0 });
 
     def = this->add("filament_max_volumetric_speed", coFloats);
@@ -2359,7 +2359,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("filament_adhesiveness_category", coInts);
     def->label    = L("Adhesiveness Category");
-    def->tooltip  = L("Filament category");
+    def->tooltip  = L("Filament category.");
     def->min      = 0;
     def->mode     = comDevelop;
     def->set_default_value(new ConfigOptionInts{0});
@@ -2555,7 +2555,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("filament_change_length", coFloats);
     def->label    = L("Filament ramming length");
     def->tooltip  = L("When changing the extruder, it is recommended to extrude a certain length of filament from the original extruder. This helps minimize nozzle oozing.");
-    def->sidetext = L("mm");
+    def->sidetext = "mm";	// milimeters, don't need translation
     def->min      = 0;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{10});
@@ -2572,7 +2572,7 @@ void PrintConfigDef::init_fff_params()
     // 1 bit: can support in right extruder
     def          = this->add("filament_printable", coInts);
     def->label   = L("Filament printable");
-    def->tooltip = L("The filament is printable in extruder");
+    def->tooltip = L("The filament is printable in extruder.");
     def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionInts{3});
 
@@ -4640,7 +4640,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("extruder_type", coEnums);
     def->label = L("Type");
-    def->tooltip = ("This setting is only used for initial value of manual calibration of pressure advance. Bowden extruder usually has larger pa value. This setting doesn't influence normal slicing");
+    def->tooltip = ("This setting is only used for initial value of manual calibration of pressure advance. Bowden extruder usually has larger pa value. This setting doesn't influence normal slicing.");
     def->enum_keys_map = &ConfigOptionEnum<ExtruderType>::get_enum_values();
     def->enum_values.push_back("Direct Drive");
     def->enum_values.push_back("Bowden");
@@ -4652,7 +4652,7 @@ void PrintConfigDef::init_fff_params()
     //BBS
     def = this->add("nozzle_volume_type", coEnums);
     def->label = L("Nozzle Volume Type");
-    def->tooltip = ("Nozzle volume type");
+    def->tooltip = ("Nozzle volume type.");
     def->enum_keys_map = &ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
     def->enum_values.push_back(L("Standard"));
     def->enum_values.push_back(L("High Flow"));
@@ -4662,8 +4662,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtStandard });
 
     def = this->add("default_nozzle_volume_type", coEnums);
-    def->label = L("Default Nozzle Volume Type");
-    def->tooltip = ("Default Nozzle volume type for extruders in this printer");
+    def->label = L("Default Nozzle Volume Type.");
+    def->tooltip = ("Default Nozzle volume type for extruders in this printer.");
     def->enum_keys_map = &ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
     def->enum_values.push_back(L("Standard"));
     def->enum_values.push_back(L("High Flow"));
@@ -4674,59 +4674,59 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("extruder_variant_list", coStrings);
     def->label = "Extruder variant list";
-    def->tooltip = "Extruder variant list";
+    def->tooltip = "Extruder variant list.";
     def->set_default_value(new ConfigOptionStrings { "Direct Drive Standard" });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("extruder_ams_count", coStrings);
     def->label = "Extruder ams count";
-    def->tooltip = "Ams counts of per extruder";
+    def->tooltip = "Ams counts of per extruder.";
     def->set_default_value(new ConfigOptionStrings { });
 
     def = this->add("printer_extruder_id", coInts);
     def->label = "Printer extruder id";
-    def->tooltip = "Printer extruder id";
+    def->tooltip = "Printer extruder id.";
     def->set_default_value(new ConfigOptionInts { 1 });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("printer_extruder_variant", coStrings);
     def->label = "Printer's extruder variant";
-    def->tooltip = "Printer's extruder variant";
+    def->tooltip = "Printer's extruder variant.";
     def->set_default_value(new ConfigOptionStrings { "Direct Drive Standard" });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("master_extruder_id", coInt);
     def->label = "Master extruder id";
-    def->tooltip = "Default extruder id to place filament";
+    def->tooltip = "Default extruder id to place filament.";
     def->set_default_value(new ConfigOptionInt{ 1 });
 
     def = this->add("print_extruder_id", coInts);
     def->label = "Print extruder id";
-    def->tooltip = "Print extruder id";
+    def->tooltip = "Print extruder id.";
     def->set_default_value(new ConfigOptionInts { 1 });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("print_extruder_variant", coStrings);
     def->label = "Print's extruder variant";
-    def->tooltip = "Print's extruder variant";
+    def->tooltip = "Print's extruder variant.";
     def->set_default_value(new ConfigOptionStrings { "Direct Drive Standard" });
     def->cli = ConfigOptionDef::nocli;
 
     /*def = this->add("filament_extruder_id", coInts);
     def->label = "Filament extruder id";
-    def->tooltip = "Filament extruder id";
+    def->tooltip = "Filament extruder id.";
     def->set_default_value(new ConfigOptionInts { 1 });
     def->cli = ConfigOptionDef::nocli;*/
 
     def = this->add("filament_extruder_variant", coStrings);
     def->label = "Filament's extruder variant";
-    def->tooltip = "Filament's extruder variant";
+    def->tooltip = "Filament's extruder variant.";
     def->set_default_value(new ConfigOptionStrings { "Direct Drive Standard" });
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("filament_self_index", coInts);
     def->label = "Filament self index";
-    def->tooltip = "Filament self index";
+    def->tooltip = "Filament self index.";
     def->set_default_value(new ConfigOptionInts { 1 });
     def->cli = ConfigOptionDef::nocli;
 
@@ -6179,7 +6179,7 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("prime_tower_skip_points", coBool);
     def->label   = L("Skip points");
-    def->tooltip = L("The wall of prime tower will skip the start points of wipe path");
+    def->tooltip = L("The wall of prime tower will skip the start points of wipe path.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -6189,8 +6189,8 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("prime_tower_infill_gap", coPercent);
     def->label    = L("Infill gap");
-    def->tooltip  = L("Infill gap");
-    def->sidetext = L("%");
+    def->tooltip  = L("Infill gap.");
+    def->sidetext = "%";
     def->mode     = comAdvanced;
     def->min      = 100;
     def->set_default_value(new ConfigOptionPercent(150));
