@@ -567,7 +567,7 @@ bool BitmapCache::load_from_svg_file_change_color(const std::string &filename, u
     temp_color[7]             = '\0';
     unsigned int change_color = nsvg__parseColorHex(temp_color);
     change_color |= (unsigned int) (1.0f * 255) << 24; // opacity
-    unsigned int green_color = 4282560000;
+    unsigned int green_color = 0xFF889600; // #009688
     for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
         // find green color
         if (shape->fill.color == green_color) {
