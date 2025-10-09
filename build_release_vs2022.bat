@@ -22,6 +22,7 @@ call :add_arg build_deps bool d deps
 call :add_arg build_slicer bool s slicer
 call :add_arg build_debug bool b debug
 call :add_arg build_debuginfo bool e debuginfo
+call :add_arg dry_run bool D dry-run
 
 :: handle arguments from input
 :handle_args_loop
@@ -148,10 +149,10 @@ set DEPS=%WP%\deps\%build_dir%\OrcaSlicer_dep
 if "%build_deps%" == "ON" (
     echo building deps...
 
-    cmake -S deps -B deps/%build_dir% -G "Visual Studio 17 2022" -A x64 -DDESTDIR="%DEPS%" -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
+    call :print_and_run cmake -S deps -B deps/%build_dir% -G "Visual Studio 17 2022" -A x64 -DDESTDIR="%DEPS%" -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
     %error_check%
 
-    cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
+    call :print_and_run cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
     %error_check%
 )
 
@@ -162,7 +163,7 @@ if "%pack_deps%" == "ON" (
     for /f "tokens=2-4 delims=/ " %%a in ('date /t') do set build_date=%%c%%b%%a
     echo packing deps: OrcaSlicer_dep_win64_!build_date!_vs2022.zip
 
-    %WP%/tools/7z.exe a OrcaSlicer_dep_win64_!build_date!_vs2022.zip OrcaSlicer_dep
+    call :print_and_run %WP%/tools/7z.exe a OrcaSlicer_dep_win64_!build_date!_vs2022.zip OrcaSlicer_dep
     %error_check%
     endlocal
 )
@@ -170,15 +171,15 @@ if "%pack_deps%" == "ON" (
 if "%build_slicer%" == "ON" (
     echo building Orca Slicer...
 
-    cmake -B %build_dir% -G "Visual Studio 17 2022" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
+    call :print_and_run cmake -B %build_dir% -G "Visual Studio 17 2022" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
     %error_check%
 
-    cmake --build %build_dir% --config %build_type% --target ALL_BUILD -- -m
+    call :print_and_run cmake --build %build_dir% --config %build_type% --target ALL_BUILD -- -m
     %error_check%
 
-    call scripts/run_gettext.bat
+    call :print_and_run call scripts/run_gettext.bat
 
-    cmake --build %build_dir% --target install --config %build_type%
+    call :print_and_run cmake --build %build_dir% --target install --config %build_type%
     %error_check%
 )
 
@@ -296,4 +297,14 @@ exit /b 0
     setlocal
     set type=!argdefs[%~1].TYPE!
     endlocal & set ret=%type%
+    exit /b 0
+
+
+:: print_and_run <command...>
+:print_and_run
+    echo + %*
+    if not "%dry_run%" == "ON" (
+        %*
+        exit /b !errorlevel!
+    )
     exit /b 0
