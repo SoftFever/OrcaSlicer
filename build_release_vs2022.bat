@@ -127,6 +127,13 @@ call :add_arg dry_run bool D dry-run
 
 :handle_args_loop_end
 
+if "%debugscript%" == "ON" (
+    set /A range_end = %argdefn% - 1
+    for /L %%i in (0, 1, !range_end!) do (
+        call :echo_var !argdefs[%%i].VARIABLE_NAME!
+    )
+)
+
 
 if "%build_debug%"=="ON" (
     set build_type=Debug
@@ -297,6 +304,12 @@ exit /b 0
     setlocal
     set type=!argdefs[%~1].TYPE!
     endlocal & set ret=%type%
+    exit /b 0
+
+
+:: echo_var <variable_name>
+:echo_var
+    echo %~1=!%~1!
     exit /b 0
 
 
