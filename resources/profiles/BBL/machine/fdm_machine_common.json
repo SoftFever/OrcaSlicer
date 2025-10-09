@@ -8,6 +8,7 @@
     ],
     "printer_variant": "0.4",
     "auxiliary_fan": "1",
+    "apply_top_surface_compensation": "0",
     "best_object_pos": "0.5x0.5",
     "default_filament_profile": [],
     "default_print_profile": "0.16mm Optimal @BBL X1C",
@@ -17,14 +18,19 @@
     "extruder_clearance_height_to_lid": "140",
     "extruder_clearance_height_to_rod": "34",
     "extruder_clearance_radius": "65",
+    "extruder_clearance_dist_to_rod": "33",
     "extruder_colour": [
         "#FCE94F"
     ],
     "enable_long_retraction_when_cut": "0",
     "enable_pre_heating": "0",
     "bed_temperature_formula": "by_first_filament",
-    "hotend_cooling_rate": "2",
-    "hotend_heating_rate": "2",
+    "hotend_cooling_rate": [
+        "2"
+    ],
+    "hotend_heating_rate": [
+        "2"
+    ],
     "extruder_offset": [
         "0x0"
     ],
@@ -84,6 +90,7 @@
     "machine_min_travel_rate": [
         "0"
     ],
+    "machine_prepare_compensation_time": "260",
     "machine_switch_extruder_time": "0",
     "machine_unload_filament_time": "29",
     "master_extruder_id": "1",
@@ -120,7 +127,7 @@
         "18"
     ],
     "retraction_length": [
-        "1"
+        "5"
     ],
     "retraction_minimum_travel": [
         "2"

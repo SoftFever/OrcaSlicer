@@ -68,7 +68,10 @@
         "10000",
         "10000"
     ],
-    "enable_overhang_speed": "1",
+    "enable_overhang_speed": [
+        "1",
+        "1"
+    ],
     "enable_height_slowdown": [
         "0",
         "0"

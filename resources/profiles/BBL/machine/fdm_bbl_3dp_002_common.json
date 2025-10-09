@@ -26,7 +26,9 @@
         "30",
         "30"
     ],
-    "enable_long_retraction_when_cut": "0",
+    "enable_long_retraction_when_cut": [
+        "0"
+    ],
     "extruder_clearance_height_to_lid": "90",
     "extruder_clearance_height_to_rod": "38.70",
     "extruder_clearance_max_radius": "92",
@@ -60,6 +62,18 @@
         "0"
     ],
     "head_wrap_detect_zone": [],
+    "hotend_cooling_rate": [
+        "2",
+        "2",
+        "2",
+        "2"
+    ],
+    "hotend_heating_rate": [
+        "2",
+        "2",
+        "2",
+        "2"
+    ],
     "long_retractions_when_cut": [
         "0",
         "0",

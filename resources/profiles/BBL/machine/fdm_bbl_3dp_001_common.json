@@ -28,7 +28,9 @@
     "deretraction_speed": [
         "30"
     ],
-    "enable_long_retraction_when_cut": "0",
+    "enable_long_retraction_when_cut": [
+        "0"
+    ],
     "extruder_clearance_height_to_lid": "90",
     "extruder_clearance_max_radius": "68",
     "extruder_clearance_radius": "57",

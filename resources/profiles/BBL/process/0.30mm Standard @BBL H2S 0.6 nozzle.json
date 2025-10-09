@@ -15,7 +15,10 @@
         "10000"
     ],
     "elefant_foot_compensation": "0.15",
-    "enable_overhang_speed": "1",
+    "enable_overhang_speed": [
+        "1",
+        "1"
+    ],
     "enable_height_slowdown": [
         "0",
         "0"
