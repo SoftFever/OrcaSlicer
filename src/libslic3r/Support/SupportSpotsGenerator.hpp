@@ -5,6 +5,7 @@
 #include "Line.hpp"
 #include "PrintBase.hpp"
 #include "PrintConfig.hpp"
+#include "MaterialType.hpp"
 #include <boost/log/trivial.hpp>
 #include <cstddef>
 #include <vector>
@@ -64,8 +65,8 @@ struct Params
             return get_support_spots_adhesion_strength() * 2.0;
         }
 
-        double yield_strength = 0.02;
-        get_filament_yield_strength(filament_type, yield_strength);
+    double yield_strength = 0.02;
+    MaterialType::get_yield_strength(filament_type, yield_strength);
         return yield_strength * 1e6;
     }
 

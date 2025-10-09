@@ -7,6 +7,7 @@
 #include "ShortestPath.hpp"
 #include "libslic3r.h"
 #include "PrintConfig.hpp"
+#include "MaterialType.hpp"
 #include "Model.hpp"
 #include <algorithm>
 #include <numeric>
@@ -592,7 +593,7 @@ double getadhesionCoeff(const PrintObject* printObject)
                 if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end()) {
                     std::string filament_type = Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName;
                     double adhesion_coefficient = 1.0; // Default value
-                    get_filament_adhesion_coefficient(filament_type, adhesion_coefficient);
+                    MaterialType::get_adhesion_coefficient(filament_type, adhesion_coefficient);
                     adhesionCoeff = adhesion_coefficient;
                 }
             }

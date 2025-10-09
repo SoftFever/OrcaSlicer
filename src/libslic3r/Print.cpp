@@ -16,6 +16,7 @@
 #include "GCode/WipeTower2.hpp"
 #include "Utils.hpp"
 #include "PrintConfig.hpp"
+#include "MaterialType.hpp"
 #include "Model.hpp"
 #include "format.hpp"
 #include <float.h>
@@ -2521,7 +2522,7 @@ FilamentTempType Print::get_filament_temp_type(const std::string& filament_type)
 {
     // FilamentTempType Temperature-based logic
     int min_temp, max_temp;
-    if (get_filament_temp_range(filament_type, min_temp, max_temp)) {
+    if (MaterialType::get_temperature_range(filament_type, min_temp, max_temp)) {
         if (max_temp <= 250) return FilamentTempType::LowTemp;
         else if (max_temp < 280) return FilamentTempType::HighLowCompatible;
         else return FilamentTempType::HighTemp;
