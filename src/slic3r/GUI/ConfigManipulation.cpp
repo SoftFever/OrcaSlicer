@@ -6,6 +6,7 @@
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/MaterialType.hpp"
 #include "MsgDialog.hpp"
 #include "libslic3r/PrintConfig.hpp"
 
@@ -68,7 +69,7 @@ void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrint
     int min_recommended_temp = 190;
     int max_recommended_temp = 300;
 
-    if (!get_filament_temp_range(filament_type, min_recommended_temp, max_recommended_temp)){
+    if (!MaterialType::get_temperature_range(filament_type, min_recommended_temp, max_recommended_temp)){
         filament_type = "Unknown";
     }
 
@@ -168,7 +169,7 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
     if (support_chamber_temp_control&&config->has("chamber_temperatures")) {
         std::string filament_type = config->option<ConfigOptionStrings>("filament_type")->get_at(0);
         int chamber_min_temp, chamber_max_temp;
-        if (get_filament_chamber_temp_range(filament_type, chamber_min_temp, chamber_max_temp)) {
+    if (MaterialType::get_chamber_temperature_range(filament_type, chamber_min_temp, chamber_max_temp)) {
             if (chamber_max_temp < config->option<ConfigOptionInts>("chamber_temperatures")->get_at(0)) {
                 wxString msg_text = wxString::Format(_L("Current chamber temperature is higher than the material's safe temperature, this may result in material softening and clogging. "
                                                         "The maximum safe temperature for the material is %d"), chamber_max_temp);

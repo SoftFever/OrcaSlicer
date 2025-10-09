@@ -9,6 +9,7 @@
 #include "MTUtils.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "TriangleSelector.hpp"
+#include "MaterialType.hpp"
 
 #include "Format/AMF.hpp"
 #include "Format/svg.hpp"
@@ -3139,7 +3140,7 @@ double Model::getThermalLength(const ModelVolume* modelVolumePtr) {
     auto aa = modelVolumePtr->extruder_id();
     if (Model::extruderParamsMap.find(aa) != Model::extruderParamsMap.end()) {
         double thermal_length = 200.0;
-        if (get_filament_thermal_length(Model::extruderParamsMap.at(aa).materialName, thermal_length)) {
+    if (MaterialType::get_thermal_length(Model::extruderParamsMap.at(aa).materialName, thermal_length)) {
             return thermal_length;
         }
     }
@@ -3207,7 +3208,7 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
     double adhesionCoeff = 1.0;
     for (const ModelVolume* modelVolume : objectVolumes) {
         if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end()) {
-            get_filament_adhesion_coefficient(Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName, adhesionCoeff);
+            MaterialType::get_adhesion_coefficient(Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName, adhesionCoeff);
         }
     }
     return adhesionCoeff;
