@@ -228,6 +228,9 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     if [[ -n "${BUILD_TESTS}" ]] ; then
         BUILD_ARGS+=(-DBUILD_TESTS=ON)
     fi
+    if [[ -n "${ORCA_UPDATER_SIG_KEY}" ]] ; then
+        BUILD_ARGS+=(-DORCA_UPDATER_SIG_KEY="${ORCA_UPDATER_SIG_KEY}")
+    fi
 
     print_and_run cmake -S . -B $BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" -G "Ninja Multi-Config" \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
