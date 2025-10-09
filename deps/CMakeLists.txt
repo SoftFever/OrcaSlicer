@@ -83,10 +83,6 @@ if (NOT FLATPAK)
     set(DESTDIR "${DESTDIR}/usr/local/")
 endif()
 
-if (LINUX)
-    set(USE_OLD_DESTDIR_PREV ${USE_OLD_DESTDIR} CACHE STRING "Indicates if the old destdir was used during the previous configuration" FORCE)
-endif ()
-
 get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
 if (_is_multi)
