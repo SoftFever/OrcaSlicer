@@ -1908,23 +1908,23 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (m_preset_bundle->get_printer_extruder_count() > 1){
         int extruder_idx = std::atoi(opt_key.substr(opt_key.find_last_of('#') + 1).c_str());
         if (opt_key.find("min_layer_height") != std::string::npos) {
-            auto min_layer_height_from_nozzle = m_preset_bundle->full_config().option<ConfigOptionFloatsNullable>("min_layer_height")->values;
+            auto min_layer_height_from_nozzle = m_preset_bundle->full_config().option<ConfigOptionFloats>("min_layer_height")->values;
             if (extruder_idx < min_layer_height_from_nozzle.size()) {
                 double value = min_layer_height_from_nozzle[extruder_idx];
                 std::fill(min_layer_height_from_nozzle.begin(), min_layer_height_from_nozzle.end(), value);
             }
             auto new_conf = *m_config;
-            new_conf.set_key_value("min_layer_height", new ConfigOptionFloatsNullable(min_layer_height_from_nozzle));
+            new_conf.set_key_value("min_layer_height", new ConfigOptionFloats(min_layer_height_from_nozzle));
             m_config_manipulation.apply(m_config, &new_conf);
         }
         else if (opt_key.find("max_layer_height") != std::string::npos) {
-            auto max_layer_height_from_nozzle = m_preset_bundle->full_config().option<ConfigOptionFloatsNullable>("max_layer_height")->values;
+            auto max_layer_height_from_nozzle = m_preset_bundle->full_config().option<ConfigOptionFloats>("max_layer_height")->values;
             if (extruder_idx < max_layer_height_from_nozzle.size()) {
                 double value = max_layer_height_from_nozzle[extruder_idx];
                 std::fill(max_layer_height_from_nozzle.begin(), max_layer_height_from_nozzle.end(), value);
             }
             auto new_conf = *m_config;
-            new_conf.set_key_value("max_layer_height", new ConfigOptionFloatsNullable(max_layer_height_from_nozzle));
+            new_conf.set_key_value("max_layer_height", new ConfigOptionFloats(max_layer_height_from_nozzle));
             m_config_manipulation.apply(m_config, &new_conf);
         }
     }

@@ -212,7 +212,7 @@ wxString WipingDialog::BuildTableObjStr()
     auto full_config = wxGetApp().preset_bundle->full_config();
     auto filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
     auto flush_multiplier = full_config.option<ConfigOptionFloats>("flush_multiplier")->values;
-    int nozzle_num = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    int nozzle_num = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
     auto raw_matrix_data = full_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values;
     auto nozzle_flush_dataset = full_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset")->values;
 

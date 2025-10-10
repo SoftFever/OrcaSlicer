@@ -1556,7 +1556,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                     // The PrintObject already exists and the copies differ.
 					PrintBase::ApplyStatus status = (*it_old)->print_object->set_instances(std::move(new_instances.instances));
                     if (status != PrintBase::APPLY_STATUS_UNCHANGED) {
-                        size_t extruder_num = new_full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->size();
+                        size_t extruder_num = new_full_config.option<ConfigOptionFloats>("nozzle_diameter")->size();
                         update_apply_status(status == PrintBase::APPLY_STATUS_INVALIDATED);
                     }
 					print_objects_new.emplace_back((*it_old)->print_object);

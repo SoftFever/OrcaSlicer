@@ -1867,7 +1867,7 @@ bool PartPlate::check_mixture_filament_compatible(const DynamicPrintConfig &conf
 
 bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig &config, const std::vector<std::string> &filament_presets, std::string &error_msg)
 {
-    float nozzle_diameter = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[0];
+    float nozzle_diameter = config.option<ConfigOptionFloats>("nozzle_diameter")->values[0];
     auto  volume_type_opt = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
 
     auto get_filament_alias = [](std::string preset_name) -> std::string {

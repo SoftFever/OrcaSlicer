@@ -221,7 +221,7 @@ void SyncAmsInfoDialog::deal_ok()
 bool SyncAmsInfoDialog::get_is_double_extruder()
 {
     const auto &full_config = wxGetApp().preset_bundle->full_config();
-    size_t      nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    size_t      nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
     bool use_double_extruder = nozzle_nums > 1 ? true : false;
     return use_double_extruder;
 }
@@ -1226,7 +1226,7 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
 
     const auto &full_config    = wxGetApp().preset_bundle->full_config();
     const auto &project_config = wxGetApp().preset_bundle->project_config;
-    size_t      nozzle_nums    = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    size_t      nozzle_nums    = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
     m_filaments_map            = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
 
     int               filament_result = 0;
@@ -1415,7 +1415,7 @@ bool SyncAmsInfoDialog::build_nozzles_info(std::string &nozzles_info)
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (!preset_bundle) return false;
-    auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
     if (opt_nozzle_diameters == nullptr) {
         BOOST_LOG_TRIVIAL(error) << "build_nozzles_info, opt_nozzle_diameters is nullptr";
         return false;
@@ -1907,7 +1907,7 @@ bool SyncAmsInfoDialog::is_same_nozzle_diameters(NozzleType &tag_nozzle_type, fl
 
     try {
         PresetBundle *preset_bundle        = wxGetApp().preset_bundle;
-        auto          opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        auto          opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
 
         const ConfigOptionEnumsGenericNullable *nozzle_type = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
         std::vector<std::string>                preset_nozzle_types(nozzle_type->size());
@@ -2379,7 +2379,7 @@ void SyncAmsInfoDialog::update_show_status()
     if (m_ams_mapping_result.empty()) { do_ams_mapping(obj_); }
 
     const auto &full_config = wxGetApp().preset_bundle->full_config();
-    size_t      nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    size_t      nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     // the nozzle type of preset and machine are different
     if (nozzle_nums > 1) {
@@ -2730,7 +2730,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             if (!dev_manager) return;
             MachineObject *obj_        = dev_manager->get_selected_machine();
             const auto &   full_config = wxGetApp().preset_bundle->full_config();
-            size_t         nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+            size_t         nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
             if (nozzle_nums > 1) {
                 m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);//special
             }

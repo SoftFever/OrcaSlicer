@@ -6230,7 +6230,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                     double              preset_nozzle_diameter = 0.4;
                     const ConfigOption *opt                    = printer_preset.config.option("nozzle_diameter");
-                    if (opt) preset_nozzle_diameter = static_cast<const ConfigOptionFloatsNullable *>(opt)->values[0];
+                    if (opt) preset_nozzle_diameter = static_cast<const ConfigOptionFloats *>(opt)->values[0];
                     float machine_nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
 
                     std::string machine_type = obj->printer_type;
@@ -8555,7 +8555,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
                     Preset& cur_preset = preset_bundle->printers.get_edited_preset();
                     if (cur_preset.get_printer_type(preset_bundle) == obj->get_show_printer_type()) {
-                        double preset_nozzle_diameter = cur_preset.config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[0];
+                        double preset_nozzle_diameter = cur_preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values[0];
                         bool   same_nozzle_diameter   = true;
 
                         const auto& extruders = obj->GetExtderSystem()->GetExtruders();
@@ -15408,8 +15408,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     t_config_option_keys diff_keys = p->config->diff(config);
 
     size_t old_nozzle_size = 1, new_nozzle_size = 1;
-    auto * opt_old = p->config->option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    auto * opt_new = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    auto * opt_old = p->config->option<ConfigOptionFloats>("nozzle_diameter");
+    auto * opt_new = config.option<ConfigOptionFloats>("nozzle_diameter");
     if (opt_old && opt_new) {
         old_nozzle_size = opt_old->values.size();
         new_nozzle_size = opt_new->values.size();

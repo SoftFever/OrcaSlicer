@@ -1591,7 +1591,7 @@ int CLI::run(int argc, char **argv)
                     current_process_name = config.option<ConfigOptionString>("print_settings_id")->value;
                     current_printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
                     current_filaments_name = config.option<ConfigOptionStrings>("filament_settings_id")->values;
-                    current_extruder_count = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+                    current_extruder_count = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
                     current_printer_variant_count = config.option<ConfigOptionStrings>("printer_extruder_variant", true)->values.size();
                     current_print_variant_count = config.option<ConfigOptionStrings>("print_extruder_variant", true)->values.size();
                     current_is_multi_extruder = current_extruder_count > 1;
@@ -2834,8 +2834,8 @@ int CLI::run(int argc, char **argv)
             flush_and_exit(ret);
         }
     }
-    if (m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")) {
-        new_extruder_count = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    if (m_print_config.option<ConfigOptionFloats>("nozzle_diameter")) {
+        new_extruder_count = m_print_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
         new_is_multi_extruder = new_extruder_count > 1;
         new_printer_extruder_variants = m_print_config.option<ConfigOptionStrings>("printer_extruder_variant", true)->values;
         new_printer_variant_count = new_printer_extruder_variants.size();

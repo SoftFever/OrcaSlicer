@@ -18,7 +18,7 @@ static bool should_pop_up()
 {
     const auto &preset_bundle    = wxGetApp().preset_bundle;
     const auto &full_config      = preset_bundle->full_config();
-    const auto  nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const auto  nozzle_diameters = full_config.option<ConfigOptionFloats>("nozzle_diameter");
     return nozzle_diameters->size() > 1;
 }
 

@@ -980,7 +980,7 @@ void AmsMapingPopup::update_ams_data_multi_machines()
 void AmsMapingPopup::update_title(MachineObject* obj)
 {
     const auto& full_config = wxGetApp().preset_bundle->full_config();
-    size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
     if (nozzle_nums > 1)
     {
         if (m_show_type == ShowType::LEFT)

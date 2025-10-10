@@ -7899,7 +7899,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 add_vector(stream, nozzle_volume_types);
                 stream << "\"/>\n";
 
-                auto* nozzle_diameter_option = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
+                auto* nozzle_diameter_option = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
                 std::string nozzle_diameters_str;
                 if (nozzle_diameter_option)
                     nozzle_diameters_str = nozzle_diameter_option->serialize();

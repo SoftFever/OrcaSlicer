@@ -2878,7 +2878,7 @@ wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *paren
             if (printer_variant)
                 printer_variant->value = printer_nozzle_name;
 
-            auto nozzle_diameter = dynamic_cast<ConfigOptionFloatsNullable *>(m_printer_preset->config.option("nozzle_diameter", true));
+            auto nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter", true));
             if (nozzle_diameter) {
                 std::unordered_map<std::string, float>::const_iterator iter = nozzle_diameter_map.find(printer_nozzle_name);
                 if (nozzle_diameter_map.end() != iter) {
@@ -2935,7 +2935,7 @@ bool CreatePrinterPresetDialog::data_init()
         if (iter != m_printer_name_to_preset.end()) {
             std::shared_ptr<Preset> printer_preset = iter->second;
             if (printer_preset) {
-                auto nozzle_diameter = dynamic_cast<ConfigOptionFloatsNullable *>(printer_preset->config.option("nozzle_diameter", true));
+                auto nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(printer_preset->config.option("nozzle_diameter", true));
                 return nozzle_diameter->values.size();
             }
         }
@@ -3048,7 +3048,7 @@ wxArrayString CreatePrinterPresetDialog::printer_preset_sort_with_nozzle_diamete
         if (iter != m_printer_name_to_preset.end()) {
             std::shared_ptr<Preset> printer_preset  = iter->second;
             if (printer_preset) {
-                auto nozzle_diameter = dynamic_cast<ConfigOptionFloatsNullable *>(printer_preset->config.option("nozzle_diameter", true));
+                auto nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(printer_preset->config.option("nozzle_diameter", true));
                 return nozzle_diameter->values.size();
             }
         }

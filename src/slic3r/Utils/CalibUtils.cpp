@@ -273,7 +273,7 @@ static bool check_nozzle_diameter_and_type(const DynamicPrintConfig &full_config
 static void init_multi_extruder_params_for_cali(DynamicPrintConfig& config, const CalibInfo& calib_info)
 {
     int extruder_count = 1;
-    auto nozzle_diameters_opt = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
+    auto nozzle_diameters_opt = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
     if (nozzle_diameters_opt != nullptr) {
         extruder_count = (int)(nozzle_diameters_opt->size());
     }
@@ -761,7 +761,7 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
 
     int index = get_index_for_extruder_parameter(print_config, "outer_wall_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
     float wall_speed = CalibPressureAdvance::find_optimal_PA_speed(full_config, print_config.get_abs_value("line_width"), print_config.get_abs_value("layer_height"), calib_info.extruder_id, 0);
-    ConfigOptionFloatsNullable *wall_speed_speed_opt = print_config.option<ConfigOptionFloatsNullable>("outer_wall_speed");
+    ConfigOptionFloats *wall_speed_speed_opt = print_config.option<ConfigOptionFloats>("outer_wall_speed");
     wall_speed_speed_opt->values[index]              = wall_speed;
 
     for (const auto& opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
@@ -800,8 +800,8 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
 {
     DynamicPrintConfig print_config    = calib_infos[0].print_prest->config;
 
-    float nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
-    int extruder_count = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    float nozzle_diameter = full_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+    int extruder_count = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) { print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second)); }
 
@@ -815,11 +815,11 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
         float wall_speed = CalibPressureAdvance::find_optimal_PA_speed(full_config, print_config.get_abs_value("line_width"), print_config.get_abs_value("layer_height"),
                                                                        calib_info.extruder_id, 0);
 
-        ConfigOptionFloatsNullable *wall_speed_speed_opt = print_config.option<ConfigOptionFloatsNullable>("outer_wall_speed");
+        ConfigOptionFloats *wall_speed_speed_opt = print_config.option<ConfigOptionFloats>("outer_wall_speed");
         std::vector<double> new_speeds = wall_speed_speed_opt->values;
         new_speeds[index] = wall_speed;
         ModelObject* object = model.objects[calib_info.index];
-        object->config.set_key_value("outer_wall_speed", new ConfigOptionFloatsNullable(new_speeds));
+        object->config.set_key_value("outer_wall_speed", new ConfigOptionFloats(new_speeds));
     }
 
     for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
@@ -983,7 +983,7 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
         else if (params.mode == CalibMode::Calib_Auto_PA_Line)
             js["cali_type"] = "cali_auto_pa_line";
 
-        const ConfigOptionFloatsNullable *nozzle_diameter_config = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        const ConfigOptionFloats *nozzle_diameter_config = printer_config.option<ConfigOptionFloats>("nozzle_diameter");
         assert(nozzle_diameter_config->values.size() > 0);
         float nozzle_diameter = nozzle_diameter_config->values[0];
 
@@ -1484,7 +1484,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
         return false;
     }
 
-    const ConfigOptionFloatsNullable *nozzle_diameter_config = cali_info.printer_prest->config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const ConfigOptionFloats *nozzle_diameter_config = cali_info.printer_prest->config.option<ConfigOptionFloats>("nozzle_diameter");
     float nozzle_diameter = nozzle_diameter_config->values[0];
 
     float diameter = obj->GetExtderSystem()->GetNozzleDiameter(cali_info.extruder_id);
