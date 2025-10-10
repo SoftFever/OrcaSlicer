@@ -161,7 +161,7 @@ enum FilamentStepType {
 #define AMS_EXTRUDER_SINGLE_NOZZLE_N_SIZE wxSize(FromDIP(18), FromDIP(36))
 #define AMS_EXTRUDER_SINGLE_NOZZLE_XP_SIZE wxSize(FromDIP(25), FromDIP(36))
 #define AMS_BODY_SIZE wxSize(FromDIP(36), FromDIP(55))
-#define AMS_DOWN_ROAD_SIZE wxSize(FromDIP(568), FromDIP(10))
+#define AMS_DOWN_ROAD_SIZE wxSize(FromDIP(566), FromDIP(10))
 
 #define AMS_HUMIDITY_SIZE wxSize(FromDIP(93), FromDIP(26))
 #define AMS_HUMIDITY_NO_PERCENT_SIZE wxSize(FromDIP(60), FromDIP(26))
