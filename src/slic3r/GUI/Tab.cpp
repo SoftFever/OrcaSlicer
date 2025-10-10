@@ -3323,6 +3323,9 @@ void TabFilament::add_filament_overrides_page()
                                         //BBS
                                         "filament_wipe_distance",
                                         "filament_retract_before_wipe",
+                                        // Orca
+                                        "filament_retract_after_wipe",
+                                        // BBS
                                         "filament_long_retractions_when_cut",
                                         "filament_retraction_distances_when_cut"
                                         //SoftFever
@@ -3362,6 +3365,9 @@ void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* print
                                             //BBS
                                             "filament_wipe_distance",
                                             "filament_retract_before_wipe",
+                                            // Orca
+                                            "filament_retract_after_wipe",
+                                            // BBS
                                             "filament_long_retractions_when_cut",
                                             "filament_retraction_distances_when_cut"
                                             //SoftFever
@@ -3397,6 +3403,16 @@ void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* print
             bool filament_enabled = m_config->option<ConfigOptionBools>("filament_long_retractions_when_cut")->values[extruder_idx] == 1;
             toggle_line(opt_key, filament_enabled && machine_enabled);
             field->toggle(is_checked && filament_enabled && machine_enabled);
+        } else if (opt_key == "filament_retract_before_wipe" || opt_key == "filament_retract_after_wipe") {
+            bool wipe = (have_retract_length || printers_config->opt_bool("use_firmware_retraction")) && m_config->opt_bool("filament_wipe", extruder_idx);
+
+            double value_to_compare = 0.;
+            if (opt_key == "filament_retract_before_wipe")
+                value_to_compare = m_config->option<ConfigOptionPercents>("filament_retract_after_wipe")->get_at(extruder_idx);
+            else if (opt_key == "filament_retract_after_wipe")
+                value_to_compare = m_config->option<ConfigOptionPercents>("filament_retract_before_wipe")->get_at(extruder_idx);
+
+            toggle_option(opt_key, wipe && !is_approx(std::clamp(value_to_compare, 0., 100.), 100.), extruder_idx);
         } else {
             if (!is_checked) {
                 const std::string printer_opt_key = opt_key.substr(strlen("filament_"));
@@ -3857,6 +3873,41 @@ void TabFilament::clear_pages()
 
     //BBS: GUI refactor
     m_overrides_options.clear();
+}
+
+void TabFilament::on_value_change(const std::string& opt_key, const boost::any& value)
+{
+    if (wxGetApp().plater() == nullptr || m_config_manipulation.is_applying())
+        return;
+
+    if (opt_key == "filament_retract_after_wipe" || opt_key == "filament_retract_before_wipe") {
+        const int extruder_idx = 0; // #ys_FIXME
+        auto percent_value_clamp = [](double percent_value) { return std::clamp(percent_value, 0., 100.); };
+        double dvalue = boost::any_cast<double>(value);
+
+        double retract_before_wipe = percent_value_clamp(opt_key == "filament_retract_before_wipe" 
+            ? dvalue : m_config->option<ConfigOptionPercents>("filament_retract_before_wipe")->get_at(extruder_idx));
+
+        double retract_after_wipe = percent_value_clamp(opt_key == "filament_retract_after_wipe" 
+            ? dvalue : m_config->option<ConfigOptionPercents>("filament_retract_after_wipe")->get_at(extruder_idx));
+
+        bool need_to_reload_config = false;
+
+        if (percent_value_clamp(dvalue) != dvalue) {
+            change_opt_value(*m_config, opt_key, percent_value_clamp(dvalue), extruder_idx);
+            need_to_reload_config = true;
+        }
+
+        if (retract_after_wipe > 100. - retract_before_wipe) {
+            change_opt_value(*m_config, "filament_retract_after_wipe", 100. - retract_before_wipe, extruder_idx);
+            need_to_reload_config = true;
+        }
+
+        if (need_to_reload_config)
+            reload_config();
+    }
+
+    Tab::on_value_change(opt_key, value);
 }
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText, wxString text /*= wxEmptyString*/)
@@ -4533,6 +4584,8 @@ if (is_marlin_flavor)
                 optgroup->append_single_option_line("wipe", "", extruder_idx);
                 optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
                 optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
+                // Orca
+                optgroup->append_single_option_line("retract_after_wipe", "", extruder_idx);
 
                 optgroup = page->new_optgroup(L("Z-Hop"), L"param_extruder_lift_enforcement");
                 optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
@@ -4761,15 +4814,21 @@ void TabPrinter::toggle_options()
 
         // some options only apply when not using firmware retraction
         vec.resize(0);
-        vec = {"retraction_speed", "deretraction_speed",    "retract_before_wipe",
-               "retract_length",   "retract_restart_extra", "wipe",
-               "wipe_distance"};
+        vec = {"retraction_speed", "deretraction_speed", "retract_before_wipe", "retract_after_wipe",
+               "retract_length", "retract_restart_extra", "wipe", "wipe_distance"};
         for (auto el : vec)
             //BBS
             toggle_option(el, retraction && !use_firmware_retraction, i);
 
         bool wipe = retraction && m_config->opt_bool("wipe", i);
-        toggle_option("retract_before_wipe", wipe, i);
+
+        // Orca
+        double retract_before_wipe = m_config->option<ConfigOptionPercents>("retract_before_wipe")->get_at(i);
+        double retract_after_wipe  = m_config->option<ConfigOptionPercents>("retract_after_wipe")->get_at(i);
+
+        toggle_option("retract_before_wipe", wipe && !is_approx(retract_after_wipe, 100.), i);
+        toggle_option("retract_after_wipe", wipe && !is_approx(retract_before_wipe, 100.), i);
+
         if (use_firmware_retraction && wipe) {
             //wxMessageDialog dialog(parent(),
             MessageDialog dialog(parent(),
@@ -4819,6 +4878,52 @@ void TabPrinter::toggle_options()
         toggle_option("min_resonance_avoidance_speed", resonance_avoidance);
         toggle_option("max_resonance_avoidance_speed", resonance_avoidance);
     }
+}
+
+void TabPrinter::on_value_change(const std::string& opt_key, const boost::any& value)
+{
+    if (wxGetApp().plater() == nullptr || m_config_manipulation.is_applying())
+        return;
+
+    const int pos = opt_key.find("#");
+
+    if (pos > 0) {
+        std::string temp_str = opt_key;
+        boost::erase_head(temp_str, pos + 1);
+        int orig_opt_idx = static_cast<size_t>(atoi(temp_str.c_str()));
+        int opt_idx = orig_opt_idx >= 0 ? orig_opt_idx : 0;
+
+        std::string opt_key_pure = opt_key;
+        boost::erase_tail(opt_key_pure, opt_key_pure.size() - pos);
+
+        if (opt_key_pure == "retract_after_wipe" || opt_key_pure == "retract_before_wipe") {
+            auto percent_value_clamp = [](double percent_value) { return std::clamp(percent_value, 0., 100.); };
+            double dvalue = boost::any_cast<double>(value);
+
+            double retract_before_wipe = percent_value_clamp(opt_key_pure == "retract_before_wipe" 
+                ? dvalue : m_config->option<ConfigOptionPercents>("retract_before_wipe")->get_at(opt_idx));
+
+            double retract_after_wipe = percent_value_clamp(opt_key_pure == "retract_after_wipe" 
+                ? dvalue : m_config->option<ConfigOptionPercents>("retract_after_wipe")->get_at(opt_idx));
+
+            bool need_to_reload_config = false;
+
+            if (percent_value_clamp(dvalue) != dvalue) {
+                change_opt_value(*m_config, opt_key_pure, percent_value_clamp(dvalue), opt_idx);
+                need_to_reload_config = true;
+            }
+
+            if (retract_after_wipe > 100. - retract_before_wipe) {
+                change_opt_value(*m_config, "retract_after_wipe", 100. - retract_before_wipe, opt_idx);
+                need_to_reload_config = true;
+            }
+
+            if (need_to_reload_config)
+                reload_config();
+        }
+    }
+
+    Tab::on_value_change(opt_key, value);
 }
 
 void TabPrinter::update()
