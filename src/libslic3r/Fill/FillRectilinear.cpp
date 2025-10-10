@@ -3039,6 +3039,124 @@ if ((params.pattern == ipLateralLattice || params.pattern == ipLateralHoneycomb 
     return true;
 }
 
+bool FillRectilinear::fill_surface_trapezoidal(const Surface*                            surface,
+                                               FillParams                                params,
+                                               const std::initializer_list<SweepParams>& sweep_params,
+                                               Polylines&                                polylines_out)
+{
+    assert(params.multiline > 1);
+
+    Polylines polylines;
+    coord_t   d1 = coord_t(scale_(this->spacing)) * params.multiline; // Infill total wall thickness
+
+    const double period = (2 * d1 / params.density) * std::sqrt(2.0);
+    const double d2     = 0.5f * period - d1;
+
+    std::pair<double, Point> rotate_vector = this->_infill_direction(surface);
+    double                   base_angle    = rotate_vector.first + M_PI_4;
+
+    // Obtain the bounding box of the rotated polygon
+    ExPolygon expolygon_rotated = surface->expolygon;
+    if (std::abs(base_angle) >= EPSILON) {
+        expolygon_rotated.rotate(-base_angle, rotate_vector.second);
+    }
+
+    // Use extended object bounding box for consistent pattern across layers
+    BoundingBox bb = this->extended_object_bounding_box();
+
+    // Align bounding box to the grid
+    bb.merge(align_to_grid(bb.min, Point(period, period)));
+
+    coord_t xmin = bb.min.x();
+    coord_t xmax = bb.max.x();
+    coord_t ymin = bb.min.y();
+    coord_t ymax = bb.max.y();
+
+    // Generate non-crossing trapezodal pattern to avoid overextrusion at intersections when multiline > 1
+    //      P1--P2
+    //     /      \
+    //  P0/        \P3__P4
+    //
+    // P1x-P2x=P3x-P4x=d1
+    // P0y-P1y=P2y-P3y=d2
+
+    // flag for vertical flip of trapezoids
+    bool flip_vertical = false;
+
+    for (double y = ymin; y < double(ymax); y += 0.5f * period) {
+        Polyline pl_row;
+        for (double x = double(xmin); x < double(xmax); x += period) {
+            coord_t x0 = coord_t(x);
+
+            if (!flip_vertical) {
+                pl_row.points.push_back(Point(x0, coord_t(y + 0.5f * d1)));                             // P0
+                pl_row.points.push_back(Point(x0 + coord_t(d1), coord_t(y + 0.5f * d1)));               // P1
+                pl_row.points.push_back(Point(x0 + coord_t(d1 + d2), coord_t(y + 0.5f * d1 + d2)));     // P2
+                pl_row.points.push_back(Point(x0 + coord_t(2 * d1 + d2), coord_t(y + 0.5f * d1 + d2))); // P3
+                pl_row.points.push_back(Point(x0 + coord_t(2 * d1 + 2 * d2), coord_t(y + 0.5f * d1)));  // P4
+            } else {
+                pl_row.points.push_back(Point(x0, coord_t(y + 0.5f * d1 + d2)));                            // P0'
+                pl_row.points.push_back(Point(x0 + coord_t(d1), coord_t(y + 0.5f * d1 + d2)));              // P1'
+                pl_row.points.push_back(Point(x0 + coord_t(d1 + d2), coord_t(y + 0.5f * d1)));              // P2'
+                pl_row.points.push_back(Point(x0 + coord_t(2 * d1 + d2), coord_t(y + 0.5f * d1)));          // P3'
+                pl_row.points.push_back(Point(x0 + coord_t(2 * d1 + 2 * d2), coord_t(y + 0.5f * d1 + d2))); // P4'
+            }
+        }
+
+        if (!pl_row.points.empty()) {
+            polylines.emplace_back(std::move(pl_row));
+        }
+        flip_vertical = !flip_vertical;
+    }
+
+    // simplify polilines to avoid artifacts
+    for (Polyline& pl : polylines) {
+        pl.simplify(5 * spacing);
+    }
+
+    // transpose points for odd layers
+    if (layer_id % 2 == 1) {
+        for (Polyline& pl : polylines) {
+            for (Point& p : pl.points) {
+                std::swap(p.x(), p.y());
+
+                p.x() += coord_t(0.5f * d1);
+                p.y() -= coord_t(0.5f * d1);
+            }
+        }
+    }
+
+    // Apply multiline fill and intersect with expolygon
+    multiline_fill(polylines, params, spacing);
+
+    // Negative offset to reduce overlap
+    coord_t    overlap_offset = -scale_(0.8 * this->spacing);
+    ExPolygons offsetted      = offset_ex(expolygon_rotated, overlap_offset);
+
+    ExPolygon& expolygon_for_connection = expolygon_rotated;
+
+    if (!offsetted.empty()) {
+        polylines                = intersection_pl(std::move(polylines), to_polygons(offsetted));
+        expolygon_for_connection = std::move(offsetted.front());
+    } else {
+        polylines = intersection_pl(std::move(polylines), to_polygons(expolygon_rotated));
+    }
+
+    // connect infill lines
+    int infill_start_idx = polylines_out.size();
+    if (!polylines.empty()) {
+        Slic3r::Fill::chain_or_connect_infill(std::move(polylines), expolygon_for_connection, polylines_out, this->spacing, params);
+        // Rotate back the infill lines
+        if (std::abs(base_angle) >= EPSILON) {
+            for (auto it = polylines_out.begin() + infill_start_idx; it != polylines_out.end(); ++it) {
+                it->rotate(base_angle, rotate_vector.second);
+            }
+        }
+    }
+
+    return true;
+}
+
 Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
@@ -3077,11 +3195,22 @@ Polylines FillMonotonicLine::fill_surface(const Surface* surface, const FillPara
 Polylines FillGrid::fill_surface(const Surface *surface, const FillParams &params)
 {
     Polylines polylines_out;
-    if (! this->fill_surface_by_multilines(
-            surface, params,
-            { { 0.f, 0.f }, { float(M_PI / 2.), 0.f } },
-            polylines_out))
-        BOOST_LOG_TRIVIAL(error) << "FillGrid::fill_surface() failed to fill a region.";
+
+    if (params.multiline > 1) {
+        // Experimental trapezoidal grid
+        if (!this->fill_surface_trapezoidal(
+                 surface, params,
+                 { { 0.f, 0.f }, { float(M_PI / 2.), 0.f } },
+                polylines_out))
+            BOOST_LOG_TRIVIAL(error) << "FillGrid::fill_surface_trapezoidal() failed.";
+
+    } else {
+        if (!this->fill_surface_by_multilines(
+                surface, params,
+                { { 0.f, 0.f }, { float(M_PI / 2.), 0.f } },
+                polylines_out))
+            BOOST_LOG_TRIVIAL(error) << "FillGrid::fill_surface() failed to fill a region.";
+    }
 
     if (this->layer_id % 2 == 1)
         for (int i = 0; i < polylines_out.size(); i++)
