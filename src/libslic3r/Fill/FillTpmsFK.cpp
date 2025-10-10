@@ -129,8 +129,8 @@ void FillTpmsFK::_fill_surface_single(const FillParams&              params,
     const float vari_T = 4.18f * spacing * params.multiline / density_factor;
 
     BoundingBox bbox = expolygon.contour.bounding_box();
-    // Slightly enlarge the bounding box to avoid artifacts at the edges.
-    bbox.offset(scale_(1.));
+    // Enlarge the bounding box by the multi-line width to avoid artifacts at the edges.
+    bbox.offset(scale_((params.multiline + 1) * spacing));
     marchsq::ScalarField sf = marchsq::ScalarField(bbox, this->z, vari_T);
     // Get simplified lines using coarse tolerance of 0.1mm (this is infill).
     Polylines polylines = marchsq::get_polylines(sf, SCALED_SPARSE_INFILL_RESOLUTION);
