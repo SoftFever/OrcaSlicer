@@ -1804,14 +1804,23 @@ public:
     bool deserialize(const std::string &str, bool append = false) override
     {
         UNUSED(append);
-        if (str == "1") {
-            this->value = true;
-            return true;
+
+        // Orca: take the first value if input is an array
+        std::istringstream is(str);
+        std::string        item_str;
+        if (std::getline(is, item_str, ',')) {
+            boost::trim(item_str);
+
+            if (item_str == "1") {
+                this->value = true;
+                return true;
+            }
+            if (item_str == "0") {
+                this->value = false;
+                return true;
+            }
         }
-        if (str == "0") {
-            this->value = false;
-            return true;
-        }
+
         return false;
     }
 
