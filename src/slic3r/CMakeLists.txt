@@ -574,6 +574,10 @@ set(SLIC3R_GUI_SOURCES
     Utils/UndoRedo.cpp
     Utils/UndoRedo.hpp
     Utils/WebSocketClient.hpp
+    Utils/Spoolman.cpp
+    Utils/Spoolman.hpp
+    GUI/SpoolmanImportDialog.cpp
+    GUI/SpoolmanImportDialog.hpp
     Utils/WxFontUtils.cpp
     Utils/WxFontUtils.hpp
 )
