@@ -1,0 +1,5 @@
+#pragma once
+
+#define ORCA_UPDATER_SIG_KEY_B64 ""
+#define ORCA_UPDATER_SIG_KEY_AVAILABLE 0
+

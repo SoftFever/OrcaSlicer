@@ -7,6 +7,7 @@
 #include "libslic3r/CutUtils.hpp"
 
 #include "libslic3r/Model.hpp"
+#include "../GUI/Jobs/PrintJob.hpp" 
 #include "slic3r/GUI/Jobs/BoostThreadWorker.hpp"
 #include "slic3r/GUI/Jobs/PlaterWorker.hpp"
 #include "../GUI/MsgDialog.hpp"
@@ -1232,8 +1233,14 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     CalibMode cali_mode       = calib_info.params.mode;
     print_job->m_project_name = get_calib_mode_name(cali_mode, flow_ratio_mode);
     print_job->set_calibration_task(true);
-
-    print_job->has_sdcard = obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+    
+    print_job->has_sdcard =  wxGetApp().app_config->get("allow_abnormal_sd_card") == "true"
+            ? (obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL
+               || obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL)
+            : obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;        
+    
+    print_job->sdcard_state = obj_->get_sdcard_state();    
+    
     print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true, 0, 0, 0);
     print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event(), print_job->m_project_name);
 
