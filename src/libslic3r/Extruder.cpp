@@ -162,6 +162,12 @@ double Extruder::retract_before_wipe() const
     return std::min(1., std::max(0., m_config->retract_before_wipe.get_at(m_id) * 0.01));
 }
 
+// Return a "retract_after_wipe" percentage as a factor clamped to <0, 1>
+double Extruder::retract_after_wipe() const
+{
+    return std::min(1., std::max(0., m_config->retract_after_wipe.get_at(m_id) * 0.01));
+}
+
 double Extruder::retraction_length() const
 {
     return m_config->retraction_length.get_at(m_id);
