@@ -1007,11 +1007,11 @@ void Input_Shaping_Damp_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
     Fit();
 }
 
-// Junction_Deviation_Test_Dlg
+// Cornering_Test_Dlg
 //
 
-Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
-    : DPIDialog(parent, id, _L("Junction Deviation test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE), m_plater(plater)
+Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
+    : DPIDialog(parent, id, _L("Cornering test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE), m_plater(plater)
 {
     SetBackgroundColour(*wxWHITE); // make sure background color set for dialog
     SetForegroundColour(wxColour("#363636"));
@@ -1024,36 +1024,48 @@ Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWin
     auto labeled_box_model = new LabeledStaticBox(this, _L("Test model"));
     auto model_box = new wxStaticBoxSizer(labeled_box_model, wxHORIZONTAL);
 
-    m_rbModel = new RadioGroup(this, { _L("Ringing Tower"), _L("Fast Tower") }, wxHORIZONTAL);
+    m_rbModel = new RadioGroup(this, { _L("Ringing Tower"), _L("Fast Tower"), _L("SCV-V2") }, wxHORIZONTAL);
     model_box->Add(m_rbModel, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(model_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
 
     // Settings
-    wxString start_jd_str = _L("Start junction deviation: ");
-    wxString end_jd_str   = _L("End junction deviation: ");
+    wxString start_jd_str = _L("Start: ");
+    wxString end_jd_str   = _L("End: ");
     int text_max = GetTextMax(this, std::vector<wxString>{start_jd_str, end_jd_str});
 
     auto st_size = FromDIP(wxSize(text_max, -1));
     auto ti_size = FromDIP(wxSize(120, -1));
 
-    LabeledStaticBox* stb = new LabeledStaticBox(this, _L("Junction Deviation settings"));
+    LabeledStaticBox* stb = new LabeledStaticBox(this, _L("Cornering settings"));
     wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
 
     settings_sizer->AddSpacer(FromDIP(5));
 
-    // Start junction deviation
+    // Start cornering
     auto start_jd_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_jd_text = new wxStaticText(this, wxID_ANY, start_jd_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    // GCodeFlavor::gcfMarlinFirmware
     m_tiJDStart = new TextInput(this, wxString::Format("%.3f", 0.000), "mm", "", wxDefaultPosition, ti_size);
+    // GCodeFlavor::gcfKlipper square_corner_velocity
+    // GCodeFlavor::gcfMarlinLegacy jerk
+    // m_tiJDStart = new TextInput(this, wxString::Format("%.3f", 1), "mm/s", "", wxDefaultPosition, ti_size);
+    // GCodeFlavor::gcfRepRapFirmware Maximum instantaneous speed change
+    // m_tiJDStart = new TextInput(this, wxString::Format("%.3f", 30), "mm/s", "", wxDefaultPosition, ti_size);
     m_tiJDStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     start_jd_sizer->Add(start_jd_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     start_jd_sizer->Add(m_tiJDStart  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     settings_sizer->Add(start_jd_sizer, 0, wxLEFT, FromDIP(3));
 
-    // End junction deviation
+    // End cornering
     auto end_jd_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto end_jd_text = new wxStaticText(this, wxID_ANY, end_jd_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    // GCodeFlavor::gcfMarlinFirmware
     m_tiJDEnd = new TextInput(this, wxString::Format("%.3f", 0.250), "mm", "", wxDefaultPosition, ti_size);
+    // GCodeFlavor::gcfKlipper square_corner_velocity
+    // GCodeFlavor::gcfMarlinLegacy jerk
+    // m_tiJDEnd = new TextInput(this, wxString::Format("%.3f", 15), "mm/s", "", wxDefaultPosition, ti_size);
+    // GCodeFlavor::gcfRepRapFirmware Maximum instantaneous speed change
+    // m_tiJDEnd = new TextInput(this, wxString::Format("%.3f", 300), "mm/s", "", wxDefaultPosition, ti_size);
     m_tiJDEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_jd_sizer->Add(end_jd_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     end_jd_sizer->Add(m_tiJDEnd  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -1061,8 +1073,8 @@ Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWin
 
     settings_sizer->AddSpacer(FromDIP(5));
 
-    // Add note about junction deviation
-    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: Lower values = sharper corners but slower speeds"), 
+    // Add note about cornering
+    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: Lower values = sharper corners but slower speeds"),
                                     wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     note_text->SetForegroundColour(wxColour(128, 128, 128));
     settings_sizer->Add(note_text, 0, wxALL, FromDIP(5));
@@ -1073,7 +1085,7 @@ Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWin
     auto dlg_btns = new DialogButtons(this, {"OK"});
     v_sizer->Add(dlg_btns , 0, wxEXPAND);
 
-    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Junction_Deviation_Test_Dlg::on_start, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Cornering_Test_Dlg::on_start, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -1081,11 +1093,11 @@ Junction_Deviation_Test_Dlg::Junction_Deviation_Test_Dlg(wxWindow* parent, wxWin
     Fit();
 }
 
-Junction_Deviation_Test_Dlg::~Junction_Deviation_Test_Dlg() {
+Cornering_Test_Dlg::~Cornering_Test_Dlg() {
     // Disconnect Events
 }
 
-void Junction_Deviation_Test_Dlg::on_start(wxCommandEvent& event) {
+void Cornering_Test_Dlg::on_start(wxCommandEvent& event) {
     bool read_double = false;
     read_double = m_tiJDStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double = read_double && m_tiJDEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
@@ -1099,16 +1111,16 @@ void Junction_Deviation_Test_Dlg::on_start(wxCommandEvent& event) {
         msg_dlg.ShowModal();
     }
 
-    m_params.mode = CalibMode::Calib_Junction_Deviation;
+    m_params.mode = CalibMode::Calib_Cornering;
     
     // Set model type based on selection
-    m_params.test_model = m_rbModel->GetSelection() == 0 ? 0 : 1; // 0 = Ringing Tower, 1 = Fast Tower
+    m_params.test_model = m_rbModel->GetSelection();
     
-    m_plater->calib_junction_deviation(m_params);
+    m_plater->Calib_Cornering(m_params);
     EndModal(wxID_OK);
 }
 
-void Junction_Deviation_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
+void Cornering_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
     this->Refresh();
     Fit();
 }
