@@ -3080,6 +3080,8 @@ bool FillRectilinear::fill_surface_trapezoidal(const Surface*                   
     // P1x-P2x=P3x-P4x=d1
     // P0y-P1y=P2y-P3y=d2
 
+    polylines.reserve(static_cast<size_t>(((xmax - xmin) / period + 1) * ((ymax - ymin) / (0.5 * period) + 1)));
+
     // flag for vertical flip of trapezoids
     bool flip_vertical = false;
 
