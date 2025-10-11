@@ -7373,6 +7373,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "wipe_tower_rib_width";
     } else if (opt_key == "prime_tower_fillet_wall") {
         opt_key = "wipe_tower_fillet_wall";
+    } else if (opt_key == "extruder_clearance_max_radius") {
+        opt_key = "extruder_clearance_radius";
     }
 
     // Ignore the following obsolete configuration keys:
@@ -7389,7 +7391,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
         "z_hop_type", "z_lift_type", "bed_temperature_difference","long_retraction_when_cut",
         "retraction_distance_when_cut",
-        "internal_bridge_support_thickness","extruder_clearance_max_radius", "top_area_threshold", "reduce_wall_solid_infill","filament_load_time","filament_unload_time",
+        "internal_bridge_support_thickness", "top_area_threshold", "reduce_wall_solid_infill","filament_load_time","filament_unload_time",
         "smooth_coefficient", "overhang_totally_speed", "silent_mode",
         "overhang_speed_classic", "filament_prime_volume",
     };

@@ -17,7 +17,7 @@
     ],
     "extruder_clearance_height_to_lid": "140",
     "extruder_clearance_height_to_rod": "34",
-    "extruder_clearance_radius": "65",
+    "extruder_clearance_max_radius": "65",
     "extruder_clearance_dist_to_rod": "33",
     "extruder_colour": [
         "#FCE94F"

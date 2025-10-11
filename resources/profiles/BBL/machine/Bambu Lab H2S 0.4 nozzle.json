@@ -27,7 +27,6 @@
     "extruder_clearance_height_to_lid": "187",
     "extruder_clearance_height_to_rod": "33",
     "extruder_clearance_max_radius": "81",
-    "extruder_clearance_radius": "30",
     "fan_direction": "left",
     "hotend_cooling_rate": [
         "2",
