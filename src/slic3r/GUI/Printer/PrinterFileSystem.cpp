@@ -26,9 +26,9 @@
 std::string last_system_error() {
     return Slic3r::decode_path(std::error_code(
 #ifdef _WIN32
-        GetLastError(), 
+        GetLastError(),
 #else
-        errno, 
+        errno,
 #endif
         std::system_category()).message().c_str());
 }
@@ -39,27 +39,43 @@ wxDEFINE_EVENT(EVT_FILE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SELECT_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_THUMBNAIL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOWNLOAD, wxCommandEvent);
+wxDEFINE_EVENT(EVT_MEDIA_ABILITY_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPLOADING, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPLOAD_CHANGED, wxCommandEvent);
 
 wxDEFINE_EVENT(EVT_FILE_CALLBACK, wxCommandEvent);
 
 static wxBitmap default_thumbnail;
 
 static std::map<int, std::string> error_messages = {
-    {PrinterFileSystem::ERROR_PIPE, L("Reconnecting the printer, the operation cannot be completed immediately, please try again later.")},
-    {PrinterFileSystem::ERROR_RES_BUSY, L("The device cannot handle more conversations. Please retry later.")},
-    {PrinterFileSystem::FILE_NO_EXIST, L("File does not exist.")},
-    {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
-    {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
-    {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Storage unavailable, insert SD card.")}
+     {PrinterFileSystem::ERROR_PIPE, L("Reconnecting the printer, the operation cannot be completed immediately, please try again later.")},
+     {PrinterFileSystem::ERROR_RES_BUSY, L("The device cannot handle more conversations. Please retry later.")},
+     {PrinterFileSystem::ERROR_TIME_OUT, L("Timeout, please try again.")},
+     {PrinterFileSystem::FILE_NO_EXIST, L("File does not exist.")},
+     {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
+     {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
+     {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Please check if the storage is inserted into the printer.\nIf it still cannot be read, you can try formatting the storage.")},
+     {PrinterFileSystem::API_VERSION_UNSUPPORT, L("The firmware version of the printer is too low. Please update the firmware and try again.")},
+     {PrinterFileSystem::FILE_EXIST, L("The file already exists, do you want to replace it?")},
+     {PrinterFileSystem::STORAGE_SPACE_NOT_ENOUGH, L("Insufficient storage space, please clear the space and try again.")},
+     {PrinterFileSystem::FILE_CREATE_ERR, L("File creation failed, please try again.")},
+     {PrinterFileSystem::FILE_WRITE_ERR, L("File write failed, please try again.")},
+     {PrinterFileSystem::MD5_COMPARE_ERR, L("MD5 verification failed, please try again.")},
+     {PrinterFileSystem::FILE_RENAME_ERR, L("File renaming failed, please try again.")},
+     {PrinterFileSystem::SEND_ERR, L("File upload failed, please try again.")}
 };
 
 struct StaticBambuLib : BambuLib {
-    static StaticBambuLib & get();
+    static StaticBambuLib &get(BambuLib * copy = nullptr);
     static int Fake_Bambu_Create(Bambu_Tunnel*, char const*) { return -2; }
+    static void reset();
+    static void release();
+private:
+    std::vector<BambuLib *> copies_;
 };
 
 PrinterFileSystem::PrinterFileSystem()
-    : BambuLib(StaticBambuLib::get())
+    : BambuLib(StaticBambuLib::get(this))
 {
     if (!default_thumbnail.IsOk()) {
         default_thumbnail = *Slic3r::GUI::BitmapCache().load_svg("printer_file", 0, 0);
@@ -117,7 +133,6 @@ void PrinterFileSystem::SetFileType(FileType type, std::string const &storage)
         return;
     m_status = Status::ListSyncing;
     SendChangedEvent(EVT_STATUS_CHANGED, m_status);
-    ListAllFiles();
 }
 
 void PrinterFileSystem::SetGroupMode(GroupMode mode)
@@ -248,6 +263,14 @@ struct PrinterFileSystem::Download : Progress
     boost::uuids::detail::md5   boost_md5;
 };
 
+struct PrinterFileSystem::Upload : Progress
+{
+    std::string                 error;
+    boost::uint32_t             frag_id{0};
+    MD5_CTX                     ctx;
+    boost::filesystem::ifstream ifs;
+};
+
 void PrinterFileSystem::DownloadFiles(size_t index, std::string const &path)
 {
     if (index == (size_t) -1) {
@@ -360,7 +383,7 @@ void PrinterFileSystem::FetchModel(size_t index, std::function<void(int, std::st
             m_task_flags &= ~FF_FETCH_MODEL;
             if (result != 0) {
                 auto iter = error_messages.find(result);
-                if (iter != error_messages.end())     
+                if (iter != error_messages.end())
                     *file_data = _u8L(iter->second.c_str());
                 else
                     file_data->clear();
@@ -390,6 +413,13 @@ std::string PrinterFileSystem::File::Metadata(std::string const &key, std::strin
 {
     auto iter = metadata.find(key);
     return iter == metadata.end() || iter->second.empty() ? dflt : iter->second;
+}
+
+PrinterFileSystem::UploadFile::~UploadFile()
+{
+    if (upload && upload->ifs.is_open()) {
+        upload->ifs.close();
+    }
 }
 
 size_t PrinterFileSystem::GetIndexAtTime(boost::uint32_t time)
@@ -522,6 +552,17 @@ void PrinterFileSystem::Stop(bool quit)
     }
     m_stopped = true;
     m_cond.notify_all();
+}
+
+void PrinterFileSystem::SetUploadFile(const std::string &path, const std::string &name, const std::string &select_storage)
+{
+    boost::unique_lock l(m_mutex);
+    if (!m_upload_file) {
+        m_upload_file = std::make_unique<UploadFile>();
+    }
+    m_upload_file->path           = path;
+    m_upload_file->name           = name;
+    m_upload_file->select_storage = select_storage;
 }
 
 void PrinterFileSystem::BuildGroups()
@@ -743,7 +784,7 @@ void PrinterFileSystem::UpdateFocusThumbnail()
                 names.push_back({file.name, ""});
             else
                 paths.push_back({file.name, file.path});
-            if (names.size() >= 5 || paths.size() >= 5)
+            if (names.size() >= 2 || paths.size() >= 2)
                 break;
             if ((file.flags & FF_THUMNAIL_RETRY) != 0) {
                 const_cast<File&>(file).flags &= ~FF_THUMNAIL_RETRY;
@@ -754,7 +795,7 @@ void PrinterFileSystem::UpdateFocusThumbnail()
     if (names.empty() && paths.empty())
         return;
     m_task_flags |= FF_THUMNAIL;
-    UpdateFocusThumbnail2(std::make_shared<std::vector<File>>(paths.empty() ? names : paths), 
+    UpdateFocusThumbnail2(std::make_shared<std::vector<File>>(paths.empty() ? names : paths),
         paths.empty() ? OldThumbnail : m_file_type == F_MODEL ? ModelMetadata : VideoThumbnail);
 }
 
@@ -838,7 +879,7 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                     if (!thumbnail.empty()) {
                         arr.push_back(file.path + "#" + thumbnail);
                         file.flags &= ~FF_THUMNAIL;
-                        file.local_path.clear();    
+                        file.local_path.clear();
                     }
                 }
             }
@@ -944,7 +985,7 @@ std::pair<PrinterFileSystem::FileList &, size_t> PrinterFileSystem::FindFile(std
                                m_file_list :
                                m_file_list_cache[type];
     if (index >= file_list.size() || (by_path ? file_list[index].path : file_list[index].name) != name) {
-        auto iter = std::find_if(m_file_list.begin(), file_list.end(), 
+        auto iter = std::find_if(m_file_list.begin(), file_list.end(),
                 [name, by_path](File &f) { return (by_path ? f.path : f.name) == name; });
         if (iter == m_file_list.end()) return {file_list, -1};
         index = std::distance(m_file_list.begin(), iter);
@@ -1013,7 +1054,7 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
     event.SetInt(index);
     if (!str.empty())
         event.SetString(wxString::FromUTF8(str.c_str()));
-    else if (auto iter = error_messages.find(extra); iter != error_messages.end())     
+    else if (auto iter = error_messages.find(extra); iter != error_messages.end())
         event.SetString(_L(iter->second.c_str()));
     else if (extra > CONTINUE && extra != ERROR_CANCEL)
         event.SetString(wxString::Format(_L("Error code: %d"), int(extra)));
@@ -1026,8 +1067,217 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
 
 void PrinterFileSystem::DumpLog(void * thiz, int, tchar const *msg)
 {
+
+#if !BBL_RELEASE_TO_PUBLIC
     BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << wxString(msg).ToUTF8().data();
+#endif
+
     static_cast<PrinterFileSystem*>(thiz)->Bambu_FreeLogMsg(msg);
+}
+
+boost::uint32_t PrinterFileSystem::RequestMediaAbility(int api_version)
+{
+    json req;
+    req["peer"] = "studio";
+    req["api_version"] = api_version;
+
+    return SendRequest<MediaAbilityList>(
+        REQUEST_MEDIA_ABILITY, req, [this](const json &resp, MediaAbilityList &list, auto) -> int {
+            json abliity_list = resp["storage"];
+            list              = abliity_list.get<MediaAbilityList>();
+            return 0;
+        },
+        [this](int result, MediaAbilityList list){
+            if (result != 0) {
+                m_last_error = result;
+                m_media_ability_list.clear();
+                SendChangedEvent(EVT_MEDIA_ABILITY_CHANGED, RequestMediaAbilityStatus::S_FAILED, "", m_last_error);
+                return result;
+            }
+
+            m_media_ability_list.swap(list);
+            SendChangedEvent(EVT_MEDIA_ABILITY_CHANGED, RequestMediaAbilityStatus::S_SUCCESS);
+            return 0;
+        });
+}
+
+void PrinterFileSystem::RequestUploadFile()
+{
+    if (!m_upload_file) {
+        return;
+    }
+
+    json req;
+    req["type"]    = "model";
+    req["storage"] = m_upload_file->select_storage;
+    req["path"]    = m_upload_file->name;
+
+    m_upload_file->upload = std::make_unique<Upload>();
+    boost::filesystem::path   path = boost::filesystem::path(m_upload_file->path);
+    boost::system::error_code ec;
+    boost::uint32_t           file_size = boost::filesystem::file_size(path, ec);
+
+    req["total"] = file_size;
+    m_upload_file->size          = file_size;
+    m_upload_file->upload->total = file_size;
+
+    m_upload_seq = SendRequest(
+        FILE_UPLOAD, req,
+        [this](int result, const json& resp, auto) -> int{
+            if (result != SUCCESS && result != CONTINUE && result != FILE_EXIST) {
+                std::string error_msg = "";
+                if (result == ERROR_CANCEL) {
+                    error_msg = _L("User cancels task.").ToStdString();
+                } else if (result == FILE_READ_WRITE_ERR || result == FILE_OPEN_ERR) {
+                    error_msg = _L("Failed to read file, please try again.").ToStdString();
+                }
+                wxLogWarning("PrinterFileSystem::UploadFile error: %d\n", result);
+                SendChangedEvent(EVT_UPLOAD_CHANGED, FF_UPLOADCANCEL, error_msg, result);
+            } else if (result == SUCCESS) {
+                SendChangedEvent(EVT_UPLOADING, 100);
+                SendChangedEvent(EVT_UPLOAD_CHANGED, FF_UPLOADDONE);
+            } else if (result == CONTINUE || result == FILE_EXIST) {
+                if (m_upload_file) {
+                    m_upload_file->chunk_size   = resp["chunk_size"];
+                    m_upload_file->upload->size = resp["offset"];
+                    m_upload_file->flags |= FF_UPLOADING;
+                }
+
+                {
+                    boost::unique_lock l(m_mutex);
+                    auto cb = [this, upload_file = m_upload_file, seq = m_upload_seq](std::string &msg) -> int {
+                        return UploadFileTask(upload_file, seq, msg);
+                    };
+                    m_produce_message_cb_map[m_upload_seq] = cb;
+                }
+
+                return CONTINUE;
+            }
+
+            // reset m_upload_file
+            if (m_upload_file) {
+                if (m_upload_file->upload->ifs.is_open()) {
+                    m_upload_file->upload->ifs.close();
+                }
+                m_upload_file.reset();
+            }
+            return result;
+        });
+}
+
+int PrinterFileSystem::UploadFileTask(std::shared_ptr<UploadFile> upload_file, boost::uint64_t seq, std::string &msg)
+{
+    if (!upload_file)
+        return FILE_OPEN_ERR;
+
+    if (!(upload_file->flags & FF_UPLOADING))
+        return FILE_OPEN_ERR;
+
+    auto &upload = upload_file->upload;
+    if (!upload->ifs.is_open()) {
+        upload->ifs.open(upload_file->path, std::ios::binary);
+        if (!upload_file->upload->ifs) {
+            wxLogWarning("PrinterFileSystem::UploadFile open error: %s\n", wxString::FromUTF8(upload_file->path));
+            return FILE_OPEN_ERR;
+        }
+        MD5_Init(&upload->ctx);
+    }
+
+    const boost::uint32_t buffer_size = upload_file->chunk_size * 1024;
+    char *buffer = new char[buffer_size];
+
+    upload->ifs.seekg(upload->size, std::ios::beg);
+    upload->ifs.read(buffer, buffer_size);
+    boost::int32_t read_size = upload->ifs.gcount();
+
+    if (read_size <= 0) {
+        wxLogWarning("PrinterFileSystem::Upload read error.\n");
+        upload->ifs.close();
+
+        if (buffer) {
+            delete[] buffer;
+            buffer = nullptr;
+        }
+        return FILE_READ_WRITE_ERR;
+    }
+
+    json req;
+    req["frag_id"] = upload->frag_id;
+    req["offset"]  = upload->size;
+    req["size"]    = read_size;
+
+    MD5_Update(&upload->ctx, buffer, read_size);
+    upload->size += read_size;
+    if (upload->size == upload->total) {
+        unsigned char digest[16];
+        MD5_Final(digest, &upload->ctx);
+        char md5_str[33];
+        for (int j = 0; j < 16; j++) { sprintf(&md5_str[j * 2], "%02X", (unsigned int) digest[j]); }
+        std::string md5_out = std::string(md5_str);
+        std::transform(md5_out.begin(), md5_out.end(), md5_out.begin(), ::tolower);
+
+        req["file_md5"]     = md5_out;
+        // OutputDebugStringA(md5_out.c_str());
+        // OutputDebugStringA("\n");
+    }
+
+    if (m_upload_file && m_upload_file->flags & FF_UPLOADING) {
+        upload->frag_id++;
+        upload->progress = upload->size * 100 / upload->total;
+        int progress     = upload->progress == 100 ? 99 : upload->progress;
+        SendChangedEvent(EVT_UPLOADING, progress);
+    }
+
+    json root;
+
+    root["cmdtype"] = FILE_UPLOAD;
+    root["sequence"] = seq;
+    root["req"]      = req;
+
+    std::ostringstream oss;
+    oss << root;
+    oss << "\n\n";
+    oss << std::string(buffer, read_size);
+    msg = oss.str();
+
+    if (buffer) {
+        delete[] buffer;
+        buffer = nullptr;
+    }
+
+    if (upload->size == upload->total) {
+        upload->ifs.close();
+        return SUCCESS;
+    }
+
+    return CONTINUE;
+}
+
+PrinterFileSystem::MediaAbilityList PrinterFileSystem::GetMediaAbilityList() const
+{
+    return m_media_ability_list;
+}
+
+void PrinterFileSystem::CancelUploadTask(bool send_cancel_req)
+{
+    if (!m_upload_file)
+        return;
+
+    {
+        boost::unique_lock l(m_mutex);
+        if (m_produce_message_cb_map.find(m_upload_seq) != m_produce_message_cb_map.end())
+            m_produce_message_cb_map.erase(m_upload_seq);
+        if (m_upload_file->upload->ifs.is_open()) {
+            m_upload_file->upload->ifs.close();
+        }
+        m_upload_file.reset();
+    }
+
+    if (send_cancel_req) {
+        CancelRequest(m_upload_seq);
+    } else {
+        CancelRequests2({m_upload_seq});
+    }
 }
 
 boost::uint32_t PrinterFileSystem::SendRequest(int type, json const &req, callback_t2 const &callback)
@@ -1037,14 +1287,14 @@ boost::uint32_t PrinterFileSystem::SendRequest(int type, json const &req, callba
         callback(ERROR_PIPE, json(), nullptr);
         return 0;
     }
-    boost::uint32_t seq = m_sequence + m_callbacks.size();
+    boost::uint32_t seq  = m_sequence + m_callbacks.size();
     json root;
     root["cmdtype"] = type;
     root["sequence"] = seq;
     root["req"] = req;
     std::ostringstream oss;
     oss << root;
-    auto msg = oss.str();
+    auto               msg = oss.str();
     boost::unique_lock l(m_mutex);
     m_messages.push_back(msg);
     m_callbacks.push_back(callback);
@@ -1085,13 +1335,15 @@ void PrinterFileSystem::CancelRequests2(std::vector<boost::uint32_t> const &seqs
     for (auto &f : seqs) {
         boost::uint32_t seq = f;
         seq -= m_sequence;
-        if (size_t(seq) >= m_callbacks.size())
-            continue;
+        if (size_t(seq) >= m_callbacks.size()) continue;
         auto &c = m_callbacks[seq];
-        if (c == nullptr)
-            continue;
+        if (c == nullptr) continue;
         callbacks.emplace_back(f, c);
         c = nullptr;
+
+        // erase m_produce_message_cb
+        if (m_produce_message_cb_map.find(seq) != m_produce_message_cb_map.end())
+            m_produce_message_cb_map.erase(seq);
     }
     while (!m_callbacks.empty() && m_callbacks.front() == nullptr) {
         m_callbacks.pop_front();
@@ -1116,6 +1368,45 @@ void PrinterFileSystem::RecvMessageThread()
                 // clear callbacks first
                 auto callbacks(std::move(m_callbacks));
                 break;
+            }
+        }
+        if (m_messages.empty() && !m_produce_message_cb_map.empty()) {
+            auto it = m_produce_message_cb_map.begin();
+            while(it != m_produce_message_cb_map.end()) {
+                std::string     msg;
+                auto            prodeuce_message_cb = it->second;
+                l.unlock();
+                int res = prodeuce_message_cb(msg);
+                l.lock();
+                if (res == CONTINUE || res == SUCCESS) {
+                    m_messages.emplace_back(msg);
+                    if (res == SUCCESS) {
+                        it = m_produce_message_cb_map.erase(it);
+                        continue;
+                    }
+                    it++;
+                } else {
+                    int seq2 = it->first - m_sequence;
+                    // erase it
+                    it = m_produce_message_cb_map.erase(it);
+                    if (size_t(seq2) >= m_callbacks.size())
+                        continue;
+                    auto c = m_callbacks[seq2];
+                    if (c == nullptr)
+                        continue;;
+                    m_callbacks[seq2] = nullptr;
+                    if (seq2 == 0) {
+                        // if produce message return error, erase callback and sequence should plus
+                        while (!m_callbacks.empty() && m_callbacks.front() == nullptr) {
+                            m_callbacks.pop_front();
+                            ++m_sequence;
+                        }
+                    }
+
+                    l.unlock();
+                    c(res, json(), nullptr);
+                    l.lock();
+                }
             }
         }
         if (!m_messages.empty()) {
@@ -1160,8 +1451,8 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
         json_end = end;
     std::string msg((char const *) sample.buffer, json_end - sample.buffer);
     json        root;
-    //OutputDebugStringA(msg.c_str());
-    //OutputDebugStringA("\n");
+    // OutputDebugStringA(msg.c_str());
+    // OutputDebugStringA("\n");
     wxLogInfo("PrinterFileSystem::HandleResponse <<<: \n%s\n", wxString::FromUTF8(msg));
     std::istringstream iss(msg);
     int                cmd    = 0;
@@ -1201,7 +1492,7 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
         int result2 = c(result, resp, json_end);
         l.lock();
         if (result2 != CONTINUE) {
-            int seq2 = seq - m_sequence;
+            int seq2          = seq - m_sequence;
             m_callbacks[seq2] = callback_t2();
             if (seq2 == 0) {
                 while (!m_callbacks.empty() && m_callbacks.front() == nullptr) {
@@ -1213,6 +1504,11 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
                 l.unlock();
                 CancelRequest(seq);
                 l.lock();
+            }
+
+            // error should erase m_produce_message_cb
+            if (m_produce_message_cb_map.find(seq2) != m_produce_message_cb_map.end()) {
+                m_produce_message_cb_map.erase(seq2);
             }
         }
     }
@@ -1232,7 +1528,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     if (m_session.owner == nullptr)
         return;
     json r;
-    while (!m_callbacks.empty()) {
+    while(!m_callbacks.empty()) {
         auto c = m_callbacks.front();
         m_callbacks.pop_front();
         ++m_sequence;
@@ -1241,11 +1537,15 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     m_messages.clear();
     if (result)
         m_cond.timed_wait(l, boost::posix_time::seconds(10));
+
+
     while (true) {
         while (m_stopped) {
             if (m_session.owner == nullptr)
                 return;
-            m_cond.wait(l);
+           m_status = Status::Reconnecting;
+           SendChangedEvent(EVT_STATUS_CHANGED, m_status);
+           m_cond.wait(l);
         }
         wxLogMessage("PrinterFileSystem::Reconnect Initializing");
         m_status = Status::Initializing;
@@ -1271,15 +1571,28 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             Bambu_Tunnel tunnel = nullptr;
             int ret = Bambu_Create(&tunnel, url.c_str());
             if (ret == 0) {
+
                 Bambu_SetLogger(tunnel, DumpLog, this);
                 ret = Bambu_Open(tunnel);
             }
+
             if (ret == 0)
-                do {
-                    ret = Bambu_StartStreamEx 
-                        ? Bambu_StartStreamEx(tunnel, CTRL_TYPE)
-                        : Bambu_StartStream(tunnel, false);
-                } while (ret == Bambu_would_block);
+            {
+                auto                             start_time = boost::posix_time::microsec_clock::universal_time();
+                boost::posix_time::time_duration timeout    = boost::posix_time::seconds(3);
+                do{
+                    ret = Bambu_StartStreamEx ? Bambu_StartStreamEx(tunnel, CTRL_TYPE) : Bambu_StartStream(tunnel, false);
+                    if (ret == Bambu_would_block)
+                        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+
+                     auto now = boost::posix_time::microsec_clock::universal_time();
+                    if (now - start_time > timeout) {
+                        BOOST_LOG_TRIVIAL(warning) << "StartStream timeout after 5 seconds.";
+                        break;
+                    }
+
+                } while (ret == Bambu_would_block && !m_stopped);
+            }
             l.lock();
             if (ret == 0) {
                 m_session.tunnel = tunnel;
@@ -1297,15 +1610,19 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         }
         wxLogMessage("PrinterFileSystem::Reconnect Failed");
         m_status = Status::Failed;
+
         SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", url.size() < 2 ? 1 : m_last_error);
         m_cond.timed_wait(l, boost::posix_time::seconds(10));
     }
-    m_status = Status::ListSyncing;
-    SendChangedEvent(EVT_STATUS_CHANGED, m_status);
+
 #ifdef PRINTER_FILE_SYSTEM_TEST
     PostCallback([this] { SendChangedEvent(EVT_FILE_CHANGED); });
 #else
-    PostCallback([this] { m_task_flags = 0; ListAllFiles(); });
+    PostCallback([this] {
+        m_task_flags = 0;
+        m_status     = Status::ListSyncing;
+        SendChangedEvent(EVT_STATUS_CHANGED, m_status);
+        });
 #endif
 }
 
@@ -1344,12 +1661,12 @@ static void* get_function(const char* name)
 
 #define GET_FUNC(x) lib.x = reinterpret_cast<decltype(lib.x)>(get_function(#x))
 
-StaticBambuLib &StaticBambuLib::get()
+StaticBambuLib &StaticBambuLib::get(BambuLib *copy)
 {
     static StaticBambuLib lib;
     // first load the library
 
-    if (lib.Bambu_Open)
+    if (lib.Bambu_Create)
         return lib;
 
     if (!module) {
@@ -1372,12 +1689,29 @@ StaticBambuLib &StaticBambuLib::get()
     GET_FUNC(Bambu_Destroy);
     GET_FUNC(Bambu_SetLogger);
     GET_FUNC(Bambu_FreeLogMsg);
+    GET_FUNC(Bambu_Deinit);
 
-    if (!lib.Bambu_Open)
+    if (!lib.Bambu_Create) {
         lib.Bambu_Create = Fake_Bambu_Create;
+        if (copy)
+            lib.copies_.push_back(copy);
+    }
     return lib;
 }
 
-extern "C" BambuLib *bambulib_get() {
-    return &StaticBambuLib::get();
+void StaticBambuLib::reset()
+{
+    get().Bambu_Create = nullptr;
+    auto &lib = get();
+    for (auto c : lib.copies_)
+        *c = lib;
 }
+
+void StaticBambuLib::release()
+{
+    if (auto f = get().Bambu_Deinit)
+        f();
+}
+
+extern "C" BambuLib *bambulib_get() {
+    return &StaticBambuLib::get(); }
