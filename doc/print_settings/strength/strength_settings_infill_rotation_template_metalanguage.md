@@ -46,9 +46,15 @@ This metalanguage provides a way to define the [direction and rotation](strength
 
 `[±]α` - command for setting rotation infill angle (for joint infills at some height range, this angle is finite):
 
-- `α:β` - set the angle α value as a percentage of the full 360 degree rotation
+- `α%` - set the angle α value as a percentage of the full 360 degree rotation.  
+  e.g. `100%` means 360°, `50%` = 180°, `25%` = 90°, `75%` = 270°, `12%` = 43.2° and so on.
+- `α:β` - set the fractional value of the angle of the full 360 degree rotation.  
+  e.g. `1:1` means 360 degrees, `1:2` = 180°, `1:4` = 90°, `3:4` = 270°, `5:8` = 225° and so on.
 - `+α` - set positive relative angle CCW
 - `-α` - set negative relative angle CW
+
+> [!NOTE]
+> Relative instructions indicate that the infill direction will change by this angle from one layer to the next.
 
 ### Runtime instructions
 
@@ -65,14 +71,18 @@ This metalanguage provides a way to define the [direction and rotation](strength
 `[joint sign]` - the symbol which determines the method of connection for turning of the infill:
 
 - `/` - linear displacement of the infill. e.g. `+22.5/50%`  
+  This results in the layers rotating smoothly by 22.5 degrees at half the model's height. Since this is the only instruction, it will repeat until the entire height of the model is filled.  
+  Equivalent instructions would be `+1:16/1:2` or `+6.25%/50%`.  
   ![linear-joint](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/linear-joint.png?raw=true)
 - `#` - infill of multiple layers with vertical displacement at finish angle. e.g. `+22.5#50%`  
   ![multiple-joint](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/multiple-joint.png?raw=true)
-- `#-` - infill of multiple layers with vertical displacement at initial angle. e.g. `+22.5#-50%`  
+- `#-` - infill of multiple layers with vertical displacement at initial angle. e.g. `+22.5#-50%`.  
+  Here and further, a negative sign before the height value indicates that instruction's action is reversed: if in a regular instruction the action begins at angle ´α´ and ends at ´α+22.5´. In the reverse one the begin at ´α+22.5´, and the end at ´α´.  
   ![multiple-joint-initial-angle](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/multiple-joint-initial-angle.png?raw=true)
 - `|` - infill of multiple layers with vertical displacement at middle angle. e.g. `+22.5|50%`  
   ![multiple-joint-middle-angle](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/multiple-joint-middle-angle.png?raw=true)
-- `N` - infill formed by sinus function (vertical connection). e.g. `+22.5N50%`  
+- `N` - infill formed by sinus function (vertical connection). e.g. `+22.5N50%`.  
+  Reducing the angle and height by two gives the same rotation of the infill, the rotation of the infill remains unchanged, but the frequency of waves increases.  
   ![v-sinus-joint](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/v-sinus-joint.png?raw=true)
 - `n` - infill formed by sinus function (vertical connection, lazy). e.g. `+22.5n50%`  
   ![v-sinus-joint-lazy](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/fill/Template-metalanguage/v-sinus-joint-lazy.png?raw=true)
@@ -121,6 +131,7 @@ This metalanguage provides a way to define the [direction and rotation](strength
 - `ℕ"` - the distance in inches
 - `ℕ#` - the distance in range of standard height of ℕ layers
 - `ℕ%` - the distance as a percentage of model height
+- `ℍ:ℕ` - the distance as a fractional of model height ℍ
 
 ## Description of instructions and examples
 
