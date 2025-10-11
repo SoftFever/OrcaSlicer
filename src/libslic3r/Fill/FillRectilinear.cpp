@@ -3047,13 +3047,15 @@ bool FillRectilinear::fill_surface_trapezoidal(const Surface*                   
     assert(params.multiline > 1);
 
     Polylines polylines;
-    coord_t   d1 = coord_t(scale_(this->spacing)) * params.multiline; // Infill total wall thickness
-
-    const double period = (2 * d1 / params.density) * std::sqrt(2.0);
-    const double d2     = 0.5f * period - d1;
+   
+    // Density adjustment
+    const double tunning_factor = 0.85;
+    coord_t d1 = coord_t(scale_(tunning_factor * this->spacing)) * params.multiline; // Infill total wall thickness
+    coord_t period = coord_t((2.0 * d1 * (1.0/tunning_factor) / params.density) * std::sqrt(2.0));
+    coord_t d2     = coord_t(0.5 * period - d1 + (1.0 - tunning_factor) * this->spacing);
 
     std::pair<double, Point> rotate_vector = this->_infill_direction(surface);
-    double                   base_angle    = rotate_vector.first + M_PI_4;
+    double base_angle = rotate_vector.first + M_PI_4;
 
     // Obtain the bounding box of the rotated polygon
     ExPolygon expolygon_rotated = surface->expolygon;
@@ -3080,28 +3082,29 @@ bool FillRectilinear::fill_surface_trapezoidal(const Surface*                   
     // P1x-P2x=P3x-P4x=d1
     // P0y-P1y=P2y-P3y=d2
 
-    polylines.reserve(static_cast<size_t>(((xmax - xmin) / period + 1) * ((ymax - ymin) / (0.5 * period) + 1)));
+    // Pre-allocate estimated number of polylines (+1 row, +1 column margin)
+    polylines.reserve(static_cast<size_t>(
+        ((xmax - xmin) / period + 1) * ((ymax - ymin) / (period / 2) + 1)
+    ));
 
     // flag for vertical flip of trapezoids
     bool flip_vertical = false;
 
-    for (double y = ymin; y < double(ymax); y += 0.5f * period) {
+    for (coord_t y = ymin; y < ymax; y += period / 2) {
         Polyline pl_row;
-        for (double x = double(xmin); x < double(xmax); x += period) {
-            coord_t x0 = coord_t(x);
-
+        for (coord_t x = xmin; x < xmax; x += period) {
             if (!flip_vertical) {
-                pl_row.points.push_back(Point(x0, coord_t(y + 0.5f * d1)));                             // P0
-                pl_row.points.push_back(Point(x0 + coord_t(d1), coord_t(y + 0.5f * d1)));               // P1
-                pl_row.points.push_back(Point(x0 + coord_t(d1 + d2), coord_t(y + 0.5f * d1 + d2)));     // P2
-                pl_row.points.push_back(Point(x0 + coord_t(2 * d1 + d2), coord_t(y + 0.5f * d1 + d2))); // P3
-                pl_row.points.push_back(Point(x0 + coord_t(2 * d1 + 2 * d2), coord_t(y + 0.5f * d1)));  // P4
+                pl_row.points.push_back(Point(x, y + d1 / 2));                             // P0
+                pl_row.points.push_back(Point(x + d1, y + d1 / 2));                        // P1
+                pl_row.points.push_back(Point(x + d1 + d2, y + d1 / 2 + d2));              // P2
+                pl_row.points.push_back(Point(x + 2 * d1 + d2, y + d1 / 2 + d2));          // P3
+                pl_row.points.push_back(Point(x + 2 * d1 + 2 * d2, y + d1 / 2));           // P4
             } else {
-                pl_row.points.push_back(Point(x0, coord_t(y + 0.5f * d1 + d2)));                            // P0'
-                pl_row.points.push_back(Point(x0 + coord_t(d1), coord_t(y + 0.5f * d1 + d2)));              // P1'
-                pl_row.points.push_back(Point(x0 + coord_t(d1 + d2), coord_t(y + 0.5f * d1)));              // P2'
-                pl_row.points.push_back(Point(x0 + coord_t(2 * d1 + d2), coord_t(y + 0.5f * d1)));          // P3'
-                pl_row.points.push_back(Point(x0 + coord_t(2 * d1 + 2 * d2), coord_t(y + 0.5f * d1 + d2))); // P4'
+                pl_row.points.push_back(Point(x, y + d1 / 2 + d2));                        // P0'
+                pl_row.points.push_back(Point(x + d1, y + d1 / 2 + d2));                   // P1'
+                pl_row.points.push_back(Point(x + d1 + d2, y + d1 / 2));                   // P2'
+                pl_row.points.push_back(Point(x + 2 * d1 + d2, y + d1 / 2));               // P3'
+                pl_row.points.push_back(Point(x + 2 * d1 + 2 * d2, y + d1 / 2 + d2));      // P4'
             }
         }
 
@@ -3121,9 +3124,8 @@ bool FillRectilinear::fill_surface_trapezoidal(const Surface*                   
         for (Polyline& pl : polylines) {
             for (Point& p : pl.points) {
                 std::swap(p.x(), p.y());
-
-                p.x() += coord_t(0.5f * d1);
-                p.y() -= coord_t(0.5f * d1);
+                p.x() += d1 / 2;
+                p.y() -= d1 / 2;
             }
         }
     }
@@ -3132,13 +3134,13 @@ bool FillRectilinear::fill_surface_trapezoidal(const Surface*                   
     multiline_fill(polylines, params, spacing);
 
     // Negative offset to reduce overlap
-    coord_t    overlap_offset = -scale_(0.8 * this->spacing);
-    ExPolygons offsetted      = offset_ex(expolygon_rotated, overlap_offset);
+    coord_t overlap_offset = -scale_(0.8 * this->spacing);
+    ExPolygons offsetted = offset_ex(expolygon_rotated, overlap_offset);
 
     ExPolygon& expolygon_for_connection = expolygon_rotated;
 
     if (!offsetted.empty()) {
-        polylines                = intersection_pl(std::move(polylines), to_polygons(offsetted));
+        polylines = intersection_pl(std::move(polylines), to_polygons(offsetted));
         expolygon_for_connection = std::move(offsetted.front());
     } else {
         polylines = intersection_pl(std::move(polylines), to_polygons(expolygon_rotated));
