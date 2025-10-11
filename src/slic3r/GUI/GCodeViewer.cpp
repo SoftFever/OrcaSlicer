@@ -4555,7 +4555,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
     else
         tips_count = 5;
 
-    float AMS_container_height = ams_item_height + line_height * tips_count + line_height / 2;
+    float AMS_container_height = ams_item_height + line_height * tips_count + line_height;
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1.f, 1.f, 1.f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.15f, .18f, .19f, 1.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
@@ -4622,7 +4622,6 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
             draw_dash_line(draw_list);
         }
-        ImGui::Dummy({window_padding, window_padding});
 
         bool is_optimal_group = true;
         float parent_width = ImGui::GetContentRegionAvail().x;
@@ -4636,6 +4635,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         };
 
         if (any_more_to_best) {
+            ImGui::Dummy({window_padding, window_padding});
             is_optimal_group = false;
             ImVec4 orangeColor = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Text, orangeColor);
@@ -4659,6 +4659,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             ImGui::PopStyleColor(1);
         }
         else if (any_less_to_single_ext) {
+            ImGui::Dummy({window_padding, window_padding});
             wxString tip;
             if (delta_weight_to_single_ext >= 0 && delta_change_to_single_ext >= 0)
                 tip = from_u8((boost::format(_u8L("Save %1%g filament and %2% changes compared to a printer with one nozzle."))
@@ -4985,17 +4986,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return ret;
     };
 
-    //BBS Slicing Result title
+    //BBS display Color Scheme
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::SameLine(window_padding * 2); // ORCA Ignores item spacing to get perfect window margins since since this part uses dummies for window padding
-    std::string title = _u8L("Slicing Result");
-    imgui.bold_text(title);
-    // BBS Set the width of the 8 "ABCD" words minus the "sliced result" to the spacing between the buttons and the title
-    float single_word_width = imgui.calc_text_size("ABCD"sv).x;
-    float title_width       = imgui.calc_text_size(title).x;
-    float spacing           = 18.0f * m_scale;
-    ImGui::SameLine(0, (single_word_width + spacing) * 8.0f - title_width);
     std::wstring btn_name;
     if (m_fold)
         btn_name = ImGui::UnfoldButtonIcon;
@@ -5007,6 +5001,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     float calc_padding = (ImGui::GetFrameHeight() - 16 * m_scale) / 2;                      // ORCA calculated padding for 16x16 icon
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(calc_padding, calc_padding));    // ORCA Center icon with frame padding
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f * m_scale);                       // ORCA Match button style with combo box
+
     float button_width = 16 * m_scale + calc_padding * 2;                                   // ORCA match buttons height with combo box
     if (ImGui::Button(into_u8(btn_name).c_str(), ImVec2(button_width, button_width))) {
         m_fold = !m_fold;
@@ -5020,18 +5015,6 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(2);
-
-    if (m_fold) {
-        legend_height = ImGui::GetStyle().WindowPadding.y + ImGui::GetFrameHeight() + window_padding * 2.5;
-        imgui.end();
-        ImGui::PopStyleColor(7);
-        ImGui::PopStyleVar(2);
-        return;
-    }
-
-    //BBS display Color Scheme
-    ImGui::Dummy({ window_padding, window_padding });
-    ImGui::Dummy({ window_padding, window_padding });
 
     //imgui.bold_text(_u8L("Color Scheme"));
     push_combo_style();
@@ -5067,6 +5050,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::Dummy({ window_padding, window_padding }); // ORCA Matches top-bottom window paddings
     float window_width = ImGui::GetWindowWidth();     // ORCA Store window width
+
+    if (m_fold) {
+        legend_height = ImGui::GetFrameHeight() + window_padding * 4; // ORCA using 4 instead 2 gives correct toolbar margins while its folded
+        ImGui::SameLine(window_width);                // ORCA use stored window width while folded. This prevents annoying position change on fold/expand button
+        ImGui::Dummy({ 0, 0 });
+        imgui.end();
+        ImGui::PopStyleColor(7);
+        ImGui::PopStyleVar(2);
+        return;
+    }
 
     // data used to properly align items in columns when showing time
     std::vector<float> offsets;
