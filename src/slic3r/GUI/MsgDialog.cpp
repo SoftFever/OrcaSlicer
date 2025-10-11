@@ -413,7 +413,7 @@ int RichMessageDialog::ShowModal()
     }
     Layout();
 
-    return wxDialog::ShowModal();
+    return MsgDialog::ShowModal();
 }
 
 bool RichMessageDialog::IsCheckBoxChecked() const
