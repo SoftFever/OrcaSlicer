@@ -1223,10 +1223,10 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             std::string             cover_file = s1 + "_cover.png";
             boost::filesystem::path cover_path = boost::filesystem::absolute(boost::filesystem::path(resources_dir()) / "/profiles/" / strVendor / cover_file).make_preferred();
             if (!boost::filesystem::exists(cover_path)) {
-                cover_path =
-                    (boost::filesystem::absolute(boost::filesystem::path(resources_dir()) / "/web/image/printer/") /
-                     cover_file)
-                        .make_preferred();
+                boost::filesystem::path cover_webp_path = boost::filesystem::absolute(boost::filesystem::path(resources_dir()) / "/profiles/" / strVendor / (s1 +"_cover.webp")).make_preferred();
+                cover_path = 
+                    boost::filesystem::exists(cover_webp_path) ? cover_webp_path :  // ORCA alternatively check for WebP extension if png not exist
+                    (boost::filesystem::absolute(boost::filesystem::path(resources_dir()) / "/web/image/printer/") / cover_file).make_preferred();
             }
             OneModel["cover"]                  = cover_path.string();
 
