@@ -581,7 +581,7 @@ msgid "Some connectors are overlapped"
 msgstr "Имеются пересекающиеся соединения"
 
 msgid "Select at least one object to keep after cutting."
-msgstr "Выберите хотя бы одну из моеделей для сохранения после разреза."
+msgstr "Выберите хотя бы одну из моделей для сохранения после разреза."
 
 msgid "Cut plane is placed out of object"
 msgstr "Секущая плоскость находится за пределами модели"
