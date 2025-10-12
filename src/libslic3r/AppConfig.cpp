@@ -214,7 +214,7 @@ void AppConfig::set_defaults()
 
 #ifdef SUPPORT_DARK_MODE
     if (get("dark_color_mode").empty())
-        set("dark_color_mode", "0");
+        set("dark_color_mode", "1");  // Default to dark mode
 #endif
 
 //#ifdef SUPPORT_SYS_MENU
@@ -229,6 +229,10 @@ void AppConfig::set_defaults()
 
     if (get("developer_mode").empty())
         set_bool("developer_mode", false);
+    
+    // AI Mode default setting - ENABLED by default
+    if (get("ai_mode_enabled").empty())
+        set_bool("ai_mode_enabled", true);
 
     if (get("enable_ssl_for_mqtt").empty())
         set_bool("enable_ssl_for_mqtt", true);

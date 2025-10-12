@@ -25,6 +25,7 @@ set(lisbslic3r_sources
     AABBMesh.hpp
     AABBTreeIndirect.hpp
     AABBTreeLines.hpp
+    AIAdapter.hpp
     Algorithm/LineSplit.cpp
     Algorithm/LineSplit.hpp
     Algorithm/RegionExpansion.cpp
@@ -445,6 +446,8 @@ set(lisbslic3r_sources
     TriangleSetSampling.hpp
     TriangulateWall.cpp
     TriangulateWall.hpp
+    UnifiedOfflineAI.cpp
+    UnifiedOfflineAI.hpp
     utils.cpp
     Utils.hpp
     VariableWidth.cpp

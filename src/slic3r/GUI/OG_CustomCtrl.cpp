@@ -790,7 +790,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     const std::vector<Option>& option_set = og_line.get_options();
 
     wxString label = og_line.label;
-    wxColour blink_color = StateColor::darkModeColorFor("#009688");
+    wxColour blink_color = StateColor::darkModeColorFor("#8a00c0");
     bool is_url_string = false;
     if (ctrl->opt_group->label_width != 0 && !label.IsEmpty()) {
         const wxColour* text_clr = field ? field->label_color() : og_line.label_color();
@@ -936,7 +936,7 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_text(wxDC &dc, wxPoint pos, const wxString
 
         wxColour old_clr = dc.GetTextForeground();
         wxFont old_font = dc.GetFont();
-        wxColor clr_url = StateColor::darkModeColorFor("#009688");
+        wxColor clr_url = StateColor::darkModeColorFor("#8a00c0");
         if (is_focused && is_url) {
         // temporary workaround for the OSX because of strange Bold font behavior on BigSerf
 #ifdef __APPLE__

@@ -273,7 +273,7 @@ void Tab::create_preset_tab()
     //search input
     m_search_item = new StaticBox(m_top_panel);
     StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-    StateColor box_border_colour(std::pair<wxColour, int>(wxColour("#009688"), StateColor::Normal)); // ORCA match border color with other input/combo boxes
+    StateColor box_border_colour(std::pair<wxColour, int>(wxColour("#8a00c0"), StateColor::Normal)); // ORCA match border color with other input/combo boxes
 
     m_search_item->SetBackgroundColor(box_colour);
     m_search_item->SetBorderColor(box_border_colour);

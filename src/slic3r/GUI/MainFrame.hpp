@@ -400,6 +400,7 @@ public:
     //BBS
     void update_side_button_style();
     void update_slice_print_status(SlicePrintEventType event, bool can_slice = true, bool can_print = true);
+    void update_slice_button_text(); // Update button text based on AI mode
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;

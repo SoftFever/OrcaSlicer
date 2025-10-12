@@ -63,6 +63,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/UnifiedOfflineAI.hpp"
 
 // For stl export
 #include "libslic3r/CSGMesh/ModelToCSGMesh.hpp"
@@ -7201,6 +7202,180 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
 
         Model::setExtruderParams(config, numExtruders);
         Model::setPrintSpeedTable(config, print_config);
+        
+        // Apply AI optimization if enabled
+        bool ai_mode_enabled = wxGetApp().app_config->get("ai_mode_enabled") == "1";
+        if (ai_mode_enabled) {
+            try {
+                BOOST_LOG_TRIVIAL(info) << "AI Mode: Analyzing geometry and optimizing parameters...";
+                
+                // Analyze geometry of all objects on current plate
+                AI::GeometryFeatures combined_features{};
+                const Model& model = q->model();
+                for (const ModelObject* obj : model.objects) {
+                    if (obj && !obj->volumes.empty()) {
+                        auto features = AI::GeometryAnalyzer::analyze(obj);
+                        // Combine features (use max values for safety)
+                        combined_features.width = std::max(combined_features.width, features.width);
+                        combined_features.height = std::max(combined_features.height, features.height);
+                        combined_features.depth = std::max(combined_features.depth, features.depth);
+                        combined_features.has_overhangs = combined_features.has_overhangs || features.has_overhangs;
+                        combined_features.has_bridges = combined_features.has_bridges || features.has_bridges;
+                        combined_features.has_thin_walls = combined_features.has_thin_walls || features.has_thin_walls;
+                        combined_features.has_small_details = combined_features.has_small_details || features.has_small_details;
+                        combined_features.overhang_percentage = std::max(combined_features.overhang_percentage, features.overhang_percentage);
+                    }
+                }
+                
+                // Detect printer capabilities
+                AI::PrinterCapabilityDetector detector;
+                auto printer_caps = detector.detect_from_preset_bundle(wxGetApp().preset_bundle, wxGetApp().app_config);
+                
+                // Run AI optimization
+                AI::OfflineAIAdapter ai_adapter;
+                if (printer_caps) {
+                    ai_adapter.set_printer_capabilities(*printer_caps);
+                }
+                
+                nlohmann::json current_params;
+                current_params["material"] = wxGetApp().preset_bundle->filaments.get_selected_preset_name();
+                current_params["printer"] = wxGetApp().preset_bundle->printers.get_selected_preset_name();
+                
+                auto result = ai_adapter.optimize(combined_features, current_params);
+                
+                BOOST_LOG_TRIVIAL(info) << "AI Optimization complete: " << result.reasoning;
+                BOOST_LOG_TRIVIAL(info) << "Confidence: " << result.confidence;
+                
+                // Apply AI-optimized parameters to print config
+                DynamicPrintConfig ai_config;
+                int params_applied = 0;
+                
+                // Temperature parameters
+                if (result.parameters.contains("temperature") && result.parameters["temperature"].is_number()) {
+                    ai_config.set_key_value("nozzle_temperature", new ConfigOptionInts{static_cast<int>(result.parameters["temperature"].get<double>())});
+                    params_applied++;
+                }
+                if (result.parameters.contains("bed_temperature") && result.parameters["bed_temperature"].is_number()) {
+                    ai_config.set_key_value("hot_plate_temp", new ConfigOptionInts{static_cast<int>(result.parameters["bed_temperature"].get<double>())});
+                    params_applied++;
+                }
+                
+                // Layer height
+                if (result.parameters.contains("layer_height") && result.parameters["layer_height"].is_number()) {
+                    ai_config.set_key_value("layer_height", new ConfigOptionFloat(result.parameters["layer_height"].get<double>()));
+                    params_applied++;
+                }
+                
+                // Infill
+                if (result.parameters.contains("infill") && result.parameters["infill"].is_number()) {
+                    ai_config.set_key_value("sparse_infill_density", new ConfigOptionPercent(result.parameters["infill"].get<double>()));
+                    params_applied++;
+                }
+                
+                // Speed parameters
+                if (result.parameters.contains("outer_wall_speed") && result.parameters["outer_wall_speed"].is_number()) {
+                    ai_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(result.parameters["outer_wall_speed"].get<double>()));
+                    params_applied++;
+                }
+                if (result.parameters.contains("inner_wall_speed") && result.parameters["inner_wall_speed"].is_number()) {
+                    ai_config.set_key_value("inner_wall_speed", new ConfigOptionFloat(result.parameters["inner_wall_speed"].get<double>()));
+                    params_applied++;
+                }
+                if (result.parameters.contains("sparse_infill_speed") && result.parameters["sparse_infill_speed"].is_number()) {
+                    ai_config.set_key_value("sparse_infill_speed", new ConfigOptionFloat(result.parameters["sparse_infill_speed"].get<double>()));
+                    params_applied++;
+                }
+                if (result.parameters.contains("top_surface_speed") && result.parameters["top_surface_speed"].is_number()) {
+                    ai_config.set_key_value("top_surface_speed", new ConfigOptionFloat(result.parameters["top_surface_speed"].get<double>()));
+                    params_applied++;
+                }
+                if (result.parameters.contains("support_speed") && result.parameters["support_speed"].is_number()) {
+                    ai_config.set_key_value("support_speed", new ConfigOptionFloat(result.parameters["support_speed"].get<double>()));
+                    params_applied++;
+                }
+                if (result.parameters.contains("bridge_speed") && result.parameters["bridge_speed"].is_number()) {
+                    ai_config.set_key_value("bridge_speed", new ConfigOptionFloat(result.parameters["bridge_speed"].get<double>()));
+                    params_applied++;
+                }
+                if (result.parameters.contains("travel_speed") && result.parameters["travel_speed"].is_number()) {
+                    ai_config.set_key_value("travel_speed", new ConfigOptionFloat(result.parameters["travel_speed"].get<double>()));
+                    params_applied++;
+                }
+                if (result.parameters.contains("initial_layer_speed") && result.parameters["initial_layer_speed"].is_number()) {
+                    ai_config.set_key_value("initial_layer_speed", new ConfigOptionFloat(result.parameters["initial_layer_speed"].get<double>()));
+                    params_applied++;
+                }
+                
+                // Wall parameters
+                if (result.parameters.contains("wall_loops") && result.parameters["wall_loops"].is_number()) {
+                    ai_config.set_key_value("wall_loops", new ConfigOptionInt(static_cast<int>(result.parameters["wall_loops"].get<double>())));
+                    params_applied++;
+                }
+                
+                // Infill pattern
+                if (result.parameters.contains("infill_pattern") && result.parameters["infill_pattern"].is_string()) {
+                    std::string pattern = result.parameters["infill_pattern"].get<std::string>();
+                    if (pattern == "grid") {
+                        ai_config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipGrid));
+                    } else if (pattern == "gyroid") {
+                        ai_config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipGyroid));
+                    }
+                    params_applied++;
+                }
+                
+                // Shell layers
+                if (result.parameters.contains("top_shell_layers") && result.parameters["top_shell_layers"].is_number()) {
+                    ai_config.set_key_value("top_shell_layers", new ConfigOptionInt(static_cast<int>(result.parameters["top_shell_layers"].get<double>())));
+                    params_applied++;
+                }
+                if (result.parameters.contains("bottom_shell_layers") && result.parameters["bottom_shell_layers"].is_number()) {
+                    ai_config.set_key_value("bottom_shell_layers", new ConfigOptionInt(static_cast<int>(result.parameters["bottom_shell_layers"].get<double>())));
+                    params_applied++;
+                }
+                
+                // Support
+                if (result.parameters.contains("enable_support") && result.parameters["enable_support"].is_boolean()) {
+                    ai_config.set_key_value("enable_support", new ConfigOptionBool(result.parameters["enable_support"].get<bool>()));
+                    params_applied++;
+                }
+                if (result.parameters.contains("support_threshold_angle") && result.parameters["support_threshold_angle"].is_number()) {
+                    ai_config.set_key_value("support_threshold_angle", new ConfigOptionInt(static_cast<int>(result.parameters["support_threshold_angle"].get<double>())));
+                    params_applied++;
+                }
+                
+                // Cooling (fan speeds)
+                if (result.parameters.contains("fan_min_speed") && result.parameters["fan_min_speed"].is_number()) {
+                    ai_config.set_key_value("fan_min_speed", new ConfigOptionInts{static_cast<int>(result.parameters["fan_min_speed"].get<double>())});
+                    params_applied++;
+                }
+                if (result.parameters.contains("fan_max_speed") && result.parameters["fan_max_speed"].is_number()) {
+                    ai_config.set_key_value("fan_max_speed", new ConfigOptionInts{static_cast<int>(result.parameters["fan_max_speed"].get<double>())});
+                    params_applied++;
+                }
+                
+                // Retraction
+                if (result.parameters.contains("retraction_length") && result.parameters["retraction_length"].is_number()) {
+                    ai_config.set_key_value("retraction_length", new ConfigOptionFloats{result.parameters["retraction_length"].get<double>()});
+                    params_applied++;
+                }
+                if (result.parameters.contains("retraction_speed") && result.parameters["retraction_speed"].is_number()) {
+                    ai_config.set_key_value("retraction_speed", new ConfigOptionFloats{result.parameters["retraction_speed"].get<double>()});
+                    params_applied++;
+                }
+                
+                // Apply all parameters to the print config
+                if (params_applied > 0) {
+                    wxGetApp().preset_bundle->prints.get_edited_preset().config.apply(ai_config);
+                    BOOST_LOG_TRIVIAL(info) << "AI Mode: Applied " << params_applied << " optimized parameters to print config";
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "AI Mode: No parameters were applied";
+                }
+                
+            } catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(error) << "AI optimization failed: " << e.what();
+            }
+        }
+        
         m_slice_all = false;
         q->reslice();
         q->select_view_3D("Preview");

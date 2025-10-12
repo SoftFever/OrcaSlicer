@@ -1570,6 +1570,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, 14);
 
     update_side_button_style();
+    update_slice_button_text(); // Set initial button text based on AI mode
     // m_publish_btn->Hide();
     m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
@@ -1655,8 +1656,8 @@ wxBoxSizer* MainFrame::create_side_tools()
             slice_plate_btn->SetCornerRadius(0);
 
             slice_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                m_slice_btn->SetLabel(_L("Slice all"));
                 m_slice_select = eSliceAll;
+                update_slice_button_text(); // Update text based on AI mode
                 m_slice_enable = get_enable_slice_status();
                 m_slice_btn->Enable(m_slice_enable);
                 this->Layout();
@@ -1664,8 +1665,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 });
 
             slice_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                m_slice_btn->SetLabel(_L("Slice plate"));
                 m_slice_select = eSlicePlate;
+                update_slice_button_text(); // Update text based on AI mode
                 m_slice_enable = get_enable_slice_status();
                 m_slice_btn->Enable(m_slice_enable);
                 this->Layout();
@@ -2034,6 +2035,24 @@ void MainFrame::update_side_button_style()
     m_print_option_btn->SetExtraSize(wxSize(FromDIP(10), FromDIP(10)));
     m_print_option_btn->SetIconOffset(FromDIP(2));
     m_print_option_btn->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
+}
+
+void MainFrame::update_slice_button_text()
+{
+    if (!m_slice_btn) return;
+    
+    // Check if AI mode is enabled
+    bool ai_mode = wxGetApp().app_config->get("ai_mode_enabled") == "1";
+    
+    if (ai_mode) {
+        m_slice_btn->SetLabel(_L("Auto Slice"));
+    } else {
+        if (m_slice_select == eSliceAll)
+            m_slice_btn->SetLabel(_L("Slice all"));
+        else
+            m_slice_btn->SetLabel(_L("Slice plate"));
+    }
+    m_slice_btn->Refresh();
 }
 
 void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_slice, bool can_print)
@@ -3867,6 +3886,9 @@ void MainFrame::update_ui_from_settings()
         m_plater->update_ui_from_settings();
     for (auto tab: wxGetApp().tabs_list)
         tab->update_ui_from_settings();
+    
+    // Update slice button text based on AI mode setting
+    update_slice_button_text();
 }
 
 
