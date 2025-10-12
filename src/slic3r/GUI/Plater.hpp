@@ -186,6 +186,7 @@ public:
     void                    collapse(bool collapse);
     void                    update_searcher();
     void                    update_ui_from_settings();
+    void                    update_ai_mode_ui();
 	bool                    show_object_list(bool show) const;
     void                    finish_param_edit();
     void                    auto_calc_flushing_volumes(const int modify_id);

@@ -829,6 +829,13 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
+        // AI mode toggle - update slice button text
+        if (param == "ai_mode_enabled") {
+            if (wxGetApp().mainframe) {
+                wxGetApp().mainframe->update_slice_button_text();
+            }
+        }
+
         e.Skip();
     });
 

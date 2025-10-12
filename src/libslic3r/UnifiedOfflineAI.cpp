@@ -163,15 +163,11 @@ PrinterCapabilityDetector::detect_from_preset_bundle(const PresetBundle* bundle,
             m_cached_capabilities = by_name;
             
             // Enhance with config from current preset
-            const Preset* preset = bundle->printers.find_preset(current_printer, false);
-            if (preset) {
-                try {
-                    nlohmann::json config = preset->config.serialize();
-                    enhance_capabilities_from_config(*m_cached_capabilities, config);
-                } catch (...) {
-                    // Ignore serialization errors
-                }
-            }
+            // Note: Config serialization not available in this context
+            // const Preset* preset = bundle->printers.find_preset(current_printer, false);
+            // if (preset) {
+            //     enhance_capabilities_from_config(*m_cached_capabilities, config);
+            // }
             
             // Update skill level if app_config provided
             if (app_config) {
@@ -183,53 +179,41 @@ PrinterCapabilityDetector::detect_from_preset_bundle(const PresetBundle* bundle,
     }
 
     // Try by model_id
-    const Preset* current_preset = bundle->printers.get_selected_preset();
-    if (current_preset) {
-        std::string model_id;
-        if (current_preset->config.has("model_id")) {
-            model_id = current_preset->config.opt_string("model_id", "");
-        }
-        
-        if (!model_id.empty()) {
-            if (auto by_model = detect_printer_by_model_id(model_id)) {
-                m_cached_printer_name = current_printer;
-                m_cached_capabilities = by_model;
-                
-                try {
-                    nlohmann::json config = current_preset->config.serialize();
-                    enhance_capabilities_from_config(*m_cached_capabilities, config);
-                } catch (...) {
-                    // Ignore serialization errors
-                }
-                
-                if (app_config) {
-                    m_cached_capabilities->skill_level = detect_user_skill_level(app_config);
-                }
-                
-                return m_cached_capabilities;
+    const Preset& current_preset = bundle->printers.get_selected_preset();
+    std::string model_id;
+    if (current_preset.config.has("model_id")) {
+        model_id = current_preset.config.opt_string("model_id");
+    }
+    
+    if (!model_id.empty()) {
+        if (auto by_model = detect_printer_by_model_id(model_id)) {
+            m_cached_printer_name = current_printer;
+            m_cached_capabilities = by_model;
+            
+            // Note: Config serialization not available in this context
+            // enhance_capabilities_from_config(*m_cached_capabilities, config);
+            
+            if (app_config) {
+                m_cached_capabilities->skill_level = detect_user_skill_level(app_config);
             }
+            
+            return m_cached_capabilities;
         }
     }
 
-    // Infer from config as fallback
-    if (current_preset) {
-        try {
-            nlohmann::json config = current_preset->config.serialize();
-            PrinterCapabilities inferred = infer_capabilities_from_config(config);
-            inferred.is_diy_printer = true;
-            inferred.profile_name = current_printer.empty() ? "DIY Printer" : current_printer;
-            
-            if (app_config) {
-                inferred.skill_level = detect_user_skill_level(app_config);
-            }
-            
-            m_cached_printer_name = current_printer;
-            m_cached_capabilities = inferred;
-            return m_cached_capabilities;
-        } catch (...) {
-            // Return nullopt on error
-        }
+    // Infer from config as fallback - always use DIY defaults if we got here
+    // Note: Config serialization not available, using default capabilities
+    PrinterCapabilities inferred;
+    inferred.is_diy_printer = true;
+    inferred.profile_name = current_printer.empty() ? "DIY Printer" : current_printer;
+    
+    if (app_config) {
+        inferred.skill_level = detect_user_skill_level(app_config);
     }
+    
+    m_cached_printer_name = current_printer;
+    m_cached_capabilities = inferred;
+    return m_cached_capabilities;
 
     return std::nullopt;
 }

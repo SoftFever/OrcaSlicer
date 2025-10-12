@@ -577,6 +577,9 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": set current to %1%, type=%2%") % cur_tab % cur_tab?cur_tab->type():-1;
     update_mode();
 
+    // Check if AI Mode is enabled
+    bool ai_mode_enabled = wxGetApp().app_config->get("ai_mode_enabled") == "1";
+
     // BBS: open/close tab
     for (auto t : std::vector<std::pair<wxPanel*, wxStaticLine*>>({
             {m_tab_print, m_staticline_print},
@@ -587,9 +590,21 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
             {m_tab_filament, m_staticline_filament},
             {m_tab_printer, m_staticline_printer}})) {
         if (!t.first) continue;
-        t.first->Show(tab == t.first);
-        if (!t.second) continue;
-        t.second->Show(tab == t.first);
+        
+        // AI Mode: Hide print parameter tabs, keep filament and printer visible
+        bool is_print_tab = (t.first == m_tab_print || t.first == m_tab_print_object || 
+                            t.first == m_tab_print_part || t.first == m_tab_print_layer || 
+                            t.first == m_tab_print_plate);
+        
+        if (ai_mode_enabled && is_print_tab) {
+            // In AI Mode, completely hide print parameter tabs
+            t.first->Show(false);
+            if (t.second) t.second->Show(false);
+        } else {
+            // Normal mode: show tab if it's the active one
+            t.first->Show(tab == t.first);
+            if (t.second) t.second->Show(tab == t.first);
+        }
         //m_left_sizer->GetItem(t)->SetProportion(tab == t ? 1 : 0);
     }
     m_left_sizer->Layout();

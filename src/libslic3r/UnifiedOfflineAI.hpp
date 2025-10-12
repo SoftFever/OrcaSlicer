@@ -134,7 +134,6 @@ public:
 
     void set_printer_capabilities(const PrinterCapabilityDetector::PrinterCapabilities& caps);
 
-private:
     struct MaterialPreset {
         double temperature;
         double bed_temperature;
@@ -159,6 +158,7 @@ private:
         double infill_adjustment;
     };
 
+private:
     MaterialPreset get_material_preset(const std::string& material) const;
     QualityModifier get_quality_modifier(const std::string& quality) const;
     void apply_geometry_adjustments(MaterialPreset& preset,

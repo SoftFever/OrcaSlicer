@@ -1083,7 +1083,7 @@ Sidebar::Sidebar(Plater *parent)
             e.Skip();
             return;
         }
-        p->m_search_bar->SetBorderColor(wxColour("#009688"));
+        p->m_search_bar->SetBorderColor(wxColour("#9C27B0"));
         wxPoint pos = this->p->m_search_bar->ClientToScreen(wxPoint(0, 0));
 #ifndef __WXGTK__
         pos.y += this->p->m_search_bar->GetRect().height;
@@ -2022,6 +2022,25 @@ void Sidebar::update_ui_from_settings()
 #if 0
     p->object_list->apply_volumes_order();
 #endif
+    
+    // Update AI Mode UI visibility
+    update_ai_mode_ui();
+}
+
+void Sidebar::update_ai_mode_ui()
+{
+    // Check if AI Mode is enabled
+    bool ai_mode_enabled = wxGetApp().app_config->get("ai_mode_enabled") == "1";
+    
+    // When AI Mode is enabled, hide detailed parameter tabs/panels
+    // Keep printer, filament selector, viewport, and mesh tools visible
+    // Hide print/process parameter panels (those are in separate tabs accessed via params dialog)
+    
+    // For now, the main sidebar keeps printer and filament panels visible
+    // The actual parameter hiding happens in the tabs (Tab.cpp and ParamsPanel.cpp)
+    // This is just a hook for future expansion
+    
+    BOOST_LOG_TRIVIAL(info) << "AI Mode UI update: " << (ai_mode_enabled ? "Simplified (AI Mode)" : "Full Parameters");
 }
 
 bool Sidebar::show_object_list(bool show) const

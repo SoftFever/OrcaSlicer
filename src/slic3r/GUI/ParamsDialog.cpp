@@ -67,6 +67,20 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
 
 void ParamsDialog::Popup()
 {
+    // Check if AI Mode is enabled
+    bool ai_mode_enabled = wxGetApp().app_config->get("ai_mode_enabled") == "1";
+    
+    if (ai_mode_enabled) {
+        // In AI Mode, show info message instead of opening parameter editor
+        wxMessageDialog dlg(wxGetApp().mainframe, 
+            _L("AI Mode is currently enabled. Print parameters are automatically optimized.\n\n"
+               "To manually edit parameters, disable AI Mode in Preferences."),
+            _L("AI Mode Active"), 
+            wxOK | wxICON_INFORMATION);
+        dlg.ShowModal();
+        return;
+    }
+    
     wxGetApp().UpdateDlgDarkUI(this);
 #ifdef __WIN32__
     Reparent(wxGetApp().mainframe);
