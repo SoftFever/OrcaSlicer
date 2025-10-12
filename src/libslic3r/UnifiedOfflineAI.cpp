@@ -215,7 +215,6 @@ PrinterCapabilityDetector::detect_from_preset_bundle(const PresetBundle* bundle,
     m_cached_capabilities = inferred;
     return m_cached_capabilities;
 
-    return std::nullopt;
 }
 
 std::optional<PrinterCapabilityDetector::PrinterCapabilities>
