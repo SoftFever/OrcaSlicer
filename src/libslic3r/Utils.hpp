@@ -681,6 +681,8 @@ void copy_directory_recursively(const boost::filesystem::path &source, const boo
 void save_string_file(const boost::filesystem::path& p, const std::string& str);
 void load_string_file(const boost::filesystem::path& p, std::string& str);
 
+bool check_layer_id_pattern(const std::string& pattern, int layer_id);
+
 } // namespace Slic3r
 
 #if WIN32

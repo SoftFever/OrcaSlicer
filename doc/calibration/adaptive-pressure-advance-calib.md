@@ -145,7 +145,7 @@ It is recommended that the PA step is set to a small value, to allow you to make
 
 PA pattern calibration configuration window have been changed to simplify test setup. Now all is needed is to fill list of accelerations and speeds into relevant fields of the calibration window:
 
-![pa-pattern-batch](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch.png?raw=true?raw=true)
+![pa-pattern-batch](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/pa-pattern-batch.png?raw=true)
 
 Test patterns generated for each acceleration-speed pair and all parameters are set accordingly. No additional actions needed from user side. Just slice and print all plates generated.
 
@@ -153,7 +153,7 @@ Refer to [Calibration Guide](Calibration) for more details on batch mode calibra
 
 #### OrcaSlicer 2.2.0 and older
 
-Setup your PA test as usual from the calibration menu in Orca slicer. Once setup, your PA test should look like the below:
+Setup your PA test as usual from the calibration menu in OrcaSlicer. Once setup, your PA test should look like the below:
 
 ![apa-setup-result-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-setup-result-speed.png?raw=true)
 

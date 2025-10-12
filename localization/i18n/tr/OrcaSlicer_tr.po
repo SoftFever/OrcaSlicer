@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
-"PO-Revision-Date: 2025-03-12 23:48+0300\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
+"PO-Revision-Date: 2025-09-14 23:43+0300\n"
 "Last-Translator: GlauTech\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -12,33 +12,25 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.7\n"
 
 msgid "Current AMS humidity"
 msgstr "Mevcut AMS nemi"
 
 msgid "Drying"
-msgstr ""
+msgstr "Kurutma"
 
 msgid "Idle"
 msgstr "Boşta"
 
 msgid "Humidity"
-msgstr ""
+msgstr "Nem"
 
 msgid "Temperature"
 msgstr "Sıcaklık"
 
 msgid "Left Time"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
-msgstr ""
+msgstr "Kalan Süre"
 
 msgid "Serial:"
 msgstr "Seri:"
@@ -52,17 +44,23 @@ msgstr "Son sürüm"
 msgid "Support Painting"
 msgstr "Destek boyama"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Fare tekerleği"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr "Alt+"
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "Fare tekerleği"
 
 msgid "Section view"
 msgstr "Bölüm görünümü"
 
 msgid "Reset direction"
 msgstr "Yönü sıfırla"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Fare tekerleği"
 
 msgid "Pen size"
 msgstr "Kalem boyutu"
@@ -78,9 +76,6 @@ msgstr "Sağ fare tuşu"
 
 msgid "Block supports"
 msgstr "Blok destekleri"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + Sol fare düğmesi"
 
 msgid "Erase"
 msgstr "Sil"
@@ -183,16 +178,25 @@ msgid "Smart fill"
 msgstr "Akıllı boyama"
 
 msgid "Bucket fill"
-msgstr "Kova boya aracı"
+msgstr "Boya kovası aracı"
 
 msgid "Height range"
 msgstr "Yükseklik aralığı"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Enter"
+msgstr "Enter"
 
 msgid "Toggle Wireframe"
 msgstr "Wireframe Göster/Gizle"
+
+msgid "Remap filaments"
+msgstr "Filamentleri yeniden eşleştir"
+
+msgid "Remap"
+msgstr "Yeniden eşleştir"
+
+msgid "Cancel"
+msgstr "İptal"
 
 msgid "Shortcut Key "
 msgstr "Kısayol tuşu "
@@ -215,6 +219,9 @@ msgstr "Boyalı rengi kaldır"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Şunlar kullanılarak boyanmıştır: Filament %1%"
+
+msgid "Filament remapping finished."
+msgstr "Filament yeniden eşleşme işlemi tamamlandı."
 
 msgid "Move"
 msgstr "Taşı"
@@ -253,19 +260,19 @@ msgid "mm"
 msgstr "mm"
 
 msgid "Part selection"
-msgstr ""
+msgstr "Parça seçimi"
 
 msgid "Fixed step drag"
-msgstr ""
+msgstr "Sabit adım sürükleme"
 
 msgid "Single sided scaling"
-msgstr ""
+msgstr "Tek taraflı ölçekleme"
 
 msgid "Position"
 msgstr "Konum"
 
 msgid "Rotate (relative)"
-msgstr ""
+msgstr "Döndür (göreceli)"
 
 msgid "Scale ratios"
 msgstr "Ölçek oranları"
@@ -301,16 +308,16 @@ msgid "World coordinates"
 msgstr "Dünya koordinatları"
 
 msgid "Reset current rotation to the value when open the rotation tool."
-msgstr ""
+msgstr "Döndürme aracını açtığınızda mevcut döndürme değerini sıfırlayın."
 
 msgid "Rotate (absolute)"
-msgstr ""
+msgstr "Döndür (mutlak)"
 
 msgid "Reset current rotation to real zeros."
-msgstr ""
+msgstr "Mevcut dönüşü gerçek sıfırlara sıfırla."
 
 msgid "Part coordinates"
-msgstr ""
+msgstr "Parça koordinatları"
 
 #. TRN - Input label. Be short as possible
 msgid "Size"
@@ -329,7 +336,7 @@ msgid "Auto"
 msgstr "Otomatik"
 
 msgid "Manual"
-msgstr "Manual"
+msgstr "Manuel"
 
 msgid "Plug"
 msgstr "Tak"
@@ -362,7 +369,7 @@ msgid "Flip upside down"
 msgstr "Baş aşağı çevir"
 
 msgid "Connectors"
-msgstr "Konektörler"
+msgstr "Bağlayıcılar"
 
 msgid "Type"
 msgstr "Tür"
@@ -485,9 +492,6 @@ msgstr "Yarıçapla ilgili alan oranı"
 msgid "Confirm connectors"
 msgstr "Bağlayıcıları onayla"
 
-msgid "Cancel"
-msgstr "İptal"
-
 msgid "Build Volume"
 msgstr "Birim oluştur"
 
@@ -562,7 +566,7 @@ msgstr[0] "%1$d bağlayıcı nesnenin dışında"
 msgstr[1] "%1$d bağlayıcı nesnenin dışında"
 
 msgid "Some connectors are overlapped"
-msgstr "Bazı konektörler üst üste binmiş"
+msgstr "Bazı bağlayıcılar üst üste binmiş"
 
 msgid "Select at least one object to keep after cutting."
 msgstr "Kesimden sonra saklanacak en az bir nesne seçin."
@@ -714,8 +718,8 @@ msgstr "Yüzey"
 msgid "Horizontal text"
 msgstr "Yatay metin"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Shift + Fare yukarı veya aşağı hareket ettirir"
+msgid "Mouse move up or down"
+msgstr "Mouse’u yukarı veya aşağı hareket ettirin"
 
 msgid "Rotate text"
 msgstr "Metni döndür"
@@ -1371,7 +1375,7 @@ msgid ""
 "Please confirm explosion ratio = 1, and please select at least one object."
 msgstr ""
 "Lütfen patlama oranının = 1 olduğunu onaylayın ve lütfen en az bir nesne "
-"seçin"
+"seçin."
 
 msgid "Edit to scale"
 msgstr "Ölçeğe göre düzenleyin"
@@ -1393,7 +1397,7 @@ msgid "Selection"
 msgstr "Seçim"
 
 msgid " (Moving)"
-msgstr "(Hareketli)"
+msgstr " (Hareketli)"
 
 msgid ""
 "Select 2 faces on objects and \n"
@@ -1413,7 +1417,7 @@ msgid "Face"
 msgstr "Yüzey"
 
 msgid " (Fixed)"
-msgstr "(Sabit)"
+msgstr " (Sabit)"
 
 msgid "Point"
 msgstr "Nokta"
@@ -1470,9 +1474,6 @@ msgstr "Paralel mesafe:"
 msgid "Flip by Face 2"
 msgstr "Yüzey 2’ye Göre Çevir"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "Bildirim"
 
@@ -1508,7 +1509,7 @@ msgid ""
 msgstr "\"%1%\" yapılandırma dosyası yüklendi ancak bazı değerler tanınamadı."
 
 msgid "Based on PrusaSlicer and BambuStudio"
-msgstr ""
+msgstr "PrusaSlicer ve BambuStudio'ya dayanmaktadır"
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory. It may be a bug. "
@@ -1564,7 +1565,7 @@ msgstr "WebView2 Çalışma Zamanı"
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
-msgstr ""
+msgstr "Kaynak yolu mevcut değil veya bir dizin değil: %s"
 
 #, c-format, boost-format
 msgid ""
@@ -1624,7 +1625,7 @@ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Bir veya daha fazla dosya seçin (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose ZIP file"
-msgstr "ZIP dosyasını seçin:"
+msgstr "ZIP dosyasını seçin"
 
 msgid "Choose one file (gcode/3mf):"
 msgstr "Bir dosya seçin (gcode/3mf):"
@@ -1654,7 +1655,7 @@ msgid ""
 "version before it can be used normally."
 msgstr ""
 "Orca Slicer'ın sürümü çok düşük ve normal şekilde kullanılabilmesi için en "
-"son sürüme güncellenmesi gerekiyor"
+"son sürüme güncellenmesi gerekiyor."
 
 msgid "Privacy Policy Update"
 msgstr "Gizlilik Politikası Güncellemesi"
@@ -1753,7 +1754,7 @@ msgid "Top Minimum Shell Thickness"
 msgstr "Üst Minimum Kabuk Kalınlığı"
 
 msgid "Top Surface Density"
-msgstr ""
+msgstr "Üst yüzey yoğunluğu"
 
 msgid "Bottom Solid Layers"
 msgstr "Alt Katı Katmanlar"
@@ -1762,13 +1763,13 @@ msgid "Bottom Minimum Shell Thickness"
 msgstr "Alt Minimum Kabuk Kalınlığı"
 
 msgid "Bottom Surface Density"
-msgstr ""
+msgstr "Alt yüzey yoğunluğu"
 
 msgid "Ironing"
 msgstr "Ütüleme"
 
 msgid "Fuzzy Skin"
-msgstr "Bulanık kaplama"
+msgstr "Pütürlü Yüzey"
 
 msgid "Extruders"
 msgstr "Ekstruderler"
@@ -1780,7 +1781,7 @@ msgid "Wipe options"
 msgstr "Temizleme seçenekleri"
 
 msgid "Bed adhesion"
-msgstr "Etek"
+msgstr "Tabla Yapışması"
 
 msgid "Add part"
 msgstr "Parça ekle"
@@ -1829,6 +1830,9 @@ msgstr "Sil"
 
 msgid "Delete the selected object"
 msgstr "Seçilen nesneyi sil"
+
+msgid "Backspace"
+msgstr "Backspace"
 
 msgid "Load..."
 msgstr "Yükle..."
@@ -1957,7 +1961,7 @@ msgid "Flush Options"
 msgstr "Akıtma Seçenekleri"
 
 msgid "Flush into objects' infill"
-msgstr "Nesnelerin dolgusuna akıtın"
+msgstr "Nesnelerin dolgusuna akıt"
 
 msgid "Flush into this object"
 msgstr "Bu nesneye akıt"
@@ -2164,7 +2168,7 @@ msgstr[0] "%1$d manifold olmayan kenar"
 msgstr[1] "%1$d manifold olmayan kenar"
 
 msgid "Click the icon to repair model object"
-msgstr ""
+msgstr "Model nesnesini onarmak için simgeye tıklayın"
 
 msgid "Right button click the icon to drop the object settings"
 msgstr "Nesne ayarlarını bırakmak için simgeye sağ tıklayın"
@@ -2213,7 +2217,7 @@ msgstr ""
 "geçin."
 
 msgid "Remove paint-on fuzzy skin"
-msgstr ""
+msgstr "Boyalı pütürlü yüzeyi çıkarın"
 
 msgid "Delete connector from object which is a part of cut"
 msgstr "Kesilen parçanın parçası olan nesneden bağlayıcıyı sil"
@@ -2251,7 +2255,7 @@ msgid "Deleting the last solid part is not allowed."
 msgstr "Son katı kısmın silinmesine izin verilmez."
 
 msgid "The target object contains only one part and can not be split."
-msgstr ""
+msgstr "Hedef nesne yalnızca bir parçadan oluşur ve bölünemez."
 
 msgid "Assembly"
 msgstr "Birleştir"
@@ -2362,7 +2366,7 @@ msgstr ""
 "bir hücre aynı sütundaki yalnızca bir veya daha fazla hücreye kopyalanabilir"
 
 msgid "Copying multiple cells is not supported."
-msgstr "birden fazla hücre kopyalama desteklenmiyor"
+msgstr "Birden fazla hücre kopyalama desteklenmiyor."
 
 msgid "Outside"
 msgstr "Dış"
@@ -2380,7 +2384,7 @@ msgid "Auto Brim"
 msgstr "Otomatik Kenar"
 
 msgid "Mouse ear"
-msgstr "Fare Kulağı"
+msgstr "Fare kulağı"
 
 msgid "Painted"
 msgstr "Boyalı"
@@ -2799,16 +2803,14 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Access code:%s IP address:%s"
-msgstr ""
+msgstr "Erişim kodu:%s IP adresi:%s"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "LAN yoluyla yazdırmadan önce bir SD kartın takılması gerekir."
 
-#, fuzzy
 msgid "Sending G-code file over LAN"
 msgstr "LAN üzerinden gcode dosyası gönderiliyor"
 
-#, fuzzy
 msgid "Sending G-code file to SD card"
 msgstr "Gcode dosyası sdcard'a gönderiliyor"
 
@@ -2857,11 +2859,11 @@ msgstr "İndiriliyor"
 msgid "Download failed"
 msgstr "Yükleme başarısız"
 
-msgid "Cancelled"
-msgstr ""
+msgid "Canceled"
+msgstr "İptal edildi"
 
 msgid "Installed successfully"
-msgstr "Yükleme başarılı."
+msgstr "Yükleme başarılı"
 
 msgid "Installing"
 msgstr "Yükleniyor"
@@ -3061,16 +3063,16 @@ msgid "Dynamic flow Calibration"
 msgstr "Dinamik akış kalibrasyonu"
 
 msgid "Step"
-msgstr "Adım"
+msgstr "Step"
 
 msgid "AMS Slots"
 msgstr "AMS Yuvaları"
 
-msgid "Left Ams"
-msgstr ""
+msgid "Left AMS"
+msgstr "Sol AMS"
 
-msgid "Right Ams"
-msgstr ""
+msgid "Right AMS"
+msgstr "Sağ AMS"
 
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
@@ -3103,7 +3105,7 @@ msgid ""
 "Configure which AMS slot should be used for a filament used in the print job."
 msgstr ""
 "Yazdırma işinde kullanılan filament için hangi AMS yuvasının kullanılması "
-"gerektiğini yapılandırma"
+"gerektiğini yapılandırma."
 
 msgid "Filament used in this print job"
 msgstr "Bu yazdırma işinde kullanılan filament"
@@ -3228,7 +3230,7 @@ msgid ""
 "automatically when current filament runs out."
 msgstr ""
 "AMS, mevcut filament bittiğinde otomatik olarak aynı özelliklere sahip başka "
-"bir makaraya devam edecektir"
+"bir makaraya devam edecektir."
 
 msgid "Air Printing Detection"
 msgstr "Hava Baskısı Algılama"
@@ -3312,10 +3314,10 @@ msgid "Underflow"
 msgstr "Düşük Akış"
 
 msgid "Floating reserved operand"
-msgstr ""
+msgstr "Geçersiz kayan noktalı değer"
 
 msgid "Stack overflow"
-msgstr ""
+msgstr "Yığın taşması"
 
 msgid "Running post-processing scripts"
 msgstr "İşlem sonrası komut dosyalarını çalıştırma"
@@ -3377,7 +3379,7 @@ msgstr "G kodu dosyası %1%’e aktarıldı"
 msgid "Unknown error when exporting G-code."
 msgstr "G kodunu dışa aktarırken bilinmeyen hata."
 
-#, fuzzy, boost-format
+#, boost-format
 msgid ""
 "Failed to save G-code file.\n"
 "Error message: %1%.\n"
@@ -3678,7 +3680,6 @@ msgstr "Yatak modelini içe aktarmak için bir STL dosyası seçin:"
 msgid "Bed Shape"
 msgstr "Yatak Şekli"
 
-#, fuzzy
 msgid ""
 "The recommended minimum temperature is less than 190°C or the recommended "
 "maximum temperature is greater than 300°C.\n"
@@ -3704,20 +3705,20 @@ msgstr ""
 "Lütfen yazdırmak için sıcaklığı kullanıp kullanmayacağınızdan emin olun.\n"
 "\n"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid ""
 "The recommended nozzle temperature for this filament type is [%d, %d] "
 "degrees Celsius."
 msgstr ""
 "Bu filament tipinin tavsiye edilen Nozul sıcaklığı [%d, %d] derece "
-"santigrattır"
+"santigrattır."
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "Maksimum hacimsel hız çok küçük.\n"
-"0,5'e sıfırla"
+"0,5'e sıfırla."
 
 #, c-format, boost-format
 msgid ""
@@ -3731,17 +3732,17 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "Katman yüksekliği çok küçük.\n"
-"0,2'ye sıfırla"
+"0,2'ye sıfırla."
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "Çok küçük ütüleme aralığı.\n"
-"0,1'e sıfırla"
+"0,1'e sıfırla."
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -3838,20 +3839,23 @@ msgid ""
 "seam_slope_start_height need to be smaller than layer_height.\n"
 "Reset to 0."
 msgstr ""
-"Dikiş eğimi başlangıç ​​yüksekliğinin katman yüksekliğinden daha küçük olması "
+"Dikiş eğimi başlangıç yüksekliğinin katman yüksekliğinden daha küçük olması "
 "gerekir.\n"
 "0 a sıfırla."
 
-#, c-format, boost-format
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
+"Kilit derinliği cilt derinliğinden daha küçük olmalıdır.\n"
+"Cilt derinliğinin %50'sine sıfırlayın."
 
 msgid ""
 "Both [Extrusion] and [Combined] modes of Fuzzy Skin require the Arachne Wall "
 "Generator to be enabled."
 msgstr ""
+"Pütürlü yüzeyin hem [Ekstrüzyon] hem de [Kombine] modları, Arachne Duvarı "
+"Üreticisinin etkinleştirilmesini gerektirir."
 
 msgid ""
 "Change these settings automatically?\n"
@@ -3859,6 +3863,10 @@ msgid ""
 "No  - Disable Arachne Wall Generator and set [Displacement] mode of the "
 "Fuzzy Skin"
 msgstr ""
+"Bu ayarlar otomatik olarak değiştirilsin mi?\n"
+"Evet - Arachne Duvarı Oluşturucusunu Etkinleştir\n"
+"Hayır - Arachne Duvarı Oluşturucusunu Devre Dışı Bırak ve Pütürlü Yüzey [Yer "
+"Değiştirme] modunu ayarla"
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
@@ -3883,7 +3891,7 @@ msgstr ""
 "Hayır - Bu sefer spiral modunu kullanmaktan vazgeçin"
 
 msgid "Auto bed leveling"
-msgstr "Otomatik yatak tesviyesi"
+msgstr "Otomatik plaka tesviyesi"
 
 msgid "Heatbed preheating"
 msgstr "Isıtma yatağı ön ısıtması"
@@ -4087,7 +4095,6 @@ msgstr "Özel G Kodunu Düzenle (%1%)"
 msgid "Built-in placeholders (Double click item to add to G-code)"
 msgstr "Yerleşik yer tutucular (G koduna eklemek için öğeye çift tıklayın)"
 
-#, fuzzy
 msgid "Search G-code placeholders"
 msgstr "Gcode yer tutucularını arayın"
 
@@ -4187,14 +4194,21 @@ msgid "Some extension in the input is invalid"
 msgstr "Girilen bazı uzantılar geçersiz"
 
 msgid "This parameter expects a valid template."
+msgstr "Bu parametre geçerli bir şablon bekliyor."
+
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
 msgstr ""
+"Geçersiz kalıp. N, N#K veya giriş başına isteğe bağlı #K ile virgülle "
+"ayrılmış bir liste kullanın. Örnekler: 5, 5#2, 1,7,9, 5,9#2,18."
 
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Geçersiz format. Beklenen vektör formatı: \"%1%\""
 
 msgid "Pick"
-msgstr ""
+msgstr "Seç"
 
 msgid "Layer Height"
 msgstr "Katman Yüksekliği"
@@ -4284,7 +4298,7 @@ msgid "Time"
 msgstr "Zaman"
 
 msgid "Usage"
-msgstr ""
+msgstr "Kullan"
 
 msgid "Layer Height (mm)"
 msgstr "Katman Yüksekliği (mm)"
@@ -4391,26 +4405,14 @@ msgstr "Yarıçap"
 msgid "Keep min"
 msgstr "Min. tut"
 
-msgid "Left mouse button:"
-msgstr "Sol fare tuşu:"
-
 msgid "Add detail"
 msgstr "Ayrıntı ekle"
-
-msgid "Right mouse button:"
-msgstr "Sağ fare tuşu:"
 
 msgid "Remove detail"
 msgstr "Ayrıntıyı kaldır"
 
-msgid "Shift + Left mouse button:"
-msgstr "Shift + Sol fare düğmesi:"
-
 msgid "Reset to base"
 msgstr "Tabana sıfırla"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift + Sağ fare düğmesi:"
 
 msgid "Smoothing"
 msgstr "Pürüzsüzleştirme"
@@ -4425,16 +4427,16 @@ msgid "Sequence"
 msgstr "Sekans"
 
 msgid "object selection"
-msgstr ""
+msgstr "nesne seçimi"
 
-msgid "part selectiont"
-msgstr ""
+msgid "part selection"
+msgstr "parça seçimi"
 
 msgid "number keys"
-msgstr ""
+msgstr "sayı tuşları"
 
 msgid "number keys can quickly change the color of objects"
-msgstr ""
+msgstr "Sayı tuşları nesnelerin rengini hızla değiştirebilir"
 
 msgid "Mirror Object"
 msgstr "Nesneyi Aynala"
@@ -4515,10 +4517,10 @@ msgid "Failed"
 msgstr "Başarısız"
 
 msgid "All Plates"
-msgstr ""
+msgstr "Tüm Plakalar"
 
 msgid "Stats"
-msgstr ""
+msgstr "İstatistikler"
 
 msgid "Assembly Return"
 msgstr "Montaj İptali"
@@ -4538,11 +4540,8 @@ msgstr "Bölüm Görünümü"
 msgid "Assemble Control"
 msgstr "Montaj Kontrolü"
 
-msgid "part selection"
-msgstr ""
-
 msgid "Selection Mode"
-msgstr ""
+msgstr "Seçim Modu"
 
 msgid "Total Volume:"
 msgstr "Toplam Hacim:"
@@ -4556,7 +4555,7 @@ msgstr "Hacim:"
 msgid "Size:"
 msgstr "Boyut:"
 
-#, fuzzy, boost-format
+#, boost-format
 msgid ""
 "Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -4806,8 +4805,8 @@ msgstr "Yeni bir proje başlat"
 msgid "Open a project file"
 msgstr "Proje dosyasını aç"
 
-msgid "Recent projects"
-msgstr "Son Projeler"
+msgid "Recent files"
+msgstr "Son dosyalar"
 
 msgid "Save Project"
 msgstr "Projeyi Kaydet"
@@ -4817,9 +4816,6 @@ msgstr "Mevcut projeyi dosyaya kaydet"
 
 msgid "Save Project as"
 msgstr "Projeyi farklı kaydet"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Mevcut projeyi farklı kaydet"
@@ -4952,19 +4948,19 @@ msgid ""
 "top/bottom/side views."
 msgstr ""
 "Üst/Alt/Yan görünümler arasında geçiş yaparken ortografik ve perspektif "
-"arasında otomatik olarak geçiş yapın"
+"arasında otomatik olarak geçiş yapın."
 
 msgid "Show &G-code Window"
 msgstr "&G-code Penceresini Göster"
 
 msgid "Show G-code window in Preview scene."
-msgstr "Previce sahnesinde G-kodu penceresini göster"
+msgstr "Previce sahnesinde G-kodu penceresini göster."
 
 msgid "Show 3D Navigator"
 msgstr "3D Gezgini Göster"
 
 msgid "Show 3D navigator in Prepare and Preview scene."
-msgstr "Hazırlama ve Önizleme sahnesinde 3D gezgini göster"
+msgstr "Hazırlama ve Önizleme sahnesinde 3D gezgini göster."
 
 msgid "Reset Window Layout"
 msgstr "Pencere Düzenini Sıfırla"
@@ -4976,19 +4972,19 @@ msgid "Show &Labels"
 msgstr "Etiketleri Göster"
 
 msgid "Show object labels in 3D scene."
-msgstr "3B sahnede nesne etiketlerini göster"
+msgstr "3B sahnede nesne etiketlerini göster."
 
 msgid "Show &Overhang"
 msgstr "Çıkıntıyı Göster"
 
 msgid "Show object overhang highlight in 3D scene."
-msgstr "3B sahnede nesne çıkıntısı vurgusunu göster"
+msgstr "3B sahnede nesne çıkıntısı vurgusunu göster."
 
 msgid "Show Selected Outline (beta)"
 msgstr "Seçilen Taslağı Göster (Deneysel)"
 
 msgid "Show outline around selected object in 3D scene."
-msgstr "3D sahnede seçilen nesnenin etrafındaki ana hatları göster"
+msgstr "3D sahnede seçilen nesnenin etrafındaki ana hatları göster."
 
 msgid "Preferences"
 msgstr "Tercihler"
@@ -5027,7 +5023,7 @@ msgid "Flow rate"
 msgstr "Akış hızı"
 
 msgid "Pressure advance"
-msgstr "Basınç avansı"
+msgstr "Basınç avansı oranı"
 
 msgid "Retraction test"
 msgstr "Geri çekme testi"
@@ -5036,22 +5032,22 @@ msgid "Max flowrate"
 msgstr "Maksimum akış hızı"
 
 msgid "Junction Deviation"
-msgstr ""
+msgstr "Köşe sapması"
 
 msgid "Junction Deviation calibration"
-msgstr ""
+msgstr "Köşe sapması kalibrasyonu"
 
 msgid "Cornering"
-msgstr ""
+msgstr "Köşe dönüşü"
 
 msgid "Input Shaping Frequency"
-msgstr ""
+msgstr "Input shaping Frekansı"
 
 msgid "Input Shaping Damping/zeta factor"
-msgstr ""
+msgstr "Input shaping Sönümleme/zeta faktörü"
 
 msgid "Input Shaping"
-msgstr ""
+msgstr "Input shaping"
 
 msgid "VFA"
 msgstr "VFA"
@@ -5102,13 +5098,13 @@ msgstr "&Görünüm"
 msgid "&Help"
 msgstr "&Yardım"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to overwrite it?"
-msgstr "Aynı adda bir dosya var: %s, üzerine yazmak istiyor musunuz."
+msgstr "Aynı adda bir dosya var: %s, üzerine yazmak istiyor musunuz?"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid "A config exists with the same name: %s, do you want to overwrite it?"
-msgstr "Aynı adda bir yapılandırma mevcut: %s, üzerine yazmak istiyor musunuz."
+msgstr "Aynı adda bir yapılandırma mevcut: %s, üzerine yazmak istiyor musunuz?"
 
 msgid "Overwrite file"
 msgstr "Dosyanın üzerine yaz"
@@ -5331,11 +5327,6 @@ msgstr "Dosya listesini yazıcıdan yeniden yükleyin."
 msgid "No printers."
 msgstr "Yazıcı yok."
 
-msgid ""
-"Please check the network and try again, You can restart or update the "
-"printer if the issue persists."
-msgstr ""
-
 msgid "Loading file list..."
 msgstr "Dosya listesi yükleniyor..."
 
@@ -5523,7 +5514,7 @@ msgid "Camera"
 msgstr "Kamera"
 
 msgid "Storage"
-msgstr ""
+msgstr "Depolama"
 
 msgid "Camera Setting"
 msgstr "Kamera Ayarı"
@@ -5556,10 +5547,10 @@ msgid "Debug Info"
 msgstr "Hata Ayıklama Bilgisi"
 
 msgid "No Storage"
-msgstr ""
+msgstr "Depolama Yok"
 
 msgid "Storage Abnormal"
-msgstr ""
+msgstr "Depolama Anormal"
 
 msgid "Cancel print"
 msgstr "Yazdırmayı iptal et"
@@ -5585,7 +5576,6 @@ msgstr "Katman: %s"
 msgid "Layer: %d/%d"
 msgstr "Katman: %d/%d"
 
-#, fuzzy
 msgid ""
 "Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
@@ -5599,7 +5589,7 @@ msgid "Still load"
 msgstr "Daha Fazla Yükle"
 
 msgid "Please select an AMS slot before calibration."
-msgstr "Lütfen kalibrasyondan önce bir AMS yuvası seçin"
+msgstr "Lütfen kalibrasyondan önce bir AMS yuvası seçin."
 
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
@@ -5775,7 +5765,7 @@ msgstr ""
 "3mf dosya sürümü Beta’dadır ve mevcut OrcaSlicer sürümünden daha yenidir."
 
 msgid "If you would like to try Orca Slicer Beta, you may click to"
-msgstr "Orca Slicer Beta’yı denemek isterseniz tıklayabilirsiniz."
+msgstr "Orca Slicer Beta’yı denemek isterseniz tıklayabilirsiniz"
 
 msgid "Download Beta Version"
 msgstr "Beta Sürümünü İndirin"
@@ -5789,10 +5779,10 @@ msgstr ""
 "etkinleştirebilir."
 
 msgid "Current Version: "
-msgstr "Şimdiki versiyonu:"
+msgstr "Şimdiki versiyonu: "
 
 msgid "Latest Version: "
-msgstr "En son sürüm:"
+msgstr "En son sürüm: "
 
 msgid "Not for now"
 msgstr "Şu an için değil"
@@ -5815,7 +5805,7 @@ msgstr ""
 "ağdan yazdırmayı kullanabilirsiniz."
 
 msgid "How to use LAN only mode"
-msgstr "Yalnızca LAN modu nasıl kullanılır?"
+msgstr "Yalnızca LAN modu nasıl kullanılır"
 
 msgid "Don't show this dialog again"
 msgstr "Bu iletişim kutusunu bir daha gösterme"
@@ -5884,13 +5874,13 @@ msgstr[1] "%1$d Nesnelerin renkli boyaması var."
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object."
 msgstr[0] "%1$d nesne, kesme nesnesinin bir parçası olarak yüklendi."
-msgstr[1] "%1$d nesne, kesme nesnesinin parçaları olarak yüklendi"
+msgstr[1] "%1$d nesne, kesme nesnesinin parçaları olarak yüklendi."
 
 #, c-format, boost-format
 msgid "%1$d object was loaded with fuzzy skin painting."
 msgid_plural "%1$d objects were loaded with fuzzy skin painting."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d nesne pütürlü yüzey boyama ile yüklendi."
+msgstr[1] "%1$d nesne bulanık cilt boyama ile yüklendi."
 
 msgid "ERROR"
 msgstr "HATA"
@@ -5914,7 +5904,7 @@ msgid "Warning:"
 msgstr "Uyarı:"
 
 msgid "Exported successfully"
-msgstr "Başarıyla dışarı aktarıldı."
+msgstr "Başarıyla dışarı aktarıldı"
 
 msgid "Model file downloaded."
 msgstr "Model dosyası indirildi."
@@ -5935,7 +5925,6 @@ msgid "Your model needs support! Please enable support material."
 msgstr ""
 "Modelinizin desteğe ihtiyacı var! Lütfen destek materyalini etkinleştirin."
 
-#, fuzzy
 msgid "G-code path overlap"
 msgstr "Gcode yolu çakışması"
 
@@ -5949,7 +5938,7 @@ msgid "Cut connectors"
 msgstr "Konektörleri kes"
 
 msgid "Paint-on fuzzy skin"
-msgstr ""
+msgstr "Pütürlü yüzey boyama"
 
 msgid "Layers"
 msgstr "Katmanlar"
@@ -6192,7 +6181,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Ejecting of device %s (%s) has failed."
-msgstr ""
+msgstr "%s (%s) aygıtının çıkarılması başarısız oldu."
 
 msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr "Önceki kaydedilmemiş proje algılandı, geri yüklemek istiyor musunuz?"
@@ -6231,6 +6220,9 @@ msgstr "Kenar çubuğunu genişlet"
 msgid "Collapse sidebar"
 msgstr "Kenar çubuğunu daralt"
 
+msgid "Tab"
+msgstr "Tab"
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Dosya yükleniyor: %s"
@@ -6242,6 +6234,17 @@ msgstr ""
 
 msgid "Load 3mf"
 msgstr "3mf yükle"
+
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -6298,7 +6301,7 @@ msgid "Customized Preset"
 msgstr "Özel Ayar"
 
 msgid "Name of components inside step file is not UTF8 format!"
-msgstr "Adım dosyasındaki bileşenlerin adı UTF8 formatında değil!"
+msgstr "Step dosyasındaki bileşenlerin adı UTF8 formatında değil!"
 
 msgid "The name may show garbage characters!"
 msgstr "İsimde çöp karakterler görünebilir!"
@@ -6401,7 +6404,7 @@ msgid "Another export job is running."
 msgstr "Başka bir ihracat işi yürütülüyor."
 
 msgid "Unable to replace with more than one volume"
-msgstr "Birden fazla hacimle değiştirme yapılamıyor."
+msgstr "Birden fazla hacimle değiştirme yapılamıyor"
 
 msgid "Error during replace"
 msgstr "Değiştirme sırasında hata"
@@ -6461,7 +6464,7 @@ msgid ""
 "The loaded file contains G-code only, cannot enter the Prepare page."
 msgstr ""
 "Yalnızca önizleme modu:\n"
-"Yüklenen dosya yalnızca Gcode içeriyor, Hazırlama sayfasına girilemiyor"
+"Yüklenen dosya yalnızca Gcode içeriyor, hazırlama sayfasına girilemiyor."
 
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr "Değiştirilen ön ayarları yeni projede tutabilir veya silebilirsiniz"
@@ -6501,9 +6504,7 @@ msgstr "İndirme başarısız oldu, Dosya boyutu sorunlu."
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
-msgstr ""
-"Proje %d%% indirildiBambu Studio’ya içe aktarma başarısız oldu. Lütfen "
-"dosyayı indirin ve manuel olarak içe aktarın."
+msgstr "Proje %d%% indirildi"
 
 msgid ""
 "Importing to Orca Slicer failed. Please download the file and manually "
@@ -6517,10 +6518,10 @@ msgstr "BİLGİ:"
 
 msgid ""
 "No accelerations provided for calibration. Use default acceleration value "
-msgstr "Kalibrasyon için ivme sağlanmadı. Varsayılan ivme değerini kullanın"
+msgstr "Kalibrasyon için ivme sağlanmadı. Varsayılan ivme değerini kullanın "
 
 msgid "No speeds provided for calibration. Use default optimal speed "
-msgstr "Kalibrasyon için hız sağlanmadı. Varsayılan optimum hızı kullanın"
+msgstr "Kalibrasyon için hız sağlanmadı. Varsayılan optimum hızı kullanın "
 
 msgid "Import SLA archive"
 msgstr "SLA arşivini içe aktar"
@@ -6684,6 +6685,10 @@ msgid ""
 "Please solve the problem by moving it totally on or off the plate, and "
 "confirming that the height is within the build volume."
 msgstr ""
+"Bir nesne plakanın sınırının üzerine yerleştirilmiş veya yükseklik sınırını "
+"aşıyor.\n"
+"Lütfen nesneyi tamamen plakanın üzerine veya dışına taşıyarak ve yüksekliğin "
+"yapı hacmi içinde olduğundan emin olarak sorunu çözün."
 
 msgid "Plate Settings"
 msgstr "Plaka Ayarları"
@@ -6741,7 +6746,7 @@ msgid ""
 "to non-zero."
 msgstr ""
 "Plaka %d: %s'nin %s(%s) filamentinı yazdırmak için kullanılması önerilmez. "
-"Eğer yine de bu baskıyı yapmak istiyorsanız, lütfen bu filamentin yatak "
+"Eğer yine de bu baskıyı yapmak istiyorsanız, lütfen bu filamentin plaka "
 "sıcaklığını sıfır olmayan bir değere ayarlayın."
 
 msgid "Switching the language requires application restart.\n"
@@ -6781,13 +6786,13 @@ msgid "with OrcaSlicer so that Orca can open models from"
 msgstr "Orca’nın modelleri açabilmesi için OrcaSlicer ile"
 
 msgid "Current Association: "
-msgstr "Mevcut Ortak:"
+msgstr "Mevcut Bağlantı: "
 
 msgid "Current Instance"
 msgstr "Mevcut Örnek"
 
 msgid "Current Instance Path: "
-msgstr "Mevcut Örnek Yolu:"
+msgstr "Mevcut Örnek Yolu: "
 
 msgid "General Settings"
 msgstr "Genel Ayarlar"
@@ -6826,10 +6831,13 @@ msgstr "Ağ eklentisini etkinleştir"
 
 msgid "Use legacy network plugin (Takes effect after restarting Orca)"
 msgstr ""
+"Eski ağ eklentisini kullan (Orca'yı yeniden başlattıktan sonra etkili olur)"
 
 msgid ""
 "Disable to use latest network plugin that supports new BambuLab firmwares."
 msgstr ""
+"Yeni BambuLab yazılımlarını destekleyen en son ağ eklentisini kullanmayı "
+"devre dışı bırakın."
 
 msgid "Check for stable updates only"
 msgstr "Yalnızca kararlı güncellemeleri kontrol edin"
@@ -6924,10 +6932,10 @@ msgstr ""
 "Etkinleştirilirse, mouse tekerleğiyle yakınlaştırmanın yönü tersine çevrilir."
 
 msgid "Orbit speed multiplier"
-msgstr ""
+msgstr "Yörünge hızı çarpanı"
 
 msgid "Multiplies the orbit speed for finer or coarser camera movement."
-msgstr ""
+msgstr "Daha ince veya daha kaba kamera hareketi için yörünge hızını çarpar."
 
 msgid "Show splash screen"
 msgstr "Açılış ekranını göster"
@@ -6966,11 +6974,13 @@ msgstr ""
 "hatırlayacak ve otomatik olarak değiştirecektir."
 
 msgid "Show the step mesh parameter setting dialog."
-msgstr ""
+msgstr "Step ağ parametresi ayar iletişim kutusunu göster."
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
+"Etkinleştirilirse, STEP dosyası içe aktarılırken bir parametre ayarları "
+"iletişim kutusu görüntülenir."
 
 msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
 msgstr ""
@@ -7058,11 +7068,14 @@ msgstr "Yükleme Davranışı"
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "Bir .3mf açılırken yazıcı/filament/işlem ayarları yüklenmeli mi?"
 
-msgid "Maximum recent projects"
-msgstr "Maksimum yeni proje"
+msgid "Maximum recent files"
+msgstr "Son kullanılan dosyaların maksimum sayısı"
 
-msgid "Maximum count of recent projects"
-msgstr "Maksimum yeni proje sayısı"
+msgid "Maximum count of recent files"
+msgstr "Son dosyaların maksimum sayısı"
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr "Model dosyalarını (STL/STEP) son dosyalar listesine ekle."
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Kaydedilmemiş projelerdeki seçimimi temizle."
@@ -7305,7 +7318,7 @@ msgid "Publish"
 msgstr "Yayınla"
 
 msgid "Publish was cancelled"
-msgstr ""
+msgstr "Yayınlama iptal edildi"
 
 msgid "Slicing Plate 1"
 msgstr "Dilimleme Plakası 1"
@@ -7330,7 +7343,7 @@ msgid "Name is unavailable."
 msgstr "Ad kullanılamıyor."
 
 msgid "Overwriting a system profile is not allowed."
-msgstr "Sistem profilinin üzerine yazmaya izin verilmiyor"
+msgstr "Sistem profilinin üzerine yazmaya izin verilmiyor."
 
 #, boost-format
 msgid "Preset \"%1%\" already exists."
@@ -7341,9 +7354,8 @@ msgid ""
 "Preset \"%1%\" already exists and is incompatible with the current printer."
 msgstr "\"%1%\" ön ayarı zaten mevcut ve mevcut yazıcıyla uyumlu değil."
 
-#, fuzzy
 msgid "Please note that saving will overwrite this preset."
-msgstr "Kaydetme eyleminin bu ön ayarın yerini alacağını lütfen unutmayın"
+msgstr "Kaydetme eyleminin bu ön ayarın yerini alacağını lütfen unutmayın."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Ad, önceden ayarlanmış bir takma adla aynı olamaz."
@@ -7379,22 +7391,22 @@ msgid "Task canceled"
 msgstr "Görev iptal edildi"
 
 msgid "Bambu Cool Plate"
-msgstr ""
+msgstr "Bambu Cool Plate"
 
 msgid "PLA Plate"
 msgstr "PLA Plaka"
 
 msgid "Bambu Engineering Plate"
-msgstr ""
+msgstr "Bambu Engineering Plate"
 
 msgid "Bambu Smooth PEI Plate"
-msgstr ""
+msgstr "Bambu Smooth PEI Plate"
 
 msgid "High temperature Plate"
-msgstr ""
+msgstr "Bambu Smooth PEI Plate"
 
 msgid "Bambu Textured PEI Plate"
-msgstr ""
+msgstr "Bambu Textured PEI Plate"
 
 msgid "Send print job to"
 msgstr "Yazdırma işini şuraya gönder"
@@ -7552,7 +7564,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle in preset: %.1f %s"
-msgstr ""
+msgstr "ön ayardaki nozul: %.1f %s"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
@@ -7797,6 +7809,9 @@ msgid ""
 "Enabling both precise Z height and the prime tower may cause the size of "
 "prime tower to increase. Do you still want to enable?"
 msgstr ""
+"Hem hassas Z yüksekliğini hem de başlangıç kulesini etkinleştirmek, "
+"başlangıç kulesinin boyutunun artmasına neden olabilir. Yine de "
+"etkinleştirmek istiyor musunuz?"
 
 msgid ""
 "A prime tower is required for smooth timelapse. There may be flaws on the "
@@ -7815,6 +7830,10 @@ msgid ""
 "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and "
 "disable independent support layer height"
 msgstr ""
+"Destek arayüzü için destek malzemesi kullanırken aşağıdaki ayarları "
+"öneririz:\n"
+"0 üst Z mesafesi, 0 arayüz aralığı, iç içe geçmiş doğrusal desen ve bağımsız "
+"destek katmanı yüksekliğini devre dışı bırak"
 
 msgid ""
 "Change these settings automatically?\n"
@@ -7837,6 +7856,20 @@ msgstr ""
 
 msgid "Are you sure you want to enable this option?"
 msgstr "Bu seçeneği etkinleştirmek istediğinizden emin misiniz?"
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
+"Dolgu desenleri genellikle, doğru baskı alınmasını ve istenen etkilerin (ör. "
+"Gyroid, Kübik) elde edilmesini sağlamak için döndürme işlemini otomatik "
+"olarak yapacak şekilde tasarlanmıştır. Mevcut seyrek dolgu desenini "
+"döndürmek, yetersiz destekle sonuçlanabilir. Lütfen dikkatli ilerleyin ve "
+"olası baskı sorunlarını iyice kontrol edin. Bu seçeneği etkinleştirmek "
+"istediğinizden emin misiniz?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -7930,7 +7963,7 @@ msgid "Current preset is inherited from the default preset."
 msgstr "Geçerli ön ayar, varsayılan ön ayardan devralınır."
 
 msgid "Current preset is inherited from"
-msgstr "Geçerli ön ayar şu kaynaktan devralındı:"
+msgstr "Geçerli ön ayar şu kaynaktan devralındı"
 
 msgid "It can't be deleted or modified."
 msgstr "Silinemez veya değiştirilemez."
@@ -8038,7 +8071,7 @@ msgid "Support filament"
 msgstr "Destek Filamenti"
 
 msgid "Support ironing"
-msgstr ""
+msgstr "Destek Ütüleme"
 
 msgid "Tree supports"
 msgstr "Ağaç destekler"
@@ -8126,12 +8159,14 @@ msgid "Nozzle temperature when printing"
 msgstr "Yazdırma sırasında nozul sıcaklığı"
 
 msgid "Cool Plate (SuperTack)"
-msgstr ""
+msgstr "Cool Plate (SuperTack)"
 
 msgid ""
 "Bed temperature when the Cool Plate SuperTack is installed. A value of 0 "
 "means the filament does not support printing on the Cool Plate SuperTack."
 msgstr ""
+"Cool Plate SuperTack takılıyken yatak sıcaklığı. 0 değeri, filamentin Cool "
+"Plate SuperTack üzerine baskıyı desteklemediği anlamına gelir."
 
 msgid "Cool Plate"
 msgstr "Soğuk plaka"
@@ -8141,30 +8176,30 @@ msgid ""
 "filament does not support printing on the Cool Plate."
 msgstr ""
 "Cool Plate takıldığında yatak sıcaklığı. 0 değeri, filamentin Cool Plate "
-"üzerine yazdırmayı desteklemediği anlamına gelir"
+"üzerine yazdırmayı desteklemediği anlamına gelir."
 
 msgid "Textured Cool Plate"
-msgstr ""
+msgstr "Textured Cool Plate"
 
 msgid ""
 "Bed temperature when the Textured Cool Plate is installed. A value of 0 "
 "means the filament does not support printing on the Textured Cool Plate."
 msgstr ""
 "Cool Plate takıldığında yatak sıcaklığı. 0 Değeri, filamentin Textured Cool "
-"Plate üzerine yazdırmayı desteklemediği anlamına gelir"
+"Plate üzerine yazdırmayı desteklemediği anlamına gelir."
 
 msgid "Engineering Plate"
-msgstr ""
+msgstr "Engineering Plate"
 
 msgid ""
 "Bed temperature when the Engineering Plate is installed. A value of 0 means "
 "the filament does not support printing on the Engineering Plate."
 msgstr ""
 "Engineering Plate takıldığında yatak sıcaklığı. Değer 0, filamentin "
-"Engineering Plate yazdırmayı desteklemediği anlamına gelir"
+"Engineering Plate yazdırmayı desteklemediği anlamına gelir."
 
 msgid "Smooth PEI Plate / High Temp Plate"
-msgstr ""
+msgstr "Smooth PEI Plate / High Temp Plate"
 
 msgid ""
 "Bed temperature when the Smooth PEI Plate/High Temperature Plate is "
@@ -8173,17 +8208,17 @@ msgid ""
 msgstr ""
 "Smooth PEI Plate / High Temp Plate takılığın da yatak sıcaklığı. 0 Değeri, "
 "filamentin Smooth PEI Plate / High Temp Plate üzerine baskı yapmayı "
-"desteklemediği anlamına gelir"
+"desteklemediği anlamına gelir."
 
 msgid "Textured PEI Plate"
-msgstr ""
+msgstr "Textured PEI Plate"
 
 msgid ""
 "Bed temperature when the Textured PEI Plate is installed. A value of 0 means "
 "the filament does not support printing on the Textured PEI Plate."
 msgstr ""
 "Textured PEI Plate takıldığın da yatak sıcaklığı. 0 Değeri, filamentin "
-"Textured PEI Plate üzerine yazdırmayı desteklemediği anlamına gelir"
+"Textured PEI Plate üzerine yazdırmayı desteklemediği anlamına gelir."
 
 msgid "Volumetric speed limitation"
 msgstr "Hacimsel Hız Sınırlaması"
@@ -8222,16 +8257,16 @@ msgstr ""
 "maksimum olacaktır"
 
 msgid "Auxiliary part cooling fan"
-msgstr "Yardımcı parça soğutma fanı"
+msgstr "Yardımcı Parça Soğutma Fanı"
 
 msgid "Exhaust fan"
 msgstr "Egzos Fanı"
 
 msgid "During print"
-msgstr "Baskı boyunca"
+msgstr "Baskı sırasında"
 
 msgid "Complete print"
-msgstr "Tam baskı"
+msgstr "Baskı tamamlanınca"
 
 msgid "Filament start G-code"
 msgstr "Filament Başlangıç G Kodu"
@@ -8255,7 +8290,7 @@ msgid "Dependencies"
 msgstr "Bağımlılıklar"
 
 msgid "Compatible printers"
-msgstr ""
+msgstr "Uyumlu yazıcılar"
 
 msgid "Compatible process profiles"
 msgstr "Uyumlu süreç profilleri"
@@ -8326,10 +8361,10 @@ msgid "Normal"
 msgstr "Normal"
 
 msgid "Resonance Avoidance"
-msgstr ""
+msgstr "Rezonans Kaçınma"
 
 msgid "Resonance Avoidance Speed"
-msgstr ""
+msgstr "Rezonans kaçınma hızı"
 
 msgid "Speed limitation"
 msgstr "Hız Sınırlaması"
@@ -8368,7 +8403,7 @@ msgstr "Tek Ekstruder Çoklu Malzeme Parametreleri"
 
 #, c-format, boost-format
 msgid "Extruder %d"
-msgstr ""
+msgstr "Ekstruder %d"
 
 msgid ""
 "This is a single extruder multi-material printer, diameters of all extruders "
@@ -8432,6 +8467,9 @@ msgid ""
 "If the preset corresponds to a filament currently in use on your printer, "
 "please reset the filament information for that slot."
 msgstr ""
+"Seçili ön ayarı silmek istediğinizden emin misiniz?\n"
+"Ön ayar, yazıcınızda şu anda kullanımda olan bir filamente karşılık "
+"geliyorsa, lütfen o yuva için filament bilgilerini sıfırlayın."
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -8558,7 +8596,7 @@ msgid ""
 msgstr ""
 "\n"
 "Değiştirdiğiniz ön ayar değerlerini atabilir veya değiştirilen değerleri "
-"yeni projeye aktarmayı seçebilirsiniz."
+"yeni projeye aktarmayı seçebilirsiniz"
 
 msgid "Extruders count"
 msgstr "Ekstruder sayısı"
@@ -8658,7 +8696,7 @@ msgid ""
 "%s will update the configuration package to allow the application to start."
 msgstr ""
 "Yapılandırma paketi mevcut uygulamayla uyumlu değil.\n"
-"%s yapılandırma paketini güncelleyecek, Aksi halde başlatılamayacak"
+"%s yapılandırma paketini güncelleyecek, Aksi halde başlatılamayacak."
 
 #, c-format, boost-format
 msgid "Exit %s"
@@ -8754,16 +8792,16 @@ msgstr ""
 
 #, boost-format
 msgid "For constant flow rate, hold %1% while dragging."
-msgstr ""
+msgstr "Sabit akış hızı için sürüklerken %1% basılı tutun."
 
 msgid "Total ramming"
-msgstr ""
+msgstr "Toplam çarpma"
 
 msgid "Volume"
-msgstr ""
+msgstr "Hacim"
 
 msgid "Ramming line"
-msgstr ""
+msgstr "Çarpma hattı"
 
 msgid "Auto-Calc"
 msgstr "Otomatik Hesaplama"
@@ -8780,7 +8818,7 @@ msgid ""
 msgstr ""
 "Orca, filamentlerin rengi her değiştiğinde yıkama hacimlerinizi yeniden "
 "hesaplar. Otomatik hesaplamayı Orca Slicer > Tercihler bölümünden devre dışı "
-"bırakabilirsiniz."
+"bırakabilirsiniz"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Her filament çifti için yıkama hacmi (mm³)."
@@ -8823,7 +8861,7 @@ msgid ""
 "to re-register it. You will be promoted twice"
 msgstr ""
 "BambuSource medya oynatımı için doğru şekilde kaydedilmemiş! Yeniden "
-"kaydetmek için Evet’e basın."
+"kaydetmek için Evet’e basın"
 
 msgid ""
 "Missing BambuSource component registered for media playing! Please re-"
@@ -8872,12 +8910,6 @@ msgstr "Nesne listesi"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "STL/STEP/3MF/OBJ/AMF dosyalarından geometri verilerini içe aktarın"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Paste from clipboard"
 msgstr "Panodan yapıştır"
 
@@ -8893,20 +8925,14 @@ msgstr "Klavye kısayolları listesini göster"
 msgid "Global shortcuts"
 msgstr "Genel kısayollar"
 
-msgid "Rotate View"
-msgstr "Görüntüyü döndür"
-
 msgid "Pan View"
 msgstr "Pan Görünümü"
 
-msgid "Mouse wheel"
-msgstr "Fare tekerleği"
+msgid "Rotate View"
+msgstr "Görüntüyü döndür"
 
 msgid "Zoom View"
 msgstr "Zoom Görünümü"
-
-msgid "Shift+A"
-msgstr "Shift+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -8917,47 +8943,23 @@ msgstr ""
 "nesneler varsa, yalnızca seçilenleri yönlendirir. Aksi takdirde mevcut "
 "projedeki tüm nesneler yönlendirilecektir."
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr "Aktif plakadaki tüm nesneleri otomatik olarak yönlendirir."
-
-msgid "Shift+Tab"
-msgstr "Shift+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Kenar çubuğunu daralt/genişlet"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Herhangi bir ok"
+msgid "Any arrow"
+msgstr "Herhangi bir ok"
 
 msgid "Movement in camera space"
 msgstr "Kamera alanında hareket"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Sol fare düğmesi"
-
 msgid "Select a part"
 msgstr "Parça seçin"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Sol fare düğmesi"
-
 msgid "Select multiple objects"
 msgstr "Birden fazla nesne seç"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+Herhangi bir yön tuşu"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+Sol fare düğmesi"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+Sol fare düğmesi"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift+Sol fare düğmesi"
 
 msgid "Select objects by rectangle"
 msgstr "Nesneleri dikdörtgene göre seç"
@@ -8985,9 +8987,6 @@ msgstr "Sağ Yön Tuşu"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Seçimi pozitif X yönünde 10 mm taşı"
-
-msgid "Shift+Any arrow"
-msgstr "Shift+Herhangi bir ok tuşu"
 
 msgid "Movement step set to 1 mm"
 msgstr "Hareket adımı 1 mm'ye ayarlandı"
@@ -9038,7 +9037,7 @@ msgid "Gizmo mesh boolean"
 msgstr "Gizmo mesh bölme"
 
 msgid "Gizmo FDM paint-on fuzzy skin"
-msgstr ""
+msgstr "Gizmo FDM boyama ile uygulanan pütürlü yüzey"
 
 msgid "Gizmo SLA support points"
 msgstr "Gizmo SLA destek noktaları"
@@ -9056,7 +9055,7 @@ msgid "Gizmo assemble"
 msgstr "Gizmo birleştir"
 
 msgid "Gizmo brim ears"
-msgstr "Gizmo "
+msgstr "Gizmo lenarlık kulakları"
 
 msgid "Zoom in"
 msgstr "Yakınlaştır"
@@ -9073,23 +9072,11 @@ msgstr "Plakacı"
 msgid "Move: press to snap by 1mm"
 msgstr "Hareket Ettir: 1 mm kadar yaslamak için basın"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Fare tekerleği"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Destek/Renkli Boyama: kalem yarıçapını ayarlayın"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Fare tekerleği"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Destek/Renkli Boyama: bölüm konumunu ayarlayın"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Fare tekerleği"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Fare tekerleği"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -9133,11 +9120,8 @@ msgstr "G-kodu penceresini aç/kapat"
 msgid "Move slider 5x faster"
 msgstr "Kaydırıcıyı 5 kat daha hızlı hareket ettirin"
 
-msgid "Shift+Mouse wheel"
-msgstr "Shift+Fare tekerleği"
-
 msgid "Horizontal slider - Move to start position"
-msgstr "Yatay kaydırıcı - Başlangıç ​​konumuna taşıyın"
+msgstr "Yatay kaydırıcı - Başlangıç konumuna taşıyın"
 
 msgid "Horizontal slider - Move to last position"
 msgstr "Yatay kaydırıcı - Son konuma git"
@@ -9280,16 +9264,16 @@ msgstr ""
 "ağ sorunlarını gidermek için lütfen 3. adıma geçin"
 
 msgid "Air Pump"
-msgstr ""
+msgstr "Hava Pompası"
 
-msgid "Laser 10w"
-msgstr ""
+msgid "Laser 10 W"
+msgstr "Lazer 10 W"
 
-msgid "Laser 40w"
-msgstr ""
+msgid "Laser 40 W"
+msgstr "Lazer 40 W"
 
 msgid "Cutting Module"
-msgstr ""
+msgstr "Kesim Modülü"
 
 msgid "Model:"
 msgstr "Model:"
@@ -9396,7 +9380,7 @@ msgstr ""
 "etmeniz gerekir."
 
 msgid "Configuration package: "
-msgstr "Yapılandırma paketi:"
+msgstr "Yapılandırma paketi: "
 
 msgid " updated to "
 msgstr " güncellendi "
@@ -9629,7 +9613,7 @@ msgid ""
 "during printing."
 msgstr ""
 "Birlikte büyük sıcaklık farkına sahip birden fazla filament basılamaz. Aksi "
-"takdirde baskı sırasında ekstruder ve nozul tıkanabilir veya hasar görebilir"
+"takdirde baskı sırasında ekstruder ve nozul tıkanabilir veya hasar görebilir."
 
 msgid "No extrusions under current settings."
 msgstr "Mevcut ayarlarda ekstrüzyon yok."
@@ -9726,26 +9710,26 @@ msgstr ""
 msgid ""
 "The prime tower requires \"support gap\" to be multiple of layer height."
 msgstr ""
-"Ana kule \"destek boşluğunun\" katman yüksekliğinin katı olmasını gerektirir"
+"Ana kule \"destek boşluğunun\" katman yüksekliğinin katı olmasını gerektirir."
 
 msgid "The prime tower requires that all objects have the same layer heights."
 msgstr ""
 "Prime tower, tüm nesnelerin aynı katman yüksekliğine sahip olmasını "
-"gerektirir"
+"gerektirir."
 
 msgid ""
 "The prime tower requires that all objects are printed over the same number "
 "of raft layers."
 msgstr ""
 "Ana kule, tüm nesnelerin aynı sayıda sal katmanı üzerine yazdırılmasını "
-"gerektirir"
+"gerektirir."
 
 msgid ""
 "The prime tower is only supported for multiple objects if they are printed "
 "with the same support_top_z_distance."
 msgstr ""
 "Prime kulesi yalnızca aynı destek üst z mesafesi ile yazdırılırlarsa birden "
-"fazla nesne için desteklenir"
+"fazla nesne için desteklenir."
 
 msgid ""
 "The prime tower requires that all objects are sliced with the same layer "
@@ -9759,7 +9743,7 @@ msgid ""
 "layer height."
 msgstr ""
 "Prime tower yalnızca tüm nesnelerin aynı değişken katman yüksekliğine sahip "
-"olması durumunda desteklenir"
+"olması durumunda desteklenir."
 
 msgid ""
 "One or more object were assigned an extruder that the printer does not have."
@@ -9814,7 +9798,7 @@ msgstr ""
 "desteği etkinleştirin."
 
 msgid "Layer height cannot exceed nozzle diameter."
-msgstr "Katman yüksekliği nozul çapını aşamaz"
+msgstr "Katman yüksekliği nozul çapını aşamaz."
 
 msgid ""
 "Relative extruder addressing requires resetting the extruder position at "
@@ -9872,6 +9856,12 @@ msgid ""
 "You can adjust the machine_max_junction_deviation value in your printer's "
 "configuration to get higher limits."
 msgstr ""
+"Bağlantı noktası sapması ayarı, yazıcının maksimum değerini "
+"(machine_max_junction_deviation) aşıyor.\n"
+"Orca, yazıcının kapasitesini aşmaması için bağlantı noktası sapmasını "
+"otomatik olarak sınırlayacaktır.\n"
+"Daha yüksek sınırlar elde etmek için yazıcınızın yapılandırmasında "
+"machine_max_junction_deviation değerini ayarlayabilirsiniz."
 
 msgid ""
 "The acceleration setting exceeds the printer's maximum acceleration "
@@ -9904,6 +9894,13 @@ msgstr ""
 "machine_max_acceleration_travel değerini ayarlayabilirsiniz."
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+"Dış–iç veya iç–dış–iç duvar sıralamaları için 'Hassas duvar' seçeneği yok "
+"sayılacaktır."
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -9929,7 +9926,7 @@ msgid "Printable area"
 msgstr "Yazdırılabilir alan"
 
 msgid "Bed exclude area"
-msgstr "Yatak hariç alan"
+msgstr "Tablada hariç tutulan bölge"
 
 msgid ""
 "Unprintable area in XY plane. For example, X1 Series printers use the front "
@@ -9953,10 +9950,10 @@ msgid ""
 "Shrinks the initial layer on build plate to compensate for elephant foot "
 "effect."
 msgstr ""
-"Fil ayağı etkisini telafi etmek için baskı plakasındaki ilk katmanı küçültün"
+"Fil ayağı etkisini telafi etmek için baskı plakasındaki ilk katmanı küçültün."
 
 msgid "Elephant foot compensation layers"
-msgstr "Fil ayağı etkisini telafi katmanları"
+msgstr "Fil ayağı telafisi"
 
 msgid ""
 "The number of layers on which the elephant foot compensation will be active. "
@@ -9976,21 +9973,22 @@ msgid ""
 "more printing time."
 msgstr ""
 "Her katman için dilimleme yüksekliği. Daha küçük katman yüksekliği, daha "
-"doğru ve daha fazla baskı süresi anlamına gelir"
+"doğru ve daha fazla baskı süresi anlamına gelir."
 
 msgid "Printable height"
 msgstr "Yazdırılabilir yükseklik"
 
 msgid "Maximum printable height which is limited by mechanism of printer."
 msgstr ""
-"Yazıcının mekanizması tarafından sınırlanan maksimum yazdırılabilir yükseklik"
+"Yazıcının mekanizması tarafından sınırlanan maksimum yazdırılabilir "
+"yükseklik."
 
 msgid "Preferred orientation"
 msgstr "Tercih edilen yönlendirme"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr ""
-"İlk içe aktarma sonrasında stl'leri Z ekseninde otomatik olarak yönlendirin"
+"İlk içe aktarma sonrasında stl'leri Z ekseninde otomatik olarak yönlendirin."
 
 msgid "Printer preset names"
 msgstr "Yazıcı ön ayar adları"
@@ -10001,7 +9999,7 @@ msgstr "3. taraf yazdırma ana bilgisayarını kullanın"
 msgid "Allow controlling BambuLab's printer through 3rd party print hosts."
 msgstr ""
 "BambuLab yazıcısının 3. taraf yazdırma ana bilgisayarları aracılığıyla "
-"kontrol edilmesine izin ver"
+"kontrol edilmesine izin ver."
 
 msgid "Hostname, IP or URL"
 msgstr "Ana bilgisayar adı, IP veya URL"
@@ -10027,7 +10025,7 @@ msgid ""
 "Specify the URL of your device user interface if it's not same as print_host."
 msgstr ""
 "Print_Host ile aynı değilse cihazınızın kullanıcı arayüzünün URL'sini "
-"belirtin"
+"belirtin."
 
 msgid "API Key / Password"
 msgstr "API Anahtarı / Şifre"
@@ -10041,7 +10039,7 @@ msgstr ""
 "içermelidir."
 
 msgid "Name of the printer."
-msgstr "Yazıcı adı"
+msgstr "Yazıcı adı."
 
 msgid "HTTPS CA File"
 msgstr "HTTPS CA Dosyası"
@@ -10074,7 +10072,7 @@ msgstr ""
 "imzalı sertifikalar için bu seçeneğin etkinleştirilmesi istenebilir."
 
 msgid "Names of presets related to the physical printer."
-msgstr "Fiziksel yazıcıyla ilgili ön ayarların adları"
+msgstr "Fiziksel yazıcıyla ilgili ön ayarların adları."
 
 msgid "Authorization Type"
 msgstr "Yetki Türü"
@@ -10090,7 +10088,7 @@ msgstr "Duvar geçişinden kaçın"
 
 msgid ""
 "Detour to avoid traveling across walls, which may cause blobs on the surface."
-msgstr "Yüzeyde lekelenmeye neden olabilecek duvar boyunca ilerlemekten kaçın"
+msgstr "Yüzeyde lekelenmeye neden olabilecek duvar boyunca ilerlemekten kaçın."
 
 msgid "Avoid crossing walls - Max detour length"
 msgstr "Duvarı geçmekten kaçının - maksimum servis yolu uzunluğu"
@@ -10104,7 +10102,7 @@ msgstr ""
 "Duvarı geçmekten kaçınmak için maksimum sapma mesafesi. Yoldan sapma "
 "mesafesi bu değerden büyükse yoldan sapmayın. Yol uzunluğu, mutlak bir değer "
 "olarak veya doğrudan seyahat yolunun yüzdesi (örneğin %50) olarak "
-"belirtilebilir. Devre dışı bırakmak için sıfır"
+"belirtilebilir. Devre dışı bırakmak için sıfır."
 
 msgid "mm or %"
 msgstr "mm veya %"
@@ -10116,13 +10114,15 @@ msgid ""
 "Bed temperature for layers except the initial one. A value of 0 means the "
 "filament does not support printing on the Cool Plate SuperTack."
 msgstr ""
+"İlk katman hariç tüm katmanlar için yatak sıcaklığı. 0 değeri, filamentin "
+"Cool Plate SuperTack üzerine baskıyı desteklemediği anlamına gelir."
 
 msgid ""
 "Bed temperature for layers except the initial one. A value of 0 means the "
 "filament does not support printing on the Cool Plate."
 msgstr ""
 "İlk katman dışındaki katmanlar için yatak sıcaklığı. 0 değeri, filamentin "
-"Cool Plate üzerine yazdırmayı desteklemediği anlamına gelir"
+"Cool Plate üzerine yazdırmayı desteklemediği anlamına gelir."
 
 msgid ""
 "Bed temperature for layers except the initial one. A value of 0 means the "
@@ -10136,21 +10136,21 @@ msgid ""
 "filament does not support printing on the Engineering Plate."
 msgstr ""
 "İlk katman dışındaki katmanlar için yatak sıcaklığı. Değer 0, filamentin "
-"Mühendislik Plakasına yazdırmayı desteklemediği anlamına gelir"
+"Mühendislik Plakasına yazdırmayı desteklemediği anlamına gelir."
 
 msgid ""
 "Bed temperature for layers except the initial one. A value of 0 means the "
 "filament does not support printing on the High Temp Plate."
 msgstr ""
 "İlk katman dışındaki katmanlar için yatak sıcaklığı. 0 değeri, filamentin "
-"Yüksek Sıcaklık Plakasına yazdırmayı desteklemediği anlamına gelir"
+"Yüksek Sıcaklık Plakasına yazdırmayı desteklemediği anlamına gelir."
 
 msgid ""
 "Bed temperature for layers except the initial one. A value of 0 means the "
 "filament does not support printing on the Textured PEI Plate."
 msgstr ""
 "İlk katman dışındaki katmanlar için yatak sıcaklığı. 0 Değeri, filamentin "
-"Dokulu PEI Plaka üzerine yazdırmayı desteklemediği anlamına gelir"
+"Dokulu PEI Plaka üzerine yazdırmayı desteklemediği anlamına gelir."
 
 msgid "Initial layer"
 msgstr "Başlangıç katmanı"
@@ -10163,14 +10163,14 @@ msgid ""
 "not support printing on the Cool Plate SuperTack."
 msgstr ""
 "İlk katmanın yatak sıcaklığı. 0 değeri, filamentin Soğuk Plaka SuperTack "
-"üzerine yazdırmayı desteklemediği anlamına gelir"
+"üzerine yazdırmayı desteklemediği anlamına gelir."
 
 msgid ""
 "Bed temperature of the initial layer. A value of 0 means the filament does "
 "not support printing on the Cool Plate."
 msgstr ""
 "İlk katmanın yatak sıcaklığı. 0 değeri, filamentin Cool Plate üzerine "
-"yazdırmayı desteklemediği anlamına gelir"
+"yazdırmayı desteklemediği anlamına gelir."
 
 msgid ""
 "Bed temperature of the initial layer. A value of 0 means the filament does "
@@ -10184,30 +10184,39 @@ msgid ""
 "not support printing on the Engineering Plate."
 msgstr ""
 "İlk katmanın yatak sıcaklığı. Değer 0, filamentin Mühendislik Plakasına "
-"yazdırmayı desteklemediği anlamına gelir"
+"yazdırmayı desteklemediği anlamına gelir."
 
 msgid ""
 "Bed temperature of the initial layer. A value of 0 means the filament does "
 "not support printing on the High Temp Plate."
 msgstr ""
 "İlk katmanın yatak sıcaklığı. 0 değeri, filamentin Yüksek Sıcaklık Plakasına "
-"yazdırmayı desteklemediği anlamına gelir"
+"yazdırmayı desteklemediği anlamına gelir."
 
 msgid ""
 "Bed temperature of the initial layer. A value of 0 means the filament does "
 "not support printing on the Textured PEI Plate."
 msgstr ""
 "İlk katmanın yatak sıcaklığı. 0 Değeri, filamentin Dokulu PEI Plaka üzerine "
-"yazdırmayı desteklemediği anlamına gelir"
+"yazdırmayı desteklemediği anlamına gelir."
 
 msgid "Bed types supported by the printer."
-msgstr "Yazıcının desteklediği yatak türleri"
+msgstr "Yazıcının desteklediği yatak türleri."
 
 msgid "Smooth Cool Plate"
-msgstr ""
+msgstr "Smooth Cool Plate"
 
 msgid "Smooth High Temp Plate"
+msgstr "Smooth High Temp Plate"
+
+msgid "Default bed type"
+msgstr "Varsayılan yatak türü"
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
 msgstr ""
+"Yazıcı için varsayılan plaka türü (hem sayısal hem de dize biçimini "
+"destekler)."
 
 msgid "First layer print sequence"
 msgstr "İlk katman yazdırma sırası"
@@ -10222,7 +10231,7 @@ msgid "Other layers filament sequence"
 msgstr "Diğer katmanlar filament dizisi"
 
 msgid "This G-code is inserted at every layer change before the Z lift."
-msgstr "Bu G kodu, z'yi kaldırmadan önce her katman değişikliğinde eklenir"
+msgstr "Bu G kodu, z'yi kaldırmadan önce her katman değişikliğinde eklenir."
 
 msgid "Bottom shell layers"
 msgstr "Alt katmanlar"
@@ -10234,7 +10243,7 @@ msgid ""
 msgstr ""
 "Bu, alt yüzey katmanı da dahil olmak üzere alt kabuğun katı katmanlarının "
 "sayısıdır. Bu değerle hesaplanan kalınlık alt kabuk kalınlığından ince "
-"olduğunda alt kabuk katmanları artırılacaktır"
+"olduğunda alt kabuk katmanları artırılacaktır."
 
 msgid "Bottom shell thickness"
 msgstr "Alt katman kalınlığı"
@@ -10250,7 +10259,7 @@ msgstr ""
 "ise dilimleme sırasında alt katı katmanların sayısı arttırılır. Bu, katman "
 "yüksekliği küçük olduğunda kabuğun çok ince olmasını önleyebilir. 0, bu "
 "ayarın devre dışı olduğu ve alt kabuğun kalınlığının mutlaka alt kabuk "
-"katmanları tarafından belirlendiği anlamına gelir"
+"katmanları tarafından belirlendiği anlamına gelir."
 
 msgid "Apply gap fill"
 msgstr "Boşluk doldurmayı uygula"
@@ -10359,7 +10368,7 @@ msgstr ""
 msgid "Overhang cooling activation threshold"
 msgstr "Çıkıntı soğutma etkinleştirme eşiği"
 
-#, fuzzy, no-c-format, no-boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "When the overhang exceeds this specified threshold, force the cooling fan to "
 "run at the 'Overhang Fan Speed' set below. This threshold is expressed as a "
@@ -10518,20 +10527,22 @@ msgstr "Hassas duvar"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
-"Dış duvar aralığını ayarlayarak kabuk hassasiyetini artırın. Bu aynı zamanda "
-"katman tutarlılığını da artırır."
+"Dış duvar aralıklarını ayarlayarak kabuk hassasiyetini artırır. Bu, katman "
+"tutarlılığını da iyileştirir. NOT: Bu seçenek dış–iç veya iç–dış–iç duvar "
+"sıralamalarında yok sayılacaktır."
 
 msgid "Only one wall on top surfaces"
-msgstr "Üst yüzeylerde yalnızca bir duvar"
+msgstr "Üst yüzeylerde yalnızca bir dış duvar"
 
 msgid ""
 "Use only one wall on flat top surfaces, to give more space to the top infill "
 "pattern."
 msgstr ""
 "Üst dolgu desenine daha fazla yer açmak için düz üst yüzeyde yalnızca bir "
-"duvar kullanın"
+"duvar kullanın."
 
 msgid "One wall threshold"
 msgstr "Tek duvar eşiği"
@@ -10564,7 +10575,7 @@ msgid ""
 "pattern."
 msgstr ""
 "Alt dolgu desenine daha fazla yer açmak için ilk katmanda yalnızca bir duvar "
-"kullanın"
+"kullanın."
 
 msgid "Extra perimeters on overhangs"
 msgstr "Çıkıntılarda ekstra çevre (perimeter)"
@@ -10577,7 +10588,7 @@ msgstr ""
 "yolları (perimeter) oluşturun."
 
 msgid "Reverse on even"
-msgstr "Çiftleri ters çevirin"
+msgstr "Çift katmanlarda ters yön"
 
 msgid "Overhang reversal"
 msgstr "Çıkıntıyı tersine çevir"
@@ -10639,10 +10650,9 @@ msgid ""
 msgstr ""
 "Bu seçenek, havşa delikleri için köprüler oluşturarak bunların desteksiz "
 "yazdırılmasına olanak tanır. Mevcut modlar şunları içerir:\n"
-"1. Yok: Köprü oluşturulmaz.\n"
-"2. Kısmen Köprülendi: Desteklenmeyen alanın yalnızca bir kısmı "
-"köprülenecek.\n"
-"3. Feda Katman: Tam bir feda köprü katmanı oluşturulur."
+"1. Yok: Köprü oluşturulmaz\n"
+"2. Kısmen Köprülendi: Desteklenmeyen alanın yalnızca bir kısmı köprülenecek\n"
+"3. Feda Katman: Tam bir feda köprü katmanı oluşturulur"
 
 msgid "Partially bridged"
 msgstr "Kısmen köprülü"
@@ -10676,12 +10686,12 @@ msgstr "Çıkıntılarda yavaşla"
 msgid "Enable this option to slow printing down for different overhang degree."
 msgstr ""
 "Farklı sarkma derecelerinde yazdırmayı yavaşlatmak için bu seçeneği "
-"etkinleştirin"
+"etkinleştirin."
 
 msgid "Slow down for curled perimeters"
-msgstr "Kıvrılmış çevre çizgilerinde yavaşlat"
+msgstr "Kıvrılmış dış duvarlarda hızı düşür"
 
-#, fuzzy, no-c-format, no-boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Enable this option to slow down printing in areas where perimeters may have "
 "curled upwards. For example, additional slowdown will be applied when "
@@ -10754,7 +10764,7 @@ msgid "Brim width"
 msgstr "Kenar genişliği"
 
 msgid "Distance from model to the outermost brim line."
-msgstr "Modelden en dış kenar çizgisine kadar olan mesafe"
+msgstr "Modelden en dış kenar çizgisine kadar olan mesafe."
 
 msgid "Brim type"
 msgstr "Kenar tipi"
@@ -10775,7 +10785,7 @@ msgid ""
 "easily."
 msgstr ""
 "En içteki kenar çizgisi ile nesne arasındaki boşluk, kenarlığın daha kolay "
-"çıkarılmasını sağlayabilir"
+"çıkarılmasını sağlayabilir."
 
 msgid "Brim ears"
 msgstr "Kenar  kulakları"
@@ -10800,18 +10810,21 @@ msgstr "Kenar kulak algılama yarıçapı"
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
+"Keskin açılar algılanmadan önce geometri azaltılacaktır. Bu parametre, "
+"azaltma için minimum sapma uzunluğunu belirtir.\n"
+"Devre dışı bırakmak için 0."
 
 msgid "Select printers"
-msgstr ""
+msgstr "Yazıcıları seçin"
 
 msgid "upward compatible machine"
 msgstr "yukarı doğru uyumlu makine"
 
 msgid "Condition"
-msgstr ""
+msgstr "Durum"
 
 msgid ""
 "A boolean expression using the configuration values of an active printer "
@@ -10823,7 +10836,7 @@ msgstr ""
 "profiliyle uyumlu olduğu kabul edilir."
 
 msgid "Select profiles"
-msgstr ""
+msgstr "Profilleri seçin"
 
 msgid ""
 "A boolean expression using the configuration values of an active print "
@@ -10835,7 +10848,7 @@ msgstr ""
 "profiliyle uyumlu olduğu kabul edilir."
 
 msgid "Print sequence, layer by layer or object by object."
-msgstr "Yazdırma sırası, katman katman veya nesne nesne"
+msgstr "Yazdırma sırası, katman katman veya nesne nesne."
 
 msgid "By layer"
 msgstr "Katmana göre"
@@ -10844,10 +10857,10 @@ msgid "By object"
 msgstr "Nesneye göre"
 
 msgid "Intra-layer order"
-msgstr "Katman içi sipariş"
+msgstr "Katman içi sıra"
 
 msgid "Print order within a single layer."
-msgstr "Tek bir katmanda yazdırma sırası"
+msgstr "Tek bir katmanda yazdırma sırası."
 
 msgid "As object list"
 msgstr "Nesne listesi olarak"
@@ -10864,7 +10877,7 @@ msgstr ""
 "Son katman süresinin \"Maksimum fan hızı eşiği\"ndeki katman süresi "
 "eşiğinden kısa olmamasını sağlamak amacıyla yazdırma hızını yavaşlatmak için "
 "bu seçeneği etkinleştirin, böylece katman daha uzun süre soğutulabilir. Bu, "
-"iğne ve küçük detaylar için soğutma kalitesini artırabilir"
+"iğne ve küçük detaylar için soğutma kalitesini artırabilir."
 
 msgid "Normal printing"
 msgstr "Normal baskı"
@@ -10874,19 +10887,19 @@ msgid ""
 "layer."
 msgstr ""
 "İlk katman dışında hem normal yazdırmanın hem de ilerlemenin varsayılan "
-"ivmesi"
+"ivmesi."
 
 msgid "Default filament profile"
 msgstr "Varsayılan filament profili"
 
 msgid "Default filament profile when switching to this machine profile."
-msgstr "Bu yazıcıprofiline geçildiğinde varsayılan filament profili"
+msgstr "Bu yazıcı profiline geçildiğinde varsayılan filament profili."
 
 msgid "Default process profile"
 msgstr "Varsayılan süreç profili"
 
 msgid "Default process profile when switching to this machine profile."
-msgstr "Bu yazıcıprofiline geçildiğinde varsayılan işlem profili"
+msgstr "Bu yazıcı profiline geçildiğinde varsayılan işlem profili."
 
 msgid "Activate air filtration"
 msgstr "Hava filtrelemesini etkinleştirin"
@@ -10898,16 +10911,15 @@ msgstr ""
 msgid "Fan speed"
 msgstr "Fan hızı"
 
-#, fuzzy
 msgid ""
 "Speed of exhaust fan during printing. This speed will override the speed in "
 "filament custom G-code."
 msgstr ""
 "Baskı sırasında egzoz fanının hızı. Bu hız, filament özel gcode'undaki hızın "
-"üzerine yazılacaktır"
+"üzerine yazılacaktır."
 
 msgid "Speed of exhaust fan after printing completes."
-msgstr "Baskı tamamlandıktan sonra egzoz fanının hızı"
+msgstr "Baskı tamamlandıktan sonra egzoz fanının hızı."
 
 msgid "No cooling for the first"
 msgstr "Soğutmayı devre dışı bırak"
@@ -10917,7 +10929,7 @@ msgid ""
 "improve build plate adhesion."
 msgstr ""
 "İlk belirli katmanlar için tüm soğutma fanını kapatın. Daha iyi baskı "
-"plakası yapışması sağlamak için ilk katmanın soğutma fanı kapatılırdı"
+"plakası yapışması sağlamak için ilk katmanın soğutma fanı kapatılırdı."
 
 msgid "Don't support bridges"
 msgstr "Köprülerde destek olmasın"
@@ -10927,7 +10939,7 @@ msgid ""
 "can usually be printed directly without support if not very long."
 msgstr ""
 "Desteği çok büyük yapan tüm köprü alanını desteklemeyin. Bridge genellikle "
-"çok uzun olmasa da destek olmadan doğrudan yazdırılabilir"
+"çok uzun olmasa da destek olmadan doğrudan yazdırılabilir."
 
 msgid "Thick external bridges"
 msgstr "Kalın dış köprüler"
@@ -11077,7 +11089,7 @@ msgstr ""
 "gereksiz köprülerden kaçınır. Bu, çoğu zor modelde işe yarar.\n"
 "3. Filtreleme yok - her potansiyel dahili çıkıntıda iç köprüler oluşturur. "
 "Bu seçenek aşırı eğimli üst yüzey modelleri için kullanışlıdır; ancak çoğu "
-"durumda çok fazla gereksiz köprü oluşturur."
+"durumda çok fazla gereksiz köprü oluşturur"
 
 msgid "Filter"
 msgstr "Filtreli"
@@ -11104,7 +11116,7 @@ msgid "End G-code"
 msgstr "Bitiş G kodu"
 
 msgid "End G-code when finishing the entire print."
-msgstr "Tüm yazdırmayı tamamladığında çalışacak olan G Kodu"
+msgstr "Tüm yazdırmayı tamamladığında çalışacak olan G Kodu."
 
 msgid "Between Object G-code"
 msgstr "Nesne Arası Gcode"
@@ -11114,10 +11126,10 @@ msgid ""
 "when you print your models object by object."
 msgstr ""
 "Nesnelerin arasına Gcode ekleyin. Bu parametre yalnızca modellerinizi nesne "
-"nesne yazdırdığınızda etkili olacaktır"
+"nesne yazdırdığınızda etkili olacaktır."
 
 msgid "End G-code when finishing the printing of this filament."
-msgstr "Bu filament ile baskı bittiğinde çalışacak G kodu"
+msgstr "Bu filament ile baskı bittiğinde çalışacak G kod."
 
 msgid "Ensure vertical shell thickness"
 msgstr "Dikey kabuk kalınlığını onayla"
@@ -11151,7 +11163,7 @@ msgid "Top surface pattern"
 msgstr "Üst yüzey deseni"
 
 msgid "Line pattern of top surface infill."
-msgstr "Üst yüzey dolgusunun çizgi deseni"
+msgstr "Üst yüzey dolgusunun çizgi deseni."
 
 msgid "Monotonic"
 msgstr "Monotonic"
@@ -11181,10 +11193,10 @@ msgid "Bottom surface pattern"
 msgstr "Alt yüzey deseni"
 
 msgid "Line pattern of bottom surface infill, not bridge infill."
-msgstr "Köprü dolgusu değil, alt yüzey dolgusunun çizgi deseni"
+msgstr "Köprü dolgusu değil, alt yüzey dolgusunun çizgi deseni."
 
 msgid "Internal solid infill pattern"
-msgstr "İç dolgu deseni"
+msgstr "İç katı dolgu deseni"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect narrow internal solid "
@@ -11226,7 +11238,8 @@ msgstr "Küçük çevre (perimeter) eşiği"
 
 msgid ""
 "This sets the threshold for small perimeter length. Default threshold is 0mm."
-msgstr "Bu, küçük çevre uzunluğu için eşiği belirler. Varsayılan eşik 0 mm'dir"
+msgstr ""
+"Bu, küçük çevre uzunluğu için eşiği belirler. Varsayılan eşik 0 mm'dir."
 
 msgid "Walls printing order"
 msgstr "Duvar baskı sırası"
@@ -11393,7 +11406,7 @@ msgstr ""
 "izin verilir."
 
 msgid "Bed mesh max"
-msgstr "Maksimum yatak ağı"
+msgstr "Maksimum plaka ağı"
 
 msgid ""
 "This option sets the max point for the allowed bed mesh area. Due to the "
@@ -11440,15 +11453,14 @@ msgid "Extruder Color"
 msgstr "Ekstruder rengi"
 
 msgid "Only used as a visual help on UI."
-msgstr "Yalnızca kullanıcı arayüzünde görsel yardım olarak kullanılır"
+msgstr "Yalnızca kullanıcı arayüzünde görsel yardım olarak kullanılır."
 
 msgid "Extruder offset"
-msgstr "Ekstruder konum"
+msgstr "Ekstruder konumu"
 
 msgid "Flow ratio"
 msgstr "Akış oranı"
 
-#, fuzzy
 msgid ""
 "The material may have volumetric change after switching between molten and "
 "crystalline states. This setting changes all extrusion flow of this filament "
@@ -11460,9 +11472,8 @@ msgstr ""
 "değişime sahip olabilir. Bu ayar, bu filamentin gcode'daki tüm ekstrüzyon "
 "akışını orantılı olarak değiştirir. Önerilen değer aralığı 0,95 ile 1,05 "
 "arasındadır. Belki hafif taşma veya taşma olduğunda güzel düz bir yüzey elde "
-"etmek için bu değeri ayarlayabilirsiniz"
+"etmek için bu değeri ayarlayabilirsiniz."
 
-#, fuzzy
 msgid ""
 "The material may have volumetric change after switching between molten and "
 "crystalline states. This setting changes all extrusion flow of this filament "
@@ -11483,7 +11494,7 @@ msgstr ""
 "edilir."
 
 msgid "Enable pressure advance"
-msgstr "Basınç Avansı (PA)"
+msgstr "Basınç avansı"
 
 msgid ""
 "Enable pressure advance, auto calibration result will be overwritten once "
@@ -11540,7 +11551,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr "Uyarlanabilir basınç ilerleme ölçümleri (beta)"
 
-#, fuzzy, no-c-format, no-boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and "
 "accelerations they were measured at, separated by a comma. One set of values "
@@ -11594,7 +11605,7 @@ msgstr ""
 "kabul edilebilir PA değerleri aralığı o kadar geniş olur. Hiçbir fark "
 "görünmüyorsa, daha hızlı olan testteki PA değerini kullanın.\n"
 "3. Buradaki metin kutusuna PA değerleri, Akış ve Hızlanma üçlüsünü girin ve "
-"filament profilinizi kaydedin."
+"filament profilinizi kaydedin"
 
 msgid "Enable adaptive pressure advance for overhangs (beta)"
 msgstr "Çıkıntılar için uyarlanabilir basınç ilerlemesini etkinleştirin (beta)"
@@ -11646,7 +11657,7 @@ msgid ""
 msgstr ""
 "Bu ayarı etkinleştirirseniz, parça soğutma fanı hiçbir zaman durdurulmayacak "
 "ve başlatma ve durdurma sıklığını azaltmak için en azından minimum hızda "
-"çalışacaktır"
+"çalışacaktır."
 
 msgid "Don't slow down outer walls"
 msgstr "Dış duvarları yavaşlatma"
@@ -11681,15 +11692,17 @@ msgid ""
 msgstr ""
 "Tahmini süresi bu değerden kısa olan katlarda parça soğutma fanı devreye "
 "girecektir. Fan hızı, katman yazdırma süresine göre minimum ve maksimum fan "
-"hızları arasında enterpole edilir"
+"hızları arasında enterpole edilir."
 
 msgid "Default color"
 msgstr "Varsayılan renk"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
+"Varsayılan filament rengi\n"
+"Değeri sistem varsayılanına sıfırlamak için sağ tıklayın."
 
 msgid "Filament notes"
 msgstr "Filament Notları"
@@ -11714,7 +11727,7 @@ msgid ""
 msgstr ""
 "Bu ayar, saniyede ne kadar miktarda filamentin eritilip ekstrude "
 "edilebileceğini gösterir. Çok yüksek ve makul olmayan hız ayarı durumunda, "
-"yazdırma hızı maksimum hacimsel hız ile sınırlanır. Sıfır olamaz"
+"yazdırma hızı maksimum hacimsel hız ile sınırlanır. Sıfır olamaz."
 
 msgid "Filament load time"
 msgstr "Filament yükleme süresi"
@@ -11759,7 +11772,7 @@ msgid ""
 "important and should be accurate."
 msgstr ""
 "Filament çapı, gcode'da ekstrüzyonu hesaplamak için kullanılır; bu nedenle "
-"önemlidir ve doğru olmalıdır"
+"önemlidir ve doğru olmalıdır."
 
 msgid "Pellet flow coefficient"
 msgstr "Pelet akış katsayısı"
@@ -11951,10 +11964,10 @@ msgid "Density"
 msgstr "Yoğunluk"
 
 msgid "Filament density. For statistics only."
-msgstr "Filament yoğunluğu. Yalnızca istatistikler için"
+msgstr "Filament yoğunluğu. Yalnızca istatistikler için."
 
 msgid "The material type of filament."
-msgstr "Filament malzeme türü"
+msgstr "Filament malzeme türü."
 
 msgid "Soluble material"
 msgstr "Çözünür malzeme"
@@ -11963,7 +11976,7 @@ msgid ""
 "Soluble material is commonly used to print supports and support interfaces."
 msgstr ""
 "Çözünür malzeme genellikle destek ve destek arayüzünü yazdırmak için "
-"kullanılır"
+"kullanılır."
 
 msgid "Support material"
 msgstr "Destek malzemesi"
@@ -11972,7 +11985,7 @@ msgid ""
 "Support material is commonly used to print supports and support interfaces."
 msgstr ""
 "Destek malzemesi yaygın olarak destek ve destek arayüzünü yazdırmak için "
-"kullanılır"
+"kullanılır."
 
 msgid "Softening temperature"
 msgstr "Yumuşama sıcaklığı"
@@ -11990,7 +12003,7 @@ msgid "Price"
 msgstr "Fiyat"
 
 msgid "Filament price. For statistics only."
-msgstr "Filament fiyatı. Yalnızca istatistikler için"
+msgstr "Filament fiyatı. Yalnızca istatistikler için."
 
 msgid "money/kg"
 msgstr "ücret/kg"
@@ -11999,7 +12012,7 @@ msgid "Vendor"
 msgstr "Satıcı"
 
 msgid "Vendor of filament. For show only."
-msgstr "Filament satıcısı. Yalnızca gösteri için"
+msgstr "Filament satıcısı. Yalnızca gösteri için."
 
 msgid "(Undefined)"
 msgstr "(Tanımsız)"
@@ -12011,7 +12024,7 @@ msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
 "of line."
 msgstr ""
-"Hattın başlangıcını veya ana yönünü kontrol eden seyrek dolgu deseni açısı"
+"Hattın başlangıcını veya ana yönünü kontrol eden seyrek dolgu deseni açısı."
 
 msgid "Solid infill direction"
 msgstr "Katı dolgu yönü"
@@ -12020,7 +12033,7 @@ msgid ""
 "Angle for solid infill pattern, which controls the start or main direction "
 "of line."
 msgstr ""
-"Hattın başlangıcını veya ana yönünü kontrol eden katı dolgu deseni açısı"
+"Hattın başlangıcını veya ana yönünü kontrol eden katı dolgu deseni açısı."
 
 msgid "Sparse infill density"
 msgstr "Dolgu yoğunluğu"
@@ -12031,38 +12044,58 @@ msgid ""
 "infill and internal solid infill pattern will be used."
 msgstr ""
 "İç seyrek dolgunun yoğunluğu, %100 tüm seyrek dolguyu katı dolguya "
-"dönüştürür ve iç katı dolgu modeli kullanılacaktır"
+"dönüştürür ve iç katı dolgu modeli kullanılacaktır."
 
 msgid "Align infill direction to model"
-msgstr ""
+msgstr "Dolgu yönünü modele hizalayın"
 
 msgid ""
 "Aligns infill and surface fill directions to follow the model's orientation "
 "on the build plate. When enabled, fill directions rotate with the model to "
 "maintain optimal strength characteristics."
 msgstr ""
+"Dolgu ve yüzey dolgu yönlerini, modelin yapı plakasındaki yönünü takip "
+"edecek şekilde hizalar. Etkinleştirildiğinde, dolgu yönleri optimum "
+"dayanıklılık özelliklerini korumak için modelle birlikte döner."
+
+msgid "Insert solid layers"
+msgstr "Katı katmanlar ekle"
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+"Belirli katmanlara katı dolgu ekleyin. Her N’inci katmana eklemek için N "
+"kullanın, her N katmanda K ardışık katı katman eklemek için N#K kullanın (K "
+"isteğe bağlıdır, örn. '5#' = '5#1'), veya belirli katmanlara eklemek için "
+"virgülle ayrılmış bir liste kullanın (örn. 1,7,9). Katman numaraları 1’den "
+"başlar."
 
 msgid "Fill Multiline"
-msgstr ""
+msgstr "Çok çizgili dolgu"
 
 msgid ""
 "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr ""
+"Dolgu deseni tarafından destekleniyorsa, dolgu deseni için birden fazla "
+"çizgi kullanılması."
 
 msgid "Sparse infill pattern"
 msgstr "Dolgu deseni"
 
 msgid "Line pattern for internal sparse infill."
-msgstr "İç dolgu deseni"
+msgstr "İç dolgu deseni."
 
 msgid "Zig Zag"
-msgstr ""
+msgstr "Zig zag"
 
 msgid "Cross Zag"
-msgstr ""
+msgstr "Cross zag"
 
 msgid "Locked Zag"
-msgstr ""
+msgstr "Locked zag"
 
 msgid "Line"
 msgstr "Çizgi"
@@ -12080,7 +12113,7 @@ msgid "Adaptive Cubic"
 msgstr "Uyarlanabilir kübik"
 
 msgid "Quarter Cubic"
-msgstr "Çeyrek Küp"
+msgstr "Çeyrek küp"
 
 msgid "Support Cubic"
 msgstr "Destek kübik"
@@ -12089,50 +12122,53 @@ msgid "Lightning"
 msgstr "Yıldırım"
 
 msgid "Honeycomb"
-msgstr "Bal peteği"
+msgstr "Petek"
 
 msgid "3D Honeycomb"
 msgstr "3D petek"
 
-msgid "2D Honeycomb"
-msgstr ""
+msgid "Lateral Honeycomb"
+msgstr "Yanal petek"
 
-msgid "2D Lattice"
-msgstr "2D Kafes"
+msgid "Lateral Lattice"
+msgstr "Yanal kafes"
 
 msgid "Cross Hatch"
 msgstr "Çapraz çizgi"
 
 msgid "TPMS-D"
-msgstr ""
+msgstr "Tpms-d"
+
+msgid "TPMS-FK"
+msgstr "Tpms-fk"
 
 msgid "Gyroid"
 msgstr "Jiroid"
 
-msgid "Lattice angle 1"
+msgid "Lateral lattice angle 1"
 msgstr "Kafes açısı 1"
 
 msgid ""
-"The angle of the first set of 2D lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "İlk 2 boyutlu kafes elemanları grubunun Z yönündeki açısı. Sıfır dikeydir."
 
-msgid "Lattice angle 2"
+msgid "Lateral lattice angle 2"
 msgstr "Kafes açısı 2"
 
 msgid ""
-"The angle of the second set of 2D lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 "İkinci 2 boyutlu kafes elemanları grubunun Z yönündeki açısı. Sıfır dikeydir."
 
 msgid "Infill overhang angle"
-msgstr ""
+msgstr "Dolgu çıkıntı açısı"
 
 msgid ""
 "The angle of the infill angled lines. 60° will result in a pure honeycomb."
-msgstr ""
+msgstr "Dolgu açılı çizgilerinin açısı 60° ise saf petek görünümü elde edilir."
 
 msgid "Sparse infill anchor length"
 msgstr "Dolgu uzunluğu"
@@ -12194,24 +12230,24 @@ msgid "0 (Simple connect)"
 msgstr "0 (Basit bağlantı)"
 
 msgid "Acceleration of outer walls."
-msgstr "Dış duvarların hızlandırılması"
+msgstr "Dış duvarların hızlandırılması."
 
 msgid "Acceleration of inner walls."
-msgstr "İç duvarların hızlandırılması"
+msgstr "İç duvarların hızlandırılması."
 
 msgid "Acceleration of travel moves."
-msgstr "Seyahat hareketlerinin hızlandırılması"
+msgstr "Seyahat hareketlerinin hızlandırılması."
 
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality."
 msgstr ""
 "Üst yüzey dolgusunun hızlandırılması. Daha düşük bir değerin kullanılması "
-"üst yüzey kalitesini iyileştirebilir"
+"üst yüzey kalitesini iyileştirebilir."
 
 msgid "Acceleration of outer wall. Using a lower value can improve quality."
 msgstr ""
-"Dış duvarın hızlanması. Daha düşük bir değer kullanmak kaliteyi artırabilir"
+"Dış duvarın hızlanması. Daha düşük bir değer kullanmak kaliteyi artırabilir."
 
 msgid ""
 "Acceleration of bridges. If the value is expressed as a percentage (e.g. "
@@ -12243,13 +12279,13 @@ msgid ""
 "adhesion."
 msgstr ""
 "Başlangıç katmanının hızlandırılması. Daha düşük bir değerin kullanılması "
-"baskı plakası yapışkanlığını iyileştirebilir"
+"baskı plakası yapışkanlığını iyileştirebilir."
 
 msgid "Enable accel_to_decel"
 msgstr "Accel_to_decel'i etkinleştir"
 
 msgid "Klipper's max_accel_to_decel will be adjusted automatically."
-msgstr "Klipper'ın max_accel_to_decel'i otomatik olarak ayarlanacak"
+msgstr "Klipper'ın max_accel_to_decel'i otomatik olarak ayarlanacak."
 
 msgid "accel_to_decel"
 msgstr "Accel_to_decel"
@@ -12258,32 +12294,34 @@ msgstr "Accel_to_decel"
 msgid ""
 "Klipper's max_accel_to_decel will be adjusted to this %% of acceleration."
 msgstr ""
-"Klipper'ın max_accel_to_decel değeri ivmenin bu %%'sine göre ayarlanacak"
+"Klipper'ın max_accel_to_decel değeri ivmenin bu %%'sine göre ayarlanacak."
 
 msgid "Default jerk."
-msgstr ""
+msgstr "Varsayılan sarsıntı."
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
+"Marlin Firmware Köşe Sapması (geleneksel XY Sarsıntı ayarının yerini alır)"
 
 msgid "Jerk of outer walls."
-msgstr "Dış duvar JERK değeri"
+msgstr "Dış duvar JERK değeri."
 
 msgid "Jerk of inner walls."
-msgstr "İç duvarlar JERK değeri"
+msgstr "İç duvarlar JERK değeri."
 
 msgid "Jerk for top surface."
-msgstr "Üst yüzey için JERK değeri"
+msgstr "Üst yüzey için JERK değeri."
 
 msgid "Jerk for infill."
-msgstr "Dolgu için JERK değeri"
+msgstr "Dolgu için JERK değeri."
 
 msgid "Jerk for initial layer."
-msgstr "İlk katman için JERK değeri"
+msgstr "İlk katman için JERK değeri."
 
 msgid "Jerk for travel."
-msgstr "Seyahat için JERK değeri"
+msgstr "Seyahat için JERK değeri."
 
 msgid ""
 "Line width of initial layer. If expressed as a %, it will be computed over "
@@ -12300,22 +12338,22 @@ msgid ""
 "can improve build plate adhesion."
 msgstr ""
 "İlk katmanın yüksekliği. İlk katman yüksekliğini biraz kalın yapmak, baskı "
-"plakasının yapışmasını iyileştirebilir"
+"plakasının yapışmasını iyileştirebilir."
 
 msgid "Speed of initial layer except the solid infill part."
-msgstr "Katı dolgu kısmı dışındaki ilk katmanın hızı"
+msgstr "Katı dolgu kısmı dışındaki ilk katmanın hızı."
 
 msgid "Initial layer infill"
 msgstr "Başlangıç katman dolgusu"
 
 msgid "Speed of solid infill part of initial layer."
-msgstr "İlk katmanın katı dolgu kısmının hızı"
+msgstr "İlk katmanın katı dolgu kısmının hızı."
 
 msgid "Initial layer travel speed"
 msgstr "İlk katman seyahat hızı"
 
 msgid "Travel speed of initial layer."
-msgstr "İlk katman seyahat hızı"
+msgstr "İlk katman seyahat hızı."
 
 msgid "Number of slow layers"
 msgstr "Yavaş katman sayısı"
@@ -12331,7 +12369,7 @@ msgid "Initial layer nozzle temperature"
 msgstr "İlk katman nozul sıcaklığı"
 
 msgid "Nozzle temperature for printing initial layer when using this filament."
-msgstr "Bu filamenti kullanırken ilk katmanı yazdırmak için nozul sıcaklığı"
+msgstr "Bu filamenti kullanırken ilk katmanı yazdırmak için nozul sıcaklığı."
 
 msgid "Full fan speed at layer"
 msgstr "Maksimum fan hızı"
@@ -12390,7 +12428,7 @@ msgstr ""
 "bükülmesinin azaltılmasına yardımcı olabilir."
 
 msgid "Ironing fan speed"
-msgstr ""
+msgstr "Ütüleme fan hızı"
 
 msgid ""
 "This part cooling fan speed is applied when ironing. Setting this parameter "
@@ -12398,13 +12436,18 @@ msgid ""
 "low volumetric flow rate, making the interface smoother.\n"
 "Set to -1 to disable it."
 msgstr ""
+"Bu parça soğutma fanı hızı, ütüleme sırasında uygulanır. Bu parametrenin "
+"normalden daha düşük bir hıza ayarlanması, düşük hacimsel akış hızı "
+"nedeniyle nozul tıkanıklığını azaltarak arayüzü daha pürüzsüz hale getirir.\n"
+"\n"
+"Devre dışı bırakmak için -1 olarak ayarlayın."
 
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
 "look. This setting controls the fuzzy position."
 msgstr ""
 "Duvara baskı yaparken rastgele titreme, böylece yüzeyin pürüzlü bir görünüme "
-"sahip olması. Bu ayar bulanık konumu kontrol eder"
+"sahip olması. Bu ayar pütürlü konumu kontrol eder."
 
 msgid "Contour"
 msgstr "Kontur"
@@ -12416,34 +12459,34 @@ msgid "All walls"
 msgstr "Tüm duvarlar"
 
 msgid "Fuzzy skin thickness"
-msgstr "Bulanık kaplama kalınlığı"
+msgstr "Pütürlü yüzey kalınlığı"
 
 msgid ""
 "The width within which to jitter. It's advised to be below outer wall line "
 "width."
 msgstr ""
 "Titremenin gerçekleşeceği genişlik. Dış duvar çizgi genişliğinin altında "
-"olması sakıncalıdır"
+"olması sakıncalıdır."
 
 msgid "Fuzzy skin point distance"
-msgstr "Bulanık kaplama noktası mesafesi"
+msgstr "Pütürlü yüzey nokta mesafesi"
 
 msgid ""
 "The average distance between the random points introduced on each line "
 "segment."
 msgstr ""
-"Her çizgi parçasına eklenen rastgele noktalar arasındaki ortalama mesafe"
+"Her çizgi parçasına eklenen rastgele noktalar arasındaki ortalama mesafe."
 
 msgid "Apply fuzzy skin to first layer"
-msgstr "Bulanık cildi ilk katmana uygulayın"
+msgstr "Pütürlü yüzeyi ilk katmana uygula"
 
 msgid "Whether to apply fuzzy skin on the first layer."
-msgstr "İlk katmana bulanık cilt uygulanıp uygulanmayacağı"
+msgstr "İlk katmana pütürlü yüzey uygulanıp uygulanmayacağı."
 
 msgid "Fuzzy skin generator mode"
-msgstr ""
+msgstr "Pütürlü yüzey oluşturma modu"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "Fuzzy skin generation mode. Works only with Arachne!\n"
 "Displacement: Сlassic mode when the pattern is formed by shifting the nozzle "
@@ -12457,27 +12500,46 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop.At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
+"Pütürlü yüzey oluşturma modu. Sadece Arachne ile çalışır!\n"
+"Yer Değiştirme: Desen, nozülün orijinal yoldan yana kaydırılmasıyla "
+"oluşturulduğu klasik mod.\n"
+"Ekstrüzyon: Desenin ekstrüde edilen plastik miktarına göre oluşturulduğu "
+"mod. Bu, nozül sarsıntısı olmadan pürüzsüz bir desen veren hızlı ve düz bir "
+"algoritmadır. Ancak, tüm dizilimde gevşek duvarlar oluşturmak için daha "
+"kullanışlıdır.\n"
+"Birleşik: Eklem modu [Yer Değiştirme] + [Ekstrüzyon]. Duvarların görünümü "
+"[Yer Değiştirme] Moduna benzer, ancak çevreler arasında gözenek bırakmaz.\n"
+"\n"
+"Dikkat! [Ekstrüzyon] ve [Birleşik] modları yalnızca fuzzy_skin_thickness "
+"parametresini çalıştırır, yazdırılan ilmeğin kalınlığından daha fazla "
+"olmamalıdır. Aynı zamanda, belirli bir katman için ekstrüzyon genişliği de "
+"belirli bir seviyenin altında olmamalıdır. Genellikle katman yüksekliğinin "
+"%15-25'ine eşittir. Bu nedenle, 0,4 mm çevre genişliği ve 0,2 mm katman "
+"yüksekliğine sahip maksimum bulanık deri kalınlığı 0,4-(0,2*0,25)=±0,35 mm "
+"olacaktır! Bundan daha yüksek bir parametre girerseniz, Flow::spacing() "
+"hatası görüntülenir ve model dilimlenmez. Bu hata tekrarlanana kadar bu "
+"sayıyı seçebilirsiniz."
 
 msgid "Displacement"
-msgstr ""
+msgstr "Yer değiştirme"
 
 msgid "Extrusion"
-msgstr ""
+msgstr "Ekstrüzyon"
 
 msgid "Combined"
 msgstr "Birleşik"
 
 msgid "Fuzzy skin noise type"
-msgstr "Bulanık cilt gürültü türü"
+msgstr "Pütürlü yüzey gürültü türü"
 
 msgid ""
 "Noise type to use for fuzzy skin generation:\n"
@@ -12489,11 +12551,11 @@ msgid ""
 "Voronoi: Divides the surface into voronoi cells, and displaces each one by a "
 "random amount. Creates a patchwork texture."
 msgstr ""
-"Tüylü cilt oluşumu için kullanılacak gürültü türü.\n"
+"Pütürlü yüzey oluşumu için kullanılacak gürültü türü.\n"
 "Klasik: Klasik tek tip rastgele gürültü.\n"
 "Perlin: Daha tutarlı bir doku veren Perlin gürültüsü.\n"
 "Billow: Perlin gürültüsüne benzer, ancak daha topaklanır.\n"
-"Ridged Multifractal: Keskin, pürüzlü özelliklere sahip çıkıntılı gürültü. "
+"Ridged multifractal: Keskin, pürüzlü özelliklere sahip çıkıntılı gürültü. "
 "Mermer benzeri dokular oluşturur.\n"
 "Voronoi: Yüzeyi voronoi hücrelerine böler ve her birini rastgele miktarda "
 "yer değiştirir. Patchwork dokusu oluşturur."
@@ -12508,13 +12570,13 @@ msgid "Billow"
 msgstr "Billow"
 
 msgid "Ridged Multifractal"
-msgstr "Ridged Multifractal"
+msgstr "Ridged multifractal"
 
 msgid "Voronoi"
 msgstr "Voronoi"
 
 msgid "Fuzzy skin feature size"
-msgstr "Bulanık cilt özelliği boyutu"
+msgstr "Pütürlü yüzey özellik boyutu"
 
 msgid ""
 "The base size of the coherent noise features, in mm. Higher values will "
@@ -12524,7 +12586,7 @@ msgstr ""
 "değerler daha büyük özelliklerle sonuçlanacaktır."
 
 msgid "Fuzzy Skin Noise Octaves"
-msgstr "Bulanık Cilt Gürültüsü Oktavları"
+msgstr "Pütürlü yüzey gürültü oktavları"
 
 msgid ""
 "The number of octaves of coherent noise to use. Higher values increase the "
@@ -12535,7 +12597,7 @@ msgstr ""
 "artırır."
 
 msgid "Fuzzy skin noise persistence"
-msgstr "Bulanık cilt gürültüsü kalıcılığı"
+msgstr "Pütürlü yüzey gürültü kalıcılığı"
 
 msgid ""
 "The decay rate for higher octaves of the coherent noise. Lower values will "
@@ -12564,7 +12626,7 @@ msgid ""
 "printed more slowly."
 msgstr ""
 "Boşluk doldurma hızı. Boşluk genellikle düzensiz çizgi genişliğine sahiptir "
-"ve daha yavaş yazdırılmalıdır"
+"ve daha yavaş yazdırılmalıdır."
 
 msgid "Precise Z height"
 msgstr "Hassas z yüksekliği"
@@ -12609,7 +12671,7 @@ msgid ""
 "Enable this to add line number(Nx) at the beginning of each G-code line."
 msgstr ""
 "Her G Kodu satırının başına satır numarası (Nx) eklemek için bunu "
-"etkinleştirin"
+"etkinleştirin."
 
 msgid "Scan first layer"
 msgstr "İlk katmanı tara"
@@ -12619,7 +12681,7 @@ msgid ""
 "layer."
 msgstr ""
 "Yazıcıdaki kameranın ilk katmanın kalitesini kontrol etmesini sağlamak için "
-"bunu etkinleştirin"
+"bunu etkinleştirin."
 
 msgid "Nozzle type"
 msgstr "Nozul tipi"
@@ -12629,7 +12691,7 @@ msgid ""
 "nozzle, and what kind of filament can be printed."
 msgstr ""
 "Nozulnin metalik malzemesi. Bu, nozulun aşınma direncini ve ne tür "
-"filamentin basılabileceğini belirler"
+"filamentin basılabileceğini belirler."
 
 msgid "Undefine"
 msgstr "Tanımsız"
@@ -12660,7 +12722,7 @@ msgid "Printer structure"
 msgstr "Yazıcı yapısı"
 
 msgid "The physical arrangement and components of a printing device."
-msgstr "Yazıcının fiziksel düzenlemesi ve bileşenleri"
+msgstr "Yazıcının fiziksel düzenlemesi ve bileşenleri."
 
 msgid "CoreXY"
 msgstr "CoreXY"
@@ -12687,7 +12749,6 @@ msgstr ""
 "Makinede yardımcı parça soğutma fanı varsa bu seçeneği etkinleştirin. G-code "
 "komut: M106 P2 S(0-255)."
 
-#, fuzzy
 msgid ""
 "Start the fan this number of seconds earlier than its target start time (you "
 "can use fractional seconds). It assumes infinite acceleration for this time "
@@ -12734,7 +12795,7 @@ msgid "Time cost"
 msgstr "Zaman maliyeti"
 
 msgid "The printer cost per hour."
-msgstr "Yazıcı saat başına maliyeti"
+msgstr "Yazıcı saat başına maliyeti."
 
 msgid "money/h"
 msgstr "ücret/sa"
@@ -12761,10 +12822,10 @@ msgstr ""
 "G-code komut: M106 P3 S(0-255)"
 
 msgid "G-code flavor"
-msgstr "G-Kod Uyumu"
+msgstr "G-code türü"
 
 msgid "What kind of G-code the printer is compatible with."
-msgstr "Yazıcının ne tür bir gcode ile uyumlu olduğu"
+msgstr "Yazıcının ne tür bir gcode ile uyumlu olduğu."
 
 msgid "Klipper"
 msgstr "Klipper"
@@ -12774,14 +12835,14 @@ msgstr "Pelet modlu yazıcı"
 
 msgid "Enable this option if your printer uses pellets instead of filaments."
 msgstr ""
-"Yazıcınız filament yerine pellet kullanıyorsa bu seçeneği etkinleştirin"
+"Yazıcınız filament yerine pellet kullanıyorsa bu seçeneği etkinleştirin."
 
 msgid "Support multi bed types"
-msgstr "Çoklu plaka"
+msgstr "Çoklu plaka tiplerini destekle"
 
 msgid "Enable this option if you want to use multiple bed types."
 msgstr ""
-"Birden fazla plaka tipi kullanmak istiyorsanız bu seçeneği etkinleştirin"
+"Birden fazla plaka tipi kullanmak istiyorsanız bu seçeneği etkinleştirin."
 
 msgid "Label objects"
 msgstr "Nesneleri etiketle"
@@ -12802,10 +12863,10 @@ msgstr "Nesneleri hariç tut"
 
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr ""
-"G koduna EXCLUDE OBJECT komutunu eklemek için bu seçeneği etkinleştirin"
+"G koduna EXCLUDE OBJECT komutunu eklemek için bu seçeneği etkinleştirin."
 
 msgid "Verbose G-code"
-msgstr "Ayrıntılı G kodu"
+msgstr "Ayrıntılı G-code"
 
 msgid ""
 "Enable this to get a commented G-code file, with each line explained by a "
@@ -12828,30 +12889,40 @@ msgstr ""
 "yüksekliğinde basılmaktadır."
 
 msgid "Infill shift step"
-msgstr ""
+msgstr "Doldu kaydırma adımı"
 
 msgid ""
 "This parameter adds a slight displacement to each layer of infill to create "
 "a cross texture."
 msgstr ""
+"Bu parametre, çapraz bir doku oluşturmak için her dolgu katmanına hafif bir "
+"yer değiştirme ekler."
 
-msgid "Sparse infill rotatation template"
-msgstr ""
+msgid "Sparse infill rotation template"
+msgstr "Seyrek dolgu döndürme şablonu"
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
+"Seyrek dolgu yönünü katman katman açı şablonuna göre döndürün. Virgülle "
+"ayrılmış açıları girin (örn. '0,30,60,90'). Açılar katman sırasına göre "
+"uygulanır ve liste sona erdiğinde tekrarlanır. Gelişmiş sözdizimi "
+"desteklenir: '+5' her katmanda +5° döndürür; '+5#5' her 5 katmanda +5° "
+"döndürür. Detaylar için Viki’ye bakın. Bir şablon ayarlandığında, standart "
+"dolgu yönü ayarı yok sayılır. NOT: bazı dolgu desenleri (örn. Gyroid) kendi "
+"döndürmesini kontrol eder; dikkatli kullanın"
 
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
-msgstr ""
+msgid "Solid infill rotation template"
+msgstr "Katı dolgu döndürme şablonu"
 
 msgid ""
 "This parameter adds a rotation of solid infill direction to each layer "
@@ -12861,61 +12932,81 @@ msgid ""
 "layers than angles, the angles will be repeated. Note that not all solid "
 "infill patterns support rotation."
 msgstr ""
+"Bu parametre, belirtilen şablona göre her katmana katı dolgu yönünün "
+"döndürülmesini ekler. Şablon, derece cinsinden virgülle ayrılmış bir açı "
+"listesidir (örneğin, '0,90'). İlk açı ilk katmana, ikinci açı ikinci katmana "
+"uygulanır ve bu şekilde devam eder. Açılardan daha fazla katman varsa, "
+"açılar tekrarlanır. Tüm katı dolgu desenlerinin döndürmeyi desteklemediğini "
+"unutmayın."
 
 msgid "Skeleton infill density"
-msgstr ""
+msgstr "İskelet dolgu yoğunluğu"
 
 msgid ""
 "The remaining part of the model contour after removing a certain depth from "
 "the surface is called the skeleton. This parameter is used to adjust the "
-"density of this section.When two regions have the same sparse infill "
+"density of this section. When two regions have the same sparse infill "
 "settings but different skeleton densities, their skeleton areas will develop "
-"overlapping sections.default is as same as infill density."
+"overlapping sections. Default is as same as infill density."
 msgstr ""
+"üzeyden belirli bir derinlik çıkarıldıktan sonra model konturunda kalan "
+"kısma 'iskelet' denir. Bu parametre, bu bölümün yoğunluğunu ayarlamak için "
+"kullanılır. İki bölge aynı seyrek dolgu ayarlarına sahip fakat farklı "
+"iskelet yoğunluklarına sahipse, iskelet alanları üst üste binen bölümler "
+"oluşturabilir. Varsayılan değer, dolgu yoğunluğu ile aynıdır."
 
 msgid "Skin infill density"
-msgstr ""
+msgstr "Yüzey dolgu yoğunluğu"
 
 msgid ""
 "The portion of the model's outer surface within a certain depth range is "
 "called the skin. This parameter is used to adjust the density of this "
-"section.When two regions have the same sparse infill settings but different "
-"skin densities, This area will not be split into two separate "
-"regions.default is as same as infill density."
+"section. When two regions have the same sparse infill settings but different "
+"skin densities, this area will not be split into two separate regions. "
+"Default is as same as infill density."
 msgstr ""
+"Modelin dış yüzeyinin belirli bir derinlik aralığındaki kısmına 'cilt' "
+"denir. Bu parametre, bu bölümün yoğunluğunu ayarlamak için kullanılır. İki "
+"bölge aynı seyrek dolgu ayarlarına sahip fakat farklı cilt yoğunluklarına "
+"sahipse, bu alan iki ayrı bölgeye ayrılmaz. Varsayılan değer, dolgu "
+"yoğunluğu ile aynıdır."
 
 msgid "Skin infill depth"
-msgstr ""
+msgstr "Yüzey dolgu derinliği"
 
 msgid "The parameter sets the depth of skin."
-msgstr ""
+msgstr "Parametre, yüzeyin derinliğini ayarlar."
 
 msgid "Infill lock depth"
-msgstr ""
+msgstr "Dolgu kilit derinliği"
 
 msgid "The parameter sets the overlapping depth between the interior and skin."
 msgstr ""
+"Parametre, iç kısım ile dış yüzey arasındaki örtüşme derinliğini ayarlar."
 
 msgid "Skin line width"
-msgstr ""
+msgstr "Yüzey çizgi genişliği"
 
 msgid "Adjust the line width of the selected skin paths."
-msgstr ""
+msgstr "Seçili yüzey yollarının çizgi genişliğini ayarlayın."
 
 msgid "Skeleton line width"
-msgstr ""
+msgstr "İskelet çizgi genişliği"
 
 msgid "Adjust the line width of the selected skeleton paths."
-msgstr ""
+msgstr "Seçili iskelet yollarının çizgi genişliğini ayarlayın."
 
-msgid "Symmetric infill y axis"
-msgstr ""
+msgid "Symmetric infill Y axis"
+msgstr "Simetrik dolgu y ekseni"
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
+"Modelin Y ekseni etrafında simetrik iki parçası varsa ve bu parçaların "
+"simetrik dokulara sahip olmasını istiyorsanız, lütfen parçalardan birinde bu "
+"seçeneğe tıklayın."
 
 msgid "Infill combination - Max layer height"
 msgstr "Dolgu kombinasyonu - Maksimum katman yüksekliği"
@@ -12983,17 +13074,17 @@ msgstr ""
 "Üst katı dolgu alanı, daha iyi yapışma sağlamak ve üst dolgunun duvarlarla "
 "buluştuğu yerde küçük deliklerin görünümünü en aza indirmek için duvarla üst "
 "üste gelecek şekilde hafifçe genişletilir. %25-30’luk bir değer, iğne "
-"deliklerinin görünümünü en aza indiren iyi bir başlangıç ​​noktasıdır. Yüzde "
-"değeri seyrek dolgunun çizgi genişliğine göredir"
+"deliklerinin görünümünü en aza indiren iyi bir başlangıç noktasıdır. Yüzde "
+"değeri seyrek dolgunun çizgi genişliğine göredir."
 
 msgid "Speed of internal sparse infill."
-msgstr "İç seyrek dolgunun hızı"
+msgstr "İç seyrek dolgunun hızı."
 
 msgid "Inherits profile"
 msgstr "Miras profil"
 
 msgid "Name of parent profile."
-msgstr "Ebeveyn profilinin adı"
+msgstr "Ebeveyn profilinin adı."
 
 msgid "Interface shells"
 msgstr "Arayüz kabukları"
@@ -13005,7 +13096,7 @@ msgid ""
 msgstr ""
 "Bitişik malzemeler/hacimler arasında katı kabuk oluşumunu zorlayın. Yarı "
 "saydam malzemelerle veya elle çözülebilen destek malzemesiyle çoklu "
-"ekstruder baskıları için kullanışlıdır"
+"ekstruder baskıları için kullanışlıdır."
 
 msgid "Maximum width of a segmented region"
 msgstr "Bölümlere ayrılmış bir bölgenin maksimum genişliği"
@@ -13031,7 +13122,7 @@ msgstr ""
 "bırakır."
 
 msgid "Use beam interlocking"
-msgstr "Işın kilitlemeyi kullanın"
+msgstr "Kiriş kilitlemeyi kullan"
 
 msgid ""
 "Generate interlocking beam structure at the locations where different "
@@ -13043,7 +13134,7 @@ msgstr ""
 "filamentler arasındaki yapışmayı artırır."
 
 msgid "Interlocking beam width"
-msgstr "Kilitli ışın genişliği"
+msgstr "Kilitlemeli kiriş genişliği"
 
 msgid "The width of the interlocking structure beams."
 msgstr "Birbirine kenetlenen yapı kirişlerinin genişliği."
@@ -13112,7 +13203,7 @@ msgid "Ironing Pattern"
 msgstr "Ütüleme Deseni"
 
 msgid "The pattern that will be used when ironing."
-msgstr "Ütüleme işlemi sırasında kullanılacak desen"
+msgstr "Ütüleme işlemi sırasında kullanılacak desen."
 
 msgid "Ironing flow"
 msgstr "Ütüleme akışı"
@@ -13122,13 +13213,13 @@ msgid ""
 "layer height. Too high value results in overextrusion on the surface."
 msgstr ""
 "Ütüleme sırasında çıkacak malzeme miktarı. Normal katman yüksekliğindeki "
-"akışa göre. Çok yüksek değer yüzeyde aşırı ekstrüzyona neden olur"
+"akışa göre. Çok yüksek değer yüzeyde aşırı ekstrüzyona neden olur."
 
 msgid "Ironing line spacing"
 msgstr "Ütüleme çizgi aralığı"
 
 msgid "The distance between the lines of ironing."
-msgstr "Ütü çizgileri arasındaki mesafe"
+msgstr "Ütü çizgileri arasındaki mesafe."
 
 msgid "Ironing inset"
 msgstr "Ütüleme boşluğu"
@@ -13137,13 +13228,13 @@ msgid ""
 "The distance to keep from the edges. A value of 0 sets this to half of the "
 "nozzle diameter."
 msgstr ""
-"Kenarlardan korunacak mesafe. 0 değeri bunu nozül çapının yarısına ayarlar"
+"Kenarlardan korunacak mesafe. 0 değeri bunu nozül çapının yarısına ayarlar."
 
 msgid "Ironing speed"
 msgstr "Ütüleme hızı"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Ütüleme çizgilerinin baskı hızı."
 
 msgid "Ironing angle"
 msgstr "Ütüleme açısı"
@@ -13157,7 +13248,8 @@ msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr ""
-"Bu gcode kısmı, z kaldırma işleminden sonra her katman değişikliğinde eklenir"
+"Bu gcode kısmı, z kaldırma işleminden sonra her katman değişikliğinde "
+"eklenir."
 
 msgid "Supports silent mode"
 msgstr "Sessiz modu destekler"
@@ -13167,7 +13259,7 @@ msgid ""
 "acceleration to print."
 msgstr ""
 "Makinenin yazdırmak için daha düşük hızlanma kullandığı sessiz modu "
-"destekleyip desteklemediği"
+"destekleyip desteklemediği."
 
 msgid "Emit limits to G-code"
 msgstr "G-kod sınırları"
@@ -13187,16 +13279,16 @@ msgid ""
 "pause G-code in the G-code viewer."
 msgstr ""
 "Bu G kodu duraklatma yazdırması için bir kod olarak kullanılacaktır. "
-"Kullanıcı gcode görüntüleyiciye duraklatma G kodunu ekleyebilir"
+"Kullanıcı gcode görüntüleyiciye duraklatma G kodunu ekleyebilir."
 
 msgid "This G-code will be used as a custom code."
-msgstr "Bu G kodu özel kod olarak kullanılacak"
+msgstr "Bu G kodu özel kod olarak kullanılacak."
 
 msgid "Small area flow compensation (beta)"
 msgstr "Küçük alan akış telafisi (beta)"
 
 msgid "Enable flow compensation for small infill areas."
-msgstr "Küçük dolgu alanları için akış telafisini etkinleştirin"
+msgstr "Küçük dolgu alanları için akış telafisini etkinleştirin."
 
 msgid "Flow Compensation Model"
 msgstr "Akış telafisi modeli"
@@ -13207,6 +13299,10 @@ msgid ""
 "and flow correction factor. Each pair is on a separate line, followed by a "
 "semicolon, in the following format: \"1.234, 5.678;\""
 msgstr ""
+"Küçük dolgu alanlarında akışı ayarlamak için kullanılan Akış Telafi Modeli. "
+"Model, ekstrüzyon uzunluğu ve akış düzeltme faktörü için virgülle ayrılmış "
+"bir değer çifti olarak ifade edilir. Her çift, aşağıdaki formatta, noktalı "
+"virgülle işaretlenmiş ayrı bir satırda yer alır: \"1.234, 5.678;\""
 
 msgid "Maximum speed X"
 msgstr "Maksimum hız X"
@@ -13281,12 +13377,13 @@ msgid "Maximum jerk of the E axis"
 msgstr "E ekseninin maksimum sarsıntısı (Jerk)"
 
 msgid "Maximum Junction Deviation"
-msgstr ""
+msgstr "Maksimum köşe sapması"
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
+"Maksimum köşe sapması (M205 J, yalnızca Marlin Firmware için JD > 0 ise "
+"geçerlidir)"
 
 msgid "Minimum speed for extruding"
 msgstr "Ekstrüzyon için minimum hız"
@@ -13316,40 +13413,47 @@ msgid "Maximum acceleration for travel"
 msgstr "Seyahat için maksimum hızlanma"
 
 msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2."
-msgstr "Seyahat için maksimum ivme (M204 T), yalnızca Marlin 2 için geçerlidir"
+msgstr ""
+"Seyahat için maksimum ivme (M204 T), yalnızca Marlin 2 için geçerlidir."
 
 msgid "Resonance avoidance"
-msgstr ""
+msgstr "Rezonans kaçınma"
 
 msgid ""
 "By reducing the speed of the outer wall to avoid the resonance zone of the "
 "printer, ringing on the surface of the model are avoided.\n"
 "Please turn this option off when testing ringing."
 msgstr ""
+"Yazıcının rezonans bölgesinden kaçınmak için dış duvarın hızını düşürerek, "
+"model yüzeyinde çınlama oluşması önlenir.\n"
+"Çınlamayı test ederken lütfen bu seçeneği kapatın."
 
 msgid "Min"
 msgstr "Minimum"
 
 msgid "Minimum speed of resonance avoidance."
-msgstr ""
+msgstr "Rezonans önlemenin minimum hızı."
 
 msgid "Max"
 msgstr "Maksimum"
 
 msgid "Maximum speed of resonance avoidance."
-msgstr ""
+msgstr "Rezonans önlemenin maksimum hızı."
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
 "is the maximum speed for the part cooling fan."
 msgstr ""
 "Otomatik soğutma etkinleştirildiğinde parça soğutma fanı hızı artırılabilir. "
-"Bu, parça soğutma fanının maksimum hız sınırlamasıdır"
+"Bu, parça soğutma fanının maksimum hız sınırlamasıdır."
 
 msgid ""
 "The highest printable layer height for the extruder. Used to limit the "
 "maximum layer height when enable adaptive layer height."
 msgstr ""
+"Ekstruder için yazdırılabilir en yüksek katman yüksekliği. Uyarlanabilir "
+"katman yüksekliği etkinleştirildiğinde maksimum katman yüksekliğini "
+"sınırlamak için kullanılır."
 
 msgid "Extrusion rate smoothing"
 msgstr "Ekstrüzyon hızını yumuşatma"
@@ -13413,7 +13517,6 @@ msgstr ""
 msgid "Smoothing segment length"
 msgstr "Segment uzunluğunu yumuşatma"
 
-#, fuzzy
 msgid ""
 "A lower value results in smoother extrusion rate transitions. However, this "
 "results in a significantly larger G-code file and more instructions for the "
@@ -13448,7 +13551,7 @@ msgstr ""
 "bozulmaların azaltılmasına yardımcı olabilir."
 
 msgid "Minimum speed for part cooling fan."
-msgstr "Parça soğutma fanı için minimum hız"
+msgstr "Parça soğutma fanı için minimum hız."
 
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
@@ -13467,6 +13570,9 @@ msgid ""
 "The lowest printable layer height for the extruder. Used to limit the "
 "minimum layer height when enable adaptive layer height."
 msgstr ""
+"Ekstruder için yazdırılabilir en düşük katman yüksekliği. Uyarlanabilir "
+"katman yüksekliği etkinleştirildiğinde minimum katman yüksekliğini "
+"sınırlamak için kullanılır."
 
 msgid "Min print speed"
 msgstr "Minimum baskı hızı"
@@ -13480,8 +13586,8 @@ msgstr ""
 "tanımlanan minimum katman süresini korumak için yazıcının yavaşladığı "
 "minimum yazdırma hızı."
 
-msgid "Diameter of nozzle"
-msgstr "Nozul çapı"
+msgid "The diameter of nozzle."
+msgstr "Nozul çapı."
 
 msgid "Configuration notes"
 msgstr "Yapılandırma notları"
@@ -13507,7 +13613,7 @@ msgid "Nozzle volume"
 msgstr "Nozul hacmi"
 
 msgid "Volume of nozzle between the cutter and the end of nozzle."
-msgstr "Kesici ile nozulun ucu arasındaki nozul hacmi"
+msgstr "Kesici ile nozulun ucu arasındaki nozul hacmi."
 
 msgid "Cooling tube position"
 msgstr "Soğutma borusu konumu"
@@ -13576,7 +13682,7 @@ msgstr ""
 "Hareket kesinlikle dolgu alanına girdiğinde geri çekilmeyin. Bu, sızıntının "
 "görülemeyeceği anlamına gelir. Bu, karmaşık model için geri çekme sürelerini "
 "azaltabilir ve yazdırma süresinden tasarruf sağlayabilir, ancak dilimlemeyi "
-"ve G kodu oluşturmayı yavaşlatır"
+"ve G kodu oluşturmayı yavaşlatır."
 
 msgid ""
 "This option will drop the temperature of the inactive extruders to prevent "
@@ -13590,7 +13696,7 @@ msgstr "Dosya adı formatı"
 
 msgid "Users can define the project file name when exporting."
 msgstr ""
-"Kullanıcı dışa aktarma sırasında proje dosyası adını kendisi tanımlayabilir"
+"Kullanıcı dışa aktarma sırasında proje dosyası adını kendisi tanımlayabilir."
 
 msgid "Make overhangs printable"
 msgstr "Çıkıntılar yazdırılabilir"
@@ -13632,8 +13738,8 @@ msgstr ""
 "Çizgi genişliğine göre çıkıntı yüzdesini tespit edin ve yazdırmak için "
 "farklı hızlar kullanın. %%100 çıkıntı için köprü hızı kullanılır."
 
-msgid "Filament to print walls"
-msgstr "Duvarları yazdırmak için filament"
+msgid "Filament to print walls."
+msgstr "Duvarları yazdırmak için filament."
 
 msgid ""
 "Line width of inner wall. If expressed as a %, it will be computed over the "
@@ -13643,10 +13749,10 @@ msgstr ""
 "hesaplanacaktır."
 
 msgid "Speed of inner wall."
-msgstr "İç duvarın hızı"
+msgstr "İç duvarın hızı."
 
 msgid "Number of walls of every layer."
-msgstr "Her katmanın duvar sayısı"
+msgstr "Her katmanın duvar sayısı."
 
 msgid "Alternate extra wall"
 msgstr "Alternatif ekstra duvar"
@@ -13686,8 +13792,8 @@ msgstr ""
 msgid "Printer type"
 msgstr "Yazıcı türü"
 
-msgid "Type of the printer"
-msgstr "Yazıcı türü"
+msgid "Type of the printer."
+msgstr "Yazıcı türü."
 
 msgid "Printer notes"
 msgstr "Yazıcı notları"
@@ -13703,19 +13809,19 @@ msgstr "Raft kontak Z mesafesi"
 
 msgid "Z gap between object and raft. Ignored for soluble interface."
 msgstr ""
-"Nesne ve raft arasındaki Z boşluğu. Çözünür arayüz için göz ardı edildi"
+"Nesne ve raft arasındaki Z boşluğu. Çözünür arayüz için göz ardı edildi."
 
 msgid "Raft expansion"
 msgstr "Raft genişletme"
 
 msgid "Expand all raft layers in XY plane."
-msgstr "XY düzlemindeki tüm sal katmanlarını genişlet"
+msgstr "XY düzlemindeki tüm rafa katmanlarını genişlet."
 
 msgid "Initial layer density"
 msgstr "Başlangıç katman yoğunluğu"
 
 msgid "Density of the first raft or support layer."
-msgstr "İlk sal veya destek katmanının yoğunluğu"
+msgstr "İlk sal veya destek katmanının yoğunluğu."
 
 msgid "Initial layer expansion"
 msgstr "İlk katman genişletme"
@@ -13723,7 +13829,7 @@ msgstr "İlk katman genişletme"
 msgid "Expand the first raft or support layer to improve bed plate adhesion."
 msgstr ""
 "Yatak plakası yapışmasını iyileştirmek için ilk raft veya destek katmanını "
-"genişletin"
+"genişletin."
 
 msgid "Raft layers"
 msgstr "Raft katmanları"
@@ -13733,9 +13839,8 @@ msgid ""
 "avoid warping when printing ABS."
 msgstr ""
 "Nesne bu sayıdaki destek katmanı tarafından yükseltilecektir. ABS "
-"yazdırırken sarmayı önlemek için bu işlevi kullanın"
+"yazdırırken sarmayı önlemek için bu işlevi kullanın."
 
-#, fuzzy
 msgid ""
 "The G-code path is generated after simplifying the contour of models to "
 "avoid too many points and G-code lines. Smaller value means higher "
@@ -13743,7 +13848,7 @@ msgid ""
 msgstr ""
 "Gcode dosyasında çok fazla nokta ve gcode çizgisinin olmaması için modelin "
 "konturu basitleştirildikten sonra G-code yolu oluşturulur. Daha küçük değer, "
-"daha yüksek çözünürlük ve dilimleme için daha fazla zaman anlamına gelir"
+"daha yüksek çözünürlük ve dilimleme için daha fazla zaman anlamına gelir."
 
 msgid "Travel distance threshold"
 msgstr "Seyahat mesafesi"
@@ -13753,7 +13858,7 @@ msgid ""
 "threshold."
 msgstr ""
 "Geri çekmeyi yalnızca hareket mesafesi bu eşikten daha uzun olduğunda "
-"tetikleyin"
+"tetikleyin."
 
 msgid "Retract amount before wipe"
 msgstr "Temizleme işlemi öncesi geri çekme miktarı"
@@ -13761,13 +13866,13 @@ msgstr "Temizleme işlemi öncesi geri çekme miktarı"
 msgid ""
 "The length of fast retraction before wipe, relative to retraction length."
 msgstr ""
-"Geri çekme uzunluğuna göre, temizlemeden önce hızlı geri çekilmenin uzunluğu"
+"Geri çekme uzunluğuna göre, temizlemeden önce hızlı geri çekilmenin uzunluğu."
 
 msgid "Retract when change layer"
 msgstr "Katman değişiminde geri çek"
 
 msgid "Force a retraction when changes layer."
-msgstr "Katmanı değiştirdiğinde geri çekilmeyi zorla"
+msgstr "Katmanı değiştirdiğinde geri çekilmeyi zorla."
 
 msgid "Retraction Length"
 msgstr "Geri Çekme Uzunluğu"
@@ -13776,9 +13881,12 @@ msgid ""
 "Some amount of material in extruder is pulled back to avoid ooze during long "
 "travel. Set zero to disable retraction."
 msgstr ""
+"Uzun mesafelerde sızıntıyı önlemek için ekstruderdeki bir miktar malzeme "
+"geri çekilir. Geri çekilmeyi devre dışı bırakmak için sıfır değerini "
+"ayarlayın."
 
 msgid "Long retraction when cut (beta)"
-msgstr "Kesildiğinde uzun geri çekilme (deneysel)"
+msgstr "Kesildiğinde uzun geri çekilme (beta)"
 
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a longer "
@@ -13799,7 +13907,7 @@ msgid ""
 "change."
 msgstr ""
 "Deneysel özellik: Filament değişimi sırasında kesilmeden önce geri çekilme "
-"uzunluğu"
+"uzunluğu."
 
 msgid "Z-hop height"
 msgstr "Z-Sıçrama yüksekliği"
@@ -13812,7 +13920,7 @@ msgstr ""
 "Geri çekme işlemi her yapıldığında, nozul ile baskı arasında açıklık "
 "oluşturmak için nozul biraz kaldırılır. Hareket halindeyken nozulun baskıya "
 "çarpmasını önler. Z'yi kaldırmak için spiral çizgi kullanmak çekmeyi "
-"önleyebilir"
+"önleyebilir."
 
 msgid "Z-hop lower boundary"
 msgstr "Z sıçrama alt sınırı"
@@ -13822,7 +13930,7 @@ msgid ""
 "parameter: \"Z-hop upper boundary\"."
 msgstr ""
 "Z sıçraması yalnızca Z bu değerin üzerinde ve parametrenin altında olduğunda "
-"devreye girer: \"Z sıçraması üst sınırı\""
+"devreye girer: \"Z sıçraması üst sınırı”."
 
 msgid "Z-hop upper boundary"
 msgstr "Z sıçrama üst sınırı"
@@ -13833,13 +13941,13 @@ msgid ""
 msgstr ""
 "Bu değer pozitifse, Z sıçraması yalnızca Z parametresinin üzerinde olduğunda "
 "etkinleşir: \"Z sıçrama alt sınırı\" parametresinin üzerinde ve bu değerin "
-"altında olduğunda"
+"altında olduğunda."
 
 msgid "Z-hop type"
 msgstr "Z-Sıçrama türü"
 
 msgid "Type of Z-hop."
-msgstr ""
+msgstr "Z-hop türü."
 
 msgid "Slope"
 msgstr "Eğim"
@@ -13855,7 +13963,7 @@ msgid ""
 "in Normal Lift."
 msgstr ""
 "Eğim ve Spiral Z atlama tipi için ilerleme açısı. 90°’ye ayarlamak normal "
-"kaldırmayla sonuçlanır"
+"kaldırmayla sonuçlanır."
 
 msgid "Only lift Z above"
 msgstr "Z'yi sadece şu değerin üstündeki durumlarda kaldır"
@@ -13920,7 +14028,7 @@ msgid "Retraction Speed"
 msgstr "Geri çekme hızı"
 
 msgid "Speed for retracting filament from the nozzle."
-msgstr ""
+msgstr "Nozuldan filamentin geri çekilme hızı."
 
 msgid "De-retraction Speed"
 msgstr "İleri itme hızı"
@@ -13929,6 +14037,8 @@ msgid ""
 "Speed for reloading filament into the nozzle. Zero means same speed of "
 "retraction."
 msgstr ""
+"Filamentin nozüle yeniden yüklenme hızı. Sıfır, geri çekilme hızının aynı "
+"olduğu anlamına gelir."
 
 msgid "Use firmware retraction"
 msgstr "Yazılımsal geri çekme"
@@ -13951,19 +14061,22 @@ msgid ""
 "Disable generating of the M73: Set remaining print time in the final G-code."
 msgstr ""
 "M73'ün oluşturulmasını devre dışı bırakın: Son gcode'da kalan yazdırma "
-"süresini ayarlayın"
+"süresini ayarlayın."
 
 msgid "Seam position"
 msgstr "Dikiş konumu"
 
 msgid "The start position to print each part of outer wall."
-msgstr "Dış duvarın her bir parçasını yazdırmak için başlangıç konumu"
+msgstr "Dış duvarın her bir parçasını yazdırmak için başlangıç konumu."
 
 msgid "Nearest"
 msgstr "En yakın"
 
 msgid "Aligned"
 msgstr "Hizalı"
+
+msgid "Aligned back"
+msgstr "Arkaya hizalı"
 
 msgid "Back"
 msgstr "Arka"
@@ -14076,7 +14189,7 @@ msgstr ""
 "Bu faktör atkı birleşimlerinde kullanılacak materyal miktarını değiştirir."
 
 msgid "Scarf start height"
-msgstr "Atkı başlangıç ​​yüksekliği"
+msgstr "Atkı başlangıç yüksekliği"
 
 msgid ""
 "Start height of the scarf.\n"
@@ -14174,38 +14287,41 @@ msgid ""
 msgstr ""
 "Temizleme hızı, bu konfigürasyonda belirtilen hız ayarına göre belirlenir. "
 "Değer yüzde olarak ifade edilirse (örn. %80), yukarıdaki ilerleme hızı "
-"ayarına göre hesaplanır. Bu parametrenin varsayılan değeri %80'dir"
+"ayarına göre hesaplanır. Bu parametrenin varsayılan değeri %80'dir."
 
 msgid "Skirt distance"
 msgstr "Etek mesafesi"
 
-msgid "Distance from skirt to brim or object"
-msgstr "Etekten kenara veya nesneye olan mesafe"
+msgid "The distance from the skirt to the brim or the object."
+msgstr "Etekten kenara veya nesneye olan mesafe."
 
 msgid "Skirt start point"
-msgstr "Etek başlangıç ​​noktası"
+msgstr "Etek başlangıç noktası"
 
 msgid ""
 "Angle from the object center to skirt start point. Zero is the most right "
 "position, counter clockwise is positive angle."
 msgstr ""
-"Nesnenin merkezinden etek başlangıç ​​noktasına kadar olan açı. Sıfır en doğru "
+"Nesnenin merkezinden etek başlangıç noktasına kadar olan açı. Sıfır en doğru "
 "konumdur, saat yönünün tersine ise pozitif açıdır."
 
 msgid "Skirt height"
 msgstr "Etek yüksekliği"
 
 msgid "How many layers of skirt. Usually only one layer."
-msgstr "Etek katman sayısı. Genellikle tek katman"
+msgstr "Etek katman sayısı. Genellikle tek katman."
 
 msgid "Single loop after first layer"
-msgstr ""
+msgstr "İlk katmandan sonra tek duvar"
 
 msgid ""
 "Limits the skirt/draft shield loops to one wall after the first layer. This "
 "is useful, on occasion, to conserve filament but may cause the draft shield/"
 "skirt to warp / crack."
 msgstr ""
+"Etek/hava akımı kalkanı halkalarını ilk katmandan sonraki bir duvarla "
+"sınırlar. Bu, bazen filament tasarrufu için yararlıdır, ancak hava akımı "
+"kalkanı/eteğin eğrilmesine/çatlamasına neden olabilir."
 
 msgid "Draft shield"
 msgstr "Rüzgarlık"
@@ -14252,7 +14368,7 @@ msgstr "Etek sayısı"
 
 msgid "Number of loops for the skirt. Zero means disabling skirt."
 msgstr ""
-"Etek için ilmek sayısı. Sıfır, eteği devre dışı bırakmak anlamına gelir"
+"Etek için ilmek sayısı. Sıfır, eteği devre dışı bırakmak anlamına gelir."
 
 msgid "Skirt speed"
 msgstr "Etek hızı"
@@ -14289,7 +14405,7 @@ msgid ""
 msgstr ""
 "Tahmini katman süresi bu değerden kısa olduğunda, bu katmanlar için daha iyi "
 "soğutma sağlamak amacıyla, dışa aktarılan gcode'daki yazdırma hızı "
-"yavaşlatılacaktır"
+"yavaşlatılacaktır."
 
 msgid "Minimum sparse infill threshold"
 msgstr "Minimum seyrek dolgu"
@@ -14299,13 +14415,13 @@ msgid ""
 "internal solid infill."
 msgstr ""
 "Eşik değerinden küçük olan seyrek dolgu alanı, yerini iç katı dolguya "
-"bırakmıştır"
+"bırakmıştır."
 
 msgid "Solid infill"
 msgstr "Katı dolgu"
 
-msgid "Filament to print solid infill"
-msgstr "Katı dolguyu yazdırmak için filament"
+msgid "Filament to print solid infill."
+msgstr "Katı dolguyu yazdırmak için filament."
 
 msgid ""
 "Line width of internal solid infill. If expressed as a %, it will be "
@@ -14315,7 +14431,7 @@ msgstr ""
 "üzerinden hesaplanacaktır."
 
 msgid "Speed of internal solid infill, not the top and bottom surface."
-msgstr "Üst ve alt yüzeyin değil, iç katı dolgunun hızı"
+msgstr "Üst ve alt yüzeyin değil, iç katı dolgunun hızı."
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -14348,16 +14464,16 @@ msgstr ""
 "maksimum mesafe % olarak ifade edilirse nozül çapı üzerinden hesaplanacaktır."
 
 msgid "Spiral starting flow ratio"
-msgstr "Spiral başlangıç ​​akış oranı"
+msgstr "Spiral başlangıç akış oranı"
 
-#, fuzzy, no-c-format, no-boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the starting flow ratio while transitioning from the last bottom layer "
 "to the spiral. Normally the spiral transition scales the flow ratio from 0% "
 "to 100% during the first loop which can in some cases lead to under "
 "extrusion at the start of the spiral."
 msgstr ""
-"Son alt katmandan spirale geçiş sırasında başlangıç ​​akış oranını ayarlar. "
+"Son alt katmandan spirale geçiş sırasında başlangıç akış oranını ayarlar. "
 "Normalde spiral geçiş, ilk döngü sırasında akış oranını %0 dan %100 e "
 "ölçeklendirir; bu da bazı durumlarda spiralin başlangıcında yetersiz "
 "ekstrüzyona yol açabilir."
@@ -14365,7 +14481,7 @@ msgstr ""
 msgid "Spiral finishing flow ratio"
 msgstr "Spiral bitirme akış oranı"
 
-#, fuzzy, no-c-format, no-boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "Sets the finishing flow ratio while ending the spiral. Normally the spiral "
 "transition scales the flow ratio from 100% to 0% during the last loop which "
@@ -14438,16 +14554,16 @@ msgid "Start G-code"
 msgstr "Başlangıç G Kodu"
 
 msgid "Start G-code when starting the entire print."
-msgstr "Baskı başladığında çalışacak G Kodu"
+msgstr "Baskı başladığında çalışacak G Kodu."
 
 msgid "Start G-code when starting the printing of this filament."
-msgstr "Bu filament ile baskı başladığında çalıştırılacak G-Kod"
+msgstr "Bu filament ile baskı başladığında çalıştırılacak G-Kod."
 
 msgid "Single Extruder Multi Material"
 msgstr "Tek ekstruder çoklu malzeme"
 
 msgid "Use single nozzle to print multi filament."
-msgstr "Çoklu filament basmak için tek nozul kullan"
+msgstr "Çoklu filament basmak için tek nozul kullan."
 
 msgid "Manual Filament Change"
 msgstr "Manuel filament değişimi"
@@ -14469,12 +14585,9 @@ msgid "Purge in prime tower"
 msgstr "Prime tower'da temizlik"
 
 msgid "Purge remaining filament into prime tower."
-msgstr "Kalan filamenti Prime Tower'da boşalt"
+msgstr "Kalan filamenti Prime Tower'da akıt."
 
 msgid "Enable filament ramming"
-msgstr ""
-
-msgid "Enable filament ramming."
 msgstr "Filament sıkıştırmayı etkinleştir"
 
 msgid "No sparse layers (beta)"
@@ -14560,7 +14673,7 @@ msgid ""
 msgstr ""
 "Desteğin otomatik olarak oluşturulması için Normal (Otomatik) ve Ağaç "
 "(Otomatik) kullanılır. Normal (Manuel) veya Ağaç (Manuel) seçilirse yalnızca "
-"destek uygulayıcıları oluşturulur"
+"destek uygulayıcıları oluşturulur."
 
 msgid "Normal (auto)"
 msgstr "Normal (Otomatik)"
@@ -14578,7 +14691,7 @@ msgid "Support/object xy distance"
 msgstr "Destek/nesne xy mesafesi"
 
 msgid "XY separation between an object and its support."
-msgstr "Bir nesne ile desteği arasındaki XY ayrımı"
+msgstr "Bir nesne ile desteği arasındaki XY ayrımı."
 
 msgid "Support/object first layer gap"
 msgstr "Destek/nesne ilk katman boşluğu"
@@ -14596,7 +14709,7 @@ msgid "On build plate only"
 msgstr "Yalnızca baskı plakasında"
 
 msgid "Don't create support on model surface, only on build plate."
-msgstr "Model yüzeyinde destek oluşturmayın, yalnızca baskı plakasında"
+msgstr "Model yüzeyinde destek oluşturmayın, yalnızca baskı plakasında."
 
 msgid "Support critical regions only"
 msgstr "Yalnızca kritik bölgeleri destekleyin"
@@ -14615,16 +14728,16 @@ msgid "Remove small overhangs that possibly need no supports."
 msgstr "Muhtemelen desteğe ihtiyaç duymayan küçük çıkıntıları kaldırın."
 
 msgid "Top Z distance"
-msgstr "Üst Z mesafesi"
+msgstr "Üst z mesafesi"
 
 msgid "The Z gap between the top support interface and object."
-msgstr "Üst destek arayüzü ile nesne arasındaki z boşluğu"
+msgstr "Üst destek arayüzü ile nesne arasındaki z boşluğu."
 
 msgid "Bottom Z distance"
-msgstr "Alt Z mesafesi"
+msgstr "Alt z mesafesi"
 
 msgid "The Z gap between the bottom support interface and object."
-msgstr "Alt destek arayüzü ile nesne arasındaki z boşluğu"
+msgstr "Alt destek arayüzü ile nesne arasındaki z boşluğu."
 
 msgid "Support/raft base"
 msgstr "Destek/raft tabanı"
@@ -14635,7 +14748,7 @@ msgid ""
 msgstr ""
 "Destek tabanını ve salı yazdırmak için filament. \"Varsayılan\", destek için "
 "belirli bir filamentin olmadığı ve mevcut filamentin kullanıldığı anlamına "
-"gelir"
+"gelir."
 
 msgid "Avoid interface filament for base"
 msgstr "Taban için arayüz filamentini azaltın"
@@ -14644,7 +14757,7 @@ msgid ""
 "Avoid using support interface filament to print support base if possible."
 msgstr ""
 "Destek tabanını yazdırmak için destek arayüzü filamentini kullanmaktan "
-"kaçının"
+"kaçının."
 
 msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
@@ -14670,19 +14783,19 @@ msgid ""
 "for support interface and current filament is used."
 msgstr ""
 "Filament baskı desteği arayüzü. \"Varsayılan\", destek arayüzü için özel bir "
-"filamentin olmadığı ve mevcut filamentin kullanıldığı anlamına gelir"
+"filamentin olmadığı ve mevcut filamentin kullanıldığı anlamına gelir."
 
 msgid "Top interface layers"
 msgstr "Üst arayüz katmanları"
 
 msgid "Number of top interface layers."
-msgstr "Üst arayüz katmanlarının sayısı"
+msgstr "Üst arayüz katmanlarının sayısı."
 
 msgid "Bottom interface layers"
 msgstr "Alt arayüz katmanları"
 
 msgid "Number of bottom interface layers."
-msgstr "Alt arayüz katmanlarının sayısı"
+msgstr "Alt arayüz katmanlarının sayısı."
 
 msgid "Same as top"
 msgstr "Üsttekiyle aynı"
@@ -14694,21 +14807,23 @@ msgid ""
 "Spacing of interface lines. Zero means solid interface.\n"
 "Force using solid interface when support ironing is enabled."
 msgstr ""
+"Arayüz çizgilerinin aralığı. Sıfır, katı arayüz anlamına gelir.\n"
+"Destek ütüleme etkinleştirildiğinde katı arayüzü kullanarak zorlayın."
 
 msgid "Bottom interface spacing"
 msgstr "Alt arayüz aralığı"
 
 msgid "Spacing of bottom interface lines. Zero means solid interface."
-msgstr "Alt arayüz çizgilerinin aralığı. Sıfır, sağlam arayüz anlamına gelir"
+msgstr "Alt arayüz çizgilerinin aralığı. Sıfır, sağlam arayüz anlamına gelir."
 
 msgid "Speed of support interface."
-msgstr "Destek arayüzünün hızı"
+msgstr "Destek arayüzünün hızı."
 
 msgid "Base pattern"
 msgstr "Destek deseni"
 
 msgid "Line pattern of support."
-msgstr "Desteğin çizgi deseni"
+msgstr "Desteğin çizgi deseni."
 
 msgid "Rectilinear grid"
 msgstr "Doğrusal ızgara"
@@ -14726,7 +14841,7 @@ msgid ""
 msgstr ""
 "Destek arayüzünün çizgi deseni. Çözünmeyen destek arayüzü için varsayılan "
 "model Doğrusaldır, çözünebilir destek arayüzü için varsayılan model ise "
-"eşmerkezlidir"
+"eşmerkezlidir."
 
 msgid "Rectilinear Interlaced"
 msgstr "Doğrusal Taramalı"
@@ -14735,7 +14850,7 @@ msgid "Base pattern spacing"
 msgstr "Destek desen aralığı"
 
 msgid "Spacing between support lines."
-msgstr "Destek hatları arasındaki boşluk"
+msgstr "Destek hatları arasındaki boşluk."
 
 msgid "Normal Support expansion"
 msgstr "Normal destek genişletmesi"
@@ -14744,7 +14859,7 @@ msgid "Expand (+) or shrink (-) the horizontal span of normal support."
 msgstr "Normal desteğin yatay açıklığını genişletin (+) veya daraltın (-)"
 
 msgid "Speed of support."
-msgstr "Destek hızı"
+msgstr "Destek hızı."
 
 msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
@@ -14873,7 +14988,7 @@ msgid ""
 "will be automatically calculated."
 msgstr ""
 "Bu seçeneğin etkinleştirilmesi, ilki hariç ağaç destek katmanının "
-"yüksekliğinin otomatik olarak hesaplanacağı anlamına gelir "
+"yüksekliğinin otomatik olarak hesaplanacağı anlamına gelir."
 
 msgid "Auto brim width"
 msgstr "Otomatik kenar genişliği"
@@ -14883,13 +14998,13 @@ msgid ""
 "automatically calculated."
 msgstr ""
 "Bu seçeneğin etkinleştirilmesi, ağaç desteğinin kenar genişliğinin otomatik "
-"olarak hesaplanacağı anlamına gelir"
+"olarak hesaplanacağı anlamına gelir."
 
 msgid "Tree support brim width"
 msgstr "Ağaç desteği kenar genişliği"
 
 msgid "Distance from tree branch to the outermost brim line."
-msgstr "Ağaç dalından en dış kenar çizgisine kadar olan mesafe"
+msgstr "Ağaç dalından en dış kenar çizgisine kadar olan mesafe."
 
 msgid "Tip Diameter"
 msgstr "Uç Çapı"
@@ -14937,10 +15052,10 @@ msgid ""
 "support."
 msgstr ""
 "Bu ayar, ağaç desteğinin büyük oyuklarının içine dolgu eklenip "
-"eklenmeyeceğini belirtir"
+"eklenmeyeceğini belirtir."
 
 msgid "Ironing Support Interface"
-msgstr ""
+msgstr "Destek arayüzünü ütüle"
 
 msgid ""
 "Ironing is using small flow to print on same height of support interface "
@@ -14948,21 +15063,28 @@ msgid ""
 "interface being ironed. When enabled, support interface will be extruded as "
 "solid too."
 msgstr ""
+"Ütüleme, destek arayüzünün aynı yüksekliğine tekrar baskı yapmak için küçük "
+"akış kullanır ve böylece daha pürüzsüz hale gelir. Bu ayar, destek "
+"arayüzünün ütülenip ütülenmeyeceğini kontrol eder. Etkinleştirildiğinde, "
+"destek arayüzü de katı olarak ekstrüde edilir."
 
 msgid "Support Ironing Pattern"
-msgstr ""
+msgstr "Destek ütüleme deseni"
 
 msgid "Support Ironing flow"
-msgstr ""
+msgstr "Destek ütüleme akışı"
 
 msgid ""
 "The amount of material to extrude during ironing. Relative to flow of normal "
 "support interface layer height. Too high value results in overextrusion on "
 "the surface."
 msgstr ""
+"Ütüleme sırasında ekstrüde edilecek malzeme miktarı. Normal destek arayüzü "
+"katman yüksekliğinin akışına göre. Çok yüksek bir değer, yüzeyde aşırı "
+"ekstrüzyona neden olur."
 
 msgid "Support Ironing line spacing"
-msgstr ""
+msgstr "Destek ütüleme satır aralığı"
 
 msgid "Activate temperature control"
 msgstr "Sıcaklık kontrolünü etkinleştirin"
@@ -15032,7 +15154,7 @@ msgstr ""
 "gerçekleştirmek istiyorsanız bu yararlı olabilir."
 
 msgid "Nozzle temperature for layers after the initial one."
-msgstr "İlk katmandan sonraki katmanlar için nozul sıcaklığı"
+msgstr "İlk katmandan sonraki katmanlar için nozul sıcaklığı."
 
 msgid "Detect thin wall"
 msgstr "İnce duvarı algıla"
@@ -15042,17 +15164,17 @@ msgid ""
 "print. Maybe printed not very well, because it's not closed loop."
 msgstr ""
 "İki çizgi genişliğini içeremeyen ince duvarı tespit edin. Ve yazdırmak için "
-"tek satır kullanın. Kapalı döngü olmadığından pek iyi basılmamış olabilir"
+"tek satır kullanın. Kapalı döngü olmadığından pek iyi basılmamış olabilir."
 
 msgid ""
 "This G-code is inserted when filament is changed, including T commands to "
 "trigger tool change."
 msgstr ""
 "Bu gcode, takım değişimini tetiklemek için T komutu da dahil olmak üzere "
-"filament değiştirildiğinde eklenir"
+"filament değiştirildiğinde eklenir."
 
 msgid "This G-code is inserted when the extrusion role is changed."
-msgstr "Bu gcode, ekstrüzyon rolü değiştirildiğinde eklenir"
+msgstr "Bu gcode, ekstrüzyon rolü değiştirildiğinde eklenir."
 
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
@@ -15062,7 +15184,7 @@ msgstr ""
 "üzerinden hesaplanacaktır."
 
 msgid "Speed of top surface infill which is solid."
-msgstr "Sağlam üst yüzey dolgusunun hızı"
+msgstr "Sağlam üst yüzey dolgusunun hızı."
 
 msgid "Top shell layers"
 msgstr "Üst katmanlar"
@@ -15074,7 +15196,7 @@ msgid ""
 msgstr ""
 "Bu, üst yüzey katmanı da dahil olmak üzere üst kabuğun katı katmanlarının "
 "sayısıdır. Bu değerle hesaplanan kalınlık üst kabuk kalınlığından ince "
-"olduğunda üst kabuk katmanları artırılacaktır"
+"olduğunda üst kabuk katmanları ."
 
 msgid "Top solid layers"
 msgstr "Üst katı katmanlar"
@@ -15093,10 +15215,10 @@ msgstr ""
 "ise dilimleme sırasında üst katı katmanların sayısı artırılır. Bu, katman "
 "yüksekliği küçük olduğunda kabuğun çok ince olmasını önleyebilir. 0, bu "
 "ayarın devre dışı olduğu ve üst kabuğun kalınlığının kesinlikle üst kabuk "
-"katmanları tarafından belirlendiği anlamına gelir"
+"katmanları tarafından belirlendiği anlamına gelir."
 
 msgid "Top surface density"
-msgstr ""
+msgstr "Üst yüzey yoğunluğu"
 
 msgid ""
 "Density of top surface layer. A value of 100% creates a fully solid, smooth "
@@ -15105,18 +15227,26 @@ msgid ""
 "walls on the top layer being created. Intended for aesthetic or functional "
 "purposes, not to fix issues such as over-extrusion."
 msgstr ""
+"Üst yüzey katmanının yoğunluğu. %100 değeri, tamamen sağlam ve pürüzsüz bir "
+"üst katman oluşturur. Bu değerin düşürülmesi, seçilen üst yüzey desenine "
+"göre dokulu bir üst yüzey elde edilmesini sağlar. %0 değeri ise yalnızca üst "
+"katmandaki duvarların oluşturulmasını sağlar. Estetik veya işlevsel amaçlar "
+"için tasarlanmıştır, aşırı ekstrüzyon gibi sorunları gidermek için değildir."
 
 msgid "Bottom surface density"
-msgstr ""
+msgstr "Alt yüzey yoğunluğu"
 
 msgid ""
 "Density of the bottom surface layer. Intended for aesthetic or functional "
 "purposes, not to fix issues such as over-extrusion.\n"
 "WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr ""
+"Alt yüzey katmanının yoğunluğu. Estetik veya işlevsel amaçlar için "
+"tasarlanmıştır, aşırı ekstrüzyon gibi sorunları gidermek için değildir.\n"
+"UYARI: Bu değerin düşürülmesi, yatak yapışmasını olumsuz etkileyebilir."
 
 msgid "Speed of travel which is faster and without extrusion."
-msgstr "Daha hızlı ve ekstrüzyonsuz seyahat hızı"
+msgstr "Daha hızlı ve ekstrüzyonsuz seyahat hızı."
 
 msgid "Wipe while retracting"
 msgstr "Geri çekme esnasında temizlik"
@@ -15128,7 +15258,7 @@ msgid ""
 msgstr ""
 "Nozul üzerinde sızan malzemeyi temizlemek için geri çekerken Nozulu son "
 "ekstrüzyon yolu boyunca hareket ettirin. Bu işlem yeni parça yazdırırken "
-"damlamayı en aza indirebilir"
+"damlamayı en aza indirebilir."
 
 msgid "Wipe Distance"
 msgstr "Temizleme mesafesi"
@@ -15183,16 +15313,16 @@ msgid "The volume of material to prime extruder on tower."
 msgstr "Kule üzerindeki ana ekstruder malzeme hacmi."
 
 msgid "Width of the prime tower."
-msgstr "Prime tower genişliği"
+msgstr "Prime tower genişliği."
 
 msgid "Wipe tower rotation angle"
 msgstr "Silme kulesi dönüş açısı"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "X eksenine göre silme kulesi dönüş açısı."
 
 msgid "Width of the brim."
-msgstr ""
+msgstr "Kenar genişliği."
 
 msgid "Stabilization cone apex angle"
 msgstr "Stabilizasyon konisi tepe açısı"
@@ -15249,7 +15379,7 @@ msgstr ""
 "kullanılır."
 
 msgid "Wall type"
-msgstr ""
+msgstr "Duvar tipi"
 
 msgid ""
 "Wipe tower outer wall type.\n"
@@ -15259,24 +15389,36 @@ msgid ""
 "tower.\n"
 "3. Rib: Adds four ribs to the tower wall for enhanced stability."
 msgstr ""
+"Silme kulesi dış duvar tipi.\n"
+"1. Dikdörtgen: Varsayılan duvar tipi, sabit genişlik ve yüksekliğe sahip bir "
+"dikdörtgendir.\n"
+"2. Koni: Silme kulesinin sabitlenmesine yardımcı olmak için alt kısmında bir "
+"fileto bulunan bir koni.\n"
+"3. Kaburga: Kule duvarına gelişmiş denge için dört kaburga ekler."
 
 msgid "Extra rib length"
-msgstr ""
+msgstr "Ekstra rib uzunluğu"
 
 msgid ""
 "Positive values can increase the size of the rib wall, while negative values "
-"can reduce the size.However, the size of the rib wall can not be smaller "
+"can reduce the size. However, the size of the rib wall can not be smaller "
 "than that determined by the cleaning volume."
 msgstr ""
+"Pozitif değerler rib duvarının boyutunu artırabilirken, negatif değerler "
+"boyutunu azaltabilir. Ancak rib duvarının boyutu temizleme hacmi tarafından "
+"belirlenen boyuttan daha küçük olamaz."
 
 msgid "Rib width"
-msgstr ""
+msgstr "Rib genişliği"
+
+msgid "Rib width."
+msgstr "Kiriş genişliği"
 
 msgid "Fillet wall"
-msgstr ""
+msgstr "Kavisli duvar"
 
 msgid "The wall of prime tower will fillet."
-msgstr ""
+msgstr "Temizleme kulesinin duvarı yuvarlatılacaktır."
 
 msgid ""
 "The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
@@ -15368,9 +15510,8 @@ msgstr ""
 "kullanılır. Devre dışı bırakmak için 0’a ayarlayın."
 
 msgid "X-Y hole compensation"
-msgstr "X-Y delik dengeleme"
+msgstr "X-Y delik telafisi"
 
-#, fuzzy
 msgid ""
 "Holes in objects will expand or contract in the XY plane by the configured "
 "value. Positive values make holes bigger, negative values make holes "
@@ -15380,12 +15521,11 @@ msgstr ""
 "Nesnenin delikleri XY düzleminde yapılandırılan değer kadar büyütülür veya "
 "küçültülür. Pozitif değer delikleri büyütür. Negatif değer delikleri "
 "küçültür. Bu fonksiyon, nesnenin montaj sorunu olduğunda boyutu hafifçe "
-"ayarlamak için kullanılır"
+"ayarlamak için kullanılır."
 
 msgid "X-Y contour compensation"
 msgstr "X-Y kontur telafisi"
 
-#, fuzzy
 msgid ""
 "Contours of objects will expand or contract in the XY plane by the "
 "configured value. Positive values make contours bigger, negative values make "
@@ -15395,7 +15535,7 @@ msgstr ""
 "Nesnenin konturu XY düzleminde yapılandırılan değer kadar büyütülür veya "
 "küçültülür. Pozitif değer konturu büyütür. Negatif değer konturu küçültür. "
 "Bu fonksiyon, nesnenin montaj sorunu olduğunda boyutu hafifçe ayarlamak için "
-"kullanılır"
+"kullanılır."
 
 msgid "Convert holes to polyholes"
 msgstr "Delikleri çokgen deliklere dönüştür"
@@ -15435,7 +15575,7 @@ msgid "Rotate the polyhole every layer."
 msgstr "Çokgeni her katmanda döndürün."
 
 msgid "G-code thumbnails"
-msgstr "G-kodu küçük resimleri"
+msgstr "G-code önizleme resimleri"
 
 msgid ""
 "Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
@@ -15452,7 +15592,7 @@ msgid ""
 "QOI for low memory firmware."
 msgstr ""
 "G kodu küçük resimlerinin formatı: En iyi kalite için PNG, en küçük boyut "
-"için JPG, düşük bellekli donanım yazılımı için QOI"
+"için JPG, düşük bellekli donanım yazılımı için QOI."
 
 msgid "Use relative E distances"
 msgstr "Göreceli (relative) E mesafelerini kullan"
@@ -15475,7 +15615,7 @@ msgid ""
 msgstr ""
 "Klasik duvar oluşturucu sabit ekstrüzyon genişliğine sahip duvarlar üretir "
 "ve çok ince alanlar için boşluk doldurma kullanılır. Arachne motoru değişken "
-"ekstrüzyon genişliğine sahip duvarlar üretir"
+"ekstrüzyon genişliğine sahip duvarlar üretir."
 
 msgid "Arachne"
 msgstr "Arachne"
@@ -15490,7 +15630,7 @@ msgid ""
 msgstr ""
 "Parça inceldikçe farklı sayıdaki duvarlar arasında geçiş yaparken, duvar "
 "parçalarını bölmek veya birleştirmek için belirli bir miktar alan ayrılır. "
-"Nozul çapına göre yüzde olarak ifade edilir"
+"Nozul çapına göre yüzde olarak ifade edilir."
 
 msgid "Wall transitioning filter margin"
 msgstr "Duvar geçiş filtresi oranı"
@@ -15511,7 +15651,7 @@ msgstr ""
 "ekstrüzyonun başlama/durma sayısını ve seyahat süresini azaltır. Bununla "
 "birlikte, büyük ekstrüzyon genişliği değişimi, yetersiz veya aşırı "
 "ekstrüzyon sorunlarına yol açabilir. Nozul çapına göre yüzde olarak ifade "
-"edilir"
+"edilir."
 
 msgid "Wall transitioning threshold angle"
 msgstr "Duvar geçiş açısı"
@@ -15527,7 +15667,7 @@ msgstr ""
 "Bu ayardan daha büyük bir açıya sahip bir kama şeklinin geçişleri olmayacak "
 "ve kalan alanı dolduracak şekilde ortada hiçbir duvar basılmayacaktır. Bu "
 "ayarın düşürülmesi, bu merkez duvarların sayısını ve uzunluğunu azaltır "
-"ancak boşluklara veya aşırı çıkıntıya neden olabilir"
+"ancak boşluklara veya aşırı çıkıntıya neden olabilir."
 
 msgid "Wall distribution count"
 msgstr "Duvar dağılım sayısı"
@@ -15537,7 +15677,7 @@ msgid ""
 "to be spread. Lower values mean that the outer walls don't change in width."
 msgstr ""
 "Varyasyonun yayılması gereken, merkezden sayılan duvar sayısı. Daha düşük "
-"değerler, dış duvarların genişliğinin değişmediği anlamına gelir"
+"değerler, dış duvarların genişliğinin değişmediği anlamına gelir."
 
 msgid "Minimum feature size"
 msgstr "Minimum özellik boyutu"
@@ -15548,6 +15688,10 @@ msgid ""
 "will be widened to the minimum wall width. It's expressed as a percentage "
 "over nozzle diameter."
 msgstr ""
+"Modeldeki ince özelliklerin minimum kalınlığı. Bu değerden daha ince olan "
+"model detayları basılmayacak, bu değerden daha kalın olan detaylar ise "
+"minimum duvar kalınlığına kadar genişletilecektir. Değer, nozul çapı "
+"üzerinden yüzde olarak verilir."
 
 msgid "Minimum wall length"
 msgstr "Minimum duvar uzunluğu"
@@ -15597,7 +15741,7 @@ msgstr ""
 "Modelin ince özelliklerinin yerini alacak duvarın genişliği (Minimum özellik "
 "boyutuna göre). Minimum duvar genişliği özelliğin kalınlığından daha inceyse "
 "duvar, özelliğin kendisi kadar kalın olacaktır. Nozul çapına göre yüzde "
-"olarak ifade edilir"
+"olarak ifade edilir."
 
 msgid "Detect narrow internal solid infill"
 msgstr "Dar iç katı dolguyu tespit et"
@@ -15639,7 +15783,7 @@ msgid "Load slicing data"
 msgstr "Dilimleme verilerini yükle"
 
 msgid "Load cached slicing data from directory."
-msgstr "Önbelleğe alınmış dilimleme verilerini dizinden yükle"
+msgstr "Önbelleğe alınmış dilimleme verilerini dizinden yükle."
 
 msgid "Export STL"
 msgstr "STL'yi dışa aktar"
@@ -15651,7 +15795,7 @@ msgid "Export multiple STLs"
 msgstr "Birden çok STL’yi dışa aktar"
 
 msgid "Export the objects as multiple STLs to directory."
-msgstr "Nesneleri birden fazla STL olarak dizine aktarın"
+msgstr "Nesneleri birden fazla STL olarak dizine aktarın."
 
 msgid "Slice"
 msgstr "Dilimle"
@@ -15675,13 +15819,13 @@ msgid ""
 "check whether current machine downward compatible with the machines in the "
 "list."
 msgstr ""
-"mevcut makinenin listedeki makinelerle uyumlu olup olmadığını kontrol edin"
+"mevcut makinenin listedeki makinelerle uyumlu olup olmadığını kontrol edin."
 
 msgid "Load default filaments"
 msgstr "Varsayılan filamentleri yükle"
 
 msgid "Load first filament as default for those not loaded."
-msgstr "Yüklenmeyenler için ilk filamenti varsayılan olarak yükleyin"
+msgstr "Yüklenmeyenler için ilk filamenti varsayılan olarak yükleyin."
 
 msgid "Minimum save"
 msgstr "Minimum tasarruf"
@@ -15704,7 +15848,6 @@ msgstr "saniye cinsinden plaka başına maksimum dilimleme süresi."
 msgid "No check"
 msgstr "Kontrol yok"
 
-#, fuzzy
 msgid "Do not run any validity checks, such as G-code path conflicts check."
 msgstr ""
 "Gcode yol çakışmaları kontrolü gibi herhangi bir geçerlilik kontrolü "
@@ -15745,7 +15888,7 @@ msgid "Repetition count"
 msgstr "Tekrar sayısı"
 
 msgid "Repetition count of the whole model."
-msgstr "Tüm modelin tekrar sayısı"
+msgstr "Tüm modelin tekrar sayısı."
 
 msgid "Ensure on bed"
 msgstr "Baskı yatağında olduğundan emin olun"
@@ -15755,7 +15898,7 @@ msgid ""
 "default."
 msgstr ""
 "Kısmen aşağıda olduğunda nesneyi yatağın üzerine kaldırın. Varsayılan olarak "
-"devre dışı"
+"devre dışı."
 
 msgid ""
 "Arrange the supplied models in a plate and merge them in a single model in "
@@ -15768,7 +15911,7 @@ msgid "Convert Unit"
 msgstr "Birimi Dönüştür"
 
 msgid "Convert the units of model."
-msgstr "Modelin birimlerini dönüştür"
+msgstr "Modelin birimlerini dönüştür."
 
 msgid "Orient Options"
 msgstr "Yönlendirme Seçenekleri"
@@ -15794,71 +15937,75 @@ msgid "Rotation angle around the Y axis in degrees."
 msgstr "Y ekseni etrafında derece cinsinden dönüş açısı."
 
 msgid "Scale the model by a float factor."
-msgstr "Modeli kayan nokta faktörüne göre ölçeklendirin"
+msgstr "Modeli kayan nokta faktörüne göre ölçeklendirin."
 
 msgid "Load General Settings"
 msgstr "Genel Ayarları Yükle"
 
 msgid "Load process/machine settings from the specified file."
-msgstr "Belirtilen dosyadan proses/yazıcıayarlarını yükleyin"
+msgstr "Belirtilen dosyadan işlem/yazıcı ayarlarını yükleyin."
 
 msgid "Load Filament Settings"
 msgstr "Filament Ayarlarını Yükle"
 
 msgid "Load filament settings from the specified file list."
-msgstr "Filament ayarlarını belirtilen dosya listesinden yükleyin"
+msgstr "Filament ayarlarını belirtilen dosya listesinden yükleyin."
 
 msgid "Skip Objects"
 msgstr "Nesneleri Atla"
 
 msgid "Skip some objects in this print."
-msgstr "Bu baskıdaki bazı nesneleri atla"
+msgstr "Bu baskıdaki bazı nesneleri atla."
 
 msgid "Clone Objects"
 msgstr "Nesneleri Klonla"
 
 msgid "Clone objects in the load list."
-msgstr "Yükleme listesindeki nesneleri klonlama"
+msgstr "Yükleme listesindeki nesneleri klonlama."
 
 msgid "Load uptodate process/machine settings when using uptodate"
 msgstr ""
+"Güncel olan bir baskı süreci (process) veya makine (printer) profili "
+"seçildiğinde, ona ait en güncel ayarları otomatik olarak yükle"
 
 msgid ""
 "Load uptodate process/machine settings from the specified file when using "
 "uptodate."
 msgstr ""
-"güncellemeyi kullanırken belirtilen dosyadan güncel işlem/yazıcıayarlarını "
-"yükle"
+"Güncellemeyi kullanırken belirtilen dosyadan güncel işlem/yazıcı ayarlarını "
+"yükle."
 
 msgid "Load uptodate filament settings when using uptodate"
 msgstr ""
+"Güncel olan bir filament profili kullanırken, onun en güncel ayarlarını yükle"
 
 msgid ""
 "Load uptodate filament settings from the specified file when using uptodate."
 msgstr ""
-"güncellemeyi kullanırken belirtilen dosyadan güncel filament ayarlarını yükle"
+"Güncellemeyi kullanırken belirtilen dosyadan güncel filament ayarlarını "
+"yükle."
 
 msgid "Downward machines check"
-msgstr ""
+msgstr "Aşağı doğru makine kontrolü"
 
 msgid ""
 "If enabled, check whether current machine downward compatible with the "
 "machines in the list."
 msgstr ""
-"etkinleştirilirse mevcut makinenin listedeki makinelerle uyumlu olup "
-"olmadığını kontrol edin"
+"Etkinleştirilirse mevcut makinenin listedeki makinelerle uyumlu olup "
+"olmadığını kontrol edin."
 
 msgid "downward machines settings"
-msgstr ""
+msgstr "Aşağı doğru makine ayarları"
 
 msgid "The machine settings list needs to do downward checking."
-msgstr "makine ayarları listesinin aşağı doğru kontrol yapması gerekiyor"
+msgstr "Makine ayarları listesinin aşağı doğru kontrol yapması gerekiyor."
 
 msgid "Load assemble list"
 msgstr "Montaj listesini yükle"
 
 msgid "Load assemble object list from config file."
-msgstr "Montaj nesne listesini yapılandırma dosyasından yükle"
+msgstr "Montaj nesne listesini yapılandırma dosyasından yükle."
 
 msgid "Data directory"
 msgstr "Veri dizini"
@@ -15894,21 +16041,19 @@ msgstr "Yazdırma için hızlandırılmış çekimi etkinleştir"
 msgid "If enabled, this slicing will be considered using timelapse."
 msgstr ""
 "Etkinleştirilirse, bu dilimleme hızlandırılmış çekim kullanılarak "
-"değerlendirilecektir"
+"değerlendirilecektir."
 
-#, fuzzy
 msgid "Load custom G-code"
 msgstr "Özel gcode yükle"
 
-#, fuzzy
 msgid "Load custom G-code from json."
-msgstr "Json'dan özel gcode yükleyin"
+msgstr "Json'dan özel gcode yükleyin."
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "Filament kimliklerini yükle"
 
 msgid "Load filament IDs for each object."
-msgstr ""
+msgstr "Her nesne için filament kimliklerini yükleyin."
 
 msgid "Allow multiple colors on one plate"
 msgstr "Bir plaka üzerinde birden fazla renge izin verin"
@@ -15916,14 +16061,14 @@ msgstr "Bir plaka üzerinde birden fazla renge izin verin"
 msgid "If enabled, Arrange will allow multiple colors on one plate."
 msgstr ""
 "Etkinleştirilirse, düzenleme bir plaka üzerinde birden fazla renge izin "
-"verecektir"
+"verecektir."
 
 msgid "Allow rotation when arranging"
 msgstr "Düzenlerken rotasyonlara izin ver"
 
 msgid "If enabled, Arrange will allow rotation when placing objects."
 msgstr ""
-"Etkinleştirilirse düzenleme, nesne yerleştirildiğinde dönüşlere izin verir"
+"Etkinleştirilirse düzenleme, nesne yerleştirildiğinde dönüşlere izin verir."
 
 msgid "Avoid extrusion calibrate region when arranging"
 msgstr "Düzenleme yaparken ekstrüzyon kalibrasyon bölgesinden kaçının"
@@ -15933,47 +16078,45 @@ msgid ""
 "objects."
 msgstr ""
 "Etkinleştirilirse, nesne yerleştirildiğinde düzenleme ekstrüzyon kalibrasyon "
-"bölgesini önleyecektir"
+"bölgesini önleyecektir."
 
-#, fuzzy
 msgid "Skip modified G-code in 3mf"
 msgstr "3mf’de değiştirilmiş gcode’ları atla"
 
-#, fuzzy
 msgid "Skip the modified G-code in 3mf from Printer or filament Presets."
 msgstr ""
 "Yazıcı veya filament Ön Ayarlarından 3mf’deki değiştirilmiş gcode’ları "
-"atlayın"
+"atlayın."
 
 msgid "MakerLab name"
 msgstr "MakerLab adı"
 
-msgid "MakerLab name to generate this 3mf"
-msgstr "Bu 3mf’yi oluşturmak için MakerLab adı"
+msgid "MakerLab name to generate this 3mf."
+msgstr "Bu 3mf’yi oluşturmak için MakerLab adı."
 
 msgid "MakerLab version"
 msgstr "MakerLab version"
 
-msgid "MakerLab version to generate this 3mf"
-msgstr "Bu 3mf’yi oluşturmak için MakerLab sürümü"
+msgid "MakerLab version to generate this 3mf."
+msgstr "Bu 3mf’yi oluşturmak için MakerLab sürümü."
 
 msgid "metadata name list"
 msgstr "meta veri adı listesi"
 
-msgid "metadata name list added into 3mf"
-msgstr "3mf’ye meta veri adı listesi eklendi"
+msgid "metadata name list added into 3mf."
+msgstr "3mf’ye meta veri adı listesi eklendi."
 
 msgid "metadata value list"
 msgstr "meta veri değer listesi"
 
-msgid "metadata value list added into 3mf"
-msgstr "3mf’ye meta veri değeri listesi eklendi"
+msgid "metadata value list added into 3mf."
+msgstr "3mf’ye meta veri değeri listesi eklendi."
 
 msgid "Allow 3mf with newer version to be sliced"
-msgstr ""
+msgstr "Daha yeni sürümle 3mf'nin dilimlenmesine izin verin"
 
 msgid "Allow 3mf with newer version to be sliced."
-msgstr "Daha yeni sürüme sahip 3mf’nin dilimlenmesine izin ver"
+msgstr "Daha yeni sürüme sahip 3mf’nin dilimlenmesine izin ver."
 
 msgid "Current Z-hop"
 msgstr "Mevcut z-hop"
@@ -16048,7 +16191,7 @@ msgstr ""
 "aynı."
 
 msgid "Initial tool"
-msgstr "Başlangıç ​​aracı"
+msgstr "Başlangıç aracı"
 
 msgid ""
 "Zero-based index of the first extruder used in the print. Same as "
@@ -16252,7 +16395,7 @@ msgstr "Katman numarası"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr "Geçerli katmanın dizini. Tek tabanlı (yani ilk katman 1 numaradır)."
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "Z katmanı"
 
 msgid ""
@@ -16262,7 +16405,7 @@ msgstr ""
 "Geçerli katmanın baskı yatağı üzerindeki yüksekliği, katmanın tepesine kadar "
 "ölçülür."
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "Maksimum katman z"
 
 msgid "Height of the last layer above the print bed."
@@ -16339,9 +16482,12 @@ msgid ""
 "is also fuzzy skin painted.\n"
 "XY Size compensation cannot be combined with fuzzy skin painting."
 msgstr ""
+"Bir nesne, XY Boyut Telafisini (XY Size Compensation) etkinleştirmiş, ancak "
+"bu kullanılmayacak çünkü aynı zamanda pütürlü yüzey (Fuzzy Skin) uygulanmış. "
+"XY Boyut Telafisi, Fuzzy Skin ile birlikte kullanılamaz."
 
 msgid "Object name"
-msgstr ""
+msgstr "Nesne adı"
 
 msgid "Support: generate contact points"
 msgstr "Destek: iletişim noktaları oluştur"
@@ -16362,9 +16508,6 @@ msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 "Bilinmeyen dosya formatı. Giriş dosyası .3mf veya .zip.amf uzantılı "
 "olmalıdır."
-
-msgid "Canceled"
-msgstr "İptal edildi"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: ayrıştırılamadı"
@@ -16465,7 +16608,7 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 "Lütfen geçerli değerleri girin:\n"
 "Başlangıç değeri: >= %.1f\n"
@@ -16527,7 +16670,7 @@ msgid "The failed test result has been dropped."
 msgstr "Başarısız olan test sonucu düşürüldü."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer."
-msgstr "Akış Dinamiği Kalibrasyonu sonucu yazıcıya kaydedildi"
+msgstr "Akış Dinamiği Kalibrasyonu sonucu yazıcıya kaydedildi."
 
 #, c-format, boost-format
 msgid ""
@@ -16554,10 +16697,10 @@ msgid "Please select at least one filament for calibration"
 msgstr "Lütfen kalibrasyon için en az bir filament seçin"
 
 msgid "Flow rate calibration result has been saved to preset."
-msgstr "Akış hızı kalibrasyon sonucu ön ayara kaydedildi"
+msgstr "Akış hızı kalibrasyon sonucu ön ayara kaydedildi."
 
 msgid "Max volumetric speed calibration result has been saved to preset."
-msgstr "Maksimum hacimsel hız kalibrasyon sonucu ön ayara kaydedildi"
+msgstr "Maksimum hacimsel hız kalibrasyon sonucu ön ayara kaydedildi."
 
 msgid "When do you need Flow Dynamics Calibration"
 msgstr "Akış Dinamiği Kalibrasyonuna ne zaman ihtiyacınız olur"
@@ -16572,6 +16715,17 @@ msgid ""
 "3. If the max volumetric speed or print temperature is changed in the "
 "filament setting."
 msgstr ""
+"Artık farklı filamentler için otomatik kalibrasyon ekledik. Bu işlem tamamen "
+"otomatik gerçekleşir ve sonuç gelecekte kullanmak üzere yazıcıya kaydedilir. "
+"Kalibrasyonu yalnızca aşağıdaki sınırlı durumlarda yapmanız gerekir:\n"
+"1. Farklı marka/modelde yeni bir filament kullanıyorsanız veya filament "
+"nemliyse;\n"
+"2. Nozul aşınmışsa veya yeni bir nozul ile değiştirilmişse;\n"
+"3. Filament ayarlarında maksimum hacimsel hız (max volumetric speed) veya "
+"baskı sıcaklığı değiştirilmişse.”**\n"
+"Yani çoğu durumda filament değişimi otomatik olarak kalibre edilir ve "
+"kullanıcı müdahalesi gerekmez; sadece yukarıdaki özel durumlarda manuel veya "
+"tekrar kalibrasyon yapılması gerekir."
 
 msgid "About this calibration"
 msgstr "Bu kalibrasyon hakkında"
@@ -16632,13 +16786,13 @@ msgstr ""
 "ekstrüzyon sorunları olabilir:\n"
 "1. Aşırı Ekstrüzyon: Basılı nesnenizdeki fazla malzeme, kabarcıklar veya "
 "sivilceler oluşturuyor veya katmanlar beklenenden daha kalın görünüyor ve "
-"tekdüze değil.\n"
+"tekdüze değil\n"
 "2. Eksik Ekstrüzyon: Yavaş yazdırırken bile çok ince katmanlar, zayıf dolgu "
-"mukavemeti veya modelin üst katmanındaki boşluklar.\n"
+"mukavemeti veya modelin üst katmanındaki boşluklar\n"
 "3. Kötü Yüzey Kalitesi: Baskılarınızın yüzeyi pürüzlü veya düzensiz "
-"görünüyor.\n"
+"görünüyor\n"
 "4. Zayıf Yapısal Bütünlük: Baskılar kolayca kırılıyor veya olması gerektiği "
-"kadar sağlam görünmüyor."
+"kadar sağlam görünmüyor"
 
 msgid ""
 "In addition, Flow Rate Calibration is crucial for foaming materials like LW-"
@@ -16860,6 +17014,9 @@ msgid ""
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
 "during printing"
 msgstr ""
+"Sıcaklık farkı çok büyük olan birden fazla filament aynı anda basılamaz. "
+"Aksi takdirde ekstruder ve nozul baskı sırasında tıkanabilir veya zarar "
+"görebilir"
 
 msgid "Connecting to printer"
 msgstr "Yazıcıya bağlanılıyor"
@@ -16980,7 +17137,7 @@ msgid "PA step: "
 msgstr "PA adımı: "
 
 msgid "Accelerations: "
-msgstr "İvmeler:"
+msgstr "İvmeler: "
 
 msgid "Speeds: "
 msgstr "Speeds: "
@@ -16998,7 +17155,7 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 "Lütfen geçerli değerleri girin:\n"
 "PA'yı başlat: >= 0,0\n"
@@ -17045,7 +17202,7 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 "Lütfen geçerli değerleri girin:\n"
 "Başlangıç sıcaklığı: <= 350\n"
@@ -17063,9 +17220,9 @@ msgstr "Hacimsel hız bitişi: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Lütfen geçerli değerleri girin:\n"
 "başlangıç > 0 \n"
@@ -17083,9 +17240,9 @@ msgstr "Bitiş hızı: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "Lütfen geçerli değerleri girin:\n"
 "başlangıç > 10 \n"
@@ -17099,85 +17256,93 @@ msgid "End retraction length: "
 msgstr "Geri çekme uzunluğu bitişi: "
 
 msgid "Input shaping Frequency test"
-msgstr ""
+msgstr "Input shaping frekans testi"
 
 msgid "Test model"
-msgstr ""
+msgstr "Test model"
 
 msgid "Ringing Tower"
-msgstr ""
+msgstr "Titreşim Test Kulesi"
 
 msgid "Fast Tower"
-msgstr ""
+msgstr "Hız Kulesi"
 
 msgid "Start / End"
-msgstr ""
+msgstr "Başlangıç / Bitiş"
 
 msgid "Frequency settings"
-msgstr ""
-
-msgid "hz"
-msgstr ""
+msgstr "Frekans ayarları"
 
 msgid "Damp: "
-msgstr ""
+msgstr "Damp: "
 
 msgid ""
 "Recommended: Set Damp to 0.\n"
 "This will use the printer's default or the last saved value."
 msgstr ""
+"Öneri: Nemlendirme değerini 0 olarak ayarlayın.\n"
+"Bu, yazıcının varsayılan değerini veya son kaydedilen değeri kullanacaktır."
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
+"Lütfen geçerli değerler girin:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
 msgstr ""
+"Lütfen geçerli bir sönüm (damping) katsayısı girin (0 < Sönüm/Zeta katsayısı "
+"≤ 1)"
 
 msgid "Input shaping Damp test"
-msgstr ""
+msgstr "Input shaping damp testi"
 
 msgid "Frequency"
-msgstr ""
+msgstr "Frekans"
 
 msgid "Damp"
-msgstr ""
+msgstr "Damp"
 
 msgid "Note: Use previously calculated frequencies."
-msgstr ""
+msgstr "Not: Daha önce hesaplanan frekansları kullanın."
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
+"Lütfen geçerli değerler girin:\n"
+"(0 < Frekans < 500)"
 
 msgid ""
 "Please input a valid damping factor (0 <= DampingStart < DampingEnd <= 1)"
 msgstr ""
+"Lütfen geçerli bir kamp faktörü girin (0 <= DampingStart < DampingEnd <= 1)"
 
 msgid "Junction Deviation test"
-msgstr ""
+msgstr "Köşe sapma testi"
 
 msgid "Start junction deviation: "
-msgstr ""
+msgstr "Başlangıç köşe sapması: "
 
 msgid "End junction deviation: "
-msgstr ""
+msgstr "Bitiş köşe sapması: "
 
 msgid "Junction Deviation settings"
-msgstr ""
+msgstr "Köşe sapma ayarları"
 
 msgid "Note: Lower values = sharper corners but slower speeds"
-msgstr ""
+msgstr "Not: Daha düşük değerler = daha keskin köşeler ancak daha yavaş hızlar"
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
+"Lütfen geçerli değerler girin:\n"
+"(0 <= Köşe Sapması < 1)"
 
 msgid "NOTE: High values may cause Layer shift"
-msgstr ""
+msgstr "Not: Yüksek değerler katman kaymasına neden olabilir"
 
 msgid "Send G-code to printer host"
 msgstr "G Kodunu yazıcı ana bilgisayarına gönder"
@@ -17232,7 +17397,7 @@ msgstr "Sıraya alındı"
 msgid "Uploading"
 msgstr "Yükleniyor"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "İptal Ediliyor"
 
 msgid "Error uploading to print host"
@@ -17242,7 +17407,7 @@ msgid ""
 "The selected bed type does not match the file. Please confirm before "
 "starting the print."
 msgstr ""
-"Seçilen yatak tipi dosyayla eşleşmiyor. Lütfen yazdırmaya başlamadan önce "
+"Seçilen plaka tipi dosyayla eşleşmiyor. Lütfen yazdırmaya başlamadan önce "
 "onaylayın."
 
 msgid "Time-lapse"
@@ -17285,7 +17450,7 @@ msgid "Subtract with"
 msgstr "Şununla çıkar"
 
 msgid "selected"
-msgstr "seçili"
+msgstr "Seçili"
 
 msgid "Part 1"
 msgstr "Bölüm 1"
@@ -17599,7 +17764,7 @@ msgstr ""
 
 msgid "Please check bed printable shape and origin input."
 msgstr ""
-"Lütfen baskı yapılabilir şekil ve başlangıç ​​noktası girişini kontrol edin."
+"Lütfen baskı yapılabilir şekil ve başlangıç noktası girişini kontrol edin."
 
 msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
@@ -17699,10 +17864,12 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
+"%s dosyası başka bir program tarafından açılmış olabilir.\n"
+"Lütfen kapatıp tekrar deneyin."
 
 msgid ""
 "Printer and all the filament&&process presets that belongs to the printer.\n"
@@ -17848,7 +18015,7 @@ msgid "Daily Tips"
 msgstr "Günlük İpuçları"
 
 msgid "BigTraffic"
-msgstr ""
+msgstr "Yoğun trafik"
 
 #, c-format, boost-format
 msgid "nozzle in preset: %s %s"
@@ -18041,8 +18208,8 @@ msgstr "Repetier'e bağlantı düzgün çalışıyor."
 msgid "Could not connect to Repetier"
 msgstr "Repetier'a bağlanılamadı"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
-msgstr ""
+msgid "Note: Repetier version 0.90.0 or higher is required."
+msgstr "Not: Repetier sürümü en az 0.90.0 gereklidir."
 
 #, boost-format
 msgid ""
@@ -18112,6 +18279,9 @@ msgid ""
 "height. This results in almost invisible layer lines and higher print "
 "quality but longer print time."
 msgstr ""
+"0,2 mm nozulun varsayılan profiliyle karşılaştırıldığında, daha küçük bir "
+"katman yüksekliğine sahiptir. Bu, neredeyse görünmez katman çizgileri ve "
+"daha yüksek baskı kalitesiyle birlikte daha uzun baskı süresi sağlar."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -18130,6 +18300,9 @@ msgid ""
 "height. This results in minimal layer lines and higher print quality but "
 "longer print time."
 msgstr ""
+"0,2 mm'lik nozulun varsayılan profiliyle karşılaştırıldığında, daha küçük "
+"bir katman yüksekliğine sahiptir. Bu sayede minimum katman çizgisi ve daha "
+"yüksek baskı kalitesi elde edilirken, baskı süresi daha uzundur."
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -18289,18 +18462,28 @@ msgid ""
 "It has a very big layer height. This results in very apparent layer lines, "
 "low print quality and shorter print time."
 msgstr ""
+"Çok büyük bir katman yüksekliğine sahiptir. Bu da çok belirgin katman "
+"çizgilerine, düşük baskı kalitesine ve daha kısa baskı süresine neden olur."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
 "height. This results in very apparent layer lines and much lower print "
 "quality, but shorter print time in some cases."
 msgstr ""
+"0,8 mm'lik nozulun varsayılan profiliyle karşılaştırıldığında, daha büyük "
+"bir katman yüksekliğine sahiptir. Bu, çok belirgin katman çizgilerine ve çok "
+"daha düşük baskı kalitesine, ancak bazı durumlarda daha kısa baskı süresine "
+"neden olur."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
 "layer height. This results in extremely apparent layer lines and much lower "
 "print quality, but much shorter print time in some cases."
 msgstr ""
+"0,8 mm'lik nozulun varsayılan profiliyle karşılaştırıldığında, çok daha "
+"büyük bir katman yüksekliğine sahiptir. Bu, son derece belirgin katman "
+"çizgilerine ve çok daha düşük baskı kalitesine, ancak bazı durumlarda çok "
+"daha kısa baskı süresine neden olur."
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
@@ -18317,6 +18500,10 @@ msgid ""
 "height. This results in less but still apparent layer lines and slightly "
 "higher print quality but longer print time in some cases."
 msgstr ""
+"0,8 mm'lik nozulun varsayılan profiliyle karşılaştırıldığında, daha küçük "
+"bir katman yüksekliğine sahiptir. Bu, daha az ancak yine de belirgin katman "
+"çizgileri ve biraz daha yüksek baskı kalitesiyle sonuçlanır, ancak bazı "
+"durumlarda daha uzun baskı süresi sağlar."
 
 msgid "Connected to Obico successfully!"
 msgstr "Obico'ya başarıyla bağlanıldı!"
@@ -18341,10 +18528,10 @@ msgstr ""
 "SimplyPrint hesabı bağlı değil. Ayarlamak için Bağlantı seçeneklerine gidin."
 
 msgid "Serial connection to Flashforge is working correctly."
-msgstr ""
+msgstr "Flashforge'a seri bağlantı düzgün çalışıyor."
 
 msgid "Could not connect to Flashforge via serial"
-msgstr ""
+msgstr "Flashforge'a seri bağlantı yoluyla bağlanılamadı"
 
 msgid "The provided state is not correct."
 msgstr "Sağlanan durum doğru değil."
@@ -18357,7 +18544,7 @@ msgstr ""
 "Giriş yapmaya çalışırken beklenmeyen bir şey oldu, lütfen tekrar deneyin."
 
 msgid "User cancelled."
-msgstr ""
+msgstr "Kullanıcı iptal edildi."
 
 msgid "Head diameter"
 msgstr "Kafa çapı"
@@ -18384,7 +18571,7 @@ msgid "Delete a brim ear"
 msgstr "Destek kulağı sil"
 
 msgid "Adjust head diameter"
-msgstr ""
+msgstr "Kafa çapını ayarlayın"
 
 msgid "Adjust section view"
 msgstr "Kesit görünümünü ayarla"
@@ -18397,7 +18584,7 @@ msgstr ""
 "etkili olmayacaktır!"
 
 msgid "Set the brim type of this object to \"painted\""
-msgstr ""
+msgstr "Bu nesnenin kenar türünü \"boyalı\" olarak ayarlayın"
 
 msgid " invalid brim ears"
 msgstr " geçersi̇z kenarlı kulaklar"
@@ -18489,6 +18676,9 @@ msgid ""
 "Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
 "3D scene operations?"
 msgstr ""
+"Klavye kısayolları nasıl kullanılır?\n"
+"Orca Slicer'ın çok çeşitli klavye kısayolları ve 3D sahne işlemleri "
+"sunduğunu biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Reverse on odd]
 msgid ""
@@ -18630,7 +18820,7 @@ msgid ""
 "Orca Slicer supports slicing STEP files, providing smoother results than a "
 "lower resolution STL. Give it a try!"
 msgstr ""
-"ADIM\n"
+"STEP\n"
 "STL yerine STEP dosyasını dilimleyerek baskı kalitenizi artırabileceğinizi "
 "biliyor muydunuz?\n"
 "Orca Slicer, STEP dosyalarını dilimlemeyi destekleyerek daha düşük "
@@ -18769,7 +18959,6 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:When do you need to print with the printer
 #: door opened]
-#, fuzzy
 msgid ""
 "When do you need to print with the printer door opened?\n"
 "Did you know that opening the printer door can reduce the probability of "
@@ -18794,13 +18983,154 @@ msgstr ""
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
 
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr ""
+#~ "Dış duvar aralığını ayarlayarak kabuk hassasiyetini artırın. Bu aynı "
+#~ "zamanda katman tutarlılığını da artırır."
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "Filament sıkıştırmayı etkinleştir."
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Fare tekerleği"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + Fare tekerleği"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + Sol fare düğmesi"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Shift + Fare yukarı veya aşağı hareket ettirir"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "Sol fare tuşu:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "Sağ fare tuşu:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Shift + Sol fare düğmesi:"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift + Sağ fare düğmesi:"
+
+#~ msgid "Recent projects"
+#~ msgstr "Son Projeler"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "Maksimum yeni proje"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "Maksimum yeni proje sayısı"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Shift+A"
+
+#~ msgid "Shift+Q"
+#~ msgstr "Shift+Q"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Shift+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Herhangi bir ok"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Sol fare düğmesi"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Sol fare düğmesi"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+Herhangi bir yön tuşu"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+Sol fare düğmesi"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+Sol fare düğmesi"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift+Sol fare düğmesi"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift+Herhangi bir ok tuşu"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Fare tekerleği"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Fare tekerleği"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Fare tekerleği"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Fare tekerleği"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift+Fare tekerleği"
+
+#~ msgid ""
+#~ "This parameter adds a rotation of sparse infill direction to each layer "
+#~ "according to the specified template. The template is a comma-separated "
+#~ "list of angles in degrees, e.g. '0,90'. The first angle is applied to the "
+#~ "first layer, the second angle to the second layer, and so on. If there "
+#~ "are more layers than angles, the angles will be repeated. Note that not "
+#~ "all sparse infill patterns support rotation."
+#~ msgstr ""
+#~ "Bu parametre, belirtilen şablona göre her katmana seyrek dolgu yönünde "
+#~ "bir dönüş ekler. Şablon, derece cinsinden virgülle ayrılmış bir açı "
+#~ "listesidir (örneğin, '0,90'). İlk açı ilk katmana, ikinci açı ikinci "
+#~ "katmana uygulanır ve bu şekilde devam eder. Açı sayısından fazla katman "
+#~ "varsa, açılar tekrarlanır. Tüm seyrek dolgu desenlerinin dönüşü "
+#~ "desteklemediğini unutmayın."
+
+#~ msgid ""
+#~ "The remaining part of the model contour after removing a certain depth "
+#~ "from the surface is called the skeleton. This parameter is used to adjust "
+#~ "the density of this section. When two regions have the same sparse infill "
+#~ "settings but different skeleton densities, their skeleton areas will "
+#~ "develop overlapping sections.default is as same as infill density."
+#~ msgstr ""
+#~ "Model konturunun yüzeyden belirli bir derinlik kaldırıldıktan sonraki "
+#~ "kalan kısmına iskelet denir. Bu parametre, bu bölümün yoğunluğunu "
+#~ "ayarlamak için kullanılır. İki bölge aynı seyrek dolgu ayarlarına sahip "
+#~ "ancak farklı iskelet yoğunluklarına sahip olduğunda, iskelet alanları üst "
+#~ "üste binen bölümler geliştirir. Varsayılan değer, dolgu yoğunluğuyla "
+#~ "aynıdır."
+
+#~ msgid ""
+#~ "The portion of the model's outer surface within a certain depth range is "
+#~ "called the skin. This parameter is used to adjust the density of this "
+#~ "section. When two regions have the same sparse infill settings but "
+#~ "different skin densities, This area will not be split into two separate "
+#~ "regions.default is as same as infill density."
+#~ msgstr ""
+#~ "Modelin dış yüzeyinin belirli bir derinlik aralığındaki kısmına yüzey adı "
+#~ "verilir. Bu parametre, bu bölümün yoğunluğunu ayarlamak için kullanılır. "
+#~ "İki bölge aynı seyrek dolgu ayarlarına sahip ancak farklı yüzey "
+#~ "yoğunluklarına sahip olduğunda, bu alan iki ayrı bölgeye bölünmez. "
+#~ "Varsayılan değer, dolgu yoğunluğuyla aynıdır."
+
 #~ msgid "Set Position"
 #~ msgstr "Pozisyonu ayarla"
 
 #~ msgid "%"
 #~ msgstr "%"
 
-#, boost-format
 #~ msgid "%1%"
 #~ msgstr "%1%"
 
@@ -18858,7 +19188,6 @@ msgstr ""
 #~ msgid "SD Card Abnormal"
 #~ msgstr "SD Kart Anormal"
 
-#, c-format, boost-format
 #~ msgid "Ejecting of device %s(%s) has failed."
 #~ msgstr "%s(%s) aygıtının çıkarılması başarısız oldu."
 
@@ -18892,7 +19221,6 @@ msgstr ""
 #~ msgid "Can't find my devices?"
 #~ msgstr "Cihazlarımı bulamıyor musunuz?"
 
-#, c-format, boost-format
 #~ msgid "nozzle memorized: %.2f %s"
 #~ msgstr "hafızaya alınan nozul: %.2f %s"
 
@@ -18959,16 +19287,6 @@ msgstr ""
 #~ msgid "Enable this option to use classic mode."
 #~ msgstr "Klasik modu kullanmak için bu seçeneği etkinleştirin"
 
-#~ msgid ""
-#~ "The geometry will be decimated before detecting sharp angles. This "
-#~ "parameter indicates the minimum length of the deviation for the "
-#~ "decimation.\n"
-#~ "0 to deactivate."
-#~ msgstr ""
-#~ "Keskin açılar tespit edilmeden önce geometrinin büyük bir kısmı yok "
-#~ "edilecektir. Bu parametre, ondalık sapmanın minimum uzunluğunu gösterir.\n"
-#~ "Devre dışı bırakmak için 0"
-
 #~ msgid "Compatible machine"
 #~ msgstr "Uyumlu makine"
 
@@ -18992,9 +19310,6 @@ msgstr ""
 
 #~ msgid "Rotate the solid infill direction by 90° for each layer."
 #~ msgstr "Katı dolgu yönünü her katman için 90° döndürün."
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Ütüleme çizgilerinin baskı hızı"
 
 #~ msgid ""
 #~ "Flow Compensation Model, used to adjust the flow for small infill areas. "
@@ -19072,7 +19387,6 @@ msgstr ""
 #~ msgid "Spacing of interface lines. Zero means solid interface."
 #~ msgstr "Arayüz çizgilerinin aralığı. Sıfır, sağlam arayüz anlamına gelir"
 
-#, fuzzy
 #~ msgid ""
 #~ "Minimum thickness of thin features. Model features that are thinner than "
 #~ "this value will not be printed, while features thicker than this value "
@@ -19093,7 +19407,7 @@ msgstr ""
 #~ msgid "Downward machines settings"
 #~ msgstr "Düşüşteki makinelerin ayarları"
 
-#~ msgid "Load filament ids for each object"
+#~ msgid "Load filament IDs for each object"
 #~ msgstr "Her nesne için filaman kimliklerini yükleyin"
 
 #~ msgid ""
@@ -19135,9 +19449,6 @@ msgstr ""
 
 #~ msgid "Refresh Printers"
 #~ msgstr "Yazıcıları Yenile"
-
-#~ msgid "Note: Repetier version 0.90.0 or higher is required."
-#~ msgstr "Not: Repetier sürümü en az 0.90.0 gereklidir."
 
 #~ msgid ""
 #~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "
@@ -19248,7 +19559,6 @@ msgstr ""
 #~ msgid "This setting specify the count of walls around support"
 #~ msgstr "Bu ayar desteğin etrafındaki duvarların sayısını belirtir"
 
-#, c-format, boost-format
 #~ msgid "Support: generate toolpath at layer %d"
 #~ msgstr "Destek: %d katmanında takım yolu oluştur"
 
@@ -19264,15 +19574,12 @@ msgstr ""
 #~ msgid "Support: generate toolpath"
 #~ msgstr "Destek: takım yolu oluştur"
 
-#, c-format, boost-format
 #~ msgid "Support: generate polygons at layer %d"
 #~ msgstr "Destek: %d katmanında çokgenler oluşturma"
 
-#, c-format, boost-format
 #~ msgid "Support: fix holes at layer %d"
 #~ msgstr "Destek: %d katmanındaki delikleri düzeltin"
 
-#, c-format, boost-format
 #~ msgid "Support: propagate branches at layer %d"
 #~ msgstr "Destek: %d katmanındaki dalları çoğalt"
 
@@ -19285,7 +19592,6 @@ msgstr ""
 #~ msgid "Stopped."
 #~ msgstr "Durdu."
 
-#, c-format, boost-format
 #~ msgid "Connect failed [%d]!"
 #~ msgstr "Bağlantı başarısız oldu [%d]!"
 
@@ -19296,7 +19602,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Başlatma başarısız oldu (Depolama alanı kullanılamıyor, SD kartı takın.)!"
 
-#, c-format, boost-format
 #~ msgid "Initialize failed (%s)!"
 #~ msgstr "Başlatma başarısız oldu (%s)!"
 
@@ -19708,9 +20013,6 @@ msgstr ""
 #~ msgid "Shift+G"
 #~ msgstr "Shift+G"
 
-#~ msgid "Any arrow"
-#~ msgstr "Herhangi bir ok"
-
 #~ msgid ""
 #~ "Enables gap fill for the selected surfaces. The minimum gap length that "
 #~ "will be filled can be controlled from the filter out tiny gaps option "
@@ -19911,13 +20213,6 @@ msgstr ""
 #~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
 #~ msgstr "Lütfen geçerli bir değer girin (K in 0~0.3, N in 0.6~2.0)"
 
-#~ msgid "Select connected printetrs (0/6)"
-#~ msgstr "Bağlı yazıcıları seçin (0/6)"
-
-#, c-format, boost-format
-#~ msgid "Select Connected Printetrs (%d/6)"
-#~ msgstr "Bağlı Yazıcıları Seçin (%d/6)"
-
 #~ msgid "PrintingPause"
 #~ msgstr "Yazdırma Duraklatıldı"
 
@@ -19973,7 +20268,6 @@ msgstr ""
 #~ "Aynı ada sahip sonuçlardan yalnızca biri kaydedilecektir. Diğer sonuçları "
 #~ "geçersiz kılmak istediğinizden emin misiniz?"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "There is already a historical calibration result with the same name: %s. "
 #~ "Only one of the results with the same name is saved. Are you sure you "
@@ -20181,7 +20475,6 @@ msgstr ""
 #~ "Not: Yazdırma sırasında yeni filament takılırsa AMS, yazdırma tamamlanana "
 #~ "kadar herhangi bir bilgiyi otomatik olarak okumayacaktır."
 
-#, boost-format
 #~ msgid "Succeed to export G-code to %1%"
 #~ msgstr "G kodunu %1%'e aktarmayı başardınız"
 
@@ -20205,19 +20498,15 @@ msgstr ""
 #~ msgid "Initialize failed (Missing LAN ip of printer)!"
 #~ msgstr "Başlatma başarısız oldu (Yazıcının LAN ip'si eksik)!"
 
-#, c-format, boost-format
 #~ msgid "Stopped [%d]!"
 #~ msgstr "[%d] durduruldu!"
 
-#, c-format, boost-format
 #~ msgid "Load failed [%d]!"
 #~ msgstr "Yükleme başarısız [%d]!"
 
-#, c-format, boost-format
 #~ msgid "No files [%d]"
 #~ msgstr "Dosya yok [%d]"
 
-#, c-format, boost-format
 #~ msgid "Load failed [%d]"
 #~ msgstr "Yükleme başarısız [%d]"
 
@@ -20230,7 +20519,6 @@ msgstr ""
 #~ msgid "File not exists."
 #~ msgstr "Dosya mevcut değil."
 
-#, boost-format
 #~ msgid ""
 #~ "You have changed some settings of preset \"%1%\".\n"
 #~ "Would you like to keep these changed settings (new value) after switching "
@@ -20525,7 +20813,6 @@ msgstr ""
 #~ msgid "Filling bed "
 #~ msgstr "Yatak doldurma "
 
-#, boost-format
 #~ msgid "%1% infill pattern doesn't support 100%% density."
 #~ msgstr "%1% dolgu deseni 100%% yoğunluğu desteklemiyor."
 
@@ -20559,7 +20846,6 @@ msgstr ""
 #~ msgid "This setting specify the count of walls around tree support"
 #~ msgstr "Bu ayar, ağaç desteğinin etrafındaki duvarların sayısını belirtir"
 
-#, c-format, boost-format
 #~ msgid " doesn't work at 100%% density "
 #~ msgstr " 100%% yoğunlukta çalışmıyor "
 
@@ -20600,7 +20886,6 @@ msgstr ""
 #~ "Nesneye göre yazdırıldığında, I3 yapısına sahip makineler zaman atlamalı "
 #~ "videolar oluşturmayacaktır."
 
-#, c-format, boost-format
 #~ msgid "%s is not supported by AMS."
 #~ msgstr "%s AMS tarafından desteklenmiyor."
 
@@ -20640,14 +20925,12 @@ msgstr ""
 #~ msgid "inner-outer-inner/infill"
 #~ msgstr "iç-dış-iç/dolgu"
 
-#, c-format, boost-format
 #~ msgid "%%"
 #~ msgstr "%%"
 
 #~ msgid "Export the objects as multiple STL."
 #~ msgstr "Nesneleri birden çok STL olarak dışa aktarın."
 
-#, boost-format
 #~ msgid "The selected preset: %1% was not found."
 #~ msgstr "Seçilen ön ayar: %1% bulunamadı."
 
@@ -20800,7 +21083,7 @@ msgstr ""
 #~ "Please input valid values:\n"
 #~ "Start temp: <= 350\n"
 #~ "End temp: >= 180\n"
-#~ "Start temp > End temp + 5)"
+#~ "Start temp > End temp + 5"
 #~ msgstr ""
 #~ "Lütfen geçerli değerleri girin:\n"
 #~ "Başlangıç sıcaklığı: <= 350\n"
@@ -20810,7 +21093,7 @@ msgstr ""
 #~ msgid ""
 #~ "Please input valid values:\n"
 #~ "start > 0 step >= 0\n"
-#~ "end > start + step)"
+#~ "end > start + step"
 #~ msgstr ""
 #~ "Lütfen geçerli değerleri girin:\n"
 #~ "başlangıç > 0 adım >= 0\n"
@@ -20819,7 +21102,7 @@ msgstr ""
 #~ msgid ""
 #~ "Please input valid values:\n"
 #~ "start > 10 step >= 0\n"
-#~ "end > start + step)"
+#~ "end > start + step"
 #~ msgstr ""
 #~ "Lütfen geçerli değerleri girin:\n"
 #~ "başlangıç > 10 adım >= 0\n"

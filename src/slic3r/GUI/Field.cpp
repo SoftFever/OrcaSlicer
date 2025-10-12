@@ -436,15 +436,9 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 string      v;
                 std::smatch match;
                 string      ps = (m_opt.opt_key == "sparse_infill_rotate_template") ?
-                                     u8"[SODMR]?[BT][!]?|[SODMR]?[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[SODMR]?[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[BT]?[!*]?" :
+                                     u8"[BT][!]?|[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[BT]?[!*]?" :
                                      u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[!*]?";
 
-                //if (m_opt.opt_key == "sparse_infill_rotate_template") {
-                //string      ps = u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[SODMR]?[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[";
-                //if (m_opt.opt_key == "sparse_infill_rotate_template") {
-                //    ps = u8"[BT][!]?|" + ps ;
-                //}
-                //ps += u8"BT]?[!*]?";
                 while (std::regex_search(ustr, match, std::regex(ps))) {
                     for (auto x : match) v += x.str() + ", ";
                     ustr = match.suffix().str();
@@ -457,12 +451,26 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     show_error(m_parent, format_wxstr(_L("This parameter expects a valid template.")));
                     wxString old_value(boost::any_cast<std::string>(m_value));
                     this->set_value(old_value, true); // Revert to previous value
-                    throw;
                 }
             } else {
                 // Valid string, so update m_value with the new string from the control.
                 m_value = into_u8(str);
             }
+            break;
+        } else if (m_opt.opt_key == "extra_solid_infills") {
+            string ustr(str.utf8_string());
+            // New rule: accept either interval form (N or N#K) or explicit list (e.g. 1,7,9), with optional quotes.
+            const std::regex rx_interval(u8R"(^\s*['"]?\s*\d+\s*(?:#\s*\d*)?\s*['"]?\s*$)");
+            // List entries may be plain numbers or number with optional #K count, e.g., 5, 9#2, 18
+            const std::regex rx_list(u8R"(^\s*['"]?\s*\d+(?:\s*#\s*\d*)?(?:\s*,\s*\d+(?:\s*#\s*\d*)?)*\s*['"]?\s*$)");
+            bool is_valid = ustr.empty() || std::regex_match(ustr, rx_interval) || std::regex_match(ustr, rx_list);
+            if (!is_valid) {
+                show_error(m_parent, format_wxstr(_L("Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18.")));
+                wxString old_value(boost::any_cast<std::string>(m_value));
+                this->set_value(old_value, true); // Revert to previous value
+            }
+            // Valid string or empty, so update m_value with the new string from the control.
+            m_value = into_u8(str);
             break;
         }
 

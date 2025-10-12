@@ -103,21 +103,27 @@ bool GLGizmoMmuSegmentation::on_init()
     // BBS
     m_shortcut_key = WXK_CONTROL_N;
 
-    m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
+    // FIXME: maybe should be using GUI::shortkey_ctrl_prefix() or equivalent?
+    const wxString ctrl  = _L("Ctrl+");
+    // FIXME: maybe should be using GUI::shortkey_alt_prefix() or equivalent?
+    const wxString alt   = _L("Alt+");
+    const wxString shift = _L("Shift+");
+
+    m_desc["clipping_of_view_caption"] = alt + _L("Mouse wheel");
     m_desc["clipping_of_view"]     = _L("Section view");
     m_desc["reset_direction"]     = _L("Reset direction");
-    m_desc["cursor_size_caption"]  = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size_caption"]  = ctrl + _L("Mouse wheel");
     m_desc["cursor_size"]          = _L("Pen size");
     m_desc["cursor_type"]          = _L("Pen shape");
 
     m_desc["paint_caption"]        = _L("Left mouse button");
     m_desc["paint"]                = _L("Paint");
-    m_desc["erase_caption"]        = _L("Shift + Left mouse button");
+    m_desc["erase_caption"]        = shift + _L("Left mouse button");
     m_desc["erase"]                = _L("Erase");
     m_desc["shortcut_key_caption"] = _L("Key 1~9");
     m_desc["shortcut_key"]         = _L("Choose filament");
     m_desc["edge_detection"]       = _L("Edge detection");
-    m_desc["gap_area_caption"]     = _L("Ctrl + Mouse wheel");
+    m_desc["gap_area_caption"]     = ctrl + _L("Mouse wheel");
     m_desc["gap_area"]             = _L("Gap area");
     m_desc["perform"]              = _L("Perform");
 
@@ -132,14 +138,14 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["tool_smart_fill"]      = _L("Smart fill");
     m_desc["tool_bucket_fill"]     = _L("Bucket fill");
 
-    m_desc["smart_fill_angle_caption"] = _L("Ctrl + Mouse wheel");
+    m_desc["smart_fill_angle_caption"] = ctrl + _L("Mouse wheel");
     m_desc["smart_fill_angle"]     = _L("Smart fill angle");
 
-    m_desc["height_range_caption"] = _L("Ctrl + Mouse wheel");
+    m_desc["height_range_caption"] = ctrl + _L("Mouse wheel");
     m_desc["height_range"]         = _L("Height range");
 
     //add toggle wire frame hint
-    m_desc["toggle_wireframe_caption"]        = _L("Alt + Shift + Enter");
+    m_desc["toggle_wireframe_caption"]        = alt + shift + _L("Enter");
     m_desc["toggle_wireframe"]                = _L("Toggle Wireframe");
 
     // Filament remapping descriptions

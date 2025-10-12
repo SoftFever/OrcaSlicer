@@ -161,10 +161,11 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "lightning", ipLightning },
     { "honeycomb", ipHoneycomb },
     { "3dhoneycomb", ip3DHoneycomb },
-    { "2dhoneycomb", ip2DHoneycomb },
-    { "2dlattice", ip2DLattice },
+    { "lateral-honeycomb", ipLateralHoneycomb },
+    { "lateral-lattice", ipLateralLattice },
     { "crosshatch", ipCrossHatch },
     { "tpmsd", ipTpmsD },
+    { "tpmsfk", ipTpmsFK },
     { "gyroid", ipGyroid },
     { "concentric", ipConcentric },
     { "hilbertcurve", ipHilbertCurve },
@@ -560,7 +561,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("preferred_orientation", coFloat);
     def->label = L("Preferred orientation");
-    def->tooltip = L("Automatically orient stls on the Z-axis upon initial import.");
+    def->tooltip = L("Automatically orient stls on the Z axis upon initial import.");
     def->sidetext = "°";	// degrees, don't need translation
     def->max = 360;
     def->min = -360;
@@ -839,6 +840,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
+    // Orca: allow profile maker to set default bed type in machine profile
+    // This option won't be shown in the UI
+    def = this->add("default_bed_type", coString);
+    def->label = L("Default bed type");
+    def->tooltip = L("Default bed type for the printer (supports both numeric and string format).");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
+
     // BBS
     def             = this->add("first_layer_print_sequence", coInts);
     def->label      = L("First layer print sequence");
@@ -1076,9 +1085,10 @@ void PrintConfigDef::init_fff_params()
     def = this->add("precise_outer_wall",coBool);
     def->label = L("Precise wall");
     def->category = L("Quality");
-    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.");
-    def->set_default_value(new ConfigOptionBool{false});
-    
+    def->tooltip  = L("Improve shell precision by adjusting outer wall spacing. This also improves layer consistency. NOTE: This option "
+                       "will be ignored for outer-inner or inner-outer-inner wall sequences.");
+    def->set_default_value(new ConfigOptionBool{true});
+
     def = this->add("only_one_wall_top", coBool);
     def->label = L("Only one wall on top surfaces");
     def->category = L("Quality");
@@ -1327,9 +1337,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("brim_ears_detection_length", coFloat);
     def->label = L("Brim ear detection radius");
     def->category = L("Support");
-    def->tooltip = L("The geometry will be decimated before detecting sharp angles. This parameter indicates the "
-                     "minimum length of the deviation for the decimation. "
-                     "\n0 to deactivate.");
+    def->tooltip = L("The geometry will be decimated before detecting sharp angles. "
+                     "This parameter indicates the minimum length of the deviation for the decimation.\n"
+                     "0 to deactivate.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
@@ -1979,8 +1989,8 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("default_filament_colour", coStrings);
     def->label    = L("Default color");
-    def->tooltip  = L("Default filament color"
-                      "\nRight click to reset value to system default.");
+    def->tooltip  = L("Default filament color.\n"
+                      "Right click to reset value to system default.");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{""});
@@ -2375,6 +2385,13 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def           = this->add("extra_solid_infills", coString);
+    def->label    = L("Insert solid layers");
+    def->category = L("Strength");
+    def->tooltip  = L("Insert solid infill at specific layers. Use N to insert every Nth layer, N#K to insert K consecutive solid layers every N layers (K is optional, e.g. '5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at explicit layers. Layers are 1-based.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionString());
+
 
     // Infill multiline
     def             = this->add("fill_multiline", coInt);
@@ -2405,10 +2422,11 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("3dhoneycomb");
-    def->enum_values.push_back("2dhoneycomb");
-    def->enum_values.push_back("2dlattice");
+    def->enum_values.push_back("lateral-honeycomb");
+    def->enum_values.push_back("lateral-lattice");
     def->enum_values.push_back("crosshatch");
     def->enum_values.push_back("tpmsd");
+    def->enum_values.push_back("tpmsfk");
     def->enum_values.push_back("gyroid");
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("hilbertcurve");
@@ -2430,10 +2448,11 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("3D Honeycomb"));
-    def->enum_labels.push_back(L("2D Honeycomb"));
-    def->enum_labels.push_back(L("2D Lattice"));
+    def->enum_labels.push_back(L("Lateral Honeycomb"));
+    def->enum_labels.push_back(L("Lateral Lattice"));
     def->enum_labels.push_back(L("Cross Hatch"));
     def->enum_labels.push_back(L("TPMS-D"));
+    def->enum_labels.push_back(L("TPMS-FK"));
     def->enum_labels.push_back(L("Gyroid"));
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Hilbert Curve"));
@@ -2441,20 +2460,20 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Octagram Spiral"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
-    def           = this->add("lattice_angle_1", coFloat);
-    def->label    = L("Lattice angle 1");
+    def           = this->add("lateral_lattice_angle_1", coFloat);
+    def->label    = L("Lateral lattice angle 1");
     def->category = L("Strength");
-    def->tooltip  = L("The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->tooltip  = L("The angle of the first set of Lateral lattice elements in the Z direction. Zero is vertical.");
     def->sidetext = "°";	// degrees, don't need translation
     def->min      = -75;
     def->max      = 75;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(-45));
 
-    def           = this->add("lattice_angle_2", coFloat);
-    def->label    = L("Lattice angle 2");
+    def           = this->add("lateral_lattice_angle_2", coFloat);
+    def->label    = L("Lateral lattice angle 2");
     def->category = L("Strength");
-    def->tooltip  = L("The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->tooltip  = L("The angle of the second set of Lateral lattice elements in the Z direction. Zero is vertical.");
     def->sidetext = "°";	// degrees, don't need translation
     def->min      = -75;
     def->max      = 75;
@@ -2622,7 +2641,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("default_junction_deviation", coFloat);
     def->label = L("Junction Deviation");
-    def->tooltip = L("Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)");
+    def->tooltip = L("Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting).");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
@@ -2850,7 +2869,7 @@ void PrintConfigDef::init_fff_params()
                      "This is the fast and straight algorithm without unnecessary nozzle shake that gives a smooth pattern. "
                      "But it is more useful for forming loose walls in the entire they array.\n"
                      "Combined: Joint mode [Displacement] + [Extrusion]. The appearance of the walls is similar to [Displacement] Mode, but it leaves no pores between the perimeters.\n\n"
-                     "Attention! The [Extrusion] and [Combined] modes works only the fuzzy_skin_thickness parameter not more than the thickness of printed loop."
+                     "Attention! The [Extrusion] and [Combined] modes works only the fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
                      "At the same time, the width of the extrusion for a particular layer should also not be below a certain level. "
                      "It is usually equal 15-25%% of a layer height. Therefore, the maximum fuzzy skin thickness with a perimeter width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
                      "If you enter a higher parameter than this, the error Flow::spacing() will displayed, and the model will not be sliced. You can choose this number until this error is repeated." );
@@ -3171,35 +3190,37 @@ void PrintConfigDef::init_fff_params()
 
     //Orca
     def           = this->add("sparse_infill_rotate_template", coString);
-    def->label    = L("Sparse infill rotatation template");
+    def->label    = L("Sparse infill rotation template");
     def->category = L("Strength");
-    def->tooltip  = L("This parameter adds a rotation of sparse infill direction to each layer according to the specified template. "
-                      "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
-                      "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
-                      "If there are more layers than angles, the angles will be repeated. Note that not all sparse infill patterns support rotation.");
+    def->tooltip  = L("Rotate the sparse infill direction per layer using a template of angles. "
+                      "Enter comma-separated degrees (e.g., '0,30,60,90'). "
+                      "Angles are applied in order by layer and repeat when the list ends. "
+                      "Advanced syntax is supported: '+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the Wiki for details. "
+                      "When a template is set, the standard infill direction setting is ignored. "
+                      "Note: some infill patterns (e.g., Gyroid) control rotation themselves; use with care.");
     def->sidetext = L("°");
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionString("0,90"));
+    def->set_default_value(new ConfigOptionString(""));
 
     //Orca
     def           = this->add("solid_infill_rotate_template", coString);
-    def->label    = L("Solid infill rotatation template");
+    def->label    = L("Solid infill rotation template");
     def->category = L("Strength");
     def->tooltip  = L("This parameter adds a rotation of solid infill direction to each layer according to the specified template. "
                       "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
                       "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
                       "If there are more layers than angles, the angles will be repeated. Note that not all solid infill patterns support rotation.");
-    def->sidetext = L("°");
+    def->sidetext = "°";	// degrees, don't need translation
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionString("0,90"));
-
+    def->set_default_value(new ConfigOptionString(""));
 
     def           = this->add("skeleton_infill_density", coPercent);
     def->label    = L("Skeleton infill density");
     def->category = L("Strength");
-    def->tooltip  = L("The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section."
-                      "When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections."
-                      "default is as same as infill density.");
+    def->tooltip  = L("The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. "
+                      "This parameter is used to adjust the density of this section. "
+                      "When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections. "
+                      "Default is as same as infill density.");
     def->sidetext = "%";
     def->min      = 0;
     def->max      = 100;
@@ -3209,9 +3230,10 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("skin_infill_density", coPercent);
     def->label    = L("Skin infill density");
     def->category = L("Strength");
-    def->tooltip  = L("The portion of the model's outer surface within a certain depth range is called the skin. This parameter is used to adjust the density of this section."
-                      "When two regions have the same sparse infill settings but different skin densities, This area will not be split into two separate regions."
-                     "default is as same as infill density.");
+    def->tooltip  = L("The portion of the model's outer surface within a certain depth range is called the skin. "
+                      "This parameter is used to adjust the density of this section. "
+                      "When two regions have the same sparse infill settings but different skin densities, this area will not be split into two separate regions. "
+                      "Default is as same as infill density.");
     def->sidetext = "%";
     def->min  = 0;
     def->max  = 100;
@@ -3259,9 +3281,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def           = this->add("symmetric_infill_y_axis", coBool);
-    def->label    = L("Symmetric infill y axis");
+    def->label    = L("Symmetric infill Y axis");
     def->category = L("Strength");
-    def->tooltip  = L("If the model has two parts that are symmetric about the y-axis,"
+    def->tooltip  = L("If the model has two parts that are symmetric about the Y axis,"
                       " and you want these parts to have symmetric textures, please click this option on one of the parts.");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
@@ -3498,7 +3520,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("ironing_speed", coFloat);
     def->label = L("Ironing speed");
     def->category = L("Quality");
-    def->tooltip = L("Print speed of ironing lines");
+    def->tooltip = L("Print speed of ironing lines.");
     def->sidetext = "mm/s";	// milimeters per second, don't need translation
     def->min = 1;
     def->mode = comAdvanced;
@@ -3663,7 +3685,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("machine_max_junction_deviation", coFloats);
     def->full_label = L("Maximum Junction Deviation");
     def->category = L("Machine limits");
-    def->tooltip = L("Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin Firmware)");
+    def->tooltip = L("Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
@@ -3849,7 +3871,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("nozzle_diameter", coFloats);
     def->label = L("Nozzle diameter");
-    def->tooltip = L("Diameter of nozzle");
+    def->tooltip = L("The diameter of nozzle.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->mode = comAdvanced;
     def->max = 100;
@@ -4023,7 +4045,7 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Walls");
     def->category = L("Extruders");
-    def->tooltip = L("Filament to print walls");
+    def->tooltip = L("Filament to print walls.");
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
@@ -4082,7 +4104,7 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("printer_model", coString);
     def->label = L("Printer type");
-    def->tooltip = L("Type of the printer");
+    def->tooltip = L("Type of the printer.");
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
@@ -4525,10 +4547,10 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(80,true));
-    
+
     def = this->add("skirt_distance", coFloat);
     def->label = L("Skirt distance");
-    def->tooltip = L("Distance from skirt to brim or object");
+    def->tooltip = L("The distance from the skirt to the brim or the object.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->min = 0;
     def->max = 60;
@@ -4637,7 +4659,7 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Solid infill");
     def->category = L("Extruders");
-    def->tooltip = L("Filament to print solid infill");
+    def->tooltip = L("Filament to print solid infill.");
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
@@ -4736,7 +4758,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
                      "The value is not used when 'idle_temperature' in filament settings "
                      "is set to non-zero value.");
-    def->sidetext = "∆\u2103";	// delta degrees Celsius, don't need translation
+    def->sidetext = u8"∆\u2103";	// delta degrees Celsius, don't need translation
     def->min = -max_temp;
     def->max = max_temp;
     def->mode = comAdvanced;
@@ -4802,7 +4824,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("enable_filament_ramming", coBool);
     def->label = L("Enable filament ramming");
-    def->tooltip = L("Enable filament ramming.");
+    def->tooltip = L("Enable filament ramming");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -5653,7 +5675,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_tower_rotation_angle", coFloat);
     def->label = L("Wipe tower rotation angle");
-    def->tooltip = L("Wipe tower rotation angle with respect to x-axis.");
+    def->tooltip = L("Wipe tower rotation angle with respect to X axis.");
     def->sidetext = "°";	// degrees, don't need translation
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -5707,7 +5729,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("wipe_tower_extra_rib_length", coFloat);
     def->label    = L("Extra rib length");
-    def->tooltip  = L("Positive values can increase the size of the rib wall, while negative values can reduce the size."
+    def->tooltip  = L("Positive values can increase the size of the rib wall, while negative values can reduce the size. "
                        "However, the size of the rib wall can not be smaller than that determined by the cleaning volume.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->max      = 300;
@@ -5716,7 +5738,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("wipe_tower_rib_width", coFloat);
     def->label    = L("Rib width");
-    def->tooltip  = L("Rib width");
+    def->tooltip  = L("Rib width.");
     def->sidetext = "mm";	// milimeters, don't need translation
     def->mode     = comAdvanced;
     def->min      = 0;
@@ -7995,7 +8017,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("load_filament_ids", coInts);
-    def->label = L("Load filament ids");
+    def->label = L("Load filament IDs");
     def->tooltip = L("Load filament IDs for each object.");
     def->cli_params = "\"1,2,3,1\"";
     def->set_default_value(new ConfigOptionInts());
@@ -8023,25 +8045,25 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("makerlab_name", coString);
     def->label = L("MakerLab name");
-    def->tooltip = L("MakerLab name to generate this 3mf");
+    def->tooltip = L("MakerLab name to generate this 3mf.");
     def->cli_params = "name";
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("makerlab_version", coString);
     def->label = L("MakerLab version");
-    def->tooltip = L("MakerLab version to generate this 3mf");
+    def->tooltip = L("MakerLab version to generate this 3mf.");
     def->cli_params = "version";
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("metadata_name", coStrings);
     def->label = L("metadata name list");
-    def->tooltip = L("metadata name list added into 3mf");
+    def->tooltip = L("metadata name list added into 3mf.");
     def->cli_params = "\"name1;name2;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("metadata_value", coStrings);
     def->label = L("metadata value list");
-    def->tooltip = L("metadata value list added into 3mf");
+    def->tooltip = L("metadata value list added into 3mf.");
     def->cli_params = "\"value1;value2;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
@@ -8391,11 +8413,11 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     def->tooltip = L("Index of the current layer. One-based (i.e. first layer is number 1).");
 
     def = this->add("layer_z", coFloat);
-    def->label = L("Layer z");
+    def->label = L("Layer Z");
     def->tooltip = L("Height of the current layer above the print bed, measured to the top of the layer.");
 
     def = this->add("max_layer_z", coFloat);
-    def->label = L("Maximal layer z");
+    def->label = L("Maximal layer Z");
     def->tooltip = L("Height of the last layer above the print bed.");
 
     def = this->add("filament_extruder_id", coInt);
@@ -8405,32 +8427,32 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
 // change_filament_gcode
     new_def("previous_extruder", coInt, "Previous extruder", "Index of the extruder that is being unloaded. The index is zero based (first extruder has index 0).");
     new_def("next_extruder", coInt, "Next extruder", "Index of the extruder that is being loaded. The index is zero based (first extruder has index 0).");
-    new_def("relative_e_axis", coBool, "Relative e-axis", "Indicates if relative positioning is being used");
-    new_def("toolchange_count", coInt, "Toolchange count", "The number of toolchanges throught the print");
+    new_def("relative_e_axis", coBool, "Relative e-axis", "Indicates if relative positioning is being used.");
+    new_def("toolchange_count", coInt, "Toolchange count", "The number of toolchanges throught the print.");
     new_def("fan_speed", coNone, "", ""); //Option is no longer used and is zeroed by placeholder parser for compatability
-    new_def("old_retract_length", coFloat, "Old retract length", "The retraction length of the previous filament");
-    new_def("new_retract_length", coFloat, "New retract length", "The retraction lenght of the new filament");
-    new_def("old_retract_length_toolchange", coFloat, "Old retract length toolchange", "The toolchange retraction length of the previous filament");
-    new_def("new_retract_length_toolchange", coFloat, "New retract length toolchange", "The toolchange retraction length of the new filament");
-    new_def("old_filament_temp", coInt, "Old filament temp", "The old filament temp");
-    new_def("new_filament_temp", coInt, "New filament temp", "The new filament temp");
-    new_def("x_after_toolchange", coFloat, "X after toolchange", "The x pos after toolchange");
-    new_def("y_after_toolchange", coFloat, "Y after toolchange", "The y pos after toolchange");
-    new_def("z_after_toolchange", coFloat, "Z after toolchange", "The z pos after toolchange");
-    new_def("first_flush_volume", coFloat, "First flush volume", "The first flush volume");
-    new_def("second_flush_volume", coFloat, "Second flush volume", "The second flush volume");
-    new_def("old_filament_e_feedrate", coInt, "Old filament e feedrate", "The old filament extruder feedrate");
-    new_def("new_filament_e_feedrate", coInt, "New filament e feedrate", "The new filament extruder feedrate");
-    new_def("travel_point_1_x", coFloat, "Travel point 1 x", "The travel point 1 x");
-    new_def("travel_point_1_y", coFloat, "Travel point 1 y", "The travel point 1 y");
-    new_def("travel_point_2_x", coFloat, "Travel point 2 x", "The travel point 2 x");
-    new_def("travel_point_2_y", coFloat, "Travel point 2 y", "The travel point 2 y");
-    new_def("travel_point_3_x", coFloat, "Travel point 3 x", "The travel point 3 x");
-    new_def("travel_point_3_y", coFloat, "Travel point 3 y", "The travel point 3 y");
-    new_def("flush_length_1", coFloat, "Flush Length 1", "The first flush length");
-    new_def("flush_length_2", coFloat, "Flush Length 2", "The second flush length");
-    new_def("flush_length_3", coFloat, "Flush Length 3", "The third flush length");
-    new_def("flush_length_4", coFloat, "Flush Length 4", "The fourth flush length");
+    new_def("old_retract_length", coFloat, "Old retract length", "The retraction length of the previous filament.");
+    new_def("new_retract_length", coFloat, "New retract length", "The retraction lenght of the new filament.");
+    new_def("old_retract_length_toolchange", coFloat, "Old retract length toolchange", "The toolchange retraction length of the previous filament.");
+    new_def("new_retract_length_toolchange", coFloat, "New retract length toolchange", "The toolchange retraction length of the new filament.");
+    new_def("old_filament_temp", coInt, "Old filament temp", "The old filament temp.");
+    new_def("new_filament_temp", coInt, "New filament temp", "The new filament temp.");
+    new_def("x_after_toolchange", coFloat, "X after toolchange", "The X pos after toolchange.");
+    new_def("y_after_toolchange", coFloat, "Y after toolchange", "The Y pos after toolchange.");
+    new_def("z_after_toolchange", coFloat, "Z after toolchange", "The Z pos after toolchange.");
+    new_def("first_flush_volume", coFloat, "First flush volume", "The first flush volume.");
+    new_def("second_flush_volume", coFloat, "Second flush volume", "The second flush volume.");
+    new_def("old_filament_e_feedrate", coInt, "Old filament e feedrate", "The old filament extruder feedrate.");
+    new_def("new_filament_e_feedrate", coInt, "New filament e feedrate", "The new filament extruder feedrate.");
+    new_def("travel_point_1_x", coFloat, "Travel point 1 X", "The travel point 1 X.");
+    new_def("travel_point_1_y", coFloat, "Travel point 1 Y", "The travel point 1 Y.");
+    new_def("travel_point_2_x", coFloat, "Travel point 2 X", "The travel point 2 X.");
+    new_def("travel_point_2_y", coFloat, "Travel point 2 Y", "The travel point 2 Y.");
+    new_def("travel_point_3_x", coFloat, "Travel point 3 X", "The travel point 3 X.");
+    new_def("travel_point_3_y", coFloat, "Travel point 3 Y", "The travel point 3 Y.");
+    new_def("flush_length_1", coFloat, "Flush Length 1", "The first flush length.");
+    new_def("flush_length_2", coFloat, "Flush Length 2", "The second flush length.");
+    new_def("flush_length_3", coFloat, "Flush Length 3", "The third flush length.");
+    new_def("flush_length_4", coFloat, "Flush Length 4", "The fourth flush length.");
 
 // change_extrusion_role_gcode
     std::string extrusion_role_types = "Possible Values:\n[\"Perimeter\", \"ExternalPerimeter\", "

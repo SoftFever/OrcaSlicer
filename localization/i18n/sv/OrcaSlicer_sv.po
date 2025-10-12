@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 14:14+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -29,14 +29,6 @@ msgstr "Temperatur"
 msgid "Left Time"
 msgstr ""
 
-#, c-format, boost-format
-msgid "%.1f ℃"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d : %d"
-msgstr ""
-
 msgid "Serial:"
 msgstr "Serienummer:"
 
@@ -49,17 +41,23 @@ msgstr "Senaste version"
 msgid "Support Painting"
 msgstr "Färgläggning av Support"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + mushjul"
+msgid "Ctrl+"
+msgstr "Ctrl +"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "Mus hjul"
 
 msgid "Section view"
 msgstr "Sektionsvy"
 
 msgid "Reset direction"
 msgstr "Återställ riktning"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Mushjul"
 
 msgid "Pen size"
 msgstr "Penn storlek"
@@ -75,9 +73,6 @@ msgstr "Höger musknapp"
 
 msgid "Block supports"
 msgstr "Blockera support"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + Vänster musknapp"
 
 msgid "Erase"
 msgstr "Radera"
@@ -185,11 +180,20 @@ msgstr "Hinkfyllning"
 msgid "Height range"
 msgstr "Höjd intervall"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Skift + Enter"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Växla Wireframe"
+
+msgid "Remap filaments"
+msgstr ""
+
+msgid "Remap"
+msgstr ""
+
+msgid "Cancel"
+msgstr "Avbryt"
 
 msgid "Shortcut Key "
 msgstr "Snabbkommando "
@@ -212,6 +216,9 @@ msgstr "Ta bort färgläggning"
 #, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Färgläggning använder: Filament %1%"
+
+msgid "Filament remapping finished."
+msgstr ""
 
 msgid "Move"
 msgstr "Flytta"
@@ -477,9 +484,6 @@ msgstr ""
 msgid "Confirm connectors"
 msgstr "Bekräfta kontakterna"
 
-msgid "Cancel"
-msgstr "Avbryt"
-
 msgid "Build Volume"
 msgstr ""
 
@@ -702,8 +706,8 @@ msgstr "Yta"
 msgid "Horizontal text"
 msgstr "Vågrät text"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Shift + Mus flytta uppåt eller nedåt"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "Rotera text"
@@ -1431,9 +1435,6 @@ msgstr ""
 msgid "Flip by Face 2"
 msgstr ""
 
-msgid "Ctrl+"
-msgstr "Ctrl +"
-
 msgid "Notice"
 msgstr "Iakttag"
 
@@ -1776,6 +1777,9 @@ msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "Radera det valda objektet"
+
+msgid "Backspace"
+msgstr ""
 
 msgid "Load..."
 msgstr "Ladda..."
@@ -2804,8 +2808,8 @@ msgstr "Laddar ner"
 msgid "Download failed"
 msgstr "Nedladdningen misslyckades"
 
-msgid "Cancelled"
-msgstr ""
+msgid "Canceled"
+msgstr "Avbruten"
 
 msgid "Installed successfully"
 msgstr "Installationen lyckades"
@@ -3009,10 +3013,10 @@ msgstr "Steg"
 msgid "AMS Slots"
 msgstr "AMS Fack"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -3633,7 +3637,7 @@ msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "För liten max volymhastighet.\n"
 "Värdet återställdes till 0,5"
@@ -3647,14 +3651,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "För liten lagerhöjd.\n"
 "Den har återställts till 0.2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "För litet avstånd för strykning.\n"
 "Återställ till 0.1"
@@ -3748,10 +3752,9 @@ msgid ""
 "Reset to 0."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
 msgstr ""
 
 msgid ""
@@ -4083,6 +4086,11 @@ msgstr ""
 msgid "This parameter expects a valid template."
 msgstr ""
 
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Ogiltligt format. Förväntat vector format: \"%1%\""
@@ -4285,26 +4293,14 @@ msgstr "Radie"
 msgid "Keep min"
 msgstr "Håll minimal"
 
-msgid "Left mouse button:"
-msgstr "Vänster musknapp:"
-
 msgid "Add detail"
 msgstr "Lägg till detalj"
-
-msgid "Right mouse button:"
-msgstr "Höger musknapp:"
 
 msgid "Remove detail"
 msgstr "Ta bort detalj"
 
-msgid "Shift + Left mouse button:"
-msgstr "Shift + Vänster musknapp"
-
 msgid "Reset to base"
 msgstr "Återställ till basen"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift+Höger musknapp:"
 
 msgid "Smoothing"
 msgstr "Utjämning"
@@ -4321,7 +4317,7 @@ msgstr "Sekvens"
 msgid "object selection"
 msgstr ""
 
-msgid "part selectiont"
+msgid "part selection"
 msgstr ""
 
 msgid "number keys"
@@ -4431,9 +4427,6 @@ msgstr "Sektionsvy"
 
 msgid "Assemble Control"
 msgstr "Monterings Kontroll"
-
-msgid "part selection"
-msgstr ""
 
 msgid "Selection Mode"
 msgstr ""
@@ -4697,8 +4690,8 @@ msgstr "Skapa nytt projekt"
 msgid "Open a project file"
 msgstr "Öppna en projekt fil"
 
-msgid "Recent projects"
-msgstr "Senaste projekten"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "Spara Projekt"
@@ -4708,9 +4701,6 @@ msgstr "Spara nuvarande projekt till fil"
 
 msgid "Save Project as"
 msgstr "Spara Projekt som"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Spara nuvarande projekt som"
@@ -5208,11 +5198,6 @@ msgstr ""
 
 msgid "No printers."
 msgstr "Ingen printer."
-
-msgid ""
-"Please check the network and try again, You can restart or update the "
-"printer if the issue persists."
-msgstr ""
 
 msgid "Loading file list..."
 msgstr "Laddar fil lista..."
@@ -6072,6 +6057,9 @@ msgstr ""
 msgid "Collapse sidebar"
 msgstr ""
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Laddar fil: %s"
@@ -6081,6 +6069,17 @@ msgstr "3mf kommer inte från Orca Slicer, laddar endast geometri data."
 
 msgid "Load 3mf"
 msgstr "Ladda 3mf"
+
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -6861,11 +6860,14 @@ msgstr ""
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
 
-msgid "Maximum recent projects"
-msgstr "Maximalt antal nyligen genomförda projekt"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "Maximalt antal nyligen genomförda projekt"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add model files (stl/step) to recent file list."
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Rensa mitt val för de osparade projekten."
@@ -7629,6 +7631,14 @@ msgid ""
 msgstr ""
 
 msgid "Are you sure you want to enable this option?"
+msgstr ""
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
 msgstr ""
 
 msgid ""
@@ -8604,12 +8614,6 @@ msgstr "Objektlista"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importera geometri data från STL/STEP/3MF/OBJ/AMF filer"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Skift+G"
-
 msgid "Paste from clipboard"
 msgstr "Klistra in ifrån urklipp"
 
@@ -8625,20 +8629,14 @@ msgstr "Visa tangentbordets genvägs lista"
 msgid "Global shortcuts"
 msgstr "Övergripande genvägar"
 
-msgid "Rotate View"
-msgstr "Rotera vy"
-
 msgid "Pan View"
 msgstr "Panoreringsvy"
 
-msgid "Mouse wheel"
-msgstr "Mus hjul"
+msgid "Rotate View"
+msgstr "Rotera vy"
 
 msgid "Zoom View"
 msgstr "Zoomvy"
-
-msgid "Shift+A"
-msgstr "Shift+A"
 
 msgid ""
 "Auto orients selected objects or all objects. If there are selected objects, "
@@ -8649,47 +8647,23 @@ msgstr ""
 "placeras endast dem. Annars kommer den att orientera alla objekt i det "
 "aktuella projektet."
 
-msgid "Shift+Q"
-msgstr ""
-
 msgid "Auto orients all objects on the active plate."
 msgstr "Placera alla föremål automatiskt på aktuell tallrik."
-
-msgid "Shift+Tab"
-msgstr "Shift+Tab"
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Dölj/Visa meny"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Valfri pil"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Rörelse i kamera område"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Vänster musknapp"
-
 msgid "Select a part"
 msgstr "Välj del"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Vänster musknapp"
-
 msgid "Select multiple objects"
 msgstr "Välj flera objekt"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+Valfri pil"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+Vänster musknapp"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+vänster musknapp"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift+Vänster musknapp"
 
 msgid "Select objects by rectangle"
 msgstr "Välj objekt efter rektangel"
@@ -8717,9 +8691,6 @@ msgstr "Pil Höger"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "Flytta markeringen 10mm i positiv X riktning"
-
-msgid "Shift+Any arrow"
-msgstr "Shift+valfri pil"
 
 msgid "Movement step set to 1 mm"
 msgstr "Rörelse steg är vald till 1mm"
@@ -8805,23 +8776,11 @@ msgstr "Plätering/Förgyllning"
 msgid "Move: press to snap by 1mm"
 msgstr "Flytta: tryck för att låsa med 1mm"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Mushjul"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Support/Färgläggning: justera penn radie"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Mushjul"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Support/Färgläggning:justera sektions positionen"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+mushjul"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Mushjul"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8864,9 +8823,6 @@ msgstr ""
 
 msgid "Move slider 5x faster"
 msgstr "Flytta reglage 5x snabbare"
-
-msgid "Shift+Mouse wheel"
-msgstr "Shift+Mushjulet"
 
 msgid "Horizontal slider - Move to start position"
 msgstr ""
@@ -9008,10 +8964,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
-msgid "Laser 10w"
+msgid "Laser 10 W"
 msgstr ""
 
-msgid "Laser 40w"
+msgid "Laser 40 W"
 msgstr ""
 
 msgid "Cutting Module"
@@ -9565,6 +9521,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
+
+msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
 "filaments differs significantly."
 msgstr ""
@@ -9644,7 +9605,7 @@ msgstr "Maximala utskriftshöjd begränsas av skrivarens mekanism"
 msgid "Preferred orientation"
 msgstr ""
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr ""
 
 msgid "Printer preset names"
@@ -9852,6 +9813,13 @@ msgid "Smooth Cool Plate"
 msgstr ""
 
 msgid "Smooth High Temp Plate"
+msgstr ""
+
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
 msgstr ""
 
 msgid "First layer print sequence"
@@ -10076,7 +10044,8 @@ msgstr ""
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
 msgstr ""
 
 msgid "Only one wall on top surfaces"
@@ -10285,7 +10254,7 @@ msgstr ""
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter "
-"indicates the minimum length of the deviation for the decimation. \n"
+"indicates the minimum length of the deviation for the decimation.\n"
 "0 to deactivate."
 msgstr ""
 
@@ -10961,7 +10930,7 @@ msgid "Default color"
 msgstr "Standardfärg"
 
 msgid ""
-"Default filament color\n"
+"Default filament color.\n"
 "Right click to reset value to system default."
 msgstr ""
 
@@ -11261,6 +11230,16 @@ msgid ""
 "maintain optimal strength characteristics."
 msgstr ""
 
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
 msgid "Fill Multiline"
 msgstr ""
 
@@ -11313,10 +11292,10 @@ msgstr "Honeycomb"
 msgid "3D Honeycomb"
 msgstr "3D Honeycomb"
 
-msgid "2D Honeycomb"
+msgid "Lateral Honeycomb"
 msgstr ""
 
-msgid "2D Lattice"
+msgid "Lateral Lattice"
 msgstr ""
 
 msgid "Cross Hatch"
@@ -11325,23 +11304,26 @@ msgstr "Cross Hatch"
 msgid "TPMS-D"
 msgstr ""
 
+msgid "TPMS-FK"
+msgstr ""
+
 msgid "Gyroid"
 msgstr "Gyroid"
 
-msgid "Lattice angle 1"
+msgid "Lateral lattice angle 1"
 msgstr ""
 
 msgid ""
-"The angle of the first set of 2D lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 
-msgid "Lattice angle 2"
+msgid "Lateral lattice angle 2"
 msgstr ""
 
 msgid ""
-"The angle of the second set of 2D lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr ""
 
 msgid "Infill overhang angle"
@@ -11457,7 +11439,8 @@ msgid "Default jerk."
 msgstr ""
 
 msgid ""
-"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk setting)"
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
 msgstr ""
 
 msgid "Jerk of outer walls."
@@ -11631,12 +11614,12 @@ msgid ""
 "perimeters.\n"
 "\n"
 "Attention! The [Extrusion] and [Combined] modes works only the "
-"fuzzy_skin_thickness parameter not more than the thickness of printed "
-"loop.At the same time, the width of the extrusion for a particular layer "
-"should also not be below a certain level. It is usually equal 15-25%% of a "
-"layer height. Therefore, the maximum fuzzy skin thickness with a perimeter "
-"width of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! "
-"If you enter a higher parameter than this, the error Flow::spacing() will "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
 "displayed, and the model will not be sliced. You can choose this number "
 "until this error is repeated."
 msgstr ""
@@ -11948,22 +11931,23 @@ msgid ""
 "a cross texture."
 msgstr ""
 
-msgid "Sparse infill rotatation template"
+msgid "Sparse infill rotation template"
 msgstr ""
 
 msgid ""
-"This parameter adds a rotation of sparse infill direction to each layer "
-"according to the specified template. The template is a comma-separated list "
-"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
-"layer, the second angle to the second layer, and so on. If there are more "
-"layers than angles, the angles will be repeated. Note that not all sparse "
-"infill patterns support rotation."
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
 msgstr ""
 
 msgid "°"
 msgstr "°"
 
-msgid "Solid infill rotatation template"
+msgid "Solid infill rotation template"
 msgstr ""
 
 msgid ""
@@ -11981,9 +11965,9 @@ msgstr ""
 msgid ""
 "The remaining part of the model contour after removing a certain depth from "
 "the surface is called the skeleton. This parameter is used to adjust the "
-"density of this section.When two regions have the same sparse infill "
+"density of this section. When two regions have the same sparse infill "
 "settings but different skeleton densities, their skeleton areas will develop "
-"overlapping sections.default is as same as infill density."
+"overlapping sections. Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill density"
@@ -11992,9 +11976,9 @@ msgstr ""
 msgid ""
 "The portion of the model's outer surface within a certain depth range is "
 "called the skin. This parameter is used to adjust the density of this "
-"section.When two regions have the same sparse infill settings but different "
-"skin densities, This area will not be split into two separate "
-"regions.default is as same as infill density."
+"section. When two regions have the same sparse infill settings but different "
+"skin densities, this area will not be split into two separate regions. "
+"Default is as same as infill density."
 msgstr ""
 
 msgid "Skin infill depth"
@@ -12021,11 +12005,11 @@ msgstr ""
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr ""
 
-msgid "Symmetric infill y axis"
+msgid "Symmetric infill Y axis"
 msgstr ""
 
 msgid ""
-"If the model has two parts that are symmetric about the y-axis, and you want "
+"If the model has two parts that are symmetric about the Y axis, and you want "
 "these parts to have symmetric textures, please click this option on one of "
 "the parts."
 msgstr ""
@@ -12213,8 +12197,8 @@ msgstr ""
 msgid "Ironing speed"
 msgstr "Stryknings hastighet"
 
-msgid "Print speed of ironing lines"
-msgstr ""
+msgid "Print speed of ironing lines."
+msgstr "Utskrifts hastighet för strykning"
 
 msgid "Ironing angle"
 msgstr ""
@@ -12317,7 +12301,7 @@ msgid "Maximum acceleration of the Y axis"
 msgstr "Max acceleration på Y-axis"
 
 msgid "Maximum acceleration of the Z axis"
-msgstr "Max acceleration på Z-axis"
+msgstr "Max acceleration på Z axis"
 
 msgid "Maximum acceleration of the E axis"
 msgstr "Max acceleration på E-axis"
@@ -12341,7 +12325,7 @@ msgid "Maximum jerk of the Y axis"
 msgstr "Max jerk på Y-axis"
 
 msgid "Maximum jerk of the Z axis"
-msgstr "Max jerk på Z-axis"
+msgstr "Max jerk på Z axis"
 
 msgid "Maximum jerk of the E axis"
 msgstr "Max jerk på E-axis"
@@ -12350,8 +12334,7 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if  JD > 0 for Marlin "
-"Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -12498,7 +12481,7 @@ msgid ""
 "is enabled."
 msgstr ""
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "Diametern på nozzeln"
 
 msgid "Configuration notes"
@@ -12629,7 +12612,7 @@ msgstr ""
 "hastigheter för att skriva ut. Vid 100%% överhäng, bridge/brygg hastighet "
 "användas."
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr ""
 
 msgid ""
@@ -12668,7 +12651,7 @@ msgstr ""
 msgid "Printer type"
 msgstr ""
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr ""
 
 msgid "Printer notes"
@@ -12923,6 +12906,9 @@ msgstr "Närmaste"
 msgid "Aligned"
 msgstr "Linjerad"
 
+msgid "Aligned back"
+msgstr ""
+
 msgid "Back"
 msgstr "Tillbaka"
 
@@ -13089,7 +13075,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Skirt avstånd"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "Avståndet ifrån skirt till brim eller objektet"
 
 msgid "Skirt start point"
@@ -13191,7 +13177,7 @@ msgstr ""
 msgid "Solid infill"
 msgstr ""
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr ""
 
 msgid ""
@@ -13332,9 +13318,6 @@ msgid "Purge remaining filament into prime tower."
 msgstr ""
 
 msgid "Enable filament ramming"
-msgstr ""
-
-msgid "Enable filament ramming."
 msgstr ""
 
 msgid "No sparse layers (beta)"
@@ -13971,7 +13954,7 @@ msgstr "Prime tornets bredd"
 msgid "Wipe tower rotation angle"
 msgstr ""
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr ""
 
 msgid "Width of the brim."
@@ -14027,11 +14010,14 @@ msgstr ""
 
 msgid ""
 "Positive values can increase the size of the rib wall, while negative values "
-"can reduce the size.However, the size of the rib wall can not be smaller "
+"can reduce the size. However, the size of the rib wall can not be smaller "
 "than that determined by the cleaning volume."
 msgstr ""
 
 msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
 msgstr ""
 
 msgid "Fillet wall"
@@ -14605,7 +14591,7 @@ msgstr ""
 msgid "Load custom G-code from json."
 msgstr ""
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr ""
 
 msgid "Load filament IDs for each object."
@@ -14640,25 +14626,25 @@ msgstr ""
 msgid "MakerLab name"
 msgstr ""
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr ""
 
 msgid "MakerLab version"
 msgstr ""
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr ""
 
 msgid "metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr ""
 
 msgid "metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr ""
 
 msgid "Allow 3mf with newer version to be sliced"
@@ -14906,7 +14892,7 @@ msgstr ""
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr ""
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr ""
 
 msgid ""
@@ -14914,7 +14900,7 @@ msgid ""
 "layer."
 msgstr ""
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr ""
 
 msgid "Height of the last layer above the print bed."
@@ -15012,9 +14998,6 @@ msgstr ""
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
 "Okänt filformat: indata filen måste ha fil ändelsen .3mf eller .zip.amf."
-
-msgid "Canceled"
-msgstr "Avbruten"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: misslyckades med att analysera"
@@ -15116,7 +15099,7 @@ msgid ""
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 "Vänligen ange giltiga värden:\n"
 "Startvärde: &gt;= %.1f\n"
@@ -15600,7 +15583,7 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 "Vänligen ange giltiga värden:\n"
 "Start PA: >= 0.0\n"
@@ -15647,7 +15630,7 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 
 msgid "Max volumetric speed test"
@@ -15661,9 +15644,9 @@ msgstr "Slut volymetrisk hastighet: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 
 msgid "VFA test"
@@ -15677,9 +15660,9 @@ msgstr "Sluthastighet: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 
 msgid "Start retraction length: "
@@ -15706,9 +15689,6 @@ msgstr ""
 msgid "Frequency settings"
 msgstr ""
 
-msgid "hz"
-msgstr ""
-
 msgid "Damp: "
 msgstr ""
 
@@ -15718,8 +15698,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < FreqStart < FreqEnd < 500"
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
 msgstr ""
 
 msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
@@ -15738,8 +15718,8 @@ msgid "Note: Use previously calculated frequencies."
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
-"(0 < Freq < 500"
+"Please input valid values:\n"
+"(0 < Freq < 500)"
 msgstr ""
 
 msgid ""
@@ -15762,7 +15742,7 @@ msgid "Note: Lower values = sharper corners but slower speeds"
 msgstr ""
 
 msgid ""
-"Please input valid values\n"
+"Please input valid values:\n"
 "(0 <= Junction Deviation < 1)"
 msgstr ""
 
@@ -15822,7 +15802,7 @@ msgstr "I kö"
 msgid "Uploading"
 msgstr "Laddar upp"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "Avbryter"
 
 msgid "Error uploading to print host"
@@ -16280,8 +16260,8 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The file: %s \n"
-"may have been opened by another program. \n"
+"The file: %s\n"
+"may have been opened by another program.\n"
 "Please close it and try again."
 msgstr ""
 
@@ -16613,7 +16593,7 @@ msgstr ""
 msgid "Could not connect to Repetier"
 msgstr "Kunde inte ansluta till Repetier"
 
-msgid "Note: Repetier version 0.90.0 ir higher is required."
+msgid "Note: Repetier version 0.90.0 or higher is required."
 msgstr ""
 
 #, boost-format
@@ -17238,6 +17218,93 @@ msgstr ""
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning?"
 
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + mushjul"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + Mushjul"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + Vänster musknapp"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Skift + Enter"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Shift + Mus flytta uppåt eller nedåt"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "Vänster musknapp:"
+
+#~ msgid "Right mouse button:"
+#~ msgstr "Höger musknapp:"
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Shift + Vänster musknapp"
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift+Höger musknapp:"
+
+#~ msgid "Recent projects"
+#~ msgstr "Senaste projekten"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "Maximalt antal nyligen genomförda projekt"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "Maximalt antal nyligen genomförda projekt"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Skift+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Shift+A"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Shift+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Valfri pil"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Vänster musknapp"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Vänster musknapp"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+Valfri pil"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+Vänster musknapp"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+vänster musknapp"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift+Vänster musknapp"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift+valfri pil"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Mushjul"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Mushjul"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+mushjul"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Mushjul"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift+Mushjulet"
+
 #~ msgid "Set Position"
 #~ msgstr "Ställ in Position"
 
@@ -17362,15 +17429,6 @@ msgstr ""
 
 #~ msgid "Default filament color"
 #~ msgstr "Standard filament färg"
-
-#~ msgid "mm³/s"
-#~ msgstr "mm³/s"
-
-#~ msgid "g/cm³"
-#~ msgstr "g/cm³"
-
-#~ msgid "Print speed of ironing lines."
-#~ msgstr "Utskrifts hastighet för strykning"
 
 #~ msgid ""
 #~ "The highest printable layer height for the extruder. Used to limit the "
