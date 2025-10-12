@@ -3128,11 +3128,11 @@ bool FillRectilinear::fill_surface_trapezoidal(const Surface*                   
         }
     }
 
-    // Apply multiline fill and intersect with expolygon
+    // Apply multiline fill 
     multiline_fill(polylines, params, spacing);
 
     // Apply negative offset to reduce overlap with perimeters
-    double offset_threshold = scale_(0.8 * this->spacing);
+    double offset_threshold = scale_(0.6 * this->spacing);
 
     ExPolygon expolygon_offset = expolygon; // Default to original
 
