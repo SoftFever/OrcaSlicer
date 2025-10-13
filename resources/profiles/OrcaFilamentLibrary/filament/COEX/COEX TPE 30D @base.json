@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "COEX TPE 30D @base",
-    "inherits": "Generic TPU @base",
+    "inherits": "fdm_filament_tpu",
     "from": "system",
 	"filament_id": "CX30DB20",
     "version": "1.0.0.0",
