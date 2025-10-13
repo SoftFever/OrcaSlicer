@@ -67,12 +67,12 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     return m_sizer_title;
 }
 
-std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist, unsigned int current_index)
+std::tuple<wxBoxSizer*, ComboBox*> PreferencesDialog::create_item_combobox_base(wxString title, wxWindow* parent, wxString tooltip, std::string param, std::vector<wxString> vlist, unsigned int current_index, int label_padding = 0)
 {
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
+    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE + wxSize(FromDIP(label_padding), 0), 0);
     combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     combo_title->SetFont(::Label::Body_13);
     combo_title->SetToolTip(tooltip);
@@ -115,7 +115,7 @@ wxBoxSizer* PreferencesDialog::create_item_combobox(wxString title, wxWindow* pa
     return sizer;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index)
+wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index, int label_padding = 0)
 {
     assert(vlist.size() == config_name_index.size());
     unsigned int current_index = 0;
@@ -127,7 +127,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
         current_index = iterator - config_name_index.begin();
     }
 
-    auto [sizer, combobox] = create_item_combobox_base(title, parent, tooltip, param, vlist, current_index);
+    auto [sizer, combobox] = create_item_combobox_base(title, parent, tooltip, param, vlist, current_index, label_padding);
 
     //// save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, config_name_index](wxCommandEvent& e) {
@@ -1248,6 +1248,10 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
     std::vector<string> projectLoadSettingsConfigOptions = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
     auto item_project_load_behaviour = create_item_combobox(_L("Load Behaviour"), page, _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
+    
+    std::vector<wxString> projectSwitchBehaviourOptions = {_L("Ask"), _L("Transfer"), _L("Discard")};
+    std::vector<string> projectSwitchConfigOptions = { OPTION_PRINTER_SWITCH_BEHAVIOUR_ASK, OPTION_PRINTER_SWITCH_BEHAVIOUR_TRANSFER, OPTION_PRINTER_SWITCH_BEHAVIOUR_DISCARD };
+    auto item_switch_printer_behaviour = create_item_combobox(_L("Switch Printer Behaviour"), page, _L("Should changing printer ask, transfer or discard settings."), SETTING_PRINTER_SWITCH_BEHAVIOUR, projectSwitchBehaviourOptions, projectSwitchConfigOptions, 50);
 
     auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", page, _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
         long max = 0;
@@ -1332,6 +1336,7 @@ wxWindow* PreferencesDialog::create_general_page()
     // item_region->GetItem(size_t(2))->GetWindow()->Bind(wxEVT_COMBOBOX, update_modelmall);
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_project_load_behaviour, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_switch_printer_behaviour, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_recent_models, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
