@@ -613,14 +613,6 @@
             "name": "FusRock ABS-GF @base",
             "sub_path": "filament/FusRock/FusRock ABS-GF @base.json"
         },
-		{
-            "name": "COEX ABS @base",
-            "sub_path": "filament/COEX/COEX ABS @base.json"
-        },
-		{
-            "name": "COEX ABS PRIME @base",
-            "sub_path": "filament/COEX/COEX ABS PRIME @base.json"
-        },
         {
             "name": "fdm_filament_abs",
             "sub_path": "filament/fdm_filament_abs.json"
@@ -745,10 +737,6 @@
             "name": "Generic ASA @base",
             "sub_path": "filament/Generic ASA @base.json"
         },
-		{
-            "name": "COEX ASA PRIME @base",
-            "sub_path": "filament/COEX/COEX ASA PRIME @base.json"
-        },
         {
             "name": "PolyLite ASA @base",
             "sub_path": "filament/Polymaker/PolyLite ASA @base.json"
@@ -776,14 +764,6 @@
         {
             "name": "Bambu PA6-GF @base",
             "sub_path": "filament/Bambu PA6-GF @base.json"
-        },
-		{
-            "name": "COEX NYLEX PA6-CF @base",
-            "sub_path": "filament/COEX/COEX NYLEX PA6-CF @base.json"
-        },
-		{
-            "name": "COEX NYLEX UNFILLED @base",
-            "sub_path": "filament/COEX/COEX NYLEX UNFILLED @base.json"
         },
         {
             "name": "Bambu PAHT-CF @base",
@@ -845,10 +825,6 @@
             "name": "Generic PCTG @base",
             "sub_path": "filament/Generic PCTG @base.json"
         },
-		{
-            "name": "COEX PCTG PRIME @base",
-            "sub_path": "filament/COEX/COEX PCTG PRIME @base.json"
-        },
         {
             "name": "Generic PE @base",
             "sub_path": "filament/Generic PE @base.json"
@@ -904,10 +880,6 @@
         {
             "name": "PolyLite PETG @base",
             "sub_path": "filament/Polymaker/PolyLite PETG @base.json"
-        },
-		{
-            "name": "COEX PETG @base",
-            "sub_path": "filament/COEX/COEX PETG @base.json"
         },
         {
             "name": "SUNLU PETG @base",
@@ -1005,10 +977,6 @@
             "name": "Generic PLA-CF @base",
             "sub_path": "filament/Generic PLA-CF @base.json"
         },
-		{
-            "name": "COEX PLA @base",
-            "sub_path": "filament/COEX/COEX PLA @base.json"
-        },
         {
             "name": "Overture Matte PLA @base",
             "sub_path": "filament/Overture/Overture Matte PLA @base.json"
@@ -1104,14 +1072,6 @@
         {
             "name": "Polymaker HT-PLA-GF @base",
             "sub_path": "filament/Polymaker/Polymaker HT-PLA-GF @base.json"
-        },
-		{
-            "name": "COEX PLA PRIME @base",
-            "sub_path": "filament/COEX/COEX PLA PRIME @base.json"
-        },
-		{
-            "name": "COEX PLA+Silk @base",
-            "sub_path": "filament/COEX/COEX PLA+Silk @base.json"
         },
         {
             "name": "SUNLU PLA Marble @base",
@@ -1212,22 +1172,6 @@
         {
             "name": "Generic TPU for AMS @base",
             "sub_path": "filament/Generic TPU for AMS @base.json"
-        },
-		{
-            "name": "COEX TPE 30D @base",
-            "sub_path": "filament/COEX/COEX TPE 30D @base.json"
-        },
-		{
-            "name": "COEX TPE 40D @base",
-            "sub_path": "filament/COEX/COEX TPE 40D @base.json"
-        },
-		{
-            "name": "COEX TPE 60D @base",
-            "sub_path": "filament/COEX/COEX TPE 60D @base.json"
-        },
-		{
-            "name": "COEX TPU 60A @base",
-            "sub_path": "filament/COEX/COEX TPU 60A @base.json"
         },
         {
             "name": "Bambu ABS @BBL A1",
