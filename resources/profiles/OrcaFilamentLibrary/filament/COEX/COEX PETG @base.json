@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "COEX PETG @base",
-    "inherits": "Generic PETG @base",
+    "inherits": "fdm_filament_pet",
     "from": "system",
 	"filament_id": "CXPETB13",
     "version": "1.0.0.0",

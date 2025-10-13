@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "COEX PLA @base",
-    "inherits": "Generic PLA @base",
+    "inherits": "fdm_filament_pla",
     "from": "system",
 	"filament_id": "CXPLAB02",
     "version": "1.0.0.0",

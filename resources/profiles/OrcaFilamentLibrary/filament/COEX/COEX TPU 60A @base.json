@@ -5,6 +5,7 @@
     "from": "system"
 	"filament_id": "CX60AB17",
     "version": "1.0.0.0",
+	"instantiation": "false",
     "is_custom_defined": "0",
     "filament_vendor": "COEX 3D",
     "filament_cost": "95.00",

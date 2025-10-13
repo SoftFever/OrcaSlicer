@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "COEX ASA PRIME @base",
-    "inherits": "Generic ASA @base",
+    "inherits": "fdm_filament_asa",
     "from": "system",
 	"filament_id": "CXASAB04",
     "version": "1.0.0.0",

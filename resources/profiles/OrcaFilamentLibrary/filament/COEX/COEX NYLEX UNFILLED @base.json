@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "COEX NYLEX UNFILLED @base",
-    "inherits": "Generic PA @base",
+    "inherits": "fdm_filament_pa",
     "from": "system",
 	"filament_id": "CXPAUB21",
     "version": "1.0.0.0",

@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "COEX PLA+Silk @base",
-    "inherits": "Generic PLA @base",
+    "inherits": "fdm_filament_pla_silk",
     "from": "system",
 	"filament_id": "CXPLSB03",
     "version": "1.0.0.0",
