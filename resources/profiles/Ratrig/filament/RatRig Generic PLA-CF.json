@@ -1,11 +1,11 @@
 {
     "type": "filament",
-    "filament_id": "GFL98",
-    "setting_id": "GFSA04",
     "name": "RatRig Generic PLA-CF",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_filament_pla",
+    "from": "system",
+    "setting_id": "GFSA04",
+    "filament_id": "GFL98",
+    "instantiation": "true",
     "filament_flow_ratio": [
         "0.92"
     ],
@@ -15,13 +15,13 @@
     "filament_max_volumetric_speed": [
         "12"
     ],
-	"filament_z_hop": [
+    "filament_z_hop": [
         "0"
     ],
-	"enable_pressure_advance": [
+    "enable_pressure_advance": [
         "1"
     ],
-	"pressure_advance": [
+    "pressure_advance": [
         "0.05"
     ],
     "slow_down_layer_time": [
@@ -33,31 +33,31 @@
     "nozzle_temperature": [
         "205"
     ],
-"compatible_printers": [
-      "RatRig V-Core 3 200 0.4 nozzle",
-      "RatRig V-Core 3 300 0.4 nozzle",
-      "RatRig V-Core 3 400 0.4 nozzle",
-      "RatRig V-Core 3 500 0.4 nozzle",
-      "RatRig V-Minion 0.4 nozzle",
-      "RatRig V-Cast 0.4 nozzle",
-      "RatRig V-Cast 0.6 nozzle",
-      "RatRig V-Core 4 300 0.4 nozzle",
-      "RatRig V-Core 4 300 0.5 nozzle",
-      "RatRig V-Core 4 300 0.6 nozzle",
-      "RatRig V-Core 4 400 0.4 nozzle",
-      "RatRig V-Core 4 400 0.5 nozzle",
-      "RatRig V-Core 4 400 0.6 nozzle",
-      "RatRig V-Core 4 500 0.4 nozzle",
-      "RatRig V-Core 4 500 0.5 nozzle",
-      "RatRig V-Core 4 500 0.6 nozzle",
-      "RatRig V-Core 4 HYBRID 300 0.4 nozzle",
-      "RatRig V-Core 4 HYBRID 300 0.5 nozzle",
-      "RatRig V-Core 4 HYBRID 300 0.6 nozzle",
-      "RatRig V-Core 4 HYBRID 400 0.4 nozzle",
-      "RatRig V-Core 4 HYBRID 400 0.5 nozzle",
-      "RatRig V-Core 4 HYBRID 400 0.6 nozzle",
-      "RatRig V-Core 4 HYBRID 500 0.4 nozzle",
-      "RatRig V-Core 4 HYBRID 500 0.5 nozzle",
-      "RatRig V-Core 4 HYBRID 500 0.6 nozzle"
+    "compatible_printers": [
+        "RatRig V-Core 3 200 0.4 nozzle",
+        "RatRig V-Core 3 300 0.4 nozzle",
+        "RatRig V-Core 3 400 0.4 nozzle",
+        "RatRig V-Core 3 500 0.4 nozzle",
+        "RatRig V-Minion 0.4 nozzle",
+        "RatRig V-Cast 0.4 nozzle",
+        "RatRig V-Cast 0.6 nozzle",
+        "RatRig V-Core 4 300 0.4 nozzle",
+        "RatRig V-Core 4 300 0.5 nozzle",
+        "RatRig V-Core 4 300 0.6 nozzle",
+        "RatRig V-Core 4 400 0.4 nozzle",
+        "RatRig V-Core 4 400 0.5 nozzle",
+        "RatRig V-Core 4 400 0.6 nozzle",
+        "RatRig V-Core 4 500 0.4 nozzle",
+        "RatRig V-Core 4 500 0.5 nozzle",
+        "RatRig V-Core 4 500 0.6 nozzle",
+        "RatRig V-Core 4 HYBRID 300 0.4 nozzle",
+        "RatRig V-Core 4 HYBRID 300 0.5 nozzle",
+        "RatRig V-Core 4 HYBRID 300 0.6 nozzle",
+        "RatRig V-Core 4 HYBRID 400 0.4 nozzle",
+        "RatRig V-Core 4 HYBRID 400 0.5 nozzle",
+        "RatRig V-Core 4 HYBRID 400 0.6 nozzle",
+        "RatRig V-Core 4 HYBRID 500 0.4 nozzle",
+        "RatRig V-Core 4 HYBRID 500 0.5 nozzle",
+        "RatRig V-Core 4 HYBRID 500 0.6 nozzle"
     ]
 }

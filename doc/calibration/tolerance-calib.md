@@ -1,13 +1,13 @@
 # Filament Tolerance Calibration
 
 Each filament and printer combination can result in different tolerances. This means that even using the same filament and print profile, tolerances may vary from one printer to another.
-To correct for these variations, Orca Slicer provides:
+To correct for these variations, OrcaSlicer provides:
 
 - Filament Compensation:
 
   - Shrinkage (XY)
 
-    ![Shrinkage](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/FilamentShrinkageCompensation.png?raw=true)
+    ![FilamentShrinkageCompensation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/FilamentShrinkageCompensation.png?raw=true)
 
 - Process Compensation:
 
@@ -16,9 +16,15 @@ To correct for these variations, Orca Slicer provides:
   - Precise wall
   - Precise Z height
 
-    ![Process_Compensation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/QualityPrecision.png?raw=true)
+    ![QualityPrecision](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/QualityPrecision.png?raw=true)
 
-## Orca Tolerance Test
+## Handy Models
+
+OrcaSlicer includes several handy models to help you test and calibrate your printer.  
+Right-click on your plate in Prepare mode and select "Add Handy Model" to access these models.  
+![handy-models-list](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Handy-Models/handy-models-list.png?raw=true)
+
+### Orca Tolerance Test
 
 This calibration test is designed to evaluate the dimensional accuracy of your printer and filament. The model consists of a base with six hexagonal holes, each with a different tolerance: 0.0 mm, 0.05 mm, 0.1 mm, 0.2 mm, 0.3 mm, and 0.4 mm, as well as a hexagon-shaped tester.
 

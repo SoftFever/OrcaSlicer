@@ -1,9 +1,9 @@
 {
-    "from": "system",
-    "inherits": "0.55mm DRAFT @MK4S 0.8",
-    "instantiation": "true",
-    "name": "0.55mm DRAFT @CORE One 0.8",
     "type": "process",
+    "name": "0.55mm DRAFT @CORE One 0.8",
+    "inherits": "0.55mm DRAFT @MK4S 0.8",
+    "from": "system",
+    "instantiation": "true",
     "top_surface_speed": "2000",
     "inner_wall_acceleration": "2500",
     "internal_solid_infill_acceleration": "5000",

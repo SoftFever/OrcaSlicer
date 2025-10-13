@@ -1,18 +1,56 @@
-# Seam Section
+# Seam
 
 Unless printed in spiral vase mode, every layer needs to begin somewhere and end somewhere. That start and end of the extrusion is what results in what visually looks like a seam on the perimeters. This section contains options to control the visual appearance of a seam.
+
+- [Seam Position](#seam-position)
+  - [Aligned](#aligned)
+  - [Aligned Back](#aligned-back)
+  - [Nearest](#nearest)
+  - [Back](#back)
+  - [Random](#random)
+- [Modifiers](#modifiers)
+  - [Staggered inner seams](#staggered-inner-seams)
+  - [Seam gap](#seam-gap)
+  - [Scarf joint seam](#scarf-joint-seam)
+    - [Scarf joint seam Type](#scarf-joint-seam-type)
+    - [Conditional scarf joint](#conditional-scarf-joint)
+    - [Scarf joint speed](#scarf-joint-speed)
+    - [Scarf joint height](#scarf-joint-height)
+    - [Scarf around entire wall](#scarf-around-entire-wall)
+    - [Scarf length](#scarf-length)
+    - [Scarf steps](#scarf-steps)
+    - [Scarf joint flow ratio](#scarf-joint-flow-ratio)
+    - [Scarf joint for inner walls](#scarf-joint-for-inner-walls)
+  - [Role based wipe speed](#role-based-wipe-speed)
+  - [Wipe speed](#wipe-speed)
+  - [Wipe on loop (inward movement)](#wipe-on-loop-inward-movement)
+  - [Wipe Before External](#wipe-before-external)
+- [Tips](#tips)
+- [Troubleshooting Seam Performance](#troubleshooting-seam-performance)
+  - [Troubleshooting the Start of a Seam](#troubleshooting-the-start-of-a-seam)
+  - [Troubleshooting the End of a Seam](#troubleshooting-the-end-of-a-seam)
+  - [The Role of Wall Ordering in Seam Appearance](#the-role-of-wall-ordering-in-seam-appearance)
 
 ## Seam Position
 
 Controlling the position of seams can help improve the appearance and strength of the final print.
 
-Typically, aligned or back work the best, especially in combination with seam painting. However, as seams create weak points and slight surface "bulges" or "divots", random seam placement may be optimal for parts that need higher strength as that weak point is spread to different locations between layers (e.g., a pin meant to fit through a hole).
+Typically, [Aligned Back](#aligned-back), [Aligned](#aligned), or [Back](#back) work the best, especially in combination with seam painting.  
+However, as seams create weak points and slight surface "bulges" or "divots", [random](#random) seam placement may be optimal for parts that need higher strength as that weak point is spread to different locations between layers (e.g., a pin meant to fit through a hole).
 
 ### Aligned
 
 Will attempt to align the seam to a hidden internal facet of the model.
 
 ![seam-aligned](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-aligned.png?raw=true)
+
+### Aligned Back
+
+Combines [Aligned](#aligned) and [Back](#back) strategies by prioritizing seam placement away from the front-facing side while still finding optimal hidden locations for other orientations.  
+This is particularly useful for directional models like sculptures or figurines that have a clear front view.  
+Unlike "Back" which always places seams at the rearmost position, "Aligned Back" uses intelligent positioning that avoids the front while maintaining sophisticated seam hiding capabilities.
+
+![seam-aligned-back](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-aligned-back.png?raw=true)
 
 ### Nearest
 
@@ -37,33 +75,101 @@ This option places the seam randomly across the object, which can help to distri
 
 ### Staggered inner seams
 
-As the seam location forms a weak point in the print (it's a discontinuity in the extrusion process after all!), staggering the seam on the internal perimeters can help reduce stress points. This setting moves the start of the internal wall's seam around across layers as well as away from the external perimeter seam. This way, the internal and external seams don't all align at the same point and between them across layers, distributing those weak points further away from the seam location, hence making the part stronger. It can also help improve the water tightness of your model.
+As the seam location forms a weak point in the print, staggering the seam on the internal perimeters can help reduce stress points. This setting moves the start of the internal wall's seam around across layers as well as away from the external perimeter seam. This way, the internal and external seams don't all align at the same point and between them across layers, distributing those weak points further away from the seam location, hence making the part stronger. It can also help improve the water tightness of your model.
+
+![seam-staggered-inner](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-staggered-inner.gif?raw=true)
 
 ### Seam gap
 
-Controls the gap in mm or as a percentage of the nozzle size between the two ends of a loop starting and ending with a seam. A larger gap will reduce the bulging seen at the seam. A smaller gap reduces the visual appearance of a seam. For a well-tuned printer with pressure advance, a value of 0-15% is typically optimal.
+Controls the gap in mm or as a percentage of the nozzle size between the two ends of a loop starting and ending with a seam.
 
-![seam-gap](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-gap.png?raw=true)
+- A larger gap will reduce the bulging seen at the seam.
+- A smaller gap reduces the visual appearance of a seam.
+
+ For a well-tuned printer with [pressure advance](pressure-advance-calib) and [filament retraction](retraction-calib), a value of **0-15%** is typically optimal.
+
+![seam-gap](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-gap.gif?raw=true)
 
 ### Scarf joint seam
 
-Read more here: [Better Seams - An Orca Slicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
+Adjusts the extrusion flow rate at seam points to create a smooth overlap between the start and end of each loop, minimizing visible defects.
 
-### Role-based wipe speed
+![scarf-joint-seam](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/scarf-joint-seam.png?raw=true)
 
-Controls the speed of a wipe motion, i.e., how fast the nozzle will move over a printed area to "clean" it before traveling to another area of the model. It is recommended to turn this option on, to ensure the nozzle performs the wipe motion with the same speed that the feature was printed with.
+Advantages:
+
+- Reduces visible z-seams
+- Improves cosmetic quality of curved surfaces
+- Can slightly improve part strength at seams by softening transitions
+
+Disadvantages:
+
+- May increase print time slightly
+- Less effective on sharp corners and overhangs
+- Requires tuning of parameters like length, speed, and flow for best results
+
+> [!NOTE]
+> Read more here: [Better Seams - An OrcaSlicer Guide](https://www.printables.com/model/783313-better-seams-an-orca-slicer-guide-to-using-scarf-s).
+
+#### Scarf joint seam Type
+
+- **Contour:** Applies scarf seams exclusively to the outermost perimeter of the model.
+- **Contour and hole:** Extends scarf seams to both the outer perimeter and the inner walls surrounding holes within the part.
+
+#### Conditional scarf joint
+
+Dynamically applies scarf joints only on smooth, curved perimeters where traditional seams would be visually prominent. Sharp corners will still use standard seams to maintain dimensional accuracy.
+
+#### Scarf joint speed
+
+This option sets the printing speed for scarf joints.  
+It is recommended to print scarf joints at a slow speed (less than 100 mm/s).  
+It's also advisable to enable [Extrusion rate smoothing](speed_settings_advanced) if the set speed varies significantly from the speed of the outer or inner walls. If the speed specified here is higher than the speed of the outer or inner walls, the printer will default to the slower of the two speeds. When specified as a percentage (e.g., 80%), the speed is calculated based on the respective outer or inner wall speed. The default value is set to 100%.
+
+#### Scarf joint height
+
+Defines the vertical offset for the start of the scarf ramp, specified either in millimeters or as a percentage of the current layer height.  
+A value of 0 means the scarf begins at the same height as the current layer and ramps up to the full layer height over the scarf length.  
+For example, on the second layer with a 0.2 mm layer height, setting this to 50% (0.1 mm) will start the scarf at 0.3 mm and ramp up to 0.4 mm by the end of the scarf length, while the rest of the lines print at 0.4 mm.  
+This setting helps create a smoother transition and can reduce visible seam artifacts.
+
+#### Scarf around entire wall
+
+If enabled, the scarf joint wraps around the full perimeter of the wall. Typically disabled, as this may increase print time without significant seam improvement.
+
+#### Scarf length
+
+Defines the horizontal length over which the scarf ramp transitions. A value of 0 disables the scarf joint. The default (e.g. 20 mm) generally offers smooth and effective blending.
+
+#### Scarf steps
+
+Minimum number of segments used to build the scarf transition.  
+More steps create a smoother gradient, but the default value (10) is sufficient in most cases.
+
+#### Scarf joint flow ratio
+
+Adjusts extrusion flow during scarf printing. A value of 100% applies standard flow. Lower values reduce flow but may introduce under-extrusion.  
+Recommended to keep at 100%.
+
+#### Scarf joint for inner walls
+
+When enabled, scarf joints are also applied to inner perimeters (e.g., holes). This has minimal visual impact and is usually left disabled unless inner seam quality is a priority.
+
+### Role based wipe speed
+
+Controls the speed of a wipe motion, i.e., how fast the nozzle will move over a printed area to "clean" it before traveling to another area of the model.  
+It is recommended to turn this option on, to ensure the nozzle performs the wipe motion with the same speed that the feature was printed with.
 
 ### Wipe speed
 
 If role-based wipe speed is disabled, set this field to the absolute wipe speed or as a percentage over the travel speed.
 
-### Wipe on loop(inward movement)
+### Wipe on loop (inward movement)
 
-When finishing printing a "loop" (i.e., an extrusion that starts and ends at the same point), move the nozzle slightly inwards towards the part. That move aims to reduce seam unevenness by tucking in the end of the seam to the part. It also slightly cleans the nozzle before traveling to the next area of the model, reducing stringing.
+When finishing printing a "loop" (i.e., an extrusion that starts and ends at the same point), move the nozzle slightly inwards towards the part. That move aims to reduce seam unevenness by tucking in the end of the seam to the part. It also slightly cleans the nozzle before traveling to the next area of the model, reducing stringing.  
+This setting will use your printer/material Wipe Distance and retract amount before wipe values.
 
 ![seam-wipe-on-loop](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-wipe-on-loop.png?raw=true)
-
-![seam-outer-wall-wipe](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-outer-wall-wipe.png?raw=true)
 
 ![seam-wipe-on-loops-options](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/seam/seam-wipe-on-loops-options.png?raw=true)
 
@@ -71,7 +177,7 @@ When finishing printing a "loop" (i.e., an extrusion that starts and ends at the
 
 To minimize the visibility of potential over-extrusion at the start of an external perimeter, the de-retraction move is performed slightly on the inside of the model and, hence, the start of the external perimeter. That way, any potential over-extrusion is hidden from the outside surface.
 
-  This is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order, as in these modes, it is more likely an external perimeter is printed immediately after a de-retraction move, which would cause slight extrusion variance at the start of a seam.
+This is useful when printing with [Outer/Inner](quality_settings_wall_and_surfaces#outerinner) or [Inner/Outer/Inner](quality_settings_wall_and_surfaces#innerouterinner) wall print order, as in these modes, it is more likely an external perimeter is printed immediately after a de-retraction move, which would cause slight extrusion variance at the start of a seam.
 
 ## Tips
 

@@ -431,14 +431,46 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 set_value(str, true);
             }
         } else if (m_opt.opt_key == "sparse_infill_rotate_template" || m_opt.opt_key == "solid_infill_rotate_template") {
-            if (!ConfigOptionFloats::validate_string(str.utf8_string())) {
-                show_error(m_parent, format_wxstr(_L("This parameter expects a comma-delimited list of numbers. E.g, \"0,90\".")));
-                wxString old_value(boost::any_cast<std::string>(m_value));
-                this->set_value(old_value, true); // Revert to previous value
+            string ustr(str.utf8_string());
+            if (!ConfigOptionFloats::validate_string(ustr)) {
+                string      v;
+                std::smatch match;
+                string      ps = (m_opt.opt_key == "sparse_infill_rotate_template") ?
+                                     u8"[BT][!]?|[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[BT]?[!*]?" :
+                                     u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[!*]?";
+
+                while (std::regex_search(ustr, match, std::regex(ps))) {
+                    for (auto x : match) v += x.str() + ", ";
+                    ustr = match.suffix().str();
+                }
+                v = v.substr(0, v.length() - 2);
+                try {
+                    this->set_value(from_u8(v), true);
+                    m_value = into_u8(v);
+                } catch (...) {
+                    show_error(m_parent, format_wxstr(_L("This parameter expects a valid template.")));
+                    wxString old_value(boost::any_cast<std::string>(m_value));
+                    this->set_value(old_value, true); // Revert to previous value
+                }
             } else {
                 // Valid string, so update m_value with the new string from the control.
                 m_value = into_u8(str);
             }
+            break;
+        } else if (m_opt.opt_key == "extra_solid_infills") {
+            string ustr(str.utf8_string());
+            // New rule: accept either interval form (N or N#K) or explicit list (e.g. 1,7,9), with optional quotes.
+            const std::regex rx_interval(u8R"(^\s*['"]?\s*\d+\s*(?:#\s*\d*)?\s*['"]?\s*$)");
+            // List entries may be plain numbers or number with optional #K count, e.g., 5, 9#2, 18
+            const std::regex rx_list(u8R"(^\s*['"]?\s*\d+(?:\s*#\s*\d*)?(?:\s*,\s*\d+(?:\s*#\s*\d*)?)*\s*['"]?\s*$)");
+            bool is_valid = ustr.empty() || std::regex_match(ustr, rx_interval) || std::regex_match(ustr, rx_list);
+            if (!is_valid) {
+                show_error(m_parent, format_wxstr(_L("Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18.")));
+                wxString old_value(boost::any_cast<std::string>(m_value));
+                this->set_value(old_value, true); // Revert to previous value
+            }
+            // Valid string or empty, so update m_value with the new string from the control.
+            m_value = into_u8(str);
             break;
         }
 
@@ -1525,7 +1557,11 @@ void Choice::set_value(const boost::any& value, bool change_event)
         if (m_opt_id.compare("host_type") == 0 && val != 0 &&
 			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
 			val--;
-        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style" || m_opt_id == "curr_bed_type")
+        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" ||
+            m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
+            m_opt_id == "support_base_pattern" || m_opt_id == "support_interface_pattern" ||
+            m_opt_id == "ironing_pattern" || m_opt_id == "support_ironing_pattern" ||
+            m_opt_id == "support_style" || m_opt_id == "curr_bed_type")
 		{
 			std::string key;
 			const t_config_enum_values& map_names = *m_opt.enum_keys_map;
@@ -1609,21 +1645,27 @@ boost::any& Choice::get_value()
 
     // BBS
 	if (m_opt.type == coEnum || m_opt.type == coEnums)
-	{
+    {
         if (m_opt.nullable && field->GetSelection() == -1)
             m_value = ConfigOptionEnumsGenericNullable::nil_value();
-        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
-                 m_opt_id == "support_style" || m_opt_id == "curr_bed_type") {
-			const std::string& key = m_opt.enum_values[field->GetSelection()];
-			m_value = int(m_opt.enum_keys_map->at(key));
-		}
+        else if (   m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" ||
+                    m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
+                    m_opt_id == "support_base_pattern" || m_opt_id == "support_interface_pattern" ||
+                    m_opt_id == "ironing_pattern" || m_opt_id == "support_ironing_pattern" ||
+                    m_opt_id == "support_style" || m_opt_id == "curr_bed_type")
+        {
+            const std::string &key = m_opt.enum_values[field->GetSelection()];
+            m_value = int(m_opt.enum_keys_map->at(key));
+        }
         // Support ThirdPartyPrinter
-        else if (m_opt_id.compare("host_type") == 0 && m_opt.enum_values.size() > field->GetCount()) {
+        else if (m_opt_id.compare("host_type") == 0 && m_opt.enum_values.size() > field->GetCount())
+        {
             // for case, when PrusaLink isn't used as a HostType
             m_value = field->GetSelection() + 1;
-        } else
-			m_value = field->GetSelection();
-	}
+        }
+        else
+            m_value = field->GetSelection();
+    }
     else if (m_opt.gui_type == ConfigOptionDef::GUIType::f_enum_open || m_opt.gui_type == ConfigOptionDef::GUIType::i_enum_open) {
         const int ret_enum = field->GetSelection();
         if (m_list) {
