@@ -324,15 +324,12 @@ protected:
 };
 
 template<typename LayerContainer>
-inline std::vector<float> zs_from_layers(const LayerContainer &layers, const float offset_factor = 0.0)
+inline std::vector<float> zs_from_layers(const LayerContainer &layers)
 {
     std::vector<float> zs;
     zs.reserve(layers.size());
-    float min = layers.front()->slice_z;
     for (const Layer *l : layers)
-        zs.emplace_back((float)l->slice_z + (offset_factor * l->height));
-    if (zs.front() < min) // Exclusive first layer fix
-        zs.front() = std::numeric_limits<float>::min();
+        zs.emplace_back((float)l->slice_z);
     return zs;
 }
 

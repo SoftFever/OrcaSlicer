@@ -148,6 +148,12 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     case SlicingMode::CloseHoles: params_base.mode = MeshSlicingParams::SlicingMode::Positive; break;
     }
 
+    switch (print_object_config.slicing_tolerance) {
+        case SlicingTolerance::Middle:    params_base.tolerance = MeshSlicingParamsEx::SlicingTol::Default; break;
+        case SlicingTolerance::Inclusive: params_base.tolerance = MeshSlicingParamsEx::SlicingTol::Union; break;
+        case SlicingTolerance::Exclusive: params_base.tolerance = MeshSlicingParamsEx::SlicingTol::Intersection; break;
+    }
+
     params_base.mode_below     = params_base.mode;
 
     // BBS
@@ -1137,14 +1143,7 @@ void PrintObject::slice_volumes()
             layer->m_regions.emplace_back(new LayerRegion(layer, pr.get()));
     }
 
-    float offset_factor;
-    switch(this->config().slicing_tolerance) {
-    case SlicingTolerance::Middle:    offset_factor = 0.0; break;
-    case SlicingTolerance::Exclusive: offset_factor = -0.5; break;
-    case SlicingTolerance::Inclusive: offset_factor = 0.5; break;
-    }
-
-    std::vector<float>                   slice_zs      = zs_from_layers(m_layers, offset_factor);
+    std::vector<float>                   slice_zs      = zs_from_layers(m_layers);
     std::vector<VolumeSlices> objSliceByVolume;
     if (!slice_zs.empty()) {
         objSliceByVolume = slice_volumes_inner(
