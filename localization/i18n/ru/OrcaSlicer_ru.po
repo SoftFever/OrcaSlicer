@@ -7079,7 +7079,7 @@ msgid "Associate .step/.stp files to OrcaSlicer"
 msgstr "Ассоциировать файлы .step/.stp с OrcaSlicer"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
-msgstr "Если включено, OrcaSlicer назначается приложением по умолчанию для открытия файлов .step.
+msgstr "Если включено, OrcaSlicer назначается приложением по умолчанию для открытия файлов .step"
 
 msgid "Associate web links to OrcaSlicer"
 msgstr "Ассоциировать веб-ссылки с OrcaSlicer"
@@ -7291,7 +7291,7 @@ msgstr "Выбранный профиль пуст!"
 
 # ?????? В двух местах - в одном месте кнопка в другом Конечный слой. В V2.2.0beta2 пока не исправлено
 msgid "End"
-msgstr "Конец
+msgstr "Конец"
 
 msgid "Customize"
 msgstr "Настройка"
