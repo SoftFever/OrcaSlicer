@@ -14,6 +14,7 @@ set WP=%CD%
 set argdefn=0
 
 :: Error check macro
+set "repeat_error=if not ^!errorlevel^! == 0 exit /b ^!errorlevel^!"
 set "error_check=if not ^!errorlevel^! == 0 echo Exiting script with code ^!errorlevel^! & exit /b ^!errorlevel^!"
 
 :: Define arguments
@@ -25,107 +26,8 @@ call :add_arg build_debuginfo bool e debuginfo
 call :add_arg dry_run bool D dry-run
 
 :: handle arguments from input
-:handle_args_loop
-    if "%1" == "" goto :handle_args_loop_end
-
-    setlocal
-    set arg=%1
-    set finalize_cmd=
-
-    call :debug_msg Begin handling arg "%arg%"
-
-    if not "%arg:~0,2%" == "--" goto :HAL_check_short
-    
-    ::IF long arg
-    call :debug_msg Processing long arg
-    
-    call :find_arg long %arg:~2%
-    %error_check%
-    set idx=%ret%
-    
-    call :get_arg_type %idx%
-    %error_check%
-    set type=%ret%
-    
-    if /I "%type%" == "string" (
-        set string_val=%2
-        :: Ensure there is a string value
-        if "!string_val!" == "" (
-            echo Error in handle_args_loop: The option "%arg:~2%" requires a value
-            exit /b 1
-        )
-        :: Ensure the string value isn't another argument
-        if "!string_val:~0,1!" == "-" (
-            echo Error in handle_args_loop: The option "%arg:~2%" requires a value. "!string_val!" is invalid as it may be another argument. Enclose the value with double quotes to override this.
-            exit /b 1
-        )
-        shift
-    )
-    
-    call :set_arg %idx% %string_val%
-    %error_check%
-    goto :handle_args_loop_reset
-
-    :HAL_check_short
-    if not "%arg:~0,1%" == "-" (
-        :: IF invalid arg
-        echo Unknown argument: %arg%
-        exit /b 1
-    )
-
-    :: IF short arg
-    call :debug_msg processing short args
-    set /A charidx=1
-    :short_arg_loop
-        if "!arg:~%charidx%,1!" == "" goto :handle_args_loop_reset
-        
-        call :find_arg short !arg:~%charidx%,1!
-        %error_check%
-        set idx=%ret%
-        
-        call :get_arg_type %idx%
-        %error_check%
-        set type=%ret%
-        
-        set /A start_idx = %charidx% + 1
-        if /I "%type%" == "string" (
-            :: Check if there are additional characters after the found string argument
-            set remaining=!arg:~%start_idx%!
-            if defined remaining (
-                :: If there are remaining characters, use them as the string value
-                set string_val=!remaining!
-            ) else (
-                :: Otherwise, use the next argument
-                set string_val=%2
-                shift
-            )
-            :: Ensure there is a string value
-            if "!string_val!" == "" (
-                echo Error in handle_args_loop: The option "!arg:~%charidx%,1!" requires a value
-                exit /b 1
-            )
-            :: Ensure the string value isn't another argument
-            if "!string_val:~1!" == "-" (
-                echo Error in handle_args_loop: The option "!arg:~%charidx%,1!" requires a value. "!string_val!" is invalid as it may be another argument. Enclose the value with double quotes to override this.
-                exit /b 1
-            )
-            call :set_arg !idx! !string_val!
-            %error_check%
-            goto :handle_args_loop_reset
-        )
-        
-        call :set_arg %idx%
-        %error_check%
-        set /A charidx+=1
-    goto :short_arg_loop
-
-    :handle_args_loop_reset
-    :: End local scope for this loop and use finalize_cmd to set global variables from the set_arg function
-    endlocal %finalize_cmd%
-    shift
-    goto :handle_args_loop
-
-:handle_args_loop_end
+call :handle_args %*
+%error_check%
 
 if "%debugscript%" == "ON" (
     set /A range_end = %argdefn% - 1
@@ -321,3 +223,105 @@ exit /b 0
         exit /b !errorlevel!
     )
     exit /b 0
+
+::handle_args <args...>
+:handle_args
+    call :debug_msg starting function handle_args "%*"
+    if "%~1" == "" exit /b 0
+
+    setlocal
+    set arg=%~1
+    set finalize_cmd=
+
+    call :debug_msg Begin handling arg "%arg%"
+
+    if not "%arg:~0,2%" == "--" goto :HAL_check_short
+
+    ::IF long arg
+    call :debug_msg Processing long arg
+
+    call :find_arg long %arg:~2%
+    %repeat_error%
+    set idx=%ret%
+
+    call :get_arg_type %idx%
+    %repeat_error%
+    set type=%ret%
+
+    if /I "%type%" == "string" (
+        set string_val=%2
+        :: Ensure there is a string value
+        if "!string_val!" == "" (
+            echo Error in handle_args_loop: The option "%arg:~2%" requires a value
+            exit /b 1
+        )
+        :: Ensure the string value isn't another argument
+        if "!string_val:~0,1!" == "-" (
+            echo Error in handle_args_loop: The option "%arg:~2%" requires a value. "!string_val!" is invalid as it may be another argument. Enclose the value with double quotes to override this.
+            exit /b 1
+        )
+        shift
+    )
+
+    call :set_arg %idx% %string_val%
+    %repeat_error%
+    goto :handle_args_loop_reset
+
+    :HAL_check_short
+    if not "%arg:~0,1%" == "-" (
+        :: IF invalid arg
+        echo Unknown argument: %arg%
+        exit /b 1
+    )
+
+    :: IF short arg
+    call :debug_msg processing short args
+    set /A charidx=1
+    :short_arg_loop
+        if "!arg:~%charidx%,1!" == "" goto :handle_args_loop_reset
+
+        call :find_arg short !arg:~%charidx%,1!
+        %repeat_error%
+        set idx=%ret%
+
+        call :get_arg_type %idx%
+        %repeat_error%
+        set type=%ret%
+
+        set /A start_idx = %charidx% + 1
+        if /I "%type%" == "string" (
+            :: Check if there are additional characters after the found string argument
+            set remaining=!arg:~%start_idx%!
+            if defined remaining (
+                :: If there are remaining characters, use them as the string value
+                set string_val=!remaining!
+            ) else (
+                :: Otherwise, use the next argument
+                set string_val=%2
+                shift
+            )
+            :: Ensure there is a string value
+            if "!string_val!" == "" (
+                echo Error in handle_args_loop: The option "!arg:~%charidx%,1!" requires a value
+                exit /b 1
+            )
+            :: Ensure the string value isn't another argument
+            if "!string_val:~1!" == "-" (
+                echo Error in handle_args_loop: The option "!arg:~%charidx%,1!" requires a value. "!string_val!" is invalid as it may be another argument. Enclose the value with double quotes to override this.
+                exit /b 1
+            )
+            call :set_arg !idx! !string_val!
+            %repeat_error%
+            goto :handle_args_loop_reset
+        )
+
+        call :set_arg %idx%
+        %repeat_error%
+        set /A charidx+=1
+    goto :short_arg_loop
+
+    :handle_args_loop_reset
+    :: End local scope for this loop and use finalize_cmd to set global variables from the set_arg function
+    endlocal %finalize_cmd%
+    shift
+    goto :handle_args
