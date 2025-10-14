@@ -885,6 +885,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
 
     toggle_line("infill_overhang_angle", config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ipLateralHoneycomb);
+
+    bool supports_multi_bed_types = preset_bundle->printers.get_edited_preset().config.opt_bool("support_multi_bed_types");
+    toggle_field("curr_bed_type", supports_multi_bed_types || is_BBL_Printer);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
