@@ -3529,9 +3529,9 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("ironing_angle", coFloat);
     def->label    = L("Ironing angle offset");
     def->category = L("Quality");
-    def->tooltip  = L("The angle ironing is offset from the top surface. A negative number disables this function and uses the top surface angle.");
+    def->tooltip  = L("The angle of ironing lines offset from the top surface.");
     def->sidetext = "°";	// degrees, don't need translation
-    def->min      = -1;
+    def->min      = 0;
     def->max      = 359;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(-1));
