@@ -3050,9 +3050,9 @@ bool FillRectilinear::fill_surface_trapezoidal(const Surface*                   
 
     // Density adjustment
     const double tunning_factor = 0.85;
-    coord_t      d1             = coord_t(scale_(tunning_factor * this->spacing)) * params.multiline; // Infill total wall thickness
-    coord_t      period         = coord_t((2.0 * d1 * (1.0 / tunning_factor) / params.density) * std::sqrt(2.0));
-    coord_t      d2             = coord_t(0.5 * period - d1 + (1.0 - tunning_factor) * this->spacing);
+    const coord_t      d1             = coord_t(scale_(tunning_factor * this->spacing)) * params.multiline; // Infill total wall thickness
+    const coord_t      period         = coord_t((2.0 * d1 * (1.0 / tunning_factor) / params.density) * std::sqrt(2.0));
+    const coord_t      d2             = coord_t(0.5 * period - d1 + (1.0 - tunning_factor) * this->spacing);
 
     std::pair<double, Point> rotate_vector = this->_infill_direction(surface);
     double                   base_angle    = rotate_vector.first + M_PI_4;
