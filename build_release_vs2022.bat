@@ -24,6 +24,7 @@ call :add_arg build_slicer bool s slicer
 call :add_arg build_debug bool b debug
 call :add_arg build_debuginfo bool e debuginfo
 call :add_arg dry_run bool D dry-run
+call :add_arg clean bool c clean
 
 :: handle arguments from input
 call :handle_args %*
@@ -58,6 +59,11 @@ set DEPS=%WP%\deps\%build_dir%\OrcaSlicer_dep
 if "%build_deps%" == "ON" (
     echo building deps...
 
+    if "%clean%" == "ON" (
+        call :print_and_run rmdir /S /Q deps\%build_dir%
+        %error_check%
+    )
+
     call :print_and_run cmake -S deps -B deps/%build_dir% -G "Visual Studio 17 2022" -A x64 -DDESTDIR="%DEPS%" -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
     %error_check%
 
@@ -79,6 +85,11 @@ if "%pack_deps%" == "ON" (
 
 if "%build_slicer%" == "ON" (
     echo building Orca Slicer...
+
+    if "%clean%" == "ON" (
+        call :print_and_run rmdir /S /Q %build_dir%
+        %error_check%
+    )
 
     call :print_and_run cmake -B %build_dir% -G "Visual Studio 17 2022" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
     %error_check%
