@@ -210,5 +210,5 @@
     ],
     "xy_contour_compensation": "0",
     "xy_hole_compensation": "0",
-    "exclude_object": "1"
+    "exclude_object": "0"
 }
