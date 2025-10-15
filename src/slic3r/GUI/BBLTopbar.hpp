@@ -31,6 +31,12 @@ public:
     void OnMouseCaptureLost(wxMouseCaptureLostEvent& event);
     void OnMenuClose(wxMenuEvent& event);
     void OnOpenProject(wxAuiToolBarEvent& event);
+
+#ifdef _WIN32
+    // Accessibility keyboard navigation
+    void OnCharHook(wxKeyEvent& event);
+    bool HandleAccessibilityTabNavigation(bool reverse);
+#endif
     void show_publish_button(bool show);
     void OnSaveProject(wxAuiToolBarEvent& event);
     void OnUndo(wxAuiToolBarEvent& event);
@@ -55,6 +61,14 @@ public:
     void SaveNormalRect();
 
     void ShowCalibrationButton(bool show = true);
+
+#ifdef _WIN32
+    // Windows message handling for screen reader detection
+    virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
+    // Accessibility setup and management
+    void SetupAccessibility();
+    static LRESULT CALLBACK BBLTopbarWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif
 
 private:
     wxFrame* m_frame;
@@ -85,4 +99,16 @@ private:
     bool m_skip_popup_file_menu;
     bool m_skip_popup_dropdown_menu;
     bool m_skip_popup_calib_menu;
+
+#ifdef _WIN32
+    // Screen reader detection
+    bool m_screenReaderDetected;
+    
+    // Accessibility focus management
+    int m_focusedToolIndex;
+
+    // Accessibility object and window subclassing
+    class BBLTopbarAccessible* m_pAccessible;
+    WNDPROC m_originalWndProc;
+#endif
 };
