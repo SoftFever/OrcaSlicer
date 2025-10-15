@@ -131,7 +131,7 @@ void FillTpmsD::_fill_surface_single(
 		pl.translate(bb.min);
 	
 	    // Apply multiline offset if needed
-    multiline_fill(polylines, params, spacing);
+    multiline_fill(polylines, params, spacing, true);
 
 	polylines = intersection_pl(polylines, expolygon);
 

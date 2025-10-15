@@ -2999,12 +2999,12 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
     assert(!params.full_infill());
     params.density /= double(sweep_params.size());
     assert(params.density > 0.0001f && params.density <= 1.f);
-
-    ExPolygonWithOffset poly_with_offset_base(surface->expolygon, 0, float(scale_(this->overlap - 0.5 * this->spacing)));
+    
+    ExPolygonWithOffset poly_with_offset_base(surface->expolygon, 0, float(scale_(this->overlap + 0.5 * params.multiline * this->spacing)));//increase offset to crop infill lines when using multiline infill
     if (poly_with_offset_base.n_contours == 0)
         // Not a single infill line fits.
         return true;
-
+    
     Polylines fill_lines;
     coord_t line_width   = coord_t(scale_(this->spacing));
     coord_t line_spacing = coord_t(scale_(this->spacing) * params.multiline / params.density);
@@ -3012,19 +3012,27 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
     for (const SweepParams &sweep : sweep_params) {
         // Rotate polygons so that we can work with vertical lines here
         float angle = rotate_vector.first + sweep.angle_base;
-        //Fill Multiline
-        for (int i = 0; i < params.multiline; ++i) {
-            coord_t group_offset = i * line_spacing;
-            coord_t internal_offset = (i - (params.multiline - 1) / 2.0f) * line_width;
-            coord_t total_offset  = group_offset + internal_offset;
-            coord_t pattern_shift = scale_(sweep.pattern_shift + unscale_(total_offset));
 
-            make_fill_lines(ExPolygonWithOffset(poly_with_offset_base, -angle), rotate_vector.second.rotated(-angle), angle,
-                            line_width + coord_t(SCALED_EPSILON), line_spacing, pattern_shift, fill_lines);
-        }
+        make_fill_lines(ExPolygonWithOffset(poly_with_offset_base, -angle), rotate_vector.second.rotated(-angle), angle,
+                        line_width + coord_t(SCALED_EPSILON), line_spacing, coord_t(scale_(sweep.pattern_shift)), fill_lines);
     }
+        
+	//Only use clipper when is worth it
+    bool use_clipper = params.pattern == ipLateralLattice || params.pattern == ipLateralHoneycomb || params.pattern == ipCubic || params.pattern == ipStars;
 
-if ((params.pattern == ipLateralLattice || params.pattern == ipLateralHoneycomb ) && params.multiline >1 )
+    // Apply multiline offset if needed
+    multiline_fill(fill_lines, params, spacing, use_clipper);
+ 
+    // Contract surface polygon by half line width to avoid excesive overlap with perimeter
+    ExPolygons contracted = offset_ex(surface->expolygon, -float(scale_(0.5 * this->spacing)));
+    
+    // if contraction results in empty polygon, use original surface
+    const ExPolygon &intersection_surface = contracted.empty() ? surface->expolygon : contracted.front();
+
+    // Intersect polylines with perimeter
+    fill_lines = intersection_pl(std::move(fill_lines), intersection_surface);
+
+    if ((params.pattern == ipLateralLattice || params.pattern == ipLateralHoneycomb ) && params.multiline >1 )
     remove_overlapped(fill_lines, line_width);
 
     if (!fill_lines.empty()) {
@@ -3033,7 +3041,7 @@ if ((params.pattern == ipLateralLattice || params.pattern == ipLateralHoneycomb 
                 fill_lines = chain_polylines(std::move(fill_lines));
             append(polylines_out, std::move(fill_lines));
         } else
-            connect_infill(std::move(fill_lines), poly_with_offset_base.polygons_outer, get_extents(surface->expolygon.contour), polylines_out, this->spacing, params);
+             connect_infill(std::move(fill_lines), intersection_surface, polylines_out, this->spacing, params);
     }
 
     return true;
