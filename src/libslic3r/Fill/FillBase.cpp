@@ -2699,19 +2699,22 @@ void Fill::connect_base_support(Polylines &&infill_ordered, const Polygons &boun
     connect_base_support(std::move(infill_ordered), polygons_src, bbox, polylines_out, spacing, params);
 }
 
-//Fill  Multiline
-void multiline_fill(Polylines& polylines, const FillParams& params, float spacing)
+// Fill Multiline
+void multiline_fill(Polylines& polylines, const FillParams& params, float spacing, bool use_clipper)
 {
-    if (params.multiline > 1) {
-        const int n_lines = params.multiline;
-        const int n_polylines = static_cast<int>(polylines.size());
-        Polylines all_polylines;
-        all_polylines.reserve(n_lines * n_polylines);
+    if (params.multiline <= 1)
+        return;
+    const int   n_lines     = params.multiline;
+    const int   n_polylines = static_cast<int>(polylines.size());
+    Polylines   all_polylines;
+    const float center = (n_lines - 1) / 2.0f;
 
-        const float center = (n_lines - 1) / 2.0f;
+    all_polylines.reserve(n_lines * n_polylines);
 
+    if (!use_clipper) {
+        // Improved multiline offset logic with bisectrix and miter limit
         for (int line = 0; line < n_lines; ++line) {
-            float offset = scale_((static_cast<float>(line) - center) * spacing);
+            float total_offset = scale_((static_cast<float>(line) - center) * spacing);
 
             for (const Polyline& pl : polylines) {
                 const size_t n = pl.points.size();
@@ -2722,37 +2725,149 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
 
                 Points new_points;
                 new_points.reserve(n);
+                bool is_closed = (pl.points.front() == pl.points.back());
+
                 for (size_t i = 0; i < n; ++i) {
-                    Vec2f tangent;
-                    // For the first and last point, if the polyline is a
-                    // closed loop, get the tangent from the points on either
-                    // side of the join, otherwise just use the first or last
-                    // line.
-                    if (i == 0) {
-                        if (pl.points[0] == pl.points[n-1]) {
-                            tangent = (pl.points[1] - pl.points[n-2]).template cast<float>().normalized();
+                    Vec2f normal;
+
+                    if (n == 2) {
+                        // Simple 2-point line segment
+                        Vec2f segment = (pl.points[1] - pl.points[0]).template cast<float>();
+                        normal        = Vec2f(-segment.y(), segment.x()).normalized();
+                    } else if (i == 0) {
+                        // First point
+                        if (is_closed) {
+                            // For closed loop, use points on either side of the join
+                            Vec2f seg1 = (pl.points[0] - pl.points[n - 2]).template cast<float>();
+                            Vec2f seg2 = (pl.points[1] - pl.points[0]).template cast<float>();
+
+                            Vec2f normal1 = Vec2f(-seg1.y(), seg1.x()).normalized();
+                            Vec2f normal2 = Vec2f(-seg2.y(), seg2.x()).normalized();
+                            normal        = (normal1 + normal2).normalized();
                         } else {
-                            tangent = (pl.points[1] - pl.points[0]).template cast<float>().normalized();
+                            // Open polyline - use first segment only
+                            Vec2f segment = (pl.points[1] - pl.points[0]).template cast<float>();
+                            normal        = Vec2f(-segment.y(), segment.x()).normalized();
                         }
                     } else if (i == n - 1) {
-                        if (pl.points[0] == pl.points[n-1]) {
-                            tangent = (pl.points[1] - pl.points[n-2]).template cast<float>().normalized();
-                        } else {
-                            tangent = (pl.points[n-1] - pl.points[n-2]).template cast<float>().normalized();
-                        }
-                    } else
-                        tangent = (pl.points[i+1] - pl.points[i-1]).template cast<float>().normalized();
-                    Vec2f normal(-tangent.y(), tangent.x());
+                        // Last point
+                        if (is_closed) {
+                            // For closed loop, last point equals first point - use same calculation
+                            Vec2f seg1 = (pl.points[0] - pl.points[n - 2]).template cast<float>();
+                            Vec2f seg2 = (pl.points[1] - pl.points[0]).template cast<float>();
 
-                    Point p = pl.points[i] + (normal * offset).template cast<coord_t>();
+                            Vec2f normal1 = Vec2f(-seg1.y(), seg1.x()).normalized();
+                            Vec2f normal2 = Vec2f(-seg2.y(), seg2.x()).normalized();
+                            normal        = (normal1 + normal2).normalized();
+                        } else {
+                            // Open polyline - use last segment only
+                            Vec2f segment = (pl.points[i] - pl.points[i - 1]).template cast<float>();
+                            normal        = Vec2f(-segment.y(), segment.x()).normalized();
+                        }
+                    } else {
+                        // Intermediate points - use bisectrix logic
+                        Vec2f seg1 = (pl.points[i] - pl.points[i - 1]).template cast<float>();
+                        Vec2f seg2 = (pl.points[i + 1] - pl.points[i]).template cast<float>();
+
+                        // Check for zero-length segments (duplicate points)
+                        if (seg1.squaredNorm() < std::numeric_limits<float>::epsilon() ||
+                            seg2.squaredNorm() < std::numeric_limits<float>::epsilon()) {
+                            // Use available segment or fallback to default direction
+                            if (seg1.squaredNorm() >= std::numeric_limits<float>::epsilon()) {
+                                normal = Vec2f(-seg1.y(), seg1.x()).normalized();
+                            } else if (seg2.squaredNorm() >= std::numeric_limits<float>::epsilon()) {
+                                normal = Vec2f(-seg2.y(), seg2.x()).normalized();
+                            } else {
+                                // Both segments are zero-length - use default direction
+                                normal = Vec2f(1.0f, 0.0f);
+                            }
+                        } else {
+                            Vec2f normal1 = Vec2f(-seg1.y(), seg1.x()).normalized();
+                            Vec2f normal2 = Vec2f(-seg2.y(), seg2.x()).normalized();
+
+                            float dot = normal1.dot(normal2);
+                            // Clamp dot product to avoid numerical issues
+                            dot         = std::max(-1.0f, std::min(1.0f, dot));
+                            float angle = std::acos(dot);
+
+                            // Only apply miter correction for angles between 5 and 175 degrees
+                            if (angle > 5.0f * float(M_PI) / 180.0f && angle < 175.0f * float(M_PI) / 180.0f) {
+                                float miter_length = 1.0f / std::cos(angle * 0.5f);
+
+                                // Apply stricter miter limit
+                                if (miter_length > 2.0f) { // max miter lenght corresponding to 60 degrees
+                                    normal = (normal1 + normal2).normalized();
+                                } else {
+                                    normal = (normal1 + normal2).normalized() * miter_length;
+                                }
+                            } else {
+                                // For small or very large angles, use simple average
+                                normal = (normal1 + normal2).normalized();
+                            }
+                        }
+                    }
+
+                    Point p = pl.points[i] + (normal * total_offset).template cast<coord_t>();
                     new_points.push_back(p);
                 }
 
                 all_polylines.emplace_back(std::move(new_points));
+                
+                // simplify to 5x line width
+                for (Polyline& pl : polylines) {
+                    pl.simplify(5 * spacing); 
+                }
             }
         }
-        polylines = std::move(all_polylines);
+    } else {
+        // Clipper-based multiline offset logic
+        for (int line = 0; line < n_lines; ++line) {
+            const float offset_distance = scale_((line - center) * spacing);
+
+            // Skip center line calculation - just use originals when offset is near zero
+            if (std::abs(offset_distance) < 1) {
+                all_polylines.insert(all_polylines.end(), polylines.begin(), polylines.end());
+                continue;
+            }
+
+            // Collect all polygons for this offset level
+            Polygons all_offset_polygons;
+
+            for (const Polyline& pl : polylines) {
+                if (pl.points.size() < 2)
+                    continue;
+
+                // Single offset call per polyline
+                Polygons offset_polygons = offset(pl, offset_distance, jtMiter, DefaultLineMiterLimit, ClipperLib::etOpenRound);
+
+                // Add to collection for this offset level
+                all_offset_polygons.insert(all_offset_polygons.end(), offset_polygons.begin(), offset_polygons.end());
+            }
+
+            // Merge all polygons for this offset level
+            if (!all_offset_polygons.empty()) {
+                Polygons merged_polygons = union_(all_offset_polygons);
+
+                // Convert merged polygons to polylines
+                for (const Polygon& poly : merged_polygons) {
+                    if (poly.points.size() < 3)
+                        continue;
+
+                    Polyline new_pl;
+                    new_pl.points = poly.points;
+
+                    // Close open polylines
+                    if (new_pl.points.front() != new_pl.points.back()) {
+                        new_pl.points.push_back(new_pl.points.front());
+                    }
+
+                    all_polylines.emplace_back(std::move(new_pl));
+                }
+            }
+        }
     }
+
+    polylines = std::move(all_polylines);
 }
 
 } // namespace Slic3r
