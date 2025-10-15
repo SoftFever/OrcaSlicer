@@ -12,6 +12,8 @@
 #include <wx/listimpl.cpp>
 #include <wx/display.h>
 #include "NetworkTestDialog.hpp"
+#include "Widgets/StaticLine.hpp"
+#include "Widgets/RadioGroup.hpp"
 
 #ifdef __WINDOWS__
 #ifdef _MSW_DARK_MODE
