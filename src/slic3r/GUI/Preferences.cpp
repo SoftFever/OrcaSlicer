@@ -1245,9 +1245,9 @@ void PreferencesDialog::create_items()
     //// CONTROL > Behaviour
     g_sizer->Add(create_item_title(_L("Behaviour")), 1, wxEXPAND);
 
-    std::vector<wxString> FlushOptionLabels = {_L("All"),_L("Color change"),_L("Disabled")};
+    std::vector<wxString> FlushOptionLabels = {_L("All"),_L("Color"),_L("None")};
     std::vector<std::string> FlushOptionValues = { "all","color change","disabled" };
-    auto item_auto_flush = create_item_combobox(_L("Auto Flush"), _L("Auto calculate flush volumes"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
+    auto item_auto_flush = create_item_combobox(_L("Auto flush after changing ..."), _L("Auto calculate flushing volumes when selected values changed"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
     g_sizer->Add(item_auto_flush);
 
     auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), "", "auto_arrange");
