@@ -256,6 +256,9 @@ void AppConfig::set_defaults()
     if (get("stealth_mode").empty()) {
         set_bool("stealth_mode", false);
     }
+    if (get("allow_abnormal_sd_card").empty()) {
+        set_bool("allow_abnormal_sd_card", false);
+    }
     if (get("legacy_networking").empty()) {
         set_bool("legacy_networking", true);
     }

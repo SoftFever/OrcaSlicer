@@ -777,8 +777,13 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 #endif
 
     m_send_job->connection_type     = obj_->connection_type();
-    m_send_job->cloud_print_only    = true;
-    m_send_job->has_sdcard          = obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+    m_send_job->cloud_print_only    = true;    
+    m_send_job->has_sdcard =
+        wxGetApp().app_config->get("allow_abnormal_sd_card") == "true"
+            ? (obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL
+               || obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL)
+            : obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+    m_send_job->sdcard_state = obj_->get_sdcard_state();        
     m_send_job->set_project_name(m_current_project_name.utf8_string());
 
     enable_prepare_mode = false;
