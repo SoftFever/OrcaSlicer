@@ -2021,19 +2021,19 @@ std::vector<ExPolygons> slice_mesh_ex(
             //Set up initial layer boundaries
             upper_z[0] = 2*zs[0];
             lower_z[0] = 0.01; // Don't set this too low or we get incorrect slicing behaviour 
-            float delta = 0.0;
+            float prev_half_layer = zs[0];
 
             //calculate upper and lower boundaries for each layer
             for(size_t i = 1; i < layer_n - 1; ++i) {
-                delta = (zs[i+1] - zs[i-1]) / 4.0; // estimate half the current layer height
-                upper_z[i] = zs[i] + delta;
-                lower_z[i] = zs[i] - delta;
+                float curr_half_layer = zs[i] - (zs[i-1] + prev_half_layer);
+                upper_z[i] = zs[i] + curr_half_layer;
+                lower_z[i] = zs[i] - curr_half_layer;
+                prev_half_layer = curr_half_layer;
             }
 
             // Calculate top layer boundaries
-            delta = (zs[layer_n - 1] - zs[layer_n - 2]) / 2.0;
             upper_z[layer_n - 1] = zs[layer_n - 1]; // ensure we don't extend out the top of the model
-            lower_z[layer_n - 1] = zs[layer_n - 1] - delta;
+            lower_z[layer_n - 1] = upper_z[layer_n - 2];
 
             // Calculate the geometry at the top and bottom of each layer and then combine them
             std::vector<Polygons> upper_layers = slice_mesh(mesh, upper_z, slicing_params, throw_on_cancel);
