@@ -716,33 +716,6 @@ wxBoxSizer *PreferencesDialog::create_item_backup(wxString title, wxString toolt
     return m_sizer_input;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxString tooltip ,std::string param)
-{
-    wxBoxSizer *m_sizer_switch = new wxBoxSizer(wxHORIZONTAL);
-    auto switch_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
-    switch_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
-    switch_title->SetFont(::Label::Body_14);
-    switch_title->SetToolTip(tooltip);
-    switch_title->Wrap(DESIGN_TITLE_SIZE.x);
-    auto switchbox = new ::SwitchButton(m_parent, wxID_ANY);
-
-    /*auto index = app_config->get(param);
-    if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }*/
-
-    m_sizer_switch->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
-    m_sizer_switch->Add(switch_title, 0, wxALIGN_CENTER);
-    m_sizer_switch->Add(switchbox   , 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
-    m_sizer_switch->AddSpacer(FromDIP(40));
-
-    //// save config
-    switchbox->Bind(wxEVT_TOGGLEBUTTON, [this, param](wxCommandEvent &e) {
-        /* app_config->set(param, std::to_string(e.GetSelection()));
-         app_config->save();*/
-         e.Skip();
-    });
-    return m_sizer_switch;
-}
-
 wxBoxSizer* PreferencesDialog::create_item_darkmode(wxString title,wxString tooltip, std::string param)
 {
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
