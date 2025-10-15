@@ -1428,6 +1428,11 @@ void PreferencesDialog::create_items()
     auto item_ams_blacklist    = create_item_checkbox(_L("Skip AMS blacklist check"), "", "skip_ams_blacklist_check");
     g_sizer->Add(item_ams_blacklist);
 
+    g_sizer->Add(create_item_title(_L("Log Level")), 1, wxEXPAND);
+    auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
+    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), _L("Log Level"), log_level_list);
+    g_sizer->Add(loglevel_combox);
+
     //// DEVELOPER > Debug
 #if !BBL_RELEASE_TO_PUBLIC
     g_sizer->Add(create_item_title(_L("Debug")), 1, wxEXPAND);
@@ -1519,10 +1524,6 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
     auto enable_ssl_for_mqtt = create_item_checkbox(_L("Enable SSL(MQTT)"), _L("Enable SSL(MQTT)"), "enable_ssl_for_mqtt");
     auto enable_ssl_for_ftp = create_item_checkbox(_L("Enable SSL(FTP)"), _L("Enable SSL(MQTT)"), "enable_ssl_for_ftp");
     auto item_internal_developer = create_item_checkbox(_L("Internal developer mode"), _L("Internal developer mode"), "internal_developer_mode");
-
-    auto title_log_level = create_item_title(_L("Log Level"));
-    auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
-    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), _L("Log Level"), log_level_list);
 
     auto title_host = create_item_title(_L("Host Setting"));
     // ORCA RadioGroup
@@ -1632,8 +1633,6 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
     bSizer->Add(enable_ssl_for_mqtt, 0, wxTOP, FromDIP(3));
     bSizer->Add(enable_ssl_for_ftp, 0, wxTOP, FromDIP(3));
     bSizer->Add(item_internal_developer, 0, wxTOP, FromDIP(3));
-    bSizer->Add(title_log_level, 0, wxEXPAND);
-    bSizer->Add(loglevel_combox, 0, wxTOP, FromDIP(3));
     bSizer->Add(title_host, 0, wxEXPAND);
     bSizer->Add(radio_group, 0, wxEXPAND | wxLEFT, FromDIP(DESIGN_LEFT_MARGIN));
     bSizer->Add(debug_button, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(15));
