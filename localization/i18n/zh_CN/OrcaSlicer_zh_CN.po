@@ -6545,10 +6545,10 @@ msgstr "北美"
 msgid "Others"
 msgstr "其他"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "登录区域"
 
-msgid "Stealth Mode"
+msgid "Stealth mode"
 msgstr "局域网模式"
 
 msgid ""
@@ -6558,11 +6558,14 @@ msgstr ""
 "停止向拓竹科技服务器发送数据。如果您不使用Bambu Lab的打印机或仅使用局域网模"
 "式，则可以安全地启用此功能。"
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "启用网络插件"
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
-msgstr "使用旧版网络插件（重启Orca后生效）"
+msgid "Use legacy network plugin"
+msgstr "使用旧版网络插件"
 
 msgid ""
 "Disable to use latest network plugin that supports new BambuLab firmwares."
@@ -6602,7 +6605,7 @@ msgstr ""
 msgid "Home"
 msgstr "首页"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr "起始页"
 
 msgid "Set the page opened on startup."
@@ -6689,15 +6692,18 @@ msgid ""
 "each printer automatically."
 msgstr "如果启用，Orca会自动记录并切换您不同打印机之间的耗材配置与打印参数。"
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr "显示STEP网格参数设置对话框"
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr "如果启用，在导入STEP文件时将出现参数设置对话框"
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
-msgstr "多设备管理 （重启Orca后生效）"
+msgid "Multi device management"
+msgstr "多设备管理"
+
+msgid "(Requires restart)"
+msgstr ""
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -6767,8 +6773,11 @@ msgstr "总是提问"
 msgid "Load Geometry Only"
 msgstr "仅加载几何形状"
 
-msgid "Load Behaviour"
+msgid "Load behaviour"
 msgstr "加载 交互项"
+
+msgid "Behaviour"
+msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "printter/filament/process 设置项文件能否以 .3mf后缀方式打开"
@@ -6779,16 +6788,16 @@ msgstr "最大最近使用文件数"
 msgid "Maximum count of recent files"
 msgstr "最近使用文件的最大数量"
 
-msgid "Add model files (stl/step) to recent file list."
-msgstr "添加模型文件（stl/step）到最近文件列表"
+msgid "Add STL/STEP files to recent files list"
+msgstr "添加模型文件 STL/STEP 到最近文件列表"
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "清除我对未保存的项目的选择。"
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "加载具有修改的 G-Code 的 3MF 时不会出现警告"
 
-msgid "Auto-Backup"
+msgid "Auto backup"
 msgstr "自动备份"
 
 msgid ""
@@ -6804,10 +6813,13 @@ msgstr "备份的周期"
 msgid "Downloads"
 msgstr "下载"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "深色模式"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "启用深色模式"
 
 msgid "Develop mode"
@@ -15974,6 +15986,9 @@ msgid "Delete input"
 msgstr "删除输入"
 
 msgid "Network Test"
+msgstr "网络测试"
+
+msgid "Network test"
 msgstr "网络测试"
 
 msgid "Start Test Multi-Thread"
