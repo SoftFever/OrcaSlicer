@@ -11,6 +11,7 @@
 #include "wx/graphics.h"
 #include <wx/listimpl.cpp>
 #include <wx/display.h>
+#include "NetworkTestDialog.hpp"
 
 #ifdef __WINDOWS__
 #ifdef _MSW_DARK_MODE
