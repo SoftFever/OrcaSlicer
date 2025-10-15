@@ -12,10 +12,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/TextInput.hpp"
-#include "Widgets/StaticLine.hpp"
 #include "Widgets/TabCtrl.hpp"
-#include "Widgets/RadioGroup.hpp"
-#include "NetworkTestDialog.hpp"
 
 namespace Slic3r { namespace GUI {
 
