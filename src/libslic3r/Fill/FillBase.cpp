@@ -2831,7 +2831,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
                     Vec2f normal;
 
                     if (n == 2) {
-                        // Simple 2-point polyline
+                        // Simple 2-point line segment
                         Vec2f segment = (pl.points[1] - pl.points[0]).template cast<float>();
                         normal        = Vec2f(-segment.y(), segment.x()).normalized();
                     } else if (i == 0) {
@@ -2869,37 +2869,41 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
                         Vec2f seg1 = (pl.points[i] - pl.points[i - 1]).template cast<float>();
                         Vec2f seg2 = (pl.points[i + 1] - pl.points[i]).template cast<float>();
 
-                        // Check for zero-length segments
+                        // Check for zero-length segments (duplicate points)
                         if (seg1.squaredNorm() < std::numeric_limits<float>::epsilon() ||
                             seg2.squaredNorm() < std::numeric_limits<float>::epsilon()) {
-                            // Fallback to simple average
-                            normal  = Vec2f(1.0f, 0.0f); // or use one of the segments
-                            Point p = pl.points[i] + (normal * total_offset).template cast<coord_t>();
-                            new_points.push_back(p);
-                            continue;
-                        }
-
-                        Vec2f normal1 = Vec2f(-seg1.y(), seg1.x()).normalized();
-                        Vec2f normal2 = Vec2f(-seg2.y(), seg2.x()).normalized();
-
-                        float dot = normal1.dot(normal2);
-                        // Clamp dot product to avoid numerical issues
-                        dot         = std::max(-1.0f, std::min(1.0f, dot));
-                        float angle = std::acos(dot);
-
-                        // Only apply miter correction for angles between 5 and 175 degrees
-                        if (angle > 5.0f * float(M_PI) / 180.0f && angle < 175.0f * float(M_PI) / 180.0f) {
-                            float miter_length = 1.0f / std::cos(angle * 0.5f);
-
-                            // Apply stricter miter limit
-                            if (miter_length > 1.5f) {
-                                normal = (normal1 + normal2).normalized();
+                            // Use available segment or fallback to default direction
+                            if (seg1.squaredNorm() >= std::numeric_limits<float>::epsilon()) {
+                                normal = Vec2f(-seg1.y(), seg1.x()).normalized();
+                            } else if (seg2.squaredNorm() >= std::numeric_limits<float>::epsilon()) {
+                                normal = Vec2f(-seg2.y(), seg2.x()).normalized();
                             } else {
-                                normal = (normal1 + normal2).normalized() * miter_length;
+                                // Both segments are zero-length - use default direction
+                                normal = Vec2f(1.0f, 0.0f);
                             }
                         } else {
-                            // For small or very large angles, use simple average
-                            normal = (normal1 + normal2).normalized();
+                            Vec2f normal1 = Vec2f(-seg1.y(), seg1.x()).normalized();
+                            Vec2f normal2 = Vec2f(-seg2.y(), seg2.x()).normalized();
+
+                            float dot = normal1.dot(normal2);
+                            // Clamp dot product to avoid numerical issues
+                            dot         = std::max(-1.0f, std::min(1.0f, dot));
+                            float angle = std::acos(dot);
+
+                            // Only apply miter correction for angles between 5 and 175 degrees
+                            if (angle > 5.0f * float(M_PI) / 180.0f && angle < 175.0f * float(M_PI) / 180.0f) {
+                                float miter_length = 1.0f / std::cos(angle * 0.5f);
+
+                                // Apply stricter miter limit
+                                if (miter_length > 2.0f) { // max miter lenght corresponding to 60 degrees
+                                    normal = (normal1 + normal2).normalized();
+                                } else {
+                                    normal = (normal1 + normal2).normalized() * miter_length;
+                                }
+                            } else {
+                                // For small or very large angles, use simple average
+                                normal = (normal1 + normal2).normalized();
+                            }
                         }
                     }
 
