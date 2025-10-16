@@ -3074,7 +3074,7 @@ bool FillRectilinear::fill_surface_trapezoidal(const Surface*                   
     coord_t ymin = bb.min.y();
     coord_t ymax = bb.max.y();
 
-    // Generate non-crossing trapezodal pattern to avoid overextrusion at intersections when multiline > 1
+    // Generate a non-crossing trapezoidal pattern to avoid overextrusion at intersections when `multiline > 1`.
     //      P1--P2
     //     /      \
     //  P0/        \P3__P4
