@@ -19,15 +19,15 @@ set "repeat_error=if not ^!errorlevel^! == 0 exit /b ^!errorlevel^!"
 set "error_check=if not ^!errorlevel^! == 0 echo Exiting script with code ^!errorlevel^! & exit /b ^!errorlevel^!"
 
 :: Define arguments
-call :add_arg pack_deps bool p pack "bundle build deps into a zip file"
-call :add_arg build_deps bool d deps "download and build dependencies in ./deps/ (build prerequisite)"
-call :add_arg build_slicer bool s slicer "build OrcaSlicer"
 call :add_arg build_debug bool b debug "build in Debug mode"
-call :add_arg build_debuginfo bool e debuginfo "build in RelWithDebInfo mode"
-call :add_arg dry_run bool D dry-run "perform a dry run of the script"
 call :add_arg clean bool c clean "force a clean build"
-call :add_arg install_deps bool u install-deps "download and install system dependencies using WinGet (build prerequisite)"
+call :add_arg build_deps bool d deps "download and build dependencies in ./deps/ (build prerequisite)"
+call :add_arg dry_run bool D dry-run "perform a dry run of the script"
+call :add_arg build_debuginfo bool e debuginfo "build in RelWithDebInfo mode"
 call :add_arg print_help bool h help "print this help message"
+call :add_arg pack_deps bool p pack "bundle build deps into a zip file"
+call :add_arg build_slicer bool s slicer "build OrcaSlicer"
+call :add_arg install_deps bool u install-deps "download and install system dependencies using WinGet (build prerequisite)"
 
 :: handle arguments from input
 call :handle_args %*
