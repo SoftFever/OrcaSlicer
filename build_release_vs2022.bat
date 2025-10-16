@@ -143,30 +143,74 @@ exit /b 0
     if "%debugscript%" == "ON" echo %*
     exit /b 0
 
+::get_str_len <string>
+:get_str_len
+    setlocal
+    set in=%~1
+    for /L %%i in (0, 1, 100) do (
+        if "!in:~%%i,1!" == "" (
+            set out=%%i
+            goto :break_str_len
+        )
+    )
+
+    echo error in get_str_len: string is too long
+    endlocal
+    exit /b 1
+
+    :break_str_len
+    endlocal & set ret=%out%
+    exit /b 0
+
 :: print_help_msg
 :print_help_msg
-    echo OrcaSlicer build script for Windows
+    setlocal
+    ::get longest string length
+    set flags=
+    set max_len=0
     set /A range_end = %argdefn% - 1
-    for /L %%i in (0, 1, !range_end!) do (
+    for /L %%i in (0, 1, %range_end%) do (
         set str_placeholder=
         if "!argdefs[%%i].TYPE!" == "string" (
             set "str_placeholder= <value>"
         )
-        set "line="
+
+        set "flag_str="
         if not "!argdefs[%%i].SHORT_FLAG!" == "" (
-            set "line=-!argdefs[%%i].SHORT_FLAG!!str_placeholder!"
+            set "flag_str=-!argdefs[%%i].SHORT_FLAG!!str_placeholder!"
         )
 
         if not "!argdefs[%%i].LONG_FLAG!" == "" (
-            if not "!line!" == "" (
-                set "line=!line!, "
+            if "!flag_str!" == "" (
+                :: add 4 spaces of padding so long flags are always aligned
+                set "flag_str=    "
+            ) else (
+                set "flag_str=!flag_str!, "
             )
-            set "line=!line!--!argdefs[%%i].LONG_FLAG!!str_placeholder!"
+            set "flag_str=!flag_str!--!argdefs[%%i].LONG_FLAG!!str_placeholder!"
         )
-        echo    !line!: !argdefs[%%i].HELP_TEXT!
+        set "flag_str=!flag_str!  "
+        set "flags[%%i]=!flag_str!"
+        call :get_str_len "!flag_str!"
+        if !ret! GTR !max_len! (
+            set max_len=!ret!
+        )
+    )
+
+    :: create a padding string
+    set padding=
+    for /L %%i in (0, 1, %max_len%) do set "padding=!padding! "
+
+    :: begin printing help message
+    echo OrcaSlicer build script for Windows
+    set /A range_end = %argdefn% - 1
+    for /L %%i in (0, 1, !range_end!) do (
+        set "flag=!flags[%%i]!%padding%"
+        echo    !flag:~0,%max_len%!!argdefs[%%i].HELP_TEXT!
     )
     echo For a first use, use './%script_name% -u'
     echo    and then './%script_name% -ds'
+    endlocal
     exit /b 0
 
 :: add_arg <variable_name> <type:bool,string> <short_flag> <long_flag> <help_text>
