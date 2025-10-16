@@ -6893,6 +6893,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "bottom_solid_infill_flow_ratio";
     } else if (opt_key == "ironing_direction") {
         opt_key = "ironing_angle";
+    } else if (opt_key == "ironing_angle" && boost::starts_with(value, "-")) {
+        value = "0";
     } else if (opt_key == "counterbole_hole_bridging") {
         opt_key = "counterbore_hole_bridging";
     } else if (opt_key == "draft_shield" && value == "limited") {
