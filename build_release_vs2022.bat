@@ -218,6 +218,7 @@ exit /b 0
     )
 
     echo Error in find_arg: Failed to find arg "%~2"
+    call :print_help_msg
 
     endlocal
     set ret=
@@ -337,6 +338,7 @@ exit /b 0
     if not "%arg:~0,1%" == "-" (
         :: IF invalid arg
         echo Unknown argument: %arg%
+        call :print_help_msg
         exit /b 1
     )
 
