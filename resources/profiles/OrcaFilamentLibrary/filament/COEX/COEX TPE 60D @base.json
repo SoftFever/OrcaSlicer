@@ -5,10 +5,18 @@
     "from": "system",
     "filament_id": "CX60DB19",
     "instantiation": "false",
-    "filament_vendor": "COEX 3D",
-    "filament_cost": "80.00",
-    "filament_density": "1.20",
-    "filament_type": "TPU",
+    "filament_vendor": [
+        "COEX 3D"
+    ],
+    "filament_cost": [
+        "80.00"
+    ],
+    "filament_density": [
+        "1.20"
+    ],
+    "filament_type": [
+        "TPU"
+    ],
     "filament_notes": "Flexible filament - print slowly with minimal retraction",
     "nozzle_temperature": [
         "240"
@@ -22,8 +30,12 @@
     "bed_temperature_initial_layer": [
         "35"
     ],
-    "temperature_vitrification": "60",
-    "filament_max_volumetric_speed": "6.5",
+    "temperature_vitrification": [
+        "60"
+    ],
+    "filament_max_volumetric_speed": [
+        "6.5"
+    ],
     "filament_retraction_minimum_travel": [
         "3"
     ],

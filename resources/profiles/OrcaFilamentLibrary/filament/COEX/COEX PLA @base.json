@@ -4,11 +4,19 @@
     "inherits": "fdm_filament_pla",
     "from": "system",
     "filament_id": "CXPLAB02",
-    "filament_vendor": "COEX 3D",
-    "filament_cost": "24.00",
-    "filament_density": "1.24",
     "instantiation": "false",
-    "filament_type": "PLA",
+    "filament_vendor": [
+        "COEX 3D"
+    ],
+    "filament_cost": [
+        "24.00"
+    ],
+    "filament_density": [
+        "1.24"
+    ],
+    "filament_type": [
+        "PLA"
+    ],
     "nozzle_temperature": [
         "230"
     ],
@@ -21,8 +29,12 @@
     "bed_temperature_initial_layer": [
         "60"
     ],
-    "temperature_vitrification": "55",
-    "filament_max_volumetric_speed": "18",
+    "temperature_vitrification": [
+        "55"
+    ],
+    "filament_max_volumetric_speed": [
+        "18"
+    ],
     "filament_retraction_minimum_travel": [
         "2"
     ],

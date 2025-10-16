@@ -5,10 +5,18 @@
     "from": "system",
     "filament_id": "CXPETB13",
     "instantiation": "false",
-    "filament_vendor": "COEX 3D",
-    "filament_cost": "33.00",
-    "filament_density": "1.27",
-    "filament_type": "PETG",
+    "filament_vendor": [
+        "COEX 3D"
+    ],
+    "filament_cost": [
+        "33.00"
+    ],
+    "filament_density": [
+        "1.27"
+    ],
+    "filament_type": [
+        "PETG"
+    ],
     "filament_notes": "IMPORTANT: Set travel speed to maximum your machine allows (200-500mm/s) to reduce stringing",
     "nozzle_temperature": [
         "245"
@@ -22,8 +30,12 @@
     "bed_temperature_initial_layer": [
         "85"
     ],
-    "temperature_vitrification": "70",
-    "filament_max_volumetric_speed": "12",
+    "temperature_vitrification": [
+        "70"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
     "filament_retraction_minimum_travel": [
         "2"
     ],
