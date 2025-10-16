@@ -9,6 +9,7 @@ set errorlevel=
 setlocal enableDelayedExpansion
 
 set WP=%CD%
+set script_name=%~nx0
 
 :: Arg definition count
 set argdefn=0
@@ -18,14 +19,15 @@ set "repeat_error=if not ^!errorlevel^! == 0 exit /b ^!errorlevel^!"
 set "error_check=if not ^!errorlevel^! == 0 echo Exiting script with code ^!errorlevel^! & exit /b ^!errorlevel^!"
 
 :: Define arguments
-call :add_arg pack_deps bool p pack
-call :add_arg build_deps bool d deps
-call :add_arg build_slicer bool s slicer
-call :add_arg build_debug bool b debug
-call :add_arg build_debuginfo bool e debuginfo
-call :add_arg dry_run bool D dry-run
-call :add_arg clean bool c clean
-call :add_arg install_deps bool u install-deps
+call :add_arg pack_deps bool p pack "bundle build deps into a zip file"
+call :add_arg build_deps bool d deps "download and build dependencies in ./deps/ (build prerequisite)"
+call :add_arg build_slicer bool s slicer "build OrcaSlicer"
+call :add_arg build_debug bool b debug "build in Debug mode"
+call :add_arg build_debuginfo bool e debuginfo "build in RelWithDebInfo mode"
+call :add_arg dry_run bool D dry-run "perform a dry run of the script"
+call :add_arg clean bool c clean "force a clean build"
+call :add_arg install_deps bool u install-deps "download and install system dependencies using WinGet (build prerequisite)"
+call :add_arg print_help bool h help "print this help message"
 
 :: handle arguments from input
 call :handle_args %*
@@ -37,6 +39,12 @@ if "%debugscript%" == "ON" (
         call :echo_var !argdefs[%%i].VARIABLE_NAME!
     )
 )
+
+if "%print_help%" == "ON" (
+    call :print_help_msg
+    exit /b 0
+)
+
 
 if "%install_deps%" == "ON" (
     where winget >nul 2>nul
@@ -131,14 +139,41 @@ exit /b 0
     if "%debugscript%" == "ON" echo %*
     exit /b 0
 
-:: add_arg <variable_name> <type:bool,string> <short_flag> [<long_flag>]
+:: print_help_msg
+:print_help_msg
+    echo OrcaSlicer build script for Windows
+    set /A range_end = %argdefn% - 1
+    for /L %%i in (0, 1, !range_end!) do (
+        set str_placeholder=
+        if "!argdefs[%%i].TYPE!" == "string" (
+            set "str_placeholder= <value>"
+        )
+        set "line="
+        if not "!argdefs[%%i].SHORT_FLAG!" == "" (
+            set "line=-!argdefs[%%i].SHORT_FLAG!!str_placeholder!"
+        )
+
+        if not "!argdefs[%%i].LONG_FLAG!" == "" (
+            if not "!line!" == "" (
+                set "line=!line!, "
+            )
+            set "line=!line!--!argdefs[%%i].LONG_FLAG!!str_placeholder!"
+        )
+        echo    !line!: !argdefs[%%i].HELP_TEXT!
+    )
+    echo For a first use, use './%script_name% -u'
+    echo    and then './%script_name% -ds'
+    exit /b 0
+
+:: add_arg <variable_name> <type:bool,string> <short_flag> <long_flag> <help_text>
 :add_arg
-    call :debug_msg starting function: add_arg "%~1" "%~2" "%~3" "%~4"
+    call :debug_msg starting function: add_arg "%~1" "%~2" "%~3" "%~4" "%~5"
 
     set argdefs[%argdefn%].VARIABLE_NAME=%~1
     set argdefs[%argdefn%].TYPE=%~2
     set argdefs[%argdefn%].SHORT_FLAG=%~3
     set argdefs[%argdefn%].LONG_FLAG=%~4
+    set argdefs[%argdefn%].HELP_TEXT=%~5
 
     :: ensure variable is not set
     set %~1=
@@ -147,6 +182,7 @@ exit /b 0
     call :debug_msg TYPE: !argdefs[%argdefn%].TYPE!
     call :debug_msg SHORT_FLAG: !argdefs[%argdefn%].SHORT_FLAG!
     call :debug_msg LONG_FLAG: !argdefs[%argdefn%].LONG_FLAG!
+    call :debug_msg HELP_TEXT: !argdefs[%argdefn%].HELP_TEXT!
 
     :: Increment argument
     set /A argdefn+=1
