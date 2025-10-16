@@ -3530,7 +3530,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Ironing angle offset");
     def->category = L("Quality");
     def->tooltip  = L("The angle of ironing lines offset from the top surface.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min      = 0;
     def->max      = 359;
     def->mode     = comAdvanced;
