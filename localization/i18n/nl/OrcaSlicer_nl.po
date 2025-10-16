@@ -6714,11 +6714,11 @@ msgstr "Noord-Amerika"
 msgid "Others"
 msgstr "Andere"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "Inlogregio"
 
-msgid "Stealth Mode"
-msgstr "Stealth-modus"
+msgid "Stealth mode"
+msgstr "Stealth modus"
 
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
@@ -6728,10 +6728,13 @@ msgstr ""
 "Gebruikers die geen BambuLab-machines gebruiken of alleen de LAN-modus "
 "gebruiken, kunnen deze functie veilig inschakelen."
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "Netwerkplug-in inschakelen"
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgid "Use legacy network plugin"
 msgstr ""
 
 msgid ""
@@ -6774,7 +6777,7 @@ msgstr ""
 msgid "Home"
 msgstr "Thuis"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr "Startpagina"
 
 msgid "Set the page opened on startup."
@@ -6879,15 +6882,18 @@ msgstr ""
 "Als dit is ingeschakeld, onthoudt Orca automatisch de filament-/"
 "procesconfiguratie voor elke printer en schakelt deze automatisch om."
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
-msgstr "Beheer van meerdere apparaten (Werkt nadat Orca opnieuw is opgestart)."
+msgid "Multi device management"
+msgstr "Beheer van meerdere apparaten"
+
+msgid "(Requires restart)"
+msgstr ""
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -6965,7 +6971,10 @@ msgstr ""
 msgid "Load Geometry Only"
 msgstr ""
 
-msgid "Load Behaviour"
+msgid "Load behaviour"
+msgstr ""
+
+msgid "Behaviour"
 msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
@@ -6977,16 +6986,16 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Wis keuze voor niet-opgeslagen projecten."
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Geen waarschuwingen bij het laden van 3MF met aangepaste G-codes"
 
-msgid "Auto-Backup"
+msgid "Auto backup"
 msgstr "Automatisch een back-up maken"
 
 msgid ""
@@ -7004,10 +7013,13 @@ msgstr "De periode van de back-up in seconden."
 msgid "Downloads"
 msgstr ""
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "Donkere modus"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "Donkere modus inschakelen"
 
 msgid "Develop mode"
@@ -16195,6 +16207,9 @@ msgid "Delete input"
 msgstr "Invoer verwijderen"
 
 msgid "Network Test"
+msgstr "Netwerktest"
+
+msgid "Network test"
 msgstr "Netwerktest"
 
 msgid "Start Test Multi-Thread"

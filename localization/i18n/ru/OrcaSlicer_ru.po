@@ -6856,10 +6856,10 @@ msgstr "Северная Америка"
 msgid "Others"
 msgstr "Прочее"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "Регион входа"
 
-msgid "Stealth Mode"
+msgid "Stealth mode"
 msgstr "Режим конфиденциальности (отключение телеметрии Bambulab)"
 
 msgid ""
@@ -6869,11 +6869,14 @@ msgstr ""
 "Это остановит передачу данных в облачные сервисы Bambu. Пользователи, которые "
 "не используют принтеры BBL или используют режим «Только LAN», могут безопасно включить эту функцию."
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "Включить сетевой плагин"
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
-msgstr "Использовать устаревший сетевой плагин (изменение вступит в силу после перезапуска Orca Slicer)"
+msgid "Use legacy network plugin"
+msgstr "Использовать устаревший сетевой плагин"
 
 msgid ""
 "Disable to use latest network plugin that supports new BambuLab firmwares."
@@ -6915,7 +6918,7 @@ msgstr ""
 msgid "Home"
 msgstr "Главная"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr "Страница по умолчанию"
 
 msgid "Set the page opened on startup."
@@ -7014,8 +7017,8 @@ msgstr ""
 "Если эта функция включена, Orca Slicer будет автоматически запоминать и "
 "переключать конфигурацию филамента/процесса для каждого принтера."
 
-msgid "Show the step mesh parameter setting dialog."
-msgstr "Показывать диалоговое окно настройки сетки при импорте STEP файла."
+msgid "Show options when importing STEP file"
+msgstr "Показывать диалоговое окно настройки сетки при импорте STEP файла"
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
@@ -7023,10 +7026,11 @@ msgstr ""
 "Если включено, во время импорта STEP файла появится диалоговое окно настроек "
 "параметров импорта."
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
-msgstr ""
-"Управление несколькими устройствами (вступает в силу после перезапуска Orca "
-"Slicer)."
+msgid "Multi device management"
+msgstr "Управление несколькими устройствами"
+
+msgid "(Requires restart)"
+msgstr "(Необходима перезагрузка)"
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the same "
@@ -7100,8 +7104,11 @@ msgid "Load Geometry Only"
 msgstr "Загружать только геометрию"
 
 # нее влезает Поведение при открытии
-msgid "Load Behaviour"
+msgid "Load behaviour"
 msgstr "Поведение при открытии"
+
+msgid "Behaviour"
+msgstr "Поведение"
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7114,17 +7121,17 @@ msgstr "Максимальное количество последних фай�
 msgid "Maximum count of recent files"
 msgstr "Максимальное количество последних файлов"
 
-msgid "Add model files (stl/step) to recent file list."
-msgstr "Добавить файлы модели (stl/step) в список последних файлов."
+msgid "Add STL/STEP files to recent files list"
+msgstr "Добавить файлы модели (stl/step) в список недавних файлов"
 
 # ??? Сбросить мой выбор действия для проектов, Сбросить запрос о несохранённых изменениях для проекта при закрытии программы
 msgid "Clear my choice on the unsaved projects."
 msgstr "Отменить выбор для несохраненных проектов."
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Отключить предупреждения при загрузке 3MF с модифицированным G-кодом"
 
-msgid "Auto-Backup"
+msgid "Auto backup"
 msgstr "Автосоздание резервной копии"
 
 msgid ""
@@ -7142,10 +7149,13 @@ msgstr "Время резервного копирования в секунда
 msgid "Downloads"
 msgstr "Загрузки"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "Тёмная тема"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "Включить тёмную тему"
 
 msgid "Develop mode"
@@ -17780,6 +17790,9 @@ msgid "Delete input"
 msgstr "Удалить исходные"
 
 msgid "Network Test"
+msgstr "Проверка сети"
+
+msgid "Network test"
 msgstr "Проверка сети"
 
 msgid "Start Test Multi-Thread"
