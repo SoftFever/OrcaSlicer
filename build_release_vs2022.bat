@@ -40,6 +40,10 @@ if "%debugscript%" == "ON" (
     )
 )
 
+if "%*" == "" (
+    set print_help=ON
+)
+
 if "%print_help%" == "ON" (
     call :print_help_msg
     exit /b 0
