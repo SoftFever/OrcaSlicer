@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 21:06+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5964,6 +5964,17 @@ msgstr ""
 msgid "Load 3mf"
 msgstr "3mfを読込み"
 
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, found following "
@@ -6501,10 +6512,10 @@ msgstr "北米"
 msgid "Others"
 msgstr "その他"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "地域"
 
-msgid "Stealth Mode"
+msgid "Stealth mode"
 msgstr ""
 
 msgid ""
@@ -6512,10 +6523,13 @@ msgid ""
 "don't use BBL machines or use LAN mode only can safely turn on this function."
 msgstr ""
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr ""
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgid "Use legacy network plugin"
 msgstr ""
 
 msgid ""
@@ -6552,7 +6566,7 @@ msgstr ""
 msgid "Home"
 msgstr "ホーム"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr ""
 
 msgid "Set the page opened on startup."
@@ -6640,14 +6654,17 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
+msgid "Multi device management"
+msgstr ""
+
+msgid "(Requires restart)"
 msgstr ""
 
 msgid ""
@@ -6718,7 +6735,10 @@ msgstr ""
 msgid "Load Geometry Only"
 msgstr ""
 
-msgid "Load Behaviour"
+msgid "Load behaviour"
+msgstr ""
+
+msgid "Behaviour"
 msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
@@ -6730,16 +6750,16 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr ""
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr ""
 
-msgid "Auto-Backup"
+msgid "Auto backup"
 msgstr "自動バックアップ"
 
 msgid ""
@@ -6755,10 +6775,13 @@ msgstr ""
 msgid "Downloads"
 msgstr "ダウンロード"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "ダークモード"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "ダークモードを有効"
 
 msgid "Develop mode"
@@ -8423,11 +8446,11 @@ msgstr "ショートカット一覧を表示"
 msgid "Global shortcuts"
 msgstr "ショートカット"
 
-msgid "Rotate View"
-msgstr "回転"
-
 msgid "Pan View"
 msgstr "移動"
+
+msgid "Rotate View"
+msgstr "回転"
 
 msgid "Zoom View"
 msgstr "ズーム"
@@ -15597,6 +15620,9 @@ msgid "Delete input"
 msgstr ""
 
 msgid "Network Test"
+msgstr ""
+
+msgid "Network test"
 msgstr ""
 
 msgid "Start Test Multi-Thread"
