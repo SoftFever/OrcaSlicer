@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.3.0 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 21:06+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "PO-Revision-Date: 2025-07-06 21:08+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -6350,6 +6350,17 @@ msgstr ""
 msgid "Load 3mf"
 msgstr "Загрузка 3mf"
 
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, found following "
@@ -6926,10 +6937,10 @@ msgstr "Северная Америка"
 msgid "Others"
 msgstr "Прочее"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "Регион входа"
 
-msgid "Stealth Mode"
+msgid "Stealth mode"
 msgstr "Режим конфиденциальности (отключение телеметрии Bambulab)"
 
 msgid ""
@@ -6940,10 +6951,13 @@ msgstr ""
 "которые не используют принтеры BBL или используют режим «Только LAN», могут "
 "безопасно включить эту функцию."
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "Включить сетевой плагин"
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgid "Use legacy network plugin"
 msgstr ""
 
 msgid ""
@@ -6988,10 +7002,8 @@ msgstr ""
 msgid "Home"
 msgstr "Home"
 
-msgid "Default Page"
-msgstr ""
-"Страница \n"
-"по умолчанию"
+msgid "Default page"
+msgstr "Страница по умолчанию"
 
 msgid "Set the page opened on startup."
 msgstr "Задание страницы, открываемой при запуске приложения."
@@ -7102,7 +7114,7 @@ msgstr ""
 "с профилем пластиковой нити и процессом печати, выставленными вами в "
 "последний раз."
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr "Показывать диалоговое окно настройки сетки при импорте STEP файла"
 
 msgid ""
@@ -7111,8 +7123,11 @@ msgstr ""
 "Если включено, во время импорта STEP файла появится диалоговое окно настроек "
 "параметров импорта."
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
-msgstr "Управление несколькими устройствами (требуется перезапуск программы)"
+msgid "Multi device management"
+msgstr "Управление несколькими устройствами"
+
+msgid "(Requires restart)"
+msgstr ""
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7195,10 +7210,11 @@ msgid "Load Geometry Only"
 msgstr "Загружать только геометрию"
 
 # нее влезает Поведение при открытии
-msgid "Load Behaviour"
+msgid "Load behaviour"
+msgstr "Поведение при открытии"
+
+msgid "Behaviour"
 msgstr ""
-"Поведение \n"
-"при открытии"
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7211,7 +7227,7 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 # ??? Сбросить мой выбор действия для проектов, Сбросить запрос о несохранённых изменениях для проекта при закрытии программы
@@ -7221,10 +7237,10 @@ msgstr ""
 "при запросе о несохранённых \n"
 "изменениях в проекте."
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Отключить предупреждения при загрузке 3MF с модифицированным G-кодом"
 
-msgid "Auto-Backup"
+msgid "Auto backup"
 msgstr "Автосоздание резервной копии"
 
 msgid ""
@@ -7242,10 +7258,13 @@ msgstr "Время резервного копирования в секунда
 msgid "Downloads"
 msgstr "Загрузки"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "Тёмная тема"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "Включить тёмную тему"
 
 msgid "Develop mode"
@@ -9099,11 +9118,11 @@ msgstr "Показать список сочетаний клавиш"
 msgid "Global shortcuts"
 msgstr "Глобальные горячие клавиши"
 
-msgid "Rotate View"
-msgstr "Вращение камеры"
-
 msgid "Pan View"
 msgstr "Перемещение камеры"
+
+msgid "Rotate View"
+msgstr "Вращение камеры"
 
 msgid "Zoom View"
 msgstr "Масштабирование вида"
@@ -17830,6 +17849,9 @@ msgid "Delete input"
 msgstr "Удалить исходные"
 
 msgid "Network Test"
+msgstr "Проверка сети"
+
+msgid "Network test"
 msgstr "Проверка сети"
 
 msgid "Start Test Multi-Thread"
