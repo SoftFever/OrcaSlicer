@@ -268,6 +268,7 @@ public:
 
     // SoftFever
     void calib_pa(const Calib_Params& params);
+    void calib_golden_ratio_flow(bool is_linear, int pass);
     void calib_flowrate(bool is_linear, int pass);
     void calib_temp(const Calib_Params& params);
     void calib_max_vol_speed(const Calib_Params& params);
