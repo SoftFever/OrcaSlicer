@@ -25,6 +25,7 @@ call :add_arg build_debug bool b debug
 call :add_arg build_debuginfo bool e debuginfo
 call :add_arg dry_run bool D dry-run
 call :add_arg clean bool c clean
+call :add_arg install_deps bool u install-deps
 
 :: handle arguments from input
 call :handle_args %*
@@ -37,6 +38,20 @@ if "%debugscript%" == "ON" (
     )
 )
 
+if "%install_deps%" == "ON" (
+    where winget >nul 2>nul
+    if not !errorlevel! == 0 (
+        echo WinGet was not found
+        exit /b 1
+    )
+    set "winget_args=-e --source=winget"
+    call :print_and_run winget install !winget_args! --id=Microsoft.VisualStudio.2022.BuildTools --custom "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project Microsoft.VisualStudio.Component.Windows11SDK.26100"
+    call :print_and_run winget install !winget_args! --id=Kitware.CMake -v "3.31.8"
+    call :print_and_run winget install !winget_args! --id=StrawberryPerl.StrawberryPerl
+    call :print_and_run winget install !winget_args! --id=Git.Git
+    echo System dependencies have been installed. Restart the shell to reload the environment.
+    exit /b 0
+)
 
 if "%build_debug%"=="ON" (
     set build_type=Debug
