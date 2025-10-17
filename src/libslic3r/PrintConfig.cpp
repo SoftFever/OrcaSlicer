@@ -3832,6 +3832,32 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
 
+    def = this->add("pressure_release_before_retraction_speed", coFloat);
+    def->label   = L("Slow down to this speed before retraction");
+    def->tooltip = L(
+        "A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
+        "and more instructions for the printer to process. \n\n"
+        "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of "
+        "adjustments made\n\n"
+        "Allowed values: 1-5");
+    def->sidetext = L("mm/s²");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("pressure_release_before_retraction_length", coFloat);
+    def->label   = L("The slowdown distance before retraction");
+    def->tooltip = L(
+        "A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
+        "and more instructions for the printer to process. \n\n"
+        "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of "
+        "adjustments made\n\n"
+        "Allowed values: 1-5");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def = this->add("fan_min_speed", coFloats);
     def->label = L("Fan speed");
     def->tooltip = L("Minimum speed for part cooling fan.");
