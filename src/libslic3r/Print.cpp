@@ -240,7 +240,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (
                opt_key == "initial_layer_print_height"
             || opt_key == "nozzle_diameter"
-            || opt_key == "filament_shrink"
+            || opt_key == "filament_shrinkage_compensation_x"
+            || opt_key == "filament_shrinkage_compensation_y"
             || opt_key == "filament_shrinkage_compensation_z"
             || opt_key == "resolution"
             || opt_key == "precise_z_height"
@@ -3049,11 +3050,13 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
      if (extruders.empty())
          return false;
 
-     const double filament_shrinkage_compensation_xy = m_config.filament_shrink.get_at(extruders.front());
-     const double filament_shrinkage_compensation_z  = m_config.filament_shrinkage_compensation_z.get_at(extruders.front());
+     const double filament_shrinkage_compensation_x = m_config.filament_shrinkage_compensation_x.get_at(extruders.front());
+     const double filament_shrinkage_compensation_y = m_config.filament_shrinkage_compensation_y.get_at(extruders.front());
+     const double filament_shrinkage_compensation_z = m_config.filament_shrinkage_compensation_z.get_at(extruders.front());
 
      for (unsigned int extruder : extruders) {
-         if (filament_shrinkage_compensation_xy != m_config.filament_shrink.get_at(extruder) ||
+         if (filament_shrinkage_compensation_x  != m_config.filament_shrinkage_compensation_x.get_at(extruder) ||
+             filament_shrinkage_compensation_y  != m_config.filament_shrinkage_compensation_y.get_at(extruder) ||
              filament_shrinkage_compensation_z  != m_config.filament_shrinkage_compensation_z.get_at(extruder)) {
              return false;
          }
@@ -3071,13 +3074,15 @@ Vec3d Print::shrinkage_compensation() const
 
     const unsigned int first_extruder = this->extruders().front();
 
-    const double xy_shrinkage_percent = m_config.filament_shrink.get_at(first_extruder);
-    const double z_shrinkage_percent  = m_config.filament_shrinkage_compensation_z.get_at(first_extruder);
+    const double x_shrinkage_percent = m_config.filament_shrinkage_compensation_x.get_at(first_extruder);
+    const double y_shrinkage_percent = m_config.filament_shrinkage_compensation_y.get_at(first_extruder);
+    const double z_shrinkage_percent = m_config.filament_shrinkage_compensation_z.get_at(first_extruder);
 
-    const double xy_compensation = 100.0 / xy_shrinkage_percent;
-    const double z_compensation  = 100.0 / z_shrinkage_percent;
+    const double x_compensation = 100.0 / x_shrinkage_percent;
+    const double y_compensation = 100.0 / y_shrinkage_percent;
+    const double z_compensation = 100.0 / z_shrinkage_percent;
 
-    return { xy_compensation, xy_compensation, z_compensation };
+    return { x_compensation, y_compensation, z_compensation };
 }
 
 const std::string PrintStatistics::FilamentUsedG     = "filament used [g]";

@@ -3419,7 +3419,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_diameter");
 
         optgroup->append_single_option_line("filament_density");
-        optgroup->append_single_option_line("filament_shrink");
+        optgroup->append_single_option_line("filament_shrinkage_compensation_x");
+        optgroup->append_single_option_line("filament_shrinkage_compensation_y");
         optgroup->append_single_option_line("filament_shrinkage_compensation_z");
         optgroup->append_single_option_line("filament_cost");
         //BBS
