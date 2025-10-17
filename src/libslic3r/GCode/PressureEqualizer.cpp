@@ -733,23 +733,14 @@ void PressureEqualizer::apply_pre_retract_pressure_reduction()
         return;
     }
 
-    // Define minimum volumetric rate in mm^3/min
     float MIN_VOLUMETRIC_RATE = PRE_RETRACT_MIN_FEED_MM_S * 6;
 
-#ifdef PRESSURE_EQUALIZER_DEBUG
-    int retracts_found      = 0;
-    int lines_modified      = 0;
-    int outer_wall_retracts = 0;
-#endif
-
-    for (size_t line_idx = 0; line_idx < m_gcode_lines.size(); ++line_idx) {
+    // Process in reverse to handle insertions safely
+    for (size_t line_idx = m_gcode_lines.size() - 1; line_idx != size_t(-1); --line_idx) {
         GCodeLine& line = m_gcode_lines[line_idx];
 
         // Found a retract
         if (line.type == GCODELINETYPE_RETRACT) {
-#ifdef PRESSURE_EQUALIZER_DEBUG
-            retracts_found++;
-#endif
             // Look ahead to see if next feature is outer wall
             bool         next_is_outer_wall = false;
             const size_t look_ahead_limit   = std::min(line_idx + 30, m_gcode_lines.size());
@@ -757,22 +748,17 @@ void PressureEqualizer::apply_pre_retract_pressure_reduction()
             for (size_t ahead_idx = line_idx + 1; ahead_idx < look_ahead_limit; ++ahead_idx) {
                 const GCodeLine& ahead_line = m_gcode_lines[ahead_idx];
 
-                // Check if this line contains a TYPE comment
                 if (ahead_line.raw_length > 0) {
                     std::string line_str(ahead_line.raw.data(), ahead_line.raw_length);
 
-                    // Check if this is a TYPE comment
                     if (line_str.find(";TYPE:") != std::string::npos) {
-                        // Check if it's specifically an outer wall
                         if (line_str.find(";TYPE:Outer wall") != std::string::npos) {
                             next_is_outer_wall = true;
                         }
-                        // Found a TYPE comment (whether outer wall or not), stop looking
                         break;
                     }
                 }
 
-                // Optional: stop at next extrude to avoid looking too far
                 if (ahead_line.type == GCODELINETYPE_EXTRUDE) {
                     break;
                 }
@@ -780,37 +766,31 @@ void PressureEqualizer::apply_pre_retract_pressure_reduction()
 
             // Only apply pressure reduction if next feature is outer wall
             if (!next_is_outer_wall) {
-#ifdef PRESSURE_EQUALIZER_DEBUG
-                printf("Skipping retract at line %zu - next feature is not outer wall\n", line_idx);
-#endif
                 continue;
             }
 
-#ifdef PRESSURE_EQUALIZER_DEBUG
-            outer_wall_retracts++;
-            printf("Found retract before outer wall at line %zu\n", line_idx);
-#endif
-
             // Track accumulated extrusion distance going backwards
-            float  accumulated_extrusion_distance = 0.0f;
-            size_t look_back_start                = (line_idx > max_look_back_limit) ? line_idx - max_look_back_limit : 0;
+            float  remaining_reduction_distance = PRE_RETRACT_REDUCTION_DISTANCE;
+            size_t look_back_start              = (line_idx > max_look_back_limit) ? line_idx - max_look_back_limit : 0;
 
-            // NEW: Track which lines we've already modified to avoid double-processing
+            // Track which lines we've already modified to avoid double-processing
             std::unordered_set<size_t> already_modified;
 
-            // Look backwards from the retract - IMPORTANT: Start from line_idx - 1
+            // Look backwards from the retract
             for (size_t back_idx = line_idx - 1; back_idx != size_t(-1) && back_idx >= look_back_start; --back_idx) {
                 GCodeLine& back_line = m_gcode_lines[back_idx];
 
                 if (back_line.type == GCODELINETYPE_EXTRUDE) {
-                    float line_distance = back_line.dist_xyz();
-                    accumulated_extrusion_distance += line_distance;
+                    // Skip if already processed
+                    if (already_modified.find(back_idx) != already_modified.end()) {
+                        continue;
+                    }
 
-                    // Check if we're still within the reduction distance
-                    if (accumulated_extrusion_distance <= PRE_RETRACT_REDUCTION_DISTANCE) {
-                        // Only modify if we haven't already processed this line
-                        if (already_modified.find(back_idx) == already_modified.end()) {
-                            // Set to minimum speed if currently higher
+                    float line_distance = back_line.dist_xyz();
+
+                    if (remaining_reduction_distance > EPS) {
+                        if (line_distance <= remaining_reduction_distance) {
+                            // Entire line is within reduction distance - apply full reduction
                             if (back_line.volumetric_extrusion_rate_start > MIN_VOLUMETRIC_RATE) {
                                 back_line.volumetric_extrusion_rate_start = MIN_VOLUMETRIC_RATE;
                             }
@@ -818,49 +798,68 @@ void PressureEqualizer::apply_pre_retract_pressure_reduction()
                                 back_line.volumetric_extrusion_rate_end = MIN_VOLUMETRIC_RATE;
                             }
 
-                            // Mark as modified
                             back_line.modified = true;
                             already_modified.insert(back_idx);
-
-#ifdef PRESSURE_EQUALIZER_DEBUG
-                            lines_modified++;
-                            printf("  Modified line %zu: distance %.2f mm, total %.2f mm, rates set to min: %.2f\n", back_idx,
-                                   line_distance, accumulated_extrusion_distance, MIN_VOLUMETRIC_RATE);
-#endif
+                            remaining_reduction_distance -= line_distance;
+                        } else {
+                            // Need to split this line - only part needs reduction
+                            float split_fraction = remaining_reduction_distance / line_distance;
+                            
+                            // Create a new line for the reduced portion (closer to retract)
+                            GCodeLine reduced_line = back_line;
+                            
+                            // Calculate split position
+                            float split_pos[5];
+                            for (size_t i = 0; i < 5; ++i) {
+                                split_pos[i] = back_line.pos_start[i] + 
+                                              (back_line.pos_end[i] - back_line.pos_start[i]) * (1.0f - split_fraction);
+                            }
+                            
+                            // Set up the reduced portion (from split point to end)
+                            memcpy(reduced_line.pos_start, split_pos, sizeof(float) * 5);
+                            // pos_end stays the same as back_line.pos_end
+                            
+                            // Apply minimum rate to reduced portion
+                            if (reduced_line.volumetric_extrusion_rate_start > MIN_VOLUMETRIC_RATE) {
+                                reduced_line.volumetric_extrusion_rate_start = MIN_VOLUMETRIC_RATE;
+                            }
+                            if (reduced_line.volumetric_extrusion_rate_end > MIN_VOLUMETRIC_RATE) {
+                                reduced_line.volumetric_extrusion_rate_end = MIN_VOLUMETRIC_RATE;
+                            }
+                            reduced_line.modified = true;
+                            
+                            // Modify the original line to end at split point (non-reduced portion)
+                            memcpy(back_line.pos_end, split_pos, sizeof(float) * 5);
+                            // back_line keeps its original start position and rates
+                            back_line.modified = true;
+                            
+                            // Insert the reduced portion after the original line
+                            m_gcode_lines.insert(m_gcode_lines.begin() + back_idx + 1, reduced_line);
+                            
+                            // Mark both as modified
+                            already_modified.insert(back_idx);
+                            already_modified.insert(back_idx + 1);
+                            
+                            // We've handled all the remaining distance
+                            remaining_reduction_distance = 0;
+                            break;
                         }
                     } else {
-                        // We've exceeded the reduction distance, stop looking back
-#ifdef PRESSURE_EQUALIZER_DEBUG
-                        printf("  Stopped at line %zu - exceeded reduction distance (%.2f mm)\n", back_idx, accumulated_extrusion_distance);
-#endif
                         break;
                     }
                 } else if (back_line.type == GCODELINETYPE_MOVE) {
                     // Travel move - don't accumulate distance but keep looking back
                     continue;
                 } else if (back_line.type == GCODELINETYPE_RETRACT || back_line.type == GCODELINETYPE_UNRETRACT) {
-                    // CHANGED: Continue through retracts and unretracts instead of stopping
-                    // This allows us to accumulate distance across multiple retract cycles
-#ifdef PRESSURE_EQUALIZER_DEBUG
-                    printf("  Continuing through retract/unretract at line %zu (accumulated distance: %.2f mm)\n", back_idx,
-                           accumulated_extrusion_distance);
-#endif
+                    // Continue through retracts and unretracts
                     continue;
                 } else if (back_line.type == GCODELINETYPE_TOOL_CHANGE) {
-                    // Still stop at tool changes as these represent a complete pressure reset
-#ifdef PRESSURE_EQUALIZER_DEBUG
-                    printf("  Stopped at tool change (line %zu)\n", back_idx);
-#endif
+                    // Stop at tool changes
                     break;
                 }
             }
         }
     }
-
-#ifdef PRESSURE_EQUALIZER_DEBUG
-    printf("Pre-retract pressure reduction: Found %d retracts (%d before outer walls), modified %d lines (min rate: %.2f mm^3/min)\n",
-           retracts_found, outer_wall_retracts, lines_modified, MIN_VOLUMETRIC_RATE);
-#endif
 }
 
 inline void PressureEqualizer::push_to_output(GCodeG1Formatter &formatter)
