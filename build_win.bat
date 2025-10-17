@@ -58,7 +58,14 @@ if "%install_deps%" == "ON" (
         exit /b 1
     )
     set "winget_args=-e --source=winget"
-    call :print_and_run winget install !winget_args! --id=Microsoft.VisualStudio.2022.BuildTools --custom "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project Microsoft.VisualStudio.Component.Windows11SDK.26100"
+    if not "%bypass_vs_install%" == "ON" (
+        if "%use_vs2019%" == "ON" (
+            set vs_year=2019
+        ) else (
+            set vs_year=2022
+        )
+        call :print_and_run winget install !winget_args! --id=Microsoft.VisualStudio.!vs_year!.BuildTools --custom "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project Microsoft.VisualStudio.Component.Windows11SDK.22621"
+    )
     call :print_and_run winget install !winget_args! --id=Kitware.CMake -v "3.31.8"
     call :print_and_run winget install !winget_args! --id=StrawberryPerl.StrawberryPerl
     call :print_and_run winget install !winget_args! --id=Git.Git
