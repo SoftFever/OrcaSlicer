@@ -8,5 +8,5 @@
   "family": "RH3D",
   "hotend_model": "",
   "machine_tech": "FFF",
-  "default_materials": "Generic PLA @System;Generic PETG @System;Generic ABS @System"
+  "default_materials": "Generic ABS @E3NG v1.2S;Generic ASA @E3NG v1.2S;Generic PCCF @E3NG v1.2S;Generic PETG @E3NG v1.2S;Generic PLA @E3NG v1.2S;Generic TPU @E3NG v1.2S"
 }
