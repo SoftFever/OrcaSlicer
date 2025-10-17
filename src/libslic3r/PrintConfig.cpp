@@ -3832,27 +3832,21 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
 
-    def = this->add("pressure_release_before_retraction_speed", coFloat);
-    def->label   = L("Slow down to this speed before retraction");
+    def = this->add("slow_down_before_retraction_speed", coFloat);
+    def->label   = L("Slow down before seam");
     def->tooltip = L(
-        "A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
-        "and more instructions for the printer to process. \n\n"
-        "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of "
-        "adjustments made\n\n"
-        "Allowed values: 1-5");
+        "Slowing down before the seam can help releasing the pressure build-up in the nozzle, results in better seam quality. \n\n"
+        "10 is recommended. 0 will disable this feature.");
     def->sidetext = L("mm/s²");
     def->min      = 0;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
-    def = this->add("pressure_release_before_retraction_length", coFloat);
-    def->label   = L("The slowdown distance before retraction");
+    def = this->add("slow_down_before_retraction_length", coFloat);
+    def->label   = L("The slowdown distance before seam");
     def->tooltip = L(
-        "A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
-        "and more instructions for the printer to process. \n\n"
-        "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of "
-        "adjustments made\n\n"
-        "Allowed values: 1-5");
+        "Slowing down before the seam can help releasing the pressure build-up in the nozzle, results in better seam quality. \n\n"
+        "30 is usually enough. 0 will disable this feature.");
     def->sidetext = L("mm");
     def->min      = 0;
     def->mode     = comAdvanced;

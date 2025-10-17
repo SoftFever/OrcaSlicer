@@ -63,8 +63,8 @@ PressureEqualizer::PressureEqualizer(const Slic3r::GCodeConfig &config) : m_use_
     	m_max_volumetric_extrusion_rate_slope_negative = float(config.max_volumetric_extrusion_rate_slope.value) * 60.f * 60.f;
     	m_max_segment_length = float(config.max_volumetric_extrusion_rate_slope_segment_length.value);
         m_extrusion_rate_smoothing_external_perimeter_only = bool(config.extrusion_rate_smoothing_external_perimeter_only.value);
-        PRE_RETRACT_REDUCTION_DISTANCE = float(config.pressure_release_before_retraction_length.value);
-        PRE_RETRACT_MIN_FEED_MM_S = float(config.pressure_release_before_retraction_speed.value);
+        PRE_RETRACT_REDUCTION_DISTANCE = float(config.slow_down_before_retraction_length.value);
+        PRE_RETRACT_MIN_FEED_MM_S = float(config.slow_down_before_retraction_speed.value);
         //ENABLE_PRE_RETRACT_REDUCTION= bool(config.enable_pressure_release_before_retraction.value);
     }
 
