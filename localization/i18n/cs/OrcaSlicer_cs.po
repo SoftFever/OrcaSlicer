@@ -12015,6 +12015,12 @@ msgstr "Nerezová ocel"
 msgid "Brass"
 msgstr "Mosaz"
 
+msgid "CHT"
+msgstr "CHT"
+
+msgid "Tungsten Carbide"
+msgstr "Karbid wolframu"
+
 msgid "Nozzle HRC"
 msgstr "Tryska HRC"
 
