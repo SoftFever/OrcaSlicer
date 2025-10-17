@@ -28,6 +28,7 @@ call :add_arg print_help bool h help "print this help message"
 call :add_arg pack_deps bool p pack "bundle build deps into a zip file"
 call :add_arg build_slicer bool s slicer "build OrcaSlicer"
 call :add_arg install_deps bool u install-deps "download and install system dependencies using WinGet (build prerequisite)"
+call :add_arg use_vs2019 bool "" vs2019 "Use Visual Studio 16 2019 as the generator. Can be used with '-u'. (Default: Visual Studio 17 2022)"
 
 :: handle arguments from input
 call :handle_args %*
@@ -79,6 +80,9 @@ if "%build_debug%"=="ON" (
 )
 echo build type set to %build_type%
 
+set "generator=Visual Studio 17 2022"
+if "%use_vs2019%" == "ON" set "generator=Visual Studio 16 2019"
+
 set "SIG_FLAG="
 if defined ORCA_UPDATER_SIG_KEY set "SIG_FLAG=-DORCA_UPDATER_SIG_KEY=%ORCA_UPDATER_SIG_KEY%"
 
@@ -91,7 +95,7 @@ if "%build_deps%" == "ON" (
         %error_check%
     )
 
-    call :print_and_run cmake -S deps -B deps/%build_dir% -G "Visual Studio 17 2022" -A x64 -DDESTDIR="%DEPS%" -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
+    call :print_and_run cmake -S deps -B deps/%build_dir% -G "%generator%" -A x64 -DDESTDIR="%DEPS%" -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
     %error_check%
 
     call :print_and_run cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
@@ -118,7 +122,7 @@ if "%build_slicer%" == "ON" (
         %error_check%
     )
 
-    call :print_and_run cmake -B %build_dir% -G "Visual Studio 17 2022" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
+    call :print_and_run cmake -B %build_dir% -G "%generator%" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
     %error_check%
 
     call :print_and_run cmake --build %build_dir% --config %build_type% --target ALL_BUILD -- -m
