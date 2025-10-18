@@ -1,13 +1,13 @@
 {
     "type": "filament",
-    "name": "Anycubic PETG @Anycubic Kobra S1 0.4 nozzle",
+    "name": "Anycubic PETG @Anycubic Kobra S1",
     "inherits": "fdm_filament_pet",
     "from": "system",
     "setting_id": "GFSA04",
     "filament_id": "GFG99",
     "instantiation": "true",
     "filament_settings_id": [
-        "Anycubic PETG @Anycubic Kobra S1 0.4 nozzle"
+        "Anycubic PETG @Anycubic Kobra S1"
     ],
     "filament_flow_ratio": [
         "0.96"
@@ -19,7 +19,7 @@
         "250"
     ],
     "compatible_printers": [
-        "Anycubic Kobra S1 0.4 nozzle"
+        "Anycubic Kobra S1"
     ],
     "activate_air_filtration": [
         "0"
