@@ -30,7 +30,12 @@ public:
     LayerResult process_layer(LayerResult &&input);
 private:
 
+    // Pre-retract pressure reduction settings (hardcoded for now)
+    float PRE_RETRACT_REDUCTION_DISTANCE; // mm of extrusion to decelerate over
+    float PRE_RETRACT_MIN_FEED_MM_S;  // 0.3 = reduce to 30% of original speed at retract point
+    
     void process_layer(const std::string &gcode);
+    void apply_pre_retract_pressure_reduction();
 
 #ifdef PRESSURE_EQUALIZER_STATISTIC
     struct Statistics
