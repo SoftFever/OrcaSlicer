@@ -34,6 +34,11 @@ enum GCodeFlavor : unsigned char {
     gcfSmoothie, gcfNoExtrusion
 };
 
+enum CalibTestMode {
+    None,
+    GoldenRatioFlowTest, 
+    CalibFlowrateTopInfillSpecialOrder,
+};
 
 enum class FuzzySkinType {
     None,
@@ -948,8 +953,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,  interlocking_boundary_avoidance))
 
     // Orca: internal use only
-    ((ConfigOptionBool,  calib_flowrate_topinfill_special_order)) // ORCA: special flag for flow rate calibration
-
+    ((ConfigOptionInt, calib_test_mode))                          // ORCA: special flag for calibration tests
 
 )
 

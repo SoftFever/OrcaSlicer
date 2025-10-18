@@ -9856,6 +9856,81 @@ void Plater::_calib_pa_select_added_objects() {
     }
 }
 
+// Adjust settings for golden ratio flow calibration
+void adjust_settings_for_golden_ratio_flow_calib(ModelObjectPtrs& objects, bool linear, int pass) {
+    auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto printerConfig   = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+
+    const ConfigOptionFloats* nozzle_diameter_config = printerConfig->option<ConfigOptionFloats>("nozzle_diameter");
+    assert(nozzle_diameter_config->values.size() > 0);
+    float nozzle_diameter = nozzle_diameter_config->values[0];
+    // scale z to have 10 layers
+    //  2 bottom, 5 top, 3 sparse infill
+    double first_layer_height = print_config->option<ConfigOptionFloat>("initial_layer_print_height")->value;
+    double layer_height       = nozzle_diameter / 2.0; // prefer 0.2 layer height for 0.4 nozzle
+    first_layer_height        = std::max(first_layer_height, layer_height);
+
+    // adjust parameters
+    for (auto _obj : objects) {
+        _obj->ensure_on_bed();
+        _obj->config.set_key_value("wall_loops", new ConfigOptionInt(1));
+        _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
+        _obj->config.set_key_value("thick_internal_bridges", new ConfigOptionBool(false));
+        _obj->config.set_key_value("enable_extra_bridge_layer", new ConfigOptionEnum<EnableExtraBridgeLayer>(eblDisabled));
+        _obj->config.set_key_value("internal_bridge_density", new ConfigOptionPercent(100));
+        _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(100));
+        _obj->config.set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(100, true));
+        _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(2));
+        _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+        _obj->config.set_key_value("top_shell_thickness", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("bottom_shell_thickness", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
+        _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
+        _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter, false));
+        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
+        _obj->config.set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+        _obj->config.set_key_value("bottom_surface_density", new ConfigOptionPercent(90));
+        _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
+        _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("internal_solid_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
+        _obj->config.set_key_value("solid_infill_direction", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("solid_infill_rotate_template", new ConfigOptionString("90, 0, 90#100"));
+        _obj->config.set_key_value("align_infill_direction_to_model", new ConfigOptionBool(true));
+        _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+        _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(30)); //internal_solid_speed
+        _obj->config.set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
+        _obj->config.set_key_value("gap_fill_target", new ConfigOptionEnum<GapFillTarget>(GapFillTarget::gftNowhere));
+        _obj->config.set_key_value("calib_test_mode", new ConfigOptionInt(CalibTestMode::GoldenRatioFlowTest));
+        print_config->set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f));
+        _obj->name = "GoldenRatio Flow Calibration Test 90-110%";
+    }
+
+    print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
+    print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
+
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+}
+
+void Plater::calib_golden_ratio_flow(bool is_linear, int pass) {
+    wxString calib_name = L"GoldenRatio Flow Calibration Test 90-110%";
+    if (new_project(false, false, calib_name) == wxID_CANCEL)
+        return;
+
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "golden-ratio-flow-test.3mf").string());
+    adjust_settings_for_golden_ratio_flow_calib(model().objects, is_linear, pass);
+} 
+
 // Adjust settings for flowrate calibration
 // For linear mode, pass 1 means normal version while pass 2 mean "for perfectionists" version
 void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, int pass)
@@ -9932,7 +10007,7 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
         _obj->config.set_key_value("gap_fill_target", new ConfigOptionEnum<GapFillTarget>(GapFillTarget::gftNowhere));
         print_config->set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
-        _obj->config.set_key_value("calib_flowrate_topinfill_special_order", new ConfigOptionBool(true));
+        _obj->config.set_key_value("calib_test_mode", new ConfigOptionInt(CalibTestMode::CalibFlowrateTopInfillSpecialOrder));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;
