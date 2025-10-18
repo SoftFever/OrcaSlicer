@@ -6804,6 +6804,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "support_angle";
     } else if (opt_key == "support_material_enforce_layers") {
         opt_key = "enforce_support_layers";
+    } else if (opt_key == "support_remove_small_overhang") {
+        opt_key = "support_ignore_small_overhang";
     } else if ((opt_key == "initial_layer_print_height"   ||
                 opt_key == "initial_layer_speed"          ||
                 opt_key == "internal_solid_infill_speed"  ||
