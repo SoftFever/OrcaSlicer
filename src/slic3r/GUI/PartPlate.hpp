@@ -197,8 +197,8 @@ private:
     int picking_id_component(int idx) const;
 
 public:
-    static constexpr unsigned int PLATE_NAME_HOVER_ID = 6;
-    static constexpr unsigned int GRABBER_COUNT = 8;
+    static const unsigned int PLATE_NAME_HOVER_ID = 6;
+    static const unsigned int GRABBER_COUNT = 8;
 
     static ColorRGBA SELECT_COLOR;
     static ColorRGBA UNSELECT_COLOR;
@@ -630,7 +630,7 @@ public:
         void                     reset();
     };
 
-    static constexpr unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
+    static const unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
     static GLTexture bed_textures[(unsigned int)btCount];
     static bool is_load_bedtype_textures;
     static bool is_load_cali_texture;

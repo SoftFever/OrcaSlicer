@@ -6560,10 +6560,10 @@ msgstr "北美"
 msgid "Others"
 msgstr "其他"
 
-msgid "Login region"
+msgid "Login Region"
 msgstr "登入區域"
 
-msgid "Stealth mode"
+msgid "Stealth Mode"
 msgstr "區域網路模式"
 
 msgid ""
@@ -6573,14 +6573,11 @@ msgstr ""
 "這會停止資料傳輸到 Bambu 的雲端服務。使用者如果不使用 Bambu 機台或僅使用區域"
 "網路模式，可以安全地啟用此功能。"
 
-msgid "Network plugin"
-msgstr ""
-
 msgid "Enable network plugin"
 msgstr "啟用網路外掛程式"
 
-msgid "Use legacy network plugin"
-msgstr "使用舊版網路外掛"
+msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgstr "使用舊版網路外掛（重新啟動 Orca 後生效）"
 
 msgid ""
 "Disable to use latest network plugin that supports new BambuLab firmwares."
@@ -6620,7 +6617,7 @@ msgstr ""
 msgid "Home"
 msgstr "首頁"
 
-msgid "Default page"
+msgid "Default Page"
 msgstr "預設頁面"
 
 msgid "Set the page opened on startup."
@@ -6707,18 +6704,15 @@ msgid ""
 "each printer automatically."
 msgstr "啟用後，Orca 會記住且自動切換各機臺線材與列印設定。"
 
-msgid "Show options when importing STEP file"
+msgid "Show the step mesh parameter setting dialog."
 msgstr "顯示 STEP 網格參數設定視窗。"
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr "啟用後，匯入 STEP 檔案時會顯示參數設定視窗。"
 
-msgid "Multi device management"
-msgstr "多臺設備管理"
-
-msgid "(Requires restart)"
-msgstr ""
+msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
+msgstr "多臺設備管理 (需重開 Orca)"
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -6788,11 +6782,8 @@ msgstr "總是詢問"
 msgid "Load Geometry Only"
 msgstr "僅載入幾何資料"
 
-msgid "Load behaviour"
+msgid "Load Behaviour"
 msgstr "載入方式"
-
-msgid "Behaviour"
-msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "開啟 .3mf 檔案時，是否需要載入印表機、線材和參數設定？"
@@ -6803,16 +6794,16 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add STL/STEP files to recent files list"
+msgid "Add model files (stl/step) to recent file list."
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "清除我對未儲存專案項目的選擇。"
 
-msgid "Don't warn when loading 3MF with modified G-code"
+msgid "No warnings when loading 3MF with modified G-code"
 msgstr "載入包含修改過 G-code 的 3MF 時不顯示警告"
 
-msgid "Auto backup"
+msgid "Auto-Backup"
 msgstr "自動備份"
 
 msgid ""
@@ -6828,13 +6819,10 @@ msgstr "備份的週期。"
 msgid "Downloads"
 msgstr "下載"
 
-msgid "Downloads folder"
-msgstr ""
-
 msgid "Dark Mode"
 msgstr "深色模式"
 
-msgid "Enable dark mode"
+msgid "Enable Dark mode"
 msgstr "啟用深色模式"
 
 msgid "Develop mode"
@@ -16154,9 +16142,6 @@ msgid "Delete input"
 msgstr "刪除輸入"
 
 msgid "Network Test"
-msgstr "網路測試"
-
-msgid "Network test"
 msgstr "網路測試"
 
 msgid "Start Test Multi-Thread"

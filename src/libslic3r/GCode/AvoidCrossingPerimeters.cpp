@@ -1019,7 +1019,7 @@ static ExPolygons inner_offset(const ExPolygons &ex_polygons, double offset_dis)
     // remove too small holes from the ex_poly
     for (ExPolygon &ex_poly : ex_poly_result) {
         for (auto iter = ex_poly.holes.begin(); iter != ex_poly.holes.end();) {
-            auto out_offset_holes = offset(*iter, scale_(0.1f));
+            auto out_offset_holes = offset(*iter, scale_(1.0f));
             if (out_offset_holes.empty()) {
                 iter = ex_poly.holes.erase(iter);
             } else {
