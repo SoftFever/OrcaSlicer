@@ -4205,6 +4205,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents { 100 });
 
+    def = this->add("retract_after_wipe", coPercents);
+    def->label = L("Retract amount after wipe");
+    def->tooltip = L("The length of fast retraction after wipe, relative to retraction length. "
+                     "The value will be clamped by 100% minus the retract amount before the wipe value.");
+    def->sidetext = "%";
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercents { 0 });
+
     def = this->add("retract_when_changing_layer", coBools);
     def->label = L("Retract when change layer");
     def->tooltip = L("Force a retraction when changes layer.");
@@ -6029,6 +6037,7 @@ void PrintConfigDef::init_fff_params()
         "retract_when_changing_layer", "wipe",
         // percents
         "retract_before_wipe",
+        "retract_after_wipe",
         "long_retractions_when_cut",
         "retraction_distances_when_cut"
         }) {
@@ -6077,7 +6086,7 @@ void PrintConfigDef::init_extruder_option_keys()
     m_extruder_option_keys = {
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
         "retraction_length", "z_hop", "z_hop_types", "travel_slope", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
-        "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
+        "retract_before_wipe", "retract_after_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"
     };
@@ -6085,6 +6094,7 @@ void PrintConfigDef::init_extruder_option_keys()
     m_extruder_retract_keys = {
         "deretraction_speed",
         "long_retractions_when_cut",
+        "retract_after_wipe",
         "retract_before_wipe",
         "retract_lift_above",
         "retract_lift_below",
@@ -6109,7 +6119,7 @@ void PrintConfigDef::init_filament_option_keys()
     m_filament_option_keys = {
         "filament_diameter", "min_layer_height", "max_layer_height",
         "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
-        "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
+        "retract_before_wipe", "retract_after_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
         "default_filament_profile","retraction_distances_when_cut","long_retractions_when_cut"/*,"filament_seam_gap"*/
     };
@@ -6118,6 +6128,7 @@ void PrintConfigDef::init_filament_option_keys()
         "deretraction_speed",
         "long_retractions_when_cut",
         "retract_before_wipe",
+        "retract_after_wipe",
         "retract_lift_above",
         "retract_lift_below",
         "retract_lift_enforce",
