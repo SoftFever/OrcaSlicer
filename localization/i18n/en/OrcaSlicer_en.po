@@ -13163,10 +13163,10 @@ msgid ""
 msgstr ""
 
 msgid "Remove small overhangs"
-msgstr ""
+msgstr "Ignore small overhangs"
 
 msgid "Remove small overhangs that possibly need no supports."
-msgstr ""
+msgstr "Ignore small overhangs that possibly need no supports."
 
 msgid "Top Z distance"
 msgstr ""
@@ -13178,7 +13178,7 @@ msgid "Bottom Z distance"
 msgstr ""
 
 msgid "The Z gap between the bottom support interface and object."
-msgstr ""
+msgstr "This determines the Z gap between bottom support interfaces and objects"
 
 msgid "Support/raft base"
 msgstr ""
