@@ -9934,7 +9934,7 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         print_config->set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
         _obj->config.set_key_value("calib_flowrate_topinfill_special_order", new ConfigOptionBool(true));
         _obj->config.set_key_value("internal_perimeter_flow_ratio", new ConfigOptionFloat(1.0f));
-        _obj->config.set_key_value("perimeter_overlap", new ConfigOptionPercent(100.0f));
+        _obj->config.set_key_value("perimeter_overlap", new ConfigOptionPercent(0.0f));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;

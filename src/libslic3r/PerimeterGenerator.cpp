@@ -560,8 +560,8 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     coord_t ext_perimeter_spacing = this->ext_perimeter_flow.scaled_spacing();
 
     // Adjusts perimeter spacing according to the configured overlap percentage
-    perimeter_spacing *= (2.0 - (this->config->perimeter_overlap / 100.0f));
-    ext_perimeter_spacing *= (2.0 - (this->config->perimeter_overlap / 100.0f));
+    perimeter_spacing *= (1.0 - (this->config->perimeter_overlap / 100.0f));
+    ext_perimeter_spacing *= (1.0 - (this->config->perimeter_overlap / 100.0f));
 
     bool has_gap_fill = this->config->gap_infill_speed.value > 0;
 
@@ -1139,9 +1139,9 @@ void PerimeterGenerator::process_classic()
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
     
     // Adjusts perimeter spacing according to the configured overlap percentage
-    perimeter_spacing *= (2.0 - (this->config->perimeter_overlap / 100.0f));
-    ext_perimeter_spacing *= (2.0 - (this->config->perimeter_overlap / 100.0f));
-    ext_perimeter_spacing2 *= (2.0 - (this->config->perimeter_overlap / 100.0f));
+    perimeter_spacing *= (1.0 - (this->config->perimeter_overlap / 100.0f));
+    ext_perimeter_spacing *= (1.0 - (this->config->perimeter_overlap / 100.0f));
+    ext_perimeter_spacing2 *= (1.0 - (this->config->perimeter_overlap / 100.0f));
 
     // overhang perimeters
     m_mm3_per_mm_overhang      		= this->overhang_flow.mm3_per_mm();

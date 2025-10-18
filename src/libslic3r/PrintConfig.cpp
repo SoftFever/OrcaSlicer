@@ -1636,9 +1636,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(1.0f));
 
     def           = this->add("perimeter_overlap", coPercent);
-    def->label    = L("Perimeter overlap increase");
+    def->label    = L("Perimeter overlap");
     def->category = L("Advanced");
     def->tooltip  = L("This parameter change the default perimeter overlap by a percentage."
+                      "The percentage value is relative to perimeter line width."
                       "Increasing this value will improve wall bonding. Together with [Internal perimeter flow ratio multiplier], " 
                       "these parameters enable precise tuning of perimeter bonding without needing to increasing the overall flow rate,"
                       "which could otherwise degrade XY dimensional accuracy and cause visual overflow artifacts.\n"
@@ -1646,10 +1647,10 @@ void PrintConfigDef::init_fff_params()
     );
 
     def->sidetext = "%";
-    def->min      = 100;
-    def->max      = 150;
+    def->min      = 0;
+    def->max      = 50;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionPercent(100.0f));
+    def->set_default_value(new ConfigOptionPercent(0.0f));
 
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
