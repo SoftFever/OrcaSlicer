@@ -89,6 +89,12 @@ if "%install_deps%" == "ON" (
     exit /b 0
 )
 
+where cmake >nul 2>nul
+if not !errorlevel! == 0 (
+    echo CMake was not found. Have you installed the system dependencies?
+    exit /b 1
+)
+
 if "%build_debug%"=="ON" (
     set build_type=Debug
     set build_dir=build-dbg
