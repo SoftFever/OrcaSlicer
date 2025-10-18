@@ -4094,7 +4094,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("If you want to process the output G-code through custom scripts, "
                    "just list their absolute paths here. Separate multiple scripts with a semicolon. "
                    "Scripts will be passed the absolute path to the G-code file as the first argument, "
-                   "and they can access the Orca Slicer config settings by reading environment variables.");
+                   "and they can access the Orca Slicer config settings by reading environment variables. "
+                   "Filename formatting placeholders are applied.");
     def->gui_flags = "serialized";
     def->multiline = true;
     def->full_width = true;
