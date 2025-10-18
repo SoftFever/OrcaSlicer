@@ -115,6 +115,14 @@ double calculate_infill_rotation_angle(const PrintObject* object,
                             if (cs[0] == '%') { // percentage of angles
                                 angle_add *= 3.6;
                                 cs = &cs[1];
+                            } else if (cs[0] == ':') { // fractional of full turn
+                                if (angle_add == 0.)
+                                    angle_add = 1.;
+                                cs                = &cs[1];
+                                double angle_frac = strtod(cs, &cs);
+                                if (angle_frac == 0.)
+                                    angle_frac = 1.;
+                                angle_add *= 360 / angle_frac;
                             }
 
                             int tit = tk[t].find('*');
@@ -139,6 +147,15 @@ double calculate_infill_rotation_angle(const PrintObject* object,
                                     if (angle_steps && cs[0] != '\0' && cs[0] != '!') {
                                         if (cs[0] == '%') // value in the percents of fill_z
                                             limit_fill_z = angle_steps * object->height() * 1e-8;
+                                        else if (cs[0] == ':') { // fractional of full height
+                                            if (angle_steps == 0.)
+                                                angle_steps = 1.;
+                                            cs                = &cs[1];
+                                            double angle_frac = strtod(cs, &cs);
+                                            if (angle_frac == 0.)
+                                                angle_frac = 1.;
+                                            limit_fill_z = angle_steps / angle_frac * object->height() * 1e-6;
+                                        }
                                         else if (cs[0] == '#') // value in the feet
                                             limit_fill_z = angle_steps * object->config().layer_height;
                                         else if (cs[0] == '\'') // value in the feet
@@ -270,6 +287,8 @@ struct SurfaceFillParams
     // Params for Lateral honeycomb
     float infill_overhang_angle = 60.f;
 
+    bool is_patchwork = false;
+
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
 #define RETURN_COMPARE_NON_EQUAL_TYPED(TYPE, KEY) if (TYPE(this->KEY) < TYPE(rhs.KEY)) return true; if (TYPE(this->KEY) > TYPE(rhs.KEY)) return false;
@@ -301,6 +320,7 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(lateral_lattice_angle_2);
 		RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
 		RETURN_COMPARE_NON_EQUAL(infill_lock_depth);
+        RETURN_COMPARE_NON_EQUAL(is_patchwork);
 		RETURN_COMPARE_NON_EQUAL(skin_infill_depth);		RETURN_COMPARE_NON_EQUAL(infill_overhang_angle);
 
 		return false;
@@ -329,6 +349,7 @@ struct SurfaceFillParams
 				this->lateral_lattice_angle_2	    == rhs.lateral_lattice_angle_2 &&
 				this->infill_lock_depth      ==  rhs.infill_lock_depth &&
 				this->skin_infill_depth      ==  rhs.skin_infill_depth &&
+                this->is_patchwork          == rhs.is_patchwork &&
                 this->infill_overhang_angle == rhs.infill_overhang_angle;
 	}
 };
@@ -897,21 +918,36 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 }
                 // Orca: apply fill multiline only for sparse infill
                 params.multiline = params.extrusion_role == erInternalInfill ? int(region_config.fill_multiline) : 1;
+            
+                params.is_patchwork = false;
+                if (surface.is_external()) {
+                    PatchworkPosition _patchwork = region_config.patchwork_surfaces.value;
+                    switch (_patchwork) {
+                        case PatchworkPosition::Bottom : if (surface.is_bottom()) params.is_patchwork = true; break;
+                        case PatchworkPosition::Topmost : if (layer.upper_layer == NULL) params.is_patchwork = true; break;
+                        case PatchworkPosition::Topmost_Bottom : if (layer.upper_layer == NULL || surface.is_bottom()) params.is_patchwork = true; break;
+                        case PatchworkPosition::All_Upper : if (surface.is_top()) params.is_patchwork = true; break;
+                        case PatchworkPosition::Everywhere : params.is_patchwork = true;
+                    }
+                }
 
                 if (params.extrusion_role == erInternalInfill) {
                     params.angle = calculate_infill_rotation_angle(layer.object(), layer.id(), region_config.infill_direction.value,
-                                                                   region_config.sparse_infill_rotate_template.value);
+                                                                    region_config.sparse_infill_rotate_template.value);
                     params.is_using_template_angle = !region_config.sparse_infill_rotate_template.value.empty();
-                } else {
+                } else if (!(params.is_patchwork && surface.is_external())) { //PPS: patchwork angle calculate in own function, only the angle of rotation of the model is transmitted there
                     params.angle = calculate_infill_rotation_angle(layer.object(), layer.id(), region_config.solid_infill_direction.value,
-                                                                   region_config.solid_infill_rotate_template.value);
+                                                                    region_config.solid_infill_rotate_template.value);
                     params.is_using_template_angle = !region_config.solid_infill_rotate_template.value.empty();
                 }
                 params.bridge_angle = float(surface.bridge_angle);
                 
+
                 if (region_config.align_infill_direction_to_model) {
                     auto m = layer.object()->trafo().matrix();
-                    params.angle += atan2((float) m(1, 0), (float) m(0, 0));
+                    double _add_angle = atan2((float) m(1, 0), (float) m(0, 0));
+                    params.angle += _add_angle;
+                    params.bridge_angle += _add_angle; // PPS:: user bridges also must to rotate
                 }
 
                 // Calculate the actual flow we'll be using for this infill.
@@ -1256,8 +1292,16 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         auto &region_config = layerm->region().config();
         params.config               = &region_config;
         params.pattern              = surface_fill.params.pattern;
+        bool _top_or_bottom         = params.extrusion_role == erTopSolidInfill || params.extrusion_role == erBottomSurface;
+        if (_top_or_bottom) {
+            params.is_anisotropic        = region_config.anisotropic_surfaces.value;
+            params.center_of_surface_pattern  = region_config.center_of_surface_pattern.value;
+        }
+        
+        params.is_patchwork = surface_fill.params.is_patchwork;
 
-        if( surface_fill.params.pattern == ipLockedZag ) {
+      if( surface_fill.params.pattern == ipLockedZag ) {
+
 			params.locked_zag = true;
             params.infill_lock_depth = surface_fill.params.infill_lock_depth;
             params.skin_infill_depth = surface_fill.params.skin_infill_depth;
@@ -1296,9 +1340,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
                 params.dont_adjust = true;
             }
 			// BBS: make fill
-			f->fill_surface_extrusion(&surface_fill.surface,
-				params,
-				m_regions[surface_fill.region_id]->fills.entities);
+            if (params.is_patchwork && surface_fill.surface.is_external())
+                f->fill_patchwork(&surface_fill.surface, params, m_regions[surface_fill.region_id]->fills.entities);
+            else    
+			    f->fill_surface_extrusion(&surface_fill.surface, params, m_regions[surface_fill.region_id]->fills.entities);
 		}
     }
 
