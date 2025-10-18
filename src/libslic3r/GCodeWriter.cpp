@@ -540,11 +540,11 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         Vec3d target = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
         Vec3d delta = target - source;
         Vec2d delta_no_z = { delta(0), delta(1) };
-        //BBS: don'need slope travel because we don't know where is the source position the first time
+        //Orca: Only attempt slope/spiral/normal lift if current position is known
         //BBS: Also don't need to do slope move or spiral lift if x-y distance is absolute zero
-        if (delta(2) > 0 && delta_no_z.norm() != 0.0f)    {
+        if (delta(2) > 0 && delta_no_z.norm() != 0.0f && this->is_current_position_clear()) {
             //BBS: SpiralLift
-            if (m_to_lift_type == LiftType::SpiralLift && this->is_current_position_clear()) {
+            if (m_to_lift_type == LiftType::SpiralLift) {
                 //BBS: todo: check the arc move all in bed area, if not, then use lazy lift
                 double radius = delta(2) / (2 * PI * atan(this->extruder()->travel_slope()));
                 Vec2d ij_offset = radius * delta_no_z.normalized();
@@ -553,7 +553,6 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             }
             //BBS: LazyLift
             else if (m_to_lift_type == LiftType::LazyLift &&
-                this->is_current_position_clear() && 
                 atan2(delta(2), delta_no_z.norm()) < this->extruder()->travel_slope()) {
                 //BBS: check whether we can make a travel like
                 //   _____
