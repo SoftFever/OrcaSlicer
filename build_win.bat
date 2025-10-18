@@ -80,7 +80,7 @@ if "%install_deps%" == "ON" (
             )
             set vs_year=2022
         )
-        call :print_and_run winget install !winget_args! --id=Microsoft.VisualStudio.!vs_year!.!vs_edition! --custom "--add !ide_component_flag! Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project Microsoft.VisualStudio.Component.Windows11SDK.22621"
+        call :print_and_run winget install !winget_args! --id=Microsoft.VisualStudio.!vs_year!.!vs_edition! --force --custom "--add !ide_component_flag! Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project Microsoft.VisualStudio.Component.Windows11SDK.22621"
     )
     call :print_and_run winget install !winget_args! --id=Kitware.CMake -v "3.31.8"
     call :print_and_run winget install !winget_args! --id=StrawberryPerl.StrawberryPerl
