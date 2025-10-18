@@ -2240,8 +2240,8 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
         return SupportGeneratorLayersPtr();
 
     // BBS group overhang clusters
-    const bool config_remove_small_overhangs = m_object_config->support_remove_small_overhang.value;
-    if (config_remove_small_overhangs) {
+    const bool config_ignore_small_overhangs = m_object_config->support_ignore_small_overhang.value;
+    if (config_ignore_small_overhangs) {
         std::vector<OverhangCluster> clusters;
       double fw_scaled = scale_(extrusion_width);
         std::set<ExPolygon*> removed_overhang;

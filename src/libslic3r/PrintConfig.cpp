@@ -4948,10 +4948,10 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("support_remove_small_overhang", coBool);
-    def->label = L("Remove small overhangs");
+    def = this->add("support_ignore_small_overhang", coBool);
+    def->label = L("Ignore small overhangs");
     def->category = L("Support");
-    def->tooltip = L("Remove small overhangs that possibly need no supports.");
+    def->tooltip = L("Ignore small overhangs that possibly don't require support.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -6804,6 +6804,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "support_angle";
     } else if (opt_key == "support_material_enforce_layers") {
         opt_key = "enforce_support_layers";
+    } else if (opt_key == "support_remove_small_overhang") {
+        opt_key = "support_ignore_small_overhang";
     } else if ((opt_key == "initial_layer_print_height"   ||
                 opt_key == "initial_layer_speed"          ||
                 opt_key == "internal_solid_infill_speed"  ||
@@ -6911,7 +6913,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "acceleration", "scale", "rotate", "duplicate", "duplicate_grid",
         "bed_size",
         "print_center", "g0", "wipe_tower_per_color_wipe", 
-        "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
+        "support_sharp_tails","support_ignore_small_overhangs", "support_with_sheath",
         "tree_support_collision_resolution", "tree_support_with_infill",
         "max_volumetric_speed", "max_print_speed",
         "support_closing_radius",

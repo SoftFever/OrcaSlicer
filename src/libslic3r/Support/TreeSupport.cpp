@@ -659,7 +659,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
     const bool bridge_no_support = max_bridge_length > 0;
     const bool support_critical_regions_only = config.support_critical_regions_only.value;
-    bool config_remove_small_overhangs = config.support_remove_small_overhang.value;
+    bool config_ignore_small_overhangs = config.support_ignore_small_overhang.value;
     bool config_detect_sharp_tails = g_config_support_sharp_tails;
     const int enforce_support_layers = config.enforce_support_layers.value;
     const double area_thresh_well_supported = SQ(scale_(6));
@@ -821,7 +821,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 if (duration > 30 || overhangs_all_layers[layer_nr].size() > 100) {
                     BOOST_LOG_TRIVIAL(info) << "detect_overhangs takes more than 30 secs, skip cantilever and sharp tails detection: layer_nr=" << layer_nr << " duration=" << duration;
                     config_detect_sharp_tails = false;
-                    config_remove_small_overhangs = false;
+                    config_ignore_small_overhangs = false;
                     continue;
                 }
                 if (is_auto(stype) && config_detect_sharp_tails)
@@ -973,7 +973,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers, &m_vertical_enforcer_points);
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
 
-    if (is_auto(stype) && config_remove_small_overhangs) {
+    if (is_auto(stype) && config_ignore_small_overhangs) {
         // remove small overhangs
         for (auto& cluster : overhangClusters) {
             // 3. check whether the small overhang is sharp tail
