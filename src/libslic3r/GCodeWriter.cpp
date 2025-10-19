@@ -372,7 +372,7 @@ std::string GCodeWriter::set_input_shaping(char axis, float damp, float freq, st
                 gcode << " SHAPER_FREQ_" << axis << "=" << std::fixed << std::setprecision(2) << freq;
             }
             if (damp > 0.0f){
-                gcode  << " DAMPING_RATIO_" << axis << "=" << damp;
+                gcode  << " DAMPING_RATIO_" << axis << "=" << std::fixed << std::setprecision(3) << damp;
             }
         } else {
             if (freq > 0.0f) {

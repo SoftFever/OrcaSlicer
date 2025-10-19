@@ -57,7 +57,7 @@ Every firmware and even its version may have a different default type but usuall
 > This test **will set the values to high values** limited by your printer's motion ability and the filament's max volumetric speed (avoid materials below 10 mm³/s).
 
 1. Select the Test Model ´Ringing Tower´ (Recommended) or ´Fast Tower´ (Reduced version useful for printers with high ringing).
-2. Select the [Input Shaper Type](#types) you want to use test. Each firmware has different types available and each type has different performance.
+2. Select the [Input Shaper Type](#types) you want to test. Each firmware has different types available and each type has different performance.
 3. Select a range of frequencies to test. The Default 15hz to 110hz range is usually a good start.
 4. Select your damping. Usually, a value between 0.1 and 0.2 is a good start but you can change it to 0 and your printer will use the firmware default value (if available).  
    ![IS_freq_menu](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_freq_menu.png?raw=true)
@@ -84,11 +84,11 @@ Every firmware and even its version may have a different default type but usuall
      - Klipper:
        - Skeleton
        ```gcode
-       SET_INPUT_SHAPER SHAPER_TYPE=TYPE SHAPER_FREQ_X=#Xfrequency DAMPING_RATIO_X=#XDamping        SHAPER_FREQ_Y=#Yfrequency DAMPING_RATIO_Y=#YDamping
+       SET_INPUT_SHAPER SHAPER_TYPE=TYPE SHAPER_FREQ_X=#Xfrequency DAMPING_RATIO_X=#XDamping SHAPER_FREQ_Y=#Yfrequency DAMPING_RATIO_Y=#YDamping
        ```
        Example
        ```gcode
-       SET_INPUT_SHAPER SHAPER_TYPE=MZV SHAPER_FREQ_X=37.25 DAMPING_RATIO_X=0.16 SHAPER_FREQ_Y=37.5       DAMPING_RATIO_Y=0.06
+       SET_INPUT_SHAPER SHAPER_TYPE=MZV SHAPER_FREQ_X=37.25 DAMPING_RATIO_X=0.16 SHAPER_FREQ_Y=37.5 DAMPING_RATIO_Y=0.06
        ```
      - Marlin:
        - Skeleton
