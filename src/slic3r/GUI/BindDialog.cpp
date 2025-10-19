@@ -232,6 +232,8 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     m_button_close->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_cancel), NULL, this);
 
     m_simplebook->SetSelection(0);
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void PingCodeBindDialog::on_key_input(wxKeyEvent& evt)
