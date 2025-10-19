@@ -30,6 +30,8 @@ private:
 	wxString m_text;
 	bool m_skip_size_evt = false;
 
+	static wxString fontFace;
+
 public:
     static wxFont Head_48;
     static wxFont Head_32;
@@ -53,8 +55,8 @@ public:
 	static wxFont Body_11;
 	static wxFont Body_9;
 	static wxFont Body_8;
-	
-	static void initSysFont();
+
+	static void initSysFont(bool useSystemFont);
 
     static wxFont sysFont(int size, bool bold = false);
 
