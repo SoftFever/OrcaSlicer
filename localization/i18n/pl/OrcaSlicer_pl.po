@@ -6857,10 +6857,10 @@ msgstr "Ameryka Północna"
 msgid "Others"
 msgstr "Inne"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "Region logowania"
 
-msgid "Stealth Mode"
+msgid "Stealth mode"
 msgstr "Tryb niewidoczny"
 
 msgid ""
@@ -6871,10 +6871,13 @@ msgstr ""
 "korzystają z maszyn BBL lub używają trybu „tylko LAN”, mogą bezpiecznie "
 "włączyć tę funkcję."
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "Włączenie wtyczki sieciowej"
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgid "Use legacy network plugin"
 msgstr ""
 
 msgid ""
@@ -6917,7 +6920,7 @@ msgstr ""
 msgid "Home"
 msgstr "Strona główna"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr "Domyślna strona"
 
 msgid "Set the page opened on startup."
@@ -7013,15 +7016,18 @@ msgstr ""
 "Automatycznie zapamiętuje i przełącza konfigurację filamentu/procesu dla "
 "każdej drukarki."
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
-msgstr "Obsługiwanie wielu urządzeń (wymaga ponownego uruchomienia programu)"
+msgid "Multi device management"
+msgstr "Obsługiwanie wielu urządzeń"
+
+msgid "(Requires restart)"
+msgstr ""
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7094,8 +7100,11 @@ msgstr "Pytanie zawsze"
 msgid "Load Geometry Only"
 msgstr "Wczytanie tylko geometrii"
 
-msgid "Load Behaviour"
+msgid "Load behaviour"
 msgstr "Zachowanie przy wczytywaniu"
+
+msgid "Behaviour"
+msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7108,16 +7117,16 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Wyczyść wybory na niezapisanych projektach."
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Brak ostrzeżeń przy wczytywaniu plików 3MF z zmodyfikowanymi G-code"
 
-msgid "Auto-Backup"
+msgid "Auto backup"
 msgstr "Automatyczne tworzenie kopii zapasowej"
 
 msgid ""
@@ -7135,10 +7144,13 @@ msgstr "Określa okres kopii zapasowej w sekundach."
 msgid "Downloads"
 msgstr "Położenie pobierania"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "Tryb ciemny"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "Włączenie trybu ciemnego"
 
 msgid "Develop mode"
@@ -17430,6 +17442,9 @@ msgid "Delete input"
 msgstr "Usuń wejście"
 
 msgid "Network Test"
+msgstr "Test sieci"
+
+msgid "Network test"
 msgstr "Test sieci"
 
 msgid "Start Test Multi-Thread"
