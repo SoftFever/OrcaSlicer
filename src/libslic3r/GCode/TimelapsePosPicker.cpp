@@ -14,7 +14,7 @@ namespace Slic3r {
 
         m_nozzle_height_to_rod = print_->config().extruder_clearance_height_to_rod;
         m_nozzle_clearance_radius = print_->config().extruder_clearance_radius;
-        if (print_->config().nozzle_diameter.size() > 1) {
+        if (print_->config().nozzle_diameter.size() > 1 && print_->config().extruder_printable_height.size() > 1) {
             m_extruder_height_gap = std::abs(print_->config().extruder_printable_height.values[0] - print_->config().extruder_printable_height.values[1]);
             m_liftable_extruder_id = print_->config().extruder_printable_height.values[0] < print_->config().extruder_printable_height.values[1] ? 0 : 1;
         }

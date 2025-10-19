@@ -17,6 +17,7 @@ static const wxColour BackGroundColor = wxColour("#FFFFFF");
 static bool should_pop_up()
 {
     const auto &preset_bundle    = wxGetApp().preset_bundle;
+    if (!preset_bundle->is_bbl_vendor()) return false;
     const auto &full_config      = preset_bundle->full_config();
     const auto  nozzle_diameters = full_config.option<ConfigOptionFloats>("nozzle_diameter");
     return nozzle_diameters->size() > 1;

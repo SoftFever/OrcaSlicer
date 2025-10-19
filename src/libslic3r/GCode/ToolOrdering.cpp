@@ -139,7 +139,9 @@ static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintCon
 {
     FilamentChangeStats ret;
     std::unordered_map<int, int> flush_volume_per_filament;
-    std::vector<unsigned int>last_filament_per_extruder(2, -1);
+    int max_extruder_id = *std::max_element(filament_map.begin(), filament_map.end());
+    assert(max_extruder_id >= 0);
+    std::vector<unsigned int>last_filament_per_extruder(max_extruder_id + 1, -1);
 
     int total_filament_change_count = 0;
     float total_filament_flush_weight = 0;
@@ -1081,7 +1083,7 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
     std::vector<int>ret(filament_nums, master_extruder_id);
     bool ignore_ext_filament = false; // TODO: read from config
     // if mutli_extruder, calc group,otherwise set to 0
-    if (extruder_nums == 2) {
+    if (extruder_nums == 2 && print->is_BBL_printer()) {
         std::vector<std::string> extruder_ams_count_str = print_config.extruder_ams_count.values;
         auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
         std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, ignore_ext_filament);
@@ -1134,6 +1136,12 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
             FilamentGroup fg(context);
             fg.get_custom_seq = get_custom_seq;
             ret = fg.calc_filament_group();
+        }
+    } else if (extruder_nums > 1) {
+        // For non-bbl multi-extruder printers we don't support filament group yet, and we use filament id as extruder id
+        assert(extruder_nums == filament_nums);
+        for (int i = 0; i < filament_nums; i++) {
+            ret[i] = i;
         }
     }
 
@@ -1227,6 +1235,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         }
         std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value - 1; });
 
+        if (m_print->is_BBL_printer())
         check_filament_printable_after_group(used_filaments, filament_maps, print_config);
     }
     else {
@@ -1268,6 +1277,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         return false;
         };
 
+    if (m_print->is_BBL_printer() || number_of_extruders == 1){
     reorder_filaments_for_minimum_flush_volume(
         filament_lists,
         filament_maps,
@@ -1276,6 +1286,10 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         get_custom_seq,
         &filament_sequences
     );
+    } else {
+        // For non-bbl multi-extruder printers we don't support filament group yet, so we keep the layer sequence because we don't flush based on order
+        filament_sequences = layer_filaments;
+    }
 
     auto curr_flush_info = calc_filament_change_info_by_toolorder(print_config, filament_maps, nozzle_flush_mtx, filament_sequences);
     if (nozzle_nums <= 1)

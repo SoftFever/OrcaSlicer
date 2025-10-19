@@ -1161,7 +1161,7 @@ void GCodeProcessor::run_post_process()
                             out += " S" + std::to_string(temperature) + "\n";
                             return out;
                         } else {
-                            const int real_tool = m_physical_extruder_map[tool_number];
+                            const int real_tool = tool_number < m_physical_extruder_map.size() ? m_physical_extruder_map[tool_number] : tool_number;
                             std::string comment = "preheat T" + std::to_string(real_tool) +
                                                 " time: " + std::to_string((int) std::round(time_diffs[0])) + "s";
                             return GCodeWriter::set_temperature(temperature, this->m_flavor, false, real_tool, comment);
@@ -1176,7 +1176,7 @@ void GCodeProcessor::run_post_process()
 
                             float val;
                             if (gline.has_value('T', val) && gline.raw().find("cooldown") != std::string::npos) {
-                                if (static_cast<int>(val) == m_physical_extruder_map[tool_number])
+                                if (static_cast<int>(val) == (tool_number < m_physical_extruder_map.size() ? m_physical_extruder_map[tool_number] : tool_number))
                                     return std::string("; removed M104\n");
                             }
                         }
@@ -1781,7 +1781,7 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
                 //bbox.merge(bbox_custom);          // merge the custom gcode pos with other pos*/
                 // check printable area
                 // Simplified use bounding_box, Accurate calculation is not efficient
-                if (!unprintable_areas[extruder_id].empty())
+                if ((extruder_id < unprintable_areas.size()) && !unprintable_areas[extruder_id].empty())
                     for (Polygon poly : unprintable_areas[extruder_id]) {
                         poly.translate(plate_offset);
                         if (poly.bounding_box().overlap(bbox)) {
@@ -2300,7 +2300,7 @@ void GCodeProcessor::reset()
     m_e_local_positioning_type = EPositioningType::Absolute;
     m_extruder_offsets = std::vector<Vec3f>(MIN_EXTRUDERS_COUNT, Vec3f::Zero());
     m_flavor = gcfRepRapSprinter;
-    m_nozzle_volume = {0.f,0.f};
+    m_nozzle_volume = std::vector<float>(MAXIMUM_EXTRUDER_NUMBER, 0.f);
 
     m_start_position = { 0.0f, 0.0f, 0.0f, 0.0f };
     m_end_position = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -2310,7 +2310,7 @@ void GCodeProcessor::reset()
     m_flushing = false;
     m_virtual_flushing = false;
     m_wipe_tower = false;
-    m_remaining_volume = { 0.f,0.f };
+    m_remaining_volume = std::vector<float>(MAXIMUM_EXTRUDER_NUMBER, 0.f);
     // BBS: arc move related data
     m_move_path_type = EMovePathType::Noop_move;
     m_arc_center = Vec3f::Zero();
@@ -2329,8 +2329,8 @@ void GCodeProcessor::reset()
 
     m_extrusion_role = erNone;
 
-    m_filament_id = {static_cast<unsigned char>(-1),static_cast<unsigned char>(-1)};
-    m_last_filament_id = {static_cast<unsigned char>(-1),static_cast<unsigned char>(-1) };
+    m_filament_id = std::vector<unsigned char>(MAXIMUM_EXTRUDER_NUMBER, static_cast<unsigned char>(-1));
+    m_last_filament_id = std::vector<unsigned char>(MAXIMUM_EXTRUDER_NUMBER, static_cast<unsigned char>(-1));
     m_extruder_id = static_cast<unsigned char>(-1);
     m_extruder_colors.resize(MIN_EXTRUDERS_COUNT);
     for (size_t i = 0; i < MIN_EXTRUDERS_COUNT; ++i) {

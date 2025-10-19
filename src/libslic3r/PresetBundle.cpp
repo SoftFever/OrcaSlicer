@@ -1901,8 +1901,8 @@ void PresetBundle::update_selections(AppConfig &config)
         auto flush_volumes_vector = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
         project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values = std::vector<double>(flush_volumes_vector.begin(), flush_volumes_vector.end());
     }
-    if (config.has("app", "flush_multiplier")) {
-        boost::algorithm::split(matrix, config.get("app", "flush_multiplier"), boost::algorithm::is_any_of("|"));
+    if (config.has_printer_setting(initial_printer_profile_name, "flush_multiplier")) {
+        boost::algorithm::split(matrix, config.get_printer_setting(initial_printer_profile_name, "flush_multiplier"), boost::algorithm::is_any_of("|"));
         auto flush_multipliers = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
         project_config.option<ConfigOptionFloats>("flush_multiplier")->values = std::vector<double>(flush_multipliers.begin(), flush_multipliers.end());
     }
@@ -2034,8 +2034,8 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         auto flush_volumes_vector = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
         project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values = std::vector<double>(flush_volumes_vector.begin(), flush_volumes_vector.end());
     }
-    if (config.has("app", "flush_multiplier")) {
-        boost::algorithm::split(matrix, config.get("app", "flush_multiplier"), boost::algorithm::is_any_of("|"));
+    if (config.has_printer_setting(initial_printer_profile_name, "flush_multiplier")) {
+        boost::algorithm::split(matrix, config.get_printer_setting(initial_printer_profile_name, "flush_multiplier"), boost::algorithm::is_any_of("|"));
         auto flush_multipliers = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
         project_config.option<ConfigOptionFloats>("flush_multiplier")->values = std::vector<double>(flush_multipliers.begin(), flush_multipliers.end());
     }
@@ -2153,7 +2153,7 @@ void PresetBundle::export_selections(AppConfig &config)
     std::string flush_multiplier_str = boost::algorithm::join(project_config.option<ConfigOptionFloats>("flush_multiplier")->values |
                                                                   boost::adaptors::transformed(static_cast<std::string (*)(double)>(std::to_string)),
                                                               "|");
-    config.set("flush_multiplier", flush_multiplier_str);
+    config.set_printer_setting(printer_name, "flush_multiplier", flush_multiplier_str);
 
     // BBS
     //config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());

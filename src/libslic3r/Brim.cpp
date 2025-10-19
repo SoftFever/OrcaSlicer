@@ -1095,11 +1095,10 @@ static ExPolygons outer_inner_brim_area(const Print& print,
     }
 
     int  extruder_nums = print.config().nozzle_diameter.values.size();
-    std::vector<Polygons> extruder_unprintable_area;
-    if (extruder_nums == 1)
-        extruder_unprintable_area.emplace_back(Polygons{Model::getBedPolygon()});
-    else {
-        extruder_unprintable_area = print.get_extruder_printable_polygons();
+    std::vector<Polygons> extruder_unprintable_area = print.get_extruder_printable_polygons();
+    // Orca: if per-extruder print area is not specified, use the whole bed as printable area for all extruders
+    if (extruder_unprintable_area.empty()) {
+        extruder_unprintable_area.resize(extruder_nums, Polygons{Model::getBedPolygon()});
     }
     std::vector<int> filament_map = print.get_filament_maps();
 

@@ -17,7 +17,7 @@ public:
     bool multiple_extruders;
 
     GCodeWriter() :
-        multiple_extruders(false), m_curr_filament_extruder{ nullptr,nullptr },
+        multiple_extruders(false), m_curr_filament_extruder(MAXIMUM_EXTRUDER_NUMBER, nullptr),
         m_curr_extruder_id (-1),
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0),m_last_travel_acceleration(0), m_max_travel_acceleration(0),

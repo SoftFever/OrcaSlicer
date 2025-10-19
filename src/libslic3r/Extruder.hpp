@@ -17,8 +17,8 @@ public:
     void   reset() {
         // BBS
         if (m_share_extruder) {
-            m_share_E = { 0.,0.};
-            m_share_retracted = { 0.,0. };
+            m_share_E = std::vector<double>(MAXIMUM_EXTRUDER_NUMBER, 0);
+            m_share_retracted = std::vector<double>(MAXIMUM_EXTRUDER_NUMBER, 0);
         } else {
             m_E             = 0;
             m_retracted     = 0;

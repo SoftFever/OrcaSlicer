@@ -15523,7 +15523,7 @@ void Plater::update_flush_volume_matrix(size_t old_nozzle_size, size_t new_nozzl
         if (first_flush_volume_mtx.size() == filament_nums * filament_nums * new_nozzle_size) { // load file
             set_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, first_flush_volume_mtx, -1, new_nozzle_size);
         } else {
-            first_flush_volume_mtx.resize(filament_nums * filament_nums);
+            first_flush_volume_mtx.resize(filament_nums * filament_nums, 0);
             std::vector<double> flush_volume_mtx;
             for (size_t i = 0; i < new_nozzle_size; ++i) {
                 flush_volume_mtx.insert(flush_volume_mtx.end(), first_flush_volume_mtx.begin(), first_flush_volume_mtx.end());
@@ -15538,7 +15538,7 @@ void Plater::update_flush_volume_matrix(size_t old_nozzle_size, size_t new_nozzl
         std::vector<double> new_flush_volume_mtx;
         for (size_t i = 0; i < new_nozzle_size; ++i) {
             std::vector<double> flush_volume_mtx = get_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, -1, old_nozzle_size);
-            flush_volume_mtx.resize(filament_nums * filament_nums);
+            flush_volume_mtx.resize(filament_nums * filament_nums, 0);
             new_flush_volume_mtx.insert(new_flush_volume_mtx.end(), flush_volume_mtx.begin(), flush_volume_mtx.end());
         }
 

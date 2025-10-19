@@ -3,8 +3,8 @@
 
 namespace Slic3r {
 
-std::vector<double> Extruder::m_share_E = {0.,0.};
-std::vector<double> Extruder::m_share_retracted = {0.,0.};
+std::vector<double> Extruder::m_share_E = std::vector<double>(MAXIMUM_EXTRUDER_NUMBER, 0);
+std::vector<double> Extruder::m_share_retracted = std::vector<double>(MAXIMUM_EXTRUDER_NUMBER, 0);
 
 Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     m_id(id),
