@@ -6480,10 +6480,10 @@ msgstr ""
 msgid "Others"
 msgstr ""
 
-msgid "Login region"
+msgid "Login Region"
 msgstr ""
 
-msgid "Stealth mode"
+msgid "Stealth Mode"
 msgstr ""
 
 msgid ""
@@ -6491,13 +6491,10 @@ msgid ""
 "don't use BBL machines or use LAN mode only can safely turn on this function."
 msgstr ""
 
-msgid "Network plugin"
-msgstr ""
-
 msgid "Enable network plugin"
 msgstr ""
 
-msgid "Use legacy network plugin"
+msgid "Use legacy network plugin (Takes effect after restarting Orca)"
 msgstr ""
 
 msgid ""
@@ -6534,7 +6531,7 @@ msgstr ""
 msgid "Home"
 msgstr ""
 
-msgid "Default page"
+msgid "Default Page"
 msgstr ""
 
 msgid "Set the page opened on startup."
@@ -6618,17 +6615,14 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Show options when importing STEP file"
+msgid "Show the step mesh parameter setting dialog."
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi device management"
-msgstr ""
-
-msgid "(Requires restart)"
+msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
 msgstr ""
 
 msgid ""
@@ -6705,10 +6699,7 @@ msgstr ""
 msgid "Load Geometry Only"
 msgstr ""
 
-msgid "Load behaviour"
-msgstr ""
-
-msgid "Behaviour"
+msgid "Load Behaviour"
 msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
@@ -6720,16 +6711,16 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add STL/STEP files to recent files list"
+msgid "Add model files (stl/step) to recent file list."
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr ""
 
-msgid "Don't warn when loading 3MF with modified G-code"
+msgid "No warnings when loading 3MF with modified G-code"
 msgstr ""
 
-msgid "Auto backup"
+msgid "Auto-Backup"
 msgstr ""
 
 msgid ""
@@ -6747,14 +6738,11 @@ msgstr ""
 msgid "Downloads"
 msgstr ""
 
-msgid "Downloads folder"
-msgstr ""
-
 msgid "Dark Mode"
 msgstr ""
 
-msgid "Enable dark mode"
-msgstr "Enable dark Mode"
+msgid "Enable Dark mode"
+msgstr "Enable Dark Mode"
 
 msgid "Develop mode"
 msgstr "Developer mode"
@@ -15513,9 +15501,6 @@ msgid "Delete input"
 msgstr ""
 
 msgid "Network Test"
-msgstr ""
-
-msgid "Network test"
 msgstr ""
 
 msgid "Start Test Multi-Thread"

@@ -6684,10 +6684,10 @@ msgstr "북아메리카"
 msgid "Others"
 msgstr "기타"
 
-msgid "Login region"
+msgid "Login Region"
 msgstr "로그인 지역"
 
-msgid "Stealth mode"
+msgid "Stealth Mode"
 msgstr "스텔스 모드"
 
 msgid ""
@@ -6697,13 +6697,10 @@ msgstr ""
 "이 기능은 뱀부의 클라우드 서비스로의 데이터 전송을 중지합니다. BBL 머신을 사"
 "용하지 않거나 LAN 모드만 사용하는 사용자는 이 기능을 안전하게 켤 수 있습니다."
 
-msgid "Network plugin"
-msgstr ""
-
 msgid "Enable network plugin"
 msgstr "네트워크 플러그인 사용"
 
-msgid "Use legacy network plugin"
+msgid "Use legacy network plugin (Takes effect after restarting Orca)"
 msgstr ""
 
 msgid ""
@@ -6745,7 +6742,7 @@ msgstr ""
 msgid "Home"
 msgstr "홈"
 
-msgid "Default page"
+msgid "Default Page"
 msgstr "기본 페이지"
 
 msgid "Set the page opened on startup."
@@ -6838,18 +6835,15 @@ msgstr ""
 "활성화하면 Orca는 각 프린터의 필라멘트/프로세스 구성을 자동으로 기억하고 전환"
 "합니다."
 
-msgid "Show options when importing STEP file"
+msgid "Show the step mesh parameter setting dialog."
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi device management"
-msgstr "다중 장치 관리"
-
-msgid "(Requires restart)"
-msgstr ""
+msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
+msgstr "다중 장치 관리 (Orca를 다시 시작한 후 적용됨)."
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -6924,11 +6918,8 @@ msgstr "항상 물어보세요"
 msgid "Load Geometry Only"
 msgstr "형상만 로드"
 
-msgid "Load behaviour"
+msgid "Load Behaviour"
 msgstr "행동 로드"
-
-msgid "Behaviour"
-msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ".3mf를 열 때 프린터/필라멘트/프로세스 설정이 로드되어야 합니까?"
@@ -6939,16 +6930,16 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add STL/STEP files to recent files list"
+msgid "Add model files (stl/step) to recent file list."
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "저장되지 않은 프로젝트에서 내 선택을 지웁니다."
 
-msgid "Don't warn when loading 3MF with modified G-code"
+msgid "No warnings when loading 3MF with modified G-code"
 msgstr "수정된 Gcode로 3MF를 로드할 때 경고 없음"
 
-msgid "Auto backup"
+msgid "Auto-Backup"
 msgstr "자동 백업"
 
 msgid ""
@@ -6964,13 +6955,10 @@ msgstr "백업 기간(초)입니다."
 msgid "Downloads"
 msgstr "다운로드"
 
-msgid "Downloads folder"
-msgstr ""
-
 msgid "Dark Mode"
 msgstr "다크 모드"
 
-msgid "Enable dark mode"
+msgid "Enable Dark mode"
 msgstr "다크 모드 사용"
 
 msgid "Develop mode"
@@ -16751,9 +16739,6 @@ msgid "Delete input"
 msgstr "입력객체 삭제"
 
 msgid "Network Test"
-msgstr "네트워크 테스트"
-
-msgid "Network test"
 msgstr "네트워크 테스트"
 
 msgid "Start Test Multi-Thread"

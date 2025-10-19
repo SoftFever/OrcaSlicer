@@ -6878,11 +6878,11 @@ msgstr "América do Norte"
 msgid "Others"
 msgstr "Outros"
 
-msgid "Login region"
-msgstr "Região de login"
+msgid "Login Region"
+msgstr "Região de Login"
 
-msgid "Stealth mode"
-msgstr "Modo oculto"
+msgid "Stealth Mode"
+msgstr "Modo Oculto"
 
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
@@ -6892,14 +6892,11 @@ msgstr ""
 "Os usuários que não usam máquinas BBL ou usar modo LAN só podem ativar esta "
 "função com segurança."
 
-msgid "Network plugin"
-msgstr ""
-
 msgid "Enable network plugin"
 msgstr "Ativar plugin de rede"
 
-msgid "Use legacy network plugin"
-msgstr "Usar o plugin de rede legado"
+msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgstr "Usar o plugin de rede legado (entra em vigor após reiniciar o Orca)"
 
 msgid ""
 "Disable to use latest network plugin that supports new BambuLab firmwares."
@@ -6943,8 +6940,8 @@ msgstr ""
 msgid "Home"
 msgstr "Início"
 
-msgid "Default page"
-msgstr "Página padrão"
+msgid "Default Page"
+msgstr "Página Padrão"
 
 msgid "Set the page opened on startup."
 msgstr "Define a página aberta na inicialização."
@@ -7038,18 +7035,17 @@ msgstr ""
 "Se ativo, Orca vai lembrar e alternar a configuração de filamento/processo "
 "para cada impressora automaticamente."
 
-msgid "Show options when importing STEP file"
+msgid "Show the step mesh parameter setting dialog."
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi device management"
-msgstr "Gerenciamento de multi dispositivos"
-
-msgid "(Requires restart)"
+msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
 msgstr ""
+"Gerenciamento de Multi-dispositivos (Entra em vigor após reiniciar o "
+"OrcaSlicer)."
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7127,11 +7123,8 @@ msgstr "Perguntar Sempre"
 msgid "Load Geometry Only"
 msgstr "Carregar Apenas Geometria"
 
-msgid "Load behaviour"
-msgstr "Comportamento de carregamento"
-
-msgid "Behaviour"
-msgstr ""
+msgid "Load Behaviour"
+msgstr "Comportamento de Carregamento"
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7144,17 +7137,17 @@ msgstr "Máximo de arquivos recentes"
 msgid "Maximum count of recent files"
 msgstr "Contagem máxima de arquivos recentes"
 
-msgid "Add STL/STEP files to recent files list"
-msgstr "Adicionar arquivos de modelo STL/STEP à lista de arquivos recentes"
+msgid "Add model files (stl/step) to recent file list."
+msgstr "Adicionar arquivos de modelo (stl/step) à lista de arquivos recentes."
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Limpar minha escolha nos projetos não salvos."
 
-msgid "Don't warn when loading 3MF with modified G-code"
+msgid "No warnings when loading 3MF with modified G-code"
 msgstr "Sem avisos ao carregar 3MF com G-code modificado"
 
-msgid "Auto backup"
-msgstr "Backup automático"
+msgid "Auto-Backup"
+msgstr "Backup Automático"
 
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
@@ -7171,14 +7164,11 @@ msgstr "O período de backup em segundos."
 msgid "Downloads"
 msgstr "Transferências"
 
-msgid "Downloads folder"
-msgstr ""
-
 msgid "Dark Mode"
 msgstr "Modo Escuro"
 
-msgid "Enable dark mode"
-msgstr "Ativar modo escuro"
+msgid "Enable Dark mode"
+msgstr "Ativar Modo Escuro"
 
 msgid "Develop mode"
 msgstr "Modo de Desenvolvimento"
@@ -17679,9 +17669,6 @@ msgid "Delete input"
 msgstr "Excluir entrada"
 
 msgid "Network Test"
-msgstr "Teste de Rede"
-
-msgid "Network test"
 msgstr "Teste de Rede"
 
 msgid "Start Test Multi-Thread"

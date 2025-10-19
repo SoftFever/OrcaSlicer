@@ -6878,11 +6878,11 @@ msgstr "Nord-America"
 msgid "Others"
 msgstr "Altres"
 
-msgid "Login region"
+msgid "Login Region"
 msgstr "Regió d'inici de sessió"
 
-msgid "Stealth mode"
-msgstr "Mode silenciós"
+msgid "Stealth Mode"
+msgstr "Mode Silenciós"
 
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
@@ -6892,13 +6892,10 @@ msgstr ""
 "usuaris que no utilitzen màquines BBL o només utilitzen el mode LAN poden "
 "activar aquesta funció de manera segura."
 
-msgid "Network plugin"
-msgstr ""
-
 msgid "Enable network plugin"
 msgstr "Habilita el plugin de xarxa"
 
-msgid "Use legacy network plugin"
+msgid "Use legacy network plugin (Takes effect after restarting Orca)"
 msgstr ""
 
 msgid ""
@@ -6942,7 +6939,7 @@ msgstr ""
 msgid "Home"
 msgstr "Inici"
 
-msgid "Default page"
+msgid "Default Page"
 msgstr "Pàgina predeterminada"
 
 msgid "Set the page opened on startup."
@@ -7045,18 +7042,15 @@ msgstr ""
 "Si està habilitada, l'Orca recordarà i canviarà automàticament la "
 "configuració del filament/procés per a cada impressora."
 
-msgid "Show options when importing STEP file"
+msgid "Show the step mesh parameter setting dialog."
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi device management"
-msgstr "Gestió multidispositiu"
-
-msgid "(Requires restart)"
-msgstr ""
+msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
+msgstr "Gestió multidispositiu(Entra en vigor després de reiniciar Studio)."
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7136,11 +7130,8 @@ msgstr "Pregunta sempre"
 msgid "Load Geometry Only"
 msgstr "Carregar només geometria"
 
-msgid "Load behaviour"
-msgstr "Carregar comportament"
-
-msgid "Behaviour"
-msgstr ""
+msgid "Load Behaviour"
+msgstr "Carregar Comportament"
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7153,16 +7144,16 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add STL/STEP files to recent files list"
+msgid "Add model files (stl/step) to recent file list."
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Esborrar la meva elecció sobre els projectes no desats."
 
-msgid "Don't warn when loading 3MF with modified G-code"
+msgid "No warnings when loading 3MF with modified G-code"
 msgstr "No hi ha avisos en carregar 3MF amb Codis-G modificats"
 
-msgid "Auto backup"
+msgid "Auto-Backup"
 msgstr "Còpia de seguretat automàtica"
 
 msgid ""
@@ -7180,13 +7171,10 @@ msgstr "Freqüència de còpia de seguretat en segons."
 msgid "Downloads"
 msgstr "Descàrregues"
 
-msgid "Downloads folder"
-msgstr ""
-
 msgid "Dark Mode"
 msgstr "Mode fosc"
 
-msgid "Enable dark mode"
+msgid "Enable Dark mode"
 msgstr "Habilitar el mode fosc"
 
 msgid "Develop mode"
@@ -17552,9 +17540,6 @@ msgid "Delete input"
 msgstr "Esborrar entrada"
 
 msgid "Network Test"
-msgstr "Prova de Xarxa"
-
-msgid "Network test"
 msgstr "Prova de Xarxa"
 
 msgid "Start Test Multi-Thread"

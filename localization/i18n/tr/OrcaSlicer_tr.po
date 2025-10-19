@@ -6812,10 +6812,10 @@ msgstr "Kuzey Amerika"
 msgid "Others"
 msgstr "Diğer"
 
-msgid "Login region"
-msgstr "Giriş bölgesi"
+msgid "Login Region"
+msgstr "Giriş Bölgesi"
 
-msgid "Stealth mode"
+msgid "Stealth Mode"
 msgstr "Gizli mod"
 
 msgid ""
@@ -6826,14 +6826,12 @@ msgstr ""
 "kullanmayan veya yalnızca LAN modunu kullanan kullanıcılar bu işlevi güvenle "
 "açabilir."
 
-msgid "Network plugin"
-msgstr "Ağ eklentisi"
-
 msgid "Enable network plugin"
 msgstr "Ağ eklentisini etkinleştir"
 
-msgid "Use legacy network plugin"
-msgstr "Eski ağ eklentisini kullan"
+msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgstr ""
+"Eski ağ eklentisini kullan (Orca'yı yeniden başlattıktan sonra etkili olur)"
 
 msgid ""
 "Disable to use latest network plugin that supports new BambuLab firmwares."
@@ -6878,8 +6876,8 @@ msgstr ""
 msgid "Home"
 msgstr "Ana Sayfa"
 
-msgid "Default page"
-msgstr "Varsayılan sayfa"
+msgid "Default Page"
+msgstr "Varsayılan Sayfa"
 
 msgid "Set the page opened on startup."
 msgstr "Açılışta açılacak sayfayı ayarlayın."
@@ -6975,8 +6973,8 @@ msgstr ""
 "Etkinleştirilirse, Orca her yazıcı için filament/işlem yapılandırmasını "
 "hatırlayacak ve otomatik olarak değiştirecektir."
 
-msgid "Show options when importing STEP file"
-msgstr "STEP dosyasını içe aktarırken seçenekleri göster"
+msgid "Show the step mesh parameter setting dialog."
+msgstr "Step ağ parametresi ayar iletişim kutusunu göster."
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
@@ -6984,11 +6982,9 @@ msgstr ""
 "Etkinleştirilirse, STEP dosyası içe aktarılırken bir parametre ayarları "
 "iletişim kutusu görüntülenir."
 
-msgid "Multi device management"
-msgstr "Çoklu Cihaz Yönetimi"
-
-msgid "(Requires restart)"
-msgstr "(Yeniden başlatma gerektirir)"
+msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
+msgstr ""
+"Çoklu Cihaz Yönetimi(Studio yeniden başlatıldıktan sonra geçerli olur)."
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7066,11 +7062,8 @@ msgstr "Her Zaman Sor"
 msgid "Load Geometry Only"
 msgstr "Yalnızca Geometriyi Yükle"
 
-msgid "Load behaviour"
-msgstr "Yükleme davranışı"
-
-msgid "Behaviour"
-msgstr "Davranış"
+msgid "Load Behaviour"
+msgstr "Yükleme Davranışı"
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "Bir .3mf açılırken yazıcı/filament/işlem ayarları yüklenmeli mi?"
@@ -7081,16 +7074,16 @@ msgstr "Son kullanılan dosyaların maksimum sayısı"
 msgid "Maximum count of recent files"
 msgstr "Son dosyaların maksimum sayısı"
 
-msgid "Add STL/STEP files to recent files list"
-msgstr "STL/STEP dosyalarını son dosyalar listesine ekle"
+msgid "Add model files (stl/step) to recent file list."
+msgstr "Model dosyalarını (STL/STEP) son dosyalar listesine ekle."
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Kaydedilmemiş projelerdeki seçimimi temizle."
 
-msgid "Don't warn when loading 3MF with modified G-code"
-msgstr "Değiştirilmiş G-kodları içeren 3MF dosyalarını yüklerken uyarma"
+msgid "No warnings when loading 3MF with modified G-code"
+msgstr "Değiştirilmiş G-kodları içeren 3MF dosyalarını yüklerken uyarı verme"
 
-msgid "Auto backup"
+msgid "Auto-Backup"
 msgstr "Otomatik yedekleme"
 
 msgid ""
@@ -7108,13 +7101,10 @@ msgstr "Saniye cinsinden yedekleme periyodu."
 msgid "Downloads"
 msgstr "İndirilenler"
 
-msgid "Downloads folder"
-msgstr "İndirilenler klasörü"
-
 msgid "Dark Mode"
 msgstr "Karanlık Mod"
 
-msgid "Enable dark mode"
+msgid "Enable Dark mode"
 msgstr "Karanlık modu etkinleştir"
 
 msgid "Develop mode"
@@ -17472,9 +17462,6 @@ msgid "Delete input"
 msgstr "Girişi sil"
 
 msgid "Network Test"
-msgstr "Ağ Testi"
-
-msgid "Network test"
 msgstr "Ağ testi"
 
 msgid "Start Test Multi-Thread"

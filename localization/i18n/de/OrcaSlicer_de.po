@@ -6969,11 +6969,11 @@ msgstr "Nordamerika"
 msgid "Others"
 msgstr "Sonstiges"
 
-msgid "Login region"
-msgstr "Login region"
+msgid "Login Region"
+msgstr "Login-Region"
 
-msgid "Stealth mode"
-msgstr "Unsichtbarer modus"
+msgid "Stealth Mode"
+msgstr "Unsichtbarer Modus"
 
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
@@ -6983,14 +6983,13 @@ msgstr ""
 "Benutzer, die keine BBL-Maschinen verwenden oder nur den LAN-Modus "
 "verwenden, können diese Funktion sicher aktivieren."
 
-msgid "Network plugin"
-msgstr "Netzwerk-Plugin"
-
 msgid "Enable network plugin"
 msgstr "Netzwerk-Plugin aktivieren"
 
-msgid "Use legacy network plugin"
-msgstr "Verwenden Sie das alte Netzwerk-Plugin"
+msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgstr ""
+"Verwenden Sie das alte Netzwerk-Plugin (wirkt sich nach dem Neustart von "
+"Orca aus)"
 
 msgid ""
 "Disable to use latest network plugin that supports new BambuLab firmwares."
@@ -7033,7 +7032,7 @@ msgstr ""
 msgid "Home"
 msgstr "Startseite"
 
-msgid "Default page"
+msgid "Default Page"
 msgstr "Standardseite"
 
 msgid "Set the page opened on startup."
@@ -7128,7 +7127,7 @@ msgstr ""
 "Wenn aktiviert, merkt sich Orca die Filament-/Prozesskonfiguration für jeden "
 "Drucker und wechselt automatisch."
 
-msgid "Show options when importing STEP file"
+msgid "Show the step mesh parameter setting dialog."
 msgstr "Zeige den Dialog für die Parameter-Einstellungen des Step-Netzes."
 
 msgid ""
@@ -7136,11 +7135,8 @@ msgid ""
 msgstr ""
 "Wenn aktiviert, wird während des Imports von STEP-Dateien ein Dialogfeld "
 
-msgid "Multi device management"
-msgstr "Multi-Geräte-Verwaltung"
-
-msgid "(Requires restart)"
-msgstr ""
+msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
+msgstr "Multi-Geräte-Verwaltung (nach Neustart von Studio wirksam)."
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7218,11 +7214,8 @@ msgstr "Immer fragen"
 msgid "Load Geometry Only"
 msgstr "Nur Geometrie laden"
 
-msgid "Load behaviour"
+msgid "Load Behaviour"
 msgstr "Ladeverhalten"
-
-msgid "Behaviour"
-msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7235,18 +7228,19 @@ msgstr "Maximum zuletzt verwendeter Dateien"
 msgid "Maximum count of recent files"
 msgstr "Maximale Anzahl der zuletzt verwendeten Dateien"
 
-msgid "Add STL/STEP files to recent files list"
+msgid "Add model files (stl/step) to recent file list."
 msgstr ""
-"Modell-Dateien STL/STEP zur Liste der zuletzt verwendeten Dateien hinzufügen"
+"Modell-Dateien (stl/step) zur Liste der zuletzt verwendeten Dateien "
+"hinzufügen."
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Meine Auswahl für nicht gespeicherte Projekte löschen."
 
-msgid "Don't warn when loading 3MF with modified G-code"
+msgid "No warnings when loading 3MF with modified G-code"
 msgstr "Keine Warnungen beim Laden von 3MF mit modifizierten G-Codes"
 
-msgid "Auto backup"
-msgstr "Automatische datensicherung"
+msgid "Auto-Backup"
+msgstr "Automatische Datensicherung"
 
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
@@ -7263,14 +7257,11 @@ msgstr "Die Zeitdauer für die Sicherung in Sekunden."
 msgid "Downloads"
 msgstr "Downloads"
 
-msgid "Downloads folder"
-msgstr ""
-
 msgid "Dark Mode"
 msgstr "Dunkler Modus"
 
-msgid "Enable dark mode"
-msgstr "Dunklen modus aktivieren"
+msgid "Enable Dark mode"
+msgstr "Dunklen Modus aktivieren"
 
 msgid "Develop mode"
 msgstr "Entwicklermodus"
@@ -17897,9 +17888,6 @@ msgid "Delete input"
 msgstr "Eingabe löschen"
 
 msgid "Network Test"
-msgstr "Netzwerktest"
-
-msgid "Network test"
 msgstr "Netzwerktest"
 
 msgid "Start Test Multi-Thread"
