@@ -1,8 +1,6 @@
 # Pressure Advance
 
-Pressure Advance is a feature that compensates for the lag in filament pressure within the nozzle during acceleration and deceleration. It helps improve print quality by reducing issues like blobs, oozing, and inconsistent extrusion, especially at corners or during fast movements.
-
-OrcaSlicer includes three approaches for calibrating the Pressure Advance value. Each method has its own advantages and disadvantages. It is important to note that each method has two versions: one for a direct-drive extruder and one for a Bowden extruder. Make sure to select the appropriate version for your test.
+Pressure Advance (PA) (also called Linear Advance) compensates for the delay in filament pressure inside the nozzle during acceleration and deceleration. It improves print quality by reducing blobs, oozing, and inconsistent extrusion, especially at corners or during fast moves.
 
 > [!WARNING]
 > **Marlin Printers:** Linear Advance must be enabled in firmware (M900).  
@@ -19,10 +17,29 @@ OrcaSlicer includes three approaches for calibrating the Pressure Advance value.
 
 ## Calibration
 
-You can use different methods to calibrate the Pressure Advance value, each with its own advantages and disadvantages.
+You can use different methods to calibrate the Pressure Advance value, each with its own pros and cons.  
+OrcaSlicer includes three calibration methods, and each one has two versions: one for direct-drive and one for Bowden extruders. Make sure to choose the correct version for your setup.
 
-The results from these methods should be saved to the material profile.  
-![pressure_advance_enable](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/pa/pressure_advance_enable.png?raw=true)
+The nozzle size also plays a key role in determining the optimal PA value. A smaller nozzle increases flow resistance, which changes how pressure builds up and releases. Even with the same material, you’ll need to recalibrate PA when switching nozzle sizes.
+
+The results from these methods should be saved to the material profile in one of the following ways:
+
+- Nozzle, Pressure Advance **- Recommended**: This will apply the value specified for the selected nozzle size only or a linear interpolation between two nozzle sizes if the exact size is not specified.
+  ```c++
+  0.25,0.09
+  0.3,0.065
+  0.35,0.05
+  0.4,0.02
+  0.5,0.018
+  0.6,0.012
+  0.8,0.01
+  ```
+  ![pressure_advance_enable_multi](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/pa/pressure_advance_enable_multi.png?raw=true)
+- Global, Pressure Advance **- Legacy**: This applies a single Pressure Advance (PA) value with no per-nozzle entries. Not recommended unless you use only one nozzle size.
+  ```c++
+  0.02
+  ```
+  ![pressure_advance_enable_single](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/pa/pressure_advance_enable_single.png?raw=true)
 
 > [!TIP]
 > Consider using the [Adaptive Pressure Advance](adaptive-pressure-advance-calib) method for more accurate results.  
