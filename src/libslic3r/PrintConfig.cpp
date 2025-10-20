@@ -1725,7 +1725,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("perimeter_overlap", coPercent);
     def->label    = L("Extra wall overlap");
     def->category = L("Advanced");
-    def->tooltip  = L("This parameter increases the default wall overlap by a percentage. The percentage value is relative to wall line width."
+    def->tooltip  = L("This parameter increases the default wall overlap by a percentage. The percentage value is relative to wall line width. "
                       "Increasing this value improves wall adhesion, especially when using small nozzles that struggle to bond walls consistently across some directions.\n"
                       "Works only with classic wall generator.");
 
