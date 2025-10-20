@@ -63,6 +63,9 @@ PressureEqualizer::PressureEqualizer(const Slic3r::GCodeConfig &config) : m_use_
     	m_max_volumetric_extrusion_rate_slope_negative = float(config.max_volumetric_extrusion_rate_slope.value) * 60.f * 60.f;
     	m_max_segment_length = float(config.max_volumetric_extrusion_rate_slope_segment_length.value);
         m_extrusion_rate_smoothing_external_perimeter_only = bool(config.extrusion_rate_smoothing_external_perimeter_only.value);
+        PRE_RETRACT_REDUCTION_DISTANCE = float(config.slow_down_before_retraction_length.value);
+        PRE_RETRACT_MIN_FEED_MM_S = float(config.slow_down_before_retraction_speed.value);
+        //ENABLE_PRE_RETRACT_REDUCTION= bool(config.enable_pressure_release_before_retraction.value);
     }
 
     for (ExtrusionRateSlope &extrusion_rate_slope : m_max_volumetric_extrusion_rate_slopes) {
@@ -106,9 +109,10 @@ void PressureEqualizer::process_layer(const std::string &gcode)
             if (*gcode_begin == '\n')
                 ++gcode_begin;
         }
+        apply_pre_retract_pressure_reduction();
         assert(!this->opened_extrude_set_speed_block);
     }
-    
+
     // at this point, we have an entire layer of gcode lines loaded into m_gcode_lines
     // now we will split the mix of travels and extrudes into segments of continous extrusion and process those
     // We skip over large travels, and pretend small ones are part of a continous extrusion segment
@@ -718,6 +722,142 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
             // Don't store feed rate for ironing
             if (line.extrusion_role != ExtrusionRole::erIroning)
                 feedrate_per_extrusion_role[iRole] = line.volumetric_extrusion_rate_end;
+        }
+    }
+}
+
+void PressureEqualizer::apply_pre_retract_pressure_reduction()
+{
+    constexpr float EPS = 1e-6f;
+    if (PRE_RETRACT_REDUCTION_DISTANCE <= EPS || PRE_RETRACT_MIN_FEED_MM_S <= EPS) {
+        return;
+    }
+
+    float MIN_VOLUMETRIC_RATE = PRE_RETRACT_MIN_FEED_MM_S * 6;
+
+    // Process in reverse to handle insertions safely
+    for (size_t line_idx = m_gcode_lines.size() - 1; line_idx != size_t(-1); --line_idx) {
+        GCodeLine& line = m_gcode_lines[line_idx];
+
+        // Found a retract
+        if (line.type == GCODELINETYPE_RETRACT) {
+            // Look ahead to see if next feature is outer wall
+            bool         next_is_outer_wall = false;
+            const size_t look_ahead_limit   = std::min(line_idx + 30, m_gcode_lines.size());
+
+            for (size_t ahead_idx = line_idx + 1; ahead_idx < look_ahead_limit; ++ahead_idx) {
+                const GCodeLine& ahead_line = m_gcode_lines[ahead_idx];
+
+                if (ahead_line.raw_length > 0) {
+                    std::string line_str(ahead_line.raw.data(), ahead_line.raw_length);
+
+                    if (line_str.find(";TYPE:") != std::string::npos) {
+                        if (line_str.find(";TYPE:Outer wall") != std::string::npos) {
+                            next_is_outer_wall = true;
+                        }
+                        break;
+                    }
+                }
+
+                if (ahead_line.type == GCODELINETYPE_EXTRUDE) {
+                    break;
+                }
+            }
+
+            // Only apply pressure reduction if next feature is outer wall
+            if (!next_is_outer_wall) {
+                continue;
+            }
+
+            // Track accumulated extrusion distance going backwards
+            float  remaining_reduction_distance = PRE_RETRACT_REDUCTION_DISTANCE;
+            size_t look_back_start              = (line_idx > max_look_back_limit) ? line_idx - max_look_back_limit : 0;
+
+            // Track which lines we've already modified to avoid double-processing
+            std::unordered_set<size_t> already_modified;
+
+            // Look backwards from the retract
+            for (size_t back_idx = line_idx - 1; back_idx != size_t(-1) && back_idx >= look_back_start; --back_idx) {
+                GCodeLine& back_line = m_gcode_lines[back_idx];
+
+                if (back_line.type == GCODELINETYPE_EXTRUDE) {
+                    // Skip if already processed
+                    if (already_modified.find(back_idx) != already_modified.end()) {
+                        continue;
+                    }
+
+                    float line_distance = back_line.dist_xyz();
+
+                    if (remaining_reduction_distance > EPS) {
+                        if (line_distance <= remaining_reduction_distance) {
+                            // Entire line is within reduction distance - apply full reduction
+                            if (back_line.volumetric_extrusion_rate_start > MIN_VOLUMETRIC_RATE) {
+                                back_line.volumetric_extrusion_rate_start = MIN_VOLUMETRIC_RATE;
+                            }
+                            if (back_line.volumetric_extrusion_rate_end > MIN_VOLUMETRIC_RATE) {
+                                back_line.volumetric_extrusion_rate_end = MIN_VOLUMETRIC_RATE;
+                            }
+
+                            back_line.modified = true;
+                            already_modified.insert(back_idx);
+                            remaining_reduction_distance -= line_distance;
+                        } else {
+                            // Need to split this line - only part needs reduction
+                            float split_fraction = remaining_reduction_distance / line_distance;
+                            
+                            // Create a new line for the reduced portion (closer to retract)
+                            GCodeLine reduced_line = back_line;
+                            
+                            // Calculate split position
+                            float split_pos[5];
+                            for (size_t i = 0; i < 5; ++i) {
+                                split_pos[i] = back_line.pos_start[i] + 
+                                              (back_line.pos_end[i] - back_line.pos_start[i]) * (1.0f - split_fraction);
+                            }
+                            
+                            // Set up the reduced portion (from split point to end)
+                            memcpy(reduced_line.pos_start, split_pos, sizeof(float) * 5);
+                            // pos_end stays the same as back_line.pos_end
+                            
+                            // Apply minimum rate to reduced portion
+                            if (reduced_line.volumetric_extrusion_rate_start > MIN_VOLUMETRIC_RATE) {
+                                reduced_line.volumetric_extrusion_rate_start = MIN_VOLUMETRIC_RATE;
+                            }
+                            if (reduced_line.volumetric_extrusion_rate_end > MIN_VOLUMETRIC_RATE) {
+                                reduced_line.volumetric_extrusion_rate_end = MIN_VOLUMETRIC_RATE;
+                            }
+                            reduced_line.modified = true;
+                            
+                            // Modify the original line to end at split point (non-reduced portion)
+                            memcpy(back_line.pos_end, split_pos, sizeof(float) * 5);
+                            // back_line keeps its original start position and rates
+                            back_line.modified = true;
+                            
+                            // Insert the reduced portion after the original line
+                            m_gcode_lines.insert(m_gcode_lines.begin() + back_idx + 1, reduced_line);
+                            
+                            // Mark both as modified
+                            already_modified.insert(back_idx);
+                            already_modified.insert(back_idx + 1);
+                            
+                            // We've handled all the remaining distance
+                            remaining_reduction_distance = 0;
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                } else if (back_line.type == GCODELINETYPE_MOVE) {
+                    // Travel move - don't accumulate distance but keep looking back
+                    continue;
+                } else if (back_line.type == GCODELINETYPE_RETRACT || back_line.type == GCODELINETYPE_UNRETRACT) {
+                    // Continue through retracts and unretracts
+                    continue;
+                } else if (back_line.type == GCODELINETYPE_TOOL_CHANGE) {
+                    // Stop at tool changes
+                    break;
+                }
+            }
         }
     }
 }
