@@ -3078,9 +3078,15 @@ bool FillRectilinear::fill_surface_trapezoidal(
 
     // Use extended object bounding box for consistent pattern across layers
     BoundingBox bb = this->extended_object_bounding_box();
-    // BoundingBox bb = surface->expolygon.contour.bounding_box();
+
     //  Align bounding box to the grid
-    bb.merge(align_to_grid(bb.min, Point(period, period)));
+    if (Pattern_type == 0) {
+        // aligned to min for grid pattern
+        bb.merge(align_to_grid(bb.min, Point(period, period)));
+    } else {
+        // aligned to center for triangular pattern
+        bb.merge(align_to_grid(bb.center(), Point(period, period)));
+    }
 
     coord_t xmin = bb.min.x();
     coord_t xmax = bb.max.x();
