@@ -1207,52 +1207,123 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     // Settings
     wxString start_jd_str = _L("Start: ");
     wxString end_jd_str   = _L("End: ");
-    int text_max = GetTextMax(this, std::vector<wxString>{start_jd_str, end_jd_str});
-
-    auto st_size = FromDIP(wxSize(text_max, -1));
-    auto ti_size = FromDIP(wxSize(120, -1));
 
     LabeledStaticBox* stb = new LabeledStaticBox(this, _L("Cornering settings"));
     wxStaticBoxSizer* settings_sizer = new wxStaticBoxSizer(stb, wxVERTICAL);
 
     settings_sizer->AddSpacer(FromDIP(5));
 
+    // Detect GCode Flavor and set appropriate values and units
+    const auto* preset_bundle = wxGetApp().preset_bundle;
+    const auto* gcode_flavor_option = (preset_bundle != nullptr)
+        ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")
+        : nullptr;
+
+    wxString start_value_str;
+    wxString end_value_str;
+    wxString units_str;
+
+    if (gcode_flavor_option) {
+        switch (gcode_flavor_option->value) {
+            case GCodeFlavor::gcfKlipper:
+            case GCodeFlavor::gcfMarlinLegacy:
+                start_value_str = wxString::Format("%.3f", 1.0);
+                end_value_str   = wxString::Format("%.3f", 15.0);
+                units_str = "mm/s";
+                break;
+            case GCodeFlavor::gcfRepRapFirmware:
+                start_value_str = wxString::Format("%.3f", 30.0);
+                end_value_str   = wxString::Format("%.3f", 300.0);
+                units_str = "mm/s";
+                break;
+            case GCodeFlavor::gcfMarlinFirmware: {
+                // Check if machine_max_junction_deviation is set and > 0
+                const auto* max_jd_option = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation");
+                if (max_jd_option && !max_jd_option->values.empty() && max_jd_option->values[0] > 0) {
+                    // Using Junction Deviation (mm)
+                    start_value_str = wxString::Format("%.3f", 0.000);
+                    end_value_str   = wxString::Format("%.3f", 0.250);
+                    units_str = "mm";
+                } else {
+                    // Using Classic Jerk (mm/s)
+                    start_value_str = wxString::Format("%.3f", 1.000);
+                    end_value_str   = wxString::Format("%.3f", 15.000);
+                    units_str = "mm/s";
+                }
+                break;
+            }
+            default:
+                start_value_str = wxString::Format("%.3f", 0.0);
+                end_value_str   = wxString::Format("%.3f", 1.0);
+                units_str = "";
+                break;
+        }
+    } else {
+        start_value_str = wxString::Format("%.3f", 0.0);
+        end_value_str   = wxString::Format("%.3f", 1.0);
+        units_str = "";
+    }
+
+    auto ti_size = FromDIP(wxSize(120, -1));
+
+    // Start and End cornering on same row
+    auto cornering_row_sizer = new wxBoxSizer(wxHORIZONTAL);
+
     // Start cornering
     auto start_jd_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto start_jd_text = new wxStaticText(this, wxID_ANY, start_jd_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    // GCodeFlavor::gcfMarlinFirmware
-    m_tiJDStart = new TextInput(this, wxString::Format("%.3f", 0.000), "mm", "", wxDefaultPosition, ti_size);
-    // GCodeFlavor::gcfKlipper square_corner_velocity
-    // GCodeFlavor::gcfMarlinLegacy jerk
-    // m_tiJDStart = new TextInput(this, wxString::Format("%.3f", 1), "mm/s", "", wxDefaultPosition, ti_size);
-    // GCodeFlavor::gcfRepRapFirmware Maximum instantaneous speed change
-    // m_tiJDStart = new TextInput(this, wxString::Format("%.3f", 30), "mm/s", "", wxDefaultPosition, ti_size);
+    auto start_jd_text = new wxStaticText(this, wxID_ANY, start_jd_str, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_tiJDStart = new TextInput(this, start_value_str, units_str, "", wxDefaultPosition, ti_size);
     m_tiJDStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     start_jd_sizer->Add(start_jd_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     start_jd_sizer->Add(m_tiJDStart  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
-    settings_sizer->Add(start_jd_sizer, 0, wxLEFT, FromDIP(3));
+    cornering_row_sizer->Add(start_jd_sizer, 0, wxLEFT, FromDIP(3));
 
     // End cornering
     auto end_jd_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto end_jd_text = new wxStaticText(this, wxID_ANY, end_jd_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    // GCodeFlavor::gcfMarlinFirmware
-    m_tiJDEnd = new TextInput(this, wxString::Format("%.3f", 0.250), "mm", "", wxDefaultPosition, ti_size);
-    // GCodeFlavor::gcfKlipper square_corner_velocity
-    // GCodeFlavor::gcfMarlinLegacy jerk
-    // m_tiJDEnd = new TextInput(this, wxString::Format("%.3f", 15), "mm/s", "", wxDefaultPosition, ti_size);
-    // GCodeFlavor::gcfRepRapFirmware Maximum instantaneous speed change
-    // m_tiJDEnd = new TextInput(this, wxString::Format("%.3f", 300), "mm/s", "", wxDefaultPosition, ti_size);
+    auto end_jd_text = new wxStaticText(this, wxID_ANY, end_jd_str, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_tiJDEnd = new TextInput(this, end_value_str, units_str, "", wxDefaultPosition, ti_size);
     m_tiJDEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_jd_sizer->Add(end_jd_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     end_jd_sizer->Add(m_tiJDEnd  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
-    settings_sizer->Add(end_jd_sizer, 0, wxLEFT, FromDIP(3));
+    cornering_row_sizer->Add(end_jd_sizer, 0, wxLEFT, FromDIP(3));
+
+    settings_sizer->Add(cornering_row_sizer, 0, wxLEFT, FromDIP(3));
 
     settings_sizer->AddSpacer(FromDIP(5));
 
-    // Add note about cornering
-    auto note_text = new wxStaticText(this, wxID_ANY, _L("Note: Lower values = sharper corners but slower speeds"),
+    // Add note about cornering based on GCode Flavor
+    wxString note_msg = _L("Note: Lower values = sharper corners but slower speeds.\n");
+    if (gcode_flavor_option) {
+        switch (gcode_flavor_option->value) {
+            case GCodeFlavor::gcfMarlinFirmware: {
+                // Check if machine_max_junction_deviation is set and > 0
+                const auto* max_jd_option = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation");
+                if (max_jd_option && !max_jd_option->values.empty() && max_jd_option->values[0] > 0) {
+                    note_msg += _L("Marlin 2 Junction Deviation detected: To enable Classic Jerk, set 'Maximum Junction Deviation' to 0 in Motion ability.");
+                } else {
+                    note_msg += _L("Marlin 2 Classic Jerk Detected: To enable Junction Deviation, set 'Maximum Junction Deviation' to a value > 0 in Motion ability.");
+                }
+                break;
+            }
+            case GCodeFlavor::gcfKlipper:
+                note_msg += _L("Klipper detected: Using square_corner_velocity.");
+                break;
+            case GCodeFlavor::gcfMarlinLegacy:
+                note_msg += _L("Marlin Legacy detected: Using Classic Jerk.");
+                break;
+            case GCodeFlavor::gcfRepRapFirmware:
+                note_msg += _L("RepRap detected: Using Maximum instantaneous speed changes.");
+                break;
+            default:
+                note_msg += _L("Unknown firmware: Please verify cornering/jerk settings.");
+                break;
+        }
+    }
+
+    auto note_text = new wxStaticText(this, wxID_ANY, note_msg,
                                     wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     note_text->SetForegroundColour(wxColour(128, 128, 128));
+    note_text->Wrap(FromDIP(300));
     settings_sizer->Add(note_text, 0, wxALL, FromDIP(5));
 
     v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
