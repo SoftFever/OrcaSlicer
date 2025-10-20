@@ -1,9 +1,0 @@
-{
-    "type": "filament",
-    "name": "Bambu Support W @System",
-    "inherits": "Bambu Support W @base",
-    "from": "system",
-    "setting_id": "OGFSS00",
-    "instantiation": "true",
-    "compatible_printers": []
-}

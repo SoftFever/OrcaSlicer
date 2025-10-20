@@ -1,9 +1,0 @@
-{
-    "type": "filament",
-    "name": "AliZ PLA @System",
-    "inherits": "AliZ PLA @base",
-    "from": "system",
-    "setting_id": "AliZGFSA04",
-    "instantiation": "true",
-    "compatible_printers": []
-}
