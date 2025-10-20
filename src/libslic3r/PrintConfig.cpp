@@ -2111,8 +2111,8 @@ void PrintConfigDef::init_fff_params()
         "\nBe sure to allow enough space between objects, as this compensation is done after the checks.");
     def->sidetext = "%";
     def->ratio_over = "";
-    def->min = 90;
-    def->max = 110;
+    def->min = 50;
+    def->max = 150;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
     
@@ -2123,8 +2123,8 @@ void PrintConfigDef::init_fff_params()
         " The part will be scaled in Z to compensate.");
     def->sidetext = "%";
     def->ratio_over = "";
-    def->min = 90;
-    def->max = 110;
+    def->min = 50;
+    def->max = 150;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
 
