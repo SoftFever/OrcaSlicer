@@ -1,25 +1,31 @@
 {
     "type": "filament",
-    "name": "Anycubic ABS @Anycubic Kobra S1 0.4 nozzle",
-    "inherits": "fdm_filament_abs",
+    "name": "Anycubic PLA @Anycubic Kobra 2 Max",
+    "inherits": "Anycubic Generic PLA",
     "from": "system",
     "setting_id": "GFSA04",
-    "filament_id": "GFB99",
+    "filament_id": "GFL92",
     "instantiation": "true",
+    "filament_vendor": [
+        "Anycubic"
+    ],
     "filament_settings_id": [
-        "Anycubic ABS @Anycubic Kobra S1 0.4 nozzle"
+        "Anycubic PLA @Anycubic Kobra 2 Max"
+    ],
+    "filament_type": [
+        "PLA"
     ],
     "filament_flow_ratio": [
         "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "15"
+        "12"
     ],
     "nozzle_temperature": [
-        "250"
+        "200"
     ],
     "compatible_printers": [
-        "Anycubic Kobra S1 0.4 nozzle"
+        "Anycubic Kobra 2 Max"
     ],
     "activate_air_filtration": [
         "0"
@@ -28,7 +34,7 @@
         "0"
     ],
     "additional_cooling_fan_speed": [
-        "0"
+        "70"
     ],
     "bed_type": [
         "Cool Plate"
@@ -37,7 +43,7 @@
         "0"
     ],
     "close_fan_the_first_x_layers": [
-        "5"
+        "1"
     ],
     "compatible_printers_condition": "",
     "compatible_prints": [],
@@ -46,10 +52,10 @@
         "70"
     ],
     "cool_plate_temp": [
-        "90"
+        "35"
     ],
     "cool_plate_temp_initial_layer": [
-        "90"
+        "35"
     ],
     "default_filament_colour": [
         ""
@@ -61,7 +67,7 @@
         "1"
     ],
     "enable_pressure_advance": [
-        "1"
+        "0"
     ],
     "eng_plate_temp": [
         "0"
@@ -70,28 +76,28 @@
         "0"
     ],
     "fan_cooling_layer_time": [
-        "30"
+        "100"
     ],
     "fan_max_speed": [
-        "80"
+        "100"
     ],
     "fan_min_speed": [
-        "10"
+        "80"
     ],
     "filament_cooling_final_speed": [
-        "0"
+        "3.4"
     ],
     "filament_cooling_initial_speed": [
-        "0"
+        "2.2"
     ],
     "filament_cooling_moves": [
-        "0"
+        "4"
     ],
     "filament_cost": [
         "20"
     ],
     "filament_density": [
-        "1.04"
+        "1.24"
     ],
     "filament_deretraction_speed": [
         "nil"
@@ -100,19 +106,19 @@
         "1.75"
     ],
     "filament_end_gcode": [
-        "; filament end gcode\n"
+        "; filament end gcode \n"
     ],
     "filament_is_support": [
         "0"
     ],
     "filament_load_time": [
-        "31.925"
+        "42"
     ],
     "filament_loading_speed": [
-        "0"
+        "28"
     ],
     "filament_loading_speed_start": [
-        "0"
+        "3"
     ],
     "filament_long_retractions_when_cut": [
         "nil"
@@ -124,10 +130,10 @@
         "0"
     ],
     "filament_multitool_ramming_flow": [
-        "0"
+        "10"
     ],
     "filament_multitool_ramming_volume": [
-        "0"
+        "10"
     ],
     "filament_notes": [
         ""
@@ -178,13 +184,13 @@
         "0"
     ],
     "filament_unload_time": [
-        "24.75"
+        "0"
     ],
     "filament_unloading_speed": [
-        "0"
+        "90"
     ],
     "filament_unloading_speed_start": [
-        "0"
+        "100"
     ],
     "filament_wipe": [
         "nil"
@@ -199,31 +205,31 @@
         "nil"
     ],
     "full_fan_speed_layer": [
-        "100"
+        "3"
     ],
     "hot_plate_temp": [
-        "90"
+        "60"
     ],
     "hot_plate_temp_initial_layer": [
-        "90"
+        "60"
     ],
     "nozzle_temperature_initial_layer": [
-        "250"
+        "220"
     ],
     "nozzle_temperature_range_high": [
-        "280"
-    ],
-    "nozzle_temperature_range_low": [
         "240"
     ],
+    "nozzle_temperature_range_low": [
+        "190"
+    ],
     "overhang_fan_speed": [
-        "80"
+        "100"
     ],
     "overhang_fan_threshold": [
-        "25%"
+        "50%"
     ],
     "pressure_advance": [
-        "0.04"
+        "0.02"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -235,7 +241,7 @@
         "1"
     ],
     "slow_down_layer_time": [
-        "3"
+        "9"
     ],
     "slow_down_min_speed": [
         "20"
@@ -244,9 +250,12 @@
         "-1"
     ],
     "temperature_vitrification": [
-        "100"
+        "55"
+    ],
+    "textured_plate_temp": [
+        "55"
     ],
     "textured_plate_temp_initial_layer": [
-        "90"
+        "55"
     ]
 }

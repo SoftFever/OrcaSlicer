@@ -1,25 +1,31 @@
 {
     "type": "filament",
-    "name": "Anycubic ASA @Anycubic Kobra S1 0.4 nozzle",
-    "inherits": "fdm_filament_asa",
+    "name": "Anycubic PLA @Anycubic Kobra 2 Neo",
+    "inherits": "Anycubic Generic PLA",
     "from": "system",
     "setting_id": "GFSA04",
-    "filament_id": "GFA99",
+    "filament_id": "GFL99",
     "instantiation": "true",
+    "filament_vendor": [
+        "Anycubic"
+    ],
     "filament_settings_id": [
-        "Anycubic ASA @Anycubic Kobra S1 0.4 nozzle"
+        "Anycubic PLA @Anycubic Kobra 2 Neo"
+    ],
+    "filament_type": [
+        "PLA"
     ],
     "filament_flow_ratio": [
-        "0.98"
+        "0.97"
     ],
     "filament_max_volumetric_speed": [
         "12"
     ],
     "nozzle_temperature": [
-        "260"
+        "190"
     ],
     "compatible_printers": [
-        "Anycubic Kobra S1 0.4 nozzle"
+        "Anycubic Kobra 2 Neo"
     ],
     "activate_air_filtration": [
         "0"
@@ -28,7 +34,7 @@
         "0"
     ],
     "additional_cooling_fan_speed": [
-        "0"
+        "70"
     ],
     "bed_type": [
         "Cool Plate"
@@ -37,31 +43,31 @@
         "0"
     ],
     "close_fan_the_first_x_layers": [
-        "5"
+        "1"
     ],
     "compatible_printers_condition": "",
     "compatible_prints": [],
     "compatible_prints_condition": "",
     "complete_print_exhaust_fan_speed": [
-        "70"
+        "80"
     ],
     "cool_plate_temp": [
-        "100"
+        "35"
     ],
     "cool_plate_temp_initial_layer": [
-        "100"
+        "35"
     ],
     "default_filament_colour": [
         ""
     ],
     "during_print_exhaust_fan_speed": [
-        "70"
+        "60"
     ],
     "enable_overhang_bridge_fan": [
         "1"
     ],
     "enable_pressure_advance": [
-        "1"
+        "0"
     ],
     "eng_plate_temp": [
         "0"
@@ -70,13 +76,13 @@
         "0"
     ],
     "fan_cooling_layer_time": [
-        "35"
+        "100"
     ],
     "fan_max_speed": [
-        "60"
+        "100"
     ],
     "fan_min_speed": [
-        "10"
+        "80"
     ],
     "filament_cooling_final_speed": [
         "0"
@@ -91,7 +97,7 @@
         "20"
     ],
     "filament_density": [
-        "1.04"
+        "1.24"
     ],
     "filament_deretraction_speed": [
         "nil"
@@ -100,13 +106,13 @@
         "1.75"
     ],
     "filament_end_gcode": [
-        "; filament end gcode\n"
+        "; filament end gcode \n"
     ],
     "filament_is_support": [
         "0"
     ],
     "filament_load_time": [
-        "31.925"
+        "0"
     ],
     "filament_loading_speed": [
         "0"
@@ -124,10 +130,10 @@
         "0"
     ],
     "filament_multitool_ramming_flow": [
-        "0"
+        "10"
     ],
     "filament_multitool_ramming_volume": [
-        "0"
+        "10"
     ],
     "filament_notes": [
         ""
@@ -172,13 +178,13 @@
         "0"
     ],
     "filament_start_gcode": [
-        "; filament start gcode"
+        "; filament start gcode\n"
     ],
     "filament_toolchange_delay": [
         "0"
     ],
     "filament_unload_time": [
-        "24.75"
+        "0"
     ],
     "filament_unloading_speed": [
         "0"
@@ -199,43 +205,43 @@
         "nil"
     ],
     "full_fan_speed_layer": [
-        "100"
+        "3"
     ],
     "hot_plate_temp": [
-        "100"
-    ],
-    "hot_plate_temp_initial_layer": [
-        "100"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "260"
-    ],
-    "nozzle_temperature_range_high": [
-        "280"
-    ],
-    "nozzle_temperature_range_low": [
-        "240"
-    ],
-    "overhang_fan_speed": [
         "60"
     ],
+    "hot_plate_temp_initial_layer": [
+        "60"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "220"
+    ],
+    "nozzle_temperature_range_high": [
+        "230"
+    ],
+    "nozzle_temperature_range_low": [
+        "190"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
     "overhang_fan_threshold": [
-        "25%"
+        "50%"
     ],
     "pressure_advance": [
-        "0.045"
+        "0.04"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
     ],
     "required_nozzle_HRC": [
-        "3"
+        "0"
     ],
     "slow_down_for_layer_cooling": [
         "1"
     ],
     "slow_down_layer_time": [
-        "3"
+        "9"
     ],
     "slow_down_min_speed": [
         "20"
@@ -244,12 +250,12 @@
         "-1"
     ],
     "temperature_vitrification": [
-        "100"
+        "60"
     ],
     "textured_plate_temp": [
-        "100"
+        "45"
     ],
     "textured_plate_temp_initial_layer": [
-        "100"
+        "45"
     ]
 }
