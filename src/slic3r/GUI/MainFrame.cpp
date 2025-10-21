@@ -739,6 +739,36 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
         }
         break;
 
+    case WM_NCHITTEST: {
+        if (IsMaximized()) {
+            // When maximized, no resize border
+            return HTCAPTION;
+        }
+
+        // Allow resizing from top of the title bar
+        wxPoint mouse_pos = ::wxGetMousePosition();
+        if (m_topbar->GetScreenRect().GetBottom() >= mouse_pos.y) {
+            RECT borderThickness;
+            SetRectEmpty(&borderThickness);
+            AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION, FALSE, NULL);
+            borderThickness.left *= -1;
+            borderThickness.top *= -1;
+            wxPoint client_pos = this->ScreenToClient(mouse_pos);
+
+            bool on_top_border = client_pos.y <= borderThickness.top;
+
+            // And to allow diagonally resizing, we check if mouse is at window corner
+            if (client_pos.x <= borderThickness.left) {
+                return on_top_border ? HTTOPLEFT : HTLEFT;
+            } else if (client_pos.x >= GetClientSize().x - borderThickness.right) {
+                return on_top_border ? HTTOPRIGHT : HTRIGHT;
+            }
+
+            return on_top_border ? HTTOP : HTCAPTION;
+        }
+        break;
+    }
+
     case WM_GETMINMAXINFO: {
         auto mmi = (MINMAXINFO*) lParam;
         HandleGetMinMaxInfo(mmi);

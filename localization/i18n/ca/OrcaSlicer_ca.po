@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 21:06+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "PO-Revision-Date: 2025-03-15 10:55+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6291,6 +6291,17 @@ msgstr ""
 msgid "Load 3mf"
 msgstr "Carregar 3mf"
 
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, found following "
@@ -6867,11 +6878,11 @@ msgstr "Nord-America"
 msgid "Others"
 msgstr "Altres"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "Regió d'inici de sessió"
 
-msgid "Stealth Mode"
-msgstr "Mode Silenciós"
+msgid "Stealth mode"
+msgstr "Mode silenciós"
 
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
@@ -6881,10 +6892,13 @@ msgstr ""
 "usuaris que no utilitzen màquines BBL o només utilitzen el mode LAN poden "
 "activar aquesta funció de manera segura."
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "Habilita el plugin de xarxa"
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgid "Use legacy network plugin"
 msgstr ""
 
 msgid ""
@@ -6928,7 +6942,7 @@ msgstr ""
 msgid "Home"
 msgstr "Inici"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr "Pàgina predeterminada"
 
 msgid "Set the page opened on startup."
@@ -7031,15 +7045,18 @@ msgstr ""
 "Si està habilitada, l'Orca recordarà i canviarà automàticament la "
 "configuració del filament/procés per a cada impressora."
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
-msgstr "Gestió multidispositiu(Entra en vigor després de reiniciar Studio)."
+msgid "Multi device management"
+msgstr "Gestió multidispositiu"
+
+msgid "(Requires restart)"
+msgstr ""
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7119,8 +7136,11 @@ msgstr "Pregunta sempre"
 msgid "Load Geometry Only"
 msgstr "Carregar només geometria"
 
-msgid "Load Behaviour"
-msgstr "Carregar Comportament"
+msgid "Load behaviour"
+msgstr "Carregar comportament"
+
+msgid "Behaviour"
+msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7133,16 +7153,16 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Esborrar la meva elecció sobre els projectes no desats."
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "No hi ha avisos en carregar 3MF amb Codis-G modificats"
 
-msgid "Auto-Backup"
+msgid "Auto backup"
 msgstr "Còpia de seguretat automàtica"
 
 msgid ""
@@ -7160,10 +7180,13 @@ msgstr "Freqüència de còpia de seguretat en segons."
 msgid "Downloads"
 msgstr "Descàrregues"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "Mode fosc"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "Habilitar el mode fosc"
 
 msgid "Develop mode"
@@ -8987,11 +9010,11 @@ msgstr "Mostrar la llista de dreceres de teclat"
 msgid "Global shortcuts"
 msgstr "Dreceres Globals"
 
-msgid "Rotate View"
-msgstr "Rotar la vista"
-
 msgid "Pan View"
 msgstr "Vista Panoràmica"
+
+msgid "Rotate View"
+msgstr "Rotar la vista"
 
 msgid "Zoom View"
 msgstr "Vista amb Zoom"
@@ -17529,6 +17552,9 @@ msgid "Delete input"
 msgstr "Esborrar entrada"
 
 msgid "Network Test"
+msgstr "Prova de Xarxa"
+
+msgid "Network test"
 msgstr "Prova de Xarxa"
 
 msgid "Start Test Multi-Thread"
