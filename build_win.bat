@@ -151,7 +151,7 @@ if "%build_slicer%" == "ON" (
         %error_check%
     )
 
-    call :print_and_run cmake -B %build_dir% -G "%generator%" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="./OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
+    call :print_and_run cmake -B %build_dir% -G "%generator%" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="%build_dir%/OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
     %error_check%
 
     call :print_and_run cmake --build %build_dir% --config %build_type% --target ALL_BUILD -- -m
