@@ -1207,6 +1207,78 @@
         {
             "name": "COEX PLA+Silk @System",
             "sub_path": "filament/COEX/COEX PLA+Silk @System.json"
+        },
+                {
+            "name": "Eolas Prints PLA Premium @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Premium @system.json"
+        },
+        {
+            "name": "Eolas Prints PLA Matte @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Matte @system.json"
+        },
+        {
+            "name": "Eolas Prints PLA Silk @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Silk @system.json"
+        },
+        {
+            "name": "Eolas Prints PLA Neon @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Neon @system.json"
+        },
+        {
+            "name": "Eolas Prints PLA High Speed @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA High Speed @system.json"
+        },
+        {
+            "name": "Eolas Prints PLA INGEO 850 @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA INGEO 850 @system.json"
+        },
+        {
+            "name": "Eolas Prints PLA INGEO 870 @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA INGEO 870 @system.json"
+        },
+        {
+            "name": "Eolas Prints PLA Antibacterial @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Antibacterial @system.json"
+        },
+        {
+            "name": "Eolas Prints PLA Transition @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Transition @system.json"
+        },
+        {
+            "name": "Eolas Prints PETG @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PETG @system.json"
+        },
+        {
+            "name": "Eolas Prints PETG UV Resistant @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PETG UV Resistant @system.json"
+        },
+        {
+            "name": "Eolas Prints PETG Transition @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PETG Transition @system.json"
+        },
+        {
+            "name": "Eolas Prints TPU Flex 93A @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints TPU Flex 93A @system.json"
+        },
+        {
+            "name": "Eolas Prints TPU Flex D53 @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints TPU Flex D53 @system.json"
+        },
+        {
+            "name": "Eolas Prints TPU Flex D60 UV Resistant @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints TPU Flex D60 UV Resistant @system.json"
+        },
+        {
+            "name": "Eolas Prints TPU Transition @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints TPU Transition @system.json"
+        },
+        {
+            "name": "Eolas Prints ABS @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints ABS @system.json"
+        },
+        {
+            "name": "Eolas Prints ASA @system",
+            "sub_path": "filament/Eolas Prints/Eolas Prints ASA @system.json"
         }
     ],
     "process_list": [],
