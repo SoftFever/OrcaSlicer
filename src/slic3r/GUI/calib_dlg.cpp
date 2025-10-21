@@ -1284,7 +1284,7 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     m_tiJDEnd = new TextInput(this, end_value_str, units_str, "", wxDefaultPosition, ti_size);
     m_tiJDEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_jd_sizer->Add(end_jd_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
-    end_jd_sizer->Add(m_tiJDEnd  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+       end_jd_sizer->Add(m_tiJDEnd  , 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     cornering_row_sizer->Add(end_jd_sizer, 0, wxLEFT, FromDIP(3));
 
     settings_sizer->Add(cornering_row_sizer, 0, wxLEFT, FromDIP(3));
@@ -1349,20 +1349,60 @@ void Cornering_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = m_tiJDStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double = read_double && m_tiJDEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
 
-    if (!read_double || m_params.start < 0 || m_params.end >= 1 || m_params.start >= m_params.end) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\n(0 <= Junction Deviation < 1)"), wxEmptyString, wxICON_WARNING | wxOK);
+    // Get max values based on GCode Flavor
+    double max_end_value = 9999.9;
+    double warning_threshold = 9999.9;
+    const auto* preset_bundle = wxGetApp().preset_bundle;
+    const auto* gcode_flavor_option = (preset_bundle != nullptr)
+        ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")
+        : nullptr;
+
+    if (gcode_flavor_option) {
+        switch (gcode_flavor_option->value) {
+            case GCodeFlavor::gcfKlipper:
+            case GCodeFlavor::gcfMarlinLegacy:
+                max_end_value = 20.0;
+                warning_threshold = 15.0;
+                break;
+            case GCodeFlavor::gcfRepRapFirmware:
+                max_end_value = 1000.0;
+                warning_threshold = 300.0;
+                break;
+            case GCodeFlavor::gcfMarlinFirmware: {
+                // Check if machine_max_junction_deviation is set and > 0
+                const auto* max_jd_option = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation");
+                if (max_jd_option && !max_jd_option->values.empty() && max_jd_option->values[0] > 0) {
+                    // Using Junction Deviation (mm)
+                    max_end_value = 1.0;
+                    warning_threshold = 0.3;
+                } else {
+                    // Using Classic Jerk (mm/s)
+                    max_end_value = 20.0;
+                    warning_threshold = 15;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    if (!read_double || m_params.start < 0 || m_params.end > max_end_value || m_params.start >= m_params.end) {
+        wxString error_msg = wxString::Format(_L("Please input valid values:\n(0 <= Cornering <= %s)"), wxString::Format("%.3f", max_end_value));
+        MessageDialog msg_dlg(nullptr, error_msg, wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
-    } else if (m_params.end > 0.3) {
-        MessageDialog msg_dlg(nullptr, _L("NOTE: High values may cause Layer shift"), wxEmptyString, wxICON_WARNING | wxOK);
+    } else if (m_params.end > warning_threshold) {
+        wxString warning_msg = wxString::Format(_L("NOTE: High values may cause Layer shift (>%s)"), wxString::Format("%.3f", warning_threshold));
+        MessageDialog msg_dlg(nullptr, warning_msg, wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
     }
 
     m_params.mode = CalibMode::Calib_Cornering;
-    
+
     // Set model type based on selection
     m_params.test_model = m_rbModel->GetSelection();
-    
+
     m_plater->Calib_Cornering(m_params);
     EndModal(wxID_OK);
 }
