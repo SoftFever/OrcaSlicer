@@ -14,7 +14,7 @@
     "hot_plate_temp": [80],
     "hot_plate_temp_initial_layer": [85],
     "filament_density": [1.27],
-    "filament_cost": [26.99],
+    "filament_cost": [17.40],
     "filament_spool_weight": [1000],
-    "filament_max_volumetric_speed": [11]
+    "filament_max_volumetric_speed": [15]
 }
