@@ -61,6 +61,19 @@ To mitigate this effect, OrcaSlicer allows you to specify a negative distance th
 
 ![elephant-foot-compensation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Precision/elephant-foot-compensation.png?raw=true)
 
+The compensation works as follows:  
+```
+Elephantfoot_Compensation = input_compensation - (input_compensation / total_layers) × current_layer_id
+```
+Assuming the compensation value is 0.25 mm.  
+If you apply the compensation to only 1 layer, then the first layer will have its outer dimensions reduced by 0.25 mm.  
+2nd layer and beyond: No compensation (0 mm)  
+
+If the Elephant Foot Compensation Layers = 2  
+1st layer: 0.25 − (0.25 / 2) × 0 = 0.25 mm compensation (100%)  
+2nd layer: 0.25 − (0.25 / 2) × 1 = 0.125 mm compensation (50%)  
+3rd layer and beyond: No compensation (0 mm)  
+
 ## Precise wall
 
 The 'Precise Wall' is a distinctive feature introduced by OrcaSlicer, aimed at improving the dimensional accuracy of prints and minimizing layer inconsistencies by slightly increasing the spacing between the outer wall and the inner wall when printing in [Inner Outer wall order](quality_settings_wall_and_surfaces#innerouter).
