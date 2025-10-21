@@ -2711,6 +2711,7 @@ struct Plater::priv
     //BBS: add popup object table logic
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
     void on_action_send_to_printer(bool isall = false);
+    void on_action_send_bamcu_conect(SimpleEvent&);
     void on_action_send_to_multi_machine(SimpleEvent&);
     int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
 private:
@@ -3143,6 +3144,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER, &priv::on_action_export_to_sdcard, this);
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, &priv::on_action_export_to_sdcard_all, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE, &priv::on_action_send_to_multi_machine, this);
+        q->Bind(EVT_GLTOOLBAR_SEND_BAMBU_CONNECT, &priv::on_action_send_bamcu_conect, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
@@ -7288,6 +7290,39 @@ void Plater::priv::on_action_send_to_multi_machine(SimpleEvent&)
     m_send_multi_dlg->ShowModal();
 }
 
+void Plater::priv::on_action_send_bamcu_conect(SimpleEvent&)
+{
+    auto gcodeResult = q->send_gcode(partplate_list.get_curr_plate_index(), [this](int export_stage, int current, int total, bool &cancel) {});
+
+    if (gcodeResult != 0) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":send_gcode failed\n";
+        return;
+    }
+
+    PrintPrepareData data;
+    q->get_print_job_data(&data);
+
+    if (data._3mf_path.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":3mf path is empty\n";
+        return;
+    }
+
+    wxString filename = q->get_export_gcode_filename("", true, partplate_list.get_curr_plate_index() == PLATE_ALL_IDX ? true : false);
+    wxString filepath = wxString::FromUTF8(data._3mf_path.string());
+
+    // URL encode each parameter individually
+    std::string encoded_path = Http::url_encode(filepath.ToStdString());
+    std::string encoded_name = Http::url_encode(filename.utf8_string());
+
+    // Build URL according to Bambu Connect documentation
+    wxString url = "bambu-connect://import-file?path=" + encoded_path + "&name=" + encoded_name + "&version=1.0.0";
+    if (!wxLaunchDefaultBrowser(url)) {
+        GUI::MessageDialog msgdialog(nullptr, _L("Failed to start Bambu Farm Manager Client."), "", wxAPPLY | wxOK);
+        msgdialog.ShowModal();
+    }
+
+    return;
+}
 void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
 {
     if (q != nullptr) {
