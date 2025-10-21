@@ -115,6 +115,9 @@ if "%use_vs2019%" == "ON" set "generator=Visual Studio 16 2019"
 set "SIG_FLAG="
 if defined ORCA_UPDATER_SIG_KEY set "SIG_FLAG=-DORCA_UPDATER_SIG_KEY=%ORCA_UPDATER_SIG_KEY%"
 
+REM Set minimum CMake policy to avoid <3.5 errors
+set CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 set DEPS=%WP%\deps\%build_dir%\OrcaSlicer_dep
 if "%build_deps%" == "ON" (
     echo building deps...
