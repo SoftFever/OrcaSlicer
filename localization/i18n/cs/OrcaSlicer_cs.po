@@ -6736,21 +6736,24 @@ msgstr "Severní Amerika"
 msgid "Others"
 msgstr "Ostatní"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "Región přihlášení"
 
-msgid "Stealth Mode"
-msgstr "Tajný Režim"
+msgid "Stealth mode"
+msgstr "Tajný režim"
 
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
 "don't use BBL machines or use LAN mode only can safely turn on this function."
 msgstr ""
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr ""
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgid "Use legacy network plugin"
 msgstr ""
 
 msgid ""
@@ -6790,7 +6793,7 @@ msgstr ""
 msgid "Home"
 msgstr "Home"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr ""
 
 msgid "Set the page opened on startup."
@@ -6878,14 +6881,17 @@ msgid ""
 "each printer automatically."
 msgstr ""
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
+msgid "Multi device management"
+msgstr ""
+
+msgid "(Requires restart)"
 msgstr ""
 
 msgid ""
@@ -6963,7 +6969,10 @@ msgstr ""
 msgid "Load Geometry Only"
 msgstr ""
 
-msgid "Load Behaviour"
+msgid "Load behaviour"
+msgstr ""
+
+msgid "Behaviour"
 msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
@@ -6975,16 +6984,16 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Vymazat moje volby pro neuložené projekty."
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr ""
 
-msgid "Auto-Backup"
+msgid "Auto backup"
 msgstr "Automatické zálohování"
 
 msgid ""
@@ -7001,10 +7010,13 @@ msgstr "Doba zálohování v sekundách."
 msgid "Downloads"
 msgstr "Stahování"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "Tmavý režim"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "Povolit tmavý režim"
 
 msgid "Develop mode"
@@ -16330,6 +16342,9 @@ msgid "Delete input"
 msgstr "Smazat vstup"
 
 msgid "Network Test"
+msgstr ""
+
+msgid "Network test"
 msgstr ""
 
 msgid "Start Test Multi-Thread"

@@ -47,12 +47,15 @@ jobs:
           ver_pure=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             ver="PR-${{ github.event.number }}"
+            git_commit_hash="${{ github.event.pull_request.head.sha }}"
           else
             ver=V$ver_pure
+            git_commit_hash=""
           fi
           echo "ver=$ver" >> $GITHUB_ENV
           echo "ver_pure=$ver_pure" >> $GITHUB_ENV
           echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
+          echo "git_commit_hash=$git_commit_hash" >> $GITHUB_ENV
         shell: bash
 
       - name: Get the version and date on Windows
@@ -65,16 +68,19 @@ jobs:
 
           if ($eventName -eq 'pull_request') {
               $ver = "PR" + $prNumber
+              $git_commit_hash = "${{ github.event.pull_request.head.sha }}"
           } else {
               $versionContent = Get-Content version.inc -Raw
               if ($versionContent -match 'set\(SoftFever_VERSION "(.*?)"\)') {
                   $ver = $matches[1]
               }
               $ver = "V$ver"
+              $git_commit_hash = ""
           }
 
           echo "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           echo "date=$date" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
+          echo "git_commit_hash=$git_commit_hash" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           echo "date: ${{ env.date }} version: ${{ env.ver }}"
         shell: pwsh
 
