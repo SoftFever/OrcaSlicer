@@ -63,13 +63,13 @@ To mitigate this effect, OrcaSlicer allows you to specify a negative distance th
 
 The compensation works as follows:  
 ```
-Elephantfoot_Compensation = input_compensation - (input_compensation / total_layers) × current_layer_id
+elephantfoot_Compensation = input_compensation - (input_compensation / elephantfoot_Compensation_layers) × current_layer_id
 ```
 Assuming the compensation value is 0.25 mm.  
-If you apply the compensation to only 1 layer, then the first layer will have its outer dimensions reduced by 0.25 mm.  
+If the Elephant Foot Compensation Layers is 1 , then the first layer will have its outer dimensions reduced by 0.25 mm due to the first layer's id being 0.  
 2nd layer and beyond: No compensation (0 mm)  
 
-If the Elephant Foot Compensation Layers = 2  
+If the Elephant Foot Compensation Layers is 2  
 1st layer: 0.25 − (0.25 / 2) × 0 = 0.25 mm compensation (100%)  
 2nd layer: 0.25 − (0.25 / 2) × 1 = 0.125 mm compensation (50%)  
 3rd layer and beyond: No compensation (0 mm)  
