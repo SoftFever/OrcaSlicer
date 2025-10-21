@@ -1672,6 +1672,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER));
             else if (m_print_select == eSendToPrinterAll)
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL));
+            else if (m_print_select == eSendBambuConnect)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_BAMBU_CONNECT));
             /* else if (m_print_select == ePrintMultiMachine)
                  wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE));*/
         });
