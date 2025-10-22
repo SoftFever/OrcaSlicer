@@ -63,7 +63,7 @@ To mitigate this effect, OrcaSlicer allows you to specify a negative distance th
 
 The compensation works as follows:  
 ```c++
-elephantfoot_Compensation = input_compensation - (input_compensation / elephantfoot_Compensation_layers) × current_layer_id
+compensation = input_compensation_distance - (input_compensation_distance / input_compensation_layers) × (current_layer - 1)
 ```
 Assuming the compensation value is 0.25 mm.  
 
