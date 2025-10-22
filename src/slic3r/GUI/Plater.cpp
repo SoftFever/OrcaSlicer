@@ -10385,7 +10385,9 @@ void Plater::Calib_Cornering(const Calib_Params& params)
     add_model(false, Slic3r::resources_dir() + cornering_model_path);    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    printer_config->set_key_value("machine_max_junction_deviation", new ConfigOptionFloats{1.0});
+    printer_config->set_key_value("machine_max_junction_deviation", new ConfigOptionFloats{params.end});
+    printer_config->set_key_value("machine_max_jerk_x", new ConfigOptionFloats{params.end});
+    printer_config->set_key_value("machine_max_jerk_y", new ConfigOptionFloats{params.end});
     printer_config->set_key_value("resonance_avoidance", new ConfigOptionBool{false});
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats { 0.0 });
     filament_config->set_key_value("slow_down_min_speed", new ConfigOptionFloats { 0.0 });
