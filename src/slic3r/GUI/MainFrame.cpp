@@ -2989,9 +2989,9 @@ void MainFrame::init_menubar_as_editor()
     // Cornering
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Cornering"), _L("Cornering calibration"),
         [this](wxCommandEvent&) {
-            if (!m_cornering_calib_dlg)
-                m_cornering_calib_dlg = new Cornering_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_cornering_calib_dlg->ShowModal();
+            auto dlg = new Cornering_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            dlg->ShowModal();
+            dlg->Destroy();
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
@@ -3000,18 +3000,18 @@ void MainFrame::init_menubar_as_editor()
     append_menu_item(
         input_shaping_menu, wxID_ANY, _L("Input Shaping Frequency"), _L("Input Shaping Frequency"),
         [this](wxCommandEvent&) {
-            if (!m_IS_freq_calib_dlg)
-                m_IS_freq_calib_dlg = new Input_Shaping_Freq_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_IS_freq_calib_dlg->ShowModal();
+            auto dlg = new Input_Shaping_Freq_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            dlg->ShowModal();
+            dlg->Destroy();
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(
         input_shaping_menu, wxID_ANY, _L("Input Shaping Damping/zeta factor"), _L("Input Shaping Damping/zeta factor"),
         [this](wxCommandEvent&) {
-            if (!m_IS_damp_calib_dlg)
-                m_IS_damp_calib_dlg = new Input_Shaping_Damp_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_IS_damp_calib_dlg->ShowModal();
+            auto dlg = new Input_Shaping_Damp_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            dlg->ShowModal();
+            dlg->Destroy();
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
@@ -3107,9 +3107,9 @@ void MainFrame::init_menubar_as_editor()
     // Cornering
     append_menu_item(calib_menu, wxID_ANY, _L("Cornering"), _L("Cornering calibration"),
         [this](wxCommandEvent&) {
-            if (!m_cornering_calib_dlg)
-                m_cornering_calib_dlg = new Cornering_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_cornering_calib_dlg->ShowModal();
+            auto dlg = new Cornering_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            dlg->ShowModal();
+            dlg->Destroy();
         }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
@@ -3118,18 +3118,18 @@ void MainFrame::init_menubar_as_editor()
     append_menu_item(
         input_shaping_menu, wxID_ANY, _L("Input Shaping Frequency"), _L("Input Shaping Frequency"),
         [this](wxCommandEvent&) {
-            if (!m_IS_freq_calib_dlg)
-                m_IS_freq_calib_dlg = new Input_Shaping_Freq_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_IS_freq_calib_dlg->ShowModal();
+            auto dlg = new Input_Shaping_Freq_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            dlg->ShowModal();
+            dlg->Destroy();
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(
         input_shaping_menu, wxID_ANY, _L("Input Shaping Damping/zeta factor"), _L("Input Shaping Damping/zeta factor"),
         [this](wxCommandEvent&) {
-            if (!m_IS_damp_calib_dlg)
-                m_IS_damp_calib_dlg = new Input_Shaping_Damp_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-            m_IS_damp_calib_dlg->ShowModal();
+            auto dlg = new Input_Shaping_Damp_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            dlg->ShowModal();
+            dlg->Destroy();
         },
         "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
