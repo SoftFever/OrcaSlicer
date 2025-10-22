@@ -65,7 +65,12 @@ The compensation works as follows:
 ```c++
 compensation = input_compensation_distance - (input_compensation_distance / input_compensation_layers) × (current_layer - 1)
 ```
-Assuming the compensation value is 0.25 mm.  
+According to the equation, we can establish the following rules:
+- In the 1st layer, since it is layer `1 - 1 = 0`, compensation is 100%.
+- The intermediate layers (between the first and input_compensation_layers) will have linear compensation.
+- Layers above the specified amount will not be compensated.
+
+Assuming the compensation value is 0.25 mm:
 
 - Elephant Foot Compensation Layers = 1 :
   - 1st layer: `0.25mm` compensation (100%)
