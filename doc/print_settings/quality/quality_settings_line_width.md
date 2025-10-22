@@ -31,7 +31,7 @@ Fallback value used when a specific line width is not set (set to `0`).
 ### First Layer
 
 A wider first layer (with a higher [first layer height](quality_settings_layer_height#first-layer-height)) improves bed adhesion and compensates for uneven build surfaces.  
-First layer line width also overrides Brim's and Skirt's line width.
+First layer line width also overrides [Brim's](others_settings_brim) and [Skirt's](others_settings_skirt) line width.
 
 ### Outer Wall
 
