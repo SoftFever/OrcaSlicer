@@ -1085,6 +1085,102 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("set_other_flow_ratios", coBool);
+    def->label = L("Set other flow ratios");
+    def->category = L("Advanced");
+    def->tooltip = L("Change flow ratios for other extrusion path types.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("first_layer_flow_ratio", coFloat);
+    def->label = L("First layer flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material on the first layer for the extrusion path roles listed in this section.\n\n"
+                     "For the first layer, the actual flow ratio for each path role (does not affect brims and skirts) will be multiplied by this value.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("outer_wall_flow_ratio", coFloat);
+    def->label = L("Outer wall flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for outer walls.\n\n"
+                     "The actual outer wall flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("inner_wall_flow_ratio", coFloat);
+    def->label = L("Inner wall flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for inner walls.\n\n"
+                     "The actual inner wall flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("overhang_flow_ratio", coFloat);
+    def->label = L("Overhang flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for overhangs.\n\n"
+                     "The actual overhang flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("sparse_infill_flow_ratio", coFloat);
+    def->label = L("Sparse infill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for sparse infill.\n\n"
+                     "The actual sparse infill flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("internal_solid_infill_flow_ratio", coFloat);
+    def->label = L("Internal solid infill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for internal solid infill.\n\n"
+                     "The actual internal solid infill flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("gap_fill_flow_ratio", coFloat);
+    def->label = L("Gap fill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for filling the gaps.\n\n"
+                     "The actual gap filling flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("support_flow_ratio", coFloat);
+    def->label = L("Support flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for support.\n\n"
+                     "The actual support flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("support_interface_flow_ratio", coFloat);
+    def->label = L("Support interface flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for the support interface.\n\n"
+                     "The actual support interface flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("precise_outer_wall",coBool);
     def->label = L("Precise wall");
@@ -2111,7 +2207,8 @@ void PrintConfigDef::init_fff_params()
         "\nBe sure to allow enough space between objects, as this compensation is done after the checks.");
     def->sidetext = "%";
     def->ratio_over = "";
-    def->min = 10;
+    def->min = 50;
+    def->max = 150;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
     
@@ -2122,7 +2219,8 @@ void PrintConfigDef::init_fff_params()
         " The part will be scaled in Z to compensate.");
     def->sidetext = "%";
     def->ratio_over = "";
-    def->min = 10;
+    def->min = 50;
+    def->max = 150;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
 
@@ -3497,14 +3595,14 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(20));
 
     def           = this->add("ironing_angle", coFloat);
-    def->label    = L("Ironing angle");
+    def->label    = L("Ironing angle offset");
     def->category = L("Quality");
-    def->tooltip  = L("The angle ironing is done at. A negative number disables this function and uses the default method.");
+    def->tooltip  = L("The angle of ironing lines offset from the top surface.");
     def->sidetext = u8"°";	// degrees, don't need translation
-    def->min      = -1;
+    def->min      = 0;
     def->max      = 359;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(-1));
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("layer_change_gcode", coString);
     def->label = L("Layer change G-code");
@@ -6863,6 +6961,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "bottom_solid_infill_flow_ratio";
     } else if (opt_key == "ironing_direction") {
         opt_key = "ironing_angle";
+    } else if (opt_key == "ironing_angle" && boost::starts_with(value, "-")) {
+        value = "0";
     } else if (opt_key == "counterbole_hole_bridging") {
         opt_key = "counterbore_hole_bridging";
     } else if (opt_key == "draft_shield" && value == "limited") {
