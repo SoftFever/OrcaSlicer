@@ -66,13 +66,21 @@ The compensation works as follows:
 elephantfoot_Compensation = input_compensation - (input_compensation / elephantfoot_Compensation_layers) × current_layer_id
 ```
 Assuming the compensation value is 0.25 mm.  
-If the Elephant Foot Compensation Layers is 1 , then the first layer will have its outer dimensions reduced by 0.25 mm due to the first layer's id being 0.  
-2nd layer and beyond: No compensation (0 mm)  
 
-If the Elephant Foot Compensation Layers is 2  
-1st layer: 0.25 − (0.25 / 2) × 0 = 0.25 mm compensation (100%)  
-2nd layer: 0.25 − (0.25 / 2) × 1 = 0.125 mm compensation (50%)  
-3rd layer and beyond: No compensation (0 mm)  
+- Elephant Foot Compensation Layers = 1 :
+  - 1st layer: `0.25mm` compensation (100%)
+  - 2nd layer and beyond: No compensation (0 mm)
+- Elephant Foot Compensation Layers = 2 :
+  - 1st layer: `0.25mm` compensation (100%)
+  - 2nd layer: `0.25 − (0.25 / 2) × (2 - 1) = 0.125mm` compensation (50%)
+  - 3rd layer and beyond: No compensation (0 mm).
+- Elephant Foot Compensation Layers = 5 :
+  - 1st layer: `0.25mm` compensation (100%)
+  - 2nd layer: `0.25 − (0.25 / 5) × (2 - 1) = 0.2mm` compensation (80%)
+  - 3rd layer: `0.25 − (0.25 / 5) × (3 - 1) = 0.15mm` compensation (60%)
+  - 4th layer: `0.25 − (0.25 / 5) × (4 - 1) = 0.1mm` compensation (40%)
+  - 5th layer: `0.25 − (0.25 / 5) × (5 - 1) = 0.05mm` compensation (20%)
+  - 6th layer and beyond: No compensation (0 mm).
 
 ## Precise wall
 
