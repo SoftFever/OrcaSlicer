@@ -1223,46 +1223,21 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     wxString end_value_str;
     wxString units_str;
 
-    if (gcode_flavor_option) {
-        switch (gcode_flavor_option->value) {
-            case GCodeFlavor::gcfKlipper:
-            case GCodeFlavor::gcfMarlinLegacy:
+    if (gcode_flavor_option &&
+        gcode_flavor_option->value == GCodeFlavor::gcfMarlinFirmware &&
+        preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation") &&
+        !preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation")->values.empty() &&
+        preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation")->values[0] > 0) {
+            // Using Junction Deviation (mm)
+            start_value_str = wxString::Format("%.3f", 0.000);
+            end_value_str   = wxString::Format("%.3f", 0.250);
+            units_str = "mm";
+        } else {
+            // Using Classic Jerk (mm/s)
                 start_value_str = wxString::Format("%.3f", 1.0);
                 end_value_str   = wxString::Format("%.3f", 15.0);
                 units_str = "mm/s";
-                break;
-            case GCodeFlavor::gcfRepRapFirmware:
-                start_value_str = wxString::Format("%.3f", 30.0);
-                end_value_str   = wxString::Format("%.3f", 300.0);
-                units_str = "mm/s";
-                break;
-            case GCodeFlavor::gcfMarlinFirmware: {
-                // Check if machine_max_junction_deviation is set and > 0
-                const auto* max_jd_option = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation");
-                if (max_jd_option && !max_jd_option->values.empty() && max_jd_option->values[0] > 0) {
-                    // Using Junction Deviation (mm)
-                    start_value_str = wxString::Format("%.3f", 0.000);
-                    end_value_str   = wxString::Format("%.3f", 0.250);
-                    units_str = "mm";
-                } else {
-                    // Using Classic Jerk (mm/s)
-                    start_value_str = wxString::Format("%.3f", 1.000);
-                    end_value_str   = wxString::Format("%.3f", 15.000);
-                    units_str = "mm/s";
-                }
-                break;
-            }
-            default:
-                start_value_str = wxString::Format("%.3f", 0.0);
-                end_value_str   = wxString::Format("%.3f", 1.0);
-                units_str = "";
-                break;
         }
-    } else {
-        start_value_str = wxString::Format("%.3f", 0.0);
-        end_value_str   = wxString::Format("%.3f", 1.0);
-        units_str = "";
-    }
 
     auto ti_size = FromDIP(wxSize(120, -1));
 
@@ -1312,7 +1287,7 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
                 note_msg += _L("Marlin Legacy detected: Using Classic Jerk.");
                 break;
             case GCodeFlavor::gcfRepRapFirmware:
-                note_msg += _L("RepRap detected: Using Maximum instantaneous speed changes.");
+                note_msg += _L("RepRap detected: Using Maximum instantaneous speed changes in mm/s.\nDon't worry about the motion ability limit in mm/s. It will be converted to mm/min in the G-code.");
                 break;
             default:
                 note_msg += _L("Unknown firmware: Please verify cornering/jerk settings.");
