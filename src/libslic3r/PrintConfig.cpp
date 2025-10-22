@@ -1,6 +1,7 @@
 #include "PrintConfig.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
+#include "MaterialType.hpp"
 #include "I18N.hpp"
 #include "format.hpp"
 
@@ -52,6 +53,9 @@ namespace Slic3r {
 //! return same string
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
+
+// Filament types are defined in MaterialType.
+
 
 static t_config_enum_names enum_names_from_keys_map(const t_config_enum_values &enum_keys_map)
 {
@@ -562,7 +566,7 @@ void PrintConfigDef::init_common_params()
     def = this->add("preferred_orientation", coFloat);
     def->label = L("Preferred orientation");
     def->tooltip = L("Automatically orient stls on the Z axis upon initial import.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->max = 360;
     def->min = -360;
     def->mode = comAdvanced;
@@ -997,7 +1001,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for external bridges. "
         "Use 180°for zero angle.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -1009,7 +1013,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Internal bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for internal bridges. "
         "Use 180°for zero angle.\n\nIt is recommended to leave it at 0 unless there is a specific model need not to.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -1081,6 +1085,102 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("set_other_flow_ratios", coBool);
+    def->label = L("Set other flow ratios");
+    def->category = L("Advanced");
+    def->tooltip = L("Change flow ratios for other extrusion path types.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("first_layer_flow_ratio", coFloat);
+    def->label = L("First layer flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material on the first layer for the extrusion path roles listed in this section.\n\n"
+                     "For the first layer, the actual flow ratio for each path role (does not affect brims and skirts) will be multiplied by this value.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("outer_wall_flow_ratio", coFloat);
+    def->label = L("Outer wall flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for outer walls.\n\n"
+                     "The actual outer wall flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("inner_wall_flow_ratio", coFloat);
+    def->label = L("Inner wall flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for inner walls.\n\n"
+                     "The actual inner wall flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("overhang_flow_ratio", coFloat);
+    def->label = L("Overhang flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for overhangs.\n\n"
+                     "The actual overhang flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("sparse_infill_flow_ratio", coFloat);
+    def->label = L("Sparse infill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for sparse infill.\n\n"
+                     "The actual sparse infill flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("internal_solid_infill_flow_ratio", coFloat);
+    def->label = L("Internal solid infill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for internal solid infill.\n\n"
+                     "The actual internal solid infill flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("gap_fill_flow_ratio", coFloat);
+    def->label = L("Gap fill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for filling the gaps.\n\n"
+                     "The actual gap filling flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("support_flow_ratio", coFloat);
+    def->label = L("Support flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for support.\n\n"
+                     "The actual support flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("support_interface_flow_ratio", coFloat);
+    def->label = L("Support interface flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for the support interface.\n\n"
+                     "The actual support interface flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("precise_outer_wall",coBool);
     def->label = L("Precise wall");
@@ -1328,7 +1428,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum angle to let a brim ear appear.\n"
                      "If set to 0, no brim will be created.\n"
                      "If set to ~180, brim will be created on everything but straight sections.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->max = 180;
     def->mode = comAdvanced;
@@ -2107,7 +2207,8 @@ void PrintConfigDef::init_fff_params()
         "\nBe sure to allow enough space between objects, as this compensation is done after the checks.");
     def->sidetext = "%";
     def->ratio_over = "";
-    def->min = 10;
+    def->min = 50;
+    def->max = 150;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
     
@@ -2118,7 +2219,8 @@ void PrintConfigDef::init_fff_params()
         " The part will be scaled in Z to compensate.");
     def->sidetext = "%";
     def->ratio_over = "";
-    def->min = 10;
+    def->min = 50;
+    def->max = 150;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
 
@@ -2261,45 +2363,11 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->gui_flags = "show_value";
 
-    def->enum_values.push_back("ABS");
-    def->enum_values.push_back("ABS-GF");
-    def->enum_values.push_back("ASA");
-    def->enum_values.push_back("ASA-Aero");
-    def->enum_values.push_back("BVOH");
-    def->enum_values.push_back("PCTG");
-    def->enum_values.push_back("EVA");
-    def->enum_values.push_back("FLEX");
-    def->enum_values.push_back("HIPS");
-    def->enum_values.push_back("PA");
-    def->enum_values.push_back("PA-CF");
-    def->enum_values.push_back("PA-GF");
-    def->enum_values.push_back("PA6-CF");
-    def->enum_values.push_back("PA11-CF");
-    def->enum_values.push_back("PC");
-    def->enum_values.push_back("PC-CF");
-    def->enum_values.push_back("PCTG");
-    def->enum_values.push_back("PE");
-    def->enum_values.push_back("PE-CF");
-    def->enum_values.push_back("PET-CF");
-    def->enum_values.push_back("PETG");
-    def->enum_values.push_back("PETG-CF");
-    def->enum_values.push_back("PETG-CF10");
-    def->enum_values.push_back("PETG-GF");
-    def->enum_values.push_back("PHA");
-    def->enum_values.push_back("PLA");
-    def->enum_values.push_back("PLA-AERO");
-    def->enum_values.push_back("PLA-CF");
-    def->enum_values.push_back("PP");
-    def->enum_values.push_back("PP-CF");
-    def->enum_values.push_back("PP-GF");
-    def->enum_values.push_back("PPA-CF");
-    def->enum_values.push_back("PPA-GF");
-    def->enum_values.push_back("PPS");
-    def->enum_values.push_back("PPS-CF");
-    def->enum_values.push_back("PVA");
-    def->enum_values.push_back("PVB");
-    def->enum_values.push_back("SBS");
-    def->enum_values.push_back("TPU");
+    // Populate the enum values using the shared material type database
+    for (const auto& filament : MaterialType::all()) {
+        def->enum_values.push_back(filament.name);
+    }
+
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
@@ -2352,7 +2420,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Sparse infill direction");
     def->category = L("Strength");
     def->tooltip = L("Angle for sparse infill pattern, which controls the start or main direction of line.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->max = 360;
     def->mode = comAdvanced;
@@ -2362,7 +2430,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Solid infill direction");
     def->category = L("Strength");
     def->tooltip = L("Angle for solid infill pattern, which controls the start or main direction of line.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->max = 360;
     def->mode = comAdvanced;
@@ -2464,7 +2532,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Lateral lattice angle 1");
     def->category = L("Strength");
     def->tooltip  = L("The angle of the first set of Lateral lattice elements in the Z direction. Zero is vertical.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min      = -75;
     def->max      = 75;
     def->mode     = comAdvanced;
@@ -2474,7 +2542,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Lateral lattice angle 2");
     def->category = L("Strength");
     def->tooltip  = L("The angle of the second set of Lateral lattice elements in the Z direction. Zero is vertical.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min      = -75;
     def->max      = 75;
     def->mode     = comAdvanced;
@@ -2484,7 +2552,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Infill overhang angle");
     def->category = L("Strength");
     def->tooltip  = L("The angle of the infill angled lines. 60° will result in a pure honeycomb.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min      = 15;
     def->max      = 75;
     def->mode     = comAdvanced;
@@ -3210,7 +3278,7 @@ void PrintConfigDef::init_fff_params()
                       "The template is a comma-separated list of angles in degrees, e.g. '0,90'. "
                       "The first angle is applied to the first layer, the second angle to the second layer, and so on. "
                       "If there are more layers than angles, the angles will be repeated. Note that not all solid infill patterns support rotation.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
@@ -3420,7 +3488,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("interlocking_orientation", coFloat);
     def->label    = L("Interlocking direction");
     def->tooltip  = L("Orientation of interlock beams.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min      = 0;
     def->max      = 360;
     def->category = L("Advanced");
@@ -3527,14 +3595,14 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(20));
 
     def           = this->add("ironing_angle", coFloat);
-    def->label    = L("Ironing angle");
+    def->label    = L("Ironing angle offset");
     def->category = L("Quality");
-    def->tooltip  = L("The angle ironing is done at. A negative number disables this function and uses the default method.");
-    def->sidetext = "°";	// degrees, don't need translation
-    def->min      = -1;
+    def->tooltip  = L("The angle of ironing lines offset from the top surface.");
+    def->sidetext = u8"°";	// degrees, don't need translation
+    def->min      = 0;
     def->max      = 359;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(-1));
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("layer_change_gcode", coString);
     def->label = L("Layer change G-code");
@@ -4017,7 +4085,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum angle of overhangs to allow after making more steep overhangs printable."
                      "90° will not change the model at all and allow any overhang, while 0 will "
                      "replace all overhangs with conical material.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->mode = comAdvanced;
     def->min = 0.;
     def->max = 90.;
@@ -4028,7 +4096,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Maximum area of a hole in the base of the model before it's filled by conical material. "
                      "A value of 0 will fill all the holes in the model base.");
-    def->sidetext = "mm²";	// square milimeters, don't need translation
+    def->sidetext = u8"mm²";	// square millimeters, don't need translation
     def->mode = comAdvanced;
     def->min = 0.;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -4295,7 +4363,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("travel_slope", coFloats);
     def->label = L("Traveling angle");
     def->tooltip = L("Traveling angle for Slope and Spiral Z-hop type. Setting it to 90° results in Normal Lift.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->mode = comAdvanced;
     def->min = 1;
     def->max = 90;
@@ -4439,7 +4507,7 @@ void PrintConfigDef::init_fff_params()
         "This option sets the threshold angle for applying a conditional scarf joint seam.\nIf the maximum angle within the perimeter loop "
         "exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°.");
     def->mode = comAdvanced;
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->max = 180;
     def->set_default_value(new ConfigOptionInt(155));
@@ -4560,7 +4628,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("skirt_start_angle", coFloat);
     def->label = L("Skirt start point");
     def->tooltip = L("Angle from the object center to skirt start point. Zero is the most right position, counter clockwise is positive angle.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = -180;
     def->max = 180;
     def->mode = comAdvanced;
@@ -4650,7 +4718,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Minimum sparse infill threshold");
     def->category = L("Strength");
     def->tooltip = L("Sparse infill area which is smaller than threshold value is replaced by internal solid infill.");
-    def->sidetext = "mm²";	// square milimeters, don't need translation
+    def->sidetext = u8"mm²";	// square millimeters, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(15));
@@ -4927,7 +4995,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Pattern angle");
     def->category = L("Support");
     def->tooltip = L("Use this setting to rotate the support pattern on the horizontal plane.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->max = 359;
     def->mode = comAdvanced;
@@ -5211,7 +5279,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Threshold angle");
     def->category = L("Support");
     def->tooltip = L("Support will be generated for overhangs whose slope angle is below the threshold.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->max = 90;
     def->mode = comSimple;
@@ -5233,7 +5301,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip = L("This setting determines the maximum overhang angle that the branches of tree support are allowed to make. "
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->max = 60;
     def->mode = comAdvanced;
@@ -5244,7 +5312,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip = L("This setting determines the maximum overhang angle that the branches of tree support are allowed to make. "
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->max = 60;
     def->mode = comAdvanced;
@@ -5256,7 +5324,7 @@ void PrintConfigDef::init_fff_params()
     // TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
     def->tooltip = L("The preferred angle of the branches, when they do not have to avoid the model. "
                      "Use a lower angle to make them more vertical and more stable. Use a higher angle for branches to merge faster.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 10;
     def->max = 85;
     def->mode = comAdvanced;
@@ -5344,7 +5412,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The angle of the branches' diameter as they gradually become thicker towards the bottom. "
                      "An angle of 0 will cause the branches to have uniform thickness over their length. "
                      "A bit of an angle can increase stability of the organic support.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->min = 0;
     def->max = 15;
     def->mode = comAdvanced;
@@ -5676,7 +5744,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wipe_tower_rotation_angle", coFloat);
     def->label = L("Wipe tower rotation angle");
     def->tooltip = L("Wipe tower rotation angle with respect to X axis.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
@@ -5692,7 +5760,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Stabilization cone apex angle");
     def->tooltip = L("Angle at the apex of the cone that is used to stabilize the wipe tower. "
                      "Larger angle means wider base.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->mode = comAdvanced;
     def->min = 0.;
     def->max = 90.;
@@ -5957,7 +6025,7 @@ void PrintConfigDef::init_fff_params()
         " an angle greater than this setting will not have transitions and no walls will be "
         "printed in the center to fill the remaining space. Reducing this setting reduces "
         "the number and length of these center walls, but may leave gaps or overextrude.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->mode = comAdvanced;
     def->min = 1.;
     def->max = 59.;
@@ -6893,6 +6961,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "bottom_solid_infill_flow_ratio";
     } else if (opt_key == "ironing_direction") {
         opt_key = "ironing_angle";
+    } else if (opt_key == "ironing_angle" && boost::starts_with(value, "-")) {
+        value = "0";
     } else if (opt_key == "counterbole_hole_bridging") {
         opt_key = "counterbore_hole_bridging";
     } else if (opt_key == "draft_shield" && value == "limited") {
@@ -7853,19 +7923,19 @@ CLITransformConfigDef::CLITransformConfigDef()
     def = this->add("rotate", coFloat);
     def->label = L("Rotate");
     def->tooltip = L("Rotation angle around the Z axis in degrees.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("rotate_x", coFloat);
     def->label = L("Rotate around X");
     def->tooltip = L("Rotation angle around the X axis in degrees.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("rotate_y", coFloat);
     def->label = L("Rotate around Y");
     def->tooltip = L("Rotation angle around the Y axis in degrees.");
-    def->sidetext = "°";	// degrees, don't need translation
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("scale", coFloat);

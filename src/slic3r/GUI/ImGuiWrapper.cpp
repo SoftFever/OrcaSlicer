@@ -1022,6 +1022,10 @@ void ImGuiWrapper::tooltip(const char *label, float wrap_width)
     ImGui::EndTooltip();
 }
 
+void ImGuiWrapper::tooltip(const std::string &label, float wrap_width) {
+    tooltip(label.c_str(), wrap_width);
+}
+
 void ImGuiWrapper::tooltip(const wxString &label, float wrap_width)
 {
     ImGui::BeginTooltip();
