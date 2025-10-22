@@ -62,7 +62,7 @@ To mitigate this effect, OrcaSlicer allows you to specify a negative distance th
 ![elephant-foot-compensation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Precision/elephant-foot-compensation.png?raw=true)
 
 The compensation works as follows:  
-```
+```c++
 elephantfoot_Compensation = input_compensation - (input_compensation / elephantfoot_Compensation_layers) × current_layer_id
 ```
 Assuming the compensation value is 0.25 mm.  
