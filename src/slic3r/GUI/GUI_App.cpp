@@ -5756,6 +5756,8 @@ void GUI_App::update_mode()
         tab->update_mode();
 
     //BBS plater()->update_menus();
+    plater()->sidebar().update_presets(Preset::TYPE_PRINT);
+    plater()->sidebar().update_presets(Preset::TYPE_FILAMENT);
 
     plater()->canvas3D()->update_gizmos_on_off_state();
 }
