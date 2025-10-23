@@ -318,7 +318,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
            ! config->opt_bool("detect_thin_wall") &&
            ! config->opt_bool("overhang_reverse") &&
             config->opt_enum<WallDirection>("wall_direction") == WallDirection::Auto &&
-            config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
+            config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional && !config->opt_bool("staggered_perimeters") ))
     {
         DynamicPrintConfig new_conf = *config;
         auto answer = show_spiral_mode_settings_dialog(is_object_config);
@@ -333,12 +333,37 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("overhang_reverse", new ConfigOptionBool(false));
             new_conf.set_key_value("wall_direction", new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
             new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+            new_conf.set_key_value("staggered_perimeters", new ConfigOptionBool(false));
             sparse_infill_density = 0;
             timelapse_type = TimelapseType::tlTraditional;
             support = false;
         }
         else {
             new_conf.set_key_value("spiral_mode", new ConfigOptionBool(false));
+        }
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
+    bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
+	if (!is_plate_config &&
+        config->opt_bool("staggered_perimeters") &&
+        (abs(config->opt_float("initial_layer_print_height") - config->opt_float("layer_height")) > EPSILON  ||
+        !(config->option<ConfigOptionFloatOrPercent>("top_surface_line_width") == config->option<ConfigOptionFloatOrPercent>("outer_wall_line_width")) || 
+            !have_arachne || 
+            config->opt_bool("spiral_mode")))
+    {
+        DynamicPrintConfig new_conf = *config;
+        auto answer = show_staggered_perimeter_settings_dialog();
+        bool support = true;
+        if (answer == wxID_YES) {
+            new_conf.set_key_value("initial_layer_print_height", config->option<ConfigOptionFloat>("layer_height")->clone());
+            new_conf.set_key_value("top_surface_line_width", config->option<ConfigOptionFloatOrPercent>("outer_wall_line_width")->clone() );
+            new_conf.set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Arachne));
+            new_conf.set_key_value("spiral_mode", new ConfigOptionBool(false));
+        }
+        else {
+            new_conf.set_key_value("staggered_perimeters", new ConfigOptionBool(false));
         }
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
@@ -997,6 +1022,22 @@ int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
     is_msg_dlg_already_exist = false;
     if (is_object_config)
         answer = wxID_YES;
+    return answer;
+}
+
+int ConfigManipulation::show_staggered_perimeter_settings_dialog()
+{
+    wxString msg_text = _(L("Staggered perimeters is an experimental feature and only works when the First layer height is the same as Layer height, Top surface line width is the same as Outer wall line width and only for Arachne"));
+			msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+				"Yes - Change these settings and enable staggered perimeters\n"
+				"No  - Give up using staggered perimeters this time"));
+
+    MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
+        wxICON_WARNING |  wxYES | wxNO );
+
+    is_msg_dlg_already_exist = true;
+    auto answer = dialog.ShowModal();
+    is_msg_dlg_already_exist = false;
     return answer;
 }
 
