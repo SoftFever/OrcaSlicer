@@ -515,6 +515,14 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+
+    if (config->opt_enum<FuzzySkinMode>("fuzzy_skin_mode") != FuzzySkinMode::Displacement) {
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        new_conf.set_key_value("precision_infill", new ConfigOptionBool(false));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 }
 
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
@@ -566,6 +574,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "small_perimeter_threshold" })
         toggle_field(el, have_perimeters);
 
+    bool patchwork_enable = config->opt_enum<PatchworkPosition>("patchwork_surfaces") != PatchworkPosition::Nowhere;
+    for (auto el : {"patchwork_direction", "patchwork_tile_height", "patchwork_tile_width",
+                    "patchwork_tile_horizontal_joint", "patchwork_tile_vertical_joint",
+                    "patchwork_tiles_alternate_direction", "patchwork_centering", "patchwork_subway_tiling", "patchwork_joints_flow_ratio"})
+        toggle_line(el, patchwork_enable);
+
+    toggle_field("patchwork_tiles_alternate_direction", config->opt_enum<CenterOfSurfacePattern>("center_of_surface_pattern") != CenterOfSurfacePattern::Each_Assembly);
+    
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "infill_combination",
@@ -627,6 +643,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "solid_infill_direction", "solid_infill_rotate_template", "internal_solid_infill_pattern", "solid_infill_filament",
         })
         toggle_field(el, have_infill || has_solid_infill);
+
+    for (auto el : { "gap_fill_target", "filter_out_gap_fill" })
+        toggle_field(el, !config->opt_bool("anisotropic_surfaces"));
 
     toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_shell);
     toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_shell);
@@ -823,6 +842,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("fuzzy_skin_scale", fuzzy_skin_noise_type != NoiseType::Classic);
     toggle_line("fuzzy_skin_octaves", fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin_noise_type != NoiseType::Voronoi);
     toggle_line("fuzzy_skin_persistence", fuzzy_skin_noise_type == NoiseType::Perlin || fuzzy_skin_noise_type == NoiseType::Billow);
+    toggle_field("precision_infill", config->opt_enum<FuzzySkinMode>("fuzzy_skin_mode") == FuzzySkinMode::Displacement);
 
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",

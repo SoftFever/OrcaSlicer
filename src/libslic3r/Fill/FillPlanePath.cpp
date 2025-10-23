@@ -77,21 +77,28 @@ void FillPlanePath::_fill_surface_single(
 
     //FIXME Vojtech: We are not sure whether the user expects the fill patterns on visible surfaces to be aligned across all the islands of a single layer.
     // One may align for this->centered() to align the patterns for Archimedean Chords and Octagram Spiral patterns.
-    const bool align = params.density < 0.995;
+    // PPS: Disable when patchwork surface. Bug remove: since the surfaces became variable density, it's not working properly
+    bool       _top_or_bottom = params.extrusion_role == erTopSolidInfill || params.extrusion_role == erBottomSurface;
+    const bool align          = !_top_or_bottom && params.density < 0.995 && !params.is_patchwork;
 
+    BoundingBox bounding_box;
     BoundingBox snug_bounding_box = get_extents(expolygon).inflated(SCALED_EPSILON);
 
-    // Rotated bounding box of the area to fill in with the pattern.
-    BoundingBox bounding_box = align ?
-        // Sparse infill needs to be aligned across layers. Align infill across layers using the object's bounding box.
-        this->bounding_box.rotated(-direction.first) :
-        // Solid infill does not need to be aligned across layers, generate the infill pattern
-        // around the clipping expolygon only.
-        snug_bounding_box;
+    if (params.center_of_surface_pattern == CenterOfSurfacePattern::Each_Surface) {
+        // Rotated bounding box of the area to fill in with the pattern.
+        bounding_box = align ?
+            // Sparse infill needs to be aligned across layers. Align infill across layers using the object's bounding box.
+            this->bounding_box.rotated(-direction.first) :
+            // Solid infill does not need to be aligned across layers, generate the infill pattern
+            // around the clipping expolygon only.
+            snug_bounding_box;
+    } else if (params.center_of_surface_pattern == CenterOfSurfacePattern::Each_Model) 
+        bounding_box = extended_object_bounding_box(); 
+    else 
+        bounding_box = this->bounding_box.rotated(-direction.first); 
 
-    Point shift = this->centered() ? 
-        bounding_box.center() :
-        bounding_box.min;
+    Point shift = this->centered() ? bounding_box.center() : bounding_box.min;
+
     expolygon.translate(-shift.x(), -shift.y());
     bounding_box.translate(-shift.x(), -shift.y());
 
@@ -121,35 +128,58 @@ void FillPlanePath::_fill_surface_single(
         Polylines polylines = intersection_pl(polyline, expolygon);
         if (!polylines.empty()) {
             Polylines chained;
-            if (params.dont_connect() || params.density > 0.5) {
-                // ORCA: special flag for flow rate calibration
-                auto is_flow_calib = params.extrusion_role == erTopSolidInfill &&
-                                     this->print_object_config->has("calib_flowrate_topinfill_special_order") &&
-                                     this->print_object_config->option("calib_flowrate_topinfill_special_order")->getBool() &&
-                                     dynamic_cast<FillArchimedeanChords*>(this);
-                if (is_flow_calib) {
-                    // We want the spiral part to be printed inside-out
-                    // Find the center spiral line first, by looking for the longest one
-                    auto     it            = std::max_element(polylines.begin(), polylines.end(),
-                                                              [](const Polyline& a, const Polyline& b) { return a.length() < b.length(); });
-                    Polyline center_spiral = std::move(*it);
+            if (!params.is_anisotropic) { // not aesthetic surface
+                if ((params.dont_connect() || params.density > 0.5)) {
+                    // ORCA: special flag for flow rate calibration
+                    auto is_flow_calib = params.extrusion_role == erTopSolidInfill &&
+                                         this->print_object_config->has("calib_flowrate_topinfill_special_order") &&
+                                         this->print_object_config->option("calib_flowrate_topinfill_special_order")->getBool() &&
+                                         dynamic_cast<FillArchimedeanChords*>(this);
+                    if (is_flow_calib) {
+                        // We want the spiral part to be printed inside-out
+                        // Find the center spiral line first, by looking for the longest one
+                        auto     it            = std::max_element(polylines.begin(), polylines.end(),
+                                                                  [](const Polyline& a, const Polyline& b) { return a.length() < b.length(); });
+                        Polyline center_spiral = std::move(*it);
 
-                    // Ensure the spiral is printed from inside to out
-                    if (center_spiral.first_point().squaredNorm() > center_spiral.last_point().squaredNorm()) {
-                        center_spiral.reverse();
+                        // Ensure the spiral is printed from inside to out
+                        if ((center_spiral.first_point().squaredNorm() > center_spiral.last_point().squaredNorm())) {
+                            center_spiral.reverse();
+                        }
+
+                        // Chain the other polylines
+                        polylines.erase(it);
+                        chained = chain_polylines(std::move(polylines), nullptr);
+
+                        // Then add the center spiral back
+                        chained.push_back(std::move(center_spiral));
+                    } else {
+                        chained = chain_polylines(std::move(polylines), nullptr);
                     }
-
-                    // Chain the other polylines
-                    polylines.erase(it);
-                    chained = chain_polylines(std::move(polylines));
-
-                    // Then add the center spiral back
-                    chained.push_back(std::move(center_spiral));
-                } else {
-                    chained = chain_polylines(std::move(polylines));
+                } else
+                    connect_infill(std::move(polylines), expolygon, chained, this->spacing, params);
+            } else { // aesthetic surface
+                const Point _center(0., 0.);
+                for (Polyline& segment : polylines) { // sort paths by its direction
+                    if (segment.size() > 1 || !segment.first_point().distance_to(_center)) {
+                        if (segment.first_point().ccw(segment.points[1], _center) < 0)
+                            segment.reverse();
+                    }
+                    chained.emplace_back(segment);
                 }
-            } else
-                connect_infill(std::move(polylines), expolygon, chained, this->spacing, params);
+                //if (params.extrusion_role == erTopSolidInfill) { // for top surface draw path outside to center for decrease visual defects
+                //    for (Polyline& segment : chained) {
+                //        segment.reverse();
+                //    }
+                //    std::sort(chained.begin(), chained.end(), [](Polyline a, Polyline b) {
+                //        return a.distance_to(Point(0., 0.)) > b.distance_to(Point(0., 0.));
+                //    });
+                //} else 
+                    std::sort(chained.begin(), chained.end(), [](Polyline a, Polyline b) { //just sort polylines from center to outside
+                        return a.distance_to(Point(0., 0.)) < b.distance_to(Point(0., 0.));
+                    });
+
+            }
             // paths must be repositioned and rotated back
             for (Polyline& pl : chained) {
                 pl.translate(shift.x(), shift.y());

@@ -379,8 +379,13 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 this->path.points.begin() + 1,
                 this->path.points.end()
             );
-
-            wipe_path.clip_end(wipe_path.length() - wipe_dist);
+            if (wipe_dist > 0)
+                wipe_path.clip_end(wipe_path.length() - wipe_dist);
+            else { // negative wipe make extra movement anong the path
+                wipe_path.extend_start(-wipe_dist);
+                wipe_path.clip_end(wipe_path.length() + wipe_dist);
+                wipe_path.reverse();
+            }
 
             // subdivide the retraction in segments
             if (!wipe_path.empty()) {
@@ -6367,7 +6372,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
         return gcode;
 
     // wipe (if it's enabled for this extruder and we have a stored wipe path and no-zero wipe distance)
-    if (EXTRUDER_CONFIG(wipe) && m_wipe.has_path() && scale_(EXTRUDER_CONFIG(wipe_distance)) > SCALED_EPSILON) {
+    if (EXTRUDER_CONFIG(wipe) && m_wipe.has_path() && scale_(std::abs(EXTRUDER_CONFIG(wipe_distance))) > SCALED_EPSILON) { // negative wipe make extra movement anong the path
         Wipe::RetractionValues wipeRetractions = m_wipe.calculateWipeRetractionLengths(*this, toolchange);
         gcode += toolchange ? m_writer.retract_for_toolchange(true,wipeRetractions.retractLengthBeforeWipe) : m_writer.retract(true, wipeRetractions.retractLengthBeforeWipe);
         gcode += m_wipe.wipe(*this,wipeRetractions.retractLengthDuringWipe, toolchange, is_last_retraction);
