@@ -1318,23 +1318,16 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
                 // Check if machine_max_junction_deviation is set and > 0
                 const auto* max_jd_option = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation");
                 if (max_jd_option && !max_jd_option->values.empty() && max_jd_option->values[0] > 0) {
-                    note_msg += _L("Marlin 2 Junction Deviation detected: To enable Classic Jerk, set 'Maximum Junction Deviation' to 0 in Motion ability.");
+                    note_msg += _L("Marlin 2 Junction Deviation detected:\nTo test Classic Jerk, set 'Maximum Junction Deviation' in Motion ability to 0.");
                 } else {
-                    note_msg += _L("Marlin 2 Classic Jerk Detected: To enable Junction Deviation, set 'Maximum Junction Deviation' to a value > 0 in Motion ability.");
+                    note_msg += _L("Marlin 2 Classic Jerk detected:\nTo test Junction Deviation, set 'Maximum Junction Deviation' in Motion ability to a value > 0.");
                 }
                 break;
             }
-            case GCodeFlavor::gcfKlipper:
-                note_msg += _L("Klipper detected: Using square_corner_velocity.");
-                break;
-            case GCodeFlavor::gcfMarlinLegacy:
-                note_msg += _L("Marlin Legacy detected: Using Classic Jerk.");
-                break;
             case GCodeFlavor::gcfRepRapFirmware:
-                note_msg += _L("RepRap detected: Using Maximum instantaneous speed changes in mm/s.\nDon't worry about the motion ability limit in mm/s. It will be converted to mm/min in the G-code.");
+                note_msg += _L("RepRap detected: Jerk in mm/s.\nOrcaSlicer will convert the values to mm/min when necessary.");
                 break;
             default:
-                note_msg += _L("Unknown firmware: Please verify cornering/jerk settings.");
                 break;
         }
     }
