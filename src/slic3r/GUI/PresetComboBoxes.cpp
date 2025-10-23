@@ -263,6 +263,28 @@ wxColor PresetComboBox::different_color(wxColor const &clr)
 wxString PresetComboBox::get_tooltip(const Preset &preset)
 {
     wxString tooltip = from_u8(preset.name);
+    
+    // Add filament notes if available for filament presets
+    if (m_type == Preset::TYPE_FILAMENT) {
+        const DynamicConfig* config = &preset.config;
+        Tab* tab = wxGetApp().get_tab(m_type);
+        if (tab && tab->current_preset_is_dirty() && tab->get_presets()->get_selected_preset().name == preset.name) {
+            config = tab->get_config();
+        }
+
+        if (config->has("filament_notes")) {
+            const ConfigOptionStrings* notes_opt = config->option<ConfigOptionStrings>("filament_notes");
+            if (notes_opt && !notes_opt->values.empty() && !notes_opt->values[0].empty()) {
+                std::string notes = notes_opt->values[0];
+                // Truncate if longer than 200 characters
+                if (notes.length() > 200) {
+                    notes = notes.substr(0, 197) + "...";
+                }
+                tooltip += "\n" + from_u8(notes);
+            }
+        }
+    }
+    
     // BBS: FIXME
 #if 0
     if (m_type == Preset::TYPE_FILAMENT) {
@@ -1103,7 +1125,7 @@ void PlaterPresetComboBox::update()
         else if (m_type == Preset::TYPE_SLA_MATERIAL)
             set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
         else {
-            set_label_marker(Append(separator(L("Select/Remove printers(system presets)")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
+            set_label_marker(Append(separator(L("Select/Remove printers (system presets)")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
             set_label_marker(Append(separator(L("Create printer")), *bmp), LABEL_ITEM_WIZARD_ADD_PRINTERS);
         }
     }

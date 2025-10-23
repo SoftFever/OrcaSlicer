@@ -284,8 +284,8 @@ protected:
     FilamentComboBoxList m_filament_comboBox_list;
     FilamentComboBox*    m_virtual_tray_comboBox;
 
-    
-    std::vector<AMSItem*> m_ams_item_list;
+
+    std::vector<AMSPreview*> m_ams_preview_list;
 
     // for update filament combobox, key : tray_id
     std::map<int, DynamicPrintConfig> filament_ams_list;

@@ -32,10 +32,12 @@ enum class CalibState { Start = 0, Preset, Calibration, CoarseSave, FineCalibrat
 struct Calib_Params
 {
     Calib_Params() : mode(CalibMode::Calib_None){};
+    int extruder_id = 0;
     double    start, end, step;
     bool      print_numbers;
     double freqStartX, freqEndX, freqStartY, freqEndY;
     int test_model;
+    std::string shaper_type;
     std::vector<double> accelerations;
     std::vector<double> speeds;
 
@@ -52,8 +54,12 @@ class X1CCalibInfos
 public:
     struct X1CCalibInfo
     {
+        int         extruder_id = -1;
         int         tray_id;
+        int         ams_id = 0;
+        int         slot_id = 0;
         int         bed_temp;
+        NozzleVolumeType    nozzle_volume_type = NozzleVolumeType::nvtNormal;
         int         nozzle_temp;
         float       nozzle_diameter;
         std::string filament_id;
@@ -102,7 +108,11 @@ public:
         CALI_RESULT_PROBLEM = 1,
         CALI_RESULT_FAILED  = 2,
     };
-    int         tray_id;
+    int         extruder_id = -1;
+    NozzleVolumeType nozzle_volume_type;
+    int         tray_id = 0;
+    int         ams_id = 0;
+    int         slot_id = 0;
     int         cali_idx = -1;
     float       nozzle_diameter;
     std::string filament_id;
@@ -115,10 +125,31 @@ public:
 
 struct PACalibIndexInfo
 {
-    int         tray_id;
+    int         extruder_id = -1;
+    NozzleVolumeType nozzle_volume_type;
+    int         tray_id = 0;
+    int         ams_id = 0;
+    int         slot_id = 0;
     int         cali_idx;
     float       nozzle_diameter;
     std::string filament_id;
+};
+
+struct PACalibExtruderInfo
+{
+    int              extruder_id = -1;
+    NozzleVolumeType nozzle_volume_type;
+    float            nozzle_diameter;
+    std::string      filament_id = "";
+    bool             use_extruder_id{true};
+    bool             use_nozzle_volume_type{true};
+};
+
+struct PACalibTabInfo
+{
+    float pa_calib_tab_nozzle_dia;
+    int   extruder_id;
+    NozzleVolumeType nozzle_volume_type;
 };
 
 class FlowRatioCalibResult

@@ -37,8 +37,7 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
-static const std::string VERSION_CHECK_URL_STABLE = "https://api.github.com/repos/softfever/OrcaSlicer/releases/latest";
-static const std::string VERSION_CHECK_URL = "https://api.github.com/repos/softfever/OrcaSlicer/releases";
+static const std::string VERSION_CHECK_URL = "https://check-version.orcaslicer.com/latest";
 static const std::string PROFILE_UPDATE_URL = "https://api.github.com/repos/OrcaSlicer/orcaslicer-profiles/releases/tags";
 static const std::string MODELS_STR = "models";
 
@@ -178,6 +177,9 @@ void AppConfig::set_defaults()
     if (get("camera_navigation_style").empty())
         set("camera_navigation_style", "0");
 
+    if (get("swap_mouse_buttons").empty())
+        set_bool("swap_mouse_buttons", false);
+
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
 
@@ -253,6 +255,9 @@ void AppConfig::set_defaults()
     // Orca
     if (get("stealth_mode").empty()) {
         set_bool("stealth_mode", false);
+    }
+    if (get("legacy_networking").empty()) {
+        set_bool("legacy_networking", true);
     }
 
     if(get("check_stable_update_only").empty()) {
@@ -354,6 +359,10 @@ void AppConfig::set_defaults()
 
     if (get("max_recent_count").empty()) {
         set("max_recent_count", "18");
+    }
+
+    if (get("recent_models").empty()) {
+        set("recent_models", "0");
     }
 
     // if (get("staff_pick_switch").empty()) {
@@ -831,6 +840,10 @@ void AppConfig::save()
 #endif
 
     c.close();
+    if (c.fail()) {
+      BOOST_LOG_TRIVIAL(error) << "Failed to write new configuration to " << path_pid << "; aborting attempt to overwrite original configuration";
+      return;
+    }
 
 #ifdef WIN32
     // Make a backup of the configuration file before copying it to the final destination.
@@ -1036,6 +1049,10 @@ void AppConfig::save()
     c << appconfig_md5_hash_line(config_str);
 #endif
     c.close();
+    if (c.fail()) {
+      BOOST_LOG_TRIVIAL(error) << "Failed to write new configuration to " << path_pid << "; aborting attempt to overwrite original configuration";
+      return;
+    }
 
 #ifdef WIN32
     // Make a backup of the configuration file before copying it to the final destination.
@@ -1365,10 +1382,10 @@ std::string AppConfig::config_path()
     return path;
 }
 
-std::string AppConfig::version_check_url(bool stable_only/* = false*/) const
+std::string AppConfig::version_check_url() const
 {
     auto from_settings = get("version_check_url");
-    return from_settings.empty() ? stable_only ? VERSION_CHECK_URL_STABLE : VERSION_CHECK_URL : from_settings;
+    return from_settings.empty() ? VERSION_CHECK_URL : from_settings;
 }
 
 std::string AppConfig::profile_update_url() const

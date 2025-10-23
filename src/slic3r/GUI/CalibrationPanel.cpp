@@ -4,11 +4,13 @@
 #include "MainFrame.hpp"
 #include "CalibrationPanel.hpp"
 #include "I18N.hpp"
+#include "SelectMachine.hpp"
+#include "SelectMachinePop.hpp"
 
 namespace Slic3r { namespace GUI {
 
 #define REFRESH_INTERVAL       1000
-    
+
 #define INITIAL_NUMBER_OF_MACHINES 0
 #define LIST_REFRESH_INTERVAL 200
 #define MACHINE_LIST_REFRESH_INTERVAL 2000

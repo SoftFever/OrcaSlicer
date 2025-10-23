@@ -55,7 +55,7 @@ public:
     std::string set_accel_and_jerk(unsigned int acceleration, double jerk);
     std::string set_junction_deviation(double junction_deviation); 
     std::string set_pressure_advance(double pa) const;
-    std::string set_input_shaping(char axis, float damp, float freq) const;
+    std::string set_input_shaping(char axis, float damp, float freq, std::string type) const;
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
     // return false if this extruder was already selected
@@ -72,7 +72,7 @@ public:
     double      get_current_speed() const { return m_current_speed;}
     std::string travel_to_xy(const Vec2d &point, const std::string &comment = std::string());
     std::string travel_to_xyz(const Vec3d &point, const std::string &comment = std::string(), bool force_z = false);
-    std::string travel_to_z(double z, const std::string &comment = std::string());
+    std::string travel_to_z(double z, const std::string &comment = std::string(), bool force = false);
     bool        will_move_z(double z) const;
     std::string extrude_to_xy(const Vec2d &point, double dE, const std::string &comment = std::string(), bool force_no_extrusion = false);
     //BBS: generate G2 or G3 extrude which moves by arc

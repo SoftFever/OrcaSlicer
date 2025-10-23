@@ -70,7 +70,7 @@ void UpgradeNetworkJob::process(Ctl &ctl)
         }, cancel_fn);
 
     if (ctl.was_canceled()) {
-        update_status(ctl, 0, _u8L("Cancelled"));
+        update_status(ctl, 0, _u8L("Canceled"));
         wxCommandEvent event(wxEVT_CLOSE_WINDOW);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);
@@ -89,14 +89,14 @@ void UpgradeNetworkJob::process(Ctl &ctl)
         name, package_name,
         [this, &ctl](int state, int percent, bool &cancel) {
         if (state == InstallStatusInstallCompleted) {
-            update_status(ctl, percent, _u8L("Install successfully."));
+            update_status(ctl, percent, _u8L("Installed successfully"));
         } else {
             update_status(ctl, percent, _u8L("Installing"));
         }
         }, cancel_fn);
 
     if (ctl.was_canceled()) {
-        update_status(ctl, 0, _u8L("Cancelled"));
+        update_status(ctl, 0, _u8L("Canceled"));
         wxCommandEvent event(wxEVT_CLOSE_WINDOW);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);

@@ -17,12 +17,12 @@
 #include <wx/dcclient.h>
 #include <wx/debug.h>
 #include <wx/settings.h>
+#include <wx/dataview.h>
+#include <wx/statbox.h>
 
 #include <chrono>
-
 #include "Event.hpp"
-#include "../libslic3r/libslic3r_version.h"
-#include "../libslic3r/Utils.hpp"
+#include "libslic3r/Utils.hpp"
 #include "libslic3r/Color.hpp"
 
 
@@ -492,6 +492,20 @@ public:
 bool load_image(const std::string& filename, wxImage &image);
 bool generate_image(const std::string &filename, wxImage &image, wxSize img_size, int method = GERNERATE_IMAGE_RESIZE);
 int get_dpi_for_window(const wxWindow *window);
+
+#ifdef __WXOSX__
+void dataview_remove_insets(wxDataViewCtrl* dv);
+void staticbox_remove_margin(wxStaticBox* sb);
+#endif
+
+#if defined(__WXOSX__) || defined(__linux__)
+bool is_debugger_present();
+#endif
+
+/// <summary>
+/// Make sure the given window fits inside current display
+/// </summary>
+void fit_in_display(wxTopLevelWindow& window, wxSize desired_size);
 
 
 }}

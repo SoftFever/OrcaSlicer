@@ -444,7 +444,6 @@ public:
     void set_extruder_for_selected_items(const int extruder);
     wxDataViewItemArray reorder_volumes_and_get_selection(int obj_idx, std::function<bool(const ModelVolume*)> add_to_selection = nullptr);
     void apply_volumes_order();
-    bool has_paint_on_segmentation();
 
     // BBS
     void on_plate_added(PartPlate* part_plate);

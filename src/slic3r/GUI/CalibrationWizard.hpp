@@ -1,7 +1,7 @@
 #ifndef slic3r_GUI_CalibrationWizard_hpp_
 #define slic3r_GUI_CalibrationWizard_hpp_
 
-#include "../slic3r/Utils/CalibUtils.hpp"
+#include "slic3r/Utils/CalibUtils.hpp"
 
 #include "DeviceManager.hpp"
 #include "CalibrationWizardPage.hpp"
@@ -19,7 +19,7 @@ public:
     CalibrationWizardPageStep(CalibrationWizardPage* data) {
         page = data;
     }
-    
+
     CalibrationWizardPageStep* prev { nullptr };
     CalibrationWizardPageStep* next { nullptr };
     CalibrationWizardPage*     page { nullptr };
@@ -57,7 +57,7 @@ public:
     }
 
     virtual void set_cali_method(CalibrationMethod method);
-    
+
     CalibMode get_calibration_mode() { return m_mode; }
 
     bool save_preset(const std::string &old_preset_name, const std::string &new_preset_name, const std::map<std::string, ConfigOption *> &key_values, wxString& message);
@@ -71,6 +71,7 @@ public:
 
 protected:
     void on_cali_go_home();
+    void get_tray_ams_and_slot_id(int in_tray_id, int &ams_id, int &slot_id, int &tray_id);
 
 protected:
     /* wx widgets*/
@@ -89,7 +90,7 @@ protected:
     CalibrationWizardPageStep* preset_step { nullptr };
     CalibrationWizardPageStep* cali_step { nullptr };
     CalibrationWizardPageStep* save_step { nullptr };
-    
+
     CalibrationWizardPageStep* cali_coarse_step { nullptr };
     CalibrationWizardPageStep* coarse_save_step { nullptr };
     CalibrationWizardPageStep* cali_fine_step { nullptr };

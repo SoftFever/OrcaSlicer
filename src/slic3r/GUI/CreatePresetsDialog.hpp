@@ -10,6 +10,7 @@
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
+#include "Widgets/DialogButtons.hpp"
 #include "miniz.h"
 #include "ParamsDialog.hpp"
 
@@ -41,7 +42,7 @@ protected:
     wxBoxSizer *create_serial_item();
     wxBoxSizer *create_filament_preset_item();
     wxBoxSizer *create_filament_preset_for_printer_item();
-    wxBoxSizer *create_button_item();
+    wxWindow   *create_dialog_buttons();
 
 private:
     void          clear_filament_preset_map();
@@ -112,13 +113,13 @@ protected:
     wxBoxSizer *create_hot_bed_stl_item(wxWindow *parent);
     wxBoxSizer *create_hot_bed_svg_item(wxWindow *parent);
     wxBoxSizer *create_max_print_height_item(wxWindow *parent);
-    wxBoxSizer *create_page1_btns_item(wxWindow *parent);
+    wxWindow   *create_page1_dialog_buttons(wxWindow *parent);
     //Improt Presets Page2
     void create_printer_page2(wxWindow *parent);
     wxBoxSizer *create_printer_preset_item(wxWindow *parent);
     wxBoxSizer *create_presets_item(wxWindow *parent);
     wxBoxSizer *create_presets_template_item(wxWindow *parent);
-    wxBoxSizer *create_page2_btns_item(wxWindow *parent);
+    wxWindow   *create_page2_dialog_buttons(wxWindow *parent);
 
     void show_page1();
     void show_page2();
@@ -168,11 +169,6 @@ private:
     Preset *                                           m_printer_preset                 = nullptr;
     wxStaticBitmap *                                   m_step_1                         = nullptr;
     wxStaticBitmap *                                   m_step_2                         = nullptr;
-    Button *                                           m_button_OK                      = nullptr;
-    Button *                                           m_button_create                  = nullptr;
-    Button *                                           m_button_page1_cancel            = nullptr;
-    Button *                                           m_button_page2_cancel            = nullptr;
-    Button *                                           m_button_page2_back              = nullptr;
     Button *                                           m_button_bed_stl                 = nullptr;
     Button *                                           m_button_bed_svg                 = nullptr;
     wxScrolledWindow *                                 m_page1                          = nullptr;
@@ -224,9 +220,6 @@ public:
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
-private:
-    Button *m_button_ok     = nullptr;
-    Button *m_button_cancel = nullptr;
 };
 
 class ExportConfigsDialog : public DPIDialog
@@ -267,7 +260,7 @@ private:
     std::string initial_file_path(const wxString &path, const std::string &sub_file_path);
     std::string initial_file_name(const wxString &path, const std::string file_name);
     wxBoxSizer *create_export_config_item(wxWindow *parent);
-    wxBoxSizer *create_button_item(wxWindow *parent);
+    wxWindow   *create_dialog_buttons(wxWindow *parent);
     wxBoxSizer *create_select_printer(wxWindow *parent);
     wxBoxSizer *create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list);
     int         initial_zip_archive(mz_zip_archive &zip_archive, const std::string &file_path);
@@ -292,8 +285,6 @@ private:
     wxScrolledWindow *                                     m_scrolled_preset_window = nullptr;
     wxGridSizer *                                          m_preset_sizer   = nullptr;
     wxPanel *                                              m_presets_window = nullptr;
-    Button *                                               m_button_ok      = nullptr;
-    Button *                                               m_button_cancel  = nullptr;
     wxStaticText *                                         m_serial_text    = nullptr;
 };
 
@@ -308,7 +299,7 @@ private:
     void        get_visible_printer_and_compatible_filament_presets();
     wxBoxSizer *create_selected_printer_preset_sizer();
     wxBoxSizer *create_selected_filament_preset_sizer();
-    wxBoxSizer *create_button_sizer();
+    wxWindow   *create_dialog_buttons();
 
 private:
     std::string                                                                       m_filament_id;
@@ -318,11 +309,8 @@ private:
     std::shared_ptr<PresetBundle>                                                     m_preset_bundle;
     ComboBox *                                                                        m_selected_printer  = nullptr;
     ComboBox *                                                                        m_selected_filament = nullptr;
-    Button *                                                                          m_ok_btn            = nullptr;
-    Button *                                                                          m_cancel_btn        = nullptr;
     std::unordered_map<wxString, std::shared_ptr<Preset>>                             filament_choice_to_filament_preset;
     std::unordered_map<std::string, std::vector<std::shared_ptr<Preset>>>             m_printer_compatible_filament_presets; // need be used when add presets
-
 };
 
 class EditFilamentPresetDialog;
@@ -370,7 +358,7 @@ private:
     wxBoxSizer *create_filament_basic_info();
     wxBoxSizer *create_add_filament_btn();
     wxBoxSizer *create_preset_tree_sizer();
-    wxBoxSizer *create_button_sizer();
+    wxWindow   *create_dialog_buttons();
 
 private:
     PresetTree *                                                          m_preset_tree_creater = nullptr;
@@ -380,8 +368,6 @@ private:
     std::string                                                           m_filament_type;
     std::string                                                           m_filament_serial;
     Button *                                                              m_add_filament_btn         = nullptr;
-    Button *                                                              m_del_filament_btn         = nullptr;
-    Button *                                                              m_ok_btn                   = nullptr;
     wxBoxSizer *                                                          m_preset_tree_sizer        = nullptr;
     wxPanel *                                                             m_preset_tree_panel        = nullptr;
     wxScrolledWindow *                                                    m_preset_tree_window       = nullptr;

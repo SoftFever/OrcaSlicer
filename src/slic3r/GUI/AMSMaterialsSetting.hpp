@@ -14,7 +14,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/TextInput.hpp"
-#include "../slic3r/Utils/CalibUtils.hpp"
+#include "slic3r/Utils/CalibUtils.hpp"
 
 #define AMS_MATERIALS_SETTING_DEF_COLOUR wxColour(255, 255, 255)
 #define AMS_MATERIALS_SETTING_GREY900 wxColour(38, 46, 48)
@@ -118,7 +118,7 @@ public:
     void on_picker_color(wxCommandEvent& color);
     MachineObject* obj{ nullptr };
     int            ams_id { 0 };        /* 0 ~ 3 */
-    int            tray_id { 0 };       /* 0 ~ 3 */
+    int            slot_id { 0 };        /* 0 ~ 3 */
 
     std::string    ams_filament_id;
     std::string    ams_setting_id;

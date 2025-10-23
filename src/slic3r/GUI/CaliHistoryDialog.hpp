@@ -36,7 +36,6 @@ protected:
     bool&                      m_show_history_dialog;
     std::vector<PACalibResult> m_calib_results_history;
     MachineObject*             curr_obj { nullptr };
-    int                        history_version = -1;
 };
 
 class EditCalibrationHistoryDialog : public DPIDialog

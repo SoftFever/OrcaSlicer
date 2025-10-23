@@ -278,7 +278,7 @@ bool GLGizmoText::on_init()
     m_desc["surface"]         = _L("Surface");
     m_desc["horizontal_text"] = _L("Horizontal text");
 
-    m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or down");
+    m_desc["rotate_text_caption"] = _L("Shift+") + _L("Mouse move up or down");
     m_desc["rotate_text"]         = _L("Rotate text");
 
     return true;
@@ -972,7 +972,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     //ImGui::SameLine();
     //ImGui::AlignTextToFramePadding();
-    //m_imgui->text(_L("Status:"));
+    //m_imgui->text(_L("Status") + ": ");
     //float status_cap = m_imgui->calc_text_size(_L("Status:")).x + space_size + ImGui::GetStyle().WindowPadding.x;
     //ImGui::SameLine();
     //m_imgui->text(m_is_modify ? _L("Modify") : _L("Add"));

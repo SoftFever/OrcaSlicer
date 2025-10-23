@@ -19,6 +19,8 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
+#include "Widgets/DialogButtons.hpp"
+
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
@@ -94,20 +96,17 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     m_optgroup = new ConfigOptionsGroup(this, _L("Print Host upload"), m_config);
     build_printhost_settings(m_optgroup);
 
-    wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
-    btnOK = static_cast<wxButton*>(this->FindWindowById(wxID_OK, this));
-    wxGetApp().UpdateDarkUI(btnOK);
-    btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
+    auto dlg_btns = new DialogButtons(this, {"OK"});
 
-    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
-    (static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)))->Hide();
+    btnOK = dlg_btns->GetOK();
+    btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
     // topSizer->Add(label_top           , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
     topSizer->Add(input_sizer         , 0, wxEXPAND | wxALL, BORDER_W);
     topSizer->Add(m_optgroup->sizer   , 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
-    topSizer->Add(btns                , 0, wxEXPAND | wxALL, BORDER_W);
+    topSizer->Add(dlg_btns, 0, wxEXPAND);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->EndModal(wxID_NO);});
 
@@ -137,25 +136,8 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     m_optgroup->append_single_option_line("host_type");
 
     auto create_sizer_with_btn = [](wxWindow* parent, Button** btn, const std::string& icon_name, const wxString& label) {
-        *btn = new Button(parent, label, ""/*icon_name*/, 0, parent->FromDIP(16));
-        (*btn)->SetFont(Label::Body_14);
-        (*btn)->SetMinSize(wxSize(parent->FromDIP(120), parent->FromDIP(26)));
-        (*btn)->SetSize(wxSize(parent->FromDIP(120), parent->FromDIP(26)));
-        (*btn)->SetCornerRadius(parent->FromDIP(4));
-        StateColor clr_bg = StateColor(
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-            std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-        );
-        (*btn)->SetBackgroundColor(clr_bg);
-        (*btn)->SetBorderColor(clr_bg);
-        (*btn)->SetTextColor(StateColor(
-            std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-            std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-            std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-        ));
+        *btn = new Button(parent, label);
+        (*btn)->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(*btn);
@@ -254,6 +236,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         //add_scaled_button(parent, &m_printhost_port_browse_btn, "browse", _(L("Refresh Printers")), wxBU_LEFT | wxBU_EXACTFIT);
         auto sizer = create_sizer_with_btn(parent, &m_printhost_port_browse_btn, "monitor_signal_strong", _L("Refresh") + " " + dots);
         Button* btn = m_printhost_port_browse_btn;
+        btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
         btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) { update_printers(); });
         return sizer;
     };
@@ -499,7 +482,7 @@ void PhysicalPrinterDialog::update_preset_input() {
 
     const Preset *existing = m_presets->find_preset(m_preset_name, false);
     if (m_valid_type == Valid && existing && (existing->is_default || existing->is_system)) {
-        info_line = _L("Overwrite a system profile is not allowed");
+        info_line = _L("Overwriting a system profile is not allowed.");
         m_valid_type = NoValid;
     }
 
@@ -507,8 +490,8 @@ void PhysicalPrinterDialog::update_preset_input() {
         if (existing->is_compatible)
             info_line = from_u8((boost::format(_u8L("Preset \"%1%\" already exists.")) % m_preset_name).str());
         else
-            info_line = from_u8((boost::format(_u8L("Preset \"%1%\" already exists and is incompatible with current printer.")) % m_preset_name).str());
-        info_line += "\n" + _L("Please note that saving action will replace this preset");
+            info_line = from_u8((boost::format(_u8L("Preset \"%1%\" already exists and is incompatible with the current printer.")) % m_preset_name).str());
+        info_line += "\n" + _L("Please note that saving will overwrite this preset.");
         m_valid_type = Warning;
     }
 
@@ -735,8 +718,6 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
         m_printhost_cafile_browse_btn->Rescale();
 
     m_optgroup->msw_rescale();
-
-    msw_buttons_rescale(this, em, { wxID_OK, wxID_CANCEL });
 
     const wxSize& size = wxSize(45 * em, 35 * em);
     SetMinSize(size);

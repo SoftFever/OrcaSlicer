@@ -172,8 +172,6 @@ protected:
     ComboBox* m_spiral_mode_choice { nullptr };
     DragCanvas* m_drag_canvas;
     OtherLayersSeqPanel* m_other_layers_seq_panel;
-    Button* m_button_ok;
-    Button* m_button_cancel;
     TextInput *m_ti_plate_name;
 };
 
@@ -195,8 +193,6 @@ public:
     void     set_plate_name(const wxString &name);
 
 protected:
-    Button *   m_button_ok;
-    Button *   m_button_cancel;
     TextInput *m_ti_plate_name;
 };
 }} // namespace Slic3r::GUI

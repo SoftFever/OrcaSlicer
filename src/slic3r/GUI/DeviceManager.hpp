@@ -37,6 +37,9 @@
 #define HOLD_COUNT_CAMERA       6
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
+
+#define MAIN_NOZZLE_ID          0
+
 #define VIRTUAL_TRAY_ID         254
 #define START_SEQ_ID            20000
 #define END_SEQ_ID              30000
@@ -136,6 +139,65 @@ enum ManualPaCaliMethod {
 };
 
 
+struct AmsSlot
+{
+    std::string ams_id;
+    std::string slot_id;
+};
+
+struct Nozzle
+{
+    int   id;
+    NozzleType      nozzle_type;       // 0-stainless_steel 1-hardened_steel
+    float diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
+    int   max_temp = 0;
+    int   wear = 0;
+};
+
+struct NozzleData
+{
+    int extder_exist;  //0- none exist 1-exist
+    int cut_exist;
+    int state; //0-idle 1-checking
+    std::vector<Nozzle> nozzles;
+};
+
+struct Extder
+{
+    int id; // 0-right 1-left
+
+    int ext_has_filament{0};
+    int buffer_has_filament{0};
+    int nozzle_exist{0};
+
+    std::vector<int> filam_bak;// the refill filam
+
+    int  temp{0};
+    int target_temp{0};
+
+    AmsSlot spre; // tray_pre
+    AmsSlot snow; // tray_now
+    AmsSlot star; // tray_tar
+    int     ams_stat{0};
+
+    int rfid_stat{0};
+
+    int nozzle_id;        // nozzle id now
+    int target_nozzle_id; // target nozzle id
+
+    //current nozzle
+    NozzleType     current_nozzle_type{NozzleType::ntUndefine};            // 0-hardened_steel 1-stainless_steel
+    float current_nozzle_diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
+};
+
+struct ExtderData
+{
+    int current_extder_id{0};
+    int target_extder_id{0};
+    int total_extder_count {0};
+    std::vector<Extder> extders;
+};
+
 struct RatingInfo {
     bool        request_successful;
     int         http_code;
@@ -177,6 +239,12 @@ public:
         }
         return wxColour(ret[0], ret[1], ret[2], ret[3]);
     }
+
+    bool operator==(AmsTray const &o) const
+    {
+        return id == o.id && type == o.type && filament_setting_id == o.filament_setting_id && color == o.color;
+    }
+    bool operator!=(AmsTray const &o) const { return !operator==(o); }
 
     std::string     id;
     std::string     tag_uid;     // tag_uid
@@ -223,18 +291,29 @@ public:
     std::string get_filament_type();
 };
 
+#define INVALID_AMS_TEMPERATURE std::numeric_limits<float>::min()
 
-class Ams {
+class Ams
+{
 public:
-    Ams(std::string ams_id) {
-        id = ams_id;
+    Ams(std::string ams_id, int nozzle_id, int type_id)
+    {
+        id     = ams_id;
+        nozzle = nozzle_id;
+        type   = type_id;
     }
-    std::string   id;
-    int           humidity = 5;
-    bool          startup_read_opt{true};
-    bool          tray_read_opt{false};
-    bool          is_exists{false};
-    std::map<std::string, AmsTray*> trayList;
+    std::string                      id;
+    int                              left_dry_time       = 0;
+    int                              humidity            = 5;
+    int                              humidity_raw        = -1;                      // the percentage, -1 means invalid. eg. 100 means 100%
+    float                            current_temperature = INVALID_AMS_TEMPERATURE; // the temperature
+    bool                             startup_read_opt{true};
+    bool                             tray_read_opt{false};
+    bool                             is_exists{false};
+    std::map<std::string, AmsTray *> trayList;
+
+    int nozzle;
+    int type{1}; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
 };
 
 enum PrinterFirmwareType {
@@ -369,6 +448,7 @@ public:
     {
     public:
         std::string name;
+        wxString    product_name;
         std::string sn;
         std::string hw_ver;
         std::string sw_ver;
@@ -377,18 +457,25 @@ public:
         ModuleVersionInfo() :firmware_status(0) {
 
         };
+
+    public:
+        bool isValid() const { return !sn.empty(); }
+        bool isAirPump() const { return product_name.Contains("Air Pump"); }
+        bool isLaszer() const { return product_name.Contains("Laser"); }
+        bool isCuttingModule() const { return product_name.Contains("Cutting Module"); }
     };
 
     enum SdcardState {
         NO_SDCARD = 0,
         HAS_SDCARD_NORMAL = 1,
         HAS_SDCARD_ABNORMAL = 2,
-        SDCARD_STATE_NUM = 3
+        HAS_SDCARD_READONLY = 3,
+        SDCARD_STATE_NUM = 4
     };
 
     enum ActiveState {
-        NotActive, 
-        Active, 
+        NotActive,
+        Active,
         UpdateToDate
     };
 
@@ -419,9 +506,7 @@ public:
     std::string dev_id;
     bool        local_use_ssl_for_mqtt { true };
     bool        local_use_ssl_for_ftp { true };
-    float       nozzle_diameter { 0.0f };
     int         subscribe_counter{3};
-    std::string nozzle_type;
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
     std::string dev_connection_name;    /* lan | eth */
@@ -453,9 +538,6 @@ public:
 
     std::string product_name;       // set by iot service, get /user/print
 
-    std::vector<int> filam_bak;
-    
-
     std::string bind_user_name;
     std::string bind_user_id;
     std::string bind_state;     /* free | occupied */
@@ -483,7 +565,6 @@ public:
 
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
-    AmsTray vt_tray;                        // virtual tray
     long  ams_exist_bits = 0;
     long  tray_exist_bits = 0;
     long  tray_is_bbl_bits = 0;
@@ -495,9 +576,7 @@ public:
     bool  ams_calibrate_remain_flag { false };
     bool  ams_auto_switch_filament_flag  { false };
     bool  ams_air_print_status { false };
-    bool  ams_support_use_ams { false };
     bool  ams_support_virtual_tray { true };
-    int   ams_humidity;
     int   ams_user_setting_hold_count = 0;
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
@@ -535,6 +614,8 @@ public:
     // exceed index start with 0
     bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);
     void reset_mapping_result(std::vector<FilamentInfo>& result);
+    bool is_main_extruder_on_left() const;
+    bool is_multi_extruders() const;
 
     /*online*/
     bool   online_rfid;
@@ -543,8 +624,8 @@ public:
     int    last_online_version = -1;
 
     /* temperature */
-    float  nozzle_temp;
-    float  nozzle_temp_target;
+    //float  nozzle_temp;
+    //float  nozzle_temp_target;
     float  bed_temp;
     float  bed_temp_target;
     float  chamber_temp;
@@ -586,6 +667,10 @@ public:
     std::string ota_new_version_number;
     std::string ahb_new_version_number;
     int get_version_retry = 0;
+
+    ModuleVersionInfo air_pump_version_info;
+    ModuleVersionInfo laser_version_info;
+    ModuleVersionInfo cutting_module_version_info;
     std::map<std::string, ModuleVersionInfo> module_vers;
     std::map<std::string, ModuleVersionInfo> new_ver_list;
     std::map<std::string, ExtrusionRatioInfo> extrusion_ratio_map;
@@ -603,6 +688,7 @@ public:
     wxString get_upgrade_result_str(int upgrade_err_code);
     // key: ams_id start as 0,1,2,3
     std::map<int, ModuleVersionInfo> get_ams_version();
+    void store_version_info(const ModuleVersionInfo& info);
 
     /* printing */
     std::string print_type;
@@ -625,6 +711,7 @@ public:
     bool    is_support_layer_num { false };
     bool    nozzle_blob_detection_enabled{ false };
 
+    int last_cali_version = -1;
     int cali_version = -1;
     float                      cali_selected_nozzle_dia { 0.0 };
     // 1: record when start calibration in preset page
@@ -637,15 +724,14 @@ public:
 
     ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
     bool                       has_get_pa_calib_tab{ false };
+    bool                       request_tab_from_bbs { false };
     std::vector<PACalibResult> pa_calib_tab;
-    float                      pa_calib_tab_nozzle_dia;
     bool                       get_pa_calib_result { false };
     std::vector<PACalibResult> pa_calib_results;
     bool                       get_flow_calib_result { false };
     std::vector<FlowRatioCalibResult> flow_ratio_results;
     void reset_pa_cali_history_result()
     {
-        pa_calib_tab_nozzle_dia = 0.4f;
         has_get_pa_calib_tab = false;
         pa_calib_tab.clear();
     }
@@ -707,23 +793,23 @@ public:
     enum LiveviewLocal {
         LVL_None,
         LVL_Disable,
-        LVL_Local, 
+        LVL_Local,
         LVL_Rtsps,
         LVL_Rtsp
     } liveview_local{ LVL_None };
     enum LiveviewRemote {
         LVR_None,
-        LVR_Tutk, 
+        LVR_Tutk,
         LVR_Agora,
         LVR_TutkAgora
     } liveview_remote{ LVR_None };
     enum FileLocal {
-        FL_None, 
+        FL_None,
         FL_Local
     } file_local{ FL_None };
     enum FileRemote {
-        FR_None, 
-        FR_Tutk, 
+        FR_None,
+        FR_Tutk,
         FR_Agora,
         FR_TutkAgora
     } file_remote{ FR_None };
@@ -752,7 +838,9 @@ public:
     bool is_support_ai_monitoring {false};
     bool is_support_lidar_calibration {false};
     bool is_support_build_plate_marker_detect{false};
+    bool is_support_pa_calibration{false};
     bool is_support_flow_calibration{false};
+    bool is_support_auto_flow_calibration{false};
     bool is_support_print_without_sd{false};
     bool is_support_print_all{false};
     bool is_support_send_to_sdcard {false};
@@ -775,12 +863,15 @@ public:
     bool is_support_motor_noise_cali{false};
     bool is_support_wait_sending_finish{false};
     bool is_support_user_preset{false};
-    bool is_support_p1s_plus{false};
+    //bool is_support_p1s_plus{false};
     bool is_support_nozzle_blob_detection{false};
     bool is_support_air_print_detection{false};
     bool is_support_filament_setting_inprinting{false};
     bool is_support_agora{false};
+    bool is_support_upgrade_kit{false};
+    bool is_support_command_homing { false };// fun[32]
 
+    bool installed_upgrade_kit{false};
     int  nozzle_max_temperature = -1;
     int  bed_temperature_limit = -1;
 
@@ -819,15 +910,17 @@ public:
     RatingInfo*  rating_info { nullptr };
     int           request_model_result             = 0;
     bool          get_model_mall_result_need_retry = false;
-    
+
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
     bool is_sdcard_printing();
-    bool has_sdcard();
     bool is_timelapse();
     bool is_recording_enable();
     bool is_recording();
 
+
+    int get_liveview_remote();
+    int get_file_remote();
 
     MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);
     ~MachineObject();
@@ -854,6 +947,7 @@ public:
     int command_xyz_abs();
     int command_auto_leveling();
     int command_go_home();
+    int command_go_home2();
     int command_control_fan(FanType fan_type, bool on_off);
     int command_control_fan_val(FanType fan_type, int val);
     int command_task_abort();
@@ -865,14 +959,13 @@ public:
     int command_set_nozzle(int temp);
     int command_set_chamber(int temp);
     // ams controls
-    int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
-    int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
+    //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
+    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210);
     int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
-    int command_ams_user_settings(int ams_id, AmsOptionType op, bool value);
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_air_print_detect(bool air_print_detect);
     int command_ams_calibrate(int ams_id);
-    int command_ams_filament_settings(int ams_id, int tray_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
+    int command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
     int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
     int command_ams_control(std::string action);
@@ -908,7 +1001,7 @@ public:
     int command_start_pa_calibration(const X1CCalibInfos& pa_data, int mode = 0);  // 0: automatic mode; 1: manual mode. default: automatic mode
     int command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values, bool is_auto_cali);
     int command_delete_pa_calibration(const PACalibIndexInfo& pa_calib);
-    int command_get_pa_calibration_tab(float nozzle_diameter, const std::string &filament_id = "");
+    int command_get_pa_calibration_tab(const PACalibExtruderInfo& calib_info);
     int command_get_pa_calibration_result(float nozzle_diameter);
     int commnad_select_pa_calibration(const PACalibIndexInfo& pa_calib_info);
 
@@ -958,9 +1051,9 @@ public:
 
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;
-    int publish_json(std::string json_str, int qos = 0);
-    int cloud_publish_json(std::string json_str, int qos = 0);
-    int local_publish_json(std::string json_str, int qos = 0);
+    int publish_json(std::string json_str, int qos = 0, int flag = 0);
+    int cloud_publish_json(std::string json_str, int qos = 0, int flag = 0);
+    int local_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int parse_json(std::string payload, bool key_filed_only = false);
     int publish_gcode(std::string gcode_str);
 
@@ -977,14 +1070,36 @@ public:
     bool is_firmware_info_valid();
     std::string get_string_from_fantype(FanType type);
 
+    /*for more extruder*/
+    bool                        is_enable_np{ false };
+    bool                        is_enable_ams_np{ false };
+
+    ExtderData                  m_extder_data;
+    NozzleData                  m_nozzle_data;
+
+    /*vi slot data*/
+    AmsTray vt_tray;                        // virtual tray
+    //std::vector<AmsTray> vt_trays;          // virtual tray for new
+    AmsTray parse_vt_tray(json vtray);
+    /*for parse new info*/
+    bool check_enable_np(const json& print) const;
+    void parse_new_info(json print);
+    bool is_nozzle_data_invalid();
+    int  get_flag_bits(std::string str, int start, int count = 1) const;
+    int get_flag_bits(int num, int start, int count = 1, int base = 10) const;
+
     /* Device Filament Check */
-    std::set<std::string> m_checked_filament;
-    std::string m_printer_preset_name;
-    std::map<std::string, std::pair<int, int>> m_filament_list; // filament_id, pair<min temp, max temp>
+    struct FilamentData
+    {
+        std::set<std::string>                      checked_filament;
+        std::string                                printer_preset_name;
+        std::map<std::string, std::pair<int, int>> filament_list; // filament_id, pair<min temp, max temp>
+    };
+    std::map<std::string, FilamentData> m_nozzle_filament_data;
     void update_filament_list();
-    int get_flag_bits(std::string str, int start, int count = 1);
-    int get_flag_bits(int num, int start, int count = 1);
-    void update_printer_preset_name(const std::string &nozzle_diameter_str);
+    void update_printer_preset_name();
+    void check_ams_filament_valid();
+
 };
 
 class DeviceManager
@@ -1006,6 +1121,11 @@ public:
 
     void keep_alive();
     void check_pushing();
+
+    static float nozzle_diameter_conver(int diame);
+    static int nozzle_diameter_conver(float diame);
+    static std::string nozzle_type_conver(int type);
+    static int nozzle_type_conver(std::string& type);
 
     MachineObject* get_default_machine();
     MachineObject* get_local_selected_machine();

@@ -154,6 +154,7 @@ public:
     void text_wrapped(const std::string &label, float wrap_width);
     void text_wrapped(const wxString &label, float wrap_width);
     void tooltip(const char *label, float wrap_width);
+    void tooltip(const std::string &label, float wrap_width);
     void tooltip(const wxString &label, float wrap_width);
 
 
@@ -336,6 +337,8 @@ public:
     static const ImVec4 COL_TITLE_BG;
     static const ImVec4 COL_WINDOW_BG;
     static const ImVec4 COL_WINDOW_BG_DARK;
+    static const ImVec4 COL_TOOLBAR_BG;
+    static const ImVec4 COL_TOOLBAR_BG_DARK;
     static const ImVec4 COL_SEPARATOR;
     static const ImVec4 COL_SEPARATOR_DARK;
     static const ImVec4 COL_ORCA;

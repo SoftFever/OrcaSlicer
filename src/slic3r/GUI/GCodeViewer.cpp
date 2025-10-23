@@ -362,7 +362,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     std::string layer_time = ImGui::ColorMarkerStart + _u8L("Layer Time: ") + ImGui::ColorMarkerEnd;
     std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan: ") + ImGui::ColorMarkerEnd;
     std::string temperature = ImGui::ColorMarkerStart + _u8L("Temperature: ") + ImGui::ColorMarkerEnd;
-    const float item_size = imgui.calc_text_size(std::string_view{"X: 000.000  "}).x;
+    const float item_size = imgui.calc_text_size(std::string_view{"X: 000.000       "}).x;
     const float item_spacing = imgui.get_item_spacing().x;
     const float window_padding = ImGui::GetStyle().WindowPadding.x;
 
@@ -4419,6 +4419,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         const ColorRGBA& color,
         const std::vector<std::pair<std::string, float>>& columns_offsets,
         bool checkbox = true,
+        float checkbox_pos = 0.f, // ORCA use calculated value for eye icon. Aligned to "Display" header or end of combo box 
         bool visible = true,
         std::function<void()> callback = nullptr)
     {
@@ -4471,14 +4472,14 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (b_menu_item)
                 callback();
             if (checkbox) {
-                //ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
-                //ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
-                //ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-                //ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
-                //ImGui::PopStyleVar(1);
                 // ORCA replace checkboxes with eye icon
-                ImGui::SameLine(ImGui::GetWindowWidth() - (16.f + 6.f) * m_scale - window_padding * 2 - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0));
-                ImGui::Text(into_u8(visible ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str(), ImVec2(16 * m_scale, 16 * m_scale));
+                // Use calculated position from argument. this method has predictable result compared to alingning button using window width
+                // fixes slowly resizing window and endlessly expanding window when there is a miscalculation on position
+                ImGui::SameLine(checkbox_pos);
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0)); // ensure no padding active
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 0.0)); // ensure no item spacing active
+                ImGui::Text("%s", into_u8(visible ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str());
+                ImGui::PopStyleVar(2);
             }
         }
 
@@ -4528,7 +4529,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         for (size_t i = 0; i < title_offsets.size(); i++) {
             if (title_offsets[i].first == _u8L("Display")) { // ORCA Hide Display header
                 ImGui::SameLine(title_offsets[i].second);
-                ImGui::Dummy({16.f * m_scale, 1}); // 16(icon)
+                ImGui::Dummy({16.f * m_scale, 1}); // 16(icon_size)
                 continue;
             }
             ImGui::SameLine(title_offsets[i].second);
@@ -4552,16 +4553,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             const ImGuiStyle& style = ImGui::GetStyle();
             std::vector<float> offsets;
             // ORCA increase spacing for more readable format. Using direct number requires much less code change in here. GetTextLineHeight for additional spacing for icon_size
-            offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 12.f * m_scale + ImGui::GetTextLineHeight()); 
-            for (size_t i = 1; i < title_columns.size() - 1; i++)
-                offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + 12.f * m_scale); // ORCA increase spacing for more readable format. Using direct number requires much less code change in here
-            if (title_columns.back().first == _u8L("Display")) {
-                //const auto preferred_offset = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - ImGui::GetFrameHeight() / 2 - 2 * window_padding - ImGui::GetStyle().ScrollbarSize;
-                const auto preferred_offset = ImGui::GetWindowWidth() - (16.f - 6.f) * m_scale - ImGui::GetFrameHeight() / 2 - 2 * window_padding - (ImGui::GetScrollMaxY() > 0.0f ? ImGui::GetStyle().ScrollbarSize : 0);
-                if (preferred_offset > offsets.back()) {
-                    offsets.back() = preferred_offset;
-                }
-            }
+            offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 12.f * m_scale + ImGui::GetTextLineHeight());
+            for (size_t i = 1; i < title_columns.size() - 1; i++) // ORCA dont add extra spacing after icon / "Display" header
+                offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + ((title_columns[i].first == _u8L("Display") ? 0 : 12.f) * m_scale));
+            if (title_columns.back().first == _u8L("Display") && title_columns.size() > 2)
+                offsets[title_columns.size() - 2] -= 3.f; // ORCA reduce spacing after previous header
 
             float average_col_width = ImGui::GetWindowWidth() / static_cast<float>(title_columns.size());
             std::vector<float> ret;
@@ -4606,13 +4602,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     auto upto_label = [](double z) {
         char buf[64];
         ::sprintf(buf, "%.2f", z);
-        return _u8L("up to") + " " + std::string(buf) + " " + _u8L("mm");
+        return _u8L("up to") + " " + std::string(buf) + " " + "mm";
     };
 
     auto above_label = [](double z) {
         char buf[64];
         ::sprintf(buf, "%.2f", z);
-        return _u8L("above") + " " + std::string(buf) + " " + _u8L("mm");
+        return _u8L("above") + " " + std::string(buf) + " " + "mm";
     };
 
     auto fromto_label = [](double z1, double z2) {
@@ -4620,7 +4616,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ::sprintf(buf1, "%.2f", z1);
         char buf2[64];
         ::sprintf(buf2, "%.2f", z2);
-        return _u8L("from") + " " + std::string(buf1) + " " + _u8L("to") + " " + std::string(buf2) + " " + _u8L("mm");
+        return _u8L("from") + " " + std::string(buf1) + " " + _u8L("to") + " " + std::string(buf2) + " " + "mm";
     };
 
     auto role_time_and_percent = [time_mode](ExtrusionRole role) {
@@ -4710,6 +4706,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
     pop_combo_style();
     ImGui::SameLine(0, window_padding);               // ORCA Without (0,window_padding) it adds unnecessary item spacing after combo box
+                                                      // ORCA predictable_icon_pos helpful when window size determined by combo box.
+    float predictable_icon_pos = ImGui::GetCursorPosX() - icon_size - window_padding - ImGui::GetStyle().ItemSpacing.x - 1.f * m_scale; // 1 for border
     ImGui::Dummy({ window_padding, window_padding });
     ImGui::Dummy({ window_padding, window_padding }); // ORCA Matches top-bottom window paddings
     float window_width = ImGui::GetWindowWidth();     // ORCA Store window width
@@ -4867,8 +4865,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
 
         // ORCA use % symbol for percentage and use "Usage" for "Used filaments"
-        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("%"), percents}, {"", used_filaments_length}, {"", used_filaments_weight}, {_u8L("Display"), {""}}}, icon_size);
-        append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {_u8L("%"), offsets[2]}, {_u8L("Usage"), offsets[3]}, {_u8L("Display"), offsets[5]}});
+        offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {"%", percents}, {"", used_filaments_length}, {"", used_filaments_weight}, {_u8L("Display"), {""}}}, icon_size);
+        append_headers({{_u8L("Line Type"), offsets[0]}, {_u8L("Time"), offsets[1]}, {"%", offsets[2]}, {_u8L("Usage"), offsets[3]}, {_u8L("Display"), offsets[5]}});
         break;
     }
     case EViewType::Height:         { imgui.title(_u8L("Layer Height (mm)")); break; }
@@ -4927,6 +4925,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         if ((displayed_columns & ~ColumnData::Model) > 0) {
             title_columns.push_back({ _u8L("Total"), total_filaments });
         }
+        title_columns.push_back({ _u8L("Display"), {""}}); // ORCA Add spacing for eye icon. used as color_print_offsets[_u8L("Display")]
         auto offsets_ = calculate_offsets(title_columns, icon_size);
         std::vector<std::pair<std::string, float>> title_offsets;
         for (int i = 0; i < offsets_.size(); i++) {
@@ -4942,7 +4941,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     auto append_option_item = [this, append_item](EMoveType type, std::vector<float> offsets) {
         auto append_option_item_with_type = [this, offsets, append_item](EMoveType type, const ColorRGBA& color, const std::string& label, bool visible) {
-            append_item(EItemType::Rect, color, {{ label , offsets[0] }}, true, visible, [this, type, visible]() {
+            append_item(EItemType::Rect, color, {{ label , offsets[0] }}, true, offsets.back()/*ORCA checkbox_pos*/, visible, [this, type, visible]() {
                 m_buffers[buffer_id(type)].visible = !m_buffers[buffer_id(type)].visible;
                 // update buffers' render paths
                 refresh_render_paths(false, false);
@@ -4984,7 +4983,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             columns_offsets.push_back({used_filaments_length[i], offsets[3]});
             columns_offsets.push_back({used_filaments_weight[i], offsets[4]});
             append_item(EItemType::Rect, Extrusion_Role_Colors[static_cast<unsigned int>(role)], columns_offsets,
-                true, visible, [this, role, visible]() {
+                true, offsets.back(), visible, [this, role, visible]() {
                     m_extrusions.role_visibility_flags = visible ? m_extrusions.role_visibility_flags & ~(1 << role) : m_extrusions.role_visibility_flags | (1 << role);
                     // update buffers' render paths
                     refresh_render_paths(false, false);
@@ -5003,7 +5002,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 columns_offsets.push_back({ _u8L("Travel"), offsets[0] });
                 columns_offsets.push_back({ travel_time, offsets[1] });
                 columns_offsets.push_back({ travel_percent, offsets[2] });
-                append_item(EItemType::Rect, Travel_Colors[0], columns_offsets, true, visible, [this, item, visible]() {
+                append_item(EItemType::Rect, Travel_Colors[0], columns_offsets, true, offsets.back()/*ORCA checkbox_pos*/, visible, [this, item, visible]() {
                         m_buffers[buffer_id(item)].visible = !m_buffers[buffer_id(item)].visible;
                         // update buffers' render paths
                         refresh_render_paths(false, false);
@@ -5025,7 +5024,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
         const bool travel_visible = m_buffers[buffer_id(EMoveType::Travel)].visible;
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 3.0f));
-        append_item(EItemType::None, Travel_Colors[0], { {_u8L("travel"), offsets[0] }}, true, travel_visible, [this, travel_visible]() {
+        append_item(EItemType::None, Travel_Colors[0], { {_u8L("travel"), offsets[0] }}, true, predictable_icon_pos/*ORCA checkbox_pos*/, travel_visible, [this, travel_visible]() {
             m_buffers[buffer_id(EMoveType::Travel)].visible = !m_buffers[buffer_id(EMoveType::Travel)].visible;
             // update buffers' render paths, and update m_tools.m_tool_colors and m_extrusions.ranges
             refresh(*m_gcode_result, wxGetApp().plater()->get_extruder_colors_from_plater_config(m_gcode_result));
@@ -5111,7 +5110,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                     columns_offsets.push_back({ buf, color_print_offsets[_u8L("Total")] });
                 }
 
-                append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, false, filament_visible, [this, extruder_idx]() {
+                float checkbox_pos = std::max(predictable_icon_pos, color_print_offsets[_u8L("Display")]); // ORCA prefer predictable_icon_pos when header not reacing end
+                append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, true, checkbox_pos/*ORCA*/, filament_visible, [this, extruder_idx]() {
                         m_tools.m_tool_visibles[extruder_idx] = !m_tools.m_tool_visibles[extruder_idx];
                         // update buffers' render paths
                         refresh_render_paths(false, false);
@@ -5573,140 +5573,132 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
 
     // total estimated printing time section
-    if (show_estimated) {
-        ImGui::Spacing();
-        std::string time_title = m_view_type == EViewType::FeatureType ? _u8L("Total Estimation") : _u8L("Time Estimation");
-        auto can_show_mode_button = [this](PrintEstimatedStatistics::ETimeMode mode) {
-            bool show = false;
-            if (m_print_statistics.modes.size() > 1 && m_print_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
-                for (size_t i = 0; i < m_print_statistics.modes.size(); ++i) {
-                    if (i != static_cast<size_t>(mode) &&
-                        m_print_statistics.modes[i].time > 0.0f &&
-                        short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_print_statistics.modes[i].time))) {
-                        show = true;
-                        break;
-                    }
+    ImGui::Spacing();
+    std::string time_title = m_view_type == EViewType::FeatureType ? _u8L("Total Estimation") : _u8L("Time Estimation");
+    auto can_show_mode_button = [this](PrintEstimatedStatistics::ETimeMode mode) {
+        bool show = false;
+        if (m_print_statistics.modes.size() > 1 && m_print_statistics.modes[static_cast<size_t>(mode)].roles_times.size() > 0) {
+            for (size_t i = 0; i < m_print_statistics.modes.size(); ++i) {
+                if (i != static_cast<size_t>(mode) &&
+                    m_print_statistics.modes[i].time > 0.0f &&
+                    short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(mode)].time)) != short_time(get_time_dhms(m_print_statistics.modes[i].time))) {
+                    show = true;
+                    break;
                 }
             }
-            return show;
+        }
+        return show;
+    };
+ if (can_show_mode_button(m_time_estimate_mode)) {
+        switch (m_time_estimate_mode)
+        {
+        case PrintEstimatedStatistics::ETimeMode::Normal: { time_title += " [" + _u8L("Normal mode") + "]"; break; }
+        default: { assert(false); break; }
+        }
+    }
+    ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine();
+    imgui.title(time_title);
+    std::string total_filament_str = _u8L("Total Filament");
+    std::string model_filament_str = _u8L("Model Filament");
+    std::string cost_str = _u8L("Cost");
+    std::string prepare_str = _u8L("Prepare time");
+    std::string print_str = _u8L("Model printing time");
+    std::string total_str = _u8L("Total time");
+ float max_len = window_padding + 2 * ImGui::GetStyle().ItemSpacing.x;
+    if (time_mode.layers_times.empty())
+        max_len += ImGui::CalcTextSize(total_str.c_str()).x;
+    else {
+        if (m_view_type == EViewType::FeatureType)
+            max_len += std::max(ImGui::CalcTextSize(cost_str.c_str()).x,
+                std::max(ImGui::CalcTextSize(print_str.c_str()).x,
+                    std::max(std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x),
+                        std::max(ImGui::CalcTextSize(total_filament_str.c_str()).x, ImGui::CalcTextSize(model_filament_str.c_str()).x))));
+        else
+            max_len += std::max(ImGui::CalcTextSize(print_str.c_str()).x,
+                (std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x)));
+    }
+    if (m_view_type == EViewType::FeatureType) {
+        //BBS display filament cost
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(total_filament_str + ":");
+        ImGui::SameLine(max_len);
+        //BBS: use current plater's print statistics
+        bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+        char buf[64];
+        ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", ps.total_used_filament / koef);
+        imgui.text(buf);
+        ImGui::SameLine();
+        ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", ps.total_weight / unit_conver);
+        imgui.text(buf);
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(model_filament_str + ":");
+        ImGui::SameLine(max_len);
+        auto exlude_m = total_support_used_filament_m + total_flushed_filament_m + total_wipe_tower_used_filament_m;
+        auto exlude_g = total_support_used_filament_g + total_flushed_filament_g + total_wipe_tower_used_filament_g;
+        ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", ps.total_used_filament / koef - exlude_m);
+        imgui.text(buf);
+        ImGui::SameLine();
+        ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", (ps.total_weight - exlude_g) / unit_conver);
+        imgui.text(buf);
+        //BBS: display cost of filaments
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(cost_str + ":");
+        ImGui::SameLine(max_len);
+        ::sprintf(buf, "%.2f", ps.total_cost);
+        imgui.text(buf);
+    }
+     auto role_time = [time_mode](ExtrusionRole role) {
+        auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
+            return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
         };
-
-        if (can_show_mode_button(m_time_estimate_mode)) {
-            switch (m_time_estimate_mode)
-            {
-            case PrintEstimatedStatistics::ETimeMode::Normal: { time_title += " [" + _u8L("Normal mode") + "]"; break; }
-            default: { assert(false); break; }
-            }
-        }
-        ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+    //BBS: start gcode is mostly same with prepeare time
+    if (time_mode.prepare_time != 0.0f) {
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
-        imgui.title(time_title);
-        std::string total_filament_str = _u8L("Total Filament");
-        std::string model_filament_str = _u8L("Model Filament");
-        std::string cost_str = _u8L("Cost");
-        std::string prepare_str = _u8L("Prepare time");
-        std::string print_str = _u8L("Model printing time");
-        std::string total_str = _u8L("Total time");
-
-        float max_len = window_padding + 2 * ImGui::GetStyle().ItemSpacing.x;
-        if (time_mode.layers_times.empty())
-            max_len += ImGui::CalcTextSize(total_str.c_str()).x;
-        else {
-            if (m_view_type == EViewType::FeatureType)
-                max_len += std::max(ImGui::CalcTextSize(cost_str.c_str()).x,
-                    std::max(ImGui::CalcTextSize(print_str.c_str()).x,
-                        std::max(std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x),
-                            std::max(ImGui::CalcTextSize(total_filament_str.c_str()).x, ImGui::CalcTextSize(model_filament_str.c_str()).x))));
-            else
-                max_len += std::max(ImGui::CalcTextSize(print_str.c_str()).x,
-                    (std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x)));
-        }
-
-        if (m_view_type == EViewType::FeatureType) {
-            //BBS display filament cost
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(total_filament_str + ":");
-            ImGui::SameLine(max_len);
-            //BBS: use current plater's print statistics
-            bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-            char buf[64];
-            ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", ps.total_used_filament / koef);
-            imgui.text(buf);
-            ImGui::SameLine();
-            ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", ps.total_weight / unit_conver);
-            imgui.text(buf);
-
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(model_filament_str + ":");
-            ImGui::SameLine(max_len);
-            auto exlude_m = total_support_used_filament_m + total_flushed_filament_m + total_wipe_tower_used_filament_m;
-            auto exlude_g = total_support_used_filament_g + total_flushed_filament_g + total_wipe_tower_used_filament_g;
-            ::sprintf(buf, imperial_units ? "%.2f in" : "%.2f m", ps.total_used_filament / koef - exlude_m);
-            imgui.text(buf);
-            ImGui::SameLine();
-            ::sprintf(buf, imperial_units ? "  %.2f oz" : "  %.2f g", (ps.total_weight - exlude_g) / unit_conver);
-            imgui.text(buf);
-
-            //BBS: display cost of filaments
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(cost_str + ":");
-            ImGui::SameLine(max_len);
-            ::sprintf(buf, "%.2f", ps.total_cost);
-            imgui.text(buf);
-        }
-
-            auto role_time = [time_mode](ExtrusionRole role) {
-            auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
-                return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
-            };
-        //BBS: start gcode is mostly same with prepeare time
-        if (time_mode.prepare_time != 0.0f) {
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(prepare_str + ":");
-            ImGui::SameLine(max_len);
-            imgui.text(short_time(get_time_dhms(time_mode.prepare_time)));
-        }
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.text(print_str + ":");
+        imgui.text(prepare_str + ":");
         ImGui::SameLine(max_len);
-        imgui.text(short_time(get_time_dhms(time_mode.time - time_mode.prepare_time)));
-        ImGui::Dummy({ window_padding, window_padding });
-        ImGui::SameLine();
-        imgui.text(total_str + ":");
-        ImGui::SameLine(max_len);
-        imgui.text(short_time(get_time_dhms(time_mode.time)));
+        imgui.text(short_time(get_time_dhms(time_mode.prepare_time)));
+    }
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine();
+    imgui.text(print_str + ":");
+    ImGui::SameLine(max_len);
+    imgui.text(short_time(get_time_dhms(time_mode.time - time_mode.prepare_time)));
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine();
+    imgui.text(total_str + ":");
+    ImGui::SameLine(max_len);
+    imgui.text(short_time(get_time_dhms(time_mode.time)));
 
-        auto show_mode_button = [this, &imgui, can_show_mode_button](const wxString& label, PrintEstimatedStatistics::ETimeMode mode) {
-            if (can_show_mode_button(mode)) {
-                if (imgui.button(label)) {
-                    m_time_estimate_mode = mode;
+    auto show_mode_button = [this, &imgui, can_show_mode_button](const wxString& label, PrintEstimatedStatistics::ETimeMode mode) {
+        if (can_show_mode_button(mode)) {
+            if (imgui.button(label)) {
+                m_time_estimate_mode = mode;
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
-                    imgui.set_requires_extra_frame();
+                imgui.set_requires_extra_frame();
 #else
-                    wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-                    wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+                wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+            wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
-                }
             }
-        };
+        }
+    };
 
-        switch (m_time_estimate_mode) {
-        case PrintEstimatedStatistics::ETimeMode::Normal: {
-            show_mode_button(_L("Switch to silent mode"), PrintEstimatedStatistics::ETimeMode::Stealth);
-            break;
-        }
-        case PrintEstimatedStatistics::ETimeMode::Stealth: {
-            show_mode_button(_L("Switch to normal mode"), PrintEstimatedStatistics::ETimeMode::Normal);
-            break;
-        }
-        default : { assert(false); break; }
-        }
+    switch (m_time_estimate_mode) {
+    case PrintEstimatedStatistics::ETimeMode::Normal: {
+        show_mode_button(_L("Switch to silent mode"), PrintEstimatedStatistics::ETimeMode::Stealth);
+        break;
+    }
+    case PrintEstimatedStatistics::ETimeMode::Stealth: {
+        show_mode_button(_L("Switch to normal mode"), PrintEstimatedStatistics::ETimeMode::Normal);
+        break;
+    }
+    default : { assert(false); break; }
     }
 
     if (m_view_type == EViewType::ColorPrint) {
@@ -5714,6 +5706,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
         offsets = calculate_offsets({ { _u8L("Options"), { ""}}, { _u8L("Display"), {""}} }, icon_size);
+        offsets[1] = std::max(predictable_icon_pos, color_print_offsets[_u8L("Display")]); // ORCA prefer predictable_icon_pos when header not reacing end
         append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
         for (auto item : options_items)
             append_option_item(item, offsets);

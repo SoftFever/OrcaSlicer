@@ -185,8 +185,6 @@ class ConstSupportLayerPtrsAdaptor : public ConstVectorOfPtrsAdaptor<SupportLaye
     ConstSupportLayerPtrsAdaptor(const SupportLayerPtrs *data) : ConstVectorOfPtrsAdaptor<SupportLayer>(data) {}
 };
 
-class BoundingBoxf3;        // TODO: for temporary constructor parameter
-
 // Single instance of a PrintObject.
 // As multiple PrintObjects may be generated for a single ModelObject (their instances differ in rotation around Z),
 // ModelObject's instancess will be distributed among these multiple PrintObjects.
@@ -251,6 +249,22 @@ public:
         PrintRegion     *region { nullptr };
     };
 
+    struct LayerRangeRegions;
+
+    struct FuzzySkinPaintedRegion
+    {
+        enum class ParentType { VolumeRegion, PaintedRegion };
+
+        ParentType   parent_type { ParentType::VolumeRegion };
+        // Index of a parent VolumeRegion or PaintedRegion.
+        int          parent { -1 };
+        // Pointer to PrintObjectRegions::all_regions.
+        PrintRegion *region { nullptr };
+
+        PrintRegion *parent_print_object_region(const LayerRangeRegions &layer_range) const;
+        int          parent_print_object_region_id(const LayerRangeRegions &layer_range) const;
+    };
+
     // One slice over the PrintObject (possibly the whole PrintObject) and a list of ModelVolumes and their bounding boxes
     // possibly clipped by the layer_height_range.
     struct LayerRangeRegions
@@ -263,8 +277,9 @@ public:
         std::vector<VolumeExtents>  volumes;
 
         // Sorted in the order of their source ModelVolumes, thus reflecting the order of region clipping, modifier overrides etc.
-        std::vector<VolumeRegion>   volume_regions;
-        std::vector<PaintedRegion>  painted_regions;
+        std::vector<VolumeRegion>           volume_regions;
+        std::vector<PaintedRegion>          painted_regions;
+        std::vector<FuzzySkinPaintedRegion> fuzzy_skin_painted_regions;
 
         bool has_volume(const ObjectID id) const {
             auto it = lower_bound_by_predicate(this->volumes.begin(), this->volumes.end(), [id](const VolumeExtents &l) { return l.volume_id < id; });
@@ -415,6 +430,8 @@ public:
     bool                        has_support_material()  const { return this->has_support() || this->has_raft(); }
     // Checks if the model object is painted using the multi-material painting gizmo.
     bool                        is_mm_painted()         const { return this->model_object()->is_mm_painted(); }
+    // Checks if the model object is painted using the fuzzy skin painting gizmo.
+    bool                        is_fuzzy_skin_painted() const { return this->model_object()->is_fuzzy_skin_painted(); }
 
     // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
     std::vector<unsigned int>   object_extruders() const;
@@ -433,7 +450,7 @@ public:
     //BBS
     BoundingBox get_first_layer_bbox(float& area, float& layer_height, std::string& name);
     void         get_certain_layers(float start, float end, std::vector<LayerPtrs> &out, std::vector<BoundingBox> &boundingbox_objects);
-    std::vector<Point> get_instances_shift_without_plate_offset();
+    Points       get_instances_shift_without_plate_offset();
     PrintObject* get_shared_object() const { return m_shared_object; }
     void         set_shared_object(PrintObject *object);
     void         clear_shared_object();
@@ -900,7 +917,7 @@ public:
     // For Perl bindings.
     PrintObjectPtrs&            objects_mutable() { return m_objects; }
     PrintRegionPtrs&            print_regions_mutable() { return m_print_regions; }
-    std::vector<size_t>         layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, std::vector<Points>& objects_instances_shift);
+    std::vector<size_t>         layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, VecOfPoints& objects_instances_shift);
     const ExtrusionEntityCollection& skirt() const { return m_skirt; }
     // Convex hull of the 1st layer extrusions, for bed leveling and placing the initial purge line.
     // It encompasses the object extrusions, support extrusions, skirt, brim, wipe tower.
@@ -954,7 +971,7 @@ public:
     ConflictResultOpt            get_conflict_result() const { return m_conflict_result; }
 
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
-    std::vector<Point>  first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
+    Points first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
 
     //SoftFever
     bool &is_BBL_printer() { return m_isBBLPrinter; }

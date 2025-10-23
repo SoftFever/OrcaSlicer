@@ -69,9 +69,10 @@ const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
 //           info_item Type                         info_item Name              info_item BitmapName
             { InfoItemType::CustomSupports,      {L("Support painting"),       "toolbar_support" },     },
             //{ InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
-            { InfoItemType::MmuSegmentation,     {L("Color painting"),          "mmu_segmentation"},  },
+            { InfoItemType::MmSegmentation,     {L("Color painting"),          "mmu_segmentation"},  },
             //{ InfoItemType::Sinking,             {L("Sinking"),                 "objlist_sinking"}, },
             { InfoItemType::CutConnectors,       {L("Cut connectors"),          "cut_connectors" },    },
+            { InfoItemType::FuzzySkin,           {L("Paint-on fuzzy skin"),     "objlist_fuzzy_skin_paint" }, },
 };
 
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode*   parent,
@@ -157,7 +158,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
             parent->GetNthChild(i)->SetIdx(i + 1);
     }
     const std::string label_range = (boost::format(" %.2f-%.2f ") % layer_range.first % layer_range.second).str();
-    m_name = _(L("Range")) + label_range + "(" + _(L("mm")) + ")";
+    m_name = _(L("Range")) + label_range + "(" + _("mm") + ")";
     m_bmp = create_scaled_bitmap(LayerIcon);
 
     set_icons();

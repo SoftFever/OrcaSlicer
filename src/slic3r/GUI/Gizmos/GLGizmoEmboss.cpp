@@ -1911,7 +1911,7 @@ void GLGizmoEmboss::draw_model_type()
 void GLGizmoEmboss::draw_style_rename_popup() {
     std::string& new_name = m_style_manager.get_style().name;
     const std::string &old_name = m_style_manager.get_stored_style()->name;
-    std::string text_in_popup = GUI::format(_L("Rename style(%1%) for embossing text"), old_name) + ": ";
+    std::string text_in_popup = GUI::format(_L("Rename style (%1%) for embossing text"), old_name) + ": ";
     ImGui::Text("%s", text_in_popup.c_str());
         
     bool is_unique = (new_name == old_name) || // could be same as before rename
@@ -3116,8 +3116,8 @@ void GLGizmoEmboss::create_notification_not_valid_font(
     }
     const std::string &face_name = face_name_opt.value_or(face_name_by_wx.value_or(es.path));
     std::string text =
-        GUI::format(_L("Can't load exactly same font(\"%1%\"). "
-                       "Application selected a similar one(\"%2%\"). "
+        GUI::format(_L("Can't load exactly same font (\"%1%\"). "
+                       "Application selected a similar one (\"%2%\"). "
                        "You have to specify font for enable edit text."),
                     face_name_3mf, face_name);
     create_notification_not_valid_font(text);

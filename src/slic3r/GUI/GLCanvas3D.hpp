@@ -216,7 +216,7 @@ class GLCanvas3D
         };
 
         static const float THICKNESS_BAR_WIDTH;
-        
+
         // Orca: Shrinkage compensation
         void set_shrinkage_compensation(const Vec3d &shrinkage_compensation) { m_shrinkage_compensation = shrinkage_compensation; };
 
@@ -232,7 +232,7 @@ class GLCanvas3D
         // Owned by LayersEditing.
         SlicingParameters* m_slicing_parameters{ nullptr };
         std::vector<double>         m_layer_height_profile;
-        
+
         // Orca: Shrinkage compensation to apply when we need to use object_max_z with Z compensation.
         Vec3d                       m_shrinkage_compensation{ Vec3d::Ones() };
 
@@ -968,8 +968,8 @@ public:
     void on_set_focus(wxFocusEvent& evt);
     void force_set_focus();
 
-    bool is_camera_rotate(const wxMouseEvent& evt) const;
-    bool is_camera_pan(const wxMouseEvent& evt) const;
+    bool is_camera_rotate(const wxMouseEvent& evt, const bool buttonsSwapped) const;
+    bool is_camera_pan(const wxMouseEvent& evt, const bool buttonsSwapped) const;
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;
@@ -1063,7 +1063,7 @@ public:
 
     bool is_overhang_shown() const { return m_slope.is_GlobalUsed(); }
     void show_overhang(bool show) { m_slope.globalUse(show); }
-    
+
     bool is_using_slope() const { return m_slope.is_used(); }
     void use_slope(bool use) { m_slope.use(use); }
     void set_slope_normal_angle(float angle_in_deg) { m_slope.set_normal_angle(angle_in_deg); }

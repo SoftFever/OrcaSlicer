@@ -17,7 +17,6 @@ wxDEFINE_EVENT(EVT_CALIBRATION_JOB_FINISHED, wxCommandEvent);
 static const wxString NA_STR = _L("N/A");
 static const float MIN_PA_K_VALUE_STEP = 0.001;
 static const int MAX_PA_HISTORY_RESULTS_NUMS = 16;
-
 std::map<int, Preset*> get_cached_selected_filament(MachineObject* obj) {
     std::map<int, Preset*> selected_filament_map;
     if (!obj) return selected_filament_map;
@@ -37,7 +36,7 @@ bool is_pa_params_valid(const Calib_Params& params)
 {
     if (params.start < MIN_PA_K_VALUE || params.end > MAX_PA_K_VALUE || params.step < EPSILON || params.end < params.start + params.step) {
         MessageDialog msg_dlg(nullptr,
-            wxString::Format(_L("Please input valid values:\nStart value: >= %.1f\nEnd value: <= %.1f\nEnd value: > Start value\nValue step: >= %.3f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE, MIN_PA_K_VALUE_STEP),
+            wxString::Format(_L("Please input valid values:\nStart value: >= %.1f\nEnd value: <= %.1f\nEnd value: > Start value\nValue step: >= %.3f"), MIN_PA_K_VALUE, MAX_PA_K_VALUE, MIN_PA_K_VALUE_STEP),
             wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
@@ -46,7 +45,7 @@ bool is_pa_params_valid(const Calib_Params& params)
 }
 
 CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
-    : wxPanel(parent, id, pos, size, style) 
+    : wxPanel(parent, id, pos, size, style)
     , m_mode(mode)
 {
     SetBackgroundColour(wxColour(0xEEEEEE));
@@ -58,8 +57,8 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowI
     m_scrolledWindow->SetBackgroundColour(*wxWHITE);
 
     wxBoxSizer* padding_sizer = new wxBoxSizer(wxHORIZONTAL);
-    padding_sizer->Add(0, 0, 1);    
-    
+    padding_sizer->Add(0, 0, 1);
+
     m_all_pages_sizer = new wxBoxSizer(wxVERTICAL);
     padding_sizer->Add(m_all_pages_sizer, 0);
 
@@ -101,6 +100,26 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowI
 CalibrationWizard::~CalibrationWizard()
 {
     ;
+}
+
+void CalibrationWizard::get_tray_ams_and_slot_id(int in_tray_id, int &ams_id, int &slot_id, int &tray_id)
+{
+    assert(curr_obj);
+    if (!curr_obj)
+        return;
+
+    if (in_tray_id == VIRTUAL_TRAY_ID || in_tray_id == VIRTUAL_TRAY_ID) {
+        ams_id = in_tray_id;
+        slot_id = 0;
+        tray_id = ams_id;
+        if (!curr_obj->is_enable_np)
+            tray_id = VIRTUAL_TRAY_ID;
+    }
+    else {
+        ams_id  = in_tray_id / 4;
+        slot_id = in_tray_id % 4;
+        tray_id = in_tray_id;
+    }
 }
 
 void CalibrationWizard::on_cali_job_finished(wxCommandEvent& event)
@@ -320,7 +339,7 @@ void CalibrationWizard::back_preset_info(MachineObject *obj, bool cali_finish, b
     wxGetApp().app_config->save_printer_cali_infos(printer_cali_info, back_cali_flag);
 }
 
-void CalibrationWizard::msw_rescale() 
+void CalibrationWizard::msw_rescale()
 {
     for (int i = 0; i < m_page_steps.size(); i++) {
         if (m_page_steps[i]->page)
@@ -402,7 +421,7 @@ void PressureAdvanceWizard::create_pages()
     preset_step = new CalibrationWizardPageStep(new CalibrationPresetPage(m_scrolledWindow, m_mode, false));
     cali_step   = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode));
     save_step   = new CalibrationWizardPageStep(new CalibrationPASavePage(m_scrolledWindow));
-    
+
     m_all_pages_sizer->Add(start_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
     m_all_pages_sizer->Add(preset_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
     m_all_pages_sizer->Add(cali_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
@@ -477,7 +496,11 @@ void PressureAdvanceWizard::update(MachineObject* obj)
     if (!m_show_result_dialog) {
         if (obj->cali_version != -1 && obj->cali_version != cali_version) {
             cali_version = obj->cali_version;
-            CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
+            PACalibExtruderInfo cali_info;
+            cali_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+            cali_info.use_extruder_id        = false;
+            cali_info.use_nozzle_volume_type = false;
+            CalibUtils::emit_get_PA_calib_infos(cali_info);
         }
     }
 }
@@ -589,7 +612,7 @@ void PressureAdvanceWizard::on_cali_start()
             }
 
             X1CCalibInfos::X1CCalibInfo calib_info;
-            calib_info.tray_id              = item.first;
+            get_tray_ams_and_slot_id(item.first, calib_info.ams_id, calib_info.slot_id, calib_info.tray_id);
             calib_info.nozzle_diameter      = nozzle_dia;
             calib_info.filament_id          = item.second->filament_id;
             calib_info.setting_id           = item.second->setting_id;
@@ -620,10 +643,12 @@ void PressureAdvanceWizard::on_cali_start()
                 BOOST_LOG_TRIVIAL(error) << "CaliPreset: get preset info error";
                 return;
             }
-            
+
+            int selected_tray_id = 0;
             CalibInfo calib_info;
             calib_info.dev_id            = curr_obj->dev_id;
-            calib_info.select_ams        = "[" + std::to_string(selected_filaments.begin()->first) + "]";
+            get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+            calib_info.select_ams         = "[" + std::to_string(selected_tray_id) + "]";
             Preset *preset               = selected_filaments.begin()->second;
             Preset * temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
             temp_filament_preset->config = preset->config;
@@ -656,14 +681,14 @@ void PressureAdvanceWizard::on_cali_start()
                 pa_cali_method = ManualPaCaliMethod::PA_LINE;
             else if (calib_info.params.mode == CalibMode::Calib_PA_Pattern)
                 pa_cali_method = ManualPaCaliMethod::PA_PATTERN;
-            
+
             cali_page->set_pa_cali_image(int(pa_cali_method));
             curr_obj->manual_pa_cali_method = pa_cali_method;
-            
+
             if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1 && curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
                 MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold 16 history results per nozzle. "
                     "You can delete the existing historical results and then start calibration. "
-                    "Or you can continue the calibration, but you cannot create new calibration historical results. \n"
+                    "Or you can continue the calibration, but you cannot create new calibration historical results.\n"
                     "Do you still want to continue the calibration?"), MAX_PA_HISTORY_RESULTS_NUMS), wxEmptyString, wxICON_WARNING | wxYES | wxCANCEL);
                 if (msg_dlg.ShowModal() != wxID_YES) {
                     return;
@@ -725,7 +750,7 @@ void PressureAdvanceWizard::on_cali_save()
                 CalibUtils::set_PA_calib_result({ new_pa_cali_result }, false);
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else if (curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
@@ -740,7 +765,7 @@ void PressureAdvanceWizard::on_cali_save()
                 auto iter = std::find_if(curr_obj->pa_calib_tab.begin(), curr_obj->pa_calib_tab.end(), [&new_pa_cali_result](const PACalibResult &item) {
                     return item.name == new_pa_cali_result.name && item.filament_id == item.filament_id;
                 });
-                
+
                 if (iter != curr_obj->pa_calib_tab.end()) {
                     MessageDialog
                         msg_dlg(nullptr,
@@ -792,7 +817,7 @@ void PressureAdvanceWizard::on_cali_save()
 
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow Dynamics Calibration result has been saved to the printer."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else {
@@ -819,7 +844,7 @@ void FlowRateWizard::create_pages()
     coarse_save_step = new CalibrationWizardPageStep(new CalibrationFlowCoarseSavePage(m_scrolledWindow));
     cali_fine_step = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode, CaliPageType::CALI_PAGE_FINE_CALI));
     fine_save_step = new CalibrationWizardPageStep(new CalibrationFlowFineSavePage(m_scrolledWindow));
-    
+
     // auto
     cali_step = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode));
     save_step = new CalibrationWizardPageStep(new CalibrationFlowX1SavePage(m_scrolledWindow));
@@ -897,7 +922,7 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
     else if (action == CaliPageActionType::CALI_ACTION_CALI) {
         if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
             on_cali_start();
-        } 
+        }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
             CaliPresetStage stage = CaliPresetStage::CALI_MANULA_STAGE_NONE;
             float cali_value = 0.0f;
@@ -908,7 +933,7 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
                 m_curr_step->chain(cali_fine_step);
             }
             // automatically jump to next step when print job is sending finished.
-        } 
+        }
         else {
             on_cali_start();
         }
@@ -989,6 +1014,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
 
             X1CCalibInfos::X1CCalibInfo calib_info;
             calib_info.tray_id          = item.first;
+            get_tray_ams_and_slot_id(item.first, calib_info.ams_id, calib_info.slot_id, calib_info.tray_id);
             calib_info.nozzle_diameter  = nozzle_dia;
             calib_info.filament_id      = item.second->filament_id;
             calib_info.setting_id       = item.second->setting_id;
@@ -1039,7 +1065,9 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
         }
 
         if (!selected_filaments.empty()) {
-            calib_info.select_ams     = "[" + std::to_string(selected_filaments.begin()->first) + "]";
+            int selected_tray_id  = 0;
+            get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+            calib_info.select_ams         = "[" + std::to_string(selected_tray_id) + "]";
             Preset* preset = selected_filaments.begin()->second;
             temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
             temp_filament_preset->config = preset->config;
@@ -1142,7 +1170,7 @@ void FlowRateWizard::on_cali_save()
                 }
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
@@ -1188,7 +1216,7 @@ void FlowRateWizard::on_cali_save()
                 return;
             }
 
-            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset"), wxEmptyString, wxOK);
+            MessageDialog msg_dlg(nullptr, _L("Flow rate calibration result has been saved to preset."), wxEmptyString, wxOK);
             msg_dlg.ShowModal();
         }
         else {
@@ -1307,7 +1335,7 @@ void FlowRateWizard::cache_coarse_info(MachineObject *obj)
 
     wxString out_name;
     coarse_page->get_result(&obj->cache_flow_ratio, &out_name);
-    
+
     back_preset_info(obj, false);
 }
 
@@ -1317,7 +1345,7 @@ MaxVolumetricSpeedWizard::MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID 
     create_pages();
 }
 
-void MaxVolumetricSpeedWizard::create_pages() 
+void MaxVolumetricSpeedWizard::create_pages()
 {
     start_step  = new CalibrationWizardPageStep(new CalibrationMaxVolumetricSpeedStartPage(m_scrolledWindow));
     preset_step = new CalibrationWizardPageStep(new MaxVolumetricSpeedPresetPage(m_scrolledWindow, m_mode, true));
@@ -1415,7 +1443,9 @@ void MaxVolumetricSpeedWizard::on_cali_start()
     calib_info.params = params;
     calib_info.dev_id = curr_obj->dev_id;
     if (!selected_filaments.empty()) {
-        calib_info.select_ams     = "[" + std::to_string(selected_filaments.begin()->first) + "]";
+        int selected_tray_id = 0;
+        get_tray_ams_and_slot_id(selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
+        calib_info.select_ams     = "[" + std::to_string(selected_tray_id) + "]";
         calib_info.filament_prest = selected_filaments.begin()->second;
     }
 
@@ -1469,7 +1499,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
         return;
     }
 
-    MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset"), wxEmptyString, wxOK);
+    MessageDialog msg_dlg(nullptr, _L("Max volumetric speed calibration result has been saved to preset."), wxEmptyString, wxOK);
     msg_dlg.ShowModal();
     show_step(start_step);
 }

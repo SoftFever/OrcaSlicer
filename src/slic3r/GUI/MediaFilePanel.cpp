@@ -71,7 +71,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     // File type
     StateColor background(
         std::make_pair(0xEEEEEE, (int) StateColor::Checked),
-        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered), 
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
         std::make_pair(*wxWHITE, (int) StateColor::Normal));
     m_type_panel = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_type_panel->SetBackgroundColor(*wxWHITE);
@@ -220,9 +220,9 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_lan_passwd   = obj->get_access_code();
         m_dev_ver      = obj->get_ota_version();
         m_device_busy  = obj->is_camera_busy_off();
-        m_sdcard_exist = obj->has_sdcard();
+        m_sdcard_exist = obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL || obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_READONLY;
         m_local_proto  = obj->file_local;
-        m_remote_proto = obj->file_remote;
+        m_remote_proto = obj->get_file_remote();
         m_model_download_support = obj->file_model_download;
     } else {
         m_lan_mode  = false;
@@ -296,7 +296,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             switch (status) {
             case PrinterFileSystem::Initializing: icon = m_bmp_loading; msg = _L("Initializing..."); break;
             case PrinterFileSystem::Connecting: icon = m_bmp_loading; msg = _L("Connecting..."); break;
-            case PrinterFileSystem::Failed: icon = m_bmp_failed; if (extra != 1) msg = _L("Please check the network and try again, You can restart or update the printer if the issue persists."); break;
+            case PrinterFileSystem::Failed: icon = m_bmp_failed; if (extra != 1) msg = _L("Please check the network and try again. You can restart or update the printer if the issue persists."); break;
             case PrinterFileSystem::ListSyncing: icon = m_bmp_loading; msg = _L("Loading file list..."); break;
             case PrinterFileSystem::ListReady: icon = extra == 0 ? m_bmp_empty : m_bmp_failed; msg = extra == 0 ? _L("No files") : _L("Load failed"); break;
             }
@@ -326,7 +326,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                 CallAfter([this, m = e.GetString()] {
                     MessageDialog(this, m, _L("Download failed"), wxOK | wxICON_ERROR).ShowModal();
                 });
-                
+
             NetworkAgent* agent = wxGetApp().getAgent();
             if (result > 1 || result == 0) {
                 json j;
@@ -395,7 +395,7 @@ void MediaFilePanel::SetSelecting(bool selecting)
     m_image_grid->SetSelecting(selecting);
     m_button_management->SetLabel(selecting ? _L("Cancel") : _L("Select"));
     auto fs = m_image_grid->GetFileSystem();
-    bool download_support = fs && fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
+    bool download_support = (fs && fs->GetFileType() < PrinterFileSystem::F_MODEL) || m_model_download_support;
     m_manage_panel->GetSizer()->Show(m_button_download, selecting && download_support);
     m_manage_panel->GetSizer()->Show(m_button_delete, selecting);
     m_manage_panel->GetSizer()->Show(m_button_refresh, !selecting);
@@ -518,16 +518,16 @@ void MediaFilePanel::doAction(size_t index, int action)
     auto fs = m_image_grid->GetFileSystem();
     if (action == 0) {
         if (index == -1) {
-            MessageDialog dlg(this, 
+            MessageDialog dlg(this,
                 wxString::Format(_L_PLURAL("You are going to delete %u file from printer. Are you sure to continue?",
                                                          "You are going to delete %u files from printer. Are you sure to continue?", fs->GetSelectCount()),
-                                               fs->GetSelectCount()), 
+                                               fs->GetSelectCount()),
                 _L("Delete files"), wxYES_NO | wxICON_WARNING);
             if (dlg.ShowModal() != wxID_YES)
                 return;
         } else {
-            MessageDialog dlg(this, 
-                wxString::Format(_L("Do you want to delete the file '%s' from printer?"), from_u8(fs->GetFile(index).name)), 
+            MessageDialog dlg(this,
+                wxString::Format(_L("Do you want to delete the file '%s' from printer?"), from_u8(fs->GetFile(index).name)),
                 _L("Delete file"), wxYES_NO | wxICON_WARNING);
             if (dlg.ShowModal() != wxID_YES)
                 return;
@@ -557,13 +557,13 @@ void MediaFilePanel::doAction(size_t index, int action)
                     std::istringstream is(data);
                     if (!Slic3r::load_gcode_3mf_from_stream(is, &config, &model, &plate_data_list, &file_version)
                             || plate_data_list.empty()) {
-                        MessageDialog(this, 
-                            _L("Failed to parse model information."), 
+                        MessageDialog(this,
+                            _L("Failed to parse model information."),
                             _L("Print"), wxOK).ShowModal();
                         return;
                     }
 
-                    
+
                     auto &file = fs->GetFile(index);
 
                     std::string file_path = file.path;
@@ -577,10 +577,11 @@ void MediaFilePanel::doAction(size_t index, int action)
                         wxPostEvent(Slic3r::GUI::wxGetApp().plater(), SimpleEvent(EVT_PRINT_FROM_SDCARD_VIEW));
                     }
                     else {
-                        MessageDialog dlg(this, _L("The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer and export a new .gcode.3mf file."), wxEmptyString, wxICON_WARNING | wxOK);
+                        MessageDialog dlg(this, _L("The .gcode.3mf file contains no G-code data. Please slice it with Orca Slicer and export a new .gcode.3mf file."),
+                            wxEmptyString, wxICON_WARNING | wxOK);
                         auto res = dlg.ShowModal();
                     }
-                    
+
                 });
                 return;
             }
@@ -590,8 +591,8 @@ void MediaFilePanel::doAction(size_t index, int action)
             if (file.IsDownload() && file.DownloadProgress() >= -1) {
                 if (!file.local_path.empty()) {
                     if (!fs->DownloadCheckFile(index)) {
-                        MessageDialog(this, 
-                            wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), 
+                        MessageDialog(this,
+                            wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)),
                             _L("Error"), wxOK).ShowModal();
                         Refresh();
                         return;
@@ -616,8 +617,8 @@ void MediaFilePanel::doAction(size_t index, int action)
             if (file.IsDownload() && file.DownloadProgress() >= -1) {
                 if (!file.local_path.empty()) {
                     if (!fs->DownloadCheckFile(index)) {
-                        MessageDialog(this, 
-                            wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), 
+                        MessageDialog(this,
+                            wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)),
                             _L("Error"), wxOK).ShowModal();
                         Refresh();
                         return;

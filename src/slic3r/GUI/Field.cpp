@@ -278,7 +278,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             }
 
 			wxString label = m_opt.full_label.empty() ? _(m_opt.label) : _(m_opt.full_label);
-            show_error(m_parent, from_u8((boost::format(_utf8(L("%s can't be percentage"))) % into_u8(label)).str()));
+            show_error(m_parent, from_u8((boost::format(_utf8(L("%s can't be a percentage"))) % into_u8(label)).str()));
 			set_value(double_to_string(m_opt.min), true);
 			m_value = double(m_opt.min);
 			break;
@@ -430,6 +430,48 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 str = str_out;
                 set_value(str, true);
             }
+        } else if (m_opt.opt_key == "sparse_infill_rotate_template" || m_opt.opt_key == "solid_infill_rotate_template") {
+            string ustr(str.utf8_string());
+            if (!ConfigOptionFloats::validate_string(ustr)) {
+                string      v;
+                std::smatch match;
+                string      ps = (m_opt.opt_key == "sparse_infill_rotate_template") ?
+                                     u8"[BT][!]?|[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[BT]?[!*]?" :
+                                     u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[!*]?";
+
+                while (std::regex_search(ustr, match, std::regex(ps))) {
+                    for (auto x : match) v += x.str() + ", ";
+                    ustr = match.suffix().str();
+                }
+                v = v.substr(0, v.length() - 2);
+                try {
+                    this->set_value(from_u8(v), true);
+                    m_value = into_u8(v);
+                } catch (...) {
+                    show_error(m_parent, format_wxstr(_L("This parameter expects a valid template.")));
+                    wxString old_value(boost::any_cast<std::string>(m_value));
+                    this->set_value(old_value, true); // Revert to previous value
+                }
+            } else {
+                // Valid string, so update m_value with the new string from the control.
+                m_value = into_u8(str);
+            }
+            break;
+        } else if (m_opt.opt_key == "extra_solid_infills") {
+            string ustr(str.utf8_string());
+            // New rule: accept either interval form (N or N#K) or explicit list (e.g. 1,7,9), with optional quotes.
+            const std::regex rx_interval(u8R"(^\s*['"]?\s*\d+\s*(?:#\s*\d*)?\s*['"]?\s*$)");
+            // List entries may be plain numbers or number with optional #K count, e.g., 5, 9#2, 18
+            const std::regex rx_list(u8R"(^\s*['"]?\s*\d+(?:\s*#\s*\d*)?(?:\s*,\s*\d+(?:\s*#\s*\d*)?)*\s*['"]?\s*$)");
+            bool is_valid = ustr.empty() || std::regex_match(ustr, rx_interval) || std::regex_match(ustr, rx_list);
+            if (!is_valid) {
+                show_error(m_parent, format_wxstr(_L("Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18.")));
+                wxString old_value(boost::any_cast<std::string>(m_value));
+                this->set_value(old_value, true); // Revert to previous value
+            }
+            // Valid string or empty, so update m_value with the new string from the control.
+            m_value = into_u8(str);
+            break;
         }
 
         m_value = into_u8(str);
@@ -1515,7 +1557,11 @@ void Choice::set_value(const boost::any& value, bool change_event)
         if (m_opt_id.compare("host_type") == 0 && val != 0 &&
 			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
 			val--;
-        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style" || m_opt_id == "curr_bed_type")
+        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" ||
+            m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
+            m_opt_id == "support_base_pattern" || m_opt_id == "support_interface_pattern" ||
+            m_opt_id == "ironing_pattern" || m_opt_id == "support_ironing_pattern" ||
+            m_opt_id == "support_style" || m_opt_id == "curr_bed_type")
 		{
 			std::string key;
 			const t_config_enum_values& map_names = *m_opt.enum_keys_map;
@@ -1599,21 +1645,27 @@ boost::any& Choice::get_value()
 
     // BBS
 	if (m_opt.type == coEnum || m_opt.type == coEnums)
-	{
+    {
         if (m_opt.nullable && field->GetSelection() == -1)
             m_value = ConfigOptionEnumsGenericNullable::nil_value();
-        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
-                 m_opt_id == "support_style" || m_opt_id == "curr_bed_type") {
-			const std::string& key = m_opt.enum_values[field->GetSelection()];
-			m_value = int(m_opt.enum_keys_map->at(key));
-		}
+        else if (   m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" ||
+                    m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
+                    m_opt_id == "support_base_pattern" || m_opt_id == "support_interface_pattern" ||
+                    m_opt_id == "ironing_pattern" || m_opt_id == "support_ironing_pattern" ||
+                    m_opt_id == "support_style" || m_opt_id == "curr_bed_type")
+        {
+            const std::string &key = m_opt.enum_values[field->GetSelection()];
+            m_value = int(m_opt.enum_keys_map->at(key));
+        }
         // Support ThirdPartyPrinter
-        else if (m_opt_id.compare("host_type") == 0 && m_opt.enum_values.size() > field->GetCount()) {
+        else if (m_opt_id.compare("host_type") == 0 && m_opt.enum_values.size() > field->GetCount())
+        {
             // for case, when PrusaLink isn't used as a HostType
             m_value = field->GetSelection() + 1;
-        } else
-			m_value = field->GetSelection();
-	}
+        }
+        else
+            m_value = field->GetSelection();
+    }
     else if (m_opt.gui_type == ConfigOptionDef::GUIType::f_enum_open || m_opt.gui_type == ConfigOptionDef::GUIType::i_enum_open) {
         const int ret_enum = field->GetSelection();
         if (m_list) {
@@ -1727,7 +1779,7 @@ void Choice::msw_rescale()
 
 void ColourPicker::BUILD()
 {
-	auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
+    auto size = wxSize(def_width_wider() * m_em_unit, -1); // ORCA match color picker width
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
@@ -1750,7 +1802,24 @@ void ColourPicker::BUILD()
 	// 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
 
-	temp->Bind(wxEVT_COLOURPICKER_CHANGED, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
+	temp->Bind(wxEVT_COLOURPICKER_CHANGED, ([this,temp](wxCommandEvent e) {
+        #ifdef __WXMSW__
+            draw_bmp_btn(temp, temp->GetColour());
+        #endif
+        on_change_field();
+    }), temp->GetId());
+
+    // ORCA reset value to default on right click. previously no way to switch back on windows
+    temp->GetPickerCtrl()->Bind(wxEVT_RIGHT_DOWN, [this, temp](wxMouseEvent e){
+        #ifdef __WXMSW__
+            temp->SetColour(wxTransparentColour);
+            draw_bmp_btn(temp, wxTransparentColour);
+        #else
+            set_undef_value(temp);
+        #endif
+        on_change_field();
+        e.Skip();
+    });
 
 	temp->SetToolTip(get_tooltip_text(clr_str));
 }
@@ -1782,17 +1851,69 @@ void ColourPicker::set_undef_value(wxColourPickerCtrl* field)
     btn->SetBitmapLabel(bmp);
 }
 
+// ORCA match style with button on windows
+void ColourPicker::draw_bmp_btn(wxColourPickerCtrl* field, wxColour color)
+{
+    wxButton* btn = dynamic_cast<wxButton*>(field->GetPickerCtrl());
+
+    if (!btn->GetBitmap().IsOk()) return;
+    btn->SetWindowStyle(wxBORDER_NONE); // ORCA just in case to prevent any overflow
+    btn->SetBackgroundColour(*wxWHITE);
+    wxGetApp().UpdateDarkUI(btn);
+
+    auto create_bitmap = [btn](const wxColour& picker_color,const wxColour& bg_color, bool focus) -> wxBitmap {
+        wxSize  btn_sz = btn->GetSize();
+        wxImage image(btn_sz);
+        image.InitAlpha();
+        memset(image.GetAlpha(), 0, image.GetWidth() * image.GetHeight());
+        wxBitmap   bmp(std::move(image));
+        wxMemoryDC dc(bmp);
+        if (!dc.IsOk()) return bmp;
+        wxGCDC dc2(dc); // just use wxGCDC since bitmap button only used for windows
+
+        dc2.SetPen(focus ? wxPen(wxColour(StateColor::darkModeColorFor(wxColour("#009688"))), 1) : *wxTRANSPARENT_PEN);
+        dc2.SetBrush(wxBrush(StateColor::darkModeColorFor(bg_color)));
+        dc2.DrawRoundedRectangle(btn->GetRect(), btn->FromDIP(4));
+
+        int padding = btn->FromDIP(5);
+        dc2.SetPen(*wxTRANSPARENT_PEN);
+        if (picker_color != wxTransparentColour){ // Draw color
+            dc2.SetBrush(wxBrush(picker_color));
+            dc2.DrawRectangle(wxRect(padding, padding, btn_sz.x - 2 * padding, btn_sz.y - 2 * padding));
+        } else { // Draw Pick text
+            // Label::Body_14 rendered much bolder with wxGCDC
+            dc2.SetFont(wxFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+            wxString text    = _L("Pick") + " " + dots;
+            wxSize   text_sz = dc2.GetTextExtent(text);
+            dc2.SetTextForeground(StateColor::darkModeColorFor(wxColour("#262E30")));
+            dc2.DrawText(text, (btn_sz.x - text_sz.x) / 2, (btn_sz.y - text_sz.y) / 2);
+        }
+        dc.SelectObject(wxNullBitmap);
+        return bmp;
+    };
+
+    btn->SetBitmap(        create_bitmap(color, wxColour("#DFDFDF"), false)); // Normal
+    btn->SetBitmapFocus(   create_bitmap(color, wxColour("#DFDFDF"), true )); // Focus
+    btn->SetBitmapCurrent( create_bitmap(color, wxColour("#D4D4D4"), false)); // Hover
+}
+
 void ColourPicker::set_value(const boost::any& value, bool change_event)
 {
     m_disable_change_event = !change_event;
     const wxString clr_str(boost::any_cast<wxString>(value));
     auto field = dynamic_cast<wxColourPickerCtrl*>(window);
 
-    wxColour clr(clr_str);
-    if (clr_str.IsEmpty() || !clr.IsOk())
-        set_undef_value(field);
-    else
+    #ifdef __WXMSW__
+        wxColour clr = (clr_str.IsEmpty() || !clr.IsOk()) ? wxTransparentColour : clr_str;
         field->SetColour(clr);
+        draw_bmp_btn(field, clr);
+    #else
+        wxColour clr(clr_str);
+        if (clr_str.IsEmpty() || !clr.IsOk())
+            set_undef_value(field);
+        else
+            field->SetColour(clr);
+    #endif
 
     m_disable_change_event = false;
 }
@@ -1814,7 +1935,7 @@ void ColourPicker::msw_rescale()
     Field::msw_rescale();
 
 	wxColourPickerCtrl* field = dynamic_cast<wxColourPickerCtrl*>(window);
-    auto size = wxSize(def_width() * m_em_unit, wxDefaultCoord);
+    auto size = wxSize(def_width_wider() * m_em_unit, -1); // ORCA match color picker width with parameters
     if (m_opt.height >= 0)
         size.SetHeight(m_opt.height * m_em_unit);
     else if (parent_is_custom_ctrl && opt_height > 0)
@@ -1825,16 +1946,23 @@ void ColourPicker::msw_rescale()
     else
         field->SetMinSize(size);
 
-    if (field->GetColour() == wxTransparentColour)
-        set_undef_value(field);
+    #ifdef __WXMSW__
+        draw_bmp_btn(field, field->GetColour());
+    #else
+        if (field->GetColour() == wxTransparentColour)
+            set_undef_value(field);
+    #endif
+
 }
 
 void ColourPicker::sys_color_changed()
 {
 #ifdef _WIN32
-	if (wxWindow* win = this->getWindow())
-		if (wxColourPickerCtrl* picker = dynamic_cast<wxColourPickerCtrl*>(win))
-			wxGetApp().UpdateDarkUI(picker->GetPickerCtrl(), true);
+    if (wxWindow* win = this->getWindow())
+        if (wxColourPickerCtrl* picker = dynamic_cast<wxColourPickerCtrl*>(win)){
+            wxGetApp().UpdateDarkUI(picker->GetPickerCtrl(), true);
+            draw_bmp_btn(picker, picker->GetColour());
+        }
 #endif
 }
 

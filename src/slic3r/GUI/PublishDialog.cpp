@@ -24,16 +24,12 @@ static wxString PUBLISH_STEP_STRING[STEP_COUNT] = {
     _L("Jump to model publish web page")
 };
 
-static wxString NOTE_STRING = _L("Note: The preparation may takes several minutes. Please be patient.");
+static wxString NOTE_STRING = _L("Note: The preparation may take several minutes. Please be patient.");
 
 PublishDialog::PublishDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Publish"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater)
 {
-
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     this->SetSize(wxSize(FromDIP(540),FromDIP(400)));
 
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);

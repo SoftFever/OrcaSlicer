@@ -3,9 +3,9 @@
     "name": "Z-Bolt PA",
     "inherits": "fdm_filament_pa",
     "from": "system",
-    "instantiation": "true",
-    "filament_id": "GFL103",
     "setting_id": "GFSL103",
+    "filament_id": "GFL103",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "10"
     ],
@@ -66,6 +66,15 @@
         "Z-Bolt S600 0.8 nozzle",
         "Z-Bolt S600 Dual 0.4 nozzle",
         "Z-Bolt S600 Dual 0.6 nozzle",
-        "Z-Bolt S600 Dual 0.8 nozzle"
+        "Z-Bolt S600 Dual 0.8 nozzle",
+        "Z-Bolt S800 Dual 0.4 nozzle",
+        "Z-Bolt S800 Dual 0.6 nozzle",
+        "Z-Bolt S800 Dual 0.8 nozzle",
+        "Z-Bolt S1000 0.4 nozzle",
+        "Z-Bolt S1000 0.6 nozzle",
+        "Z-Bolt S1000 0.8 nozzle",
+        "Z-Bolt S1000 Dual 0.4 nozzle",
+        "Z-Bolt S1000 Dual 0.6 nozzle",
+        "Z-Bolt S1000 Dual 0.8 nozzle"
     ]
 }

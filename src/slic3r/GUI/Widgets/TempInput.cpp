@@ -8,7 +8,7 @@
 
 wxDEFINE_EVENT(wxCUSTOMEVT_SET_TEMP_FINISH, wxCommandEvent);
 
-BEGIN_EVENT_TABLE(TempInput, wxPanel)
+BEGIN_EVENT_TABLE(TempInput, StaticBox)
 EVT_MOTION(TempInput::mouseMoved)
 EVT_ENTER_WINDOW(TempInput::mouseEnterWindow)
 EVT_LEAVE_WINDOW(TempInput::mouseLeaveWindow)

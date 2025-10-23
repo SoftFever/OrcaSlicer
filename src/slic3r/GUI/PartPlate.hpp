@@ -117,7 +117,6 @@ private:
 
     friend class PartPlateList;
 
-    Pointfs m_raw_shape;
     Pointfs m_shape;
     Pointfs m_exclude_area;
     BoundingBoxf3 m_bounding_box;
@@ -198,8 +197,8 @@ private:
     int picking_id_component(int idx) const;
 
 public:
-    static const unsigned int PLATE_NAME_HOVER_ID = 6;
-    static const unsigned int GRABBER_COUNT = 8;
+    static constexpr unsigned int PLATE_NAME_HOVER_ID = 6;
+    static constexpr unsigned int GRABBER_COUNT = 8;
 
     static ColorRGBA SELECT_COLOR;
     static ColorRGBA UNSELECT_COLOR;
@@ -228,6 +227,9 @@ public:
     BedType get_bed_type(bool load_from_project = false) const;
     void set_bed_type(BedType bed_type);
     void reset_bed_type();
+
+    void reset_skirt_start_angle();
+
     DynamicPrintConfig* config() { return &m_config; }
 
     // set print sequence per plate
@@ -628,7 +630,7 @@ public:
         void                     reset();
     };
 
-    static const unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
+    static constexpr unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
     static GLTexture bed_textures[(unsigned int)btCount];
     static bool is_load_bedtype_textures;
     static bool is_load_cali_texture;

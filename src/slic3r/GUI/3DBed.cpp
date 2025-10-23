@@ -28,10 +28,6 @@
 #endif
 
 static const float GROUND_Z = -0.04f;
-static const Slic3r::ColorRGBA DEFAULT_MODEL_COLOR             = { 0.3255f, 0.337f, 0.337f, 1.0f };
-static const Slic3r::ColorRGBA DEFAULT_MODEL_COLOR_DARK        = { 0.255f, 0.255f, 0.283f, 1.0f };
-static const Slic3r::ColorRGBA DEFAULT_SOLID_GRID_COLOR        = { 0.9f, 0.9f, 0.9f, 1.0f };
-static const Slic3r::ColorRGBA DEFAULT_TRANSPARENT_GRID_COLOR  = { 0.9f, 0.9f, 0.9f, 0.6f };
 
 namespace Slic3r {
 namespace GUI {
@@ -185,6 +181,12 @@ const float Bed3D::Axes::DefaultStemLength = 25.0f;
 const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadius;
 const float Bed3D::Axes::DefaultTipLength = 5.0f;
 
+// ORCA make bed colors accessable for 2D bed
+ColorRGBA Bed3D::DEFAULT_MODEL_COLOR             = { 0.3255f, 0.337f, 0.337f, 1.0f };
+ColorRGBA Bed3D::DEFAULT_MODEL_COLOR_DARK        = { 0.255f, 0.255f, 0.283f, 1.0f };
+ColorRGBA Bed3D::DEFAULT_SOLID_GRID_COLOR        = { 0.9f, 0.9f, 0.9f, 1.0f };
+ColorRGBA Bed3D::DEFAULT_TRANSPARENT_GRID_COLOR  = { 0.9f, 0.9f, 0.9f, 0.6f };
+
 ColorRGBA Bed3D::AXIS_X_COLOR = ColorRGBA::X();
 ColorRGBA Bed3D::AXIS_Y_COLOR = ColorRGBA::Y();
 ColorRGBA Bed3D::AXIS_Z_COLOR = ColorRGBA::Z();
@@ -210,22 +212,23 @@ void Bed3D::Axes::render()
         const Transform3d& view_matrix = camera.get_view_matrix();
         shader->set_uniform("view_model_matrix", view_matrix * transform);
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * transform.matrix().block(0, 0, 3, 3).inverse().transpose();
-        shader->set_uniform("view_normal_matrix", view_normal_matrix);
+        //const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * transform.matrix().block(0, 0, 3, 3).inverse().transpose();
+        //shader->set_uniform("view_normal_matrix", view_normal_matrix);
         m_arrow.render();
     };
 
     if (!m_arrow.is_initialized())
-        m_arrow.init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
+        //m_arrow.init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
+        m_arrow.init_from(smooth_cylinder(16, /*Radius*/ m_stem_length / 75.f, m_stem_length)); // ORCA use simple cylinder and scale thickness depends on length
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat"); // ORCA dont use shading to get closer color tone
     if (shader == nullptr)
         return;
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     shader->start_using();
-    shader->set_uniform("emission_factor", 0.0f);
+    //shader->set_uniform("emission_factor", 0.0f);
 
     // x axis
     m_arrow.set_color(AXIS_X_COLOR);
@@ -432,7 +435,7 @@ std::tuple<Bed3D::Type, std::string, std::string> Bed3D::detect_type(const Point
         while (curr != nullptr) {
             if (curr->config.has("printable_area")) {
                 std::string texture_filename, model_filename;
-                if (shape == dynamic_cast<const ConfigOptionPoints*>(curr->config.option("printable_area"))->values) {
+                if (shape == make_counter_clockwise(dynamic_cast<const ConfigOptionPoints*>(curr->config.option("printable_area"))->values)) {
                     if (curr->is_system)
                         model_filename = PresetUtils::system_printer_bed_model(*curr);
                     else {
@@ -616,12 +619,6 @@ void Bed3D::update_model_offset()
     shift(2) = -0.03;
     Vec3d* model_offset_ptr = const_cast<Vec3d*>(&m_model_offset);
     *model_offset_ptr = shift;
-    //BBS: TODO: hack for current stl for BBL printer
-    if (std::string::npos != m_model_filename.find("bbl-3dp-"))
-    {
-        (*model_offset_ptr)(0) -= m_bed_shape[2].x() / 2.0f;
-        (*model_offset_ptr)(1) -= m_bed_shape[2].y() / 2.0f;
-    }
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
     // update extended bounding box
@@ -674,7 +671,7 @@ void Bed3D::render_model(const Transform3d& view_matrix, const Transform3d& proj
         m_model.set_color(m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
 
         update_model_offset();
-		
+
         // BBS: remove the bed picking logic
         //register_raycasters_for_picking(m_model.model.get_geometry(), Geometry::assemble_transform(m_model_offset));
     }

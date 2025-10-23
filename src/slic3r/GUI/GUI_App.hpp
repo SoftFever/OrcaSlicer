@@ -238,6 +238,9 @@ private:
 #ifdef __linux__
     bool            m_opengl_initialized{ false };
 #endif
+#if defined(__WINDOWS__)
+    bool            m_is_arm64{false};
+#endif
 
    
 //#ifdef _WIN32
@@ -474,6 +477,7 @@ public:
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
     void            check_new_version_sf(bool show_tips = false, int by_user = 0);
+    void            process_network_msg(std::string dev_id, std::string msg);
     void            request_new_version(int by_user);
     void            enter_force_upgrade();
     void            set_skip_version(bool skip = true);
@@ -582,6 +586,10 @@ public:
     void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}
     std::string     get_download_model_url() {return m_mall_model_download_url;}
     std::string     get_download_model_name() {return m_mall_model_download_name;}
+
+#if defined(__WINDOWS__)
+    bool            is_running_on_arm64() { return m_is_arm64; }
+#endif
 
     void            load_url(wxString url);
     void            open_mall_page_dialog();

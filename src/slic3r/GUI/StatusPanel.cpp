@@ -333,12 +333,12 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     sizer_percent_icon->Add(0, 0, 1, wxEXPAND, 0);
 
 
-    m_staticText_progress_percent = new wxStaticText(penel_text, wxID_ANY, L("0"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_percent = new wxStaticText(penel_text, wxID_ANY, "0", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_progress_percent->SetFont(::Label::Head_18);
     m_staticText_progress_percent->SetMaxSize(wxSize(-1, FromDIP(20)));
     m_staticText_progress_percent->SetForegroundColour(wxColour(0, 150, 136));
 
-    m_staticText_progress_percent_icon = new wxStaticText(penel_text, wxID_ANY, L("%"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_percent_icon = new wxStaticText(penel_text, wxID_ANY, "%", wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_progress_percent_icon->SetFont(::Label::Body_11);
     m_staticText_progress_percent_icon->SetMaxSize(wxSize(-1, FromDIP(13)));
     m_staticText_progress_percent_icon->SetForegroundColour(wxColour(0, 150, 136));
@@ -828,6 +828,9 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     : wxScrolledWindow(parent, id, pos, size, wxHSCROLL | wxVSCROLL)
 {
     this->SetScrollRate(5, 5);
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    obj = dev->get_selected_machine();
 
     init_bitmaps();
 
@@ -1023,7 +1026,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     });
     m_camera_switch_button->Hide();
 
-    m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
+    m_bitmap_sdcard_img->SetToolTip(_L("Storage"));
     m_bitmap_timelapse_img->SetToolTip(_L("Timelapse"));
     m_bitmap_recording_img->SetToolTip(_L("Video"));
     m_bitmap_vcamera_img->SetToolTip(_L("Go Live"));
@@ -1267,7 +1270,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
 
     /* create speed control */
     m_switch_speed = new ImageSwitchButton(parent, m_bitmap_speed_active, m_bitmap_speed);
-    m_switch_speed->SetLabels(_L("100%"), _L("100%"));
+    m_switch_speed->SetLabels("100%", "100%");
     m_switch_speed->SetMinSize(MISC_BUTTON_2FAN_SIZE);
     m_switch_speed->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
     m_switch_speed->SetPadding(FromDIP(3));
@@ -1400,7 +1403,7 @@ void StatusBasePanel::reset_temp_misc_control()
     m_tempCtrl_bed->Enable(true);
 
     // reset misc control
-    m_switch_speed->SetLabels(_L("100%"), _L("100%"));
+    m_switch_speed->SetLabels("100%", "100%");
     m_switch_speed->SetValue(false);
     m_switch_lamp->SetLabels(_L("Lamp"), _L("Lamp"));
     m_switch_lamp->SetValue(false);
@@ -1449,7 +1452,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     StateColor z_1_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL2_COL, StateColor::Normal));
 
     bSizer_z_ctrl->AddStretchSpacer();
-    m_bpButton_z_10 = new Button(panel, wxString("10"), "monitor_bed_up", 0, FromDIP(15));
+    m_bpButton_z_10 = new Button(panel, wxString("10"), "monitor_bed_up", 0, 15); // Orca Dont scale icon size 
     m_bpButton_z_10->SetFont(::Label::Body_13);
     m_bpButton_z_10->SetBorderWidth(2);
     m_bpButton_z_10->SetBackgroundColor(z_10_ctrl_bg);
@@ -1460,7 +1463,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(m_bpButton_z_10, 0, wxEXPAND | wxALL, 0);
 
-    m_bpButton_z_1 = new Button(panel, wxString(" 1"), "monitor_bed_up", 0, FromDIP(15));
+    m_bpButton_z_1 = new Button(panel, wxString(" 1"), "monitor_bed_up", 0, 15); // Orca Dont scale icon size 
     m_bpButton_z_1->SetFont(::Label::Body_13);
     m_bpButton_z_1->SetBorderWidth(2);
     m_bpButton_z_1->SetBackgroundColor(z_1_ctrl_bg);
@@ -1472,7 +1475,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
-    m_bpButton_z_down_1 = new Button(panel, wxString(" 1"), "monitor_bed_down", 0, FromDIP(15));
+    m_bpButton_z_down_1 = new Button(panel, wxString(" 1"), "monitor_bed_down", 0, 15); // Orca Dont scale icon size 
     m_bpButton_z_down_1->SetFont(::Label::Body_13);
     m_bpButton_z_down_1->SetBorderWidth(2);
     m_bpButton_z_down_1->SetBackgroundColor(z_1_ctrl_bg);
@@ -1482,7 +1485,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
 
     bSizer_z_ctrl->Add(m_bpButton_z_down_1, 0, wxEXPAND | wxALL, 0);
 
-    m_bpButton_z_down_10 = new Button(panel, wxString("10"), "monitor_bed_down", 0, FromDIP(15));
+    m_bpButton_z_down_10 = new Button(panel, wxString("10"), "monitor_bed_down", 0, 15); // Orca Dont scale icon size 
     m_bpButton_z_down_10->SetFont(::Label::Body_13);
     m_bpButton_z_down_10->SetBorderWidth(2);
     m_bpButton_z_down_10->SetBackgroundColor(z_10_ctrl_bg);
@@ -1522,7 +1525,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
 
     StateColor e_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
     StateColor e_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
-    m_bpButton_e_10 = new Button(panel, "", "monitor_extruder_up", 0, FromDIP(22));
+    m_bpButton_e_10 = new Button(panel, "", "monitor_extruder_up", 0, 22); // Orca Dont scale icon size 
     m_bpButton_e_10->SetBorderWidth(2);
     m_bpButton_e_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_10->SetBorderColor(e_ctrl_bd);
@@ -1537,7 +1540,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
 
     bSizer_e_ctrl->Add(m_bitmap_extruder_img, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, FromDIP(5));
     bSizer_e_ctrl->Add(0, FromDIP(7), 0, 0, 0);
-    m_bpButton_e_down_10 = new Button(panel, "", "monitor_extruder_down", 0, FromDIP(22));
+    m_bpButton_e_down_10 = new Button(panel, "", "monitor_extruder_down", 0, 22); // Orca Dont scale icon size 
     m_bpButton_e_down_10->SetBorderWidth(2);
     m_bpButton_e_down_10->SetBackgroundColor(e_ctrl_bg);
     m_bpButton_e_down_10->SetBorderColor(e_ctrl_bd);
@@ -1632,16 +1635,16 @@ void StatusPanel::update_camera_state(MachineObject* obj)
     if (m_last_sdcard != (int)obj->get_sdcard_state()) {
         if (obj->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
             m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_no.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("No SD Card"));
+            m_bitmap_sdcard_img->SetToolTip(_L("No Storage"));
         } else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL) {
             m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
+            m_bitmap_sdcard_img->SetToolTip(_L("Storage"));
         } else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL) {
             m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_abnormal.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("SD Card Abnormal"));
+            m_bitmap_sdcard_img->SetToolTip(_L("Storage Abnormal"));
         } else {
             m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
+            m_bitmap_sdcard_img->SetToolTip(_L("Storage"));
         }
         m_last_sdcard = (int)obj->get_sdcard_state();
     }
@@ -2375,7 +2378,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_tempCtrl_bed->SetIconNormal();
     }
 
-    m_tempCtrl_nozzle->SetCurrTemp((int) obj->nozzle_temp);
+    m_tempCtrl_nozzle->SetCurrTemp((int) obj->m_extder_data.extders[0].temp);
     if (obj->nozzle_max_temperature > -1) {
         if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->SetMaxTemp(obj->nozzle_max_temperature);
     }
@@ -2386,10 +2389,10 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     if (m_temp_nozzle_timeout > 0) {
         m_temp_nozzle_timeout--;
     } else {
-        if (!nozzle_temp_input) { m_tempCtrl_nozzle->SetTagTemp((int) obj->nozzle_temp_target); }
+        if (!nozzle_temp_input) { m_tempCtrl_nozzle->SetTagTemp((int) obj->m_extder_data.extders[0].target_temp); }
     }
 
-    if ((obj->nozzle_temp_target - obj->nozzle_temp) >= TEMP_THRESHOLD_VAL) {
+    if ((obj->m_extder_data.extders[0].target_temp - obj->m_extder_data.extders[0].temp) >= TEMP_THRESHOLD_VAL) {
         m_tempCtrl_nozzle->SetIconActive();
     } else {
         m_tempCtrl_nozzle->SetIconNormal();
@@ -2523,7 +2526,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     }
 
     bool light_on = obj->chamber_light != MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF;
-    BOOST_LOG_TRIVIAL(trace) << "light: " << light_on ? "on" : "off";
+    BOOST_LOG_TRIVIAL(trace) << "light: " << (light_on ? "on" : "off");
     if (m_switch_lamp_timeout > 0)
         m_switch_lamp_timeout--;
     else {
@@ -2581,9 +2584,13 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
-    if (obj->cali_version != -1 && last_cali_version != obj->cali_version) {
+    if (obj && (obj->last_cali_version != obj->cali_version)) {
         last_cali_version = obj->cali_version;
-        CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
+        PACalibExtruderInfo cali_info;
+        cali_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+        cali_info.use_extruder_id = false;
+        cali_info.use_nozzle_volume_type = false;
+        CalibUtils::emit_get_PA_calib_infos(cali_info);
     }
 
     bool is_support_virtual_tray    = obj->ams_support_virtual_tray;
@@ -2591,10 +2598,10 @@ void StatusPanel::update_ams(MachineObject *obj)
     AMSModel ams_mode               = AMSModel::GENERIC_AMS;
 
     if (obj) {
-        if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::EXTRA_AMS; }
-        else if(obj->get_printer_ams_type() == "generic") { ams_mode = AMSModel::GENERIC_AMS; }
+        if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::AMS_LITE; }
+        obj->check_ams_filament_valid();
     }
-
+    if (obj->is_enable_np && obj->amsList.size() > 0) { ams_mode = AMSModel(obj->amsList.begin()->second->type); }
     if (!obj
         || !obj->is_connected()
         || obj->amsList.empty()
@@ -2610,7 +2617,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
 
 
-        m_ams_control->SetAmsModel(AMSModel::NO_AMS, ams_mode);
+        m_ams_control->SetAmsModel(AMSModel::EXT_AMS, ams_mode);
         show_ams_group(false);
 
         m_ams_control->show_auto_refill(false);
@@ -2627,10 +2634,14 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;
+    ams_info.clear();
     for (auto ams = obj->amsList.begin(); ams != obj->amsList.end(); ams++) {
         AMSinfo info;
         info.ams_id = ams->first;
-        if (ams->second->is_exists && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) ams_info.push_back(info);
+        if (ams->second->is_exists && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) {
+            if (ams_mode == AMSModel::AMS_LITE) { info.ams_type = AMSModel::AMS_LITE; }
+            ams_info.push_back(info);
+        }
     }
     //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
     //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
@@ -3303,7 +3314,13 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
     if (event.GetInt() == 5) { obj->command_axis_control("X", 1.0, -1.0f, 3000); }
     if (event.GetInt() == 6) { obj->command_axis_control("Y", 1.0, -1.0f, 3000); }
     if (event.GetInt() == 7) { obj->command_axis_control("X", 1.0, 1.0f, 3000); }
-    if (event.GetInt() == 8) { obj->command_go_home(); }
+    if (event.GetInt() == 8) {
+        if (obj->is_support_command_homing) {
+            obj->command_go_home2();
+        } else {
+            obj->command_go_home();
+        }
+    }
 
     //check is at home
     if (event.GetInt() == 1
@@ -3381,7 +3398,7 @@ void StatusPanel::axis_ctrl_e_hint(bool up_down)
 {
     if (ctrl_e_hint_dlg == nullptr) {
         ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX | wxCAPTION, true);
-        ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170 degree before loading or unloading filament."));
+        ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170°C before loading or unloading filament."));
         ctrl_e_hint_dlg->show_again_config_text = std::string("not_show_ectrl_hint");
     }
     if (up_down) {
@@ -3402,7 +3419,7 @@ void StatusPanel::axis_ctrl_e_hint(bool up_down)
 void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
 {
     if (obj) {
-        if (obj->nozzle_temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+        if (obj->m_extder_data.extders[0].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
             obj->command_axis_control("E", 1.0, -10.0f, 900);
         else
             axis_ctrl_e_hint(true);
@@ -3412,7 +3429,7 @@ void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
 void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
 {
     if (obj) {
-        if (obj->nozzle_temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+        if (obj->m_extder_data.extders[0].temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
             obj->command_axis_control("E", 1.0, 10.0f, 900);
         else
             axis_ctrl_e_hint(false);
@@ -3421,7 +3438,7 @@ void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
 
 void StatusPanel::on_start_unload(wxCommandEvent &event)
 {
-    if (obj) obj->command_ams_switch(255);
+    if (obj) obj->command_ams_change_filament(false, "255", "255");
 }
 
 void StatusPanel::on_set_bed_temp()
@@ -3507,10 +3524,11 @@ void StatusPanel::on_ams_load_curr()
         std::string                            curr_ams_id = m_ams_control->GetCurentAms();
         std::string                            curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
 
-        
+
         update_filament_step();
         //virtual tray
-        if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
+        if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0)
+        {
             int old_temp = -1;
             int new_temp = -1;
             AmsTray* curr_tray = &obj->vt_tray;
@@ -3520,13 +3538,22 @@ void StatusPanel::on_ams_load_curr()
             try {
                 if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
                     old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
-                if (!obj->vt_tray.nozzle_temp_max.empty() && !obj->vt_tray.nozzle_temp_min.empty())
-                    new_temp = (atoi(obj->vt_tray.nozzle_temp_min.c_str()) + atoi(obj->vt_tray.nozzle_temp_max.c_str())) / 2;
+                if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
+                    new_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
             }
             catch (...) {
                 ;
             }
-            obj->command_ams_switch(VIRTUAL_TRAY_ID, old_temp, new_temp);
+
+            if (obj->is_enable_np || obj->is_enable_ams_np) {
+                try {
+                    if (!curr_ams_id.empty() && !curr_can_id.empty()) {
+                        obj->command_ams_change_filament(true, curr_ams_id, "0", old_temp, new_temp);
+                    }
+                } catch (...) {}
+            } else {
+                obj->command_ams_change_filament(true, "254", "0", old_temp, new_temp);
+            }
         }
 
         std::map<std::string, Ams*>::iterator it = obj->amsList.find(curr_ams_id);
@@ -3541,24 +3568,32 @@ void StatusPanel::on_ams_load_curr()
         }
         AmsTray* curr_tray = obj->get_curr_tray();
         AmsTray* targ_tray = obj->get_ams_tray(curr_ams_id, curr_can_id);
+
+        int old_temp = -1;
+        int new_temp = -1;
+
         if (curr_tray && targ_tray) {
-            int old_temp = -1;
-            int new_temp = -1;
             try {
                 if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
                     old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
                 if (!targ_tray->nozzle_temp_max.empty() && !targ_tray->nozzle_temp_min.empty())
                     new_temp = (atoi(targ_tray->nozzle_temp_min.c_str()) + atoi(targ_tray->nozzle_temp_max.c_str())) / 2;
-            }
-            catch (...) {
+            } catch (...) {
                 ;
             }
-            int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
-            obj->command_ams_switch(tray_index, old_temp, new_temp);
         }
-        else {
-            int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
-            obj->command_ams_switch(tray_index, -1, -1);
+
+        int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
+
+        if (obj->is_enable_np) {
+            try {
+                if (!curr_ams_id.empty() && !curr_can_id.empty()) {
+                    obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp);
+                }
+            }
+            catch (...){}
+        } else {
+            obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp);
         }
     }
 }
@@ -3575,7 +3610,20 @@ void StatusPanel::on_ams_load_vams(wxCommandEvent& event) {
 
 void StatusPanel::on_ams_unload(SimpleEvent &event)
 {
-    if (obj) { obj->command_ams_switch(255); }
+    if (obj) {
+        std::string curr_ams_id = m_ams_control->GetCurentAms();
+        std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
+
+        if (obj->is_enable_np) {
+            try {
+                for (auto ext : obj->m_extder_data.extders) {
+                    if (ext.snow.ams_id == curr_ams_id && ext.snow.slot_id == curr_can_id) { obj->command_ams_change_filament(false, curr_ams_id, "255"); }
+                }
+            } catch (...) {}
+        } else {
+            obj->command_ams_change_filament(false, curr_ams_id, "255");
+        }
+    }
 }
 
 void StatusPanel::on_ams_filament_backup(SimpleEvent& event)
@@ -3596,7 +3644,7 @@ void StatusPanel::on_ams_setting_click(SimpleEvent &event)
         m_ams_setting_dlg->update_ams_img(DeviceManager::get_printer_ams_img(obj->printer_type));
         std::string ams_id = m_ams_control->GetCurentShowAms();
         if (obj->amsList.size() == 0) {
-            /* wxString txt = _L("AMS settings are not supported for external spool");
+            /* wxString txt = _L("AMS settings are not supported for external spool.");
              MessageDialog msg_dlg(nullptr, txt, wxEmptyString, wxICON_WARNING | wxOK);
              msg_dlg.ShowModal();*/
             return;
@@ -3624,7 +3672,7 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
         std::string ams_id = m_ams_control->GetCurentAms();
         std::string tray_id = m_ams_control->GetCurrentCan(ams_id);
         if (tray_id.empty() && ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) != 0) {
-            wxString txt = _L("Please select an AMS slot before calibration");
+            wxString txt = _L("Please select an AMS slot before calibration.");
             MessageDialog msg_dlg(nullptr, txt, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             return;
@@ -3678,73 +3726,55 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
 
     if (obj) {
         m_filament_setting_dlg->obj = obj;
-        std::string ams_id          = m_ams_control->GetCurentAms();
-        int ams_id_int = 0;
-        int tray_id_int = 0;
-        if (ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
-            tray_id_int = VIRTUAL_TRAY_ID;
-            m_filament_setting_dlg->ams_id = ams_id_int;
-            m_filament_setting_dlg->tray_id = tray_id_int;
-            wxString k_val;
-            wxString n_val;
-            k_val = wxString::Format("%.3f", obj->vt_tray.k);
-            n_val = wxString::Format("%.3f", obj->vt_tray.n);
-            m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
-            m_filament_setting_dlg->Popup(wxEmptyString, wxEmptyString, wxEmptyString, wxEmptyString, k_val, n_val);
-        } else {
-            std::string tray_id = event.GetString().ToStdString(); // m_ams_control->GetCurrentCan(ams_id);
-            try {
-                ams_id_int = atoi(ams_id.c_str());
-                tray_id_int = atoi(tray_id.c_str());
-                m_filament_setting_dlg->ams_id = ams_id_int;
-                m_filament_setting_dlg->tray_id = tray_id_int;
 
-                std::string sn_number;
-                std::string filament;
-                std::string temp_max;
-                std::string temp_min;
-                wxString k_val;
-                wxString n_val;
-                auto it = obj->amsList.find(ams_id);
-                if (it != obj->amsList.end()) {
-                    auto tray_it = it->second->trayList.find(tray_id);
-                    if (tray_it != it->second->trayList.end()) {
-                        k_val = wxString::Format("%.3f", tray_it->second->k);
-                        n_val = wxString::Format("%.3f", tray_it->second->n);
-                        wxColor color = AmsTray::decode_color(tray_it->second->color);
-                        //m_filament_setting_dlg->set_color(color);
+        int ams_id = event.GetInt();
+        int slot_id = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
 
-                        std::vector<wxColour> cols;
-                        for (auto col : tray_it->second->cols) {
-                            cols.push_back( AmsTray::decode_color(col));
-                        }
-                        m_filament_setting_dlg->set_ctype(tray_it->second->ctype);
-                        m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
+        try {
+            m_filament_setting_dlg->ams_id  = ams_id;
+            m_filament_setting_dlg->slot_id = slot_id;
 
-                        if (m_filament_setting_dlg->ams_filament_id.empty()) {
-                            m_filament_setting_dlg->set_empty_color(color);
-                        }
-                        else {
-                            m_filament_setting_dlg->set_color(color);
-                            m_filament_setting_dlg->set_colors(cols);
-                        }
+            std::string sn_number;
+            std::string filament;
+            std::string temp_max;
+            std::string temp_min;
+            wxString    k_val;
+            wxString    n_val;
+            auto        it = obj->amsList.find(std::to_string(ams_id));
+            if (it != obj->amsList.end()) {
+                auto tray_it = it->second->trayList.find(std::to_string(slot_id));
+                if (tray_it != it->second->trayList.end()) {
+                    k_val         = wxString::Format("%.3f", tray_it->second->k);
+                    n_val         = wxString::Format("%.3f", tray_it->second->n);
+                    wxColor color = AmsTray::decode_color(tray_it->second->color);
+                    // m_filament_setting_dlg->set_color(color);
 
-                        m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
-                        if (!m_filament_setting_dlg->m_is_third) {
-                            sn_number = tray_it->second->uuid;
-                            filament = tray_it->second->sub_brands;
-                            temp_max = tray_it->second->nozzle_temp_max;
-                            temp_min = tray_it->second->nozzle_temp_min;
-                        }
+                    std::vector<wxColour> cols;
+                    for (auto col : tray_it->second->cols) { cols.push_back(AmsTray::decode_color(col)); }
+                    m_filament_setting_dlg->set_ctype(tray_it->second->ctype);
+                    m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
+
+                    if (m_filament_setting_dlg->ams_filament_id.empty()) {
+                        m_filament_setting_dlg->set_empty_color(color);
+                    } else {
+                        m_filament_setting_dlg->set_color(color);
+                        m_filament_setting_dlg->set_colors(cols);
+                    }
+
+                    m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
+                    if (!m_filament_setting_dlg->m_is_third) {
+                        sn_number = tray_it->second->uuid;
+                        filament  = tray_it->second->sub_brands;
+                        temp_max  = tray_it->second->nozzle_temp_max;
+                        temp_min  = tray_it->second->nozzle_temp_min;
                     }
                 }
+            }
 
-                m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
-                m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
-            }
-            catch (...) {
-                ;
-            }
+            m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
+            m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
+        } catch (...) {
+            ;
         }
     }
 }
@@ -3761,8 +3791,14 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
 
     if (obj) {
         m_filament_setting_dlg->obj = obj;
+
+        int ams_id                     = event.GetInt();
+        int slot_id                    = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
+
+        m_filament_setting_dlg->ams_id = ams_id;
+        m_filament_setting_dlg->slot_id  = slot_id;
+
         try {
-            m_filament_setting_dlg->tray_id = VIRTUAL_TRAY_ID;
             std::string sn_number;
             std::string filament;
             std::string temp_max;
@@ -3788,7 +3824,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
                 m_filament_setting_dlg->set_colors(cols);
 
             }
-            
+
             m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(obj->vt_tray.tag_uid);
             if (!m_filament_setting_dlg->m_is_third) {
                 sn_number = obj->vt_tray.uuid;
@@ -4686,9 +4722,6 @@ void ScoreDialog::init() {
     SetMinSize(wxSize(FromDIP(540), FromDIP(380)));
 
     fail_image = wxImage(Slic3r::resources_dir() + "/images/oss_picture_load_failed.png", wxBITMAP_TYPE_ANY);
-    // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicer.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 }
 
 wxBoxSizer *ScoreDialog::get_score_sizer() { 
@@ -4879,7 +4912,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
         m_upload_status_code = StatusCode::UPLOAD_PROGRESS;
 
         if (m_star_count == 0) {
-            MessageDialog dlg(this, _L("Please click on the star first."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("InFo"), wxOK);
+            MessageDialog dlg(this, _L("Please click on the star first."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxOK);
             dlg.ShowModal();
             return;
         }
@@ -4982,8 +5015,9 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                 if (!error_info.empty()) { BOOST_LOG_TRIVIAL(info) << error_info; }
 
                 dlg_info = new MessageDialog(this,
-                                             _L("Your comment result cannot be uploaded due to some reasons. As follows:\n\n  error code: ") + std::to_string(http_code) +
-                                                 "\n  " + _L("error message: ") + http_error + _L("\n\nWould you like to redirect to the webpage for rating?"),
+                                             _L("Your comment result cannot be uploaded due to the following reasons:\n\n  error code: ") +
+                                             std::to_string(http_code) + "\n  " + _L("error message: ") + http_error +
+                                             _L("\n\nWould you like to redirect to the webpage to give a rating?"),
                                              wxString(_L("info")), wxOK | wxNO | wxCENTER);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed and http error" << http_error;
                 if (dlg_info->ShowModal() == wxID_OK) {
@@ -4994,7 +5028,8 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                 break;
             }
         } else if (m_upload_status_code == StatusCode::UPLOAD_IMG_FAILED) {
-            MessageDialog *dlg_info = new MessageDialog(this, _L("Some of your images failed to upload. Would you like to redirect to the webpage for rating?"),
+            MessageDialog *dlg_info = new MessageDialog(this,
+                                                        _L("Some of your images failed to upload. Would you like to redirect to the webpage to give a rating?"),
                                                         wxString(_L("info")), wxOK | wxNO | wxCENTER);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed or get oss config failed";
             if (dlg_info->ShowModal() == wxID_OK) {
@@ -5063,7 +5098,7 @@ wxBoxSizer *ScoreDialog::get_main_sizer(const std::vector<std::pair<wxString, st
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(32));
 
-    warning_text = new wxStaticText(this, wxID_ANY, _L("At least one successful print record of this print profile is required \nto give a positive rating(4 or 5stars)."));
+    warning_text = new wxStaticText(this, wxID_ANY, _L("At least one successful print record of this print profile is required \nto give a positive rating (4 or 5 stars)."));
     warning_text->SetForegroundColour(*wxRED);
     warning_text->SetFont(::Label::Body_13);
 

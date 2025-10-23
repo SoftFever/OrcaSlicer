@@ -4,6 +4,28 @@
 #include "../wxExtensions.hpp"
 #include "StaticBox.hpp"
 
+class ButtonProps
+{
+public:
+    static int ChoiceButtonGap(){return 10;};
+    static int WindowButtonGap(){return 10;};
+};
+
+enum class ButtonStyle{
+    Regular,
+    Confirm,
+    Alert,
+    Disabled,
+};
+
+enum class ButtonType{
+    Compact  , // Font10  FullyRounded  For spaces with less areas
+    Window   , // Font12  FullyRounded  For regular buttons in windows and not related with parameter boxes
+    Choice   , // Font14  Semi-Rounded  For dialog/window choice buttons
+    Parameter, // Font14  Semi-Rounded  For buttons that near parameter boxes
+    Expanded , // Font14  Semi-Rounded  For full length buttons. ex. buttons in static box
+};
+
 class Button : public StaticBox
 {
     wxRect textSize;
@@ -40,7 +62,9 @@ public:
     void SetMinSize(const wxSize& size) override;
     
     void SetPaddingSize(const wxSize& size);
-    
+
+    void SetStyle(const ButtonStyle style /*= ButtonStyle::Regular*/, const ButtonType type /*= ButtonType::None*/);
+
     void SetTextColor(StateColor const &color);
 
     void SetTextColorNormal(wxColor const &color);
@@ -67,6 +91,10 @@ protected:
     bool AcceptsFocus() const override;
 
 private:
+    bool m_has_style = false;
+    ButtonStyle m_style;
+    ButtonType  m_type;
+
     void paintEvent(wxPaintEvent& evt);
 
     void render(wxDC& dc);

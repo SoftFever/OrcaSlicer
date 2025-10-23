@@ -666,7 +666,7 @@ Http& Http::form_add_file(const std::string &name, const fs::path &path, const s
 }
 
 #ifdef WIN32
-// Tells libcurl to ignore certificate revocation checks in case of missing or offline distribution points for those SSL backends where such behavior is present. 
+// Tells libcurl to ignore certificate revocation checks in case of missing or offline distribution points for those SSL backends where such behavior is present.
 // This option is only supported for Schannel (the native Windows SSL library).
 Http& Http::ssl_revoke_best_effort(bool set)
 {
@@ -802,6 +802,12 @@ void Http::set_extra_headers(std::map<std::string, std::string> headers)
 {
     std::lock_guard<std::mutex> l(g_mutex);
 	extra_headers.swap(headers);
+}
+
+std::map<std::string, std::string> Http::get_extra_headers()
+{
+    std::lock_guard<std::mutex> l(g_mutex);
+    return extra_headers;
 }
 
 bool Http::ca_file_supported()

@@ -99,6 +99,9 @@ public:
     bool is_all_failed() { return m_is_all_failed; }
 
 protected:
+    void sync_cali_result_for_multi_extruder(const std::vector<PACalibResult> &cali_result, const std::vector<PACalibResult> &history_result);
+
+protected:
     wxBoxSizer* m_top_sizer;
     wxPanel* m_complete_text_panel;
     wxPanel* m_part_failed_panel;
@@ -218,7 +221,7 @@ public:
     bool is_all_failed() { return m_is_all_failed; }
 
     virtual bool Show(bool show = true) override;
-    
+
     void msw_rescale() override;
 
 protected:

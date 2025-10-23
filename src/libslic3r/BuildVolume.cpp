@@ -14,6 +14,7 @@ BuildVolume::BuildVolume(const std::vector<Vec2d> &printable_area, const double 
     assert(printable_height >= 0);
 
     m_polygon     = Polygon::new_scale(printable_area);
+    assert(m_polygon.is_counter_clockwise());
 
     // Calcuate various metrics of the input polygon.
     m_convex_hull = Geometry::convex_hull(m_polygon.points);

@@ -146,9 +146,6 @@ ObjColorDialog::ObjColorDialog(wxWindow *                      parent,
     , m_filament_ids(filament_ids)
     , m_first_extruder_id(first_extruder_id)
 {
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % Slic3r::resources_dir()).str();
-    SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
@@ -640,7 +637,7 @@ void ObjColorPanel::draw_table()
 
     m_color_cluster_icon_list.clear();
     m_extruder_icon_list.clear();
-    float row_height ;
+    float row_height = 0;
     for (size_t ii = 0; ii < row; ii++) {
         wxPanel *row_panel = new wxPanel(m_scrolledWindow);
         row_panel->SetBackgroundColour(ii % 2 == 0 ? *wxWHITE : wxColour(238, 238, 238));
@@ -722,7 +719,7 @@ void ObjColorPanel::deal_default_strategy()
 {
     deal_add_btn();
     deal_approximate_match_btn();
-    m_warning_text->SetLabelText(_L("Note:The color has been selected, you can choose OK \n to continue or manually adjust it."));
+    m_warning_text->SetLabelText(_L("Note: The color has been selected, you can choose OK \nto continue or manually adjust it."));
 }
 
 void ObjColorPanel::deal_add_btn()
@@ -760,7 +757,7 @@ void ObjColorPanel::deal_add_btn()
     }
     if (is_exceed) {
         deal_approximate_match_btn();
-        m_warning_text->SetLabelText(_L("Waring:The count of newly added and \n current extruders exceeds 16."));
+        m_warning_text->SetLabelText(_L("Warning: The count of newly added and \ncurrent extruders exceeds 16."));
     }
     m_is_add_filament = true;
 }

@@ -24,6 +24,7 @@
 #include "PresetComboBoxes.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/CheckBox.hpp"
+#include "Widgets/DialogButtons.hpp"
 
 using boost::optional;
 
@@ -836,9 +837,6 @@ inline int UnsavedChangesDialog::ShowModal()
 void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, const wxString &header)
 {
     SetBackgroundColour(*wxWHITE);
-    // icon
-    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
@@ -964,25 +962,11 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     m_sizer_button->Add(0, 0, 1, 0, 0);
 
      // Add Buttons
-    wxFont      btn_font = this->GetFont().Scaled(1.4f);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-
-    auto add_btn = [this, m_sizer_button, btn_font, dependent_presets, btn_bg_green](Button **btn, int &btn_id, const std::string &icon_name, Action close_act, const wxString &label,
+    auto add_btn = [this, m_sizer_button, dependent_presets](Button **btn, int &btn_id, const std::string &icon_name, Action close_act, const wxString &label,
                                                                               bool focus, bool process_enable = true) {
         *btn = new Button(this, _L(label));
 
-        if (focus) {
-            (*btn)->SetBackgroundColor(btn_bg_green);
-            (*btn)->SetBorderColor(wxColour(0, 150, 136));
-            (*btn)->SetTextColor(wxColour("#FFFFFE"));
-        } else {
-            (*btn)->SetTextColor(wxColour(107, 107, 107));
-        }
-
-        //(*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
-        (*btn)->SetMinSize(wxSize(-1,-1));
-        (*btn)->SetCornerRadius(FromDIP(12));
+        (*btn)->SetStyle(focus ? ButtonStyle::Confirm : ButtonStyle::Regular, ButtonType::Choice);
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent &) {
             bool save_names_and_types = close_act == Action::Save || (close_act == Action::Transfer && ActionButtons::KEEP & m_buttons);
@@ -996,7 +980,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
             e.Skip();
         });
 
-        m_sizer_button->Add(*btn, 0, wxLEFT, 5);
+        m_sizer_button->Add(*btn, 0, wxLEFT, FromDIP(ButtonProps::ChoiceButtonGap()));
     };
 
     // "Transfer" / "Keep" button
@@ -1337,15 +1321,24 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             opt_key == "top_surface_pattern" ||
             opt_key == "bottom_surface_pattern" ||
             opt_key == "internal_solid_infill_pattern" ||
-            opt_key == "sparse_infill_pattern");
+            opt_key == "sparse_infill_pattern" ||
+            opt_key == "ironing_pattern" ||
+            opt_key == "support_ironing_pattern" ||
+            opt_key == "support_pattern" ||
+            opt_key == "support_interface_pattern")
+            ;
     }
     case coEnums: {
         return get_string_from_enum(opt_key, config,
             opt_key == "top_surface_pattern" ||
             opt_key == "bottom_surface_pattern" ||
             opt_key == "internal_solid_infill_pattern" ||
-            opt_key == "sparse_infill_pattern",
-            opt_idx);
+            opt_key == "sparse_infill_pattern" ||
+            opt_key == "ironing_pattern" ||
+            opt_key == "support_ironing_pattern" ||
+            opt_key == "support_pattern" ||
+            opt_key == "support_interface_pattern"
+            , opt_idx);
     }
     case coPoint: {
         Vec2d val = config.opt<ConfigOptionPoint>(opt_key)->value;
@@ -1708,9 +1701,9 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     int em = em_unit();
 
-    msw_buttons_rescale(this, em, { wxID_CANCEL, m_move_btn_id, m_continue_btn_id });
+    //msw_buttons_rescale(this, em, { wxID_CANCEL, m_move_btn_id, m_continue_btn_id });
     for (auto btn : {m_transfer_btn, m_discard_btn, m_save_btn})
-        if (btn) btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
+        if (btn) btn->Rescale();
 
     //m_cancel_btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
     const wxSize& size = wxSize(70 * em, 30 * em);
@@ -1931,11 +1924,6 @@ std::array<Preset::Type, 3> DiffPresetDialog::types_list() const
 
 void DiffPresetDialog::create_buttons()
 {
-    wxFont font = this->GetFont().Scaled(1.4f);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
-                            std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_buttons   = new wxBoxSizer(wxHORIZONTAL);
 
     auto show_in_bottom_info = [this](const wxString& ext_line, wxEvent* e = nullptr) {
@@ -1945,15 +1933,12 @@ void DiffPresetDialog::create_buttons()
         if (e) e->Skip();
     };
 
-    // Transfer 
-    m_transfer_btn = new Button(this, L("Transfer"));
-    m_transfer_btn->SetBackgroundColor(btn_bg_green);
-    m_transfer_btn->SetBorderColor(wxColour(0, 150, 136));
-    m_transfer_btn->SetTextColor(wxColour("#FFFFFE"));
-    m_transfer_btn->SetMinSize(wxSize(-1, -1));
-    m_transfer_btn->SetCornerRadius(FromDIP(12));
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
-    m_transfer_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Transfer);});
+    // Transfer 
+    auto transfer_btn = dlg_btns->GetOK();
+    transfer_btn->SetLabel(L("Transfer"));
+    transfer_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Transfer);});
 
 
     auto enable_transfer = [this](const Preset::Type& type) {
@@ -1962,7 +1947,7 @@ void DiffPresetDialog::create_buttons()
             return main_edited_preset.name == get_right_preset_name(type);
         return true;
     };
-    m_transfer_btn->Bind(wxEVT_UPDATE_UI, [this, enable_transfer, show_in_bottom_info](wxUpdateUIEvent& evt) {
+    transfer_btn->Bind(wxEVT_UPDATE_UI, [this, enable_transfer, show_in_bottom_info, transfer_btn](wxUpdateUIEvent& evt) {
         bool enable = m_tree->has_selection();
         if (enable) {
             if (m_view_type == Preset::TYPE_INVALID) {
@@ -1975,29 +1960,25 @@ void DiffPresetDialog::create_buttons()
             else
                 enable = enable_transfer(m_view_type);
 
-            if (!enable && m_transfer_btn->IsShown()) {
+            if (!enable && transfer_btn->IsShown()) {
                 show_in_bottom_info(_L("You can only transfer to current active profile because it has been modified."));
             }
         }
         evt.Enable(enable);
     });
-    m_transfer_btn->Bind(wxEVT_ENTER_WINDOW, [show_in_bottom_info](wxMouseEvent& e) {
+    transfer_btn->Bind(wxEVT_ENTER_WINDOW, [show_in_bottom_info](wxMouseEvent& e) {
         show_in_bottom_info(_L("Transfer the selected options from left preset to the right.\n"
                             "Note: New modified presets will be selected in settings tabs after close this dialog."), &e); });
 
     // Cancel
-    m_cancel_btn = new Button(this, L("Cancel"));
-    m_cancel_btn->SetTextColor(wxColour(107, 107, 107));
-    m_cancel_btn->SetMinSize(wxSize(-1, -1));
-    m_cancel_btn->SetCornerRadius(FromDIP(12));
+    auto cancel_btn = dlg_btns->GetCANCEL();
+    cancel_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Discard);});
 
-    m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxEvent&) { button_event(Action::Discard);});
-
-    for (Button* btn : { m_transfer_btn, m_cancel_btn }) {
+    for (Button* btn : { transfer_btn, cancel_btn }) {
         btn->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) { update_bottom_info(); Layout(); e.Skip(); });
-        m_buttons->Add(btn, 1, wxLEFT, 5);
-        btn->SetFont(font);
     }
+
+    m_buttons->Add(dlg_btns, 1, wxEXPAND);
 
     m_buttons->Show(false);
 }
@@ -2024,7 +2005,7 @@ void DiffPresetDialog::create_edit_sizer()
 
     // Create and fill edit sizer
     m_edit_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_edit_sizer->Add(m_use_for_transfer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+    m_edit_sizer->Add(m_use_for_transfer, 0, wxALIGN_CENTER_VERTICAL | wxALL, 10);
     m_edit_sizer->AddSpacer(em_unit() * 10);
     m_edit_sizer->Add(m_buttons, 1, wxLEFT, 5);
     m_edit_sizer->Show(false);
@@ -2040,7 +2021,7 @@ void DiffPresetDialog::complete_dialog_creation()
     topSizer->Add(m_show_all_presets,   0, wxEXPAND | wxALL, border);
     topSizer->Add(m_tree,               1, wxEXPAND | wxALL, border);
     topSizer->Add(m_bottom_info_line,   0, wxEXPAND | wxALL, 2 * border);
-    topSizer->Add(m_edit_sizer,         0, wxEXPAND | wxLEFT | wxBOTTOM | wxRIGHT, 2 * border);
+    topSizer->Add(m_edit_sizer,         0, wxEXPAND);
 
     this->SetMinSize(wxSize(80 * em_unit(), 30 * em_unit()));
     this->SetSizer(topSizer);
@@ -2277,10 +2258,6 @@ void DiffPresetDialog::update_tree()
 void DiffPresetDialog::on_dpi_changed(const wxRect&)
 {
     int em = em_unit();
-
-    msw_buttons_rescale(this, em, {wxID_CANCEL});
-    for (auto btn : {m_transfer_btn, m_cancel_btn})
-        if (btn) btn->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
 
     const wxSize& size = wxSize(80 * em, 30 * em);
     SetMinSize(size);

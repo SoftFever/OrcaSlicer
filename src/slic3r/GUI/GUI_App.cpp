@@ -33,6 +33,7 @@
 #include <boost/nowide/convert.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/beast/core/detail/base64.hpp>
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -54,6 +55,9 @@
 #include <wx/splash.h>
 #include <wx/fontutil.h>
 #include <wx/glcanvas.h>
+#include <wx/utils.h>
+#include <openssl/hmac.h>
+#include <openssl/evp.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -70,12 +74,14 @@
 #include "MainFrame.hpp"
 #include "Plater.hpp"
 #include "GLCanvas3D.hpp"
+#include "GeneratedConfig.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/Process.hpp"
 #include "../Utils/MacDarkMode.hpp"
 #include "../Utils/Http.hpp"
+#include "../Utils/InstanceID.hpp"
 #include "../Utils/UndoRedo.hpp"
 #include "slic3r/Config/Snapshot.hpp"
 #include "Preferences.hpp"
@@ -122,6 +128,13 @@
 #include "dark_mode.hpp"
 #include "wx/headerctrl.h"
 #include "wx/msw/headerctrl.h"
+
+typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS2)(
+    HANDLE hProcess,
+    USHORT *pProcessMachine,
+    USHORT *pNativeMachine
+);
+
 #endif // _MSW_DARK_MODE
 #endif // __WINDOWS__
 
@@ -131,7 +144,7 @@
 #endif
 
 #ifdef WIN32
-#include "BaseException.h"
+#include "dev-utils/BaseException.h"
 #endif
 
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
@@ -737,7 +750,7 @@ static void generic_exception_handle()
         // and terminate the app so it is at least certain to happen now.
         BOOST_LOG_TRIVIAL(error) << boost::format("std::bad_alloc exception: %1%") % ex.what();
         flush_logs();
-        wxString errmsg = wxString::Format(_L("OrcaSlicer will terminate because of running out of memory."
+        wxString errmsg = wxString::Format(_L("OrcaSlicer will terminate because of running out of memory. "
                                               "It may be a bug. It will be appreciated if you report the issue to our team."));
         wxMessageBox(errmsg + "\n\n" + wxString(ex.what()), _L("Fatal error"), wxOK | wxICON_ERROR);
 
@@ -1166,7 +1179,7 @@ std::string GUI_App::get_plugin_url(std::string name, std::string country_code)
 {
     std::string url = get_http_url(country_code);
 
-    std::string curr_version = SLIC3R_VERSION;
+    std::string curr_version = NetworkAgent::use_legacy_network ? BAMBU_NETWORK_AGENT_VERSION_LEGACY : BAMBU_NETWORK_AGENT_VERSION;
     std::string using_version = curr_version.substr(0, 9) + "00";
     if (name == "cameratools")
         using_version = curr_version.substr(0, 6) + "00.00";
@@ -1210,6 +1223,17 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
     fs::path target_file_path = (fs::temp_directory_path() / package_name);
     fs::path tmp_path = target_file_path;
     tmp_path += format(".%1%%2%", get_current_pid(), ".tmp");
+
+#if defined(__WINDOWS__)
+    if (is_running_on_arm64() && !NetworkAgent::use_legacy_network) {
+        //set to arm64 for plugins
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows_arm";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: set X-BBL-OS-Type to windows_arm");
+    }
+#endif
 
     // get_url
     std::string  url = get_plugin_url(name, app_config->get_country_code());
@@ -1267,6 +1291,17 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
                 err_msg += "[download_plugin 1] on_error: " + error + ", body = " + body;
                 result = -1;
         }).perform_sync();
+
+#if defined(__WINDOWS__)
+    if (is_running_on_arm64() && !NetworkAgent::use_legacy_network) {
+        //set back
+        std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
+        current_headers["X-BBL-OS-Type"] = "windows";
+
+        Slic3r::Http::set_extra_headers(current_headers);
+        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: set X-BBL-OS-Type back to windows");
+    }
+#endif
 
     bool cancel = false;
     if (result < 0) {
@@ -1542,7 +1577,7 @@ bool GUI_App::check_networking_version()
     if (!network_ver.empty()) {
         BOOST_LOG_TRIVIAL(info) << "get_network_agent_version=" << network_ver;
     }
-    std::string studio_ver = SLIC3R_VERSION;
+    std::string studio_ver = NetworkAgent::use_legacy_network ? BAMBU_NETWORK_AGENT_VERSION_LEGACY : BAMBU_NETWORK_AGENT_VERSION;
     if (network_ver.length() >= 8) {
         if (network_ver.substr(0,8) == studio_ver.substr(0,8)) {
             m_networking_compatible = true;
@@ -1699,16 +1734,20 @@ void GUI_App::init_networking_callbacks()
                                 event.SetString(obj->dev_id);
                                 GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
+                                // Orca: avoid showing same error message multiple times until next connection attempt.
+                                const auto already_disconnected = m_device_manager->selected_machine.empty();
                                 m_device_manager->set_selected_machine("", true);
-                                wxString text;
-                                if (msg == "5") {
-                                    obj->set_access_code("");
-                                    obj->erase_user_access_code();
-                                    text = wxString::Format(_L("Incorrect password"));
-                                    wxGetApp().show_dialog(text);
-                                } else {
-                                    text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
-                                    wxGetApp().show_dialog(text);
+                                if (!already_disconnected) {
+                                    wxString text;
+                                    if (msg == "5") {
+                                        obj->set_access_code("");
+                                        obj->erase_user_access_code();
+                                        text = wxString::Format(_L("Incorrect password"));
+                                        wxGetApp().show_dialog(text);
+                                    } else {
+                                        text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
+                                        wxGetApp().show_dialog(text);
+                                    }
                                 }
                                 event.SetInt(-1);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
@@ -1751,6 +1790,8 @@ void GUI_App::init_networking_callbacks()
             CallAfter([this, dev_id, msg] {
                 if (m_is_closing)
                     return;
+                this->process_network_msg(dev_id, msg);
+
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
                     obj->is_ams_need_update = false;
@@ -1803,6 +1844,7 @@ void GUI_App::init_networking_callbacks()
                 if (m_is_closing)
                     return;
 
+                this->process_network_msg(dev_id, msg);
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (!obj || !obj->is_lan_mode_printer()) {
                     obj = m_device_manager->get_local_machine(dev_id);
@@ -1975,7 +2017,7 @@ void GUI_App::init_app_config()
         }
 
         // Change current dirtory of application
-        chdir(encode_path((Slic3r::data_dir() + "/log").c_str()).c_str());
+        [[maybe_unused]] auto unused_result = chdir(encode_path((Slic3r::data_dir() + "/log").c_str()).c_str());
     } else {
         m_datadir_redefined = true;
     }
@@ -2048,7 +2090,11 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-Client-Name", SLIC3R_APP_NAME));
     extra_headers.insert(std::make_pair("X-BBL-Client-Version", VersionInfo::convert_full_version(SLIC3R_VERSION)));
 #if defined(__WINDOWS__)
+#ifdef _M_X64
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
+#else
+    extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows_arm"));
+#endif
 #elif defined(__APPLE__)
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "macos"));
 #elif defined(__LINUX__)
@@ -2260,6 +2306,33 @@ bool GUI_App::on_init_inner()
 #endif
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current OrcaSlicer Version %1%")%SoftFever_VERSION;
+
+#if defined(__WINDOWS__)
+    HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
+    m_is_arm64 = false;
+    if (hKernel32) {
+        auto fnIsWow64Process2 = (LPFN_ISWOW64PROCESS2)GetProcAddress(hKernel32, "IsWow64Process2");
+        if (fnIsWow64Process2) {
+            USHORT processMachine = 0;
+            USHORT nativeMachine = 0;
+            if (fnIsWow64Process2(GetCurrentProcess(), &processMachine, &nativeMachine)) {
+                if (nativeMachine == IMAGE_FILE_MACHINE_ARM64) {//IMAGE_FILE_MACHINE_ARM64
+                    m_is_arm64 = true;
+                }
+                BOOST_LOG_TRIVIAL(info) << boost::format("processMachine architecture %1%, nativeMachine %2% m_is_arm64 %3%")%(int)(processMachine) %(int) nativeMachine %m_is_arm64;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << boost::format("IsWow64Process2 failed, set m_is_arm64 to %1%") %m_is_arm64;
+            }
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << boost::format("can not find IsWow64Process2, set m_is_arm64 to %1%") %m_is_arm64;
+        }
+    }
+    else {
+        BOOST_LOG_TRIVIAL(info) << boost::format("can not find kernel32, set m_is_arm64 to %1%") %m_is_arm64;
+    }
+#endif
     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
     // Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
@@ -2516,6 +2589,22 @@ bool GUI_App::on_init_inner()
     std::map<std::string, std::string> extra_headers = get_extra_header();
     Slic3r::Http::set_extra_headers(extra_headers);
 
+    // Orca: select network plugin version
+    NetworkAgent::use_legacy_network = app_config->get_bool("legacy_networking");
+    // Force legacy network plugin if debugger attached
+    // See https://github.com/bambulab/BambuStudio/issues/6726
+    /* if (!NetworkAgent::use_legacy_network) {
+        bool debugger_attached = false;
+#if defined(__WINDOWS__)
+        debugger_attached = IsDebuggerPresent();
+#elif defined(__WXOSX__) || defined(__linux__)
+        debugger_attached = is_debugger_present();
+#endif
+        if (debugger_attached) {
+            NetworkAgent::use_legacy_network = true;
+            wxMessageBox("Force using legacy bambu networking plugin because debugger is attached! If the app terminates itself immediately, please delete installed plugin and try again!");
+        }
+    } */
     copy_network_if_available();
     on_init_network();
 
@@ -2768,13 +2857,12 @@ void GUI_App::copy_network_if_available()
 
 bool GUI_App::on_init_network(bool try_backup)
 {
+    bool create_network_agent = false;
     auto should_load_networking_plugin = app_config->get_bool("installed_networking");
     if(!should_load_networking_plugin) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Don't load plugin as installed_networking is false";
-        return false;
-    }
+    } else {
     int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module();
-    bool create_network_agent = false;
 __retry:
     if (!load_agent_dll) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
@@ -2809,6 +2897,7 @@ __retry:
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
             m_networking_need_update = true;
         }
+    }
     }
 
     if (create_network_agent) {
@@ -3662,10 +3751,18 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 
 wxString GUI_App::transition_tridid(int trid_id)
 {
-    wxString maping_dict[8] = { "A", "B", "C", "D", "E", "F", "G" };
-    int id_index = ceil(trid_id / 4);
-    int id_suffix = (trid_id + 1) % 4 == 0 ? 4 : (trid_id + 1) % 4;
-    return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+    wxString maping_dict[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+
+    if (trid_id >= 128 * 4) {
+        trid_id -= 128 * 4;
+        int id_index = trid_id / 4;
+        return wxString::Format("%s", maping_dict[id_index]);
+    }
+    else {
+        int id_index = ceil(trid_id / 4);
+        int id_suffix = trid_id % 4 + 1;
+        return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+    }
 }
 
 //BBS
@@ -4053,7 +4150,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
         try {
         auto evt_str = evt.GetString();
         if (!evt_str.empty()) {
-            json j = json::parse(evt_str);
+            json j = json::parse(evt_str.utf8_string());
             if (j.contains("code")) {
                 if (!j["code"].is_null())
                     code = j["code"].get<int>();
@@ -4067,7 +4164,7 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
 
     // Version limit
     if (code == HttpErrorVersionLimited) {
-        MessageDialog msg_dlg(nullptr, _L("The version of Orca Slicer is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("The version of Orca Slicer is too low and needs to be updated to the latest version before it can be used normally."), "", wxAPPLY | wxOK);
         if (msg_dlg.ShowModal() == wxOK) {
         }
 
@@ -4109,6 +4206,10 @@ void GUI_App::enable_user_preset_folder(bool enable)
 
 void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
 {
+    // Orca: do not connect to default device during app startup, because some of the lan machines might not online yet
+    // and user will be prompted by several "Connect XXX failed" error message.
+    return;
+
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (dev) {
         dev->set_selected_machine(m_agent->get_user_selected_machine());
@@ -4286,108 +4387,421 @@ Semver get_version(const std::string& str, const std::regex& regexp) {
     return Semver::invalid();
 }
 
+namespace
+{
+
+struct UpdaterQuery
+{
+    std::string iid;
+    std::string version;
+    std::string os;
+    std::string arch;
+    std::string os_info;
+};
+
+std::string detect_updater_os()
+{
+#if defined(_WIN32)
+    return "win";
+#elif defined(__APPLE__)
+    return "macos";
+#elif defined(__linux__) || defined(__LINUX__)
+    return "linux";
+#else
+    return "unknown";
+#endif
+}
+
+std::string detect_updater_arch()
+{
+#if defined(__aarch64__) || defined(_M_ARM64)
+    return "arm64";
+#elif defined(__x86_64__) || defined(_M_X64)
+    return "x86_64";
+#elif defined(__i386__) || defined(_M_IX86)
+    return "i386";
+#else
+    std::string arch = wxPlatformInfo::Get().GetArchName().ToStdString();
+    boost::algorithm::to_lower(arch);
+    if (arch.find("aarch64") != std::string::npos || arch.find("arm64") != std::string::npos)
+        return "arm64";
+    if (arch.find("x86_64") != std::string::npos || arch.find("amd64") != std::string::npos)
+        return "x86_64";
+    if (arch.find("i686") != std::string::npos || arch.find("i386") != std::string::npos || arch.find("x86") != std::string::npos)
+        return "i386";
+    return "unknown";
+#endif
+}
+
+std::string detect_updater_os_info()
+{
+    wxString description = wxPlatformInfo::Get().GetOperatingSystemDescription();
+#if defined(__LINUX__) || defined(__linux__)
+    wxLinuxDistributionInfo distro = wxGetLinuxDistributionInfo();
+    if (!distro.Id.empty()) {
+        wxString normalized = distro.Id;
+        if (!distro.Release.empty())
+            normalized << " " << distro.Release;
+        normalized.Trim(true);
+        normalized.Trim(false);
+        if (!normalized.empty())
+            description = normalized;
+    }
+#endif
+    if (description.empty())
+        description = wxGetOsDescription();
+
+    //Orca: workaround: wxGetOsVersion can't recognize Windows 11
+    // For Windows, use actual version numbers to properly detect Windows 11
+    // Windows 11 starts at build 22000
+#if defined(_WIN32)
+    int major = 0, minor = 0, micro = 0;
+    wxGetOsVersion(&major, &minor, &micro);
+    if (micro >= 22000) {
+        // replace Windows 10 with Windows 11
+        description.Replace("Windows 10", "Windows 11");
+    }
+#endif
+    std::string os_info = description.ToStdString();
+    boost::replace_all(os_info, "\r", " ");
+    boost::replace_all(os_info, "\n", " ");
+    boost::algorithm::trim(os_info);
+    if (os_info.size() > 120)
+        os_info.resize(120);
+    boost::algorithm::to_lower(os_info);
+    return os_info;
+}
+
+std::string detect_updater_version()
+{
+    return SoftFever_VERSION;
+}
+
+std::string detect_updater_iid(AppConfig* config)
+{
+    if (config == nullptr)
+        return {};
+    return instance_id::ensure(*config);
+}
+
+std::string encode_uri_component(const std::string& value)
+{
+    static constexpr const char* hex = "0123456789ABCDEF";
+    std::string out;
+    out.reserve(value.size());
+    for (unsigned char ch : value) {
+        if ((ch >= 'A' && ch <= 'Z') ||
+            (ch >= 'a' && ch <= 'z') ||
+            (ch >= '0' && ch <= '9') ||
+            ch == '-' || ch == '_' || ch == '.' || ch == '~' ||
+            ch == '!' || ch == '*' || ch == '(' || ch == ')' || ch == '\'') {
+            out.push_back(static_cast<char>(ch));
+        } else {
+            out.push_back('%');
+            out.push_back(hex[(ch >> 4) & 0xF]);
+            out.push_back(hex[ch & 0xF]);
+        }
+    }
+    return out;
+}
+
+std::string build_updater_query(const UpdaterQuery& query)
+{
+    std::vector<std::pair<std::string, std::string>> params;
+
+    auto add_param = [&params](const char* key, const std::string& value) {
+        if (!value.empty())
+            params.emplace_back(key, encode_uri_component(value));
+    };
+
+    add_param("iid", query.iid);
+    add_param("v", query.version);
+    add_param("os", query.os);
+    add_param("arch", query.arch);
+    add_param("os_info", query.os_info);
+
+    std::sort(params.begin(), params.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.first < rhs.first;
+    });
+
+    if (params.empty())
+        return {};
+
+    std::string encoded;
+    for (size_t idx = 0; idx < params.size(); ++idx) {
+        if (idx > 0)
+            encoded.push_back('&');
+        encoded += params[idx].first;
+        encoded.push_back('=');
+        encoded += params[idx].second;
+    }
+    return encoded;
+}
+
+std::string base64url_encode(const unsigned char* data, std::size_t length)
+{
+    std::string encoded;
+    encoded.resize(boost::beast::detail::base64::encoded_size(length));
+    encoded.resize(boost::beast::detail::base64::encode(encoded.data(), data, length));
+    std::replace(encoded.begin(), encoded.end(), '+', '-');
+    std::replace(encoded.begin(), encoded.end(), '/', '_');
+    while (!encoded.empty() && encoded.back() == '=')
+        encoded.pop_back();
+    return encoded;
+}
+
+std::optional<std::vector<unsigned char>> load_signature_key()
+{
+#if ORCA_UPDATER_SIG_KEY_AVAILABLE
+    std::string key = ORCA_UPDATER_SIG_KEY_B64;
+    boost::algorithm::trim(key);
+    if (key.empty())
+        return std::nullopt;
+
+    key.erase(std::remove_if(key.begin(), key.end(), [](unsigned char ch) { return std::isspace(ch); }), key.end());
+    std::replace(key.begin(), key.end(), '-', '+');
+    std::replace(key.begin(), key.end(), '_', '/');
+    while (key.size() % 4 != 0)
+        key.push_back('=');
+
+    std::string decoded;
+    decoded.resize(boost::beast::detail::base64::decoded_size(key.size()));
+    auto decode_result = boost::beast::detail::base64::decode(decoded.data(), key.data(), key.size());
+    if (!decode_result.second)
+        return std::nullopt;
+    decoded.resize(decode_result.first);
+
+    return std::vector<unsigned char>(decoded.begin(), decoded.end());
+#else
+    return std::nullopt;
+#endif
+}
+
+const std::optional<std::vector<unsigned char>>& get_signature_key()
+{
+    static std::optional<std::vector<unsigned char>> cached;
+    static bool loaded = false;
+    if (!loaded) {
+        cached = load_signature_key();
+        loaded = true;
+    }
+    return cached;
+}
+
+std::string extract_path_from_url(const std::string& url)
+{
+    if (url.empty())
+        return "/latest";
+
+    std::string path;
+    const auto scheme_pos = url.find("://");
+    if (scheme_pos != std::string::npos) {
+        const auto path_pos = url.find('/', scheme_pos + 3);
+        if (path_pos != std::string::npos)
+            path = url.substr(path_pos);
+        else
+            path = "/";
+    } else {
+        path = url;
+    }
+
+    const auto fragment_pos = path.find('#');
+    if (fragment_pos != std::string::npos)
+        path = path.substr(0, fragment_pos);
+
+    const auto query_pos = path.find('?');
+    if (query_pos != std::string::npos)
+        path = path.substr(0, query_pos);
+
+    if (path.empty())
+        path = "/";
+    return path;
+}
+
+void maybe_attach_updater_signature(Http& http, const std::string& canonical_query, const std::string& request_url)
+{
+    if (canonical_query.empty())
+        return;
+
+    const auto& key = get_signature_key();
+    if (!key || key->empty())
+        return;
+
+    const auto now   = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+    const std::string timestamp = std::to_string(now.time_since_epoch().count());
+    const std::string path      = extract_path_from_url(request_url);
+
+    std::string string_to_sign = "GET\n";
+    string_to_sign += path;
+    string_to_sign += "\n";
+    string_to_sign += canonical_query;
+    string_to_sign += "\n";
+    string_to_sign += timestamp;
+
+    unsigned int digest_length = 0;
+    unsigned char digest[EVP_MAX_MD_SIZE] = {};
+    if (HMAC(EVP_sha256(), key->data(), static_cast<int>(key->size()),
+             reinterpret_cast<const unsigned char*>(string_to_sign.data()),
+             string_to_sign.size(), digest, &digest_length) == nullptr || digest_length == 0)
+        return;
+
+    const std::string signature = base64url_encode(digest, digest_length);
+    http.header("X-Orca-Ts", timestamp);
+    http.header("X-Orca-Sig", "v1:" + signature);
+}
+
+} // namespace
+
 void GUI_App::check_new_version_sf(bool show_tips, int by_user)
 {
     AppConfig* app_config = wxGetApp().app_config;
     bool       check_stable_only = app_config->get_bool("check_stable_update_only");
-    auto       version_check_url = app_config->version_check_url(check_stable_only);
-    Http::get(version_check_url)
+    auto version_check_url = app_config->version_check_url();
+
+    UpdaterQuery query{
+        detect_updater_iid(app_config),
+        detect_updater_version(),
+        detect_updater_os(),
+        detect_updater_arch(),
+        detect_updater_os_info()
+    };
+
+    const std::string query_string = build_updater_query(query);
+    if (!query_string.empty()) {
+        const bool has_query = version_check_url.find('?') != std::string::npos;
+        if (!has_query)
+            version_check_url.push_back('?');
+        else if (!version_check_url.empty() && version_check_url.back() != '&' && version_check_url.back() != '?')
+            version_check_url.push_back('&');
+        version_check_url += query_string;
+    }
+
+    auto http = Http::get(version_check_url);
+    maybe_attach_updater_signature(http, query_string, version_check_url);
+
+    http.header("accept", "application/vnd.github.v3+json")
+        .timeout_connect(5)
+        .timeout_max(10)
         .on_error([&](std::string body, std::string error, unsigned http_status) {
           (void)body;
           BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%", "check_new_version_sf", http_status,
                                              error);
         })
-        .timeout_connect(1)
-        .on_complete([this,by_user, check_stable_only](std::string body, unsigned http_status) {
-          // Http response OK
+        .on_complete([this, by_user, check_stable_only](std::string body, unsigned http_status) {
           if (http_status != 200)
             return;
           try {
             boost::trim(body);
-            // Orca: parse github release, inspired by SS
-            boost::property_tree::ptree root;
-            std::stringstream json_stream(body);
-            boost::property_tree::read_json(json_stream, root);
-
-            // at least two number, use '.' as separator. can be followed by -Az23 for prereleased and +Az42 for
-            // metadata
-            std::regex matcher("[0-9]+\\.[0-9]+(\\.[0-9]+)*(-[A-Za-z0-9]+)?(\\+[A-Za-z0-9]+)?");
-
-            Semver           current_version = get_version(SoftFever_VERSION, matcher);
-            Semver best_pre(1, 0, 0);
-            Semver best_release(1, 0, 0);
-            std::string best_pre_url;
-            std::string best_release_url;
-            std::string best_release_content;
-            std::string best_pre_content;
-            const std::regex reg_num("([0-9]+)");
-            if (check_stable_only) {
-                std::string tag = root.get<std::string>("tag_name");
-                if (tag[0] == 'v')
-                    tag.erase(0, 1);
-                for (std::regex_iterator it = std::sregex_iterator(tag.begin(), tag.end(), reg_num); it != std::sregex_iterator(); ++it) {}
-                Semver tag_version = get_version(tag, matcher);
-                if (root.get<bool>("prerelease")) {
-                    if (best_pre < tag_version) {
-                        best_pre         = tag_version;
-                        best_pre_url     = root.get<std::string>("html_url");
-                        best_pre_content = root.get<std::string>("body");
-                    }
-                } else {
-                    if (best_release < tag_version) {
-                        best_release         = tag_version;
-                        best_release_url     = root.get<std::string>("html_url");
-                        best_release_content = root.get<std::string>("body");
-                    }
-                }
-            } else {
-                for (auto json_version : root) {
-                    std::string tag = json_version.second.get<std::string>("tag_name");
-                    if (tag[0] == 'v')
-                        tag.erase(0, 1);
-                    for (std::regex_iterator it = std::sregex_iterator(tag.begin(), tag.end(), reg_num); it != std::sregex_iterator();
-                         ++it) {}
-                    Semver tag_version = get_version(tag, matcher);
-                    if (json_version.second.get<bool>("prerelease")) {
-                        if (best_pre < tag_version) {
-                            best_pre         = tag_version;
-                            best_pre_url     = json_version.second.get<std::string>("html_url");
-                            best_pre_content = json_version.second.get<std::string>("body");
-                        }
-                    } else {
-                        if (best_release < tag_version) {
-                            best_release         = tag_version;
-                            best_release_url     = json_version.second.get<std::string>("html_url");
-                            best_release_content = json_version.second.get<std::string>("body");
-                        }
-                    }
-                }
-            }
-
-            // if release is more recent than beta, use release anyway
-            if (best_pre < best_release) {
-                best_pre         = best_release;
-                best_pre_url     = best_release_url;
-                best_pre_content = best_release_content;
-            }
-            // if we're the most recent, don't do anything
-            if ((check_stable_only ? best_release : best_pre) <= current_version) {
+            if (body.empty()) {
                 if (by_user != 0)
                     this->no_new_version();
                 return;
             }
 
-            version_info.url           = check_stable_only ? best_release_url : best_pre_url;
-            version_info.version_str   = check_stable_only ? best_release.to_string_sf() : best_pre.to_string();
-            version_info.description   = check_stable_only ? best_release_content : best_pre_content;
+            boost::property_tree::ptree root;
+            std::stringstream           json_stream(body);
+            boost::property_tree::read_json(json_stream, root);
+
+            std::regex matcher("[0-9]+\\.[0-9]+(\\.[0-9]+)*(-[A-Za-z0-9]+)?(\\+[A-Za-z0-9]+)?");
+            Semver    current_version = get_version(SoftFever_VERSION, matcher);
+            Semver    best_pre(0, 0, 0);
+            Semver    best_release(0, 0, 0);
+            bool      best_pre_valid = false;
+            bool      best_release_valid = false;
+            std::string best_pre_url;
+            std::string best_release_url;
+            std::string best_release_content;
+            std::string best_pre_content;
+
+            auto consider_release = [&](const boost::property_tree::ptree& node) {
+                auto tag_opt = node.get_optional<std::string>("tag_name");
+                if (!tag_opt)
+                    return;
+
+                std::string tag = *tag_opt;
+                if (!tag.empty() && tag.front() == 'v')
+                    tag.erase(0, 1);
+
+                Semver tag_version = get_version(tag, matcher);
+                if (!tag_version.valid())
+                    return;
+
+                const bool is_prerelease = node.get_optional<bool>("prerelease").get_value_or(false);
+                const std::string html_url = node.get_optional<std::string>("html_url").get_value_or(std::string());
+                const std::string body_copy = node.get_optional<std::string>("body").get_value_or(std::string());
+
+                if (is_prerelease) {
+                    if (!best_pre_valid || best_pre < tag_version) {
+                        best_pre        = tag_version;
+                        best_pre_url    = html_url;
+                        best_pre_content = body_copy;
+                        best_pre_valid  = true;
+                    }
+                } else {
+                    if (!best_release_valid || best_release < tag_version) {
+                        best_release         = tag_version;
+                        best_release_url     = html_url;
+                        best_release_content = body_copy;
+                        best_release_valid   = true;
+                    }
+                }
+            };
+
+            if (root.get_optional<std::string>("tag_name")) {
+                consider_release(root);
+            } else {
+                for (const auto& child : root)
+                    consider_release(child.second);
+            }
+
+            if (!best_release_valid && !best_pre_valid) {
+                if (by_user != 0)
+                    this->no_new_version();
+                return;
+            }
+
+            if (best_pre_valid && best_release_valid && best_pre < best_release) {
+                best_pre        = best_release;
+                best_pre_url    = best_release_url;
+                best_pre_content = best_release_content;
+                best_pre_valid  = true;
+            }
+
+            const bool        prefer_release = check_stable_only || !best_pre_valid;
+            const Semver&     chosen_version = prefer_release ? best_release : best_pre;
+            const bool        chosen_valid   = prefer_release ? best_release_valid : best_pre_valid;
+
+            if (!chosen_valid) {
+                if (by_user != 0)
+                    this->no_new_version();
+                return;
+            }
+
+            if (current_version.valid() && chosen_version <= current_version) {
+                if (by_user != 0)
+                    this->no_new_version();
+                return;
+            }
+
+            version_info.url           = prefer_release ? best_release_url : best_pre_url;
+            version_info.version_str   = prefer_release ? best_release.to_string_sf() : best_pre.to_string();
+            version_info.description   = prefer_release ? best_release_content : best_pre_content;
             version_info.force_upgrade = false;
 
             wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
-            evt->SetString((check_stable_only ? best_release : best_pre).to_string());
+            evt->SetString((prefer_release ? best_release : best_pre).to_string());
             GUI::wxGetApp().QueueEvent(evt);
           } catch (...) {}
-        })
-        .perform();
+        });
+
+    http.perform();
+}
+
+void GUI_App::process_network_msg(std::string dev_id, std::string msg)
+{
+    if (dev_id.empty()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << msg;
+    }
 }
 
 //BBS pop up a dialog and download files

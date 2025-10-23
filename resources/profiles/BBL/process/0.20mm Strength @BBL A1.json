@@ -1,7 +1,7 @@
 {
     "type": "process",
     "name": "0.20mm Strength @BBL A1",
-    "inherits": "fdm_process_bbl_0.20",
+    "inherits": "fdm_process_single_0.20",
     "from": "system",
     "setting_id": "GP080",
     "instantiation": "true",

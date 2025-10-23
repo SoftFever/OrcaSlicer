@@ -133,7 +133,10 @@ bool Button::Enable(bool enable)
     return result;
 }
 
-void Button::SetCanFocus(bool canFocus) { this->canFocus = canFocus; }
+void Button::SetCanFocus(bool canFocus) {
+    StaticBox::SetCanFocus(canFocus);
+    this->canFocus = canFocus;
+}
 
 void Button::SetValue(bool state)
 {
@@ -148,6 +151,79 @@ void Button::SetCenter(bool isCenter)
     this->isCenter = isCenter;
 }
 
+//                           Background                                             Foreground                       Border on focus
+// Button Colors             0-Disabled 1-Pressed  2-Hover    3-Normal   4-Enabled  5-Disabled 6-Normal   7-Hover    8-Dark     9-Light
+wxString btn_regular[10]  = {"#DFDFDF", "#DFDFDF", "#D4D4D4", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#262E30", "#262E30", "#009688", "#009688"};
+wxString btn_confirm[10]  = {"#DFDFDF", "#009688", "#26A69A", "#009688", "#009688", "#6B6A6A", "#FEFEFE", "#FEFEFE", "#26A69A", "#00FFD4"};
+wxString btn_alert[10]    = {"#DFDFDF", "#DFDFDF", "#E14747", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#262E30", "#FFFFFD", "#009688", "#009688"};
+wxString btn_disabled[10] = {"#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#DFDFDF", "#6B6A6A", "#6B6A6A", "#262E30", "#DFDFDF", "#DFDFDF"};
+
+void Button::SetStyle(const ButtonStyle style, const ButtonType type)
+{
+    if      (type == ButtonType::Compact) {
+        this->SetPaddingSize(FromDIP(wxSize(8,3)));
+        this->SetCornerRadius(this->FromDIP(8));
+        this->SetFont(Label::Body_10);
+    }
+    else if (type == ButtonType::Window) {
+        this->SetSize(FromDIP(wxSize(58,24)));
+        this->SetMinSize(FromDIP(wxSize(58,24)));
+        this->SetCornerRadius(this->FromDIP(12));
+        this->SetFont(Label::Body_12);
+    }
+    else if (type == ButtonType::Choice) {
+        this->SetMinSize(FromDIP(wxSize(100,32)));
+        this->SetPaddingSize(FromDIP(wxSize(12,8)));
+        this->SetCornerRadius(this->FromDIP(4));
+        this->SetFont(Label::Body_14);
+    }
+    else if (type == ButtonType::Parameter) {
+        this->SetMinSize(FromDIP(wxSize(120,26)));
+        this->SetSize(FromDIP(wxSize(120,26)));
+        this->SetCornerRadius(this->FromDIP(4));
+        this->SetFont(Label::Body_14);
+    }
+    else if (type == ButtonType::Expanded) {
+        this->SetMinSize(FromDIP(wxSize(-1,32)));
+        this->SetPaddingSize(FromDIP(wxSize(12,8)));
+        this->SetCornerRadius(this->FromDIP(4));
+        this->SetFont(Label::Body_14);
+    }
+
+    this->SetBorderWidth(this->FromDIP(1));
+
+    bool is_dark = StateColor::darkModeColorFor("#FFFFFF") != wxColour("#FFFFFF");
+
+    auto clr_arr = style == ButtonStyle::Regular  ? btn_regular  :
+                   style == ButtonStyle::Confirm  ? btn_confirm  :
+                   style == ButtonStyle::Alert    ? btn_alert    :
+                   style == ButtonStyle::Disabled ? btn_disabled :
+                                                    btn_regular  ;
+
+    this->SetBackgroundColor(StateColor(
+        std::pair(wxColour(clr_arr[3]), (int)StateColor::NotHovered),
+        std::pair(wxColour(clr_arr[0]), (int)StateColor::Disabled),
+        std::pair(wxColour(clr_arr[1]), (int)StateColor::Pressed),
+        std::pair(wxColour(clr_arr[2]), (int)StateColor::Hovered),
+        std::pair(wxColour(clr_arr[3]), (int)StateColor::Normal),
+        std::pair(wxColour(clr_arr[4]), (int)StateColor::Enabled)
+    ));
+    this->SetBorderColor(StateColor(
+        std::pair(wxColour(clr_arr[3]), (int)StateColor::NotFocused),
+        std::pair(wxColour(clr_arr[0]), (int)StateColor::Disabled),
+        std::pair(wxColour(clr_arr[is_dark ? 8 : 9]), (int)StateColor::Focused)
+    ));
+    this->SetTextColor(StateColor(
+        std::pair(wxColour(clr_arr[5]), (int)StateColor::Disabled),
+        std::pair(wxColour(clr_arr[7]), (int)StateColor::Hovered),
+        std::pair(wxColour(clr_arr[6]), (int)StateColor::Normal)
+    ));
+
+    m_has_style = true;
+    m_style = style;
+    m_type  = type;
+}
+
 void Button::Rescale()
 {
     if (this->active_icon.bmp().IsOk())
@@ -157,6 +233,9 @@ void Button::Rescale()
         this->inactive_icon.msw_rescale();
 
     messureSize();
+
+    if(m_has_style)
+        SetStyle(m_style, m_type);
 }
 
 void Button::paintEvent(wxPaintEvent& evt)

@@ -1107,8 +1107,8 @@ const std::pair<Vec3d, double> Selection::get_bounding_sphere() const
         using Min_sphere = CGAL::Min_sphere_of_spheres_d<Traits>;
         using Point = K::Point_3;
 
-        std::vector<Point> points;
-        if (m_valid) {
+        if (m_valid && !m_list.empty()) {
+            std::vector<Point> points;
             for (unsigned int i : m_list) {
                 const GLVolume& volume = *(*m_volumes)[i];
                 const TriangleMesh* hull = volume.convex_hull();

@@ -12,6 +12,9 @@
 namespace Slic3r {
 namespace GUI {
 
+// Previous definitions
+class uiDeviceUpdateVersion;
+
 class ExtensionPanel : public wxPanel
 {
 public:
@@ -105,6 +108,24 @@ protected:
     bool           m_last_extra_ams_show = true;
     wxBoxSizer*    m_extra_ams_sizer;
 
+    /* air_pump info*/
+    wxBoxSizer*            m_air_pump_sizer = nullptr;
+    wxStaticBitmap*        m_air_pump_img   = nullptr;
+    wxStaticLine*          m_air_pump_line_above = nullptr;;
+    uiDeviceUpdateVersion* m_air_pump_version = nullptr;
+
+    /* cutting module info*/
+    wxBoxSizer*            m_cutting_sizer = nullptr;
+    wxStaticBitmap*        m_cutting_img = nullptr;
+    wxStaticLine*          m_cutting_line_above = nullptr;;
+    uiDeviceUpdateVersion* m_cutting_version = nullptr;
+
+    /* laser info*/
+    wxBoxSizer*            m_laser_sizer = nullptr;
+    wxStaticBitmap*        m_lazer_img = nullptr;
+    wxStaticLine*          m_laser_line_above = nullptr;;
+    uiDeviceUpdateVersion* m_laser_version = nullptr;
+
     /* upgrade widgets */
     wxBoxSizer*     m_upgrading_sizer;
     wxStaticText *  m_staticText_upgrading_info;
@@ -122,6 +143,9 @@ protected:
     ScalableBitmap m_img_monitor_ams;
     ScalableBitmap m_img_extra_ams;
     ScalableBitmap m_img_printer;
+    ScalableBitmap m_img_air_pump;
+    ScalableBitmap m_img_cutting;
+    ScalableBitmap m_img_laser;
     ScalableBitmap upgrade_gray_icon;
     ScalableBitmap upgrade_green_icon;
     ScalableBitmap upgrade_yellow_icon;
@@ -139,7 +163,7 @@ public:
     ~MachineInfoPanel();
 
     void on_sys_color_changed();
-    void Update_printer_img(MachineObject* obj);
+    void update_printer_imgs(MachineObject* obj);
     void init_bitmaps();
     void rescale_bitmaps();
 
@@ -151,10 +175,16 @@ public:
     void update(MachineObject *obj);
     void update_version_text(MachineObject *obj);
     void update_ams_ext(MachineObject *obj);
+    void update_air_pump(MachineObject* obj);
+    void update_cut(MachineObject* obj);
+    void update_laszer(MachineObject* obj);
     void show_status(int status, std::string upgrade_status_str = "");
     void show_ams(bool show = false, bool force_update = false);
     void show_ext(bool show = false, bool force_update = false);
     void show_extra_ams(bool show = false, bool force_update = false);
+    void show_air_pump(bool show = true);
+    void show_cut(bool show = true);
+    void show_laszer(bool show = true);
 
     void on_upgrade_firmware(wxCommandEvent &event);
     void on_consisitency_upgrade_firmware(wxCommandEvent &event);
@@ -171,6 +201,11 @@ public:
         ptOtaPanel,
         ptAmsPanel,
     }panel_type;
+
+private:
+    void createAirPumpWidgets(wxBoxSizer* main_left_sizer);
+    void createCuttingWidgets(wxBoxSizer* main_left_sizer);
+    void createLaserWidgets(wxBoxSizer* main_left_sizer);
 };
 
 //enum UpgradeMode {

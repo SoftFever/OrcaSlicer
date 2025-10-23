@@ -313,14 +313,14 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
         m_title_texts[i]->Wrap(-1);
         m_title_texts[i]->SetFont(::Label::Body_14);
         item_sizer->Add(m_title_texts[i], 0, wxALL, 0);
-        m_value_inputs[i] = new TextInput(parent, wxEmptyString, wxString::FromUTF8("°C"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
+        m_value_inputs[i] = new TextInput(parent, wxEmptyString, wxString::FromUTF8("\u2103" /* °C */), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, 0);
         m_value_inputs[i]->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         m_value_inputs[i]->GetTextCtrl()->Bind(wxEVT_TEXT, [this, i](wxCommandEvent& event) {
             std::string number = m_value_inputs[i]->GetTextCtrl()->GetValue().ToStdString();
             std::string decimal_point;
             std::string expression = "^[-+]?[0-9]+([,.][0-9]+)?$";
             std::regex decimalRegex(expression);
-            int decimal_number;
+            int decimal_number = 0;
             if (std::regex_match(number, decimalRegex)) {
                 std::smatch match;
                 if (std::regex_search(number, match, decimalRegex)) {
@@ -392,7 +392,7 @@ void CaliPresetTipsPanel::create_panel(wxWindow* parent)
     auto nozzle_temp_sizer = new wxBoxSizer(wxVERTICAL);
     auto nozzle_temp_text = new Label(parent, _L("Nozzle temperature"));
     nozzle_temp_text->SetFont(Label::Body_12);
-    m_nozzle_temp = new TextInput(parent, wxEmptyString, wxString::FromUTF8("°C"), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
+    m_nozzle_temp = new TextInput(parent, wxEmptyString, wxString::FromUTF8("\u2103" /* °C */), "", wxDefaultPosition, CALIBRATION_FROM_TO_INPUT_SIZE, wxTE_READONLY);
     m_nozzle_temp->SetBorderWidth(0);
     nozzle_temp_sizer->Add(nozzle_temp_text, 0, wxALIGN_LEFT);
     nozzle_temp_sizer->Add(m_nozzle_temp, 0, wxEXPAND);
@@ -439,7 +439,7 @@ void CaliPresetTipsPanel::set_params(int nozzle_temp, int bed_temp, float max_vo
     m_nozzle_temp->GetTextCtrl()->SetValue(text_nozzle_temp);
 
     std::string bed_temp_text = bed_temp==0 ? "-": std::to_string(bed_temp);
-    m_bed_temp->SetLabel(wxString::FromUTF8(bed_temp_text + "°C"));
+    m_bed_temp->SetLabel(wxString::FromUTF8(bed_temp_text + "\u2103" /* °C */));
 
     wxString flow_val_text = wxString::Format("%0.2f", max_volumetric);
     m_max_volumetric_speed->GetTextCtrl()->SetValue(flow_val_text);
@@ -601,7 +601,7 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
 {
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_filament_list_tips = new Label(parent, _L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"));
+    m_filament_list_tips = new Label(parent, _L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family (Brand = Bambu, Family = Basic, Matte)"));
     m_filament_list_tips->Hide();
     m_filament_list_tips->SetFont(Label::Body_13);
     m_filament_list_tips->SetForegroundColour(wxColour(145, 145, 145));
@@ -614,12 +614,12 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
     auto ams_items_sizer = new wxBoxSizer(wxHORIZONTAL);
     for (int i = 0; i < 4; i++) {
         AMSinfo temp_info = AMSinfo{ std::to_string(i), std::vector<Caninfo>{} };
-        auto amsitem = new AMSItem(m_multi_ams_panel, wxID_ANY, temp_info);
+        auto amsitem = new AMSPreview(m_multi_ams_panel, wxID_ANY, temp_info);
         amsitem->Bind(wxEVT_LEFT_DOWN, [this, amsitem](wxMouseEvent& e) {
-            on_switch_ams(amsitem->m_amsinfo.ams_id);
+            on_switch_ams(amsitem->get_ams_id());
             e.Skip();
             });
-        m_ams_item_list.push_back(amsitem);
+        m_ams_preview_list.push_back(amsitem);
         ams_items_sizer->Add(amsitem, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
     }
     multi_ams_sizer->Add(ams_items_sizer, 0);
@@ -766,7 +766,8 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_selection_panel, 0);
     m_top_sizer->Add(m_filament_list_panel, 0);
     m_top_sizer->Add(m_ext_spool_panel, 0);
-    m_top_sizer->Add(m_pa_cali_method_combox, 0);
+    if (m_pa_cali_method_combox)
+        m_top_sizer->Add(m_pa_cali_method_combox, 0);
     m_top_sizer->Add(m_custom_range_panel, 0);
     m_top_sizer->AddSpacer(FromDIP(15));
     m_top_sizer->Add(m_warning_panel, 0);
@@ -896,12 +897,11 @@ void CalibrationPresetPage::on_select_tray(wxCommandEvent& event)
 
 void CalibrationPresetPage::on_switch_ams(std::string ams_id)
 {
-    for (auto i = 0; i < m_ams_item_list.size(); i++) {
-        AMSItem* item = m_ams_item_list[i];
-        if (item->m_amsinfo.ams_id == ams_id) {
+    for (auto i = 0; i < m_ams_preview_list.size(); i++) {
+        AMSPreview *item = m_ams_preview_list[i];
+        if (item->get_ams_id() == ams_id) {
             item->OnSelected();
-        }
-        else {
+        } else {
             item->UnSelected();
         }
     }
@@ -1505,7 +1505,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     // set nozzle value from machine
     bool nozzle_is_set = false;
     for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-        if (abs(obj->nozzle_diameter - nozzle_diameter_list[i]) < 1e-3) {
+        if (abs(obj->m_extder_data.extders[0].current_nozzle_diameter - nozzle_diameter_list[i]) < 1e-3) {
             if (m_comboBox_nozzle_dia->GetCount() > i) {
                 m_comboBox_nozzle_dia->SetSelection(i);
                 nozzle_is_set = true;
@@ -1556,7 +1556,12 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 {
     if (!obj) return;
 
-    std::map<int, DynamicPrintConfig> full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(obj);
+    std::map<int, DynamicPrintConfig> old_full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(obj);
+    std::map<int, DynamicPrintConfig> full_filament_ams_list;
+    for (auto ams_item : old_full_filament_ams_list) {
+        int key = ams_item.first & 0x0FFFF;
+        full_filament_ams_list[key] = std::move(ams_item.second);
+    }
 
     // sync filament_ams_list from obj ams list
     filament_ams_list.clear();
@@ -1611,8 +1616,8 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         }
     }
     
-    for (auto i = 0; i < m_ams_item_list.size(); i++) {
-        AMSItem* item = m_ams_item_list[i];
+    for (auto i = 0; i < m_ams_preview_list.size(); i++) {
+        AMSPreview* item = m_ams_preview_list[i];
         if (ams_info.size() > 1) {
             if (i < ams_info.size()) {
                 item->Update(ams_info[i]);
@@ -1780,7 +1785,7 @@ void CalibrationPresetPage::update_filament_combobox(std::string ams_id)
     empty_config.set_key_value("filament_colour", new ConfigOptionStrings{ "" });
     empty_config.set_key_value("filament_exist", new ConfigOptionBools{ false });
 
-    /* update virtual tray combo box*/
+    // update virtual tray combo box
     m_virtual_tray_comboBox->update_from_preset();
     auto it = std::find_if(filament_ams_list.begin(), filament_ams_list.end(), [](auto& entry) {
         return entry.first == VIRTUAL_TRAY_ID;
@@ -1836,7 +1841,7 @@ Preset* CalibrationPresetPage::get_printer_preset(MachineObject* obj, float nozz
         std::string model_id = printer_it->get_current_printer_type(preset_bundle);
 
         std::string printer_type = obj->printer_type;
-        if (obj->is_support_p1s_plus) { printer_type = "C12"; }
+        if (obj->is_support_upgrade_kit && obj->installed_upgrade_kit) { printer_type = "C12"; }
         if (model_id.compare(printer_type) == 0
             && printer_nozzle_vals
             && abs(printer_nozzle_vals->get_at(0) - nozzle_value) < 1e-3) {
@@ -1914,7 +1919,7 @@ MaxVolumetricSpeedPresetPage::MaxVolumetricSpeedPresetPage(
         titles.push_back(_L("Step"));
         m_custom_range_panel->set_titles(titles);
 
-        m_custom_range_panel->set_unit("mm³/s");
+        m_custom_range_panel->set_unit(wxString::FromUTF8("mm³/s"));
     }
 }
 }}
