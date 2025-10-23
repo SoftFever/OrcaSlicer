@@ -6588,6 +6588,17 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
                 app_config->set_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(),
                                                 "curr_bed_type", std::to_string(int(new_bed_type)));
 
+                // Check if the bed model needs to change.
+                std::string old_model_filename = PresetUtils::system_printer_bed_model(wxGetApp().preset_bundle->printers.get_selected_preset(), old_bed_type);
+                std::string new_model_filename = PresetUtils::system_printer_bed_model(wxGetApp().preset_bundle->printers.get_selected_preset(), new_bed_type);
+                if (old_model_filename != new_model_filename) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": requires bed_model change from " << old_model_filename << " to " << new_model_filename << "\n";
+                    q->set_bed_shape();
+                    q->update();
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": bed type change from " << bed_type_to_gcode_string(old_bed_type) << " to " << bed_type_to_gcode_string(new_bed_type) << " reuses bed_model=" << old_model_filename << "\n";
+                }
+
                 //update slice status
                 auto plate_list = partplate_list.get_plate_list();
                 for (auto plate : plate_list) {

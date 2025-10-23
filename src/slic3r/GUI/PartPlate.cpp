@@ -5516,8 +5516,11 @@ void PartPlateList::BedTextureInfo::reset()
 void PartPlateList::init_bed_type_info()
 {
 	BedTextureInfo::TexturePart pct_part_left(10, 130,  10, 110, "orca_bed_pct_left.svg");
-  BedTextureInfo::TexturePart st_part1(9, 70, 12.5, 170, "bbl_bed_st_left.svg");
-  BedTextureInfo::TexturePart st_part2(74, -10, 148, 12, "bbl_bed_st_bottom.svg");
+        BedTextureInfo::TexturePart cgpg_left(5, 180, 7, 70, "bbl_bed_cgpg_left.svg");
+        BedTextureInfo::TexturePart cgpg_bottom(90, -18.5, 88, 20, "bbl_bed_cgpg_bottom.svg");
+        BedTextureInfo::TexturePart cgpf_bottom(66, -19, 193, 30, "bbl_bed_cgpf_bottom.svg");
+        BedTextureInfo::TexturePart st_part1(9, 70, 12.5, 170, "bbl_bed_st_left.svg");
+        BedTextureInfo::TexturePart st_part2(74, -10, 148, 12, "bbl_bed_st_bottom.svg");
 	BedTextureInfo::TexturePart pc_part1(10, 130, 10, 110, "bbl_bed_pc_left.svg");
 	BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
 	BedTextureInfo::TexturePart ep_part1(7.5, 90, 12.5, 150, "bbl_bed_ep_left.svg");
@@ -5530,8 +5533,11 @@ void PartPlateList::init_bed_type_info()
 		bed_texture_info[i].reset();
 		bed_texture_info[i].parts.clear();
 	}
-    bed_texture_info[btSuperTack].parts.push_back(st_part1);
-    bed_texture_info[btSuperTack].parts.push_back(st_part2);
+        bed_texture_info[btCryogripProGlacier].parts.push_back(cgpg_left);
+        bed_texture_info[btCryogripProGlacier].parts.push_back(cgpg_bottom);
+        bed_texture_info[btCryogripProFrostbite].parts.push_back(cgpf_bottom);
+        bed_texture_info[btSuperTack].parts.push_back(st_part1);
+        bed_texture_info[btSuperTack].parts.push_back(st_part2);
 	bed_texture_info[btPC].parts.push_back(pc_part1);
 	bed_texture_info[btPC].parts.push_back(pc_part2);
 	bed_texture_info[btPCT].parts.push_back(pct_part_left);

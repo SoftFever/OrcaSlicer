@@ -857,7 +857,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_flow_ratio", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
-    "cool_plate_temp", "textured_cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "textured_plate_temp", "cool_plate_temp_initial_layer", "textured_cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer", "textured_plate_temp_initial_layer", "supertack_plate_temp_initial_layer", "supertack_plate_temp",
+    "cool_plate_temp", "textured_cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "textured_plate_temp", "cool_plate_temp_initial_layer", "textured_cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer", "textured_plate_temp_initial_layer", "supertack_plate_temp_initial_layer", "supertack_plate_temp", "cryogrip_pro_frostbite_plate_temp_initial_layer", "cryogrip_pro_frostbite_plate_temp", "cryogrip_pro_glacier_plate_temp_initial_layer", "cryogrip_pro_glacier_plate_temp",
     // "bed_type",
     //BBS:temperature_vitrification
     "temperature_vitrification", "reduce_fan_stop_start_freq","dont_slow_down_outer_wall", "slow_down_for_layer_cooling", "fan_min_speed",
@@ -3655,14 +3655,28 @@ namespace PresetUtils {
 		return out;
 	}
 
-    std::string system_printer_bed_model(const Preset& preset)
+    std::string system_printer_bed_model(const Preset& preset, const BedType bed_type)
     {
         std::string out;
         const VendorProfile::PrinterModel* pm = PresetUtils::system_printer_model(preset);
-        if (pm != nullptr && !pm->bed_model.empty()) {
-            out = Slic3r::data_dir() + "/vendor/" + preset.vendor->id + "/" + pm->bed_model;
-            if (!boost::filesystem::exists(boost::filesystem::path(out)))
-                out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_model;
+        if (pm != nullptr) {
+            // First check if the bed_model_for_plate map contains an entry for bed_type.
+            std::string bed_type_string = bed_type_to_gcode_string(bed_type);
+            auto bed_model_for_plate_it = pm->bed_model_for_plate.find(bed_type_string);
+            if (bed_model_for_plate_it != pm->bed_model_for_plate.end()) {
+                // Found a specific model for bed_type.
+                out = Slic3r::data_dir() + "/vendor/" + preset.vendor->id + "/" + bed_model_for_plate_it->second;
+                if (!boost::filesystem::exists(boost::filesystem::path(out))) {
+                    out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + bed_model_for_plate_it->second;
+                }
+            }
+            else if (!pm->bed_model.empty()) {
+                // Otherwise fall back to the regular bed_model.
+                out = Slic3r::data_dir() + "/vendor/" + preset.vendor->id + "/" + pm->bed_model;
+                if (!boost::filesystem::exists(boost::filesystem::path(out))) {
+                    out = Slic3r::resources_dir() + "/profiles/" + preset.vendor->id + "/" + pm->bed_model;
+                }
+            }
         }
         return out;
     }

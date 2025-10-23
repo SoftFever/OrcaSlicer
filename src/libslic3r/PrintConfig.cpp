@@ -391,6 +391,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangFanThreshold)
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
     { "Default Plate",      btDefault },
+    { "Cryogrip Pro Frostbite Plate", btCryogripProFrostbite },
+    { "Cryogrip Pro Glacier Plate", btCryogripProGlacier },
     { "Supertack Plate",    btSuperTack },
     { "Cool Plate",         btPC },
     { "Engineering Plate",  btEP  },
@@ -705,6 +707,26 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     // BBS
+    def = this->add("cryogrip_pro_frostbite_plate_temp", coInts);
+    def->label = L("Other layers");
+    def->tooltip = L("Bed temperature for layers except the initial one. "
+                     "A value of 0 means the filament does not support printing on the Cryogrip Pro Frostbite plate.");
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->full_label = L("Bed temperature");
+    def->min = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{0});
+
+    def = this->add("cryogrip_pro_glacier_plate_temp", coInts);
+    def->label = L("Other layers");
+    def->tooltip = L("Bed temperature for layers except the initial one. "
+                     "A value of 0 means the filament does not support printing on the Cryogrip Pro Glacier plate.");
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->full_label = L("Bed temperature");
+    def->min = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{0});
+
     def = this->add("supertack_plate_temp", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
@@ -764,6 +786,26 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{45});
+
+    def = this->add("cryogrip_pro_frostbite_plate_temp_initial_layer", coInts);
+    def->label = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip = L("Bed temperature of the initial layer. "
+                     "A value of 0 means the filament does not support printing on the Cryogrip Pro Frostbite plate.");
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->min = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{ 0 });
+
+    def = this->add("cryogrip_pro_glacier_plate_temp_initial_layer", coInts);
+    def->label = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip = L("Bed temperature of the initial layer. "
+                     "A value of 0 means the filament does not support printing on the Cryogrip Pro Glacier plate.");
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
+    def->min = 0;
+    def->max = 120;
+    def->set_default_value(new ConfigOptionInts{ 0 });
 
     def = this->add("supertack_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
@@ -836,12 +878,16 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("Textured PEI Plate");
     def->enum_values.emplace_back("Textured Cool Plate");
     def->enum_values.emplace_back("Supertack Plate");
+    def->enum_values.emplace_back("Cryogrip Pro Frostbite Plate");
+    def->enum_values.emplace_back("Cryogrip Pro Glacier Plate");
     def->enum_labels.emplace_back(L("Smooth Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("Smooth High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
     def->enum_labels.emplace_back(L("Textured Cool Plate"));
     def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
+    def->enum_labels.emplace_back(L("Cryogrip Pro Frostbite Plate"));
+    def->enum_labels.emplace_back(L("Cryogrip Pro Glacier Plate"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     // Orca: allow profile maker to set default bed type in machine profile

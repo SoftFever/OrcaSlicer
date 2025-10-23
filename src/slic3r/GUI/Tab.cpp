@@ -3520,6 +3520,18 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("textured_plate_temp"));
         optgroup->append_line(line);
 
+        line = { L("Cryogrip Pro Frostbite Plate"),
+                 L("Bed temperature when the Cryogrip Pro Frostbite plate is installed. A value of 0 means the filament does not support printing on the Cryogrip Pro Frostbite plate.") };
+        line.append_option(optgroup->get_option("cryogrip_pro_frostbite_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("cryogrip_pro_frostbite_plate_temp"));
+        optgroup->append_line(line);
+
+        line = { L("Cryogrip Pro Glacier Plate"),
+                 L("Bed temperature when the Cryogrip Pro Glacier plate is installed. A value of 0 means the filament does not support printing on the Cryogrip Pro Glacier plate.") };
+        line.append_option(optgroup->get_option("cryogrip_pro_glacier_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("cryogrip_pro_glacier_plate_temp"));
+        optgroup->append_line(line);
+
         optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value)
         {
             DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
@@ -3778,7 +3790,8 @@ void TabFilament::toggle_options()
             bed_temp_1st_layer_key = get_bed_temp_1st_layer_key(proj_cfg.opt_enum<BedType>("curr_bed_type"));
         }
 
-        const std::vector<std::string> bed_temp_keys = {"supertack_plate_temp_initial_layer", "cool_plate_temp_initial_layer",
+        const std::vector<std::string> bed_temp_keys = {"cryogrip_pro_frostbite_plate_temp_initial_layer", "cryogrip_pro_glacier_plate_temp_initial_layer",
+                                                        "supertack_plate_temp_initial_layer", "cool_plate_temp_initial_layer",
                                                         "textured_cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer",
                                                         "textured_plate_temp_initial_layer", "hot_plate_temp_initial_layer"};
 
@@ -6165,7 +6178,8 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
 
     btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
-            bool  is_configed_by_BBL = PresetUtils::system_printer_bed_model(m_preset_bundle->printers.get_edited_preset()).size() > 0;
+            // Does there exist a default bed_model?
+            bool  is_configed_by_BBL = PresetUtils::system_printer_bed_model(m_preset_bundle->printers.get_edited_preset(), btDefault).size() > 0;
             BedShapeDialog dlg(this);
             dlg.build_dialog(m_config->option<ConfigOptionPoints>("printable_area")->values,
                 *m_config->option<ConfigOptionString>("bed_custom_texture"),

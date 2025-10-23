@@ -84,5 +84,11 @@
     ],
     "textured_plate_temp_initial_layer": [
         "90"
+    ],
+    "cryogrip_pro_glacier_plate_temp": [
+        "90"
+    ],
+    "cryogrip_pro_glacier_plate_temp_initial_layer": [
+        "90"
     ]
 }

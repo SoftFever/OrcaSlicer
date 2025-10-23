@@ -1003,7 +1003,8 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
             if (bundle != nullptr && !m_settings_ids.printer.empty()) {
                 const Preset* preset = bundle->printers.find_preset(m_settings_ids.printer);
                 if (preset != nullptr) {
-                    model = PresetUtils::system_printer_bed_model(*preset);
+                    BedType bed_type = bundle->project_config.opt_enum<BedType>("curr_bed_type");
+                    model = PresetUtils::system_printer_bed_model(*preset, bed_type);
                     texture = PresetUtils::system_printer_bed_texture(*preset);
                 }
             }

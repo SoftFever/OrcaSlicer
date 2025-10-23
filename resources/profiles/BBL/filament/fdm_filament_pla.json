@@ -16,6 +16,18 @@
     "cool_plate_temp_initial_layer": [
         "35"
     ],
+    "cryogrip_pro_frostbite_plate_temp": [
+        "40"
+    ],
+    "cryogrip_pro_frostbite_plate_temp_initial_layer": [
+        "40"
+    ],
+    "cryogrip_pro_glacier_plate_temp": [
+        "50"
+    ],
+    "cryogrip_pro_glacier_plate_temp_initial_layer": [
+        "50"
+    ],
     "eng_plate_temp": [
         "0"
     ],

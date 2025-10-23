@@ -1805,6 +1805,8 @@ enum BambuBedType {
     bbtHighTemperaturePlate = 3,
     bbtTexturedPEIPlate         = 4,
     bbtSuperTackPlate = 5,
+    bbtCryogripProFrostbite = 6,
+    bbtCryogripProGlacier = 7,
 };
 
 static BambuBedType to_bambu_bed_type(BedType type)
@@ -1819,9 +1821,14 @@ static BambuBedType to_bambu_bed_type(BedType type)
     else if (type == btPTE)
         bambu_bed_type = bbtTexturedPEIPlate;
     else if (type == btPCT)
+        // FIXME ACM are coolPlate and texturedCoolPlate supposed to be the same?
         bambu_bed_type = bbtCoolPlate;
     else if (type == btSuperTack)
         bambu_bed_type = bbtSuperTackPlate;
+    else if (type == btCryogripProFrostbite)
+        bambu_bed_type = bbtCryogripProFrostbite;
+    else if (type == btCryogripProGlacier)
+        bambu_bed_type = bbtCryogripProGlacier;
 
     return bambu_bed_type;
 }

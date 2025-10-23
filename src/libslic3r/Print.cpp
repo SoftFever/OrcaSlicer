@@ -137,6 +137,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "sparse_infill_acceleration",
         "internal_solid_infill_acceleration",
         // BBS
+        "cryogrip_pro_frostbite_plate_temp_initial_layer",
+        "cryogrip_pro_glacier_plate_temp_initial_layer",
         "supertack_plate_temp_initial_layer",
         "cool_plate_temp_initial_layer",
         "textured_cool_plate_temp_initial_layer",
@@ -283,6 +285,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "single_extruder_multi_material"
             || opt_key == "nozzle_temperature"
             // BBS
+            || opt_key == "cryogrip_pro_frostbite_plate_temp"
+            || opt_key == "cryogrip_pro_glacier_plate_temp"
             || opt_key == "supertack_plate_temp"
             || opt_key == "cool_plate_temp"
             || opt_key == "textured_cool_plate_temp"

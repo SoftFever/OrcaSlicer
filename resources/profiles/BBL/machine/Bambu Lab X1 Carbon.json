@@ -4,6 +4,10 @@
     "nozzle_diameter": "0.4;0.2;0.6;0.8",
     "url": "http://www.bambulab.com/Parameters/printer_model/Bambu Lab X1 Carbon.json",
     "bed_model": "bbl-3dp-X1.stl",
+    "bed_model_for_plate": {
+        "cryogrip_pro_frostbite_plate": "bbl-3dp-X1-cryogrip-pro-frostbite.stl",
+        "cryogrip_pro_glacier_plate": "bbl-3dp-X1-cryogrip-pro-glacier.stl"
+    },
     "bed_texture": "bbl-3dp-logo.svg",
     "default_bed_type": "Textured PEI Plate",
     "family": "BBL-3DP",

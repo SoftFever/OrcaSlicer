@@ -287,6 +287,8 @@ enum BedType {
     btPTE,
     btPCT,
     btSuperTack,
+    btCryogripProFrostbite,
+    btCryogripProGlacier,
     btCount
 };
 
@@ -369,6 +371,12 @@ static std::string bed_type_to_gcode_string(const BedType type)
     std::string type_str;
 
     switch (type) {
+    case btCryogripProFrostbite:
+        type_str = "cryogrip_pro_frostbite_plate";
+        break;
+    case btCryogripProGlacier:
+        type_str = "cryogrip_pro_glacier_plate";
+        break;
     case btSuperTack:
         type_str = "supertack_plate";
         break;
@@ -397,6 +405,12 @@ static std::string bed_type_to_gcode_string(const BedType type)
 
 static std::string get_bed_temp_key(const BedType type)
 {
+    if (type == btCryogripProFrostbite)
+        return "cryogrip_pro_frostbite_plate_temp";
+
+    if (type == btCryogripProGlacier)
+        return "cryogrip_pro_glacier_plate_temp";
+
     if (type == btSuperTack)
         return "supertack_plate_temp";
 
@@ -420,6 +434,12 @@ static std::string get_bed_temp_key(const BedType type)
 
 static std::string get_bed_temp_1st_layer_key(const BedType type)
 {
+    if (type == btCryogripProFrostbite)
+        return "cryogrip_pro_frostbite_plate_temp_initial_layer";
+
+    if (type == btCryogripProGlacier)
+        return "cryogrip_pro_glacier_plate_temp_initial_layer";
+
     if (type == btSuperTack)
         return "supertack_plate_temp_initial_layer";
 
@@ -1298,10 +1318,14 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               cool_plate_temp))
     ((ConfigOptionInts,               textured_cool_plate_temp))
     ((ConfigOptionInts,               supertack_plate_temp))
+    ((ConfigOptionInts,               cryogrip_pro_frostbite_plate_temp))
+    ((ConfigOptionInts,               cryogrip_pro_glacier_plate_temp))
     ((ConfigOptionInts,               eng_plate_temp))
     ((ConfigOptionInts,               hot_plate_temp)) // hot is short for high temperature
     ((ConfigOptionInts,               textured_plate_temp))
     ((ConfigOptionInts,               supertack_plate_temp_initial_layer))
+    ((ConfigOptionInts,               cryogrip_pro_frostbite_plate_temp_initial_layer))
+    ((ConfigOptionInts,               cryogrip_pro_glacier_plate_temp_initial_layer))
     ((ConfigOptionInts,               cool_plate_temp_initial_layer))
     ((ConfigOptionInts,               textured_cool_plate_temp_initial_layer))
     ((ConfigOptionInts,               eng_plate_temp_initial_layer))
