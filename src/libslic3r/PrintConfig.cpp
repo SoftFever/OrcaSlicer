@@ -1721,7 +1721,20 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("All"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<EnsureVerticalShellThickness>(EnsureVerticalShellThickness::evstAll));
-    
+
+    def           = this->add("perimeter_overlap", coPercent);
+    def->label    = L("Extra wall overlap");
+    def->category = L("Advanced");
+    def->tooltip  = L("This parameter increases the default wall overlap by a percentage. The percentage value is relative to wall line width. "
+                      "Increasing this value improves wall adhesion, especially when using small nozzles that struggle to bond walls consistently across some directions.\n"
+                      "Works only with classic wall generator.");
+
+    def->sidetext = "%";
+    def->min      = 0;
+    def->max      = 50;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(0.0f));
+
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
     def->category = L("Strength");
