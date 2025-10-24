@@ -2221,7 +2221,7 @@ void Sidebar::update_all_preset_comboboxes()
         //only show sync-ams button for BBL printer
         p->m_bpButton_ams_filament->Show();
         //update print button default value for bbl or third-party printer
-        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendBambuConnect);
     } else {
         p->btn_connect_printer->Show();
         p->m_bpButton_ams_filament->Hide();
@@ -2236,7 +2236,7 @@ void Sidebar::update_all_preset_comboboxes()
             const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
             if (cfg.has("printhost_apikey") && (host_type != htSimplyPrint))
                 apikey = cfg.opt_string("printhost_apikey");
-            print_btn_type = preset_bundle.is_bbl_vendor() ? MainFrame::PrintSelectType::ePrintPlate : MainFrame::PrintSelectType::eSendGcode;
+            print_btn_type = preset_bundle.is_bbl_vendor() ? MainFrame::PrintSelectType::eSendBambuConnect : MainFrame::PrintSelectType::eSendGcode;
         }
 
         p_mainframe->load_printer_url(url, apikey);
