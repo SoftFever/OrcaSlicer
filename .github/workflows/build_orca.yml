@@ -56,6 +56,12 @@ jobs:
           echo "ver_pure=$ver_pure" >> $GITHUB_ENV
           echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
           echo "git_commit_hash=$git_commit_hash" >> $GITHUB_ENV
+          # Set macOS architecture (default to universal if not specified)
+          macos_arch="${{ inputs.arch }}"
+          if [ -z "$macos_arch" ]; then
+            macos_arch="universal"
+          fi
+          echo "MACOS_ARCH=$macos_arch" >> $GITHUB_ENV
         shell: bash
 
       - name: Get the version and date on Windows
@@ -104,7 +110,7 @@ jobs:
         if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-          ./build_release_macos.sh -s -n -x -a universal -t 10.15 -1
+          ./build_release_macos.sh -s -n -x -a ${{ env.MACOS_ARCH }} -t 10.15 -1
 
  # Thanks to RaySajuuk, it's working now
       - name: Sign app and notary
@@ -164,34 +170,34 @@ jobs:
         if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
-          mkdir -p ${{ github.workspace }}/build/universal/OrcaSlicer_dmg
-          rm -rf ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/*
-          cp -R ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer.app ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/
-          ln -sfn /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer_dmg -ov -format UDZO OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
-          
+          mkdir -p ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg
+          rm -rf ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg/*
+          cp -R ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer.app ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg/
+          ln -sfn /Applications ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg -ov -format UDZO OrcaSlicer_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg
+
           # Create separate OrcaSlicer_profile_validator DMG if the app exists
-          if [ -f "${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
-            mkdir -p ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg
-            rm -rf ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/*
-            cp -R ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/
-            ln -sfn /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/Applications
-            hdiutil create -volname "OrcaSlicer Profile Validator" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg -ov -format UDZO OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+          if [ -f "${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
+            mkdir -p ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg
+            rm -rf ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg/*
+            cp -R ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer_profile_validator.app ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg/
+            ln -sfn /Applications ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg/Applications
+            hdiutil create -volname "OrcaSlicer Profile Validator" -srcfolder ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg -ov -format UDZO OrcaSlicer_profile_validator_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg
           fi
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-14'
         uses: actions/upload-artifact@v4
         with:
-          name: OrcaSlicer_Mac_universal_${{ env.ver }}
-          path: ${{ github.workspace }}/OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
+          name: OrcaSlicer_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}
+          path: ${{ github.workspace }}/OrcaSlicer_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg
 
       - name: Upload OrcaSlicer_profile_validator DMG mac
         if: inputs.os == 'macos-14'
         uses: actions/upload-artifact@v4
         with:
-          name: OrcaSlicer_profile_validator_Mac_universal_DMG_${{ env.ver }}
-          path: ${{ github.workspace }}/OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+          name: OrcaSlicer_profile_validator_Mac_${{ env.MACOS_ARCH }}_DMG_${{ env.ver }}
+          path: ${{ github.workspace }}/OrcaSlicer_profile_validator_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg
           if-no-files-found: ignore
 
       - name: Deploy Mac release

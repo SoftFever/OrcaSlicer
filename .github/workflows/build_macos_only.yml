@@ -1,0 +1,24 @@
+name: Build macOS Only (ARM64)
+
+on:
+  workflow_dispatch: # Manual trigger only
+    inputs:
+      build-deps-only:
+        description: 'Only build dependencies (bypasses caching)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_macos:
+    name: Build macOS ARM64
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: macos-14
+      arch: arm64
+      build-deps-only: ${{ inputs.build-deps-only || false }}
+      force-build: false
+    secrets: inherit
