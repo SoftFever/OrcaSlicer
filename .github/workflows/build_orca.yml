@@ -170,6 +170,9 @@ jobs:
         if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         run: |
+          # Remove extended attributes to prevent "damaged app" error
+          xattr -cr ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer.app
+
           mkdir -p ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg
           rm -rf ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg/*
           cp -R ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer.app ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg/
@@ -178,6 +181,9 @@ jobs:
 
           # Create separate OrcaSlicer_profile_validator DMG if the app exists
           if [ -f "${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
+            # Remove extended attributes from profile validator app
+            xattr -cr ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer_profile_validator.app
+
             mkdir -p ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg
             rm -rf ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg/*
             cp -R ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer_profile_validator.app ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg/
