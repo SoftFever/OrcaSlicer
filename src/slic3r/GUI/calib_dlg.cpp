@@ -1367,41 +1367,21 @@ void Cornering_Test_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiJDEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
 
     // Get max values based on GCode Flavor
-    double max_end_value = 9999.9;
-    double warning_threshold = 9999.9;
+    double max_end_value = 100.0;
+    double warning_threshold = 20.0;
     const auto* preset_bundle = wxGetApp().preset_bundle;
     const auto* gcode_flavor_option = (preset_bundle != nullptr)
         ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")
         : nullptr;
 
-    if (gcode_flavor_option) {
-        switch (gcode_flavor_option->value) {
-            case GCodeFlavor::gcfKlipper:
-            case GCodeFlavor::gcfMarlinLegacy:
-                max_end_value = 20.0;
-                warning_threshold = 15.0;
-                break;
-            case GCodeFlavor::gcfRepRapFirmware:
-                max_end_value = 1000.0;
-                warning_threshold = 300.0;
-                break;
-            case GCodeFlavor::gcfMarlinFirmware: {
-                // Check if machine_max_junction_deviation is set and > 0
-                const auto* max_jd_option = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation");
-                if (max_jd_option && !max_jd_option->values.empty() && max_jd_option->values[0] > 0) {
-                    // Using Junction Deviation (mm)
-                    max_end_value = 1.0;
-                    warning_threshold = 0.3;
-                } else {
-                    // Using Classic Jerk (mm/s)
-                    max_end_value = 20.0;
-                    warning_threshold = 15;
-                }
-                break;
-            }
-            default:
-                break;
-        }
+    if (gcode_flavor_option &&
+        gcode_flavor_option->value == GCodeFlavor::gcfMarlinFirmware &&
+        preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation") &&
+        !preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation")->values.empty() &&
+        preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("machine_max_junction_deviation")->values[0] > 0) {
+            // Using Junction Deviation (mm)
+            max_end_value = 1.0;
+            warning_threshold = 0.3;
     }
 
     if (!read_double || m_params.start < 0 || m_params.end > max_end_value || m_params.start >= m_params.end) {
