@@ -4157,6 +4157,7 @@ struct Plater::priv
     void reload_from_disk();
     bool replace_volume_with_stl(int object_idx, int volume_idx, const fs::path& new_path, const std::string& snapshot = "");
     void replace_with_stl();
+    void replace_all_with_stl();
     void reload_all_from_disk();
 
     //BBS: add no_slice option
@@ -4270,6 +4271,7 @@ struct Plater::priv
     bool can_fillcolor() const;
     bool has_assemble_view() const;
     bool can_replace_with_stl() const;
+    bool can_replace_all_with_stl() const;
     bool can_split(bool to_objects) const;
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
     bool can_scale_to_print_volume() const;
@@ -7620,6 +7622,106 @@ void Plater::priv::replace_with_stl()
     }
 }
 
+void Plater::priv::replace_all_with_stl()
+{
+    if (! q->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::EType::Undefined))
+        return;
+
+    const Selection& selection = get_selection();
+
+    if (selection.is_wipe_tower())
+        return;
+
+    fs::path input_path;
+    Selection::IndicesList volume_idxs = selection.get_volume_idxs();
+    if (selection.is_empty() || volume_idxs.empty()) {
+        PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+        for (int obj_idx = 0; obj_idx < selection.get_model()->objects.size(); obj_idx++) {
+            if (plate && plate->contain_instance_totally(obj_idx, 0)) {
+                std::vector<unsigned int> indices = selection.get_volume_idxs_from_object(obj_idx);
+                volume_idxs.insert(indices.begin(), indices.end());
+            }
+        }
+    }
+
+    // find path for initializing the file selection dialog
+
+    for (unsigned int idx : volume_idxs) {
+        const GLVolume* v = selection.get_volume(idx);
+        int object_idx = v->object_idx();
+        int volume_idx = v->volume_idx();
+
+        const ModelObject* object = model.objects[object_idx];
+        const ModelVolume* volume = object->volumes[volume_idx];
+
+        if (!volume->source.input_file.empty() && fs::exists(volume->source.input_file)) {
+            input_path = volume->source.input_file;
+            break;
+        }
+    }
+
+    wxString title = _L("Select folder to replace from");
+    title += ":";
+    wxDirDialog dialog(q, title, from_u8(input_path.parent_path().string()), wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    fs::path out_path = dialog.GetPath().ToUTF8().data();
+    if (out_path.empty()) {
+        MessageDialog dlg(q, _L("Directory for the replace wasn't selected"), _L("Error during replace"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
+        dlg.ShowModal();
+        return;
+    }
+
+    std::string status;
+
+    for (unsigned int idx : volume_idxs) {
+        const GLVolume* v = selection.get_volume(idx);
+        int object_idx = v->object_idx();
+        int volume_idx = v->volume_idx();
+
+        const ModelObject* object = model.objects[object_idx];
+        const ModelVolume* volume = object->volumes[volume_idx];
+
+        if (volume->source.input_file.empty())
+            continue;
+
+        input_path = volume->source.input_file;
+
+        fs::path new_path = out_path / input_path.filename();
+
+        if (new_path == input_path) {
+            status += boost::str(boost::format(_L("✖ Skipped %1%: %2%, same file\n")) % volume->name % input_path.string());
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skipping replace volume : same filename " << new_path;
+            continue;
+        }
+
+        if (!fs::exists(new_path)) {
+            status += boost::str(boost::format(_L("✖ Skipped %1%: %2% does not exist.\n")) % volume->name % new_path.string());
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cannot replace volume : no filename " << new_path;
+            continue;
+        }
+
+        status += boost::str(boost::format(_L("✔ Replaced %1% with %2%\n")) % volume->name % new_path.string());
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " replacing volume : " << input_path << " with " << new_path;
+
+        if (!replace_volume_with_stl(object_idx, volume_idx, new_path, "Replace with STL"))
+            return;
+    }
+
+    // update 3D scene
+    update();
+
+    // new GLVolumes have been created at this point, so update their printable state
+    for (size_t i = 0; i < model.objects.size(); ++i) {
+        view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
+    }
+
+    MessageDialog dlg(q, status, _L("Replaced volumes"), wxOK | wxOK_DEFAULT | wxICON_INFORMATION);
+    dlg.ShowModal();
+}
+
 #if ENABLE_RELOAD_FROM_DISK_REWORK
 static std::vector<std::pair<int, int>> reloadable_volumes(const Model &model, const Selection &selection)
 {
@@ -10182,6 +10284,12 @@ bool Plater::priv::can_replace_with_stl() const
 {
     return !sidebar->obj_list()->has_selected_cut_object()
         && get_selection().get_volume_idxs().size() == 1;
+}
+
+bool Plater::priv::can_replace_all_with_stl() const
+{
+    return !sidebar->obj_list()->has_selected_cut_object()
+        && get_selection().get_volume_idxs().size() != 1;
 }
 
 bool Plater::priv::can_reload_from_disk() const
@@ -14714,6 +14822,11 @@ void Plater::replace_with_stl()
     p->replace_with_stl();
 }
 
+void Plater::replace_all_with_stl()
+{
+    p->replace_all_with_stl();
+}
+
 void Plater::reload_all_from_disk()
 {
     p->reload_all_from_disk();
@@ -17310,6 +17423,7 @@ bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
 bool Plater::can_fillcolor() const { return p->can_fillcolor(); }
 bool Plater::has_assmeble_view() const { return p->has_assemble_view(); }
 bool Plater::can_replace_with_stl() const { return p->can_replace_with_stl(); }
+bool Plater::can_replace_all_with_stl() const { return p->can_replace_all_with_stl(); }
 bool Plater::can_mirror() const { return p->can_mirror(); }
 bool Plater::can_split(bool to_objects) const { return p->can_split(to_objects); }
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT

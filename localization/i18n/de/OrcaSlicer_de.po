@@ -1958,6 +1958,12 @@ msgstr "Durch STL Datei austauschen"
 msgid "Replace the selected part with new STL"
 msgstr "Ausgewähltes Teil durch eine neue STL ersetzen."
 
+msgid "Replace all with STL"
+msgstr "Alle durch STL Dateien austauschen"
+
+msgid "Replace all selected parts with STL from folder"
+msgstr "Ausgewählte Teile durch neue STL aus Ordner ersetzen."
+
 msgid "Change filament"
 msgstr "Filament wechseln"
 
@@ -2285,6 +2291,16 @@ msgstr ""
 "\n"
 "Um mit massiven Teilen oder negativen Volumen zu arbeiten, \n"
 "müssen Sie zuerst die Schnittinformationen ungültig machen."
+
+msgid "✖ Skipped %1%: %2%, same file\n"
+msgstr "✖ %1% übersprungen: %2%, gleiche Datei\n"
+
+msgid "✖ Skipped %1%: %2% does not exist.\n"
+msgstr "✖ %1% übersprungen: %2% existiert nicht.\n"
+
+msgid "✔ Replaced %1% with %2%\n"
+msgstr "✔ %1% durch %2% ersetzt"
+
 
 msgid "Delete all connectors"
 msgstr "Lösche alle Verbinder"
