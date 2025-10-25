@@ -36,8 +36,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote add upstream https://github.com/SoftFever/OrcaSlicer.git || true
-          git fetch upstream refs/tags/nightly-builds
-          git merge FETCH_HEAD --no-edit || {
+          git fetch upstream refs/tags/nightly-builds:refs/tags/upstream-nightly-builds
+          git merge upstream-nightly-builds --no-edit || {
             echo "::error::Merge conflict detected! Please manually merge upstream changes."
             exit 1
           }
