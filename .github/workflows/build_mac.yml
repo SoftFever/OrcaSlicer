@@ -1,0 +1,122 @@
+name: Build Mac
+
+on:
+  push:
+    branches:
+     - main
+     - release/*
+     - cyberralf83/orcanightly
+    paths:
+     - 'deps/**'
+     - 'src/**'
+     - '**/CMakeLists.txt'
+     - 'version.inc'
+     - 'localization/**'
+     - 'resources/**'
+     - ".github/workflows/build_*.yml"
+     - 'scripts/flatpak/**'
+
+  pull_request:
+    branches:
+     - main
+     - release/*
+     - cyberralf83/orcanightly
+    paths:
+     - 'deps/**'
+     - 'src/**'
+     - '**/CMakeLists.txt'
+     - 'version.inc'
+     - ".github/workflows/build_*.yml"
+     - 'build_linux.sh'
+     - 'build_release_vs2022.bat'
+     - 'build_release_macos.sh'
+     - 'scripts/flatpak/**'
+
+  schedule:
+      - cron: '35 7 * * *' # run once a day near midnight US Pacific time
+
+  workflow_dispatch: # allows for manual dispatch
+    inputs:
+      build-deps-only:
+        description: 'Only build dependencies (bypasses caching)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  sync_upstream:
+    name: Sync from Upstream
+    runs-on: ubuntu-latest
+    # Only sync when running on cyberralf83/orcanightly branch
+    if: github.ref == 'refs/heads/cyberralf83/orcanightly'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: cyberralf83/orcanightly
+          fetch-depth: 0  # Need full history for merge
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/SoftFever/OrcaSlicer.git || true
+          git remote -v
+
+      - name: Fetch upstream nightly-builds tag
+        run: |
+          git fetch upstream --tags
+          git tag -l "nightly-builds"
+
+      - name: Merge upstream changes
+        run: |
+          echo "Attempting to merge nightly-builds tag from upstream into cyberralf83/orcanightly..."
+          if git merge nightly-builds --no-edit; then
+            echo "✅ Merge successful!"
+          else
+            echo "❌ MERGE CONFLICT DETECTED!"
+            echo "Please resolve conflicts manually:"
+            echo "  1. git clone your repository"
+            echo "  2. git remote add upstream https://github.com/SoftFever/OrcaSlicer.git"
+            echo "  3. git fetch upstream --tags"
+            echo "  4. git merge nightly-builds"
+            echo "  5. Resolve conflicts and commit"
+            echo "  6. git push origin cyberralf83/orcanightly"
+            git merge --abort
+            exit 1
+          fi
+
+      - name: Push merged changes
+        run: |
+          git push origin cyberralf83/orcanightly
+
+  build_mac:
+    name: Build macOS
+    needs: [sync_upstream]
+    # Run if sync succeeded OR if not running on cyberralf83/orcanightly branch
+    if: |
+      always() &&
+      (needs.sync_upstream.result == 'success' ||
+       needs.sync_upstream.result == 'skipped')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            arch: arm64
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-deps-only: ${{ inputs.build-deps-only || false }}
+      force-build: ${{ github.event_name == 'schedule' }}
+    secrets: inherit
