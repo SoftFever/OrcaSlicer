@@ -198,8 +198,8 @@ jobs:
         if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cyberralf83/orcanightly') && inputs.os == 'macos-14'
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
-          release_id: 137995723
+          upload_url: https://uploads.github.com/repos/cyberralf83/OrcaSlicer/releases/{{RELEASE_ID}}/assets{?name,label}
+          release_id: {{RELEASE_ID}}
           asset_path: ${{ github.workspace }}/OrcaSlicer_Mac_arm64_${{ env.ver }}.dmg
           asset_name: OrcaSlicer_Mac_arm64_nightly.dmg
           asset_content_type: application/octet-stream
@@ -209,8 +209,8 @@ jobs:
         if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cyberralf83/orcanightly') && inputs.os == 'macos-14'
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
-          upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
-          release_id: 137995723
+          upload_url: https://uploads.github.com/repos/cyberralf83/OrcaSlicer/releases/{{RELEASE_ID}}/assets{?name,label}
+          release_id: {{RELEASE_ID}}
           asset_path: ${{ github.workspace }}/OrcaSlicer_profile_validator_Mac_arm64_${{ env.ver }}.dmg
           asset_name: OrcaSlicer_profile_validator_Mac_arm64_nightly.dmg
           asset_content_type: application/octet-stream
