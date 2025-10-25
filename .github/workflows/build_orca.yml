@@ -30,6 +30,19 @@ jobs:
         with:
           lfs: 'true'
 
+      - name: Sync with upstream nightly-builds
+        if: inputs.os == 'macos-14'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/SoftFever/OrcaSlicer.git || true
+          git fetch upstream nightly-builds
+          git merge upstream/nightly-builds --no-edit || {
+            echo "::error::Merge conflict detected! Please manually merge upstream changes."
+            exit 1
+          }
+        shell: bash
+
       - name: load cached deps
         uses: actions/cache@v4
         with:
@@ -114,7 +127,7 @@ jobs:
 
  # Thanks to RaySajuuk, it's working now
       - name: Sign app and notary
-        if: false && inputs.os == 'macos-14'
+        if: inputs.os == 'macos-14'
         working-directory: ${{ github.workspace }}
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -131,43 +144,43 @@ jobs:
           security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
-          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer.app
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer.app
           # Sign OrcaSlicer_profile_validator.app if it exists
-          if [ -f "${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
-            codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app
+          if [ -f "${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
+            codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer_profile_validator.app
           fi
-          
+
           # Create main OrcaSlicer DMG without the profile validator helper
-          mkdir -p ${{ github.workspace }}/build/universal/OrcaSlicer_dmg
-          rm -rf ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/*
-          cp -R ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer.app ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/
-          ln -sfn /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_dmg/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer_dmg -ov -format UDZO OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
-          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
-          
+          mkdir -p ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg
+          rm -rf ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg/*
+          cp -R ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer.app ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg/
+          ln -sfn /Applications ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_dmg -ov -format UDZO OrcaSlicer_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg
+
           # Create separate OrcaSlicer_profile_validator DMG if the app exists
-          if [ -f "${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
-            mkdir -p ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg
-            rm -rf ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/*
-            cp -R ${{ github.workspace }}/build/universal/OrcaSlicer/OrcaSlicer_profile_validator.app ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/
-            ln -sfn /Applications ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg/Applications
-            hdiutil create -volname "OrcaSlicer Profile Validator" -srcfolder ${{ github.workspace }}/build/universal/OrcaSlicer_profile_validator_dmg -ov -format UDZO OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
-            codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+          if [ -f "${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
+            mkdir -p ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg
+            rm -rf ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg/*
+            cp -R ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer/OrcaSlicer_profile_validator.app ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg/
+            ln -sfn /Applications ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg/Applications
+            hdiutil create -volname "OrcaSlicer Profile Validator" -srcfolder ${{ github.workspace }}/build/${{ env.MACOS_ARCH }}/OrcaSlicer_profile_validator_dmg -ov -format UDZO OrcaSlicer_profile_validator_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg
+            codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_profile_validator_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg
           fi
-          
+
           # Notarize main DMG
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
-          xcrun notarytool submit "OrcaSlicer_Mac_universal_${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
-          xcrun stapler staple OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
-          
+          xcrun notarytool submit "OrcaSlicer_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
+          xcrun stapler staple OrcaSlicer_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg
+
           # Notarize profile validator DMG if it exists
-          if [ -f "OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg" ]; then
-            xcrun notarytool submit "OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
-            xcrun stapler staple OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+          if [ -f "OrcaSlicer_profile_validator_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg" ]; then
+            xcrun notarytool submit "OrcaSlicer_profile_validator_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
+            xcrun stapler staple OrcaSlicer_profile_validator_Mac_${{ env.MACOS_ARCH }}_${{ env.ver }}.dmg
           fi
 
       - name: Create DMG without notary
-        if: inputs.os == 'macos-14'
+        if: false
         working-directory: ${{ github.workspace }}
         run: |
           # Remove extended attributes to prevent "damaged app" error
