@@ -202,7 +202,6 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
 	  -DSLIC3R_PCH="${SLIC3R_PRECOMPILED_HEADERS}" \
 	  -DDESTDIR="${SCRIPT_PATH}/deps/build/destdir" \
 	  -DDEP_DOWNLOAD_DIR="${SCRIPT_PATH}/deps/DL_CACHE" \
-	  "${COLORED_OUTPUT}" \
 	  "${BUILD_ARGS[@]}"
     set +x
     cmake --build deps/build
