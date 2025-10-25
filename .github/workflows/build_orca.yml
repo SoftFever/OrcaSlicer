@@ -30,19 +30,6 @@ jobs:
         with:
           lfs: 'true'
 
-      - name: Sync with upstream nightly-builds
-        if: inputs.os == 'macos-14'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote add upstream https://github.com/SoftFever/OrcaSlicer.git || true
-          git fetch upstream refs/tags/nightly-builds
-          git merge FETCH_HEAD --no-edit || {
-            echo "::error::Merge conflict detected! Please manually merge upstream changes."
-            exit 1
-          }
-        shell: bash
-
       - name: load cached deps
         uses: actions/cache@v4
         with:
