@@ -2301,7 +2301,6 @@ msgstr "✖ %1% übersprungen: %2% existiert nicht.\n"
 msgid "✔ Replaced %1% with %2%\n"
 msgstr "✔ %1% durch %2% ersetzt"
 
-
 msgid "Delete all connectors"
 msgstr "Lösche alle Verbinder"
 
@@ -6572,6 +6571,12 @@ msgstr "Wählen Sie eine neue Datei aus"
 
 msgid "File for the replace wasn't selected"
 msgstr "Datei für das Ersetzen wurde nicht ausgewählt"
+
+msgid "Select folder to replace from"
+msgstr "Wählen Sie ein Verzeichnis aus um daraus zu ersetzen"
+
+msgid "Directory for the replace wasn't selected"
+msgstr "Verzeichnis um daraus zu ersetzen wurde nicht ausgewählt"
 
 msgid "Please select a file"
 msgstr "Bitte wählen Sie eine Datei"

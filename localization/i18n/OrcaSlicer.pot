@@ -6021,6 +6021,12 @@ msgstr ""
 msgid "File for the replace wasn't selected"
 msgstr ""
 
+msgid "Select folder to replace from"
+msgstr ""
+
+msgid "Directory for the replace wasn't selected"
+msgstr ""
+
 msgid "Please select a file"
 msgstr ""
 
