@@ -2,7 +2,7 @@
 #include "GUI_App.hpp"
 #include "OptionsGroup.hpp"
 
-#include <wx/wx.h> 
+#include <wx/wx.h>
 #include <wx/numformatter.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
@@ -11,6 +11,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Polygon.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 
 #include "Widgets/LabeledStaticBox.hpp"
 #include "Widgets/DialogButtons.hpp"
@@ -25,7 +26,7 @@ namespace GUI {
 
 BedShape::BedShape(const Pointfs& points)
 {
-    m_build_volume = { points, 0. };
+    m_build_volume = { points, 0.f, {}, {} };
 }
 
 static std::string get_option_label(BedShape::Parameter param)
@@ -228,22 +229,9 @@ void BedShapePanel::build_panel(const Pointfs& default_pt, const std::string& cu
 	Line line{ "", "" };
 	line.full_width = 1;
 	line.widget = [this](wxWindow* parent) {
-        StateColor clr_bg = StateColor(
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-            std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-        );
-        StateColor clr_tx = StateColor(
-            std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-            std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-            std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-        );
         Button* shape_btn = new Button(parent, _L("Load shape from STL..."));
-        shape_btn->SetBackgroundColor(clr_bg);
-        shape_btn->SetBorderColor(clr_bg);
-        shape_btn->SetTextColor(clr_tx);
+        shape_btn->SetStyle(ButtonStyle::Regular, ButtonType::Expanded);
+
         wxSizer* shape_sizer = new wxBoxSizer(wxHORIZONTAL);
         shape_sizer->Add(shape_btn, 1, wxEXPAND);
 
@@ -296,7 +284,7 @@ ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(const wxString& tit
     optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
         update_shape();
     };
-	
+
     m_optgroups.push_back(optgroup);
 //    panel->SetSizerAndFit(optgroup->sizer);
     m_shape_options_book->AddPage(panel, title);
@@ -324,40 +312,21 @@ wxPanel* BedShapePanel::init_texture_panel()
     Line line{ "", "" };
     line.full_width = 1;
     line.widget = [this](wxWindow* parent) {
-        StateColor clr_bg = StateColor(
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-            std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-        );
-        StateColor clr_tx = StateColor(
-            std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-            std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-            std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-        );
-
         Button* load_btn = new Button(parent, _L("Load..."));
-        load_btn->SetBackgroundColor(clr_bg);
-        load_btn->SetBorderColor(clr_bg);
-        load_btn->SetTextColor(clr_tx);
+        load_btn->SetStyle(ButtonStyle::Regular, ButtonType::Expanded);
+
         wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
         wxStaticText* filename_lbl = new wxStaticText(parent, wxID_ANY, _(NONE));
-
         wxSizer* filename_sizer = new wxBoxSizer(wxHORIZONTAL);
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
         Button* remove_btn = new Button(parent, _L("Remove"));
-        remove_btn->SetBackgroundColor(clr_bg);
-        remove_btn->SetBorderColor(clr_bg);
-        remove_btn->SetTextColor(clr_tx);
+        remove_btn->SetStyle(ButtonStyle::Regular, ButtonType::Expanded);
+
         wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
-
-        wxGetApp().UpdateDarkUI(load_btn);
-        wxGetApp().UpdateDarkUI(remove_btn);
 
         wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(filename_sizer, 1, wxEXPAND);
@@ -375,7 +344,7 @@ wxPanel* BedShapePanel::init_texture_panel()
                 wxStaticText* lbl = dynamic_cast<wxStaticText*>(e.GetEventObject());
                 if (lbl != nullptr) {
                     bool exists = (m_custom_texture == NONE) || boost::filesystem::exists(m_custom_texture);
-                    lbl->SetForegroundColour(exists ? /*wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT)*/wxGetApp().get_label_clr_default() : wxColor(*wxRED));
+                    lbl->SetForegroundColour(exists ? wxGetApp().get_label_clr_default() : wxColour("#E14747")); // ORCA
 
                     wxString tooltip_text = "";
                     if (m_custom_texture != NONE) {
@@ -420,23 +389,9 @@ wxPanel* BedShapePanel::init_model_panel()
     Line line{ "", "" };
     line.full_width = 1;
     line.widget = [this](wxWindow* parent) {
-        StateColor clr_bg = StateColor(
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-            std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-            std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-        );
-        StateColor clr_tx = StateColor(
-            std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-            std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-            std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-        );
-
         Button* load_btn = new Button(parent, _L("Load..."));
-        load_btn->SetBackgroundColor(clr_bg);
-        load_btn->SetBorderColor(clr_bg);
-        load_btn->SetTextColor(clr_tx);
+        load_btn->SetStyle(ButtonStyle::Regular, ButtonType::Expanded);
+
         wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
@@ -445,14 +400,10 @@ wxPanel* BedShapePanel::init_model_panel()
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
         Button* remove_btn = new Button(parent, _L("Remove"));
-        remove_btn->SetBackgroundColor(clr_bg);
-        remove_btn->SetBorderColor(clr_bg);
-        remove_btn->SetTextColor(clr_tx);
+        remove_btn->SetStyle(ButtonStyle::Regular, ButtonType::Expanded);
+
         wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
-
-        wxGetApp().UpdateDarkUI(load_btn);
-        wxGetApp().UpdateDarkUI(remove_btn);
 
         wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(filename_sizer, 1, wxEXPAND);
@@ -471,7 +422,7 @@ wxPanel* BedShapePanel::init_model_panel()
                 wxStaticText* lbl = dynamic_cast<wxStaticText*>(e.GetEventObject());
                 if (lbl != nullptr) {
                     bool exists = (m_custom_model == NONE) || boost::filesystem::exists(m_custom_model);
-                    lbl->SetForegroundColour(exists ? /*wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT)*/wxGetApp().get_label_clr_default() : wxColor(*wxRED));
+                    lbl->SetForegroundColour(exists ? wxGetApp().get_label_clr_default() : wxColour("#E14747")); // ORCA
 
                     wxString tooltip_text = "";
                     if (m_custom_model != NONE) {
@@ -572,7 +523,7 @@ void BedShapePanel::update_shape()
     {
         double diameter;
 		try { diameter = boost::any_cast<double>(opt_group->get_value("diameter")); }
-		catch (const std::exception & /* e */) { return; } 
+		catch (const std::exception & /* e */) { return; }
 
  		if (diameter == 0.0) return ;
 		auto r = diameter / 2;

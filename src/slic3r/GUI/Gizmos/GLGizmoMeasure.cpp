@@ -444,8 +444,10 @@ bool GLGizmoMeasure::on_init()
 {
     m_shortcut_key = WXK_CONTROL_U;
 
+    const wxString shift = _L("Shift+");
+
     m_desc["feature_selection"]         = _L("Select feature");
-    m_desc["point_selection_caption"]   = _L("Shift + Left mouse button");
+    m_desc["point_selection_caption"]   = shift + _L("Left mouse button");
     m_desc["point_selection"]           = _L("Select point");
     m_desc["reset_caption"]             = _L("Delete");
     m_desc["reset"]                     = _L("Restart selection");
@@ -1932,35 +1934,38 @@ void GLGizmoMeasure::show_distance_xyz_ui()
         }
     };
     auto add_edit_distance_xyz_box = [this](Vec3d &distance) {
-        m_imgui->disabled_begin(m_hit_different_volumes.size() == 1);
-        {
+        //m_imgui->disabled_begin(m_hit_different_volumes.size() == 1);
+        //{
             if (m_measure_mode == EMeasureMode::ONLY_MEASURE) {
                 m_can_set_xyz_distance = false;
             }
-            m_imgui->disabled_begin(!m_can_set_xyz_distance);
+            bool volume = m_hit_different_volumes.size() == 1;
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            m_imgui->text_colored(ImGuiWrapper::COL_RED, "X:");
+            m_imgui->text_colored(ImGuiWrapper::to_ImVec4(ColorRGBA::X()), "X:"); // ORCA match axis color
             ImGui::TableSetColumnIndex(1);
             ImGui::PushItemWidth(m_input_size_max);
+            m_imgui->disabled_begin(volume || !m_can_set_xyz_distance); // ORCA disable only input box othervise axis colors rendered dimmed
             ImGui::BBLInputDouble("##measure_distance_x", &m_buffered_distance[0], 0.0f, 0.0f, "%.2f");
+            m_imgui->disabled_end();
 
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            m_imgui->text_colored(ImGuiWrapper::COL_GREEN, "Y:");
+            m_imgui->text_colored(ImGuiWrapper::to_ImVec4(ColorRGBA::Y()), "Y:"); // ORCA match axis color
             ImGui::TableSetColumnIndex(1);
+            m_imgui->disabled_begin(volume || !m_can_set_xyz_distance); // ORCA disable only input box othervise axis colors rendered dimmed
             ImGui::BBLInputDouble("##measure_distance_y", &m_buffered_distance[1], 0.0f, 0.0f, "%.2f");
             m_imgui->disabled_end();
 
-            m_imgui->disabled_begin(!(m_same_model_object && m_can_set_xyz_distance));
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            m_imgui->text_colored(ImGuiWrapper::COL_BLUE, "Z:");
+            m_imgui->text_colored(ImGuiWrapper::to_ImVec4(ColorRGBA::Z()), "Z:"); // ORCA match axis color
             ImGui::TableSetColumnIndex(1);
+            m_imgui->disabled_begin(volume || !(m_same_model_object && m_can_set_xyz_distance)); // ORCA disable only input box othervise axis colors rendered dimmed
             ImGui::BBLInputDouble("##measure_distance_z", &m_buffered_distance[2], 0.0f, 0.0f, "%.2f");
             m_imgui->disabled_end();
-        }
-        m_imgui->disabled_end();
+        //}
+        //m_imgui->disabled_end();
         if (m_last_active_item_imgui != m_current_active_imgui_id && m_hit_different_volumes.size() == 2) {
             Vec3d displacement = Vec3d::Zero();
             if (std::abs(m_buffered_distance[0] - distance[0]) > EPSILON) {

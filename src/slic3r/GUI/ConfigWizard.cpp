@@ -1448,7 +1448,7 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
 
     auto *sizer_extr = new wxFlexGridSizer(3, 5, 5);
     auto *text_extr = new wxStaticText(this, wxID_ANY, _L("Extrusion Temperature:"));
-    auto *unit_extr = new wxStaticText(this, wxID_ANY, "\u2103" /* °C */);
+    auto *unit_extr = new wxStaticText(this, wxID_ANY, wxString::FromUTF8("\u2103") /* °C */);
     sizer_extr->AddGrowableCol(0, 1);
     sizer_extr->Add(text_extr, 0, wxALIGN_CENTRE_VERTICAL);
     sizer_extr->Add(spin_extr);
@@ -1462,7 +1462,7 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent)
 
     auto *sizer_bed = new wxFlexGridSizer(3, 5, 5);
     auto *text_bed = new wxStaticText(this, wxID_ANY, _L("Bed Temperature:"));
-    auto *unit_bed = new wxStaticText(this, wxID_ANY, "\u2103" /* °C */);
+    auto *unit_bed = new wxStaticText(this, wxID_ANY, wxString::FromUTF8("\u2103") /* °C */);
     sizer_bed->AddGrowableCol(0, 1);
     sizer_bed->Add(text_bed, 0, wxALIGN_CENTRE_VERTICAL);
     sizer_bed->Add(spin_bed);
@@ -2599,7 +2599,7 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
         custom_config->set_key_value("filament_colour", wxGetApp().preset_bundle->project_config.option("filament_colour"));
         const std::string profile_name = page_custom->profile_name();
         Semver semver(SLIC3R_VERSION);
-        preset_bundle->load_config_from_wizard(profile_name, *custom_config, semver, true);
+        preset_bundle->load_config_from_wizard(profile_name, *custom_config, semver);
 
         wxGetApp().plater()->sidebar().update_presets(Slic3r::Preset::Type::TYPE_PRINTER);
         wxGetApp().plater()->sidebar().update_presets(Slic3r::Preset::Type::TYPE_FILAMENT);

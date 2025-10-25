@@ -64,6 +64,9 @@ static constexpr double LARGE_BED_THRESHOLD = 2147;
 // Orca: maximum number of extruders is 64. For SEMM printers, it defines maximum filament number.
 static constexpr size_t MAXIMUM_EXTRUDER_NUMBER = 64;
 
+// Orca: maximum line width is 5 times the nozzle diameter
+static constexpr float MAX_LINE_WIDTH_MULTIPLIER = 5;
+
 extern double SCALING_FACTOR;
 static constexpr double PI = 3.141592653589793238;
 #define POLY_SIDE_COUNT 24 // for brim ear circle

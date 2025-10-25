@@ -342,17 +342,7 @@ AboutDialog::AboutDialog()
       }
     //Add "Portions copyright" button
     Button* button_portions = new Button(this,_L("Portions copyright"));
-    StateColor report_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-                         std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    button_portions->SetBackgroundColor(report_bg);
-    StateColor report_bd(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    button_portions->SetBorderColor(report_bd);
-    StateColor report_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    button_portions->SetTextColor(report_text);
-    button_portions->SetFont(Label::Body_12);
-    button_portions->SetCornerRadius(FromDIP(12));
-    button_portions->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
+    button_portions->SetStyle(ButtonStyle::Regular, ButtonType::Window);
 
     wxBoxSizer *copyright_button_ver = new wxBoxSizer(wxVERTICAL);
     copyright_button_ver->Add( 0, 0, 0, wxTOP, FromDIP(10));

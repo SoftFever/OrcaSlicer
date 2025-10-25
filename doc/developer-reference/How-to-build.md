@@ -13,13 +13,15 @@ Whether you're a contributor or just want a custom build, this guide will help y
   - [MacOS Instructions](#macos-instructions)
   - [Debugging in Xcode](#debugging-in-xcode)
 - [Linux](#linux)
-  - [Using Docker (Recommended)](#using-docker-recommended)
+  - [Using Docker](#using-docker)
     - [Docker Dependencies](#docker-dependencies)
     - [Docker Instructions](#docker-instructions)
   - [Troubleshooting](#troubleshooting)
-- [Ubuntu](#ubuntu)
-  - [Ubuntu Dependencies](#ubuntu-dependencies)
-  - [Ubuntu Instructions](#ubuntu-instructions)
+  - [Linux Build](#linux-build)
+    - [Dependencies](#dependencies)
+      - [Common dependencies across distributions](#common-dependencies-across-distributions)
+      - [Additional dependencies for specific distributions](#additional-dependencies-for-specific-distributions)
+    - [Linux Instructions](#linux-instructions)
 - [Portable User Configuration](#portable-user-configuration)
   - [Example folder structure](#example-folder-structure)
 
@@ -82,19 +84,34 @@ How to building with Visual Studio 2022 on Windows 64-bit.
      ```
 
 > [!NOTE]
+> The build process will take a long time depending on your system but even with high-end hardware it can take up to 40 minutes.
+
+> [!TIP]
 > If you encounter issues, you can try to uninstall ZLIB from your Vcpkg library.
 
-3. If successful, you will find the VS 2022 solution file in:
+3. If successful, you will find the Visual Studio solution file in:
    ```shell
    build\OrcaSlicer.sln
    ```
+4. Open the solution in Visual Studio, set the build configuration to `Release` and run the `Local Windows Debugger`.  
+   ![compile_vs2022_local_debugger](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/compile_vs2022_local_debugger.png?raw=true)
+5. Your resulting executable will be located in:
+   ```shell
+   \build\src\Release\orca-slicer.exe
+   ```
+
+> [!NOTE]
+> The first time you build a branch, it will take a long time.  
+> Changes to .cpp files are quickly compiled.  
+> Changes to .hpp files take longer, depending on what you change.  
+> If you switch back and forth between branches, it also takes a long time to rebuild, even if you haven't made any changes.
 
 > [!IMPORTANT]
 > Make sure that CMake version 3.31.x is actually being used. Run `cmake --version` and verify it returns a **3.31.x** version.
 > If you see an older version (e.g. 3.29), it's likely due to another copy in your system's PATH (e.g. from Strawberry Perl).
 > You can run where cmake to check the active paths and rearrange your **System Environment Variables** > PATH, ensuring the correct CMake (e.g. C:\Program Files\CMake\bin) appears before others like C:\Strawberry\c\bin.
 
-> [!NOTE]
+> [!TIP]
 > If the build fails, try deleting the `build/` and `deps/build/` directories to clear any cached build data. Rebuilding after a clean-up is usually sufficient to resolve most issues.
 
 ## MacOS 64-bit
@@ -172,9 +189,9 @@ To build and debug directly in Xcode:
 
 ## Linux
 
-Linux instructions are available in two formats: using Docker (recommended) or building directly on your system.
+Linux distributions are available in two formats: [using Docker](#using-docker) (recommended) or [building directly](#linux-build) on your system.
 
-### Using Docker (Recommended)
+### Using Docker
 
 How to build and run OrcaSlicer using Docker.
 
@@ -186,56 +203,118 @@ How to build and run OrcaSlicer using Docker.
 #### Docker Instructions
 
 ```shell
-git clone https://github.com/SoftFever/OrcaSlicer && cd OrcaSlicer && ./DockerBuild.sh && ./DockerRun.sh
+git clone https://github.com/SoftFever/OrcaSlicer && cd OrcaSlicer && ./scripts/DockerBuild.sh && ./scripts/DockerRun.sh
 ```
 
 ### Troubleshooting
-The `DockerRun.sh` script includes several commented-out options that can help resolve common issues. Here's a breakdown of what they do:
 
-- `xhost +local:docker`: If you encounter an "Authorization required, but no authorization protocol specified" error, run this command in your terminal before executing DockerRun.sh. This grants Docker containers permission to interact with your X display server.
+The `scripts/DockerRun.sh` script includes several commented-out options that can help resolve common issues. Here's a breakdown of what they do:
+
+- `xhost +local:docker`: If you encounter an "Authorization required, but no authorization protocol specified" error, run this command in your terminal before executing `scripts/DockerRun.sh`. This grants Docker containers permission to interact with your X display server.
 - `-h $HOSTNAME`: Forces the container's hostname to match your workstation's hostname. This can be useful in certain network configurations.
 - `-v /tmp/.X11-unix:/tmp/.X11-unix`: Helps resolve problems with the X display by mounting the X11 Unix socket into the container.
 - `--net=host`: Uses the host's network stack, which is beneficial for printer Wi-Fi connectivity and D-Bus communication.
 - `--ipc host`: Addresses potential permission issues with X installations that prevent communication with shared memory sockets.
 - `-u $USER`: Runs the container as your workstation's username, helping to maintain consistent file permissions.
-- `-v $HOME`:/home/$USER: Mounts your home directory into the container, allowing you to easily load and save files.
+- `-v $HOME:/home/$USER`: Mounts your home directory into the container, allowing you to easily load and save files.
 - `-e DISPLAY=$DISPLAY`: Passes your X display number to the container, enabling the graphical interface.
 - `--privileged=true`: Grants the container elevated privileges, which may be necessary for libGL and D-Bus functionalities.
 - `-ti`: Attaches a TTY to the container, enabling command-line interaction with OrcaSlicer.
 - `--rm`: Automatically removes the container once it exits, keeping your system clean.
-- `orcaslicer $*`: Passes any additional parameters from the `DockerRun.sh` script directly to the OrcaSlicer executable within the container.
+- `orcaslicer $*`: Passes any additional parameters from the `scripts/DockerRun.sh` script directly to the OrcaSlicer executable within the container.
+
 By uncommenting and using these options as needed, you can often resolve issues related to display authorization, networking, and file permissions.
 
-## Ubuntu
+### Linux Build
 
-How to build OrcaSlicer on Ubuntu.
+How to build OrcaSlicer on Linux.
 
-### Ubuntu Dependencies
+#### Dependencies
 
-All required dependencies will be installed automatically by the provided shell script, including:
+The build system supports multiple Linux distributions including Ubuntu/Debian and Arch Linux. All required dependencies will be installed automatically by the provided shell script where possible, however you may need to manually install some dependencies.
 
-- libmspack-dev
-- libgstreamerd-3-dev
-- libsecret-1-dev
-- libwebkit2gtk-4.0-dev
-- libssl-dev
-- libcurl4-openssl-dev
-- eglexternalplatform-dev
-- libudev-dev
-- libdbus-1-dev
-- extra-cmake-modules
-- libgtk2.0-dev
-- libglew-dev
+> [!NOTE]
+> Fedora and other distributions are not currently supported, but you can try building manually by installing the required dependencies listed below.
+
+##### Common dependencies across distributions
+
+- autoconf / automake
 - cmake
+- curl / libcurl4-openssl-dev
+- dbus-devel / libdbus-1-dev
+- eglexternalplatform-dev / eglexternalplatform-devel
+- extra-cmake-modules
+- file
+- gettext
 - git
+- glew-devel / libglew-dev
+- gstreamer-devel / libgstreamerd-3-dev
+- gtk3-devel / libgtk-3-dev
+- libmspack-dev / libmspack-devel
+- libsecret-devel / libsecret-1-dev
+- libspnav-dev / libspnav-devel
+- libssl-dev / openssl-devel
+- libtool
+- libudev-dev
+- mesa-libGLU-devel
+- ninja-build
 - texinfo
+- webkit2gtk-devel / libwebkit2gtk-4.0-dev or libwebkit2gtk-4.1-dev
+- wget
 
-### Ubuntu Instructions
+##### Additional dependencies for specific distributions
 
-```shell
-`./build_linux.sh -u`      # install dependencies
-`./build_linux.sh -disr`    # build OrcaSlicer
-```
+- **Ubuntu 22.x/23.x**: libfuse-dev, m4
+- **Arch Linux**: mesa, wayland-protocols
+
+#### Linux Instructions
+
+1. **Install system dependencies:**
+   ```shell
+   ./build_linux.sh -u
+   ```
+
+2. **Build dependencies:**
+   ```shell
+   ./build_linux.sh -d
+   ```
+
+3. **Build OrcaSlicer:**
+   ```shell
+   ./build_linux.sh -s
+   ```
+
+4. **Build AppImage (optional):**
+   ```shell
+   ./build_linux.sh -i
+   ```
+
+5. **All-in-one build (recommended):**
+   ```shell
+   ./build_linux.sh -dsi
+   ```
+
+**Additional build options:**
+
+- `-b`: Build in debug mode
+- `-c`: Force a clean build
+- `-C`: Enable ANSI-colored compile output (GNU/Clang only)
+- `-j N`: Limit builds to N cores (useful for low-memory systems)
+- `-1`: Limit builds to one core
+- `-l`: Use Clang instead of GCC
+- `-p`: Disable precompiled headers (boost ccache hit rate)
+- `-r`: Skip RAM and disk checks (for low-memory systems)
+
+> [!NOTE]
+> The build script automatically detects your Linux distribution and uses the appropriate package manager (apt, pacman) to install dependencies.
+
+> [!TIP]
+> For first-time builds, use `./build_linux.sh -u` to install dependencies, then `./build_linux.sh -dsi` to build everything.
+
+> [!WARNING]
+> If you encounter memory issues during compilation, use `-j 1` or `-1` to limit parallel compilation, or `-r` to skip memory checks.
+
+---
 
 ## Portable User Configuration
 

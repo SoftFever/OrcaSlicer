@@ -8,6 +8,7 @@
 #include "libslic3r/Preset.hpp"
 #include "GUI_Utils.hpp"
 #include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/Button.hpp"
 
 class wxTextCtrl;
 class wxStaticText;
@@ -68,6 +69,7 @@ public:
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void on_sys_color_changed() override {};
+    void check_host_key_valid();
 };
 
 

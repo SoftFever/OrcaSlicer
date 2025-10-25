@@ -180,6 +180,9 @@ public:
         for (const LayerRegion *layerm : m_regions) if (layerm->slices.any_bottom_contains(item)) return true;
         return false;
     }
+
+    // Whether two regions can be printed in a continues perimeter
+    static bool             is_perimeter_compatible(const PrintRegion& a, const PrintRegion& b);
     void                    make_perimeters();
     // Phony version of make_fills() without parameters for Perl integration only.
     void                    make_fills() { this->make_fills(nullptr, nullptr); }
@@ -237,6 +240,8 @@ public:
             }
         return idx;
     }
+
+    size_t get_extruder_id(unsigned int filament_id) const;
 
 protected:
     friend class PrintObject;

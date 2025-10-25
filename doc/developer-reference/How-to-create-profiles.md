@@ -133,6 +133,18 @@ The following sample JSON file shows how to create a new generic filament profil
 > [!NOTE]
 > If the filament is compatible with AMS, ensure that the `filament_id` value **does not exceed 8 characters** to maintain AMS compatibility.
 
+> [!TIP]
+> **Testing Profile Changes**
+> 
+> When developing profiles, you may notice that changes aren't reflected in OrcaSlicer after editing profile files. This happens because OrcaSlicer caches profiles in the system folder.
+> To force OrcaSlicer to load your updated profiles:
+> 1. **Access the configuration folder**: Go to **Help** → **Show Configuration Folder**
+>    ![go-to-configuration-folder](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/go-to-configuration-folder.png?raw=true)
+> 2. **Clear the cache**: Delete the `system` folder to remove cached profiles
+>    ![profile-delete-system-folder](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/profile-delete-system-folder.png?raw=true)
+> 3. **Restart OrcaSlicer**: Launch the application to load your updated profiles
+> This process forces OrcaSlicer to update its profile cache from the source files in the `resources/profiles/` directory.
+
 ### Adding Filament Profiles to Printer Vendor Library
 
 In this section, we will discuss how to add a new filament profile for a certain vendor.
@@ -292,11 +304,15 @@ Example variant profile:
 - The `model` directory under the vendor folder is intended to behave similarly to `machine` profiles.
 - Used for additional printer-related 3D models or definitions, stored at:
 
-```
+```shell
 resources\profiles\vendor_name\model\
 ```
 
 ## Vendor Meta File
+
+```shell
+resources\profiles\vendor_name.json
+```
 
 Each vendor must include a JSON file in the `resources\profiles` directory, named `vendor_name.json`. This file lists all available models, variants, processes, and filaments:
 
@@ -401,7 +417,6 @@ In addition to the Orca validator, you should run the `orca_extra_profile_check.
 python ./orca_extra_profile_check.py
 ```
 
-
 You can also enable or disable specific checks:
 
 - `--help`: displays help information
@@ -409,7 +424,6 @@ You can also enable or disable specific checks:
 - `--check-filaments` (enabled by default): checks `compatible_printers` fields in filament profiles
 - `--check-materials`: checks default material names in machine profiles
 - `--check-obsolete-keys`: checks for obsolete keys in profiles
-
 
 #### Sample usage with all checks enabled
 

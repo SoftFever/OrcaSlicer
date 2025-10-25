@@ -11,7 +11,7 @@ In contrast, using STEP files offers a higher-quality mesh that more accurately 
 
 This setting determines how STEP files are converted into STL files and is displayed during the STEP file import process.
 
-If you don't see this when opening a STEP file, check [Don't show again](#Don't-show-again) below.
+If you don't see this when opening a STEP file, check [Don't show again](#dont-show-again) below.
 
 ![stl-transformation](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/STL-Transformation/stl-transformation.png?raw=true)
 
@@ -25,7 +25,7 @@ A finer mesh will result in a more accurate representation of the original surfa
 - **Linear Deflection:** Specifies the maximum distance allowed between the original surface and its polygonal approximation. Lower values produce a mesh that more accurately follows the original curvature.
 - **Angular Deflection:** Defines the maximum allowable angle difference between the actual surface and its tessellated counterpart. Smaller angular deflection values yield a more precise mesh.
 
-#### Split compound and compsolid into multiple objects:
+#### Split compound and compsolid into multiple objects
 
 Enabling this option will split the imported 3D file into separate objects. This is especially useful for adjusting individual object positions, tweaking print settings, or optimizing the model through simplification.
 
@@ -50,7 +50,7 @@ To access the Simplify Model option, right-click on the object to simplify in th
 
 It is recommended to enable the "Show Wireframe" option when running a simplification process to visually inspect the outcome. However, be cautious: overly aggressive simplification may lead to noticeable detail loss, increased ringing, or other printing issues.
 
-### You can Simplify your model using the following options:
+### You can Simplify your model using the following options
 
 - **Detail Level:** Control the level of detail in the simplified model by choosing from five preset options. This setting allows for a balance between mesh fidelity and performance.
 - **Decimate Ratio:** Adjust the ratio between the original model's polygon count and that of the simplified model. For instance, a decimate ratio of 0.5 will yield a model with approximately half the original number of polygons.

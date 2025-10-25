@@ -95,30 +95,8 @@ void DialogButtons::SetPrimaryButton(wxString translated_label) {
     // apply focus only if there is no focused element exist. this prevents stealing focus from input boxes
     if(m_parent->FindFocus() == nullptr)
         btn->SetFocus();
-
-    // we won't need color definations after button style management
-    bool is_dark = wxGetApp().dark_mode();
-    StateColor clr_bg = StateColor(
-        std::pair(wxColour("#009688"), (int)StateColor::NotHovered),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#009688"), (int)StateColor::Pressed),
-        std::pair(wxColour("#26A69A"), (int)StateColor::Hovered),
-        std::pair(wxColour("#009688"), (int)StateColor::Normal),
-        std::pair(wxColour("#009688"), (int)StateColor::Enabled)
-    );
-    btn->SetBackgroundColor(clr_bg);
-    StateColor clr_br = StateColor(
-        std::pair(wxColour("#009688"), (int)StateColor::NotFocused),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour(is_dark ? "#26A69A" : "#00FFD4"), (int)StateColor::Focused)
-    );
-    btn->SetBorderColor(clr_br);
-    StateColor clr_tx = StateColor(
-        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-        std::pair(wxColour("#FEFEFE"), (int)StateColor::Hovered),
-        std::pair(wxColour("#FEFEFE"), (int)StateColor::Normal)
-    );
-    btn->SetTextColor(clr_tx);
+ 
+    btn->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
 }
 
 void DialogButtons::SetAlertButton(wxString translated_label) {
@@ -136,66 +114,16 @@ void DialogButtons::SetAlertButton(wxString translated_label) {
 
     m_alert = translated_label;
 
-    // we won't need color definations after button style management
-    StateColor clr_bg = StateColor(
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::NotHovered),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-        std::pair(wxColour("#CD1F00"), (int)StateColor::Hovered),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-    );
-    btn->SetBackgroundColor(clr_bg);
-    StateColor clr_br = StateColor(
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::NotFocused),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#26A69A"), (int)StateColor::Focused)
-    );
-    btn->SetBorderColor(clr_br);
-    StateColor clr_tx = StateColor(
-        std::pair(wxColour("#CD1F00"), (int)StateColor::NotHovered),
-        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-        std::pair(wxColour("#CD1F00"), (int)StateColor::Pressed),
-        std::pair(wxColour("#FFFFFD"), (int)StateColor::Hovered),
-        std::pair(wxColour("#CD1F00"), (int)StateColor::Focused),
-        std::pair(wxColour("#CD1F00"), (int)StateColor::Normal)
-    );
-    btn->SetTextColor(clr_tx);
+    btn->SetStyle(ButtonStyle::Alert, ButtonType::Choice);
 }
 
 void DialogButtons::UpdateButtons() {
     m_sizer->Clear();
     SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
-    // we won't need color definations after button style management
-    StateColor clr_bg = StateColor(
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::NotHovered),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Pressed),
-        std::pair(wxColour("#D4D4D4"), (int)StateColor::Hovered),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Normal),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Enabled)
-    );
-    StateColor clr_br = StateColor(
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::NotFocused),
-        std::pair(wxColour("#DFDFDF"), (int)StateColor::Disabled),
-        std::pair(wxColour("#26A69A"), (int)StateColor::Focused)
-    );
-    StateColor clr_tx = StateColor(
-        std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-        std::pair(wxColour("#262E30"), (int)StateColor::Hovered),
-        std::pair(wxColour("#262E30"), (int)StateColor::Normal)
-    );
 
     // Apply standard style to all
     for (Button* btn : m_buttons) {
-        btn->SetFont(Label::Body_14);
-        btn->SetMinSize(wxSize(FromDIP(100),FromDIP(32)));
-        btn->SetPaddingSize(wxSize(FromDIP(12), FromDIP(8)));
-        btn->SetCornerRadius(FromDIP(4));
-        btn->SetBorderWidth(FromDIP(1));
-        btn->SetBackgroundColor(clr_bg);
-        btn->SetBorderColor(clr_br);
-        btn->SetTextColor(clr_tx);
+        btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
         btn->Bind(wxEVT_KEY_DOWN, &DialogButtons::on_keydown, this);
     }
 

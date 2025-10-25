@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-16 22:32+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "PO-Revision-Date: 2025-03-27 19:32+0800\n"
 "Last-Translator: 5idereal <hi@5idereal.cc>\n"
 "Language-Team: \n"
@@ -20,20 +20,53 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.5\n"
 
+msgid "Current AMS humidity"
+msgstr "目前 AMS 濕度"
+
+msgid "Drying"
+msgstr "烘乾"
+
+msgid "Idle"
+msgstr "閒置"
+
+msgid "Humidity"
+msgstr "濕度"
+
+msgid "Temperature"
+msgstr "溫度"
+
+msgid "Left Time"
+msgstr "剩餘時間"
+
+msgid "Serial:"
+msgstr "序號："
+
+msgid "Version:"
+msgstr "版本："
+
+msgid "Latest version"
+msgstr "最新版本"
+
 msgid "Support Painting"
 msgstr "支撐筆刷"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + 滑鼠滾輪"
+msgid "Ctrl+"
+msgstr "Ctrl+"
+
+msgid "Alt+"
+msgstr ""
+
+msgid "Shift+"
+msgstr "Shift+"
+
+msgid "Mouse wheel"
+msgstr "滑鼠滾輪"
 
 msgid "Section view"
 msgstr "剖面圖"
 
 msgid "Reset direction"
 msgstr "重置方向"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + 滑鼠滾輪"
 
 msgid "Pen size"
 msgstr "筆刷尺寸"
@@ -49,9 +82,6 @@ msgstr "滑鼠右鍵"
 
 msgid "Block supports"
 msgstr "不產生支撐區"
-
-msgid "Shift + Left mouse button"
-msgstr "Shift + 滑鼠左鍵"
 
 msgid "Erase"
 msgstr "擦除"
@@ -156,11 +186,20 @@ msgstr "批次填充"
 msgid "Height range"
 msgstr "高度範圍"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "顯示/隱藏線框"
+
+msgid "Remap filaments"
+msgstr "重新配置列印線材"
+
+msgid "Remap"
+msgstr "重新配置"
+
+msgid "Cancel"
+msgstr "取消"
 
 msgid "Shortcut Key "
 msgstr "快捷鍵 "
@@ -184,8 +223,14 @@ msgstr "移除已繪製的顏色"
 msgid "Painted using: Filament %1%"
 msgstr "上色：線材 %1%"
 
+msgid "Filament remapping finished."
+msgstr ""
+
 msgid "Move"
 msgstr "移動"
+
+msgid "Please select at least one object."
+msgstr "請選擇至少一個物件。"
 
 msgid "Gizmo-Move"
 msgstr "Gizmo-移動"
@@ -217,14 +262,20 @@ msgstr "在"
 msgid "mm"
 msgstr "mm"
 
+msgid "Part selection"
+msgstr "選擇零件"
+
+msgid "Fixed step drag"
+msgstr "以固定間距拖曳"
+
+msgid "Single sided scaling"
+msgstr "單側縮放"
+
 msgid "Position"
 msgstr "位置"
 
-#. TRN - Input label. Be short as possible
-#. Angle between Y axis and text line direction.
-#. TRN - Input label. Be short as possible
-msgid "Rotation"
-msgstr "旋轉"
+msgid "Rotate (relative)"
+msgstr "旋轉（相對）"
 
 msgid "Scale ratios"
 msgstr "縮放比例"
@@ -241,9 +292,6 @@ msgstr "平移"
 msgid "Group Operations"
 msgstr "群組操作"
 
-msgid "Set Position"
-msgstr "設定位置"
-
 msgid "Set Orientation"
 msgstr "設定方向"
 
@@ -256,21 +304,27 @@ msgstr "重設位置"
 msgid "Reset Rotation"
 msgstr "重設旋轉"
 
-msgid "World coordinates"
-msgstr "世界座標"
-
 msgid "Object coordinates"
 msgstr "物件座標"
 
-msgid "°"
-msgstr "°"
+msgid "World coordinates"
+msgstr "世界座標"
+
+msgid "Reset current rotation to the value when open the rotation tool."
+msgstr "重設旋轉角度為開啟旋轉工具時的狀態。"
+
+msgid "Rotate (absolute)"
+msgstr "旋轉（絕對）"
+
+msgid "Reset current rotation to real zeros."
+msgstr "將旋轉角度歸零"
+
+msgid "Part coordinates"
+msgstr "零件座標"
 
 #. TRN - Input label. Be short as possible
 msgid "Size"
 msgstr "尺寸"
-
-msgid "%"
-msgstr "%"
 
 msgid "uniform scale"
 msgstr "等比例縮放"
@@ -334,6 +388,12 @@ msgstr "形狀"
 #. TRN - Input label. Be short as possible
 msgid "Depth"
 msgstr "深度"
+
+#. TRN - Input label. Be short as possible
+#. Angle between Y axis and text line direction.
+#. TRN - Input label. Be short as possible
+msgid "Rotation"
+msgstr "旋轉"
 
 msgid "Groove"
 msgstr "凹槽"
@@ -434,9 +494,6 @@ msgstr "與半徑相關的空間佔比"
 
 msgid "Confirm connectors"
 msgstr "確認"
-
-msgid "Cancel"
-msgstr "取消"
 
 msgid "Build Volume"
 msgstr "列印體積"
@@ -588,10 +645,6 @@ msgstr "%d 個三角形"
 msgid "Show wireframe"
 msgstr "顯示線框"
 
-#, boost-format
-msgid "%1%"
-msgstr "%1%"
-
 msgid "Can't apply when processing preview."
 msgstr "處理預覽的過程中無法套用。"
 
@@ -659,8 +712,8 @@ msgstr "附著於曲面"
 msgid "Horizontal text"
 msgstr "水平文字"
 
-msgid "Shift + Mouse move up or down"
-msgstr "Shift + 滑鼠上移或下移"
+msgid "Mouse move up or down"
+msgstr ""
 
 msgid "Rotate text"
 msgstr "旋轉文字"
@@ -1001,8 +1054,8 @@ msgstr "字型 「%1%」 無法使用，請選擇其他字型。"
 
 #, boost-format
 msgid ""
-"Can't load exactly same font (\"%1%\"). Application selected a similar "
-"one (\"%2%\"). You have to specify font for enable edit text."
+"Can't load exactly same font (\"%1%\"). Application selected a similar one "
+"(\"%2%\"). You have to specify font for enable edit text."
 msgstr ""
 "無法加載完全相同的字體「%1%」。已自動選擇相似的字體「%2%」。若要啟用文字編"
 "輯，請指定字體。"
@@ -1306,9 +1359,6 @@ msgid ""
 "Please confirm explosion ratio = 1, and please select at least one object."
 msgstr "請確認爆炸比例設為 1，並至少選擇一個物件"
 
-msgid "Please select at least one object."
-msgstr "請選擇至少一個物件。"
-
 msgid "Edit to scale"
 msgstr "編輯比例"
 
@@ -1402,9 +1452,6 @@ msgstr "平行距離："
 msgid "Flip by Face 2"
 msgstr "通過面 2 翻轉"
 
-msgid "Ctrl+"
-msgstr "Ctrl+"
-
 msgid "Notice"
 msgstr "通知"
 
@@ -1437,6 +1484,9 @@ msgstr "設定檔已被載入，但部分數值無法識別。"
 msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr "設定檔「%1%」 已被載入，但部分數值無法識別。"
+
+msgid "Based on PrusaSlicer and BambuStudio"
+msgstr ""
 
 msgid ""
 "OrcaSlicer will terminate because of running out of memory. It may be a bug. "
@@ -1488,6 +1538,10 @@ msgstr ""
 
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
+
+#, c-format, boost-format
+msgid "Resources path does not exist or is not a directory: %s"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -1664,11 +1718,17 @@ msgstr "頂部實心層"
 msgid "Top Minimum Shell Thickness"
 msgstr "頂部外殼最小厚度"
 
+msgid "Top Surface Density"
+msgstr ""
+
 msgid "Bottom Solid Layers"
 msgstr "底部實心層"
 
 msgid "Bottom Minimum Shell Thickness"
 msgstr "底部外殼最小厚度"
+
+msgid "Bottom Surface Density"
+msgstr ""
 
 msgid "Ironing"
 msgstr "熨燙"
@@ -1736,6 +1796,9 @@ msgstr "刪除"
 msgid "Delete the selected object"
 msgstr "刪除所選物件"
 
+msgid "Backspace"
+msgstr ""
+
 msgid "Load..."
 msgstr "載入..."
 
@@ -1756,6 +1819,9 @@ msgstr "環面"
 
 msgid "Orca Cube"
 msgstr "Orca 立方體"
+
+msgid "Orca Tolerance Test"
+msgstr "Orca 誤差測試"
 
 msgid "3DBenchy"
 msgstr "測試小船"
@@ -2062,8 +2128,8 @@ msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
 msgstr[0] "%1$d 個非流形邊緣"
 
-msgid "Right click the icon to fix model object"
-msgstr "滑鼠右鍵點擊此圖示修復物件模型"
+msgid "Click the icon to repair model object"
+msgstr "點擊圖示來修復模型"
 
 msgid "Right button click the icon to drop the object settings"
 msgstr "滑鼠右鍵點擊此圖示以放棄物件的列印設定"
@@ -2109,6 +2175,9 @@ msgid ""
 "objects."
 msgstr "切換到物件設定模式編輯所選物件的列印參數。"
 
+msgid "Remove paint-on fuzzy skin"
+msgstr "移除塗刷的絨毛效果"
+
 msgid "Delete connector from object which is a part of cut"
 msgstr "刪除的連接件屬於切割物件的一部分"
 
@@ -2141,8 +2210,8 @@ msgstr "刪除所有連接件"
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允許刪除物件的最後一個實體零件。"
 
-msgid "The target object contains only one part and cannot be split."
-msgstr "目標物件僅包含一個零件，無法被拆分。"
+msgid "The target object contains only one part and can not be split."
+msgstr "目標物件只有一個部件，無法進行拆分。"
 
 msgid "Assembly"
 msgstr "組合體"
@@ -2269,6 +2338,9 @@ msgstr "自動"
 msgid "Mouse ear"
 msgstr "圓盤"
 
+msgid "Painted"
+msgstr "上色"
+
 msgid "Outer brim only"
 msgstr "僅外側"
 
@@ -2330,7 +2402,7 @@ msgid "Pause:"
 msgstr "暫停："
 
 msgid "Custom Template:"
-msgstr "自訂模板："
+msgstr "自訂範本："
 
 msgid "Custom G-code:"
 msgstr "自訂 G-code："
@@ -2360,7 +2432,7 @@ msgid "Insert custom G-code at the beginning of this layer."
 msgstr "在該層的初始位置插入自訂 G-code。"
 
 msgid "Add Custom Template"
-msgstr "新增自訂模板"
+msgstr "新增自訂範本"
 
 msgid "Insert template custom G-code at the beginning of this layer."
 msgstr "在該層的初始位置插入模板自訂 G-code。"
@@ -2375,7 +2447,7 @@ msgid "Delete Pause"
 msgstr "刪除暫停列印"
 
 msgid "Delete Custom Template"
-msgstr "刪除自訂模板"
+msgstr "刪除自訂範本"
 
 msgid "Edit Custom G-code"
 msgstr "編輯自訂 G-code"
@@ -2418,15 +2490,6 @@ msgstr "請檢查列印設備與 Orca Slicer 的網路連線。"
 
 msgid "Connecting..."
 msgstr "連線中..."
-
-msgid "?"
-msgstr "?"
-
-msgid "/"
-msgstr "/"
-
-msgid "Empty"
-msgstr "空"
 
 msgid "AMS"
 msgstr "AMS"
@@ -2668,6 +2731,10 @@ msgstr "已傳送完成，即將自動跳至設備頁面（%s秒）"
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "已成功傳送。將自動跳至 %ss 中的下一頁"
 
+#, c-format, boost-format
+msgid "Access code:%s IP address:%s"
+msgstr "訪問代碼：%s　IP 位址：%s"
+
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "透過區域網路列印之前需要插入 SD 記憶卡。"
 
@@ -2874,14 +2941,8 @@ msgstr "熱床溫度"
 msgid "Max volumetric speed"
 msgstr "最大體積速度"
 
-msgid "℃"
-msgstr "℃"
-
 msgid "Bed temperature"
 msgstr "床溫"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "開始"
@@ -2926,6 +2987,12 @@ msgstr "步驟"
 msgid "AMS Slots"
 msgstr "AMS 槽內線材"
 
+msgid "Left AMS"
+msgstr "左側 AMS"
+
+msgid "Right AMS"
+msgstr "右側 AMS"
+
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "注意：僅能選擇裝有相同材料類型的 AMS 插槽。"
@@ -2941,9 +3008,6 @@ msgstr "停用 AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "使用機箱背後掛載的線材列印"
-
-msgid "Current AMS humidity"
-msgstr "目前 AMS 濕度"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3278,9 +3342,6 @@ msgstr "請選擇要管理的設備（最多6台）"
 msgid "Add"
 msgstr "新增"
 
-msgid "Idle"
-msgstr "閒置"
-
 msgid "Printing"
 msgstr "列印中"
 
@@ -3504,8 +3565,8 @@ msgstr "熱床形狀"
 
 #, fuzzy
 msgid ""
-"The recommended minimum temperature is less than 190°C or the "
-"recommended maximum temperature is greater than 300°C.\n"
+"The recommended minimum temperature is less than 190°C or the recommended "
+"maximum temperature is greater than 300°C.\n"
 msgstr "推薦的最小溫度低於 190 度或推薦的最大溫度高於 300 度。\n"
 
 msgid ""
@@ -3533,7 +3594,7 @@ msgstr "該線材的推薦噴嘴溫度是攝氏 [%d, %d] 度"
 
 msgid ""
 "Too small max volumetric speed.\n"
-"Reset to 0.5"
+"Reset to 0.5."
 msgstr ""
 "最大體積速度設定過小\n"
 "重設為 0.5"
@@ -3549,14 +3610,14 @@ msgstr ""
 
 msgid ""
 "Too small layer height.\n"
-"Reset to 0.2"
+"Reset to 0.2."
 msgstr ""
 "層高過小。\n"
 "將重設為 0.2"
 
 msgid ""
 "Too small ironing spacing.\n"
-"Reset to 0.1"
+"Reset to 0.1."
 msgstr ""
 "熨燙線距過小。\n"
 "將重設為 0.1"
@@ -3650,6 +3711,28 @@ msgid ""
 msgstr ""
 "seam_slope_start_height 必須小於 layer_height。\n"
 "重設為 0。"
+
+msgid ""
+"Lock depth should smaller than skin depth.\n"
+"Reset to 50% of skin depth."
+msgstr ""
+"鎖定深度必須小於表面深度。\n"
+"已重設為表面深度的 50%。"
+
+msgid ""
+"Both [Extrusion] and [Combined] modes of Fuzzy Skin require the Arachne Wall "
+"Generator to be enabled."
+msgstr "Fuzzy Skin 的 [擠出] 與 [結合] 模式需搭配啟用 Arachne Wall 產生器。"
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Enable Arachne Wall Generator\n"
+"No  - Disable Arachne Wall Generator and set [Displacement] mode of the "
+"Fuzzy Skin"
+msgstr ""
+"要自動調整這些設定嗎？\n"
+"是 - 啟用 Arachne Wall 產生器\n"
+"否 - 關閉 Arachne Wall 產生器，並將 Fuzzy Skin 設定為 [位移] 模式"
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
@@ -3966,9 +4049,20 @@ msgstr "輸入值超出範圍"
 msgid "Some extension in the input is invalid"
 msgstr "輸入的副檔名無效"
 
+msgid "This parameter expects a valid template."
+msgstr "此參數必須對應一個有效的範本"
+
+msgid ""
+"Invalid pattern. Use N, N#K, or a comma-separated list with optional #K per "
+"entry. Examples: 5, 5#2, 1,7,9, 5,9#2,18."
+msgstr ""
+
 #, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "無效格式，應該是「%1%」這種格式"
+
+msgid "Pick"
+msgstr "選取"
 
 msgid "Layer Height"
 msgstr "層高"
@@ -3978,9 +4072,6 @@ msgstr "線寬"
 
 msgid "Fan Speed"
 msgstr "風扇速度"
-
-msgid "Temperature"
-msgstr "溫度"
 
 msgid "Flow"
 msgstr "流量"
@@ -4057,17 +4148,11 @@ msgstr "高於"
 msgid "from"
 msgstr "從"
 
-msgid "Color Scheme"
-msgstr "顏色方案"
-
 msgid "Time"
 msgstr "時間"
 
-msgid "Percent"
-msgstr "百分比"
-
-msgid "Used filament"
-msgstr "使用的線材"
+msgid "Usage"
+msgstr ""
 
 msgid "Layer Height (mm)"
 msgstr "層高（mm）"
@@ -4174,26 +4259,14 @@ msgstr "半徑"
 msgid "Keep min"
 msgstr "保留最小"
 
-msgid "Left mouse button:"
-msgstr "滑鼠左鍵："
-
 msgid "Add detail"
 msgstr "減小層高"
-
-msgid "Right mouse button:"
-msgstr "滑鼠右鍵："
 
 msgid "Remove detail"
 msgstr "增大層高"
 
-msgid "Shift + Left mouse button:"
-msgstr "Shift + 滑鼠左鍵："
-
 msgid "Reset to base"
 msgstr "設定到基礎層高"
-
-msgid "Shift + Right mouse button:"
-msgstr "Shift + 滑鼠右鍵："
 
 msgid "Smoothing"
 msgstr "平滑"
@@ -4206,6 +4279,18 @@ msgstr "增加/減小編輯區域"
 
 msgid "Sequence"
 msgstr "順序"
+
+msgid "object selection"
+msgstr ""
+
+msgid "part selection"
+msgstr ""
+
+msgid "number keys"
+msgstr ""
+
+msgid "number keys can quickly change the color of objects"
+msgstr ""
 
 msgid "Mirror Object"
 msgstr "鏡像物體"
@@ -4280,6 +4365,18 @@ msgstr "組裝視角"
 msgid "Select Plate"
 msgstr "選擇列印板"
 
+msgid "Slice all"
+msgstr "切片所有列印板"
+
+msgid "Failed"
+msgstr "失敗"
+
+msgid "All Plates"
+msgstr ""
+
+msgid "Stats"
+msgstr ""
+
 msgid "Assembly Return"
 msgstr "退出組裝視角"
 
@@ -4297,6 +4394,9 @@ msgstr "剖面視圖"
 
 msgid "Assemble Control"
 msgstr "拼裝視角控制"
+
+msgid "Selection Mode"
+msgstr ""
 
 msgid "Total Volume:"
 msgstr "總體積："
@@ -4403,17 +4503,11 @@ msgstr "自訂相機來源"
 msgid "Show \"Live Video\" guide page."
 msgstr "顯示「直播影片」引導。"
 
-msgid "720p"
-msgstr "720p"
-
-msgid "1080p"
-msgstr "1080p"
-
 msgid "Connect Printer (LAN)"
 msgstr "連接列印設備（區域網路）"
 
 msgid "Please input the printer access code:"
-msgstr "請輸入列印設備存取碼："
+msgstr "請輸入列印設備訪問代碼："
 
 msgid ""
 "You can find it in \"Settings > Network > Connection code\"\n"
@@ -4463,9 +4557,6 @@ msgstr "切片單一列印板"
 
 msgid "Print plate"
 msgstr "列印單一列印板"
-
-msgid "Slice all"
-msgstr "切片所有列印板"
 
 msgid "Export G-code file"
 msgstr "匯出 G-code 檔案"
@@ -4566,8 +4657,8 @@ msgstr "新建一個專案項目"
 msgid "Open a project file"
 msgstr "打開專案項目"
 
-msgid "Recent projects"
-msgstr "最近的專案項目"
+msgid "Recent files"
+msgstr ""
 
 msgid "Save Project"
 msgstr "儲存專案項目"
@@ -4577,9 +4668,6 @@ msgstr "儲存目前專案項目到檔案"
 
 msgid "Save Project as"
 msgstr "另存專案項目為"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "將目前專案項目另存為"
@@ -4790,27 +4878,35 @@ msgstr "壓力提前"
 msgid "Retraction test"
 msgstr "回抽測試"
 
-msgid "Orca Tolerance Test"
-msgstr "Orca 誤差測試"
-
 msgid "Max flowrate"
 msgstr "最大體積流量"
 
+msgid "Junction Deviation"
+msgstr "轉折偏移值"
+
+msgid "Junction Deviation calibration"
+msgstr "轉折偏移校正"
+
+msgid "Cornering"
+msgstr "轉角控制"
+
+msgid "Input Shaping Frequency"
+msgstr "輸入震動抑制頻率"
+
+msgid "Input Shaping Damping/zeta factor"
+msgstr "輸入震動抑制的阻尼因子（ζ 值）"
+
+msgid "Input Shaping"
+msgstr "輸入震動補償"
+
 msgid "VFA"
 msgstr "VFA"
-
-# SoftFever
-msgid "More..."
-msgstr "更多…"
 
 msgid "Tutorial"
 msgstr "教學"
 
 msgid "Calibration help"
 msgstr "校正幫助"
-
-msgid "More calibrations"
-msgstr "更多校正"
 
 msgid "&Open G-code"
 msgstr "打開 G-code"
@@ -5118,8 +5214,8 @@ msgid ""
 "The .gcode.3mf file contains no G-code data. Please slice it with Orca "
 "Slicer and export a new .gcode.3mf file."
 msgstr ""
-".gcode.3mf 檔案中不包含 G-code 資料。請使用 Orca Slicer 進行切片並匯出新的 ."
-"gcode.3mf 檔案。"
+".gcode.3mf 檔案中不包含 G-code 資料。請使用 Orca Slicer 進行切片並匯出新"
+"的 .gcode.3mf 檔案。"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -5212,9 +5308,6 @@ msgstr "反轉橫滾軸（縱軸）"
 msgid "Printing Progress"
 msgstr "列印進度"
 
-msgid "0"
-msgstr "0"
-
 msgid "Layer: N/A"
 msgstr "層： N/A"
 
@@ -5240,8 +5333,8 @@ msgstr "速率"
 msgid "Camera"
 msgstr "攝影機"
 
-msgid "SD Card"
-msgstr "SD 記憶卡"
+msgid "Storage"
+msgstr "儲存空間"
 
 msgid "Camera Setting"
 msgstr "攝影機設定"
@@ -5258,9 +5351,6 @@ msgstr "列印設備零件"
 msgid "Print Options"
 msgstr "列印選項"
 
-msgid "100%"
-msgstr "100%"
-
 msgid "Lamp"
 msgstr "LED 燈"
 
@@ -5276,11 +5366,11 @@ msgstr "列印板"
 msgid "Debug Info"
 msgstr "除錯資訊"
 
-msgid "No SD Card"
-msgstr "無 SD 記憶卡"
+msgid "No Storage"
+msgstr "沒有可用的儲存空間"
 
-msgid "SD Card Abnormal"
-msgstr "SD 記憶卡異常"
+msgid "Storage Abnormal"
+msgstr "儲存狀態異常"
 
 msgid "Cancel print"
 msgstr "取消列印"
@@ -5588,6 +5678,11 @@ msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object."
 msgstr[0] "%1$d 物件載入為一個切割物件的子零件。"
 
+#, c-format, boost-format
+msgid "%1$d object was loaded with fuzzy skin painting."
+msgid_plural "%1$d objects were loaded with fuzzy skin painting."
+msgstr[0] ""
+
 msgid "ERROR"
 msgstr "錯誤"
 
@@ -5642,6 +5737,9 @@ msgstr "上色"
 
 msgid "Cut connectors"
 msgstr "切割連接件"
+
+msgid "Paint-on fuzzy skin"
+msgstr "塗刷絨毛表面效果"
 
 msgid "Layers"
 msgstr "層"
@@ -5711,14 +5809,14 @@ msgstr "噴嘴堵塞偵測"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "檢查噴嘴是否因線材或其他異物而堵塞。"
 
-msgid "Nozzle Type"
-msgstr "噴嘴類型"
+msgid "Hardened Steel"
+msgstr "硬化鋼"
 
 msgid "Stainless Steel"
 msgstr "不鏽鋼"
 
-msgid "Hardened Steel"
-msgstr "硬化鋼"
+msgid "Nozzle Type"
+msgstr "噴嘴類型"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -5865,13 +5963,13 @@ msgstr "是否儲存變更到「%1%」？"
 
 #, c-format, boost-format
 msgid ""
-"Successfully unmounted. The device %s (%s) can now be safely removed from the "
-"computer."
+"Successfully unmounted. The device %s (%s) can now be safely removed from "
+"the computer."
 msgstr "卸載成功。設備 %s(%s) 現在可以安全移除。"
 
 #, c-format, boost-format
-msgid "Ejecting of device %s(%s) has failed."
-msgstr "退出設備 %s（%s）失敗。"
+msgid "Ejecting of device %s (%s) has failed."
+msgstr ""
 
 msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr "偵測到有未儲存的專案，是否恢復此專案？"
@@ -5906,6 +6004,9 @@ msgstr "展開側邊欄"
 msgid "Collapse sidebar"
 msgstr "折疊側邊欄"
 
+msgid "Tab"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "載入檔案：%s"
@@ -5915,6 +6016,17 @@ msgstr "該 3mf 檔案不是來自 Orca Slicer，將只載入幾何資料。"
 
 msgid "Load 3mf"
 msgstr "載入 3mf"
+
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -6172,14 +6284,8 @@ msgid ""
 "No accelerations provided for calibration. Use default acceleration value "
 msgstr "未提供校正所需的加速度，將使用預設加速度值 "
 
-msgid "mm/s²"
-msgstr "mm/s²"
-
 msgid "No speeds provided for calibration. Use default optimal speed "
 msgstr "未提供校正所需的速度，將使用預設最佳速度 "
-
-msgid "mm/s"
-msgstr "mm/s"
 
 msgid "Import SLA archive"
 msgstr "匯入 SLA 存檔"
@@ -6218,10 +6324,6 @@ msgstr "作為專案項目打開"
 
 msgid "Import geometry only"
 msgstr "僅匯入模型資料"
-
-msgid ""
-"This option can be changed later in preferences, under 'Load Behaviour'."
-msgstr "可以稍後在偏好設定的「載入方式」中變更此選項。"
 
 msgid "Only one G-code file can be opened at the same time."
 msgstr "只能同時打開一個 G-code 檔案。"
@@ -6331,8 +6433,11 @@ msgstr "自訂的支撐和上色在模型修復之前被清除了。"
 msgid "Optimize Rotation"
 msgstr "最佳化旋轉"
 
-msgid "Invalid number"
-msgstr "無效數字"
+msgid ""
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
+msgstr ""
 
 msgid "Plate Settings"
 msgstr "列印板參數設定"
@@ -6455,10 +6560,10 @@ msgstr "北美"
 msgid "Others"
 msgstr "其他"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "登入區域"
 
-msgid "Stealth Mode"
+msgid "Stealth mode"
 msgstr "區域網路模式"
 
 msgid ""
@@ -6468,8 +6573,18 @@ msgstr ""
 "這會停止資料傳輸到 Bambu 的雲端服務。使用者如果不使用 Bambu 機台或僅使用區域"
 "網路模式，可以安全地啟用此功能。"
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "啟用網路外掛程式"
+
+msgid "Use legacy network plugin"
+msgstr "使用舊版網路外掛"
+
+msgid ""
+"Disable to use latest network plugin that supports new BambuLab firmwares."
+msgstr "停用此選項將改用最新網路外掛，該外掛支援新版 BambuLab 韌體。"
 
 msgid "Check for stable updates only"
 msgstr "僅檢查穩定版更新"
@@ -6505,7 +6620,7 @@ msgstr ""
 msgid "Home"
 msgstr "首頁"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr "預設頁面"
 
 msgid "Set the page opened on startup."
@@ -6543,7 +6658,8 @@ msgstr "如果啟用，則使用自由鏡頭。若未啟用，則使用受限鏡
 msgid "Swap pan and rotate mouse buttons"
 msgstr "交换鼠标按钮的平移与旋转功能"
 
-msgid "If enabled, swaps the left and right mouse buttons pan and rotate functions."
+msgid ""
+"If enabled, swaps the left and right mouse buttons pan and rotate functions."
 msgstr "启用后，将左键和右键的平移与旋转功能对调"
 
 msgid "Reverse mouse zoom"
@@ -6551,6 +6667,12 @@ msgstr "反轉滑鼠滾輪縮放方向"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
 msgstr "啟用後，改變滑鼠滾輪縮放方向。"
+
+msgid "Orbit speed multiplier"
+msgstr "視角旋轉速度倍率"
+
+msgid "Multiplies the orbit speed for finer or coarser camera movement."
+msgstr "調整視角速度，使鏡頭移動更細緻或更快速。"
 
 msgid "Show splash screen"
 msgstr "顯示啟動動畫"
@@ -6585,8 +6707,18 @@ msgid ""
 "each printer automatically."
 msgstr "啟用後，Orca 會記住且自動切換各機臺線材與列印設定。"
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
-msgstr "多臺設備管理 (需重開 Orca)"
+msgid "Show options when importing STEP file"
+msgstr "顯示 STEP 網格參數設定視窗。"
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr "啟用後，匯入 STEP 檔案時會顯示參數設定視窗。"
+
+msgid "Multi device management"
+msgstr "多臺設備管理"
+
+msgid "(Requires restart)"
+msgstr ""
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -6656,25 +6788,31 @@ msgstr "總是詢問"
 msgid "Load Geometry Only"
 msgstr "僅載入幾何資料"
 
-msgid "Load Behaviour"
+msgid "Load behaviour"
 msgstr "載入方式"
+
+msgid "Behaviour"
+msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr "開啟 .3mf 檔案時，是否需要載入印表機、線材和參數設定？"
 
-msgid "Maximum recent projects"
-msgstr "最近專案項目的最大數量"
+msgid "Maximum recent files"
+msgstr ""
 
-msgid "Maximum count of recent projects"
-msgstr "近期專案項目的最大統計"
+msgid "Maximum count of recent files"
+msgstr ""
+
+msgid "Add STL/STEP files to recent files list"
+msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "清除我對未儲存專案項目的選擇。"
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "載入包含修改過 G-code 的 3MF 時不顯示警告"
 
-msgid "Auto-Backup"
+msgid "Auto backup"
 msgstr "自動備份"
 
 msgid ""
@@ -6690,10 +6828,13 @@ msgstr "備份的週期。"
 msgid "Downloads"
 msgstr "下載"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "深色模式"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "啟用深色模式"
 
 msgid "Develop mode"
@@ -6831,6 +6972,9 @@ msgstr "選擇/移除機台(系統預設)"
 msgid "Create printer"
 msgstr "建立機臺"
 
+msgid "Empty"
+msgstr "空"
+
 msgid "The selected preset is null!"
 msgstr "選擇的預設為空！"
 
@@ -6903,8 +7047,8 @@ msgstr "提示：發布前需要一些準備時間，請耐心等待。"
 msgid "Publish"
 msgstr "發布"
 
-msgid "Publish was canceled"
-msgstr "發布已取消"
+msgid "Publish was cancelled"
+msgstr ""
 
 msgid "Slicing Plate 1"
 msgstr "正在切片列印板 1"
@@ -6976,33 +7120,6 @@ msgstr "直接切換到「%1%」"
 
 msgid "Task canceled"
 msgstr "任務已取消"
-
-msgid "(LAN)"
-msgstr "（區域網路）"
-
-msgid "Search"
-msgstr "搜尋"
-
-msgid "My Device"
-msgstr "我的設備"
-
-msgid "Other Device"
-msgstr "其他設備"
-
-msgid "Online"
-msgstr "在線"
-
-msgid "Input access code"
-msgstr "輸入存取碼"
-
-msgid "Can't find my devices?"
-msgstr "無法找到我的設備？"
-
-msgid "Log out successful."
-msgstr "登出成功。"
-
-msgid "Busy"
-msgstr "忙碌"
 
 msgid "Bambu Cool Plate"
 msgstr "低溫列印版"
@@ -7160,12 +7277,12 @@ msgstr ""
 "以開始列印作業。"
 
 #, c-format, boost-format
-msgid "nozzle in preset: %s %s"
-msgstr "預設中的噴嘴：%s %s"
+msgid "nozzle in preset: %.1f %s"
+msgstr ""
 
 #, c-format, boost-format
-msgid "nozzle memorized: %.2f %s"
-msgstr "記憶中的噴嘴：%.2f %s"
+msgid "nozzle memorized: %.1f %s"
+msgstr "記錄的噴嘴：%.1f %s"
 
 msgid ""
 "Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
@@ -7192,6 +7309,9 @@ msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr "正在連接列印設備。連接過程中無法取消。"
 
+msgid "Input access code"
+msgstr "輸入訪問代碼"
+
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
 "scattered surface."
@@ -7199,15 +7319,6 @@ msgstr "小心使用！紋理 PEI 板 上的流量校正可能會因表面光線
 
 msgid "Automatic flow calibration using Micro Lidar"
 msgstr "使用 Micro Lidar 進行自動流量校正"
-
-msgid "Modifying the device name"
-msgstr "修改列印設備名稱"
-
-msgid "Bind with Pin Code"
-msgstr "Pin碼綁定"
-
-msgid "Bind with Access Code"
-msgstr "透過存取碼綁定"
 
 msgid "Send to Printer SD card"
 msgstr "傳送到列印設備的 SD 記憶卡"
@@ -7259,6 +7370,9 @@ msgstr "接收登入回覆逾時"
 
 msgid "Unknown Failure"
 msgstr "未知錯誤"
+
+msgid "Bind with Pin Code"
+msgstr "Pin碼綁定"
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -7329,11 +7443,11 @@ msgid ""
 "successes and failures of the vast number of prints by our users. We are "
 "training %s to be smarter by feeding them the real-world data. If you are "
 "willing, this service will access information from your error logs and usage "
-"logs, which may include information described in Privacy Policy. We will "
-"not collect any Personal Data by which an individual can be identified "
-"directly or indirectly, including without limitation names, addresses, "
-"payment information, or phone numbers. By enabling this service, you agree "
-"to these terms and the statement about Privacy Policy."
+"logs, which may include information described in Privacy Policy. We will not "
+"collect any Personal Data by which an individual can be identified directly "
+"or indirectly, including without limitation names, addresses, payment "
+"information, or phone numbers. By enabling this service, you agree to these "
+"terms and the statement about Privacy Policy."
 msgstr ""
 "在 3D 列印社群中，我們通過分享彼此的成功與失敗經驗來調整切片參數與設置。%s 也"
 "採用了相同的原則，利用機器學習，透過使用者的大量列印成功與失敗資料來提升其性"
@@ -7360,6 +7474,9 @@ msgstr "請先登入。"
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "連接列印設備時發生錯誤。 重新連接。"
 
+msgid "Log out successful."
+msgstr "登出成功。"
+
 msgid "Failed to log out."
 msgstr "登出失敗。"
 
@@ -7385,6 +7502,11 @@ msgstr ""
 "塔？"
 
 msgid ""
+"Enabling both precise Z height and the prime tower may cause the size of "
+"prime tower to increase. Do you still want to enable?"
+msgstr "同時啟用精確 Z 軸高度與換料塔功能，可能會讓換料塔變大。是否仍要啟用？"
+
+msgid ""
 "A prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Do you want to enable prime tower?"
 msgstr ""
@@ -7397,14 +7519,9 @@ msgstr "持續逐件列印？"
 msgid ""
 "When using support material for the support interface, we recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and "
 "disable independent support layer height"
 msgstr ""
-"當使用支撐材質作為支撐界面時，我們建議使用以下設定：\n"
-"•頂部 Z 距離：0\n"
-"•接觸面間距：0\n"
-"•交錯直線填充模式\n"
-"•停用獨立支撐層高"
 
 msgid ""
 "Change these settings automatically?\n"
@@ -7425,6 +7542,14 @@ msgstr ""
 
 msgid "Are you sure you want to enable this option?"
 msgstr "您確定要啟用此選項嗎？"
+
+msgid ""
+"Infill patterns are typically designed to handle rotation automatically to "
+"ensure proper printing and achieve their intended effects (e.g., Gyroid, "
+"Cubic). Rotating the current sparse infill pattern may lead to insufficient "
+"support. Please proceed with caution and thoroughly check for any potential "
+"printing issues.Are you sure you want to enable this option?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -7451,8 +7576,8 @@ msgstr "忽略"
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
 "distance during filament changes to minimize flush. Although it can notably "
-"reduce flush, it may also elevate the risk of nozzle clogs or other "
-"printing complications."
+"reduce flush, it may also elevate the risk of nozzle clogs or other printing "
+"complications."
 msgstr ""
 "實驗性功能：在換線過程中以更大的距離收回並切斷線材，以減少沖洗量。儘管這可以"
 "顯著減少沖洗，但也可能增加噴嘴堵塞或其他列印問題的風險。"
@@ -7613,6 +7738,9 @@ msgstr "筏層"
 msgid "Support filament"
 msgstr "支撐線材"
 
+msgid "Support ironing"
+msgstr ""
+
 msgid "Tree supports"
 msgstr "樹狀支撐"
 
@@ -7696,10 +7824,9 @@ msgid "Cool Plate (SuperTack)"
 msgstr "低溫增穩列印板"
 
 msgid ""
-"Bed temperature when the Cool Plate Supertack is installed. A value of 0 "
+"Bed temperature when the Cool Plate SuperTack is installed. A value of 0 "
 "means the filament does not support printing on the Cool Plate SuperTack."
 msgstr ""
-"使用低溫增穩列印板時，熱床設定溫度其值為 0 ，表示該線材不適用於低溫增穩列印板"
 
 msgid "Cool Plate"
 msgstr "低溫列印板"
@@ -7803,8 +7930,8 @@ msgstr "換料塔參數"
 msgid "Tool change parameters with single extruder MM printers"
 msgstr "適用於單擠出機多材料印表機的工具切換參數"
 
-msgid "Ramming settings"
-msgstr "尖端成型設定"
+msgid "Set"
+msgstr "設定"
 
 msgid "Tool change parameters with multi extruder MM printers"
 msgstr "適用於多擠出機多材料印表機的工具切換參數"
@@ -7812,8 +7939,11 @@ msgstr "適用於多擠出機多材料印表機的工具切換參數"
 msgid "Dependencies"
 msgstr "相依項目"
 
-msgid "Profile dependencies"
-msgstr "設定檔相依項目"
+msgid "Compatible printers"
+msgstr ""
+
+msgid "Compatible process profiles"
+msgstr "相容的切片設定"
 
 msgid "Printable space"
 msgstr "可列印區域"
@@ -7872,13 +8002,19 @@ msgid "Pause G-code"
 msgstr "暫停 G-code"
 
 msgid "Template Custom G-code"
-msgstr "模板自訂 G-code"
+msgstr "自訂 G-code 範本"
 
 msgid "Motion ability"
 msgstr "移動能力"
 
 msgid "Normal"
 msgstr "普通"
+
+msgid "Resonance Avoidance"
+msgstr "避免共振"
+
+msgid "Resonance Avoidance Speed"
+msgstr "避免共振速度"
 
 msgid "Speed limitation"
 msgstr "速度限制"
@@ -7913,6 +8049,10 @@ msgstr "換料塔"
 
 msgid "Single extruder multi-material parameters"
 msgstr "單擠出機多線材參數"
+
+#, c-format, boost-format
+msgid "Extruder %d"
+msgstr "擠出機 %d"
 
 msgid ""
 "This is a single extruder multi-material printer, diameters of all extruders "
@@ -7969,12 +8109,12 @@ msgid_plural "Following presets will be deleted too."
 msgstr[0] "以下預設將一起被刪除。"
 
 msgid ""
-"Are you sure to delete the selected preset?\n"
+"Are you sure to delete the selected preset? \n"
 "If the preset corresponds to a filament currently in use on your printer, "
 "please reset the filament information for that slot."
 msgstr ""
-"您確定要刪除所選預設嗎？\n"
-"如果該預設對應的是列印設備目前使用的線材，請重置該槽位的線材資訊。"
+"確定要刪除這個預設設定嗎？ \n"
+"若該預設目前正用於列印機中的某個材料，請務必重新設定該位置的材料資訊。"
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -7982,9 +8122,6 @@ msgstr "確定要 %1% 所選預設嗎？"
 
 msgid "All"
 msgstr "所有"
-
-msgid "Set"
-msgstr "設定"
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "點擊該圖示，恢復到全域的設定數值，並與全域設定同步變化。"
@@ -8165,6 +8302,9 @@ msgstr "作者"
 msgid "Model Name"
 msgstr "模型名字"
 
+msgid "Description:"
+msgstr "描述："
+
 #, c-format, boost-format
 msgid "%s Update"
 msgstr "%s 更新"
@@ -8177,9 +8317,6 @@ msgstr "設定檔更新"
 
 msgid "A new configuration package is available. Do you want to install it?"
 msgstr "有新的設定檔可用，是否要安裝？"
-
-msgid "Description:"
-msgstr "描述："
 
 msgid "Configuration incompatible"
 msgstr "設定檔不相容"
@@ -8198,9 +8335,6 @@ msgstr ""
 #, c-format, boost-format
 msgid "Exit %s"
 msgstr "退出 %s"
-
-msgid "the Configuration package is incompatible with the current APP."
-msgstr "設定檔與目前(手機應用程式)?不相容。"
 
 msgid "Configuration updates"
 msgstr "組態檔更新"
@@ -8284,20 +8418,18 @@ msgstr ""
 "成型過程中的擠壓率是需要可調整的。\n"
 "這是一個進階的設定，不正確的調整可能會導致堵塞、線材磨損等。"
 
-msgid "Total ramming time"
-msgstr "尖端成型總時間"
+#, boost-format
+msgid "For constant flow rate, hold %1% while dragging."
+msgstr "若要保持固定流速，拖曳時請按住 %1%。"
 
-msgid "s"
-msgstr "秒"
+msgid "Total ramming"
+msgstr "總擠出量"
 
-msgid "Total rammed volume"
-msgstr "尖端成型總體積"
+msgid "Volume"
+msgstr "體積"
 
-msgid "Ramming line width"
-msgstr "尖端成型線寬"
-
-msgid "Ramming line spacing"
-msgstr "尖端成型線間距"
+msgid "Ramming line"
+msgstr "擠出線"
 
 msgid "Auto-Calc"
 msgstr "自動計算"
@@ -8401,12 +8533,6 @@ msgstr "物件清單"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "從 STL/STEP/3MF/OBJ/AMF 檔案中匯入幾何模型"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Paste from clipboard"
 msgstr "從剪貼簿貼上"
 
@@ -8422,28 +8548,19 @@ msgstr "顯示鍵盤快捷鍵清單"
 msgid "Global shortcuts"
 msgstr "全域快捷鍵"
 
-msgid "Rotate View"
-msgstr "旋轉視角"
-
 msgid "Pan View"
 msgstr "移動視角"
 
-msgid "Mouse wheel"
-msgstr "滑鼠滾輪"
+msgid "Rotate View"
+msgstr "旋轉視角"
 
 msgid "Zoom View"
 msgstr "縮放視角"
 
-msgid "Shift+A"
-msgstr "Shift+A"
-
-msgid "Shift+R"
-msgstr "Shift+R"
-
 msgid ""
-"Auto orients selected objects or all objects. If there are selected "
-"objects, it just orients the selected ones. Otherwise, it will orient "
-"all objects in the current project."
+"Auto orients selected objects or all objects. If there are selected objects, "
+"it just orients the selected ones. Otherwise, it will orient all objects in "
+"the current project."
 msgstr ""
 "自动调整选定零件/所有零件的方向,\n"
 "有选定零件时调整选定零件的朝向,\n"
@@ -8452,41 +8569,20 @@ msgstr ""
 msgid "Auto orients all objects on the active plate."
 msgstr "自动调整活动板上的所有物体的方向。"
 
-msgid "Shift+Tab"
-msgstr "Shift+Tab"
-
 msgid "Collapse/Expand the sidebar"
 msgstr "摺疊/展開 側邊欄"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+方向鍵"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "沿相機視角移動物件"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+滑鼠左鍵"
-
 msgid "Select a part"
 msgstr "選擇單一零件"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+滑鼠左鍵"
-
 msgid "Select multiple objects"
 msgstr "選擇多個物件"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+方向鍵"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+滑鼠左鍵"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+滑鼠左鍵"
-
-msgid "Shift+Left mouse button"
-msgstr "Shift+滑鼠左鍵"
 
 msgid "Select objects by rectangle"
 msgstr "框選多個零件"
@@ -8514,9 +8610,6 @@ msgstr "右箭頭"
 
 msgid "Move selection 10 mm in positive X direction"
 msgstr "X 方向移動 10mm"
-
-msgid "Shift+Any arrow"
-msgstr "Shift+方向鍵"
 
 msgid "Movement step set to 1 mm"
 msgstr "沿 X、Y 軸以 1mm 為單位步進移動"
@@ -8551,20 +8644,23 @@ msgstr "選擇所有物件"
 msgid "Gizmo move"
 msgstr "線框移動"
 
-msgid "Gizmo scale"
-msgstr "線框縮放"
-
 msgid "Gizmo rotate"
 msgstr "旋轉物件"
 
-msgid "Gizmo cut"
-msgstr "切割物件"
+msgid "Gizmo scale"
+msgstr "線框縮放"
 
 msgid "Gizmo place face on bed"
 msgstr "選擇底面"
 
+msgid "Gizmo cut"
+msgstr "切割物件"
+
 msgid "Gizmo mesh boolean"
 msgstr "線框網格布林運算"
+
+msgid "Gizmo FDM paint-on fuzzy skin"
+msgstr "Gizmo FDM 塗刷絨毛表面效果"
 
 msgid "Gizmo SLA support points"
 msgstr "SLA 支撐點"
@@ -8576,13 +8672,13 @@ msgid "Gizmo text emboss/engrave"
 msgstr "浮雕/雕刻文字工具"
 
 msgid "Gizmo measure"
-msgstr "Gizmo "
+msgstr "測量"
 
 msgid "Gizmo assemble"
-msgstr "Gizmo "
+msgstr "組裝"
 
 msgid "Gizmo brim ears"
-msgstr "Gizmo "
+msgstr "擴邊耳工具"
 
 msgid "Zoom in"
 msgstr "放大"
@@ -8599,23 +8695,11 @@ msgstr "準備"
 msgid "Move: press to snap by 1mm"
 msgstr "移動：以 1mm 為單位步進移動"
 
-msgid "⌘+Mouse wheel"
-msgstr "⌘+滑鼠滾輪"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "支撐/顏色繪製：調整筆刷半徑"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+滑鼠滾輪"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "支撐/色彩繪製：調整剖面位置"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+滑鼠滾輪"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+滑鼠滾輪"
 
 msgid "Gizmo"
 msgstr "浮雕"
@@ -8659,9 +8743,6 @@ msgstr "開啟/關閉 G-code 視窗"
 msgid "Move slider 5x faster"
 msgstr "5 倍速移動滑動條"
 
-msgid "Shift+Mouse wheel"
-msgstr "Shift+滑鼠滾輪"
-
 msgid "Horizontal slider - Move to start position"
 msgstr "水平滑動條 - 移動到起始位置"
 
@@ -8694,9 +8775,6 @@ msgstr "跳過這個版本"
 
 msgid "Done"
 msgstr "完成"
-
-msgid "resume"
-msgstr "繼續"
 
 msgid "Resume Printing"
 msgstr "繼續列印"
@@ -8735,7 +8813,7 @@ msgid "Confirm and Update Nozzle"
 msgstr "確認並更新噴嘴"
 
 msgid "Connect the printer using IP and access code"
-msgstr "透過 IP 和存取碼連接列印設備"
+msgstr "透過 IP 和訪問代碼連接列印設備"
 
 msgid ""
 "Step 1. Please confirm Orca Slicer and your printer are in the same LAN."
@@ -8744,7 +8822,7 @@ msgstr "步驟 1. 請確保 Orca Slicer 與列印設備在同一區域網路（L
 msgid ""
 "Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
-msgstr "步驟 2. 若下方的 IP 和存取碼與印表機上的實際數值不符，請進行修正。"
+msgstr "步驟 2. 若下方的 IP 和訪問代碼與印表機上的實際數值不符，請進行修正。"
 
 msgid ""
 "Step 3. Please obtain the device SN from the printer side; it is usually "
@@ -8757,7 +8835,7 @@ msgid "IP"
 msgstr "IP"
 
 msgid "Access Code"
-msgstr "存取碼"
+msgstr "訪問代碼"
 
 msgid "Printer model"
 msgstr "列印設備型號"
@@ -8766,7 +8844,7 @@ msgid "Printer name"
 msgstr "列印設備名稱"
 
 msgid "Where to find your printer's IP and Access Code?"
-msgstr "在哪裡可以找到列印設備的 IP 和存取碼?"
+msgstr "在哪裡可以找到列印設備的 IP 和訪問代碼?"
 
 msgid "Connect"
 msgstr "連線"
@@ -8793,32 +8871,35 @@ msgid "Connecting to printer... The dialog will close later"
 msgstr "正在連接印表機… 對話框將在稍後自動關閉"
 
 msgid "Connection failed, please double check IP and Access Code"
-msgstr "連接失敗，請再次檢查 IP 和存取碼"
+msgstr "連接失敗，請再次檢查 IP 和訪問代碼"
 
 msgid ""
 "Connection failed! If your IP and Access Code is correct, \n"
 "please move to step 3 for troubleshooting network issues"
 msgstr ""
-"連接失敗！如果 IP 和存取碼正確，\n"
+"連接失敗！如果 IP 和訪問代碼正確，\n"
 "請進入第 3 步進行網路問題排解"
+
+msgid "Air Pump"
+msgstr "氣泵"
+
+msgid "Laser 10 W"
+msgstr "10瓦 雷射"
+
+msgid "Laser 40 W"
+msgstr "40瓦 雷射"
+
+msgid "Cutting Module"
+msgstr "切割模組"
 
 msgid "Model:"
 msgstr "型號："
-
-msgid "Serial:"
-msgstr "序號："
-
-msgid "Version:"
-msgstr "版本："
 
 msgid "Update firmware"
 msgstr "更新韌體"
 
 msgid "Beta version"
 msgstr "Beta 版本"
-
-msgid "Latest version"
-msgstr "最新版本"
 
 msgid "Updating"
 msgstr "更新中"
@@ -9324,6 +9405,15 @@ msgstr ""
 "如需更高速度，您可以在列印設備配置中調整最大急動值。"
 
 msgid ""
+"Junction deviation setting exceeds the printer's maximum value "
+"(machine_max_junction_deviation).\n"
+"Orca will automatically cap the junction deviation to ensure it doesn't "
+"surpass the printer's capabilities.\n"
+"You can adjust the machine_max_junction_deviation value in your printer's "
+"configuration to get higher limits."
+msgstr ""
+
+msgid ""
 "The acceleration setting exceeds the printer's maximum acceleration "
 "(machine_max_acceleration_extruding).\n"
 "Orca will automatically cap the acceleration speed to ensure it doesn't "
@@ -9348,6 +9438,11 @@ msgstr ""
 "（machine_max_acceleration_travel）。\n"
 "Orca 將自動限制移動加速度，以確保不超出列印設備的性能範圍。\n"
 "如需更高速度，您可以在列印設備配置中調整 machine_max_acceleration_travel 值。"
+
+msgid ""
+"The precise wall option will be ignored for outer-inner or inner-outer-inner "
+"wall sequences."
+msgstr ""
 
 msgid ""
 "Filament shrinkage will not be used because filament shrinkage for the used "
@@ -9426,7 +9521,7 @@ msgstr "受列印設備硬體限制的最大可列印高度"
 msgid "Preferred orientation"
 msgstr "首選方向"
 
-msgid "Automatically orient stls on the Z-axis upon initial import."
+msgid "Automatically orient stls on the Z axis upon initial import."
 msgstr "匯入 STL 時自動對齊 Z 軸"
 
 msgid "Printer preset names"
@@ -9539,11 +9634,13 @@ msgstr "其它層"
 
 msgid ""
 "Bed temperature for layers except the initial one. A value of 0 means the "
+"filament does not support printing on the Cool Plate SuperTack."
+msgstr ""
+
+msgid ""
+"Bed temperature for layers except the initial one. A value of 0 means the "
 "filament does not support printing on the Cool Plate."
 msgstr "首層之外各層的熱床溫度。值為 0 表示該線材不適用於低溫列印板"
-
-msgid "°C"
-msgstr "°C"
 
 msgid ""
 "Bed temperature for layers except the initial one. A value of 0 means the "
@@ -9609,6 +9706,13 @@ msgstr "低溫平滑列印板"
 
 msgid "Smooth High Temp Plate"
 msgstr "高溫平滑列印板"
+
+msgid "Default bed type"
+msgstr ""
+
+msgid ""
+"Default bed type for the printer (supports both numeric and string format)."
+msgstr ""
 
 msgid "First layer print sequence"
 msgstr "首層列印順序"
@@ -9889,8 +9993,9 @@ msgstr "精準外牆尺寸"
 
 msgid ""
 "Improve shell precision by adjusting outer wall spacing. This also improves "
-"layer consistency."
-msgstr "調整外壁間距以提升外殼精度，同時改善列印層的一致性。"
+"layer consistency. NOTE: This option will be ignored for outer-inner or "
+"inner-outer-inner wall sequences."
+msgstr ""
 
 msgid "Only one wall on top surfaces"
 msgstr "頂面單層牆"
@@ -10021,12 +10126,6 @@ msgstr ""
 "如果未啟用『檢測懸空外牆』，此選項將被忽略，並且反轉會無條件發生在所有偶數層"
 "上。"
 
-msgid "Classic mode"
-msgstr "經典模式"
-
-msgid "Enable this option to use classic mode."
-msgstr "開啟此選項以使用經典模式"
-
 msgid "Slow down for overhang"
 msgstr "懸空處降速"
 
@@ -10111,9 +10210,6 @@ msgid ""
 msgstr ""
 "該參數控制在模型的外側和/或內側產生 Brim 。自動是指自動分析和計算邊框的寬度。"
 
-msgid "Painted"
-msgstr "上色"
-
 msgid "Brim-object gap"
 msgstr "Brim 與模型的間隙"
 
@@ -10151,14 +10247,14 @@ msgstr ""
 "在偵測尖銳角度之前，幾何形狀將被簡化。此參數表示簡化的最小偏差長度。\n"
 "設為 0 以停用"
 
-msgid "Compatible machine"
-msgstr "相容的設備"
+msgid "Select printers"
+msgstr ""
 
 msgid "upward compatible machine"
 msgstr "向上相容的設備"
 
-msgid "Compatible machine condition"
-msgstr "相容的設備條件"
+msgid "Condition"
+msgstr ""
 
 msgid ""
 "A boolean expression using the configuration values of an active printer "
@@ -10168,11 +10264,8 @@ msgstr ""
 "使用啟用的列印設備設定值來進行布林運算的表達式。如果此表達式的結果為 true，則"
 "該設定檔將被視為與目前啟用的印表機設定檔相容。"
 
-msgid "Compatible process profiles"
-msgstr "相容的切片設定"
-
-msgid "Compatible process profiles condition"
-msgstr "相容的切片設定條件"
+msgid "Select profiles"
+msgstr ""
 
 msgid ""
 "A boolean expression using the configuration values of an active print "
@@ -10426,8 +10519,8 @@ msgid "Between Object G-code"
 msgstr "物件分隔"
 
 msgid ""
-"Insert G-code between objects. This parameter will only come into effect when "
-"you print your models object by object."
+"Insert G-code between objects. This parameter will only come into effect "
+"when you print your models object by object."
 msgstr "在物件之間插入 G-code。此參數僅在逐次列印時生效"
 
 msgid "End G-code when finishing the printing of this filament."
@@ -10466,20 +10559,20 @@ msgstr "頂面圖案"
 msgid "Line pattern of top surface infill."
 msgstr "頂面填充的走線圖案"
 
-msgid "Concentric"
-msgstr "同心"
-
-msgid "Rectilinear"
-msgstr "直線"
-
 msgid "Monotonic"
 msgstr "單調"
 
 msgid "Monotonic line"
 msgstr "單調線"
 
+msgid "Rectilinear"
+msgstr "直線"
+
 msgid "Aligned Rectilinear"
 msgstr "直線排列"
+
+msgid "Concentric"
+msgstr "同心"
 
 msgid "Hilbert Curve"
 msgstr "希爾伯特曲線"
@@ -10866,10 +10959,10 @@ msgstr "橋接的壓力補償"
 msgid ""
 "Pressure advance value for bridges. Set to 0 to disable.\n"
 "\n"
-"A lower PA value when printing bridges helps reduce the appearance of "
-"slight under extrusion immediately after bridges. This is caused by the "
-"pressure drop in the nozzle when printing in the air and a lower PA helps "
-"counteract this."
+"A lower PA value when printing bridges helps reduce the appearance of slight "
+"under extrusion immediately after bridges. This is caused by the pressure "
+"drop in the nozzle when printing in the air and a lower PA helps counteract "
+"this."
 msgstr ""
 "橋接的壓力補償值。設為 0 以停用此功能。降低橋接時的壓力補償值有助於減少橋接結"
 "束後立即出現的輕微欠擠出現象。這種現象是由於在空中列印時噴嘴內壓力下降引起"
@@ -10931,8 +11024,10 @@ msgstr ""
 msgid "Default color"
 msgstr "預設顏色"
 
-msgid "Default filament color"
-msgstr "預設線材顏色"
+msgid ""
+"Default filament color.\n"
+"Right click to reset value to system default."
+msgstr ""
 
 msgid "Filament notes"
 msgstr "線材備註"
@@ -10955,9 +11050,6 @@ msgid ""
 msgstr ""
 "這個設定表示每秒能夠融化和擠出的線材體積。列印速度會受限於到最大體積速度，防"
 "止設定過高和不合理的速度。不允許設定為 0"
-
-msgid "mm³/s"
-msgstr "mm³/s"
 
 msgid "Filament load time"
 msgstr "進料的時間"
@@ -11169,9 +11261,6 @@ msgstr "密度"
 msgid "Filament density. For statistics only."
 msgstr "線材的密度。只用於統計資訊"
 
-msgid "g/cm³"
-msgstr "g/cm³"
-
 msgid "The material type of filament."
 msgstr "線材的材料類型"
 
@@ -11234,12 +11323,6 @@ msgid ""
 "of line."
 msgstr "實心填充圖案的角度設定，用於決定線條的起始方向或主要列印方向"
 
-msgid "Rotate solid infill direction"
-msgstr "旋轉實心填充方向"
-
-msgid "Rotate the solid infill direction by 90° for each layer."
-msgstr "每層實心填充的列印方向旋轉 90°。"
-
 msgid "Sparse infill density"
 msgstr "稀疏填充密度"
 
@@ -11251,38 +11334,64 @@ msgstr ""
 "設定內部稀疏填充的密度，當密度為 100% 時，所有稀疏填充將變為實心填充，並套用"
 "內部實心填充的圖案"
 
+msgid "Align infill direction to model"
+msgstr ""
+
+msgid ""
+"Aligns infill and surface fill directions to follow the model's orientation "
+"on the build plate. When enabled, fill directions rotate with the model to "
+"maintain optimal strength characteristics."
+msgstr ""
+
+msgid "Insert solid layers"
+msgstr ""
+
+msgid ""
+"Insert solid infill at specific layers. Use N to insert every Nth layer, N#K "
+"to insert K consecutive solid layers every N layers (K is optional, e.g. "
+"'5#' equals '5#1'), or a comma-separated list (e.g. 1,7,9) to insert at "
+"explicit layers. Layers are 1-based."
+msgstr ""
+
+msgid "Fill Multiline"
+msgstr ""
+
+msgid ""
+"Using multiple lines for the infill pattern, if supported by infill pattern."
+msgstr ""
+
 msgid "Sparse infill pattern"
 msgstr "稀疏填充圖案"
 
 msgid "Line pattern for internal sparse infill."
 msgstr "內部稀疏填充的走線圖案"
 
-msgid "Grid"
-msgstr "網格"
+msgid "Zig Zag"
+msgstr ""
 
-msgid "2D Lattice"
-msgstr "2D 網格結構"
+msgid "Cross Zag"
+msgstr ""
+
+msgid "Locked Zag"
+msgstr ""
 
 msgid "Line"
 msgstr "線"
 
-msgid "Cubic"
-msgstr "立方體"
+msgid "Grid"
+msgstr "網格"
 
 msgid "Tri-hexagon"
 msgstr "內六邊形"
 
-msgid "Gyroid"
-msgstr "螺旋體"
-
-msgid "Honeycomb"
-msgstr "蜂窩"
+msgid "Cubic"
+msgstr "立方體"
 
 msgid "Adaptive Cubic"
 msgstr "自適應立方體"
 
-msgid "3D Honeycomb"
-msgstr "3D 蜂窩"
+msgid "Quarter Cubic"
+msgstr "四分之一立方"
 
 msgid "Support Cubic"
 msgstr "支撐立方體"
@@ -11290,27 +11399,52 @@ msgstr "支撐立方體"
 msgid "Lightning"
 msgstr "閃電"
 
+msgid "Honeycomb"
+msgstr "蜂窩"
+
+msgid "3D Honeycomb"
+msgstr "3D 蜂窩"
+
+msgid "Lateral Honeycomb"
+msgstr ""
+
+msgid "Lateral Lattice"
+msgstr "2D 網格結構"
+
 msgid "Cross Hatch"
 msgstr "交叉填充"
 
-msgid "Quarter Cubic"
-msgstr "四分之一立方"
+msgid "TPMS-D"
+msgstr ""
 
-msgid "Lattice angle 1"
+msgid "TPMS-FK"
+msgstr ""
+
+msgid "Gyroid"
+msgstr "螺旋體"
+
+msgid "Lateral lattice angle 1"
 msgstr "網格結構角度 1"
 
 msgid ""
-"The angle of the first set of 2D lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the first set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr "Z 軸方向第一組 2D 網格結構的角度，0° 表示垂直方向。"
 
-msgid "Lattice angle 2"
+msgid "Lateral lattice angle 2"
 msgstr "網格結構角度 2"
 
 msgid ""
-"The angle of the second set of 2D lattice elements in the Z direction. Zero "
-"is vertical."
+"The angle of the second set of Lateral lattice elements in the Z direction. "
+"Zero is vertical."
 msgstr "Z 軸方向第二組 2D 網格結構的角度，0° 表示垂直方向。"
+
+msgid "Infill overhang angle"
+msgstr ""
+
+msgid ""
+"The angle of the infill angled lines. 60° will result in a pure honeycomb."
+msgstr ""
 
 msgid "Sparse infill anchor length"
 msgstr "稀疏填充錨線長度"
@@ -11390,8 +11524,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² 或 %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "稀疏填充的加速度。如果該值表示為百分比（例如 100%），則將根據預設加速度進行計"
 "算。"
@@ -11422,6 +11556,14 @@ msgstr "煞車速度"
 msgid ""
 "Klipper's max_accel_to_decel will be adjusted to this %% of acceleration."
 msgstr "Klipper 的最大煞車速度將調整為加速度的 %%"
+
+msgid "Default jerk."
+msgstr ""
+
+msgid ""
+"Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
+"setting)."
+msgstr ""
 
 msgid "Jerk of outer walls."
 msgstr "外牆抖動值"
@@ -11534,6 +11676,16 @@ msgstr ""
 "適當降低內部橋接的風扇轉速（相較於一般風扇速度），可減少因長時間對大面積區域"
 "過度冷卻而導致的零件翹曲。"
 
+msgid "Ironing fan speed"
+msgstr ""
+
+msgid ""
+"This part cooling fan speed is applied when ironing. Setting this parameter "
+"to a lower than regular speed reduces possible nozzle clogging due to the "
+"low volumetric flow rate, making the interface smoother.\n"
+"Set to -1 to disable it."
+msgstr ""
+
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
 "look. This setting controls the fuzzy position."
@@ -11569,6 +11721,42 @@ msgstr "在第一層啟用絨毛表面"
 
 msgid "Whether to apply fuzzy skin on the first layer."
 msgstr "是否啟用絨毛表面於第一層"
+
+msgid "Fuzzy skin generator mode"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Fuzzy skin generation mode. Works only with Arachne!\n"
+"Displacement: Сlassic mode when the pattern is formed by shifting the nozzle "
+"sideways from the original path.\n"
+"Extrusion: The mode when the pattern formed by the amount of extruded "
+"plastic. This is the fast and straight algorithm without unnecessary nozzle "
+"shake that gives a smooth pattern. But it is more useful for forming loose "
+"walls in the entire they array.\n"
+"Combined: Joint mode [Displacement] + [Extrusion]. The appearance of the "
+"walls is similar to [Displacement] Mode, but it leaves no pores between the "
+"perimeters.\n"
+"\n"
+"Attention! The [Extrusion] and [Combined] modes works only the "
+"fuzzy_skin_thickness parameter not more than the thickness of printed loop. "
+"At the same time, the width of the extrusion for a particular layer should "
+"also not be below a certain level. It is usually equal 15-25%% of a layer "
+"height. Therefore, the maximum fuzzy skin thickness with a perimeter width "
+"of 0.4 mm and a layer height of 0.2 mm will be 0.4-(0.2*0.25)=±0.35mm! If "
+"you enter a higher parameter than this, the error Flow::spacing() will "
+"displayed, and the model will not be sliced. You can choose this number "
+"until this error is repeated."
+msgstr ""
+
+msgid "Displacement"
+msgstr ""
+
+msgid "Extrusion"
+msgstr ""
+
+msgid "Combined"
+msgstr "合併"
 
 msgid "Fuzzy skin noise type"
 msgstr "模糊表面紋理噪聲類型"
@@ -11765,8 +11953,8 @@ msgid ""
 "unsupported).\n"
 "It won't move fan commands from custom G-code (they act as a sort of "
 "'barrier').\n"
-"It won't move fan commands into the start G-code if the 'only custom start "
-"G-code' is activated.\n"
+"It won't move fan commands into the start G-code if the 'only custom start G-"
+"code' is activated.\n"
 "Use 0 to deactivate."
 msgstr ""
 "在風扇目標啟動時間前提前設定的秒數啟動風扇（支持小數點）。此功能基於無限加速"
@@ -11886,6 +12074,97 @@ msgid ""
 "reduce time. Wall is still printed with original layer height."
 msgstr ""
 "自動將多層稀疏填充合併列印，以縮短列印時間。同時，周邊仍保持原層高列印。"
+
+msgid "Infill shift step"
+msgstr ""
+
+msgid ""
+"This parameter adds a slight displacement to each layer of infill to create "
+"a cross texture."
+msgstr ""
+
+msgid "Sparse infill rotation template"
+msgstr ""
+
+msgid ""
+"Rotate the sparse infill direction per layer using a template of angles. "
+"Enter comma-separated degrees (e.g., '0,30,60,90'). Angles are applied in "
+"order by layer and repeat when the list ends. Advanced syntax is supported: "
+"'+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the "
+"Wiki for details. When a template is set, the standard infill direction "
+"setting is ignored. Note: some infill patterns (e.g., Gyroid) control "
+"rotation themselves; use with care."
+msgstr ""
+
+msgid "°"
+msgstr "°"
+
+msgid "Solid infill rotation template"
+msgstr ""
+
+msgid ""
+"This parameter adds a rotation of solid infill direction to each layer "
+"according to the specified template. The template is a comma-separated list "
+"of angles in degrees, e.g. '0,90'. The first angle is applied to the first "
+"layer, the second angle to the second layer, and so on. If there are more "
+"layers than angles, the angles will be repeated. Note that not all solid "
+"infill patterns support rotation."
+msgstr ""
+
+msgid "Skeleton infill density"
+msgstr ""
+
+msgid ""
+"The remaining part of the model contour after removing a certain depth from "
+"the surface is called the skeleton. This parameter is used to adjust the "
+"density of this section. When two regions have the same sparse infill "
+"settings but different skeleton densities, their skeleton areas will develop "
+"overlapping sections. Default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill density"
+msgstr ""
+
+msgid ""
+"The portion of the model's outer surface within a certain depth range is "
+"called the skin. This parameter is used to adjust the density of this "
+"section. When two regions have the same sparse infill settings but different "
+"skin densities, this area will not be split into two separate regions. "
+"Default is as same as infill density."
+msgstr ""
+
+msgid "Skin infill depth"
+msgstr ""
+
+msgid "The parameter sets the depth of skin."
+msgstr ""
+
+msgid "Infill lock depth"
+msgstr ""
+
+msgid "The parameter sets the overlapping depth between the interior and skin."
+msgstr ""
+
+msgid "Skin line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skin paths."
+msgstr ""
+
+msgid "Skeleton line width"
+msgstr ""
+
+msgid "Adjust the line width of the selected skeleton paths."
+msgstr ""
+
+msgid "Symmetric infill Y axis"
+msgstr ""
+
+msgid ""
+"If the model has two parts that are symmetric about the Y axis, and you want "
+"these parts to have symmetric textures, please click this option on one of "
+"the parts."
+msgstr ""
 
 msgid "Infill combination - Max layer height"
 msgstr "合併填充 - 最大層高"
@@ -12151,13 +12430,9 @@ msgstr "流量補償模型"
 msgid ""
 "Flow Compensation Model, used to adjust the flow for small infill areas. The "
 "model is expressed as a comma separated pair of values for extrusion length "
-"and flow correction factors, one per line, in the following format: "
-"\"1.234,5.678\""
+"and flow correction factor. Each pair is on a separate line, followed by a "
+"semicolon, in the following format: \"1.234, 5.678;\""
 msgstr ""
-"流量補償模型，用於在小面積填充區域中調整擠出流量。模型格式為以逗號分隔的擠出"
-"長度和流量補償係數，每行輸入一組，格式示例如下：1.234,5.678。\n"
-"譯者補充：此參數允許根據不同的擠出長度動態調整流量補償，以提升小區域列印的精"
-"確度和品質。"
 
 msgid "Maximum speed X"
 msgstr "X 最大速度"
@@ -12231,6 +12506,13 @@ msgstr "Z 軸最大抖動"
 msgid "Maximum jerk of the E axis"
 msgstr "E 軸最大抖動"
 
+msgid "Maximum Junction Deviation"
+msgstr ""
+
+msgid ""
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
+msgstr ""
+
 msgid "Minimum speed for extruding"
 msgstr "最小擠出速度"
 
@@ -12261,19 +12543,37 @@ msgstr "空駛最大加速度"
 msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2."
 msgstr "最大行駛加速度（M204 T），僅適用於 Marlin 2"
 
+msgid "Resonance avoidance"
+msgstr ""
+
+msgid ""
+"By reducing the speed of the outer wall to avoid the resonance zone of the "
+"printer, ringing on the surface of the model are avoided.\n"
+"Please turn this option off when testing ringing."
+msgstr ""
+
+msgid "Min"
+msgstr "最小"
+
+msgid "Minimum speed of resonance avoidance."
+msgstr ""
+
+msgid "Max"
+msgstr "最大"
+
+msgid "Maximum speed of resonance avoidance."
+msgstr ""
+
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
 "is the maximum speed for the part cooling fan."
 msgstr ""
 "啟用自動冷卻時，可能會提高物件冷卻風扇的轉速。這是物件冷卻風扇的最大速度限制"
 
-msgid "Max"
-msgstr "最大"
-
 msgid ""
 "The highest printable layer height for the extruder. Used to limit the "
-"maximum layer height when adaptive layer height is enabled."
-msgstr "擠出頭最大可列印的層高。用於限制開啟自適應層高時的最大層高"
+"maximum layer height when enable adaptive layer height."
+msgstr ""
 
 msgid "Extrusion rate smoothing"
 msgstr "平滑擠出率"
@@ -12285,7 +12585,7 @@ msgid ""
 "extrusion to a lower flow (lower speed/smaller width) extrusion and vice "
 "versa.\n"
 "\n"
-"It defines the maximum rate by which the extruded volumetric flow in mm³/s² "
+"It defines the maximum rate by which the extruded volumetric flow in mm³/s "
 "can change over time. Higher values mean higher extrusion rate changes are "
 "allowed, resulting in faster speed transitions.\n"
 "\n"
@@ -12309,9 +12609,6 @@ msgid ""
 msgstr ""
 "這個參數可以讓列印設備在高流量（例如高速度或較大線寬）和低流量（例如低速度或"
 "較小線寬）的切換能能夠平穩過渡，避免擠出量改變得太突然而影響列印效果。"
-
-msgid "mm³/s²"
-msgstr "mm³/s²"
 
 msgid "Smoothing segment length"
 msgstr "平滑段長度"
@@ -12360,13 +12657,10 @@ msgstr ""
 "層除外\n"
 "請在列印設備設定中啟用輔助風扇才能使用此功能。 G碼指令：M106 P2 S（0-255）"
 
-msgid "Min"
-msgstr "最小"
-
 msgid ""
 "The lowest printable layer height for the extruder. Used to limit the "
-"minimum layer height when adaptive layer height is enabled."
-msgstr "擠出頭最小可列印的層高。用於限制開啟自適應層高時的最小層高"
+"minimum layer height when enable adaptive layer height."
+msgstr ""
 
 msgid "Min print speed"
 msgstr "最小列印速度"
@@ -12379,7 +12673,7 @@ msgstr ""
 "當啟用了為改善層冷卻而減速的功能時，這個參數設定列印設備能減速到的最低列印速"
 "度，以確保達到上面設定的最短層時間。"
 
-msgid "Diameter of nozzle"
+msgid "The diameter of nozzle."
 msgstr "噴嘴直徑"
 
 msgid "Configuration notes"
@@ -12503,9 +12797,6 @@ msgstr ""
 "模型底部的孔洞在被圓錐形材料填充前所允許的最大面積。值為 0 將填充模型底部的所"
 "有孔洞。"
 
-msgid "mm²"
-msgstr "mm²"
-
 msgid "Detect overhang wall"
 msgstr "檢測懸空外牆"
 
@@ -12517,7 +12808,7 @@ msgstr ""
 "偵測懸空相對於線寬的百分比，並套用不同的速度列印。100%% 的懸空將使用橋接速"
 "度。"
 
-msgid "Filament to print walls"
+msgid "Filament to print walls."
 msgstr "用於列印牆體的線材"
 
 msgid ""
@@ -12566,7 +12857,7 @@ msgstr ""
 msgid "Printer type"
 msgstr "列印設備類型"
 
-msgid "Type of the printer"
+msgid "Type of the printer."
 msgstr "列印設備類型"
 
 msgid "Printer notes"
@@ -12640,24 +12931,13 @@ msgstr "換層時回抽"
 msgid "Force a retraction when changes layer."
 msgstr "強制在換層時回抽"
 
-msgid "Retract on top layer"
-msgstr "頂層回抽"
-
-msgid ""
-"Force a retraction on top layer. Disabling could prevent clog on very slow "
-"patterns with small movements, like Hilbert curve."
-msgstr ""
-"在頂層強制執行回抽操作。停用此功能可能有助於避免在非常緩慢且移動距離較小的模"
-"式（例如希爾伯特曲線）中出現堵塞"
-
 msgid "Retraction Length"
 msgstr "回抽長度"
 
 msgid ""
 "Some amount of material in extruder is pulled back to avoid ooze during long "
-"travel. Set zero to disable retraction"
+"travel. Set zero to disable retraction."
 msgstr ""
-"擠出機將材料拉回指定長度，避免空駛較長時軟化的線材滲出。設定為 0 表示關閉回抽"
 
 msgid "Long retraction when cut (beta)"
 msgstr "切斷時的長回抽（實驗性功能）"
@@ -12711,6 +12991,9 @@ msgstr ""
 
 msgid "Z-hop type"
 msgstr "Z 抬升類型"
+
+msgid "Type of Z-hop."
+msgstr ""
 
 msgid "Slope"
 msgstr "梯形"
@@ -12779,16 +13062,16 @@ msgstr "當換色後回抽被補償時，擠出機將推入額外長度的線材
 msgid "Retraction Speed"
 msgstr "回抽速度"
 
-msgid "Speed of retractions."
-msgstr "回抽速度"
+msgid "Speed for retracting filament from the nozzle."
+msgstr ""
 
 msgid "De-retraction Speed"
 msgstr "裝填速度"
 
 msgid ""
-"Speed for reloading filament into extruder. Zero means same speed of "
+"Speed for reloading filament into the nozzle. Zero means same speed of "
 "retraction."
-msgstr "線材裝填的速度，0 表示和回抽速度一致"
+msgstr ""
 
 msgid "Use firmware retraction"
 msgstr "使用韌體回抽"
@@ -12821,6 +13104,9 @@ msgstr "最近"
 
 msgid "Aligned"
 msgstr "對齊"
+
+msgid "Aligned back"
+msgstr ""
 
 msgid "Back"
 msgstr "背面"
@@ -12894,13 +13180,13 @@ msgstr "斜拼接縫速度"
 
 msgid ""
 "This option sets the printing speed for scarf joints. It is recommended to "
-"print scarf joints at a slow speed (less than 100 mm/s). It's also "
-"advisable to enable 'Extrusion rate smoothing' if the set speed varies "
-"significantly from the speed of the outer or inner walls. If the speed "
-"specified here is higher than the speed of the outer or inner walls, the "
-"printer will default to the slower of the two speeds. When specified as a "
-"percentage (e.g., 80%), the speed is calculated based on the respective "
-"outer or inner wall speed. The default value is set to 100%."
+"print scarf joints at a slow speed (less than 100 mm/s). It's also advisable "
+"to enable 'Extrusion rate smoothing' if the set speed varies significantly "
+"from the speed of the outer or inner walls. If the speed specified here is "
+"higher than the speed of the outer or inner walls, the printer will default "
+"to the slower of the two speeds. When specified as a percentage (e.g., 80%), "
+"the speed is calculated based on the respective outer or inner wall speed. "
+"The default value is set to 100%."
 msgstr ""
 "此選項用於設定斜拼接縫的列印速度，建議以較慢的速度進行列印（小於 100 mm/s）。"
 "若設定的速度與外牆或內牆速度差異較大，建議啟用『平滑擠出率』功能。若此處設定"
@@ -12953,9 +13239,10 @@ msgid "Role base wipe speed"
 msgstr "自動擦拭速度"
 
 msgid ""
-"The wipe speed is determined by the speed of the current extrusion role. e.g. "
-"if a wipe action is executed immediately following an outer wall extrusion, "
-"the speed of the outer wall extrusion will be utilized for the wipe action."
+"The wipe speed is determined by the speed of the current extrusion role. "
+"e.g. if a wipe action is executed immediately following an outer wall "
+"extrusion, the speed of the outer wall extrusion will be utilized for the "
+"wipe action."
 msgstr ""
 "拭的速度由目前擠出任務的速度決定。例如，若擦拭操作緊接著外牆的擠出執行，則將"
 "使用外牆擠出的速度進行擦拭。"
@@ -13003,7 +13290,7 @@ msgstr ""
 msgid "Skirt distance"
 msgstr "Skirt 距離"
 
-msgid "Distance from skirt to brim or object"
+msgid "The distance from the skirt to the brim or the object."
 msgstr "從 Skirt 到模型或者 Brim 的距離"
 
 msgid "Skirt start point"
@@ -13021,16 +13308,14 @@ msgstr "Skirt 高度"
 msgid "How many layers of skirt. Usually only one layer."
 msgstr "Skirt 有多少層。通常只有一層"
 
-msgid "Single loop draft shield"
-msgstr "單圈防風罩"
+msgid "Single loop after first layer"
+msgstr ""
 
 msgid ""
-"Limits the draft shield loops to one wall after the first layer. This is "
-"useful, on occasion, to conserve filament but may cause the draft shield to "
-"warp / crack."
+"Limits the skirt/draft shield loops to one wall after the first layer. This "
+"is useful, on occasion, to conserve filament but may cause the draft shield/"
+"skirt to warp / crack."
 msgstr ""
-"將防風罩的迴圈數限制為第一層後只有一層壁。這樣做有時能節省耗材，但可能會導致"
-"防風罩變形或裂開。"
 
 msgid "Draft shield"
 msgstr "防風罩"
@@ -13065,9 +13350,6 @@ msgid ""
 "Combined - single skirt for all objects, Per object - individual object "
 "skirt."
 msgstr "合併 - 所有物件共用一個 Skirt；逐件 - 每個物件使用獨立的 Skirt」"
-
-msgid "Combined"
-msgstr "合併"
 
 msgid "Per object"
 msgstr "逐件"
@@ -13119,7 +13401,7 @@ msgstr "小於設定閾值的稀疏填充區域將替換為內部實心填充"
 msgid "Solid infill"
 msgstr "實心填充"
 
-msgid "Filament to print solid infill"
+msgid "Filament to print solid infill."
 msgstr "列印實心填充所使用的線材"
 
 msgid ""
@@ -13209,8 +13491,8 @@ msgstr "軟化溫度"
 #. TRN PrintSettings : "Ooze prevention" > "Temperature variation"
 msgid ""
 "Temperature difference to be applied when an extruder is not active. The "
-"value is not used when 'idle_temperature' in filament settings is set to "
-"non-zero value."
+"value is not used when 'idle_temperature' in filament settings is set to non-"
+"zero value."
 msgstr ""
 "設定擠出機閒置時的溫差。若線材設定中的『idle_temperature』設為非零值，該參數"
 "將不生效。"
@@ -13232,8 +13514,8 @@ msgid "Preheat steps"
 msgstr "預熱階段"
 
 msgid ""
-"Insert multiple preheat commands (e.g. M104.1). Only useful for Prusa XL. For "
-"other printers, please set it to 1."
+"Insert multiple preheat commands (e.g. M104.1). Only useful for Prusa XL. "
+"For other printers, please set it to 1."
 msgstr ""
 "插入多條預熱指令（例如：M104.1）。此功能僅適用於 Prusa XL。其他列印設備請將其"
 "設為 1。"
@@ -13273,8 +13555,8 @@ msgstr "沖刷進換料塔"
 msgid "Purge remaining filament into prime tower."
 msgstr "沖刷剩餘的線材進入換料塔"
 
-msgid "Enable filament ramming."
-msgstr "啟用線材尖端成型"
+msgid "Enable filament ramming"
+msgstr ""
 
 msgid "No sparse layers (beta)"
 msgstr "取消稀疏層（Beta）"
@@ -13472,8 +13754,10 @@ msgstr "與頂部相同"
 msgid "Top interface spacing"
 msgstr "頂部接觸面間距"
 
-msgid "Spacing of interface lines. Zero means solid interface."
-msgstr "接觸面的線距。0 代表實心接觸面"
+msgid ""
+"Spacing of interface lines. Zero means solid interface.\n"
+"Force using solid interface when support ironing is enabled."
+msgstr ""
 
 msgid "Bottom interface spacing"
 msgstr "底部接觸面間距"
@@ -13636,8 +13920,8 @@ msgid "Adaptive layer height"
 msgstr "自適應層高"
 
 msgid ""
-"Enabling this option means the height of tree support layer except the "
-"first will be automatically calculated."
+"Enabling this option means the height of tree support layer except the first "
+"will be automatically calculated."
 msgstr "啟用此選項將自動計算（除第一層外）樹狀支撐的層高"
 
 msgid "Auto brim width"
@@ -13696,6 +13980,31 @@ msgid ""
 "This setting specifies whether to add infill inside large hollows of tree "
 "support."
 msgstr "此設定決定是否為樹狀支撐內部的空間產生填充"
+
+msgid "Ironing Support Interface"
+msgstr ""
+
+msgid ""
+"Ironing is using small flow to print on same height of support interface "
+"again to make it more smooth. This setting controls whether support "
+"interface being ironed. When enabled, support interface will be extruded as "
+"solid too."
+msgstr ""
+
+msgid "Support Ironing Pattern"
+msgstr ""
+
+msgid "Support Ironing flow"
+msgstr ""
+
+msgid ""
+"The amount of material to extrude during ironing. Relative to flow of normal "
+"support interface layer height. Too high value results in overextrusion on "
+"the surface."
+msgstr ""
+
+msgid "Support Ironing line spacing"
+msgstr ""
 
 msgid "Activate temperature control"
 msgstr "啟動溫度控制"
@@ -13806,6 +14115,26 @@ msgstr ""
 "以避免層高較小時頂部殼層過薄。若設為 0，則停用此功能，頂部殼層厚度完全由設定"
 "的頂部殼層數決定"
 
+msgid "Top surface density"
+msgstr ""
+
+msgid ""
+"Density of top surface layer. A value of 100% creates a fully solid, smooth "
+"top layer. Reducing this value results in a textured top surface, according "
+"to the chosen top surface pattern. A value of 0% will result in only the "
+"walls on the top layer being created. Intended for aesthetic or functional "
+"purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
+msgid "Bottom surface density"
+msgstr ""
+
+msgid ""
+"Density of the bottom surface layer. Intended for aesthetic or functional "
+"purposes, not to fix issues such as over-extrusion.\n"
+"WARNING: Lowering this value may negatively affect bed adhesion."
+msgstr ""
+
 msgid "Speed of travel which is faster and without extrusion."
 msgstr "空駛的速度。空駛是無擠出量的快速移動"
 
@@ -13824,8 +14153,7 @@ msgid "Wipe Distance"
 msgstr "擦拭距離"
 
 msgid ""
-"Describe how long the nozzle will move along the last path when "
-"retracting.\n"
+"Describe how long the nozzle will move along the last path when retracting.\n"
 "\n"
 "Depending on how long the wipe operation lasts, how fast and long the "
 "extruder/filament retraction settings are, a retraction move may be needed "
@@ -13873,8 +14201,11 @@ msgstr "換料塔寬度"
 msgid "Wipe tower rotation angle"
 msgstr "換料塔旋轉角度"
 
-msgid "Wipe tower rotation angle with respect to x-axis."
+msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "換料塔相對於 x 軸的旋轉角度。"
+
+msgid "Width of the brim."
+msgstr ""
 
 msgid "Stabilization cone apex angle"
 msgstr "穩定錐形頂角"
@@ -13917,10 +14248,43 @@ msgstr ""
 "\n"
 "提高此速度可能會影響塔的穩定性，並增加噴嘴與換料塔上斑點的碰撞力。\n"
 "\n"
-"在將此參數提高於預設值 90mm/s 以上之前，請確保您的印表設備能夠可靠地在更高"
-"的速度下橋接，並且工具更換時的溢出能良好的被控制。\n"
+"在將此參數提高於預設值 90mm/s 以上之前，請確保您的印表設備能夠可靠地在更高的"
+"速度下橋接，並且工具更換時的溢出能良好的被控制。\n"
 "\n"
 "對於換料塔外部周邊，無論此設定如何，都使用內部周邊速度。"
+
+msgid "Wall type"
+msgstr ""
+
+msgid ""
+"Wipe tower outer wall type.\n"
+"1. Rectangle: The default wall type, a rectangle with fixed width and "
+"height.\n"
+"2. Cone: A cone with a fillet at the bottom to help stabilize the wipe "
+"tower.\n"
+"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+msgstr ""
+
+msgid "Extra rib length"
+msgstr ""
+
+msgid ""
+"Positive values can increase the size of the rib wall, while negative values "
+"can reduce the size. However, the size of the rib wall can not be smaller "
+"than that determined by the cleaning volume."
+msgstr ""
+
+msgid "Rib width"
+msgstr ""
+
+msgid "Rib width."
+msgstr ""
+
+msgid "Fillet wall"
+msgstr ""
+
+msgid "The wall of prime tower will fillet."
+msgstr ""
 
 msgid ""
 "The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
@@ -14157,15 +14521,12 @@ msgstr ""
 msgid "Minimum feature size"
 msgstr "最小特徵尺寸"
 
-#, fuzzy
 msgid ""
 "Minimum thickness of thin features. Model features that are thinner than "
-"this value will not be printed, while features thicker than this value will "
-"be widened to the minimum wall width. It's expressed as a percentage over "
-"nozzle diameter."
+"this value will not be printed, while features thicker than than this value "
+"will be widened to the minimum wall width. It's expressed as a percentage "
+"over nozzle diameter."
 msgstr ""
-"薄壁特徵的最小厚度。比這個數值還薄的特徵將不被列印，而比最小特徵厚度還厚的特"
-"征將被加寬到牆最小寬度。參數值表示為相對噴嘴直徑的百分比"
 
 msgid "Minimum wall length"
 msgstr "最短牆長"
@@ -14353,7 +14714,8 @@ msgid "Ensure on bed"
 msgstr "確認在列印板上"
 
 msgid ""
-"Lift the object above the bed when it is partially below. Disabled by default."
+"Lift the object above the bed when it is partially below. Disabled by "
+"default."
 msgstr "當物件部分位於列印板的下方時，將其提升到列印板的上方。預設情況下停用"
 
 msgid ""
@@ -14376,6 +14738,12 @@ msgstr "方向設定：0-關閉，1-開啟，其它-自動模式"
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "繞 Z 軸的旋轉角度（以度為單位）。"
+
+msgid "Rotate around X"
+msgstr ""
+
+msgid "Rotation angle around the X axis in degrees."
+msgstr ""
 
 msgid "Rotate around Y"
 msgstr "繞 Y 旋轉"
@@ -14410,28 +14778,31 @@ msgstr "複製物件"
 msgid "Clone objects in the load list."
 msgstr "複製載入清單中的物件"
 
-msgid "Load uptodate process/machine settings when using uptodate."
-msgstr "使用最新版本時，載入最新的參數與機器設定"
+msgid "Load uptodate process/machine settings when using uptodate"
+msgstr ""
 
 msgid ""
 "Load uptodate process/machine settings from the specified file when using "
 "uptodate."
 msgstr "當使用最新版本時，從指定檔案載入最新的參數與機器設定"
 
-msgid "Load uptodate filament settings when using uptodate."
-msgstr "使用最新版本時，載入最新的列印耗材設定"
+msgid "Load uptodate filament settings when using uptodate"
+msgstr ""
 
 msgid ""
 "Load uptodate filament settings from the specified file when using uptodate."
 msgstr "當使用最新版本時，從指定檔案載入最新的列印耗材設定"
+
+msgid "Downward machines check"
+msgstr ""
 
 msgid ""
 "If enabled, check whether current machine downward compatible with the "
 "machines in the list."
 msgstr "若啟用，則檢查目前機器是否與列表中的機器向下相容"
 
-msgid "Downward machines settings"
-msgstr "相容機器設定"
+msgid "downward machines settings"
+msgstr ""
 
 msgid "The machine settings list needs to do downward checking."
 msgstr "機器設定清單需執行向下相容性檢測"
@@ -14463,8 +14834,8 @@ msgid "Debug level"
 msgstr "除錯模式等級"
 
 msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+"5:trace\n"
 msgstr ""
 "設定除錯日誌級別。0：致命錯誤，1：錯誤，2：警告，3：資訊，4：除錯，5：追蹤\n"
 
@@ -14480,11 +14851,11 @@ msgstr "載入自訂 G-code"
 msgid "Load custom G-code from json."
 msgstr "從 json 載入自訂 G-code"
 
-msgid "Load filament ids"
+msgid "Load filament IDs"
 msgstr "載入耗材識別碼"
 
-msgid "Load filament ids for each object"
-msgstr "載入每個物件的耗材識別碼"
+msgid "Load filament IDs for each object."
+msgstr ""
 
 msgid "Allow multiple colors on one plate"
 msgstr "允許同塊板上使用多色列印"
@@ -14515,26 +14886,29 @@ msgstr "忽略 3MF 檔案內來自印表機或耗材預設的已修改 G-code"
 msgid "MakerLab name"
 msgstr "MakerLab 名稱"
 
-msgid "MakerLab name to generate this 3mf"
+msgid "MakerLab name to generate this 3mf."
 msgstr "產生此 3MF 檔案時所使用的 MakerLab 名稱"
 
 msgid "MakerLab version"
 msgstr "MakerLab 版本"
 
-msgid "MakerLab version to generate this 3mf"
+msgid "MakerLab version to generate this 3mf."
 msgstr "產生此 3MF 檔案時所使用的 MakerLab 版本"
 
 msgid "metadata name list"
 msgstr "中繼資料名稱清單"
 
-msgid "metadata name list added into 3mf"
+msgid "metadata name list added into 3mf."
 msgstr "新增至 3MF 檔案的中繼資料名稱清單"
 
 msgid "metadata value list"
 msgstr "中繼資料值清單"
 
-msgid "metadata value list added into 3mf"
+msgid "metadata value list added into 3mf."
 msgstr "新增至 3MF 檔案的中繼資料值清單"
+
+msgid "Allow 3mf with newer version to be sliced"
+msgstr ""
 
 msgid "Allow 3mf with newer version to be sliced."
 msgstr "允許對較新版本的 3MF 進行切片處理"
@@ -14788,7 +15162,7 @@ msgstr "層數"
 msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
 msgstr "當層數 (第一層為一)"
 
-msgid "Layer z"
+msgid "Layer Z"
 msgstr "層 z 高"
 
 msgid ""
@@ -14796,7 +15170,7 @@ msgid ""
 "layer."
 msgstr "目前這一層距離熱床的高度，從層頂開始計算。"
 
-msgid "Maximal layer z"
+msgid "Maximal layer Z"
 msgstr "層的最大 Z 軸高度"
 
 msgid "Height of the last layer above the print bed."
@@ -14865,18 +15239,27 @@ msgstr ""
 "物件的 XY 尺寸補償不會生效，因為在此物件上做過上色操作。\n"
 "XY 尺寸補償不能與上色功能一起使用。"
 
+msgid ""
+"An object has enabled XY Size compensation which will not be used because it "
+"is also fuzzy skin painted.\n"
+"XY Size compensation cannot be combined with fuzzy skin painting."
+msgstr ""
+
+msgid "Object name"
+msgstr ""
+
 msgid "Support: generate contact points"
 msgstr "支撐：正在產生接觸點"
-
-msgid ""
-"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr "檔案格式未知。輸入的檔案必須是 .stl、.obj 或 .amf(.xml) 格式。"
 
 msgid "Loading of a model file failed."
 msgstr "載入模型檔案失敗。"
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "無法讀取提供的檔案，因為該檔案為空"
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr "檔案格式未知。輸入的檔案必須是 .stl、.obj 或 .amf(.xml) 格式。"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "未知的檔案格式。輸入檔案的副檔名必須為 .3mf 或 .zip .amf。"
@@ -14964,13 +15347,22 @@ msgstr "流量比例"
 msgid "Max Volumetric Speed"
 msgstr "最大體積速度"
 
+msgid "(LAN)"
+msgstr "（區域網路）"
+
+msgid "Online"
+msgstr "在線"
+
+msgid "Busy"
+msgstr "忙碌"
+
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
 "Start value: >= %.1f\n"
 "End value: <= %.1f\n"
 "End value: > Start value\n"
-"Value step: >= %.3f)"
+"Value step: >= %.3f"
 msgstr ""
 "請輸入有效值：\n"
 "起始值：>= %.1f\n"
@@ -15064,16 +15456,11 @@ msgid ""
 "fully automated and the result will be saved into the printer for future "
 "use. You only need to do the calibration in the following limited cases:\n"
 "1. If you introduce a new filament of different brands/models or the "
-"filament is damp\n"
-"2. If the nozzle is worn out or replaced with a new one\n"
+"filament is damp;\n"
+"2. If the nozzle is worn out or replaced with a new one;\n"
 "3. If the max volumetric speed or print temperature is changed in the "
-"filament setting"
+"filament setting."
 msgstr ""
-"我們現在已經為不同的列印線材新增了自動校正功能，該功能是完全自動化的，並且結"
-"果將儲存在列印設備中以供將來使用。您只需要在以下有限情況下進行校正：\n"
-"1. 如果您引入了不同品牌/型號的新列印線材，或者列印線材受潮；\n"
-"2. 如果噴嘴磨損或更換了新的噴嘴；\n"
-"3. 如果您在列印線材設定中更改了最大體積速度或列印溫度。"
 
 msgid "About this calibration"
 msgstr "關於此校正"
@@ -15211,9 +15598,6 @@ msgid ""
 "the Name"
 msgstr "*我們建議您在名稱中加入品牌、材料、類型，甚至濕度水平"
 
-msgid "Failed"
-msgstr "失敗"
-
 msgid "Please enter the name you want to save to printer."
 msgstr "請輸入要儲存到列印設備的名稱。"
 
@@ -15334,6 +15718,12 @@ msgstr "%s 與 %s 不相容"
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "不支援 TPU 進行流量動態自動校正。"
 
+msgid ""
+"Cannot print multiple filaments which have large difference of temperature "
+"together. Otherwise, the extruder and nozzle may be blocked or damaged "
+"during printing"
+msgstr ""
+
 msgid "Connecting to printer"
 msgstr "正在連接列印設備"
 
@@ -15424,14 +15814,14 @@ msgstr ""
 msgid "PA Calibration"
 msgstr "PA 校正"
 
+msgid "Extruder type"
+msgstr "擠出機類型"
+
 msgid "DDE"
 msgstr "近程擠出機"
 
 msgid "Bowden"
 msgstr "遠程擠出機"
-
-msgid "Extruder type"
-msgstr "擠出機類型"
 
 msgid "PA Tower"
 msgstr "PA 塔"
@@ -15470,7 +15860,7 @@ msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
 "End PA: > Start PA\n"
-"PA step: >= 0.001)"
+"PA step: >= 0.001"
 msgstr ""
 "請輸入有效值：\n"
 "起始 PA：>= 0.0\n"
@@ -15479,6 +15869,9 @@ msgstr ""
 
 msgid "Temperature calibration"
 msgstr "溫度校正"
+
+msgid "Filament type"
+msgstr "線材類型"
 
 msgid "PLA"
 msgstr "PLA"
@@ -15501,9 +15894,6 @@ msgstr "PA-CF"
 msgid "PET-CF"
 msgstr "PET-CF"
 
-msgid "Filament type"
-msgstr "線材類型"
-
 msgid "Start temp: "
 msgstr "起始溫度： "
 
@@ -15517,7 +15907,7 @@ msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
 "End temp: >= 170\n"
-"Start temp > End temp + 5)"
+"Start temp > End temp + 5"
 msgstr ""
 "請輸入有效值：\n"
 "起始溫度：<= 350\n"
@@ -15533,14 +15923,11 @@ msgstr "起始流量："
 msgid "End volumetric speed: "
 msgstr "結束流量："
 
-msgid "step: "
-msgstr "步距："
-
 msgid ""
 "Please input valid values:\n"
-"start > 0 \n"
+"start > 0\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "請輸入有效值：\n"
 "開始 > 0\n"
@@ -15558,9 +15945,9 @@ msgstr "結束速度："
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \n"
+"start > 10\n"
 "step >= 0\n"
-"end > start + step)"
+"end > start + step"
 msgstr ""
 "請輸入有效值：\n"
 "開始 > 10\n"
@@ -15573,8 +15960,83 @@ msgstr "起始回抽長度："
 msgid "End retraction length: "
 msgstr "結束回抽長度："
 
-msgid "mm/mm"
-msgstr "mm/mm"
+msgid "Input shaping Frequency test"
+msgstr ""
+
+msgid "Test model"
+msgstr ""
+
+msgid "Ringing Tower"
+msgstr ""
+
+msgid "Fast Tower"
+msgstr ""
+
+msgid "Start / End"
+msgstr ""
+
+msgid "Frequency settings"
+msgstr ""
+
+msgid "Damp: "
+msgstr ""
+
+msgid ""
+"Recommended: Set Damp to 0.\n"
+"This will use the printer's default or the last saved value."
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"(0 < FreqStart < FreqEnd < 500)"
+msgstr ""
+
+msgid "Please input a valid damping factor (0 < Damping/zeta factor <= 1)"
+msgstr ""
+
+msgid "Input shaping Damp test"
+msgstr ""
+
+msgid "Frequency"
+msgstr ""
+
+msgid "Damp"
+msgstr ""
+
+msgid "Note: Use previously calculated frequencies."
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"(0 < Freq < 500)"
+msgstr ""
+
+msgid ""
+"Please input a valid damping factor (0 <= DampingStart < DampingEnd <= 1)"
+msgstr ""
+
+msgid "Junction Deviation test"
+msgstr ""
+
+msgid "Start junction deviation: "
+msgstr ""
+
+msgid "End junction deviation: "
+msgstr ""
+
+msgid "Junction Deviation settings"
+msgstr ""
+
+msgid "Note: Lower values = sharper corners but slower speeds"
+msgstr ""
+
+msgid ""
+"Please input valid values:\n"
+"(0 <= Junction Deviation < 1)"
+msgstr ""
+
+msgid "NOTE: High values may cause Layer shift"
+msgstr ""
 
 msgid "Send G-code to printer host"
 msgstr "傳送 G-code 到列印設備"
@@ -15629,7 +16091,7 @@ msgstr "已加入佇列"
 msgid "Uploading"
 msgstr "正在上傳"
 
-msgid "Cancelling"
+msgid "Canceling"
 msgstr "取消中"
 
 msgid "Error uploading to print host"
@@ -15692,6 +16154,9 @@ msgid "Delete input"
 msgstr "刪除輸入"
 
 msgid "Network Test"
+msgstr "網路測試"
+
+msgid "Network test"
 msgstr "網路測試"
 
 msgid "Start Test Multi-Thread"
@@ -15878,14 +16343,8 @@ msgstr "可列印空間"
 msgid "Hot Bed STL"
 msgstr "熱床 STL"
 
-msgid "Load stl"
-msgstr "載入 STL"
-
 msgid "Hot Bed SVG"
 msgstr "熱床 SVG"
-
-msgid "Load svg"
-msgstr "載入 SVG"
 
 msgid "Max Print Height"
 msgstr "最大列印高度"
@@ -15913,16 +16372,13 @@ msgid "Printer Preset"
 msgstr "列印設備預設設定"
 
 msgid "Filament Preset Template"
-msgstr "線材預設設定模板"
+msgstr "線材預設設定範本"
 
 msgid "Deselect All"
 msgstr "取消全選"
 
 msgid "Process Preset Template"
-msgstr "處理預設設定模板"
-
-msgid "Back Page 1"
-msgstr "返回第一頁"
+msgstr "處理預設設定範本"
 
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
@@ -16075,6 +16531,13 @@ msgstr ""
 "目前目錄中已存在 '%s' 資料夾。您是否要清除它並重新建立？\n"
 "如果不想清除，將會加上時間後綴，並且您可以在建立後修改名稱。"
 
+#, c-format, boost-format
+msgid ""
+"The file: %s\n"
+"may have been opened by another program.\n"
+"Please close it and try again."
+msgstr ""
+
 msgid ""
 "Printer and all the filament&&process presets that belongs to the printer.\n"
 "Can be shared with others."
@@ -16150,6 +16613,14 @@ msgstr[0] "以下預設設定繼承了此預設。"
 msgid "Delete Preset"
 msgstr "刪除預設設定"
 
+msgid ""
+"Are you sure to delete the selected preset?\n"
+"If the preset corresponds to a filament currently in use on your printer, "
+"please reset the filament information for that slot."
+msgstr ""
+"您確定要刪除所選預設嗎？\n"
+"如果該預設對應的是列印設備目前使用的線材，請重置該槽位的線材資訊。"
+
 msgid "Are you sure to delete the selected preset?"
 msgstr "確定要刪除選定的預設設定嗎？"
 
@@ -16158,9 +16629,6 @@ msgstr "刪除預設設定"
 
 msgid "+ Add Preset"
 msgstr "+ 新增預設設定"
-
-msgid "Delete Filament"
-msgstr "刪除線材"
 
 msgid ""
 "All the filament presets belong to this filament would be deleted.\n"
@@ -16200,9 +16668,12 @@ msgstr "摺疊"
 msgid "Daily Tips"
 msgstr "每日提示"
 
+msgid "BigTraffic"
+msgstr ""
+
 #, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "記錄的噴嘴：%.1f %s"
+msgid "nozzle in preset: %s %s"
+msgstr "預設中的噴嘴：%s %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
@@ -16241,9 +16712,6 @@ msgstr "成功！"
 
 msgid "Are you sure to log out?"
 msgstr "確定要登出嗎？"
-
-msgid "Refresh Printers"
-msgstr "重新整理列印設備"
 
 msgid "View print host webui in Device tab"
 msgstr "在設備選項卡中查看列印主機的 Web UI"
@@ -16443,10 +16911,8 @@ msgstr ""
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
 "height. This results in almost invisible layer lines and higher print "
-"quality but shorter print time."
+"quality but longer print time."
 msgstr ""
-"與 0.2 毫米噴嘴的預設配置相比，該配置具有較小的層高，產生幾乎不可見的層線並提"
-"高列印品質，但列印時間較短。"
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -16460,11 +16926,9 @@ msgstr ""
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
-"height. This results in minimal layer lines and higher print quality, but "
-"shorter print time."
+"height. This results in minimal layer lines and higher print quality but "
+"longer print time."
 msgstr ""
-"與 0.2 毫米噴嘴的預設配置相比，該配置具有較小的層高，產生最小的層線並提高列印"
-"品質，但列印時間較短。"
 
 msgid ""
 "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
@@ -16594,26 +17058,20 @@ msgstr "它具有非常大的層高，產生明顯的層線、較低的列印品
 
 msgid ""
 "It has a very big layer height. This results in very apparent layer lines, "
-"low print quality and general print time."
+"low print quality and shorter print time."
 msgstr ""
-"與0.8mm噴嘴的預設配置相比，該配置具有較大的層高，產生非常明顯的層線並顯著降低"
-"列印品質，但在某些情況下會縮短列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
 "height. This results in very apparent layer lines and much lower print "
-"quality but shorter print time in some cases."
+"quality, but shorter print time in some cases."
 msgstr ""
-"與0.8mm噴嘴的預設配置相比，該配置具有更大的層高，產生極為明顯的層線並顯著降低"
-"列印品質，但在某些情況下會大幅縮短列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
 "layer height. This results in extremely apparent layer lines and much lower "
-"print quality but much shorter print time in some cases."
+"print quality, but much shorter print time in some cases."
 msgstr ""
-"與0.8mm噴嘴的預設配置相比，該配置具有略小的層高，產生略少但仍明顯的層線，並略"
-"微提高列印品質，但在某些情況下會延長列印時間。"
 
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
@@ -16626,10 +17084,8 @@ msgstr ""
 msgid ""
 "Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
 "height. This results in less but still apparent layer lines and slightly "
-"higher print quality, but longer print time in some cases."
+"higher print quality but longer print time in some cases."
 msgstr ""
-"與0.8mm噴嘴的預設配置相比，該配置具有較少的層高，產生較少但仍明顯的層線，並略"
-"微提高列印品質，但在某些情況下會延長列印時間。"
 
 msgid "Connected to Obico successfully!"
 msgstr "成功連接到 Obico！"
@@ -16652,11 +17108,11 @@ msgstr "未知錯誤"
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr "SimplyPrint 帳戶未連結。請前往連接選項進行設置。"
 
-msgid "Connection to Flashforge is working correctly."
-msgstr "成功連接到 Flashforge。"
+msgid "Serial connection to Flashforge is working correctly."
+msgstr ""
 
-msgid "Could not connect to Flashforge"
-msgstr "無法連接到 Flashforge"
+msgid "Could not connect to Flashforge via serial"
+msgstr ""
 
 msgid "The provided state is not correct."
 msgstr "提供的狀態不正確。"
@@ -16667,8 +17123,8 @@ msgstr "授權此應用程式時，請提供所需的權限。"
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr "嘗試登入時發生了意外錯誤，請再試一次。"
 
-msgid "User canceled."
-msgstr "使用者取消。"
+msgid "User cancelled."
+msgstr ""
 
 msgid "Head diameter"
 msgstr "頭直徑"
@@ -16694,6 +17150,9 @@ msgstr "新增邊緣支撐 (Brim)"
 msgid "Delete a brim ear"
 msgstr "刪除邊緣支撐 (Brim)"
 
+msgid "Adjust head diameter"
+msgstr ""
+
 msgid "Adjust section view"
 msgstr "調整截圖視角"
 
@@ -16702,8 +17161,8 @@ msgid ""
 "take effect!"
 msgstr "警告：邊緣類型未設置「上色」，因此邊緣支撐 (Brim) 不會生效！"
 
-msgid "Set the brim type to \"painted\""
-msgstr "將邊緣類型設置為「上色」。"
+msgid "Set the brim type of this object to \"painted\""
+msgstr ""
 
 msgid " invalid brim ears"
 msgstr " 無效的邊緣支撐 (Brim)"
@@ -17038,8 +17497,8 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Flush into support/objects/infill]
 msgid ""
 "Flush into support/objects/infill\n"
-"Did you know that you can save wasted filament by flushing it into "
-"support/objects/infill during filament change?"
+"Did you know that you can save wasted filament by flushing it into support/"
+"objects/infill during filament change?"
 msgstr ""
 "廢料運用到支撐/物件/填充中\n"
 "您知道嗎？您可以在換料時將廢料運用到支撐/物件/填充，以節省浪費\n"
@@ -17079,6 +17538,471 @@ msgstr ""
 "避免翹曲\n"
 "您知道嗎？當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度\n"
 "可以降低翹曲的機率。"
+
+#~ msgid ""
+#~ "Improve shell precision by adjusting outer wall spacing. This also "
+#~ "improves layer consistency."
+#~ msgstr "調整外壁間距以提升外殼精度，同時改善列印層的一致性。"
+
+#~ msgid "Enable filament ramming."
+#~ msgstr "啟用線材尖端成型"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + 滑鼠滾輪"
+
+#~ msgid "Ctrl + Mouse wheel"
+#~ msgstr "Ctrl + 滑鼠滾輪"
+
+#~ msgid "Shift + Left mouse button"
+#~ msgstr "Shift + 滑鼠左鍵"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Shift + Mouse move up or down"
+#~ msgstr "Shift + 滑鼠上移或下移"
+
+#~ msgid "Left mouse button:"
+#~ msgstr "滑鼠左鍵："
+
+#~ msgid "Right mouse button:"
+#~ msgstr "滑鼠右鍵："
+
+#~ msgid "Shift + Left mouse button:"
+#~ msgstr "Shift + 滑鼠左鍵："
+
+#~ msgid "Shift + Right mouse button:"
+#~ msgstr "Shift + 滑鼠右鍵："
+
+#~ msgid "Recent projects"
+#~ msgstr "最近的專案項目"
+
+#~ msgid "Maximum recent projects"
+#~ msgstr "最近專案項目的最大數量"
+
+#~ msgid "Maximum count of recent projects"
+#~ msgstr "近期專案項目的最大統計"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "Shift+A"
+#~ msgstr "Shift+A"
+
+#~ msgid "Shift+Q"
+#~ msgstr "Shift+Q"
+
+#~ msgid "Shift+Tab"
+#~ msgstr "Shift+Tab"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+方向鍵"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+滑鼠左鍵"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+滑鼠左鍵"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+方向鍵"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+滑鼠左鍵"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+滑鼠左鍵"
+
+#~ msgid "Shift+Left mouse button"
+#~ msgstr "Shift+滑鼠左鍵"
+
+#~ msgid "Shift+Any arrow"
+#~ msgstr "Shift+方向鍵"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+滑鼠滾輪"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+滑鼠滾輪"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+滑鼠滾輪"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+滑鼠滾輪"
+
+#~ msgid "Shift+Mouse wheel"
+#~ msgstr "Shift+滑鼠滾輪"
+
+#~ msgid "Set Position"
+#~ msgstr "設定位置"
+
+#~ msgid "%"
+#~ msgstr "%"
+
+#, boost-format
+#~ msgid "%1%"
+#~ msgstr "%1%"
+
+#~ msgid "Right click the icon to fix model object"
+#~ msgstr "滑鼠右鍵點擊此圖示修復物件模型"
+
+#~ msgid "The target object contains only one part and cannot be split."
+#~ msgstr "目標物件僅包含一個零件，無法被拆分。"
+
+#~ msgid "?"
+#~ msgstr "?"
+
+#~ msgid "/"
+#~ msgstr "/"
+
+#~ msgid "℃"
+#~ msgstr "℃"
+
+#~ msgid "mm³"
+#~ msgstr "mm³"
+
+#~ msgid "Color Scheme"
+#~ msgstr "顏色方案"
+
+#~ msgid "Percent"
+#~ msgstr "百分比"
+
+#~ msgid "Used filament"
+#~ msgstr "使用的線材"
+
+#~ msgid "720p"
+#~ msgstr "720p"
+
+#~ msgid "1080p"
+#~ msgstr "1080p"
+
+# SoftFever
+#~ msgid "More..."
+#~ msgstr "更多…"
+
+#~ msgid "More calibrations"
+#~ msgstr "更多校正"
+
+#~ msgid "0"
+#~ msgstr "0"
+
+#~ msgid "SD Card"
+#~ msgstr "SD 記憶卡"
+
+#~ msgid "100%"
+#~ msgstr "100%"
+
+#~ msgid "No SD Card"
+#~ msgstr "無 SD 記憶卡"
+
+#~ msgid "SD Card Abnormal"
+#~ msgstr "SD 記憶卡異常"
+
+#, c-format, boost-format
+#~ msgid "Ejecting of device %s(%s) has failed."
+#~ msgstr "退出設備 %s（%s）失敗。"
+
+#~ msgid "mm/s²"
+#~ msgstr "mm/s²"
+
+#~ msgid "mm/s"
+#~ msgstr "mm/s"
+
+#~ msgid ""
+#~ "This option can be changed later in preferences, under 'Load Behaviour'."
+#~ msgstr "可以稍後在偏好設定的「載入方式」中變更此選項。"
+
+#~ msgid "Invalid number"
+#~ msgstr "無效數字"
+
+#~ msgid "Publish was canceled"
+#~ msgstr "發布已取消"
+
+#~ msgid "Search"
+#~ msgstr "搜尋"
+
+#~ msgid "My Device"
+#~ msgstr "我的設備"
+
+#~ msgid "Other Device"
+#~ msgstr "其他設備"
+
+#~ msgid "Can't find my devices?"
+#~ msgstr "無法找到我的設備？"
+
+#, c-format, boost-format
+#~ msgid "nozzle memorized: %.2f %s"
+#~ msgstr "記憶中的噴嘴：%.2f %s"
+
+#~ msgid "Modifying the device name"
+#~ msgstr "修改列印設備名稱"
+
+#~ msgid "Bind with Access Code"
+#~ msgstr "透過訪問代碼綁定"
+
+#~ msgid ""
+#~ "When using support material for the support interface, we recommend the "
+#~ "following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+#~ "disable independent support layer height"
+#~ msgstr ""
+#~ "當使用支撐材質作為支撐界面時，我們建議使用以下設定：\n"
+#~ "•頂部 Z 距離：0\n"
+#~ "•接觸面間距：0\n"
+#~ "•交錯直線填充模式\n"
+#~ "•停用獨立支撐層高"
+
+#~ msgid ""
+#~ "Bed temperature when the Cool Plate Supertack is installed. A value of 0 "
+#~ "means the filament does not support printing on the Cool Plate SuperTack."
+#~ msgstr ""
+#~ "使用低溫增穩列印板時，熱床設定溫度其值為 0 ，表示該線材不適用於低溫增穩列"
+#~ "印板"
+
+#~ msgid "Ramming settings"
+#~ msgstr "尖端成型設定"
+
+#~ msgid "Profile dependencies"
+#~ msgstr "設定檔相依項目"
+
+#~ msgid "the Configuration package is incompatible with the current APP."
+#~ msgstr "設定檔與目前(手機應用程式)?不相容。"
+
+#~ msgid "Total ramming time"
+#~ msgstr "尖端成型總時間"
+
+#~ msgid "s"
+#~ msgstr "秒"
+
+#~ msgid "Total rammed volume"
+#~ msgstr "尖端成型總體積"
+
+#~ msgid "Ramming line width"
+#~ msgstr "尖端成型線寬"
+
+#~ msgid "Ramming line spacing"
+#~ msgstr "尖端成型線間距"
+
+#~ msgid "Shift+R"
+#~ msgstr "Shift+R"
+
+#~ msgid "resume"
+#~ msgstr "繼續"
+
+#~ msgid "°C"
+#~ msgstr "°C"
+
+#~ msgid "Classic mode"
+#~ msgstr "經典模式"
+
+#~ msgid "Enable this option to use classic mode."
+#~ msgstr "開啟此選項以使用經典模式"
+
+#~ msgid "Compatible machine"
+#~ msgstr "相容的設備"
+
+#~ msgid "Compatible machine condition"
+#~ msgstr "相容的設備條件"
+
+#~ msgid "Compatible process profiles condition"
+#~ msgstr "相容的切片設定條件"
+
+#~ msgid "Default filament color"
+#~ msgstr "預設線材顏色"
+
+#~ msgid "Rotate solid infill direction"
+#~ msgstr "旋轉實心填充方向"
+
+#~ msgid "Rotate the solid infill direction by 90° for each layer."
+#~ msgstr "每層實心填充的列印方向旋轉 90°。"
+
+#~ msgid ""
+#~ "Flow Compensation Model, used to adjust the flow for small infill areas. "
+#~ "The model is expressed as a comma separated pair of values for extrusion "
+#~ "length and flow correction factors, one per line, in the following "
+#~ "format: \"1.234,5.678\""
+#~ msgstr ""
+#~ "流量補償模型，用於在小面積填充區域中調整擠出流量。模型格式為以逗號分隔的擠"
+#~ "出長度和流量補償係數，每行輸入一組，格式示例如下：1.234,5.678。\n"
+#~ "譯者補充：此參數允許根據不同的擠出長度動態調整流量補償，以提升小區域列印的"
+#~ "精確度和品質。"
+
+#~ msgid ""
+#~ "The highest printable layer height for the extruder. Used to limit the "
+#~ "maximum layer height when adaptive layer height is enabled."
+#~ msgstr "擠出頭最大可列印的層高。用於限制開啟自適應層高時的最大層高"
+
+#~ msgid "mm³/s²"
+#~ msgstr "mm³/s²"
+
+#~ msgid ""
+#~ "The lowest printable layer height for the extruder. Used to limit the "
+#~ "minimum layer height when adaptive layer height is enabled."
+#~ msgstr "擠出頭最小可列印的層高。用於限制開啟自適應層高時的最小層高"
+
+#~ msgid "mm²"
+#~ msgstr "mm²"
+
+#~ msgid "Retract on top layer"
+#~ msgstr "頂層回抽"
+
+#~ msgid ""
+#~ "Force a retraction on top layer. Disabling could prevent clog on very "
+#~ "slow patterns with small movements, like Hilbert curve."
+#~ msgstr ""
+#~ "在頂層強制執行回抽操作。停用此功能可能有助於避免在非常緩慢且移動距離較小的"
+#~ "模式（例如希爾伯特曲線）中出現堵塞"
+
+#~ msgid ""
+#~ "Some amount of material in extruder is pulled back to avoid ooze during "
+#~ "long travel. Set zero to disable retraction"
+#~ msgstr ""
+#~ "擠出機將材料拉回指定長度，避免空駛較長時軟化的線材滲出。設定為 0 表示關閉"
+#~ "回抽"
+
+#~ msgid "Speed of retractions."
+#~ msgstr "回抽速度"
+
+#~ msgid ""
+#~ "Speed for reloading filament into extruder. Zero means same speed of "
+#~ "retraction."
+#~ msgstr "線材裝填的速度，0 表示和回抽速度一致"
+
+#~ msgid "Single loop draft shield"
+#~ msgstr "單圈防風罩"
+
+#~ msgid ""
+#~ "Limits the draft shield loops to one wall after the first layer. This is "
+#~ "useful, on occasion, to conserve filament but may cause the draft shield "
+#~ "to warp / crack."
+#~ msgstr ""
+#~ "將防風罩的迴圈數限制為第一層後只有一層壁。這樣做有時能節省耗材，但可能會導"
+#~ "致防風罩變形或裂開。"
+
+#~ msgid "Spacing of interface lines. Zero means solid interface."
+#~ msgstr "接觸面的線距。0 代表實心接觸面"
+
+#, fuzzy
+#~ msgid ""
+#~ "Minimum thickness of thin features. Model features that are thinner than "
+#~ "this value will not be printed, while features thicker than this value "
+#~ "will be widened to the minimum wall width. It's expressed as a percentage "
+#~ "over nozzle diameter."
+#~ msgstr ""
+#~ "薄壁特徵的最小厚度。比這個數值還薄的特徵將不被列印，而比最小特徵厚度還厚的"
+#~ "特征將被加寬到牆最小寬度。參數值表示為相對噴嘴直徑的百分比"
+
+#~ msgid "Load uptodate process/machine settings when using uptodate."
+#~ msgstr "使用最新版本時，載入最新的參數與機器設定"
+
+#~ msgid "Load uptodate filament settings when using uptodate."
+#~ msgstr "使用最新版本時，載入最新的列印耗材設定"
+
+#~ msgid "Downward machines settings"
+#~ msgstr "相容機器設定"
+
+#~ msgid "Load filament IDs for each object"
+#~ msgstr "載入每個物件的耗材識別碼"
+
+#~ msgid ""
+#~ "We now have added the auto-calibration for different filaments, which is "
+#~ "fully automated and the result will be saved into the printer for future "
+#~ "use. You only need to do the calibration in the following limited cases:\n"
+#~ "1. If you introduce a new filament of different brands/models or the "
+#~ "filament is damp\n"
+#~ "2. If the nozzle is worn out or replaced with a new one\n"
+#~ "3. If the max volumetric speed or print temperature is changed in the "
+#~ "filament setting"
+#~ msgstr ""
+#~ "我們現在已經為不同的列印線材新增了自動校正功能，該功能是完全自動化的，並且"
+#~ "結果將儲存在列印設備中以供將來使用。您只需要在以下有限情況下進行校正：\n"
+#~ "1. 如果您引入了不同品牌/型號的新列印線材，或者列印線材受潮；\n"
+#~ "2. 如果噴嘴磨損或更換了新的噴嘴；\n"
+#~ "3. 如果您在列印線材設定中更改了最大體積速度或列印溫度。"
+
+#~ msgid "step: "
+#~ msgstr "步距："
+
+#~ msgid "mm/mm"
+#~ msgstr "mm/mm"
+
+#~ msgid "Load stl"
+#~ msgstr "載入 STL"
+
+#~ msgid "Load svg"
+#~ msgstr "載入 SVG"
+
+#~ msgid "Back Page 1"
+#~ msgstr "返回第一頁"
+
+#~ msgid "Delete Filament"
+#~ msgstr "刪除線材"
+
+#~ msgid "Refresh Printers"
+#~ msgstr "重新整理列印設備"
+
+#~ msgid ""
+#~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "
+#~ "layer height. This results in almost invisible layer lines and higher "
+#~ "print quality but shorter print time."
+#~ msgstr ""
+#~ "與 0.2 毫米噴嘴的預設配置相比，該配置具有較小的層高，產生幾乎不可見的層線"
+#~ "並提高列印品質，但列印時間較短。"
+
+#~ msgid ""
+#~ "Compared with the default profile of a 0.2 mm nozzle, it has a smaller "
+#~ "layer height. This results in minimal layer lines and higher print "
+#~ "quality, but shorter print time."
+#~ msgstr ""
+#~ "與 0.2 毫米噴嘴的預設配置相比，該配置具有較小的層高，產生最小的層線並提高"
+#~ "列印品質，但列印時間較短。"
+
+#~ msgid ""
+#~ "It has a very big layer height. This results in very apparent layer "
+#~ "lines, low print quality and general print time."
+#~ msgstr ""
+#~ "與0.8mm噴嘴的預設配置相比，該配置具有較大的層高，產生非常明顯的層線並顯著"
+#~ "降低列印品質，但在某些情況下會縮短列印時間。"
+
+#~ msgid ""
+#~ "Compared with the default profile of a 0.8 mm nozzle, it has a bigger "
+#~ "layer height. This results in very apparent layer lines and much lower "
+#~ "print quality but shorter print time in some cases."
+#~ msgstr ""
+#~ "與0.8mm噴嘴的預設配置相比，該配置具有更大的層高，產生極為明顯的層線並顯著"
+#~ "降低列印品質，但在某些情況下會大幅縮短列印時間。"
+
+#~ msgid ""
+#~ "Compared with the default profile of a 0.8 mm nozzle, it has a much "
+#~ "bigger layer height. This results in extremely apparent layer lines and "
+#~ "much lower print quality but much shorter print time in some cases."
+#~ msgstr ""
+#~ "與0.8mm噴嘴的預設配置相比，該配置具有略小的層高，產生略少但仍明顯的層線，"
+#~ "並略微提高列印品質，但在某些情況下會延長列印時間。"
+
+#~ msgid ""
+#~ "Compared with the default profile of a 0.8 mm nozzle, it has a smaller "
+#~ "layer height. This results in less but still apparent layer lines and "
+#~ "slightly higher print quality, but longer print time in some cases."
+#~ msgstr ""
+#~ "與0.8mm噴嘴的預設配置相比，該配置具有較少的層高，產生較少但仍明顯的層線，"
+#~ "並略微提高列印品質，但在某些情況下會延長列印時間。"
+
+#~ msgid "Connection to Flashforge is working correctly."
+#~ msgstr "成功連接到 Flashforge。"
+
+#~ msgid "Could not connect to Flashforge"
+#~ msgstr "無法連接到 Flashforge"
+
+#~ msgid "User canceled."
+#~ msgstr "使用者取消。"
+
+#~ msgid "Set the brim type to \"painted\""
+#~ msgstr "將邊緣類型設置為「上色」。"
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
@@ -17184,13 +18108,14 @@ msgstr ""
 #~ "Step 2, if the IP and Access Code below are different from the actual "
 #~ "values on your printer, please correct them."
 #~ msgstr ""
-#~ "步驟2, 如果下面的 IP 和存取碼與列印設備上的實際值不同，請輸入正確的數值。"
+#~ "步驟2, 如果下面的 IP 和訪問代碼與列印設備上的實際值不同，請輸入正確的數"
+#~ "值。"
 
 #~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
 #~ msgstr "步驟 3：Ping 該 IP 地址以檢查封包遺失和延遲。"
 
 #~ msgid "IP and Access Code Verified! You may close the window"
-#~ msgstr "IP 和存取碼已驗證！可以關閉視窗"
+#~ msgstr "IP 和訪問代碼已驗證！可以關閉視窗"
 
 #~ msgid "Force cooling for overhang and bridge"
 #~ msgstr "懸空/橋接強制冷卻"

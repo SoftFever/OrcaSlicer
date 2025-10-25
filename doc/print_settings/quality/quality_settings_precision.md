@@ -12,14 +12,15 @@ This section covers the settings that affect the precision of your prints. These
 - [Precise Z Height](#precise-z-height)
 - [Polyholes](#polyholes)
 
-
 ## Slice gap closing radius
 
-Cracks smaller than 2x gap closing radiusCracks smaller than 2x gap closing radius are being filled during the triangle mesh slicing. The gap closing operation may reduce the final print resolution, therefore it is advisable to keep the value reasonably low.
+Cracks smaller than 2x gap closing radius are being filled during the triangle mesh slicing.  
+The gap closing operation may reduce the final print resolution, therefore it is advisable to keep the value reasonably low.
 
 ## Resolution
 
-The G-code path is generated after simplifying the contour of models to avoid too many points and G-code lines. Smaller value means higher resolution and more time to slice.
+The G-code path is generated after simplifying the contour of models to avoid too many points and G-code lines.  
+Smaller value means higher resolution and more time to slice. If you are using big models in low processing power machines, you may want to increase this value to speed up the slicing process.
 
 ## Arc fitting
 
@@ -62,15 +63,14 @@ To mitigate this effect, OrcaSlicer allows you to specify a negative distance th
 
 ## Precise wall
 
-The 'Precise Wall' is a distinctive feature introduced by OrcaSlicer, aimed at improving the dimensional accuracy of prints and minimizing layer inconsistencies by slightly increasing the spacing between the outer wall and the inner wall.
+The 'Precise Wall' is a distinctive feature introduced by OrcaSlicer, aimed at improving the dimensional accuracy of prints and minimizing layer inconsistencies by slightly increasing the spacing between the outer wall and the inner wall when printing in [Inner Outer wall order](quality_settings_wall_and_surfaces#innerouter).
 
 ### Technical explanation
 
-Below is a technical explanation of how this feature works.
+First, it's important to understand some basic concepts like flow, extrusion width, and space.  
+Slic3r has an excellent document that covers these topics in detail. You can refer to this [article](https://manual.slic3r.org/advanced/flow-math).
 
-First, it's important to understand some basic concepts like flow, extrusion width, and space. Slic3r has an excellent document that covers these topics in detail. You can refer to this [article](https://manual.slic3r.org/advanced/flow-math).
-
-Now, let's dive into the specifics. Slic3r and its forks, such as PrusaSlicer, SuperSlicer, and OrcaSlicer, assume that the extrusion path has an oval shape, which accounts for the overlaps. For example, if we set the wall width to 0.4mm and the layer height to 0.2mm, the combined thickness of two walls laid side by side is 0.714mm instead of 0.8mm due to the overlapping.
+Slic3r and its forks, such as PrusaSlicer, SuperSlicer and OrcaSlicer, assume that the extrusion path has an oval shape, which accounts for the overlaps. For example, if we set the wall width to 0.4mm and the layer height to 0.2mm, the combined thickness of two walls laid side by side is 0.714mm instead of 0.8mm due to the overlapping.
 
 - **Precise Wall Off**
 
@@ -88,7 +88,7 @@ OrcaSlicer adheres to Slic3r's approach to handling flow. To address the downsid
 
 ## Precise Z Height
 
-This feature ensures the accurate Z height of the model after slicing, even if the model height is not a multiple of the layer height.
+This feature ensures the accurate Z height of the model after slicing, even if the model height is not a multiple of the [layer height](quality_settings_layer_height).
 
 For example, slicing a 20mm x 20mm x 20.1mm cube with a layer height of 0.2mm would typically result in a final height of 20.2mm due to the layer height increments.
 
