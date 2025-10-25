@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-09-28 18:44+0800\n"
-"PO-Revision-Date: 2025-08-13 10:05-0300\n"
+"PO-Revision-Date: 2025-10-05 10:08-0300\n"
 "Last-Translator: Alexandre Folle de Menezes\n"
 "Language-Team: Portuguese, Brazilian\n"
 "Language: pt_BR\n"
@@ -268,10 +268,10 @@ msgid "Part selection"
 msgstr "Seleção de peça"
 
 msgid "Fixed step drag"
-msgstr ""
+msgstr "Arrasto de passo fixo"
 
 msgid "Single sided scaling"
-msgstr ""
+msgstr "Escala unilateral"
 
 msgid "Position"
 msgstr "Posição"
@@ -1577,7 +1577,7 @@ msgstr "Tempo de execução WebView2"
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
-msgstr ""
+msgstr "O caminho dos recursos não existe ou não é um diretório: %s"
 
 #, c-format, boost-format
 msgid ""
@@ -6291,11 +6291,17 @@ msgid ""
 "rotation template settings that may not work properly with your current "
 "infill pattern. This could result in weak support or print quality issues."
 msgstr ""
+"Este projeto foi criado com um OrcaSlicer 2.3.1-alpha e usa configurações de "
+"gabarito de rotação de preenchimento que podem não funcionar corretamente "
+"com o seu padrão de preenchimento atual. Isso pode resultar em suporte fraco "
+"ou problemas de qualidade de impressão."
 
 msgid ""
 "Would you like OrcaSlicer to automatically fix this by clearing the rotation "
 "template settings?"
 msgstr ""
+"Você gostaria que o OrcaSlicer corrigisse isso automaticamente limpando as "
+"configurações do gabarito de rotação?"
 
 #, c-format, boost-format
 msgid ""
@@ -6878,11 +6884,11 @@ msgstr "América do Norte"
 msgid "Others"
 msgstr "Outros"
 
-msgid "Login Region"
-msgstr "Região de Login"
+msgid "Login region"
+msgstr "Região de login"
 
-msgid "Stealth Mode"
-msgstr "Modo Oculto"
+msgid "Stealth mode"
+msgstr "Modo oculto"
 
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
@@ -6892,11 +6898,14 @@ msgstr ""
 "Os usuários que não usam máquinas BBL ou usar modo LAN só podem ativar esta "
 "função com segurança."
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "Ativar plugin de rede"
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
-msgstr "Usar o plugin de rede legado (entra em vigor após reiniciar o Orca)"
+msgid "Use legacy network plugin"
+msgstr "Usar o plugin de rede legado"
 
 msgid ""
 "Disable to use latest network plugin that supports new BambuLab firmwares."
@@ -6940,8 +6949,8 @@ msgstr ""
 msgid "Home"
 msgstr "Início"
 
-msgid "Default Page"
-msgstr "Página Padrão"
+msgid "Default page"
+msgstr "Página padrão"
 
 msgid "Set the page opened on startup."
 msgstr "Define a página aberta na inicialização."
@@ -7035,17 +7044,21 @@ msgstr ""
 "Se ativo, Orca vai lembrar e alternar a configuração de filamento/processo "
 "para cada impressora automaticamente."
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr ""
+"Mostrar a caixa de diálogo de configuração dos parâmetros da malha de degraus."
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
+"Se ativo, uma caixa de diálogo de configurações de parâmetros será exibida "
+"durante a importação do arquivo STEP."
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
+msgid "Multi device management"
+msgstr "Gerenciamento de multi dispositivos"
+
+msgid "(Requires restart)"
 msgstr ""
-"Gerenciamento de Multi-dispositivos (Entra em vigor após reiniciar o "
-"OrcaSlicer)."
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7123,8 +7136,11 @@ msgstr "Perguntar Sempre"
 msgid "Load Geometry Only"
 msgstr "Carregar Apenas Geometria"
 
-msgid "Load Behaviour"
-msgstr "Comportamento de Carregamento"
+msgid "Load behaviour"
+msgstr "Comportamento de carregamento"
+
+msgid "Behaviour"
+msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7137,17 +7153,17 @@ msgstr "Máximo de arquivos recentes"
 msgid "Maximum count of recent files"
 msgstr "Contagem máxima de arquivos recentes"
 
-msgid "Add model files (stl/step) to recent file list."
-msgstr "Adicionar arquivos de modelo (stl/step) à lista de arquivos recentes."
+msgid "Add STL/STEP files to recent files list"
+msgstr "Adicionar arquivos de modelo STL/STEP à lista de arquivos recentes"
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Limpar minha escolha nos projetos não salvos."
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "Sem avisos ao carregar 3MF com G-code modificado"
 
-msgid "Auto-Backup"
-msgstr "Backup Automático"
+msgid "Auto backup"
+msgstr "Backup automático"
 
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
@@ -7164,11 +7180,14 @@ msgstr "O período de backup em segundos."
 msgid "Downloads"
 msgstr "Transferências"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "Modo Escuro"
 
-msgid "Enable Dark mode"
-msgstr "Ativar Modo Escuro"
+msgid "Enable dark mode"
+msgstr "Ativar modo escuro"
 
 msgid "Develop mode"
 msgstr "Modo de Desenvolvimento"
@@ -8154,7 +8173,7 @@ msgid "Support filament"
 msgstr "Filamento de suporte"
 
 msgid "Support ironing"
-msgstr ""
+msgstr "Passar a ferro nos suportes"
 
 msgid "Tree supports"
 msgstr "Suportes de árvore"
@@ -12322,11 +12341,12 @@ msgstr ""
 "Zero é vertical."
 
 msgid "Infill overhang angle"
-msgstr ""
+msgstr "Ângulo de saliência do preenchimento"
 
 msgid ""
 "The angle of the infill angled lines. 60° will result in a pure honeycomb."
 msgstr ""
+"O ângulo das linhas de preenchimento. 60° resultará em um favo de mel puro."
 
 msgid "Sparse infill anchor length"
 msgstr "Comprimento da âncora de preenchimento esparso"
@@ -12595,7 +12615,7 @@ msgstr ""
 "por um período prolongado de tempo."
 
 msgid "Ironing fan speed"
-msgstr ""
+msgstr "Velocidade do ventilador para passar a ferro"
 
 msgid ""
 "This part cooling fan speed is applied when ironing. Setting this parameter "
@@ -15270,10 +15290,10 @@ msgstr ""
 "ativada, a interface de suporte também será extrudada como sólida."
 
 msgid "Support Ironing Pattern"
-msgstr ""
+msgstr "Padrão de Passar a Ferro no Suporte"
 
 msgid "Support Ironing flow"
-msgstr ""
+msgstr "Fluxo de Passar a Ferro no Suporte"
 
 msgid ""
 "The amount of material to extrude during ironing. Relative to flow of normal "
@@ -15285,7 +15305,7 @@ msgstr ""
 "em superextrusão na superfície."
 
 msgid "Support Ironing line spacing"
-msgstr ""
+msgstr "Espaçamento de Passar a Ferro no Suporte"
 
 msgid "Activate temperature control"
 msgstr "Ativar controle de temperatura"
@@ -17548,7 +17568,7 @@ msgstr ""
 "(0 <= Desvio de Junção < 1)"
 
 msgid "NOTE: High values may cause Layer shift"
-msgstr ""
+msgstr "NOTA: Valores altos podem causar Deslocamento de Camadas"
 
 msgid "Send G-code to printer host"
 msgstr "Enviar G-code para o host da impressora"
@@ -17669,6 +17689,9 @@ msgid "Delete input"
 msgstr "Excluir entrada"
 
 msgid "Network Test"
+msgstr "Teste de Rede"
+
+msgid "Network test"
 msgstr "Teste de Rede"
 
 msgid "Start Test Multi-Thread"
@@ -18771,7 +18794,7 @@ msgstr ""
 "Algo inesperado aconteceu ao tentar conectar, por favor tente novamente."
 
 msgid "User cancelled."
-msgstr ""
+msgstr "Cancelado pelo usuário."
 
 msgid "Head diameter"
 msgstr "Diâmetro da cabeça"
@@ -18811,7 +18834,7 @@ msgstr ""
 "borda não terão efeito!"
 
 msgid "Set the brim type of this object to \"painted\""
-msgstr ""
+msgstr "Defina o tipo de borda deste objeto como \"pintado\""
 
 msgid " invalid brim ears"
 msgstr " orelhas da borda iválidas"
@@ -19277,9 +19300,6 @@ msgstr ""
 #~ msgid "Invalid number"
 #~ msgstr "Número inválido"
 
-#~ msgid "Publish was canceled"
-#~ msgstr "A publicação foi cancelada"
-
 #~ msgid "Search"
 #~ msgstr "Buscar"
 
@@ -19398,9 +19418,6 @@ msgstr ""
 
 #~ msgid "User canceled."
 #~ msgstr "O usuário cancelou."
-
-#~ msgid "Set the brim type to \"painted\""
-#~ msgstr "Defina o tipo de borda como \"pintada\""
 
 #~ msgid ""
 #~ "We have added an experimental style \"Tree Slim\" that features smaller "
