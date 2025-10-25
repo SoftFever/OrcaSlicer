@@ -2,6 +2,7 @@
     "type": "filament",
     "name": "FlyingBear PLA Basic @Ghost7",
     "inherits": "fdm_filament_pla @Ghost7",
+    "renamed_from": "FlyingBear PLA @Ghost7",
     "from": "system",
     "setting_id": "GFSA04",
     "filament_id": "GFL99",
