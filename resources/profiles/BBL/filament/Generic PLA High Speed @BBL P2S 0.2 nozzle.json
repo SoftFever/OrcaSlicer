@@ -1,0 +1,71 @@
+{
+    "type": "filament",
+    "name": "Generic PLA High Speed @BBL P2S 0.2 nozzle",
+    "inherits": "Generic PLA High Speed @BBL X1C",
+    "from": "system",
+    "setting_id": "GFSL95_13",
+    "instantiation": "true",
+    "eng_plate_temp": [
+        "55"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "55"
+    ],
+    "filament_flush_volumetric_speed": [
+        "3",
+        "3"
+    ],
+    "filament_max_volumetric_speed": [
+        "2",
+        "2"
+    ],
+    "filament_ramming_volumetric_speed_nc": [
+        "-1",
+        "-1"
+    ],
+    "first_x_layer_fan_speed": [
+        "40"
+    ],
+    "filament_pre_cooling_temperature_nc": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time_nc": [
+        "0",
+        "0"
+    ],
+    "filament_enable_overhang_speed": [
+        "1",
+        "1"
+    ],
+    "filament_overhang_1_4_speed": [
+        "0",
+        "0"
+    ],
+    "filament_overhang_2_4_speed": [
+        "50",
+        "50"
+    ],
+    "filament_overhang_3_4_speed": [
+        "30",
+        "30"
+    ],
+    "filament_overhang_4_4_speed": [
+        "10",
+        "10"
+    ],
+    "filament_overhang_totally_speed": [
+        "10",
+        "10"
+    ],
+    "override_process_overhang_speed": [
+        "0",
+        "0"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P2S 0.2 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ]
+}

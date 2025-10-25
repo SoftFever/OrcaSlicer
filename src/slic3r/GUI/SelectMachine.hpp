@@ -202,6 +202,7 @@ private:
     std::string         m_param;
     std::vector<POItem> m_ops;
     Label              *m_printoption_title{nullptr};
+    ScalableButton     *m_printoption_tips{ nullptr };
     PrintOptionItem    *m_printoption_item{nullptr};
 
 public:
@@ -221,7 +222,7 @@ public:
     void        update_options(std::vector<POItem> ops, const wxString &tips);
     void        update_tooltip(const wxString &tips);
 
-    void  msw_rescale() { m_printoption_item->msw_rescale(); };
+    void  msw_rescale();
 
     // override funcs
     bool  CanBeFocused() const override { return false; }
@@ -445,6 +446,9 @@ public:
     void update_user_printer();
     void reset_ams_material();
     void update_show_status(MachineObject* obj_ = nullptr);
+
+    void UpdateStatusCheckWarning_ExtensionTool(MachineObject* obj_);
+
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
     void on_rename_click(wxMouseEvent &event);

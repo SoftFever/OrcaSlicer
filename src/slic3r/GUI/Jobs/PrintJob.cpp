@@ -12,6 +12,8 @@
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevUtil.h"
 
+#include "slic3r/Utils/FileTransferUtils.hpp"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -206,13 +208,26 @@ void PrintJob::process(Ctl &ctl)
 
     // check access code and ip address
     if (this->connection_type == "lan" && m_print_type == "from_normal") {
-        params.dev_id = m_dev_id;
-        params.project_name = "verify_job";
-        params.filename = job_data._temp_path.string();
-        params.connection_type = this->connection_type;
+        bool emmc_ok = false;
+        bool ftp_ok = false;
+        if (could_emmc_print) {
+            std::string devIP = m_dev_ip;
+            std::string accessCode = m_access_code;
+            std::string url = "bambu:///local/" + devIP + "?port=6000&user=" + "bblp" + "&passwd=" + accessCode;
+            std::unique_ptr<FileTransferTunnel> tunnel = std::make_unique<FileTransferTunnel>(module(), url);
+            emmc_ok = tunnel->sync_start_connect();
+        }
+        {
+            params.dev_id = m_dev_id;
+            params.project_name = "verify_job";
+            params.filename = job_data._temp_path.string();
+            params.connection_type = this->connection_type;
 
-        result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr, nullptr);
-        if (result != 0) {
+            result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr, nullptr);
+
+            ftp_ok = result == 0;
+        }
+        if (!emmc_ok && !ftp_ok) {
             BOOST_LOG_TRIVIAL(error) << "access code is invalid";
             m_enter_ip_address_fun_fail();
             m_job_finished = true;
@@ -233,6 +248,7 @@ void PrintJob::process(Ctl &ctl)
     params.task_vibration_cali  = this->task_vibration_cali;
     params.task_layer_inspect   = this->task_layer_inspect;
     params.task_record_timelapse= this->task_record_timelapse;
+    params.nozzle_mapping       = this->task_nozzle_mapping;
     params.ams_mapping          = this->task_ams_mapping;
     params.ams_mapping2         = this->task_ams_mapping2;
     params.ams_mapping_info     = this->task_ams_mapping_info;
@@ -245,6 +261,7 @@ void PrintJob::process(Ctl &ctl)
     params.auto_flow_cali       = this->auto_flow_cali;
     params.auto_offset_cali     = this->auto_offset_cali;
     params.task_ext_change_assist = this->task_ext_change_assist;
+    params.try_emmc_print         = this->could_emmc_print;
 
     if (m_print_type == "from_sdcard_view") {
         params.dst_file = m_dst_path;
@@ -562,7 +579,7 @@ void PrintJob::process(Ctl &ctl)
             }
         }
     } else {
-        if (this->has_sdcard) {
+        if (this->has_sdcard || this->could_emmc_print) {
             ctl.update_status(curr_percent, _u8L("Sending print job over LAN"));
             result = m_agent->start_local_print(params, update_fn, cancel_fn);
         } else {

@@ -1,0 +1,59 @@
+{
+    "type": "filament",
+    "name": "Bambu PC @BBL P2S 0.6 nozzle",
+    "inherits": "Bambu PC @BBL X1C 0.6 nozzle",
+    "from": "system",
+    "setting_id": "GFSC00_26",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
+    "eng_plate_temp": [
+        "100"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "100"
+    ],
+    "filament_max_volumetric_speed": [
+        "18",
+        "35"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4"
+    ],
+    "filament_retraction_speed": [
+        "40",
+        "40"
+    ],
+    "filament_wipe": [
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
+    "hot_plate_temp": [
+        "100"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "100"
+    ],
+    "textured_plate_temp": [
+        "100"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "100"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P2S 0.6 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ]
+}
