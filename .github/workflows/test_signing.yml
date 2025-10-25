@@ -1,0 +1,109 @@
+name: Test Code Signing
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  test_signing:
+    name: Test macOS Code Signing
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Create dummy macOS app bundle
+        run: |
+          # Create the .app structure
+          mkdir -p build/arm64/OrcaSlicer/OrcaSlicer.app/Contents/MacOS
+          mkdir -p build/arm64/OrcaSlicer/OrcaSlicer.app/Contents/Resources
+
+          # Create a minimal Info.plist
+          cat > build/arm64/OrcaSlicer/OrcaSlicer.app/Contents/Info.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>OrcaSlicer</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.test.orcaslicer</string>
+              <key>CFBundleName</key>
+              <string>OrcaSlicer</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0.0</string>
+              <key>CFBundleVersion</key>
+              <string>1</string>
+          </dict>
+          </plist>
+          EOF
+
+          # Create a minimal executable
+          cat > build/arm64/OrcaSlicer/OrcaSlicer.app/Contents/MacOS/OrcaSlicer << 'EOF'
+          #!/bin/bash
+          echo "OrcaSlicer Test App"
+          EOF
+
+          chmod +x build/arm64/OrcaSlicer/OrcaSlicer.app/Contents/MacOS/OrcaSlicer
+
+          # Verify the structure
+          echo "Created app structure:"
+          find build/arm64/OrcaSlicer/OrcaSlicer.app -type f
+
+      - name: Sign app and notarize
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          CERTIFICATE_ID: ${{ secrets.MACOS_CERTIFICATE_ID }}
+        run: |
+          echo "Setting up keychain and certificate..."
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+          security create-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
+          security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
+
+          echo "Signing the app..."
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build/arm64/OrcaSlicer/OrcaSlicer.app
+
+          echo "Verifying signature..."
+          codesign --verify --verbose ${{ github.workspace }}/build/arm64/OrcaSlicer/OrcaSlicer.app
+
+          echo "Creating DMG..."
+          mkdir -p ${{ github.workspace }}/build/arm64/OrcaSlicer_dmg
+          rm -rf ${{ github.workspace }}/build/arm64/OrcaSlicer_dmg/*
+          cp -R ${{ github.workspace }}/build/arm64/OrcaSlicer/OrcaSlicer.app ${{ github.workspace }}/build/arm64/OrcaSlicer_dmg/
+          ln -sfn /Applications ${{ github.workspace }}/build/arm64/OrcaSlicer_dmg/Applications
+          hdiutil create -volname "OrcaSlicer Test" -srcfolder ${{ github.workspace }}/build/arm64/OrcaSlicer_dmg -ov -format UDZO OrcaSlicer_Test_Mac_arm64.dmg
+
+          echo "Signing DMG..."
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Test_Mac_arm64.dmg
+
+          echo "Verifying DMG signature..."
+          codesign --verify --verbose OrcaSlicer_Test_Mac_arm64.dmg
+
+          echo "Setting up notarization credentials..."
+          xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
+
+          echo "Submitting for notarization..."
+          xcrun notarytool submit "OrcaSlicer_Test_Mac_arm64.dmg" --keychain-profile "notarytool-profile" --wait
+
+          echo "Stapling notarization..."
+          xcrun stapler staple OrcaSlicer_Test_Mac_arm64.dmg
+
+          echo "Verifying notarization..."
+          spctl -a -vv -t install OrcaSlicer_Test_Mac_arm64.dmg
+
+      - name: Upload signed DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrcaSlicer_Test_Signed_Notarized
+          path: ${{ github.workspace }}/OrcaSlicer_Test_Mac_arm64.dmg
