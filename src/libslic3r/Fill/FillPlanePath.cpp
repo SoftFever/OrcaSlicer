@@ -124,8 +124,8 @@ void FillPlanePath::_fill_surface_single(
             if (params.dont_connect() || params.density > 0.5) {
                 // ORCA: special flag for flow rate calibration
                 auto is_flow_calib = params.extrusion_role == erTopSolidInfill &&
-                                     this->print_object_config->has("calib_flowrate_topinfill_special_order") &&
-                                     this->print_object_config->option("calib_flowrate_topinfill_special_order")->getBool() &&
+                                     this->print_object_config->has("calib_test_mode") &&
+                                     (this->print_object_config->calib_test_mode.value == CalibTestMode::CalibFlowrateTopInfillSpecialOrder) &&
                                      dynamic_cast<FillArchimedeanChords*>(this);
                 if (is_flow_calib) {
                     // We want the spiral part to be printed inside-out

@@ -162,8 +162,8 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         // Only concentric fills are not sorted.
         eec->no_sort = this->no_sort();
         // ORCA: special flag for flow rate calibration
-        auto is_flow_calib = params.extrusion_role == erTopSolidInfill && this->print_object_config->has("calib_flowrate_topinfill_special_order") &&
-                             this->print_object_config->option("calib_flowrate_topinfill_special_order")->getBool();
+        auto is_flow_calib = params.extrusion_role == erTopSolidInfill && this->print_object_config->has("calib_test_mode") &&
+                             (this->print_object_config->calib_test_mode.value == CalibTestMode::CalibFlowrateTopInfillSpecialOrder);
         if (is_flow_calib) {
             eec->no_sort = true;
         }
@@ -178,6 +178,39 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                 eec->entities, std::move(polylines),
                 params.extrusion_role,
                 flow_mm3_per_mm, float(flow_width), params.flow.height());
+        }
+
+        switch (this->print_object_config->calib_test_mode.value) {
+        case CalibTestMode::GoldenRatioFlowTest:
+            eec->no_sort = true;
+            eec->reverse();
+            if (layer_id > 1) {
+                double      _wmin      = 0.9;
+                double      _wmax      = 1.1;
+                double      _wlen      = _wmax - _wmin;
+                BoundingBox _bbox      = this->bounding_box;
+                coord_t     _width     = _bbox.size().x();
+                coord_t     _semiwidth = _width / 2;
+                coord_t     _xmin      = _bbox.center().x() - _semiwidth;
+                coord_t     _xmax      = _bbox.center().x() + _semiwidth;
+
+                for (ExtrusionEntity* e : eec->entities) {
+                    ExtrusionPath* _p = static_cast<ExtrusionPath*>(e);
+                    coord_t        _x = _p->polyline.points.front().x();
+                    double         _q = _wlen * (_x - _xmin) / _width + _wmin;
+                    _p->width *= _q;
+                    _p->mm3_per_mm *= _q;
+                    if (_p->polyline.points.front().y() > _p->polyline.points.back().y())
+                        _p->reverse();
+                }
+            }
+            else if (layer_id == 1)
+                for (ExtrusionEntity* e : eec->entities) {
+                    ExtrusionPath* _p = static_cast<ExtrusionPath*>(e);
+                    _p->width *= 0.8;
+                    _p->mm3_per_mm *= 0.8;
+                }
+            break;
         }
         if (!params.can_reverse || is_flow_calib) {
             for (size_t i = idx; i < eec->entities.size(); i++)
