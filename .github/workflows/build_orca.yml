@@ -397,10 +397,10 @@ jobs:
         if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-24.04' }}
         uses: rickstaa/action-create-tag@v1
         with:
-          tag: "nightly-builds"
+          tag: "fork-nightly-release"
           tag_exists_error: false
           force_push_tag: true
-          message: "nightly-builds"
+          message: "fork-nightly-release"
 
       - name: Deploy Ubuntu OrcaSlicer_profile_validator release
         if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04') }}
