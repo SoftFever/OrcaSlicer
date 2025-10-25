@@ -4653,8 +4653,9 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             m_pages.insert(m_pages.begin() + n_before_extruders, page);
     }
 
-if (is_marlin_flavor)
-    n_before_extruders++;
+    if (is_marlin_flavor)
+        n_before_extruders++;
+        
     size_t		n_after_single_extruder_MM = 2; //	Count of pages after single_extruder_multi_material page
 
     if (from_initial_build) {
@@ -4695,10 +4696,10 @@ if (is_marlin_flavor)
                         if (boost::any_cast<bool>(value) && m_extruders_count > 1) {
                             SuppressBackgroundProcessingUpdate sbpu;
 
-// Orca: we use a different logic here. If SEMM is enabled, we set extruder count to 1.
-#if 1
+    // Orca: we use a different logic here. If SEMM is enabled, we set extruder count to 1.
+    #if 1
                             extruders_count_changed(1);
-#else
+    #else
 
                             std::vector<double> nozzle_diameters =
                                 static_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values;
@@ -4898,7 +4899,7 @@ if (is_marlin_flavor)
                 //optgroup->append_line(line);
     #endif
         }
-}
+    }
     // BBS. No extra extruder page for single physical extruder machine
     // # remove extra pages
     auto &first_extruder_title = const_cast<wxString &>(m_pages[n_before_extruders]->title());
@@ -5408,9 +5409,41 @@ void Tab::load_current_preset()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": exit");
 }
 
-//Regerenerate content of the page tree.
+// Show/hide multimaterial page on the sidebar
+void Tab::set_multiprint_visibility(bool visible)
+{
+    if (m_type != Preset::TYPE_PRINT)
+    return;
+        
+    for (auto& p : m_pages) {
+        if (!p) continue;
+
+        if (p->title() == L("Multimaterial") && p->get_show() != visible){
+            rebuild_page_tree();
+            return;
+        }
+    }
+}
+
+// Regerenerate content of the page tree.
 void Tab::rebuild_page_tree()
 {
+    // Multimaterial page on the sidebar is visible only if there are more than one filament in use
+    if (m_type == Preset::TYPE_PRINT) {
+        for (auto& p : m_pages) {
+            if (!p) continue;
+
+            if (p->title() == L("Multimaterial")) {
+                bool visible = wxGetApp().preset_bundle->filament_presets.size() > 1;
+                
+                if (p->get_show() != visible)
+                    p->set_show(visible);
+                
+                break;
+            }
+        }
+    }
+        
     // get label of the currently selected item
     auto sel_item = m_tabctrl->GetSelection();
     // BBS: fix new layout, record last select
@@ -5442,6 +5475,7 @@ void Tab::rebuild_page_tree()
             item = curr_item;
         curr_item++;
     }
+
     while (m_tabctrl->GetCount() > curr_item) {
         m_tabctrl->DeleteItem(m_tabctrl->GetCount() - 1);
     }

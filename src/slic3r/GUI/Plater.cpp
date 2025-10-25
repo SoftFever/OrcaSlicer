@@ -15341,7 +15341,7 @@ void Plater::on_filament_count_change(size_t num_filaments)
     update_filament_colors_in_full_config();
     sidebar().on_filament_count_change(num_filaments);
     sidebar().obj_list()->update_objects_list_filament_column(num_filaments);
-
+    
     Slic3r::GUI::PartPlateList &plate_list = get_partplate_list();
     plate_list.set_filament_count(num_filaments);
     for (int i = 0; i < plate_list.get_plate_count(); ++i) {

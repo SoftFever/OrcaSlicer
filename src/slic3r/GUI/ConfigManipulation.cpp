@@ -10,6 +10,7 @@
 #include "MsgDialog.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "Plater.hpp"
+#include "Tab.hpp"
 
 #include <wx/msgdlg.h>
 
@@ -565,6 +566,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
 
     auto gcflavor = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+
+    // Update multiprint visibility in Print tab
+    if (auto* print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+        print_tab->set_multiprint_visibility(wxGetApp().preset_bundle->filament_presets.size() > 1);
 
     bool have_volumetric_extrusion_rate_slope = config->option<ConfigOptionFloat>("max_volumetric_extrusion_rate_slope")->value > 0;
     float have_volumetric_extrusion_rate_slope_segment_length = config->option<ConfigOptionFloat>("max_volumetric_extrusion_rate_slope_segment_length")->value;
