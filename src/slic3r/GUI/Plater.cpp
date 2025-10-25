@@ -7691,18 +7691,18 @@ void Plater::priv::replace_all_with_stl()
         fs::path new_path = out_path / input_path.filename();
 
         if (new_path == input_path) {
-            status += boost::str(boost::format(_L("✖ Skipped %1%: %2%, same file\n")) % volume->name % input_path.string());
+            status += boost::str(boost::format(_L("✖ Skipped %1%: %2%, same file\n").ToStdString()) % volume->name % input_path.string());
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skipping replace volume : same filename " << new_path;
             continue;
         }
 
         if (!fs::exists(new_path)) {
-            status += boost::str(boost::format(_L("✖ Skipped %1%: %2% does not exist.\n")) % volume->name % new_path.string());
+            status += boost::str(boost::format(_L("✖ Skipped %1%: %2% does not exist.\n").ToStdString()) % volume->name % new_path.string());
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cannot replace volume : no filename " << new_path;
             continue;
         }
 
-        status += boost::str(boost::format(_L("✔ Replaced %1% with %2%\n")) % volume->name % new_path.string());
+        status += boost::str(boost::format(_L("✔ Replaced %1% with %2%\n").ToStdString()) % volume->name % new_path.string());
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " replacing volume : " << input_path << " with " << new_path;
 
