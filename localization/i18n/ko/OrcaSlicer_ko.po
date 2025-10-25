@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 21:06+0800\n"
+"POT-Creation-Date: 2025-09-28 18:44+0800\n"
 "PO-Revision-Date: 2025-06-02 17:12+0900\n"
 "Last-Translator: crwusiz <crwusiz@gmail.com>\n"
 "Language-Team: \n"
@@ -6122,6 +6122,17 @@ msgstr "이 3mf는 OrcaSlicer에서 지원되지 않습니다. 형상 데이터�
 msgid "Load 3mf"
 msgstr "3mf 불러오기"
 
+msgid ""
+"This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
+"rotation template settings that may not work properly with your current "
+"infill pattern. This could result in weak support or print quality issues."
+msgstr ""
+
+msgid ""
+"Would you like OrcaSlicer to automatically fix this by clearing the rotation "
+"template settings?"
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, found following "
@@ -6673,10 +6684,10 @@ msgstr "북아메리카"
 msgid "Others"
 msgstr "기타"
 
-msgid "Login Region"
+msgid "Login region"
 msgstr "로그인 지역"
 
-msgid "Stealth Mode"
+msgid "Stealth mode"
 msgstr "스텔스 모드"
 
 msgid ""
@@ -6686,10 +6697,13 @@ msgstr ""
 "이 기능은 뱀부의 클라우드 서비스로의 데이터 전송을 중지합니다. BBL 머신을 사"
 "용하지 않거나 LAN 모드만 사용하는 사용자는 이 기능을 안전하게 켤 수 있습니다."
 
+msgid "Network plugin"
+msgstr ""
+
 msgid "Enable network plugin"
 msgstr "네트워크 플러그인 사용"
 
-msgid "Use legacy network plugin (Takes effect after restarting Orca)"
+msgid "Use legacy network plugin"
 msgstr ""
 
 msgid ""
@@ -6731,7 +6745,7 @@ msgstr ""
 msgid "Home"
 msgstr "홈"
 
-msgid "Default Page"
+msgid "Default page"
 msgstr "기본 페이지"
 
 msgid "Set the page opened on startup."
@@ -6824,15 +6838,18 @@ msgstr ""
 "활성화하면 Orca는 각 프린터의 필라멘트/프로세스 구성을 자동으로 기억하고 전환"
 "합니다."
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Show options when importing STEP file"
 msgstr ""
 
 msgid ""
 "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
-msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
-msgstr "다중 장치 관리 (Orca를 다시 시작한 후 적용됨)."
+msgid "Multi device management"
+msgstr "다중 장치 관리"
+
+msgid "(Requires restart)"
+msgstr ""
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -6907,8 +6924,11 @@ msgstr "항상 물어보세요"
 msgid "Load Geometry Only"
 msgstr "형상만 로드"
 
-msgid "Load Behaviour"
+msgid "Load behaviour"
 msgstr "행동 로드"
+
+msgid "Behaviour"
+msgstr ""
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ".3mf를 열 때 프린터/필라멘트/프로세스 설정이 로드되어야 합니까?"
@@ -6919,16 +6939,16 @@ msgstr ""
 msgid "Maximum count of recent files"
 msgstr ""
 
-msgid "Add model files (stl/step) to recent file list."
+msgid "Add STL/STEP files to recent files list"
 msgstr ""
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "저장되지 않은 프로젝트에서 내 선택을 지웁니다."
 
-msgid "No warnings when loading 3MF with modified G-code"
+msgid "Don't warn when loading 3MF with modified G-code"
 msgstr "수정된 Gcode로 3MF를 로드할 때 경고 없음"
 
-msgid "Auto-Backup"
+msgid "Auto backup"
 msgstr "자동 백업"
 
 msgid ""
@@ -6944,10 +6964,13 @@ msgstr "백업 기간(초)입니다."
 msgid "Downloads"
 msgstr "다운로드"
 
+msgid "Downloads folder"
+msgstr ""
+
 msgid "Dark Mode"
 msgstr "다크 모드"
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr "다크 모드 사용"
 
 msgid "Develop mode"
@@ -8707,11 +8730,11 @@ msgstr "키보드 단축키 목록 보기"
 msgid "Global shortcuts"
 msgstr "전역 단축키"
 
-msgid "Rotate View"
-msgstr "시점 회전"
-
 msgid "Pan View"
 msgstr "시점 이동"
+
+msgid "Rotate View"
+msgstr "시점 회전"
 
 msgid "Zoom View"
 msgstr "시점 확대/축소"
@@ -16728,6 +16751,9 @@ msgid "Delete input"
 msgstr "입력객체 삭제"
 
 msgid "Network Test"
+msgstr "네트워크 테스트"
+
+msgid "Network test"
 msgstr "네트워크 테스트"
 
 msgid "Start Test Multi-Thread"
