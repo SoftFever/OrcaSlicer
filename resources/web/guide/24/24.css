@@ -108,6 +108,7 @@ img.ModelThumbnail
 .PName
 {
 	font-weight: 700;
+	line-height: 20px; /* ORCA */
 	text-align: left;
 }
 
