@@ -7634,12 +7634,33 @@ void Plater::priv::replace_all_with_stl()
 
     fs::path input_path;
     Selection::IndicesList volume_idxs = selection.get_volume_idxs();
+
+    // when plates are selected instead of volumes
+    // then selection is inaccurate, we need to
+    // find volumes contained in selected plates
+
     if (selection.is_empty() || volume_idxs.empty()) {
-        PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+        std::vector<int> selected_plate_idxs;
+
+        wxDataViewItemArray sels;
+        wxGetApp().obj_list()->GetSelections(sels);
+        for (const wxDataViewItem& item : sels) {
+            Slic3r::GUI::ItemType item_type = wxGetApp().obj_list()->GetModel()->GetItemType(item);
+            if (item_type & itPlate) {
+                if (item.IsOk()) {
+                    ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode *>(item.GetID());
+                    selected_plate_idxs.push_back(node->GetPlateIdx());
+                }
+            }
+        }
+        PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
         for (int obj_idx = 0; obj_idx < selection.get_model()->objects.size(); obj_idx++) {
-            if (plate && plate->contain_instance_totally(obj_idx, 0)) {
-                std::vector<unsigned int> indices = selection.get_volume_idxs_from_object(obj_idx);
-                volume_idxs.insert(indices.begin(), indices.end());
+            for (int plate_idx : selected_plate_idxs) {
+                PartPlate* plate = plate_list.get_plate(plate_idx);
+                if (plate && plate->contain_instance_totally(obj_idx, 0)) {
+                    std::vector<unsigned int> indices = selection.get_volume_idxs_from_object(obj_idx);
+                    volume_idxs.insert(indices.begin(), indices.end());
+                }
             }
         }
     }
@@ -14137,7 +14158,7 @@ bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning, bo
                 break;
             }
         }
-        if (extruder.GetNozzleFlowType() == NozzleType::ntUndefine) {
+        if (extruder.GetNozzleFlowType() == NozzleFlowType::NONE_FLOWTYPE) {
             has_been_initialized = false;
             break;
         }

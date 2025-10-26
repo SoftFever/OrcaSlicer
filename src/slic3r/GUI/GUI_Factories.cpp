@@ -1728,14 +1728,26 @@ wxMenu* MenuFactory::multi_selection_menu()
     wxDataViewItemArray sels;
     obj_list()->GetSelections(sels);
     bool multi_volume = true;
+    bool undefined_type = false;
+    bool all_plates = true;
 
     for (const wxDataViewItem& item : sels) {
-        multi_volume = list_model()->GetItemType(item) & itVolume;
-        if (!(list_model()->GetItemType(item) & (itVolume | itObject | itInstance)))
+        Slic3r::GUI::ItemType item_type = list_model()->GetItemType(item);
+        if ((item_type & itPlate) == 0)
+            all_plates = false;
+        multi_volume = item_type & itVolume;
+        if (!(item_type & (itVolume | itObject | itInstance)))
             // show this menu only for Objects(Instances mixed with Objects)/Volumes selection
-            return nullptr;
+            undefined_type = true;
     }
 
+    if (all_plates) {
+        wxMenu* menu = new MenuWithSeparators();
+        append_menu_item_replace_all_with_stl(menu, true);
+        return menu;
+    }
+    if (undefined_type)
+        return nullptr;
     wxMenu* menu = new MenuWithSeparators();
     if (!multi_volume) {
         int index = 0;
