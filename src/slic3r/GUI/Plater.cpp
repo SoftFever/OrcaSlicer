@@ -526,9 +526,17 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     if (auto sizer = static_cast<wxBoxSizer *>(panel_printer_preset->GetSizer());
             sizer == nullptr /*|| isBBL != (sizer->GetOrientation() == wxVERTICAL)*/) {
         wxBoxSizer *hsizer_printer_btn = new wxBoxSizer(wxHORIZONTAL);
+
+        // Orca: Top-align both the Edit and Connect icons
         hsizer_printer_btn->AddStretchSpacer(1);
-        hsizer_printer_btn->Add(btn_edit_printer, 0);
-        hsizer_printer_btn->Add(btn_connect_printer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(4));
+        hsizer_printer_btn->Add(btn_edit_printer, 0, wxALIGN_TOP);
+        hsizer_printer_btn->Add(btn_connect_printer, 0, wxALIGN_TOP | wxLEFT, FromDIP(4));
+
+        // Orca: Keep both icons the same visual size for perfect alignment
+        const int icon_sz = FromDIP(16);
+        btn_edit_printer->SetMinSize(wxSize(icon_sz, icon_sz));
+        btn_connect_printer->SetMinSize(wxSize(icon_sz, icon_sz));
+
         combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | wxALIGN_CENTER_HORIZONTAL);
         //if (isBBL) {
             wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
@@ -552,24 +560,39 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     }
 
     if (vsizer_printer->GetItemCount() == 0) {
+        // === Create top row: Printer preset + Bed type + Sync button ===
         wxBoxSizer *hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
+
+        // Ensure equal min sizes for printer and bed panels
+        wxSize preset_size = panel_printer_preset->GetMinSize();
+        wxSize bed_size    = panel_printer_bed->GetMinSize();
+
+        // Use the larger width/height for both panels
+        int equal_w = std::max(preset_size.GetWidth(),  bed_size.GetWidth());
+        int equal_h = std::max(preset_size.GetHeight(), bed_size.GetHeight());
+
+        panel_printer_preset->SetMinSize(wxSize(equal_w, equal_h));
+        panel_printer_bed->SetMinSize(wxSize(equal_w, equal_h));
+
+        // Make both panels expand equally in width and height
         hsizer_printer->Add(panel_printer_preset, 1, wxEXPAND, 0);
-        hsizer_printer->Add(panel_printer_bed, 0, wxLEFT | wxEXPAND, FromDIP(4));
-        hsizer_printer->Add(btn_sync_printer, 0, wxLEFT | wxEXPAND, FromDIP(4));
+        hsizer_printer->Add(panel_printer_bed, 1, wxLEFT | wxEXPAND, FromDIP(4));
+
+        // Center the sync button vertically
+        hsizer_printer->Add(btn_sync_printer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
+
+        // Add the assembled row to the vertical stack
         vsizer_printer->Add(hsizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(4));
         vsizer_printer->AddSpacer(FromDIP(4));
-        // Printer - extruder
 
-        // double
+        // === Extruder sections ===
         auto hsizer_extruder = new wxBoxSizer(wxHORIZONTAL);
         hsizer_extruder->Add(left_extruder->sizer, 1, wxEXPAND, 0);
         hsizer_extruder->AddSpacer(FromDIP(4));
         hsizer_extruder->Add(right_extruder->sizer, 1, wxEXPAND, 0);
 
-        // single
         vsizer_printer->Add(hsizer_extruder, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
         vsizer_printer->Add(single_extruder->sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
-
         vsizer_printer->AddSpacer(FromDIP(4));
     }
 
@@ -1702,8 +1725,9 @@ Sidebar::Sidebar(Plater *parent)
         });
 
         ScalableButton *wiki_bed = new ScalableButton(p->panel_printer_bed, wxID_ANY, "help");
+        wiki_bed->SetToolTip(wxString::Format("Wiki: %s", _L("Bed type")));
         wiki_bed->Bind(wxEVT_BUTTON, [](wxCommandEvent) {
-            wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
+            wxLaunchDefaultBrowser("https://github.com/SoftFever/OrcaSlicer/wiki/bed-types");
         });
 
         ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", 32);
@@ -1738,14 +1762,22 @@ Sidebar::Sidebar(Plater *parent)
         p->image_printer_bed->Bind(wxEVT_ENTER_WINDOW, &Sidebar::on_enter_image_printer_bed, this);
 
         wxBoxSizer *bed_type_vsizer = new wxBoxSizer(wxVERTICAL);
-        bed_type_vsizer->AddStretchSpacer(1);
+        bed_type_vsizer->AddSpacer(FromDIP(4));
+
         wxBoxSizer *bed_type_hsizer = new wxBoxSizer(wxHORIZONTAL);
-            bed_type_hsizer->AddStretchSpacer(1);
-            bed_type_hsizer->Add(p->image_printer_bed, 1, wxEXPAND | wxTOP, FromDIP(8));
-            bed_type_hsizer->Add(wiki_bed, 1, wxTOP, FromDIP(2));
+        bed_type_hsizer->AddStretchSpacer(1);
+        bed_type_hsizer->Add(p->image_printer_bed, 0, wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(8));
+
+        wxBoxSizer *hsizer_bed_btn = new wxBoxSizer(wxHORIZONTAL);
+        hsizer_bed_btn->AddStretchSpacer(1);
+        hsizer_bed_btn->Add(wiki_bed, 0, wxALIGN_TOP | wxTOP, 0);
+        bed_type_hsizer->Add(hsizer_bed_btn, 1, wxEXPAND, 0);
+
+        bed_type_hsizer->AddSpacer(FromDIP(6));
+
         bed_type_vsizer->Add(bed_type_hsizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
-        bed_type_vsizer->Add(p->combo_printer_bed, 0, wxEXPAND | wxALL, FromDIP(2));
-        bed_type_vsizer->AddStretchSpacer(1);
+        bed_type_vsizer->Add(p->combo_printer_bed, 0, wxEXPAND | wxALL, FromDIP(4));
+        bed_type_vsizer->AddSpacer(FromDIP(4));
 
         p->panel_printer_bed->SetSizer(bed_type_vsizer);
 
@@ -2107,6 +2139,7 @@ void Sidebar::on_leave_image_printer_bed(wxMouseEvent &evt) {
         p->big_bed_image_popup->on_hide();
     }
 }
+
 void Sidebar::on_change_color_mode(bool is_dark) {
     const ModelObjectPtrs &mos = wxGetApp().model().objects;
     for (int i = 0; i < mos.size(); i++) {
