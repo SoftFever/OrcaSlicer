@@ -1259,14 +1259,12 @@ void MenuFactory::create_default_menu()
 void MenuFactory::create_common_object_menu(wxMenu* menu)
 {
     append_menu_item_rename(menu);
-    // BBS
     append_menu_items_instance_manipulation(menu);
+    
     // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
     append_menu_item_delete(menu);
-    //append_menu_item_instance_to_object(menu);
     menu->AppendSeparator();
 
-    // BBS
     append_menu_item_reload_from_disk(menu);
     append_menu_item_export_stl(menu);
     // "Scale to print volume" makes a sense just for whole object
@@ -1302,8 +1300,10 @@ void MenuFactory::create_object_menu()
 
 void MenuFactory::create_extra_object_menu()
 {
-    // Object instances
+    // Object instances / conversions
     append_menu_items_instance_manipulation(&m_object_menu);
+    m_object_menu.AppendSeparator();
+    append_menu_item_instance_to_object(&m_object_menu);
     m_object_menu.AppendSeparator();
     //append_menu_item_fill_bed(&m_object_menu);
     // Object Clone
