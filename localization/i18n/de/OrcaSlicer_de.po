@@ -2258,7 +2258,7 @@ msgid "Remove instance"
 msgstr "Instanz entfernen"
 
 msgid "Remove one instance of the selected object"
-msgstr "
+msgstr "Entferne eine Instanz des ausgewählten Objekts"
 
 msgid "Set number of instances"
 msgstr "Anzahl der Instanzen festlegen"
