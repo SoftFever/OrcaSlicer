@@ -65,8 +65,8 @@ build_release_vs2022.bat slicer
 # Performance and debug options:
 ./build_linux.sh -j N  # limit to N cores
 ./build_linux.sh -1    # single core build
-./build_linux.sh -b    # debug build
-./build_linux.sh -g    # build with symbols (aka RelWithDebInfo if -b not given)
+./build_linux.sh -b    # Debug build
+./build_linux.sh -e    # RelWithDebInfo build
 ./build_linux.sh -c    # clean build
 ./build_linux.sh -r    # skip RAM/disk checks
 ./build_linux.sh -l    # use Clang instead of GCC

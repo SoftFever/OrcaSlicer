@@ -281,7 +281,7 @@ The build system supports multiple Linux distributions including Ubuntu/Debian a
 
 3. **Build OrcaSlicer with tests:**
    ```shell
-   ./build_linux.sh -s
+   ./build_linux.sh -st
    ```
 
 4. **Build AppImage (optional):**
@@ -299,7 +299,7 @@ The build system supports multiple Linux distributions including Ubuntu/Debian a
 - `-b`: Build in debug mode (mostly broken at runtime for a long time; avoid unless you want to be fixing failed assertions)
 - `-c`: Force a clean build
 - `-C`: Enable ANSI-colored compile output (GNU/Clang only)
-- `-g`: Build with symbols
+- `-e`: Build RelWithDebInfo (release + symbols)
 - `-j N`: Limit builds to N cores (useful for low-memory systems)
 - `-1`: Limit builds to one core
 - `-l`: Use Clang instead of GCC

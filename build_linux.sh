@@ -7,7 +7,7 @@ SCRIPT_PATH=$(dirname "$(readlink -f "${0}")")
 pushd "${SCRIPT_PATH}" > /dev/null
 
 function usage() {
-    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-h][-g][-i][-j N][-p][-r][-s][-t][-u][-l][-L]"
+    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-D][-e][-h][-i][-j N][-p][-r][-s][-t][-u][-l][-L]"
     echo "   -1: limit builds to one core (where possible)"
     echo "   -j N: limit builds to N cores (where possible)"
     echo "   -b: build in Debug mode"
@@ -17,7 +17,6 @@ function usage() {
     echo "   -D: dry run"
     echo "   -e: build in RelWithDebInfo mode"
     echo "   -h: prints this help text"
-    echo "   -g: build with symbols (does not apply to deps (yet?))"
     echo "   -i: build the Orca Slicer AppImage (optional)"
     echo "   -p: boost ccache hit rate by disabling precompiled headers (default: ON)"
     echo "   -r: skip RAM and disk checks (low RAM compiling)"
@@ -222,13 +221,6 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
     print_and_run cmake --build deps/$BUILD_DIR
 fi
 
-CONFIG=Release
-if [[ -n "${BUILD_DEBUG}" ]] ; then
-    CONFIG=Debug
-elif [[ -n "${BUILD_WITH_SYMBOLS}" ]]; then
-    CONFIG=RelWithDebInfo
-fi
-
 if [[ -n "${BUILD_ORCA}" ]] ; then
     echo "Configuring OrcaSlicer..."
     if [[ -n "${CLEAN_BUILD}" ]] ; then
@@ -244,12 +236,6 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     if [[ -n "${ORCA_UPDATER_SIG_KEY}" ]] ; then
         BUILD_ARGS+=(-DORCA_UPDATER_SIG_KEY="${ORCA_UPDATER_SIG_KEY}")
     fi
-    if [[ -n "${BUILD_DEBUG}" ]] ; then
-        BUILD_ARGS+=(-DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1)
-    else
-        BUILD_ARGS+=(-DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0)
-    fi
-    echo "CONFIG=${CONFIG}"
 
     print_and_run cmake -S . -B $BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" -G "Ninja Multi-Config" \
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
@@ -261,11 +247,11 @@ if [[ -n "${BUILD_ORCA}" ]] ; then
     print_and_run cmake --build $BUILD_DIR --config "${BUILD_CONFIG}" --target OrcaSlicer
     echo "Building OrcaSlicer_profile_validator .."
     print_and_run cmake --build $BUILD_DIR --config "${BUILD_CONFIG}" --target OrcaSlicer_profile_validator
+    ./scripts/run_gettext.sh
     if [[ -n "${BUILD_TESTS}" ]] ; then
 	echo "Building tests ..."
 	print_and_run cmake --build ${BUILD_DIR} --config "${BUILD_CONFIG}" --target tests/all
     fi
-    ./scripts/run_gettext.sh
     echo "done"
 fi
 
