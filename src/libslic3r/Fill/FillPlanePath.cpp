@@ -124,7 +124,7 @@ void FillPlanePath::_fill_surface_single(
             if (params.dont_connect() || params.density > 0.5) {
                 // ORCA: special flag for flow rate calibration
                 auto is_flow_calib = params.extrusion_role == erTopSolidInfill &&
-                                     this->print_object_config->has("calib_test_mode") &&
+                                     calib_params != nullptr &&
                                      (calib_params->mode == CalibMode::Calib_Flow_Rate) &&
                                      dynamic_cast<FillArchimedeanChords*>(this);
                 if (is_flow_calib) {
