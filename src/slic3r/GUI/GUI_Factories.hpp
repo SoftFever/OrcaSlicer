@@ -78,6 +78,8 @@ public:
     wxMenu* assemble_part_menu();
     wxMenu* assemble_multi_selection_menu();
 
+    wxMenu *filament_action_menu(int active_filament_menu_id);
+
 private:
     enum MenuType {
         mtObjectFFF = 0,
@@ -98,6 +100,8 @@ private:
     MenuWithSeparators m_plate_menu;
     MenuWithSeparators m_assemble_object_menu;
     MenuWithSeparators m_assemble_part_menu;
+
+    wxMenu m_filament_action_menu;
    
 
     // Removed/Prepended Items according to the view mode
@@ -119,6 +123,8 @@ private:
     void        create_bbl_part_menu();
     void        create_bbl_assemble_object_menu();
     void        create_bbl_assemble_part_menu();
+
+    void        create_filament_action_menu(bool init, int active_filament_menu_id);
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     // Orca: add submenu for adding handy models
@@ -151,7 +157,7 @@ private:
     void        append_menu_item_edit_text(wxMenu *menu);
     void        append_menu_item_edit_svg(wxMenu *menu);
 
-    //void        append_menu_items_instance_manipulation(wxMenu *menu);
+    void        append_menu_items_instance_manipulation(wxMenu *menu);
     //void        update_menu_items_instance_manipulation(MenuType type);
     //BBS add bbl menu item
     void        append_menu_item_clone(wxMenu* menu);
