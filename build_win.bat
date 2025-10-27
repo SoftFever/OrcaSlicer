@@ -127,7 +127,7 @@ if "%build_deps%" == "ON" (
         %error_check%
     )
 
-    call :print_and_run cmake -S deps -B deps/%build_dir% -G "%generator%" -A x64 -DDESTDIR="%DEPS%" -DCMAKE_BUILD_TYPE=%build_type% -DDEP_DEBUG=%debug% -DORCA_INCLUDE_DEBUG_INFO=%debuginfo%
+    call :print_and_run cmake -S deps -B deps/%build_dir% -G "%generator%" -A x64 -DCMAKE_BUILD_TYPE=%build_type%
     %error_check%
 
     call :print_and_run cmake --build deps/%build_dir% --config %build_type% --target deps -- -m
@@ -154,7 +154,7 @@ if "%build_slicer%" == "ON" (
         %error_check%
     )
 
-    call :print_and_run cmake -B %build_dir% -G "%generator%" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_PREFIX_PATH="%DEPS%/usr/local" -DCMAKE_INSTALL_PREFIX="%build_dir%/OrcaSlicer" -DCMAKE_BUILD_TYPE=%build_type% -DWIN10SDK_PATH="%WindowsSdkDir%Include\%WindowsSDKVersion%\"
+    call :print_and_run cmake -B %build_dir% -G "%generator%" -A x64 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_BUILD_TYPE=%build_type%
     %error_check%
 
     call :print_and_run cmake --build %build_dir% --config %build_type% --target ALL_BUILD -- -m
