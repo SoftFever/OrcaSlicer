@@ -119,6 +119,9 @@ public:
     coordf_t    overlap;
     // in radians, ccw, 0 = East
     float       angle;
+    // Orca: Alternate fill direction between layers depending on the layer number.
+    bool        alternate_fill_direction{true};
+
     // Orca: is_using_template_angle
     bool        is_using_template_angle{false};
     // In scaled coordinates. Maximum lenght of a perimeter segment connecting two infill lines.
