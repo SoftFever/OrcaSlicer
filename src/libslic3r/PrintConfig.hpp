@@ -34,12 +34,6 @@ enum GCodeFlavor : unsigned char {
     gcfSmoothie, gcfNoExtrusion
 };
 
-enum CalibTestMode {
-    None,
-    GoldenRatioFlowTest, 
-    CalibFlowrateTopInfillSpecialOrder,
-};
-
 enum class FuzzySkinType {
     None,
     External,
@@ -951,10 +945,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,  interlocking_beam_layer_count))
     ((ConfigOptionInt,  interlocking_depth))
     ((ConfigOptionInt,  interlocking_boundary_avoidance))
-
-    // Orca: internal use only
-    ((ConfigOptionInt, calib_test_mode))                          // ORCA: special flag for calibration tests
-
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.

@@ -2928,9 +2928,13 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(true, 2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     flowrate_menu->AppendSeparator();
+    //append_menu_item(flowrate_menu, wxID_ANY, _L("GoldenRatio Flow Test"), _L("GoldenRatio Flow calibration test 90-110%"),
+    //    [this](wxCommandEvent&) { if (m_plater) m_plater->calib_golden_ratio_flow(true, 1); }, "", nullptr,
+    //    [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(flowrate_menu, wxID_ANY, _L("GoldenRatio Flow Test"), _L("GoldenRatio Flow calibration test 90-110%"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_golden_ratio_flow(true, 1); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
+        [this](wxCommandEvent&) { if (!m_golden_ratio_flow_calib_dlg)
+            m_golden_ratio_flow_calib_dlg = new GoldenRatio_Flow_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_golden_ratio_flow_calib_dlg->ShowModal();}, "", nullptr, [this]() {return m_plater->is_view3D_shown();; }, this);
     m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
 
     // Pressure Advance

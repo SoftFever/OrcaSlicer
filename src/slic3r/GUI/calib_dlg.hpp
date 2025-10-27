@@ -178,5 +178,30 @@ protected:
     TextInput* m_tiJDEnd;
     Plater* m_plater;
 };
+
+class GoldenRatio_Flow_Test_Dlg : public DPIDialog
+{
+public:
+    GoldenRatio_Flow_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~GoldenRatio_Flow_Test_Dlg();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    wxString GoldenRatio_Flow_Test_Dlg::get_status();
+
+protected:
+    virtual void on_start(wxCommandEvent& event);
+    virtual void on_changed(wxCommandEvent& event);  
+    virtual void on_changed2(wxMouseEvent& event);
+    Calib_Params m_params;
+
+    RadioGroup*   m_rbModel;
+    RadioGroup*   m_rbModelDepth;
+    TextInput*    m_tiJDStart;
+    TextInput*    m_tiJDEnd;
+    wxStaticText* m_stNote;
+    TextInput*    m_tiSpeed;
+    CheckBox*     m_cbInterlaced;
+    CheckBox*     m_cbUseZHop;
+    Plater*       m_plater;
+};
 }} // namespace Slic3r::GUI
 #endif

@@ -3451,11 +3451,6 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionInt(2));
 
-    // ORCA: special flag for calibration tests
-    def       = this->add("calib_test_mode", coInt);
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionInt(CalibTestMode::None));
-
     def = this->add("ironing_type", coEnum);
     def->label = L("Ironing Type");
     def->category = L("Quality");

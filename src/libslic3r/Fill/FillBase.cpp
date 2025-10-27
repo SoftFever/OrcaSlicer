@@ -11,6 +11,7 @@
 #include "../Surface.hpp"
 #include "../libslic3r.h"
 #include "../VariableWidth.hpp"
+#include "../calib.hpp"
 
 #include "FillBase.hpp"
 #include "FillConcentric.hpp"
@@ -161,12 +162,21 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         out.push_back(eec = new ExtrusionEntityCollection());
         // Only concentric fills are not sorted.
         eec->no_sort = this->no_sort();
-        // ORCA: special flag for flow rate calibration
-        auto is_flow_calib = params.extrusion_role == erTopSolidInfill && this->print_object_config->has("calib_test_mode") &&
-                             (this->print_object_config->calib_test_mode.value == CalibTestMode::CalibFlowrateTopInfillSpecialOrder);
-        if (is_flow_calib) {
-            eec->no_sort = true;
+
+        // Calibration section (pre-extrusion)
+        if (calib_params != nullptr) {
+            switch (calib_params->mode) {
+            case CalibMode::Calib_Flow_Rate:
+                if (params.extrusion_role == erTopSolidInfill) {
+                    eec->no_sort = true;
+                    break;
+                }
+            case CalibMode::Calib_Golden_Ratio_Flow: 
+                eec->no_sort = true;
+            }
         }
+
+        // Extrusion section
         size_t idx   = eec->entities.size();
         if (params.use_arachne) {
             Flow new_flow = params.flow.with_spacing(float(this->spacing));
@@ -180,45 +190,62 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                 flow_mm3_per_mm, float(flow_width), params.flow.height());
         }
 
-        switch (this->print_object_config->calib_test_mode.value) {
-        case CalibTestMode::GoldenRatioFlowTest:
-            eec->no_sort = true;
-            eec->reverse();
-            if (layer_id > 1) {
-                double      _wmin      = 0.9;
-                double      _wmax      = 1.1;
-                double      _wlen      = _wmax - _wmin;
-                BoundingBox _bbox      = this->bounding_box;
-                coord_t     _width     = _bbox.size().x();
-                coord_t     _semiwidth = _width / 2;
-                coord_t     _xmin      = _bbox.center().x() - _semiwidth;
-                coord_t     _xmax      = _bbox.center().x() + _semiwidth;
-
-                for (ExtrusionEntity* e : eec->entities) {
-                    ExtrusionPath* _p = static_cast<ExtrusionPath*>(e);
-                    coord_t        _x = _p->polyline.points.front().x();
-                    double         _q = _wlen * (_x - _xmin) / _width + _wmin;
-                    _p->width *= _q;
-                    _p->mm3_per_mm *= _q;
-                    if (_p->polyline.points.front().y() > _p->polyline.points.back().y())
-                        _p->reverse();
+        // Calibration section (post-extrusion) with sended parameters
+        if (calib_params != nullptr) {
+            switch (calib_params->mode) {
+            case CalibMode::Calib_Flow_Rate:
+                for (size_t i = idx; i < eec->entities.size(); i++) {
+                    eec->entities[i]->set_reverse();
                 }
+                break;
+            case CalibMode::Calib_Golden_Ratio_Flow:
+                eec->reverse();
+                if (layer_id > 1) {
+                    double      _wmin      = this->calib_params->start;
+                    double      _wmax      = this->calib_params->end;
+                    double      _wlen      = _wmax - _wmin;
+                    BoundingBox _bbox      = this->bounding_box;
+                    coord_t     _width     = _bbox.size().x();
+                    coord_t     _semiwidth = _width / 2;
+                    coord_t     _xmin      = _bbox.center().x() - _semiwidth;
+                    coord_t     _xmax      = _bbox.center().x() + _semiwidth;
+
+                    for (ExtrusionEntity* e : eec->entities) {
+                        ExtrusionPath* _p = static_cast<ExtrusionPath*>(e);
+                        coord_t        _x = _p->polyline.points.front().x();
+                        double         _q = _wlen * (_x - _xmin) / _width + _wmin;
+                        _p->width *= _q;
+                        _p->mm3_per_mm *= _q;
+                        if (_p->polyline.points.front().y() > _p->polyline.points.back().y())
+                            _p->reverse();
+                    }
+                    if (calib_params->interlaced) { // Inrtleaced sort
+                        std::vector<ExtrusionPath*> a, b;
+                        int                         _i = 0;
+                        for (ExtrusionEntity* e : eec->entities) {
+                            ExtrusionPath* _p = static_cast<ExtrusionPath*>(e);
+                            if (++_i % 2)
+                                a.emplace_back(_p);
+                            else
+                                b.emplace_back(_p);
+                        }
+                        eec->entities.clear();
+                        for (ExtrusionPath* _p : a)
+                            eec->entities.emplace_back(_p);
+                        for (ExtrusionPath* _p : b)
+                            eec->entities.emplace_back(_p);
+                    }
+                } else if (layer_id == 1)
+                    for (ExtrusionEntity* e : eec->entities) {
+                        ExtrusionPath* _p = static_cast<ExtrusionPath*>(e);
+                        _p->width *= 0.75;
+                        _p->mm3_per_mm *= 0.75;
+                    }
             }
-            else if (layer_id == 1)
-                for (ExtrusionEntity* e : eec->entities) {
-                    ExtrusionPath* _p = static_cast<ExtrusionPath*>(e);
-                    _p->width *= 0.8;
-                    _p->mm3_per_mm *= 0.8;
-                }
-            break;
-        }
-        if (!params.can_reverse || is_flow_calib) {
-            for (size_t i = idx; i < eec->entities.size(); i++)
-                eec->entities[i]->set_reverse();
-        }
-
+        } else {
         // Orca: run gap fill
         this->_create_gap_fill(surface, params, eec);
+        }
     }
 }
 

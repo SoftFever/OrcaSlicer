@@ -24,7 +24,8 @@ enum class CalibMode : int {
     Calib_Retraction_tower,
     Calib_Input_shaping_freq,
     Calib_Input_shaping_damp,
-    Calib_Junction_Deviation
+    Calib_Junction_Deviation,
+    Calib_Golden_Ratio_Flow,
 };
 
 enum class CalibState { Start = 0, Preset, Calibration, CoarseSave, FineCalibration, Save, Finish };
@@ -34,9 +35,9 @@ struct Calib_Params
     Calib_Params() : mode(CalibMode::Calib_None){};
     int extruder_id = 0;
     double    start, end, step;
-    bool      print_numbers;
+    bool      print_numbers, use_zhop, interlaced;
     double freqStartX, freqEndX, freqStartY, freqEndY;
-    int test_model;
+    int test_model, model_variant;
     std::vector<double> accelerations;
     std::vector<double> speeds;
 
