@@ -7764,7 +7764,7 @@ msgid "bottom"
 msgstr "unten"
 
 msgid "front"
-msgstr "
+msgstr "vorn"
 
 msgid "rear"
 msgstr "hinten"
@@ -18809,7 +18809,7 @@ msgid ""
 msgstr ""
 "Sind Sie sicher, dass Sie das historische Ergebnis überschreiben möchten?"
 "Innerhalb desselben Extruders muss der Name (%s) eindeutig sein, wenn der "
-"Filamenttyp, die Düsendurchmesser und der Düsenfluss gleich sind.\n
+"Filamenttyp, die Düsendurchmesser und der Düsenfluss gleich sind.\n"
 "Sind Sie sicher, dass Sie das historische Ergebnis überschreiben möchten?"
 
 #, c-format, boost-format
@@ -20280,7 +20280,7 @@ msgid ""
 "nozzle.Did you change your nozzle lately ? "
 msgstr ""
 "Die Größe des Düsentypen in der Voreinstellung stimmt nicht mit der "
-"gespeicherten Düse überein. Haben Sie Ihre Düse kürzlich gewe
+"gespeicherten Düse überein. Haben Sie Ihre Düse kürzlich gewechselt ?"
 
 #, c-format, boost-format
 msgid "nozzle[%d] in preset: %.1f"
@@ -20817,8 +20817,8 @@ msgid ""
 "according to its performances."
 msgstr ""
 "Dies ist weder ein häufig verwendetes Filament noch eines der Bambu-"
-"Filamente, und es variiert stark von Marke zu Marke. Daher wird dringend ""
-"empfohlen, vor dem Drucken den Händler nach einem geeigneten Profil zu "
+"Filamente, und es variiert stark von Marke zu Marke. Daher wird dringend "
+"empfohlen, vor dem Drucken den Händler nach einem geeigneten Profil zu"
 "fragen und einige Parameter entsprechend den Leistungen anzupassen."
 
 msgid ""
