@@ -77,13 +77,13 @@ jobs:
         - /usr/share/dotnet:/usr/share/dotnet
         - /opt/ghc:/opt/ghc1
         - /usr/local/share/boost:/usr/local/share/boost1
-    strategy:
-      matrix:
-        variant:
-          - arch: x86_64
-            runner: ubuntu-24.04
-          - arch: aarch64
-            runner: ubuntu-24.04-arm
+    # strategy:
+    #   matrix:
+    #     variant:
+    #       - arch: x86_64
+    #         runner: ubuntu-24.04
+    #       - arch: aarch64
+    #         runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.variant.runner }}
     env:
       date:
