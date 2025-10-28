@@ -97,7 +97,7 @@ echo -n "Creating Appimage for distribution..."
     # AppImage script modifies files in place, so make a copy and clean up after.
     rm -rf package_appimage
     cp -Rf package package_appimage
-    pushd package > /dev/null
+    pushd package_appimage > /dev/null
     chmod +x ../build_appimage.sh
     if ../build_appimage.sh; then
 	# Clean up on success.
