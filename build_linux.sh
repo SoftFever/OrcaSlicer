@@ -257,7 +257,6 @@ fi
 
 if [[ -n "${BUILD_IMAGE}" || -n "${BUILD_ORCA}" ]] ; then
     pushd $BUILD_DIR > /dev/null
-    echo "[9/9] Generating Linux app..."
     build_linux_image="./src/build_linux_image.sh"
     if [[ -e ${build_linux_image} ]] ; then
         extra_script_args=""
