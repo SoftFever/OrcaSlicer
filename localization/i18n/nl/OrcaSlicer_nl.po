@@ -12014,6 +12014,12 @@ msgstr "Roestvrij staal"
 msgid "Brass"
 msgstr "Messing"
 
+msgid "CHT"
+msgstr "CHT"
+
+msgid "Tungsten Carbide"
+msgstr "wolfraamcarbide"
+
 msgid "Nozzle HRC"
 msgstr "Mondstuk HRC"
 
