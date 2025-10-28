@@ -1743,7 +1743,7 @@ wxMenu* MenuFactory::multi_selection_menu()
 
     if (all_plates) {
         wxMenu* menu = new MenuWithSeparators();
-        append_menu_item_replace_all_with_stl(menu, true);
+        append_menu_item_replace_all_with_stl(menu);
         return menu;
     }
     if (undefined_type)
