@@ -42,7 +42,7 @@ jobs:
           cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
           
       - name: Get the version and date on Ubuntu and macOS
-        if: inputs.os != 'windows-latest'
+        if: inputs.os != 'windows-latest-x86-64cores'
         run: |
           ver_pure=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
@@ -59,7 +59,7 @@ jobs:
         shell: bash
 
       - name: Get the version and date on Windows
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         run: |
           $date = Get-Date -Format 'yyyyMMdd'
           $ref = "${{ github.ref }}"
@@ -218,17 +218,17 @@ jobs:
 
 # Windows
       - name: setup MSVC
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         uses: microsoft/setup-msbuild@v2
 
       - name: Install nsis
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         run: |
           dir "C:/Program Files (x86)/Windows Kits/10/Include"
           choco install nsis
 
       - name: Build slicer Win
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         working-directory: ${{ github.workspace }}
         env:
           WindowsSdkDir: 'C:\Program Files (x86)\Windows Kits\10\'
@@ -236,53 +236,53 @@ jobs:
         run: .\build_release_vs2022.bat slicer
 
       - name: Create installer Win
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         working-directory: ${{ github.workspace }}/build
         run: |
           cpack -G NSIS
 
       - name: Pack app
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         working-directory: ${{ github.workspace }}/build
         shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/build/OrcaSlicer'
 
       - name: Pack PDB
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         working-directory: ${{ github.workspace }}/build/src/Release
         shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" a -m0=lzma2 -mx9 Debug_PDB_${{ env.ver }}_for_developers_only.7z  *.pdb'
 
       - name: Upload artifacts Win zip
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Windows_${{ env.ver }}_portable
           path: ${{ github.workspace }}/build/OrcaSlicer
 
       - name: Upload artifacts Win installer
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_Windows_${{ env.ver }}
           path: ${{ github.workspace }}/build/OrcaSlicer*.exe
 
       - name: Upload artifacts Win PDB
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         uses: actions/upload-artifact@v4
         with:
           name: PDB
           path: ${{ github.workspace }}/build/src/Release/Debug_PDB_${{ env.ver }}_for_developers_only.7z
 
       - name: Upload OrcaSlicer_profile_validator Win
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'windows-latest-x86-64cores'
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_profile_validator_Windows_${{ env.ver }}
           path: ${{ github.workspace }}/build/src/Release/OrcaSlicer_profile_validator.exe
 
       - name: Deploy Windows release portable
-        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
+        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest-x86-64cores'
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
@@ -293,7 +293,7 @@ jobs:
           max_releases: 1
 
       - name: Deploy Windows release installer
-        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
+        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest-x86-64cores'
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
@@ -304,7 +304,7 @@ jobs:
           max_releases: 1
 
       - name: Deploy Windows OrcaSlicer_profile_validator release
-        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest'
+        if: github.ref == 'refs/heads/main' && inputs.os == 'windows-latest-x86-64cores'
         uses: WebFreak001/deploy-nightly@v3.2.0
         with:
           upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
