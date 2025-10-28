@@ -18,7 +18,6 @@
   "nozzle_type": "brass",
   "nozzle_volume": "0",
   "gcode_flavor": "klipper",
-  "host_type": "klipper",
   "default_filament_profile": ["Generic PLA @System"],
   "thumbnails": ["300x300"],
   "thumbnails_format": "PNG"
