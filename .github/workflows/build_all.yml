@@ -1,37 +1,37 @@
 name: Build all
 
 on:
-  push:
-    branches:
-     - main
-     - release/*
-    paths:
-     - 'deps/**'
-     - 'src/**'
-     - '**/CMakeLists.txt'
-     - 'version.inc'
-     - 'localization/**'
-     - 'resources/**'
-     - ".github/workflows/build_*.yml"
-     - 'scripts/flatpak/**'
+  # push:
+  #   branches:
+  #    - main
+  #    - release/*
+  #   paths:
+  #    - 'deps/**'
+  #    - 'src/**'
+  #    - '**/CMakeLists.txt'
+  #    - 'version.inc'
+  #    - 'localization/**'
+  #    - 'resources/**'
+  #    - ".github/workflows/build_*.yml"
+  #    - 'scripts/flatpak/**'
 
-  pull_request:
-    branches:
-     - main
-     - release/*
-    paths:
-     - 'deps/**'
-     - 'src/**'
-     - '**/CMakeLists.txt'
-     - 'version.inc'
-     - ".github/workflows/build_*.yml"
-     - 'build_linux.sh'
-     - 'build_release_vs2022.bat'
-     - 'build_release_macos.sh'
-     - 'scripts/flatpak/**'
+  # pull_request:
+  #   branches:
+  #    - main
+  #    - release/*
+  #   paths:
+  #    - 'deps/**'
+  #    - 'src/**'
+  #    - '**/CMakeLists.txt'
+  #    - 'version.inc'
+  #    - ".github/workflows/build_*.yml"
+  #    - 'build_linux.sh'
+  #    - 'build_release_vs2022.bat'
+  #    - 'build_release_macos.sh'
+  #    - 'scripts/flatpak/**'
 
-  schedule:
-      - cron: '35 7 * * *' # run once a day near midnight US Pacific time
+  # schedule:
+  #     - cron: '35 7 * * *' # run once a day near midnight US Pacific time
 
   workflow_dispatch: # allows for manual dispatch
     inputs:
@@ -46,6 +46,7 @@ concurrency:
   
 
 jobs:
+
   build_all:
     name: Build All
     strategy:
@@ -65,6 +66,7 @@ jobs:
       build-deps-only: ${{ inputs.build-deps-only || false }}
       force-build: ${{ github.event_name == 'schedule' }}
     secrets: inherit
+
   flatpak:
     name: "Flatpak"
     container:
