@@ -2183,6 +2183,9 @@ msgstr ""
 msgid "✖ Skipped %1%: %2% does not exist.\n"
 msgstr ""
 
+msgid "✖ Skipped %1%: failed to replace.\n"
+msgstr ""
+
 msgid "✔ Replaced %1% with %2%\n"
 msgstr ""
 

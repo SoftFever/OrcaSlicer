@@ -2299,7 +2299,10 @@ msgid "✖ Skipped %1%: %2% does not exist.\n"
 msgstr "✖ %1% übersprungen: %2% existiert nicht.\n"
 
 msgid "✔ Replaced %1% with %2%\n"
-msgstr "✔ %1% durch %2% ersetzt"
+msgstr "✔ %1% durch %2% ersetzt\n"
+
+msgid "✖ Skipped %1%: failed to replace.\n"
+msgstr "✖ %1% übersprungen: Ersetzen fehlgeschlagen.\n"
 
 msgid "Delete all connectors"
 msgstr "Lösche alle Verbinder"

@@ -7694,7 +7694,7 @@ void Plater::priv::replace_all_with_stl()
         return;
     }
 
-    std::string status;
+    std::string status = _L("Replaced with STLs from directory:\n").ToStdString() + out_path.string() + "\n\n";
 
     for (unsigned int idx : volume_idxs) {
         const GLVolume* v = selection.get_volume(idx);
@@ -7711,24 +7711,29 @@ void Plater::priv::replace_all_with_stl()
 
         fs::path new_path = out_path / input_path.filename();
 
+        std::string volume_name = volume->name;
+
         if (new_path == input_path) {
-            status += boost::str(boost::format(_L("✖ Skipped %1%: %2%, same file\n").ToStdString()) % volume->name % input_path.string());
+            status += boost::str(boost::format(_L("✖ Skipped %1%: same file.\n").ToStdString()) % volume_name);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skipping replace volume : same filename " << new_path;
             continue;
         }
 
         if (!fs::exists(new_path)) {
-            status += boost::str(boost::format(_L("✖ Skipped %1%: %2% does not exist.\n").ToStdString()) % volume->name % new_path.string());
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cannot replace volume : no filename " << new_path;
+            status += boost::str(boost::format(_L("✖ Skipped %1%: file does not exist.\n").ToStdString()) % volume_name);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cannot replace volume : filen does not exist " << new_path;
             continue;
         }
 
-        status += boost::str(boost::format(_L("✔ Replaced %1% with %2%\n").ToStdString()) % volume->name % new_path.string());
-
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " replacing volume : " << input_path << " with " << new_path;
 
-        if (!replace_volume_with_stl(object_idx, volume_idx, new_path, "Replace with STL"))
-            return;
+        if (!replace_volume_with_stl(object_idx, volume_idx, new_path, "Replace with STL")) {
+            status += boost::str(boost::format(_L("✖ Skipped %1%: failed to replace.\n").ToStdString()) % volume_name);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cannot replace volume : failed to replace with " << new_path;
+            continue;
+        }
+
+        status += boost::str(boost::format(_L("✔ Replaced %1%.\n").ToStdString()) % volume_name);
     }
 
     // update 3D scene
