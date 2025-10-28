@@ -264,7 +264,7 @@ if [[ -n "${BUILD_IMAGE}" || -n "${BUILD_ORCA}" ]] ; then
         if [[ -n "${BUILD_IMAGE}" ]] ; then
             extra_script_args="-i"
         fi
-        print_and_run ${build_linux_image} ${extra_script_args} -R "${CONFIG}"
+        print_and_run ${build_linux_image} ${extra_script_args} -R "${BUILD_CONFIG}"
 
         echo "done"
     fi
