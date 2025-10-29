@@ -3,9 +3,13 @@
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include "slic3r/GUI/DeviceCore/DevStorage.h" 
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "Job.hpp"
 #include "PrintJob.hpp"
+
+
+
 
 namespace fs = boost::filesystem;
 

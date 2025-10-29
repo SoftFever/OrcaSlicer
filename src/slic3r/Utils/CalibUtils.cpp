@@ -1818,7 +1818,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     print_job->set_calibration_task(true);
     print_job->sdcard_state = obj_->GetStorage()->get_sdcard_state();    
     
-    print_job->has_sdcard =  wxGetApp().app_config->get("allow_abnormal_sd_card") == "true"
+    print_job->has_sdcard =  wxGetApp().app_config->get("allow_abnormal_storage") == "true"
             ? print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL
                || print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_ABNORMAL)
             : print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL;        
