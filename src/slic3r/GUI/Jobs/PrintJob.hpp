@@ -6,8 +6,6 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "Job.hpp"
 #include "slic3r/GUI/DeviceCore/DevStorage.h" 
-#include "slic3r/GUI/DeviceManager.hpp"
-
 
 namespace fs = boost::filesystem;
 

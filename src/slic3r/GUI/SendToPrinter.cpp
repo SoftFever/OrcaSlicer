@@ -908,7 +908,59 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
                 return s != EMMC_STORAGE;
             });
 
-   
+            if (it != m_ability_list.end()) {
+                m_file_sys->SetUploadFile(_3mf_path, project_name, *it);
+                m_file_sys->RequestUploadFile();
+
+                // time out
+                if (m_task_timer && m_task_timer->IsRunning()) m_task_timer->Stop();
+
+                m_task_timer.reset(new wxTimer());
+                m_task_timer->SetOwner(this);
+
+                this->Bind(
+                    wxEVT_TIMER,
+                    [this, wfs = boost::weak_ptr(m_file_sys), obj_](auto e) {
+                        show_status(PrintDialogStatus::PrintStatusPublicUploadFiled);
+                        boost::shared_ptr fs(wfs.lock());
+                        if (!fs) return;
+                        fs->CancelUploadTask(false);
+
+                       //first time use tcp, second time use tutk , secnod time use ftp
+                        if (m_connect_try_times < 2) {
+                            bool is_lan = (obj_->connection_type() == "lan");
+                            m_tcp_try_connect = false;
+
+                            if (is_lan) {
+                                m_ftp_try_connect  = true;
+                                m_tutk_try_connect = false;
+                            } else {
+                                if (m_connect_try_times == 0) {
+                                    m_ftp_try_connect  = false;
+                                    m_tutk_try_connect = true;
+                                } else {
+                                    m_ftp_try_connect  = true;
+                                    m_tutk_try_connect = false;
+                                }
+                            }
+                            BOOST_LOG_TRIVIAL(info) << "send  failed";
+                            BOOST_LOG_TRIVIAL(info) << "m_ftp_try_connect is  " << m_ftp_try_connect ;
+                            BOOST_LOG_TRIVIAL(info) << "m_tutk_try_connect is  " << m_tutk_try_connect ;
+                            BOOST_LOG_TRIVIAL(info) << "m_tcp_try_connect is  " << m_tcp_try_connect ;
+                        } else
+                            update_print_status_msg(_L("Upload file timeout, please check if the firmware version supports it."), false, true);
+                        m_connect_try_times++;
+                    },
+                    m_task_timer->GetId());
+                    m_task_timer->StartOnce(timeout_period);
+            }
+            else {
+                BOOST_LOG_TRIVIAL(error) << "SendToPrinter::send job: The printer media capability set is incorrect.";
+                show_status(PrintDialogStatus::PrintStatusPublicUploadFiled);
+                update_print_status_msg(_L("No available external storage was obtained. Please confirm and try again."), true, true);
+            }
+        }
+    } else {   
 
         auto m_send_job           = std::make_unique<SendJob>(m_printer_last_select);
         m_send_job->m_dev_ip      = obj_->get_dev_ip();

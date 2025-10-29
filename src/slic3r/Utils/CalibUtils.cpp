@@ -1,6 +1,7 @@
 #include "CalibUtils.hpp"
 #include "../GUI/I18N.hpp"
 #include "../GUI/GUI_App.hpp"
+#include "../GUI/DeviceCore/DevStorage.h" 
 #include "../GUI/DeviceManager.hpp"
 #include "../GUI/Jobs/ProgressIndicator.hpp"
 #include "../GUI/PartPlate.hpp"
@@ -8,7 +9,6 @@
 #include "libslic3r/ClipperUtils.hpp"
 
 #include "libslic3r/Model.hpp"
-#include "../GUI/Jobs/PrintJob.hpp" 
 #include "slic3r/GUI/Jobs/BoostThreadWorker.hpp"
 #include "slic3r/GUI/Jobs/PlaterWorker.hpp"
 #include "../GUI/MsgDialog.hpp"
@@ -1819,7 +1819,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     print_job->sdcard_state = obj_->GetStorage()->get_sdcard_state();    
     
     print_job->has_sdcard =  wxGetApp().app_config->get("allow_abnormal_storage") == "true"
-            ? print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL
+            ? (print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL
                || print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_ABNORMAL)
             : print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL;        
             

@@ -301,7 +301,7 @@ void SendJob::process(Ctl &ctl)
                 case DevStorage::SdcardState::NO_SDCARD:
                     ctl.update_status(curr_percent, _u8L("Storage needs to be inserted before sending to printer."));
                     return;
-                case DevStorage::SdcardState::AS_SDCARD_ABNORMAL:
+                case DevStorage::SdcardState::HAS_SDCARD_ABNORMAL:
                     if(this->has_sdcard) {
                         // means the sdcard is abnormal but can be used option is enabled
                          ctl.update_status(curr_percent, _u8L("Sending G-code file over LAN, but the Storage in the printer is abnormal and print-issues may be caused by this."));
