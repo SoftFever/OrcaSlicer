@@ -1720,6 +1720,7 @@ Sidebar::Sidebar(Plater *parent)
         PlaterPresetComboBox *combo_printer = new PlaterPresetComboBox(p->panel_printer_preset, Preset::TYPE_PRINTER);
         //combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | wxALIGN_CENTER_HORIZONTAL);
         combo_printer->SetBorderWidth(0);
+        combo_printer->SetFont(Label::Body_12);
         p->combo_printer = combo_printer;
 
         /* ORCA This part moved to titlebar
