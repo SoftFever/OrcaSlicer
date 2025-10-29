@@ -1702,8 +1702,9 @@ Sidebar::Sidebar(Plater *parent)
             e.Skip();
         });
 
-        ScalableButton *edit_btn = new ScalableButton(p->panel_printer_preset, wxID_ANY, "dot");
+        ScalableButton *edit_btn = new ScalableButton(p->panel_printer_preset, wxID_ANY, "edit");
         edit_btn->SetToolTip(_L("Click to edit preset"));
+        edit_btn->Hide(); // hide for first launch
         edit_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent)
             {
                 p->editing_filament = -1;
@@ -1720,7 +1721,6 @@ Sidebar::Sidebar(Plater *parent)
         PlaterPresetComboBox *combo_printer = new PlaterPresetComboBox(p->panel_printer_preset, Preset::TYPE_PRINTER);
         //combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | wxALIGN_CENTER_HORIZONTAL);
         combo_printer->SetBorderWidth(0);
-        combo_printer->SetFont(Label::Body_12);
         p->combo_printer = combo_printer;
 
         /* ORCA This part moved to titlebar
@@ -1735,9 +1735,24 @@ Sidebar::Sidebar(Plater *parent)
         */
         {
         auto hovered = std::make_shared<wxWindow *>();
+        auto refresh_printer_panel = [this]{
+            p->panel_printer_preset->Layout();
+            p->panel_printer_preset->Refresh();
+        };
+        // ORCA use Show/Hide to gain text area instead using blank icon
         for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_printer_preset, edit_btn, p->image_printer, combo_printer}) {
-            w->Bind(wxEVT_ENTER_WINDOW, [w, hovered, edit_btn](wxMouseEvent &evt) { *hovered = w; edit_btn->SetBitmap_("edit"); });
-            w->Bind(wxEVT_LEAVE_WINDOW, [w, hovered, edit_btn](wxMouseEvent &evt) { if (*hovered == w) { edit_btn->SetBitmap_("dot"); *hovered = nullptr; } });
+            w->Bind(wxEVT_ENTER_WINDOW, [w, hovered, edit_btn, refresh_printer_panel](wxMouseEvent &evt) { 
+                *hovered = w;
+                edit_btn->Show();
+                refresh_printer_panel();
+            });
+            w->Bind(wxEVT_LEAVE_WINDOW, [w, hovered, edit_btn, refresh_printer_panel](wxMouseEvent &evt) {
+                if (*hovered == w) {
+                    edit_btn->Hide();
+                    *hovered = nullptr;
+                    refresh_printer_panel();
+                }
+            });
         }
         }
 
