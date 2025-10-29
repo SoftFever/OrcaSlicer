@@ -1,6 +1,7 @@
 {
     "type": "filament",
-    "setting_id": "GFSEP010",
+    "filament_id": "GFSEP010",
+    "setting_id": "GFSEP010_00",
     "name": "Eolas Prints PETG @System",
     "from": "system",
     "instantiation": "true",

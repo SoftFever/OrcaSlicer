@@ -1,6 +1,7 @@
 {
     "type": "filament",
-    "setting_id": "GFSEP005",
+    "filament_id": "GFSEP005",
+    "setting_id": "GFSEP005_00",
     "name": "Eolas Prints PLA High Speed @System",
     "from": "system",
     "instantiation": "true",

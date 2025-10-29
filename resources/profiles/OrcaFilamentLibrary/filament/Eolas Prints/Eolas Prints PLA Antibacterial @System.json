@@ -1,6 +1,7 @@
 {
     "type": "filament",
-    "setting_id": "GFSEP008",
+    "filament_id": "GFSEP008",
+    "setting_id": "GFSEP008_00",
     "name": "Eolas Prints PLA Antibacterial @System",
     "from": "system",
     "instantiation": "true",

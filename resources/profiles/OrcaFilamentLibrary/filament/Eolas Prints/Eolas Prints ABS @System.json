@@ -1,6 +1,7 @@
 {
     "type": "filament",
-    "setting_id": "GFSEP017",
+    "filament_id": "GFSEP017",
+    "setting_id": "GFSEP017_00",
     "name": "Eolas Prints ABS @System",
     "from": "system",
     "instantiation": "true",

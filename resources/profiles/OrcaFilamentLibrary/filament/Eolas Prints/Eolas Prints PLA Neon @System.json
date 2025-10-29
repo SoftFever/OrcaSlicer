@@ -1,6 +1,7 @@
 {
     "type": "filament",
-    "setting_id": "GFSEP004",
+    "filament_id": "GFSEP004",
+    "setting_id": "GFSEP004_00",
     "name": "Eolas Prints PLA Neon @System",
     "from": "system",
     "instantiation": "true",

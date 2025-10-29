@@ -1,6 +1,7 @@
 {
     "type": "filament",
-    "setting_id": "GFSEP016",
+    "filament_id": "GFSEP016",
+    "setting_id": "GFSEP016_00",
     "name": "Eolas Prints TPU Transition @System",
     "from": "system",
     "instantiation": "true",

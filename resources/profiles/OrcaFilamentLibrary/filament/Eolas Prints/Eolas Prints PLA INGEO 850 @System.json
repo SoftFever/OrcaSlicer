@@ -1,6 +1,7 @@
 {
     "type": "filament",
-    "setting_id": "GFSEP006",
+    "filament_id": "GFSEP006",
+    "setting_id": "GFSEP006_00",
     "name": "Eolas Prints PLA INGEO 850 @System",
     "from": "system",
     "instantiation": "true",

@@ -1,6 +1,7 @@
 {
     "type": "filament",
-    "setting_id": "GFSEP002",
+    "filament_id": "GFSEP002",
+    "setting_id": "GFSEP002_00",
     "name": "Eolas Prints PLA Matte @System",
     "from": "system",
     "instantiation": "true",

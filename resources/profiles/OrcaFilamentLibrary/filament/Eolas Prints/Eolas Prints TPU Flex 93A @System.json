@@ -1,6 +1,7 @@
 {
     "type": "filament",
-    "setting_id": "GFSEP013",
+    "filament_id": "GFSEP013",
+    "setting_id": "GFSEP013_00",
     "name": "Eolas Prints TPU Flex 93A @System",
     "from": "system",
     "instantiation": "true",

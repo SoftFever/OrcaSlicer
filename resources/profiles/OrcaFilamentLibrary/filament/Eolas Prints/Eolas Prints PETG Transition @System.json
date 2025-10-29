@@ -1,6 +1,7 @@
 {
     "type": "filament",
-    "setting_id": "GFSEP012",
+    "filament_id": "GFSEP012",
+    "setting_id": "GFSEP012_00",
     "name": "Eolas Prints PETG Transition @System",
     "from": "system",
     "instantiation": "true",
