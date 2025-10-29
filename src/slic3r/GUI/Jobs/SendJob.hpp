@@ -47,7 +47,7 @@ public:
     bool        has_sdcard { false };    
     bool        task_use_ams { true };
     
-    MachineObject::SdcardState sdcard_state = MachineObject::SdcardState::NO_SDCARD;
+    DevStorage::SdcardState sdcard_state = DevStorage::SdcardState::NO_SDCARD;
 
     wxWindow*   m_parent{nullptr};
 
