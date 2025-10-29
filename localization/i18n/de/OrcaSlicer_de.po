@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 10:59+0100\n"
+"POT-Creation-Date: 2025-10-29 11:23+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -2419,18 +2419,6 @@ msgstr ""
 "\n"
 "Um mit massiven Teilen oder negativen Volumen zu arbeiten, \n"
 "müssen Sie zuerst die Schnittinformationen ungültig machen."
-
-msgid "✖ Skipped %1%: %2%, same file\n"
-msgstr "✖ %1% übersprungen: %2%, gleiche Datei\n"
-
-msgid "✖ Skipped %1%: %2% does not exist.\n"
-msgstr "✖ %1% übersprungen: %2% existiert nicht.\n"
-
-msgid "✔ Replaced %1% with %2%\n"
-msgstr "✔ %1% durch %2% ersetzt\n"
-
-msgid "✖ Skipped %1%: failed to replace.\n"
-msgstr "✖ %1% übersprungen: Ersetzen fehlgeschlagen.\n"
 
 msgid "Delete all connectors"
 msgstr "Lösche alle Verbinder"
@@ -7274,6 +7262,28 @@ msgstr "Wählen Sie ein Verzeichnis aus um daraus zu ersetzen"
 msgid "Directory for the replace wasn't selected"
 msgstr "Verzeichnis um daraus zu ersetzen wurde nicht ausgewählt"
 
+msgid "Replaced with STLs from directory:\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: same file.\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: file does not exist.\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: failed to replace.\n"
+msgstr "✖ %1% übersprungen: Ersetzen fehlgeschlagen.\n"
+
+#, boost-format
+msgid "✔ Replaced %1%.\n"
+msgstr ""
+
+msgid "Replaced volumes"
+msgstr ""
+
 msgid "Please select a file"
 msgstr "Bitte wählen Sie eine Datei"
 
@@ -8660,7 +8670,7 @@ msgstr ""
 msgid "Storage needs to be inserted before printing via LAN."
 msgstr ""
 
-msgid "Storage is not available or is in read-only mode."
+msgid "Storage is in abnormal state or is in read-only mode."
 msgstr ""
 
 msgid "Storage needs to be inserted before printing."
@@ -10073,6 +10083,9 @@ msgstr ""
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
+msgstr ""
+
+msgid "Storage is not available or is in read-only mode."
 msgstr ""
 
 #, c-format, boost-format
@@ -21363,6 +21376,15 @@ msgstr ""
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verwerfungen neigen, "
 "wie z.B. ABS, durch eine entsprechende Erhöhung der Heizbetttemperatur die "
 "Wahrscheinlichkeit von Verwerfungen verringert werden kann?"
+
+#~ msgid "✖ Skipped %1%: %2%, same file\n"
+#~ msgstr "✖ %1% übersprungen: %2%, gleiche Datei\n"
+
+#~ msgid "✖ Skipped %1%: %2% does not exist.\n"
+#~ msgstr "✖ %1% übersprungen: %2% existiert nicht.\n"
+
+#~ msgid "✔ Replaced %1% with %2%\n"
+#~ msgstr "✔ %1% durch %2% ersetzt\n"
 
 #~ msgid "AMS not connected"
 #~ msgstr "AMS nicht verbunden"

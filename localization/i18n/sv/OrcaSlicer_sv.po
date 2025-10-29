@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 10:59+0100\n"
+"POT-Creation-Date: 2025-10-29 11:23+0100\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1965,6 +1965,12 @@ msgstr "Ersätt med STL"
 
 msgid "Replace the selected part with new STL"
 msgstr "Ersätt den valda delen med ny STL"
+
+msgid "Replace all with STL"
+msgstr ""
+
+msgid "Replace all selected parts with STL from folder"
+msgstr ""
 
 msgid "Change filament"
 msgstr "Byta filament"
@@ -6975,6 +6981,34 @@ msgstr "Välj en ny fil"
 msgid "File for the replace wasn't selected"
 msgstr "Ersättningsfilen valdes inte"
 
+msgid "Select folder to replace from"
+msgstr ""
+
+msgid "Directory for the replace wasn't selected"
+msgstr ""
+
+msgid "Replaced with STLs from directory:\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: same file.\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: file does not exist.\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: failed to replace.\n"
+msgstr ""
+
+#, boost-format
+msgid "✔ Replaced %1%.\n"
+msgstr ""
+
+msgid "Replaced volumes"
+msgstr ""
+
 msgid "Please select a file"
 msgstr "Välj en fil"
 
@@ -8306,7 +8340,7 @@ msgstr ""
 msgid "Storage needs to be inserted before printing via LAN."
 msgstr ""
 
-msgid "Storage is not available or is in read-only mode."
+msgid "Storage is in abnormal state or is in read-only mode."
 msgstr ""
 
 msgid "Storage needs to be inserted before printing."
@@ -9634,6 +9668,9 @@ msgstr ""
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
+msgstr ""
+
+msgid "Storage is not available or is in read-only mode."
 msgstr ""
 
 #, c-format, boost-format

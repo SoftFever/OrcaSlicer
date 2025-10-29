@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 10:59+0100\n"
+"POT-Creation-Date: 2025-10-29 11:23+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1949,10 +1949,10 @@ msgstr ""
 msgid "Replace with STL"
 msgstr ""
 
-msgid "Replace all with STL"
+msgid "Replace the selected part with new STL"
 msgstr ""
 
-msgid "Replace the selected part with new STL"
+msgid "Replace all with STL"
 msgstr ""
 
 msgid "Replace all selected parts with STL from folder"
@@ -2299,18 +2299,6 @@ msgid ""
 "\n"
 "To manipulate with solid parts or negative volumes you have to invalidate "
 "cut information first."
-msgstr ""
-
-msgid "✖ Skipped %1%: %2%, same file\n"
-msgstr ""
-
-msgid "✖ Skipped %1%: %2% does not exist.\n"
-msgstr ""
-
-msgid "✖ Skipped %1%: failed to replace.\n"
-msgstr ""
-
-msgid "✔ Replaced %1% with %2%\n"
 msgstr ""
 
 msgid "Delete all connectors"
@@ -6776,6 +6764,28 @@ msgstr ""
 msgid "Directory for the replace wasn't selected"
 msgstr ""
 
+msgid "Replaced with STLs from directory:\n"
+msgstr ""
+
+#, possible-boost-format
+msgid "✖ Skipped %1%: same file.\n"
+msgstr ""
+
+#, possible-boost-format
+msgid "✖ Skipped %1%: file does not exist.\n"
+msgstr ""
+
+#, possible-boost-format
+msgid "✖ Skipped %1%: failed to replace.\n"
+msgstr ""
+
+#, possible-boost-format
+msgid "✔ Replaced %1%.\n"
+msgstr ""
+
+msgid "Replaced volumes"
+msgstr ""
+
 msgid "Please select a file"
 msgstr ""
 
@@ -8059,7 +8069,7 @@ msgstr ""
 msgid "Storage needs to be inserted before printing via LAN."
 msgstr ""
 
-msgid "Storage is not available or is in read-only mode."
+msgid "Storage is in abnormal state or is in read-only mode."
 msgstr ""
 
 msgid "Storage needs to be inserted before printing."
@@ -9302,6 +9312,9 @@ msgstr ""
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
+msgstr ""
+
+msgid "Storage is not available or is in read-only mode."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
