@@ -39,6 +39,8 @@
 #include "UnsavedChangesDialog.hpp"
 #include "SavePresetDialog.hpp"
 #include "EditGCodeDialog.hpp"
+
+#include <memory>
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
 
@@ -3623,21 +3625,42 @@ void TabFilament::add_filament_overrides_page()
                         const std::string process_opt_key = opt_key.substr(strlen("filament_"));
                         const auto process_config = m_preset_bundle->prints.get_edited_preset().config;
                         const ConfigOption *process_option = process_config.option(process_opt_key);
+                        const auto *process_vector = dynamic_cast<const ConfigOptionVectorBase*>(process_option);
+                        const size_t target_index = opt_index < 0 ? 0 : static_cast<size_t>(opt_index);
                         bool has_process_value = process_option != nullptr;
                         if (has_process_value) {
-                            if (auto vec = dynamic_cast<const ConfigOptionVectorBase*>(process_option))
-                                has_process_value = !vec->is_nil(opt_index);
-                            else
+                            if (process_vector != nullptr) {
+                                has_process_value = target_index < process_vector->size() && !process_vector->is_nil(target_index);
+                            } else {
                                 has_process_value = !process_option->is_nil();
+                            }
                         }
 
                         if (is_checked) {
-                            if (has_process_value) {
-                                const boost::any process_config_value = optgroup_sh->get_config_value(process_config, process_opt_key, opt_index);
-                                field->set_value(process_config_value, false);
-                            } else {
-                                field->update_na_value(_(L("N/A")));
+                            bool applied_value = false;
+                            if (has_process_value && process_option != nullptr) {
+                                if (ConfigOption *filament_option = m_config->option(opt_key)) {
+                                    if (auto filament_vector = dynamic_cast<ConfigOptionVectorBase*>(filament_option)) {
+                                        std::unique_ptr<ConfigOption> process_clone(process_option->clone());
+                                        size_t source_index = 0;
+                                        if (process_vector != nullptr)
+                                            source_index = target_index;
+
+                                        filament_vector->set_at(process_clone.get(), target_index, source_index);
+
+                                        const boost::any filament_config_value = optgroup_sh->get_config_value(*m_config, opt_key, opt_index);
+                                        field->set_value(filament_config_value, false);
+                                        field->update_na_value(_(L("N/A")));
+                                        applied_value = true;
+                                    }
+                                }
+                            }
+
+                            if (applied_value)
                                 field->set_last_meaningful_value();
+                            else {
+                                field->update_na_value(_(L("N/A")));
+                                field->set_na_value();
                             }
                         } else {
                             if (has_process_value) {
@@ -3647,6 +3670,11 @@ void TabFilament::add_filament_overrides_page()
                                 field->update_na_value(_(L("N/A")));
                             }
                             field->set_na_value();
+
+                            if (ConfigOption *filament_option = m_config->option(opt_key)) {
+                                if (auto filament_vector = dynamic_cast<ConfigOptionVectorBase*>(filament_option))
+                                    filament_vector->set_at_to_nil(target_index);
+                            }
                         }
                     }
                 }
@@ -3778,7 +3806,7 @@ void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* print
                 const auto process_config = m_preset_bundle->prints.get_edited_preset().config;
                 const boost::any process_config_value = ironing_optgroup->get_config_value(process_config, process_opt_key, 0);
                 field->update_na_value(process_config_value);
-                field->set_na_value();
+                field->set_value(process_config_value, false);
             }
 
             field->toggle(is_checked);
