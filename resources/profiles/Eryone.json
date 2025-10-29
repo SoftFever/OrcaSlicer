@@ -565,10 +565,6 @@
         {
             "name": "Thinker X400 0.2 nozzle",
             "sub_path": "machine/Thinker X400 0.2 nozzle.json"
-        }
-        {
-            "name": "fdm_machine_common",
-            "sub_path": "machine/fdm_machine_common.json"
         },
         {
             "name": "fdm_machine_eryone_ER20_common",
