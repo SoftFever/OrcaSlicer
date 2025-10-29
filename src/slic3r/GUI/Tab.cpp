@@ -3546,9 +3546,8 @@ void TabFilament::add_filament_overrides_page()
 {
     //BBS
     PageShp page = add_options_page(L("Setting Overrides"), "custom-gcode_setting_override"); // ORCA: icon only visible on placeholders
-    ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
-
-    auto append_single_option_line = [optgroup, this](const std::string& opt_key, int opt_index)
+    
+    auto append_single_option_line = [this, page](ConfigOptionsGroupShp optgroup, const std::string& opt_key, int opt_index)
     {
         Line line {"",""};
         //BBS
@@ -3563,15 +3562,35 @@ void TabFilament::add_filament_overrides_page()
                         field->toggle(is_checked);
 
                         if (is_checked) {
-                            field->update_na_value(_(L("N/A")));
-                            field->set_last_meaningful_value();
+                            // When enabling override, set the field to the current process value
+                            if (opt_key.find("filament_ironing_") == 0) {
+                                // For ironing overrides, get value from process config
+                                const std::string process_opt_key = opt_key.substr(strlen("filament_"));
+                                const auto process_config = m_preset_bundle->prints.get_edited_preset().config;
+                                const boost::any process_config_value = optgroup_sh->get_config_value(process_config, process_opt_key, 0);
+                                field->set_value(process_config_value, false);
+                            } else {
+                                // For retraction overrides, restore last meaningful value or use printer config
+                                field->set_last_meaningful_value();
+                            }
                         }
                         else {
-                            const std::string printer_opt_key = opt_key.substr(strlen("filament_"));
-                            const auto printer_config = m_preset_bundle->printers.get_edited_preset().config;
-                            const boost::any printer_config_value = optgroup_sh->get_config_value(printer_config, printer_opt_key, opt_index);
-                            field->update_na_value(printer_config_value);
-                            field->set_na_value();
+                            // Check if this is an ironing override option
+                            if (opt_key.find("filament_ironing_") == 0) {
+                                // For ironing overrides, get value from process config
+                                const std::string process_opt_key = opt_key.substr(strlen("filament_"));
+                                const auto process_config = m_preset_bundle->prints.get_edited_preset().config;
+                                const boost::any process_config_value = optgroup_sh->get_config_value(process_config, process_opt_key, 0);
+                                field->update_na_value(process_config_value);
+                                field->set_na_value();
+                            } else {
+                                // For retraction overrides, get value from printer config
+                                const std::string printer_opt_key = opt_key.substr(strlen("filament_"));
+                                const auto printer_config = m_preset_bundle->printers.get_edited_preset().config;
+                                const boost::any printer_config_value = optgroup_sh->get_config_value(printer_config, printer_opt_key, opt_index);
+                                field->update_na_value(printer_config_value);
+                                field->set_na_value();
+                            }
                         }
                     }
                 }
@@ -3586,6 +3605,7 @@ void TabFilament::add_filament_overrides_page()
 
     const int extruder_idx = 0; // #ys_FIXME
 
+    ConfigOptionsGroupShp optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
     for (const std::string opt_key : {  "filament_retraction_length",
                                         "filament_z_hop",
                                         "filament_z_hop_types",
@@ -3606,7 +3626,15 @@ void TabFilament::add_filament_overrides_page()
                                         //SoftFever
                                         // "filament_seam_gap"
                                      })
-        append_single_option_line(opt_key, extruder_idx);
+        append_single_option_line(optgroup, opt_key, extruder_idx);
+
+    optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
+    for (const std::string opt_key : {  "filament_ironing_flow",
+                                        "filament_ironing_spacing",
+                                        "filament_ironing_inset",
+                                        "filament_ironing_speed"
+                                     })
+        append_single_option_line(optgroup, opt_key, extruder_idx);
 }
 
 void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* printers_config)
@@ -3683,6 +3711,44 @@ void TabFilament::update_filament_overrides_page(const DynamicPrintConfig* print
                 boost::any printer_config_value = optgroup->get_config_value(*printers_config, printer_opt_key, extruder_idx);
                 field->update_na_value(printer_config_value);
                 field->set_value(printer_config_value, false);
+            }
+
+            field->toggle(is_checked);
+        }
+    }
+
+    // Handle ironing overrides
+    const auto og_ironing_it = std::find_if(page->m_optgroups.begin(), page->m_optgroups.end(), [](const ConfigOptionsGroupShp og) { return og->title == "Ironing"; });
+    if (og_ironing_it != page->m_optgroups.end())
+    {
+        ConfigOptionsGroupShp ironing_optgroup = *og_ironing_it;
+        
+        std::vector<std::string> ironing_opt_keys = {
+            "filament_ironing_flow",
+            "filament_ironing_spacing",
+            "filament_ironing_inset",
+            "filament_ironing_speed"
+        };
+
+        for (const std::string& opt_key : ironing_opt_keys)
+        {
+            if (m_overrides_options.find(opt_key) == m_overrides_options.end())
+                continue;
+                
+            bool is_checked = !dynamic_cast<ConfigOptionVectorBase*>(m_config->option(opt_key))->is_nil(extruder_idx);
+            m_overrides_options[opt_key]->Enable(true);
+            m_overrides_options[opt_key]->SetValue(is_checked);
+
+            Field* field = ironing_optgroup->get_fieldc(opt_key, 0);
+            if (field == nullptr) continue;
+
+            if (!is_checked) {
+                // Get the default value from the process config (ironing_* without filament_ prefix)
+                const std::string process_opt_key = opt_key.substr(strlen("filament_"));
+                const auto process_config = m_preset_bundle->prints.get_edited_preset().config;
+                const boost::any process_config_value = ironing_optgroup->get_config_value(process_config, process_opt_key, 0);
+                field->update_na_value(process_config_value);
+                field->set_na_value();
             }
 
             field->toggle(is_checked);
