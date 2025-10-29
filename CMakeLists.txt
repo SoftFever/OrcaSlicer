@@ -55,6 +55,11 @@ endif ()
 
 project(OrcaSlicer)
 
+# Backward compatibility for old CMake versions
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_VERSION VERSION_LESS "3.25")
+    set(LINUX ON CACHE BOOL "" FORCE)
+endif ()
+
 include("version.inc")
 include(GNUInstallDirs)
 include(CMakeDependentOption)
@@ -67,26 +72,41 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default Release)" FORCE)
 endif()
 
+if (DEFINED BBL_RELEASE_TO_PUBLIC)
+    add_compile_definitions("BBL_RELEASE_TO_PUBLIC=${BBL_RELEASE_TO_PUBLIC}")
+else ()
+    add_compile_definitions("BBL_RELEASE_TO_PUBLIC=$<CONFIG:Release>")
+endif ()
+
 find_package(Git)
 if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
-    # Check current Git commit hash
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} log -1 --format=%h
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE GIT_COMMIT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    add_definitions("-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
+    if(DEFINED ENV{git_commit_hash} AND NOT "$ENV{git_commit_hash}" STREQUAL "")
+        message(STATUS "Specified git commit hash: $ENV{git_commit_hash}")
+
+        # Convert the given hash to short hash
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} rev-parse --short "$ENV{git_commit_hash}"
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_COMMIT_HASH
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        add_definitions("-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
+    else()
+        # Check current Git commit hash
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} log -1 --format=%h
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_COMMIT_HASH
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        add_definitions("-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
+    endif()
 endif()
 
 if(DEFINED ENV{SLIC3R_STATIC})
-        set(SLIC3R_STATIC_INITIAL $ENV{SLIC3R_STATIC})
+    set(SLIC3R_STATIC_INITIAL $ENV{SLIC3R_STATIC})
 else()
-        if (MSVC OR MINGW OR APPLE)
-                set(SLIC3R_STATIC_INITIAL 1)
-        else()
-                set(SLIC3R_STATIC_INITIAL 0)
-        endif()
+    set(SLIC3R_STATIC_INITIAL 1)
 endif()
 
 option(SLIC3R_STATIC 			"Compile OrcaSlicer with static libraries (Boost, TBB, glew)" ${SLIC3R_STATIC_INITIAL})
@@ -104,7 +124,7 @@ CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow perfoming desktop integ
 
 set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find modules.")
 
-set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
+set(SLIC3R_GTK "3" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
 set(IS_CROSS_COMPILE FALSE)
 
@@ -118,6 +138,10 @@ if (${COLORED_OUTPUT})
 endif ()
 
 if (APPLE)
+    list(LENGTH CMAKE_OSX_ARCHITECTURES _arch_len)
+    if (_arch_len GREATER 1)
+        message(FATAL_ERROR "OrcaSlicer only supports building for one architecture at a time. Please make sure only one architecture is specified in CMAKE_OSX_ARCHITECTURES")
+    endif ()
     set(CMAKE_FIND_FRAMEWORK LAST)
     set(CMAKE_FIND_APPBUNDLE LAST)
     list(FIND CMAKE_OSX_ARCHITECTURES ${CMAKE_SYSTEM_PROCESSOR} _arch_idx)
@@ -136,6 +160,14 @@ endif ()
 option(SLIC3R_BUILD_SANDBOXES   "Build development sandboxes" OFF)
 option(BUILD_TESTS       "Build unit tests" OFF)
 option(ORCA_TOOLS       "Build Orca tools" OFF)
+
+if (FLATPAK)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++20")
+    set(SLIC3R_PCH OFF CACHE BOOL "" FORCE)
+    set(SLIC3R_FHS ON CACHE BOOL "" FORCE)
+    set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(SLIC3R_DESKTOP_INTEGRATION OFF CACHE BOOL "" FORCE)
+endif ()
 
 if (IS_CROSS_COMPILE)
     message("Detected cross compilation setup. Tests and encoding checks will be forcedly disabled!")
@@ -159,6 +191,13 @@ endif ()
 if(SLIC3R_DESKTOP_INTEGRATION)
     add_definitions(-DSLIC3R_DESKTOP_INTEGRATION)
 endif ()
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    message(STATUS "Automatically setting CMAKE_INSTALL_PREFIX")
+    set_property(CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE "${CMAKE_BINARY_DIR}/OrcaSlicer")
+endif()
+
+message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 
 if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     set(IS_CLANG_CL TRUE)
@@ -205,23 +244,60 @@ if (NOT MSVC)
     add_compile_options(-fsigned-char)
 endif ()
 
-# Display and check CMAKE_PREFIX_PATH
-message(STATUS "SLIC3R_STATIC: ${SLIC3R_STATIC}")
-if (NOT "${CMAKE_PREFIX_PATH}" STREQUAL "")
-    message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH} (from cache or command line)")
-    set(PREFIX_PATH_CHECK ${CMAKE_PREFIX_PATH})
-elseif (NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
-    message(STATUS "CMAKE_PREFIX_PATH: $ENV{CMAKE_PREFIX_PATH} (from environment)")
-    set(PREFIX_PATH_CHECK $ENV{CMAKE_PREFIX_PATH})
+if ("${DEP_BUILD_DIR}" STREQUAL "")
+    get_filename_component(BIN_DIR_NAME ${CMAKE_BINARY_DIR} NAME)
+    if (APPLE AND BIN_DIR_NAME STREQUAL "${CMAKE_OSX_ARCHITECTURES}")
+        file(RELATIVE_PATH BIN_DIR_NAME ${CMAKE_BINARY_DIR}/../.. ${CMAKE_BINARY_DIR})
+    endif ()
+    set(DEP_BUILD_DIR "${CMAKE_SOURCE_DIR}/deps/${BIN_DIR_NAME}" CACHE PATH "Path to dependencies build directory" FORCE)
+    message(STATUS "DEP_BUILD_DIR: ${DEP_BUILD_DIR} (generated automatically and saved to cache)")
+    set(AUTOGENERATED_DEP_BUILD_DIR ${DEP_BUILD_DIR} CACHE PATH "Provides the last autogenerated DEP_BUILD_DIR" FORCE)
 else ()
-    message(STATUS "CMAKE_PREFIX_PATH: (default)")
+    message(STATUS "DEP_BUILD_DIR: ${DEP_BUILD_DIR} (from cache or command line)")
 endif ()
 
+if ("${CMAKE_PREFIX_PATH}" STREQUAL "" OR "${CMAKE_PREFIX_PATH}" STREQUAL "${AUTOGENERATED_PREFIX_PATH}")
+    if (DEFINED AUTOGENERATED_DEP_BUILD_DIR AND NOT "${DEP_BUILD_DIR}" STREQUAL "${AUTOGENERATED_DEP_BUILD_DIR}")
+        message(STATUS "CMAKE_PREFIX_PATH is being re-generated due to DEP_BUILD_DIR being manually updated")
+        set(REGEN_DESTDIR TRUE)
+        unset(AUTOGENERATED_DEP_BUILD_DIR CACHE)
+    endif ()
+else ()
+    unset(AUTOGENERATED_PREFIX_PATH CACHE)
+endif ()
+
+# Display and check CMAKE_PREFIX_PATH
+if ("${CMAKE_PREFIX_PATH}" STREQUAL "" OR REGEN_DESTDIR)
+    set(CMAKE_PREFIX_PATH "${DEP_BUILD_DIR}/OrcaSlicer_dep/usr/local" CACHE PATH "Path to dependencies install directory" FORCE)
+    message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH} (generated automatically and saved to cache)")
+    set(AUTOGENERATED_PREFIX_PATH ${CMAKE_PREFIX_PATH} CACHE STRING "Provides the last autogenerated CMAKE_PREFIX_PATH" FORCE)
+    unset(REGEN_DESTDIR CACHE)
+else ()
+    message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH} (from cache or command line)")
+endif ()
+set(PREFIX_PATH_CHECK ${CMAKE_PREFIX_PATH})
+
+# the CMAKE_PREFIX_PATH environment variable is separate from the CMAKE_PREFIX_PATH cache variable and provides additional paths to search for libraries.
+if (NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
+    message(STATUS "CMAKE_PREFIX_PATH: $ENV{CMAKE_PREFIX_PATH} (from environment)")
+    list(APPEND PREFIX_PATH_CHECK $ENV{CMAKE_PREFIX_PATH})
+endif ()
+
+# Check all directories in CMAKE_PREFIX_PATH variables
 foreach (DIR ${PREFIX_PATH_CHECK})
     if (NOT EXISTS "${DIR}")
         message(WARNING "CMAKE_PREFIX_PATH element doesn't exist: ${DIR}")
     endif ()
 endforeach ()
+
+if (APPLE)
+    set(CMAKE_MACOSX_RPATH ON CACHE BOOL "")
+    set(CMAKE_MACOSX_BUNDLE ON CACHE BOOL "")
+endif ()
+
+if (APPLE AND CMAKE_MACOSX_RPATH AND "${CMAKE_INSTALL_RPATH}" STREQUAL "")
+    set(CMAKE_INSTALL_RPATH ${CMAKE_PREFIX_PATH})
+endif ()
 
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
@@ -263,7 +339,11 @@ if(WIN32)
         endif()
     else()
         # Try to use the default Windows 10 SDK path.
-        set(WIN10SDK_INCLUDE_PATH "$ENV{WindowsSdkDir}/Include/$ENV{WindowsSDKVersion}")
+        if (DEFINED ENV{WindowsSdkDir} AND DEFINED ENV{WindowsSDKVersion})
+            set(WIN10SDK_INCLUDE_PATH "$ENV{WindowsSdkDir}/Include/$ENV{WindowsSDKVersion}")
+        else ()
+            set(WIN10SDK_INCLUDE_PATH "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0")
+        endif ()
         if (NOT EXISTS "${WIN10SDK_INCLUDE_PATH}/winrt/windows.graphics.printing3d.h")
             message("${WIN10SDK_INCLUDE_PATH}/winrt/windows.graphics.printing3d.h was not found")
             message("STL fixing by the Netfabb service will not be compiled")
