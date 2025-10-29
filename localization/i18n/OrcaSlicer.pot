@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 08:23+0100\n"
+"POT-Creation-Date: 2025-10-29 10:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -7432,14 +7432,6 @@ msgid ""
 "Disable to use latest network plugin that supports new BambuLab firmwares."
 msgstr ""
 
-msgid "Allow Abnormal Storage"
-msgstr ""
-
-msgid ""
-"This allows the use of Storage that is marked as abnormal by the Printer. "
-"Use at your own risk."
-msgstr ""
-
 msgid "Associate files to OrcaSlicer"
 msgstr ""
 
@@ -7479,6 +7471,14 @@ msgstr ""
 msgid ""
 "With this option enabled, you can print materials with a large temperature "
 "difference together."
+msgstr ""
+
+msgid "Allow Abnormal Storage"
+msgstr ""
+
+msgid ""
+"This allows the use of Storage that is marked as abnormal by the Printer.\n"
+"Use at your own risk, can cause issues!"
 msgstr ""
 
 msgid "Log Level"
@@ -8087,6 +8087,13 @@ msgid "Try to connect"
 msgstr ""
 
 msgid "click to retry"
+msgstr ""
+
+msgid "Upload file timeout, please check if the firmware version supports it."
+msgstr ""
+
+msgid ""
+"No available external storage was obtained. Please confirm and try again."
 msgstr ""
 
 msgid ""
