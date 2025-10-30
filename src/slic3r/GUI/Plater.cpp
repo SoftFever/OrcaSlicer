@@ -1787,7 +1787,12 @@ Sidebar::Sidebar(Plater *parent)
         p->combo_nozzle_dia->SetMinSize(FromDIP(wxSize(PRINTER_PANEL_SIZE.GetWidth() - 4, 26))); // requires a static value in here
         p->combo_nozzle_dia->SetMaxSize(FromDIP(wxSize(PRINTER_PANEL_SIZE.GetWidth() - 4, 26))); // using -1 with wxEXPAND has issues
         p->combo_nozzle_dia->Bind(wxEVT_COMBOBOX, [this](auto &e) {
-            (*p->single_extruder).combo_diameter->SetSelection(e.GetSelection());
+            auto evt_combo = (*p->single_extruder).combo_diameter;
+            evt_combo->SetSelection(e.GetSelection());
+            wxCommandEvent evt(wxEVT_COMBOBOX, evt_combo->GetId());
+            evt.SetEventObject(evt_combo);
+            evt.SetInt(e.GetSelection());
+            wxPostEvent(evt_combo, evt);
             e.Skip();
         });
         // ORCA paint whole combobox on focus
