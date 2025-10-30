@@ -56,9 +56,16 @@ jobs:
           # Deprecate 20.04appimage
           # - os: ubuntu-20.04
           # - os: ubuntu-24.04
-          - os: [self-hosted, Windows, X64]
-          - os: macos-14
+
+          # - os: windows-latest
+          # - os: [self-hosted, Windows, X64]
+          - os: blade
+
+          # - os: macos-14
+          # - os: [self-hosted, macOS, ARM64]
+          - os: peac-mbp
             arch: arm64
+
     uses: ./.github/workflows/build_check_cache.yml
     with:
       os: ${{ matrix.os }}
