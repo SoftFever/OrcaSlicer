@@ -1919,7 +1919,7 @@ Sidebar::Sidebar(Plater *parent)
 
         /* ORCA THIS PART MOVED TO TITLEBAR
         // Sync printer information
-        btn_sync = new Button(p->m_panel_printer_content, "", "printer_sync", 0, 24);
+        btn_sync = new Button(p->m_panel_printer_content, _L("Sync info"), "printer_sync", 0, 32);
         //btn_sync->SetFont(Label::Body_8);
         btn_sync->SetToolTip(_L("Synchronize nozzle information and the number of AMS"));
         btn_sync->SetCornerRadius(8);
