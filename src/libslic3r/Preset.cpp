@@ -595,7 +595,7 @@ void Preset::save(const DynamicPrintConfig* parent_config)
             else {
                 ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
                 ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt_dst);
-                ConfigOptionVectorBase* opt_vec_inherit = static_cast<ConfigOptionVectorBase*>(parent_config->option(option));
+                const ConfigOptionVectorBase* opt_vec_inherit = static_cast<const ConfigOptionVectorBase*>(parent_config->option(option));
                 if (opt_vec_src->size() == 1)
                     opt_dst->set(opt_src);
                 else if (key_set1->find(option) != key_set1->end()) {

@@ -225,9 +225,9 @@ public:
 	// Creates Slicing Warning notification with a custom text and no fade out.
     void push_slicing_warning_notification(const std::string &text, bool gray, ModelObject const *obj, ObjectID oid, int warning_step, int warning_msg_id, NotificationLevel level = NotificationLevel::WarningNotificationLevel);
     // marks slicing errors as gray for the specified plate
-    void set_all_slicing_errors_gray(bool g, int plate_id);
+    void set_all_slicing_errors_gray(bool g, int plate_id = -1);
     // marks slicing warings as gray for the specified plate
-    void set_all_slicing_warnings_gray(bool g, int plate_id);
+    void set_all_slicing_warnings_gray(bool g, int plate_id = -1);
 //	void set_slicing_warning_gray(const std::string& text, bool g);
 	// immediately stops showing slicing errors
 	void close_slicing_errors_and_warnings();

@@ -2017,7 +2017,7 @@ void NotificationManager::set_all_slicing_errors_gray(bool g, int plate_id)
 {
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::SlicingError) {
-            if (auto obj_notif = dynamic_cast<ObjectIDNotification*>(notification.get()); obj_notif->plate_id == plate_id) {
+            if (auto obj_notif = dynamic_cast<ObjectIDNotification*>(notification.get()); plate_id == -1 || obj_notif->plate_id == plate_id) {
                 notification->set_gray(g);
             }
         }
@@ -2027,7 +2027,7 @@ void NotificationManager::set_all_slicing_warnings_gray(bool g, int plate_id)
 {
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::SlicingWarning) {
-            if (auto obj_notif = dynamic_cast<ObjectIDNotification*>(notification.get()); obj_notif->plate_id == plate_id) {
+            if (auto obj_notif = dynamic_cast<ObjectIDNotification*>(notification.get()); plate_id == -1 || obj_notif->plate_id == plate_id) {
                 notification->set_gray(g);
             }
         }
