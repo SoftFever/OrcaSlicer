@@ -540,7 +540,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
         //WORKAREA
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
             hsizer->Add(image_printer, 0, wxLEFT  | wxALIGN_LEFT  | wxALIGN_CENTER_VERTICAL, FromDIP(12));
-            hsizer->Add(combo_printer, 1, wxEXPAND | wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
+            hsizer->Add(combo_printer, 1, wxEXPAND | wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::ElementSpacing()));
             hsizer->Add(btn_edit_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
             //hsizer->Add(btn_connect_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
             panel_printer_preset->SetSizer(hsizer);
@@ -1690,7 +1690,7 @@ Sidebar::Sidebar(Plater *parent)
                                 std::pair<wxColour, int>(wxColour("#009688"), StateColor::Hovered),
                                 std::pair<wxColour, int>(wxColour("#EEEEEE"), StateColor::Normal));
 
-        p->panel_printer_preset = new StaticBox(p->m_panel_printer_content);
+        p->panel_printer_preset = new StaticBox(p->m_panel_printer_content); // NEEDFIX focus stucks
         p->panel_printer_preset->SetCornerRadius(8);
         p->panel_printer_preset->SetBorderColor(panel_bd_col);
         p->panel_printer_preset->SetMinSize(PRINTER_PANEL_SIZE);
@@ -1699,7 +1699,7 @@ Sidebar::Sidebar(Plater *parent)
         });
         // ORCA Hide Cover automatically if there is not enough space
         p->panel_printer_preset->Bind(wxEVT_SIZE, [this](auto & e) {
-            bool is_narrow = e.GetSize().GetWidth() < 200;
+            bool is_narrow = e.GetSize().GetWidth() < p->scrolled->FromDIP(200);
             if(is_narrow && p->image_printer->IsShown())
                 p->image_printer->Hide();
             else if(!is_narrow && !p->image_printer->IsShown())
@@ -1773,7 +1773,7 @@ Sidebar::Sidebar(Plater *parent)
         }
 
         // ORCA unified Nozzle diameter selection
-        p->panel_nozzle_dia = new StaticBox(p->m_panel_printer_content);
+        p->panel_nozzle_dia = new StaticBox(p->m_panel_printer_content); // NEEDFIX focus stucks
         p->panel_nozzle_dia->SetCornerRadius(8);
         p->panel_nozzle_dia->SetBorderColor(panel_bd_col);
         p->panel_nozzle_dia->SetMinSize(PRINTER_PANEL_SIZE);
@@ -1820,9 +1820,9 @@ Sidebar::Sidebar(Plater *parent)
 
         p->label_nozzle_type = new wxStaticText(p->panel_nozzle_dia, wxID_ANY, "Brass", wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END | wxALIGN_CENTRE_HORIZONTAL);
         p->label_nozzle_type->SetFont(Label::Body_10);
-        p->label_nozzle_type->SetForegroundColour(wxColour("#262E30")); // NEEDFIX pick color from nozzle type
-        p->label_nozzle_type->SetMinSize(FromDIP(wxSize(60, -1)));
-        p->label_nozzle_type->SetMaxSize(FromDIP(wxSize(60, -1)));
+        p->label_nozzle_type->SetForegroundColour(wxColour("#262E30"));
+        p->label_nozzle_type->SetMinSize(FromDIP(wxSize(56, -1)));
+        p->label_nozzle_type->SetMaxSize(FromDIP(wxSize(56, -1)));
         p->label_nozzle_type->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
             p->combo_nozzle_dia->wxEvtHandler::ProcessEvent(evt);
         });
@@ -1835,7 +1835,7 @@ Sidebar::Sidebar(Plater *parent)
         p->panel_nozzle_dia->SetSizer(nozzle_dia_sizer);
 
         // Bed type selection
-        p->panel_printer_bed = new StaticBox(p->m_panel_printer_content);
+        p->panel_printer_bed = new StaticBox(p->m_panel_printer_content); // NEEDFIX focus stucks
         p->panel_printer_bed->SetCornerRadius(8);
         p->panel_printer_bed->SetBorderColor(panel_bd_col);
         p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE);
@@ -2601,52 +2601,25 @@ void Sidebar::update_presets(Preset::Type preset_type)
                 p->combo_nozzle_dia->Append(diameters[i], {});
             p->combo_nozzle_dia->SetSelection((*p->single_extruder).combo_diameter->GetSelection());
             
-
-            // NEEDFIX check nozzle type in here
-            /*
-            if(MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine()){
-                const auto& extruders = obj->GetExtderSystem()->GetExtruders();
-                for (const DevExtder& extruder : extruders) {
-                    auto nozzle_type = extruder.GetNozzleFlowType();
-                    p->color_nozzle_type->SetBackgroundColor(wxColour(
-                        nozzle_type == NozzleType::ntHardenedSteel   ? "#4c4c4c" :
-                        nozzle_type == NozzleType::ntStainlessSteel  ? "#b2b2b2" :
-                        nozzle_type == NozzleType::ntTungstenCarbide ? "#ff5400" :
-                        nozzle_type == NozzleType::ntBrass           ? "#A4873B" :
-                                                                       "#00FF00"
-                    ));
-                }
+            // ORCA
+            const auto& full_config = wxGetApp().preset_bundle->full_config();
+            if(const ConfigOptionEnumsGenericNullable* cfg_nozzle_type = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type")){
+                std::vector<NozzleType> nozzle_types(cfg_nozzle_type->size());
+                for (size_t idx = 0; idx < cfg_nozzle_type->size(); ++idx)
+                    nozzle_types[idx] = NozzleType(cfg_nozzle_type->values[idx]);
+                auto nozzle_type = _L( // NEEDFIX this part can be replaced with shorter names
+                    nozzle_types[0] == ntHardenedSteel   ? "Hardened Steel" :
+                    nozzle_types[0] == ntStainlessSteel  ? "Stainless Steel" :
+                    nozzle_types[0] == ntTungstenCarbide ? "Tungsten Carbide" :
+                    nozzle_types[0] == ntBrass           ? "Brass"
+                                                         : "Undefine"
+                );
+                p->label_nozzle_type->SetLabel(nozzle_type);
+                p->label_nozzle_type->SetToolTip(nozzle_type);
+            }else{
+                p->label_nozzle_type->SetLabel("");
+                p->label_nozzle_type->SetToolTip("");
             }
-            */
-            //const ConfigOptionEnumsGenericNullable * nozzle_type = printer_preset.config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
-            //auto nozzle_type = printer_preset.config.option<NozzleType>("nozzle_type");
-            //auto nozzle_type = printer_preset.config.opt_enum<NozzleType>("nozzle_type");
-            //std::vector<std::string> config_nozzle_types_str(nozzle_type->size());
-            //for (size_t idx = 0; idx < config_nozzle_type->size(); ++idx)
-                    //config_nozzle_types_str[idx] = NozzleTypeEumnToStr[NozzleType(config_nozzle_type->values[idx])];
-            /*
-            auto hardened  = NozzleType::ntHardenedSteel;
-            auto stainless = NozzleType::ntStainlessSteel;
-            auto tungsten  = NozzleType::ntTungstenCarbide;
-            auto brass     = NozzleType::ntBrass;
-            p->color_nozzle_type->SetBackgroundColor(wxColour(
-                nozzle_type == hardened  ? "#4c4c4c" :
-                nozzle_type == stainless ? "#b2b2b2" :
-                nozzle_type == tungsten  ? "#ff5400" :
-                nozzle_type == brass     ? "#A4873B" :
-                                            "#00FF00"
-            ));
-            */
-
-            //wxGetApp().preset_bundle->printers.get_edited_preset().nozzle_options();
-            // printer_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")) {
-            //if(auto nozzle_type = printer_preset.config.opt_enum<NozzleType>("nozzle_type")){
-            //    p->color_nozzle_type->SetBackgroundColor(wxColour(
-            //        nozzle_type==1 ? "#FF0000" : "#00FF00"
-            //    ));
-            //}
-            //auto nozzle_type = printer_preset.config->option<ConfigOptionEnum<NozzleType>>("nozzle_type");
-            //NozzleType      m_nozzle_type = NozzleType::ntUndefine;// 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
 
 
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
