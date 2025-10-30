@@ -425,6 +425,8 @@ struct Sidebar::priv
 
     // Printer
     wxSizer *             vsizer_printer      = nullptr;
+    wxBoxSizer *          extruder_dual_sizer  = nullptr;
+    wxBoxSizer *          extruder_single_sizer = nullptr;
     // Printer - preset
     StaticBox * panel_printer_preset = nullptr;
     wxStaticBitmap *      image_printer       = nullptr;
@@ -537,10 +539,10 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
         //if (isBBL) {
         //WORKAREA
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-            hsizer->Add(image_printer      , 0, wxLEFT  | wxALIGN_LEFT  | wxALIGN_CENTER_VERTICAL, FromDIP(12));
-            hsizer->Add(combo_printer, 1, wxEXPAND | wxALL | wxALIGN_LEFT  | wxALIGN_CENTER_VERTICAL, FromDIP(4));
-            hsizer->Add(btn_edit_printer   , 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
-            hsizer->Add(btn_connect_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
+            hsizer->Add(image_printer, 0, wxLEFT  | wxALIGN_LEFT  | wxALIGN_CENTER_VERTICAL, FromDIP(12));
+            hsizer->Add(combo_printer, 1, wxEXPAND | wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
+            hsizer->Add(btn_edit_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
+            //hsizer->Add(btn_connect_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
             panel_printer_preset->SetSizer(hsizer);
         //} else {
         //    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -558,21 +560,24 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
         hsizer_printer->Add(panel_nozzle_dia , 0, wxLEFT, FromDIP(4));
         hsizer_printer->Add(panel_printer_bed, 0, wxLEFT, FromDIP(4));
         //hsizer_printer->Add(btn_sync_printer , 0, wxLEFT, FromDIP(4));
-        vsizer_printer->Add(hsizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(4));
-        vsizer_printer->AddSpacer(FromDIP(4));
+        vsizer_printer->AddSpacer(FromDIP(8));
+        vsizer_printer->Add(hsizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ContentMargin()));
+        vsizer_printer->AddSpacer(FromDIP(8));
         // Printer - extruder
 
         // double
-        auto hsizer_extruder = new wxBoxSizer(wxHORIZONTAL);
-        hsizer_extruder->Add(left_extruder->sizer, 1, wxEXPAND, 0);
-        hsizer_extruder->AddSpacer(FromDIP(4));
-        hsizer_extruder->Add(right_extruder->sizer, 1, wxEXPAND, 0);
+        extruder_dual_sizer = new wxBoxSizer(wxHORIZONTAL);
+        extruder_dual_sizer->Add(left_extruder->sizer, 1, wxEXPAND, 0);
+        extruder_dual_sizer->AddSpacer(FromDIP(4));
+        extruder_dual_sizer->Add(right_extruder->sizer, 1, wxEXPAND, 0);
 
         // single
-        vsizer_printer->Add(hsizer_extruder, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
-        vsizer_printer->Add(single_extruder->sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
+        extruder_single_sizer = single_extruder->sizer;
+        wxBoxSizer * extruder_sizer = new wxBoxSizer(wxVERTICAL);
+        extruder_sizer->Add(extruder_dual_sizer  , 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ContentMargin()));
+        extruder_sizer->Add(extruder_single_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ContentMargin()));
 
-        vsizer_printer->AddSpacer(FromDIP(4));
+        vsizer_printer->Add(extruder_sizer, 1, wxEXPAND | wxBOTTOM, FromDIP(8));
     }
 
     //btn_connect_printer->Show(!isBBL);
@@ -585,13 +590,12 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     auto cfg = preset_bundle.printers.get_edited_preset().config;
     panel_printer_bed->Show(isBBL || cfg.opt_bool("support_multi_bed_types"));
 
-    vsizer_printer->GetItem(2)->GetSizer()->GetItem(1)->Show(isDual);
-    vsizer_printer->GetItem(2)->Show(isDual); // Orca: always show diameter selection
+    extruder_dual_sizer->Show(isDual);
 
     // NEEDFIX requires AMS check or any type of ???
     // Single nozzle & non ams
     panel_nozzle_dia->Show(!isDual);
-    vsizer_printer->GetItem(3)->Show(false);
+    extruder_single_sizer->Show(false);
 }
 
 void Sidebar::priv::flush_printer_sync(bool restart)
@@ -1548,7 +1552,8 @@ void Sidebar::update_sync_ams_btn_enable(wxUpdateUIEvent &e)
  {
      if (m_last_slice_state != p->plater->is_background_process_slicing()) {
          m_last_slice_state = p->plater->is_background_process_slicing();
-         btn_sync->Enable(!m_last_slice_state);
+         //btn_sync->Enable(!m_last_slice_state);
+         p->m_printer_bbl_sync->Enable(!m_last_slice_state);
          ams_btn->Enable(!m_last_slice_state);
          Refresh();
      }
