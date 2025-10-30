@@ -59,11 +59,13 @@ jobs:
 
           # - os: windows-latest
           # - os: [self-hosted, Windows, X64]
-          - os: blade
+          # - os: blade
+          - os: Windows
 
           # - os: macos-14
           # - os: [self-hosted, macOS, ARM64]
-          - os: peac-mbp
+          # - os: peac-mbp
+          - os: macOS
             arch: arm64
 
     uses: ./.github/workflows/build_check_cache.yml
