@@ -2612,12 +2612,12 @@ void Sidebar::update_presets(Preset::Type preset_type)
                     nozzle_types[0] == ntStainlessSteel  ? "Stainless Steel" :
                     nozzle_types[0] == ntTungstenCarbide ? "Tungsten Carbide" :
                     nozzle_types[0] == ntBrass           ? "Brass"
-                                                         : "Undefine"
+                                                         : "-" // Undefined
                 );
                 p->label_nozzle_type->SetLabel(nozzle_type);
                 p->label_nozzle_type->SetToolTip(nozzle_type);
             }else{
-                p->label_nozzle_type->SetLabel("");
+                p->label_nozzle_type->SetLabel("-"); // Undefined
                 p->label_nozzle_type->SetToolTip("");
             }
 
