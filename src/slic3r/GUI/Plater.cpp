@@ -537,7 +537,6 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
             sizer == nullptr /*|| isBBL != (sizer->GetOrientation() == wxVERTICAL)*/) {
 
         //if (isBBL) {
-        //WORKAREA
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
             hsizer->Add(image_printer, 0, wxLEFT  | wxALIGN_LEFT  | wxALIGN_CENTER_VERTICAL, FromDIP(12));
             hsizer->Add(combo_printer, 1, wxEXPAND | wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::ElementSpacing()));
@@ -605,7 +604,7 @@ void Sidebar::priv::flush_printer_sync(bool restart)
         timer_sync_printer->Start(500);
     }
     //btn_sync_printer->SetBackgroundColorNormal((*counter_sync_printer & 1) ? "#F8F8F8" :"#009688");
-    // NEEDFIX change color of icon
+    m_printer_bbl_sync->SetBitmap_((*counter_sync_printer & 1) ? "printer_sync_not" : "printer_sync_ok");
     if (--*counter_sync_printer <= 0)
         timer_sync_printer->Stop();
 }
@@ -1619,6 +1618,7 @@ Sidebar::Sidebar(Plater *parent)
             //wizard_t->run(ConfigWizard::RR_USER, ConfigWizard::SP_CUSTOM);
             });
 
+        // ORCA use connect button on titlebar
         p->m_printer_connect = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "monitor_signal_strong");
         p->m_printer_connect->SetToolTip(_L("Connection"));
         p->m_printer_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
@@ -1626,8 +1626,8 @@ Sidebar::Sidebar(Plater *parent)
             dlg.ShowModal();
         });
 
-        // NEEDFIX use multiple icons for multiple states
-        p->m_printer_bbl_sync = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer_sync");
+        // ORCA use sync button on titlebar
+        p->m_printer_bbl_sync = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer_sync_not");
         p->m_printer_bbl_sync->SetToolTip(_L("Synchronize nozzle information and the number of AMS"));
         p->m_printer_bbl_sync->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
             deal_btn_sync();
@@ -1678,11 +1678,6 @@ Sidebar::Sidebar(Plater *parent)
 
 
         /*************************** 2. add printer content ************************/
-
-        //WORKAREA
-
-        //ScalableBitmap dropdown_bmp(p->image_printer_bed, "drop_down", 16);
-        //auto dropdown_icon = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, dropdown_bmp.bmp());
 
         p->m_panel_printer_content = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
         p->m_panel_printer_content->SetBackgroundColour(wxColour(255, 255, 255));
@@ -1781,7 +1776,6 @@ Sidebar::Sidebar(Plater *parent)
             p->combo_nozzle_dia->wxEvtHandler::ProcessEvent(evt);
         });
 
-        // NEEDFIX Requires checking on multiple languages for any overflow
         wxStaticText *label_nozzle = new wxStaticText(p->panel_nozzle_dia, wxID_ANY, _L("Nozzle"));
         label_nozzle->SetFont(Label::Body_10);
         label_nozzle->SetForegroundColour("#262E30");
@@ -1870,8 +1864,7 @@ Sidebar::Sidebar(Plater *parent)
             auto image_path        = get_cur_select_bed_image();
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
             if (p->big_bed_image_popup) {
-                //p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
-                p->big_bed_image_popup->set_bitmap(create_scaled_bitmap(image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+                p->big_bed_image_popup->set_bitmap(create_scaled_bitmap((/*"big_" + */ image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
             }
             e.Skip(); // fix bug:Event spreads to sidebar
         });
@@ -2248,8 +2241,7 @@ void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
     if (p->big_bed_image_popup == nullptr) {
         p->big_bed_image_popup = new ImageDPIFrame();
         auto image_path        = get_cur_select_bed_image();
-        //p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
-        p->big_bed_image_popup->set_bitmap(create_scaled_bitmap(image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+        p->big_bed_image_popup->set_bitmap(create_scaled_bitmap(/*"big_" + */ image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
     }
     p->big_bed_image_popup->SetCanFocus(false);
     p->big_bed_image_popup->SetPosition(temp_pos);
@@ -2595,7 +2587,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             //if (!p->is_switching_diameter)
                 update_extruder_diameter(*p->single_extruder);
 
-            //sync unified nozzle combo box
+            // ORCA sync unified nozzle combo box
             p->combo_nozzle_dia->Clear();
             for (size_t i = 0; i < diameters.size(); ++i)
                 p->combo_nozzle_dia->Append(diameters[i], {});
@@ -2603,6 +2595,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             
             // ORCA
             const auto& full_config = wxGetApp().preset_bundle->full_config();
+            wxString nozzle_type = "-";
             if(const ConfigOptionEnumsGenericNullable* cfg_nozzle_type = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type")){
                 std::vector<NozzleType> nozzle_types(cfg_nozzle_type->size());
                 for (size_t idx = 0; idx < cfg_nozzle_type->size(); ++idx)
@@ -2614,13 +2607,9 @@ void Sidebar::update_presets(Preset::Type preset_type)
                     nozzle_types[0] == ntBrass           ? "Brass"
                                                          : "-" // Undefined
                 );
-                p->label_nozzle_type->SetLabel(nozzle_type);
-                p->label_nozzle_type->SetToolTip(nozzle_type);
-            }else{
-                p->label_nozzle_type->SetLabel("-"); // Undefined
-                p->label_nozzle_type->SetToolTip("");
             }
-
+            p->label_nozzle_type->SetLabel(nozzle_type);
+            p->label_nozzle_type->SetToolTip(nozzle_type == "-" ? "" : nozzle_type);
 
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
         }
