@@ -435,7 +435,7 @@ struct Sidebar::priv
     // Nozzle diameter
     StaticBox *     panel_nozzle_dia = nullptr;
     ComboBox *      combo_nozzle_dia = nullptr;
-    Button *        color_nozzle_type = nullptr;
+    wxStaticText *  label_nozzle_type = nullptr;
 
     // Printer - bed
     StaticBox *     panel_printer_bed = nullptr;
@@ -1723,9 +1723,14 @@ Sidebar::Sidebar(Plater *parent)
         combo_printer->SetBorderWidth(0);
         p->combo_printer = combo_printer;
         // ORCA paint whole combobox on focus
-        auto printer_focus_bg = [this](bool focused){
-            auto bg_color = wxColour(focused ? "#E5F0EE" : "#FFFFFF");
-            p->panel_printer_preset->SetBackgroundColor(bg_color);
+        auto printer_focus_bg = [this, panel_bd_col](bool focused){
+            auto bg_color = StateColor::darkModeColorFor(wxColour(focused ? "#E5F0EE" : "#FFFFFF"));
+            auto panel = p->panel_printer_preset;
+            panel->SetBackgroundColor(bg_color);
+            if(focused)
+                panel->SetBorderColor(wxColour("#009688"));
+            else
+                panel->SetBorderColor(panel_bd_col);
             // NEEDFIX image and edit button background not updates even with refresh
         };
         combo_printer->Bind(wxEVT_SET_FOCUS,  [this, printer_focus_bg](auto& e) {printer_focus_bg(true ); e.Skip();});
@@ -1743,22 +1748,20 @@ Sidebar::Sidebar(Plater *parent)
         */
         {
         auto hovered = std::make_shared<wxWindow *>();
-        auto refresh_printer_panel = [this]{
-            p->panel_printer_preset->Layout();
-            p->panel_printer_preset->Refresh();
-        };
         // ORCA use Show/Hide to gain text area instead using blank icon
         for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_printer_preset, edit_btn, p->image_printer, combo_printer}) {
-            w->Bind(wxEVT_ENTER_WINDOW, [w, hovered, edit_btn, refresh_printer_panel](wxMouseEvent &evt) { 
+            w->Bind(wxEVT_ENTER_WINDOW, [this, w, hovered, edit_btn](wxMouseEvent &evt) { 
                 *hovered = w;
                 edit_btn->Show();
-                refresh_printer_panel();
+                p->panel_printer_preset->Layout();
+                p->panel_printer_preset->Refresh();
             });
-            w->Bind(wxEVT_LEAVE_WINDOW, [w, hovered, edit_btn, refresh_printer_panel](wxMouseEvent &evt) {
+            w->Bind(wxEVT_LEAVE_WINDOW, [this, w, hovered, edit_btn](wxMouseEvent &evt) {
                 if (*hovered == w) {
                     edit_btn->Hide();
                     *hovered = nullptr;
-                    refresh_printer_panel();
+                    p->panel_printer_preset->Layout();
+                    p->panel_printer_preset->Refresh();
                 }
             });
         }
@@ -1796,29 +1799,33 @@ Sidebar::Sidebar(Plater *parent)
             e.Skip();
         });
         // ORCA paint whole combobox on focus
-        auto nozzle_focus_bg = [this](bool focused){
-            auto bg_color = wxColour(focused ? "#E5F0EE" : "#FFFFFF");
-            p->panel_nozzle_dia->SetBackgroundColor(bg_color);
-            // NEEDFIX text background not updates even with refresh
+        auto nozzle_focus_bg = [this, panel_bd_col, label_nozzle](bool focused){
+            auto bg_color = StateColor::darkModeColorFor(wxColour(focused ? "#E5F0EE" : "#FFFFFF"));
+            auto panel = p->panel_nozzle_dia;
+            panel->SetBackgroundColor(bg_color);
+            if(focused)
+                panel->SetBorderColor(wxColour("#009688"));
+            else
+                panel->SetBorderColor(panel_bd_col);
+            label_nozzle->SetBackgroundColour(bg_color);
+            p->label_nozzle_type->SetBackgroundColour(bg_color);
         };
         p->combo_nozzle_dia->Bind(wxEVT_SET_FOCUS,  [this, nozzle_focus_bg](auto& e) {nozzle_focus_bg(true ); e.Skip();});
         p->combo_nozzle_dia->Bind(wxEVT_KILL_FOCUS, [this, nozzle_focus_bg](auto& e) {nozzle_focus_bg(false); e.Skip();});
 
-        p->color_nozzle_type = new Button(p->panel_nozzle_dia, "");
-        p->color_nozzle_type->SetBackgroundColor(wxColour("#A4873B")); // NEEDFIX pick color from nozzle type
-        p->color_nozzle_type->SetMinSize(FromDIP(wxSize(30, 4)));
-        p->color_nozzle_type->SetMaxSize(FromDIP(wxSize(30, 4)));
-        p->color_nozzle_type->SetCornerRadius(FromDIP(2));
-        p->color_nozzle_type->SetBorderWidth(0);
-        p->color_nozzle_type->SetCanFocus(false);
-        p->color_nozzle_type->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
+        p->label_nozzle_type = new wxStaticText(p->panel_nozzle_dia, wxID_ANY, "Brass", wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END | wxALIGN_CENTRE_HORIZONTAL);
+        p->label_nozzle_type->SetFont(Label::Body_10);
+        p->label_nozzle_type->SetForegroundColour(wxColour("#262E30")); // NEEDFIX pick color from nozzle type
+        p->label_nozzle_type->SetMinSize(FromDIP(wxSize(60, -1)));
+        p->label_nozzle_type->SetMaxSize(FromDIP(wxSize(60, -1)));
+        p->label_nozzle_type->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
             p->combo_nozzle_dia->wxEvtHandler::ProcessEvent(evt);
         });
 
         wxGridSizer *nozzle_dia_sizer = new wxGridSizer(3, 1, FromDIP(2), 0);
         nozzle_dia_sizer->Add(label_nozzle        , 0, wxALIGN_CENTER | wxTOP, FromDIP(4));
         nozzle_dia_sizer->Add(p->combo_nozzle_dia , 0, wxALIGN_CENTER | wxALL, FromDIP(2));
-        nozzle_dia_sizer->Add(p->color_nozzle_type, 0, wxALIGN_CENTER);
+        nozzle_dia_sizer->Add(p->label_nozzle_type, 0, wxALIGN_CENTER);
 
         p->panel_nozzle_dia->SetSizer(nozzle_dia_sizer);
 
@@ -1871,9 +1878,14 @@ Sidebar::Sidebar(Plater *parent)
         p->image_printer_bed->Bind(wxEVT_ENTER_WINDOW, &Sidebar::on_enter_image_printer_bed, this);
 
         // ORCA paint whole combobox on focus
-        auto bed_focus_bg = [this](bool focused){
-            auto bg_color = wxColour(focused ? "#E5F0EE" : "#FFFFFF");
-            p->panel_printer_bed->SetBackgroundColor(bg_color);
+        auto bed_focus_bg = [this, panel_bd_col](bool focused){
+            auto bg_color = StateColor::darkModeColorFor(wxColour(focused ? "#E5F0EE" : "#FFFFFF"));
+            auto panel = p->panel_printer_bed;
+            panel->SetBackgroundColor(bg_color);
+            if(focused)
+                panel->SetBorderColor(wxColour("#009688"));
+            else
+                panel->SetBorderColor(panel_bd_col);
             // NEEDFIX image background not updates even with refresh
         };
         p->combo_printer_bed->Bind(wxEVT_SET_FOCUS,  [this, bed_focus_bg](auto& e) {bed_focus_bg(true ); e.Skip();});
@@ -2445,6 +2457,7 @@ void Sidebar::update_all_preset_comboboxes()
         p->combo_printer_bed->Disable();
     }
 
+    // ORCA Hide plate selector if not supported by printer
     p->panel_printer_bed->Show(is_bbl_vendor || cfg.opt_bool("support_multi_bed_types"));
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
