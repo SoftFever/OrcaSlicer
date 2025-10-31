@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   validate:
-    runs-on: blade
+    runs-on: 'windows-latest'
     name: Check Documentation
     
     steps:
