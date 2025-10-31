@@ -171,8 +171,9 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                     eec->no_sort = true;
                     break;
                 }
-            case CalibMode::Calib_Golden_Ratio_Flow: 
+            case CalibMode::Calib_Practical_Flow_Ratio: 
                 eec->no_sort = true;
+                //params.density = 0.5;
             }
         }
 
@@ -198,9 +199,9 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                     eec->entities[i]->set_reverse();
                 }
                 break;
-            case CalibMode::Calib_Golden_Ratio_Flow:
+            case CalibMode::Calib_Practical_Flow_Ratio:
                 eec->reverse();
-                if (layer_id > 1) {
+                if (layer_id > 3) {
                     double      _wmin      = this->calib_params->start;
                     double      _wmax      = this->calib_params->end;
                     double      _wlen      = _wmax - _wmin;
@@ -235,12 +236,25 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                         for (ExtrusionPath* _p : b)
                             eec->entities.emplace_back(_p);
                     }
-                } else if (layer_id == 1)
+                } else if (layer_id > 0) { // Prepare a smooth base
+                    std::vector<ExtrusionPath*> a;
+                    int                         _i = 1;
                     for (ExtrusionEntity* e : eec->entities) {
                         ExtrusionPath* _p = static_cast<ExtrusionPath*>(e);
-                        _p->width *= 0.75;
-                        _p->mm3_per_mm *= 0.75;
+                        if (++_i % 2) {
+                            if ((_i / 2) % 2)
+                                _p->reverse();
+                            if (layer_id == 1) {
+                                _p->width *= 0.75;
+                                _p->mm3_per_mm *= 0.75;
+                            }
+                            a.emplace_back(_p);
+                        }
                     }
+                    eec->entities.clear();
+                    for (ExtrusionPath* _p : a)
+                        eec->entities.emplace_back(_p);
+                }
             }
         } else {
         // Orca: run gap fill

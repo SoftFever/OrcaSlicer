@@ -1411,11 +1411,10 @@ void Cornering_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
     Fit();
 }
 
-// GoldenRatio_Flow_Test_Dlg
-//
+// Practical_Flow_Ratio_Test_Dlg
 
-GoldenRatio_Flow_Test_Dlg::GoldenRatio_Flow_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
-    : DPIDialog(parent, id, _L("GoldenRatio flow calibration test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE)
+Practical_Flow_Ratio_Test_Dlg::Practical_Flow_Ratio_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
+    : DPIDialog(parent, id, _L("Prectical flow ratio calibration test"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE)
     , m_plater(plater)
 {
     SetBackgroundColour(*wxWHITE); // make sure background color set for dialog
@@ -1425,12 +1424,21 @@ GoldenRatio_Flow_Test_Dlg::GoldenRatio_Flow_Test_Dlg(wxWindow* parent, wxWindowI
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
 
+    // Settings
+    wxString start_fr_str      = _L("Start flowrate value at:");
+    wxString end_fr_str        = _L("End flowrate value at:");
+    wxString quant_fr_str      = _L("Number of calibration layers (4~40):");
+    wxString speed_fr_str      = _L("Print speed:");
+    wxString interlaced_fr_str = _L("Interlaced:");
+    wxString zhop_fr_str       = _L("Use Z-Hop:");
+    int      text_max          = GetTextMax(this, std::vector<wxString>{start_fr_str, end_fr_str, quant_fr_str, speed_fr_str, interlaced_fr_str, zhop_fr_str});
+
     // Model selection
     auto labeled_box_model = new LabeledStaticBox(this, _L("Model width"));
     auto model_box         = new wxStaticBoxSizer(labeled_box_model, wxHORIZONTAL);
     m_rbModel = new RadioGroup(this, {"100 mm", "150 mm", "200 mm"}, wxHORIZONTAL);
     for (auto &_el : m_rbModel->GetChildren()) // sets the note of range unit converting into flow ratio
-        _el->Bind(wxEVT_MOTION, &GoldenRatio_Flow_Test_Dlg::on_changed2, this);
+        _el->Bind(wxEVT_MOTION, &Practical_Flow_Ratio_Test_Dlg::on_changed2, this);
     model_box->Add(m_rbModel, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(model_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
 
@@ -1439,14 +1447,6 @@ GoldenRatio_Flow_Test_Dlg::GoldenRatio_Flow_Test_Dlg(wxWindow* parent, wxWindowI
     m_rbModelDepth = new RadioGroup(this, {"10 mm", "15 mm", "20 mm"}, wxHORIZONTAL);
     model_box->Add(m_rbModelDepth, 0, wxALL | wxEXPAND, FromDIP(4));
     v_sizer->Add(model_box, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
-
-    // Settings
-    wxString start_fr_str      = _L("Start flowrate value at:");
-    wxString end_fr_str        = _L("End flowrate value at:");
-    wxString speed_fr_str      = _L("Print speed (mm/s):");
-    wxString interlaced_fr_str = _L("Interlaced:");
-    wxString zhop_fr_str       = _L("Use Z-Hop:");
-    int      text_max = GetTextMax(this, std::vector<wxString>{start_fr_str, end_fr_str, speed_fr_str, interlaced_fr_str, zhop_fr_str});
 
     auto st_size = FromDIP(wxSize(text_max, -1));
     auto ti_size = FromDIP(wxSize(120, -1));
@@ -1461,7 +1461,7 @@ GoldenRatio_Flow_Test_Dlg::GoldenRatio_Flow_Test_Dlg(wxWindow* parent, wxWindowI
     auto start_fr_text  = new wxStaticText(this, wxID_ANY, start_fr_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
     m_tiJDStart        = new TextInput(this, wxString::Format("%.2f", 0.9), "", "", wxDefaultPosition, ti_size);
     m_tiJDStart->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
-    m_tiJDStart->Bind(wxEVT_TEXT, &GoldenRatio_Flow_Test_Dlg::on_changed, this);
+    m_tiJDStart->Bind(wxEVT_TEXT, &Practical_Flow_Ratio_Test_Dlg::on_changed, this);
     fr_sizer->Add(start_fr_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     fr_sizer->Add(m_tiJDStart, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     settings_sizer->Add(fr_sizer, 0, wxLEFT, FromDIP(3));
@@ -1470,7 +1470,7 @@ GoldenRatio_Flow_Test_Dlg::GoldenRatio_Flow_Test_Dlg(wxWindow* parent, wxWindowI
     fr_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto end_fr_text  = new wxStaticText(this, wxID_ANY, end_fr_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
     m_tiJDEnd         = new TextInput(this, wxString::Format("%.2f", 1.1), "", "", wxDefaultPosition, ti_size);
-    m_tiJDEnd->Bind(wxEVT_TEXT, &GoldenRatio_Flow_Test_Dlg::on_changed, this);
+    m_tiJDEnd->Bind(wxEVT_TEXT, &Practical_Flow_Ratio_Test_Dlg::on_changed, this);
     m_tiJDEnd->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     fr_sizer->Add(end_fr_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     fr_sizer->Add(m_tiJDEnd, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -1480,18 +1480,28 @@ GoldenRatio_Flow_Test_Dlg::GoldenRatio_Flow_Test_Dlg(wxWindow* parent, wxWindowI
     // Add note about junction deviation
     m_stNote = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
     m_stNote->SetForegroundColour(wxColour(128, 128, 128));
+    m_stNote->SetLabel(get_status());
     settings_sizer->Add(m_stNote, 0, wxALL, FromDIP(5));
     settings_sizer->AddSpacer(FromDIP(5));
 
-    // Print speed value
+    // Print speed value m_tiQuantity
+    fr_sizer            = new wxBoxSizer(wxHORIZONTAL);
+    auto  quant_fr_text = new wxStaticText(this, wxID_ANY, quant_fr_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiQuantity        = new TextInput(this, wxString::Format("%.0f", 10.0f), "", "", wxDefaultPosition, ti_size);
+    m_tiQuantity->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    fr_sizer->Add(quant_fr_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    fr_sizer->Add(m_tiQuantity, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    settings_sizer->Add(fr_sizer, 0, wxLEFT, FromDIP(3));
+    settings_sizer->AddSpacer(FromDIP(5));
+
     fr_sizer            = new wxBoxSizer(wxHORIZONTAL);
     float _speed        = 60; // plater->config()->get_abs_value("outer_wall_speed");
     auto  speed_fr_text = new wxStaticText(this, wxID_ANY, speed_fr_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
     m_tiSpeed           = new TextInput(this, wxString::Format("%.0f", _speed), "", "", wxDefaultPosition, ti_size);
     m_tiSpeed->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    m_tiSpeed->SetLabel("mm/s");
     fr_sizer->Add(speed_fr_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
     fr_sizer->Add(m_tiSpeed, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
-    m_stNote->SetLabel(get_status());
     settings_sizer->Add(fr_sizer, 0, wxLEFT, FromDIP(3));
     settings_sizer->AddSpacer(FromDIP(5));
 
@@ -1519,7 +1529,7 @@ GoldenRatio_Flow_Test_Dlg::GoldenRatio_Flow_Test_Dlg(wxWindow* parent, wxWindowI
     auto dlg_btns = new DialogButtons(this, {"OK"});
     v_sizer->Add(dlg_btns, 0, wxEXPAND);
 
-    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &GoldenRatio_Flow_Test_Dlg::on_start, this);
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &Practical_Flow_Ratio_Test_Dlg::on_start, this);
 
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -1527,11 +1537,11 @@ GoldenRatio_Flow_Test_Dlg::GoldenRatio_Flow_Test_Dlg(wxWindow* parent, wxWindowI
     Fit();
 }
 
-GoldenRatio_Flow_Test_Dlg::~GoldenRatio_Flow_Test_Dlg() {
+Practical_Flow_Ratio_Test_Dlg::~Practical_Flow_Ratio_Test_Dlg() {
     // Disconnect Events
 }
 
-wxString GoldenRatio_Flow_Test_Dlg::get_status() {
+wxString Practical_Flow_Ratio_Test_Dlg::get_status() {
     bool read_double = false;
     read_double      = m_tiJDStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double      = read_double && m_tiJDEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
@@ -1556,14 +1566,17 @@ wxString GoldenRatio_Flow_Test_Dlg::get_status() {
     }
 }
 
-void GoldenRatio_Flow_Test_Dlg::on_start(wxCommandEvent& event) {
+void Practical_Flow_Ratio_Test_Dlg::on_start(wxCommandEvent& event) {
     bool read_double = false;
     read_double      = m_tiJDStart->GetTextCtrl()->GetValue().ToDouble(&m_params.start);
     read_double      = read_double && m_tiJDEnd->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
     
     if (!read_double || m_params.start < 0.5 || m_params.start > 1.5 || m_params.end < 0.5 || m_params.end > 1.5) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\n(0.5 <= Flow Ratio <= 1.5)"), wxEmptyString,
-                              wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\n(0.5 <= Flow Ratio <= 1.5)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return;
+    } else if (!m_tiQuantity->GetTextCtrl()->GetValue().ToDouble(&m_params.step) || m_params.step < 4 || m_params.step > 20) {
+        MessageDialog msg_dlg(nullptr, _L("Please input valid layer value:\n(4 <= Number of Calibration Layers <= 40)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     } else if (m_params.end < m_params.start) {
@@ -1572,7 +1585,7 @@ void GoldenRatio_Flow_Test_Dlg::on_start(wxCommandEvent& event) {
         msg_dlg.ShowModal();
     }
 
-    m_params.mode = CalibMode::Calib_Golden_Ratio_Flow;
+    m_params.mode = CalibMode::Calib_Practical_Flow_Ratio;
 
     // Set model type based on selection
     m_params.test_model    = m_rbModel->GetSelection();
@@ -1582,21 +1595,21 @@ void GoldenRatio_Flow_Test_Dlg::on_start(wxCommandEvent& event) {
     double _speed;
     m_tiSpeed->GetTextCtrl()->GetValue().ToDouble(&_speed);
     m_params.speeds.push_back(_speed);
-    m_plater->calib_golden_ratio_flow(m_params);
+    m_plater->Calib_Practical_Flow_Ratio(m_params);
     EndModal(wxID_OK);
 }
 
-void GoldenRatio_Flow_Test_Dlg::on_changed(wxCommandEvent& event) {
+void Practical_Flow_Ratio_Test_Dlg::on_changed(wxCommandEvent& event) {
     m_stNote->SetLabel(get_status());
     event.Skip();
 }
 
-void GoldenRatio_Flow_Test_Dlg::on_changed2(wxMouseEvent& event) {
+void Practical_Flow_Ratio_Test_Dlg::on_changed2(wxMouseEvent& event) {
     m_stNote->SetLabel(get_status());
     event.Skip();
 }
 
-void GoldenRatio_Flow_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
+void Practical_Flow_Ratio_Test_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
     this->Refresh();
     Fit();
 }

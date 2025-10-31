@@ -181,13 +181,13 @@ protected:
     Plater* m_plater;
 };
 
-class GoldenRatio_Flow_Test_Dlg : public DPIDialog
+class Practical_Flow_Ratio_Test_Dlg : public DPIDialog
 {
 public:
-    GoldenRatio_Flow_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
-    ~GoldenRatio_Flow_Test_Dlg();
+    Practical_Flow_Ratio_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~Practical_Flow_Ratio_Test_Dlg();
     void on_dpi_changed(const wxRect& suggested_rect) override;
-    wxString GoldenRatio_Flow_Test_Dlg::get_status();
+    wxString Practical_Flow_Ratio_Test_Dlg::get_status();
 
 protected:
     virtual void on_start(wxCommandEvent& event);
@@ -201,6 +201,7 @@ protected:
     TextInput*    m_tiJDEnd;
     wxStaticText* m_stNote;
     TextInput*    m_tiSpeed;
+    TextInput*    m_tiQuantity;
     CheckBox*     m_cbInterlaced;
     CheckBox*     m_cbUseZHop;
     Plater*       m_plater;

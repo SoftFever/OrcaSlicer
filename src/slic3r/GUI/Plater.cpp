@@ -11940,13 +11940,13 @@ void Plater::_calib_pa_select_added_objects() {
     }
 }
 
-// Adjust settings for golden ratio flow calibration
-void Plater::calib_golden_ratio_flow(const Calib_Params& params) {
-    wxString calib_name = L"GoldenRatio Flow Test";
+// Adjust settings for Practical Flow ratio calibration
+void Plater::Calib_Practical_Flow_Ratio(const Calib_Params& params) {
+    wxString calib_name = L"Practical Flow Ratio Test";
     if (new_project(false, false, calib_name) == wxID_CANCEL)
         return;
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "golden-ratio-flow-test.3mf").string());
+    add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "practical-flow-ratio-test.3mf").string());
     
     auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -11968,9 +11968,9 @@ void Plater::calib_golden_ratio_flow(const Calib_Params& params) {
     TransformationType transformation_type;
     transformation_type.set_relative();
     float const calib_scale[3] = {1.0f, 1.5f, 2.0f};
-    float zscale = (first_layer_height + 5 * layer_height) / 1.2;
-    float xscale   = calib_scale[params.test_model];
-    float yscale   = calib_scale[params.model_variant];
+    float       zscale         = (first_layer_height + (3 + params.step) * layer_height) / 1.2;
+    float       xscale         = calib_scale[params.test_model];
+    float       yscale         = calib_scale[params.model_variant];
 
     // only enlarge
     selection.scale({xscale, yscale, zscale}, transformation_type);
@@ -11994,11 +11994,11 @@ void Plater::calib_golden_ratio_flow(const Calib_Params& params) {
         _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(2));
         _obj->config.set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
         _obj->config.set_key_value("bottom_shell_thickness", new ConfigOptionFloat(0));
-        _obj->config.set_key_value("bottom_surface_density", new ConfigOptionPercent(90));
+        _obj->config.set_key_value("bottom_surface_density", new ConfigOptionPercent(100));
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
         _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(100));
         _obj->config.set_key_value("solid_infill_direction", new ConfigOptionFloat(0));
-        _obj->config.set_key_value("solid_infill_rotate_template", new ConfigOptionString("90, 0, 90#100"));
+        _obj->config.set_key_value("solid_infill_rotate_template", new ConfigOptionString("45, 0, 90, 0, 90#100"));
         _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
         _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
         _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter, false));
@@ -12009,7 +12009,7 @@ void Plater::calib_golden_ratio_flow(const Calib_Params& params) {
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(params.speeds[0])); // internal_solid_speed
         _obj->config.set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
         _obj->config.set_key_value("gap_fill_target", new ConfigOptionEnum<GapFillTarget>(GapFillTarget::gftNowhere));
-        _obj->name = format("GoldenRatio_Flow_Test_%.2f~%.2f_@%fmmps", params.start, params.end, params.speeds[0]);
+        _obj->name = format("Practical_FR_Test_%.2f~%.2f_%s@%fmmps", params.start, params.end, params.interlaced ? "i" : "p", params.speeds[0]);
     }
 
     print_config->set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
@@ -12019,14 +12019,14 @@ void Plater::calib_golden_ratio_flow(const Calib_Params& params) {
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
 
     printer_config->set_key_value("retract_lift_enforce", new ConfigOptionEnumsGeneric{RetractLiftEnforceType::rletAllSurfaces});
-    printer_config->set_key_value("z_hop", new ConfigOptionFloats{params.use_zhop ? 1.0f : 0.0f});
-    printer_config->set_key_value("z_hop_types", new ConfigOptionEnumsGeneric{ZHopType::zhtNormal});
+    printer_config->set_key_value("z_hop", new ConfigOptionFloats{params.use_zhop ? 0.4f : 0.0f});
+    printer_config->set_key_value("z_hop_types", new ConfigOptionEnumsGeneric{ZHopType::zhtSlope});
     printer_config->set_key_value("wipe_distance", new ConfigOptionFloats{0.0f});
 
-    // filament_config->set_key_value("filament_retract_lift_enforce", new ConfigOptionEnumsGeneric{RetractLiftEnforceType::rletAllSurfaces});
-    // filament_config->set_key_value("filament_z_hop", new ConfigOptionFloats{0.0f}); 
-    // filament_config->set_key_value("filament_z_hop_types", new ConfigOptionEnumsGeneric{ZHopType::zhtAuto});
-    // filament_config->set_key_value("filament_wipe_distance", new ConfigOptionFloats{0.0f});
+    filament_config->set_key_value("filament_z_hop", new ConfigOptionFloatsNullable{ConfigOptionFloatsNullable::nil_value()}); 
+    filament_config->set_key_value("filament_wipe_distance", new ConfigOptionFloatsNullable{ConfigOptionFloatsNullable::nil_value()});
+    filament_config->set_key_value("filament_retract_lift_enforce", new ConfigOptionEnumsGenericNullable{ConfigOptionEnumsGenericNullable::nil_value()});
+    filament_config->set_key_value("filament_z_hop_types", new ConfigOptionEnumsGenericNullable{ConfigOptionEnumsGenericNullable::nil_value()});
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
