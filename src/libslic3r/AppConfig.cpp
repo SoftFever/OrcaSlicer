@@ -253,9 +253,9 @@ void AppConfig::set_defaults()
     }
 
     // Orca
-    
-    set_bool("stealth_mode", true);
-
+    if (get("stealth_mode").empty()) {
+        set_bool("stealth_mode", false);
+    }
     if (get("legacy_networking").empty()) {
         set_bool("legacy_networking", true);
     }

@@ -505,8 +505,12 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         }
         else if (strCmd == "save_stealth_mode") {
             wxString strAction = j["data"]["action"];
-            StealthMode = true;
->>>>>>> 4fbe88a54 (Fix stealth_mode)
+
+            if (strAction == "yes") {
+                StealthMode = true;
+            } else {
+                StealthMode = false;
+            }
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
