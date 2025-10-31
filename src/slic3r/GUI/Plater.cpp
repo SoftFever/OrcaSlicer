@@ -213,7 +213,7 @@ wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 #define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(40), FromDIP(40))) // ORCA
-#define PRINTER_PANEL_SIZE (    wxSize(FromDIP(72), FromDIP(60))) // ORCA
+#define PRINTER_PANEL_SIZE (    wxSize(FromDIP(70), FromDIP(60))) // ORCA
 #define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
 
 static string get_diameter_string(float diameter)
@@ -1694,7 +1694,7 @@ Sidebar::Sidebar(Plater *parent)
         });
         // ORCA Hide Cover automatically if there is not enough space
         p->panel_printer_preset->Bind(wxEVT_SIZE, [this](auto & e) {
-            bool is_narrow = e.GetSize().GetWidth() < p->scrolled->FromDIP(200);
+            bool is_narrow = e.GetSize().GetWidth() < p->scrolled->FromDIP(235);
             if(is_narrow && p->image_printer->IsShown())
                 p->image_printer->Hide();
             else if(!is_narrow && !p->image_printer->IsShown())
@@ -1823,7 +1823,7 @@ Sidebar::Sidebar(Plater *parent)
 
         wxGridSizer *nozzle_dia_sizer = new wxGridSizer(3, 1, FromDIP(2), 0);
         nozzle_dia_sizer->Add(label_nozzle        , 0, wxALIGN_CENTER | wxTOP, FromDIP(4));
-        nozzle_dia_sizer->Add(p->combo_nozzle_dia , 0, wxALIGN_CENTER | wxALL, FromDIP(2));
+        nozzle_dia_sizer->Add(p->combo_nozzle_dia , 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
         nozzle_dia_sizer->Add(p->label_nozzle_type, 0, wxALIGN_CENTER);
 
         p->panel_nozzle_dia->SetSizer(nozzle_dia_sizer);
@@ -1890,7 +1890,7 @@ Sidebar::Sidebar(Plater *parent)
         p->combo_printer_bed->Bind(wxEVT_KILL_FOCUS, [this, bed_focus_bg](auto& e) {bed_focus_bg(false); e.Skip();});
 
         wxBoxSizer *bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
-        bed_type_sizer->Add(p->combo_printer_bed, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+        bed_type_sizer->Add(p->combo_printer_bed, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(1));
         bed_type_sizer->Add(p->image_printer_bed, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
 
         p->panel_printer_bed->SetSizer(bed_type_sizer);
@@ -2593,7 +2593,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
                 p->combo_nozzle_dia->Append(diameters[i], {});
             p->combo_nozzle_dia->SetSelection((*p->single_extruder).combo_diameter->GetSelection());
             
-            // ORCA
+            // ORCA update nozzle type
             const auto& full_config = wxGetApp().preset_bundle->full_config();
             wxString nozzle_type = "-";
             const ConfigOptionEnumsGenericNullable* cfg_nozzle_type = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
