@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   validate:
-    runs-on: 'windows-latest'
+    runs-on: 'Windows'
     name: Check Documentation
     
     steps:

@@ -49,23 +49,23 @@ jobs:
           cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
 
       - name: setup dev on Windows
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'Windows'
         uses: microsoft/setup-msbuild@v2
 
       - name: Get the date on Ubuntu and macOS
-        if: inputs.os != 'windows-latest'
+        if: inputs.os != 'Windows'
         run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
         shell: bash
 
       - name: Get the date on Windows
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'Windows'
         run: echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
         shell: pwsh
 
 
       # Build Dependencies
       - name: Build on Windows
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'Windows'
         working-directory: ${{ github.workspace }}
         run: |
             choco install strawberryperl
@@ -74,7 +74,7 @@ jobs:
             cd ${{ github.workspace }}/deps/build
 
       - name: Build on Mac ${{ inputs.arch }}
-        if: inputs.os == 'macos-14'
+        if: inputs.os == 'macOS'
         working-directory: ${{ github.workspace }}
         run: |
             brew install automake texinfo libtool
@@ -117,14 +117,14 @@ jobs:
 
       # Upload Artifacts
       # - name: Upload Mac ${{ inputs.arch }} artifacts
-      #   if: inputs.os == 'macos-14'
+      #   if: inputs.os == 'macOS'
       #   uses: actions/upload-artifact@v4
       #   with:
       #     name: OrcaSlicer_dep_mac_${{ env.date }}
       #     path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.tar.gz
 
       - name: Upload Windows artifacts
-        if: inputs.os == 'windows-latest'
+        if: inputs.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: OrcaSlicer_dep_win64_${{ env.date }}
