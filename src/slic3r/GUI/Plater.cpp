@@ -212,9 +212,9 @@ wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
-#define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(40), FromDIP(40)))
-#define PRINTER_PANEL_SIZE (wxSize(FromDIP(72), FromDIP(60)))
-#define BTN_SYNC_SIZE (wxSize(FromDIP(36), FromDIP(60)))
+#define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(40), FromDIP(40))) // ORCA
+#define PRINTER_PANEL_SIZE (    wxSize(FromDIP(72), FromDIP(60))) // ORCA
+#define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
 
 static string get_diameter_string(float diameter)
 {
@@ -1864,7 +1864,7 @@ Sidebar::Sidebar(Plater *parent)
             auto image_path        = get_cur_select_bed_image();
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
             if (p->big_bed_image_popup) {
-                p->big_bed_image_popup->set_bitmap(create_scaled_bitmap((/*"big_" + */ image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+                p->big_bed_image_popup->set_bitmap(create_scaled_bitmap(/*"big_" + */ image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
             }
             e.Skip(); // fix bug:Event spreads to sidebar
         });
@@ -3784,7 +3784,7 @@ void Sidebar::update_printer_thumbnail()
     Preset & selected_preset = preset_bundle->printers.get_edited_preset();
     std::string printer_type    = selected_preset.get_current_printer_type(preset_bundle);
     if (printer_thumbnails.find(printer_type) != printer_thumbnails.end())
-        p->image_printer->SetBitmap(create_scaled_bitmap(printer_thumbnails[printer_type], this, 48));
+        p->image_printer->SetBitmap(create_scaled_bitmap(printer_thumbnails[printer_type], this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
     else {
         // Orca: try to use the printer model cover as the thumbnail
         const auto model_name = selected_preset.config.opt_string("printer_model");
@@ -3798,7 +3798,7 @@ void Sidebar::update_printer_thumbnail()
                                                              .make_preferred();
                     if (boost::filesystem::exists(cover_path)) {
                         try {
-                            p->image_printer->SetBitmap(create_scaled_bitmap(cover_path.string(), this, 48));
+                            p->image_printer->SetBitmap(create_scaled_bitmap(cover_path.string(), this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
                             printer_thumbnails[printer_type] = cover_path.string(); // Cache the path so we don't look up again
                             return;
                         } catch (...) {}
@@ -3806,7 +3806,7 @@ void Sidebar::update_printer_thumbnail()
                 }
             }
         }
-        p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, 48));
+        p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
         printer_thumbnails[printer_type] = "printer_placeholder"; // Avoid unnecessary try
     }
 }
