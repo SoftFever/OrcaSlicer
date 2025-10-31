@@ -539,7 +539,8 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
         //if (isBBL) {
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
             hsizer->Add(image_printer, 0, wxLEFT  | wxALIGN_LEFT  | wxALIGN_CENTER_VERTICAL, FromDIP(10));
-            hsizer->Add(combo_printer, 1, wxEXPAND | wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(8));
+            hsizer->Add(combo_printer, 1, wxEXPAND | wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+            hsizer->AddSpacer(FromDIP(4));
             hsizer->Add(btn_edit_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
             //hsizer->Add(btn_connect_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
             panel_printer_preset->SetSizer(hsizer);
@@ -1731,6 +1732,8 @@ Sidebar::Sidebar(Plater *parent)
                 panel->SetBorderColor(wxColour("#009688"));
             else
                 panel->SetBorderColor(panel_bd_col);
+            p->btn_edit_printer->msw_rescale();
+            p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
             // NEEDFIX image and edit button background not updates even with refresh
         };
         combo_printer->Bind(wxEVT_SET_FOCUS,  [this, printer_focus_bg](auto& e) {printer_focus_bg(true ); e.Skip();});
@@ -2879,6 +2882,9 @@ void Sidebar::sys_color_changed()
 
     if (p->big_bed_image_popup) // ORCA
         p->big_bed_image_popup->sys_color_changed();
+
+    p->btn_edit_printer->msw_rescale();
+    p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
 
     // BBS
     obj_list()->sys_color_changed();
