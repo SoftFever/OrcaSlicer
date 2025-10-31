@@ -1013,13 +1013,13 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     // Nozzle
     wxStaticText *label_diameter = new wxStaticText(this, wxID_ANY, _L("Diameter"));
     label_diameter->SetFont(Label::Body_14);
-    label_diameter->SetForegroundColour("#262E30");
+    label_diameter->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
     if (index >= 0) label_diameter->SetMinSize({FromDIP(80), -1});
     auto combo_diameter = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     this->combo_diameter = combo_diameter;
     wxStaticText *label_flow = new wxStaticText(this, wxID_ANY, _L("Flow"));
     label_flow->SetFont(Label::Body_14);
-    label_flow->SetForegroundColour("#262E30");
+    label_flow->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
     if (index >= 0) label_flow->SetMinSize({FromDIP(80), -1});
     auto combo_flow = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     combo_flow->GetDropDown().SetUseContentWidth(true);
@@ -1034,7 +1034,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     // AMS
     wxStaticText *label_ams  = new wxStaticText(this, wxID_ANY, _L("AMS"));
     label_ams->SetFont(Label::Body_14);
-    label_ams->SetForegroundColour("#262E30");
+    label_ams->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
     //label_ams->SetMinSize({FromDIP(70), -1});
     if (index >= 0) {
         btn_edit = new ScalableButton(this, wxID_ANY, "dot");
@@ -1063,7 +1063,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     // AMS not installed message
     ams_not_installed_msg = new wxStaticText(this, wxID_ANY, _L("Not installed"));
     ams_not_installed_msg->SetFont(Label::Body_14);
-    ams_not_installed_msg->SetForegroundColour("#262E30");
+    ams_not_installed_msg->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
 
     // AMS group
     for (size_t i = 0; i < 4; ++i) {
@@ -1778,7 +1778,7 @@ Sidebar::Sidebar(Plater *parent)
 
         wxStaticText *label_nozzle = new wxStaticText(p->panel_nozzle_dia, wxID_ANY, _L("Nozzle"));
         label_nozzle->SetFont(Label::Body_10);
-        label_nozzle->SetForegroundColour("#262E30");
+        label_nozzle->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
         label_nozzle->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
             p->combo_nozzle_dia->wxEvtHandler::ProcessEvent(evt);
         });
@@ -1814,7 +1814,7 @@ Sidebar::Sidebar(Plater *parent)
 
         p->label_nozzle_type = new wxStaticText(p->panel_nozzle_dia, wxID_ANY, "Brass", wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END | wxALIGN_CENTRE_HORIZONTAL);
         p->label_nozzle_type->SetFont(Label::Body_10);
-        p->label_nozzle_type->SetForegroundColour(wxColour("#262E30"));
+        p->label_nozzle_type->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
         p->label_nozzle_type->SetMinSize(FromDIP(wxSize(56, -1)));
         p->label_nozzle_type->SetMaxSize(FromDIP(wxSize(56, -1)));
         p->label_nozzle_type->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
