@@ -1977,9 +1977,9 @@ Sidebar::Sidebar(Plater *parent)
 
     //bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
     wxSizer *sizer_filaments2 = new wxBoxSizer(wxVERTICAL);
-    sizer_filaments2->AddSpacer(FromDIP(16));
+    sizer_filaments2->AddSpacer(FromDIP(SidebarProps::ContentMargin())); // slightly reduced vertical space usage
     sizer_filaments2->Add(p->sizer_filaments, 0, wxEXPAND, 0);
-    sizer_filaments2->AddSpacer(FromDIP(16));
+    sizer_filaments2->AddSpacer(FromDIP(SidebarProps::ContentMargin()));
     p->m_panel_filament_content->SetSizer(sizer_filaments2);
     p->m_panel_filament_content->Layout();
     auto min_size = sizer_filaments2->GetMinSize();
@@ -2164,17 +2164,22 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     combo_and_btn_sizer->Add(32 * em / 10, 0, 0, 0, 0);
     combo_and_btn_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
     */
-    ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "menu_filament");
+    ScalableButton* edit_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "edit");
     edit_btn->SetToolTip(_L("Click to edit preset"));
 
     PlaterPresetComboBox* combobox = (*combo);
-    edit_btn->Bind(wxEVT_BUTTON, [this, edit_btn, filament_idx](wxCommandEvent) {
-        auto menu = p->plater->filament_action_menu(filament_idx);
-        wxPoint pt { 0, edit_btn->GetSize().GetHeight() + 10 };
-        pt = edit_btn->ClientToScreen(pt);
-        pt = wxGetApp().mainframe->ScreenToClient(pt);
-        p->m_menu_filament_id = filament_idx;
-        p->plater->PopupMenu(menu, (int) pt.x, pt.y);
+
+    // ORCA switch to old UI. These options are a bit advanced to put here and makes UI less user friendly
+    // user can hit delete button accidentally or have click 2 times for opening edit window
+    edit_btn->Bind(wxEVT_BUTTON, [this, combobox, filament_idx](wxCommandEvent){
+        //auto menu = p->plater->filament_action_menu(filament_idx);
+        //wxPoint pt { 0, edit_btn->GetSize().GetHeight() + 10 };
+        //pt = edit_btn->ClientToScreen(pt);
+        //pt = wxGetApp().mainframe->ScreenToClient(pt);
+        //p->m_menu_filament_id = filament_idx;
+        //p->plater->PopupMenu(menu, (int) pt.x, pt.y);
+        p->editing_filament = filament_idx;
+        combobox->switch_to_tab();
     });
     combobox->edit_btn = edit_btn;
 
@@ -2899,6 +2904,11 @@ void Sidebar::edit_filament()
     if (p->m_menu_filament_id >= 0 && p->m_menu_filament_id < p->combos_filament.size()
             && p->combos_filament[p->m_menu_filament_id]->switch_to_tab())
         p->editing_filament = p->m_menu_filament_id; // sync with TabPresetComboxBox's m_filament_idx
+}
+
+int Sidebar::get_editing_filament_id()
+{
+    return p->editing_filament;
 }
 
 void Sidebar::add_custom_filament(wxColour new_col) {

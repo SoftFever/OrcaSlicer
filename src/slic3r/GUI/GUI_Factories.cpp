@@ -1488,7 +1488,7 @@ void MenuFactory::create_bbl_assemble_part_menu()
 void MenuFactory::create_filament_action_menu(bool init, int active_filament_menu_id)
 {
     wxMenu *menu = &m_filament_action_menu;
-
+    /*
     if (init) {
         append_menu_item(
             menu, wxID_ANY, _L("Edit"), "", [](wxCommandEvent&) {
@@ -1506,6 +1506,7 @@ void MenuFactory::create_filament_action_menu(bool init, int active_filament_men
                     && Sidebar::should_show_SEMM_buttons();
             }, m_parent);
     }
+    */
 
     const int item_id = menu->FindItem(_L("Merge with"));
     if (item_id != wxNOT_FOUND)
