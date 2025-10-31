@@ -444,8 +444,10 @@ bool GLGizmoMeasure::on_init()
 {
     m_shortcut_key = WXK_CONTROL_U;
 
+    const wxString shift = _L("Shift+");
+
     m_desc["feature_selection"]         = _L("Select feature");
-    m_desc["point_selection_caption"]   = _L("Shift + Left mouse button");
+    m_desc["point_selection_caption"]   = shift + _L("Left mouse button");
     m_desc["point_selection"]           = _L("Select point");
     m_desc["reset_caption"]             = _L("Delete");
     m_desc["reset"]                     = _L("Restart selection");
@@ -480,7 +482,7 @@ std::string GLGizmoMeasure::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
         if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-            return _u8L("Measure") + ":\n" + _u8L("Please confirm explosion ratio = 1,and please select at least one object");
+            return _u8L("Measure") + ":\n" + _u8L("Please confirm explosion ratio = 1, and please select at least one object.");
         }
         else {
             return _u8L("Measure") + ":\n" + _u8L("Please select at least one object.");
@@ -1817,7 +1819,7 @@ void GLGizmoMeasure::show_selection_ui()
             return text;
         };
 
-        float selection_cap_length;
+        float selection_cap_length = 0;
         if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
             if (m_assembly_mode == AssemblyMode::FACE_FACE) {
                 selection_cap_length = ImGui::CalcTextSize((_u8L("Selection") + " 1" + _u8L(" (Moving)")).c_str()).x * 1.2;
@@ -1932,35 +1934,38 @@ void GLGizmoMeasure::show_distance_xyz_ui()
         }
     };
     auto add_edit_distance_xyz_box = [this](Vec3d &distance) {
-        m_imgui->disabled_begin(m_hit_different_volumes.size() == 1);
-        {
+        //m_imgui->disabled_begin(m_hit_different_volumes.size() == 1);
+        //{
             if (m_measure_mode == EMeasureMode::ONLY_MEASURE) {
                 m_can_set_xyz_distance = false;
             }
-            m_imgui->disabled_begin(!m_can_set_xyz_distance);
+            bool volume = m_hit_different_volumes.size() == 1;
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            m_imgui->text_colored(ImGuiWrapper::COL_RED, "X:");
+            m_imgui->text_colored(ImGuiWrapper::to_ImVec4(ColorRGBA::X()), "X:"); // ORCA match axis color
             ImGui::TableSetColumnIndex(1);
             ImGui::PushItemWidth(m_input_size_max);
+            m_imgui->disabled_begin(volume || !m_can_set_xyz_distance); // ORCA disable only input box othervise axis colors rendered dimmed
             ImGui::BBLInputDouble("##measure_distance_x", &m_buffered_distance[0], 0.0f, 0.0f, "%.2f");
+            m_imgui->disabled_end();
 
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            m_imgui->text_colored(ImGuiWrapper::COL_GREEN, "Y:");
+            m_imgui->text_colored(ImGuiWrapper::to_ImVec4(ColorRGBA::Y()), "Y:"); // ORCA match axis color
             ImGui::TableSetColumnIndex(1);
+            m_imgui->disabled_begin(volume || !m_can_set_xyz_distance); // ORCA disable only input box othervise axis colors rendered dimmed
             ImGui::BBLInputDouble("##measure_distance_y", &m_buffered_distance[1], 0.0f, 0.0f, "%.2f");
             m_imgui->disabled_end();
 
-            m_imgui->disabled_begin(!(m_same_model_object && m_can_set_xyz_distance));
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            m_imgui->text_colored(ImGuiWrapper::COL_BLUE, "Z:");
+            m_imgui->text_colored(ImGuiWrapper::to_ImVec4(ColorRGBA::Z()), "Z:"); // ORCA match axis color
             ImGui::TableSetColumnIndex(1);
+            m_imgui->disabled_begin(volume || !(m_same_model_object && m_can_set_xyz_distance)); // ORCA disable only input box othervise axis colors rendered dimmed
             ImGui::BBLInputDouble("##measure_distance_z", &m_buffered_distance[2], 0.0f, 0.0f, "%.2f");
             m_imgui->disabled_end();
-        }
-        m_imgui->disabled_end();
+        //}
+        //m_imgui->disabled_end();
         if (m_last_active_item_imgui != m_current_active_imgui_id && m_hit_different_volumes.size() == 2) {
             Vec3d displacement = Vec3d::Zero();
             if (std::abs(m_buffered_distance[0] - distance[0]) > EPSILON) {
@@ -2080,7 +2085,7 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
         m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Plane &&
         m_selected_features.second.feature->get_type() == Measure::SurfaceFeatureType::Plane) {
         auto &action                         = m_assembly_action;
-        auto  feature_text_size              = m_imgui->calc_button_size(_L("Featue 1")).x + m_imgui->calc_button_size(":").x;
+        auto  feature_text_size              = m_imgui->calc_button_size(_L("Feature 1")).x + m_imgui->calc_button_size(":").x;
         auto  set_to_reverse_rotation_size   = m_imgui->calc_button_size(_L("Reverse rotation")).x;
         auto  rotate_around_center_size      = m_imgui->calc_button_size(_L("Rotate around center:")).x;
         auto  parallel_distance_size         = m_imgui->calc_button_size(_L("Parallel distance:")).x;

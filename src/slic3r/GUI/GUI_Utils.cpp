@@ -495,5 +495,26 @@ void fit_in_display(wxTopLevelWindow& window, wxSize desired_size)
     window.SetSize(desired_size);
 }
 
+#ifdef __linux__
+// Detect if the application is running inside a debugger.
+// https://stackoverflow.com/a/69842462/3289421
+bool is_debugger_present() {
+    std::ifstream sf("/proc/self/status");
+    std::string s;
+    while (sf >> s)
+    {
+        if (s == "TracerPid:")
+        {
+            int pid;
+            sf >> pid;
+            return pid != 0;
+        }
+        std::getline(sf, s);
+    }
+
+    return false;
+}
+#endif
+
 }
 }

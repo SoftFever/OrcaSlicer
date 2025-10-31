@@ -8,6 +8,7 @@
 #include "libslic3r/Preset.hpp"
 #include "GUI_Utils.hpp"
 #include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/Button.hpp"
 
 class wxTextCtrl;
 class wxStaticText;
@@ -38,7 +39,7 @@ class PhysicalPrinterDialog : public DPIDialog
     RoundedRectangle*   m_input_area                        {nullptr};
     wxStaticText*       m_valid_label                       {nullptr};
     wxTextCtrl*         m_input_ctrl                        {nullptr};
-    wxButton*           btnOK                               {nullptr};
+    Button*             btnOK                               {nullptr};
 
     void build_printhost_settings(ConfigOptionsGroup* optgroup);
     void OnOK(wxEvent& event);
@@ -68,6 +69,7 @@ public:
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void on_sys_color_changed() override {};
+    void check_host_key_valid();
 };
 
 

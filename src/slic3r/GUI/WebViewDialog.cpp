@@ -544,7 +544,7 @@ void WebViewPanel::update_mode()
     */
 void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     const wxString &url = evt.GetURL();
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
         if (!url.Contains("/web/homepage/index.html")) {
@@ -552,6 +552,8 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 #ifdef _WIN32
             if (file.StartsWith('/'))
                 file = file.Mid(1);
+            else
+                file = "//" + file; // When file from network location
 #endif
             wxGetApp().plater()->load_files(wxArrayString{1, &file});
             evt.Veto();
@@ -588,7 +590,7 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
     m_browser->Show();
     Layout();
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
     UpdateState();

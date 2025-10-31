@@ -108,7 +108,7 @@ wxString Repetier::get_test_failed_msg (wxString &msg) const
         return GUI::from_u8((boost::format("%s: %s\n\n%s")
         % _utf8(L("Could not connect to Repetier"))
         % std::string(msg.ToUTF8())
-        % _utf8(L("Note: Repetier version 0.90.0 ir higher is required."))).str());
+        % _utf8(L("Note: Repetier version 0.90.0 or higher is required."))).str());
 }
 
 bool Repetier::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const

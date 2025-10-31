@@ -124,21 +124,21 @@ namespace ClipperUtils {
         const std::vector<PathType> &m_paths;
     };
 
-    template<typename MultiPointType>
+    template<typename MultiPointsType>
     class MultiPointsProvider {
     public:
-        MultiPointsProvider(const std::vector<MultiPointType> &multipoints) : m_multipoints(multipoints) {}
+        MultiPointsProvider(const MultiPointsType &multipoints) : m_multipoints(multipoints) {}
 
         struct iterator : public PathsProviderIteratorBase {
         public:
-            explicit iterator(typename std::vector<MultiPointType>::const_iterator it) : m_it(it) {}
+            explicit iterator(typename MultiPointsType::const_iterator it) : m_it(it) {}
             const Points& operator*() const { return m_it->points; }
             bool operator==(const iterator &rhs) const { return m_it == rhs.m_it; }
             bool operator!=(const iterator &rhs) const { return !(*this == rhs); }
             const Points& operator++(int) { return (m_it ++)->points; }
             iterator& operator++() { ++ m_it; return *this; }
         private:
-            typename std::vector<MultiPointType>::const_iterator m_it;
+            typename MultiPointsType::const_iterator m_it;
         };
 
         iterator cbegin() const { return iterator(m_multipoints.begin()); }
@@ -148,11 +148,11 @@ namespace ClipperUtils {
         size_t   size()   const { return m_multipoints.size(); }
 
     private:
-        const std::vector<MultiPointType> &m_multipoints;
+        const MultiPointsType &m_multipoints;
     };
 
-    using PolygonsProvider  = MultiPointsProvider<Polygon>;
-    using PolylinesProvider = MultiPointsProvider<Polyline>;
+    using PolygonsProvider  = MultiPointsProvider<Polygons>;
+    using PolylinesProvider = MultiPointsProvider<Polylines>;
 
     struct ExPolygonProvider {
         ExPolygonProvider(const ExPolygon &expoly) : m_expoly(expoly) {}
@@ -650,8 +650,8 @@ void traverse_pt(const ClipperLib::PolyNodes &nodes, ExOrJustPolygons *retval)
 
 
 /* OTHER */
-Slic3r::Polygons simplify_polygons(const Slic3r::Polygons &subject, bool preserve_collinear = false);
-Slic3r::ExPolygons simplify_polygons_ex(const Slic3r::Polygons &subject, bool preserve_collinear = false);
+Slic3r::Polygons simplify_polygons(const Slic3r::Polygons &subject);
+Slic3r::ExPolygons simplify_polygons_ex(const Slic3r::Polygons &subject);
 
 Polygons top_level_islands(const Slic3r::Polygons &polygons);
 

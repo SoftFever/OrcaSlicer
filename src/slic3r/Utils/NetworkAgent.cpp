@@ -26,6 +26,15 @@ static void* netwoking_module = NULL;
 static void* source_module = NULL;
 #endif
 
+bool NetworkAgent::use_legacy_network = true;
+
+typedef int (*func_start_print_legacy)(void *agent, PrintParams_Legacy params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
+typedef int (*func_start_local_print_with_record_legacy)(void *agent, PrintParams_Legacy params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
+typedef int (*func_start_send_gcode_to_sdcard_legacy)(void *agent, PrintParams_Legacy params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn);
+typedef int (*func_start_local_print_legacy)(void *agent, PrintParams_Legacy params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+typedef int (*func_start_sdcard_print_legacy)(void* agent, PrintParams_Legacy params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+typedef int (*func_send_message_legacy)(void* agent, std::string dev_id, std::string json_str, int qos);
+typedef int (*func_send_message_to_printer_legacy)(void* agent, std::string dev_id, std::string json_str, int qos);
 
 func_check_debug_consistent         NetworkAgent::check_debug_consistent_ptr = nullptr;
 func_get_version                    NetworkAgent::get_version_ptr = nullptr;
@@ -56,12 +65,12 @@ func_stop_subscribe                 NetworkAgent::stop_subscribe_ptr = nullptr;
 func_add_subscribe                  NetworkAgent::add_subscribe_ptr = nullptr;
 func_del_subscribe                  NetworkAgent::del_subscribe_ptr = nullptr;
 func_enable_multi_machine           NetworkAgent::enable_multi_machine_ptr = nullptr;
-func_start_device_subscribe         NetworkAgent::start_device_subscribe_ptr = nullptr;
-func_stop_device_subscribe          NetworkAgent::stop_device_subscribe_ptr = nullptr;
 func_send_message                   NetworkAgent::send_message_ptr = nullptr;
 func_connect_printer                NetworkAgent::connect_printer_ptr = nullptr;
 func_disconnect_printer             NetworkAgent::disconnect_printer_ptr = nullptr;
 func_send_message_to_printer        NetworkAgent::send_message_to_printer_ptr = nullptr;
+func_check_cert                     NetworkAgent::check_cert_ptr = nullptr;
+func_install_device_cert            NetworkAgent::install_device_cert_ptr = nullptr;
 func_start_discovery                NetworkAgent::start_discovery_ptr = nullptr;
 func_change_user                    NetworkAgent::change_user_ptr = nullptr;
 func_is_user_login                  NetworkAgent::is_user_login_ptr = nullptr;
@@ -73,7 +82,6 @@ func_get_user_nickanme              NetworkAgent::get_user_nickanme_ptr = nullpt
 func_build_login_cmd                NetworkAgent::build_login_cmd_ptr = nullptr;
 func_build_logout_cmd               NetworkAgent::build_logout_cmd_ptr = nullptr;
 func_build_login_info               NetworkAgent::build_login_info_ptr = nullptr;
-func_get_model_id_from_desgin_id    NetworkAgent::get_model_id_from_desgin_id_ptr = nullptr;
 func_ping_bind                      NetworkAgent::ping_bind_ptr = nullptr;
 func_bind_detect                    NetworkAgent::bind_detect_ptr = nullptr;
 func_set_server_callback            NetworkAgent::set_server_callback_ptr = nullptr;
@@ -110,7 +118,6 @@ func_modify_printer_name            NetworkAgent::modify_printer_name_ptr = null
 func_get_camera_url                 NetworkAgent::get_camera_url_ptr = nullptr;
 func_get_design_staffpick           NetworkAgent::get_design_staffpick_ptr = nullptr;
 func_start_pubilsh                  NetworkAgent::start_publish_ptr = nullptr;
-func_get_profile_3mf                NetworkAgent::get_profile_3mf_ptr = nullptr;
 func_get_model_publish_url          NetworkAgent::get_model_publish_url_ptr = nullptr;
 func_get_model_mall_home_url        NetworkAgent::get_model_mall_home_url_ptr = nullptr;
 func_get_model_mall_detail_url      NetworkAgent::get_model_mall_detail_url_ptr = nullptr;
@@ -129,6 +136,47 @@ func_get_model_mall_rating_result   NetworkAgent::get_model_mall_rating_result_p
 
 func_get_mw_user_preference         NetworkAgent::get_mw_user_preference_ptr = nullptr;
 func_get_mw_user_4ulist             NetworkAgent::get_mw_user_4ulist_ptr     = nullptr;
+
+static PrintParams_Legacy as_legacy(PrintParams& param)
+{
+    PrintParams_Legacy l;
+
+    l.dev_id                = std::move(param.dev_id);
+    l.task_name             = std::move(param.task_name);
+    l.project_name          = std::move(param.project_name);
+    l.preset_name           = std::move(param.preset_name);
+    l.filename              = std::move(param.filename);
+    l.config_filename       = std::move(param.config_filename);
+    l.plate_index           = param.plate_index;
+    l.ftp_folder            = std::move(param.ftp_folder);
+    l.ftp_file              = std::move(param.ftp_file);
+    l.ftp_file_md5          = std::move(param.ftp_file_md5);
+    l.ams_mapping           = std::move(param.ams_mapping);
+    l.ams_mapping_info      = std::move(param.ams_mapping_info);
+    l.connection_type       = std::move(param.connection_type);
+    l.comments              = std::move(param.comments);
+    l.origin_profile_id     = param.origin_profile_id;
+    l.stl_design_id         = param.stl_design_id;
+    l.origin_model_id       = std::move(param.origin_model_id);
+    l.print_type            = std::move(param.print_type);
+    l.dst_file              = std::move(param.dst_file);
+    l.dev_name              = std::move(param.dev_name);
+    l.dev_ip                = std::move(param.dev_ip);
+    l.use_ssl_for_ftp       = param.use_ssl_for_ftp;
+    l.use_ssl_for_mqtt      = param.use_ssl_for_mqtt;
+    l.username              = std::move(param.username);
+    l.password              = std::move(param.password);
+    l.task_bed_leveling     = param.task_bed_leveling;
+    l.task_flow_cali        = param.task_flow_cali;
+    l.task_vibration_cali   = param.task_vibration_cali;
+    l.task_layer_inspect    = param.task_layer_inspect;
+    l.task_record_timelapse = param.task_record_timelapse;
+    l.task_use_ams          = param.task_use_ams;
+    l.task_bed_type         = std::move(param.task_bed_type);
+    l.extra_options         = std::move(param.extra_options);
+
+    return l;
+}
 
 NetworkAgent::NetworkAgent(std::string log_dir)
 {
@@ -161,7 +209,7 @@ std::string NetworkAgent::get_libpath_in_current_directory(std::string library_n
     std::string file_name_string(size_needed, 0);
     ::WideCharToMultiByte(0, 0, file_name, wcslen(file_name), file_name_string.data(), size_needed, nullptr, nullptr);
 
-    std::size_t found = file_name_string.find("bambu-studio.exe");
+    std::size_t found = file_name_string.find("orca-slicer.exe");
     if (found == (file_name_string.size() - 16)) {
         lib_path = library_name + ".dll";
         lib_path = file_name_string.replace(found, 16, lib_path);
@@ -268,12 +316,12 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     add_subscribe_ptr                 =  reinterpret_cast<func_add_subscribe>(get_network_function("bambu_network_add_subscribe"));
     del_subscribe_ptr                 =  reinterpret_cast<func_del_subscribe>(get_network_function("bambu_network_del_subscribe"));
     enable_multi_machine_ptr          =  reinterpret_cast<func_enable_multi_machine>(get_network_function("bambu_network_enable_multi_machine"));
-    start_device_subscribe_ptr        =  reinterpret_cast<func_start_device_subscribe>(get_network_function("bambu_network_start_device_subscribe"));
-    stop_device_subscribe_ptr         =  reinterpret_cast<func_stop_device_subscribe>(get_network_function("bambu_network_stop_device_subscribe"));
     send_message_ptr                  =  reinterpret_cast<func_send_message>(get_network_function("bambu_network_send_message"));
     connect_printer_ptr               =  reinterpret_cast<func_connect_printer>(get_network_function("bambu_network_connect_printer"));
     disconnect_printer_ptr            =  reinterpret_cast<func_disconnect_printer>(get_network_function("bambu_network_disconnect_printer"));
     send_message_to_printer_ptr       =  reinterpret_cast<func_send_message_to_printer>(get_network_function("bambu_network_send_message_to_printer"));
+    check_cert_ptr                    =  reinterpret_cast<func_check_cert>(get_network_function("bambu_network_update_cert"));
+    install_device_cert_ptr           =  reinterpret_cast<func_install_device_cert>(get_network_function("bambu_network_install_device_cert"));
     start_discovery_ptr               =  reinterpret_cast<func_start_discovery>(get_network_function("bambu_network_start_discovery"));
     change_user_ptr                   =  reinterpret_cast<func_change_user>(get_network_function("bambu_network_change_user"));
     is_user_login_ptr                 =  reinterpret_cast<func_is_user_login>(get_network_function("bambu_network_is_user_login"));
@@ -288,7 +336,6 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     ping_bind_ptr                     =  reinterpret_cast<func_ping_bind>(get_network_function("bambu_network_ping_bind"));
     bind_detect_ptr                   =  reinterpret_cast<func_bind_detect>(get_network_function("bambu_network_bind_detect"));
     set_server_callback_ptr           =  reinterpret_cast<func_set_server_callback>(get_network_function("bambu_network_set_server_callback"));
-    get_model_id_from_desgin_id_ptr   =  reinterpret_cast<func_get_model_id_from_desgin_id>(get_network_function("bambu_network_get_model_id_from_desgin_id"));
     bind_ptr                          =  reinterpret_cast<func_bind>(get_network_function("bambu_network_bind"));
     unbind_ptr                        =  reinterpret_cast<func_unbind>(get_network_function("bambu_network_unbind"));
     get_bambulab_host_ptr             =  reinterpret_cast<func_get_bambulab_host>(get_network_function("bambu_network_get_bambulab_host"));
@@ -322,7 +369,6 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_camera_url_ptr                =  reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
     get_design_staffpick_ptr          =  reinterpret_cast<func_get_design_staffpick>(get_network_function("bambu_network_get_design_staffpick"));
     start_publish_ptr                 =  reinterpret_cast<func_start_pubilsh>(get_network_function("bambu_network_start_publish"));
-    get_profile_3mf_ptr               =  reinterpret_cast<func_get_profile_3mf>(get_network_function("bambu_network_get_profile_3mf"));
     get_model_publish_url_ptr         =  reinterpret_cast<func_get_model_publish_url>(get_network_function("bambu_network_get_model_publish_url"));
     get_subtask_ptr                   =  reinterpret_cast<func_get_subtask>(get_network_function("bambu_network_get_subtask"));
     get_model_mall_home_url_ptr       =  reinterpret_cast<func_get_model_mall_home_url>(get_network_function("bambu_network_get_model_mall_home_url"));
@@ -398,6 +444,7 @@ int NetworkAgent::unload_network_module()
     connect_printer_ptr               =  nullptr;
     disconnect_printer_ptr            =  nullptr;
     send_message_to_printer_ptr       =  nullptr;
+    check_cert_ptr                    =  nullptr;
     start_discovery_ptr               =  nullptr;
     change_user_ptr                   =  nullptr;
     is_user_login_ptr                 =  nullptr;
@@ -409,7 +456,6 @@ int NetworkAgent::unload_network_module()
     build_login_cmd_ptr               =  nullptr;
     build_logout_cmd_ptr              =  nullptr;
     build_login_info_ptr              =  nullptr;
-    get_model_id_from_desgin_id_ptr   =  nullptr;
     ping_bind_ptr                     =  nullptr;
     bind_ptr                          =  nullptr;
     unbind_ptr                        =  nullptr;
@@ -443,7 +489,6 @@ int NetworkAgent::unload_network_module()
     get_camera_url_ptr                =  nullptr;
     get_design_staffpick_ptr          =  nullptr;
     start_publish_ptr                 =  nullptr;
-    get_profile_3mf_ptr               =  nullptr;
     get_model_publish_url_ptr         =  nullptr;
     get_subtask_ptr                   =  nullptr;
     get_model_mall_home_url_ptr       =  nullptr;
@@ -831,33 +876,15 @@ void NetworkAgent::enable_multi_machine(bool enable)
     }
 }
 
-int NetworkAgent::start_device_subscribe()
-{
-    int ret = 0;
-    if (network_agent && start_device_subscribe_ptr) {
-        ret = start_device_subscribe_ptr(network_agent);
-        if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
-    }
-    return ret;
-}
-
-int NetworkAgent::stop_device_subscribe()
-{
-    int ret = 0;
-    if (network_agent && stop_device_subscribe_ptr) {
-        ret = stop_device_subscribe_ptr(network_agent);
-        if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
-    }
-    return ret;
-}
-
-int NetworkAgent::send_message(std::string dev_id, std::string json_str, int qos)
+int NetworkAgent::send_message(std::string dev_id, std::string json_str, int qos, int flag)
 {
     int ret = 0;
     if (network_agent && send_message_ptr) {
-        ret = send_message_ptr(network_agent, dev_id, json_str, qos);
+        if (use_legacy_network) {
+            ret = (reinterpret_cast<func_send_message_legacy>(send_message_ptr))(network_agent, dev_id, json_str, qos);
+        } else {
+            ret = send_message_ptr(network_agent, dev_id, json_str, qos, flag);
+        }
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%")%network_agent %ret %dev_id %json_str %qos;
     }
@@ -887,16 +914,38 @@ int NetworkAgent::disconnect_printer()
     return ret;
 }
 
-int NetworkAgent::send_message_to_printer(std::string dev_id, std::string json_str, int qos)
+int NetworkAgent::send_message_to_printer(std::string dev_id, std::string json_str, int qos, int flag)
 {
     int ret = 0;
     if (network_agent && send_message_to_printer_ptr) {
-        ret = send_message_to_printer_ptr(network_agent, dev_id, json_str, qos);
+        if (use_legacy_network) {
+            ret = (reinterpret_cast<func_send_message_to_printer_legacy>(send_message_to_printer_ptr))(network_agent, dev_id, json_str, qos);
+        } else {
+            ret = send_message_to_printer_ptr(network_agent, dev_id, json_str, qos, flag);
+        }
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%")
                 %network_agent %ret %dev_id %json_str %qos;
     }
     return ret;
+}
+
+int NetworkAgent::check_cert()
+{
+    int ret = 0;
+    if (network_agent && check_cert_ptr) {
+        ret = check_cert_ptr(network_agent);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+void NetworkAgent::install_device_cert(std::string dev_id, bool lan_only)
+{
+    if (network_agent && install_device_cert_ptr) {
+        install_device_cert_ptr(network_agent, dev_id, lan_only);
+    }
 }
 
 bool NetworkAgent::start_discovery(bool start, bool sending)
@@ -1003,18 +1052,6 @@ std::string NetworkAgent::build_login_info()
     return ret;
 }
 
-int NetworkAgent::get_model_id_from_desgin_id(std::string& desgin_id, std::string& model_id)
-{
-    int ret = 0;
-    if (network_agent && get_model_id_from_desgin_id_ptr) {
-        ret = get_model_id_from_desgin_id_ptr(network_agent, desgin_id, model_id);
-        if (ret)
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, pin code=%3%")
-            % network_agent % ret % desgin_id;
-    }
-    return ret;
-}
-
 int NetworkAgent::ping_bind(std::string ping_code)
 {
     int ret = 0;
@@ -1107,7 +1144,11 @@ int NetworkAgent::start_print(PrintParams params, OnUpdateStatusFn update_fn, Wa
 {
     int ret = 0;
     if (network_agent && start_print_ptr) {
-        ret = start_print_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
+        if (use_legacy_network) {
+            ret = (reinterpret_cast<func_start_print_legacy>(start_print_ptr))(network_agent, as_legacy(params), update_fn, cancel_fn, wait_fn);
+        } else {
+            ret = start_print_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
+        }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
                 %network_agent %ret %params.dev_id %params.task_name %params.project_name;
     }
@@ -1118,7 +1159,11 @@ int NetworkAgent::start_local_print_with_record(PrintParams params, OnUpdateStat
 {
     int ret = 0;
     if (network_agent && start_local_print_with_record_ptr) {
-        ret = start_local_print_with_record_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
+        if (use_legacy_network) {
+            ret = (reinterpret_cast<func_start_local_print_with_record_legacy>(start_local_print_with_record_ptr))(network_agent, as_legacy(params), update_fn, cancel_fn, wait_fn);
+        } else {
+            ret = start_local_print_with_record_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
+        }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
                 %network_agent %ret %params.dev_id %params.task_name %params.project_name;
     }
@@ -1129,7 +1174,11 @@ int NetworkAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusF
 {
     int ret = 0;
     if (network_agent && start_send_gcode_to_sdcard_ptr) {
-        ret = start_send_gcode_to_sdcard_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
+        if (use_legacy_network) {
+            ret = (reinterpret_cast<func_start_send_gcode_to_sdcard_legacy>(start_send_gcode_to_sdcard_ptr))(network_agent, as_legacy(params), update_fn, cancel_fn, wait_fn);
+        } else {
+            ret = start_send_gcode_to_sdcard_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
+        }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
             % network_agent % ret % params.dev_id % params.task_name % params.project_name;
     }
@@ -1140,7 +1189,11 @@ int NetworkAgent::start_local_print(PrintParams params, OnUpdateStatusFn update_
 {
     int ret = 0;
     if (network_agent && start_local_print_ptr) {
-        ret = start_local_print_ptr(network_agent, params, update_fn, cancel_fn);
+        if (use_legacy_network) {
+            ret = (reinterpret_cast<func_start_local_print_legacy>(start_local_print_ptr))(network_agent, as_legacy(params), update_fn, cancel_fn);
+        } else {
+            ret = start_local_print_ptr(network_agent, params, update_fn, cancel_fn);
+        }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
                 %network_agent %ret %params.dev_id %params.task_name %params.project_name;
     }
@@ -1151,7 +1204,11 @@ int NetworkAgent::start_sdcard_print(PrintParams params, OnUpdateStatusFn update
 {
     int ret = 0;
     if (network_agent && start_sdcard_print_ptr) {
-        ret = start_sdcard_print_ptr(network_agent, params, update_fn, cancel_fn);
+        if (use_legacy_network) {
+            ret = (reinterpret_cast<func_start_sdcard_print_legacy>(start_sdcard_print_ptr))(network_agent, as_legacy(params), update_fn, cancel_fn);
+        } else {
+            ret = start_sdcard_print_ptr(network_agent, params, update_fn, cancel_fn);
+        }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
             % network_agent % ret % params.dev_id % params.task_name % params.project_name;
     }
@@ -1181,7 +1238,7 @@ std::string NetworkAgent::request_setting_id(std::string name, std::map<std::str
 
 int NetworkAgent::put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code)
 {
-    int ret;
+    int ret = 0;
     if (network_agent && put_setting_ptr) {
         ret = put_setting_ptr(network_agent, setting_id, name, values_map, http_code);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, setting_id=%2%, name=%3%, http_code=%4%, ret=%5%")
@@ -1341,7 +1398,7 @@ int NetworkAgent::get_subtask_info(std::string subtask_id, std::string* task_jso
 
 int NetworkAgent::get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string* slice_json)
 {
-    int ret;
+    int ret = 0;
     if (network_agent && get_slice_info_ptr) {
         ret = get_slice_info_ptr(network_agent, project_id, profile_id, plate_index, slice_json);
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, project_id=%2%, profile_id=%3%, plate_index=%4%, slice_json=%5%")
@@ -1352,7 +1409,7 @@ int NetworkAgent::get_slice_info(std::string project_id, std::string profile_id,
 
 int NetworkAgent::query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body)
 {
-    int ret;
+    int ret = 0;
     if (network_agent && query_bind_status_ptr) {
         ret = query_bind_status_ptr(network_agent, query_list, http_code, http_body);
         if (ret)
@@ -1422,16 +1479,6 @@ int NetworkAgent::start_publish(PublishParams params, OnUpdateStatusFn update_fn
         ret = start_publish_ptr(network_agent, params, update_fn, cancel_fn, out);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
-    }
-    return ret;
-}
-
-int NetworkAgent::get_profile_3mf(BBLProfile* profile)
-{
-    int ret = -1;
-    if (network_agent && get_profile_3mf_ptr) {
-        ret = get_profile_3mf_ptr(network_agent, profile);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
     }
     return ret;
 }
