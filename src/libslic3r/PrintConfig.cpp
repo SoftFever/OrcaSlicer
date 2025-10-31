@@ -3175,7 +3175,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Others");
     def->tooltip = L("The average distance between the random points introduced on each line segment.");
     def->sidetext = "mm";	// milimeters, don't need translation
-    def->min = 0;
+    def->min = 0.01f; // point distance cannot be 0! Otherwise we get infinite loop + OOM due to infinite line division.
     def->max = 5;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0.3));
