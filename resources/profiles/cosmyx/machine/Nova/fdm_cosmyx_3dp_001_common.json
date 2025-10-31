@@ -124,7 +124,7 @@
         "30"
     ],
     "z_hop_types": [
-        "Slope"
+        "Slope Lift"
     ],
     "nozzle_type": "brass",
     "silent_mode": "0",
