@@ -40,7 +40,6 @@
 #include "SavePresetDialog.hpp"
 #include "EditGCodeDialog.hpp"
 
-#include <memory>
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
 
