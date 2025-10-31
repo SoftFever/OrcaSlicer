@@ -2596,11 +2596,12 @@ void Sidebar::update_presets(Preset::Type preset_type)
             // ORCA
             const auto& full_config = wxGetApp().preset_bundle->full_config();
             wxString nozzle_type = "-";
-            if(const ConfigOptionEnumsGenericNullable* cfg_nozzle_type = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type")){
+            const ConfigOptionEnumsGenericNullable* cfg_nozzle_type = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
+            if(cfg_nozzle_type != nullptr){
                 std::vector<NozzleType> nozzle_types(cfg_nozzle_type->size());
                 for (size_t idx = 0; idx < cfg_nozzle_type->size(); ++idx)
                     nozzle_types[idx] = NozzleType(cfg_nozzle_type->values[idx]);
-                auto nozzle_type = _L( // NEEDFIX this part can be replaced with shorter names
+                nozzle_type = _L( // NEEDFIX this part can be replaced with shorter names
                     nozzle_types[0] == ntHardenedSteel   ? "Hardened Steel" :
                     nozzle_types[0] == ntStainlessSteel  ? "Stainless Steel" :
                     nozzle_types[0] == ntTungstenCarbide ? "Tungsten Carbide" :
