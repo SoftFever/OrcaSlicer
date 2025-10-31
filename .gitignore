@@ -1,4 +1,4 @@
-.direnv/
+.direnv
 Build
 Build.bat
 /build*/
