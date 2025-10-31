@@ -39,7 +39,7 @@ ImageDPIFrame::ImageDPIFrame()
 
     auto image_sizer  = new wxBoxSizer(wxVERTICAL);
     auto imgsize           = FromDIP(width);
-    m_bitmap = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("printer_preview_C13", this, m_image_px), wxDefaultPosition, wxSize(m_image_px, m_image_px), 0);
+    m_bitmap = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("printer_preview_C13", this, m_image_px), wxDefaultPosition, FromDIP(wxSize(m_image_px, m_image_px)), 0);
     image_sizer->Add(m_bitmap, 0, wxALIGN_CENTER | wxALL, FromDIP(10));
     m_sizer_main->Add(m_title, 0, wxALIGN_CENTER | wxTOP | wxLEFT | wxRIGHT, FromDIP(10));
     m_sizer_main->Add(image_sizer, FromDIP(0), wxALIGN_CENTER, FromDIP(0));

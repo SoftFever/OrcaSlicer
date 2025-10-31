@@ -212,8 +212,8 @@ wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
-#define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(40), FromDIP(40))) // ORCA
-#define PRINTER_PANEL_SIZE (    wxSize(FromDIP(70), FromDIP(60))) // ORCA
+#define PRINTER_THUMBNAIL_SIZE (wxSize(40, 40)) // ORCA
+#define PRINTER_PANEL_SIZE (    wxSize(70, 60)) // ORCA
 #define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
 
 static string get_diameter_string(float diameter)
@@ -1687,7 +1687,7 @@ Sidebar::Sidebar(Plater *parent)
                                 std::pair<wxColour, int>(wxColour("#EEEEEE"), StateColor::Normal));
 
         p->panel_printer_preset = new StaticBox(p->m_panel_printer_content); // NEEDFIX focus stucks
-        p->panel_printer_preset->SetCornerRadius(8);
+        p->panel_printer_preset->SetCornerRadius(FromDIP(8));
         p->panel_printer_preset->SetBorderColor(panel_bd_col);
         p->panel_printer_preset->SetMinSize(PRINTER_PANEL_SIZE);
         p->panel_printer_preset->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
@@ -1714,7 +1714,7 @@ Sidebar::Sidebar(Plater *parent)
             });
         p->btn_edit_printer = edit_btn;
         ScalableBitmap bitmap_printer(p->panel_printer_preset, "printer_placeholder", PRINTER_THUMBNAIL_SIZE.GetHeight());
-        p->image_printer = new wxStaticBitmap(p->panel_printer_preset, wxID_ANY, bitmap_printer.bmp(), wxDefaultPosition, PRINTER_THUMBNAIL_SIZE, 0);
+        p->image_printer = new wxStaticBitmap(p->panel_printer_preset, wxID_ANY, bitmap_printer.bmp(), wxDefaultPosition, FromDIP(PRINTER_THUMBNAIL_SIZE), 0);
         p->image_printer->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->combo_printer->wxEvtHandler::ProcessEvent(evt);
         });
@@ -1733,7 +1733,7 @@ Sidebar::Sidebar(Plater *parent)
             else
                 panel->SetBorderColor(panel_bd_col);
             p->btn_edit_printer->msw_rescale();
-            p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
+            p->image_printer->SetSize(FromDIP(PRINTER_THUMBNAIL_SIZE));
             // NEEDFIX image and edit button background not updates even with refresh
         };
         combo_printer->Bind(wxEVT_SET_FOCUS,  [this, printer_focus_bg](auto& e) {printer_focus_bg(true ); e.Skip();});
@@ -1772,7 +1772,7 @@ Sidebar::Sidebar(Plater *parent)
 
         // ORCA unified Nozzle diameter selection
         p->panel_nozzle_dia = new StaticBox(p->m_panel_printer_content); // NEEDFIX focus stucks
-        p->panel_nozzle_dia->SetCornerRadius(8);
+        p->panel_nozzle_dia->SetCornerRadius(FromDIP(8));
         p->panel_nozzle_dia->SetBorderColor(panel_bd_col);
         p->panel_nozzle_dia->SetMinSize(PRINTER_PANEL_SIZE);
         p->panel_nozzle_dia->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
@@ -1833,7 +1833,7 @@ Sidebar::Sidebar(Plater *parent)
 
         // Bed type selection
         p->panel_printer_bed = new StaticBox(p->m_panel_printer_content); // NEEDFIX focus stucks
-        p->panel_printer_bed->SetCornerRadius(8);
+        p->panel_printer_bed->SetCornerRadius(FromDIP(8));
         p->panel_printer_bed->SetBorderColor(panel_bd_col);
         p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE);
         p->panel_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
@@ -2761,12 +2761,36 @@ void Sidebar::msw_rescale()
     p->m_panel_filament_title->GetSizer()
         ->SetMinSize(-1, 3 * wxGetApp().em_unit());
     p->m_printer_icon->msw_rescale();
+    p->m_printer_connect->msw_rescale();
+    p->m_printer_bbl_sync->msw_rescale();
+    p->m_printer_icon->msw_rescale();
     p->m_printer_setting->msw_rescale();
+
+    p->panel_printer_preset->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
+    p->panel_printer_preset->SetCornerRadius(FromDIP(8));
+    p->image_printer->SetSize(FromDIP(PRINTER_THUMBNAIL_SIZE));
+    update_printer_thumbnail();
+    p->combo_printer->Rescale();
     p->btn_edit_printer->msw_rescale();
-    p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
+
+    p->panel_nozzle_dia->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
+    p->panel_nozzle_dia->SetCornerRadius(FromDIP(8));
+    p->combo_nozzle_dia->Rescale();
+
+    p->panel_printer_bed->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
+    p->panel_printer_bed->SetCornerRadius(FromDIP(8));
+    p->combo_printer_bed->Rescale();
+    p->combo_printer_bed->SetMinSize(FromDIP(wxSize(18,-1))); // ORCA show only arrow
+    p->combo_printer_bed->SetMaxSize(FromDIP(wxSize(18,-1))); // ORCA show only arrow
     bool isDual     = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
     auto image_path = get_cur_select_bed_image();
     p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
+    if (p->big_bed_image_popup){ // ORCA force rebuild frame. current wxwidget version not supports wxBITMAP_SCALE_FILL flag on wxStaticBitmap
+                                 // also     wxImage scaledImage = bit_map.ConvertToImage(); scaledImage.Rescale(FromDIP(m_image_px), FromDIP(m_image_px), wxIMAGE_QUALITY_HIGH);
+                                 // didnt worked as expected and it requires use on set_bitmap. so that will try to scale everytime
+        p->big_bed_image_popup->Destroy();
+        p->big_bed_image_popup = nullptr;
+    }
 
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
@@ -2775,15 +2799,12 @@ void Sidebar::msw_rescale()
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
     //BBS
-    p->combo_printer_bed->Rescale();
-    p->combo_printer_bed->SetMinSize({-1, 3 * wxGetApp().em_unit()});
     p->left_extruder->Rescale();
     p->right_extruder->Rescale();
     p->single_extruder->Rescale();
 
     //p->btn_sync_printer->SetPaddingSize({FromDIP(6), FromDIP(12)});
     //p->btn_sync_printer->SetMinSize(BTN_SYNC_SIZE);
-    p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE);
     //p->btn_sync_printer->Rescale();
 #if 0
     if (p->mode_sizer)
@@ -2796,7 +2817,7 @@ void Sidebar::msw_rescale()
     //                                                            //p->combo_printer
     //                                                            } )
     //    combo->msw_rescale();
-    p->combo_printer->msw_rescale();
+
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
 
