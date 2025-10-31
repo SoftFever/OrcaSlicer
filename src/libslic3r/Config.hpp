@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <map>
 #include <climits>
+#include <cfloat>
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
