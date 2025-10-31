@@ -5385,7 +5385,6 @@ void TabPrinter::toggle_options()
                 toggle_line(is, false);
         }
 
-        s_input_shaper_type_list.refresh();
     }
 }
 
