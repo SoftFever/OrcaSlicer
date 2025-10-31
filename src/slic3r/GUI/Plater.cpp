@@ -1684,12 +1684,12 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_content->SetBackgroundColour(wxColour(255, 255, 255));
         StateColor panel_bd_col(std::pair<wxColour, int>(wxColour("#009688"), StateColor::Pressed),
                                 std::pair<wxColour, int>(wxColour("#009688"), StateColor::Hovered),
-                                std::pair<wxColour, int>(wxColour("#EEEEEE"), StateColor::Normal));
+                                std::pair<wxColour, int>(wxColour("#DBDBDB"), StateColor::Normal));
 
         p->panel_printer_preset = new StaticBox(p->m_panel_printer_content); // NEEDFIX focus stucks
         p->panel_printer_preset->SetCornerRadius(FromDIP(8));
         p->panel_printer_preset->SetBorderColor(panel_bd_col);
-        p->panel_printer_preset->SetMinSize(PRINTER_PANEL_SIZE);
+        p->panel_printer_preset->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
         p->panel_printer_preset->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
             p->combo_printer->wxEvtHandler::ProcessEvent(evt);
         });
@@ -1774,7 +1774,7 @@ Sidebar::Sidebar(Plater *parent)
         p->panel_nozzle_dia = new StaticBox(p->m_panel_printer_content); // NEEDFIX focus stucks
         p->panel_nozzle_dia->SetCornerRadius(FromDIP(8));
         p->panel_nozzle_dia->SetBorderColor(panel_bd_col);
-        p->panel_nozzle_dia->SetMinSize(PRINTER_PANEL_SIZE);
+        p->panel_nozzle_dia->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
         p->panel_nozzle_dia->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
             p->combo_nozzle_dia->wxEvtHandler::ProcessEvent(evt);
         });
@@ -1835,7 +1835,7 @@ Sidebar::Sidebar(Plater *parent)
         p->panel_printer_bed = new StaticBox(p->m_panel_printer_content); // NEEDFIX focus stucks
         p->panel_printer_bed->SetCornerRadius(FromDIP(8));
         p->panel_printer_bed->SetBorderColor(panel_bd_col);
-        p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE);
+        p->panel_printer_bed->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
         p->panel_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
         });
@@ -2905,7 +2905,7 @@ void Sidebar::sys_color_changed()
         p->big_bed_image_popup->sys_color_changed();
 
     p->btn_edit_printer->msw_rescale();
-    p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
+    p->image_printer->SetSize(FromDIP(PRINTER_THUMBNAIL_SIZE));
 
     // BBS
     obj_list()->sys_color_changed();
