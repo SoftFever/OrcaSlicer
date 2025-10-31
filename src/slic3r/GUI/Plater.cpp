@@ -538,8 +538,8 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
 
         //if (isBBL) {
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-            hsizer->Add(image_printer, 0, wxLEFT  | wxALIGN_LEFT  | wxALIGN_CENTER_VERTICAL, FromDIP(12));
-            hsizer->Add(combo_printer, 1, wxEXPAND | wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::ElementSpacing()));
+            hsizer->Add(image_printer, 0, wxLEFT  | wxALIGN_LEFT  | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+            hsizer->Add(combo_printer, 1, wxEXPAND | wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(8));
             hsizer->Add(btn_edit_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
             //hsizer->Add(btn_connect_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
             panel_printer_preset->SetSizer(hsizer);
@@ -1864,7 +1864,8 @@ Sidebar::Sidebar(Plater *parent)
             auto image_path        = get_cur_select_bed_image();
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
             if (p->big_bed_image_popup) {
-                p->big_bed_image_popup->set_bitmap(create_scaled_bitmap(/*"big_" + */ image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+                p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+                p->big_bed_image_popup->set_title(p->combo_printer_bed->GetString(p->combo_printer_bed->GetSelection()));
             }
             e.Skip(); // fix bug:Event spreads to sidebar
         });
@@ -2241,8 +2242,9 @@ void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
     if (p->big_bed_image_popup == nullptr) {
         p->big_bed_image_popup = new ImageDPIFrame();
         auto image_path        = get_cur_select_bed_image();
-        p->big_bed_image_popup->set_bitmap(create_scaled_bitmap(/*"big_" + */ image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+        p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
     }
+    p->big_bed_image_popup->set_title(p->combo_printer_bed->GetString(p->combo_printer_bed->GetSelection()));
     p->big_bed_image_popup->SetCanFocus(false);
     p->big_bed_image_popup->SetPosition(temp_pos);
     p->big_bed_image_popup->on_show();
@@ -2872,6 +2874,11 @@ void Sidebar::sys_color_changed()
     p->combo_printer->sys_color_changed();
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->sys_color_changed();
+
+    p->m_panel_printer_content->Refresh(); // ORCA fixes focus colors stuck on dark mode or viceversa
+
+    if (p->big_bed_image_popup) // ORCA
+        p->big_bed_image_popup->sys_color_changed();
 
     // BBS
     obj_list()->sys_color_changed();
