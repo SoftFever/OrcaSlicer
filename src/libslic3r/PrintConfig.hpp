@@ -341,8 +341,11 @@ enum class InputShaperType : unsigned char {
     ZVD,
     ZVDD,
     ZVDDD,
+    EI,
     EI2,
+    TwoHumpEI,
     EI3,
+    ThreeHumpEI,
     DAA,
     Disable
 };
