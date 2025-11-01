@@ -23,7 +23,7 @@ namespace Slic3r {
 namespace GUI {
 
 
-TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &description, std::string app_key)
+TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &description, std::string app_key, long style,std::map<wxStandardID,wxString> option_map)
     : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX),
     m_app_key(app_key)
 {
@@ -58,10 +58,34 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxHORIZONTAL);
 
-    m_confirm = new Button(this, _L("OK"));
-    m_confirm->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
-    m_confirm->Bind(wxEVT_LEFT_DOWN, &TipsDialog::on_ok, this);
-    m_sizer_right->Add(m_confirm, 0, wxALL, FromDIP(5));
+    if (style & wxOK) {
+        wxString str = _L("OK");
+        if (auto iter = option_map.find(wxID_OK); iter != option_map.end())
+            str = iter->second;
+        Button* btn = add_button(wxID_OK, str, true);
+        m_sizer_right->Add(btn, 0, wxALL, FromDIP(5));
+    }
+    if (style & wxYES) {
+        wxString str = _L("Yes");
+        if (auto iter = option_map.find(wxID_YES); iter != option_map.end())
+            str = iter->second;
+        Button *btn = add_button(wxID_YES, str, true);
+        m_sizer_right->Add(btn, 0, wxALL, FromDIP(5));
+    }
+    if (style & wxNO) {
+        wxString str = _L("No");
+        if (auto iter = option_map.find(wxID_NO); iter != option_map.end())
+            str = iter->second;
+        Button *btn = add_button(wxID_NO, str, false);
+        m_sizer_right->Add(btn, 0, wxALL, FromDIP(5));
+    }
+    if (style & wxCANCEL) {
+        wxString str = _L("Cancel");
+        if (auto iter = option_map.find(wxID_CANCEL); iter != option_map.end())
+            str = iter->second;
+        Button *btn = add_button(wxID_CANCEL, str, false);
+        m_sizer_right->Add(btn, 0, wxALL, FromDIP(5));
+    }
 
     m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, FromDIP(5));
     m_sizer_main->Add(m_sizer_bottom, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
@@ -91,7 +115,7 @@ wxBoxSizer *TipsDialog::create_item_checkbox(wxString title, wxWindow *parent, w
     checkbox_title->Wrap(-1);
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
 
-    m_show_again = wxGetApp().app_config->get(param) == "true" ? true : false;
+    m_show_again = wxGetApp().app_config->has(param);
     checkbox->SetValue(m_show_again);
 
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
@@ -102,20 +126,67 @@ wxBoxSizer *TipsDialog::create_item_checkbox(wxString title, wxWindow *parent, w
     return m_sizer_checkbox;
 }
 
+Button *TipsDialog::add_button(wxWindowID btn_id, const wxString &label, bool set_focus /*= false*/)
+{
+    Button* btn = new Button(this, label, "", 0, 0, btn_id);
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+
+    StateColor btn_bd_green(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+
+    StateColor btn_text_green(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
+
+    StateColor btn_bg_white(
+        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+    );
+
+    StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
+
+    StateColor btn_text_white(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
+
+    if (btn_id == wxID_OK || btn_id == wxID_YES) {
+        btn->SetBackgroundColor(btn_bg_green);
+        btn->SetBorderColor(btn_bd_green);
+        btn->SetTextColor(btn_text_green);
+    }
+
+    if (btn_id == wxID_CANCEL || btn_id == wxID_NO) {
+        btn->SetBackgroundColor(btn_bg_white);
+        btn->SetBorderColor(btn_bd_white);
+        btn->SetTextColor(btn_text_white);
+    }
+
+    if (set_focus)
+        btn->SetFocus();
+
+    btn->SetSize(TIPS_DIALOG_BUTTON_SIZE);
+    btn->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
+    btn->SetCornerRadius(FromDIP(12));
+    btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent &) {
+        if (m_show_again) {
+            if (!m_app_key.empty()) {
+                if (btn_id == wxID_OK || btn_id == wxID_YES) {
+                    wxGetApp().app_config->set_bool(m_app_key, true);
+                }
+
+                if (btn_id == wxID_NO) {
+                    wxGetApp().app_config->set_bool(m_app_key, false);
+                }
+            }
+        }
+        EndModal(btn_id);
+    });
+    return btn;
+}
+
 void TipsDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     if (m_confirm) m_confirm->Rescale(); // ORCA
     Fit();
     Refresh();
-}
-
-void TipsDialog::on_ok(wxMouseEvent &event)
-{
-    if (m_show_again) {
-        if (!m_app_key.empty())
-        wxGetApp().app_config->set_bool(m_app_key, m_show_again);
-    }
-    EndModal(wxID_OK);
 }
 
 void ParamsPanel::Highlighter::set_timer_owner(wxEvtHandler *owner, int timerid /* = wxID_ANY*/)
@@ -357,7 +428,7 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add(m_mode_region, 0, wxALIGN_CENTER);
         m_mode_sizer->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         m_mode_sizer->Add(m_tips_arrow, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddStretchSpacer(8);
+        m_mode_sizer->AddStretchSpacer(12);
         m_mode_sizer->Add( m_title_view, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         m_mode_sizer->Add(m_mode_view, 0, wxALIGN_CENTER);
@@ -365,7 +436,6 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add(m_setting_btn, 0, wxALIGN_CENTER);
         m_mode_sizer->AddSpacer(FromDIP(SidebarProps::IconSpacing()));
         m_mode_sizer->Add(m_compare_btn, 0, wxALIGN_CENTER);
-
         m_mode_sizer->AddSpacer(FromDIP(SidebarProps::TitlebarMargin()));
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
         //m_mode_sizer->AddSpacer(16);
