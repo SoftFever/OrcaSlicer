@@ -181,6 +181,8 @@ set(lisbslic3r_sources
     Format/3mf.hpp
     Format/AMF.cpp
     Format/AMF.hpp
+    Format/DRC.cpp
+    Format/DRC.hpp
     Format/bbs_3mf.cpp
     Format/bbs_3mf.hpp
     format.hpp
@@ -534,6 +536,7 @@ find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r SYSTEM PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
 find_package(JPEG REQUIRED)
+find_package(draco REQUIRED)
 
 set(OCCT_LIBS
     TKXDESTEP
@@ -578,6 +581,7 @@ target_link_libraries(libslic3r
         boost_libs
         cereal::cereal
         clipper
+        draco::draco
         eigen
         glu-libtess
         JPEG::JPEG
