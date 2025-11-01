@@ -236,6 +236,8 @@ void Tab::create_preset_tab()
     //add_scaled_button(panel, &m_btn_compare_preset, "compare");
     add_scaled_button(m_top_panel, &m_btn_save_preset, "save");
     add_scaled_button(m_top_panel, &m_btn_delete_preset, "cross");
+    add_scaled_button(m_top_panel, &m_btn_more_filament, "menu");
+    m_btn_more_filament->Hide();
     //if (m_type == Preset::Type::TYPE_PRINTER)
     //    add_scaled_button(panel, &m_btn_edit_ph_printer, "cog");
 
@@ -395,6 +397,8 @@ void Tab::create_preset_tab()
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
         m_top_sizer->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         m_top_sizer->Add( m_mode_view, 0, wxALIGN_CENTER_VERTICAL);
+
+        m_top_sizer->Add(m_btn_more_filament, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::ElementSpacing()));
     }
 
     m_top_sizer->AddSpacer(FromDIP(SidebarProps::ContentMargin()));
@@ -538,6 +542,15 @@ void Tab::create_preset_tab()
     //m_btn_compare_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { compare_preset(); }));
     m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { save_preset(); }));
     m_btn_delete_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { delete_preset(); }));
+    m_btn_more_filament->Bind(wxEVT_BUTTON, [this](wxCommandEvent){
+        if (wxGetApp().plater() == nullptr)
+            return;
+        auto menu = wxGetApp().plater()->filament_action_menu(wxGetApp().plater()->sidebar().get_editing_filament_id());
+        wxPoint pt { 0, m_btn_more_filament->GetSize().GetHeight() + 10 };
+        pt = m_btn_more_filament->ClientToScreen(pt);
+        pt = wxGetApp().mainframe->ScreenToClient(pt);
+        wxGetApp().plater()->PopupMenu(menu, (int) pt.x, pt.y);
+    });
     /*m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
         toggle_show_hide_incompatible();
     }));
@@ -5490,6 +5503,8 @@ void Tab::update_btns_enabling()
     const Preset& preset = m_presets->get_edited_preset();
     m_btn_delete_preset->Show((m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection())
                               || (!preset.is_default && !preset.is_system));
+
+    m_btn_more_filament->Show(m_type == Preset::TYPE_FILAMENT);
 
     //if (m_btn_edit_ph_printer)
     //    m_btn_edit_ph_printer->SetToolTip( m_preset_bundle->physical_printers.has_selection() ?
