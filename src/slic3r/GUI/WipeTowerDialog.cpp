@@ -107,7 +107,7 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
     sizer_chart->Add(label, 0, wxEXPAND | wxALL, 5);
 
     m_widget_time                             = new SpinInput(this, wxEmptyString, "ms" , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 5000 , 3000, 250);
-    m_widget_volume                           = new SpinInput(this, wxEmptyString, wxString::FromUTF8("mm³"), wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 10000, 0   );
+    m_widget_volume                           = new SpinInput(this, wxEmptyString, wxString::FromUTF8(u8"mm\u00b3" /* mm³ */), wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 0 , 10000, 0   );
     m_widget_ramming_line_width_multiplicator = new SpinInput(this, wxEmptyString, "%"  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 300  , 100 );
     m_widget_ramming_step_multiplicator       = new SpinInput(this, wxEmptyString, "%"  , wxDefaultPosition, wxSize(scale(120), -1), wxSP_ARROW_KEYS, 10, 300  , 100 );
 
@@ -267,7 +267,7 @@ wxString WipingDialog::BuildTextObjStr(bool multi_language)
 
     if (multi_language) {
         auto_flush_tip = _L("Orca would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Orca Slicer > Preferences");
-        volume_desp_panel = _L("Flushing volume (mm³) for each filament pair.");
+        volume_desp_panel = _L(u8"Flushing volume (mm\u00b3) for each filament pair." /* mm³ */);
         volume_range_panel = wxString::Format(_L("Suggestion: Flushing Volume in range [%d, %d]"), 0, 700);
         multiplier_range_panel = wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), 0, 3);
         calc_btn_panel = _L("Re-calculate");
@@ -278,7 +278,7 @@ wxString WipingDialog::BuildTextObjStr(bool multi_language)
         cancel_btn_label = _L("Cancel");
     } else {
         auto_flush_tip = "Orca would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Orca Slicer > Preferences";
-        volume_desp_panel = wxString::FromUTF8("Flushing volume (mm³) for each filament pair.");
+        volume_desp_panel = wxString::FromUTF8(u8"Flushing volume (mm\u00b3) for each filament pair." /* mm³ */);
         volume_range_panel = wxString::Format("Suggestion: Flushing Volume in range [%d, %d]", 0, 700);
         multiplier_range_panel = wxString::Format("The multiplier should be in range [%.2f, %.2f].", 0, 3);
         calc_btn_panel = "Re-calculate";

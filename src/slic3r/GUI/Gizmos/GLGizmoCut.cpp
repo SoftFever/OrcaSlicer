@@ -2541,7 +2541,7 @@ bool GLGizmoCut3D::render_angle_input(const std::string& label, float& in_val, c
     float val = rad2deg(in_val);
     const float old_val = val;
 
-    const std::string format = "%.0f°";
+    const std::string format = u8"%.0f°";
     m_imgui->bbl_slider_float_style("##angle_" + label, &val, min_val, max_val, format.c_str(), 1.f, true, from_u8(label));
 
     ImGui::SameLine(left_width);

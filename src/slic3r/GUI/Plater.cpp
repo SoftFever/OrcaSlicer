@@ -330,7 +330,7 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
     };
 
     init_info_label(_L("Used Filament (m)"));
-    init_info_label(_L("Used Filament (mm³)"));
+    init_info_label(_L(u8"Used Filament (mm\u00b3)" /* mm³/s */));
     init_info_label(_L("Used Filament (g)"));
     init_info_label(_L("Used Materials"));
     init_info_label(_L("Cost"));
@@ -11773,7 +11773,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     if (accels.empty()) {
         accels.assign({accel});
         const auto msg{_L("INFO:") + "\n" +
-                       _L("No accelerations provided for calibration. Use default acceleration value ") + std::to_string(long(accel)) + wxString::FromUTF8("mm/s²")};
+                       _L("No accelerations provided for calibration. Use default acceleration value ") + std::to_string(long(accel)) + wxString::FromUTF8(u8"mm/s\u00b2" /* mm/s² */)};
         get_notification_manager()->push_notification(msg.ToStdString());
     } else {
         // set max acceleration in case of batch mode to get correct test pattern size
@@ -17199,9 +17199,9 @@ void Plater::show_object_info()
         volume_val *= std::fabs(t.matrix().block(0, 0, 3, 3).determinant());
     volume_val = volume_val * pow(koef,3);
     if (imperial_units)
-        info_text += (boost::format(_utf8(L("Volume: %1% in³\n"))) %volume_val).str();
+        info_text += (boost::format(_utf8(L(u8"Volume: %1% in\u00b3\n" /* in³ */))) %volume_val).str();
     else
-        info_text += (boost::format(_utf8(L("Volume: %1% mm³\n"))) %volume_val).str();
+        info_text += (boost::format(_utf8(L(u8"Volume: %1% mm\u00b3\n" /* mm³ */))) %volume_val).str();
     info_text += (boost::format(_utf8(L("Triangles: %1%\n"))) %face_count).str();
 
     wxString info_manifold;

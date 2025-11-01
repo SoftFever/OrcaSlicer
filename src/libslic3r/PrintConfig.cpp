@@ -1675,7 +1675,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("default_acceleration", coFloat);
     def->label = L("Normal printing");
     def->tooltip = L("The default acceleration of both normal printing and travel except initial layer.");
-    def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+    def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(500.0));
@@ -2314,7 +2314,7 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->min = 0;
     def->max = max_temp;
-    def->sidetext = "°C";
+    def->sidetext = u8"\u2103" /* °C */;	// degrees Celsius, don't need translation
     def->set_default_value(new ConfigOptionIntsNullable{0});
 
     def = this->add("filament_flush_volumetric_speed", coFloats);
@@ -2324,7 +2324,7 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->min = 0;
     def->max = 200;
-    def->sidetext = u8"mm³/s";	// cubic milimeters per second, don't need translation
+    def->sidetext = u8"mm\u00b3/s" /* mm³/s */;	// cubic millimeters per second, don't need translation
     def->set_default_value(new ConfigOptionFloatsNullable{ 0 });
 
     def = this->add("filament_max_volumetric_speed", coFloats);
@@ -2332,7 +2332,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This setting stands for how much volume of filament can be melted and extruded per second. "
                      "Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. "
                      "Can't be zero.");
-    def->sidetext = u8"mm³/s";	// cubic milimeters per second, don't need translation
+    def->sidetext = u8"mm\u00b3/s" /* mm³/s */;	// cubic millimeters per second, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 2. });
@@ -2546,7 +2546,7 @@ void PrintConfigDef::init_fff_params()
                      "the nozzle may not be known, and the filament pressure is likely not yet stable. "
                      "Before purging the print head into an infill or a sacrificial object, Orca Slicer will always prime "
                      "this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.");
-    def->sidetext = u8"mm³";	// cubic milimeters, don't need translation
+    def->sidetext = u8"mm\u00b3" /* mm³ */;	// cubic millimeters, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 15. });
@@ -2577,7 +2577,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_multitool_ramming_volume", coFloats);
     def->label = L("Multi-tool ramming volume");
     def->tooltip = L("The volume to be rammed before the tool change.");
-    def->sidetext = u8"mm³";	// cubic milimeters, don't need translation
+    def->sidetext = u8"mm\u00b3" /* mm³ */;	// cubic millimeters, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 10. });
@@ -2585,7 +2585,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_multitool_ramming_flow", coFloats);
     def->label = L("Multi-tool ramming flow");
     def->tooltip = L("Flow used for ramming the filament before the tool change.");
-    def->sidetext = u8"mm³/s";	// cubic milimeters per second, don't need translation
+    def->sidetext = u8"mm\u00b3/s" /* mm³/s */;	// cubic millimeters per second, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 10. });
@@ -2593,7 +2593,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_density", coFloats);
     def->label = L("Density");
     def->tooltip = L("Filament density. For statistics only.");
-    def->sidetext = u8"g/cm³";	// grams per cubic milimeter, don't need translation
+    def->sidetext = u8"g/cm\u00b3" /* g/cm³ */;	// grams per cubic centimeter, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
@@ -2871,7 +2871,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("outer_wall_acceleration", coFloat);
     def->label = L("Outer wall");
     def->tooltip = L("Acceleration of outer walls.");
-    def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+    def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10000));
@@ -2879,7 +2879,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("inner_wall_acceleration", coFloat);
     def->label = L("Inner wall");
     def->tooltip = L("Acceleration of inner walls.");
-    def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+    def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10000));
@@ -2887,7 +2887,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("travel_acceleration", coFloat);
     def->label = L("Travel");
     def->tooltip = L("Acceleration of travel moves.");
-    def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+    def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(10000));
@@ -2895,7 +2895,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("top_surface_acceleration", coFloat);
     def->label = L("Top surface");
     def->tooltip = L("Acceleration of top surface infill. Using a lower value may improve top surface quality.");
-    def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+    def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(500));
@@ -2903,7 +2903,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("outer_wall_acceleration", coFloat);
     def->label = L("Outer wall");
     def->tooltip = L("Acceleration of outer wall. Using a lower value can improve quality.");
-    def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+    def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(500));
@@ -2911,7 +2911,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bridge_acceleration", coFloatOrPercent);
     def->label = L("Bridge");
     def->tooltip = L("Acceleration of bridges. If the value is expressed as a percentage (e.g. 50%), it will be calculated based on the outer wall acceleration.");
-    def->sidetext = L("mm/s² or %");
+    def->sidetext = L(u8"mm/s\u00b2 or %") /* mm/s² */;
     def->min = 0;
     def->mode = comAdvanced;
     def->ratio_over = "outer_wall_acceleration";
@@ -2920,7 +2920,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("sparse_infill_acceleration", coFloatOrPercent);
     def->label = L("Sparse infill");
     def->tooltip = L("Acceleration of sparse infill. If the value is expressed as a percentage (e.g. 100%), it will be calculated based on the default acceleration.");
-    def->sidetext = L("mm/s² or %");
+    def->sidetext = L(u8"mm/s\u00b2 or %") /* mm/s² */;
     def->min = 0;
     def->mode = comAdvanced;
     def->ratio_over = "default_acceleration";
@@ -2929,7 +2929,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("internal_solid_infill_acceleration", coFloatOrPercent);
     def->label = L("Internal solid infill");
     def->tooltip = L("Acceleration of internal solid infill. If the value is expressed as a percentage (e.g. 100%), it will be calculated based on the default acceleration.");
-    def->sidetext = L("mm/s² or %");
+    def->sidetext = L(u8"mm/s\u00b2 or %") /* mm/s² */;
     def->min = 0;
     def->mode = comAdvanced;
     def->ratio_over = "default_acceleration";
@@ -2938,7 +2938,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
     def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhesion.");
-    def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+    def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(300));
@@ -3528,7 +3528,7 @@ void PrintConfigDef::init_fff_params()
                       "Advanced syntax is supported: '+5' rotates +5° every layer; '+5#5' rotates +5° every 5 layers. See the Wiki for details. "
                       "When a template is set, the standard infill direction setting is ignored. "
                       "Note: some infill patterns (e.g., Gyroid) control rotation themselves; use with care.");
-    def->sidetext = L("°");
+    def->sidetext = u8"°";	// degrees, don't need translation
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
@@ -4016,7 +4016,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum acceleration of the Y axis");
             (void)L("Maximum acceleration of the Z axis");
             (void)L("Maximum acceleration of the E axis");
-            def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+            def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
             def->min = 0;
             def->mode = comSimple;
             def->set_default_value(new ConfigOptionFloats(axis.max_acceleration));
@@ -4078,7 +4078,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration for extruding (M204 P)");
     //                 "Marlin (legacy) firmware flavor will use this also "
     //                 "as travel acceleration (M204 T).");
-    def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+    def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
     def->min = 0;
     def->readonly = false;
     def->mode = comSimple;
@@ -4090,7 +4090,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Maximum acceleration for retracting");
     def->category = L("Machine limits");
     def->tooltip = L("Maximum acceleration for retracting (M204 R)");
-    def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+    def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
     def->min = 0;
     def->readonly = false;
     def->mode = comSimple;
@@ -4101,7 +4101,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Maximum acceleration for travel");
     def->category = L("Machine limits");
     def->tooltip = L("Maximum acceleration for travel (M204 T), it only applies to Marlin 2.");
-    def->sidetext = u8"mm/s²";	// milimeters per second per second, don't need translation
+    def->sidetext = u8"mm/s\u00b2" /* mm/s² */;	// millimeters per second squared, don't need translation
     def->min = 0;
     def->readonly = false;
     def->mode = comAdvanced;
@@ -4156,18 +4156,18 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This parameter smooths out sudden extrusion rate changes that happen when " 
                      "the printer transitions from printing a high flow (high speed/larger width) "
                      "extrusion to a lower flow (lower speed/smaller width) extrusion and vice versa.\n\n"
-                     "It defines the maximum rate by which the extruded volumetric flow in mm³/s can change over time. "
+                     u8"It defines the maximum rate by which the extruded volumetric flow in mm\u00b3/s can change over time. "
                      "Higher values mean higher extrusion rate changes are allowed, resulting in faster speed transitions.\n\n" 
                      "A value of 0 disables the feature.\n\n"
                      "For a high speed, high flow direct drive printer (like the Bambu lab or Voron) this value is usually not needed. "
                      "However it can provide some marginal benefit in certain cases where feature speeds vary greatly. For example, "
-                     "when there are aggressive slowdowns due to overhangs. In these cases a high value of around 300-350 mm³/s² is "
+                     u8"when there are aggressive slowdowns due to overhangs. In these cases a high value of around 300-350 mm\u00b3/s\u00b2 is "
                      "recommended as this allows for just enough smoothing to assist pressure advance achieve a smoother flow transition.\n\n"
                      "For slower printers without pressure advance, the value should be set much lower. "
-                     "A value of 10-15 mm³/s² is a good starting point for direct drive extruders and 5-10 mm³/s² for Bowden style.\n\n"
+                     u8"A value of 10-15 mm\u00b3/s\u00b2 is a good starting point for direct drive extruders and 5-10 mm\u00b3/s\u00b2 for Bowden style.\n\n"
                      "This feature is known as Pressure Equalizer in Prusa slicer.\n\n"
                      "Note: this parameter disables arc fitting.");
-    def->sidetext = u8"mm³/s²";	// cubic milimeters per second per second, don't need translation
+    def->sidetext = u8"mm\u00b3/s\u00b2" /* mm³/s² */;	// cubic millimeters per second squared, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -4287,7 +4287,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("nozzle_volume", coFloats);
     def->label = L("Nozzle volume");
     def->tooltip = L("Volume of nozzle between the cutter and the end of nozzle.");
-    def->sidetext = u8"mm³";	// cubic milimeters, don't need translation
+    def->sidetext = u8"mm\u00b3" /* mm³ */;	// cubic millimeters, don't need translation
     def->mode = comAdvanced;
     def->readonly = false;
     def->nullable = true;
@@ -4388,7 +4388,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Maximum area of a hole in the base of the model before it's filled by conical material. "
                      "A value of 0 will fill all the holes in the model base.");
-    def->sidetext = u8"mm²";	// square millimeters, don't need translation
+    def->sidetext = u8"mm\u00b2" /* mm² */;	// square millimeters, don't need translation
     def->mode = comAdvanced;
     def->min = 0.;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -5117,7 +5117,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Minimum sparse infill threshold");
     def->category = L("Strength");
     def->tooltip = L("Sparse infill area which is smaller than threshold value is replaced by internal solid infill.");
-    def->sidetext = u8"mm²";	// square millimeters, don't need translation
+    def->sidetext = u8"mm\u00b2" /* mm² */;	// square millimeters, don't need translation
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(15));
@@ -5225,7 +5225,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
                      "The value is not used when 'idle_temperature' in filament settings "
                      "is set to non-zero value.");
-    def->sidetext = u8"∆\u2103";	// delta degrees Celsius, don't need translation
+    def->sidetext = u8"\u0394\u2103" /* Δ°C */;	// delta degrees Celsius, don't need translation
     def->min = -max_temp;
     def->max = max_temp;
     def->mode = comAdvanced;
@@ -6111,7 +6111,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("prime_volume", coFloat);
     def->label = L("Prime volume");
     def->tooltip = L("The volume of material to prime extruder on tower.");
-    def->sidetext = u8"mm³";	// cubic milimeters, don't need translation
+    def->sidetext = u8"mm\u00b3" /* mm³ */;	// cubic millimeters, don't need translation
     def->min = 1.0;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(45.));
