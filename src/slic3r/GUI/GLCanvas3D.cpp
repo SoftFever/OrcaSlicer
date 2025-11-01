@@ -1543,6 +1543,7 @@ void GLCanvas3D::toggle_world_axes_visibility(bool force_show)
     } else {
         m_show_world_axes = !m_show_world_axes;
     }
+    wxGetApp().app_config->set_bool("show_axes", m_show_world_axes);
     set_as_dirty();
 }
 
