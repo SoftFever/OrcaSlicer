@@ -1594,6 +1594,7 @@ void Practical_Flow_Ratio_Test_Dlg::on_start(wxCommandEvent& event) {
     m_params.use_zhop      = m_cbUseZHop->GetValue();
     double _speed;
     m_tiSpeed->GetTextCtrl()->GetValue().ToDouble(&_speed);
+    m_params.speeds.clear();
     m_params.speeds.push_back(_speed);
     m_plater->Calib_Practical_Flow_Ratio(m_params);
     EndModal(wxID_OK);
