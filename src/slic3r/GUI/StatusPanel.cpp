@@ -3965,7 +3965,7 @@ void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
 void StatusPanel::axis_ctrl_e_hint(bool up_down)
 {
     if (ctrl_e_hint_dlg == nullptr) {
-        /* ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition,
+        /* ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::VisibleButtons::CONFIRM_AND_CANCEL, wxDefaultPosition,
          ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170°C before loading or unloading filament."));
          ctrl_e_hint_dlg->m_show_again_checkbox->Hide();
          ctrl_e_hint_dlg->m_button_cancel->Hide();
@@ -4810,7 +4810,7 @@ void StatusPanel::on_camera_enter(wxMouseEvent& event)
         m_camera_popup->Bind(EVT_VCAMERA_SWITCH, &StatusPanel::on_switch_vcamera, this);
         m_camera_popup->Bind(EVT_SDCARD_ABSENT_HINT, [this](wxCommandEvent &e) {
             if (sdcard_hint_dlg == nullptr) {
-                sdcard_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+                sdcard_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::VisibleButtons::ONLY_CONFIRM);
                 sdcard_hint_dlg->update_text(_L("Can't start this without storage."));
             }
             sdcard_hint_dlg->on_show();

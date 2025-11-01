@@ -559,12 +559,7 @@ wxBoxSizer *ObjColorPanel::create_add_btn_sizer(wxWindow *parent)
     m_quick_add_btn = new Button(parent, _L("Append"));
     m_quick_add_btn->SetToolTip(_L("Append to existing filaments"));
     auto cur_btn    = m_quick_add_btn;
-    cur_btn->SetFont(Label::Body_13);
-    cur_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(20)));
-    cur_btn->SetCornerRadius(FromDIP(10));
-    cur_btn->SetBackgroundColor(calc_btn_bg);
-    cur_btn->SetBorderColor(calc_btn_bd);
-    cur_btn->SetTextColor(calc_btn_text);
+    cur_btn->SetStyle(ButtonStyle::Regular, ButtonType::Window);
     cur_btn->SetFocus();
     btn_sizer->Add(cur_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 0);
     cur_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
@@ -580,12 +575,7 @@ wxBoxSizer *ObjColorPanel::create_reset_btn_sizer(wxWindow *parent)
     m_quick_reset_btn = new Button(parent, _L("Reset"));
     m_quick_reset_btn->SetToolTip(_L("Reset mapped extruders."));
     auto cur_btn      = m_quick_reset_btn;
-    cur_btn->SetFont(Label::Body_13);
-    cur_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(20)));
-    cur_btn->SetCornerRadius(FromDIP(10));
-    cur_btn->SetBackgroundColor(calc_btn_bg);
-    cur_btn->SetBorderColor(calc_btn_bd);
-    cur_btn->SetTextColor(calc_btn_text);
+    cur_btn->SetStyle(ButtonStyle::Regular, ButtonType::Window);
     cur_btn->SetFocus();
     btn_sizer->Add(cur_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 0);
     cur_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
