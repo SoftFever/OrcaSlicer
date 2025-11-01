@@ -114,6 +114,23 @@ How to building with Visual Studio 2022 on Windows 64-bit.
 > [!TIP]
 > If the build fails, try deleting the `build/` and `deps/build/` directories to clear any cached build data. Rebuilding after a clean-up is usually sufficient to resolve most issues.
 
+> [!TIP]
+> If the "Fix model" option is missing from an object's context menu, it may indicate that your build did not properly include the Windows SDK. To quickly resolve this, follow these steps:
+>
+> 1. Locate the `winrt` folder in your Windows SDK installation. For example:  
+>    `C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\winrt`  
+>    *(Note: the exact path may vary depending on your Windows SDK version.)*
+>
+> 2. In Visual Studio 2022, open the **libslic3r_gui** project properties:  
+>    Go to **Configuration Properties > C/C++ > Preprocessor > Preprocessor Definitions**  
+>    ➕ Add: `HAS_WIN10SDK`
+>
+> 3. In Visual Studio 2022, open the **OrcaSlicer_app_gui** project properties:  
+>    Go to **Configuration Properties > C/C++ > General > Additional Include Directories**  
+>    ➕ Add the path to the `winrt` folder from step 1.
+>
+> 4. Build the solution
+
 ## MacOS 64-bit
 
 How to building with Xcode on MacOS 64-bit.
