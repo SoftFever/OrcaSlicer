@@ -4656,10 +4656,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (is_camera_pan(evt, swap_mouse_buttons)) {
             // if dragging with right button or if button functions swapped and dragging with left button over blank area then pan
             if (m_mouse.is_start_position_2D_defined()) {
-                // get point in model space at Z = 0
-                float z = 0.0f;
-                const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
-                Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
+                const Vec3d& cur_pos = _mouse_to_3d(pos, nullptr);
+                Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, nullptr);
                 Camera& camera = wxGetApp().plater()->get_camera();
                 if (this->m_canvas_type != ECanvasType::CanvasAssembleView) {
                     if (wxGetApp().app_config->get_bool("use_free_camera"))
@@ -4677,6 +4675,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             m_camera_movement = true;
             m_mouse.drag.start_position_2D = pos;
+            m_mouse.drag.move_start_threshold_position_2D = pos;
         }
     }
     else if ((evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) ||
