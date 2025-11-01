@@ -350,28 +350,13 @@ ExtruderSwithingStatus::ExtruderSwithingStatus(wxWindow *parent)
     { m_switching_status_label->SetBackgroundColour(parent->GetBackgroundColour());
     }
 
-    StateColor e_ctrl_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
-    StateColor e_ctrl_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered), std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
-
     m_button_quit = new Button(this, _CTX(L_CONTEXT("Quit", "Quit_Switching"), "Quit_Switching"), "", 0, FromDIP(22));
-    m_button_quit->SetFont(::Label::Body_13);
+    m_button_quit->SetStyle(ButtonStyle::Regular, ButtonType::Window);
     m_button_quit->Bind(wxEVT_BUTTON, &ExtruderSwithingStatus::on_quit, this);
-    m_button_quit->SetMinSize(SWITCHING_STATUS_BTN_SIZE);
-    m_button_quit->SetMaxSize(SWITCHING_STATUS_BTN_SIZE);
-    m_button_quit->SetBackgroundColor(e_ctrl_bg);
-    m_button_quit->SetBorderColor(e_ctrl_bd);
-    m_button_quit->SetBorderWidth(2);
-    if (parent) { m_button_quit->SetBackgroundColour(parent->GetBackgroundColour()); }
 
     m_button_retry = new Button(this, _L("Retry"), "", 0, FromDIP(22));
-    m_button_retry->SetFont(::Label::Body_13);
+    m_button_retry->SetStyle(ButtonStyle::Confirm, ButtonType::Window);
     m_button_retry->Bind(wxEVT_BUTTON, &ExtruderSwithingStatus::on_retry, this);
-    m_button_retry->SetMinSize(SWITCHING_STATUS_BTN_SIZE);
-    m_button_retry->SetMaxSize(SWITCHING_STATUS_BTN_SIZE);
-    m_button_retry->SetBackgroundColor(e_ctrl_bg);
-    m_button_retry->SetBorderColor(e_ctrl_bd);
-    m_button_retry->SetBorderWidth(2);
-    if (parent) { m_button_retry->SetBackgroundColour(parent->GetBackgroundColour()); }
 
     wxBoxSizer *btn_sizer  = new wxBoxSizer(wxHORIZONTAL);
     btn_sizer->Add(m_button_quit, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
@@ -470,10 +455,8 @@ bool ExtruderSwithingStatus::has_content_shown() const
 
 void ExtruderSwithingStatus::msw_rescale()
 {
-    m_button_quit->SetMinSize(SWITCHING_STATUS_BTN_SIZE);
-    m_button_quit->SetMaxSize(SWITCHING_STATUS_BTN_SIZE);
-    m_button_retry->SetMinSize(SWITCHING_STATUS_BTN_SIZE);
-    m_button_retry->SetMaxSize(SWITCHING_STATUS_BTN_SIZE);
+    m_button_quit->Rescale(); // ORCA
+    m_button_retry->Rescale(); // ORCA
     Layout();
 }
 
@@ -1998,18 +1981,8 @@ wxBoxSizer* StatusBasePanel::create_filament_group(wxWindow* parent)
     steps_sizer->Add(m_filament_load_img, 0, wxALIGN_TOP, FromDIP(30));
     steps_sizer->AddSpacer(FromDIP(50));
 
-    StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    StateColor btn_text_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-    StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
-                            std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
-
     m_button_retry = new Button(m_filament_load_box, _L("Retry"));
-    m_button_retry->SetFont(Label::Body_13);
-    m_button_retry->SetBorderColor(btn_bd_white);
-    m_button_retry->SetTextColor(btn_text_white);
-    m_button_retry->SetMinSize(wxSize(FromDIP(80), FromDIP(31)));
-    m_button_retry->SetBackgroundColor(btn_bg_white);
+    m_button_retry->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     //m_button_retry->Hide();
 
     m_button_retry->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {

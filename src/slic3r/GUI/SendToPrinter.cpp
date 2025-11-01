@@ -1509,15 +1509,11 @@ void SendToPrinterDialog::Enable_Refresh_Button(bool en)
 {
     if (!en) {
         if (m_button_refresh->IsEnabled()) {
-            m_button_refresh->Disable();
-            m_button_refresh->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-            m_button_refresh->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+            m_button_refresh->Disable(); // ORCA no need to set colors again
         }
     } else {
         if (!m_button_refresh->IsEnabled()) {
-            m_button_refresh->Enable();
-            m_button_refresh->SetBackgroundColor(btn_bg_enable);
-            m_button_refresh->SetBorderColor(btn_bg_enable);
+            m_button_refresh->Enable(); // ORCA no need to set colors again
         }
     }
 }
