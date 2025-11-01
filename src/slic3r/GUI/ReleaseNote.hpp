@@ -114,7 +114,7 @@ class SecondaryCheckDialog : public DPIFrame
 private:
     wxWindow* event_parent { nullptr };
 public:
-    enum ButtonStyle {
+    enum VisibleButtons {
         ONLY_CONFIRM        = 0,
         CONFIRM_AND_CANCEL  = 1,
         CONFIRM_AND_DONE    = 2,
@@ -127,7 +127,7 @@ public:
         wxWindow* parent,
         wxWindowID      id = wxID_ANY,
         const wxString& title = wxEmptyString,
-        enum ButtonStyle btn_style = CONFIRM_AND_CANCEL,
+        enum VisibleButtons btn_style = CONFIRM_AND_CANCEL,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
         long            style = wxCLOSE_BOX | wxCAPTION,

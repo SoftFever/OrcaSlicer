@@ -41,12 +41,7 @@ static void update_ui(wxWindow* window)
 
 static const char g_min_cluster_color = 1;
 static const char g_max_color = (int) EnforcerBlockerType::ExtruderMax;
-const  StateColor ok_btn_bg(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-                     std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                     std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
-const StateColor  ok_btn_disable_bg(std::pair<wxColour, int>(wxColour(205, 201, 201), StateColor::Pressed),
-                                   std::pair<wxColour, int>(wxColour(205, 201, 201), StateColor::Hovered),
-                                   std::pair<wxColour, int>(wxColour(205, 201, 201), StateColor::Normal));
+
 wxBoxSizer* ObjColorDialog::create_btn_sizer(long flags,bool exist_error)
 {
     auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -59,7 +54,7 @@ wxBoxSizer* ObjColorDialog::create_btn_sizer(long flags,bool exist_error)
         auto font = tips->GetFont();
         font.SetUnderlined(true);
         tips->SetFont(font);
-        tips->SetForegroundColour(wxColour(0, 174, 100));
+        tips->SetForegroundColour(wxColour("#009687"));
         tips->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
             bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
             if (is_zh) {
@@ -72,58 +67,11 @@ wxBoxSizer* ObjColorDialog::create_btn_sizer(long flags,bool exist_error)
     }
     btn_sizer->AddStretchSpacer();
 
-    StateColor ok_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-    StateColor ok_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-    StateColor cancel_btn_bg(
-        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
-    );
-    StateColor cancel_btn_bd_(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-    StateColor cancel_btn_text(
-        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
-    );
-    StateColor calc_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-    StateColor calc_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-    StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-    if (flags & wxOK) {
-        Button* ok_btn = new Button(this, _L("OK"));
-        ok_btn->SetMinSize(BTN_SIZE);
-        ok_btn->SetCornerRadius(FromDIP(12));
-        ok_btn->Enable(false);
-        ok_btn->SetBackgroundColor(ok_btn_disable_bg);
-        ok_btn->SetBorderColor(ok_btn_bd);
-        ok_btn->SetTextColor(ok_btn_text);
-        ok_btn->SetFocus();
-        ok_btn->SetId(wxID_OK);
-        btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
-        m_button_list[wxOK] = ok_btn;
-    }
-    if (flags & wxCANCEL) {
-        Button* cancel_btn = new Button(this, _L("Cancel"));
-        cancel_btn->SetMinSize(BTN_SIZE);
-        cancel_btn->SetCornerRadius(FromDIP(12));
-        cancel_btn->SetBackgroundColor(cancel_btn_bg);
-        cancel_btn->SetBorderColor(cancel_btn_bd_);
-        cancel_btn->SetTextColor(cancel_btn_text);
-        cancel_btn->SetId(wxID_CANCEL);
-        btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
-        m_button_list[wxCANCEL] = cancel_btn;
-    }
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
+    m_button_list[wxOK]     = dlg_btns->GetOK();
+    m_button_list[wxCANCEL] = dlg_btns->GetCANCEL();
+
+    btn_sizer->Add(dlg_btns, 0, wxEXPAND | wxALIGN_CENTER_VERTICAL);
     return btn_sizer;
 }
 
@@ -200,12 +148,12 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
     if (!ok) {
         m_button_list[wxCANCEL]->Hide();
         m_button_list[wxOK]->Enable(true);
-        m_button_list[wxOK]->SetBackgroundColor(ok_btn_bg);
+        // ORCA no need to set colors again
     } else {
         m_button_list[wxOK]->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent &e) {
            if (m_panel_ObjColor->is_ok() == m_button_list[wxOK]->IsEnabled()) { return; }
            m_button_list[wxOK]->Enable(m_panel_ObjColor->is_ok());
-           m_button_list[wxOK]->SetBackgroundColor(m_panel_ObjColor->is_ok() ? ok_btn_bg : ok_btn_disable_bg);
+           // ORCA no need to set colors again
          }));
     }
     m_main_sizer->Add(m_buttons_sizer, 0, wxBOTTOM | wxTOP | wxRIGHT | wxEXPAND, BTN_GAP);
