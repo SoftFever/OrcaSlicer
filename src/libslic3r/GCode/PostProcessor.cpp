@@ -1,4 +1,5 @@
 #include "PostProcessor.hpp"
+#include <PlaceholderParser.hpp>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/format.hpp"
@@ -286,6 +287,8 @@ bool run_post_process_scripts(std::string &src_path, bool make_copy, const std::
     // Let the post-processing script know the final file name. For "File" host, it is a full path of the target file name and its location, for example pointing to an SD card.
     // For "PrusaLink" or "OctoPrint", it is a file name optionally with a directory on the target host.
     boost::nowide::setenv("SLIC3R_PP_OUTPUT_NAME", output_name.c_str(), 1);
+    // Get the placeholder parser to update scripts that use parameters instead of environment variables.
+    auto placeholder_parser = PlaceholderParser::PlaceholderParser();
 
     // Path to an optional file that the post-processing script may create and populate it with a single line containing the output_name replacement.
     std::string path_output_name = path + ".output_name";
@@ -309,6 +312,7 @@ bool run_post_process_scripts(std::string &src_path, bool make_copy, const std::
                 boost::trim(script);
                 if (script.empty())
                     continue;
+                script = placeholder_parser.process(script, 0, &config);
                 BOOST_LOG_TRIVIAL(info) << "Executing script " << script << " on file " << path;
                 std::string std_err;
                 const int result = run_script(script, gcode_file.string(), std_err);
