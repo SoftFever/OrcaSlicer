@@ -304,7 +304,7 @@ std::pair<float, Point> Fill::_infill_direction(const Surface *surface) const
         printf("Filling bridge with angle %f\n", surface->bridge_angle);
 #endif /* SLIC3R_DEBUG */
         out_angle = float(surface->bridge_angle);
-    } else if (this->layer_id != size_t(-1)) {
+    } else if (this->layer_id != size_t(-1) && this->alternate_fill_direction) {
         // alternate fill direction
         //Orca: if template angle is not empty, don't apply layer angle
         if(!is_using_template_angle) 

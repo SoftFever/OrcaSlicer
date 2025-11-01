@@ -1462,6 +1462,7 @@ void Layer::make_ironing()
 		double 		height;
 		double 		speed;
 		double 		angle;
+        bool        fixed_angle;
         bool        is_using_template_angle;
         double 		inset;
 
@@ -1533,7 +1534,8 @@ void Layer::make_ironing()
                 ironing_params.inset 		= config.ironing_inset;
 				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flow;
 				ironing_params.speed 		= config.ironing_speed;
-                ironing_params.angle        = calculate_infill_rotation_angle(this->object(), this->id(), config.solid_infill_direction.value, config.solid_infill_rotate_template.value) + config.ironing_angle * M_PI / 180.;
+                ironing_params.angle        = (config.ironing_angle_fixed ? 0 : calculate_infill_rotation_angle(this->object(), this->id(), config.solid_infill_direction.value, config.solid_infill_rotate_template.value)) + config.ironing_angle * M_PI / 180.;
+                ironing_params.fixed_angle  = config.ironing_angle_fixed;
                 ironing_params.is_using_template_angle = !config.solid_infill_rotate_template.value.empty(); 
 				ironing_params.pattern      = config.ironing_pattern;
 				ironing_params.layerm 		= layerm;
@@ -1630,6 +1632,7 @@ void Layer::make_ironing()
         // Create the filler object.
         f->spacing = ironing_params.line_spacing;
         f->angle = float(ironing_params.angle);
+        f->alternate_fill_direction = !ironing_params.fixed_angle;
         f->is_using_template_angle = ironing_params.is_using_template_angle;
         f->link_max_length = (coord_t) scale_(3. * f->spacing);
 		double  extrusion_height = ironing_params.height * f->spacing / nozzle_dmr;
