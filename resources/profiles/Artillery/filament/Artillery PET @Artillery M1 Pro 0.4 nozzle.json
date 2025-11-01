@@ -89,7 +89,7 @@
         "1"
     ],
     "pressure_advance": [
-        "0.063"
+        "0.08"
     ],
     "textured_plate_temp": [
         "80"
@@ -104,7 +104,7 @@
         "80"
     ],
     "filament_flow_ratio": [
-        "1.029"
+        "0.97"
     ],
     "slow_down_min_speed": [
         "20"
