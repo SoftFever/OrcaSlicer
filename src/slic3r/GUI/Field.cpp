@@ -309,7 +309,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 show_error(m_parent, _(L("Invalid numeric.")));
                 set_value(double_to_string(val), true);
             }
-            if (m_opt.min > val || val > m_opt.max)
+            if (!m_opt.is_value_valid(val))
             {
                 if (!check_value) {
                     m_value.clear();
@@ -2158,8 +2158,8 @@ boost::any& PointCtrl::get_value()
         show_error(m_parent, _L("Invalid numeric."));
 	}
 	else
-	if (m_opt.min > x || x > m_opt.max ||
-		m_opt.min > y || y > m_opt.max)
+	if (!m_opt.is_value_valid(x) ||
+		!m_opt.is_value_valid(y))
 	{
 		if (m_opt.min > x) x = m_opt.min;
 		if (x > m_opt.max) x = m_opt.max;
