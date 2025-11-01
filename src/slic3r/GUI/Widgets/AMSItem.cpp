@@ -18,8 +18,6 @@
 
 #include "CalibUtils.hpp"
 
-
-
 namespace Slic3r { namespace GUI {
 
     static const wxColour AMS_TRAY_DEFAULT_COL = wxColour(255, 255, 255);
@@ -364,8 +362,7 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
     m_playing_timer = new wxTimer();
     m_playing_timer->SetOwner(this);
-    wxPostEvent(this, wxTimerEvent());
-
+    wxPostEvent(this, wxCommandEvent(wxEVT_TIMER));
     SetSize(AMS_REFRESH_SIZE);
     SetMinSize(AMS_REFRESH_SIZE);
     SetMaxSize(AMS_REFRESH_SIZE);
