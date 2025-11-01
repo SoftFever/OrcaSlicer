@@ -314,7 +314,7 @@ void TextInput::messureSize()
     wxSize size = GetSize();
     wxClientDC dc(this);
     bool   align_right = GetWindowStyle() & wxRIGHT;
-    if (align_right)
+    if (align_right || static_tips.empty())
         dc.SetFont(GetFont());
     else
         dc.SetFont(Label::Body_12);
