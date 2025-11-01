@@ -1136,7 +1136,7 @@ msgstr "Distanza del centro del testo dalla superficie del modello."
 msgid "Undo rotation"
 msgstr "Reimposta rotazione"
 
-msgid "Rotate text Clock-wise."
+msgid "Rotate text Clockwise."
 msgstr "Ruota il testo in senso orario."
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
@@ -2760,7 +2760,7 @@ msgstr ""
 
 msgid ""
 "Enabling filtration during printing may reduce cooling and affect print "
-"qulity. Please choose carefully"
+"quality. Please choose carefully."
 msgstr ""
 
 msgid ""
@@ -4167,10 +4167,10 @@ msgstr ""
 msgid "Pause (nozzle clog)"
 msgstr ""
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr ""
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr ""
 
 msgid "Measure motion accuracy"
@@ -4179,7 +4179,7 @@ msgstr ""
 msgid "Nozzle offset calibration"
 msgstr ""
 
-msgid "high temperature auto bed levelling"
+msgid "high temperature auto bed leveling"
 msgstr ""
 
 msgid "Auto Check: Quick Release Lever"
@@ -4374,9 +4374,6 @@ msgid "Retry (problem solved)"
 msgstr ""
 
 msgid "Stop Drying"
-msgstr ""
-
-msgid "Cancle"
 msgstr ""
 
 msgid "Done"
@@ -5029,7 +5026,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the "
+"Filaments %s are placed in the %s, but the generated G-code path exceeds the "
 "printable range of the %s."
 msgstr ""
 
@@ -5041,7 +5038,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the "
+"Filaments %s are placed in the %s, but the generated G-code path exceeds the "
 "printable height of the %s."
 msgstr ""
 
@@ -6056,7 +6053,7 @@ msgstr "Il nome non può iniziare con uno spazio."
 msgid "The name is not allowed to end with space character."
 msgstr "Il nome non può terminare con uno spazio."
 
-msgid "The name is not allowed to exceeds 32 characters."
+msgid "The name is not allowed to exceed 32 characters."
 msgstr ""
 
 msgid "Bind with Pin Code"
@@ -6162,7 +6159,7 @@ msgstr "La stampante è occupata con altra attività di stampa"
 msgid "Current extruder is busy changing filament"
 msgstr ""
 
-msgid "Current slot has alread been loaded"
+msgid "Current slot has already been loaded"
 msgstr ""
 
 msgid "The selected slot is empty."
@@ -6916,7 +6913,7 @@ msgid "Sync filaments with AMS"
 msgstr "Sincronizza filamenti con AMS"
 
 msgid ""
-"There are some unknown or uncompatible filaments mapped to generic preset.\n"
+"There are some unknown or incompatible filaments mapped to generic preset.\n"
 "Please update Orca Slicer or restart Orca Slicer to check if there is an "
 "update to system presets."
 msgstr ""
@@ -8251,8 +8248,8 @@ msgstr ""
 msgid "Publish"
 msgstr "Pubblica"
 
-msgid "Publish was cancelled"
-msgstr ""
+msgid "Publish was canceled"
+msgstr "La pubblicazione è stata annullata"
 
 msgid "Slicing Plate 1"
 msgstr "Elaborazione Piatto 1"
@@ -20435,8 +20432,8 @@ msgstr "Nome Dispositivo"
 msgid "Device Status"
 msgstr "Stato Dispositivo"
 
-msgid "Ams Status"
-msgstr ""
+msgid "AMS Status"
+msgstr "Stato AMS"
 
 msgid ""
 "Please select the devices you would like to manage here (up to 6 devices)"
@@ -20598,7 +20595,7 @@ msgstr ""
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
-msgid "Tips: You can drag the filaments to reassign them to different nozzles."
+msgid "Tip: You can drag the filaments to reassign them to different nozzles."
 msgstr ""
 
 msgid ""
@@ -20648,8 +20645,8 @@ msgstr ""
 "Si è verificato un problema imprevisto durante il tentativo di accesso. "
 "Riprova."
 
-msgid "User cancelled."
-msgstr ""
+msgid "User canceled."
+msgstr "Utente rimosso."
 
 msgid "Head diameter"
 msgstr "Diametro testa"
@@ -21219,9 +21216,6 @@ msgstr ""
 #~ "L'AMS stimerà la capacità residua del filamento Bambu dopo "
 #~ "l'aggiornamento delle informazioni. Durante la stampa, la capacità "
 #~ "residua verrà aggiornata automaticamente."
-
-#~ msgid "AMS Status"
-#~ msgstr "Stato AMS"
 
 #~ msgid ""
 #~ "The recommended minimum temperature is less than 190°C or the recommended "
@@ -21947,9 +21941,6 @@ msgstr ""
 #~ msgid "Invalid number"
 #~ msgstr "Numero non valido"
 
-#~ msgid "Publish was canceled"
-#~ msgstr "La pubblicazione è stata annullata"
-
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.2f %s"
 #~ msgstr "ugello memorizzato: %.2f %s"
@@ -22234,9 +22225,6 @@ msgstr ""
 
 #~ msgid "Could not connect to Flashforge"
 #~ msgstr "Impossibile connettersi a Flashforge"
-
-#~ msgid "User canceled."
-#~ msgstr "Utente rimosso."
 
 #~ msgid "Set the brim type to \"painted\""
 #~ msgstr "Imposta il tipo di tesa su \"Dipinto\""
