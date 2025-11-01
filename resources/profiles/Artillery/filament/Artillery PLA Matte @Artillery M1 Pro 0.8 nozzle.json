@@ -27,5 +27,8 @@
     ],
     "cool_plate_temp_initial_layer": [
         "50"
+    ],
+    "compatible_printers": [
+        "Artillery M1 Pro 0.8 nozzle"
     ]
 }
