@@ -1021,13 +1021,10 @@ void PrintErrorDialog::update_title_style(wxString title, std::vector<int> butto
 void PrintErrorDialog::init_button(PrintErrorButton style,wxString buton_text)
 {
     Button* print_error_button = new Button(this, buton_text);
-    print_error_button->SetBackgroundColor(btn_bg_white);
-    print_error_button->SetBorderColor(wxColour(38, 46, 48));
-    print_error_button->SetFont(Label::Body_14);
+    print_error_button->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
     print_error_button->SetSize(wxSize(FromDIP(300), FromDIP(30)));
     print_error_button->SetMinSize(wxSize(FromDIP(300), FromDIP(30)));
     print_error_button->SetMaxSize(wxSize(-1, FromDIP(30)));
-    print_error_button->SetCornerRadius(FromDIP(5));
     print_error_button->Hide();
     m_button_list[style] = print_error_button;
     m_button_list[style]->Bind(wxEVT_LEFT_DOWN, [this, style](wxMouseEvent& e)
@@ -1829,9 +1826,7 @@ void InputIpAddressDialog::on_send_retry()
         return;
     }
 
-    m_button_ok->Enable(false);
-    m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-    m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    m_button_ok->Enable(false); // ORCA enabling / disabling buttons with conditions enough to change its style
 
     m_worker->wait_for_idle();
 
@@ -2077,9 +2072,6 @@ void InputIpAddressDialog::on_dpi_changed(const wxRect& suggested_rect)
      SetMinSize(wxSize(FromDIP(560), -1));
      SetMaxSize(wxSize(FromDIP(560), -1));
 
-     std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
-     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
      SetBackgroundColour(*wxWHITE);
      auto m_sizer_main    = new wxBoxSizer(wxVERTICAL);
      auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(400), 1));
@@ -2093,34 +2085,15 @@ void InputIpAddressDialog::on_dpi_changed(const wxRect& suggested_rect)
 
      wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-
-     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
-
 
      auto m_button_retry = new Button(this, _L("Retry"));
-     m_button_retry->SetBackgroundColor(btn_bg_green);
-     m_button_retry->SetBorderColor(*wxWHITE);
-     m_button_retry->SetTextColor(wxColour("#FFFFFE"));
-     m_button_retry->SetFont(Label::Body_12);
-     m_button_retry->SetSize(wxSize(-1, FromDIP(24)));
-     m_button_retry->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-     m_button_retry->SetCornerRadius(FromDIP(12));
-
+     m_button_retry->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
      m_button_retry->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
          EndModal(wxYES);
      });
 
      auto m_button_input = new Button(this, _L("reconnect"));
-     m_button_input->SetBackgroundColor(btn_bg_white);
-     m_button_input->SetBorderColor(wxColour(38, 46, 48));
-     m_button_input->SetFont(Label::Body_12);
-     m_button_input->SetSize(wxSize(-1, FromDIP(24)));
-     m_button_input->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-     m_button_input->SetCornerRadius(FromDIP(12));
-
+     m_button_input->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
      m_button_input->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
          EndModal(wxAPPLY);
      });

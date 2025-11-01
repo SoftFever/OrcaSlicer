@@ -215,7 +215,6 @@ public:
     void init_button_list();
     void on_webrequest_state(wxWebRequestEvent& evt);
 
-    StateColor btn_bg_white;
     wxWebRequest web_request;
     wxStaticBitmap* m_error_prompt_pic_static;
     Label* m_staticText_release_note{ nullptr };
