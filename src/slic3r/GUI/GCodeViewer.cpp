@@ -6075,7 +6075,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             append_option_item(item, offsets);
     }
     ImGui::Dummy({ window_padding, window_padding });
-    if (m_nozzle_nums > 1)
+    if (m_nozzle_nums > 1 && (m_view_type == EViewType::Summary || m_view_type == EViewType::ColorPrint)) // ORCA show only on summary and filament tab
         render_legend_color_arr_recommen(window_padding);
 
     legend_height = ImGui::GetCurrentWindow()->Size.y;
