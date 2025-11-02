@@ -497,7 +497,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     Fit();
 }
 
-SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum VisibleButtons btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
+SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum VisibleButtons btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check) // ORCA VisibleButtons instead ButtonStyle 
     :DPIFrame(parent, id, title, pos, size, style)
 {
     m_button_style = btn_style;
@@ -704,7 +704,7 @@ void SecondaryCheckDialog::on_hide()
     }
 }
 
-void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDialog::VisibleButtons style, wxWindow* parent)
+void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDialog::VisibleButtons style, wxWindow* parent) // ORCA VisibleButtons instead ButtonStyle 
 {
     if (m_button_style == style && title == GetTitle()) return;
 
