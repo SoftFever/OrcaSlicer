@@ -1199,7 +1199,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->layer_id = this->id();
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
-        f->is_using_template_angle = surface_fill.params.is_using_template_angle;
+        f->fixed_angle = surface_fill.params.is_using_template_angle;
         f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
         f->print_config        = &this->object()->print()->config();
         f->print_object_config = &this->object()->config();
@@ -1389,7 +1389,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         f->layer_id = this->id() - this->object()->get_layer(0)->id(); // We need to subtract raft layers.
         f->z        = this->print_z;
         f->angle    = surface_fill.params.angle;
-        f->is_using_template_angle = surface_fill.params.is_using_template_angle;
+        f->fixed_angle = surface_fill.params.is_using_template_angle;
         f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
         f->print_config        = &this->object()->print()->config();
         f->print_object_config = &this->object()->config();
@@ -1462,7 +1462,6 @@ void Layer::make_ironing()
 		double 		height;
 		double 		speed;
 		double 		angle;
-        bool        fixed_angle;
         bool        is_using_template_angle;
         double 		inset;
 
@@ -1535,8 +1534,7 @@ void Layer::make_ironing()
 				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flow;
 				ironing_params.speed 		= config.ironing_speed;
                 ironing_params.angle        = (config.ironing_angle_fixed ? 0 : calculate_infill_rotation_angle(this->object(), this->id(), config.solid_infill_direction.value, config.solid_infill_rotate_template.value)) + config.ironing_angle * M_PI / 180.;
-                ironing_params.fixed_angle  = config.ironing_angle_fixed;
-                ironing_params.is_using_template_angle = !config.solid_infill_rotate_template.value.empty(); 
+                ironing_params.is_using_template_angle = config.ironing_angle_fixed || !config.solid_infill_rotate_template.value.empty(); 
 				ironing_params.pattern      = config.ironing_pattern;
 				ironing_params.layerm 		= layerm;
 				by_extruder.emplace_back(ironing_params);
@@ -1632,8 +1630,7 @@ void Layer::make_ironing()
         // Create the filler object.
         f->spacing = ironing_params.line_spacing;
         f->angle = float(ironing_params.angle);
-        f->alternate_fill_direction = !ironing_params.fixed_angle;
-        f->is_using_template_angle = ironing_params.is_using_template_angle;
+        f->fixed_angle = ironing_params.is_using_template_angle;
         f->link_max_length = (coord_t) scale_(3. * f->spacing);
 		double  extrusion_height = ironing_params.height * f->spacing / nozzle_dmr;
 		float  extrusion_width  = Flow::rounded_rectangle_extrusion_width_from_spacing(float(nozzle_dmr), float(extrusion_height));

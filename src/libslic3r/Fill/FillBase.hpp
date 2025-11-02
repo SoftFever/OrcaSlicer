@@ -119,11 +119,9 @@ public:
     coordf_t    overlap;
     // in radians, ccw, 0 = East
     float       angle;
-    // Orca: Alternate fill direction between layers depending on the layer number.
-    bool        alternate_fill_direction{true};
 
-    // Orca: is_using_template_angle
-    bool        is_using_template_angle{false};
+    // Orca: Fill direction is fixed angle if SurfaceFillParams.is_using_template_angle or config.ironing_angle_fixed
+    bool        fixed_angle{false};
     // In scaled coordinates. Maximum lenght of a perimeter segment connecting two infill lines.
     // Used by the FillRectilinear2, FillGrid2, FillTriangles, FillStars and FillCubic.
     // If left to zero, the links will not be limited.
@@ -206,7 +204,7 @@ protected:
         ExPolygon                      expolygon,
         ThickPolylines& thick_polylines_out) {}
 
-    virtual float _layer_angle(size_t idx) const { return is_using_template_angle ? 0.f : (idx & 1) ? float(M_PI/2.) : 0.f; }
+    virtual float _layer_angle(size_t idx) const { return fixed_angle ? 0.f : (idx & 1) ? float(M_PI/2.) : 0.f; }
 
     virtual std::pair<float, Point> _infill_direction(const Surface *surface) const;
     
