@@ -4558,8 +4558,8 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         tips_count = 5;
 
     float AMS_container_height = ams_item_height + line_height * tips_count + line_height;
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1.f, 1.f, 1.f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.15f, .18f, .19f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, .1f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
 
     // ImGui::Dummy({window_padding, window_padding});
@@ -4570,7 +4570,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         float spacing           = 18.0f * m_scale;
 
         ImGui::Dummy({window_padding, window_padding});
-        ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(.8f, .8f, .8f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
         imgui.bold_text(_u8L("Filament Grouping"));
         ImGui::SameLine();
         std::string tip_str = _u8L("Why this grouping");
@@ -4580,12 +4580,12 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         ImGui::PopStyleColor();
         ImGui::Dummy({window_padding, window_padding});
 
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.00f, 0.00f, 0.00f, 0.1f));
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0.05f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 2, window_padding));
 
         ImDrawList *child_begin_draw_list = ImGui::GetWindowDrawList();
         ImVec2      cursor_pos            = ImGui::GetCursorScreenPos();
-        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
+        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(255, 255, 255, 10));
         ImGui::BeginChild("#LeftAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
         {
             imgui.text(_u8L("Left nozzle"));
@@ -4600,7 +4600,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         }
         ImGui::SameLine();
         cursor_pos = ImGui::GetCursorScreenPos();
-        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
+        child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(255, 255, 255, 10));
         ImGui::BeginChild("#RightAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
         {
             imgui.text(_u8L("Right nozzle"));
@@ -4620,10 +4620,11 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         imgui.text_wrapped(from_u8(_u8L("Please place filaments on the printer based on grouping result.")), ImGui::GetContentRegionAvail().x);
         ImGui::Dummy({window_padding, window_padding});
 
-        {
-            ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            draw_dash_line(draw_list);
-        }
+        //{
+        //    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        //    draw_dash_line(draw_list);
+        //}
+        ImGui::Separator();
 
         bool is_optimal_group = true;
         float parent_width = ImGui::GetContentRegionAvail().x;
