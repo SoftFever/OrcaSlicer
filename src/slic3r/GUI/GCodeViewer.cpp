@@ -4558,7 +4558,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         tips_count = 5;
 
     float AMS_container_height = ams_item_height + line_height * tips_count + line_height;
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, .1f));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0)); // this shold be 0 since its child of gcodeviewer
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
 
