@@ -4491,7 +4491,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         ImVec2 p1 = ImGui::GetCursorScreenPos();
         ImVec2 p2 = ImVec2(p1.x + ImGui::GetContentRegionAvail().x, p1.y);
         for (float i = p1.x; i < p2.x; i += (dash_length + gap_length)) {
-            draw_list->AddLine(ImVec2(i, p1.y), ImVec2(i + dash_length, p1.y), IM_COL32(206, 206, 206, 255));
+            draw_list->AddLine(ImVec2(i, p1.y), ImVec2(i + dash_length, p1.y), ImGui::GetColorU32(ImVec4(1.0f,1.0f,1.0f,0.6f))); // ORCA match color
         }
     };
 
@@ -4620,11 +4620,10 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         imgui.text_wrapped(from_u8(_u8L("Please place filaments on the printer based on grouping result.")), ImGui::GetContentRegionAvail().x);
         ImGui::Dummy({window_padding, window_padding});
 
-        //{
-        //    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        //    draw_dash_line(draw_list);
-        //}
-        ImGui::Separator();
+        {
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            draw_dash_line(draw_list);
+        }
 
         bool is_optimal_group = true;
         float parent_width = ImGui::GetContentRegionAvail().x;
