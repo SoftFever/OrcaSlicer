@@ -20,6 +20,18 @@ However, slightly wider lines generally improve **layer bonding** and **print st
 > This will match only if using the [**Classic** wall generator](quality_settings_wall_generator#classic).  
 > [**Arachne**](quality_settings_wall_generator#arachne) will adjust the line width dynamically based on the model's geometry, using this values as a reference.
 
+- [Line Types](#line-types)
+  - [Default](#default)
+  - [First Layer](#first-layer)
+  - [Outer Wall](#outer-wall)
+  - [Inner Wall](#inner-wall)
+  - [Top Surface](#top-surface)
+  - [Sparse Infill](#sparse-infill)
+  - [Internal Solid Infill](#internal-solid-infill)
+  - [Support](#support)
+  - [Bridge](#bridge)
+
+
 ## Line Types
 
 In OrcaSlicer, you can assign different line widths to specific parts of the print. Each type can be customized:
@@ -61,3 +73,12 @@ Recommended: **~110%** for good layer adhesion and visual quality.
 ### Support
 
 Typically set to **100%** to balance material usage and functionality. Reducing it too much can lead to weak support structures that may not hold up during printing or break easily during removal leaving debris on the model.
+
+### Bridge
+
+Bridges are printed in mid air, then bridge line width can't be much wider than nozzle diameter.  
+To achieve a proper bridge lines union between contiguous lines and reduce sagging its recommended to use **~100%** of the nozzle diameter and increasing [Bridge Flow Rate](quality_settings_bridging#flow-ratio).
+
+![bridge_line_width](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/bridging/bridge_line_width.svg?raw=true)
+
+If disabled (set to 0), [Internal Solid Infill](#internal-solid-infill) line width will be used for bridges.
