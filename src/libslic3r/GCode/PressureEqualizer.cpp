@@ -515,7 +515,7 @@ void PressureEqualizer::output_gcode_line(const size_t line_idx)
         float t_total = line.dist_xyz() / feed_avg;
         // Time of the acceleration / deceleration part of the segment, if accelerating / decelerating
         // with the maximum volumetric extrusion rate slope.
-        float t_acc    = 0.5f * (line.volumetric_extrusion_rate_start + line.volumetric_extrusion_rate_end) / max_volumetric_extrusion_rate_slope;
+        float t_acc    = std::fabs(line.volumetric_extrusion_rate_start - line.volumetric_extrusion_rate_end) / max_volumetric_extrusion_rate_slope;
         float l_acc    = l;
         float l_steady = 0.f;
         if (t_acc < t_total) {
