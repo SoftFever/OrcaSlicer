@@ -10,18 +10,38 @@ Can be built when you are building Orca Slicer binary by including the `-t` flag
 build_linux.sh -st
 ```
 
-Test binaries will then appear under `build/tests`. As of this writing, not all tests will be built.
+(or `-ster` or `-stb` etc).
+
+When running `build_linux.sh` with `-t`, make sure you always include the `-e` or `-b` flag if you built the binary with them, otherwise you'll rebuild all of OrcaSlicer again before the tests are ready.
+
+Test binaries will then appear under `build/tests` or `build-dbginfo/tests` or `build-dbg/tests`. As of this writing, not all tests will be built.
+
+For rebuilding after changes, you can look into `build_linux.sh` for the cmake command which triggers the build, but it should be something like:
+
+```
+# Obviously only use the appropriate one
+BUILD_CONFIG=Release
+BUILD_CONFIG=RelWithDebInfo
+cd $BUILD_DIR # build or build-dbginfo probably
+
+cmake --build . --config $BUILD_CONFIG --target tests/all
+# or
+cmake --build . --config $BUILD_CONFIG --target libslic3r_tests
+# etc
+```
 
 ## Run Unit Tests
 
 ### Run All
 
 ```
-ctest --test-dir build/tests
+cd $BUILD_DIR # build or build-dbginfo probably
+ctest --test-dir tests
 ```
 
 ### Run a Specific Set
 
 ```
-ctest --test-dir build/tests/slic3rutils
+cd $BUILD_DIR # build or build-dbginfo probably
+ctest --test-dir tests/slic3rutils
 ```
