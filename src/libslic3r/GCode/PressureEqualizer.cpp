@@ -590,30 +590,32 @@ void PressureEqualizer::output_gcode_line(const size_t line_idx)
     }
 }
 
-void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const size_t last_line_idx)
+void PressureEqualizer::adjust_volumetric_rate(const size_t first_line_idx, const size_t last_line_idx)
 {
     // don't bother adjusting volumetric rate if there's no gcode to adjust
-    if (last_line_idx-fist_line_idx < 2)
+    if (last_line_idx - first_line_idx < 2)
         return;
 
-    size_t       line_idx      = last_line_idx;
-    if (line_idx == fist_line_idx || !m_gcode_lines[line_idx].extruding())
+    size_t line_idx = last_line_idx;
+    if (line_idx == first_line_idx || !m_gcode_lines[line_idx].extruding())
         // Nothing to do, the last move is not extruding.
         return;
+
     std::array<float, size_t(ExtrusionRole::erCount)> feedrate_per_extrusion_role{};
     feedrate_per_extrusion_role.fill(std::numeric_limits<float>::max());
     feedrate_per_extrusion_role[int(m_gcode_lines[line_idx].extrusion_role)] = m_gcode_lines[line_idx].volumetric_extrusion_rate_start;
 
-    while (line_idx != fist_line_idx) {
+    while (line_idx != first_line_idx) {
         size_t idx_prev = line_idx - 1;
-        for (; !m_gcode_lines[idx_prev].extruding() && idx_prev != fist_line_idx; --idx_prev);
+        for (; !m_gcode_lines[idx_prev].extruding() && idx_prev != first_line_idx; --idx_prev);
         if (!m_gcode_lines[idx_prev].extruding())
             break;
         // Don't decelerate before ironing.
-        if (m_gcode_lines[line_idx].extrusion_role == ExtrusionRole::erIroning) {            line_idx = idx_prev;
+        if (m_gcode_lines[line_idx].extrusion_role == ExtrusionRole::erIroning) {
+            line_idx = idx_prev;
             continue;
         }
-        // Volumetric extrusion rate at the start of the succeding segment.
+        // Volumetric extrusion rate at the start of the succeeding segment.
         float rate_succ = m_gcode_lines[line_idx].volumetric_extrusion_rate_start;
         // What is the gradient of the extrusion rate between idx_prev and idx?
         line_idx        = idx_prev;
@@ -630,8 +632,8 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
                 rate_end = rate_succ;
 
             // don't alter the flow rate for these extrusion types
-            // Orca: Limit ERS to external perimeters and overhangs if option selected by user
             if (!line.adjustable_flow || line.extrusion_role == ExtrusionRole::erBridgeInfill || line.extrusion_role == ExtrusionRole::erIroning ||
+                // Orca: Limit ERS to external perimeters and overhangs if option selected by user
                 (m_extrusion_rate_smoothing_external_perimeter_only && line.extrusion_role != ExtrusionRole::erOverhangPerimeter && line.extrusion_role != ExtrusionRole::erExternalPerimeter)) {
                 rate_end = line.volumetric_extrusion_rate_end;
             } else if (line.volumetric_extrusion_rate_end > rate_end) {
@@ -687,13 +689,13 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
 
             float rate_start = feedrate_per_extrusion_role[iRole];
             // don't alter the flow rate for these extrusion types
-            // Orca: Limit ERS to external perimeters and overhangs if option selected by user
             if (!line.adjustable_flow || line.extrusion_role == ExtrusionRole::erBridgeInfill || line.extrusion_role == ExtrusionRole::erIroning ||
+                // Orca: Limit ERS to external perimeters and overhangs if option selected by user
                 (m_extrusion_rate_smoothing_external_perimeter_only && line.extrusion_role != ExtrusionRole::erOverhangPerimeter && line.extrusion_role != ExtrusionRole::erExternalPerimeter)) {
                 rate_start = line.volumetric_extrusion_rate_start;
             } else if (iRole == size_t(line.extrusion_role) && rate_prec < rate_start)
                 rate_start = rate_prec;
-            
+
             if (line.volumetric_extrusion_rate_start > rate_start) {
                 line.volumetric_extrusion_rate_start = rate_start;
                 line.max_volumetric_extrusion_rate_slope_positive = rate_slope;
