@@ -120,7 +120,7 @@ public:
     // in radians, ccw, 0 = East
     float       angle;
 
-    // Orca: Fill direction is fixed angle if SurfaceFillParams.is_using_template_angle or config.ironing_angle_fixed
+    // Orca: Fill direction is fixed absolute angle if SurfaceFillParams.fixed_angle or config.ironing_angle_fixed
     bool        fixed_angle{false};
     // In scaled coordinates. Maximum lenght of a perimeter segment connecting two infill lines.
     // Used by the FillRectilinear2, FillGrid2, FillTriangles, FillStars and FillCubic.
