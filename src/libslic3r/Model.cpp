@@ -647,7 +647,6 @@ ModelMaterial* Model::add_material(t_model_material_id material_id, const ModelM
     return material;
 }
 
-// makes sure all objects have at least one instance
 bool Model::add_default_instances()
 {
     // apply a default position to all objects not having one
