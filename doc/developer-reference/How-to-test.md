@@ -4,19 +4,21 @@ This wiki page describes how to build and run tests on Linux. It should eventual
 
 ## Build Tests
 
-Can be built when you are building Orca Slicer binary by including the `-t` flag for `build_linux.sh`:
+Can be built with the `-t` flag for `build_linux.sh`:
 
 ```
-build_linux.sh -st
+build_linux.sh -t
 ```
 
-(or `-ster` or `-stb` etc).
+(or `-ter` or `-stb` etc).
 
 When running `build_linux.sh` with `-t`, make sure you always include the `-e` or `-b` flag if you built the binary with them, otherwise you'll rebuild all of OrcaSlicer again before the tests are ready.
 
 Test binaries will then appear under `build/tests` or `build-dbginfo/tests` or `build-dbg/tests`. As of this writing, not all tests will be built.
 
-For rebuilding after changes, you can look into `build_linux.sh` for the cmake command which triggers the build, but it should be something like:
+### Faster Test Write-Build-Run Loop
+
+For rebuilding after changes, you can look into `build_linux.sh` for the cmake command which triggers the build and adapt it to running independently. You'll be able to use something like:
 
 ```
 # Obviously only use the appropriate one
@@ -29,6 +31,8 @@ cmake --build . --config $BUILD_CONFIG --target tests/all
 cmake --build . --config $BUILD_CONFIG --target libslic3r_tests
 # etc
 ```
+
+If you change any CMakeLists.txt file, you'll need to rerun the configuration generation first; running `build_linux.sh -t{eb}` is the most-straightforward and quickest way. You'll need this if you added a new cpp file, for example.
 
 ## Run Unit Tests
 
