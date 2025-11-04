@@ -9447,10 +9447,10 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
 #define PRINT_CONFIG_CACHE_INITIALIZE(CLASSES_SEQ) \
     BOOST_PP_SEQ_FOR_EACH(PRINT_CONFIG_CACHE_ELEMENT_DEFINITION, _, BOOST_PP_TUPLE_TO_SEQ(CLASSES_SEQ)) \
     int print_config_static_initializer() { \
-        /* Putting a trace here to avoid the compiler to optimize out this function. */ \
-        BOOST_LOG_TRIVIAL(trace) << "Initializing StaticPrintConfigs"; \
+        /* For some reason it's important this function doesn't get optimized out, so this should work. */ \
+        static volatile int ret = 1; \
         BOOST_PP_SEQ_FOR_EACH(PRINT_CONFIG_CACHE_ELEMENT_INITIALIZATION, _, BOOST_PP_TUPLE_TO_SEQ(CLASSES_SEQ)) \
-        return 1; \
+        return ret; \
     }
 PRINT_CONFIG_CACHE_INITIALIZE((
     PrintObjectConfig, PrintRegionConfig, MachineEnvelopeConfig, GCodeConfig, PrintConfig, FullPrintConfig,
