@@ -11,15 +11,18 @@
 
 ## Flow ratio
 
-Increasing this value (~1.5) when using a [Bridge Line Width](quality_settings_line_width#bridge) of 100% (equal to the nozzle size) improves lateral contact between bridge lines, which significantly enhances bridging performance and reduces sagging.  
-Slightly decreasing this value (e.g., to 0.9) lowers the amount of material used for bridges, which can help reduce sagging, but will prevent adjacent bridge lines from making lateral contact.
-
-The actual bridge flow used is calculated by multiplying this value with the filament flow ratio, and if set, the object's flow ratio.
+- Values above 1.0 add material:
+  - Regular bridges: Keep spacing and thicken the filament for stronger line contact when paired with a <= 100% Bridge line width.
+  - Thick bridges: Increase spacing and increase width, height and spacing.
+- Values below 1.0 remove material:
+  - Regular bridges: eventually tighten spacing as the thread thins—potentially adding passes or altering paths—whereas.
+  - Thick bridges: shrink both diameter and spacing, cutting sagging at the cost of lateral bonding.
 
 ## Bridge density
 
-This value governs the thickness of the bridge layer. This is the first layer over sparse infill. Decrease this value slightly (for example 0.9) to improve surface quality over sparse infill.  
-The actual internal bridge flow used is calculated by multiplying this value with the [bridge flow ratio](#flow-ratio), the filament flow ratio, and if set, the object's flow ratio.
+Controls the density (spacing) of external bridge lines. 100% means solid bridge.  
+Higher density external bridges can help with line bonding when using 100% [Bridge Line Width](quality_settings_line_width#bridge).  
+Lower density external bridges can help improve reliability as there is more space for air to circulate around the extruded bridge, improving its cooling speed.
 
 ## Thick bridges
 
