@@ -1,4 +1,3 @@
-#include <catch2/catch.hpp>
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/3mf.hpp"
@@ -6,7 +5,61 @@
 
 #include <boost/filesystem/operations.hpp>
 
+#include <catch2/catch_tostring.hpp>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <type_traits> // for std::enable_if_t
+#include <typeinfo>    // for typeid
+
+namespace Catch {
+    template <typename T>
+    struct is_eigen_matrix : std::is_base_of<Eigen::MatrixBase<T>, T> {};
+
+    template <typename T>
+    struct StringMaker<T, std::enable_if_t<is_eigen_matrix<T>::value>> {
+        static std::string convert(const T& eigen_obj) {
+            // Newline at end of rows
+            Eigen::IOFormat fmt(4, 0, ", ", "\n", "[", "]");
+            std::stringstream ss;
+            ss << "Matrix<" << typeid(eigen_obj).name() << "> = \n";
+            ss << eigen_obj.format(fmt);
+            return ss.str();
+        }
+    };
+    
+    // We must manually specialize for Eigen::Transform as it doesn't derive from MatrixBase.
+    // It's defined as: Eigen::Transform<Scalar, Dim, Mode, Options>
+    template <typename Scalar, int Dim, int Mode, int Options>
+    struct StringMaker<Eigen::Transform<Scalar, Dim, Mode, Options>> {
+        static std::string convert(const Eigen::Transform<Scalar, Dim, Mode, Options>& trafo) {
+            // We print the underlying matrix 
+            const auto& matrix = trafo.matrix();
+
+            // Newline at end of rows
+            Eigen::IOFormat fmt(4, 0, ", ", "\n", "[", "]");
+            std::stringstream ss;
+            
+            ss << "Transform<Mode=" << Mode << ", Dim=" << Dim << "> = \n"; 
+            ss << matrix.format(fmt);
+            return ss.str();
+        }
+    };
+    
+    // Quaternions also need an explicit specialization
+    template <typename Scalar, int Options>
+    struct StringMaker<Eigen::Quaternion<Scalar, Options>> {
+        static std::string convert(const Eigen::Quaternion<Scalar, Options>& quat) {
+            std::stringstream ss;
+            ss << "Quaternion(w=" << quat.w() << ", x=" << quat.x() << ", y=" << quat.y() << ", z=" << quat.z() << ")";
+            return ss.str();
+        }
+    };
+} // end namespace Catch
+
+#include <catch2/catch_all.hpp>
+
 using namespace Slic3r;
+
 
 SCENARIO("Reading 3mf file", "[3mf]") {
     GIVEN("umlauts in the path of the file") {
@@ -89,17 +142,26 @@ SCENARIO("2D convex hull of sinking object", "[3mf]") {
         model.add_default_instances();
 
         WHEN("model is rotated, scaled and set as sinking") {
-            ModelObject* object = model.objects.front();
+            ModelObject* object = model.objects[0];
             object->center_around_origin(false);
 
-            // set instance's attitude so that it is rotated, scaled and sinking
-            ModelInstance* instance = object->instances.front();
+	    // This outputs the same exact data as the Prusaslicer test
+	    object->volumes[0]->mesh().write_ascii("/tmp/orca.ascii");
+
+            // set instance's attitude so that it is rotated, scaled (and sinking? how is it sinking? the rotation? does it matter if it's sinking?)
+            ModelInstance* instance = object->instances[0];
             instance->set_rotation(X, -M_PI / 4.0);
             instance->set_offset(Vec3d::Zero());
             instance->set_scaling_factor({ 2.0, 2.0, 2.0 });
 
             // calculate 2D convex hull
-            Polygon hull_2d = object->convex_hull_2d(instance->get_transformation().get_matrix());
+	    auto trafo = instance->get_transformation().get_matrix();
+
+	    // This matrix is the same exact matrix as the Prusaslicer test
+	    CAPTURE(trafo);
+            Polygon hull_2d = object->convex_hull_2d(trafo);
+
+	    // But we get different hull_2d.points here (and somehow decimal numbers despite being int64_t values, but that's probabaly printing configuration somewhere -- Prusaslicer's prints out with newlines between the X&Y and not one between coordinates, which is about the worse possible output).
 
             // verify result
             Points result = {
