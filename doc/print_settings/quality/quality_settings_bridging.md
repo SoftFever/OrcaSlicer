@@ -11,7 +11,9 @@
 
 ## Flow ratio
 
-Decrease this value slightly (for example 0.9) to reduce the amount of material for bridge, to improve sag.  
+Increasing this value (~1.5) when using a [Bridge Line Width](quality_settings_line_width#bridge) of 100% (equal to the nozzle size) improves lateral contact between bridge lines, which significantly enhances bridging performance and reduces sagging.  
+Slightly decreasing this value (e.g., to 0.9) lowers the amount of material used for bridges, which can help reduce sagging, but will prevent adjacent bridge lines from making lateral contact.
+
 The actual bridge flow used is calculated by multiplying this value with the filament flow ratio, and if set, the object's flow ratio.
 
 ## Bridge density
