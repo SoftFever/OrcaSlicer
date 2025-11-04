@@ -2783,12 +2783,48 @@ public:
     std::map<t_config_option_key, std::unique_ptr<ConfigOption>>::const_iterator cend()   const { return options.cend(); }
     size_t                        												 size()   const { return options.size(); }
 
+    /**
+     * @brief Detailed information about the difference found for a single key.
+     */
+    struct KeyDifference {
+        std::optional<std::string> left_value;
+        std::optional<std::string> right_value;
+
+        bool is_missing_key() const {
+            return !left_value.has_value() || !right_value.has_value();
+        }
+        bool is_different_value() const {
+            return left_value.has_value() && right_value.has_value() && (left_value.value() != right_value.value());
+        }
+    };
+
+    /**
+     * @brief The full report object containing all detected differences.
+     */
+    struct DynamicConfigDifference {
+        std::map<t_config_option_key, KeyDifference> differences;
+
+        bool is_different() const {
+            return !differences.empty();
+        }
+    };
+
+    /**
+     * @brief Computes the symmetric difference between this DynamicConfig (left)
+     * and another DynamicConfig (rhs).
+     * @param rhs The right-hand side config to compare against.
+     * @return DynamicConfigDifference report.
+     */
+    DynamicConfigDifference diff_report(const DynamicConfig& rhs) const;
+
 private:
     std::map<t_config_option_key, std::unique_ptr<ConfigOption>> options;
 
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive &ar) { ar(options); }
 };
+
+std::ostream& operator<<(std::ostream& os, const DynamicConfig::DynamicConfigDifference& diff);
 
 // Configuration store with a static definition of configuration values.
 // In Slic3r, the static configuration stores are during the slicing / g-code generation for efficiency reasons,
