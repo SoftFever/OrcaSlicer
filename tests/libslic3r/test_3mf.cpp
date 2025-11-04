@@ -133,7 +133,7 @@ SCENARIO("Export+Import geometry to/from 3mf file cycle", "[3mf]") {
     }
 }
 
-SCENARIO("2D convex hull of sinking object", "[3mf]") {
+SCENARIO("2D convex hull of sinking object", "[3mf][.]") {
     GIVEN("model") {
         // load a model
         Model model;
@@ -162,6 +162,8 @@ SCENARIO("2D convex hull of sinking object", "[3mf]") {
             Polygon hull_2d = object->convex_hull_2d(trafo);
 
 	    // But we get different hull_2d.points here (and somehow decimal numbers despite being int64_t values, but that's probabaly printing configuration somewhere -- Prusaslicer's prints out with newlines between the X&Y and not one between coordinates, which is about the worse possible output).
+	    // I think it's something to do with PrusaSlicer ignoring everything under the Z plane, which makes sense from the results.
+	    // See the comments added to ModelObject::convex_hull_2d for more information.
 
             // verify result
             Points result = {
