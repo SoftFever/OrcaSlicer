@@ -561,7 +561,6 @@ double min_object_distance(const ConfigBase &cfg);
 // The dynamic configuration is also used to store user modifications of the print global parameters,
 // so the modified configuration values may be diffed against the active configuration
 // to invalidate the proper slicing resp. g-code generation processing steps.
-// This object is mapped to Perl as Slic3r::Config.
 class DynamicPrintConfig : public DynamicConfig
 {
 public:
