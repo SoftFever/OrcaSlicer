@@ -380,31 +380,77 @@ SCENARIO("Polygon convex/concave detection", "[Geometry]"){
             Point(200,100),
             Point(200,200),
             Point(100,200)}));
-        THEN("It has 4 convex points counterclockwise no angle limit"){
-	    auto cave_pts = square.concave_points(0);
-	    auto vex_pts = square.convex_points(0);
-	    CAPTURE(cave_pts);
-	    CAPTURE(vex_pts);
-            REQUIRE(cave_pts.size() == 0);
-            REQUIRE(vex_pts.size() == 4);
-        }
-        THEN("It has 4 convex points counterclockwise with angle limit"){
-	    auto cave_pts = square.concave_points(PI*4/3);
-	    auto vex_pts = square.convex_points(PI*4/3);
-	    CAPTURE(cave_pts);
-	    CAPTURE(vex_pts);
-            REQUIRE(cave_pts.size() == 0);
-            REQUIRE(vex_pts.size() == 4);
-        }
-        THEN("It has 4 concave points clockwise"){
-            square.make_clockwise();
-	    auto cave_pts = square.concave_points(0);
-	    auto vex_pts = square.convex_points(0);
-	    CAPTURE(cave_pts);
-	    CAPTURE(vex_pts);
-            REQUIRE(cave_pts.size() == 4);
-            REQUIRE(vex_pts.size() == 0);
-        }
+
+		WHEN("Angle threshold is not set") {
+			THEN("It has 4 convex points counterclockwise"){
+				auto cave_pts = square.concave_points();
+				auto vex_pts = square.convex_points();
+				CAPTURE(cave_pts);
+				CAPTURE(vex_pts);
+				REQUIRE(cave_pts.size() == 0);
+				REQUIRE(vex_pts.size() == 4);
+			}
+			THEN("It has 4 concave points clockwise"){
+				square.make_clockwise();
+				auto cave_pts = square.concave_points();
+				auto vex_pts = square.convex_points();
+				CAPTURE(cave_pts);
+				CAPTURE(vex_pts);
+				REQUIRE(cave_pts.size() == 4);
+				REQUIRE(vex_pts.size() == 0);
+			}
+		}
+		WHEN("Angle threshold is greater than right angle") {
+			double angle_threshold = M_PI*4/3;
+			THEN("It has no convex points counterclockwise"){
+				auto cave_pts = square.concave_points(angle_threshold);
+				auto vex_pts = square.convex_points(angle_threshold);
+				CAPTURE(cave_pts);
+				CAPTURE(vex_pts);
+				REQUIRE(cave_pts.size() == 0);
+				REQUIRE(vex_pts.size() == 0);
+			}
+			THEN("It has no concave points clockwise"){
+				square.make_clockwise();
+				auto cave_pts = square.concave_points(angle_threshold);
+				auto vex_pts = square.convex_points(angle_threshold);
+				CAPTURE(cave_pts);
+				CAPTURE(vex_pts);
+				REQUIRE(cave_pts.size() == 0);
+				REQUIRE(vex_pts.size() == 0);
+			}
+		}
+		WHEN("Angle threshold is less than right angle") {
+			double angle_threshold = M_PI/3;
+			THEN("It has 4 convex points counterclockwise"){
+				auto cave_pts = square.concave_points(angle_threshold);
+				auto vex_pts = square.convex_points(angle_threshold);
+				CAPTURE(cave_pts);
+				CAPTURE(vex_pts);
+				REQUIRE(cave_pts.size() == 0);
+				REQUIRE(vex_pts.size() == 4);
+			}
+			THEN("It has 4 concave points clockwise"){
+				square.make_clockwise();
+				auto cave_pts = square.concave_points(angle_threshold);
+				auto vex_pts = square.convex_points(angle_threshold);
+				CAPTURE(cave_pts);
+				CAPTURE(vex_pts);
+				REQUIRE(cave_pts.size() == 4);
+				REQUIRE(vex_pts.size() == 0);
+			}
+		}
+		WHEN("Angle threshold is equal to right angle") {
+			double angle_threshold = M_PI/2;
+			THEN("It has no convex points counterclockwise"){
+				auto cave_pts = square.concave_points(angle_threshold);
+				auto vex_pts = square.convex_points(angle_threshold);
+				CAPTURE(cave_pts);
+				CAPTURE(vex_pts);
+				REQUIRE(cave_pts.size() == 0);
+				REQUIRE(vex_pts.size() == 0);
+			}
+		}
     }
     GIVEN("A Square with an extra colinearvertex"){
         auto square = Slic3r::Polygon /*new_scale*/(Points({
@@ -414,8 +460,8 @@ SCENARIO("Polygon convex/concave detection", "[Geometry]"){
             Point(100,200),
             Point(100,100)}));
         THEN("It has 4 convex points counterclockwise"){
-            REQUIRE(square.concave_points(PI*4/3).size() == 0);
-            REQUIRE(square.convex_points(PI*4/3).size() == 4);
+            REQUIRE(square.concave_points().size() == 0);
+            REQUIRE(square.convex_points().size() == 4);
         }
     }
     GIVEN("A Square with an extra collinear vertex in different order"){
@@ -426,8 +472,8 @@ SCENARIO("Polygon convex/concave detection", "[Geometry]"){
             Point(150,100),
             Point(200,100)}));
         THEN("It has 4 convex points counterclockwise"){
-            REQUIRE(square.concave_points(PI*4/3).size() == 0);
-            REQUIRE(square.convex_points(PI*2/3).size() == 4);
+            REQUIRE(square.concave_points().size() == 0);
+            REQUIRE(square.convex_points().size() == 4);
         }
     }
 
@@ -438,8 +484,8 @@ SCENARIO("Polygon convex/concave detection", "[Geometry]"){
             Point(31286371,461008)
         }));
         THEN("it has three convex vertices"){
-            REQUIRE(triangle.concave_points(PI*4/3).size() == 0);
-            REQUIRE(triangle.convex_points(PI*2/3).size() == 3);
+            REQUIRE(triangle.concave_points().size() == 0);
+            REQUIRE(triangle.convex_points().size() == 3);
         }
     }
 
@@ -451,26 +497,8 @@ SCENARIO("Polygon convex/concave detection", "[Geometry]"){
             Point(31286371,461012)
         }));
         THEN("it has three convex vertices"){
-            REQUIRE(triangle.concave_points(PI*4/3).size() == 0);
-            REQUIRE(triangle.convex_points(PI*2/3).size() == 3);
-        }
-    }
-    GIVEN("A polygon with concave vertices with angles of specifically 4/3pi"){
-        // Two concave vertices of this polygon have angle = PI*4/3, so this test fails
-        // if epsilon is not used.
-        auto polygon = Slic3r::Polygon(Points({
-            Point(60246458,14802768),Point(64477191,12360001),
-            Point(63727343,11060995),Point(64086449,10853608),
-            Point(66393722,14850069),Point(66034704,15057334),
-            Point(65284646,13758387),Point(61053864,16200839),
-            Point(69200258,30310849),Point(62172547,42483120),
-            Point(61137680,41850279),Point(67799985,30310848),
-            Point(51399866,1905506),Point(38092663,1905506),
-            Point(38092663,692699),Point(52100125,692699)
-        }));
-        THEN("the correct number of points are detected"){
-            REQUIRE(polygon.concave_points(PI*4/3).size() == 6);
-            REQUIRE(polygon.convex_points(PI*2/3).size() == 10);
+            REQUIRE(triangle.concave_points().size() == 0);
+            REQUIRE(triangle.convex_points().size() == 3);
         }
     }
 }
