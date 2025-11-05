@@ -32,7 +32,7 @@ cmake --build . --config $BUILD_CONFIG --target libslic3r_tests
 # etc
 ```
 
-If you change any CMakeLists.txt file, you'll need to rerun the configuration generation first; running `build_linux.sh -t{eb}` is the most-straightforward and quickest way. You'll need this if you added a new cpp file, for example.
+If you change any CMakeLists.txt file, you'll need to rerun the configuration generation first. Change to the build directory and run `cmake ..` hopefully works without destroying the cache. Rerunning `build_linux.sh -t{eb}` is the most comprehensive way, but then everything has to be rebuilt. You'll need this if you added a new cpp file, for example.
 
 ## Run Unit Tests
 
