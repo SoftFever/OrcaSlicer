@@ -11978,37 +11978,48 @@ void Plater::Calib_Practical_Flow_Ratio(const Calib_Params& params) {
     model().calib_params = params;
 
     // adjust parameters
+    print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config->set_key_value("internal_bridge_density", new ConfigOptionPercent(100));
+    print_config->set_key_value("thick_internal_bridges", new ConfigOptionBool(false));
+    print_config->set_key_value("enable_extra_bridge_layer", new ConfigOptionEnum<EnableExtraBridgeLayer>(eblDisabled));
+    print_config->set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(100, true));
+    print_config->set_key_value("only_one_wall_top", new ConfigOptionBool(true));
+    print_config->set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f));
+    print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    print_config->set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
+    print_config->set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
+    print_config->set_key_value("top_shell_thickness", new ConfigOptionFloat(0));
+    print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(2));
+    print_config->set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+    print_config->set_key_value("bottom_shell_thickness", new ConfigOptionFloat(0));
+    print_config->set_key_value("bottom_surface_density", new ConfigOptionPercent(100));
+    print_config->set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
+    print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(100));
+    print_config->set_key_value("solid_infill_direction", new ConfigOptionFloat(0));
+    print_config->set_key_value("solid_infill_rotate_template", new ConfigOptionString("45, 0, 90, 0, 90#100"));
+    print_config->set_key_value("detect_thin_wall", new ConfigOptionBool(true));
+    print_config->set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
+    print_config->set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter, false));
+    print_config->set_key_value("infill_direction", new ConfigOptionFloat(0));
+    print_config->set_key_value("internal_solid_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
+    print_config->set_key_value("align_infill_direction_to_model", new ConfigOptionBool(true));
+    print_config->set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+    print_config->set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(params.speeds[0])); // internal_solid_speed
+    print_config->set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
+    print_config->set_key_value("gap_fill_target", new ConfigOptionEnum<GapFillTarget>(GapFillTarget::gftNowhere));
+    print_config->set_key_value("fuzzy_skin", new ConfigOptionEnum<FuzzySkinType>(FuzzySkinType::None));
+    
+    print_config->set_key_value("line_width", new ConfigOptionFloatOrPercent(nozzle_diameter, false));
+    print_config->set_key_value("initial_layer_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("outer_wall_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("inner_wall_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("top_surface_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("sparse_infill_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("support_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+
     for (auto _obj : model().objects) {
         _obj->ensure_on_bed();
-        _obj->config.set_key_value("wall_loops", new ConfigOptionInt(1));
-        _obj->config.set_key_value("internal_bridge_density", new ConfigOptionPercent(100));
-        _obj->config.set_key_value("thick_internal_bridges", new ConfigOptionBool(false));
-        _obj->config.set_key_value("enable_extra_bridge_layer", new ConfigOptionEnum<EnableExtraBridgeLayer>(eblDisabled));
-        _obj->config.set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(100, true));
-        _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
-        _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f));
-        _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
-        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
-        _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
-        _obj->config.set_key_value("top_shell_thickness", new ConfigOptionFloat(0));
-        _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(2));
-        _obj->config.set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
-        _obj->config.set_key_value("bottom_shell_thickness", new ConfigOptionFloat(0));
-        _obj->config.set_key_value("bottom_surface_density", new ConfigOptionPercent(100));
-        _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
-        _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(100));
-        _obj->config.set_key_value("solid_infill_direction", new ConfigOptionFloat(0));
-        _obj->config.set_key_value("solid_infill_rotate_template", new ConfigOptionString("45, 0, 90, 0, 90#100"));
-        _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
-        _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
-        _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter, false));
-        _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(0));
-        _obj->config.set_key_value("internal_solid_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
-        _obj->config.set_key_value("align_infill_direction_to_model", new ConfigOptionBool(true));
-        _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
-        _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(params.speeds[0])); // internal_solid_speed
-        _obj->config.set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
-        _obj->config.set_key_value("gap_fill_target", new ConfigOptionEnum<GapFillTarget>(GapFillTarget::gftNowhere));
         _obj->name = format("Practical_FR_Test_%.2f~%.2f_%s@%fmmps", params.start, params.end, params.interlaced ? "i" : "p", params.speeds[0]);
     }
 
@@ -12028,12 +12039,12 @@ void Plater::Calib_Practical_Flow_Ratio(const Calib_Params& params) {
     filament_config->set_key_value("filament_retract_lift_enforce", new ConfigOptionEnumsGenericNullable{ConfigOptionEnumsGenericNullable::nil_value()});
     filament_config->set_key_value("filament_z_hop_types", new ConfigOptionEnumsGenericNullable{ConfigOptionEnumsGenericNullable::nil_value()});
 
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
 } 
 
 // Adjust settings for flowrate calibration
