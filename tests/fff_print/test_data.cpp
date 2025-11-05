@@ -336,7 +336,7 @@ std::string slice(std::initializer_list<TriangleMesh> meshes, std::initializer_l
 
 } } // namespace Slic3r::Test
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 SCENARIO("init_print functionality", "[test_data]") {
 	GIVEN("A default config") {

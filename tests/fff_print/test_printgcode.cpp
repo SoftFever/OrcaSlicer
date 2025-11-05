@@ -8,7 +8,7 @@
 	#include <Windows.h>
 #endif
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/GCodeReader.hpp"
@@ -89,7 +89,7 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
                 reader.parse_buffer(gcode, [&final_z] (GCodeReader& self, const GCodeReader::GCodeLine& line) {
                     final_z = std::max<double>(final_z, static_cast<double>(self.z())); // record the highest Z point we reach
                 });
-                REQUIRE(final_z == Approx(20.));
+                REQUIRE(final_z == Catch::Approx(20.));
             }
         }
         WHEN("output is executed with complete objects and two differently-sized meshes") {
@@ -131,7 +131,7 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
                 reader.parse_buffer(gcode, [&final_z] (GCodeReader& self, const GCodeReader::GCodeLine& line) {
                     final_z = std::max(final_z, static_cast<double>(self.z())); // record the highest Z point we reach
                 });
-                REQUIRE(final_z == Approx(20.1));
+                REQUIRE(final_z == Catch::Approx(20.1));
             }
             THEN("Z height resets on object change") {
                 double final_z = 0.0;
@@ -267,14 +267,14 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
 				REQUIRE(pos < gcode.size());
 				double z = 0;
 				REQUIRE((sscanf(gcode.data() + pos, "(%lf mm)", &z) == 1));
-				REQUIRE(z == Approx(20.));
+				REQUIRE(z == Catch::Approx(20.));
 				// Second object
 				pos = gcode.find(";Layer:399 ", pos);
 				REQUIRE(pos != std::string::npos);
 				pos += token.size();
 				REQUIRE(pos < gcode.size());
 				REQUIRE((sscanf(gcode.data() + pos, "(%lf mm)", &z) == 1));
-				REQUIRE(z == Approx(20.));
+				REQUIRE(z == Catch::Approx(20.));
 			}
         }
     }
