@@ -406,7 +406,7 @@ TEST_CASE("LeftAndDownPolygon", "[Geometry]")
     }
 }
 
-TEST_CASE("ArrangeRectanglesTight", "[Nesting][NotWorking]")
+TEST_CASE("ArrangeRectanglesTight", "[Nesting][NotWorking][.]")
 {
     using namespace libnest2d;
 
@@ -473,7 +473,7 @@ TEST_CASE("ArrangeRectanglesTight", "[Nesting][NotWorking]")
     }
 }
 
-TEST_CASE("ArrangeRectanglesLoose", "[Nesting]")
+TEST_CASE("ArrangeRectanglesLoose", "[Nesting][.]")
 {
     using namespace libnest2d;
 
@@ -540,7 +540,7 @@ TEST_CASE("ArrangeRectanglesLoose", "[Nesting]")
 
 }
 
-TEST_CASE("BottomLeftStressTest", "[Geometry][NotWorking]") {
+TEST_CASE("BottomLeftStressTest", "[Geometry][NotWorking][.]") {
     using namespace libnest2d;
 
     const Coord SCALE = 1000000;
@@ -590,7 +590,7 @@ TEST_CASE("convexHull", "[Geometry]") {
     REQUIRE(chull.size() == poly.size());
 }
 
-TEST_CASE("PrusaPartsShouldFitIntoTwoBins", "[Nesting]") {
+TEST_CASE("PrusaPartsShouldFitIntoTwoBins", "[Nesting][.]") {
 
     // Get the input items and define the bin.
     std::vector<Item> input = prusaParts();
@@ -670,7 +670,7 @@ TEST_CASE("LargeItemShouldBeUntouched", "[Nesting]") {
     REQUIRE(items.front().binId() == BIN_ID_UNSET);
 }
 
-TEST_CASE("Items can be preloaded", "[Nesting]") {
+TEST_CASE("Items can be preloaded", "[Nesting][.]") {
     auto bin = Box({0, 0}, {250000000, 210000000}); // dummy bin
 
     std::vector<Item> items;
@@ -1150,7 +1150,7 @@ template<class It> MultiPolygon merged_pile(It from, It to, int bin_id)
     return nfp::merge(pile);
 }
 
-TEST_CASE("Test for bed center distance optimization", "[Nesting], [NestKernels]")
+TEST_CASE("Test for bed center distance optimization", "[Nesting][NestKernels][.]")
 {
     static const constexpr Slic3r::ClipperLib::cInt W = 10000000;
     
@@ -1185,7 +1185,7 @@ TEST_CASE("Test for bed center distance optimization", "[Nesting], [NestKernels]
     REQUIRE(sl::area(m) == Catch::Approx(9. * W * W));
 }
 
-TEST_CASE("Test for biggest bounding box area", "[Nesting], [NestKernels]")
+TEST_CASE("Test for biggest bounding box area", "[Nesting][NestKernels][.]")
 {
     static const constexpr Slic3r::ClipperLib::cInt W = 10000000;
     static const constexpr size_t N = 100;
