@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-26 10:38+0800\n"
+"POT-Creation-Date: 2025-11-05 17:33+0800\n"
 "PO-Revision-Date: 2025-10-25 23:01+0300\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -16,8 +16,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && (n%100<11 || n%100>19) ? 0 : "
-"n%10>=2 && n%10<=9 && (n%100<11 || n%100>19) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && (n%100<11 || n%100>19) ? 0 : n"
+"%10>=2 && n%10<=9 && (n%100<11 || n%100>19) ? 1 : 2);\n"
 "X-Generator: Poedit 3.6\n"
 
 msgid ""
@@ -2034,6 +2034,12 @@ msgstr "Pakeisti STL"
 msgid "Replace the selected part with new STL"
 msgstr "Pakeisti pasirinktą dalį į naują STL"
 
+msgid "Replace all with STL"
+msgstr ""
+
+msgid "Replace all selected parts with STL from folder"
+msgstr ""
+
 msgid "Change filament"
 msgstr "Pakeisti giją"
 
@@ -2214,6 +2220,30 @@ msgstr "Ištrinti plokštę"
 
 msgid "Remove the selected plate"
 msgstr "Pašalinti pasirinktą plokštę"
+
+msgid "Add instance"
+msgstr ""
+
+msgid "Add one more instance of the selected object"
+msgstr ""
+
+msgid "Remove instance"
+msgstr ""
+
+msgid "Remove one instance of the selected object"
+msgstr ""
+
+msgid "Set number of instances"
+msgstr ""
+
+msgid "Change the number of instances of the selected object"
+msgstr ""
+
+msgid "Fill bed with instances"
+msgstr ""
+
+msgid "Fill the remaining area of bed with instances of the selected object"
+msgstr ""
 
 msgid "Clone"
 msgstr "Klonuoti"
@@ -2747,9 +2777,9 @@ msgid "Top"
 msgstr "Viršutinis"
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -3018,7 +3048,25 @@ msgstr ""
 msgid "Access code:%s IP address:%s"
 msgstr "Prieigos kodas: %s IP adresas: %s"
 
-msgid "Storage needs to be inserted before printing via LAN."
+msgid "A Storage needs to be inserted before printing via LAN."
+msgstr ""
+
+msgid ""
+"Sending print job over LAN, but the Storage in the printer is abnormal and "
+"print-issues may be caused by this."
+msgstr ""
+
+msgid ""
+"The Storage in the printer is abnormal. Please replace it with a normal "
+"Storage before sending print job to printer."
+msgstr ""
+
+msgid ""
+"The Storage in the printer is read-only. Please replace it with a normal "
+"Storage before sending print job to printer."
+msgstr ""
+
+msgid "Encountered an unknown error with the Storage status. Please try again."
 msgstr ""
 
 msgid "Sending G-code file over LAN"
@@ -3032,6 +3080,21 @@ msgid "Successfully sent. Close current page in %s s"
 msgstr "Sėkmingai išsiųsta. Dabartinis puslapis užsivers po %s sek"
 
 msgid "Storage needs to be inserted before sending to printer."
+msgstr ""
+
+msgid ""
+"Sending G-code file over LAN, but the Storage in the printer is abnormal and "
+"print-issues may be caused by this."
+msgstr ""
+
+msgid ""
+"The Storage in the printer is abnormal. Please replace it with a normal "
+"Storage before sending to printer."
+msgstr ""
+
+msgid ""
+"The Storage in the printer is read-only. Please replace it with a normal "
+"Storage before sending to printer."
 msgstr ""
 
 msgid "Importing SLA archive"
@@ -3920,6 +3983,7 @@ msgstr ""
 "seam_slope_start_height turi būti mažesnis nei layer_height.\n"
 "Atstatoma į 0."
 
+#, fuzzy, c-format, boost-format
 msgid ""
 "Lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth."
@@ -4882,6 +4946,9 @@ msgstr "Sugrąžinti surinkimą"
 msgid "Return"
 msgstr "Grąžinti"
 
+msgid "Toggle Axis"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Piešimo įrankių juosta"
 
@@ -4909,7 +4976,7 @@ msgstr "Tūris:"
 msgid "Size:"
 msgstr "Dydis:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -5431,14 +5498,11 @@ msgstr "Įtraukimo testas"
 msgid "Max flowrate"
 msgstr "Maks srautas"
 
-msgid "Junction Deviation"
-msgstr "Sujungimo nuokrypis"
-
-msgid "Junction Deviation calibration"
-msgstr "Jungties nuokrypio kalibravimas"
-
 msgid "Cornering"
 msgstr "Posūkiai"
+
+msgid "Cornering calibration"
+msgstr ""
 
 msgid "Input Shaping Frequency"
 msgstr "Įvesties formavimo dažnis"
@@ -6673,6 +6737,9 @@ msgstr "Atrakinti dabartinę plokštę"
 msgid "Lock current plate"
 msgstr "Užrakinti dabartinę plokštę"
 
+msgid "Filament grouping"
+msgstr ""
+
 msgid "Edit current plate name"
 msgstr "Taisyti dabartinės plokštės pavadinimą"
 
@@ -7112,6 +7179,34 @@ msgstr "Pasirinkite naują failą"
 
 msgid "File for the replace wasn't selected"
 msgstr "Nepasirinktas keičiamas failas"
+
+msgid "Select folder to replace from"
+msgstr ""
+
+msgid "Directory for the replace wasn't selected"
+msgstr ""
+
+msgid "Replaced with STLs from directory:\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: same file.\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: file does not exist.\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: failed to replace.\n"
+msgstr ""
+
+#, boost-format
+msgid "✔ Replaced %1%.\n"
+msgstr ""
+
+msgid "Replaced volumes"
+msgstr ""
 
 msgid "Please select a file"
 msgstr "Prašome pasirinkti failą"
@@ -7902,6 +7997,14 @@ msgid ""
 "difference together."
 msgstr ""
 
+msgid "Allow Abnormal Storage"
+msgstr ""
+
+msgid ""
+"This allows the use of Storage that is marked as abnormal by the Printer.\n"
+"Use at your own risk, can cause issues!"
+msgstr ""
+
 msgid "Log Level"
 msgstr "Žurnalų lygmuo"
 
@@ -8478,7 +8581,10 @@ msgid ""
 "information."
 msgstr ""
 
-msgid "Storage is not available or is in read-only mode."
+msgid "Storage needs to be inserted before printing via LAN."
+msgstr ""
+
+msgid "Storage is in abnormal state or is in read-only mode."
 msgstr ""
 
 msgid "Storage needs to be inserted before printing."
@@ -8894,8 +9000,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Įrašant pakadrinį vaizdo įrašą be spausdinimo galvutės judesių, "
 "rekomenduojama naudoti „Pakadrinio valymo bokštą“.\n"
@@ -9387,10 +9493,6 @@ msgstr "Valymo bokštas"
 
 msgid "Single extruder multi-material parameters"
 msgstr "Vieno ekstruderio kelių medžiagų parametrai"
-
-#, c-format, boost-format
-msgid "Extruder %d"
-msgstr "Ekstruderis %d"
 
 msgid ""
 "This is a single extruder multi-material printer, diameters of all extruders "
@@ -9890,6 +9992,9 @@ msgstr ""
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
+msgstr ""
+
+msgid "Storage is not available or is in read-only mode."
 msgstr ""
 
 #, c-format, boost-format
@@ -10456,8 +10561,8 @@ msgid ""
 msgstr ""
 "Įterptinės programinės įrangos versija yra nenormali. Prieš spausdinant "
 "reikia pataisyti ir atnaujinti. Ar norite atnaujinti dabar? Taip pat galite "
-"atnaujinti vėliau spausdintuve arba atnaujinti kitą kartą paleisdami "
-"\"Orca\"."
+"atnaujinti vėliau spausdintuve arba atnaujinti kitą kartą paleisdami \"Orca"
+"\"."
 
 msgid "Extension Board"
 msgstr "Išplėtimo plokštė"
@@ -10876,8 +10981,8 @@ msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
 "RepRapFirmware and Repetier G-code flavors."
 msgstr ""
-"Pagrindinis bokštas šiuo metu palaikomas tik \"Marlin\", \"RepRap/"
-"Sprinter\", \"RepRapFirmware\" ir \"Repetier\" G-kodo tipuose."
+"Pagrindinis bokštas šiuo metu palaikomas tik \"Marlin\", \"RepRap/Sprinter"
+"\", \"RepRapFirmware\" ir \"Repetier\" G-kodo tipuose."
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "Pirminis bokštas nepalaikomas spausdinant \"Pagal objektą\"."
@@ -13650,8 +13755,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² arba %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Retų užpildų pagreitis. Jei reikšmė išreikšta procentais (pvz., 100 %), ji "
 "bus apskaičiuota pagal numatytąjį pagreitį."
@@ -13687,6 +13792,9 @@ msgstr "\"Klipper\" max_accel_to_decel bus pakoreguotas pagal šį pagreičio %%
 
 msgid "Default jerk."
 msgstr "Numatytasis trūkčiojimas."
+
+msgid "Junction Deviation"
+msgstr "Sujungimo nuokrypis"
 
 msgid ""
 "Marlin Firmware Junction Deviation (replaces the traditional XY Jerk "
@@ -13768,10 +13876,10 @@ msgstr "Visas ventiliatoriaus greitis sluoksnyje"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "Ventiliatoriaus greitis bus didinamas tiesiškai nuo nulio sluoksnyje "
 "\"close_fan_the_first_x_layers\" iki maksimalaus sluoksnyje "
@@ -14655,6 +14763,12 @@ msgstr ""
 msgid "The angle of ironing lines offset from the top surface."
 msgstr ""
 
+msgid "Fixed ironing angle"
+msgstr ""
+
+msgid "Use a fixed absolute angle for ironing."
+msgstr ""
+
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "Šis G kodas įterpiamas po kiekvieno sluoksnio keitimo po Z pakėlimo."
 
@@ -14790,10 +14904,10 @@ msgid "Maximum Junction Deviation"
 msgstr "Maksimalus jungties nuokrypis"
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin "
+"Firmware\n"
+"If your Marlin 2 printer uses Classic Jerk set this value to 0.)"
 msgstr ""
-"Maksimalus jungties nuokrypis (M205 J, taikoma tik jei JD > 0 Marlin "
-"Firmware)"
 
 msgid "Minimum speed for extruding"
 msgstr "Mažiausias ekstruzijos greitis"
@@ -15657,8 +15771,8 @@ msgid "Role base wipe speed"
 msgstr "Vaidmens pagrindo nuvalymo greitis"
 
 msgid ""
-"The wipe speed is determined by the speed of the current extrusion role. "
-"e.g. if a wipe action is executed immediately following an outer wall "
+"The wipe speed is determined by the speed of the current extrusion role. e."
+"g. if a wipe action is executed immediately following an outer wall "
 "extrusion, the speed of the outer wall extrusion will be utilized for the "
 "wipe action."
 msgstr ""
@@ -16412,16 +16526,6 @@ msgstr ""
 "sunkiau pašalinti, todėl, jei reikia tankios atramos, rekomenduojama įjungti "
 "viršutinių atramų sąsajas, o ne didelę šakų tankio reikšmę."
 
-msgid "Adaptive layer height"
-msgstr "Prisitaikantis sluoksnio aukštis"
-
-msgid ""
-"Enabling this option means the height of tree support layer except the first "
-"will be automatically calculated."
-msgstr ""
-"Įjungus šią parinktį, medžio atraminio sluoksnio, išskyrus pirmąjį, aukštis "
-"bus apskaičiuojamas automatiškai."
-
 msgid "Auto brim width"
 msgstr "Automatinis kraštų plotis"
 
@@ -16522,8 +16626,8 @@ msgstr "Suaktyvinti temperatūros reguliavimą"
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the "
-"\"machine_start_gcode\"\n"
+"activates the emitting of an M191 command before the \"machine_start_gcode"
+"\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present.\n"
@@ -17478,8 +17582,8 @@ msgid "Debug level"
 msgstr "Derinimo lygis"
 
 msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
-"5:trace\n"
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+"trace\n"
 msgstr ""
 "Nustato derinimo žurnalizavimo lygį. 0: mirtinas, 1: klaida, 2: įspėjimas, "
 "3: informacija, 4: derinimas, 5: sekimas\n"
@@ -17948,13 +18052,13 @@ msgstr "Pateikto failo nepavyko perskaityti, nes jis tuščias"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Nežinomas failo formatas. Įvesties failo plėtinys turi "
-"būti .stl, .obj, .amf(.xml)."
+"Nežinomas failo formatas. Įvesties failo plėtinys turi būti .stl, .obj, ."
+"amf(.xml)."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
-"Nežinomas failo formatas. Įvesties failo plėtinys turi būti .3mf "
-"arba .zip.amf."
+"Nežinomas failo formatas. Įvesties failo plėtinys turi būti .3mf arba .zip."
+"amf."
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: nepavyko apdoroti"
@@ -18645,6 +18749,12 @@ msgstr "Kableliais atskirtas spausdinimo pagreičių sąrašas"
 msgid "Comma-separated list of printing speeds"
 msgstr "Kableliais atskirtas spausdinimo greičių sąrašas"
 
+msgid "Pressure Advance Guide"
+msgstr ""
+
+msgid "Adaptive Pressure Advance Guide"
+msgstr ""
+
 msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
@@ -18692,6 +18802,9 @@ msgstr "Galutinė temp: "
 msgid "Temp step: "
 msgstr "Temp žingsnis: "
 
+msgid "Wiki Guide: Temperature Calibration"
+msgstr ""
+
 msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
@@ -18707,6 +18820,9 @@ msgstr "Pradinis tūrinis greitis: "
 
 msgid "End volumetric speed: "
 msgstr "Galinis tūrinis greitis: "
+
+msgid "Wiki Guide: Volumetric Speed Calibration"
+msgstr ""
 
 msgid ""
 "Please input valid values:\n"
@@ -18728,6 +18844,9 @@ msgstr "Pradinis greitis: "
 msgid "End speed: "
 msgstr "Galinis greitis: "
 
+msgid "Wiki Guide: VFA"
+msgstr ""
+
 msgid ""
 "Please input valid values:\n"
 "start > 10\n"
@@ -18744,6 +18863,9 @@ msgstr "Pradinis įtraukimo ilgis: "
 
 msgid "End retraction length: "
 msgstr "Galinis įtraukimo ilgis: "
+
+msgid "Wiki Guide: Retraction Calibration"
+msgstr ""
 
 msgid "Input shaping Frequency test"
 msgstr "Įvesties formavimo dažnio testas"
@@ -18778,6 +18900,9 @@ msgstr "Slopinimas: "
 msgid ""
 "Recommended: Set Damp to 0.\n"
 "This will use the printer's default or saved value."
+msgstr ""
+
+msgid "Wiki Guide: Input Shaping Calibration"
 msgstr ""
 
 msgid ""
@@ -18823,30 +18948,53 @@ msgstr ""
 "Įveskite galiojantį slopinimo koeficientą (0 <= Slopinimo pradžia < "
 "Slopinimo pabaiga <= 1)"
 
-msgid "Junction Deviation test"
-msgstr "Jungties nuokrypio bandymas"
+msgid "Cornering test"
+msgstr ""
 
-msgid "Start junction deviation: "
-msgstr "Pradinis jungties nuokrypis: "
+msgid "SCV-V2"
+msgstr ""
 
-msgid "End junction deviation: "
-msgstr "Galinis jungties nuokrypis: "
+msgid "Start: "
+msgstr ""
 
-msgid "Junction Deviation settings"
-msgstr "Jungties nuokrypio nustatymai"
+msgid "End: "
+msgstr ""
 
-msgid "Note: Lower values = sharper corners but slower speeds"
-msgstr "Pastaba: mažesnės vertės = aštresni kampai, bet mažesnis greitis"
+msgid "Cornering settings"
+msgstr ""
+
+msgid "Note: Lower values = sharper corners but slower speeds.\n"
+msgstr ""
 
 msgid ""
-"Please input valid values:\n"
-"(0 <= Junction Deviation < 1)"
+"Marlin 2 Junction Deviation detected:\n"
+"To test Classic Jerk, set 'Maximum Junction Deviation' in Motion ability to "
+"0."
 msgstr ""
-"Įveskite tinkamas reikšmes:\n"
-"(0 <= Jungties nuokrypis < 1)"
 
-msgid "NOTE: High values may cause Layer shift"
-msgstr "PASTABA: Didelės vertės gali sukelti sluoksnio poslinkį"
+msgid ""
+"Marlin 2 Classic Jerk detected:\n"
+"To test Junction Deviation, set 'Maximum Junction Deviation' in Motion "
+"ability to a value > 0."
+msgstr ""
+
+msgid ""
+"RepRap detected: Jerk in mm/s.\n"
+"OrcaSlicer will convert the values to mm/min when necessary."
+msgstr ""
+
+msgid "Wiki Guide: Cornering Calibration"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Please input valid values:\n"
+"(0 <= Cornering <= %s)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "NOTE: High values may cause Layer shift (>%s)"
+msgstr ""
 
 msgid "Send G-code to printer host"
 msgstr "Siųsti G-kodą tinkliniam spausdintuvui"
@@ -19110,8 +19258,8 @@ msgstr ""
 "Ar norite jį perrašyti?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\".\n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\".\n"
 "To add preset for more printers, please go to printer selection"
 msgstr ""
 "Būtų galima pervadinti iš anksto nustatytus nustatymus į \"Pardavėjo tipo "
@@ -19554,8 +19702,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -19929,9 +20077,9 @@ msgid ""
 "quality but much longer print time."
 msgstr ""
 "Palyginti su numatytuoju 0,4 mm purkštuko profiliu, jo sluoksnio aukštis "
-"mažesnis, greitis ir pagreitis mažesni, o retas užpildymo raštas yra "
-"\"Gyroid\". Taigi, dėl jo mažiau matomų sluoksnio linijų ir daug geresnė "
-"spausdinimo kokybė, tačiau daug ilgesnis spausdinimo laikas."
+"mažesnis, greitis ir pagreitis mažesni, o retas užpildymo raštas yra \"Gyroid"
+"\". Taigi, dėl jo mažiau matomų sluoksnio linijų ir daug geresnė spausdinimo "
+"kokybė, tačiau daug ilgesnis spausdinimo laikas."
 
 msgid ""
 "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
@@ -20324,9 +20472,6 @@ msgstr "Spausdinimas nepavyko"
 
 msgid "Removed"
 msgstr "Pašalinta"
-
-msgid "Filament grouping"
-msgstr ""
 
 msgid "Don't remind me again"
 msgstr ""
@@ -20924,6 +21069,55 @@ msgstr ""
 "Ar žinojote, kad spausdinant medžiagas, kurios linkusios deformuotis, "
 "pavyzdžiui, ABS, tinkamai padidinus kaitinimo pagrindo temperatūrą galima "
 "sumažinti deformavimosi tikimybę."
+
+#~ msgid "Junction Deviation calibration"
+#~ msgstr "Jungties nuokrypio kalibravimas"
+
+#, c-format, boost-format
+#~ msgid "Extruder %d"
+#~ msgstr "Ekstruderis %d"
+
+#~ msgid ""
+#~ "Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin "
+#~ "Firmware)"
+#~ msgstr ""
+#~ "Maksimalus jungties nuokrypis (M205 J, taikoma tik jei JD > 0 Marlin "
+#~ "Firmware)"
+
+#~ msgid "Adaptive layer height"
+#~ msgstr "Prisitaikantis sluoksnio aukštis"
+
+#~ msgid ""
+#~ "Enabling this option means the height of tree support layer except the "
+#~ "first will be automatically calculated."
+#~ msgstr ""
+#~ "Įjungus šią parinktį, medžio atraminio sluoksnio, išskyrus pirmąjį, "
+#~ "aukštis bus apskaičiuojamas automatiškai."
+
+#~ msgid "Junction Deviation test"
+#~ msgstr "Jungties nuokrypio bandymas"
+
+#~ msgid "Start junction deviation: "
+#~ msgstr "Pradinis jungties nuokrypis: "
+
+#~ msgid "End junction deviation: "
+#~ msgstr "Galinis jungties nuokrypis: "
+
+#~ msgid "Junction Deviation settings"
+#~ msgstr "Jungties nuokrypio nustatymai"
+
+#~ msgid "Note: Lower values = sharper corners but slower speeds"
+#~ msgstr "Pastaba: mažesnės vertės = aštresni kampai, bet mažesnis greitis"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "(0 <= Junction Deviation < 1)"
+#~ msgstr ""
+#~ "Įveskite tinkamas reikšmes:\n"
+#~ "(0 <= Jungties nuokrypis < 1)"
+
+#~ msgid "NOTE: High values may cause Layer shift"
+#~ msgstr "PASTABA: Didelės vertės gali sukelti sluoksnio poslinkį"
 
 #~ msgid "AMS not connected"
 #~ msgstr "AMS neprijungta"
