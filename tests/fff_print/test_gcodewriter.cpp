@@ -6,7 +6,7 @@
 
 using namespace Slic3r;
 
-SCENARIO("lift() is not ignored after unlift() at normal values of Z", "[GCodeWriter]") {
+SCENARIO("lift() is not ignored after unlift() at normal values of Z", "[GCodeWriter][.]") {
     GIVEN("A config from a file and a single extruder.") {
         GCodeWriter writer;
         GCodeConfig &config = writer.config;

@@ -9,7 +9,7 @@
 using namespace Slic3r;
 using namespace Slic3r::Test;
 
-SCENARIO("PrintObject: object layer heights", "[PrintObject]") {
+SCENARIO("PrintObject: object layer heights", "[PrintObject][.]") {
     GIVEN("20mm cube and default initial config, initial layer height of 2mm") {
         WHEN("generate_object_layers() is called for 2mm layer heights and nozzle diameter of 3mm") {
             Slic3r::Print print;

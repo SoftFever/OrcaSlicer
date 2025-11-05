@@ -15,7 +15,7 @@
 using namespace Slic3r::Test;
 using namespace Slic3r;
 
-SCENARIO("Extrusion width specifics", "[Flow]") {
+SCENARIO("Extrusion width specifics", "[Flow][.]") {
     GIVEN("A config with a skirt, brim, some fill density, 3 perimeters, and 1 bottom solid layer and a 20mm cube mesh") {
         // this is a sharedptr
         DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();

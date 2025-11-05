@@ -29,7 +29,7 @@ static int get_brim_tool(const std::string &gcode)
     return brim_tool;
 }
 
-TEST_CASE("Skirt height is honored", "[Skirt]") {
+TEST_CASE("Skirt height is honored", "[Skirt][.]") {
     DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
     config.set_deserialize_strict({
     	{ "skirts",					1 },
@@ -60,7 +60,7 @@ TEST_CASE("Skirt height is honored", "[Skirt]") {
     REQUIRE(layers_with_skirt.size() == (size_t)config.opt_int("skirt_height"));
 }
 
-SCENARIO("Original Slic3r Skirt/Brim tests", "[SkirtBrim]") {
+SCENARIO("Original Slic3r Skirt/Brim tests", "[SkirtBrim][.]") {
     GIVEN("A default configuration") {
 	    DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
 		config.set_num_extruders(4);
