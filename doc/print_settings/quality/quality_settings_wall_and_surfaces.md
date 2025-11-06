@@ -38,7 +38,7 @@ Use Outer/Inner for the same external wall quality and dimensional accuracy bene
 
 ### Print infill first
 
-When this option is enabled, the [infill](strength_settings_infill) and [top/bottom shells](strength_settings_top_bottom_shells) is printed first, followed by the walls. This can be useful for some overhangs where the infill can support the walls.
+When this option is enabled, the [infill](strength_settings_infill) and [top/bottom shells](strength_settings_top_bottom_shells) are printed first, followed by the walls. This can be useful for some overhangs where the infill can support the walls.
 
 ![infill-first](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/infill-first.gif?raw=true)
 
@@ -60,7 +60,9 @@ Set this to any option other than Auto will force the wall direction regardless 
 ## Surface flow ratio
 
 This factor affects the amount of material for [top or bottom solid infill](strength_settings_top_bottom_shells). You can decrease it slightly to have smooth surface finish.  
-The actual top surface flow used is calculated by multiplying this value with the filament flow ratio, and if set, the object's flow ratio.
+The actual top or bottom surface flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.
+
+Other flow ratios, such as ratios for the first layer (does not affect brims and skirts), outer and inner walls, overhang perimeters, sparse infill, internal solid infill, gap fill, support, and support interfaces, can also be adjusted after enabling the "Set other flow ratios" option.
 
 > [!TIP]
 > Before using a value other than 1, it is recommended to [calibrate the flow ratio](flow-rate-calib) to ensure that the flow ratio is set correctly for your printer and filament.
@@ -68,7 +70,7 @@ The actual top surface flow used is calculated by multiplying this value with th
 ## Only one wall
 
 Use only one wall on flat surfaces, to give more space to the [top infill pattern](strength_settings_top_bottom_shells#surface-pattern).
-Specially useful in small features, like letters, where the top surface is very small and concentric pattern from walls would not cover it properly.
+Specially useful in small features, like letters, where the top surface is very small and [concentric pattern](strength_settings_patterns#concentric) from walls would not cover it properly.
 
 ![only-one-wall](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/only-one-wall.gif?raw=true)
 
@@ -91,6 +93,9 @@ While this increases print time slightly, the improvement in print quality—esp
 Highly recommended for detailed or aesthetic prints.
 
 ![avoid-crossing-walls](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/avoid-crossing-walls.png?raw=true)
+
+> [!NOTE]
+> This feature is not compatible with Timelapse mode, as it can cause unexpected travel moves.
 
 ### Max detour length
 

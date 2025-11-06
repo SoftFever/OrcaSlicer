@@ -41,7 +41,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     switch (type) {
     case ipConcentric:          return new FillConcentric();
     case ipHoneycomb:           return new FillHoneycomb();
-    case ip2DHoneycomb:         return new Fill2DHoneycomb();
+    case ipLateralHoneycomb:         return new FillLateralHoneycomb();
     case ip3DHoneycomb:         return new Fill3DHoneycomb();
     case ipGyroid:              return new FillGyroid();
     case ipTpmsD:               return new FillTpmsD();//from creality print
@@ -52,7 +52,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipMonotonic:           return new FillMonotonic();
     case ipLine:                return new FillLine();
     case ipGrid:                return new FillGrid();
-    case ip2DLattice:           return new Fill2DLattice();
+    case ipLateralLattice:           return new FillLateralLattice();
     case ipTriangles:           return new FillTriangles();
     case ipStars:               return new FillStars();
     case ipCubic:               return new FillCubic();
@@ -304,8 +304,9 @@ std::pair<float, Point> Fill::_infill_direction(const Surface *surface) const
         printf("Filling bridge with angle %f\n", surface->bridge_angle);
 #endif /* SLIC3R_DEBUG */
         out_angle = float(surface->bridge_angle);
-    } else if (this->layer_id != size_t(-1)) {
+    } else if (this->layer_id != size_t(-1) && !fixed_angle) {
         // alternate fill direction
+        //Orca: Do not alternate direction if Fill.fixed_angle is true
         out_angle += this->_layer_angle(this->layer_id / surface->thickness_layers);
     } else {
 //    	printf("Layer_ID undefined!\n");
@@ -2710,7 +2711,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
         const float center = (n_lines - 1) / 2.0f;
 
         for (int line = 0; line < n_lines; ++line) {
-            float offset = (static_cast<float>(line) - center) * spacing;
+            float offset = scale_((static_cast<float>(line) - center) * spacing);
 
             for (const Polyline& pl : polylines) {
                 const size_t n = pl.points.size();
@@ -2723,22 +2724,27 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
                 new_points.reserve(n);
                 for (size_t i = 0; i < n; ++i) {
                     Vec2f tangent;
-                    if (i == 0)
-                        tangent = Vec2f(pl.points[1].x() - pl.points[0].x(), pl.points[1].y() - pl.points[0].y());
-                    else if (i == n - 1)
-                        tangent = Vec2f(pl.points[n - 1].x() - pl.points[n - 2].x(), pl.points[n - 1].y() - pl.points[n - 2].y());
-                    else
-                        tangent = Vec2f(pl.points[i + 1].x() - pl.points[i - 1].x(), pl.points[i + 1].y() - pl.points[i - 1].y());
-
-                    float len = std::hypot(tangent.x(), tangent.y());
-                    if (len == 0)
-                        len = 1.0f;
-                    tangent /= len;
+                    // For the first and last point, if the polyline is a
+                    // closed loop, get the tangent from the points on either
+                    // side of the join, otherwise just use the first or last
+                    // line.
+                    if (i == 0) {
+                        if (pl.points[0] == pl.points[n-1]) {
+                            tangent = (pl.points[1] - pl.points[n-2]).template cast<float>().normalized();
+                        } else {
+                            tangent = (pl.points[1] - pl.points[0]).template cast<float>().normalized();
+                        }
+                    } else if (i == n - 1) {
+                        if (pl.points[0] == pl.points[n-1]) {
+                            tangent = (pl.points[1] - pl.points[n-2]).template cast<float>().normalized();
+                        } else {
+                            tangent = (pl.points[n-1] - pl.points[n-2]).template cast<float>().normalized();
+                        }
+                    } else
+                        tangent = (pl.points[i+1] - pl.points[i-1]).template cast<float>().normalized();
                     Vec2f normal(-tangent.y(), tangent.x());
 
-                    Point p = pl.points[i];
-                    p.x() += scale_(normal.x() * offset);
-                    p.y() += scale_(normal.y() * offset);
+                    Point p = pl.points[i] + (normal * offset).template cast<coord_t>();
                     new_points.push_back(p);
                 }
 
