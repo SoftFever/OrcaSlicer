@@ -8,7 +8,7 @@ else()
   set(NOT_SUBPROJECT OFF)
 endif()
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 
 option(CATCH_INSTALL_DOCS "Install documentation alongside library" ON)
 option(CATCH_INSTALL_EXTRAS "Install extras (CMake scripts, debugger helpers) alongside library" ON)

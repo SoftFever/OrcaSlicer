@@ -28,6 +28,7 @@ git rm -f -r --quiet -- catch2
 rm -fR catch2 || true
 mkdir catch2
 mv "${TDIR}/"CMake* catch2
+sed -i 's#set_property(GLOBAL PROPERTY USE_FOLDERS ON)##g' catch2/CMakeLists.txt
 mv "${TDIR}/src" catch2
 mv "${TDIR}/extras" catch2
 mv "${TDIR}/LICENSE.txt" catch2
