@@ -1,14 +1,13 @@
 {
-    "type": "filament",
-    "name": "Artillery PLA Matte @Artillery M1 Pro 0.6 nozzle",
-    "inherits": "Artillery PLA @Artillery M1 Pro 0.6 nozzle",
-    "from": "system",
     "instantiation": "true",
     "filament_settings_id": [
         "Artillery PLA Matte @Artillery M1 Pro 0.6 nozzle"
     ],
     "filament_type": [
         "PLA Matte"
+    ],
+    "compatible_printers": [
+        "Artillery M1 Pro 0.6 nozzle"
     ],
     "slow_down_layer_time": [
         "6"
@@ -25,7 +24,9 @@
     "cool_plate_temp_initial_layer": [
         "50"
     ],
-    "compatible_printers": [
-        "Artillery M1 Pro 0.6 nozzle"
-    ]
+    "from": "system",
+    "inherits": "Artillery PLA @Artillery M1 Pro 0.6 nozzle",
+    "is_custom_defined": "0",
+    "name": "Artillery PLA Matte @Artillery M1 Pro 0.6 nozzle",
+    "version": "2.1.1.0"
 }
