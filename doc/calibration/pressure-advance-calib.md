@@ -24,7 +24,7 @@ The nozzle size also plays a key role in determining the optimal PA value. A sma
 
 The results from these methods should be saved to the material profile in one of the following ways:
 
-- Nozzle, Pressure Advance **- Recommended**: This will apply the value specified for the selected nozzle size only or a linear interpolation between two nozzle sizes if the exact size is not specified.
+- Nozzle, Pressure Advance **- Recommended**: This applies the value for the selected nozzle size. If the exact size is not listed, it uses linear interpolation between the nearest larger and smaller nozzle values. If the size is below the minimum or above the maximum listed, it uses the minimum or maximum value.
   ```c++
   0.25,0.09
   0.3,0.065
