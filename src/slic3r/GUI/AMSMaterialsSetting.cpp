@@ -1036,7 +1036,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                     const int sort_rank = -(preset_names.size() - i);
                     const auto inherited_filament = it->inherits();
 
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ 
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ 
                         << " Found available filament matching current preset name " << wanted          
                         << " - Name: " << it->name 
                         << " - Alias: " << it->alias 
@@ -1064,12 +1064,12 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                     if (sorted_names_existing_pairs.size() > 0) {
                         for (auto pair_ptr : sorted_names_existing_pairs) {
                             auto& existing_rank = pair_ptr->second;
-                            BOOST_LOG_TRIVIAL(error)
+                            BOOST_LOG_TRIVIAL(info)
                                 << __FUNCTION__ << " Existing filament at rank " + std::to_string(existing_rank) + " with name "
                                 << pair_ptr->first;
                             if (sort_rank < existing_rank) {
                                 existing_rank = sort_rank;
-                                BOOST_LOG_TRIVIAL(error)
+                                BOOST_LOG_TRIVIAL(info)
                                     << __FUNCTION__ << " Update filament rank to " + std::to_string(sort_rank) + " for preset name "
                                     << pair_ptr->first;
                             }
