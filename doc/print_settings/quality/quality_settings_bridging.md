@@ -20,9 +20,15 @@
 
 ## Bridge density
 
-Controls the density (spacing) of external bridge lines. 100% means solid bridge.  
-Higher density external bridges can help with line bonding when using 100% [Bridge Line Width](quality_settings_line_width#bridge).  
-Lower density external bridges can help improve reliability as there is more space for air to circulate around the extruded bridge, improving its cooling speed.
+Controls the density (spacing) of external bridge lines. Default is 100%.  
+Theoretically, 100% means a solid bridge, but due to the tendency of bridge extrusions to sag, 100% may not be sufficient.
+
+- Higher than 100% density (**Recommended**):
+  - Pros: Produce smoother bridge surfaces, as overlapping lines provide additional support during printing.
+  - Cons: Can cause overextrusion decreasing lower and upper surface quality.
+- Lower than 100% density:
+  - Pros: Can create a string like first layer. Quick and with better cooling as there is more space for air to circulate around the extruded bridge.
+  - Cons: May lead to sagging and poor surface finish.
 
 ## Thick bridges
 
