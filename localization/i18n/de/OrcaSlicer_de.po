@@ -8324,7 +8324,7 @@ msgid ""
 msgstr ""
 "Dies ermöglicht die Verwendung von Speicher, der vom Drucker als "
 "fehlerhaft markiert ist.\n"
-"Verwendung auf eigenes Risiko, kann Probleme verursachen! "
+"Verwendung auf eigenes Risiko, kann Probleme verursachen!"
 
 msgid "Log Level"
 msgstr "Protokollstufe"
