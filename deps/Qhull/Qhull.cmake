@@ -1,7 +1,7 @@
 include(GNUInstallDirs)
 orcaslicer_add_cmake_project(Qhull
-    URL "https://github.com/qhull/qhull/archive/v8.1-alpha6.zip"
-    URL_HASH SHA256=d79b73774236f82e4940ce74c8b6cbb6ef3c72ef053d01d1bbfb19ab65dbfc22
+    URL "https://github.com/qhull/qhull/archive/v8.0.2.zip"
+    URL_HASH SHA256=a378e9a39e718e289102c20d45632f873bfdc58a7a5f924246ea4b176e185f1e
     CMAKE_ARGS 
         -DINCLUDE_INSTALL_DIR=${CMAKE_INSTALL_INCLUDEDIR}
 )
