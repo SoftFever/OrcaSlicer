@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 11:23+0100\n"
+"POT-Creation-Date: 2025-11-05 17:33+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1963,13 +1963,13 @@ msgstr "Ladda om de valda delarna från disken"
 msgid "Replace with STL"
 msgstr "Ersätt med STL"
 
-msgid "Replace the selected part with new STL"
+msgid "Replace the selected part with new STL."
 msgstr "Ersätt den valda delen med ny STL"
 
 msgid "Replace all with STL"
 msgstr ""
 
-msgid "Replace all selected parts with STL from folder"
+msgid "Replace all selected parts with STL from folder."
 msgstr ""
 
 msgid "Change filament"
@@ -3674,8 +3674,8 @@ msgstr "Rektangulär"
 msgid "Circular"
 msgstr "Cirkulär"
 
-msgid "Load shape from STL..."
-msgstr "Ladda form ifrån STL..."
+msgid "Load shape from STL ..."
+msgstr "Ladda form ifrån STL ..."
 
 msgid "Settings"
 msgstr "Inställningar"
@@ -4809,6 +4809,9 @@ msgstr "Monterings retur"
 
 msgid "Return"
 msgstr "Tillbaka"
+
+msgid "Toggle Axis"
+msgstr ""
 
 msgid "Paint Toolbar"
 msgstr "Färgläggningsverktyg"
@@ -5995,10 +5998,6 @@ msgstr "Lager: %s"
 msgid "Layer: %d/%d"
 msgstr "Lager: %d/%d"
 
-#, c-format, boost-format
-msgid "(%d)"
-msgstr ""
-
 msgid ""
 "Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr "Värm nozzeln till över 170°C innan du laddar eller matar ut filament."
@@ -6546,6 +6545,9 @@ msgid "Unlock current plate"
 msgstr ""
 
 msgid "Lock current plate"
+msgstr ""
+
+msgid "Filament grouping"
 msgstr ""
 
 msgid "Edit current plate name"
@@ -7482,7 +7484,7 @@ msgid "Set the page opened on startup."
 msgstr ""
 
 msgid "Enable dark mode"
-msgstr ""
+msgstr "Aktivera mörkt läge"
 
 msgid "Allow only one OrcaSlicer instance"
 msgstr ""
@@ -7552,7 +7554,7 @@ msgid ""
 msgstr ""
 
 msgid "Auto backup"
-msgstr ""
+msgstr "Auto säkerhetskopiera"
 
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
@@ -7676,7 +7678,7 @@ msgid ""
 msgstr ""
 
 msgid "Login region"
-msgstr ""
+msgstr "Logga in region"
 
 msgid "Stealth mode"
 msgstr ""
@@ -7687,7 +7689,7 @@ msgid ""
 msgstr ""
 
 msgid "Network test"
-msgstr ""
+msgstr "Nätverkstest"
 
 msgid "Test"
 msgstr "Test"
@@ -9551,9 +9553,6 @@ msgstr ""
 msgid ""
 "The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
-msgstr ""
-
-msgid "—> "
 msgstr ""
 
 msgid ""
@@ -13647,6 +13646,12 @@ msgid "Ironing angle offset"
 msgstr ""
 
 msgid "The angle of ironing lines offset from the top surface."
+msgstr ""
+
+msgid "Fixed ironing angle"
+msgstr ""
+
+msgid "Use a fixed absolute angle for ironing."
 msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
@@ -18684,9 +18689,6 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
-msgid "Filament grouping"
-msgstr ""
-
 msgid "Don't remind me again"
 msgstr ""
 
@@ -18825,9 +18827,6 @@ msgstr ""
 msgid "Zoom Out"
 msgstr ""
 
-msgid "100 %"
-msgstr ""
-
 msgid "Zoom In"
 msgstr ""
 
@@ -18835,14 +18834,6 @@ msgid "Load skipping objects information failed. Please try again."
 msgstr ""
 
 msgid "Loading ..."
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d%%"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d"
 msgstr ""
 
 #, c-format, boost-format
@@ -19234,6 +19225,9 @@ msgstr ""
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning?"
 
+#~ msgid "Adaptive layer height"
+#~ msgstr "Adaptiv lagerhöjd"
+
 #~ msgid "AMS not connected"
 #~ msgstr "AMS ej ansluten"
 
@@ -19446,9 +19440,6 @@ msgstr ""
 #~ msgid "General Settings"
 #~ msgstr "Allmänna inställningar"
 
-#~ msgid "Login Region"
-#~ msgstr "Logga in Region"
-
 #~ msgid "Show \"Tip of the day\" notification after start"
 #~ msgstr "Visa \"Dagens tips\" efter start"
 
@@ -19475,9 +19466,6 @@ msgstr ""
 #~ msgid "System Sync"
 #~ msgstr "Synkronisering av system"
 
-#~ msgid "Auto-Backup"
-#~ msgstr "Auto Säkerhetskopiera"
-
 #~ msgid "every"
 #~ msgstr "varje"
 
@@ -19486,9 +19474,6 @@ msgstr ""
 
 #~ msgid "Dark Mode"
 #~ msgstr "Mörkt Läge"
-
-#~ msgid "Enable Dark mode"
-#~ msgstr "Aktivera mörkt läge"
 
 #~ msgid "Home page and daily tips"
 #~ msgstr "Hemsida och dagliga förslag"
@@ -19606,9 +19591,6 @@ msgstr ""
 
 #~ msgid "Remove small overhangs that possibly need no supports."
 #~ msgstr "Ta bort små överhäng som eventuellt inte behöver stöd."
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "Adaptiv lagerhöjd"
 
 #~ msgid ""
 #~ "Only one of the results with the same name will be saved. Are you sure "

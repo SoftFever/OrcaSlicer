@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 11:23+0100\n"
+"POT-Creation-Date: 2025-11-05 17:33+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1967,13 +1967,13 @@ msgstr "A kiválasztott tárgyak újratöltése a lemezről"
 msgid "Replace with STL"
 msgstr "Lecserélés STL-lel"
 
-msgid "Replace the selected part with new STL"
+msgid "Replace the selected part with new STL."
 msgstr "Lecseréli a kijelölt tárgyat egy új STL-lel"
 
 msgid "Replace all with STL"
 msgstr ""
 
-msgid "Replace all selected parts with STL from folder"
+msgid "Replace all selected parts with STL from folder."
 msgstr ""
 
 msgid "Change filament"
@@ -3676,7 +3676,7 @@ msgstr "Téglalap"
 msgid "Circular"
 msgstr "Kör"
 
-msgid "Load shape from STL..."
+msgid "Load shape from STL ..."
 msgstr "Forma betöltése STL-ből..."
 
 msgid "Settings"
@@ -4815,6 +4815,9 @@ msgstr "Vissza az összeszereléshez"
 
 msgid "Return"
 msgstr "Vissza"
+
+msgid "Toggle Axis"
+msgstr ""
 
 msgid "Paint Toolbar"
 msgstr "Festés eszköztár"
@@ -6002,10 +6005,6 @@ msgstr ""
 msgid "Layer: %d/%d"
 msgstr ""
 
-#, c-format, boost-format
-msgid "(%d)"
-msgstr ""
-
 #, fuzzy
 msgid ""
 "Please heat the nozzle to above 170°C before loading or unloading filament."
@@ -6558,6 +6557,9 @@ msgid "Unlock current plate"
 msgstr ""
 
 msgid "Lock current plate"
+msgstr ""
+
+msgid "Filament grouping"
 msgstr ""
 
 msgid "Edit current plate name"
@@ -7490,7 +7492,7 @@ msgid "Set the page opened on startup."
 msgstr ""
 
 msgid "Enable dark mode"
-msgstr ""
+msgstr "Sötét mód engedélyezése"
 
 msgid "Allow only one OrcaSlicer instance"
 msgstr ""
@@ -7561,7 +7563,7 @@ msgid ""
 msgstr ""
 
 msgid "Auto backup"
-msgstr ""
+msgstr "Automatikus biztonsági mentés"
 
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
@@ -7682,7 +7684,7 @@ msgid ""
 msgstr ""
 
 msgid "Login region"
-msgstr ""
+msgstr "Régió"
 
 msgid "Stealth mode"
 msgstr ""
@@ -7693,7 +7695,7 @@ msgid ""
 msgstr ""
 
 msgid "Network test"
-msgstr ""
+msgstr "Hálózati teszt"
 
 msgid "Test"
 msgstr "Teszt"
@@ -9549,9 +9551,6 @@ msgstr ""
 msgid ""
 "The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
-msgstr ""
-
-msgid "—> "
 msgstr ""
 
 msgid ""
@@ -13703,6 +13702,12 @@ msgid "Ironing angle offset"
 msgstr ""
 
 msgid "The angle of ironing lines offset from the top surface."
+msgstr ""
+
+msgid "Fixed ironing angle"
+msgstr ""
+
+msgid "Use a fixed absolute angle for ironing."
 msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
@@ -18770,9 +18775,6 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
-msgid "Filament grouping"
-msgstr ""
-
 msgid "Don't remind me again"
 msgstr ""
 
@@ -18911,9 +18913,6 @@ msgstr ""
 msgid "Zoom Out"
 msgstr ""
 
-msgid "100 %"
-msgstr ""
-
 msgid "Zoom In"
 msgstr ""
 
@@ -18921,14 +18920,6 @@ msgid "Load skipping objects information failed. Please try again."
 msgstr ""
 
 msgid "Loading ..."
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d%%"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d"
 msgstr ""
 
 #, c-format, boost-format
@@ -19320,6 +19311,9 @@ msgstr ""
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
 
+#~ msgid "Adaptive layer height"
+#~ msgstr "Adaptív rétegmagasság"
+
 #~ msgid "AMS not connected"
 #~ msgstr "Az AMS nincs csatlakoztatva"
 
@@ -19521,9 +19515,6 @@ msgstr ""
 #~ msgid "General Settings"
 #~ msgstr "Általános beállítások"
 
-#~ msgid "Login Region"
-#~ msgstr "Régió"
-
 #~ msgid "Show \"Tip of the day\" notification after start"
 #~ msgstr "A nap tippje értesítés megjelenítése indítás után"
 
@@ -19550,17 +19541,11 @@ msgstr ""
 #~ msgid "User Sync"
 #~ msgstr "Felhasználó szinkronizálás"
 
-#~ msgid "Auto-Backup"
-#~ msgstr "Automatikus biztonsági mentés"
-
 #~ msgid "Downloads"
 #~ msgstr "Letöltések"
 
 #~ msgid "Dark Mode"
 #~ msgstr "Sötét mód"
-
-#~ msgid "Enable Dark mode"
-#~ msgstr "Sötét mód engedélyezése"
 
 #~ msgid "Home page and daily tips"
 #~ msgstr "Kezdőoldal és napi tippek"
@@ -19674,9 +19659,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Eltávolítja a kis túlnyúlásokat, amelyek esetleg nem igényelnek "
 #~ "alátámasztást."
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "Adaptív rétegmagasság"
 
 #~ msgid ""
 #~ "Only one of the results with the same name will be saved. Are you sure "

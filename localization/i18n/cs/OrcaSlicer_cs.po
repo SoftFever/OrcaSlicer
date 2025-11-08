@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 11:23+0100\n"
+"POT-Creation-Date: 2025-11-05 17:33+0800\n"
 "PO-Revision-Date: 2024-11-03 20:59+0100\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2020,13 +2020,13 @@ msgstr "Znovu načíst vybrané části z disku"
 msgid "Replace with STL"
 msgstr "Nahradit STL souborem"
 
-msgid "Replace the selected part with new STL"
+msgid "Replace the selected part with new STL."
 msgstr "Nahradit vybranou část novým STL"
 
 msgid "Replace all with STL"
 msgstr ""
 
-msgid "Replace all selected parts with STL from folder"
+msgid "Replace all selected parts with STL from folder."
 msgstr ""
 
 msgid "Change filament"
@@ -3735,8 +3735,8 @@ msgstr "Obdélníkový"
 msgid "Circular"
 msgstr "Kruhový"
 
-msgid "Load shape from STL..."
-msgstr "Načíst tvar ze souboru STL…"
+msgid "Load shape from STL ..."
+msgstr "Načíst tvar ze souboru STL …"
 
 msgid "Settings"
 msgstr "Nastavení"
@@ -4880,6 +4880,9 @@ msgstr "Návrat k sestavení"
 
 msgid "Return"
 msgstr "Návrat"
+
+msgid "Toggle Axis"
+msgstr ""
 
 msgid "Paint Toolbar"
 msgstr "Panel nástrojů Malování"
@@ -6075,10 +6078,6 @@ msgstr "Vrstva: %s"
 msgid "Layer: %d/%d"
 msgstr "Vrstva: %d/%d"
 
-#, c-format, boost-format
-msgid "(%d)"
-msgstr ""
-
 msgid ""
 "Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
@@ -6638,6 +6637,9 @@ msgstr "Odemknout aktuální podložku"
 
 msgid "Lock current plate"
 msgstr "Zamknout aktuální podložku"
+
+msgid "Filament grouping"
+msgstr ""
 
 msgid "Edit current plate name"
 msgstr ""
@@ -7578,7 +7580,7 @@ msgid "Set the page opened on startup."
 msgstr ""
 
 msgid "Enable dark mode"
-msgstr ""
+msgstr "Povolit tmavý režim"
 
 msgid "Allow only one OrcaSlicer instance"
 msgstr ""
@@ -7648,7 +7650,7 @@ msgid ""
 msgstr ""
 
 msgid "Auto backup"
-msgstr ""
+msgstr "Automatické zálohování"
 
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
@@ -7770,10 +7772,10 @@ msgid ""
 msgstr ""
 
 msgid "Login region"
-msgstr ""
+msgstr "Región přihlášení"
 
 msgid "Stealth mode"
-msgstr ""
+msgstr "Tajný režim"
 
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
@@ -9651,9 +9653,6 @@ msgstr ""
 msgid ""
 "The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
-msgstr ""
-
-msgid "—> "
 msgstr ""
 
 msgid ""
@@ -13920,6 +13919,12 @@ msgid "Ironing angle offset"
 msgstr ""
 
 msgid "The angle of ironing lines offset from the top surface."
+msgstr ""
+
+msgid "Fixed ironing angle"
+msgstr ""
+
+msgid "Use a fixed absolute angle for ironing."
 msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
@@ -19081,9 +19086,6 @@ msgstr "Tisk neúspěšný"
 msgid "Removed"
 msgstr "Odstraněno"
 
-msgid "Filament grouping"
-msgstr ""
-
 msgid "Don't remind me again"
 msgstr ""
 
@@ -19222,9 +19224,6 @@ msgstr ""
 msgid "Zoom Out"
 msgstr ""
 
-msgid "100 %"
-msgstr ""
-
 msgid "Zoom In"
 msgstr ""
 
@@ -19232,14 +19231,6 @@ msgid "Load skipping objects information failed. Please try again."
 msgstr ""
 
 msgid "Loading ..."
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d%%"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d"
 msgstr ""
 
 #, c-format, boost-format
@@ -19641,6 +19632,16 @@ msgid ""
 "probability of warping?"
 msgstr ""
 
+#~ msgid "Adaptive layer height"
+#~ msgstr "Adaptivní výška vrstvy"
+
+#~ msgid ""
+#~ "Enabling this option means the height of tree support layer except the "
+#~ "first will be automatically calculated."
+#~ msgstr ""
+#~ "Povolení této možnosti znamená, že výška stromové podpůrné vrstvy kromě "
+#~ "první bude automaticky vypočtena "
+
 #~ msgid "AMS not connected"
 #~ msgstr "AMS není připojen"
 
@@ -19868,12 +19869,6 @@ msgstr ""
 #~ msgid "General Settings"
 #~ msgstr "Obecná nastavení"
 
-#~ msgid "Login Region"
-#~ msgstr "Región přihlášení"
-
-#~ msgid "Stealth Mode"
-#~ msgstr "Tajný Režim"
-
 #~ msgid "Show \"Tip of the day\" notification after start"
 #~ msgstr "Zobrazovat \"Tip dne\" po spuštění"
 
@@ -19889,9 +19884,6 @@ msgstr ""
 #~ msgid "System Sync"
 #~ msgstr "Synchronizace systému"
 
-#~ msgid "Auto-Backup"
-#~ msgstr "Automatické zálohování"
-
 #~ msgid "every"
 #~ msgstr "každých"
 
@@ -19900,9 +19892,6 @@ msgstr ""
 
 #~ msgid "Dark Mode"
 #~ msgstr "Tmavý režim"
-
-#~ msgid "Enable Dark mode"
-#~ msgstr "Povolit tmavý režim"
 
 #~ msgid "Home page and daily tips"
 #~ msgstr "Domovská stránka a denní tipy"
@@ -20029,16 +20018,6 @@ msgstr ""
 
 #~ msgid "Remove small overhangs that possibly need no supports."
 #~ msgstr "Odstranit malé převisy, které pravděpodobně nepotřebují podpěry."
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "Adaptivní výška vrstvy"
-
-#~ msgid ""
-#~ "Enabling this option means the height of tree support layer except the "
-#~ "first will be automatically calculated."
-#~ msgstr ""
-#~ "Povolení této možnosti znamená, že výška stromové podpůrné vrstvy kromě "
-#~ "první bude automaticky vypočtena "
 
 #~ msgid "External Spool"
 #~ msgstr "Externí cívka"
