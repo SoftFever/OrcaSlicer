@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 11:23+0100\n"
+"POT-Creation-Date: 2025-11-05 17:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1978,13 +1978,13 @@ msgstr "選択したパーツをディスクから再読込み"
 msgid "Replace with STL"
 msgstr "STLに置き換え"
 
-msgid "Replace the selected part with new STL"
+msgid "Replace the selected part with new STL."
 msgstr "選択したパーツを新しいSTLに置換え"
 
 msgid "Replace all with STL"
 msgstr ""
 
-msgid "Replace all selected parts with STL from folder"
+msgid "Replace all selected parts with STL from folder."
 msgstr ""
 
 msgid "Change filament"
@@ -3634,7 +3634,7 @@ msgstr "長方形"
 msgid "Circular"
 msgstr "円形"
 
-msgid "Load shape from STL..."
+msgid "Load shape from STL ..."
 msgstr "STLからシェープデータを読込む"
 
 msgid "Settings"
@@ -4751,6 +4751,9 @@ msgstr "戻る"
 
 msgid "Return"
 msgstr "戻る"
+
+msgid "Toggle Axis"
+msgstr ""
 
 msgid "Paint Toolbar"
 msgstr "ペイント ツールバー"
@@ -5921,10 +5924,6 @@ msgstr ""
 msgid "Layer: %d/%d"
 msgstr ""
 
-#, c-format, boost-format
-msgid "(%d)"
-msgstr ""
-
 msgid ""
 "Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
@@ -6459,6 +6458,9 @@ msgid "Unlock current plate"
 msgstr ""
 
 msgid "Lock current plate"
+msgstr ""
+
+msgid "Filament grouping"
 msgstr ""
 
 msgid "Edit current plate name"
@@ -7372,7 +7374,7 @@ msgid "Set the page opened on startup."
 msgstr ""
 
 msgid "Enable dark mode"
-msgstr ""
+msgstr "ダークモードを有効"
 
 msgid "Allow only one OrcaSlicer instance"
 msgstr ""
@@ -7439,7 +7441,7 @@ msgid ""
 msgstr ""
 
 msgid "Auto backup"
-msgstr ""
+msgstr "自動バックアップ"
 
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
@@ -7560,7 +7562,7 @@ msgid ""
 msgstr ""
 
 msgid "Login region"
-msgstr ""
+msgstr "地域"
 
 msgid "Stealth mode"
 msgstr ""
@@ -9371,9 +9373,6 @@ msgstr ""
 msgid ""
 "The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
-msgstr ""
-
-msgid "—> "
 msgstr ""
 
 msgid ""
@@ -13459,6 +13458,12 @@ msgid "Ironing angle offset"
 msgstr ""
 
 msgid "The angle of ironing lines offset from the top surface."
+msgstr ""
+
+msgid "Fixed ironing angle"
+msgstr ""
+
+msgid "Use a fixed absolute angle for ironing."
 msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
@@ -18376,9 +18381,6 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
-msgid "Filament grouping"
-msgstr ""
-
 msgid "Don't remind me again"
 msgstr ""
 
@@ -18518,9 +18520,6 @@ msgstr "単一のオブジェクトを選択してください"
 msgid "Zoom Out"
 msgstr ""
 
-msgid "100 %"
-msgstr ""
-
 msgid "Zoom In"
 msgstr ""
 
@@ -18528,14 +18527,6 @@ msgid "Load skipping objects information failed. Please try again."
 msgstr ""
 
 msgid "Loading ..."
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d%%"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d"
 msgstr ""
 
 #, c-format, boost-format
@@ -18910,6 +18901,9 @@ msgstr ""
 "ABSのような反りやすい素材を印刷する場合、ヒートベッドの温度を適切に上げること"
 "で、反りが発生する確率を下げることができることをご存知ですか？"
 
+#~ msgid "Adaptive layer height"
+#~ msgstr "アダプティブ積層ピッチ"
+
 #~ msgid "AMS not connected"
 #~ msgstr "AMS が接続されていません"
 
@@ -19062,9 +19056,6 @@ msgstr ""
 #~ msgid "General Settings"
 #~ msgstr "一般設定"
 
-#~ msgid "Login Region"
-#~ msgstr "地域"
-
 #~ msgid "Show \"Tip of the day\" notification after start"
 #~ msgstr "起動後「毎日のヒント」を表示"
 
@@ -19077,17 +19068,11 @@ msgstr ""
 #~ msgid "User Sync"
 #~ msgstr "ユーザー同期"
 
-#~ msgid "Auto-Backup"
-#~ msgstr "自動バックアップ"
-
 #~ msgid "Downloads"
 #~ msgstr "ダウンロード"
 
 #~ msgid "Dark Mode"
 #~ msgstr "ダークモード"
-
-#~ msgid "Enable Dark mode"
-#~ msgstr "ダークモードを有効"
 
 #~ msgid "Home page and daily tips"
 #~ msgstr "ホームページとヒント"
@@ -19170,9 +19155,6 @@ msgstr ""
 #~ msgstr ""
 #~ "温度差が大きいフィラメントを一緒に造形することができません。ノズル詰まりや"
 #~ "損傷する可能性があります"
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "アダプティブ積層ピッチ"
 
 #~ msgid "Alt + Mouse wheel"
 #~ msgstr "Alt + マウスホイール"
