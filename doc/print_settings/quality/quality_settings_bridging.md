@@ -13,7 +13,7 @@
 
 - Values above 1.0 add material:
   - Regular bridges: Keep spacing and thicken the filament for stronger line contact when paired with a <= 100% Bridge line width.
-  - Thick bridges: Increase spacing and increase width, height and spacing.
+  - Thick bridges: Increase width, height, and spacing.
 - Values below 1.0 remove material:
   - Regular bridges: eventually tighten spacing as the thread thins—potentially adding passes or altering paths—whereas.
   - Thick bridges: shrink both diameter and spacing, cutting sagging at the cost of lateral bonding.
@@ -25,9 +25,9 @@ Theoretically, 100% means a solid bridge, but due to the tendency of bridge extr
 
 - Higher than 100% density (**Recommended**):
   - Pros: Produce smoother bridge surfaces, as overlapping lines provide additional support during printing.
-  - Cons: Can cause overextrusion decreasing lower and upper surface quality.
+  - Cons: Can cause overextrusion, decreasing lower and upper surface quality.
 - Lower than 100% density:
-  - Pros: Can create a string like first layer. Quick and with better cooling as there is more space for air to circulate around the extruded bridge.
+  - Pros: Can create a string like the first layer. Quick and with better cooling, as there is more space for air to circulate around the extruded bridge.
   - Cons: May lead to sagging and poor surface finish.
 
 ## Thick bridges
