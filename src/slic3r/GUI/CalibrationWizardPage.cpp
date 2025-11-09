@@ -467,7 +467,11 @@ void CaliPageCaption::init_bitmaps() {
 void CaliPageCaption::create_wiki(wxWindow* parent)
 {
     // ORCA standardized HyperLink
-    m_wiki_text = new HyperLink(parent, _L("Wiki"), m_wiki_url);
+    m_wiki_text = new HyperLink(parent, _L("Wiki Guide"));
+    m_wiki_text->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
+        if (!m_wiki_url.empty())
+            wxLaunchDefaultBrowser(m_wiki_url);
+    });
 }
 
 void CaliPageCaption::show_prev_btn(bool show)

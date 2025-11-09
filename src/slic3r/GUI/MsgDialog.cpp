@@ -675,6 +675,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
 
     // ORCA standardized HyperLink
     m_link_server_state = new HyperLink(this, _L("Check the status of current system services"), wxGetApp().link_to_network_check());
+    m_link_server_state->SetFont(::Label::Body_13);
 
     sizer_link->Add(m_link_server_state, 0, wxALL, 0);
 
@@ -690,6 +691,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
 
     // ORCA standardized HyperLink
     m_text_wiki = new HyperLink(this, _L("How to use LAN only mode"), wxGetApp().link_to_lan_only_wiki());
+    m_text_wiki->SetFont(::Label::Body_13);
 
     sizer_help->Add(m_text_proposal, 0, wxEXPAND, 0);
     sizer_help->Add(m_text_wiki, 0, wxALL, 0);

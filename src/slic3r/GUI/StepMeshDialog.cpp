@@ -118,7 +118,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
     wxStaticText* info = new wxStaticText(this, wxID_ANY, _L("Smaller linear and angular deflections result in higher-quality transformations but increase the processing time."));
     info->SetForegroundColour(StateColor::darkModeColorFor(FONT_COLOR));
     // ORCA standardized HyperLink
-    HyperLink *tips = new HyperLink(this, _L("Wiki"), "https://github.com/SoftFever/OrcaSlicer/wiki/stl-transformation");
+    HyperLink *tips = new HyperLink(this, _L("Wiki Guide"), "https://github.com/SoftFever/OrcaSlicer/wiki/stl-transformation");
     tips->SetFont(::Label::Body_12);
     info->Wrap(FromDIP(400));
     tips_sizer->Add(info, 0, wxALIGN_LEFT);

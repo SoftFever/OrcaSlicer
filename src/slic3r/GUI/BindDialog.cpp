@@ -467,6 +467,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
      // ORCA standardized HyperLink
      auto m_link_Terms_title = new HyperLink(m_panel_agreement, _L("Terms and Conditions"));
+     m_link_Terms_title->SetFont(Label::Head_13);
      m_link_Terms_title->SetMaxSize(wxSize(FromDIP(450), -1));
      m_link_Terms_title->Wrap(FromDIP(450));
      m_link_Terms_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
@@ -485,6 +486,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
      // ORCA standardized HyperLink
      auto m_link_privacy_title = new HyperLink(m_panel_agreement, _L("Privacy Policy"));
+     m_link_privacy_title->SetFont(Label::Head_13);
      m_link_privacy_title->SetMaxSize(wxSize(FromDIP(450), -1));
      m_link_privacy_title->Wrap(FromDIP(450));
      m_link_privacy_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
@@ -522,6 +524,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
      // ORCA standardized HyperLink
      auto m_link_notice_title = new HyperLink(m_panel_agreement, notice_link_title);
+     m_link_notice_title->SetFont(Label::Head_13);
      m_link_notice_title->SetMaxSize(wxSize(FromDIP(450), -1));
      m_link_notice_title->Wrap(FromDIP(450));
      m_link_notice_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
