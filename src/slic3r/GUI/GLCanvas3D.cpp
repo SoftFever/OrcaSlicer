@@ -33,6 +33,7 @@
 #include "DailyTips.hpp"
 #include "FilamentMapDialog.hpp"
 
+#include "slic3r/GUI/CameraUtils.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoPainterBase.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "slic3r/Utils/MacDarkMode.hpp"
@@ -1258,6 +1259,8 @@ bool GLCanvas3D::init()
     // init dark mode status
     on_change_color_mode(wxGetApp().app_config->get("dark_color_mode") == "1", false);
 
+    m_show_world_axes = wxGetApp().app_config->get("show_axes") == "true";
+
     BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< " enter";
     glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
     glsafe(::glClearDepth(1.0f));
@@ -1532,6 +1535,17 @@ ModelInstanceEPrintVolumeState GLCanvas3D::check_volumes_outside_state(ObjectFil
     construct_error_string(*object_results, get_object_clashed_text());
     construct_extruder_unprintable_error(*object_results, get_left_extruder_unprintable_text(), get_right_extruder_unprintable_text());
     return state;
+}
+
+void GLCanvas3D::toggle_world_axes_visibility(bool force_show)
+{
+    if (force_show) {
+        m_show_world_axes = true;
+    } else {
+        m_show_world_axes = !m_show_world_axes;
+    }
+    wxGetApp().app_config->set_bool("show_axes", m_show_world_axes);
+    set_as_dirty();
 }
 
 void GLCanvas3D::toggle_selected_volume_visibility(bool selected_visible)
@@ -2085,7 +2099,7 @@ void GLCanvas3D::render(bool only_init)
     _render_background();
 
     //BBS add partplater rendering logic
-    bool only_current = false, only_body = false, show_axes = true, no_partplate = false;
+    bool only_current = false, only_body = false, no_partplate = false;    
     bool show_grid = true;
     GLGizmosManager::EType gizmo_type = m_gizmos.get_current_type();
     if (!m_main_toolbar.is_enabled()) {
@@ -2105,7 +2119,7 @@ void GLCanvas3D::render(bool only_init)
         _render_sla_slices();
         _render_selection();
         if (!no_partplate)
-            _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
+            _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), m_show_world_axes);
         if (!no_partplate) //BBS: add outline logic
             _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
         _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
@@ -2115,7 +2129,7 @@ void GLCanvas3D::render(bool only_init)
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         _render_sla_slices();
         _render_selection();
-        _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
+        _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), m_show_world_axes);
         _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, true, hover_id);
         // BBS: GUI refactor: add canvas size as parameters
         _render_gcode(cnv_size.get_width(), cnv_size.get_height());
@@ -2123,9 +2137,9 @@ void GLCanvas3D::render(bool only_init)
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         //BBS: add outline logic
-        if (m_show_world_axes) {
-            m_axes.render();
-        }
+        //if (m_show_world_axes) {
+        //    m_axes.render();
+        //}
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         _render_selection();
         //_render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
@@ -4677,6 +4691,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             m_camera_movement = true;
             m_mouse.drag.start_position_2D = pos;
+            m_mouse.drag.move_start_threshold_position_2D = pos;
         }
     }
     else if ((evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) ||
@@ -6069,6 +6084,7 @@ void GLCanvas3D::_render_3d_navigator()
     }
 
     const float size  = 128 * sc;
+    m_axis_button_pos[0] = size - 10;
     const auto result = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, nullptr,
                                                  camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - size), ImVec2(size, size),
                                                  0x00101010);
@@ -6104,6 +6120,7 @@ void GLCanvas3D::_render_3d_navigator()
 
         request_extra_frame();
     }
+    _render_camera_toolbar();
 }
 
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT 0
@@ -8604,6 +8621,51 @@ void GLCanvas3D::_render_return_toolbar() const
     imgui.end();
 }
 
+void GLCanvas3D::_render_camera_toolbar() 
+{
+    float  font_size        = ImGui::GetFontSize();
+    float sc = get_scale();
+    ImVec2 button_icon_size = ImVec2(font_size * 2.5, font_size * 2.5);
+
+    ImGuiWrapper &imgui         = *wxGetApp().imgui();
+    float         window_width  = button_icon_size.x + imgui.scaled(2.0f);
+    float         window_height = button_icon_size.y + imgui.scaled(2.0f);
+
+    Size cnv_size              = get_canvas_size();
+    m_axis_button_pos[1] = cnv_size.get_height() - button_icon_size[1] - 20 * sc;
+    imgui.set_next_window_pos(m_axis_button_pos[0], m_axis_button_pos[1], ImGuiCond_Always, 0, 0);
+#ifdef __WINDOWS__
+    imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
+#endif
+
+    imgui.begin(_L("Toggle Axis"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
+                                           ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);//
+
+    ImTextureID normal_id = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_AXIS_TOGGLE_DARK : GLGizmosManager::MENU_ICON_NAME::IC_AXIS_TOGGLE);
+    ImTextureID hover_id  = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_AXIS_TOGGLE_DARK_HOVER : GLGizmosManager::MENU_ICON_NAME::IC_AXIS_TOGGLE_HOVER);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
+
+    if (ImGui::ImageButton3(normal_id, hover_id, button_icon_size, ImVec2(0, 0), ImVec2(1, 1),  -1,
+                           ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec2(10, 0))) {
+        //select_view("plate");
+
+        if (m_canvas_type == ECanvasType::CanvasView3D || m_canvas_type == ECanvasType::CanvasPreview) {
+            toggle_world_axes_visibility(false);
+        }
+ 
+    }
+    if (ImGui::IsItemHovered()) {
+        auto temp_tooltip = _L("Toggle Axis");
+        auto width        = ImGui::CalcTextSize(temp_tooltip.c_str()).x + imgui.scaled(2.0f);
+        imgui.tooltip(temp_tooltip, width);
+    }
+    ImGui::PopStyleVar(2);
+
+    imgui.end();
+}
+
 void GLCanvas3D::_render_separator_toolbar_right() const
 {
     if (!m_separator_toolbar.is_enabled())
@@ -9312,12 +9374,18 @@ Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
     if (m_canvas == nullptr)
         return Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
 
+    const Camera& camera = wxGetApp().plater()->get_camera();
+
     if (z == nullptr) {
-        const SceneRaycaster::HitResult hit = m_scene_raycaster.hit(mouse_pos.cast<double>(), wxGetApp().plater()->get_camera(), nullptr);
+        const SceneRaycaster::HitResult hit = m_scene_raycaster.hit(mouse_pos.cast<double>(), camera, nullptr);
         return hit.is_valid() ? hit.position.cast<double>() : _mouse_to_bed_3d(mouse_pos);
     }
+    // Orca: Handling of the particular case, if we want to get the position for Z = 0
+    else if (is_approx(static_cast<double>(*z), 0.)) {
+        Vec2d position = CameraUtils::get_z0_position(camera, Vec2d(mouse_pos.x(), mouse_pos.y()));
+        return Vec3d(position.x(), position.y(), *z);
+    }
     else {
-        const Camera& camera = wxGetApp().plater()->get_camera();
         const Vec4i32 viewport(camera.get_viewport().data());
         Vec3d out;
         igl::unproject(Vec3d(mouse_pos.x(), viewport[3] - mouse_pos.y(), *z), camera.get_view_matrix().matrix(), camera.get_projection_matrix().matrix(), viewport, out);
@@ -10004,7 +10072,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         std::string objName2 = m_gcode_viewer.m_conflict_result.value()._objName2;
         double      height   = m_gcode_viewer.m_conflict_result.value()._height;
         int         layer    = m_gcode_viewer.m_conflict_result.value().layer;
-        text = (boost::format(_u8L("Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please separate the conflicted objects farther (%s <-> %s).")) % layer %
+        text = (boost::format(_u8L("Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s).")) % layer %
                 height % objName1 % objName2)
                    .str();
         prevConflictText        = text;
@@ -10070,7 +10138,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 text += (boost::format(_u8L("Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
             }
             else {
-                text += (boost::format(_u8L("Filaments %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
+                text += (boost::format(_u8L("Filaments %s are placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
             }
         }
         error = ErrorType::SLICING_LIMIT_ERROR;
@@ -10122,7 +10190,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             if (error_iter->second.size() == 1) {
                 text += (boost::format(_u8L("Filament %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s.")) % filaments % extruder_name % extruder_name).str();
             } else {
-                text += (boost::format(_u8L("Filaments %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s.")) % filaments % extruder_name % extruder_name).str();
+                text += (boost::format(_u8L("Filaments %s are placed in the %s, but the generated G-code path exceeds the printable height of the %s.")) % filaments % extruder_name % extruder_name).str();
             }
         }
         if (!text.empty()) {

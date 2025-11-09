@@ -745,9 +745,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_line(el, support_is_organic);
 
     toggle_field("tree_support_brim_width", support_is_tree && !config->opt_bool("tree_support_auto_brim"));
-    // non-organic tree support use max_bridge_length instead of bridge_no_support
-    toggle_line("max_bridge_length", support_is_normal_tree);
-    toggle_line("bridge_no_support", !support_is_normal_tree);
+    // tree support use max_bridge_length instead of bridge_no_support
+    toggle_line("max_bridge_length", support_is_tree);
+    toggle_line("bridge_no_support", !support_is_tree);
     toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
     for (auto el : { "support_interface_filament",
@@ -780,7 +780,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field(el, have_support_material && !(support_is_normal_tree && !have_raft));
 
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
-    for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_angle", "ironing_inset"})
+    for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_angle", "ironing_inset", "ironing_angle_fixed" })
         toggle_line(el, has_ironing);
     
     toggle_line("ironing_speed", has_ironing || has_support_ironing);
