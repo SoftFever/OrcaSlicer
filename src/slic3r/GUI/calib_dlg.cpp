@@ -174,24 +174,10 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     v_sizer->AddSpacer(FromDIP(5));
 
-    // Help links
-    auto help_sizer = new wxBoxSizer(wxVERTICAL);
-    auto help_link_pa = new wxHyperlinkCtrl(this, wxID_ANY, _L("Pressure Advance Guide"),
-        "https://github.com/SoftFever/OrcaSlicer/wiki/pressure-advance-calib");
-    help_link_pa->SetForegroundColour(wxColour("#1890FF"));
-    help_sizer->Add(help_link_pa, 0, wxALL, FromDIP(5));
-
-    auto help_link_apa = new wxHyperlinkCtrl(this, wxID_ANY, _L("Adaptive Pressure Advance Guide"),
-        "https://github.com/SoftFever/OrcaSlicer/wiki/adaptive-pressure-advance-calib");
-    help_link_apa->SetForegroundColour(wxColour("#1890FF"));
-    help_sizer->Add(help_link_apa, 0, wxALL, FromDIP(5));
-
-    v_sizer->Add(help_sizer, 0, wxALL, FromDIP(10));
-
     auto dlg_btns = new DialogButtons(this, {"OK"});
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto wiki = new HyperLink(this, _L("Wiki"), "https://github.com/SoftFever/OrcaSlicer/wiki/pressure-advance-calib");
+    auto wiki = new HyperLink(this, _L("Wiki Guide"), "https://github.com/SoftFever/OrcaSlicer/wiki/pressure-advance-calib");
     bottom_sizer->Add(wiki, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
     bottom_sizer->AddStretchSpacer();
     bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
@@ -393,15 +379,10 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     v_sizer->AddSpacer(FromDIP(5));
 
-    auto help_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Wiki Guide: Temperature Calibration"),
-        "https://github.com/SoftFever/OrcaSlicer/wiki/temp-calib");
-    help_link->SetForegroundColour(wxColour("#1890FF"));
-    v_sizer->Add(help_link, 0, wxALL, FromDIP(10));
-
     auto dlg_btns = new DialogButtons(this, {"OK"});
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto wiki = new HyperLink(this, _L("Wiki"), "https://github.com/SoftFever/OrcaSlicer/wiki/temp-calib");
+    auto wiki = new HyperLink(this, _L("Wiki Guide"), "https://github.com/SoftFever/OrcaSlicer/wiki/temp-calib");
     bottom_sizer->Add(wiki, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
     bottom_sizer->AddStretchSpacer();
     bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
@@ -578,15 +559,10 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     v_sizer->AddSpacer(FromDIP(5));
 
-    auto help_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Wiki Guide: Volumetric Speed Calibration"),
-        "https://github.com/SoftFever/OrcaSlicer/wiki/volumetric-speed-calib");
-    help_link->SetForegroundColour(wxColour("#1890FF"));
-    v_sizer->Add(help_link, 0, wxALL, FromDIP(10));
-
     auto dlg_btns = new DialogButtons(this, {"OK"});
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto wiki = new HyperLink(this, _L("Wiki"), "https://github.com/SoftFever/OrcaSlicer/wiki/volumetric-speed-calib");
+    auto wiki = new HyperLink(this, _L("Wiki Guide"), "https://github.com/SoftFever/OrcaSlicer/wiki/volumetric-speed-calib");
     bottom_sizer->Add(wiki, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
     bottom_sizer->AddStretchSpacer();
     bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
@@ -690,15 +666,10 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
     v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     v_sizer->AddSpacer(FromDIP(5));
 
-    auto help_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Wiki Guide: VFA"),
-        "https://github.com/SoftFever/OrcaSlicer/wiki/vfa-calib");
-    help_link->SetForegroundColour(wxColour("#1890FF"));
-    v_sizer->Add(help_link, 0, wxALL, FromDIP(10));
-
     auto dlg_btns = new DialogButtons(this, {"OK"});
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto wiki = new HyperLink(this, _L("Wiki"), "https://github.com/SoftFever/OrcaSlicer/wiki/vfa-calib");
+    auto wiki = new HyperLink(this, _L("Wiki Guide"), "https://github.com/SoftFever/OrcaSlicer/wiki/vfa-calib");
     bottom_sizer->Add(wiki, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
     bottom_sizer->AddStretchSpacer();
     bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
@@ -804,15 +775,10 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     v_sizer->AddSpacer(FromDIP(5));
 
-    auto help_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Wiki Guide: Retraction Calibration"),
-        "https://github.com/SoftFever/OrcaSlicer/wiki/retraction-calib");
-    help_link->SetForegroundColour(wxColour("#1890FF"));
-    v_sizer->Add(help_link, 0, wxALL, FromDIP(10));
-
     auto dlg_btns = new DialogButtons(this, {"OK"});
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto wiki = new HyperLink(this, _L("Wiki"), "https://github.com/SoftFever/OrcaSlicer/wiki/retraction-calib");
+    auto wiki = new HyperLink(this, _L("Wiki Guide"), "https://github.com/SoftFever/OrcaSlicer/wiki/retraction-calib");
     bottom_sizer->Add(wiki, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
     bottom_sizer->AddStretchSpacer();
     bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
@@ -987,15 +953,10 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     v_sizer->AddSpacer(FromDIP(5));
 
-    auto help_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Wiki Guide: Input Shaping Calibration"),
-        "https://github.com/SoftFever/OrcaSlicer/wiki/input-shaping-calib");
-    help_link->SetForegroundColour(wxColour("#1890FF"));
-    v_sizer->Add(help_link, 0, wxALL, FromDIP(10));
-
     auto dlg_btns = new DialogButtons(this, {"OK"});
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto wiki = new HyperLink(this, _L("Wiki"), "https://github.com/SoftFever/OrcaSlicer/wiki/input-shaping-calib");
+    auto wiki = new HyperLink(this, _L("Wiki Guide"), "https://github.com/SoftFever/OrcaSlicer/wiki/input-shaping-calib");
     bottom_sizer->Add(wiki, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
     bottom_sizer->AddStretchSpacer();
     bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
@@ -1190,15 +1151,10 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     v_sizer->AddSpacer(FromDIP(5));
 
-    auto help_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Wiki Guide: Input Shaping Calibration"),
-        "https://github.com/SoftFever/OrcaSlicer/wiki/input-shaping-calib");
-    help_link->SetForegroundColour(wxColour("#1890FF"));
-    v_sizer->Add(help_link, 0, wxALL, FromDIP(10));
-
     auto dlg_btns = new DialogButtons(this, {"OK"});
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto wiki = new HyperLink(this, _L("Wiki"), "https://github.com/SoftFever/OrcaSlicer/wiki/input-shaping-calib");
+    auto wiki = new HyperLink(this, _L("Wiki Guide"), "https://github.com/SoftFever/OrcaSlicer/wiki/input-shaping-calib");
     bottom_sizer->Add(wiki, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
     bottom_sizer->AddStretchSpacer();
     bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
@@ -1387,15 +1343,10 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     v_sizer->Add(settings_sizer, 0, wxTOP | wxRIGHT | wxLEFT | wxEXPAND, FromDIP(10));
     v_sizer->AddSpacer(FromDIP(5));
 
-    auto help_link = new wxHyperlinkCtrl(this, wxID_ANY, _L("Wiki Guide: Cornering Calibration"),
-        "https://github.com/SoftFever/OrcaSlicer/wiki/cornering-calib");
-    help_link->SetForegroundColour(wxColour("#1890FF"));
-    v_sizer->Add(help_link, 0, wxALL, FromDIP(10));
-
     auto dlg_btns = new DialogButtons(this, {"OK"});
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto wiki = new HyperLink(this, _L("Wiki"), "https://github.com/SoftFever/OrcaSlicer/wiki/cornering-calib");
+    auto wiki = new HyperLink(this, _L("Wiki Guide"), "https://github.com/SoftFever/OrcaSlicer/wiki/cornering-calib");
     bottom_sizer->Add(wiki, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
     bottom_sizer->AddStretchSpacer();
     bottom_sizer->Add(dlg_btns, 0, wxEXPAND);
