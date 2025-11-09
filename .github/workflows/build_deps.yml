@@ -92,11 +92,11 @@ jobs:
 
 
       - name: Apt-Install Dependencies
-        if: inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-25.10'
         uses: ./.github/actions/apt-install-deps
 
       - name: Build on Ubuntu
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' || inputs.os == 'ubuntu-25.10'
         working-directory: ${{ github.workspace }}
         run: |
             mkdir -p ${{ github.workspace }}/deps/build/destdir
