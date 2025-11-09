@@ -18,6 +18,8 @@
 #include "Jobs/PlaterWorker.hpp"
 #include "Widgets/WebView.hpp"
 
+#include "DeviceCore/DevManager.h"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -220,6 +222,8 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     m_button_close->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PingCodeBindDialog::on_cancel), NULL, this);
 
     m_simplebook->SetSelection(0);
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void PingCodeBindDialog::on_key_input(wxKeyEvent& evt)
@@ -739,7 +743,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
          json j = json::parse(str.utf8_string());
          if (j.contains("err_code")) {
              int error_code = j["err_code"].get<int>();
-             wxGetApp().get_hms_query()->query_print_error_msg(error_code, extra);
+             extra = wxGetApp().get_hms_query()->query_print_error_msg(m_machine_info, error_code);
          }
      }
      catch (...) {
@@ -823,7 +827,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      EndModal(wxID_OK);
      MessageDialog msg_wingow(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
      msg_wingow.ShowModal();
-     if(m_machine_info) wxGetApp().on_start_subscribe_again(m_machine_info->dev_id);
+     if(m_machine_info) wxGetApp().on_start_subscribe_again(m_machine_info->get_dev_id());
  }
 
  void BindMachineDialog::on_bind_printer(wxCommandEvent &event)
@@ -839,7 +843,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      if (m_machine_info == nullptr || m_machine_info == NULL) return;
 
      //check dev_id
-     if (m_machine_info->dev_id.empty()) return;
+     if (m_machine_info->get_dev_id().empty()) return;
 
      // update ota version
      NetworkAgent* agent = wxGetApp().getAgent();
@@ -847,7 +851,8 @@ PingCodeBindDialog::~PingCodeBindDialog() {
          agent->track_update_property("dev_ota_version", m_machine_info->get_ota_version());
 
      m_simplebook->SetSelection(0);
-     auto m_bind_job = std::make_unique<BindJob>(m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link, m_machine_info->bind_ssdp_version);
+     auto m_bind_job = std::make_unique<BindJob>(
+        m_machine_info->get_dev_id(), m_machine_info->get_dev_ip(), m_machine_info->bind_sec_link, m_machine_info->bind_ssdp_version);
 
      if (m_machine_info && (m_machine_info->get_printer_series() == PrinterSeries::SERIES_X1)) {
          m_bind_job->set_improved(false);
@@ -892,12 +897,12 @@ void BindMachineDialog::on_show(wxShowEvent &event)
     if (event.IsShown()) {
         auto img = m_machine_info->get_printer_thumbnail_img_str();
         if (wxGetApp().dark_mode()) { img += "_dark"; }
-        auto bitmap = create_scaled_bitmap(img, this, FromDIP(100));
+        auto bitmap = create_scaled_bitmap(img, this, FromDIP(80));
         m_printer_img->SetBitmap(bitmap);
         m_printer_img->Refresh();
         m_printer_img->Show();
 
-        m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
+        m_printer_name->SetLabelText(from_u8(m_machine_info->get_dev_name()));
 
         if (wxGetApp().is_user_login()) {
             wxString username_text = from_u8(wxGetApp().getAgent()->get_user_nickanme());
@@ -1075,16 +1080,16 @@ void UnBindMachineDialog::on_unbind_printer(wxCommandEvent &event)
     }
 
     m_machine_info->set_access_code("");
-    int result = wxGetApp().request_user_unbind(m_machine_info->dev_id);
+    int result = wxGetApp().request_user_unbind(m_machine_info->get_dev_id());
     if (result == 0) {
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         if (!dev) return;
         // clean local machine access code info
-        MachineObject* obj = dev->get_local_machine(m_machine_info->dev_id);
+        MachineObject* obj = dev->get_local_machine(m_machine_info->get_dev_id());
         if (obj) {
             obj->set_access_code("");
         }
-        dev->erase_user_machine(m_machine_info->dev_id);
+        dev->erase_user_machine(m_machine_info->get_dev_id());
 
         m_status_text->SetLabelText(_L("Log out successful."));
         m_button_cancel->SetLabel(_L("Close"));
@@ -1109,12 +1114,12 @@ void UnBindMachineDialog::on_show(wxShowEvent &event)
     if (event.IsShown()) {
         auto img = m_machine_info->get_printer_thumbnail_img_str();
         if (wxGetApp().dark_mode()) { img += "_dark"; }
-        auto bitmap = create_scaled_bitmap(img, this, FromDIP(100));
+        auto bitmap = create_scaled_bitmap(img, this, FromDIP(80));
         m_printer_img->SetBitmap(bitmap);
         m_printer_img->Refresh();
         m_printer_img->Show();
 
-        m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
+        m_printer_name->SetLabelText(from_u8(m_machine_info->get_dev_name()));
 
 
         if (wxGetApp().is_user_login()) {

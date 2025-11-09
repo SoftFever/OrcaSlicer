@@ -51,6 +51,7 @@ OrcaSlicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki
 
 ### Quality Settings
 
+![custom-gcode_quality](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/custom-gcode_quality.svg?raw=true) Settings related to print quality and aesthetics.  
 ![process-quality](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-quality.png?raw=true)
 
 - ![param_layer_height](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_layer_height.svg?raw=true) [Layer Height Settings](quality_settings_layer_height)
@@ -65,6 +66,7 @@ OrcaSlicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki
 
 ### Strength Settings
 
+![custom-gcode_strength](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/custom-gcode_strength.svg?raw=true) Settings related to print strength and durability.  
 ![process-strength](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-strength.png?raw=true)
 
 - ![param_wall](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_wall.svg?raw=true) [Walls](strength_settings_walls)
@@ -76,6 +78,7 @@ OrcaSlicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki
 
 ### Speed Settings
 
+![custom-gcode_speed](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/custom-gcode_speed.svg?raw=true) Settings related to print speed and movement.  
 ![process-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-speed.png?raw=true)
 
 - ![param_speed_first](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_speed_first.svg?raw=true) [Initial Layer Speed](speed_settings_initial_layer_speed)
@@ -88,6 +91,7 @@ OrcaSlicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki
 
 ### Support Settings
 
+![custom-gcode_support](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/custom-gcode_support.svg?raw=true) Settings related to support structures and their properties.  
 ![process-support](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-support.png?raw=true)
 
 - ![param_support](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_support.svg?raw=true) [Support](support_settings_support)
@@ -99,6 +103,7 @@ OrcaSlicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki
 
 ### Multimaterial Settings
 
+![custom-gcode_multi_material](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/custom-gcode_multi_material.svg?raw=true) Settings related to multimaterial printing.  
 ![process-multimaterial](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-multimaterial.png?raw=true)
 
 - ![param_tower](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_tower.svg?raw=true) [Prime Tower](multimaterial_settings_prime_tower)
@@ -109,6 +114,7 @@ OrcaSlicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki
 
 ### Others Settings
 
+![custom-gcode_other](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/custom-gcode_other.svg?raw=true) Settings related to various other print settings.  
 ![process-others](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/GUI/process/process-others.png?raw=true)
 
 - ![param_skirt](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/param_skirt.svg?raw=true) [Skirt](others_settings_skirt)
@@ -146,6 +152,7 @@ OrcaSlicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki
 ![im_code](https://github.com/SoftFever/OrcaSlicer/blob/main/resources/images/im_code.svg?raw=true) This is a documentation from someone exploring the code and is by no means complete or even completely accurate. Please edit the parts you might find inaccurate. This is probably going to be helpful nonetheless.
 
 - [How to build OrcaSlicer](How-to-build)
+- [How to run tests](How-to-test)
 - [Localization and translation guide](Localization_guide)
 - [How to create profiles](How-to-create-profiles)
 - [How to contribute to the wiki](How-to-wiki)

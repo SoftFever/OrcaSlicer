@@ -63,11 +63,13 @@ namespace GUI {
         m_control_refresh->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCursor(wxCURSOR_ARROW)); });
 
 #ifdef __APPLE__
-        m_control_back->SetToolTip(_L("Click to return (Command + Left Arrow)"));
-        m_control_forward->SetToolTip(_L("Click to continue (Command + Right Arrow)"));
+        // FIXME: maybe should be using GUI::shortkey_ctrl_prefix() or equivalent?
+        m_control_back->SetToolTip(_L("Click to return") + "(" + u8"\u2318+" /* u8"⌘+" */ + _L("Left Arrow") + ")");
+        m_control_forward->SetToolTip(_L("Click to continue") + "(" + u8"\u2318+"  /* u8"⌘+" */ + _L("Right Arrow") + ")");
 #else
-        m_control_back->SetToolTip(_L("Click to return (Alt + Left Arrow)"));
-        m_control_forward->SetToolTip(_L("Click to continue (Alt + Right Arrow)"));
+        // FIXME: maybe should be using GUI::shortkey_alt_prefix() or equivalent?
+        m_control_back->SetToolTip(_L("Click to return") + "(" + _L("Alt+") + _L("Left Arrow") + ")");
+        m_control_forward->SetToolTip(_L("Click to continue") + "(" + _L("Alt+") + _L("Right Arrow") + ")");
 #endif
         
         m_control_refresh->SetToolTip(_L("Refresh"));
