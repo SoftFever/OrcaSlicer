@@ -253,6 +253,12 @@ void Layer::make_perimeters()
 	            }
 	        }
 	    }
+
+    // Union fuzzy regions
+    for (auto & fuzzify : this->regions_by_fuzzify) {
+        fuzzify.second = offset_ex(fuzzify.second, ClipperSafetyOffset);
+    }
+
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done";
 }
 
