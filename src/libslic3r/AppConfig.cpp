@@ -214,6 +214,9 @@ void AppConfig::set_defaults()
 
     if (get("show_outline").empty())
         set_bool("show_outline", false);
+    
+    if (get("show_axes").empty())
+        set_bool("show_axes", true);
 
 #ifdef _WIN32
 
@@ -265,6 +268,9 @@ void AppConfig::set_defaults()
     // Orca
     if (get("stealth_mode").empty()) {
         set_bool("stealth_mode", false);
+    }
+    if (get("allow_abnormal_storage").empty()) {
+        set_bool("allow_abnormal_storage", false);
     }
     if (get("legacy_networking").empty()) {
         set_bool("legacy_networking", false);

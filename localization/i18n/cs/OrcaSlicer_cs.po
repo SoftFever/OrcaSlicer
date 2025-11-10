@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-26 10:38+0800\n"
+"POT-Creation-Date: 2025-11-05 17:33+0800\n"
 "PO-Revision-Date: 2024-11-03 20:59+0100\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -1130,7 +1130,7 @@ msgstr "Vzdálenost středu textu od povrchu modelu."
 msgid "Undo rotation"
 msgstr "Akce zpět Rotace"
 
-msgid "Rotate text Clock-wise."
+msgid "Rotate text Clockwise."
 msgstr "Otáčení textu ve směru hodinových ručiček."
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
@@ -1313,7 +1313,8 @@ msgstr "Znovu načíst SVG z disku."
 msgid "Change file"
 msgstr "Změnit soubor"
 
-msgid "Change to another .svg file"
+#, fuzzy
+msgid "Change to another SVG file."
 msgstr "Změnit na jiný .svg soubor"
 
 msgid "Forget the file path"
@@ -1340,7 +1341,8 @@ msgstr "Uložit jako"
 msgid "Save SVG file"
 msgstr "Uložit SVG soubor"
 
-msgid "Save as '.svg' file"
+#, fuzzy
+msgid "Save as SVG file."
 msgstr "Uložit jako soubor '.svg'"
 
 msgid "Size in emboss direction."
@@ -1702,21 +1704,21 @@ msgstr "Načítání aktuálních předvoleb"
 msgid "Loading a mode view"
 msgstr "Načítání zobrazení režimu"
 
-msgid "Choose one file (3mf):"
-msgstr "Vyberte jeden soubor (3mf):"
+msgid "Choose one file (3MF):"
+msgstr "Vyberte jeden soubor (3MF):"
 
-msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgid "Choose one or more files (3MF/STEP/STL/SVG/OBJ/AMF/USD*/ABC/PLY):"
 msgstr ""
-"Vyberte jeden nebo více souborů (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+"Vyberte jeden nebo více souborů (3MF/STEP/STL/SVG/OBJ/AMF/USD*/ABC/PLY):"
 
-msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
-msgstr "Vyberte jeden nebo více souborů (3mf/step/stl/svg/obj/amf):"
+msgid "Choose one or more files (3MF/STEP/STL/SVG/OBJ/AMF):"
+msgstr "Vyberte jeden nebo více souborů (3MF/STEP/STL/SVG/OBJ/AMF):"
 
 msgid "Choose ZIP file"
 msgstr "Vyberte ZIP soubor"
 
-msgid "Choose one file (gcode/3mf):"
-msgstr "Vyberte jeden soubor (gcode/3mf):"
+msgid "Choose one file (GCODE/3MF):"
+msgstr "Vyberte jeden soubor (GCODE/3MF):"
 
 msgid "Some presets are modified."
 msgstr "Některé předvolby jsou upraveny."
@@ -2020,8 +2022,14 @@ msgstr "Znovu načíst vybrané části z disku"
 msgid "Replace with STL"
 msgstr "Nahradit STL souborem"
 
-msgid "Replace the selected part with new STL"
+msgid "Replace the selected part with new STL."
 msgstr "Nahradit vybranou část novým STL"
+
+msgid "Replace all with STL"
+msgstr ""
+
+msgid "Replace all selected parts with STL from folder."
+msgstr ""
 
 msgid "Change filament"
 msgstr "Změnit filament"
@@ -2203,6 +2211,30 @@ msgstr "Smazat Podložku"
 
 msgid "Remove the selected plate"
 msgstr "Odstranit vybranou podložku"
+
+msgid "Add instance"
+msgstr ""
+
+msgid "Add one more instance of the selected object"
+msgstr ""
+
+msgid "Remove instance"
+msgstr ""
+
+msgid "Remove one instance of the selected object"
+msgstr ""
+
+msgid "Set number of instances"
+msgstr ""
+
+msgid "Change the number of instances of the selected object"
+msgstr ""
+
+msgid "Fill bed with instances"
+msgstr ""
+
+msgid "Fill the remaining area of bed with instances of the selected object"
+msgstr ""
 
 msgid "Clone"
 msgstr "Klonovat"
@@ -2691,7 +2723,7 @@ msgstr ""
 
 msgid ""
 "Enabling filtration during printing may reduce cooling and affect print "
-"qulity. Please choose carefully"
+"quality. Please choose carefully."
 msgstr ""
 
 msgid ""
@@ -2725,9 +2757,9 @@ msgid "Top"
 msgstr "Shora"
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -2992,7 +3024,25 @@ msgstr "Úspěšně odesláno. Automaticky přejde na další stránku za %ss"
 msgid "Access code:%s IP address:%s"
 msgstr ""
 
-msgid "Storage needs to be inserted before printing via LAN."
+msgid "A Storage needs to be inserted before printing via LAN."
+msgstr ""
+
+msgid ""
+"Sending print job over LAN, but the Storage in the printer is abnormal and "
+"print-issues may be caused by this."
+msgstr ""
+
+msgid ""
+"The Storage in the printer is abnormal. Please replace it with a normal "
+"Storage before sending print job to printer."
+msgstr ""
+
+msgid ""
+"The Storage in the printer is read-only. Please replace it with a normal "
+"Storage before sending print job to printer."
+msgstr ""
+
+msgid "Encountered an unknown error with the Storage status. Please try again."
 msgstr ""
 
 msgid "Sending G-code file over LAN"
@@ -3006,6 +3056,21 @@ msgid "Successfully sent. Close current page in %s s"
 msgstr "Úspěšně odesláno. Zavřít aktuální stránku za %s s"
 
 msgid "Storage needs to be inserted before sending to printer."
+msgstr ""
+
+msgid ""
+"Sending G-code file over LAN, but the Storage in the printer is abnormal and "
+"print-issues may be caused by this."
+msgstr ""
+
+msgid ""
+"The Storage in the printer is abnormal. Please replace it with a normal "
+"Storage before sending to printer."
+msgstr ""
+
+msgid ""
+"The Storage in the printer is read-only. Please replace it with a normal "
+"Storage before sending to printer."
 msgstr ""
 
 msgid "Importing SLA archive"
@@ -3673,7 +3738,7 @@ msgid "Circular"
 msgstr "Kruhový"
 
 msgid "Load shape from STL..."
-msgstr "Načíst tvar ze souboru STL…"
+msgstr "Načíst tvar ze souboru STL …"
 
 msgid "Settings"
 msgstr "Nastavení"
@@ -3873,6 +3938,7 @@ msgid ""
 "Reset to 0."
 msgstr ""
 
+#, c-format, boost-format
 msgid ""
 "Lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth."
@@ -4016,10 +4082,10 @@ msgstr ""
 msgid "Pause (nozzle clog)"
 msgstr ""
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr ""
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr ""
 
 msgid "Measure motion accuracy"
@@ -4028,7 +4094,7 @@ msgstr ""
 msgid "Nozzle offset calibration"
 msgstr ""
 
-msgid "high temperature auto bed levelling"
+msgid "high temperature auto bed leveling"
 msgstr ""
 
 msgid "Auto Check: Quick Release Lever"
@@ -4221,9 +4287,6 @@ msgid "Retry (problem solved)"
 msgstr ""
 
 msgid "Stop Drying"
-msgstr ""
-
-msgid "Cancle"
 msgstr ""
 
 msgid "Done"
@@ -4817,6 +4880,9 @@ msgstr "Návrat k sestavení"
 msgid "Return"
 msgstr "Návrat"
 
+msgid "Toggle Axis"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Panel nástrojů Malování"
 
@@ -4844,12 +4910,12 @@ msgstr "Objem:"
 msgid "Size:"
 msgstr "Velikost:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
-"Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please "
+"Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
-"Byly zjištěny konflikty cest G-kódu na vrstvě %d, z = %.2lf mm. Prosím "
+"Byly zjištěny konflikty cest G-kódu na vrstvě %d, Z = %.2lfmm. Prosím "
 "oddělte konfliktní objekty dále od sebe (%s <-> %s)."
 
 msgid "An object is laid over the plate boundaries."
@@ -4872,7 +4938,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the "
+"Filaments %s are placed in the %s, but the generated G-code path exceeds the "
 "printable range of the %s."
 msgstr ""
 
@@ -4884,7 +4950,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the "
+"Filaments %s are placed in the %s, but the generated G-code path exceeds the "
 "printable height of the %s."
 msgstr ""
 
@@ -5179,8 +5245,8 @@ msgstr ""
 msgid "Export Generic 3MF"
 msgstr "Exportovat generický 3MF"
 
-msgid "Export 3mf file without using some 3mf-extensions"
-msgstr "Exportovat soubor 3mf bez použití některých rozšíření 3mf"
+msgid "Export 3MF file without using some 3mf-extensions."
+msgstr "Exportovat soubor 3MF bez použití některých rozšíření 3mf"
 
 msgid "Export current sliced file"
 msgstr "Exportovat aktuální Slicovaný soubor"
@@ -5364,13 +5430,10 @@ msgstr "Test Retrakce"
 msgid "Max flowrate"
 msgstr "Max. průtok"
 
-msgid "Junction Deviation"
-msgstr ""
-
-msgid "Junction Deviation calibration"
-msgstr ""
-
 msgid "Cornering"
+msgstr ""
+
+msgid "Cornering calibration"
 msgstr ""
 
 msgid "Input Shaping Frequency"
@@ -5627,8 +5690,9 @@ msgstr "Video"
 msgid "Switch to video files."
 msgstr "Přepnout na video soubory."
 
-msgid "Switch to 3mf model files."
-msgstr "Přepnout na 3mf modelové soubory."
+#, fuzzy
+msgid "Switch to 3MF model files."
+msgstr "Přepnout na 3MF modelové soubory."
 
 msgid "Delete selected files from printer."
 msgstr "Smazat vybrané soubory z tiskárny."
@@ -5887,7 +5951,7 @@ msgstr "Název nesmí začínat mezerou."
 msgid "The name is not allowed to end with space character."
 msgstr "Název nesmí končit mezerou."
 
-msgid "The name is not allowed to exceeds 32 characters."
+msgid "The name is not allowed to exceed 32 characters."
 msgstr ""
 
 msgid "Bind with Pin Code"
@@ -5990,7 +6054,7 @@ msgstr "Tiskárna je zaneprázdněna jinou tiskovou úlohou"
 msgid "Current extruder is busy changing filament"
 msgstr ""
 
-msgid "Current slot has alread been loaded"
+msgid "Current slot has already been loaded"
 msgstr ""
 
 msgid "The selected slot is empty."
@@ -6013,10 +6077,6 @@ msgstr "Vrstva: %s"
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Vrstva: %d/%d"
-
-#, c-format, boost-format
-msgid "(%d)"
-msgstr ""
 
 msgid ""
 "Please heat the nozzle to above 170°C before loading or unloading filament."
@@ -6214,11 +6274,11 @@ msgstr "%s informace"
 msgid "Skip"
 msgstr "Přeskočit"
 
-msgid "Newer 3mf version"
-msgstr "Novější verze 3mf"
+msgid "Newer 3MF version"
+msgstr "Novější verze 3MF"
 
 msgid ""
-"The 3mf file version is in Beta and it is newer than the current OrcaSlicer "
+"The 3MF file version is in Beta and it is newer than the current OrcaSlicer "
 "version."
 msgstr ""
 
@@ -6228,10 +6288,10 @@ msgstr ""
 msgid "Download Beta Version"
 msgstr ""
 
-msgid "The 3mf file version is newer than the current Orca Slicer version."
+msgid "The 3MF file version is newer than the current OrcaSlicer version."
 msgstr ""
 
-msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
+msgid "Updating your OrcaSlicer could enable all functionality in the 3MF file."
 msgstr ""
 
 msgid "Current Version: "
@@ -6578,6 +6638,9 @@ msgstr "Odemknout aktuální podložku"
 msgid "Lock current plate"
 msgstr "Zamknout aktuální podložku"
 
+msgid "Filament grouping"
+msgstr ""
+
 msgid "Edit current plate name"
 msgstr ""
 
@@ -6737,7 +6800,7 @@ msgid "Sync filaments with AMS"
 msgstr "Synchronizovat filamenty s AMS"
 
 msgid ""
-"There are some unknown or uncompatible filaments mapped to generic preset.\n"
+"There are some unknown or incompatible filaments mapped to generic preset.\n"
 "Please update Orca Slicer or restart Orca Slicer to check if there is an "
 "update to system presets."
 msgstr ""
@@ -6812,13 +6875,13 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr "Načítání souboru: %s"
 
-msgid "The 3mf is not supported by OrcaSlicer, load geometry data only."
+msgid "The 3MF is not supported by OrcaSlicer, loading geometry data only."
 msgstr ""
 "Formát 3MF není podporován programem OrcaSlicer, lze načíst pouze "
 "geometrická data."
 
-msgid "Load 3mf"
-msgstr "Načíst 3mf"
+msgid "Load 3MF"
+msgstr "Načíst 3MF"
 
 msgid ""
 "This project was created with an OrcaSlicer 2.3.1-alpha and uses infill "
@@ -6831,36 +6894,41 @@ msgid ""
 "template settings?"
 msgstr ""
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, found following "
+"The 3MF file version %s is newer than %s's version %s, found the following "
 "unrecognized keys:"
 msgstr ""
-"Verze 3mf %s je novější než verze %s %s, byly nalezeny následující klíče "
+"Verze 3MF %s je novější než verze %s %s, byly nalezeny následující klíče "
 "nerozpoznaný:"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "Měli byste aktualizovat software.\n"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
+"The 3MF file version %s is newer than %s's version %s, we suggest to "
+"upgrade your software."
 msgstr ""
-"Verze %s zařízení 3mf je novější než verze %s %s, navrhněte upgrade vašeho "
+"Verze %s zařízení 3MF je novější než verze %s %s, navrhněte upgrade vašeho "
 "software."
 
-msgid "The 3mf is generated by old OrcaSlicer, load geometry data only."
+#, fuzzy
+#, fuzzy
+msgid ""
+"The 3MF file was generated by an old OrcaSlicer version, loading geometry "
+"data only."
 msgstr ""
+"3mf je generován starým Orca Slicerem, načtěte pouze geometrická data."
 
-msgid "Invalid values found in the 3mf:"
-msgstr "V 3mf byly nalezeny neplatné hodnoty:"
+msgid "Invalid values found in the 3MF:"
+msgstr "V 3MF byly nalezeny neplatné hodnoty:"
 
 msgid "Please correct them in the param tabs"
 msgstr "Opravte je prosím na kartách parametrů"
 
 msgid ""
-"The 3mf has the following modified G-code in filament or printer presets:"
+"The 3MF has the following modified G-code in filament or printer presets:"
 msgstr ""
 "3mf má následující úpravy G-kódu v předvolbách filamentu nebo tiskárny:"
 
@@ -6872,7 +6940,7 @@ msgstr ""
 msgid "Modified G-code"
 msgstr ""
 
-msgid "The 3mf has the following customized filament or printer presets:"
+msgid "The 3MF has the following customized filament or printer presets:"
 msgstr ""
 
 msgid ""
@@ -6885,7 +6953,8 @@ msgstr ""
 msgid "Customized Preset"
 msgstr "Přizpůsobená Předvolba"
 
-msgid "Name of components inside step file is not UTF8 format!"
+#, fuzzy
+msgid "Name of components inside STEP file is not UTF8 format!"
 msgstr "Názvy součástí v souboru kroku nejsou ve formátu UTF8!"
 
 msgid "The name may show garbage characters!"
@@ -7012,6 +7081,34 @@ msgstr "Vyberte nový soubor"
 msgid "File for the replace wasn't selected"
 msgstr "Soubor pro nahrazení nebyl vybrán"
 
+msgid "Select folder to replace from"
+msgstr ""
+
+msgid "Directory for the replace wasn't selected"
+msgstr ""
+
+msgid "Replaced with STLs from directory:\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: same file.\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: file does not exist.\n"
+msgstr ""
+
+#, boost-format
+msgid "✖ Skipped %1%: failed to replace.\n"
+msgstr ""
+
+#, boost-format
+msgid "✔ Replaced %1%.\n"
+msgstr ""
+
+msgid "Replaced volumes"
+msgstr ""
+
 msgid "Please select a file"
 msgstr "Vyberte prosím soubor"
 
@@ -7097,8 +7194,8 @@ msgstr "Uložit projekt"
 msgid "Importing Model"
 msgstr "Import modelu"
 
-msgid "prepare 3mf file..."
-msgstr "připravte soubor 3mf..."
+msgid "prepare 3MF file..."
+msgstr "připravte soubor 3MF..."
 
 msgid "Download failed, unknown file format."
 msgstr ""
@@ -7536,7 +7633,7 @@ msgstr ""
 msgid "Load behaviour"
 msgstr ""
 
-msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
+msgid "Should printer/filament/process settings be loaded when opening a 3MF file?"
 msgstr ""
 
 msgid "Maximum recent files"
@@ -7726,26 +7823,31 @@ msgstr ""
 msgid "Associate files to OrcaSlicer"
 msgstr "Přidružit soubory k OrcaSlicer"
 
-msgid "Associate .3mf files to OrcaSlicer"
+#, fuzzy
+msgid "Associate 3MF files to OrcaSlicer"
 msgstr "Přidružit soubory .3mf k OrcaSlicer"
 
-msgid "If enabled, sets OrcaSlicer as default application to open .3mf files"
+msgid "If enabled, sets OrcaSlicer as default application to open 3MF files."
 msgstr ""
 "Pokud je povoleno, nastaví OrcaSlicer jako výchozí aplikaci pro otevírání "
 "souborů .3mf"
 
-msgid "Associate .stl files to OrcaSlicer"
+#, fuzzy
+msgid "Associate STL files to OrcaSlicer"
 msgstr "Přidružit .stl soubory k Orca Slicer"
 
-msgid "If enabled, sets OrcaSlicer as default application to open .stl files"
+#, fuzzy
+msgid "If enabled, sets OrcaSlicer as default application to open STL files."
 msgstr ""
 "Pokud je povoleno, nastaví OrcaSlicer jako výchozí aplikaci pro otevírání "
 "souborů .stl"
 
-msgid "Associate .step/.stp files to OrcaSlicer"
+#, fuzzy
+msgid "Associate STEP files to OrcaSlicer"
 msgstr "Přidružit soubory .step/.stp k OrcaSlicer"
 
-msgid "If enabled, sets OrcaSlicer as default application to open .step files"
+#, fuzzy
+msgid "If enabled, sets OrcaSlicer as default application to open STEP files."
 msgstr ""
 "Pokud je povoleno, nastaví OrcaSlicer jako výchozí aplikaci pro otevírání "
 "souborů .step"
@@ -7768,6 +7870,14 @@ msgstr ""
 msgid ""
 "With this option enabled, you can print materials with a large temperature "
 "difference together."
+msgstr ""
+
+msgid "Allow Abnormal Storage"
+msgstr ""
+
+msgid ""
+"This allows the use of Storage that is marked as abnormal by the Printer.\n"
+"Use at your own risk, can cause issues!"
 msgstr ""
 
 msgid "Log Level"
@@ -7977,10 +8087,10 @@ msgstr "Odhlásit se"
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr "Slicujte všechny podložky, abyste získali odhad času a filamentu"
 
-msgid "Packing project data into 3mf file"
+msgid "Packing project data into 3MF file"
 msgstr "Zabalení dat projektu do souboru 3mf"
 
-msgid "Uploading 3mf"
+msgid "Uploading 3MF"
 msgstr "Nahrávání 3mf"
 
 msgid "Jump to model publish web page"
@@ -7992,13 +8102,13 @@ msgstr "Poznámka: Příprava může trvat několik minut. Buďte prosím trpěl
 msgid "Publish"
 msgstr "Publikovat"
 
-msgid "Publish was cancelled"
-msgstr ""
+msgid "Publish was canceled"
+msgstr "Publikování bylo zrušeno"
 
 msgid "Slicing Plate 1"
 msgstr "Slicuj Podložku 1"
 
-msgid "Packing data to 3mf"
+msgid "Packing data to 3MF"
 msgstr "Zabalení dat do 3mf"
 
 msgid "Jump to webpage"
@@ -8335,7 +8445,10 @@ msgid ""
 "information."
 msgstr ""
 
-msgid "Storage is not available or is in read-only mode."
+msgid "Storage needs to be inserted before printing via LAN."
+msgstr ""
+
+msgid "Storage is in abnormal state or is in read-only mode."
 msgstr ""
 
 msgid "Storage needs to be inserted before printing."
@@ -8630,12 +8743,17 @@ msgid ""
 "Are you sure to use them for support base? \n"
 msgstr ""
 
+#, fuzzy
 msgid ""
 "When using support material for the support interface, we recommend the "
 "following settings:\n"
 "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and "
-"disable independent support layer height"
+"disable independent support layer height."
 msgstr ""
+"Při použití podpůrného materiálu pro kontaktní vrstvu podpěr doporučujeme "
+"následující nastavení:\n"
+"0 horní Z vzdálenost, 0 rozestup rozhraní, koncentrický vzor a vypnutí "
+"nezávislé výšky podpůrné vrstvy."
 
 msgid ""
 "Change these settings automatically?\n"
@@ -8647,11 +8765,11 @@ msgstr ""
 "Ne - tato nastavení za mě neměňte"
 
 msgid ""
-"When using soluble material for the support interface, We recommend the "
+"When using soluble material for the support interface, we recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, "
-"disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top Z distance, 0 interface spacing, interlaced rectilinear pattern, "
+"disable independent support layer height\n"
+"and use soluble materials for both support interface and support base."
 msgstr ""
 
 msgid ""
@@ -8713,8 +8831,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Při nahrávání časosběru bez nástrojové hlavy se doporučuje přidat  "
 "\"Timelapse Wipe Tower\" \n"
@@ -9194,10 +9312,6 @@ msgstr "Čistící věž"
 msgid "Single extruder multi-material parameters"
 msgstr "Parametry jednoho multimateriálového extruderu"
 
-#, c-format, boost-format
-msgid "Extruder %d"
-msgstr ""
-
 msgid ""
 "This is a single extruder multi-material printer, diameters of all extruders "
 "will be set to the new value. Do you want to proceed?"
@@ -9501,16 +9615,16 @@ msgstr "Konfigurace je aktuální."
 msgid "Open Wiki for more information >"
 msgstr ""
 
-msgid "Obj file Import color"
+msgid "OBJ file import color"
 msgstr ""
 
 msgid "Some faces don't have color defined."
 msgstr ""
 
-msgid "mtl file exist error,could not find the material:"
+msgid "MTL file exist error, could not find the material:"
 msgstr ""
 
-msgid "Please check obj or mtl file."
+msgid "Please check OBJ or MTL file."
 msgstr ""
 
 msgid "Specify number of colors:"
@@ -9555,9 +9669,6 @@ msgstr ""
 msgid ""
 "The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
-msgstr ""
-
-msgid "—> "
 msgstr ""
 
 msgid ""
@@ -9672,6 +9783,9 @@ msgstr ""
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
+msgstr ""
+
+msgid "Storage is not available or is in read-only mode."
 msgstr ""
 
 #, c-format, boost-format
@@ -10224,8 +10338,8 @@ msgstr ""
 msgid "Extension Board"
 msgstr "Rozšiřující deska"
 
-msgid "Saving objects into the 3mf failed."
-msgstr "Ukládání objektů do 3mf se nezdařilo."
+msgid "Saving objects into the 3MF failed."
+msgstr "Ukládání objektů do 3MF se nezdařilo."
 
 msgid "Only Windows 10 is supported."
 msgstr "Podporován je pouze Windows 10."
@@ -10248,23 +10362,23 @@ msgstr "Oprava se nezdařila."
 msgid "Loading repaired objects"
 msgstr "Načítání opravených objektů"
 
-msgid "Exporting 3mf file failed"
-msgstr "Export souboru 3mf se nezdařil"
+msgid "Exporting 3MF file failed"
+msgstr "Export souboru 3MF se nezdařil"
 
-msgid "Import 3mf file failed"
-msgstr "Import souboru 3mf se nezdařil"
+msgid "Import 3MF file failed"
+msgstr "Import souboru 3MF se nezdařil"
 
-msgid "Repaired 3mf file does not contain any object"
-msgstr "Opravený soubor 3mf neobsahuje žádný objekt"
+msgid "Repaired 3MF file does not contain any object"
+msgstr "Opravený soubor 3MF neobsahuje žádný objekt"
 
-msgid "Repaired 3mf file contains more than one object"
-msgstr "Opravený soubor 3mf obsahuje více než jeden objekt"
+msgid "Repaired 3MF file contains more than one object"
+msgstr "Opravený soubor 3MF obsahuje více než jeden objekt"
 
-msgid "Repaired 3mf file does not contain any volume"
-msgstr "Opravený soubor 3mf neobsahuje žádný svazek"
+msgid "Repaired 3MF file does not contain any volume"
+msgstr "Opravený soubor 3MF neobsahuje žádný svazek"
 
-msgid "Repaired 3mf file contains more than one volume"
-msgstr "Opravený soubor 3mf obsahuje více než jeden svazek"
+msgid "Repaired 3MF file contains more than one volume"
+msgstr "Opravený soubor 3MF obsahuje více než jeden svazek"
 
 msgid "Repair finished"
 msgstr "Oprava dokončena"
@@ -10893,7 +11007,7 @@ msgstr ""
 msgid "Preferred orientation"
 msgstr ""
 
-msgid "Automatically orient stls on the Z axis upon initial import."
+msgid "Automatically orient STL files on the Z axis upon initial import."
 msgstr ""
 
 msgid "Printer preset names"
@@ -12038,11 +12152,9 @@ msgid ""
 "option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy "
-"benefits of Inner/Outer/Inner option. However, the z seams will appear less "
+"benefits of Inner/Outer/Inner option. However, the Z seams will appear less "
 "consistent as the first extrusion of a new layer starts on a visible "
-"surface.\n"
-"\n"
-" "
+"surface."
 msgstr ""
 
 msgid "Inner/Outer"
@@ -12486,7 +12598,7 @@ msgstr ""
 #, no-c-format, no-boost-format
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling (94% "
-"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"if you measure 94mm instead of 100mm). The part will be scaled in XY to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
@@ -12945,8 +13057,8 @@ msgid "mm/s² or %"
 msgstr "mm/s² or %"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Zrychlení vnitřní výplně. Pokud je hodnota vyjádřena v procentech (např. 100 "
 "%), bude vypočítána na základě výchozího zrychlení."
@@ -12981,6 +13093,9 @@ msgid ""
 msgstr "Klipper max_accel_to_decel bude upraven na toto %% o zrychlení"
 
 msgid "Default jerk."
+msgstr ""
+
+msgid "Junction Deviation"
 msgstr ""
 
 msgid ""
@@ -13059,10 +13174,10 @@ msgstr "Maximální otáčky ventilátoru ve vrstvě"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "Otáčky ventilátoru se lineárně zvýší z nuly ve vrstvě "
 "\"close_fan_first_layers\" na maximum ve vrstvě \"full_fan_speed_layer\". "
@@ -13260,7 +13375,7 @@ msgid "Precise Z height"
 msgstr ""
 
 msgid ""
-"Enable this to get precise z height of object after slicing. It will get the "
+"Enable this to get precise Z height of object after slicing. It will get the "
 "precise object height by fine-tuning the layer heights of the last few "
 "layers. Note that this is an experimental parameter."
 msgstr ""
@@ -13820,6 +13935,12 @@ msgstr ""
 msgid "The angle of ironing lines offset from the top surface."
 msgstr ""
 
+msgid "Fixed ironing angle"
+msgstr ""
+
+msgid "Use a fixed absolute angle for ironing."
+msgstr ""
+
 msgid "This G-code is inserted at every layer change after the Z lift."
 msgstr "Tato část gkódu je vložena při každé změně vrstvy po zvednutí z"
 
@@ -13949,7 +14070,9 @@ msgid "Maximum Junction Deviation"
 msgstr ""
 
 msgid ""
-"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin Firmware)"
+"Maximum junction deviation (M205 J, only apply if JD > 0 for Marlin "
+"Firmware\n"
+"If your Marlin 2 printer uses Classic Jerk set this value to 0.)"
 msgstr ""
 
 msgid "Minimum speed for extruding"
@@ -14731,8 +14854,8 @@ msgid "Role base wipe speed"
 msgstr "Rychlost čištění podle role"
 
 msgid ""
-"The wipe speed is determined by the speed of the current extrusion role. "
-"e.g. if a wipe action is executed immediately following an outer wall "
+"The wipe speed is determined by the speed of the current extrusion role. e."
+"g. if a wipe action is executed immediately following an outer wall "
 "extrusion, the speed of the outer wall extrusion will be utilized for the "
 "wipe action."
 msgstr ""
@@ -14901,7 +15024,7 @@ msgid "Speed of internal solid infill, not the top and bottom surface."
 msgstr "Rychlost vnitřní plné výplně, nikoli horní a spodní plochy"
 
 msgid ""
-"Spiralize smooths out the z moves of the outer contour. And turns a solid "
+"Spiralize smooths out the Z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
 "generated model has no seam."
 msgstr ""
@@ -15132,8 +15255,8 @@ msgstr "Normální (manuální)"
 msgid "Tree (manual)"
 msgstr "Strom (manuální)"
 
-msgid "Support/object xy distance"
-msgstr "Podpěry/Objekt xy vzdálenost"
+msgid "Support/object XY distance"
+msgstr "Podpěry/Objekt XY vzdálenost"
 
 msgid "XY separation between an object and its support."
 msgstr "XY vzdálenost mezi objektem a podpěrami"
@@ -15341,7 +15464,7 @@ msgstr "Výška nezávislé podpůrné vrstvy"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time. This option will be invalid "
+"support customizing Z-gap and save print time. This option will be invalid "
 "when the prime tower is enabled."
 msgstr ""
 "Vrstva podpěry používá nezávislou výšku vrstvy vzhledem k vrstvě objektu. "
@@ -15413,16 +15536,6 @@ msgstr ""
 "Upravuje hustotu podpěrných špiček větví. Vyšší hodnota vede k lepším "
 "převisům, ale podpěry se hůře odstraňují. Proto se doporučuje povolit vrchní "
 "kontaktní vrstvy podpěr namísto vysoké hodnoty hustoty větví."
-
-msgid "Adaptive layer height"
-msgstr "Adaptivní výška vrstvy"
-
-msgid ""
-"Enabling this option means the height of tree support layer except the first "
-"will be automatically calculated."
-msgstr ""
-"Povolení této možnosti znamená, že výška stromové podpůrné vrstvy kromě "
-"první bude automaticky vypočtena "
 
 msgid "Auto brim width"
 msgstr "Automatická šířka límce"
@@ -15515,8 +15628,8 @@ msgstr "Aktivovat řízení teploty"
 
 msgid ""
 "Enable this option for automated chamber temperature control. This option "
-"activates the emitting of an M191 command before the "
-"\"machine_start_gcode\"\n"
+"activates the emitting of an M191 command before the \"machine_start_gcode"
+"\"\n"
 " which sets the chamber temperature and waits until it is reached. In "
 "addition, it emits an M141 command at the end of the print to turn off the "
 "chamber heater, if present.\n"
@@ -16153,8 +16266,8 @@ msgstr "Zobrazit nápovědu k příkazu."
 msgid "UpToDate"
 msgstr "Aktualizováno"
 
-msgid "Update the configs values of 3mf to latest."
-msgstr "Aktualizujte konfigurační hodnoty 3mf na nejnovější."
+msgid "Update the config values of 3MF to latest."
+msgstr "Aktualizujte konfigurační hodnoty 3MF na nejnovější."
 
 msgid "downward machines check"
 msgstr ""
@@ -16173,8 +16286,8 @@ msgstr "Načíst první filament jako výchozí pro ty, které nebyly načteny"
 msgid "Minimum save"
 msgstr "Uložit minimum"
 
-msgid "export 3mf with minimum size."
-msgstr "exportovat 3mf s minimální velikostí."
+msgid "Export 3MF with minimum size."
+msgstr "exportovat 3MF s minimální velikostí."
 
 msgid "mtcpp"
 msgstr "mtcpp"
@@ -16360,11 +16473,11 @@ msgid "Debug level"
 msgstr "Úroveň ladění"
 
 msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
-"5:trace\n"
+"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+"trace\n"
 msgstr ""
-"Nastaví úroveň protokolování ladění. 0:fatal, 1:error, 2:warning, 3:info, "
-"4:debug, 5:sledovat\n"
+"Nastaví úroveň protokolování ladění. 0:fatal, 1:error, 2:warning, 3:info, 4:"
+"debug, 5:sledovat\n"
 
 msgid "Enable timelapse for print"
 msgstr ""
@@ -16404,40 +16517,40 @@ msgid ""
 "objects."
 msgstr ""
 
-msgid "Skip modified G-code in 3mf"
+msgid "Skip modified G-code in 3MF"
 msgstr ""
 
-msgid "Skip the modified G-code in 3mf from Printer or filament Presets."
+msgid "Skip the modified G-code in 3MF from printer or filament presets."
 msgstr ""
 
 msgid "MakerLab name"
 msgstr ""
 
-msgid "MakerLab name to generate this 3mf."
+msgid "MakerLab name to generate this 3MF."
 msgstr ""
 
 msgid "MakerLab version"
 msgstr ""
 
-msgid "MakerLab version to generate this 3mf."
+msgid "MakerLab version to generate this 3MF."
 msgstr ""
 
-msgid "metadata name list"
+msgid "Metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf."
+msgid "Metadata name list added into 3MF."
 msgstr ""
 
-msgid "metadata value list"
+msgid "Metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf."
+msgid "Metadata value list added into 3MF."
 msgstr ""
 
-msgid "Allow 3mf with newer version to be sliced"
+msgid "Allow 3MF with newer version to be sliced"
 msgstr ""
 
-msgid "Allow 3mf with newer version to be sliced."
+msgid "Allow 3MF with newer version to be sliced."
 msgstr ""
 
 msgid "Current Z-hop"
@@ -16595,7 +16708,7 @@ msgid ""
 "Contains a string with the information about what scaling was applied to the "
 "individual objects. Indexing of the objects is zero-based (first object has "
 "index 0).\n"
-"Example: 'x:100% y:50% z:100'."
+"Example: 'x:100% y:50% z:100%'."
 msgstr ""
 
 msgid "Input filename without extension"
@@ -16604,12 +16717,14 @@ msgstr "Název vstupního souboru bez přípony"
 msgid "Source filename of the first object, without extension."
 msgstr "Název zdrojového souboru prvního objektu bez přípony."
 
+#, fuzzy
 msgid ""
-"The vector has two elements: x and y coordinate of the point. Values in mm."
+"The vector has two elements: X and Y coordinate of the point. Values in mm."
 msgstr "Vektor má dva prvky: souřadnice x a y bodu. Hodnoty v mm."
 
+#, fuzzy
 msgid ""
-"The vector has two elements: x and y dimension of the bounding box. Values "
+"The vector has two elements: X and Y dimension of the bounding box. Values "
 "in mm."
 msgstr ""
 "Vektor má dva prvky: rozměr x a y ohraničujícího rámečku. Hodnoty v mm."
@@ -16806,8 +16921,8 @@ msgstr "Nahraný soubor nemohl být načten, protože je prázdný"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj "
-"nebo .amf(.xml)"
+"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo ."
+"amf(.xml)"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -17456,6 +17571,12 @@ msgstr ""
 msgid "Comma-separated list of printing speeds"
 msgstr ""
 
+msgid "Pressure Advance Guide"
+msgstr ""
+
+msgid "Adaptive Pressure Advance Guide"
+msgstr ""
+
 msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
@@ -17503,6 +17624,9 @@ msgstr "Konec konce: "
 msgid "Temp step: "
 msgstr "Teplotní krok: "
 
+msgid "Wiki Guide: Temperature Calibration"
+msgstr ""
+
 msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
@@ -17518,6 +17642,9 @@ msgstr "Spustit objemovou rychlost: "
 
 msgid "End volumetric speed: "
 msgstr "Konec objemové rychlosti: "
+
+msgid "Wiki Guide: Volumetric Speed Calibration"
+msgstr ""
 
 msgid ""
 "Please input valid values:\n"
@@ -17539,6 +17666,9 @@ msgstr "Počáteční rychlost: "
 msgid "End speed: "
 msgstr "Koncová rychlost: "
 
+msgid "Wiki Guide: VFA"
+msgstr ""
+
 msgid ""
 "Please input valid values:\n"
 "start > 10\n"
@@ -17555,6 +17685,9 @@ msgstr "Délka retrakce na začátku: "
 
 msgid "End retraction length: "
 msgstr "Délka retrakce na konci: "
+
+msgid "Wiki Guide: Retraction Calibration"
+msgstr ""
 
 msgid "Input shaping Frequency test"
 msgstr ""
@@ -17589,6 +17722,9 @@ msgstr ""
 msgid ""
 "Recommended: Set Damp to 0.\n"
 "This will use the printer's default or saved value."
+msgstr ""
+
+msgid "Wiki Guide: Input Shaping Calibration"
 msgstr ""
 
 msgid ""
@@ -17626,27 +17762,52 @@ msgid ""
 "Please input a valid damping factor (0 <= DampingStart < DampingEnd <= 1)"
 msgstr ""
 
-msgid "Junction Deviation test"
+msgid "Cornering test"
 msgstr ""
 
-msgid "Start junction deviation: "
+msgid "SCV-V2"
 msgstr ""
 
-msgid "End junction deviation: "
+msgid "Start: "
 msgstr ""
 
-msgid "Junction Deviation settings"
+msgid "End: "
 msgstr ""
 
-msgid "Note: Lower values = sharper corners but slower speeds"
+msgid "Cornering settings"
+msgstr ""
+
+msgid "Note: Lower values = sharper corners but slower speeds.\n"
 msgstr ""
 
 msgid ""
-"Please input valid values:\n"
-"(0 <= Junction Deviation < 1)"
+"Marlin 2 Junction Deviation detected:\n"
+"To test Classic Jerk, set 'Maximum Junction Deviation' in Motion ability to "
+"0."
 msgstr ""
 
-msgid "NOTE: High values may cause Layer shift"
+msgid ""
+"Marlin 2 Classic Jerk detected:\n"
+"To test Junction Deviation, set 'Maximum Junction Deviation' in Motion "
+"ability to a value > 0."
+msgstr ""
+
+msgid ""
+"RepRap detected: Jerk in mm/s.\n"
+"OrcaSlicer will convert the values to mm/min when necessary."
+msgstr ""
+
+msgid "Wiki Guide: Cornering Calibration"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Please input valid values:\n"
+"(0 <= Cornering <= %s)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "NOTE: High values may cause Layer shift (>%s)"
 msgstr ""
 
 msgid "Send G-code to printer host"
@@ -17895,8 +18056,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\".\n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\".\n"
 "To add preset for more printers, please go to printer selection"
 msgstr ""
 
@@ -18264,8 +18425,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -18824,7 +18985,7 @@ msgstr ""
 msgid "Device Status"
 msgstr ""
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr ""
 
 msgid ""
@@ -18941,9 +19102,6 @@ msgstr "Tisk neúspěšný"
 msgid "Removed"
 msgstr "Odstraněno"
 
-msgid "Filament grouping"
-msgstr ""
-
 msgid "Don't remind me again"
 msgstr ""
 
@@ -18985,7 +19143,7 @@ msgstr ""
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
-msgid "Tips: You can drag the filaments to reassign them to different nozzles."
+msgid "Tip: You can drag the filaments to reassign them to different nozzles."
 msgstr ""
 
 msgid ""
@@ -19029,7 +19187,7 @@ msgstr ""
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr ""
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr ""
 
 msgid "Head diameter"
@@ -19082,9 +19240,6 @@ msgstr ""
 msgid "Zoom Out"
 msgstr ""
 
-msgid "100 %"
-msgstr ""
-
 msgid "Zoom In"
 msgstr ""
 
@@ -19092,14 +19247,6 @@ msgid "Load skipping objects information failed. Please try again."
 msgstr ""
 
 msgid "Loading ..."
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d%%"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d"
 msgstr ""
 
 #, c-format, boost-format
@@ -19272,8 +19419,8 @@ msgid ""
 msgstr ""
 "Plochou na podložku\n"
 "Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na "
-"podložku\" nebo stiskněte klávesu <b>F</b>."
+"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
+"\" nebo stiskněte klávesu <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -19500,6 +19647,16 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
 msgstr ""
+
+#~ msgid "Adaptive layer height"
+#~ msgstr "Adaptivní výška vrstvy"
+
+#~ msgid ""
+#~ "Enabling this option means the height of tree support layer except the "
+#~ "first will be automatically calculated."
+#~ msgstr ""
+#~ "Povolení této možnosti znamená, že výška stromové podpůrné vrstvy kromě "
+#~ "první bude automaticky vypočtena "
 
 #~ msgid "AMS not connected"
 #~ msgstr "AMS není připojen"
@@ -20066,9 +20223,6 @@ msgstr ""
 #~ msgid "Invalid number"
 #~ msgstr "Neplatné číslo"
 
-#~ msgid "Publish was canceled"
-#~ msgstr "Publikování bylo zrušeno"
-
 #~ msgid "Ramming settings"
 #~ msgstr "Nastavení rapidní extruze"
 
@@ -20219,17 +20373,6 @@ msgstr ""
 #~ "Pro styly \"Tree Strong\" a \"Tree Hybrid\" doporučujeme následující "
 #~ "nastavení: alespoň 2 vrstvy rozhraní, alespoň 0,1 mm horní z vzdálenost "
 #~ "nebo používání podpůrných materiálů na rozhraní."
-
-#~ msgid ""
-#~ "When using support material for the support interface, we recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
-#~ "independent support layer height"
-#~ msgstr ""
-#~ "Při použití podpůrného materiálu pro kontaktní vrstvu podpěr doporučujeme "
-#~ "následující nastavení:\n"
-#~ "0 horní z vzdálenost, 0 rozestup rozhraní, koncentrický vzor a vypnutí "
-#~ "nezávislé výšky podpůrné vrstvy"
 
 #~ msgid "Branch Diameter with double walls"
 #~ msgstr "Průměr větve s dvojitými stěnami"
@@ -20542,12 +20685,12 @@ msgstr ""
 #~ "Najdete podrobnosti o kalibraci průtoku dynamiky v naší wiki.\n"
 #~ "\n"
 #~ "Obvykle kalibrace není potřebná. Při spuštění tisku s jednobarevným/"
-#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku "
-#~ "dynamiky\" v menu spuštění tisku, tiskárna bude postupovat podle staré "
-#~ "metody a zkalibruje filament před tiskem. Při spuštění tisku s "
-#~ "vícebarevným/materiálovým filamentem bude tiskárna při každé změně "
-#~ "filamentu používat výchozí kompenzační parametr pro filament, což má "
-#~ "většinou dobrý výsledek.\n"
+#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku dynamiky"
+#~ "\" v menu spuštění tisku, tiskárna bude postupovat podle staré metody a "
+#~ "zkalibruje filament před tiskem. Při spuštění tisku s vícebarevným/"
+#~ "materiálovým filamentem bude tiskárna při každé změně filamentu používat "
+#~ "výchozí kompenzační parametr pro filament, což má většinou dobrý "
+#~ "výsledek.\n"
 #~ "\n"
 #~ "Všimněte si, že existují některé případy, které mohou způsobit, že "
 #~ "výsledek kalibrace nebude spolehlivý: použití texturované podložky pro "
@@ -20749,10 +20892,6 @@ msgstr ""
 #~ msgid "The Config cannot be loaded."
 #~ msgstr "Nelze načíst konfiguraci."
 
-#~ msgid "The 3mf is generated by old Orca Slicer, load geometry data only."
-#~ msgstr ""
-#~ "3mf je generován starým Orca Slicerem, načtěte pouze geometrická data."
-
 #~ msgid ""
 #~ "Relative extrusion is recommended when using \"label_objects\" option. "
 #~ "Some extruders work better with this option unchecked (absolute extrusion "
@@ -20914,7 +21053,7 @@ msgstr ""
 #~ msgid "Export all objects as STL"
 #~ msgstr "Exportovat všechny objekty jako STL"
 
-#~ msgid "The 3mf is not compatible, load geometry data only!"
+#~ msgid "The 3MF is not compatible, load geometry data only!"
 #~ msgstr "3mf není kompatibilní, načtěte pouze geometrická data!"
 
 #~ msgid "Incompatible 3mf"

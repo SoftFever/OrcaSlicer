@@ -6,7 +6,7 @@
 namespace Slic3r { namespace GUI {
 
 static const wxColour BgNormalColor  = wxColour("#FFFFFF");
-static const wxColour BgSelectColor  = wxColour("#EBF9F0");
+static const wxColour BgSelectColor  = wxColour("#E5F0EE"); // ORCA
 static const wxColour BgDisableColor = wxColour("#CECECE");
 
 static const wxColour BorderNormalColor   = wxColour("#CECECE");
@@ -63,7 +63,7 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
 
     top_sizer->Add(drag_sizer, 0, wxALIGN_CENTER | wxEXPAND);
 
-    m_tips = new Label(this, _L("Tips: You can drag the filaments to reassign them to different nozzles."));
+    m_tips = new Label(this, _L("Tip: You can drag the filaments to reassign them to different nozzles."));
     m_tips->SetFont(Label::Body_14);
     m_tips->SetForegroundColour(TextNormalGreyColor);
     top_sizer->AddSpacer(FromDIP(20));
