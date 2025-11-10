@@ -54,7 +54,7 @@ jobs:
     if: ${{ !cancelled() && (github.event_name != 'schedule' || github.repository == 'SoftFever/OrcaSlicer') }}
     uses: ./.github/workflows/build_check_cache.yml
     with:
-      os: ubuntu-22
+      os: ubuntu-22.04
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
   # build_all:

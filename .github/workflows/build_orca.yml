@@ -322,7 +322,7 @@ jobs:
         # Tests must built at the same time as the slicer;
         # if you untangle them feel free to separate them here too
       - name: Build slicer and tests
-        if: inputs.os == 'ubuntu-22' || inputs.os == 'ubuntu-24.04'
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         env:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
@@ -354,9 +354,9 @@ jobs:
           zip -r orca_custom_preset_tests.zip user/
 
       - name: Upload artifacts Ubuntu
-        if: ${{ ! env.ACT && inputs.os == 'ubuntu-22' || inputs.os == 'ubuntu-24.04' }}
+        if: ${{ ! env.ACT && inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' }}
         env:
-          ubuntu-ver: ${{ (inputs.os == 'ubuntu-22' && '2004') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
+          ubuntu-ver: ${{ (inputs.os == 'ubuntu-22.04' && '2204') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         uses: actions/upload-artifact@v5
         with:
@@ -364,16 +364,16 @@ jobs:
           path: './build/OrcaSlicer_Linux_AppImage${{ env.ubuntu-ver-str }}_${{ env.ver }}.AppImage'
 
       - name: Upload OrcaSlicer_profile_validator Ubuntu
-        if: ${{ ! env.ACT && inputs.os == 'ubuntu-22' || inputs.os == 'ubuntu-24.04' }}
+        if: ${{ ! env.ACT && inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' }}
         env:
-          ubuntu-ver: ${{ (inputs.os == 'ubuntu-22' && '2004') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
+          ubuntu-ver: ${{ (inputs.os == 'ubuntu-22.04' && '2204') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
         uses: actions/upload-artifact@v5
         with:
           name: OrcaSlicer_profile_validator_Linux_ubuntu_${{ env.ubuntu-ver }}_${{ env.ver }}
           path: './build/src/Release/OrcaSlicer_profile_validator'
 
       - name: Deploy Ubuntu release
-        if: ${{ github.repository == 'SoftFever/OrcaSlicer' && ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-22' || inputs.os == 'ubuntu-24.04') }}
+        if: ${{ github.repository == 'SoftFever/OrcaSlicer' && ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04') }}
         env:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         uses: WebFreak001/deploy-nightly@v3.2.0
@@ -394,7 +394,7 @@ jobs:
           message: "nightly-builds"
 
       - name: Deploy Ubuntu OrcaSlicer_profile_validator release
-        if: ${{ github.repository == 'SoftFever/OrcaSlicer' && ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-22' || inputs.os == 'ubuntu-24.04') }}
+        if: ${{ github.repository == 'SoftFever/OrcaSlicer' && ! env.ACT && github.ref == 'refs/heads/main' && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04') }}
         env:
           ubuntu-ver-str: ${{ (inputs.os == 'ubuntu-24.04' && '_Ubuntu2404') || '' }}
         uses: WebFreak001/deploy-nightly@v3.2.0
