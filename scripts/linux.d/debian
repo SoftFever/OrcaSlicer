@@ -26,9 +26,6 @@ REQUIRED_DEV_PACKAGES=(
     ninja-build
     texinfo
     wget
-    freeglut3-dev
-    libgl1-mesa-dev
-    libglu1-mesa-dev
 )
 
 if [[ -n "$UPDATE_LIB" ]]
@@ -40,7 +37,7 @@ then
         if dpkg --compare-versions "${VERSION_ID}" ge 22 && dpkg --compare-versions "${VERSION_ID}" lt 24 ;
         then
             # Some extra packages needed on Ubuntu 22.x and 23.x:
-            REQUIRED_DEV_PACKAGES+=(curl libfuse-dev m4)
+            REQUIRED_DEV_PACKAGES+=(curl libfuse-dev m4 freeglut3-dev libgl1-mesa-dev libglu1-mesa-dev libunwind-dev)
         fi
     fi
 
