@@ -2811,6 +2811,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
 
     m_writer.init_extruder(initial_non_support_extruder_id);
+    if (m_config.enable_pressure_advance.get_at(initial_non_support_extruder_id)) {
+        file.write(m_writer.set_pressure_advance(m_config.pressure_advance.get_at(initial_non_support_extruder_id)));
+        // Orca: Adaptive PA
+        // Reset Adaptive PA processor last PA value
+        m_pa_processor->resetPreviousPA(m_config.pressure_advance.get_at(initial_non_support_extruder_id));
+    }
     // add the missing filament start gcode in machine start gcode
     {
         DynamicConfig config;
