@@ -321,8 +321,14 @@ void AppConfig::set_defaults()
         set_bool("ignore_ext_filament_in_filament_map", false);
     }
 
+
     if (get("pop_up_filament_map_dialog").empty()){
         set_bool("pop_up_filament_map_dialog", false);
+    }
+
+    // Nahimic warning default
+    if (get("show_nahimic_warning").empty()) {
+        set_bool("show_nahimic_warning", true);
     }
 
     if (get("prefered_filament_map_mode").empty()){
