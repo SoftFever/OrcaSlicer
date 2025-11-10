@@ -92,8 +92,8 @@ jobs:
         if: inputs.os == 'ubuntu-24.04'
         uses: ./.github/actions/apt-install-deps
 
-      - name: Build on Ubuntu
-        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
+      - name: Build on Ubuntu 24
+        if: inputs.os == 'ubuntu-24.04'
         working-directory: ${{ github.workspace }}
         run: |
             mkdir -p ${{ github.workspace }}/deps/build/destdir
@@ -101,6 +101,14 @@ jobs:
             cd deps/build
             tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
 
+      - name: Build on Ubuntu 22
+        if: inputs.os == 'ubuntu-22.04'
+        working-directory: ${{ github.workspace }}
+        run: |
+            mkdir -p ${{ github.workspace }}/deps/build/destdir
+            ./build_linux.sh -dru
+            cd deps/build
+            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
 
       # Upload Artifacts
       # - name: Upload Mac ${{ inputs.arch }} artifacts
