@@ -6036,6 +6036,7 @@ static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.
 void GLCanvas3D::_render_3d_navigator()
 {
     if (!wxGetApp().show_3d_navigator()) {
+        m_canvas_toolbar_pos[0] = 0;
         return;
     }
 
@@ -6082,7 +6083,7 @@ void GLCanvas3D::_render_3d_navigator()
     }
 
     const float size  = 128 * sc;
-    m_axis_button_pos[0] = size - 10;
+    m_canvas_toolbar_pos[0] = size;
     const auto result = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, nullptr,
                                                  camDistance, ImVec2(viewManipulateLeft, viewManipulateTop - size), ImVec2(size, size),
                                                  0x00101010);
@@ -6118,7 +6119,6 @@ void GLCanvas3D::_render_3d_navigator()
 
         request_extra_frame();
     }
-    _render_camera_toolbar();
 }
 
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT 0
@@ -7981,6 +7981,8 @@ void GLCanvas3D::_render_overlays()
     m_labels.render(sorted_instances);
 
     _render_3d_navigator();
+
+    _render_canvas_toolbar();
 }
 
 void GLCanvas3D::_render_style_editor()
@@ -8619,126 +8621,142 @@ void GLCanvas3D::_render_return_toolbar() const
     imgui.end();
 }
 
-void GLCanvas3D::_render_camera_toolbar() 
+void GLCanvas3D::_render_canvas_toolbar() 
 {
-    float sc = get_scale();
-    ImVec2 button_icon_size = ImVec2(32.f * sc, 32.f * sc);
+    ImGuiWrapper &imgui     = *wxGetApp().imgui();
+    float         sc        = get_scale();
 
-    ImGuiWrapper &imgui         = *wxGetApp().imgui();
-    float         window_width  = button_icon_size.x + imgui.scaled(2.0f);
-    float         window_height = button_icon_size.y * 2.f + imgui.scaled(2.0f);
+    #ifdef WIN32
+        const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+        sc *= (float) dpi / (float) DPI_DEFAULT;
+    #endif // WIN32
 
-    Size cnv_size              = get_canvas_size();
-    m_axis_button_pos[1] = cnv_size.get_height() - 2.f * sc;
-    imgui.set_next_window_pos(m_axis_button_pos[0], m_axis_button_pos[1], ImGuiCond_Always, 0, 1); // pivot bottom-left
-#ifdef __WINDOWS__
-    imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
-#endif
+    ImVec2        btn_size  = ImVec2(36.f * sc, 36.f * sc);
+    ImVec2        margin    = ImVec2(m_canvas_toolbar_pos[0] > 0 ? 0.f : (10.f * sc), 10.f * sc);
+    ImVec2        spacing   = ImVec2(6.f * sc, 6.f * sc);
+    float         pad_fix   = 2.f * sc;
+    bool          zoom_btn  = wxGetApp().show_canvas_zoom_button();
 
-    imgui.begin(_L("Toggle Axis"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
+    Size          cnv_size  = get_canvas_size();
+    m_canvas_toolbar_pos[1] = cnv_size.get_height() - margin.y;
+    Vec2i32       pos       = m_canvas_toolbar_pos;
+
+    imgui.set_next_window_pos(pos[0] + margin.x, pos[1], ImGuiCond_Always, 0, 1); // pivot bottom-left
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0    );
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding   , {0,0});
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing    , {0,0});
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding  , {pad_fix, pad_fix}); // without padding images clipping
+
+    imgui.begin(_L("Canvas Toolbar"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
                                            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);//
 
-    ImTextureID e_normal_id = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_MENU_DARK       : GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_MENU);
-    ImTextureID e_hover_id  = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_MENU_DARK_HOVER : GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_MENU_HOVER);
+    ImTextureID m_normal_id = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_MENU_DARK       : GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_MENU);
+    ImTextureID m_hover_id  = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_MENU_DARK_HOVER : GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_MENU_HOVER);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
-
-    if (ImGui::ImageButton3(e_normal_id, e_hover_id, button_icon_size, ImVec2(0,0), ImVec2(1,1), -1, ImVec4(0,0,0,0), ImVec4(1,1,1,1), ImVec2(0,0))) {
-        if(ImGui::IsPopupOpen("CameraToolbarMenu")){
+    if (ImGui::ImageButton3(m_normal_id, m_hover_id, btn_size, ImVec2(0,0), ImVec2(1,1), -1, ImVec4(0,0,0,0), ImVec4(1,1,1,1), ImVec2(0,0))) {
+        if(ImGui::IsPopupOpen("CanvasToolbarMenu")){
             ImGui::CloseCurrentPopup();
         }else{
-            ImGui::SetNextWindowPos(ImVec2(m_axis_button_pos[0] + 8.f * sc, m_axis_button_pos[1] - button_icon_size.y - 23.f * sc), ImGuiCond_Always, ImVec2(0, 1)); // pivot bottom-left
-            ImGui::OpenPopup("CameraToolbarMenu");
+            ImGui::SetNextWindowPos(ImVec2(pos[0] + margin.x + pad_fix, pos[1] - pad_fix - (zoom_btn ? (btn_size.y + spacing.y) : 0.f)), ImGuiCond_Always, ImVec2(0, 1)); // pivot bottom-left
+            ImGui::OpenPopup("CanvasToolbarMenu");
+        }
+    } // SetNextWindowPos applies to tooltip instead popup if tooltip used
+ 
+    if(zoom_btn){
+        ImGui::Dummy({ 0, spacing.y});
+
+        ImTextureID z_normal_id = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_ZOOM_DARK       : GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_ZOOM);
+        ImTextureID z_hover_id  = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_ZOOM_DARK_HOVER : GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_ZOOM_HOVER);
+
+        if (ImGui::ImageButton3(z_normal_id, z_hover_id, btn_size, ImVec2(0,0), ImVec2(1,1), -1, ImVec4(0,0,0,0), ImVec4(1,1,1,1), ImVec2(0,0))) {
+            select_view("plate");
+            if (m_selection.is_empty()) {
+                if (m_canvas_type == ECanvasType::CanvasAssembleView)
+                    zoom_to_volumes();
+                else 
+                    zoom_to_bed();
+            }
+            else
+                zoom_to_selection();
+        }
+        if (ImGui::IsItemHovered()) {
+            auto zoom_tooltip = _L("Fit camera to scene or selected object.");
+            auto zoom_width   = ImGui::CalcTextSize(zoom_tooltip.c_str()).x + imgui.scaled(2.0f);
+            imgui.tooltip(zoom_tooltip, zoom_width);
         }
     }
-    /* SetNextWindowPos applies to tooltip instead popup
-    if (ImGui::IsItemHovered()) {
-        auto temp_tooltip = _L("Toggle Axis");
-        auto width        = ImGui::CalcTextSize(temp_tooltip.c_str()).x + imgui.scaled(2.0f);
-        imgui.tooltip(temp_tooltip, width);
-    }
-    */
 
-    ImGui::Dummy({ 0, 2.f });
-
-    ImTextureID z_normal_id = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_ZOOM_DARK       : GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_ZOOM);
-    ImTextureID z_hover_id  = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_ZOOM_DARK_HOVER : GLGizmosManager::MENU_ICON_NAME::IC_CANVAS_ZOOM_HOVER);
-
-    if (ImGui::ImageButton3(z_normal_id, z_hover_id, button_icon_size, ImVec2(0,0), ImVec2(1,1), -1, ImVec4(0,0,0,0), ImVec4(1,1,1,1), ImVec2(0,0))) {
-        select_view("plate");
-        if (m_selection.is_empty()) {
-            if (m_canvas_type == ECanvasType::CanvasAssembleView)
-                zoom_to_volumes();
-            else 
-                zoom_to_bed();
-        }
-        else
-            zoom_to_selection();
-    }
-    if (ImGui::IsItemHovered()) {
-        auto zoom_tooltip = _L("Fit camera to scene or selected object.");
-        auto zoom_width   = ImGui::CalcTextSize(zoom_tooltip.c_str()).x + imgui.scaled(2.0f);
-        imgui.tooltip(zoom_tooltip, zoom_width);
-    }
-
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(4); // Window
 
     ImGui::PushStyleColor(ImGuiCol_PopupBg           , m_is_dark ? ImGuiWrapper::COL_TOOLBAR_BG_DARK : ImGuiWrapper::COL_TOOLBAR_BG);
-    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding  , 6.f * sc);
+    ImGui::PushStyleColor(ImGuiCol_Separator         , m_is_dark ? ImVec4(1, 1, 1, .2f) : ImVec4(0, 0, 0, .2f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered     , ImVec4(1.f, 0.68f, 0.26f, 0.f));
+    ImGui::PushStyleColor(ImGuiCol_BorderActive      , ImVec4(0.f, 0.59f, 0.53f, 1.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding  , 4.f * sc);
     ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding  , {4.f * sc, 8.f * sc});
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing    , {0, 8.f * sc});
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f * sc);
 
-    if (ImGui::BeginPopup("CameraToolbarMenu")) {
+    if (ImGui::BeginPopup("CanvasToolbarMenu")) {
         ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
-
-        ImGui::PushStyleColor(ImGuiCol_Separator         , m_is_dark ? ImVec4(1.f, 1.f, 1.f, 0.2f ) : ImVec4(0.f, 0.f, 0.f, .2f));
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered     , ImVec4(1.f, 0.68f, 0.26f, 0.0f));
-        ImGui::PushStyleColor(ImGuiCol_BorderActive      , ImVec4(.0f, 0.59f, 0.53f, 1.00f));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing    , ImVec2(0.f * sc, 5.f * sc));
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f * sc);
 
         auto fg_normal_clr   = m_is_dark ? ImVec4(1.f, 1.f, 1.f, 0.88f) : ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, 1.f);
         auto fg_disabled_clr = m_is_dark ? ImVec4(1.f, 1.f, 1.f, 0.44f) : ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, .5f);
 
-        auto create_menu_item = [this, sc, fg_normal_clr, fg_disabled_clr](
+        Plater*    p   = wxGetApp().plater();
+        AppConfig* cfg = wxGetApp().app_config;
+
+        auto create_menu_item = [this, sc, fg_normal_clr, fg_disabled_clr, &imgui](
             const std::string& name,
             bool enable,
             bool condition,
             const std::function<void()>& action
         ) {
+            ImGui::Dummy({1,1});
+            ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Text, enable ? fg_normal_clr : fg_disabled_clr);
             if (ImGui::BBLMenuItem(("        " + _u8L(name)).c_str(), nullptr, false, enable, ImGui::CalcTextSize(_u8L(name).c_str()).y))
                 action();
             ImGui::PopStyleColor(1);
-            ImGui::SameLine(13.f * sc);
-            ImGui::PushStyleColor(ImGuiCol_Text, enable ? ImVec4(1,1,1,1) : fg_disabled_clr);
-            ImGui::Text("%s", into_u8(condition ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str());
-            ImGui::PopStyleColor(1);
+            ImGui::SameLine(11.f * sc);
+            imgui.text_colored(enable ? ImVec4(1,1,1,1) : fg_disabled_clr, into_u8(condition ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str());
         };
 
-        create_menu_item( "Overhang",
-            m_canvas_type == ECanvasType::CanvasView3D, // Only works on prepare
-            wxGetApp().plater()->is_view3D_overhang_shown(),
-            [this]{
-                wxGetApp().plater()->show_view3D_overhang(!wxGetApp().plater()->is_view3D_overhang_shown());
-            }
+        create_menu_item( "3D Navigator",
+            m_canvas_type != ECanvasType::CanvasAssembleView, // not work on assembly
+            wxGetApp().show_3d_navigator(),
+            [this]{wxGetApp().toggle_show_3d_navigator();}
+        );
+
+        create_menu_item( "Zoom button",
+            true, // work on all
+            wxGetApp().show_canvas_zoom_button(),
+            [this]{wxGetApp().toggle_canvas_zoom_button();}
+        );
+
+        ImGui::Separator();
+
+        create_menu_item( "Overhangs",
+            m_canvas_type == ECanvasType::CanvasView3D, // work only on prepare
+            p->is_view3D_overhang_shown(),
+            [this, p]{p->show_view3D_overhang(!p->is_view3D_overhang_shown());}
         );
 
         create_menu_item( "Outline",
-            m_canvas_type != ECanvasType::CanvasPreview, // Not works on preview
+            m_canvas_type != ECanvasType::CanvasPreview, // not work on preview
             wxGetApp().show_outline(),
-            [this]{
-                wxGetApp().toggle_show_outline();
-            }
+            [this]{wxGetApp().toggle_show_outline();}
         );
 
         ImGui::Separator();
 
         create_menu_item( "Perspective",
-            true, // works on all
-            wxGetApp().app_config->get("use_perspective_camera").compare("true") == 0,
-            [this]{
-                wxGetApp().app_config->set_bool("use_perspective_camera", !(wxGetApp().app_config->get("use_perspective_camera").compare("true") == 0));
+            true, // work on all
+            cfg->get_bool("use_perspective_camera"),
+            [this, &cfg]{
+                cfg->set_bool("use_perspective_camera", !(cfg->get_bool("use_perspective_camera")));
                 wxGetApp().update_ui_from_settings();
             }
         );
@@ -8746,29 +8764,23 @@ void GLCanvas3D::_render_camera_toolbar()
         ImGui::Separator();
 
         create_menu_item( "Axes",
-            m_canvas_type != ECanvasType::CanvasAssembleView, // not works on assembly
+            m_canvas_type != ECanvasType::CanvasAssembleView, // not work on assembly
             m_show_world_axes,
-            [this]{
-                toggle_world_axes_visibility(false);
-            }
+            [this]{toggle_world_axes_visibility(false);}
         );
 
-        // NEEDFIX this one closes popup. other ones works as expected
         create_menu_item( "Labels",
-            m_canvas_type == ECanvasType::CanvasView3D, // Only works on prepare
-            wxGetApp().plater()->are_view3D_labels_shown(),
-            [this]{
-                wxGetApp().plater()->show_view3D_labels(!wxGetApp().plater()->are_view3D_labels_shown());
-            }
+            m_canvas_type == ECanvasType::CanvasView3D, // work only on prepare
+            p->are_view3D_labels_shown(),
+            [this, p]{p->show_view3D_labels(!p->are_view3D_labels_shown());}
         );
 
-        ImGui::PopStyleColor(3);
-        ImGui::PopStyleVar(2);
         ImGui::PopItemFlag();
         ImGui::EndPopup();
     }
-    ImGui::PopStyleColor(1);
-    ImGui::PopStyleVar(2);
+
+    ImGui::PopStyleColor(4); // Popup
+    ImGui::PopStyleVar(5);
 
     imgui.end();
 }
