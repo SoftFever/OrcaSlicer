@@ -2821,10 +2821,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.writeln(filament_start_gcode);
         // mark the first filament used in print
         file.write_format(";VT%d\n", initial_extruder_id);
-        // Set PA for initial filament
-        if (this->config().enable_pressure_advance.get_at(initial_non_support_extruder_id)) {
-            file.write(this->m_writer.set_pressure_advance(this->get_pressure_advance_for_extruder(initial_non_support_extruder_id)));
-        }
     }
 
     //flush FanMover buffer to avoid modifying the start gcode if it's manual.
