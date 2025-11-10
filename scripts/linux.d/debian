@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 REQUIRED_DEV_PACKAGES=(
     autoconf
     build-essential
@@ -7,7 +9,6 @@ REQUIRED_DEV_PACKAGES=(
     eglexternalplatform-dev
     extra-cmake-modules
     file
-    freeglut3-dev
     g++
     gettext
     git
@@ -25,6 +26,9 @@ REQUIRED_DEV_PACKAGES=(
     ninja-build
     texinfo
     wget
+    freeglut3-dev
+    libgl1-mesa-dev
+    libglu1-mesa-dev
 )
 
 if [[ -n "$UPDATE_LIB" ]]
@@ -63,3 +67,5 @@ fi
 
 export FOUND_GTK3_DEV
 FOUND_GTK3_DEV=$(dpkg -l libgtk* | grep gtk-3-dev || echo '')
+
+set +x
