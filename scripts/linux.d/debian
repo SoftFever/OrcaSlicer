@@ -7,6 +7,7 @@ REQUIRED_DEV_PACKAGES=(
     eglexternalplatform-dev
     extra-cmake-modules
     file
+    freeglut3-dev
     g++
     gettext
     git
