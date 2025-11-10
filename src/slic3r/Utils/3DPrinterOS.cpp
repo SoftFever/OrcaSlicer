@@ -69,14 +69,18 @@ public:
         for (int i = 0; i < cloud_projects.size(); i++) {
             projectsComboBox->Append(cloud_projects[i]);
         }
-        for (int i = 0; i < cloud_printer_types.size(); i++) {
-            printerTypeComboBox->Append(cloud_printer_types[i]);
-            if (cloud_printer_types[i].Find(preset_name) != wxNOT_FOUND && printerTypeComboBox->GetSelection() == -1) {
-                printerTypeComboBox->SetSelection(i);
+        if (cloud_printer_types.size() > 0) {
+            for (int i = 0; i < cloud_printer_types.size(); i++) {
+                printerTypeComboBox->Append(cloud_printer_types[i]);
+                if (cloud_printer_types[i].Find(preset_name) != wxNOT_FOUND && printerTypeComboBox->GetSelection() == -1) {
+                    printerTypeComboBox->SetSelection(i);
+                }
             }
-        }
-        if (printerTypeComboBox->GetSelection() == -1) {
-            printerWarningLabel->Show();
+            if (printerTypeComboBox->GetCount() > 1) {
+                printerWarningLabel->Show();
+            } else {
+                printerTypeComboBox->SetSelection(0);
+            }
         }
 
         okButton               = new wxButton(this, wxID_OK, "OK");
@@ -364,7 +368,6 @@ bool C3DPrinterOS::upload(
     const char *name = get_name();
     const auto upload_filename = upload_data.upload_path.filename();
     const auto upload_parent_path = upload_data.upload_path.parent_path();
-
     wxString test_msg;
     if (!check_session(test_msg)) {
         error_fn(std::move(test_msg));
@@ -493,6 +496,10 @@ bool C3DPrinterOS::upload(
             }
         } catch (const std::exception& ex) {
             BOOST_LOG_TRIVIAL(warning) << "Could not parse update response: " << ex.what();
+        }
+        if (upload_data.post_action == PrintHostPostUploadAction::StartPrint && !upload_data.use_3mf) {
+            auto quick_print_url = make_url("quickprint?file_id=" + file_id);
+            wxLaunchDefaultBrowser(quick_print_url);
         }
     }
 
