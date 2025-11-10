@@ -256,6 +256,12 @@ void Layer::make_perimeters()
 
     // Union fuzzy regions
     for (auto fuzzify = regions_by_fuzzify.begin(); fuzzify != regions_by_fuzzify.end();) {
+        // Remove region that should not be fuzzified on first layer
+        if (this->id() <= 0 && !fuzzify->first.fuzzy_first_layer) {
+            fuzzify = regions_by_fuzzify.erase(fuzzify);
+            continue;
+        }
+
         fuzzify->second = intersection_ex(offset_ex(fuzzify->second, ClipperSafetyOffset), this->lslices);
         if (this->upper_layer && !this->upper_layer->lslices.empty()) {
             // Clip the fuzzy region by upper layer, so the top surface that is covered by upper layer is not fuzzified
