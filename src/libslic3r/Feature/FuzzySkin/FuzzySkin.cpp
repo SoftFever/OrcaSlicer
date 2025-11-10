@@ -67,7 +67,7 @@ static std::unique_ptr<noise::module::Module> get_noise_module(const FuzzySkinCo
 }
 
 // Thanks Cura developers for this function.
-void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const FuzzySkinConfig& cfg)
+static void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const FuzzySkinConfig& cfg)
 {
     std::unique_ptr<noise::module::Module> noise = get_noise_module(cfg);
 
@@ -111,7 +111,7 @@ void fuzzy_polyline(Points& poly, bool closed, coordf_t slice_z, const FuzzySkin
 }
 
 // Thanks Cura developers for this function.
-void fuzzy_extrusion_line(Arachne::ExtrusionJunctions& ext_lines, coordf_t slice_z, const FuzzySkinConfig& cfg)
+static void fuzzy_extrusion_line(Arachne::ExtrusionJunctions& ext_lines, coordf_t slice_z, const FuzzySkinConfig& cfg)
 {
     std::unique_ptr<noise::module::Module> noise = get_noise_module(cfg);
 
@@ -211,7 +211,7 @@ void group_region_by_fuzzify(PerimeterGenerator& g)
     }
 }
 
-bool should_fuzzify(const FuzzySkinConfig& config, const int layer_id, const size_t loop_idx, const bool is_contour)
+static bool should_fuzzify(const FuzzySkinConfig& config, const int layer_id, const size_t loop_idx, const bool is_contour)
 {
     const auto fuzziy_type = config.type;
 
