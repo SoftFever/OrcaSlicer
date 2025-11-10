@@ -125,7 +125,7 @@ PhysicalPrinterDialog::~PhysicalPrinterDialog()
 void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgroup)
 {
     m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
-        if (opt_key == "host_type" || opt_key == "printhost_authorization_type" || opt_key == "spoolman_enabled")
+        if (opt_key == "host_type" || opt_key == "printhost_authorization_type")
             this->update();
         if (opt_key == "print_host")
             this->update_printhost_buttons();
@@ -136,22 +136,6 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     };
 
     m_optgroup->append_single_option_line("host_type");
-
-    ConfigOptionDef def;
-    def.type = coBool;
-    def.label = _u8L("Spoolman Enabled");
-    def.tooltip = _u8L("Enables spool management features powered by a Spoolman server instance");
-    def.set_default_value(new ConfigOptionBool());
-    m_optgroup->append_single_option_line((Option(def, "spoolman_enabled")));
-
-    def = ConfigOptionDef();
-    def.type = coString;
-    def.label = _u8L("Spoolman Host");
-    def.tooltip = _u8L("Points to where you Spoolman instance is hosted. Use the format of <host>:<port>. You may also just specify the "
-                       "host and it will use the default Spoolman port of ") + Spoolman::DEFAULT_PORT;
-    def.set_default_value(new ConfigOptionString());
-    m_optgroup->append_single_option_line(Option(def, "spoolman_host"));
-
 
     auto create_sizer_with_btn = [](wxWindow* parent, Button** btn, const std::string& icon_name, const wxString& label) {
         *btn = new Button(parent, label);
@@ -365,9 +349,6 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     m_optgroup->activate();
 
-    m_optgroup->get_field("spoolman_enabled")->set_value(wxGetApp().app_config->get_bool("spoolman", "enabled"), false);
-    m_optgroup->get_field("spoolman_host")->set_value(wxString::FromUTF8(wxGetApp().app_config->get("spoolman", "host")), false);
-
     Field* printhost_field = m_optgroup->get_field("print_host");
     if (printhost_field)
     {
@@ -571,7 +552,6 @@ void PhysicalPrinterDialog::update(bool printer_change)
         if (m_printhost_cafile_browse_btn)
             m_printhost_cafile_browse_btn->Enable();
 
-        m_optgroup->show_field("spoolman_host", any_cast<bool>(m_optgroup->get_field("spoolman_enabled")->get_value()));
 
         // hide pre-configured address, in case user switched to a different host type
         if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
@@ -761,18 +741,6 @@ void PhysicalPrinterDialog::check_host_key_valid()
 
 void PhysicalPrinterDialog::OnOK(wxEvent& event)
 {
-    const auto  host      = any_cast<std::string>(m_optgroup->get_field("spoolman_host")->get_value());
-    const auto  enabled   = any_cast<bool>(m_optgroup->get_field("spoolman_enabled")->get_value());
-    const auto& appconfig = wxGetApp().app_config;
-
-    // clear the Spoolman cache and reload if either of the Spoolman settings change
-    // clear the Spoolman cache and reload if either of the Spoolman settings change
-    if (enabled != appconfig->get_bool("spoolman", "enabled") || host != appconfig->get("spoolman", "host")) {
-        appconfig->set("spoolman", "enabled", enabled);
-        appconfig->set("spoolman", "host", host);
-        Spoolman::update_visible_spool_statistics(true);
-    }
-
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->save_preset("", false, false, true, m_preset_name );
     event.Skip();
 }

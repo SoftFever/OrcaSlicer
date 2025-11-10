@@ -619,6 +619,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Spoolman.hpp
     GUI/SpoolmanImportDialog.cpp
     GUI/SpoolmanImportDialog.hpp
+    GUI/SpoolmanDialog.cpp
+    GUI/SpoolmanDialog.hpp
     Utils/WxFontUtils.cpp
     Utils/WxFontUtils.hpp
 )

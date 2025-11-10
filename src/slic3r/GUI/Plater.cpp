@@ -37,6 +37,7 @@
 #include <wx/busyinfo.h>
 #include <wx/event.h>
 #include <wx/wrapsizer.h>
+#include "SpoolmanDialog.hpp"
 #ifdef _WIN32
 #include <wx/richtooltip.h>
 #include <wx/custombgwin.h>
@@ -471,6 +472,7 @@ struct Sidebar::priv
     ScalableButton *  m_bpButton_del_filament;
     ScalableButton *  m_bpButton_ams_filament;
     ScalableButton *  m_bpButton_set_filament;
+    ScalableButton *  m_bpButton_spoolman;
     int m_menu_filament_id = -1;
     wxScrolledWindow* m_panel_filament_content;
     wxScrolledWindow* m_scrolledWindow_filament_content;
@@ -1942,6 +1944,14 @@ Sidebar::Sidebar(Plater *parent)
 
     bSizer39->Add(ams_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     //bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
+
+    ScalableButton* spoolman_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "spool");
+    spoolman_btn->SetToolTip(_L("View Spoolman info"));
+    spoolman_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        SpoolmanDialog dialog(wxGetApp().mainframe);
+    });
+    p->m_bpButton_spoolman = spoolman_btn;
+    bSizer39->Add(spoolman_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
 
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
     set_btn->SetToolTip(_L("Set filaments to use"));

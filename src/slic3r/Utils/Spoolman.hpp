@@ -184,6 +184,7 @@ public:
     float       price;
     float       density;
     float       diameter;
+    float       weight;
     std::string article_number;
     int         extruder_temp;
     int         bed_temp;

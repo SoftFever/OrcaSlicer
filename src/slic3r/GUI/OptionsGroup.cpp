@@ -170,6 +170,52 @@ void OptionsGroup::remove_option_if(std::function<bool(std::string const &)> con
     // TODO: remove items from g->m_options;
 }
 
+void OptionsGroup::msw_rescale()
+{
+    // update bitmaps for extra column items (like "mode markers" or buttons on settings panel)
+    if (rescale_extra_column_item)
+        for (auto extra_col : m_extra_column_item_ptrs)
+            rescale_extra_column_item(extra_col);
+
+    // update undo buttons : rescale bitmaps
+    for (const auto& field : m_fields)
+        field.second->msw_rescale();
+
+    auto rescale = [](wxSizer* sizer) {
+        for (wxSizerItem* item : sizer->GetChildren())
+            if (item->IsWindow()) {
+                wxWindow* win = item->GetWindow();
+                // check if window is ScalableButton
+                ScalableButton* sc_btn = dynamic_cast<ScalableButton*>(win);
+                if (sc_btn) {
+                    sc_btn->msw_rescale();
+                    sc_btn->SetSize(sc_btn->GetBestSize());
+                    return;
+                }
+                // check if window is wxButton
+                wxButton* btn = dynamic_cast<wxButton*>(win);
+                if (btn) {
+                    btn->SetSize(btn->GetBestSize());
+                    return;
+                }
+            }
+    };
+
+    // scale widgets and extra widgets if any exists
+    for (const Line& line : m_lines) {
+        if (line.widget_sizer)
+            rescale(line.widget_sizer);
+        if (line.extra_widget_sizer)
+            rescale(line.extra_widget_sizer);
+    }
+
+    if (custom_ctrl)
+        custom_ctrl->msw_rescale();
+
+    if (auto line = dynamic_cast<::StaticLine*>(stb))
+        line->Rescale();
+}
+
 void OptionsGroup::show_field(const t_config_option_key& opt_key, bool show/* = true*/)
 {
     Field* field = get_field(opt_key);
@@ -823,52 +869,6 @@ bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode)
         return false;
     }
     return true;
-}
-
-void ConfigOptionsGroup::msw_rescale()
-{
-    // update bitmaps for extra column items (like "mode markers" or buttons on settings panel)
-    if (rescale_extra_column_item)
-        for (auto extra_col : m_extra_column_item_ptrs)
-            rescale_extra_column_item(extra_col);
-
-    // update undo buttons : rescale bitmaps
-    for (const auto& field : m_fields)
-        field.second->msw_rescale();
-
-    auto rescale = [](wxSizer* sizer) {
-        for (wxSizerItem* item : sizer->GetChildren())
-            if (item->IsWindow()) {
-                wxWindow* win = item->GetWindow();
-                // check if window is ScalableButton
-                ScalableButton* sc_btn = dynamic_cast<ScalableButton*>(win);
-                if (sc_btn) {
-                    sc_btn->msw_rescale();
-                    sc_btn->SetSize(sc_btn->GetBestSize());
-                    return;
-                }
-                // check if window is wxButton
-                wxButton* btn = dynamic_cast<wxButton*>(win);
-                if (btn) {
-                    btn->SetSize(btn->GetBestSize());
-                    return;
-                }
-            }
-    };
-
-    // scale widgets and extra widgets if any exists
-    for (const Line& line : m_lines) {
-        if (line.widget_sizer)
-            rescale(line.widget_sizer);
-        if (line.extra_widget_sizer)
-            rescale(line.extra_widget_sizer);
-    }
-
-    if (custom_ctrl)
-        custom_ctrl->msw_rescale();
-
-    if (auto line = dynamic_cast<::StaticLine*>(stb))
-        line->Rescale();
 }
 
 void ConfigOptionsGroup::sys_color_changed()

@@ -417,6 +417,7 @@ void SpoolmanFilament::update_from_json(pt::ptree json_data)
     price          = get_opt<float>(json_data, "price");
     density        = get_opt<float>(json_data, "density");
     diameter       = get_opt<float>(json_data, "diameter");
+    weight         = get_opt<float>(json_data, "weight");
     article_number = get_opt<string>(json_data, "article_number");
     extruder_temp  = get_opt<int>(json_data, "settings_extruder_temp");
     bed_temp       = get_opt<int>(json_data, "settings_bed_temp");
