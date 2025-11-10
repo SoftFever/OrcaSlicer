@@ -255,8 +255,19 @@ void Layer::make_perimeters()
 	    }
 
     // Union fuzzy regions
-    for (auto & fuzzify : this->regions_by_fuzzify) {
-        fuzzify.second = offset_ex(fuzzify.second, ClipperSafetyOffset);
+    for (auto fuzzify = regions_by_fuzzify.begin(); fuzzify != regions_by_fuzzify.end();) {
+        fuzzify->second = intersection_ex(offset_ex(fuzzify->second, ClipperSafetyOffset), this->lslices);
+        if (this->upper_layer && !this->upper_layer->lslices.empty()) {
+            // Clip the fuzzy region by upper layer, so the top surface that is covered by upper layer is not fuzzified
+            fuzzify->second = diff_ex(fuzzify->second, this->upper_layer->lslices);
+        }
+
+        // Remove empty one
+        if (fuzzify->second.empty()) {
+            fuzzify = regions_by_fuzzify.erase(fuzzify);
+        } else {
+            ++fuzzify;
+        }
     }
 
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done";
