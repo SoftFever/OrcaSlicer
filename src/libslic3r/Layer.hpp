@@ -156,6 +156,7 @@ public:
     std::vector<BoundingBox> lslices_bboxes;
 
     // Regions that is fuzzified, used for generating top surface fuzzify
+    // for config that does not have fuzzy skin, the corresponding ExPolygons will be empty
     std::unordered_map<FuzzySkinConfig, ExPolygons> regions_by_fuzzify;
 
     // BBS

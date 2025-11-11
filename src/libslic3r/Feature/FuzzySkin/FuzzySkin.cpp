@@ -188,12 +188,16 @@ void group_region_by_fuzzify(PerimeterGenerator& g)
                                   region_config.fuzzy_skin_octaves,
                                   region_config.fuzzy_skin_persistence,
                                   region_config.fuzzy_skin_mode};
-        auto&                 surfaces = regions[cfg];
-        for (const auto& surface : region->slices.surfaces) {
-            surfaces.push_back(&surface);
+        // Important: this line cannot be moved into the `if`, otherwise we have missing regions
+        auto& surfaces = regions[cfg];
+        if (cfg.fuzzify()) {
+            // We only keep the shape of regions that will be fuzzified
+            for (const auto& surface : region->slices.surfaces) {
+                surfaces.push_back(&surface);
+            }
         }
 
-        if (cfg.type != FuzzySkinType::None) {
+        if (cfg.fuzzify()) {
             g.has_fuzzy_skin = true;
             if (cfg.type != FuzzySkinType::External) {
                 g.has_fuzzy_hole = true;

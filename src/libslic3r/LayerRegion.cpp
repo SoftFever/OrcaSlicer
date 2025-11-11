@@ -125,11 +125,8 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const LayerRe
     // Merge fuzzy regions to layer
     auto& fuzzify_regions = this->layer()->regions_by_fuzzify;
     for (auto& fuzzify : g.regions_by_fuzzify) {
-        const auto& cfg = fuzzify.first;
-        if (cfg.type == FuzzySkinType::None) continue; // Ignore non-fuzzified regions
-
         // Merge regions by config
-        expolygons_append(fuzzify_regions[cfg], std::move(fuzzify.second));
+        expolygons_append(fuzzify_regions[fuzzify.first], std::move(fuzzify.second));
     }
 }
 

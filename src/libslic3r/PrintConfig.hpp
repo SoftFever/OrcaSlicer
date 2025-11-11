@@ -2090,8 +2090,16 @@ struct FuzzySkinConfig
     double        noise_persistence;
     FuzzySkinMode mode;
 
+    bool fuzzify() const { return type != FuzzySkinType::None; }
+
     bool operator==(const FuzzySkinConfig& r) const
     {
+        // All configs that does not fuzzy are the same despite other options
+        // TODO: find other situations that configs are the same (such as ignoring options that won't take effect)
+        if (!fuzzify() && !r.fuzzify()) {
+            return true;
+        }
+
         return type == r.type
             && thickness == r.thickness
             && point_distance == r.point_distance
@@ -2112,6 +2120,10 @@ template<> struct hash<Slic3r::FuzzySkinConfig>
 {
     size_t operator()(const Slic3r::FuzzySkinConfig& c) const noexcept
     {
+        // All configs that does not fuzzy are the same despite other options
+        // TODO: find other situations that configs are the same (such as ignoring options that won't take effect)
+        if (!c.fuzzify()) return 0;
+
         std::size_t seed = std::hash<Slic3r::FuzzySkinType>{}(c.type);
         boost::hash_combine(seed, std::hash<coord_t>{}(c.thickness));
         boost::hash_combine(seed, std::hash<coord_t>{}(c.point_distance));
