@@ -8693,11 +8693,12 @@ void GLCanvas3D::_render_canvas_toolbar()
     ImGui::PushStyleColor(ImGuiCol_Separator         , m_is_dark ? ImVec4(1, 1, 1, .2f) : ImVec4(0, 0, 0, .2f));
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered     , ImVec4(1.f, 0.68f, 0.26f, 0.f));
     ImGui::PushStyleColor(ImGuiCol_BorderActive      , ImVec4(0.f, 0.59f, 0.53f, 1.f));
-    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding  , 4.f * sc);
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding  , 8.f * sc);
     ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding  , {4.f * sc, 8.f * sc});
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding  , {4.f * sc, 10.f * sc});
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing    , {0, 8.f * sc});
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f * sc);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding  , 2.f * sc);
 
     if (ImGui::BeginPopup("CanvasToolbarMenu")) {
         ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
@@ -8714,13 +8715,13 @@ void GLCanvas3D::_render_canvas_toolbar()
             bool condition,
             const std::function<void()>& action
         ) {
-            ImGui::Dummy({1,1});
+            ImGui::Dummy({2,0});
             ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Text, enable ? fg_normal_clr : fg_disabled_clr);
             if (ImGui::BBLMenuItem(("        " + _u8L(name)).c_str(), nullptr, false, enable, ImGui::CalcTextSize(_u8L(name).c_str()).y))
                 action();
             ImGui::PopStyleColor(1);
-            ImGui::SameLine(11.f * sc);
+            ImGui::SameLine(12.f * sc);
             imgui.text_colored(enable ? ImVec4(1,1,1,1) : fg_disabled_clr, into_u8(condition ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str());
         };
 
@@ -8769,6 +8770,8 @@ void GLCanvas3D::_render_canvas_toolbar()
             [this]{toggle_world_axes_visibility(false);}
         );
 
+        // will add an option for gridlines in here
+
         create_menu_item( "Labels",
             m_canvas_type == ECanvasType::CanvasView3D, // work only on prepare
             p->are_view3D_labels_shown(),
@@ -8780,7 +8783,7 @@ void GLCanvas3D::_render_canvas_toolbar()
     }
 
     ImGui::PopStyleColor(4); // Popup
-    ImGui::PopStyleVar(5);
+    ImGui::PopStyleVar(6);
 
     imgui.end();
 }
