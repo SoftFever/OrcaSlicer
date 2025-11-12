@@ -183,6 +183,7 @@ void group_region_by_fuzzify(PerimeterGenerator& g)
                                   scaled<coord_t>(region_config.fuzzy_skin_thickness.value),
                                   scaled<coord_t>(region_config.fuzzy_skin_point_distance.value),
                                   region_config.fuzzy_skin_first_layer,
+                                  region_config.fuzzy_skin_nonplanar,
                                   region_config.fuzzy_skin_noise_type,
                                   region_config.fuzzy_skin_scale,
                                   region_config.fuzzy_skin_octaves,
@@ -234,11 +235,15 @@ static bool should_fuzzify(const FuzzySkinConfig& config, const int layer_id, co
 }
 
 static std::vector<std::pair<const FuzzySkinConfig&, const ExPolygons&>> find_affective_regions(
-    const std::unordered_map<FuzzySkinConfig, ExPolygons>& regions, const int layer_id, const size_t loop_idx, const bool is_contour)
+    const std::unordered_map<FuzzySkinConfig, ExPolygons>& regions, const int layer_id, const size_t loop_idx, const bool is_contour,
+    const bool require_nonplanar = false)
 {
     std::vector<std::pair<const FuzzySkinConfig&, const ExPolygons&>> fuzzified_regions;
     fuzzified_regions.reserve(regions.size());
     for (const auto& region : regions) {
+        if (require_nonplanar && !region.first.enable_nonplanar) {
+            continue;
+        }
         if (should_fuzzify(region.first, layer_id, loop_idx, is_contour)) {
             fuzzified_regions.emplace_back(region.first, region.second);
         }
@@ -469,7 +474,7 @@ static void nonplanar_fuzzy_polyline(Points& poly, std::vector<double>& deviatio
 void apply_nonplanar_fuzzy_skin(Layer* layer)
 {
     const auto& fuzzy_regions     = layer->regions_by_fuzzify;
-    const auto  fuzzified_regions = find_affective_regions(fuzzy_regions, layer->id(), 0, true);
+    const auto  fuzzified_regions = find_affective_regions(fuzzy_regions, layer->id(), 0, true, true);
     if (fuzzified_regions.empty())
         return;
 

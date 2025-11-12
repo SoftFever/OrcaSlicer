@@ -1054,6 +1054,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
     ((ConfigOptionBool,                 fuzzy_skin_first_layer))
+    ((ConfigOptionBool,                 fuzzy_skin_nonplanar))
     ((ConfigOptionEnum<NoiseType>,      fuzzy_skin_noise_type))
     ((ConfigOptionEnum<FuzzySkinMode>,  fuzzy_skin_mode))
     ((ConfigOptionFloat,                fuzzy_skin_scale))
@@ -2084,6 +2085,7 @@ struct FuzzySkinConfig
     coord_t       thickness;
     coord_t       point_distance;
     bool          fuzzy_first_layer;
+    bool          enable_nonplanar;
     NoiseType     noise_type;
     double        noise_scale;
     int           noise_octaves;
@@ -2104,6 +2106,7 @@ struct FuzzySkinConfig
             && thickness == r.thickness
             && point_distance == r.point_distance
             && fuzzy_first_layer == r.fuzzy_first_layer
+            && enable_nonplanar == r.enable_nonplanar
             && noise_type == r.noise_type
             && noise_scale == r.noise_scale
             && noise_octaves == r.noise_octaves
@@ -2128,6 +2131,7 @@ template<> struct hash<Slic3r::FuzzySkinConfig>
         boost::hash_combine(seed, std::hash<coord_t>{}(c.thickness));
         boost::hash_combine(seed, std::hash<coord_t>{}(c.point_distance));
         boost::hash_combine(seed, std::hash<bool>{}(c.fuzzy_first_layer));
+        boost::hash_combine(seed, std::hash<bool>{}(c.enable_nonplanar));
         boost::hash_combine(seed, std::hash<Slic3r::NoiseType>{}(c.noise_type));
         boost::hash_combine(seed, std::hash<double>{}(c.noise_scale));
         boost::hash_combine(seed, std::hash<int>{}(c.noise_octaves));

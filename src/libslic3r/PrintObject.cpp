@@ -1262,6 +1262,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
             || opt_key == "fuzzy_skin_first_layer"
+            || opt_key == "fuzzy_skin_nonplanar"
             || opt_key == "fuzzy_skin_mode"
             || opt_key == "fuzzy_skin_noise_type"
             || opt_key == "fuzzy_skin_scale"
