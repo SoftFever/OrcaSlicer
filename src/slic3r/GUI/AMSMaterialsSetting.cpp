@@ -1026,71 +1026,118 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             {"Bambu ABS-GF",           11}
         };
 
-        // For each active filament preset, find matching Preset in bundle->filaments and add the possible namings to sorted_names in highest rank in extruder order
-        auto        bundle       = wxGetApp().preset_bundle;
-        const auto& preset_names = bundle->filament_presets;
-        for (size_t i = 0; i < preset_names.size(); ++i) {
-            const std::string &wanted = preset_names[i];
-            for (auto it = bundle->filaments.begin(); it != bundle->filaments.end(); ++it) {
-                if (it->name == wanted || it->alias == wanted) {
-                    const int sort_rank = -(preset_names.size() - i);
-                    const auto inherited_filament = it->inherits();
-
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ 
-                        << " Found available filament matching current preset name " << wanted          
-                        << " - Name: " << it->name 
-                        << " - Alias: " << it->alias 
-                        << " - Inherits: " << inherited_filament;
-
-                    // Check if this filament name/alias/inherits has already been added to sorted_names. Update rank if needed.
-                    std::unordered_set<std::pair<const wxString, int>*> sorted_names_existing_pairs;
-                    auto                                                find_name = sorted_names.find(it->name);
-                    if (find_name != sorted_names.end()) {
-                        sorted_names_existing_pairs.insert(&*find_name);
-                    }
-                    if (it->alias.length() > 0 && it->alias != it->name) {
-                        auto find_alias = sorted_names.find(it->alias);
-                        if (find_alias != sorted_names.end()) {
-                            sorted_names_existing_pairs.insert(&*find_alias);
-                        }
-                    }
-                    if (inherited_filament.length() > 0 && inherited_filament != it->name && inherited_filament != it->alias) {
-                        auto find_inherits = sorted_names.find(inherited_filament);
-                        if (find_inherits != sorted_names.end()) {
-                            sorted_names_existing_pairs.insert(&*find_inherits);
-                        }
-                    }
-
-                    if (sorted_names_existing_pairs.size() > 0) {
-                        for (auto pair_ptr : sorted_names_existing_pairs) {
-                            auto& existing_rank = pair_ptr->second;
-                            BOOST_LOG_TRIVIAL(info)
-                                << __FUNCTION__ << " Existing filament at rank " + std::to_string(existing_rank) + " with name "
-                                << pair_ptr->first;
-                            if (sort_rank < existing_rank) {
-                                existing_rank = sort_rank;
-                                BOOST_LOG_TRIVIAL(info)
-                                    << __FUNCTION__ << " Update filament rank to " + std::to_string(sort_rank) + " for preset name "
-                                    << pair_ptr->first;
-                            }
-                        }
-                    } else {
-                        sorted_names.insert({it->name, sort_rank});
-                        if (it->alias.length() > 0 && it->alias != it->name) {
-                            sorted_names.insert({it->alias, sort_rank});
-                        }
-                        if (inherited_filament.length() > 0 && inherited_filament != it->name && inherited_filament != it->alias) {
-                            sorted_names.insert({inherited_filament, sort_rank});
-                        }
-                    }
-                    break;
-                }
-                
-                if (it == bundle->filaments.end()) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " No available filament matches preset name " << wanted;
+        // Helper lambda to find a filament Preset by name. We can call this multiple times to walk the inheritance chain and find the base filament.
+        auto find_filament_by_name = [](const std::string& wanted, const PresetCollection& filaments) -> const Preset* {
+            for (auto it = filaments.begin(); it != filaments.end(); ++it) {
+                if (it->name == wanted) {
+                    return &(*it);
                 }
             }
+            return nullptr;
+        };
+
+        // For each active filament preset, find matching Preset in bundle->filaments and add the base filament alias to sorted_names in highest rank in extruder order
+        auto        bundle       = wxGetApp().preset_bundle;
+        const auto& preset_names = bundle->filament_presets;
+        for (size_t i = preset_names.size(); i-- > 0; ) {
+            std::string wanted = preset_names[i];
+            const int sort_rank = -((int)preset_names.size() - i);
+            
+            const Preset* match;
+
+            do {
+                auto find_result = find_filament_by_name(wanted, bundle->filaments);
+                if (!find_result) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " No available filament name matches " << wanted;
+                    break;
+                }
+
+                match = find_result;
+
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Found available filament matching current preset name " << wanted
+                                        << " - Name: " << match->name << " - Alias: " << match->alias
+                                        << " - Inherits: " << match->inherits();
+
+                if (match->inherits().length() == 0) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " No more inherits so we reached the base filament";
+                    break;
+                }
+
+                wanted = match->inherits();
+            } while (1); // Or loop while (match->alias.length() == 0) because existence of alias and inherits on a Preset seem to be exclusive
+
+            if (!match) {
+                continue;
+            }
+
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Update filament rank to " + std::to_string(sort_rank) + " for preset Name: "
+                                    << match->name << " - Alias: " << match->alias;
+            sorted_names.insert_or_assign(match->alias, sort_rank);
         }
+
+
+        //for (size_t i = 0; i < preset_names.size(); ++i) {
+        //    const std::string &wanted = preset_names[i];
+        //    for (auto it = bundle->filaments.begin(); it != bundle->filaments.end(); ++it) {
+        //        if (it->name == wanted || it->alias == wanted) {
+        //            const int sort_rank = -(preset_names.size() - i);
+        //            const auto inherited_filament = it->inherits();
+
+        //            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ 
+        //                << " Found available filament matching current preset name " << wanted          
+        //                << " - Name: " << it->name 
+        //                << " - Alias: " << it->alias 
+        //                << " - Inherits: " << inherited_filament;
+
+        //            // Check if this filament name/alias/inherits has already been added to sorted_names. Update rank if needed.
+        //            std::unordered_set<std::pair<const wxString, int>*> sorted_names_existing_pairs;
+        //            auto                                                find_name = sorted_names.find(it->name);
+        //            if (find_name != sorted_names.end()) {
+        //                sorted_names_existing_pairs.insert(&*find_name);
+        //            }
+        //            if (it->alias.length() > 0 && it->alias != it->name) {
+        //                auto find_alias = sorted_names.find(it->alias);
+        //                if (find_alias != sorted_names.end()) {
+        //                    sorted_names_existing_pairs.insert(&*find_alias);
+        //                }
+        //            }
+        //            if (inherited_filament.length() > 0 && inherited_filament != it->name && inherited_filament != it->alias) {
+        //                auto find_inherits = sorted_names.find(inherited_filament);
+        //                if (find_inherits != sorted_names.end()) {
+        //                    sorted_names_existing_pairs.insert(&*find_inherits);
+        //                }
+        //            }
+
+        //            if (sorted_names_existing_pairs.size() > 0) {
+        //                for (auto pair_ptr : sorted_names_existing_pairs) {
+        //                    auto& existing_rank = pair_ptr->second;
+        //                    BOOST_LOG_TRIVIAL(info)
+        //                        << __FUNCTION__ << " Existing filament at rank " + std::to_string(existing_rank) + " with name "
+        //                        << pair_ptr->first;
+        //                    if (sort_rank < existing_rank) {
+        //                        existing_rank = sort_rank;
+        //                        BOOST_LOG_TRIVIAL(info)
+        //                            << __FUNCTION__ << " Update filament rank to " + std::to_string(sort_rank) + " for preset name "
+        //                            << pair_ptr->first;
+        //                    }
+        //                }
+        //            } else {
+        //                sorted_names.insert({it->name, sort_rank});
+        //                if (it->alias.length() > 0 && it->alias != it->name) {
+        //                    sorted_names.insert({it->alias, sort_rank});
+        //                }
+        //                if (inherited_filament.length() > 0 && inherited_filament != it->name && inherited_filament != it->alias) {
+        //                    sorted_names.insert({inherited_filament, sort_rank});
+        //                }
+        //            }
+        //            break;
+        //        }
+        //        
+        //        if (it == bundle->filaments.end()) {
+        //            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " No available filament matches preset name " << wanted;
+        //        }
+        //    }
+        //}
         
         static std::vector<wxString> sorted_vendors { "Bambu Lab", "Generic" };
         static std::vector<wxString> sorted_types { "PLA", "PETG", "ABS", "TPU" };
