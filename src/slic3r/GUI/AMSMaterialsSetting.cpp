@@ -1010,7 +1010,6 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
 
     // Sort the filaments
     {
-        
         std::unordered_map<wxString, int> sorted_names =
         {   {"Bambu PLA Basic",        0},
             {"Bambu PLA Matte",        1},
