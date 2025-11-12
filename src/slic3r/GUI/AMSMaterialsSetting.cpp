@@ -1043,7 +1043,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             std::string wanted = preset_names[i];
             const int sort_rank = -((int)preset_names.size() - i);
             
-            const Preset* match;
+            const Preset* match = nullptr;
 
             do {
                 auto find_result = find_filament_by_name(wanted, bundle->filaments);
