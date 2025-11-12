@@ -26,7 +26,7 @@ on:
      - 'version.inc'
      - ".github/workflows/build_*.yml"
      - 'build_linux.sh'
-     - 'build_release_vs202X.bat'
+     - 'build_release_vs2022.bat'
      - 'build_release_macos.sh'
      - 'scripts/flatpak/**'
 

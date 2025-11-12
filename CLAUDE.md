@@ -11,16 +11,16 @@ OrcaSlicer is an open-source 3D slicer application forked from Bambu Studio, bui
 ### Building on Windows
 ```bash
 # Build everything
-build_release_vs202X.bat
+build_release_vs2022.bat
 
 # Build with debug symbols
-build_release_vs202X.bat debug
+build_release_vs2022.bat debug
 
 # Build only dependencies
-build_release_vs202X.bat deps
+build_release_vs2022.bat deps
 
 # Build only slicer (after deps are built)
-build_release_vs202X.bat slicer
+build_release_vs2022.bat slicer
 
 
 ```

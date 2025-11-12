@@ -28,15 +28,15 @@ Whether you're a contributor or just want a custom build, this guide will help y
 
 ## Windows 64-bit
 
-How to building with Visual Studio on Windows 64-bit.
+How to building with Visual Studio 2022 on Windows 64-bit.
 
 ### Windows Tools Required
 
-- [Visual Studio 2022](https://visualstudio.microsoft.com/vs/), 2026 or 2019
+- [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) or Visual Studio 2019
   ```shell
   winget install --id=Microsoft.VisualStudio.2022.Professional -e
   ```
-- [CMake](https://cmake.org/)
+- [CMake](https://cmake.org/) — **⚠️ version 3.31.x is mandatory**
   ```shell
   winget install --id=Kitware.CMake -e
   ```
@@ -81,17 +81,13 @@ How to building with Visual Studio on Windows 64-bit.
      git lfs pull
      ```
 2. Open the appropriate command prompt:
-   - Visual Studio 2026:
+   - Visual Studio 2019:
      ```MD
-     x64 Native Tools Command Prompt for VS
+     x64 Native Tools Command Prompt for VS 2019
      ```
    - Visual Studio 2022:
      ```MD
      x64 Native Tools Command Prompt for VS 2022
-     ```
-   - Visual Studio 2019:
-     ```MD
-     x64 Native Tools Command Prompt for VS 2019
      ```
    1. Navigate to correct drive (if needed), e.g.:
       ```shell
@@ -102,16 +98,16 @@ How to building with Visual Studio on Windows 64-bit.
       cd N:\Repos\OrcaSlicer
       ```
    3. Run the build script:
-      - Visual Studio 2026 or 2022:
+      - Visual Studio 2019:  
         ```shell
-        build_release_vs202X.bat
+        build_release.bat
         ```
-      - Visual Studio 2019:
+      - Visual Studio 2022:  
         ```shell
-        build_release_vs2019.bat
+        build_release_vs2022.bat
         ```
 
-![vs202Xcmd](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/vs202Xcmd.png?raw=true)
+![vs2022cmd](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/vs2022cmd.png?raw=true)
 
 > [!NOTE]
 > The build process will take a long time depending on your system but even with high-end hardware it can take up to 40 minutes.
@@ -119,13 +115,13 @@ How to building with Visual Studio on Windows 64-bit.
 > [!TIP]
 > If you encounter issues, you can try to uninstall ZLIB from your Vcpkg library.
 
-1. If successful, you will find the Visual Studio solution file in:
+3. If successful, you will find the Visual Studio solution file in:
    ```shell
    build\OrcaSlicer.sln
    ```
-2. Open the solution in Visual Studio, set the build configuration to `Release` and run the `Local Windows Debugger`.  
-   ![compile_vs202X_local_debugger](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/compile_vs202X_local_debugger.png?raw=true)
-3. Your resulting executable will be located in:
+4. Open the solution in Visual Studio, set the build configuration to `Release` and run the `Local Windows Debugger`.  
+   ![compile_vs2022_local_debugger](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/compile_vs2022_local_debugger.png?raw=true)
+5. Your resulting executable will be located in:
    ```shell
    \build\src\Release\orca-slicer.exe
    ```
