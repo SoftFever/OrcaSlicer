@@ -2211,6 +2211,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
+    m_processor.detect_layer_based_on_tag(true);
     const bool is_bbl_printers = print.is_BBL_printer();
     const bool is_qidi_printers = print.is_QIDI_printer();
     m_calib_config.clear();
