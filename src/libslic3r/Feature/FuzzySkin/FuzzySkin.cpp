@@ -438,8 +438,10 @@ static void nonplanar_fuzzy_polyline(Points& poly, std::vector<double>& deviatio
     out.reserve(poly.size());
     for (Point& p1 : poly) {
         if (p0 == nullptr) {
+            // Skip the first point
             p0 = &p1;
-            put_next_point(p1);
+            out.emplace_back(p1);
+            deviation.emplace_back(0);
             continue;
         }
 
@@ -453,13 +455,13 @@ static void nonplanar_fuzzy_polyline(Points& poly, std::vector<double>& deviatio
             put_next_point(pa);
         }
         dist_left_over = p0pa_dist - p0p1_size;
-        if (dist_left_over > EPSILON) {
-            put_next_point(p1);
-        }
         p0 = &p1;
     }
     if (out.back() != poly.back()) {
-        put_next_point(poly.back());
+        out.emplace_back(poly.back());
+        deviation.emplace_back(0);
+    } else {
+        deviation.back() = 0;
     }
     poly = std::move(out);
 }
