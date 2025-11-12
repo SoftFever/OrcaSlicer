@@ -28,7 +28,7 @@ Whether you're a contributor or just want a custom build, this guide will help y
 
 ## Windows 64-bit
 
-How to building with Visual Studio 2022 on Windows 64-bit.
+How to building with Visual Studio on Windows 64-bit.
 
 ### Windows Tools Required
 
@@ -36,7 +36,7 @@ How to building with Visual Studio 2022 on Windows 64-bit.
   ```shell
   winget install --id=Microsoft.VisualStudio.2022.Professional -e
   ```
-- [CMake](https://cmake.org/) — **⚠️ version 3.31.x is mandatory**
+- [CMake](https://cmake.org/)
   ```shell
   winget install --id=Kitware.CMake -e
   ```
@@ -81,13 +81,13 @@ How to building with Visual Studio 2022 on Windows 64-bit.
      git lfs pull
      ```
 2. Open the appropriate command prompt:
-   - Visual Studio 2019:
-     ```MD
-     x64 Native Tools Command Prompt for VS 2019
-     ```
    - Visual Studio 2022:
      ```MD
      x64 Native Tools Command Prompt for VS 2022
+     ```
+   - Visual Studio 2019:
+     ```MD
+     x64 Native Tools Command Prompt for VS 2019
      ```
    1. Navigate to correct drive (if needed), e.g.:
       ```shell
@@ -98,13 +98,13 @@ How to building with Visual Studio 2022 on Windows 64-bit.
       cd N:\Repos\OrcaSlicer
       ```
    3. Run the build script:
-      - Visual Studio 2019:  
-        ```shell
-        build_release.bat
-        ```
-      - Visual Studio 2022:  
+      - Visual Studio 2022:
         ```shell
         build_release_vs2022.bat
+        ```
+      - Visual Studio 2019:
+        ```shell
+        build_release.bat
         ```
 
 ![vs2022cmd](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/vs2022cmd.png?raw=true)
