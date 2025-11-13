@@ -785,9 +785,22 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         ZHopType z_hope_type = ZHopType(gcodegen.config().z_hop_types.get_at(gcodegen.writer().filament()->id()));
         LiftType auto_lift_type = LiftType::NormalLift;
-        if (z_hope_type == ZHopType::zhtAuto || z_hope_type == ZHopType::zhtSpiral || z_hope_type == ZHopType::zhtSlope)
-            auto_lift_type = LiftType::SpiralLift;
 
+        switch (z_hope_type) {
+            case ZHopType::zhtAuto:
+            case ZHopType::zhtSpiral:
+                auto_lift_type = LiftType::SpiralLift;
+                break;
+
+            case ZHopType::zhtSlope:
+                auto_lift_type = LiftType::SlopeLift;
+                break;
+
+            // zhtNormal and any unknown value → keep NormalLift
+            default:
+                break;
+        }
+        
         // BBS: should be placed before toolchange parsing
         std::string toolchange_retract_str = gcodegen.retract(tcr.is_tool_change && !is_nozzle_change, false, auto_lift_type, true);
         check_add_eol(toolchange_retract_str);
@@ -4265,8 +4278,21 @@ LayerResult GCode::process_layer(
 
     ZHopType z_hope_type = ZHopType(FILAMENT_CONFIG(z_hop_types));
     LiftType auto_lift_type = LiftType::NormalLift;
-    if (z_hope_type == ZHopType::zhtAuto || z_hope_type == ZHopType::zhtSpiral || z_hope_type == ZHopType::zhtSlope)
-        auto_lift_type = LiftType::SpiralLift;
+
+    switch (z_hope_type) {
+        case ZHopType::zhtAuto:
+        case ZHopType::zhtSpiral:
+            auto_lift_type = LiftType::SpiralLift;
+            break;
+
+        case ZHopType::zhtSlope:
+            auto_lift_type = LiftType::SlopeLift;
+            break;
+
+        // zhtNormal and any unknown value → keep NormalLift
+        default:
+            break;
+    }
 
     // BBS: don't use lazy_raise when enable spiral vase
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
