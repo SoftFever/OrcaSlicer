@@ -3491,14 +3491,14 @@ void StatusPanel::update_ams_control_state(std::string ams_id, std::string slot_
             for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
                 if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id)
                 {
-                    load_error_info = _L("Current slot has alread been loaded");
+                    load_error_info = _L("Current slot has already been loaded");
                 }
             }
         } else {
             for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
                 if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id)
                 {
-                    load_error_info = _L("Current slot has alread been loaded");
+                    load_error_info = _L("Current slot has already been loaded");
                 }
             }
 
@@ -3820,7 +3820,7 @@ void StatusPanel::update_partskip_subtask(MachineObject *obj){
             BOOST_LOG_TRIVIAL(info) << "part skip: recv printer normal data.";
         }
         if (part_cnt > 0)
-            partskip_button->SetLabel(wxString::Format(_L("(%d)"), part_cnt));
+            partskip_button->SetLabel(wxString::Format("(%d)", part_cnt));
         else 
             partskip_button->SetLabel("");
     }
