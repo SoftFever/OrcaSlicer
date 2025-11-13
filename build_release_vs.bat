@@ -2,15 +2,33 @@
 @echo off
 set WP=%CD%
 
-@REM Detect Visual Studio version
-if defined VisualStudioVersion (
-    @REM Extract major version number (first two digits before the dot)
-    for /f "tokens=1 delims=." %%a in ("%VisualStudioVersion%") do set VS_MAJOR=%%a
-    echo VisualStudioVersion detected: %VisualStudioVersion%
-    echo Major version: %VS_MAJOR%
-) else (
-    echo Error: VisualStudioVersion environment variable not found
-    echo Please run this script from a Visual Studio Developer Command Prompt
+@REM Detect Visual Studio version using msbuild
+echo Detecting Visual Studio version using msbuild...
+
+@REM Try to get MSBuild version - the output format varies by VS version
+set VS_MAJOR=
+for /f "tokens=*" %%i in ('msbuild -version 2^>^&1 ^| findstr /r "^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*"') do (
+    for /f "tokens=1 delims=." %%a in ("%%i") do set VS_MAJOR=%%a
+    set MSBUILD_OUTPUT=%%i
+    goto :version_found
+)
+
+@REM Alternative method for newer MSBuild versions
+if "%VS_MAJOR%"=="" (
+    for /f "tokens=*" %%i in ('msbuild -version 2^>^&1 ^| findstr /r "[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*"') do (
+        for /f "tokens=1 delims=." %%a in ("%%i") do set VS_MAJOR=%%a
+        set MSBUILD_OUTPUT=%%i
+        goto :version_found
+    )
+)
+
+:version_found
+echo MSBuild version detected: %MSBUILD_OUTPUT%
+echo Major version: %VS_MAJOR%
+
+if "%VS_MAJOR%"=="" (
+    echo Error: Could not determine Visual Studio version from msbuild
+    echo Please ensure Visual Studio and MSBuild are properly installed
     exit /b 1
 )
 
