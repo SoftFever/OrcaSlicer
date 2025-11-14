@@ -2822,6 +2822,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // mark the first filament used in print
             file.write_format(";VT%d\n", initial_extruder_id);
         }
+        // Orca: add missing PA settings for initial filament
+        if (m_config.enable_pressure_advance.get_at(initial_non_support_extruder_id)) {
+            file.write(m_writer.set_pressure_advance(m_config.pressure_advance.get_at(initial_non_support_extruder_id)));
+            // Orca: Adaptive PA
+            // Reset Adaptive PA processor last PA value
+            m_pa_processor->resetPreviousPA(m_config.pressure_advance.get_at(initial_non_support_extruder_id));
+        }
     }
 
     //flush FanMover buffer to avoid modifying the start gcode if it's manual.
