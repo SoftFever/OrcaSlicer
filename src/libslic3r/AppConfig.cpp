@@ -326,11 +326,6 @@ void AppConfig::set_defaults()
         set_bool("pop_up_filament_map_dialog", false);
     }
 
-    // Nahimic warning default
-    if (get("show_nahimic_warning").empty()) {
-        set_bool("show_nahimic_warning", true);
-    }
-
     if (get("prefered_filament_map_mode").empty()){
         set("prefered_filament_map_mode",ConfigOptionEnum<FilamentMapMode>::get_enum_names()[FilamentMapMode::fmmAutoForFlush]);
     }

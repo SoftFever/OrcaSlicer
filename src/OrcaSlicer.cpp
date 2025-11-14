@@ -6966,19 +6966,16 @@ bool CLI::setup(int argc, char **argv)
     // Notify user that a blacklisted DLL was injected into OrcaSlicer process (for example Nahimic, see GH #5573).
     // We hope that if a DLL is being injected into a OrcaSlicer process, it happens at the very start of the application,
     // thus we shall detect them now.
-    extern Slic3r::AppConfig app_config;
-    if (app_config.get_bool("show_nahimic_warning", true)) {
-        if (BlacklistedLibraryCheck::get_instance().perform_check()) {
-            wxString text = wxString::FromUTF8("Following DLLs have been injected into the OrcaSlicer process:\n\n");
-            text += wxString::FromUTF8(boost::nowide::narrow(BlacklistedLibraryCheck::get_instance().get_blacklisted_string()));
-            text += wxString::FromUTF8("\n\nOrcaSlicer is known to not run correctly with these DLLs injected. We suggest stopping or uninstalling these services if you experience crashes or unexpected behaviour while using OrcaSlicer.\nFor example, ASUS Sonic Studio injects a Nahimic driver, which makes OrcaSlicer to crash on a secondary monitor");
-
-            Slic3r::GUI::RichMessageDialog dlg(nullptr, text, wxT("Warning"), wxOK);
-            dlg.ShowCheckBox(wxT("Don't show again"), false);
-            if (dlg.ShowModal() == wxID_OK && dlg.IsCheckBoxChecked()) {
-                app_config.set_bool("show_nahimic_warning", false);
-            }
-        }
+    if (BlacklistedLibraryCheck::get_instance().perform_check()) {
+        std::wstring text = L"Following DLLs have been injected into the OrcaSlicer process:\n\n";
+        text += BlacklistedLibraryCheck::get_instance().get_blacklisted_string();
+        text += L"\n\n"
+                L"OrcaSlicer is known to not run correctly with these DLLs injected. "
+                L"We suggest stopping or uninstalling these services if you experience "
+                L"crashes or unexpected behaviour while using OrcaSlicer.\n"
+                L"For example, ASUS Sonic Studio injects a Nahimic driver, which makes OrcaSlicer "
+                L"to crash on a secondary monitor";
+        MessageBoxW(NULL, text.c_str(), L"Warning"/*L"Incopatible library found"*/, MB_OK);
     }
 #endif
 
