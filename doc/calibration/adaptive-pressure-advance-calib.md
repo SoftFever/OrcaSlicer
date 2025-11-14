@@ -153,7 +153,7 @@ Refer to [Calibration Guide](Calibration) for more details on batch mode calibra
 
 #### OrcaSlicer 2.2.0 and older
 
-Setup your PA test as usual from the calibration menu in Orca slicer. Once setup, your PA test should look like the below:
+Setup your PA test as usual from the calibration menu in OrcaSlicer. Once setup, your PA test should look like the below:
 
 ![apa-setup-result-speed](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/pa/apa-setup-result-speed.png?raw=true)
 

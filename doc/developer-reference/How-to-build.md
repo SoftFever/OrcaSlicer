@@ -22,12 +22,13 @@ Whether you're a contributor or just want a custom build, this guide will help y
       - [Common dependencies across distributions](#common-dependencies-across-distributions)
       - [Additional dependencies for specific distributions](#additional-dependencies-for-specific-distributions)
     - [Linux Instructions](#linux-instructions)
+    - [Unit Testing](#unit-testing)
 - [Portable User Configuration](#portable-user-configuration)
   - [Example folder structure](#example-folder-structure)
 
 ## Windows 64-bit
 
-How to building with Visual Studio 2022 on Windows 64-bit.
+How to building with Visual Studio on Windows 64-bit.
 
 ### Windows Tools Required
 
@@ -35,9 +36,9 @@ How to building with Visual Studio 2022 on Windows 64-bit.
   ```shell
   winget install --id=Microsoft.VisualStudio.2022.Professional -e
   ```
-- [CMake (version 3.31)](https://cmake.org/) — **⚠️ version 3.31.x is mandatory**
+- [CMake](https://cmake.org/)
   ```shell
-  winget install --id=Kitware.CMake -v "3.31.6" -e
+  winget install --id=Kitware.CMake -e
   ```
 - [Strawberry Perl](https://strawberryperl.com/)
   ```shell
@@ -58,6 +59,14 @@ How to building with Visual Studio 2022 on Windows 64-bit.
 > winget install --id=GitHub.GitHubDesktop -e
 > ```
 
+> [!IMPORTANT]
+> Check your CMake version. Run `cmake --version` in your terminal and verify it returns a **4.x** version.  
+> If you see an older version (e.g. 3.29), it's likely due to another copy in your system's PATH (e.g. from Strawberry Perl).  
+> You can run where cmake to check the active paths and rearrange your **System Environment Variables** > PATH, ensuring the correct CMake (e.g. C:\Program Files\CMake\bin) appears before others like C:\Strawberry\c\bin.
+
+![windows_variables_path](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/windows_variables_path.png?raw=true)
+![windows_variables_order](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/windows_variables_order.png?raw=true)
+
 ### Windows Instructions
 
 1. Clone the repository:
@@ -72,31 +81,58 @@ How to building with Visual Studio 2022 on Windows 64-bit.
      git lfs pull
      ```
 2. Open the appropriate command prompt:
-   - For Visual Studio 2019:  
-     Open **x64 Native Tools Command Prompt for VS 2019** and run:
-     ```shell
-     build_release.bat
+   - Visual Studio 2022:
+     ```MD
+     x64 Native Tools Command Prompt for VS 2022
      ```
-   - For Visual Studio 2022:  
-     Open **x64 Native Tools Command Prompt for VS 2022** and run:
-     ```shell
-     build_release_vs2022.bat
+   - Visual Studio 2019:
+     ```MD
+     x64 Native Tools Command Prompt for VS 2019
      ```
+   1. Navigate to correct drive (if needed), e.g.:
+      ```shell
+      N:
+      ```
+   2. Change directory to the cloned repository, e.g.:
+      ```shell
+      cd N:\Repos\OrcaSlicer
+      ```
+   3. Run the build script:
+      - Visual Studio 2022:
+        ```shell
+        build_release_vs2022.bat
+        ```
+      - Visual Studio 2019:
+        ```shell
+        build_release.bat
+        ```
+
+![vs2022cmd](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/vs2022cmd.png?raw=true)
 
 > [!NOTE]
+> The build process will take a long time depending on your system but even with high-end hardware it can take up to 40 minutes.
+
+> [!TIP]
 > If you encounter issues, you can try to uninstall ZLIB from your Vcpkg library.
 
-3. If successful, you will find the VS 2022 solution file in:
+3. If successful, you will find the Visual Studio solution file in:
    ```shell
    build\OrcaSlicer.sln
    ```
-
-> [!IMPORTANT]
-> Make sure that CMake version 3.31.x is actually being used. Run `cmake --version` and verify it returns a **3.31.x** version.
-> If you see an older version (e.g. 3.29), it's likely due to another copy in your system's PATH (e.g. from Strawberry Perl).
-> You can run where cmake to check the active paths and rearrange your **System Environment Variables** > PATH, ensuring the correct CMake (e.g. C:\Program Files\CMake\bin) appears before others like C:\Strawberry\c\bin.
+4. Open the solution in Visual Studio, set the build configuration to `Release` and run the `Local Windows Debugger`.  
+   ![compile_vs2022_local_debugger](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/compile_vs2022_local_debugger.png?raw=true)
+5. Your resulting executable will be located in:
+   ```shell
+   \build\src\Release\orca-slicer.exe
+   ```
 
 > [!NOTE]
+> The first time you build a branch, it will take a long time.  
+> Changes to .cpp files are quickly compiled.  
+> Changes to .hpp files take longer, depending on what you change.  
+> If you switch back and forth between branches, it also takes a long time to rebuild, even if you haven't made any changes.
+
+> [!TIP]
 > If the build fails, try deleting the `build/` and `deps/build/` directories to clear any cached build data. Rebuilding after a clean-up is usually sufficient to resolve most issues.
 
 ## MacOS 64-bit
@@ -188,14 +224,14 @@ How to build and run OrcaSlicer using Docker.
 #### Docker Instructions
 
 ```shell
-git clone https://github.com/SoftFever/OrcaSlicer && cd OrcaSlicer && ./DockerBuild.sh && ./DockerRun.sh
+git clone https://github.com/SoftFever/OrcaSlicer && cd OrcaSlicer && ./scripts/DockerBuild.sh && ./scripts/DockerRun.sh
 ```
 
 ### Troubleshooting
 
-The `DockerRun.sh` script includes several commented-out options that can help resolve common issues. Here's a breakdown of what they do:
+The `scripts/DockerRun.sh` script includes several commented-out options that can help resolve common issues. Here's a breakdown of what they do:
 
-- `xhost +local:docker`: If you encounter an "Authorization required, but no authorization protocol specified" error, run this command in your terminal before executing `DockerRun.sh`. This grants Docker containers permission to interact with your X display server.
+- `xhost +local:docker`: If you encounter an "Authorization required, but no authorization protocol specified" error, run this command in your terminal before executing `scripts/DockerRun.sh`. This grants Docker containers permission to interact with your X display server.
 - `-h $HOSTNAME`: Forces the container's hostname to match your workstation's hostname. This can be useful in certain network configurations.
 - `-v /tmp/.X11-unix:/tmp/.X11-unix`: Helps resolve problems with the X display by mounting the X11 Unix socket into the container.
 - `--net=host`: Uses the host's network stack, which is beneficial for printer Wi-Fi connectivity and D-Bus communication.
@@ -206,7 +242,7 @@ The `DockerRun.sh` script includes several commented-out options that can help r
 - `--privileged=true`: Grants the container elevated privileges, which may be necessary for libGL and D-Bus functionalities.
 - `-ti`: Attaches a TTY to the container, enabling command-line interaction with OrcaSlicer.
 - `--rm`: Automatically removes the container once it exits, keeping your system clean.
-- `orcaslicer $*`: Passes any additional parameters from the `DockerRun.sh` script directly to the OrcaSlicer executable within the container.
+- `orcaslicer $*`: Passes any additional parameters from the `scripts/DockerRun.sh` script directly to the OrcaSlicer executable within the container.
 
 By uncommenting and using these options as needed, you can often resolve issues related to display authorization, networking, and file permissions.
 
@@ -264,9 +300,9 @@ The build system supports multiple Linux distributions including Ubuntu/Debian a
    ./build_linux.sh -d
    ```
 
-3. **Build OrcaSlicer:**
+3. **Build OrcaSlicer with tests:**
    ```shell
-   ./build_linux.sh -s
+   ./build_linux.sh -st
    ```
 
 4. **Build AppImage (optional):**
@@ -276,14 +312,15 @@ The build system supports multiple Linux distributions including Ubuntu/Debian a
 
 5. **All-in-one build (recommended):**
    ```shell
-   ./build_linux.sh -dsi
+   ./build_linux.sh -dsti
    ```
 
 **Additional build options:**
 
-- `-b`: Build in debug mode
+- `-b`: Build in debug mode (mostly broken at runtime for a long time; avoid unless you want to be fixing failed assertions)
 - `-c`: Force a clean build
 - `-C`: Enable ANSI-colored compile output (GNU/Clang only)
+- `-e`: Build RelWithDebInfo (release + symbols)
 - `-j N`: Limit builds to N cores (useful for low-memory systems)
 - `-1`: Limit builds to one core
 - `-l`: Use Clang instead of GCC
@@ -294,10 +331,14 @@ The build system supports multiple Linux distributions including Ubuntu/Debian a
 > The build script automatically detects your Linux distribution and uses the appropriate package manager (apt, pacman) to install dependencies.
 
 > [!TIP]
-> For first-time builds, use `./build_linux.sh -u` to install dependencies, then `./build_linux.sh -dsi` to build everything.
+> For first-time builds, use `./build_linux.sh -u` to install dependencies, then `./build_linux.sh -dsti` to build everything.
 
 > [!WARNING]
-> If you encounter memory issues during compilation, use `-j 1` or `-1` to limit parallel compilation, or `-r` to skip memory checks.
+> If you encounter memory issues during compilation, use `-j 1` or `-1` to limit parallel compilation and `-r` to skip memory checks.
+
+#### Unit Testing
+
+See [How to Test](How-to-test) for more details.
 
 ---
 

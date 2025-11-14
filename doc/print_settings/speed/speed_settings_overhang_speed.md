@@ -2,7 +2,7 @@
 
 - [Slow down for overhang](#slow-down-for-overhang)
   - [Slow down for curled perimeters](#slow-down-for-curled-perimeters)
-  - [Overhang speed](#overhang-speed-1)
+  - [Speed](#speed)
 - [Bridge speed](#bridge-speed)
 
 ## Slow down for overhang
@@ -21,7 +21,7 @@ It is generally recommended to have this option switched on unless your printer 
 > [!NOTE]
 > When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge. For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied.
 
-### Overhang speed
+### Speed
 
 This is the speed for various overhang degrees. Overhang degrees are expressed as a percentage of [line width](quality_settings_line_width).  
 
