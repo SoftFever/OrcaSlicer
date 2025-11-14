@@ -10188,7 +10188,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         std::string objName2 = m_gcode_viewer.m_conflict_result.value()._objName2;
         double      height   = m_gcode_viewer.m_conflict_result.value()._height;
         int         layer    = m_gcode_viewer.m_conflict_result.value().layer;
-        text = (boost::format(_u8L("Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please separate the conflicted objects farther (%s <-> %s).")) % layer %
+        text = (boost::format(_u8L("Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s).")) % layer %
                 height % objName1 % objName2)
                    .str();
         prevConflictText        = text;
@@ -10254,7 +10254,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 text += (boost::format(_u8L("Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
             }
             else {
-                text += (boost::format(_u8L("Filaments %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
+                text += (boost::format(_u8L("Filaments %s are placed in the %s, but the generated G-code path exceeds the printable range of the %s.")) %filaments %extruder_name %extruder_name).str();
             }
         }
         error = ErrorType::SLICING_LIMIT_ERROR;
@@ -10306,7 +10306,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             if (error_iter->second.size() == 1) {
                 text += (boost::format(_u8L("Filament %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s.")) % filaments % extruder_name % extruder_name).str();
             } else {
-                text += (boost::format(_u8L("Filaments %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s.")) % filaments % extruder_name % extruder_name).str();
+                text += (boost::format(_u8L("Filaments %s are placed in the %s, but the generated G-code path exceeds the printable height of the %s.")) % filaments % extruder_name % extruder_name).str();
             }
         }
         if (!text.empty()) {
