@@ -614,12 +614,6 @@ PrintConfigDef::PrintConfigDef()
     assign_printer_technology_to_unknown(this->options, ptFFF);
     this->init_sla_params();
     assign_printer_technology_to_unknown(this->options, ptSLA);
-
-	ConfigOptionDef* opt = this->add("has_painted_fuzzy_skin", coBool);
-    opt->label = L("Has painted fuzzy skin");
-    opt->tooltip = L("Indicates whether fuzzy skin painting has been applied");
-    opt->mode = comDevelop;  // Makes it a hidden/developer option
-    opt->set_default_value(new ConfigOptionBool(false));
 }
 
 void PrintConfigDef::init_common_params()

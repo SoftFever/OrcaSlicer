@@ -349,8 +349,6 @@ void GLGizmoFuzzySkin::update_model_object()
     }
 
     if (updated) {
-        mo->config.set_key_value("fuzzy_skin_painted", new ConfigOptionBool(true));
-
         const ModelObjectPtrs &mos = wxGetApp().model().objects;
         wxGetApp().obj_list()->update_info_items(std::find(mos.begin(), mos.end(), mo) - mos.begin());
 

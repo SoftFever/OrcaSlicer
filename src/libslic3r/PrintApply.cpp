@@ -1154,28 +1154,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_scarf_joint_seam:" << has_scarf_joint_seam;
     }
-	{
-        const auto& o = model.objects;
-        const auto opt_has_painted_fuzzy_skin = [](const DynamicConfig& c) {
-            return c.has("fuzzy_skin_painted") && c.option("fuzzy_skin_painted")->getBool();
-        };
-        
-        const bool has_painted_fuzzy_skin = std::any_of(o.begin(), o.end(), [&new_full_config, &opt_has_painted_fuzzy_skin](ModelObject* obj) {
-            return obj->get_config_value<ConfigOptionBool>(new_full_config, "fuzzy_skin_painted")->value ||
-                   std::any_of(obj->volumes.begin(), obj->volumes.end(), [&opt_has_painted_fuzzy_skin](const ModelVolume* v) { 
-                       return opt_has_painted_fuzzy_skin(v->config.get());
-                   }) ||
-                   std::any_of(obj->layer_config_ranges.begin(), obj->layer_config_ranges.end(), [&opt_has_painted_fuzzy_skin](const auto& r) { 
-                       return opt_has_painted_fuzzy_skin(r.second.get());
-                   });
-        });
-        
-        if (has_painted_fuzzy_skin) {
-            new_full_config.set("has_painted_fuzzy_skin", true);
-        }
-        
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_painted_fuzzy_skin:" << has_painted_fuzzy_skin;
-    }
 
     //apply extruder related values
     new_full_config.update_values_to_printer_extruders(new_full_config, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
