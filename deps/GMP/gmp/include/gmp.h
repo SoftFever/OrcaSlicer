@@ -59,7 +59,11 @@ see https://www.gnu.org/licenses/.  */
 /* Instantiated by configure. */
 #if ! defined (__GMP_WITHIN_CONFIGURE)
 #define _LONG_LONG_LIMB 1
+#ifdef GMP_STATICLIB
+#define __GMP_LIBGMP_DLL  0
+#else
 #define __GMP_LIBGMP_DLL  1
+#endif
 #endif
 
 
@@ -102,7 +106,7 @@ see https://www.gnu.org/licenses/.  */
 
 #if defined (__GNUC__)
 #define __GMP_DECLSPEC_EXPORT  __declspec(__dllexport__)
-#define __GMP_DECLSPEC_IMPORT  __declspec(__dllimport__)
+#define __GMP_DECLSPEC_IMPORT
 #endif
 #if defined (_MSC_VER) || defined (__BORLANDC__)
 #define __GMP_DECLSPEC_EXPORT  __declspec(dllexport)
@@ -402,7 +406,7 @@ typedef const __gmp_randstate_struct *gmp_randstate_srcptr;
 
 /* Microsoft's C compiler accepts __inline */
 #ifdef _MSC_VER
-#define __GMP_EXTERN_INLINE  static __inline
+#define __GMP_EXTERN_INLINE  __inline
 #endif
 
 /* Recent enough Sun C compilers want "inline" */
@@ -2329,6 +2333,10 @@ enum
   GMP_ERROR_INVALID_ARGUMENT = 8,
   GMP_ERROR_MPZ_OVERFLOW = 16
 };
+
+/* Define CC and CFLAGS which were used to build this version of GMP */
+#define __GMP_CC "clang"
+#define __GMP_CFLAGS "-O2 -pipe -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector-strong -Wno-attributes -Wno-ignored-attributes"
 
 /* Major version number is the value of __GNU_MP__ too, above. */
 #define __GNU_MP_VERSION            6
