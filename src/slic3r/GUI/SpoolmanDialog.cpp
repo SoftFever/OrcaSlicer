@@ -7,12 +7,12 @@
 #include "Spoolman.hpp"
 #include "Widgets/DialogButtons.hpp"
 #include "Widgets/LabeledStaticBox.hpp"
-#include "Widgets/LoadingSpinner.hpp"
 #include "wx/sizer.h"
 #define EM wxGetApp().em_unit()
 
 namespace Slic3r::GUI {
 
+wxDEFINE_EVENT(EVT_FINISH_LOADING, wxCommandEvent);
 static BitmapCache cache;
 const static std::regex spoolman_regex("^spoolman_");
 
@@ -69,40 +69,71 @@ SpoolmanDialog::SpoolmanDialog(wxWindow* parent)
     wxWindow::SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif
 
-    auto main_sizer = new wxBoxSizer(wxVERTICAL);
-    main_sizer->SetMinSize({-1, 45 * EM});
+    auto window_sizer = new wxBoxSizer(wxVERTICAL);
+    window_sizer->SetMinSize({wxDefaultCoord, 45 * EM});
 
-    m_optgroup = new OptionsGroup(this, _L("Spoolman Options"), wxEmptyString);
+    // Main panel
+    m_main_panel = new wxPanel(this);
+    auto main_panel_sizer = new wxBoxSizer(wxVERTICAL);
+    m_main_panel->SetBackgroundColour(*wxWHITE);
+    wxGetApp().UpdateDarkUI(m_main_panel);
+    m_main_panel->SetSizer(main_panel_sizer);
+
+    m_optgroup = new OptionsGroup(m_main_panel, _L("Spoolman Options"), wxEmptyString);
     build_options_group();
     m_optgroup->m_on_change = [&](const std::string& key, const boost::any& value) { m_dirty_settings = true; };
-    main_sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, EM);
+    main_panel_sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, EM);
 
-    m_spoolman_info_sizer = new wxBoxSizer(wxVERTICAL);
+    m_spoolman_error_label_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_spoolman_error_label = new Label(this);
+    m_spoolman_error_label = new Label(m_main_panel);
     m_spoolman_error_label->SetFont(Label::Body_16);
     m_spoolman_error_label->SetForegroundColour(*wxRED);
 
-    m_spoolman_info_sizer->AddStretchSpacer(1);
-    m_spoolman_info_sizer->Add(m_spoolman_error_label, 0, wxALIGN_CENTER);
-    m_spoolman_info_sizer->AddStretchSpacer(1);
-    main_sizer->Add(m_spoolman_info_sizer, 1, wxALL | wxALIGN_CENTER | wxEXPAND, EM);
+    m_spoolman_error_label_sizer->AddStretchSpacer(1);
+    m_spoolman_error_label_sizer->Add(m_spoolman_error_label, 0, wxALIGN_CENTER);
+    m_spoolman_error_label_sizer->AddStretchSpacer(1);
+    main_panel_sizer->Add(m_spoolman_error_label_sizer, 1, wxALL | wxALIGN_CENTER | wxEXPAND, EM);
 
     m_info_widgets_sizer = new wxGridSizer(2, EM, EM);
-    build_spool_info();
-    main_sizer->Add(m_info_widgets_sizer, 1, wxALL | wxALIGN_CENTER, EM);
+    main_panel_sizer->Add(m_info_widgets_sizer, 1, wxALL | wxALIGN_CENTER, EM);
 
-    m_buttons = new DialogButtons(this, {"Refresh", "OK"});
+    m_buttons = new DialogButtons(m_main_panel, {"Refresh", "OK"});
     m_buttons->UpdateButtons();
     m_buttons->GetButtonFromLabel(_L("Refresh"))->Bind(wxEVT_BUTTON, &SpoolmanDialog::OnRefresh, this);
     m_buttons->GetOK()->Bind(wxEVT_BUTTON, &SpoolmanDialog::OnOK, this);
-    main_sizer->Add(m_buttons, 0, wxALIGN_BOTTOM | wxEXPAND | wxLEFT | wxRIGHT, EM);
+    main_panel_sizer->Add(m_buttons, 0, wxALIGN_BOTTOM | wxEXPAND | wxLEFT | wxRIGHT, EM);
+    window_sizer->Add(m_main_panel, 1, wxEXPAND);
 
-    this->SetSizerAndFit(main_sizer);
+    // Loading Panel
+    m_loading_panel = new wxPanel(this);
+    auto loading_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_loading_panel->SetBackgroundColour(*wxWHITE);
+    wxGetApp().UpdateDarkUI(m_loading_panel);
+    m_loading_panel->SetSizer(loading_panel_sizer);
+    m_loading_panel->SetMinSize({main_panel_sizer->CalcMin().GetWidth(), wxDefaultCoord});
+    loading_panel_sizer->AddStretchSpacer(1);
+
+    m_loading_spinner = new LoadingSpinner(m_loading_panel, {5 * EM, 5 * EM});
+    loading_panel_sizer->Add(m_loading_spinner, 0, wxALIGN_CENTER | wxRIGHT, EM);
+
+    auto loading_label = new Label(m_loading_panel, Label::Body_16, _L("Loading..."));
+    loading_label->SetForegroundColour(*wxWHITE);
+    loading_panel_sizer->Add(loading_label, 0, wxALIGN_CENTER);
+
+    loading_panel_sizer->AddStretchSpacer(1);
+    window_sizer->Add(m_loading_panel, 1, wxEXPAND);
+
+    build_spool_info();
+
+    this->SetSizerAndFit(window_sizer);
     this->SetMinSize(wxDefaultSize);
+
+    this->Bind(EVT_FINISH_LOADING, &SpoolmanDialog::OnFinishLoading, this);
 
     this->ShowModal();
 }
+
 void SpoolmanDialog::build_options_group() const
 {
     ConfigOptionDef def;
@@ -140,26 +171,37 @@ void SpoolmanDialog::build_options_group() const
 
 void SpoolmanDialog::build_spool_info()
 {
-    wxBusyCursor cursor;
+    show_loading();
     m_info_widgets_sizer->Show(false);
-    m_spoolman_info_sizer->Show(false);
-    m_info_widgets_sizer->Clear();
-    if (!Spoolman::is_enabled()) {
-        m_spoolman_error_label->SetLabelText(_L("Spoolman is not enabled"));
-        m_spoolman_info_sizer->Show(true);
-        return;
-    }
-    if (!Spoolman::is_server_valid()) {
-        m_spoolman_error_label->SetLabelText(_L("Spoolman server is invalid"));
-        m_spoolman_info_sizer->Show(true);
-        return;
-    }
-    m_info_widgets_sizer->Show(true);
-    auto preset_bundle = wxGetApp().preset_bundle;
-    for (auto& filament_preset_name : preset_bundle->filament_presets) {
-        auto spool_info_widget = new SpoolInfoWidget(this, preset_bundle->filaments.find_preset(filament_preset_name));
-        m_info_widgets_sizer->Add(spool_info_widget, 0, wxEXPAND);
-    }
+    m_spoolman_error_label_sizer->Show(false);
+    create_thread([&] {
+        m_info_widgets_sizer->Clear();
+        bool show_widgets = false;
+        if (!Spoolman::is_enabled()) {
+            m_spoolman_error_label->SetLabelText(_L("Spoolman is not enabled"));
+            m_spoolman_error_label_sizer->Show(true);
+        } else if (!Spoolman::is_server_valid()) {
+            m_spoolman_error_label->SetLabelText(_L("Spoolman server is invalid"));
+            m_spoolman_error_label_sizer->Show(true);
+        } else {
+            show_widgets = true;
+        }
+
+        // Finish loading on the main thread
+        auto evt = new wxCommandEvent(EVT_FINISH_LOADING);
+        evt->SetInt(show_widgets);
+        wxQueueEvent(this, evt);
+    });
+}
+
+void SpoolmanDialog::show_loading(bool show)
+{
+    m_main_panel->Show(!show);
+    m_loading_panel->Show(show);
+    Layout();
+    if (!show)
+        Fit();
+    Refresh();
 }
 
 void SpoolmanDialog::save_spoolman_settings()
@@ -187,15 +229,22 @@ void SpoolmanDialog::save_spoolman_settings()
     m_dirty_settings = false;
 }
 
+void SpoolmanDialog::OnFinishLoading(wxCommandEvent& event)
+{
+    if (event.GetInt()) {
+        m_info_widgets_sizer->Show(true);
+        auto preset_bundle = wxGetApp().preset_bundle;
+        for (auto& filament_preset_name : preset_bundle->filament_presets) {
+            m_info_widgets_sizer->Add(new SpoolInfoWidget(m_main_panel, preset_bundle->filaments.find_preset(filament_preset_name)), 0, wxEXPAND);
+        }
+    }
+    show_loading(false);
+}
+
 void SpoolmanDialog::OnRefresh(wxCommandEvent& e)
 {
-    Freeze();
     save_spoolman_settings();
     build_spool_info();
-    Thaw();
-    Fit();
-    Layout();
-    Refresh();
 }
 
 void SpoolmanDialog::OnOK(wxCommandEvent& e)

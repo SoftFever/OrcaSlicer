@@ -493,6 +493,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/Label.cpp
     GUI/Widgets/LabeledStaticBox.cpp
     GUI/Widgets/LabeledStaticBox.hpp
+    GUI/Widgets/LoadingSpinner.cpp
+    GUI/Widgets/LoadingSpinner.hpp
     GUI/Widgets/Label.hpp
     GUI/Widgets/PopupWindow.cpp
     GUI/Widgets/PopupWindow.hpp
