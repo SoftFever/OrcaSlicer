@@ -3165,7 +3165,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("All walls"));
     def->enum_labels.push_back(L("Disabled"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<FuzzySkinType>(FuzzySkinType::None));
+    def->set_default_value(new ConfigOptionEnum<FuzzySkinType>(FuzzySkinType::Disabled_fuzzy));
 
     def = this->add("fuzzy_skin_thickness", coFloat);
     def->label = L("Fuzzy skin thickness");
