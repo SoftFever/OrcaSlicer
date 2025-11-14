@@ -21,7 +21,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:  
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Run extra JSON check
+        run: |
+          python3 ./scripts/orca_extra_profile_check.py
 
       # download
       - name: Download 
@@ -44,4 +48,4 @@ jobs:
 
 
 
-        
+

@@ -5,6 +5,7 @@
     "from": "system",
     "filament_id": "GFN08",
     "instantiation": "false",
+    "description": "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
     "fan_cooling_layer_time": [
         "5"
     ],
@@ -31,6 +32,9 @@
     ],
     "full_fan_speed_layer": [
         "2"
+    ],
+    "impact_strength_z": [
+        "4.1"
     ],
     "overhang_fan_speed": [
         "40"

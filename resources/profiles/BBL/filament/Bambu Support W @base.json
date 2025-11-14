@@ -5,6 +5,7 @@
     "from": "system",
     "filament_id": "GFS00",
     "instantiation": "false",
+    "description": "This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function.",
     "cool_plate_temp": [
         "40"
     ],
@@ -22,6 +23,12 @@
     ],
     "filament_vendor": [
         "Bambu Lab"
+    ],
+    "filament_scarf_seam_type": [
+        "none"
+    ],
+    "filament_adhesiveness_category": [
+        "700"
     ],
     "slow_down_layer_time": [
         "8"

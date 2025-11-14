@@ -1,11 +1,11 @@
 {
     "type": "process",
-    "setting_id": "GP005",
     "name": "0.16mm Optimal @InfiMech TX",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_process_common",
-    
+    "from": "system",
+    "setting_id": "GP005",
+    "instantiation": "true",
+    "inner_wall_acceleration": "3000",
     "overhang_2_4_speed": "50",
     "overhang_3_4_speed": "30",
     "top_shell_layers": "6",
@@ -15,12 +15,12 @@
     "bridge_speed": "25",
     "brim_object_gap": "0.1",
     "exclude_object": "1",
-    "gap_infill_speed": "300",
-    "inner_wall_speed": "300",
+    "gap_infill_speed": "250",
+    "inner_wall_speed": "250",
+    "outer_wall_speed": "120",
     "internal_bridge_speed": "50",
     "internal_solid_infill_line_width": "0.42",
     "internal_solid_infill_speed": "300",
-    "is_custom_defined": "0",
     "layer_height": "0.16",
     "line_width": "0.42",
     "outer_wall_line_width": "0.42",
@@ -33,9 +33,7 @@
     "support_line_width": "0.42",
     "top_shell_thickness": "1",
     "top_surface_line_width": "0.42",
-	"compatible_printers": [
+    "compatible_printers": [
         "InfiMech TX 0.4 nozzle"
     ]
-    
-
 }

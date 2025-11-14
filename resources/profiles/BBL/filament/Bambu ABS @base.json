@@ -5,13 +5,17 @@
     "from": "system",
     "filament_id": "GFB00",
     "instantiation": "false",
-    "filament_flow_ratio": [
-        "0.95"
-    ],
+    "description": "When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
     "filament_cost": [
         "24.99"
     ],
+    "filament_flow_ratio": [
+        "0.95"
+    ],
     "filament_vendor": [
         "Bambu Lab"
+    ],
+    "impact_strength_z": [
+        "7.4"
     ]
 }

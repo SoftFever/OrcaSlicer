@@ -29,14 +29,23 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
-    "nozzle_temperature_range_high": [
-        "250"
+    "impact_strength_z": [
+        "7.8"
     ],
     "nozzle_temperature_range_low": [
         "210"
     ],
+    "nozzle_temperature_range_high": [
+        "250"
+    ],
     "required_nozzle_HRC": [
         "40"
+    ],
+    "supertack_plate_temp": [
+        "50"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "50"
     ],
     "slow_down_layer_time": [
         "8"

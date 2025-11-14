@@ -1,0 +1,31 @@
+{
+    "type": "filament",
+    "name": "Generic TPU for AMS @BBL P1P",
+    "inherits": "Generic TPU for AMS @base",
+    "from": "system",
+    "setting_id": "GFSU98_01",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "40"
+    ],
+    "fan_max_speed": [
+        "50"
+    ],
+    "fan_min_speed": [
+        "10"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P1P 0.6 nozzle",
+        "Bambu Lab P1P 0.8 nozzle",
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab X1 0.6 nozzle",
+        "Bambu Lab X1 0.8 nozzle"
+    ]
+}

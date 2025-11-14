@@ -5,6 +5,7 @@
     "from": "system",
     "filament_id": "GFG00",
     "instantiation": "false",
+    "description": "To get better transparent or translucent results with the corresponding filament, please refer to this wiki: Printing tips for transparent PETG.",
     "cool_plate_temp": [
         "0"
     ],
@@ -46,6 +47,9 @@
     ],
     "hot_plate_temp_initial_layer": [
         "70"
+    ],
+    "impact_strength_z": [
+        "13.6"
     ],
     "nozzle_temperature_range_high": [
         "270"

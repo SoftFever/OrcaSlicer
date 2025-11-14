@@ -6,7 +6,6 @@
 #define UTILS_SPARSE_POINT_GRID_H
 
 #include <cassert>
-#include <unordered_map>
 #include <vector>
 
 #include "SparseGrid.hpp"
@@ -40,16 +39,6 @@ public:
      */
     void insert(const Elem &elem);
 
-    /*!
-     * Get just any element that's within a certain radius of a point.
-     *
-     * Rather than giving a vector of nearby elements, this function just gives
-     * a single element, any element, in no particular order.
-     * \param query_pt The point to query for an object nearby.
-     * \param radius The radius of what is considered "nearby".
-     */
-    const ElemT *getAnyNearby(const Point &query_pt, coord_t radius);
-
 protected:
     using GridPoint = typename SparseGrid<ElemT>::GridPoint;
 
@@ -67,22 +56,6 @@ void SparsePointGrid<ElemT, Locator>::insert(const Elem &elem)
     GridPoint grid_loc = SparseGrid<ElemT>::toGridPoint(loc.template cast<int64_t>());
 
     SparseGrid<ElemT>::m_grid.emplace(grid_loc, elem);
-}
-
-template<class ElemT, class Locator>
-const ElemT *SparsePointGrid<ElemT, Locator>::getAnyNearby(const Point &query_pt, coord_t radius)
-{
-    const ElemT                              *ret          = nullptr;
-    const std::function<bool(const ElemT &)> &process_func = [&ret, query_pt, radius, this](const ElemT &maybe_nearby) {
-        if (shorter_then(m_locator(maybe_nearby) - query_pt, radius)) {
-            ret = &maybe_nearby;
-            return false;
-        }
-        return true;
-    };
-    SparseGrid<ElemT>::processNearby(query_pt, radius, process_func);
-
-    return ret;
 }
 
 } // namespace Slic3r::Arachne

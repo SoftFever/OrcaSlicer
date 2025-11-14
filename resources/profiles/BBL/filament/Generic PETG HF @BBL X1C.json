@@ -1,0 +1,25 @@
+{
+    "type": "filament",
+    "name": "Generic PETG HF @BBL X1C",
+    "inherits": "Generic PETG HF @base",
+    "from": "system",
+    "setting_id": "GFSG96_00",
+    "instantiation": "true",
+    "filament_retraction_length": [
+        "0.4"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1 Carbon 0.4 nozzle",
+        "Bambu Lab X1 Carbon 0.6 nozzle",
+        "Bambu Lab X1 Carbon 0.8 nozzle",
+        "Bambu Lab X1E 0.4 nozzle",
+        "Bambu Lab X1E 0.6 nozzle",
+        "Bambu Lab X1E 0.8 nozzle",
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab X1 0.6 nozzle",
+        "Bambu Lab X1 0.8 nozzle",
+        "Bambu Lab P1S 0.8 nozzle",
+        "Bambu Lab P1S 0.6 nozzle",
+        "Bambu Lab P1S 0.4 nozzle"
+    ]
+}

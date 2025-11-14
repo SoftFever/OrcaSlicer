@@ -2,10 +2,21 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
 
 #include "ExtrusionLine.hpp"
-#include "linearAlg2D.hpp"
 #include "../../VariableWidth.hpp"
+#include "libslic3r/Arachne/utils/ExtrusionJunction.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/ExtrusionEntity.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/Polyline.hpp"
+
+namespace Slic3r {
+class Flow;
+}  // namespace Slic3r
 
 namespace Slic3r::Arachne
 {
@@ -27,15 +38,6 @@ int64_t ExtrusionLine::getLength() const
         len += (front().p - back().p).cast<int64_t>().norm();
 
     return len;
-}
-
-coord_t ExtrusionLine::getMinimalWidth() const
-{
-    return std::min_element(junctions.cbegin(), junctions.cend(),
-                            [](const ExtrusionJunction& l, const ExtrusionJunction& r)
-                            {
-                                return l.w < r.w;
-                            })->w;
 }
 
 void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const int64_t allowed_error_distance_squared, const int64_t maximum_extrusion_area_deviation)
@@ -153,10 +155,19 @@ void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const 
                 //                    ^ current
                 Point intersection_point;
                 bool has_intersection = Line(previous_previous.p, previous.p).intersection_infinite(Line(current.p, next.p), &intersection_point);
+                const auto dist_greater = [](const Point& p1, const Point& p2, const int64_t threshold) {
+                    const auto vec = (p1 - p2).cwiseAbs().cast<uint64_t>().eval();
+                    if(vec.x() > threshold || vec.y() > threshold) {
+                        // If this condition is true, the distance is definitely greater than the threshold.
+                        // We don't need to calculate the squared norm at all, which avoid potential arithmetic overflow.
+                        return true;
+                    }
+                    return vec.squaredNorm() > threshold;
+                };
                 if (!has_intersection
                     || Line::distance_to_infinite_squared(intersection_point, previous.p, current.p) > double(allowed_error_distance_squared)
-                    || (intersection_point - previous.p).cast<int64_t>().squaredNorm() > smallest_line_segment_squared  // The intersection point is way too far from the 'previous'
-                    || (intersection_point - current.p).cast<int64_t>().squaredNorm() > smallest_line_segment_squared)  // and 'current' points, so it shouldn't replace 'current'
+                    || dist_greater(intersection_point, previous.p, smallest_line_segment_squared)  // The intersection point is way too far from the 'previous'
+                    || dist_greater(intersection_point, current.p, smallest_line_segment_squared))  // and 'current' points, so it shouldn't replace 'current'
                 {
                     // We can't find a better spot for it, but the size of the line is more than 5 micron.
                     // So the only thing we can do here is leave it in...

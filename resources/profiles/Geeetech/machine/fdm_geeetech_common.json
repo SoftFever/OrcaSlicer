@@ -1,9 +1,9 @@
 {
     "type": "machine",
     "name": "fdm_geeetech_common",
+    "inherits": "fdm_machine_common",
     "from": "system",
     "instantiation": "false",
-    "inherits": "fdm_machine_common",
     "gcode_flavor": "marlin",
     "machine_max_acceleration_e": [
         "5000",
@@ -80,7 +80,8 @@
         "0.08"
     ],
     "printable_height": "250",
-    "extruder_clearance_radius": "47",
+    "extruder_clearance_max_radius": "47",
+    "extruder_clearance_dist_to_rod": "24",
     "extruder_clearance_height_to_rod": "34",
     "extruder_clearance_height_to_lid": "34",
     "printer_settings_id": "",
@@ -124,7 +125,7 @@
         "1"
     ],
     "default_filament_profile": [
-        "Generic PLA @Geeetech"
+        "Generic PLA @System"
     ],
     "bed_exclude_area": [
         "0x0"
@@ -137,5 +138,4 @@
     "support_multi_bed_types": "1",
     "auxiliary_fan": "0",
     "z_hop_types": "Normal Lift"
-
 }

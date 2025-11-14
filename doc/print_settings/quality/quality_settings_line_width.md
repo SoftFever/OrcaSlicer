@@ -1,43 +1,63 @@
 # Line Width
 
-These settings control how wide the extruded lines are.
+These settings define how wide each extruded line of filament will be.  
+Line width can be configured in two ways:
 
-- **Default**: The default line width in mm or as a percentage of the nozzle size.
-  
-- **First Layer**: The line width of the first layer. Typically, this is wider than the rest of the print, to promote better bed adhesion. See tips below for why.
-  
-- **Outer Wall**: The line width in mm or as a percentage of the nozzle size used when printing the model’s external wall perimeters.
-  
-- **Inner Wall**: The line width in mm or as a percentage of the nozzle size used when printing the model’s internal wall perimeters.
-  
-- **Top Surface**: The line width in mm or as a percentage of the nozzle size used when printing the model’s top surface.
-  
-- **Sparse Infill**: The line width in mm or as a percentage of the nozzle size used when printing the model’s sparse infill.
-  
-- **Internal Solid Infill**: The line width in mm or as a percentage of the nozzle size used when printing the model’s internal solid infill.
-  
-- **Support**: The line width in mm or as a percentage of the nozzle size used when printing the model’s support structures.
+- Fixed value in millimeters (mm)
+- Percentage of the nozzle diameter
 
+> [!TIP]
+> Using percentages allows the slicer to automatically adjust the line width when the nozzle size changes, helping maintain consistent print quality across different nozzle sizes.
 
-## Tips:
-1. **Typically, the line width will be anything from 100% up to 150% of the nozzle width**. Due to the way the slicer’s flow math works, a 100% line width will attempt to extrude slightly “smaller” than the nozzle size and when squished onto the layer below will match the nozzle orifice. You can read more on the flow math here: [Flow Math](https://manual.slic3r.org/advanced/flow-math).
+A good starting point is setting the line width to **100% of the nozzle diameter**. Values below this may lead to poor adhesion, while values above **150%** can cause **over-extrusion**, resulting in blobs or poor surface quality.  
+However, slightly wider lines generally improve **layer bonding** and **print strength**, especially for internal features like walls and infill.
 
-2. **For most cases, the minimum acceptable recommended line width is 105% of the nozzle diameter**, typically reserved for the outer walls, where greater precision is required. A wider line is less precise than a thinner line.
+> [!NOTE]
+> **100% line width will extrude slightly narrower than the nozzle**, but once squished onto the layer below, it flattens to match the nozzle size.  
+> You can read more on the flow math here: [Flow Math](https://manual.slic3r.org/advanced/flow-math).
 
-3. **Wider lines provide better adhesion to the layer below**, as the material is squished more with the previous layer. For parts that need to be strong, setting this value to 120-150% of the nozzle diameter is recommended and has been experimentally proven to significantly increase part strength.
+> [!IMPORTANT]
+> This will match only if using the [**Classic** wall generator](quality_settings_wall_generator#classic).  
+> [**Arachne**](quality_settings_wall_generator#arachne) will adjust the line width dynamically based on the model's geometry, using this values as a reference.
 
-4. **Wider lines improve step over and overhang appearance**, i.e., the overlap of the currently printed line to the surface below. So, if you are printing models with overhangs, setting a larger external perimeter line width will improve the overhang’s appearance to an extent.
+## Line Types
 
-5. **For top surfaces, typically a value of ~100%-105% of the nozzle width is recommended** as it provides the most precision, compared to a wider line.
+In OrcaSlicer, you can assign different line widths to specific parts of the print. Each type can be customized:
 
-6. **For external walls, you need to strike a balance between precision and step over and, consequently, overhang appearance.** Typically these values are set to ~105% of nozzle diameter for models with limited overhangs up to ~120% for models with more significant overhangs.
+### Default
 
-7. **For internal walls, you typically want to maximize part strength**, so a good starting point is approximately 120% of the nozzle width, which gives a good balance between print speed, accuracy, and material use. However, depending on the model, larger or smaller line widths may make sense in order to reduce gap fill and/or line width variations if you are using Arachne.
+Fallback value used when a specific line width is not set (set to `0`).
 
-8. **Don’t feel constrained to have wider internal wall lines compared to external ones**. While this is the default for most profiles, for models where significant overhangs are present, printing wider external walls compared to the internal ones may yield better overhang quality without increasing material use!
+### First Layer
 
-9. **For sparse infill, the line width also affects how dense, visually, the sparse infill will be.** The sparse infill aims to extrude a set amount of material based on the percentage infill selected. When increasing the line width, the space between the sparse infill extrusions is larger in order to roughly maintain the same material usage. Typically for sparse infill, a value of 120% of nozzle diameter is a good starting point.
+A wider first layer (with a higher [first layer height](quality_settings_layer_height#first-layer-height)) improves bed adhesion and compensates for uneven build surfaces.  
+First layer line width also overrides [Brim's](others_settings_brim) and [Skirt's](others_settings_skirt) line width.
 
-10. **For supports, using 100% or less line width will make the supports weaker** by reducing their layer adhesion, making them easier to remove.
+### Outer Wall
 
-11. **If your printer is limited mechanically, try to maintain the material flow as consistent as possible between critical features of your model**, to ease the load on the extruder having to adapt its flow between them. This is especially useful for printers that do not use pressure advance/linear advance and if your extruder is not as capable mechanically. You can do that by adjusting the line widths and speeds to reduce the variation between critical features (e.g., external and internal wall flow). For example, print them at the same speed and the same line width, or print the external perimeter slightly wider and slightly slower than the internal perimeter. Material flow can be visualized in the sliced model – flow drop down.
+Controls dimensional accuracy and surface finish.  
+Recommended: **105%–120%** of the nozzle diameter for clean overhangs and detail.
+
+### Inner Wall
+
+Can be set wider than the outer wall to enhance structural strength.  
+Typical value: **≥120%**.
+
+### Top Surface
+
+Affects the quality of visible top layers.  
+Recommended: **100%–105%** for smooth results without over-extrusion.
+
+### Sparse Infill
+
+Recommended to use a conservative value, typically around 115% to improve layer adhesion without getting near volumetric flow limitations.  
+If you need stronger infill, it's recommended to use [infill line multiplier](strength_settings_infill#fill-multiline) when possible.
+
+### Internal Solid Infill
+
+Used for solid top/bottom layers or [100% infill](strength_settings_infill#sparse-infill-density).  
+Recommended: **~110%** for good layer adhesion and visual quality.
+
+### Support
+
+Typically set to **100%** to balance material usage and functionality. Reducing it too much can lead to weak support structures that may not hold up during printing or break easily during removal leaving debris on the model.

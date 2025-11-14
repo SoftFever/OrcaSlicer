@@ -1,14 +1,10 @@
 {
     "type": "filament",
     "name": "Generic TPU @BBL P1P",
-    "inherits": "fdm_filament_tpu",
+    "inherits": "Generic TPU @base",
     "from": "system",
-    "filament_id": "GFU99",
     "setting_id": "GFSR99_10",
     "instantiation": "true",
-    "filament_max_volumetric_speed": [
-        "3.2"
-    ],
     "hot_plate_temp": [
         "45"
     ],

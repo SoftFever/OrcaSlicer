@@ -119,7 +119,9 @@ float LinesBucketQueue::getCurrBottomZ()
     }
 
     for (LinesBucket *bp : lowests) {
+        float prevZ = bp->curBottomZ();
         bp->raise();
+        if (bp->curBottomZ() == prevZ) continue;
         if (bp->valid()) { line_bucket_ptr_queue.push(bp); }
     }
     return layerBottomZ;
@@ -222,16 +224,16 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
     LinesBucketQueue conflictQueue;
 
     if (wtdptr.has_value()) { // wipe tower at 0 by default
-        auto            wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
-        ExtrusionLayers wtels;
-        wtels.type = ExtrusionLayersType::WIPE_TOWER;
-        for (int i = 0; i < wtpaths.size(); ++i) { // assume that wipe tower always has same height
-            ExtrusionLayer el;
-            el.paths    = wtpaths[i];
-            el.bottom_z = wtpaths[i].front().height * (float) i;
-            el.layer    = nullptr;
-            wtels.push_back(el);
-        }
+        //auto            wtpaths = wtdptr.value()->getFakeExtrusionPathsFromWipeTower();
+        ExtrusionLayers wtels = wtdptr.value()->getTrueExtrusionLayersFromWipeTower();
+        //wtels.type = ExtrusionLayersType::WIPE_TOWER;
+        //for (int i = 0; i < wtpaths.size(); ++i) { // assume that wipe tower always has same height
+        //    ExtrusionLayer el;
+        //    el.paths    = wtpaths[i];
+        //    el.bottom_z = wtpaths[i].front().height * (float) i;
+        //    el.layer    = nullptr;
+        //    wtels.push_back(el);
+        //}
         conflictQueue.emplace_back_bucket(std::move(wtels), wtdptr.value(), {wtdptr.value()->plate_origin.x(), wtdptr.value()->plate_origin.y()});
     }
     for (PrintObject *obj : objs) {

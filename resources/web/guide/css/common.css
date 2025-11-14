@@ -133,16 +133,17 @@ body
 	padding: 3mm 9mm;
 	font-size: 14px;
 	text-align: center;
-	border: 1px solid #575757;
+	/* border: 1px solid #575757; */ /* ORCA match button style */
 	border-radius: 18px;
-	color: #575757;
+	background-color: #D9D9D9;
+	color: #000;					/* ORCA match button style */
 	cursor: pointer;
 	margin-left: 10px;	
 }
 
 .GrayBtn:hover
 {
-	background-color:#E8E8E8;
+	background-color:#CCCCCC;		/* ORCA match button style */
 }
 
 .SmallBtn
@@ -189,6 +190,50 @@ body
 	cursor: pointer;
 }
 
+/*---Checkboxes ORCA ---*/
+label:has(input[type="checkbox"]){
+	margin:0;
+	padding: 0;
+	margin-right: 20px;
+}
+
+label:has(input[type="checkbox"])>span{
+	vertical-align: middle;
+	margin:0;
+}
+
+input[type="checkbox"] {
+	-webkit-appearance: none;
+	appearance: none;
+	background-color:#FFFFFF;
+	margin:0;
+	margin-right: 6px;
+	width: 1em;
+	height: 1em;
+	border: 0.1em solid #DBDBDB;
+	border-radius: 0.15em;
+	display: inline-flex;
+	place-content: center;
+	background-color:#FFFFFF;
+}
+
+input[type="checkbox"]::before {
+	content: "";
+	width: 0.8em;
+	height: 0.8em;
+	transform: scale(0);
+	box-shadow: inset 1em 1em #FFFFFF;
+	clip-path: polygon(7% 37%, 0 45%, 33% 78%, 100% 30%, 95% 21%, 33% 64%);
+}
+
+input[type="checkbox"]:checked {
+	border-color:#009688;
+	background-color:#009688;
+}
+
+input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
 
 
 /*----------------Light Mode-------------------*/

@@ -60,7 +60,7 @@ input
 
 .MItem
 {
-	min-width: 220px;
+	min-width: 180px; /* ORCA Filtered items > slightly reduce min width to fit more items*/
 	height: 32px;
 }
 

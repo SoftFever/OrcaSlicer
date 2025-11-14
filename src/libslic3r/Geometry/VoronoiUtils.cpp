@@ -1,10 +1,17 @@
 #include <boost/log/trivial.hpp>
-
-#include <Arachne/utils/PolygonsSegmentIndex.hpp>
-#include <MultiMaterialSegmentation.hpp>
+#include <libslic3r/Arachne/utils/PolygonsSegmentIndex.hpp>
+#include <libslic3r/MultiMaterialSegmentation.hpp>
+#include <libslic3r/Geometry.hpp>
+#include <cmath>
+#include <cstdint>
+#include <utility>
+#include <vector>
+#include <cassert>
+#include <cstdlib>
 
 #include "VoronoiUtils.hpp"
-#include "libslic3r.h"
+#include "libslic3r/Exception.hpp"
+#include "libslic3r/Line.hpp"
 
 namespace Slic3r::Geometry {
 
@@ -28,6 +35,7 @@ template SegmentCellRange<Point> VoronoiUtils::compute_segment_cell_range(const 
 template SegmentCellRange<Point> VoronoiUtils::compute_segment_cell_range(const VoronoiDiagram::cell_type &, VD::SegmentIt, VD::SegmentIt);
 template SegmentCellRange<Point> VoronoiUtils::compute_segment_cell_range(const VoronoiDiagram::cell_type &, ColoredLinesConstIt, ColoredLinesConstIt);
 template SegmentCellRange<Point> VoronoiUtils::compute_segment_cell_range(const VoronoiDiagram::cell_type &, PolygonsSegmentIndexConstIt, PolygonsSegmentIndexConstIt);
+template PointCellRange<Point> VoronoiUtils::compute_point_cell_range(const VoronoiDiagram::cell_type &, PolygonsSegmentIndexConstIt, PolygonsSegmentIndexConstIt);
 template Points VoronoiUtils::discretize_parabola(const Point &, const Arachne::PolygonsSegmentIndex &, const Point &, const Point &, coord_t, float);
 template Arachne::PolygonsPointIndex VoronoiUtils::get_source_point_index(const VoronoiDiagram::cell_type &, PolygonsSegmentIndexConstIt, PolygonsSegmentIndexConstIt);
 
@@ -124,7 +132,7 @@ VoronoiUtils::discretize_parabola(const Point &source_point, const Segment &sour
     Point pxx;
     Line(a, b).distance_to_infinite_squared(source_point, &pxx);
     const Point   ppxx = pxx - source_point;
-    const coord_t d    = ppxx.norm();
+    const coord_t d    = ppxx.cast<int64_t>().norm();
 
     const Vec2d  rot           = perp(ppxx).cast<double>().normalized();
     const double rot_cos_theta = rot.x();
@@ -137,8 +145,8 @@ VoronoiUtils::discretize_parabola(const Point &source_point, const Segment &sour
     }
 
     const double marking_bound = atan(transitioning_angle * 0.5);
-    int64_t      msx           = -marking_bound * d; // projected marking_start
-    int64_t      mex           = marking_bound * d;  // projected marking_end
+    int64_t      msx           = -marking_bound * int64_t(d); // projected marking_start
+    int64_t      mex           = marking_bound * int64_t(d);  // projected marking_end
 
     const coord_t marking_start_end_h = msx * msx / (2 * d) + d / 2;
     Point         marking_start       = Point(coord_t(msx), marking_start_end_h).rotated(rot_cos_theta, rot_sin_theta) + pxx;
@@ -152,7 +160,7 @@ VoronoiUtils::discretize_parabola(const Point &source_point, const Segment &sour
     bool add_marking_start = msx * int64_t(dir) > int64_t(sx - px) * int64_t(dir) && msx * int64_t(dir) < int64_t(ex - px) * int64_t(dir);
     bool add_marking_end   = mex * int64_t(dir) > int64_t(sx - px) * int64_t(dir) && mex * int64_t(dir) < int64_t(ex - px) * int64_t(dir);
 
-    const Point apex     = Point(coord_t(0), coord_t(d / 2)).rotated(rot_cos_theta, rot_sin_theta) + pxx;
+    const Point apex     = Point(0, d / 2).rotated(rot_cos_theta, rot_sin_theta) + pxx;
     bool        add_apex = int64_t(sx - px) * int64_t(dir) < 0 && int64_t(ex - px) * int64_t(dir) > 0;
 
     assert(!add_marking_start || !add_marking_end || add_apex);
@@ -239,6 +247,62 @@ VoronoiUtils::compute_segment_cell_range(const VD::cell_type &cell, const Segmen
         if (v1 == from_i64 && (!cell_range.edge_end || ending_edge_is_set_before_start)) {
             ending_edge_is_set_before_start = !after_start;
             cell_range.edge_end             = edge;
+        }
+    } while (edge = edge->next(), edge != cell.incident_edge());
+
+    return cell_range;
+}
+
+template<typename SegmentIterator>
+typename boost::polygon::enable_if<
+    typename boost::polygon::gtl_if<typename boost::polygon::is_segment_concept<
+        typename boost::polygon::geometry_concept<typename std::iterator_traits<SegmentIterator>::value_type>::type>::type>::type,
+    Geometry::PointCellRange<
+        typename boost::polygon::segment_point_type<typename std::iterator_traits<SegmentIterator>::value_type>::type>>::type
+VoronoiUtils::compute_point_cell_range(const VD::cell_type &cell, const SegmentIterator segment_begin, const SegmentIterator segment_end)
+{
+    using Segment        = typename std::iterator_traits<SegmentIterator>::value_type;
+    using Point          = typename boost::polygon::segment_point_type<Segment>::type;
+    using PointCellRange = PointCellRange<Point>;
+    using CoordType      = typename Point::coord_type;
+
+    const Point source_point = Geometry::VoronoiUtils::get_source_point(cell, segment_begin, segment_end);
+
+    // We want to ignore (by returning PointCellRange without assigned edge_begin and edge_end) cells outside the input polygon.
+    PointCellRange cell_range(source_point);
+
+    const VD::edge_type *edge = cell.incident_edge();
+    if (edge->is_infinite() || !is_in_range<CoordType>(*edge)) {
+        // Ignore infinite edges, because they only occur outside the polygon.
+        // Also ignore edges with endpoints that don't fit into CoordType, because such edges are definitely outside the polygon.
+        return cell_range;
+    }
+
+    const Arachne::PolygonsPointIndex source_point_idx = Geometry::VoronoiUtils::get_source_point_index(cell, segment_begin, segment_end);
+    const Point                       edge_v0          = Geometry::VoronoiUtils::to_point(edge->vertex0()).template cast<CoordType>();
+    const Point                       edge_v1          = Geometry::VoronoiUtils::to_point(edge->vertex1()).template cast<CoordType>();
+    const Point                       edge_query_point = (edge_v0 == source_point) ? edge_v1 : edge_v0;
+
+    // Check if the edge has another endpoint inside the corner of the polygon.
+    if (!Geometry::is_point_inside_polygon_corner(source_point_idx.prev().p(), source_point_idx.p(), source_point_idx.next().p(), edge_query_point)) {
+        // If the endpoint isn't inside the corner of the polygon, it means that
+        // the whole cell isn't inside the polygons, and we will ignore such cells.
+        return cell_range;
+    }
+
+    const Vec2i64 source_point_i64 = source_point.template cast<int64_t>();
+    edge = cell.incident_edge();
+    do {
+        assert(edge->is_finite());
+
+        if (Vec2i64 v1 = Geometry::VoronoiUtils::to_point(edge->vertex1()); v1 == source_point_i64) {
+            cell_range.edge_begin = edge->next();
+            cell_range.edge_end   = edge;
+        } else {
+            // FIXME @hejllukas: With Arachne, we don't support polygons with collinear edges,
+            //                   because with collinear edges we have to handle secondary edges.
+            //                   Such edges goes through the endpoints of the input segments.
+            assert((Geometry::VoronoiUtils::to_point(edge->vertex0()) == source_point_i64 || edge->is_primary()) && "Point cells must end in the point! They cannot cross the point with an edge, because collinear edges are not allowed in the input.");
         }
     } while (edge = edge->next(), edge != cell.incident_edge());
 

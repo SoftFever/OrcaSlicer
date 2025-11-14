@@ -47,7 +47,7 @@ void AMSSetting::create()
     m_title_Insert_material_auto_read->Wrap(AMS_SETTING_BODY_WIDTH);
     m_sizer_Insert_material->Add(m_title_Insert_material_auto_read, 0, wxALL | wxEXPAND, 0);
 
-    
+
 
     wxBoxSizer *m_sizer_Insert_material_tip = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_Insert_material_tip_inline      = new wxBoxSizer(wxVERTICAL);
@@ -67,7 +67,7 @@ void AMSSetting::create()
 
     // tip line2
     m_tip_Insert_material_line2 = new Label(m_panel_Insert_material,
-        _L("Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed.")
+        _L("Note: if a new filament is inserted during printing, the AMS will not automatically read any information until printing is completed.")
     );
     m_tip_Insert_material_line2->SetFont(::Label::Body_13);
     m_tip_Insert_material_line2->SetForegroundColour(AMS_SETTING_GREY700);
@@ -105,7 +105,7 @@ void AMSSetting::create()
     m_title_starting_auto_read->Wrap(AMS_SETTING_BODY_WIDTH);
     m_sizer_starting->Add(m_title_starting_auto_read, 1, wxEXPAND, 0);
 
-    
+
 
     wxBoxSizer *m_sizer_starting_tip = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_starting_tip->Add(0, 0, 0, wxLEFT, 10);
@@ -114,7 +114,7 @@ void AMSSetting::create()
     m_sizer_starting_tip_inline = new wxBoxSizer(wxVERTICAL);
 
     m_tip_starting_line1 = new Label(m_panel_body,
-        _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools.")
+        _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll the filament spools.")
     );
     m_tip_starting_line1->SetFont(::Label::Body_13);
     m_tip_starting_line1->SetForegroundColour(AMS_SETTING_GREY700);
@@ -152,9 +152,7 @@ void AMSSetting::create()
     // tip line
     m_sizer_remain_inline = new wxBoxSizer(wxVERTICAL);
 
-    m_tip_remain_line1 = new Label(m_panel_body,
-        _L("The AMS will estimate Bambu filament's remaining capacity after the filament info is updated. During printing, remaining capacity will be updated automatically.")
-    );
+    m_tip_remain_line1 = new Label(m_panel_body, _L("AMS will attempt to estimate the remaining capacity of the Bambu Lab filaments."));
     m_tip_remain_line1->SetFont(::Label::Body_13);
     m_tip_remain_line1->SetForegroundColour(AMS_SETTING_GREY700);
     m_tip_remain_line1->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
@@ -183,7 +181,7 @@ void AMSSetting::create()
     m_sizer_switch_filament_inline = new wxBoxSizer(wxVERTICAL);
 
     m_tip_switch_filament_line1 = new Label(m_panel_body,
-        _L("AMS will continue to another spool with the same properties of filament automatically when current filament runs out")
+        _L("AMS will continue to another spool with matching filament properties automatically when current filament runs out.")
     );
     m_tip_switch_filament_line1->SetFont(::Label::Body_13);
     m_tip_switch_filament_line1->SetForegroundColour(AMS_SETTING_GREY700);
@@ -191,7 +189,7 @@ void AMSSetting::create()
     m_tip_switch_filament_line1->Wrap(AMS_SETTING_BODY_WIDTH);
     m_sizer_switch_filament_inline->Add(m_tip_switch_filament_line1, 0, wxEXPAND, 0);
     m_sizer_switch_filament_tip->Add(m_sizer_switch_filament_inline, 1, wxALIGN_CENTER, 0);
-    
+
 
 
     // checkbox area 5
@@ -238,7 +236,7 @@ void AMSSetting::create()
     m_panel_img->Layout();
     m_sizer_img->Fit(m_panel_img);
 
-    m_sizer_remain_block = new wxBoxSizer(wxVERTICAL); 
+    m_sizer_remain_block = new wxBoxSizer(wxVERTICAL);
     m_sizer_remain_block->Add(m_sizer_remain, 0, wxEXPAND | wxTOP, FromDIP(8));
     m_sizer_remain_block->Add(0, 0, 0, wxTOP, 8);
     m_sizer_remain_block->Add(m_sizer_remain_tip, 0, wxLEFT, 18);
@@ -285,7 +283,7 @@ void AMSSetting::create()
             else {
                 m_sizer_remain_block->Show(false);
             }
-        }   
+        }
     });
 }
 
@@ -500,9 +498,9 @@ wxStaticText *AMSSetting::append_text(wxString text)
     return widget;
 }
 
-void AMSSetting::on_dpi_changed(const wxRect &suggested_rect) 
-{ 
-    //m_button_auto_demarcate->SetMinSize(AMS_SETTING_BUTTON_SIZE); 
+void AMSSetting::on_dpi_changed(const wxRect &suggested_rect)
+{
+    //m_button_auto_demarcate->SetMinSize(AMS_SETTING_BUTTON_SIZE);
 }
 
 }} // namespace Slic3r::GUI

@@ -6,7 +6,6 @@
 #define UTILS_SPARSE_LINE_GRID_H
 
 #include <cassert>
-#include <unordered_map>
 #include <vector>
 #include <functional>
 
