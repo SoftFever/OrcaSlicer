@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 11:23+0100\n"
+"POT-Creation-Date: 2025-11-05 17:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -1138,7 +1138,7 @@ msgstr "Distance entre le centre du texte et la surface du modèle."
 msgid "Undo rotation"
 msgstr "Annuler la rotation"
 
-msgid "Rotate text Clock-wise."
+msgid "Rotate text Clockwise."
 msgstr "Rotation du texte dans le sens des aiguilles d’une montre."
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
@@ -2058,13 +2058,13 @@ msgstr "Recharger les pièces sélectionnées à partir du disque"
 msgid "Replace with STL"
 msgstr "Remplacer par le STL"
 
-msgid "Replace the selected part with new STL"
+msgid "Replace the selected part with new STL."
 msgstr "Remplacer la pièce sélectionnée par un nouveau STL"
 
 msgid "Replace all with STL"
 msgstr ""
 
-msgid "Replace all selected parts with STL from folder"
+msgid "Replace all selected parts with STL from folder."
 msgstr ""
 
 msgid "Change filament"
@@ -2765,7 +2765,7 @@ msgstr ""
 
 msgid ""
 "Enabling filtration during printing may reduce cooling and affect print "
-"qulity. Please choose carefully"
+"quality. Please choose carefully."
 msgstr ""
 
 msgid ""
@@ -3814,7 +3814,7 @@ msgid "Circular"
 msgstr "Circulaire"
 
 msgid "Load shape from STL..."
-msgstr "Charger une forme depuis un STL…"
+msgstr "Charger une forme depuis un STL …"
 
 msgid "Settings"
 msgstr "Réglages"
@@ -4167,10 +4167,10 @@ msgstr ""
 msgid "Pause (nozzle clog)"
 msgstr ""
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr ""
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr ""
 
 msgid "Measure motion accuracy"
@@ -4179,7 +4179,7 @@ msgstr ""
 msgid "Nozzle offset calibration"
 msgstr ""
 
-msgid "high temperature auto bed levelling"
+msgid "high temperature auto bed leveling"
 msgstr ""
 
 msgid "Auto Check: Quick Release Lever"
@@ -4375,9 +4375,6 @@ msgid "Retry (problem solved)"
 msgstr ""
 
 msgid "Stop Drying"
-msgstr ""
-
-msgid "Cancle"
 msgstr ""
 
 msgid "Done"
@@ -4970,6 +4967,9 @@ msgstr "Retour d'assemblage"
 msgid "Return"
 msgstr "Retour"
 
+msgid "Toggle Axis"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Barre d'outils de peinture"
 
@@ -4999,11 +4999,11 @@ msgstr "Taille:"
 
 #, c-format, boost-format
 msgid ""
-"Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please "
+"Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 "Des conflits de chemins G-code ont été trouvés au niveau de la couche %d, z "
-"= %.2lf mm. Veuillez séparer davantage les objets en conflit (%s <-> %s)."
+"= %.2lfmm. Veuillez séparer davantage les objets en conflit (%s <-> %s)."
 
 msgid "An object is laid over the plate boundaries."
 msgstr "Un objet est posé sur la limite du plateau."
@@ -5025,7 +5025,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the "
+"Filaments %s are placed in the %s, but the generated G-code path exceeds the "
 "printable range of the %s."
 msgstr ""
 
@@ -5037,7 +5037,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the "
+"Filaments %s are placed in the %s, but the generated G-code path exceeds the "
 "printable height of the %s."
 msgstr ""
 
@@ -6070,7 +6070,7 @@ msgstr "Le nom ne doit pas commencer par un espace."
 msgid "The name is not allowed to end with space character."
 msgstr "Le nom ne doit pas se terminer par un espace."
 
-msgid "The name is not allowed to exceeds 32 characters."
+msgid "The name is not allowed to exceed 32 characters."
 msgstr ""
 
 msgid "Bind with Pin Code"
@@ -6173,7 +6173,7 @@ msgstr "L'imprimante est occupée par un autre travail d'impression"
 msgid "Current extruder is busy changing filament"
 msgstr ""
 
-msgid "Current slot has alread been loaded"
+msgid "Current slot has already been loaded"
 msgstr ""
 
 msgid "The selected slot is empty."
@@ -6196,10 +6196,6 @@ msgstr "Couche : %s"
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Couche : %d/%d"
-
-#, c-format, boost-format
-msgid "(%d)"
-msgstr ""
 
 msgid ""
 "Please heat the nozzle to above 170°C before loading or unloading filament."
@@ -6773,6 +6769,9 @@ msgstr "Déverrouiller le plateau actuel"
 msgid "Lock current plate"
 msgstr "Verrouiller le plateau actuel"
 
+msgid "Filament grouping"
+msgstr ""
+
 msgid "Edit current plate name"
 msgstr "Modifier le nom du plateau actuel"
 
@@ -6933,7 +6932,7 @@ msgid "Sync filaments with AMS"
 msgstr "Synchroniser les filaments avec AMS"
 
 msgid ""
-"There are some unknown or uncompatible filaments mapped to generic preset.\n"
+"There are some unknown or incompatible filaments mapped to generic preset.\n"
 "Please update Orca Slicer or restart Orca Slicer to check if there is an "
 "update to system presets."
 msgstr ""
@@ -7029,10 +7028,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, found following "
+"The 3MF file version %s is newer than %s's version %s, found the following "
 "unrecognized keys:"
 msgstr ""
-"La version %s du 3mf est plus récente que la version %s de %s. Les clés "
+"La version %s du 3MF est plus récente que la version %s de %s. Les clés "
 "suivantes ne sont pas reconnues:"
 
 msgid "You'd better upgrade your software.\n"
@@ -7040,10 +7039,10 @@ msgstr "Vous feriez mieux de mettre à jour votre logiciel.\n"
 
 #, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
+"The 3MF file version %s is newer than %s's version %s, we suggest to "
+"upgrade your software."
 msgstr ""
-"La version %s du 3mf est plus récente que la version %s de %s. Nous vous "
+"La version %s du 3MF est plus récente que la version %s de %s. Nous vous "
 "suggérons de mettre à jour votre logiciel."
 
 msgid "The 3mf is generated by old OrcaSlicer, load geometry data only."
@@ -7746,13 +7745,13 @@ msgid "Home"
 msgstr "Accueil"
 
 msgid "Default page"
-msgstr ""
+msgstr "Page par défaut"
 
 msgid "Set the page opened on startup."
 msgstr "Définit la page ouverte au démarrage."
 
 msgid "Enable dark mode"
-msgstr ""
+msgstr "Activer le mode Sombre"
 
 msgid "Allow only one OrcaSlicer instance"
 msgstr "Autoriser une seule instance d’OrcaSlicer"
@@ -7801,7 +7800,7 @@ msgid "Load Geometry Only"
 msgstr "Charger uniquement la géométrie"
 
 msgid "Load behaviour"
-msgstr ""
+msgstr "Comportement du chargement"
 
 msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
 msgstr ""
@@ -7819,6 +7818,7 @@ msgstr ""
 
 msgid "Don't warn when loading 3MF with modified G-code"
 msgstr ""
+"Pas d'avertissement lors du chargement de 3MF avec des G-codes modifiés"
 
 msgid "Show options when importing STEP file"
 msgstr ""
@@ -7828,7 +7828,7 @@ msgid ""
 msgstr ""
 
 msgid "Auto backup"
-msgstr ""
+msgstr "Sauvegarde automatique"
 
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
@@ -7853,7 +7853,7 @@ msgid "Features"
 msgstr ""
 
 msgid "Multi device management"
-msgstr ""
+msgstr "Gestion multi appareils"
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
@@ -7964,10 +7964,10 @@ msgid ""
 msgstr ""
 
 msgid "Login region"
-msgstr ""
+msgstr "Région d'origine"
 
 msgid "Stealth mode"
-msgstr ""
+msgstr "Mode privé"
 
 msgid ""
 "This stops the transmission of data to Bambu's cloud services. Users who "
@@ -7979,7 +7979,7 @@ msgstr ""
 "sécurité."
 
 msgid "Network test"
-msgstr ""
+msgstr "Test du réseau"
 
 msgid "Test"
 msgstr "Tester"
@@ -8291,8 +8291,8 @@ msgstr ""
 msgid "Publish"
 msgstr "Publier"
 
-msgid "Publish was cancelled"
-msgstr ""
+msgid "Publish was canceled"
+msgstr "La publication a été annulée"
 
 msgid "Slicing Plate 1"
 msgstr "Découper Plaque 1"
@@ -8966,12 +8966,18 @@ msgid ""
 "Are you sure to use them for support base? \n"
 msgstr ""
 
+#, fuzzy
 msgid ""
 "When using support material for the support interface, we recommend the "
 "following settings:\n"
 "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and "
-"disable independent support layer height"
+"disable independent support layer height."
 msgstr ""
+"Lorsque vous utilisez du matériel de support pour l'interface de support, "
+"nous vous recommandons d'utiliser les paramètres suivants :\n"
+"Distance Z supérieure nulle, espacement d'interface nul, motif "
+"concentrique et désactivation de la hauteur indépendante de la couche de "
+"support."
 
 msgid ""
 "Change these settings automatically?\n"
@@ -8983,11 +8989,11 @@ msgstr ""
 "Non - Ne modifiez pas ces paramètres pour moi"
 
 msgid ""
-"When using soluble material for the support interface, We recommend the "
+"When using soluble material for the support interface, we recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, "
-"disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
+"0 top Z distance, 0 interface spacing, interlaced rectilinear pattern, "
+"disable independent support layer height\n"
+"and use soluble materials for both support interface and support base."
 msgstr ""
 
 msgid ""
@@ -9946,9 +9952,6 @@ msgstr ""
 msgid ""
 "The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
-msgstr ""
-
-msgid "—> "
 msgstr ""
 
 msgid ""
@@ -12802,11 +12805,9 @@ msgid ""
 "option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy "
-"benefits of Inner/Outer/Inner option. However, the z seams will appear less "
+"benefits of Inner/Outer/Inner option. However, the Z seams will appear less "
 "consistent as the first extrusion of a new layer starts on a visible "
-"surface.\n"
-"\n"
-" "
+"surface."
 msgstr ""
 "Séquence d'impression des parois internes (intérieures) et externes "
 "(extérieures).\n"
@@ -12832,9 +12833,7 @@ msgstr ""
 "paroi externe et de la même précision dimensionnelle que l’option Intérieur/"
 "extérieur/intérieur. Cependant, les joints en z paraîtront moins cohérents "
 "car la première extrusion d’une nouvelle couche commence sur une surface "
-"visible.\n"
-"\n"
-" "
+"visible."
 
 msgid "Inner/Outer"
 msgstr "Intérieur/Extérieur"
@@ -13425,14 +13424,14 @@ msgstr "Rétrécissement (XY)"
 #, no-c-format, no-boost-format
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling (94% "
-"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"if you measure 94mm instead of 100mm). The part will be scaled in XY to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
 msgstr ""
 "Entrez le pourcentage de rétrécissement que le filament obtiendra après "
 "refroidissement (94% si vous mesurez 94mm au lieu de 100mm). La pièce sera "
-"mise à l’échelle en xy pour compenser. Seul le filament utilisé pour le "
+"mise à l’échelle en XY pour compenser. Seul le filament utilisé pour le "
 "périmètre est pris en compte.\n"
 "Veillez à laisser suffisamment d’espace entre les objets, car cette "
 "compensation est effectuée après les contrôles."
@@ -14273,7 +14272,7 @@ msgid "Precise Z height"
 msgstr "Hauteur précise du Z"
 
 msgid ""
-"Enable this to get precise z height of object after slicing. It will get the "
+"Enable this to get precise Z height of object after slicing. It will get the "
 "precise object height by fine-tuning the layer heights of the last few "
 "layers. Note that this is an experimental parameter."
 msgstr ""
@@ -14883,6 +14882,12 @@ msgid "Ironing angle offset"
 msgstr ""
 
 msgid "The angle of ironing lines offset from the top surface."
+msgstr ""
+
+msgid "Fixed ironing angle"
+msgstr ""
+
+msgid "Use a fixed absolute angle for ironing."
 msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
@@ -16110,7 +16115,7 @@ msgstr ""
 "inférieure"
 
 msgid ""
-"Spiralize smooths out the z moves of the outer contour. And turns a solid "
+"Spiralize smooths out the Z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
 "generated model has no seam."
 msgstr ""
@@ -16370,7 +16375,7 @@ msgstr "Normal (manuel)"
 msgid "Tree (manual)"
 msgstr "Arbre (manuel)"
 
-msgid "Support/object xy distance"
+msgid "Support/object XY distance"
 msgstr "Distance support/objet xy"
 
 msgid "XY separation between an object and its support."
@@ -16589,7 +16594,7 @@ msgstr "Hauteur de la couche de support indépendante"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time. This option will be invalid "
+"support customizing Z-gap and save print time. This option will be invalid "
 "when the prime tower is enabled."
 msgstr ""
 "La couche de support utilise la hauteur de la couche indépendamment de la "
@@ -17985,12 +17990,12 @@ msgid ""
 "Contains a string with the information about what scaling was applied to the "
 "individual objects. Indexing of the objects is zero-based (first object has "
 "index 0).\n"
-"Example: 'x:100% y:50% z:100'."
+"Example: 'x:100% y:50% z:100%'."
 msgstr ""
 "Contient une chaîne de caractères contenant des informations sur la mise à "
 "l’échelle appliquée aux différents objets. L’indexation des objets est basée "
 "sur le zéro (le premier objet a l’index 0).\n"
-"Exemple : « x:100% y:50% z:100 »."
+"Exemple : « x:100% y:50% z:100% »."
 
 msgid "Input filename without extension"
 msgstr "Nom du fichier d’entrée sans extension"
@@ -17999,12 +18004,12 @@ msgid "Source filename of the first object, without extension."
 msgstr "Nom du fichier source du premier objet, sans extension."
 
 msgid ""
-"The vector has two elements: x and y coordinate of the point. Values in mm."
+"The vector has two elements: X and Y coordinate of the point. Values in mm."
 msgstr ""
 "Le vecteur a deux éléments : les coordonnées x et y du point. Valeurs en mm."
 
 msgid ""
-"The vector has two elements: x and y dimension of the bounding box. Values "
+"The vector has two elements: X and Y dimension of the bounding box. Values "
 "in mm."
 msgstr ""
 "Le vecteur a deux éléments : les dimensions x et y de la boîte de "
@@ -20533,8 +20538,8 @@ msgstr "Nom de l’appareil"
 msgid "Device Status"
 msgstr "État de l’appareil"
 
-msgid "Ams Status"
-msgstr ""
+msgid "AMS Status"
+msgstr "Statut de l’AMS"
 
 msgid ""
 "Please select the devices you would like to manage here (up to 6 devices)"
@@ -20655,9 +20660,6 @@ msgstr "Échec de l’impression"
 msgid "Removed"
 msgstr "Supprimé"
 
-msgid "Filament grouping"
-msgstr ""
-
 msgid "Don't remind me again"
 msgstr ""
 
@@ -20699,7 +20701,7 @@ msgstr ""
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
-msgid "Tips: You can drag the filaments to reassign them to different nozzles."
+msgid "Tip: You can drag the filaments to reassign them to different nozzles."
 msgstr ""
 
 msgid ""
@@ -20749,8 +20751,8 @@ msgstr ""
 "Un événement inattendu s’est produit lors de la connexion, veuillez "
 "réessayer."
 
-msgid "User cancelled."
-msgstr ""
+msgid "User canceled."
+msgstr "L’utilisateur a annulé."
 
 msgid "Head diameter"
 msgstr "Diamètre de la tête"
@@ -20804,9 +20806,6 @@ msgstr ""
 msgid "Zoom Out"
 msgstr ""
 
-msgid "100 %"
-msgstr ""
-
 msgid "Zoom In"
 msgstr ""
 
@@ -20814,14 +20813,6 @@ msgid "Load skipping objects information failed. Please try again."
 msgstr ""
 
 msgid "Loading ..."
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d%%"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d"
 msgstr ""
 
 #, c-format, boost-format
@@ -21268,6 +21259,17 @@ msgstr ""
 "déformer, tels que l’ABS, une augmentation appropriée de la température du "
 "plateau chauffant peut réduire la probabilité de déformation?"
 
+#~ msgid "Adaptive layer height"
+#~ msgstr "Hauteur de couche adaptative"
+
+#~ msgid ""
+#~ "Enabling this option means the height of tree support layer except the "
+#~ "first will be automatically calculated."
+#~ msgstr ""
+#~ "L’activation de cette option signifie que la hauteur de couche des "
+#~ "supports arborescents, à l’exception de la première, sera automatiquement "
+#~ "calculée "
+
 #~ msgid "AMS not connected"
 #~ msgstr "AMS non connecté"
 
@@ -21329,9 +21331,6 @@ msgstr ""
 #~ "L'AMS estimera la capacité restante du filament Bambu après la mise à "
 #~ "jour des infos du filament. Pendant l'impression, la capacité restante "
 #~ "sera automatiquement mise à jour."
-
-#~ msgid "AMS Status"
-#~ msgstr "Statut de l’AMS"
 
 #~ msgid ""
 #~ "The recommended minimum temperature is less than 190°C or the recommended "
@@ -21562,15 +21561,6 @@ msgstr ""
 #~ msgid "General Settings"
 #~ msgstr "Paramètres généraux"
 
-#~ msgid "Login Region"
-#~ msgstr "Région d'origine"
-
-#~ msgid "Stealth Mode"
-#~ msgstr "Mode privé"
-
-#~ msgid "Default Page"
-#~ msgstr "Page par défaut"
-
 #~ msgid "Show \"Tip of the day\" notification after start"
 #~ msgstr "Afficher la notification \"Astuce du jour\" après le démarrage"
 
@@ -21596,9 +21586,6 @@ msgstr ""
 #~ "Si cette option est activée, le calcul s’effectue automatiquement à "
 #~ "chaque changement de filament"
 
-#~ msgid "Multi-device Management (Take effect after restarting Orca Slicer)."
-#~ msgstr "Gestion multi-appareils (prend effet après le redémarrage d’Orca)."
-
 #~ msgid "Auto arrange plate after object cloning"
 #~ msgstr "Arrangement automatique de la plaque après le clonage de l’objet"
 
@@ -21614,16 +21601,6 @@ msgstr ""
 #~ msgid "Associate URLs to OrcaSlicer"
 #~ msgstr "Associer des URL à OrcaSlicer"
 
-#~ msgid "Load Behaviour"
-#~ msgstr "Comportement du chargement"
-
-#~ msgid "No warnings when loading 3MF with modified G-code"
-#~ msgstr ""
-#~ "Pas d'avertissement lors du chargement de 3MF avec des G-codes modifiés"
-
-#~ msgid "Auto-Backup"
-#~ msgstr "Sauvegarde automatique"
-
 #~ msgid "every"
 #~ msgstr "chaque"
 
@@ -21632,9 +21609,6 @@ msgstr ""
 
 #~ msgid "Dark Mode"
 #~ msgstr "Mode Sombre"
-
-#~ msgid "Enable Dark mode"
-#~ msgstr "Activer le mode Sombre"
 
 #~ msgid "Home page and daily tips"
 #~ msgstr "Page d'accueil et Astuces quotidiennes"
@@ -21825,17 +21799,6 @@ msgstr ""
 #~ msgid "Remove small overhangs that possibly need no supports."
 #~ msgstr ""
 #~ "Supprimer les petits surplombs qui n’ont peut-être pas besoin de supports."
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "Hauteur de couche adaptative"
-
-#~ msgid ""
-#~ "Enabling this option means the height of tree support layer except the "
-#~ "first will be automatically calculated."
-#~ msgstr ""
-#~ "L’activation de cette option signifie que la hauteur de couche des "
-#~ "supports arborescents, à l’exception de la première, sera automatiquement "
-#~ "calculée "
 
 #~ msgid ""
 #~ "Only one of the results with the same name will be saved. Are you sure "
@@ -22060,9 +22023,6 @@ msgstr ""
 
 #~ msgid "Invalid number"
 #~ msgstr "Numéro invalide"
-
-#~ msgid "Publish was canceled"
-#~ msgstr "La publication a été annulée"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.2f %s"
@@ -22351,9 +22311,6 @@ msgstr ""
 #~ msgid "Could not connect to Flashforge"
 #~ msgstr "Impossible de se connecter à Flashforge"
 
-#~ msgid "User canceled."
-#~ msgstr "L’utilisateur a annulé."
-
 #~ msgid "Set the brim type to \"painted\""
 #~ msgstr "Régler le type de bordure sur « peint »"
 
@@ -22376,18 +22333,6 @@ msgstr ""
 #~ "recommandons les réglages suivants : au moins 2 couches d'interface, au "
 #~ "moins 0,1 mm de distance entre le haut et le z ou l'utilisation de "
 #~ "matériaux de support sur l'interface."
-
-#~ msgid ""
-#~ "When using support material for the support interface, we recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern and disable "
-#~ "independent support layer height"
-#~ msgstr ""
-#~ "Lorsque vous utilisez du matériel de support pour l'interface de support, "
-#~ "nous vous recommandons d'utiliser les paramètres suivants :\n"
-#~ "Distance Z supérieure nulle, espacement d'interface nul, motif "
-#~ "concentrique et désactivation de la hauteur indépendante de la couche de "
-#~ "support."
 
 #~ msgid "Branch Diameter with double walls"
 #~ msgstr "Diamètre des branches à double parois"

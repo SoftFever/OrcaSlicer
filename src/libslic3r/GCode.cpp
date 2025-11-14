@@ -1268,7 +1268,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     std::string WipeTowerIntegration::prime(GCode &gcodegen)
     {
         std::string gcode;
-        if (!gcodegen.is_BBL_Printer()) {
+        if (!gcodegen.is_BBL_Printer() && !gcodegen.is_QIDI_Printer()) {
             for (const WipeTower::ToolChangeResult &tcr : m_priming) {
                 if (!tcr.extrusions.empty())
                     gcode += append_tcr2(gcodegen, tcr, tcr.new_tool);
@@ -1284,7 +1284,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         assert(m_layer_idx >= 0);
         if (m_layer_idx >= (int) m_tool_changes.size())
             return gcode;
-        if (!gcodegen.is_BBL_Printer()) {
+        if (!gcodegen.is_BBL_Printer() && !gcodegen.is_QIDI_Printer()) {
             if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
                 if (m_layer_idx < (int) m_tool_changes.size()) {
                     if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
@@ -1373,7 +1373,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     std::string WipeTowerIntegration::finalize(GCode &gcodegen)
     {
         std::string gcode;
-        if (!gcodegen.is_BBL_Printer()) {
+        if (!gcodegen.is_BBL_Printer() && !gcodegen.is_QIDI_Printer()) {
             if (std::abs(gcodegen.writer().get_position().z() - m_final_purge.print_z) > EPSILON)
                 gcode += gcodegen.change_layer(m_final_purge.print_z);
             gcode += append_tcr2(gcodegen, m_final_purge, -1);
@@ -1795,6 +1795,13 @@ bool GCode::is_BBL_Printer()
     return false;
 }
 
+bool GCode::is_QIDI_Printer()
+{
+    if (m_curr_print)
+        return m_curr_print->is_QIDI_printer();
+    return false;
+}
+
 void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
 {
     PROFILE_CLEAR();
@@ -2205,6 +2212,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
     const bool is_bbl_printers = print.is_BBL_printer();
+    const bool is_qidi_printers = print.is_QIDI_printer();
     m_calib_config.clear();
     // resets analyzer's tracking data
     m_last_height  = 0.f;
@@ -2487,7 +2495,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             throw Slic3r::SlicingError(_(L("No object can be printed. Maybe too small")));
         has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
         // Orca: support all extruder priming
-        initial_extruder_id = (!is_bbl_printers && has_wipe_tower && !print.config().single_extruder_multi_material_priming) ?
+        initial_extruder_id = (!is_bbl_printers && has_wipe_tower && !print.config().single_extruder_multi_material_priming && !is_qidi_printers) ?
             // The priming towers will be skipped.
             tool_ordering.all_extruders().back() :
             // Don't skip the priming towers.
@@ -2802,16 +2810,25 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_writer.set_current_position_clear(false);
     m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
 
-    m_writer.init_extruder(initial_non_support_extruder_id);
-    // add the missing filament start gcode in machine start gcode
-    {
-        DynamicConfig config;
-        config.set_key_value("filament_extruder_id", new ConfigOptionInt((int)(initial_non_support_extruder_id)));
-        config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-        std::string filament_start_gcode = this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.values.at(initial_non_support_extruder_id), initial_non_support_extruder_id,&config);
-        file.writeln(filament_start_gcode);
-        // mark the first filament used in print
-        file.write_format(";VT%d\n", initial_extruder_id);
+    if (is_bbl_printers) {
+        m_writer.init_extruder(initial_non_support_extruder_id);
+        // add the missing filament start gcode in machine start gcode
+        {
+            DynamicConfig config;
+            config.set_key_value("filament_extruder_id", new ConfigOptionInt((int)(initial_non_support_extruder_id)));
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            std::string filament_start_gcode = this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.values.at(initial_non_support_extruder_id), initial_non_support_extruder_id,&config);
+            file.writeln(filament_start_gcode);
+            // mark the first filament used in print
+            file.write_format(";VT%d\n", initial_extruder_id);
+        }
+        // Orca: add missing PA settings for initial filament
+        if (m_config.enable_pressure_advance.get_at(initial_non_support_extruder_id)) {
+            file.write(m_writer.set_pressure_advance(m_config.pressure_advance.get_at(initial_non_support_extruder_id)));
+            // Orca: Adaptive PA
+            // Reset Adaptive PA processor last PA value
+            m_pa_processor->resetPreviousPA(m_config.pressure_advance.get_at(initial_non_support_extruder_id));
+        }
     }
 
     //flush FanMover buffer to avoid modifying the start gcode if it's manual.
@@ -7344,6 +7361,9 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
 
     if (m_config.enable_pressure_advance.get_at(new_filament_id)) {
         gcode += m_writer.set_pressure_advance(m_config.pressure_advance.get_at(new_filament_id));
+        // Orca: Adaptive PA
+        // Reset Adaptive PA processor last PA value
+        m_pa_processor->resetPreviousPA(m_config.pressure_advance.get_at(new_filament_id));
     }
     //Orca: tool changer or IDEX's firmware may change Z position, so we set it to unknown/undefined
     m_last_pos_defined = false;
