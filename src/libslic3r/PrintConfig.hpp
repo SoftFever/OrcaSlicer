@@ -1235,6 +1235,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               fan_kickstart))
     ((ConfigOptionBool,                fan_speedup_overhangs))
     ((ConfigOptionFloat,               fan_speedup_time))
+    ((ConfigOptionStrings,             filament_settings_id))
     ((ConfigOptionFloats,              filament_diameter))
     ((ConfigOptionBoolsNullable,       filament_adaptive_volumetric_speed))
     ((ConfigOptionStrings,             volumetric_speed_coefficients))
@@ -1370,6 +1371,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,              small_area_infill_flow_compensation_model))
 
     ((ConfigOptionBool,                has_scarf_joint_seam))
+    ((ConfigOptionInts,                spoolman_spool_id))
+    ((ConfigOptionFloats,              filament_remaining_weight))
+    ((ConfigOptionFloats,              filament_remaining_length))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
