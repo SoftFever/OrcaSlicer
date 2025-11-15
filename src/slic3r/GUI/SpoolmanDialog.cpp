@@ -8,6 +8,7 @@
 #include "Widgets/DialogButtons.hpp"
 #include "Widgets/LabeledStaticBox.hpp"
 #include "wx/sizer.h"
+#include "format.hpp"
 #define EM wxGetApp().em_unit()
 
 namespace Slic3r::GUI {
