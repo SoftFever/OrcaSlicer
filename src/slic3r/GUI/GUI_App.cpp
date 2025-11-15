@@ -67,6 +67,7 @@
 #include "libslic3r/miniz_extension.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Color.hpp"
+#include "libslic3r/BlacklistedLibraryCheck.hpp"
 
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
@@ -2449,6 +2450,30 @@ bool GUI_App::on_init_inner()
                 dlg.IsCheckBoxChecked() ? Slic3r::Http::tls_system_cert_store() : "");
         }
     }
+
+#ifdef WIN32
+    // Check for blacklisted DLLs (e.g., Nahimic) that may cause crashes
+    if (app_config->get_bool("show_nahimic_warning")) {
+        // User has not disabled the warning, check for blacklisted DLLs
+        if (Slic3r::BlacklistedLibraryCheck::get_instance().perform_check()) {
+            wxString text = _L("Following DLLs have been injected into the OrcaSlicer process:\n\n");
+            text += wxString(Slic3r::BlacklistedLibraryCheck::get_instance().get_blacklisted_string());
+            text += _L("\n\nOrcaSlicer is known to not run correctly with these DLLs injected. "
+                       "We suggest stopping or uninstalling these services if you experience "
+                       "crashes or unexpected behaviour while using OrcaSlicer.\n"
+                       "For example, ASUS Sonic Studio injects a Nahimic driver, which makes OrcaSlicer "
+                       "to crash on a secondary monitor");
+
+            RichMessageDialog dlg(nullptr, text, "OrcaSlicer", wxICON_WARNING | wxOK);
+            dlg.ShowCheckBox(_L("Don't show again"));
+            dlg.ShowModal();
+            
+            if (dlg.IsCheckBoxChecked()) {
+                app_config->set("show_nahimic_warning", "no");
+            }
+        }
+    }
+#endif
 
     // !!! Initialization of UI settings as a language, application color mode, fonts... have to be done before first UI action.
     // Like here, before the show InfoDialog in check_older_app_config()
