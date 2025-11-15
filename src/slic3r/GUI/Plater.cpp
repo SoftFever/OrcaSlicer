@@ -12074,6 +12074,113 @@ void Plater::_calib_pa_select_added_objects() {
     }
 }
 
+// Adjust settings for Practical Flow ratio calibration
+void Plater::Calib_Practical_Flow_Ratio(const Calib_Params& params) {
+    wxString calib_name = L"Practical Flow Ratio Test";
+    if (new_project(false, false, calib_name) == wxID_CANCEL)
+        return;
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "practical-flow-ratio-test.3mf").string());
+    
+    auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+
+    /// --- scale ---
+    // model is created for a 0.4 nozzle, scale z with nozzle size.
+    const ConfigOptionFloats* nozzle_diameter_config = printer_config->option<ConfigOptionFloats>("nozzle_diameter");
+    assert(nozzle_diameter_config->values.size() > 0);
+    float nozzle_diameter = nozzle_diameter_config->values[0];
+    // scale z to have 6 layers
+    double first_layer_height = print_config->option<ConfigOptionFloat>("initial_layer_print_height")->value;
+    double layer_height       = nozzle_diameter / 2.0; // prefer 0.2 layer height for 0.4 nozzle
+    first_layer_height        = std::max(first_layer_height, layer_height);
+
+    const auto canvas    = wxGetApp().plater()->canvas3D();
+    auto&      selection = canvas->get_selection();
+    selection.setup_cache();
+    TransformationType transformation_type;
+    transformation_type.set_relative();
+    float const calib_scale[3] = {1.0f, 1.5f, 2.0f};
+    float       zscale         = (first_layer_height + (3 + params.step) * layer_height) / 1.2;
+    float       xscale         = calib_scale[params.test_model];
+    float       yscale         = calib_scale[params.model_variant];
+
+    // only enlarge
+    selection.scale({xscale, yscale, zscale}, transformation_type);
+    canvas->do_scale("");
+    model().calib_params = params;
+
+    // adjust parameters
+    print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
+    print_config->set_key_value("internal_bridge_density", new ConfigOptionPercent(100));
+    print_config->set_key_value("thick_internal_bridges", new ConfigOptionBool(false));
+    print_config->set_key_value("enable_extra_bridge_layer", new ConfigOptionEnum<EnableExtraBridgeLayer>(eblDisabled));
+    print_config->set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(100, true));
+    print_config->set_key_value("only_one_wall_top", new ConfigOptionBool(true));
+    print_config->set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f));
+    print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    print_config->set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
+    print_config->set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
+    print_config->set_key_value("top_shell_thickness", new ConfigOptionFloat(0));
+    print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(2));
+    print_config->set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+    print_config->set_key_value("bottom_shell_thickness", new ConfigOptionFloat(0));
+    print_config->set_key_value("bottom_surface_density", new ConfigOptionPercent(100));
+    print_config->set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
+    print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(100));
+    print_config->set_key_value("solid_infill_direction", new ConfigOptionFloat(0));
+    print_config->set_key_value("solid_infill_rotate_template", new ConfigOptionString("45, 0, 90, 0, 90#100"));
+    print_config->set_key_value("detect_thin_wall", new ConfigOptionBool(true));
+    print_config->set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
+    print_config->set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(nozzle_diameter, false));
+    print_config->set_key_value("infill_direction", new ConfigOptionFloat(0));
+    print_config->set_key_value("internal_solid_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
+    print_config->set_key_value("align_infill_direction_to_model", new ConfigOptionBool(true));
+    print_config->set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+    print_config->set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(params.speeds[0])); // internal_solid_speed
+    print_config->set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
+    print_config->set_key_value("gap_fill_target", new ConfigOptionEnum<GapFillTarget>(GapFillTarget::gftNowhere));
+    print_config->set_key_value("fuzzy_skin", new ConfigOptionEnum<FuzzySkinType>(FuzzySkinType::None));
+    
+    print_config->set_key_value("line_width", new ConfigOptionFloatOrPercent(nozzle_diameter, false));
+    print_config->set_key_value("initial_layer_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("outer_wall_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("inner_wall_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("top_surface_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("sparse_infill_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("internal_solid_infill_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+    print_config->set_key_value("support_line_width", new ConfigOptionFloatOrPercent(0.0f, false));
+
+    for (auto _obj : model().objects) {
+        _obj->ensure_on_bed();
+        _obj->name = format("Practical_FR_Test_%.2f~%.2f_%s@%fmmps", params.start, params.end, params.interlaced ? "i" : "p", params.speeds[0]);
+    }
+
+    print_config->set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
+    print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
+    print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+    print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
+
+    printer_config->set_key_value("retract_lift_enforce", new ConfigOptionEnumsGeneric{RetractLiftEnforceType::rletAllSurfaces});
+    printer_config->set_key_value("z_hop", new ConfigOptionFloats{params.use_zhop ? 0.4f : 0.0f});
+    printer_config->set_key_value("z_hop_types", new ConfigOptionEnumsGeneric{ZHopType::zhtSlope});
+    printer_config->set_key_value("wipe_distance", new ConfigOptionFloats{0.0f});
+
+    filament_config->set_key_value("filament_z_hop", new ConfigOptionFloatsNullable{ConfigOptionFloatsNullable::nil_value()}); 
+    filament_config->set_key_value("filament_wipe_distance", new ConfigOptionFloatsNullable{ConfigOptionFloatsNullable::nil_value()});
+    filament_config->set_key_value("filament_retract_lift_enforce", new ConfigOptionEnumsGenericNullable{ConfigOptionEnumsGenericNullable::nil_value()});
+    filament_config->set_key_value("filament_z_hop_types", new ConfigOptionEnumsGenericNullable{ConfigOptionEnumsGenericNullable::nil_value()});
+
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+} 
+
 // Adjust settings for flowrate calibration
 // For linear mode, pass 1 means normal version while pass 2 mean "for perfectionists" version
 void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, int pass)
@@ -12150,7 +12257,6 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
         _obj->config.set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
         _obj->config.set_key_value("gap_fill_target", new ConfigOptionEnum<GapFillTarget>(GapFillTarget::gftNowhere));
         print_config->set_key_value("max_volumetric_extrusion_rate_slope", new ConfigOptionFloat(0));
-        _obj->config.set_key_value("calib_flowrate_topinfill_special_order", new ConfigOptionBool(true));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;
@@ -12221,7 +12327,9 @@ void Plater::calib_flowrate(bool is_linear, int pass) {
             add_model(false,
                       (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass2.3mf").string());
     }
-
+    Calib_Params params;
+    params.mode          = CalibMode::Calib_Flow_Rate;
+    model().calib_params = params;
     adjust_settings_for_flowrate_calib(model().objects, is_linear, pass);
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
     auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;

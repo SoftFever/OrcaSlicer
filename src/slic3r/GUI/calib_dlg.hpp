@@ -180,5 +180,31 @@ protected:
     TextInput* m_tiJDEnd;
     Plater* m_plater;
 };
+
+class Practical_Flow_Ratio_Test_Dlg : public DPIDialog
+{
+public:
+    Practical_Flow_Ratio_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~Practical_Flow_Ratio_Test_Dlg();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    wxString Practical_Flow_Ratio_Test_Dlg::get_status();
+
+protected:
+    virtual void on_start(wxCommandEvent& event);
+    virtual void on_changed(wxCommandEvent& event);  
+    virtual void on_changed2(wxMouseEvent& event);
+    Calib_Params m_params;
+
+    RadioGroup*   m_rbModel;
+    RadioGroup*   m_rbModelDepth;
+    TextInput*    m_tiJDStart;
+    TextInput*    m_tiJDEnd;
+    wxStaticText* m_stNote;
+    TextInput*    m_tiSpeed;
+    TextInput*    m_tiQuantity;
+    CheckBox*     m_cbInterlaced;
+    CheckBox*     m_cbUseZHop;
+    Plater*       m_plater;
+};
 }} // namespace Slic3r::GUI
 #endif
