@@ -52,6 +52,7 @@ class Spoolman
 {
     inline static Spoolman* m_instance{nullptr};
 
+
     bool m_initialized{false};
 
     std::map<unsigned int, double> m_use_undo_buffer{};
@@ -112,7 +113,7 @@ public:
     static void update_specific_spool_statistics(const std::vector<unsigned int>& spool_ids);
 
     /// Check if Spoolman is enabled and the provided host is valid
-    static bool is_server_valid();
+    static bool is_server_valid(bool force_check = false);
 
     /// Check if Spoolman is enabled
     static bool is_enabled();

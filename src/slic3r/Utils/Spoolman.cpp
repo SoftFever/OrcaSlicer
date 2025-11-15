@@ -358,11 +358,20 @@ void Spoolman::update_specific_spool_statistics(const std::vector<unsigned int>&
 }
 
 
-bool Spoolman::is_server_valid()
+bool Spoolman::is_server_valid(bool force_check)
 {
+    using namespace std::chrono;
+    static time_point<steady_clock> last_validity_check;
+    static bool                     last_res;
+
     bool res = false;
     if (!is_enabled())
         return res;
+
+    if (!force_check) {
+        if (duration_cast<seconds>(steady_clock::now() - last_validity_check).count() < 5)
+            return last_res;
+    }
 
     Http::get(get_spoolman_api_url() + "info").on_complete([&res](std::string, unsigned http_status) {
         if (http_status == 200)
@@ -370,6 +379,10 @@ bool Spoolman::is_server_valid()
     })
     .timeout_max(MAX_TIMEOUT)
     .perform_sync();
+
+    last_validity_check = steady_clock::now();
+    last_res = res;
+
     return res;
 }
 
