@@ -225,7 +225,7 @@ public:
     static coord_t  _adjust_solid_spacing(const coord_t width, const coord_t distance);
 };
    //Fill  Multiline 
-   void multiline_fill(Polylines& polylines, const FillParams& params, float spacing);
+    void multiline_fill(Polylines& polylines, const FillParams& params, float spacing, bool use_clipper = false);
 } // namespace Slic3r
 
 #endif // slic3r_FillBase_hpp_

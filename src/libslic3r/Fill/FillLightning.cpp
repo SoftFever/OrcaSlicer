@@ -17,7 +17,7 @@ void Filler::_fill_surface_single(
     Polylines    fill_lines = layer.convertToLines(to_polygons(expolygon), scaled<coord_t>(0.5 * this->spacing - this->overlap));
 
     // Apply multiline offset if needed
-    multiline_fill(fill_lines, params, spacing);
+    multiline_fill(fill_lines, params, spacing, true);
 
 
     chain_or_connect_infill(std::move(fill_lines), expolygon, polylines_out, this->spacing, params);
