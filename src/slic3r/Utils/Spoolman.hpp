@@ -1,6 +1,7 @@
 #ifndef SLIC3R_SPOOLMAN_HPP
 #define SLIC3R_SPOOLMAN_HPP
 
+#include "Http.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <map>
 #include <libslic3r/Config.hpp>
@@ -69,12 +70,28 @@ class Spoolman
             m_initialized = pull_spoolman_spools();
     };
 
+    enum HTTPAction
+    {
+        GET, PUT, POST
+    };
+
+    /// get an Http instance for the specified HTTPAction
+    static Http get_http_instance(HTTPAction action, const std::string& url);
+
+    /// uses the specified HTTPAction to make an API call to the spoolman server
+    static pt::ptree spoolman_api_call(HTTPAction http_action, const std::string& api_endpoint, const pt::ptree& data = {});
+
     /// gets the json response from the specified API endpoint
-    static pt::ptree get_spoolman_json(const std::string& api_endpoint);
+    /// \returns the json response
+    static pt::ptree get_spoolman_json(const std::string& api_endpoint) { return spoolman_api_call(GET, api_endpoint); }
 
     /// puts the provided data to the specified API endpoint
     /// \returns the json response
-    static pt::ptree put_spoolman_json(const std::string& api_endpoint, const pt::ptree& data);
+    static pt::ptree put_spoolman_json(const std::string& api_endpoint, const pt::ptree& data) { return spoolman_api_call(PUT, api_endpoint, data); }
+
+    /// posts the provided data to the specified API endpoint
+    /// \returns the json response
+    static pt::ptree post_spoolman_json(const std::string& api_endpoint, const pt::ptree& data) { return spoolman_api_call(POST, api_endpoint, data); }
 
     /// get all the spools from the api and store them
     /// \returns if succeeded

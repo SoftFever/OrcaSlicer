@@ -5,7 +5,6 @@
 #include <boost/regex.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include "Spoolman.hpp"
-#include "Http.hpp"
 
 namespace Slic3r {
 
@@ -43,58 +42,28 @@ static std::string get_spoolman_api_url()
     return spoolman_host + ":" + spoolman_port + "/api/v1/";
 }
 
-pt::ptree Spoolman::get_spoolman_json(const string& api_endpoint)
+
+Http Spoolman::get_http_instance(const HTTPAction action, const std::string& url)
 {
-    auto url  = get_spoolman_api_url() + api_endpoint;
-    auto http = Http::get(url);
-
-    bool        res;
-    std::string res_body;
-
-    http.on_error([&](const std::string& body, std::string error, unsigned status) {
-            BOOST_LOG_TRIVIAL(error) << "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running." << boost::format(" HTTP Error: %1%, HTTP status code: %2%") % error % status;
-            res = false;
-        })
-        .on_complete([&](std::string body, unsigned) {
-            res_body = std::move(body);
-            res      = true;
-        })
-        .timeout_max(MAX_TIMEOUT)
-        .perform_sync();
-
-    if (!res)
-        return {};
-
-    if (res_body.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "Spoolman request returned an empty string";
-        return {};
-    }
-
-    pt::ptree tree;
-    try {
-        stringstream ss(res_body);
-        pt::read_json(ss, tree);
-    } catch (std::exception& exception) {
-        BOOST_LOG_TRIVIAL(error) << "Failed to read json into property tree. Exception: " << exception.what();
-        return {};
-    }
-
-    return tree;
+    if (action == GET)
+        return Http::get(url);
+    if (action == PUT)
+        return Http::put2(url);
+    if (action == POST)
+        return Http::post(url);
+    throw RuntimeError("Invalid HTTP action");
 }
 
-pt::ptree Spoolman::put_spoolman_json(const string& api_endpoint, const pt::ptree& data)
+
+pt::ptree Spoolman::spoolman_api_call(const HTTPAction http_action, const std::string& api_endpoint, const pt::ptree& data)
 {
-    auto url  = get_spoolman_api_url() + api_endpoint;
-    auto http = Http::put2(url);
+    const auto url  = get_spoolman_api_url() + api_endpoint;
+    auto http = get_http_instance(http_action, url);
 
     bool        res;
     std::string res_body;
 
-    stringstream ss;
-    pt::write_json(ss, data);
-
     http.header("Content-Type", "application/json")
-        .set_post_body(ss.str())
         .on_error([&](const std::string& body, std::string error, unsigned status) {
             BOOST_LOG_TRIVIAL(error) << "Failed to put data to the Spoolman server. Make sure that the port is correct and the server is running." << boost::format(" HTTP Error: %1%, HTTP status code: %2%, Response body: %3%") % error % status % body;
             res = false;
@@ -103,8 +72,15 @@ pt::ptree Spoolman::put_spoolman_json(const string& api_endpoint, const pt::ptre
             res_body = std::move(body);
             res      = true;
         })
-        .timeout_max(MAX_TIMEOUT)
-        .perform_sync();
+        .timeout_max(MAX_TIMEOUT);
+
+    if (!data.empty()) {
+        stringstream ss;
+        pt::write_json(ss, data);
+        http.set_post_body(ss.str());
+    }
+
+    http.perform_sync();
 
     if (!res)
         return {};
@@ -116,7 +92,7 @@ pt::ptree Spoolman::put_spoolman_json(const string& api_endpoint, const pt::ptre
 
     pt::ptree tree;
     try {
-        ss = stringstream(res_body);
+        stringstream ss = stringstream(res_body);
         pt::read_json(ss, tree);
     } catch (std::exception& exception) {
         BOOST_LOG_TRIVIAL(error) << "Failed to read json into property tree. Exception: " << exception.what();
@@ -125,6 +101,7 @@ pt::ptree Spoolman::put_spoolman_json(const string& api_endpoint, const pt::ptre
 
     return tree;
 }
+
 
 bool Spoolman::pull_spoolman_spools()
 {
