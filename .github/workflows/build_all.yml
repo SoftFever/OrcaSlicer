@@ -54,7 +54,7 @@ jobs:
     if: ${{ !cancelled() && (github.event_name != 'schedule' || github.repository == 'SoftFever/OrcaSlicer') }}
     uses: ./.github/workflows/build_check_cache.yml
     with:
-      os: ubuntu-24.04
+      os: ubuntu-25.10
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
   build_all:
@@ -77,7 +77,7 @@ jobs:
     secrets: inherit
   unit_tests:
     name: Unit Tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-25.10
     needs: build_linux
     if: ${{ !cancelled() && success() }}
     steps:
@@ -127,9 +127,9 @@ jobs:
       matrix:
         variant:
           - arch: x86_64
-            runner: ubuntu-24.04
+            runner: ubuntu-25.10
           - arch: aarch64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-25.10-arm
     # Don't run scheduled builds on forks:
     if: ${{ !cancelled() && (github.event_name != 'schedule' || github.repository == 'SoftFever/OrcaSlicer') }}
     runs-on: ${{ matrix.variant.runner }}
