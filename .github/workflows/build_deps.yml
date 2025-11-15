@@ -92,8 +92,8 @@ jobs:
         if: inputs.os == 'ubuntu-24.04'
         uses: ./.github/actions/apt-install-deps
 
-      - name: Build on Ubuntu
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
+      - name: Build on Ubuntu 24
+        if: inputs.os == 'ubuntu-24.04'
         working-directory: ${{ github.workspace }}
         run: |
             mkdir -p ${{ github.workspace }}/deps/build/destdir
@@ -101,6 +101,16 @@ jobs:
             cd deps/build
             tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
 
+      - name: Build on Ubuntu 22
+        if: inputs.os == 'ubuntu-22.04'
+        working-directory: ${{ github.workspace }}
+        run: |
+            mkdir -p ${{ github.workspace }}/deps/build/destdir
+            sudo apt update
+            sudo apt install -y autoconf build-essential cmake eglexternalplatform-dev extra-cmake-modules file g++ gettext git libcurl4-openssl-dev libdbus-1-dev libglew-dev libgstreamerd-3-dev libgtk-3-dev libmspack-dev libsecret-1-dev libspnav-dev libssl-dev libtool libudev-dev ninja-build texinfo wget curl libfuse-dev m4 freeglut3-dev libgl1-mesa-dev libglu1-mesa-dev libunwind-dev libwebkit2gtk-4.0-dev
+            ./build_linux.sh -dr
+            cd deps/build
+            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
 
       # Upload Artifacts
       # - name: Upload Mac ${{ inputs.arch }} artifacts
@@ -118,9 +128,9 @@ jobs:
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
 
       - name: Upload Ubuntu artifacts
-        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' }}
+        if: ${{ ! env.ACT && inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04' }}
         env:
-          ubuntu-ver: ${{ (inputs.os == 'ubuntu-20.04' && '2004') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
+          ubuntu-ver: ${{ (inputs.os == 'ubuntu-22.04' && '2204') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
         uses: actions/upload-artifact@v5
         with:
           name: OrcaSlicer_dep_ubuntu_${{ env.ubuntu-ver }}_${{ env.date }}
