@@ -2556,6 +2556,9 @@ void GCodeProcessor::finalize(bool post_process)
 
     //BBS: update slice warning
     update_slice_warnings();
+
+    if (post_process)
+        run_post_process();
 }
 
 float GCodeProcessor::get_time(PrintEstimatedStatistics::ETimeMode mode) const
