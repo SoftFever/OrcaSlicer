@@ -420,10 +420,14 @@ void SpoolmanFilament::apply_to_config(Slic3r::DynamicConfig& config) const
     config.set_key_value("filament_cost", new ConfigOptionFloats({price}));
     config.set_key_value("filament_density", new ConfigOptionFloats({density}));
     config.set_key_value("filament_diameter", new ConfigOptionFloats({diameter}));
-    config.set_key_value("nozzle_temperature_initial_layer", new ConfigOptionInts({extruder_temp + 5}));
-    config.set_key_value("nozzle_temperature", new ConfigOptionInts({extruder_temp}));
-    config.set_key_value("hot_plate_temp_initial_layer", new ConfigOptionInts({bed_temp + 5}));
-    config.set_key_value("hot_plate_temp", new ConfigOptionInts({bed_temp}));
+    if (extruder_temp > 0) {
+        config.set_key_value("nozzle_temperature_initial_layer", new ConfigOptionInts({extruder_temp + 5}));
+        config.set_key_value("nozzle_temperature", new ConfigOptionInts({extruder_temp}));
+    }
+    if (bed_temp > 0) {
+        config.set_key_value("hot_plate_temp_initial_layer", new ConfigOptionInts({bed_temp + 5}));
+        config.set_key_value("hot_plate_temp", new ConfigOptionInts({bed_temp}));
+    }
     config.set_key_value("default_filament_colour", new ConfigOptionStrings{color});
     m_vendor_ptr->apply_to_config(config);
 }
