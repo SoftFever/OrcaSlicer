@@ -1284,6 +1284,9 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     
     ((ConfigOptionPercents,            retract_before_wipe))
+    // Orca
+    ((ConfigOptionPercents,            retract_after_wipe))
+
     ((ConfigOptionFloats,              retraction_length))
     ((ConfigOptionFloats,              retract_length_toolchange))
     ((ConfigOptionInt,                 enable_long_retraction_when_cut))
