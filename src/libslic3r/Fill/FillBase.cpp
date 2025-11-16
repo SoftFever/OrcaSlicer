@@ -2812,6 +2812,11 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
                 }
 
                 all_polylines.emplace_back(std::move(new_points));
+                
+                // simplify to 5x line width
+                for (Polyline& pl : polylines) {
+                    pl.simplify(5 * spacing); 
+                }
             }
         }
     } else {
