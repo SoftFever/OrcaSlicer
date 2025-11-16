@@ -445,8 +445,8 @@ void PrintHostQueueDialog::set_state(int idx, JobState state)
         case ST_NEW:        job_list->SetValue(_L("Queued"), idx, COL_STATUS); break;
         case ST_PROGRESS:   job_list->SetValue(_L("Uploading"), idx, COL_STATUS); break;
         case ST_ERROR:      job_list->SetValue(_L("Error"), idx, COL_STATUS); break;
-        case ST_CANCELLING: job_list->SetValue(_L("Cancelling"), idx, COL_STATUS); break;
-        case ST_CANCELLED:  job_list->SetValue(_L("Cancelled"), idx, COL_STATUS); break;
+        case ST_CANCELLING: job_list->SetValue(_L("Canceling"), idx, COL_STATUS); break;
+        case ST_CANCELLED:  job_list->SetValue(_L("Canceled"), idx, COL_STATUS); break;
         case ST_COMPLETED:  job_list->SetValue(_L("Completed"), idx, COL_STATUS); break;
     }
     // This might be ambigous call, but user data needs to be saved time to time

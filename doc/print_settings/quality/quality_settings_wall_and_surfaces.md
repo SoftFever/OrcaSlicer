@@ -38,7 +38,7 @@ Use Outer/Inner for the same external wall quality and dimensional accuracy bene
 
 ### Print infill first
 
-When this option is enabled, the infill is printed first, followed by the walls. This can be useful for some overhangs where the infill can support the walls.
+When this option is enabled, the [infill](strength_settings_infill) and [top/bottom shells](strength_settings_top_bottom_shells) are printed first, followed by the walls. This can be useful for some overhangs where the infill can support the walls.
 
 ![infill-first](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/infill-first.gif?raw=true)
 
@@ -51,30 +51,33 @@ When using this option is recommended to use the [Precise Wall](quality_settings
 ## Wall loop direction
 
 The direction which the wall loops are extruded when looking down from the top.  
-By default all walls are extruded in counter-clockwise, unless Reverse on even is enabled.  
-Set this to any option other than Auto will force the wall direction regardless of the Reverse on even.
+By default all walls are extruded in counter-clockwise, unless [Reverse on even](quality_settings_overhangs#reverse-on-even) is enabled.  
+Set this to any option other than Auto will force the wall direction regardless of the [Reverse on even](quality_settings_overhangs#reverse-on-even).
 
 > [!NOTE]
 > This option will be disabled if spiral vase mode is enabled.
 
 ## Surface flow ratio
 
-This factor affects the amount of material for top or bottom solid infill. You can decrease it slightly to have smooth surface finish.  
-The actual top surface flow used is calculated by multiplying this value with the filament flow ratio, and if set, the object's flow ratio.
+This factor affects the amount of material for [top or bottom solid infill](strength_settings_top_bottom_shells). You can decrease it slightly to have smooth surface finish.  
+The actual top or bottom surface flow used is calculated by multiplying this value by the filament flow ratio, and if set, the object's flow ratio.
+
+Other flow ratios, such as ratios for the first layer (does not affect brims and skirts), outer and inner walls, overhang perimeters, sparse infill, internal solid infill, gap fill, support, and support interfaces, can also be adjusted after enabling the "Set other flow ratios" option.
 
 > [!TIP]
 > Before using a value other than 1, it is recommended to [calibrate the flow ratio](flow-rate-calib) to ensure that the flow ratio is set correctly for your printer and filament.
 
 ## Only one wall
 
-Use only one wall on flat surfaces, to give more space to the top infill pattern.
-Specially useful in small features, like letters, where the top surface is very small and concentric pattern from walls would not cover it properly.
+Use only one wall on flat surfaces, to give more space to the [top infill pattern](strength_settings_top_bottom_shells#surface-pattern).
+Specially useful in small features, like letters, where the top surface is very small and [concentric pattern](strength_settings_patterns#concentric) from walls would not cover it properly.
 
 ![only-one-wall](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/only-one-wall.gif?raw=true)
 
 ### Threshold
 
-If a top surface has to be printed and it's partially covered by another layer, it won't be considered at a top layer where its width is below this value. This can be useful to not let the 'one perimeter on top' trigger on surface that should be covered only by perimeters. This value can be a mm or a % of the perimeter extrusion width.
+If a top surface has to be printed and it's partially covered by another layer, it won't be considered at a top layer where its width is below this value. This can be useful to not let the 'one perimeter on top' trigger on surface that should be covered only by perimeters.  
+This value can be a mm or a % of the perimeter extrusion width.
 
 ![only-one-wall-threshold](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/only-one-wall-threshold.png?raw=true)
 
@@ -83,21 +86,33 @@ If a top surface has to be printed and it's partially covered by another layer, 
 
 ## Avoid crossing walls
 
-Maximum detour distance for avoiding crossing wall. Don't detour if the detour distance is larger than this value. Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable.
+This option instructs the slicer to avoid crossing perimeters (walls) during travel moves.  
+Instead of traveling directly through a wall, the print head will detour around it, which can significantly reduce surface defects and stringing.
+
+While this increases print time slightly, the improvement in print quality—especially with materials prone to stringing like **PETG** or **TPU**, often justifies the tradeoff.  
+Highly recommended for detailed or aesthetic prints.
 
 ![avoid-crossing-walls](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/avoid-crossing-walls.png?raw=true)
 
+> [!NOTE]
+> This feature is not compatible with Timelapse mode, as it can cause unexpected travel moves.
+
 ### Max detour length
 
-Maximum detour distance for avoiding crossing wall. Don't detour if the detour distance is larger than this value.  
-Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path.
+Defines the maximum distance the printer is allowed to detour to avoid crossing a wall.
+Can be set as:
 
-Zero will detour no matter the distance.
+- **Absolute value in millimeters:** exactly how far the detour can extend (e.g., `5mm`).
+- **Percentage** of the direct travel path (e.g., `50%`).
+- **0** disables the **limit** and allows detours of **any length**.
+
+Use this setting to balance between print time and wall quality—longer detours mean fewer wall crossings but slower prints.
 
 ## Small area flow compensation
 
 Enables adaptive flow control for small infill areas.
-This feature helps address extrusion problems that often occur in small regions of solid infill, such as the tops of narrow letters or fine features. In these cases, standard extrusion flow may be too much for the available space, leading to over-extrusion or poor surface quality.
+This feature helps address extrusion problems that often occur in small regions of solid infill, such as the tops of narrow letters or fine features.  
+In these cases, standard extrusion flow may be too much for the available space, leading to over-extrusion or poor surface quality.
 
 ![flow-compensation-model](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Wall-Order/flow-compensation-model.png?raw=true)
 
