@@ -1,5 +1,6 @@
 #ifndef ORCASLICER_LOADINGSPINNER_HPP
 #define ORCASLICER_LOADINGSPINNER_HPP
+#include <chrono>
 #include "slic3r/GUI/BitmapCache.hpp"
 #include "wx/control.h"
 
