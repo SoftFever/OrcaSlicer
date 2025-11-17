@@ -38,12 +38,9 @@ public:
 
     bool Enable(bool enable = true) override {
         m_enabled = enable;
-
-        m_check->Enable(enable);
+        bool result = m_check->Enable(enable);
         if(m_has_text)
-            m_text->Enable(enable);
-
-        bool result = wxPanel::Enable(enable);
+            m_text->SetForegroundColour(wxColour("#6B6A6A")); // just change color otherwise it has unwanted effect
         UpdateIcon();
         Refresh();
         return result;
@@ -61,9 +58,7 @@ public:
 
     bool IsEnabled(){return m_enabled;};
 
-    bool HasFocus() {
-        return m_has_text ? m_text->HasFocus() : m_check->HasFocus();
-    }
+    bool HasFocus(){return m_check->HasFocus();}
 
 private:
 

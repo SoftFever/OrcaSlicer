@@ -51,6 +51,8 @@ public:
 };
 
 void StepMeshDialog::on_dpi_changed(const wxRect& suggested_rect) {
+    m_checkbox->Rescale();
+    m_split_compound_checkbox->Rescale();
 };
 
 bool StepMeshDialog:: validate_number_range(const wxString& value, double min, double max) {

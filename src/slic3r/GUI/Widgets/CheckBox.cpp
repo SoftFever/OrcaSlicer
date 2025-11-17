@@ -1,13 +1,10 @@
 #include "CheckBox.hpp"
 
 /*
-Text rapping
+Text wrapping
+Text on left
 on_dpi_changed
 on dark mode changed
-SetFont
-Wrap
-Halfchecked
-Diasable
 */
 
 CheckBox::CheckBox(wxWindow *parent, wxString label)
@@ -88,9 +85,11 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         m_text_border->SetCanFocus(false);
         m_text_border->DisableFocusFromKeyboard();
 
+        // using wxStaticText allows wrapping wihout hustle but requires custom disable / enable since it has unwanted effect on text
         m_text = new wxStaticText(m_text_border, wxID_ANY, label);
         m_text->SetFont(m_font);
         m_text->SetForegroundColour(wxColour("#363636")); // disabled color "#6B6A6A"
+
         wxBoxSizer *label_sizer = new wxBoxSizer(wxHORIZONTAL);
         label_sizer->Add(m_text, 0, wxALL, FromDIP(5));
         m_text_border->SetSizer(label_sizer);
@@ -116,11 +115,12 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
             e.Skip();
         });
         w->Bind(wxEVT_LEFT_DOWN  ,[this](wxMouseEvent e) {
-            if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
+            if (!m_enabled || e.GetEventType() == wxEVT_LEFT_DCLICK) return;
             OnClick();
             e.Skip();
         });
         w->Bind(wxEVT_LEFT_DCLICK,[this](wxMouseEvent e) {
+            if (!m_enabled) return;
             OnClick();
             e.Skip();
         });
@@ -134,36 +134,22 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
 
 void CheckBox::Rescale()
 {
-    /*
-    m_on.msw_rescale();
-    m_half.msw_rescale();
-    m_off.msw_rescale();
-    m_on_disabled.msw_rescale();
-    m_half_disabled.msw_rescale();
-    m_off_disabled.msw_rescale();
-    m_on_focused.msw_rescale();
-    m_half_focused.msw_rescale();
-    m_off_focused.msw_rescale();
-    m_on_hover.msw_rescale();
-    m_half_hover.msw_rescale();
-    m_off_hover.msw_rescale();
-    m_on_hvrfcs.msw_rescale();
-    m_off_hvrfcs.msw_rescale();
-    m_half_hvrfcs.msw_rescale();
-
+    auto i_list = std::vector<ScalableBitmap>{
+        m_on         , m_half         , m_off,
+        m_on_disabled, m_half_disabled, m_off_disabled,
+        m_on_focused , m_half_focused , m_off_focused,
+        m_on_hover   , m_half_hover   , m_off_hover, 
+        m_on_hvrfcs  , m_half_hvrfcs  , m_off_hvrfcs
+    };
+    for (ScalableBitmap i : i_list)
+        i.msw_rescale();
     m_check->SetSize(m_on.GetBmpSize());
-    */
     m_check->Rescale();
-    //if(m_has_text)
-    //    m_text->Rescale();
     Refresh();
 }
 
 void CheckBox::OnClick()
 {
-    //if(m_has_text)
-    //    m_text->SetFocus();
-    //else
     m_check->SetFocus();
     SetValue(!m_value);
 }
@@ -178,7 +164,7 @@ void CheckBox::SetTooltip(wxString label)
 void CheckBox::UpdateIcon()
 {
     ScalableBitmap icon;
-    bool focus = m_check->HasFocus();
+    bool focus = HasFocus();
     if      (!m_enabled)
         icon = m_half_checked ? m_half_disabled : m_value ? m_on_disabled : m_off_disabled;
     else if (m_hovered && focus)
