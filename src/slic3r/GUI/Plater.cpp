@@ -1751,20 +1751,26 @@ Sidebar::Sidebar(Plater *parent)
             });
         */
         {
-        auto hovered = std::make_shared<wxWindow *>();
         // ORCA use Show/Hide to gain text area instead using blank icon
-        for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_printer_preset, edit_btn, p->image_printer, combo_printer}) {
-            w->Bind(wxEVT_ENTER_WINDOW, [this, w, hovered, edit_btn](wxMouseEvent &evt) { 
-                *hovered = w;
-                edit_btn->Show();
-                p->panel_printer_preset->Layout();
-            });
-            w->Bind(wxEVT_LEAVE_WINDOW, [this, w, hovered, edit_btn](wxMouseEvent &evt) {
-                if (*hovered == w) {
-                    edit_btn->Hide();
-                    *hovered = nullptr;
+        for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_printer_preset, p->btn_edit_printer, p->image_printer, p->combo_printer}) {
+            w->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+                if(!p->combo_printer->HasFocus())
+                    p->panel_printer_preset->SetBorderColor(wxColour("#009688"));
+                if(!p->btn_edit_printer->IsShown()){
+                    p->btn_edit_printer->Show();
                     p->panel_printer_preset->Layout();
                 }
+                e.Skip();
+            });
+            w->Bind(wxEVT_LEAVE_WINDOW, [this, panel_bd_col](wxMouseEvent &e) {
+                wxWindow* next_w = wxFindWindowAtPoint(wxGetMousePosition());
+                if (!next_w || (next_w != p->panel_printer_preset && next_w != p->btn_edit_printer && next_w != p->image_printer && next_w != p->combo_printer)){
+                    if(!p->combo_printer->HasFocus())
+                        p->panel_printer_preset->SetBorderColor(panel_bd_col);
+                    p->btn_edit_printer->Hide();
+                    p->panel_printer_preset->Layout();
+                }
+                e.Skip();
             });
         }
         }
