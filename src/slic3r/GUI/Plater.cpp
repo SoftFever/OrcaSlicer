@@ -1205,7 +1205,7 @@ bool Sidebar::priv::switch_diameter(bool single)
         auto diameter_right = right_extruder->combo_diameter->GetValue();
         if (diameter_left != diameter_right) {
             MessageDialog dlg(this->plater,
-                              _L("The software does not support using different diameter of nozzles for one  print. "
+                              _L("The software does not support using different diameter of nozzles for one print. "
                                  "If the left and right nozzles are inconsistent, we can only proceed with single-head printing. "
                                  "Please confirm which nozzle you would like to use for this project."),
                               _L("Switch diameter"), wxYES_NO | wxNO_DEFAULT);
@@ -12395,6 +12395,7 @@ void Plater::calib_retraction(const Calib_Params& params)
     obj->config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     obj->config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     obj->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spAligned));
+    obj->config.set_key_value("wall_sequence", new ConfigOptionEnum<WallSequence>(WallSequence::InnerOuter));
 
     changed_objects({ 0 });
 
