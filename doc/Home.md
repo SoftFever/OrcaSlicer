@@ -137,9 +137,9 @@ OrcaSlicer is a powerful open source slicer for FFF (FDM) 3D Printers. This wiki
 
 - [Temperature](temp-calib)
 - [Volumetric Speed](volumetric-speed-calib)
-- [Flow Rate](flow-rate-calib)
 - [Pressure Advance](pressure-advance-calib)
   - [Adaptive Pressure Advance Guide](adaptive-pressure-advance-calib)
+- [Flow Rate](flow-rate-calib)
 - [Retraction](retraction-calib)
 - [Tolerance](tolerance-calib)
 - Advanced:
