@@ -410,7 +410,7 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
         }
     }
 
-    wxPostEvent(this, wxTimerEvent());
+    wxPostEvent(this, wxCommandEvent(wxEVT_TIMER));
     PopupWindow::Popup();
 }
 
