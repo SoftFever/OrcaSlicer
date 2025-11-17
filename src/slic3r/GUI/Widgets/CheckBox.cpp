@@ -1,125 +1,221 @@
 #include "CheckBox.hpp"
 
-#include "../wxExtensions.hpp"
+/*
+Text wrapping
+Text on left
+on_dpi_changed
+on dark mode changed
+*/
 
-CheckBox::CheckBox(wxWindow *parent, int id)
-    : wxBitmapToggleButton(parent, id, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
-    , m_on(this, "check_on", 18)
-    , m_half(this, "check_half", 18)
-    , m_off(this, "check_off", 18)
-    , m_on_disabled(this, "check_on_disabled", 18)
-    , m_half_disabled(this, "check_half_disabled", 18)
-    , m_off_disabled(this, "check_off_disabled", 18)
-    , m_on_focused(this, "check_on_focused", 18)
-    , m_half_focused(this, "check_half_focused", 18)
-    , m_off_focused(this, "check_off_focused", 18)
+CheckBox::CheckBox(wxWindow *parent, wxString label)
+    : wxPanel(parent, wxID_ANY)
+    , m_on(           this, "check_on"                  , 18)
+    , m_half(         this, "check_half"                , 18)
+    , m_off(          this, "check_off"                 , 18)
+    , m_on_disabled(  this, "check_on_disabled"         , 18)
+    , m_half_disabled(this, "check_half_disabled"       , 18)
+    , m_off_disabled( this, "check_off_disabled"        , 18)
+    , m_on_focused(   this, "check_on_focused"          , 18) 
+    , m_half_focused( this, "check_half_focused"        , 18)
+    , m_off_focused(  this, "check_off_focused"         , 18)
+    , m_on_hover(     this, "check_on_hovered"          , 18) 
+    , m_half_hover(   this, "check_half_hovered"        , 18)
+    , m_off_hover(    this, "check_off_hovered"         , 18)
+    , m_on_hvrfcs(    this, "check_on_focused_hovered"  , 18) 
+    , m_half_hvrfcs(  this, "check_half_focused_hovered", 18)
+    , m_off_hvrfcs(   this, "check_off_focused_hovered" , 18)
+    , m_font(Label::Body_14)
+    , m_value(false)
 {
-	//SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
-	if (parent)
-		SetBackgroundColour(parent->GetBackgroundColour());
-	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { m_half_checked = false; update(); e.Skip(); });
-#ifdef __WXOSX__ // State not fully implement on MacOS
-    Bind(wxEVT_SET_FOCUS, &CheckBox::updateBitmap, this);
-    Bind(wxEVT_KILL_FOCUS, &CheckBox::updateBitmap, this);
-    Bind(wxEVT_ENTER_WINDOW, &CheckBox::updateBitmap, this);
-    Bind(wxEVT_LEAVE_WINDOW, &CheckBox::updateBitmap, this);
-#endif
-	SetSize(m_on.GetBmpSize());
-	SetMinSize(m_on.GetBmpSize());
-	update();
-}
+    if (parent)
+        SetBackgroundColour(parent->GetBackgroundColour());
+    if (auto sParent = GetScrollParent(this))
+        SetBackgroundColour(sParent->GetBackgroundColour());
 
-void CheckBox::SetValue(bool value)
-{
-	wxBitmapToggleButton::SetValue(value);
-	update();
-}
+    m_label = label;
 
-void CheckBox::SetHalfChecked(bool value)
-{
-	m_half_checked = value;
-	update();
+    Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) {
+        // Crashes if all checkboxes not uses wxEVT_CHECKBOX event
+        //SetValue(e.GetInt());
+        //e.SetEventObject(this);
+        //e.SetId(GetId());
+        //GetEventHandler()->ProcessEvent(e);
+        e.Skip();
+    }));
+
+    // DPIDialog's uses wxEVT_CHAR_HOOK
+    Bind(wxEVT_CHAR_HOOK, ([this](wxKeyEvent&e){
+        int  k = e.GetKeyCode();
+        if(HasFocus() && k == WXK_SPACE){
+            SetValue(!m_value);
+            e.Skip(false);
+        }else
+            e.Skip();
+    }));
+
+    auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_check = new Button(this, "", "check_off", 0, 18);
+    m_check->SetPaddingSize(FromDIP(wxSize(0,0)));
+    m_check->SetBackgroundColor(GetBackgroundColour());
+    m_check->SetCornerRadius(0);
+    m_check->SetBorderWidth(0);
+
+    m_check->Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {
+        if(m_has_text)
+            m_text_border->SetBorderColor(wxColour("#009688"));
+        UpdateIcon();
+        e.Skip();
+    }));
+    m_check->Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {
+        if(m_has_text)
+            m_text_border->SetBorderColor(GetBackgroundColour());
+        UpdateIcon();
+        e.Skip(); 
+    }));
+
+    h_sizer->Add(m_check, 0, wxALIGN_CENTER_VERTICAL); // Dont add spacing otherwise hover events will break
+
+    if(!label.IsEmpty()){
+        m_has_text = true;
+
+        m_text_border = new StaticBox(this);
+        m_text_border->SetCornerRadius(0);
+        m_text_border->SetBorderColor(m_focus_color);
+        m_text_border->SetCanFocus(false);
+        m_text_border->DisableFocusFromKeyboard();
+
+        // using wxStaticText allows wrapping wihout hustle but requires custom disable / enable since it has unwanted effect on text
+        m_text = new wxStaticText(m_text_border, wxID_ANY, label);
+        m_text->SetFont(m_font);
+        m_text->SetForegroundColour(wxColour("#363636")); // disabled color "#6B6A6A"
+
+        wxBoxSizer *label_sizer = new wxBoxSizer(wxHORIZONTAL);
+        label_sizer->Add(m_text, 0, wxALL, FromDIP(5));
+        m_text_border->SetSizer(label_sizer);
+
+        h_sizer->Add(m_text_border, 0, wxALIGN_CENTER_VERTICAL); // Dont add spacing otherwise hover events will break
+    }
+
+    auto w_list = m_has_text ? std::initializer_list<wxWindow*>{m_text_border, m_text, m_check} : std::initializer_list<wxWindow*>{m_check};
+    for (wxWindow* w : w_list) {
+        w->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+            m_hovered = true;
+            UpdateIcon();
+            e.Skip();
+        });
+        w->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
+            if(m_has_text){
+                wxWindow* next_w = wxFindWindowAtPoint(wxGetMousePosition());
+                if (!next_w || (next_w != m_check && next_w != m_text_border && next_w != m_text))
+                    m_hovered = false;
+            }else
+                m_hovered = false;
+            UpdateIcon();
+            e.Skip();
+        });
+        w->Bind(wxEVT_LEFT_DOWN  ,[this](wxMouseEvent e) {
+            if (!m_enabled || e.GetEventType() == wxEVT_LEFT_DCLICK) return;
+            OnClick();
+            e.Skip();
+        });
+        w->Bind(wxEVT_LEFT_DCLICK,[this](wxMouseEvent e) {
+            if (!m_enabled) return;
+            OnClick();
+            e.Skip();
+        });
+    };
+
+    SetSizerAndFit(h_sizer);
+    Layout();
+
+    Refresh();
 }
 
 void CheckBox::Rescale()
 {
-    m_on.msw_rescale();
-    m_half.msw_rescale();
-    m_off.msw_rescale();
-    m_on_disabled.msw_rescale();
-    m_half_disabled.msw_rescale();
-    m_off_disabled.msw_rescale();
-    m_on_focused.msw_rescale();
-    m_half_focused.msw_rescale();
-    m_off_focused.msw_rescale();
-    SetSize(m_on.GetBmpSize());
-	update();
+    auto i_list = std::vector<ScalableBitmap>{
+        m_on         , m_half         , m_off,
+        m_on_disabled, m_half_disabled, m_off_disabled,
+        m_on_focused , m_half_focused , m_off_focused,
+        m_on_hover   , m_half_hover   , m_off_hover, 
+        m_on_hvrfcs  , m_half_hvrfcs  , m_off_hvrfcs
+    };
+    for (ScalableBitmap i : i_list)
+        i.msw_rescale();
+    m_check->SetSize(m_on.GetBmpSize());
+    m_check->Rescale();
+    Refresh();
 }
 
-void CheckBox::update()
+void CheckBox::OnClick()
 {
-	SetBitmapLabel((m_half_checked ? m_half : GetValue() ? m_on : m_off).bmp());
-    SetBitmapDisabled((m_half_checked ? m_half_disabled : GetValue() ? m_on_disabled : m_off_disabled).bmp());
-#ifdef __WXMSW__
-    SetBitmapFocus((m_half_checked ? m_half_focused : GetValue() ? m_on_focused : m_off_focused).bmp());
-#endif
-    SetBitmapCurrent((m_half_checked ? m_half_focused : GetValue() ? m_on_focused : m_off_focused).bmp());
-#ifdef __WXOSX__
-    wxCommandEvent e(wxEVT_UPDATE_UI);
-    updateBitmap(e);
-#endif
+    m_check->SetFocus();
+    SetValue(!m_value);
 }
 
-#ifdef __WXMSW__
-
-CheckBox::State CheckBox::GetNormalState() const { return State_Normal; }
-
-#endif
-
-
-#ifdef __WXOSX__
-
-bool CheckBox::Enable(bool enable)
+void CheckBox::SetTooltip(wxString label)
 {
-    bool result = wxBitmapToggleButton::Enable(enable);
-    if (result) {
-        m_disable = !enable;
-        wxCommandEvent e(wxEVT_ACTIVATE);
-        updateBitmap(e);
+    m_check->SetToolTip(label);
+    if(m_has_text)
+        m_text->SetToolTip(label);
+}
+
+void CheckBox::UpdateIcon()
+{
+    ScalableBitmap icon;
+    bool focus = HasFocus();
+    if      (!m_enabled)
+        icon = m_half_checked ? m_half_disabled : m_value ? m_on_disabled : m_off_disabled;
+    else if (m_hovered && focus)
+        icon = m_half_checked ? m_half_hvrfcs   : m_value ? m_on_hvrfcs   : m_off_hvrfcs;
+    else if (m_hovered && !focus)
+        icon = m_half_checked ? m_half_hover    : m_value ? m_on_hover    : m_off_hover;
+    else if (!m_hovered && focus)
+        icon = m_half_checked ? m_half_focused  : m_value ? m_on_focused  : m_off_focused;
+    else
+        icon = m_half_checked ? m_half          : m_value ? m_on          : m_off;
+    m_check->SetIcon(icon.name());
+    m_check->Refresh();
+}
+
+wxWindow* CheckBox::GetScrollParent(wxWindow *pWindow)
+{
+    wxWindow *pWin = pWindow;
+    while (pWin->GetParent()) {
+        auto pWin2 = pWin->GetParent();
+        if (auto top = dynamic_cast<wxScrollHelper *>(pWin2))
+            return dynamic_cast<wxWindow *>(pWin);
+        pWin = pWin2;
     }
-    return result;
+    return nullptr;
 }
 
-wxBitmap CheckBox::DoGetBitmap(State which) const
-{
-    if (m_disable) {
-        return wxBitmapToggleButton::DoGetBitmap(State_Disabled);
-    }
-    if (m_focus) {
-        return wxBitmapToggleButton::DoGetBitmap(State_Current);
-    }
-    return wxBitmapToggleButton::DoGetBitmap(which);
-}
+void CheckBox::SetValue(bool value){
+    m_value = value;
+    m_half_checked = false;
+    UpdateIcon();
 
-void CheckBox::updateBitmap(wxEvent & evt)
-{
-    evt.Skip();
-    if (evt.GetEventType() == wxEVT_ENTER_WINDOW) {
-        m_hover = true;
-    } else if (evt.GetEventType() == wxEVT_LEAVE_WINDOW) {
-        m_hover = false;
-    } else {
-        if (evt.GetEventType() == wxEVT_SET_FOCUS) {
-            m_focus = true;
-        } else if (evt.GetEventType() == wxEVT_KILL_FOCUS) {
-            m_focus = false;
+    // temporary solution to handle different events
+    // all events should be unify in wxEVT_CHECKBOX
+    try {
+        wxCommandEvent evt(wxEVT_CHECKBOX, GetId());
+        evt.SetInt(m_value);
+        evt.SetString(m_label);
+        GetEventHandler()->ProcessEvent(evt);
+    }
+    catch (const std::runtime_error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        try {
+            wxCommandEvent evt(wxEVT_TOGGLEBUTTON, GetId());
+            evt.SetInt(m_value);
+            evt.SetString(m_label);
+            GetEventHandler()->ProcessEvent(evt);
         }
-        wxMouseEvent e;
-        if (m_hover)	
-            OnEnterWindow(e);
-        else
-            OnLeaveWindow(e);
+        catch (const std::runtime_error& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
     }
+
+     Refresh();
 }
-	
-#endif
