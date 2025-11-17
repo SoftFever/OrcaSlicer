@@ -12,7 +12,7 @@
     ],
     "default_print_profile": "0.20mm Speed @MK3S 0.25",
     "nozzle_diameter": [
-        "0.2"
+        "0.25"
     ],
     "bed_exclude_area": [
         "0x0"
