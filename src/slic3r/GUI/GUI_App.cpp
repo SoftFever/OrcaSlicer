@@ -2453,8 +2453,10 @@ bool GUI_App::on_init_inner()
 
 #ifdef WIN32
     // Check for blacklisted DLLs (e.g., Nahimic) that may cause crashes
+    // Detection was performed earlier in CLI::setup() for early detection at process startup.
+    // The results are cached in the singleton's m_found member, so this call reuses those results.
+    // Only show the dialog if user hasn't disabled it via the "Don't show again" checkbox.
     if (app_config->get_bool("show_nahimic_warning")) {
-        // User has not disabled the warning, check for blacklisted DLLs
         if (Slic3r::BlacklistedLibraryCheck::get_instance().perform_check()) {
             wxString text = _L("Following DLLs have been injected into the OrcaSlicer process:\n\n");
             text += wxString(Slic3r::BlacklistedLibraryCheck::get_instance().get_blacklisted_string());
