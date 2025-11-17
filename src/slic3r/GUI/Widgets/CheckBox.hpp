@@ -95,7 +95,8 @@ private:
     bool m_has_text     = false;
     wxString        m_label;
     Button* m_check = nullptr;
-    Button*         m_text  = nullptr;
+    wxStaticText*   m_text  = nullptr;
+    StaticBox*      m_text_border  = nullptr;
     wxFont          m_font;
     wxColour        m_bg_track;
     StateColor      m_text_color;

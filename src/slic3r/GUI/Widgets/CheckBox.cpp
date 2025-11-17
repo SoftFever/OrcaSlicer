@@ -1,8 +1,13 @@
 #include "CheckBox.hpp"
 
 /*
+Text rapping
 on_dpi_changed
 on dark mode changed
+SetFont
+Wrap
+Halfchecked
+Diasable
 */
 
 CheckBox::CheckBox(wxWindow *parent, wxString label)
@@ -41,18 +46,6 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         e.Skip();
     }));
 
-    /*
-    Bind(wxEVT_PAINT, ([this](wxPaintEvent e) { // without this it makes glitches on sidebar
-        // Check background color changes to refresh icons on system color change
-        // experimental solution that works. binding wxEVT_SYS_COLOUR_CHANGED not working
-        if(m_bg_track != GetBackgroundColour()){
-            m_bg_track = GetBackgroundColour();
-            Rescale(); // refresh bitmap icons to get correct colors
-            UpdateIcon();
-        }
-    }));
-    */
-
     // DPIDialog's uses wxEVT_CHAR_HOOK
     Bind(wxEVT_CHAR_HOOK, ([this](wxKeyEvent&e){
         int  k = e.GetKeyCode();
@@ -71,12 +64,18 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
     m_check->SetCornerRadius(0);
     m_check->SetBorderWidth(0);
 
-    if(label.IsEmpty()){
-        //m_check->SetCanFocus(true);
-        //m_check->AcceptsFocusFromKeyboard();
-        m_check->Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {UpdateIcon(); e.Skip(); }));
-        m_check->Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {UpdateIcon(); e.Skip(); }));
-    }
+    m_check->Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {
+        if(m_has_text)
+            m_text_border->SetBorderColor(wxColour("#009688"));
+        UpdateIcon();
+        e.Skip();
+    }));
+    m_check->Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {
+        if(m_has_text)
+            m_text_border->SetBorderColor(GetBackgroundColour());
+        UpdateIcon();
+        e.Skip(); 
+    }));
 
     m_check->Bind(wxEVT_LEFT_DOWN   ,([this](wxMouseEvent e) {
         if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
@@ -111,64 +110,48 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
             std::pair(wxColour("#363636"), (int)StateColor::Enabled)
         );
 
-        m_focus_color = StateColor(
-            std::pair(GetBackgroundColour() , (int)StateColor::NotFocused),
-            std::pair(wxColour("#009688")   , (int)StateColor::Focused)
-        );
+        m_text_border = new StaticBox(this);
+        m_text_border->SetCornerRadius(0);
+        m_text_border->SetBorderColor(m_focus_color);
+        m_text_border->SetCanFocus(false);
+        m_text_border->DisableFocusFromKeyboard();
 
-        //m_focus_color.colorForStates(StateColor::NotFocused) = GetBackgroundColour();
-
-        m_text = new Button(this, label);
-        m_text->SetPaddingSize(FromDIP(wxSize(5,2)));
-        m_text->SetBackgroundColor(GetBackgroundColour());
-        m_text->SetCornerRadius(0);
-        m_text->SetBorderWidth(FromDIP(1));
-        m_text->SetBorderColor(m_focus_color);
-        m_text->SetTextColor(m_text_color);
+        m_text = new wxStaticText(m_text_border, wxID_ANY, label);
         m_text->SetFont(m_font);
-        m_text->Bind(wxEVT_LEFT_DOWN   ,([this](wxMouseEvent e) {
-            if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
-            OnClick();
-            e.Skip();
-        }));
-        m_text->Bind(wxEVT_LEFT_DCLICK ,([this](wxMouseEvent e) {
-            OnClick();
-            e.Skip();
-        }));
-        m_text->Bind(wxEVT_ENTER_WINDOW,([this](wxMouseEvent e) {
-            m_hovered = true;
-            UpdateIcon();
-            e.Skip();
-        }));
-        m_text->Bind(wxEVT_LEAVE_WINDOW,([this](wxMouseEvent e) {
-            // prevent removing hover effect while switching between button and its text
-            auto win = wxFindWindowAtPoint(wxGetMousePosition());
-            if(!win || win->GetId() != m_check->GetId())
-                m_hovered = false;
-            UpdateIcon();
-            e.Skip();
-        }));
-        m_text->Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {UpdateIcon(); e.Skip(); }));
-        m_text->Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {UpdateIcon(); e.Skip(); }));
+        m_text->SetForegroundColour(wxColour("#363636"));
+        wxBoxSizer *label_sizer = new wxBoxSizer(wxHORIZONTAL);
+        label_sizer->Add(m_text, 0, wxALL, FromDIP(5));
+        m_text_border->SetSizer(label_sizer);
 
-        h_sizer->Add(m_text, 0, wxALIGN_CENTER_VERTICAL);// | wxTOP | wxBOTTOM, FromDIP(4));
-        h_sizer->AddSpacer(FromDIP(10));
-    }
-    /*
-    else
-    {
-        // dummy button to manage focus events
-        m_text = new Button(this, "");
-        m_text->SetPaddingSize(FromDIP(wxSize(0,0)));
-        m_text->SetBackgroundColor(GetBackgroundColour());
-        m_text->SetBorderColor(GetBackgroundColour());
-        m_text->Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {UpdateIcon(); e.Skip(); }));
-        m_text->Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {UpdateIcon(); e.Skip(); }));
-        h_sizer->Add(m_text, 0, wxALIGN_CENTER_VERTICAL);// | wxTOP | wxBOTTOM, FromDIP(4));
-        h_sizer->AddSpacer(FromDIP(10));
-    }
-    */
+        h_sizer->Add(m_text_border, 0, wxALIGN_CENTER_VERTICAL);
 
+        auto hovered = std::make_shared<wxWindow *>();
+        for (wxWindow *w : std::initializer_list<wxWindow *>{m_text_border, m_text}) {
+            w->Bind(wxEVT_ENTER_WINDOW, [this, w, hovered](wxMouseEvent &e) { 
+                *hovered = w;
+                m_hovered = true;
+                UpdateIcon();
+                e.Skip();
+            });
+            w->Bind(wxEVT_LEAVE_WINDOW, [this, w, hovered](wxMouseEvent &e) {
+                if (*hovered == m_text_border) {
+                    *hovered = nullptr;
+                    m_hovered = false;
+                }
+                UpdateIcon();
+                e.Skip();
+            });
+            w->Bind(wxEVT_LEFT_DOWN   ,([this](wxMouseEvent e) {
+                if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
+                OnClick();
+                e.Skip();
+            }));
+            w->Bind(wxEVT_LEFT_DCLICK ,([this](wxMouseEvent e) {
+                OnClick();
+                e.Skip();
+            }));
+        }
+    }
     SetSizerAndFit(h_sizer);
     Layout();
 
@@ -197,17 +180,17 @@ void CheckBox::Rescale()
     m_check->SetSize(m_on.GetBmpSize());
     */
     m_check->Rescale();
-    if(m_has_text)
-        m_text->Rescale();
+    //if(m_has_text)
+    //    m_text->Rescale();
     Refresh();
 }
 
 void CheckBox::OnClick()
 {
-    if(m_has_text)
-        m_text->SetFocus();
-    else
-        m_check->SetFocus();
+    //if(m_has_text)
+    //    m_text->SetFocus();
+    //else
+    m_check->SetFocus();
     SetValue(!m_value);
 }
 
@@ -221,7 +204,7 @@ void CheckBox::SetTooltip(wxString label)
 void CheckBox::UpdateIcon()
 {
     ScalableBitmap icon;
-    bool focus = HasFocus();
+    bool focus = m_check->HasFocus();
     if      (!m_enabled)
         icon = m_half_checked ? m_half_disabled : m_value ? m_on_disabled : m_off_disabled;
     else if (m_hovered && focus)
