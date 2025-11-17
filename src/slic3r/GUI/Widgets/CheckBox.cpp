@@ -77,38 +77,10 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         e.Skip(); 
     }));
 
-    m_check->Bind(wxEVT_LEFT_DOWN   ,([this](wxMouseEvent e) {
-        if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
-        OnClick();
-        e.Skip();
-    }));
-    m_check->Bind(wxEVT_LEFT_DCLICK ,([this](wxMouseEvent e) {
-        OnClick();
-        e.Skip();
-    }));
-    m_check->Bind(wxEVT_ENTER_WINDOW,([this](wxMouseEvent e) {
-        m_hovered = true;
-        UpdateIcon();
-        e.Skip();
-    }));
-    m_check->Bind(wxEVT_LEAVE_WINDOW,([this](wxMouseEvent e) {
-        // prevent removing hover effect while switching between button and its text
-        auto win = wxFindWindowAtPoint(wxGetMousePosition());
-        if(!m_has_text || !win || (m_has_text && win->GetId() != m_text->GetId()))
-            m_hovered = false;
-        UpdateIcon();
-        e.Skip();
-    }));
-
-    h_sizer->Add(m_check, 0, wxALIGN_CENTER_VERTICAL);//) | wxTOP | wxBOTTOM, FromDIP(4));
+    h_sizer->Add(m_check, 0, wxALIGN_CENTER_VERTICAL); // Dont add spacing otherwise hover events will break
 
     if(!label.IsEmpty()){
         m_has_text = true;
-
-        m_text_color = StateColor(
-            std::pair(wxColour("#6B6A6A"), (int)StateColor::Disabled),
-            std::pair(wxColour("#363636"), (int)StateColor::Enabled)
-        );
 
         m_text_border = new StaticBox(this);
         m_text_border->SetCornerRadius(0);
@@ -118,40 +90,42 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
 
         m_text = new wxStaticText(m_text_border, wxID_ANY, label);
         m_text->SetFont(m_font);
-        m_text->SetForegroundColour(wxColour("#363636"));
+        m_text->SetForegroundColour(wxColour("#363636")); // disabled color "#6B6A6A"
         wxBoxSizer *label_sizer = new wxBoxSizer(wxHORIZONTAL);
         label_sizer->Add(m_text, 0, wxALL, FromDIP(5));
         m_text_border->SetSizer(label_sizer);
 
-        h_sizer->Add(m_text_border, 0, wxALIGN_CENTER_VERTICAL);
-
-        auto hovered = std::make_shared<wxWindow *>();
-        for (wxWindow *w : std::initializer_list<wxWindow *>{m_text_border, m_text}) {
-            w->Bind(wxEVT_ENTER_WINDOW, [this, w, hovered](wxMouseEvent &e) { 
-                *hovered = w;
-                m_hovered = true;
-                UpdateIcon();
-                e.Skip();
-            });
-            w->Bind(wxEVT_LEAVE_WINDOW, [this, w, hovered](wxMouseEvent &e) {
-                if (*hovered == m_text_border) {
-                    *hovered = nullptr;
-                    m_hovered = false;
-                }
-                UpdateIcon();
-                e.Skip();
-            });
-            w->Bind(wxEVT_LEFT_DOWN   ,([this](wxMouseEvent e) {
-                if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
-                OnClick();
-                e.Skip();
-            }));
-            w->Bind(wxEVT_LEFT_DCLICK ,([this](wxMouseEvent e) {
-                OnClick();
-                e.Skip();
-            }));
-        }
+        h_sizer->Add(m_text_border, 0, wxALIGN_CENTER_VERTICAL); // Dont add spacing otherwise hover events will break
     }
+
+    auto w_list = m_has_text ? std::initializer_list<wxWindow*>{m_text_border, m_text, m_check} : std::initializer_list<wxWindow*>{m_check};
+    for (wxWindow* w : w_list) {
+        w->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+            m_hovered = true;
+            UpdateIcon();
+            e.Skip();
+        });
+        w->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
+            if(m_has_text){
+                wxWindow* next_w = wxFindWindowAtPoint(wxGetMousePosition());
+                if (!next_w || (next_w != m_check && next_w != m_text_border && next_w != m_text))
+                    m_hovered = false;
+            }else
+                m_hovered = false;
+            UpdateIcon();
+            e.Skip();
+        });
+        w->Bind(wxEVT_LEFT_DOWN  ,[this](wxMouseEvent e) {
+            if (e.GetEventType() == wxEVT_LEFT_DCLICK) return;
+            OnClick();
+            e.Skip();
+        });
+        w->Bind(wxEVT_LEFT_DCLICK,[this](wxMouseEvent e) {
+            OnClick();
+            e.Skip();
+        });
+    };
+
     SetSizerAndFit(h_sizer);
     Layout();
 
