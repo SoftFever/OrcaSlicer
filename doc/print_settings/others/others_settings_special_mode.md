@@ -43,7 +43,7 @@ Use "Even-odd" for specific models like [3DLabPrint](https://3dlabprint.com) air
 
 ## Slicing Tolerance
 
-![slicing-tolerance](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/Tolerance/SlicingTolerance.png?raw=true)
+![slicing-tolerance](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/Tolerance/SlicingTolerance.png?raw=true)
 
 ### Middle
 
