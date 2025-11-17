@@ -74,9 +74,9 @@ void                SelectMachineDialog::init_machine_bed_types()
     if (MACHINE_BED_TYPE_STRING.size() == 0) {
         MACHINE_BED_TYPE_STRING = {//_L("Auto"),
                                    _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
-                                   _L("Bamabu Engineering Plate"),
-                                   _L("Bamabu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
-                                   _L("Bamabu Textured PEI Plate"),
+                                   _L("Bambu Engineering Plate"),
+                                   _L("Bambu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
+                                   _L("Bambu Textured PEI Plate"),
                                    _L("Bambu Cool Plate SuperTack")
         };
         MachineBedTypeString    = {//"auto",
@@ -2516,8 +2516,14 @@ void SelectMachineDialog::on_send_print()
     if (build_nozzles_info(m_print_job->task_nozzles_info)) {
         BOOST_LOG_TRIVIAL(error) << "build_nozzle_info errors";
     }
-
-    m_print_job->has_sdcard = obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
+    
+    m_print_job->sdcard_state = obj_->GetStorage()->get_sdcard_state() ;    
+    m_print_job->has_sdcard =  wxGetApp().app_config->get("allow_abnormal_storage") == "true"
+            ? (m_print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL
+               || m_print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_ABNORMAL)
+            : m_print_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL;        
+    
+    
 
 
     bool timelapse_option = m_checkbox_list["timelapse"]->IsShown()?true:false;
@@ -3313,7 +3319,10 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD) {
             show_status(PrintDialogStatus::PrintStatusLanModeNoSdcard);
             return;
-        } else if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_ABNORMAL || obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_READONLY) {
+        } else if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_READONLY) {
+            show_status(PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable);
+            return;
+        } else if(obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_ABNORMAL &&  (wxGetApp().app_config->get("allow_abnormal_storage") == "false")){
             show_status(PrintDialogStatus::PrintStatusLanModeSDcardNotAvailable);
             return;
         }

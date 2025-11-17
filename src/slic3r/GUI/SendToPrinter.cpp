@@ -960,7 +960,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
                 update_print_status_msg(_L("No available external storage was obtained. Please confirm and try again."), true, true);
             }
         }
-    } else {
+    } else {   
 
         auto m_send_job           = std::make_unique<SendJob>(m_printer_last_select);
         m_send_job->m_dev_ip      = obj_->get_dev_ip();
@@ -982,8 +982,15 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 #endif
         m_send_job->connection_type     = obj_->connection_type();
         m_send_job->cloud_print_only    = true;
-        m_send_job->has_sdcard          = obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
-        m_send_job->set_project_name(m_current_project_name.utf8_string());
+    
+
+        m_send_job->sdcard_state = obj_->GetStorage()->get_sdcard_state();        
+        m_send_job->has_sdcard = wxGetApp().app_config->get("allow_abnormal_storage") == "true"
+            ? (m_send_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL
+               || m_send_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_ABNORMAL)
+            : m_send_job->sdcard_state == DevStorage::SdcardState::HAS_SDCARD_NORMAL;        
+            
+        m_send_job->set_project_name(m_current_project_name.utf8_string());        
 
         enable_prepare_mode = false;
 
@@ -1587,13 +1594,13 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		Enable_Refresh_Button(true);
 	}
 	else if (status == PrintDialogStatus::PrintStatusConnectingServer) {
-		wxString msg_text = _L("Connecting to server");
+		wxString msg_text = _L("Connecting to server...");
 		update_print_status_msg(msg_text, true, true);
 		Enable_Send_Button(true);
 		Enable_Refresh_Button(true);
     }
     else if (status == PrintDialogStatus::PrintStatusReading) {
-        wxString msg_text = _L("Synchronizing device information");
+        wxString msg_text = _L("Synchronizing device information...");
         update_print_status_msg(msg_text, false, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -1605,7 +1612,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		Enable_Refresh_Button(true);
 	}
 	else if (status == PrintDialogStatus::PrintStatusReadingTimeout) {
-		wxString msg_text = _L("Synchronizing device information time out");
+		wxString msg_text = _L("Synchronizing device information timed out.");
 		update_print_status_msg(msg_text, true, true);
 		Enable_Send_Button(true);
 		Enable_Refresh_Button(true);
