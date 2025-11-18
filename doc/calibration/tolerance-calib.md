@@ -30,7 +30,7 @@ This calibration test is designed to evaluate the dimensional accuracy of your p
 
 ![tolerance_hole](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/Tolerance/tolerance_hole.svg?raw=true)
 
-You can check the tolerance using either an M6 Allen key or the included printed hexagon tester.
+You can check the tolerance using either an M8 Allen key or the included printed hexagon tester.
 Use calipers to measure both the holes and the inner tester. Based on your results, you can fine-tune the X-Y hole compensation and X-Y contour compensation settings. Repeat the process until you achieve the desired precision.
 
 ![OrcaToleranceTes_m6](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/Tolerance/OrcaToleranceTes_m6.jpg?raw=true)
