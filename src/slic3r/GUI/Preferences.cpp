@@ -1233,6 +1233,18 @@ void PreferencesDialog::create_items()
         "auto_slice_after_change");
     g_sizer->Add(item_auto_reslice);
 
+    auto item_auto_reslice_delay = create_item_input(
+        _L("Auto slice timeout (s)"),
+        "",
+        _L("Delay in seconds before auto slicing starts, allowing multiple edits to be grouped. Use 0 to slice immediately."),
+        "auto_slice_change_delay_seconds",
+        [](wxString value) {
+            long seconds = 0;
+            if (!value.ToLong(&seconds) || seconds < 0)
+                wxGetApp().app_config->set("auto_slice_change_delay_seconds", "0");
+        });
+    g_sizer->Add(item_auto_reslice_delay);
+
 #if 0
     g_sizer->Add(create_item_title(_L("Filament Grouping")), 1, wxEXPAND);
     //temporarily disable it
