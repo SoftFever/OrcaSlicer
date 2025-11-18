@@ -2291,8 +2291,9 @@ void Sidebar::on_leave_image_printer_bed(wxMouseEvent &evt) {
     //auto rect  = p->image_printer_bed->GetRect();
     //if ((pos_x <= 0 || pos_y <= 0 || pos_x >= rect.GetWidth()) && p->big_bed_image_popup) {
     if (p->big_bed_image_popup) {
+        bool was_visible = p->big_bed_image_popup->IsShown();
         p->big_bed_image_popup->on_hide();
-        if(!p->combo_printer_bed->is_drop_down())
+        if(!p->combo_printer_bed->is_drop_down() && was_visible)
             p->combo_printer_bed->SetFocus();     // set focus back to bed type combo. this prevents weird look if focus on other item
     }
 }
