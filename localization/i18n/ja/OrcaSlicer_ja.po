@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-29 11:23+0100\n"
+"POT-Creation-Date: 2025-11-05 17:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1114,7 +1114,7 @@ msgstr "テキストの中心からモデル表面までの距離。"
 msgid "Undo rotation"
 msgstr "回転を取り消す"
 
-msgid "Rotate text Clock-wise."
+msgid "Rotate text Clockwise."
 msgstr "テキストを時計回りに回転。"
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
@@ -1303,7 +1303,8 @@ msgstr "ディスクからSVGファイルを再読込みします。"
 msgid "Change file"
 msgstr "ファイル変更"
 
-msgid "Change to another .svg file"
+#, fuzzy
+msgid "Change to another SVG file."
 msgstr "別の .svg ファイルに変更します"
 
 msgid "Forget the file path"
@@ -1330,7 +1331,8 @@ msgstr "別名で保存"
 msgid "Save SVG file"
 msgstr "SVGファイルの保存"
 
-msgid "Save as '.svg' file"
+#, fuzzy
+msgid "Save as SVG file."
 msgstr "'.svg' ファイルとして保存"
 
 msgid "Size in emboss direction."
@@ -1671,20 +1673,20 @@ msgstr "プリセットを読込む"
 msgid "Loading a mode view"
 msgstr "モードビューをロード"
 
-msgid "Choose one file (3mf):"
-msgstr "ファイルを選択 (3mf):"
+msgid "Choose one file (3MF):"
+msgstr "ファイルを選択 (3MF):"
 
-msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgid "Choose one or more files (3MF/STEP/STL/SVG/OBJ/AMF/USD*/ABC/PLY):"
 msgstr ""
-"1つ以上のファイルを選択してください (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+"1つ以上のファイルを選択してください (3MF/STEP/STL/SVG/OBJ/AMF/USD*/ABC/PLY):"
 
-msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
-msgstr "ファイルを選択 (3mf/step/stl/svg/obj/amf)"
+msgid "Choose one or more files (3MF/STEP/STL/SVG/OBJ/AMF):"
+msgstr "ファイルを選択 (3MF/STEP/STL/SVG/OBJ/AMF)"
 
 msgid "Choose ZIP file"
 msgstr "ZIPファイルの選択"
 
-msgid "Choose one file (gcode/3mf):"
+msgid "Choose one file (GCODE/3MF):"
 msgstr ""
 
 msgid "Some presets are modified."
@@ -2120,7 +2122,7 @@ msgstr "選択したオブジェクトを分割"
 msgid "Auto orientation"
 msgstr "自動向き調整"
 
-msgid "Auto orient the object to improve print quality."
+msgid "Auto orient the object to improve print quality"
 msgstr "オブジェクトの向きを自動的に調整する"
 
 msgid "Edit"
@@ -2660,7 +2662,7 @@ msgstr ""
 
 msgid ""
 "Enabling filtration during printing may reduce cooling and affect print "
-"qulity. Please choose carefully"
+"quality. Please choose carefully."
 msgstr ""
 
 msgid ""
@@ -3957,10 +3959,10 @@ msgstr ""
 msgid "Pause (nozzle clog)"
 msgstr ""
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr ""
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr ""
 
 msgid "Measure motion accuracy"
@@ -3969,7 +3971,7 @@ msgstr ""
 msgid "Nozzle offset calibration"
 msgstr ""
 
-msgid "high temperature auto bed levelling"
+msgid "high temperature auto bed leveling"
 msgstr ""
 
 msgid "Auto Check: Quick Release Lever"
@@ -4073,13 +4075,13 @@ msgstr ""
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃. In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"45℃. In order to avoid extruder clogging, low temperature filament(PLA/PETG/"
 "TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
-"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
-"avoid extruder clogging,it is not allowed to set the chamber temperature."
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder. In order to "
+"avoid extruder clogging, it is not allowed to set the chamber temperature."
 msgstr ""
 
 msgid ""
@@ -4159,9 +4161,6 @@ msgid "Retry (problem solved)"
 msgstr ""
 
 msgid "Stop Drying"
-msgstr ""
-
-msgid "Cancle"
 msgstr ""
 
 msgid "Done"
@@ -4752,6 +4751,9 @@ msgstr "戻る"
 msgid "Return"
 msgstr "戻る"
 
+msgid "Toggle Axis"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "ペイント ツールバー"
 
@@ -4781,7 +4783,7 @@ msgstr "サイズ:"
 
 #, c-format, boost-format
 msgid ""
-"Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please "
+"Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 
@@ -4805,7 +4807,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the "
+"Filaments %s are placed in the %s, but the generated G-code path exceeds the "
 "printable range of the %s."
 msgstr ""
 
@@ -4817,7 +4819,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the "
+"Filaments %s are placed in the %s, but the generated G-code path exceeds the "
 "printable height of the %s."
 msgstr ""
 
@@ -5111,7 +5113,7 @@ msgstr ""
 msgid "Export Generic 3MF"
 msgstr "汎用3MF"
 
-msgid "Export 3mf file without using some 3mf-extensions"
+msgid "Export 3MF file without using some 3mf-extensions"
 msgstr "3mfファイルをエクスポート（一部3mf機能を無効）"
 
 msgid "Export current sliced file"
@@ -5542,7 +5544,7 @@ msgstr "ビデオ"
 msgid "Switch to video files."
 msgstr "ビデオファイルに切替え"
 
-msgid "Switch to 3mf model files."
+msgid "Switch to 3MF model files."
 msgstr ""
 
 msgid "Delete selected files from printer."
@@ -5796,7 +5798,7 @@ msgstr "名前の先頭にスペースを入れないでください"
 msgid "The name is not allowed to end with space character."
 msgstr "名前の最後にスペースを入れないでください"
 
-msgid "The name is not allowed to exceeds 32 characters."
+msgid "The name is not allowed to exceed 32 characters."
 msgstr ""
 
 msgid "Bind with Pin Code"
@@ -5891,13 +5893,13 @@ msgstr "造形を取消し"
 msgid "Are you sure you want to stop this print?"
 msgstr ""
 
-msgid "The printer is busy on other print job"
+msgid "The printer is busy with another print job."
 msgstr "プリンターはビジーです。"
 
-msgid "Current extruder is busy changing filament"
+msgid "Current extruder is busy changing filament."
 msgstr ""
 
-msgid "Current slot has alread been loaded"
+msgid "Current slot has already been loaded."
 msgstr ""
 
 msgid "The selected slot is empty."
@@ -5921,10 +5923,6 @@ msgstr ""
 msgid "Layer: %d/%d"
 msgstr ""
 
-#, c-format, boost-format
-msgid "(%d)"
-msgstr ""
-
 msgid ""
 "Please heat the nozzle to above 170°C before loading or unloading filament."
 msgstr ""
@@ -5935,7 +5933,7 @@ msgid ""
 msgstr ""
 
 msgid "Please select an AMS slot before calibration"
-msgstr ""
+msgstr "キャリブレーション前に、AMSスロットを選択してください"
 
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
@@ -6107,11 +6105,12 @@ msgstr "%s 情報"
 msgid "Skip"
 msgstr "スキップ"
 
-msgid "Newer 3mf version"
+#, fuzzy
+msgid "Newer 3MF version"
 msgstr "新3mfバージョン"
 
 msgid ""
-"The 3mf file version is in Beta and it is newer than the current OrcaSlicer "
+"The 3MF file version is in Beta and it is newer than the current OrcaSlicer "
 "version."
 msgstr ""
 
@@ -6121,10 +6120,10 @@ msgstr ""
 msgid "Download Beta Version"
 msgstr ""
 
-msgid "The 3mf file version is newer than the current Orca Slicer version."
+msgid "The 3MF file version is newer than the current OrcaSlicer version."
 msgstr ""
 
-msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
+msgid "Updating your OrcaSlicer could enable all functionality in the 3MF file."
 msgstr ""
 
 msgid "Current Version: "
@@ -6461,6 +6460,9 @@ msgstr ""
 msgid "Lock current plate"
 msgstr ""
 
+msgid "Filament grouping"
+msgstr ""
+
 msgid "Edit current plate name"
 msgstr ""
 
@@ -6536,7 +6538,7 @@ msgid "Not installed"
 msgstr ""
 
 msgid ""
-"The software does not support using different diameter of nozzles for one  "
+"The software does not support using different diameter of nozzles for one "
 "print. If the left and right nozzles are inconsistent, we can only proceed "
 "with single-head printing. Please confirm which nozzle you would like to use "
 "for this project."
@@ -6619,7 +6621,7 @@ msgid "Sync filaments with AMS"
 msgstr "AMSと同期"
 
 msgid ""
-"There are some unknown or uncompatible filaments mapped to generic preset.\n"
+"There are some unknown or incompatible filaments mapped to generic preset.\n"
 "Please update Orca Slicer or restart Orca Slicer to check if there is an "
 "update to system presets."
 msgstr ""
@@ -6686,11 +6688,13 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr "ファイルを読込む: %s"
 
-msgid "The 3mf is not supported by OrcaSlicer, load geometry data only."
+#, fuzzy
+msgid "The 3MF is not supported by OrcaSlicer, loading geometry data only."
 msgstr ""
 "この3mfファイルと互換性がありません、ジオメトリーデータのみ読込みます。"
 
-msgid "Load 3mf"
+#, fuzzy
+msgid "Load 3MF"
 msgstr "3mfを読込み"
 
 msgid ""
@@ -6704,9 +6708,9 @@ msgid ""
 "template settings?"
 msgstr ""
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, found following "
+"The 3MF file version %s is newer than %s's version %s, found the following "
 "unrecognized keys:"
 msgstr ""
 "3mfのバージョン %s は %sのバージョン %sより新しい為、下記のキーを認識できませ"
@@ -6715,24 +6719,30 @@ msgstr ""
 msgid "You'd better upgrade your software.\n"
 msgstr "ソフトウェアをアップデートする必要があります。\n"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
+"The 3MF file version %s is newer than %s's version %s, we suggest to "
+"upgrade your software."
 msgstr ""
 "3mfのバージョン%sは%sの%sより新しい為、ソフトウェアを更新してください。"
 
-msgid "The 3mf is generated by old OrcaSlicer, load geometry data only."
+#, fuzzy
+msgid ""
+"The 3MF file was generated by an old OrcaSlicer version, loading geometry "
+"data only."
 msgstr ""
+"3mfは古いバージョンのOrca Slicerで作成されています、ジオメトリーデータのみ"
+"読込みます。"
 
-msgid "Invalid values found in the 3mf:"
+
+msgid "Invalid values found in the 3MF:"
 msgstr ""
 
 msgid "Please correct them in the param tabs"
 msgstr ""
 
 msgid ""
-"The 3mf has the following modified G-code in filament or printer presets:"
+"The 3MF has the following modified G-code in filament or printer presets:"
 msgstr ""
 
 msgid ""
@@ -6743,7 +6753,7 @@ msgstr ""
 msgid "Modified G-code"
 msgstr ""
 
-msgid "The 3mf has the following customized filament or printer presets:"
+msgid "The 3MF has the following customized filament or printer presets:"
 msgstr ""
 
 msgid ""
@@ -6754,7 +6764,8 @@ msgstr ""
 msgid "Customized Preset"
 msgstr ""
 
-msgid "Name of components inside step file is not UTF8 format!"
+#, fuzzy
+msgid "Name of components inside STEP file is not UTF8 format!"
 msgstr "ファイルのエンコーディング方式はUTF8形式ではありません"
 
 msgid "The name may show garbage characters!"
@@ -6986,7 +6997,7 @@ msgstr "プロジェクトを保存"
 msgid "Importing Model"
 msgstr "モデルをインポート"
 
-msgid "prepare 3mf file..."
+msgid "prepare 3MF file..."
 msgstr "3mfファイルを準備"
 
 msgid "Download failed, unknown file format."
@@ -7372,7 +7383,7 @@ msgid "Set the page opened on startup."
 msgstr ""
 
 msgid "Enable dark mode"
-msgstr ""
+msgstr "ダークモードを有効"
 
 msgid "Allow only one OrcaSlicer instance"
 msgstr ""
@@ -7416,7 +7427,7 @@ msgstr ""
 msgid "Load behaviour"
 msgstr ""
 
-msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
+msgid "Should printer/filament/process settings be loaded when opening a 3MF file?"
 msgstr ""
 
 msgid "Maximum recent files"
@@ -7435,11 +7446,11 @@ msgid "Show options when importing STEP file"
 msgstr ""
 
 msgid ""
-"If enabled,a parameter settings dialog will appear during STEP file import."
+"If enabled, a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
 msgid "Auto backup"
-msgstr ""
+msgstr "自動バックアップ"
 
 msgid ""
 "Backup your project periodically for restoring from the occasional crash."
@@ -7479,7 +7490,7 @@ msgstr ""
 msgid "All"
 msgstr "すべて"
 
-msgid "Auto flush after changing ..."
+msgid "Auto flush after changing..."
 msgstr ""
 
 msgid "Auto calculate flushing volumes when selected values changed"
@@ -7537,7 +7548,7 @@ msgstr "マウスの逆ズーム"
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
 msgstr "有効にすると、マウス ホイールによるズームの方向が反転します。"
 
-msgid "Clear my choice on ..."
+msgid "Clear my choice on..."
 msgstr ""
 
 msgid "Unsaved projects"
@@ -7560,7 +7571,7 @@ msgid ""
 msgstr ""
 
 msgid "Login region"
-msgstr ""
+msgstr "地域"
 
 msgid "Stealth mode"
 msgstr ""
@@ -7604,22 +7615,27 @@ msgstr ""
 msgid "Associate files to OrcaSlicer"
 msgstr "ファイルをOrca Slicerに関連付ける"
 
-msgid "Associate .3mf files to OrcaSlicer"
+#, fuzzy
+msgid "Associate 3MF files to OrcaSlicer"
 msgstr ".3mfファイルをOrca Slicerに関連付けます。"
 
-msgid "If enabled, sets OrcaSlicer as default application to open .3mf files"
+msgid "If enabled, sets OrcaSlicer as default application to open 3MF files."
 msgstr "デフォルトで.3mfファイルをOrca Slicerで開く"
 
-msgid "Associate .stl files to OrcaSlicer"
+#, fuzzy
+msgid "Associate STL files to OrcaSlicer"
 msgstr ".stlファイルをOrca Slicerに関連付けます。"
 
-msgid "If enabled, sets OrcaSlicer as default application to open .stl files"
+#, fuzzy
+msgid "If enabled, sets OrcaSlicer as default application to open STL files."
 msgstr "デフォルトで.stlファイルをOrca Slicerで開く"
 
-msgid "Associate .step/.stp files to OrcaSlicer"
+#, fuzzy
+msgid "Associate STEP files to OrcaSlicer"
 msgstr ".step/.stpファイルをOrca Slicerに関連付けます。"
 
-msgid "If enabled, sets OrcaSlicer as default application to open .step files"
+#, fuzzy
+msgid "If enabled, sets OrcaSlicer as default application to open STEP files."
 msgstr "デフォルトで.step/.stpファイルをOrca Slicerで開く"
 
 msgid "Associate web links to OrcaSlicer"
@@ -7857,10 +7873,10 @@ msgstr ""
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr "全プレートをスライスし、造形時間を推測します"
 
-msgid "Packing project data into 3mf file"
+msgid "Packing project data into 3MF file"
 msgstr "プロジェクトデータを3MFファイルに書き込む"
 
-msgid "Uploading 3mf"
+msgid "Uploading 3MF"
 msgstr "3mfをアップロード中"
 
 msgid "Jump to model publish web page"
@@ -7872,13 +7888,13 @@ msgstr "注意: 準備するには数分かかる場合があります、暫く�
 msgid "Publish"
 msgstr "公開する"
 
-msgid "Publish was cancelled"
-msgstr ""
+msgid "Publish was canceled"
+msgstr "公開は取り消しました"
 
 msgid "Slicing Plate 1"
 msgstr "プレート1をスライス"
 
-msgid "Packing data to 3mf"
+msgid "Packing data to 3MF"
 msgstr "データを構成中"
 
 msgid "Jump to webpage"
@@ -7952,16 +7968,16 @@ msgstr "Bambu 常温プレート"
 msgid "PLA Plate"
 msgstr ""
 
-msgid "Bamabu Engineering Plate"
-msgstr ""
+msgid "Bambu Engineering Plate"
+msgstr "Bambu エンジニアリングプレート"
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
 msgstr ""
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr ""
 
 msgid "Bambu Cool Plate SuperTack"
@@ -8171,32 +8187,32 @@ msgstr ""
 msgid "Click here if you can't connect to the printer"
 msgstr ""
 
-msgid "No login account, only printers in LAN mode are displayed"
+msgid "No login account, only printers in LAN mode are displayed."
 msgstr "アカウント無し、ローカルモードのプリンターのみが表示されます"
 
-msgid "Connecting to server"
+msgid "Connecting to server..."
 msgstr "サーバーへ接続中"
 
-msgid "Synchronizing device information"
+msgid "Synchronizing device information..."
 msgstr "デバイス情報を同期"
 
-msgid "Synchronizing device information time out"
+msgid "Synchronizing device information timed out."
 msgstr "デバイス情報同期はタイムアウトしました"
 
-msgid "Cannot send the print job when the printer is not at FDM mode"
+msgid "Cannot send a print job when the printer is not at FDM mode."
 msgstr ""
 
-msgid "Cannot send the print job when the printer is updating firmware"
+msgid "Cannot send a print job while the printer is updating firmware."
 msgstr "ファームウェアが更新中の為、造形タスクを送信できません"
 
 msgid ""
-"The printer is executing instructions. Please restart printing after it ends"
+"The printer is executing instructions. Please restart printing after it ends."
 msgstr "プリンターが指令を実行中です。実行終了してから造形を再開してください。"
 
 msgid "AMS is setting up. Please try again later."
 msgstr ""
 
-msgid "Please do not mix-use the Ext with AMS"
+msgid "Please do not mix-use the Ext with AMS."
 msgstr ""
 
 msgid ""
@@ -8218,7 +8234,7 @@ msgid ""
 "updated."
 msgstr "ファームウェアを更新する必要がある為、造形タスクを送信できません"
 
-msgid "Cannot send the print job for empty plate"
+msgid "Cannot send a print job for an empty plate."
 msgstr "空プレートがある為、送信できません"
 
 msgid "Storage needs to be inserted to record timelapse."
@@ -8238,7 +8254,7 @@ msgid ""
 "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr ""
 
-msgid "This printer does not support printing all plates"
+msgid "This printer does not support printing all plates."
 msgstr "プリンターが全てのプレートを造形することができません"
 
 msgid ""
@@ -8479,15 +8495,15 @@ msgid "Still print by object?"
 msgstr ""
 
 msgid ""
-"Non-soluble support materials are not recommended for support base. \n"
-"Are you sure to use them for support base? \n"
+"Non-soluble support materials are not recommended for support base.\n"
+"Are you sure to use them for support base?\n"
 msgstr ""
 
 msgid ""
 "When using support material for the support interface, we recommend the "
 "following settings:\n"
 "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and "
-"disable independent support layer height"
+"disable independent support layer height."
 msgstr ""
 
 msgid ""
@@ -8500,17 +8516,11 @@ msgstr ""
 "いいえ - 変更しません"
 
 msgid ""
-"When using soluble material for the support interface, We recommend the "
+"When using soluble material for the support interface, we recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, "
-"disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings automatically\n"
-"No  - Do not change these settings for me"
+"0 top Z distance, 0 interface spacing, interlaced rectilinear pattern, "
+"disable independent support layer height\n"
+"and use soluble materials for both support interface and support base."
 msgstr ""
 
 msgid ""
@@ -9009,7 +9019,7 @@ msgid "Number of extruders of the printer."
 msgstr "プリンターのエクストルーダー数。"
 
 msgid ""
-"Single Extruder Multi Material is selected, \n"
+"Single Extruder Multi Material is selected,\n"
 "and all extruders must have the same diameter.\n"
 "Do you want to change the diameter for all extruders to first extruder "
 "nozzle diameter value?"
@@ -9082,12 +9092,6 @@ msgstr "%1% プリセット"
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "以下のプリセットも削除されます: "
-
-msgid ""
-"Are you sure to delete the selected preset? \n"
-"If the preset corresponds to a filament currently in use on your printer, "
-"please reset the filament information for that slot."
-msgstr ""
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -9317,16 +9321,16 @@ msgstr "構成データが最新です"
 msgid "Open Wiki for more information >"
 msgstr ""
 
-msgid "Obj file Import color"
+msgid "OBJ file import color"
 msgstr ""
 
 msgid "Some faces don't have color defined."
 msgstr ""
 
-msgid "mtl file exist error,could not find the material:"
+msgid "MTL file exist error, could not find the material:"
 msgstr ""
 
-msgid "Please check obj or mtl file."
+msgid "Please check OBJ or MTL file."
 msgstr ""
 
 msgid "Specify number of colors:"
@@ -9371,9 +9375,6 @@ msgstr ""
 msgid ""
 "The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
-msgstr ""
-
-msgid "—> "
 msgstr ""
 
 msgid ""
@@ -10038,7 +10039,7 @@ msgstr ""
 msgid "Extension Board"
 msgstr "拡張ボード"
 
-msgid "Saving objects into the 3mf failed."
+msgid "Saving objects into the 3MF failed."
 msgstr "3mfへの保存は失敗しました。"
 
 msgid "Only Windows 10 is supported."
@@ -10062,22 +10063,22 @@ msgstr "修復が失敗しました"
 msgid "Loading repaired objects"
 msgstr "修復されたオブジェクトをロード"
 
-msgid "Exporting 3mf file failed"
+msgid "Exporting 3MF file failed"
 msgstr "3mfのエクスポートが失敗しました"
 
-msgid "Import 3mf file failed"
+msgid "Import 3MF file failed"
 msgstr "3mf ファイルをインポート失敗"
 
-msgid "Repaired 3mf file does not contain any object"
+msgid "Repaired 3MF file does not contain any object"
 msgstr "修復した3mfファイルにはオブジェクトがありません"
 
-msgid "Repaired 3mf file contains more than one object"
+msgid "Repaired 3MF file contains more than one object"
 msgstr "修復した3mfファイルには複数のオブジェクトが含まれています。"
 
-msgid "Repaired 3mf file does not contain any volume"
+msgid "Repaired 3MF file does not contain any volume"
 msgstr "修復された3mfファイルにはパーツがありません"
 
-msgid "Repaired 3mf file contains more than one volume"
+msgid "Repaired 3MF file contains more than one volume"
 msgstr "修復した3mfファイルには複数のパーツが含まれています。"
 
 msgid "Repair finished"
@@ -10692,7 +10693,7 @@ msgstr ""
 msgid "Preferred orientation"
 msgstr ""
 
-msgid "Automatically orient stls on the Z axis upon initial import."
+msgid "Automatically orient STL files on the Z axis upon initial import."
 msgstr ""
 
 msgid "Printer preset names"
@@ -11017,7 +11018,7 @@ msgstr ""
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
 "calculated automatically. Otherwise the provided angle will be used for "
-"external bridges. Use 180°for zero angle."
+"external bridges. Use 180° for zero angle."
 msgstr ""
 "ブリッジ角度。値が0の場合は自動計算となります。0°を使用したい場合は180を入力"
 "していください。"
@@ -11028,7 +11029,7 @@ msgstr ""
 msgid ""
 "Internal bridging angle override. If left to zero, the bridging angle will "
 "be calculated automatically. Otherwise the provided angle will be used for "
-"internal bridges. Use 180°for zero angle.\n"
+"internal bridges. Use 180° for zero angle.\n"
 "\n"
 "It is recommended to leave it at 0 unless there is a specific model need not "
 "to."
@@ -11777,11 +11778,9 @@ msgid ""
 "option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy "
-"benefits of Inner/Outer/Inner option. However, the z seams will appear less "
+"benefits of Inner/Outer/Inner option. However, the Z seams will appear less "
 "consistent as the first extrusion of a new layer starts on a visible "
-"surface.\n"
-"\n"
-" "
+"surface."
 msgstr ""
 
 msgid "Inner/Outer"
@@ -12212,7 +12211,7 @@ msgstr ""
 #, no-c-format, no-boost-format
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling (94% "
-"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"if you measure 94mm instead of 100mm). The part will be scaled in XY to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
@@ -12937,7 +12936,7 @@ msgid "Precise Z height"
 msgstr ""
 
 msgid ""
-"Enable this to get precise z height of object after slicing. It will get the "
+"Enable this to get precise Z height of object after slicing. It will get the "
 "precise object height by fine-tuning the layer heights of the last few "
 "layers. Note that this is an experimental parameter."
 msgstr ""
@@ -13459,6 +13458,12 @@ msgid "Ironing angle offset"
 msgstr ""
 
 msgid "The angle of ironing lines offset from the top surface."
+msgstr ""
+
+msgid "Fixed ironing angle"
+msgstr ""
+
+msgid "Use a fixed absolute angle for ironing."
 msgstr ""
 
 msgid "This G-code is inserted at every layer change after the Z lift."
@@ -14463,7 +14468,7 @@ msgid "Speed of internal solid infill, not the top and bottom surface."
 msgstr "ソリッド インフィルの造形速度です。"
 
 msgid ""
-"Spiralize smooths out the z moves of the outer contour. And turns a solid "
+"Spiralize smooths out the Z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
 "generated model has no seam."
 msgstr ""
@@ -14678,7 +14683,7 @@ msgstr "通常 (手動)"
 msgid "Tree (manual)"
 msgstr "ツリー (手動)"
 
-msgid "Support/object xy distance"
+msgid "Support/object XY distance"
 msgstr "水平間隔"
 
 msgid "XY separation between an object and its support."
@@ -14875,7 +14880,7 @@ msgstr "独立サポート層ピッチ"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time. This option will be invalid "
+"support customizing Z-gap and save print time. This option will be invalid "
 "when the prime tower is enabled."
 msgstr ""
 
@@ -15619,7 +15624,7 @@ msgstr "ヘルプを表示します。"
 msgid "UpToDate"
 msgstr "最新の状態です。"
 
-msgid "Update the configs values of 3mf to latest."
+msgid "Update the config values of 3MF to latest."
 msgstr "3mfの構成値を更新"
 
 msgid "downward machines check"
@@ -15639,7 +15644,7 @@ msgstr ""
 msgid "Minimum save"
 msgstr ""
 
-msgid "export 3mf with minimum size."
+msgid "Export 3MF with minimum size."
 msgstr ""
 
 msgid "mtcpp"
@@ -15865,40 +15870,40 @@ msgid ""
 "objects."
 msgstr ""
 
-msgid "Skip modified G-code in 3mf"
+msgid "Skip modified G-code in 3MF"
 msgstr ""
 
-msgid "Skip the modified G-code in 3mf from Printer or filament Presets."
+msgid "Skip the modified G-code in 3MF from printer or filament presets."
 msgstr ""
 
 msgid "MakerLab name"
 msgstr ""
 
-msgid "MakerLab name to generate this 3mf."
+msgid "MakerLab name to generate this 3MF."
 msgstr ""
 
 msgid "MakerLab version"
 msgstr ""
 
-msgid "MakerLab version to generate this 3mf."
+msgid "MakerLab version to generate this 3MF."
 msgstr ""
 
-msgid "metadata name list"
+msgid "Metadata name list"
 msgstr ""
 
-msgid "metadata name list added into 3mf."
+msgid "Metadata name list added into 3MF."
 msgstr ""
 
-msgid "metadata value list"
+msgid "Metadata value list"
 msgstr ""
 
-msgid "metadata value list added into 3mf."
+msgid "Metadata value list added into 3MF."
 msgstr ""
 
-msgid "Allow 3mf with newer version to be sliced"
+msgid "Allow 3MF with newer version to be sliced"
 msgstr ""
 
-msgid "Allow 3mf with newer version to be sliced."
+msgid "Allow 3MF with newer version to be sliced."
 msgstr ""
 
 msgid "Current Z-hop"
@@ -16061,7 +16066,7 @@ msgid ""
 "Contains a string with the information about what scaling was applied to the "
 "individual objects. Indexing of the objects is zero-based (first object has "
 "index 0).\n"
-"Example: 'x:100% y:50% z:100'."
+"Example: 'x:100% y:50% z:100%'."
 msgstr ""
 
 msgid "Input filename without extension"
@@ -16070,14 +16075,16 @@ msgstr "拡張子を除いたファイル名を入力。"
 msgid "Source filename of the first object, without extension."
 msgstr "最初のオブジェクトのソース ファイル名（拡張子を除く）。"
 
+#, fuzzy
 msgid ""
-"The vector has two elements: x and y coordinate of the point. Values in mm."
+"The vector has two elements: X and Y coordinate of the point. Values in mm."
 msgstr ""
 "ベクトルには、点の x 座標と y 座標という 2 つの要素があります。 値は mm 単位"
 "です。"
 
+#, fuzzy
 msgid ""
-"The vector has two elements: x and y dimension of the bounding box. Values "
+"The vector has two elements: X and Y dimension of the bounding box. Values "
 "in mm."
 msgstr ""
 "ベクトルには、境界ボックスの x 次元と y 次元という 2 つの要素があります。 値"
@@ -16693,15 +16700,9 @@ msgid "Filament For Calibration"
 msgstr ""
 
 msgid ""
-"Tips for calibration material: \n"
+"Tips for calibration material:\n"
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family (Brand = Bambu, Family = Basic, Matte)"
-msgstr ""
-
-msgid ""
-"Tips for calibration material: \n"
-"- Materials that can share same hot bed temperature\n"
-"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
 
 msgid "Pattern"
@@ -17716,8 +17717,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle. "
+"Did you change your nozzle lately?"
 msgstr ""
 
 #, c-format, boost-format
@@ -17729,8 +17730,8 @@ msgid "nozzle[%d] memorized: %.1f"
 msgstr ""
 
 msgid ""
-"Your nozzle type in preset is not consistent with memorized nozzle.Did you "
-"change your nozzle lately ? "
+"Your nozzle type in preset is not consistent with memorized nozzle. Did you "
+"change your nozzle lately?"
 msgstr ""
 
 #, c-format, boost-format
@@ -18259,7 +18260,7 @@ msgstr ""
 msgid "Device Status"
 msgstr ""
 
-msgid "Ams Status"
+msgid "AMS Status"
 msgstr ""
 
 msgid ""
@@ -18376,9 +18377,6 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
-msgid "Filament grouping"
-msgstr ""
-
 msgid "Don't remind me again"
 msgstr ""
 
@@ -18396,13 +18394,13 @@ msgstr ""
 
 msgid ""
 "Generates filament grouping for the left and right nozzles based on the most "
-"filament-saving principles to minimize waste"
+"filament-saving principles to minimize waste."
 msgstr ""
 
 msgid ""
 "Generates filament grouping for the left and right nozzles based on the "
 "printer's actual filament status, reducing the need for manual filament "
-"adjustment"
+"adjustment."
 msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
@@ -18420,7 +18418,7 @@ msgstr ""
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
-msgid "Tips: You can drag the filaments to reassign them to different nozzles."
+msgid "Tip: You can drag the filaments to reassign them to different nozzles."
 msgstr ""
 
 msgid ""
@@ -18464,7 +18462,7 @@ msgstr ""
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr ""
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr ""
 
 msgid "Head diameter"
@@ -18518,24 +18516,10 @@ msgstr "単一のオブジェクトを選択してください"
 msgid "Zoom Out"
 msgstr ""
 
-msgid "100 %"
-msgstr ""
-
 msgid "Zoom In"
 msgstr ""
 
 msgid "Load skipping objects information failed. Please try again."
-msgstr ""
-
-msgid "Loading ..."
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d%%"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d"
 msgstr ""
 
 #, c-format, boost-format
@@ -18910,6 +18894,9 @@ msgstr ""
 "ABSのような反りやすい素材を印刷する場合、ヒートベッドの温度を適切に上げること"
 "で、反りが発生する確率を下げることができることをご存知ですか？"
 
+#~ msgid "Adaptive layer height"
+#~ msgstr "アダプティブ積層ピッチ"
+
 #~ msgid "AMS not connected"
 #~ msgstr "AMS が接続されていません"
 
@@ -19012,9 +18999,6 @@ msgstr ""
 #~ msgid "Still load"
 #~ msgstr "ロード"
 
-#~ msgid "Please select an AMS slot before calibration."
-#~ msgstr "キャリブレーション前に、AMSスロットを選択してください"
-
 #~ msgid "Can't start this without SD card."
 #~ msgstr "起動するのにSDカードが必要です。"
 
@@ -19062,9 +19046,6 @@ msgstr ""
 #~ msgid "General Settings"
 #~ msgstr "一般設定"
 
-#~ msgid "Login Region"
-#~ msgstr "地域"
-
 #~ msgid "Show \"Tip of the day\" notification after start"
 #~ msgstr "起動後「毎日のヒント」を表示"
 
@@ -19077,26 +19058,17 @@ msgstr ""
 #~ msgid "User Sync"
 #~ msgstr "ユーザー同期"
 
-#~ msgid "Auto-Backup"
-#~ msgstr "自動バックアップ"
-
 #~ msgid "Downloads"
 #~ msgstr "ダウンロード"
 
 #~ msgid "Dark Mode"
 #~ msgstr "ダークモード"
 
-#~ msgid "Enable Dark mode"
-#~ msgstr "ダークモードを有効"
-
 #~ msgid "Home page and daily tips"
 #~ msgstr "ホームページとヒント"
 
 #~ msgid "Show home page on startup"
 #~ msgstr "起動時にホームページを表示"
-
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "Bambu エンジニアリングプレート"
 
 #~ msgid "Send print job to"
 #~ msgstr "造形タスクを送信"
@@ -19170,9 +19142,6 @@ msgstr ""
 #~ msgstr ""
 #~ "温度差が大きいフィラメントを一緒に造形することができません。ノズル詰まりや"
 #~ "損傷する可能性があります"
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "アダプティブ積層ピッチ"
 
 #~ msgid "Alt + Mouse wheel"
 #~ msgstr "Alt + マウスホイール"
@@ -19319,9 +19288,6 @@ msgstr ""
 
 #~ msgid "Invalid number"
 #~ msgstr "無効な数字"
-
-#~ msgid "Publish was canceled"
-#~ msgstr "公開は取り消しました"
 
 #~ msgid "Ramming settings"
 #~ msgstr "ラミング設定"
@@ -19738,11 +19704,6 @@ msgstr ""
 #~ msgid "The Config cannot be loaded."
 #~ msgstr "構成を読込めませんでした"
 
-#~ msgid "The 3mf is generated by old Orca Slicer, load geometry data only."
-#~ msgstr ""
-#~ "3mfは古いバージョンのOrca Slicerで作成されています、ジオメトリーデータのみ"
-#~ "読込みます。"
-
 #~ msgid "Movement:"
 #~ msgstr "移動"
 
@@ -19843,7 +19804,7 @@ msgstr ""
 #~ msgid "Export all objects as STL"
 #~ msgstr "全てのオブジェクト (STL)"
 
-#~ msgid "The 3mf is not compatible, load geometry data only!"
+#~ msgid "The 3MF is not compatible, load geometry data only!"
 #~ msgstr ""
 #~ "この3mfファイルと互換性がありません、ジオメトリーデータのみ読込みます。"
 
