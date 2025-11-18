@@ -46,7 +46,6 @@ concurrency:
 
 permissions:
   contents: write
-  actions: write
   checks: write
 
 jobs:
