@@ -410,7 +410,13 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
         }
     }
 
-    wxPostEvent(this, wxTimerEvent());
+    {
+        wxGetApp().reset_to_active();
+        wxCommandEvent user_event(EVT_UPDATE_USER_MACHINE_LIST);
+        user_event.SetEventObject(this);
+        wxPostEvent(this, user_event);
+    }
+
     PopupWindow::Popup();
 }
 
@@ -959,7 +965,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
 
     if (m_valid_type == Valid && new_dev_name.length() > 32)
     {
-        info_line    = _L("The name is not allowed to exceeds 32 characters.");
+        info_line    = _L("The name is not allowed to exceed 32 characters.");
         m_valid_type = NoValid;
     }
 
