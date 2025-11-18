@@ -4120,6 +4120,7 @@ struct Plater::priv
     bool m_ignore_event{false};
     bool m_slice_all{false};
     bool m_is_slicing {false};
+    bool auto_reslice_pending {false};
     bool m_is_publishing {false};
     int m_is_RightClickInLeftUI{-1};
     int m_cur_slice_plate;
@@ -4373,6 +4374,7 @@ struct Plater::priv
     std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info();
     void update_print_volume_state();
     void schedule_background_process();
+    void schedule_auto_reslice_if_needed();
     // Update background processing thread from the current config and Model.
     enum UpdateBackgroundProcessReturnState {
         // update_background_process() reports, that the Print / SLAPrint was updated in a way,
@@ -7299,6 +7301,47 @@ void Plater::priv::schedule_background_process()
     this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
     // Notify the Canvas3D that something has changed, so it may invalidate some of the layer editing stuff.
     this->view3D->get_canvas3d()->set_config(this->config);
+}
+
+void Plater::priv::schedule_auto_reslice_if_needed()
+{
+    AppConfig* cfg = wxGetApp().app_config;
+    if (cfg == nullptr || !cfg->get_bool("auto_slice_after_change"))
+        return;
+
+    if (auto_reslice_pending)
+        return;
+
+    if (model.objects.empty())
+        return;
+
+    if (background_process.running() || m_is_slicing)
+        return;
+
+    PartPlate* plate = partplate_list.get_curr_plate();
+    if (plate == nullptr || !plate->has_printable_instances())
+        return;
+
+    auto_reslice_pending = true;
+    wxGetApp().CallAfter([this]() {
+        this->auto_reslice_pending = false;
+
+        AppConfig* cfg_call = wxGetApp().app_config;
+        if (cfg_call == nullptr || !cfg_call->get_bool("auto_slice_after_change"))
+            return;
+
+        if (this->model.objects.empty())
+            return;
+
+        if (this->background_process.running() || this->m_is_slicing)
+            return;
+
+        PartPlate* plate_call = this->partplate_list.get_curr_plate();
+        if (plate_call == nullptr || !plate_call->has_printable_instances())
+            return;
+
+        this->q->reslice();
+    });
 }
 
 std::vector<std::vector<DynamicPrintConfig>> Plater::priv::get_extruder_filament_info()
@@ -15927,6 +15970,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     if (p->main_frame->is_loaded()) {
         this->p->schedule_background_process();
         update_title_dirty_status();
+        p->schedule_auto_reslice_if_needed();
     }
 }
 
