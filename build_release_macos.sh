@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-while getopts ":dpa:snt:xbc:h" opt; do
+while getopts ":dpa:snt:xbc:1h" opt; do
   case "${opt}" in
     d )
         export BUILD_TARGET="deps"
@@ -24,7 +24,7 @@ while getopts ":dpa:snt:xbc:h" opt; do
         export OSX_DEPLOYMENT_TARGET="$OPTARG"
         ;;
     x )
-        export SLICER_CMAKE_GENERATOR="Ninja"
+        export SLICER_CMAKE_GENERATOR="Ninja Multi-Config"
         export SLICER_BUILD_TARGET="all"
         export DEPS_CMAKE_GENERATOR="Ninja"
         ;;
@@ -43,7 +43,7 @@ while getopts ":dpa:snt:xbc:h" opt; do
         echo "   -s: Build slicer only"
         echo "   -n: Nightly build"
         echo "   -t: Specify minimum version of the target platform, default is 11.3"
-        echo "   -x: Use Ninja CMake generator, default is Xcode"
+        echo "   -x: Use Ninja Multi-Config CMake generator, default is Xcode"
         echo "   -b: Build without reconfiguring CMake"
         echo "   -c: Set CMake build configuration, default is Release"
         echo "   -1: Use single job for building"
@@ -109,15 +109,9 @@ echo
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_BUILD_DIR="$PROJECT_DIR/build/$ARCH"
 DEPS_DIR="$PROJECT_DIR/deps"
-DEPS_BUILD_DIR="$DEPS_DIR/build/$ARCH"
-DEPS="$DEPS_BUILD_DIR/OrcaSlicer_deps"
 
-# Fix for Multi-config generators
-if [ "$SLICER_CMAKE_GENERATOR" == "Xcode" ]; then
-    export BUILD_DIR_CONFIG_SUBDIR="/$BUILD_CONFIG"
-else
-    export BUILD_DIR_CONFIG_SUBDIR=""
-fi
+# For Multi-config generators like Ninja and Xcode
+export BUILD_DIR_CONFIG_SUBDIR="/$BUILD_CONFIG"
 
 function build_deps() {
     # iterate over two architectures: x86_64 and arm64
@@ -137,8 +131,6 @@ function build_deps() {
                 if [ "1." != "$BUILD_ONLY". ]; then
                     cmake "${DEPS_DIR}" \
                         -G "${DEPS_CMAKE_GENERATOR}" \
-                        -DDESTDIR="$DEPS" \
-                        -DOPENSSL_ARCH="darwin64-${_ARCH}-cc" \
                         -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
                         -DCMAKE_OSX_ARCHITECTURES:STRING="${_ARCH}" \
                         -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
@@ -176,13 +168,9 @@ function build_slicer() {
             if [ "1." != "$BUILD_ONLY". ]; then
                 cmake "${PROJECT_DIR}" \
                     -G "${SLICER_CMAKE_GENERATOR}" \
-                    -DBBL_RELEASE_TO_PUBLIC=1 \
-                    -DCMAKE_PREFIX_PATH="$DEPS/usr/local" \
-                    -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" \
+                    -DORCA_TOOLS=ON \
+                    ${ORCA_UPDATER_SIG_KEY:+-DORCA_UPDATER_SIG_KEY="$ORCA_UPDATER_SIG_KEY"} \
                     -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
-                    -DCMAKE_MACOSX_RPATH=ON \
-                    -DCMAKE_INSTALL_RPATH="${DEPS}/usr/local" \
-                    -DCMAKE_MACOSX_BUNDLE=ON \
                     -DCMAKE_OSX_ARCHITECTURES="${_ARCH}" \
                     -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
             fi
@@ -192,7 +180,7 @@ function build_slicer() {
         echo "Verify localization with gettext..."
         (
             cd "$PROJECT_DIR"
-            ./run_gettext.sh
+            ./scripts/run_gettext.sh
         )
 
         echo "Fix macOS app package..."
@@ -210,6 +198,15 @@ function build_slicer() {
             cp -R "$resources_path" ./OrcaSlicer.app/Contents/Resources
             # delete .DS_Store file
             find ./OrcaSlicer.app/ -name '.DS_Store' -delete
+            
+            # Copy OrcaSlicer_profile_validator.app if it exists
+            if [ -f "../src$BUILD_DIR_CONFIG_SUBDIR/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
+                echo "Copying OrcaSlicer_profile_validator.app..."
+                rm -rf ./OrcaSlicer_profile_validator.app
+                cp -pR "../src$BUILD_DIR_CONFIG_SUBDIR/OrcaSlicer_profile_validator.app" ./OrcaSlicer_profile_validator.app
+                # delete .DS_Store file
+                find ./OrcaSlicer_profile_validator.app/ -name '.DS_Store' -delete
+            fi
         )
 
         # extract version
@@ -250,6 +247,26 @@ function build_universal() {
         -output "$UNIVERSAL_APP/$BINARY_PATH"
         
     echo "Universal binary created at $UNIVERSAL_APP"
+    
+    # Create universal binary for profile validator if it exists
+    if [ -f "$PROJECT_DIR/build/arm64/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ] && \
+       [ -f "$PROJECT_DIR/build/x86_64/OrcaSlicer/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
+        echo "Creating universal binary for OrcaSlicer_profile_validator..."
+        UNIVERSAL_VALIDATOR_APP="$PROJECT_BUILD_DIR/OrcaSlicer/OrcaSlicer_profile_validator.app"
+        rm -rf "$UNIVERSAL_VALIDATOR_APP"
+        cp -R "$PROJECT_DIR/build/arm64/OrcaSlicer/OrcaSlicer_profile_validator.app" "$UNIVERSAL_VALIDATOR_APP"
+        
+        # Get the binary path inside the profile validator .app bundle
+        VALIDATOR_BINARY_PATH="Contents/MacOS/OrcaSlicer_profile_validator"
+        
+        # Create universal binary using lipo
+        lipo -create \
+            "$PROJECT_DIR/build/x86_64/OrcaSlicer/OrcaSlicer_profile_validator.app/$VALIDATOR_BINARY_PATH" \
+            "$PROJECT_DIR/build/arm64/OrcaSlicer/OrcaSlicer_profile_validator.app/$VALIDATOR_BINARY_PATH" \
+            -output "$UNIVERSAL_VALIDATOR_APP/$VALIDATOR_BINARY_PATH"
+            
+        echo "Universal binary for OrcaSlicer_profile_validator created at $UNIVERSAL_VALIDATOR_APP"
+    fi
 }
 
 case "${BUILD_TARGET}" in

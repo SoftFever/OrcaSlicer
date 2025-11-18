@@ -1,17 +1,18 @@
 # How to Contribute to the Wiki
 
-This guide explains how to contribute to the Orca Slicer wiki.
+This guide explains how to contribute to the OrcaSlicer wiki.
 
-Orca Slicer uses GitHub's wiki feature, which allows users and developers to create and edit documentation collaboratively.
+OrcaSlicer uses GitHub's wiki feature, which lets users and developers create and edit documentation collaboratively.
 
-We encourage all developers and users to contribute to the wiki by updating existing pages and adding new content. This helps keep the documentation up-to-date and useful for everyone.
+We encourage developers and users to contribute by updating existing pages and adding new content. This helps keep the documentation accurate and useful.
 
-When developing new features, please consider updating the wiki to reflect these changes. This ensures that users have access to the latest information and can make the most of the features.
+When adding new features, consider updating the wiki so users can access the latest guidance.
 
 - [Wiki Structure](#wiki-structure)
   - [Home](#home)
     - [Index and Navigation](#index-and-navigation)
   - [File Naming and Organization](#file-naming-and-organization)
+- [Orca to Wiki Redirection](#orca-to-wiki-redirection)
 - [Formatting and Style](#formatting-and-style)
   - [Markdown Formatting](#markdown-formatting)
   - [Alerts and Callouts](#alerts-and-callouts)
@@ -30,30 +31,35 @@ When developing new features, please consider updating the wiki to reflect these
 
 ## Wiki Structure
 
-Each wiki page is a Markdown file located in the `doc` directory of the repository. The wiki is organized into various sections, each covering different areas of the project.
+Each wiki page is a Markdown file located in the `doc` directory of the repository. The wiki is organized into sections that cover different areas of the project.
 
 ### Home
 
-The starting point of the Orca Slicer wiki is the **Home** page. From there, you can navigate to different sections and topics related to the project.
+The Home page is the starting point for the OrcaSlicer wiki. From there you can navigate to sections and topics related to the project.
 
-When creating a new page or section, be sure to link it from the Home page under the appropriate category.
+When you create a new page or section, link it from the Home page under the appropriate category.  
+The Home page currently organizes content in these top-level entries:
 
-- **Print Settings:** Detailed explanations of print settings, tips, and tricks for optimizing print quality.
-- **Printer Calibration:** Step-by-step calibration tests in Orca Slicer, including how to interpret the results.
-- **Developer Section:** Information for developers and contributors on building Orca Slicer, localization, and developer resources.
+- ![printer](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/resources/images/printer.svg?raw=true) [Printer Settings](home#printer-settings)
+- ![filament](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/resources/images/filament.svg?raw=true) [Material Settings](home#material-settings)
+- ![process](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/resources/images/process.svg?raw=true) [Process Settings](home#process-settings)
+- ![tab_3d_active](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/resources/images/tab_3d_active.svg?raw=true) [Prepare](home#prepare)
+- ![tab_calibration_active](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/resources/images/tab_calibration_active.svg?raw=true) [Calibrations](home#calibrations)
+- ![im_code](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/resources/images/im_code.svg?raw=true) [Developer Section](home#developer-section)
+
+Each section can have multiple pages covering specific topics. For example, the [Process Settings](home#process-settings) section includes pages on [quality](home#quality-settings), [support](home#support-settings), and [others](home#others-settings).
 
 #### Index and Navigation
 
-Github Wiki uses the name of the files as identifiers for the pages. To link to a page, use the file name without the `.md` extension.
-If the file is inside a subdirectory, dont include the subdirectory in the link. Instead, link directly to the file from the Home page.
+GitHub Wiki uses file names as page identifiers. To link to a page, use the file name without the `.md` extension. If a file lives in a subdirectory, **do not include the subdirectory** in the link; link directly to the file name from the Home page.
 
-For example, if you create a new page `doc/calibration/flow-rate-calib.md`, link it as follows:
+For example, if you add `doc/calibration/flow-rate-calib.md`, link it like this:
 
 ```markdown
-[Calibration Guide](Calibration)
+[Flow Rate Calibration](flow-rate-calib)
 ```
 
-For pages with extensive content, it's helpful to include a table of contents at the beginning. This allows users to quickly find and access different sections of the page.
+For long pages, include a table of contents at the top to help readers find sections quickly.
 
 ```markdown
 - [Wiki Structure](#wiki-structure)
@@ -64,21 +70,41 @@ For pages with extensive content, it's helpful to include a table of contents at
 ```
 
 > [!NOTE]
-> If you're adding a new section, follow the existing structure and ensure it doesn't already fit within an existing category. Link it from the Home page accordingly.
+> If you're adding a new section, follow the existing structure and make sure it doesn't already fit an existing category. Link it from the Home page accordingly.
 
 ### File Naming and Organization
 
-When creating new pages, follow these file naming conventions:
+When creating new pages, follow these file-naming conventions:
 
 - Use unique file names to avoid conflicts.
 - Use descriptive names that reflect the page's content.
-- Use kebab-case for filenames (e.g., `How-to-wiki.md`).
-- If the page belongs to a specific section, include the section name in the file name. For example, calibration pages should end with `-calib.md` (e.g., `flow-rate-calib.md`, `pressure-advance-calib.md`).
-- Place files in the appropriate subdirectory when applicable (e.g., `doc/calibration/` for calibration-related content).
+- Use kebab-case for filenames (e.g.: `How-to-wiki.md`).
+- If a page belongs to a section, include a suffix that clarifies it (for example, calibration pages should end with `-calib.md`, e.g. `flow-rate-calib.md`).
+- Place files in the appropriate subdirectory when applicable (e.g.: `doc/calibration/` for calibration-related content).
+
+## Orca to Wiki Redirection
+
+OrcaSlicer can redirect users from the GUI to the appropriate wiki pages, making it easier to find relevant documentation.
+
+The option-to-wiki mapping is defined in [src/slic3r/GUI/Tab.cpp](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/src/slic3r/GUI/Tab.cpp). Any option added with `append_single_option_line` can be mapped to a wiki page using a second string argument.
+
+```cpp
+optgroup->append_single_option_line("OPTION_NAME"); // Option without wiki page/redirection
+optgroup->append_single_option_line("OPTION_NAME", "WIKI_PAGE"); // Option with wiki page and redirection
+```
+
+You can also point to a specific section within a wiki page by appending a fragment identifier (for example `#section-name`).
+
+Example:
+
+```cpp
+optgroup->append_single_option_line("seam_gap","quality_settings_seam"); // Wiki page and redirection
+optgroup->append_single_option_line("seam_slope_type", "quality_settings_seam#scarf-joint-seam"); // Wiki page and redirection to `Scarf Joint Seam` section
+```
 
 ## Formatting and Style
 
-Please adhere to the following style and formatting conventions when contributing to the wiki.
+Follow these style and formatting conventions when contributing to the wiki.
 
 ### Markdown Formatting
 
@@ -90,41 +116,27 @@ Refer to the [GitHub Markdown Guide](https://guides.github.com/features/masterin
 
 ### Alerts and Callouts
 
-To add alerts or notes, use GitHub’s Markdown alert syntax:
+Use GitHub's alert syntax to add inline notes and warnings:
 
 ```markdown
 > [!NOTE]
-> Useful information that users should know, even when skimming content.
+> Useful information that readers should know.
 
 > [!TIP]
-> Helpful advice for doing things better or more easily.
+> Helpful advice for doing things more easily.
 
 > [!IMPORTANT]
-> Key information users need to know to achieve their goal.
+> Key information required to achieve a goal.
 
 > [!WARNING]
-> Urgent info that needs immediate user attention to avoid problems.
+> Urgent information to avoid problems.
 
 > [!CAUTION]
-> Advises about risks or negative outcomes of certain actions.
+> Warnings about risks or negative outcomes.
 ```
 
 > [!NOTE]
-> Useful information that users should know, even when skimming content.
-
-> [!TIP]
-> Helpful advice for doing things better or more easily.
-
-> [!IMPORTANT]
-> Key information users need to know to achieve their goal.
-
-> [!WARNING]
-> Urgent info that needs immediate user attention to avoid problems.
-
-> [!CAUTION]
-> Advises about risks or negative outcomes of certain actions.
-
-Refer to the [GitHub Alert Guide](https://docs.github.com/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts) for more details.
+> Refer to the [GitHub Alerts documentation](https://docs.github.com/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts) for more details.
 
 ## Images
 
@@ -136,23 +148,26 @@ Images are encouraged to enhance the clarity and quality of the wiki content. Th
 ### Image Naming
 
 - Use clear, descriptive filenames that reflect the image content.
-- For section-specific images, include the section name or initials. For example, images related to Pressure Advance could be named `pa-[description].png`.
+- For section-specific images, include the section name or initials (for example `pa-[description].png` for Pressure Advance images).
 
 ### Image Placement
 
 - General images should be placed in the `doc/images/` directory.
 - Section-specific images should be stored in their corresponding subdirectories (e.g., `doc/images/calibration/` for calibration content).
 
+> [!TIP]
+> You can use `\resources\images` images used in the GUI.
+
 ### Linking Images
 
 Always use raw GitHub URLs for image links to ensure correct display:
 
-Format = `![[filename]](` + Base URL + filename.extension + Raw tag + `)`
+Format = `![`filename`](` + Base URL + filename.extension + Raw tag + `)`
 
 - Base URL:
 
   ```markdown
-  https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/
+  https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/
   ```
 
 - Raw tag:
@@ -163,27 +178,26 @@ Format = `![[filename]](` + Base URL + filename.extension + Raw tag + `)`
 
 #### Examples
 
-- For an image in `doc/images/` named `example.png`:
+- For an image in `doc/images/` named `calibration.png`:
 
   ```markdown
-  ![example](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/example.png?raw=true)
+  ![calibration](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/calibration.png?raw=true)
   ```
 
-- For an image in a subdirectory like `doc/images/calibration/pa-example.svg`:
+- For an image in a subdirectory like `doc/images/GUI/combobox.png`:
 
   ```markdown
-  ![pa-example](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/calibration/pa-example.svg?raw=true)
+  ![combobox](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/GUI/combobox.png?raw=true)
   ```
 
 > [!IMPORTANT]
-> New or Moved Images will not appear in the preview until the Pull Request is merged. Double-check your paths.  
-> If you are changing an image path, ensure all links to that image are updated accordingly.
+> New or moved images may not appear in previews until the pull request is merged. Double-check paths and update links if you move files.
 
 #### Avoid the Following
 
 - Relative paths
-- GitHub Assets, user content, or user-images URLs
-- External image links from unreliable or temporary platforms
+- GitHub Assets/user-content/user-images URLs
+- External image links from temporary or unreliable hosts
 - Images containing personal or sensitive information
 - Using images for content that can be expressed in text, such as equations or code—use Markdown syntax or Mermaid/Math formatting instead.
 
@@ -196,11 +210,11 @@ Avoid the resize of images and let the Wiki handle it automatically.
 
 If resizing is necessary (e.g., for thumbnails), use the following syntax:
 
-HTML Format = `<img src="` + Base URL + filename.extension + Raw tag + `" alt="` + filename + `"` + size limit.
+HTML Format = `<img alt="` + filename + `"` + `src="` + Base URL + filename.extension + Raw tag + size limit.
 Example:
 
 ```html
-   <img src="https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_marlin_print_measure.jpg?raw=true" alt="Input_Shaping" height="200">
+<img alt="IS_damp_marlin_print_measure" src="https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/InputShaping/IS_damp_marlin_print_measure.jpg?raw=true" height="200">
 ```
 
 ### Image Cropping and Highlighting
@@ -208,7 +222,7 @@ Example:
 To ensure clarity:
 
 - Crop images to focus on relevant areas.
-- Use annotations like arrows or shapes (circles, rectangles) to highlight key parts—but avoid overloading the image.
+- Use simple annotations (arrows, circles, rectangles) to highlight important parts without overloading the image.
 
 ### Recommended Formats
 
@@ -218,11 +232,12 @@ To ensure clarity:
 
 ## Structuring Content
 
-Each wiki page should have a clear objective, which helps determine the structure of the content. After a brief introduction, use one of the following formats:
+Each page should have a clear objective. After a short introduction, choose a structure that fits the content:
 
-- **Step-by-Step Guide:** Organize content into sections and subsections for tasks requiring sequential actions (e.g., calibration procedures).
-- **GUI-Based Reference:** If sequence isn’t crucial, structure the content following Orca Slicer’s GUI. This format works well for configurable settings or feature overviews.
-  - Example: Explain **Layer Height** before **Initial Layer Height**, as the former applies globally while the latter is specific to the first layer.
+- **Step-by-step guides:** Use for sequential procedures (for example calibration).
+- **GUI-based reference:** Describe settings following OrcaSlicer's UI when sequence isn't required.
+
+Example: explain **Layer Height** before **Initial Layer Height**, since the former is global and the latter only applies to the first layer.
 
 ## Commands and Code Blocks
 
@@ -247,5 +262,5 @@ When adding commands or code blocks please use the [Code Block with Syntax Highl
 
 ## External Links
 
-Be careful when linking to external resources. Ensure that the links are relevant and reliable.
-Papers, articles, and other resources should be cited properly.
+Be careful when linking to external resources.  
+Ensure links are relevant and reliable and cite papers or articles when appropriate.
