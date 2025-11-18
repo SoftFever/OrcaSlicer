@@ -61,7 +61,7 @@ bool MultiMachinePage::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(2000);
-        wxPostEvent(this, wxTimerEvent());
+        wxPostEvent(this, wxCommandEvent(wxEVT_TIMER));
     }
     else {
         m_refresh_timer->Stop();
