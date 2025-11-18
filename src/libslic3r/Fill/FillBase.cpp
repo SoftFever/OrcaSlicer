@@ -2838,7 +2838,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
                     continue;
 
                 // Single offset call per polyline
-                Polygons offset_polygons = offset(pl, offset_distance, jtRound, DefaultLineMiterLimit, ClipperLib::etOpenRound);
+                Polygons offset_polygons = offset(pl, offset_distance, jtMiter, DefaultLineMiterLimit, ClipperLib::etOpenRound);
 
                 // Add to collection for this offset level
                 all_offset_polygons.insert(all_offset_polygons.end(), offset_polygons.begin(), offset_polygons.end());
@@ -2850,11 +2850,17 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
 
                 // Convert merged polygons to polylines
                 for (const Polygon& poly : merged_polygons) {
-                    if (poly.points.size() < 2)
+                    if (poly.points.size() < 3)
                         continue;
 
                     Polyline new_pl;
                     new_pl.points = poly.points;
+
+                    // Close open polylines
+                    if (new_pl.points.front() != new_pl.points.back()) {
+                        new_pl.points.push_back(new_pl.points.front());
+                    }
+
                     all_polylines.emplace_back(std::move(new_pl));
                 }
             }
