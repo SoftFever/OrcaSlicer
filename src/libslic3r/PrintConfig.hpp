@@ -1157,6 +1157,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Orca: flow ratios
     ((ConfigOptionBool,                 set_other_flow_ratios))
     ((ConfigOptionFloat,                first_layer_flow_ratio))
+    ((ConfigOptionPercent,              external_perimeter_cut_corners))
     ((ConfigOptionFloat,                outer_wall_flow_ratio))
     ((ConfigOptionFloat,                inner_wall_flow_ratio))
     ((ConfigOptionFloat,                overhang_flow_ratio))

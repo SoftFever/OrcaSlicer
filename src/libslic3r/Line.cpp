@@ -125,6 +125,19 @@ void Line::extend(double offset)
     this->b += offset_vector;
 }
 
+Point Line::point_at(double distance) const
+{
+    Point  point = this->a;
+    const double len = this->length();
+    if (len == 0.0)
+        return point;
+    if (this->a.x() != this->b.x())
+        point.x() = coord_t(this->a.x() + (this->b.x() - this->a.x()) * distance / len);
+    if (this->a.y() != this->b.y())
+        point.y() = coord_t(this->a.y() + (this->b.y() - this->a.y()) * distance / len);
+    return point;
+}
+
 Vec3d Linef3::intersect_plane(double z) const
 {
     Vec3d  v = (this->b - this->a).cast<double>();
