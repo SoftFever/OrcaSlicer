@@ -120,6 +120,7 @@ class SidebarProps
 public:
     static int TitlebarMargin();
     static int ContentMargin();
+    static int ContentMarginV();
     static int IconSpacing();
     static int ElementSpacing();
 };
