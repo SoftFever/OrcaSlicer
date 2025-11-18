@@ -1889,15 +1889,7 @@ Sidebar::Sidebar(Plater *parent)
                 p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
                 p->big_bed_image_popup->set_title(p->combo_printer_bed->GetString(p->combo_printer_bed->GetSelection()));
             }
-            e.Skip(); // fix bug:Event spreads to sidebar
         });
-
-        p->combo_printer_bed->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) {
-            if (p->big_bed_image_popup) {
-                p->big_bed_image_popup->on_hide();
-            }
-        });
-        p->image_printer_bed->Bind(wxEVT_ENTER_WINDOW, &Sidebar::on_enter_image_printer_bed, this);
 
         // ORCA paint whole combobox on focus
         auto bed_focus_bg = [this, panel_bd_col](bool focused){
@@ -1916,15 +1908,19 @@ Sidebar::Sidebar(Plater *parent)
 
         // highlight border on hover
         for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_printer_bed, p->image_printer_bed, p->combo_printer_bed}) {
-            w->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+            w->Bind(wxEVT_ENTER_WINDOW, [this, w](wxMouseEvent &e) {
                 if(!p->combo_printer_bed->HasFocus())
                     p->panel_printer_bed->SetBorderColor(wxColour("#009688"));
+                if(w == p->image_printer_bed && !p->combo_printer_bed->is_drop_down()) // dont trigger while combo open
+                    on_enter_image_printer_bed(e);
                 e.Skip();
             });
-            w->Bind(wxEVT_LEAVE_WINDOW, [this, panel_bd_col](wxMouseEvent &e) {
+            w->Bind(wxEVT_LEAVE_WINDOW, [this, w, panel_bd_col](wxMouseEvent &e) {
                 wxWindow* next_w = wxFindWindowAtPoint(wxGetMousePosition());
                 if (!p->combo_printer_bed->HasFocus() && (!next_w || !p->panel_printer_bed->IsDescendant(next_w)))
                     p->panel_printer_bed->SetBorderColor(panel_bd_col);
+                if(w == p->image_printer_bed)
+                    on_leave_image_printer_bed(e);
                 e.Skip();
             });
         }
@@ -2274,7 +2270,7 @@ Sidebar::Sidebar(Plater *parent)
 Sidebar::~Sidebar() {}
 
 void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
-    p->image_printer_bed->Bind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
+    //p->image_printer_bed->Bind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
     auto    pos  = p->panel_printer_bed->GetScreenPosition();
     auto    rect = p->panel_printer_bed->GetRect();
     wxPoint temp_pos(pos.x + rect.GetWidth() +  FromDIP(3), pos.y);
@@ -2290,11 +2286,14 @@ void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
 }
 
 void Sidebar::on_leave_image_printer_bed(wxMouseEvent &evt) {
-    auto pos_x = evt.GetX();
-    auto pos_y = evt.GetY();
-    auto rect  = p->image_printer_bed->GetRect();
-    if ((pos_x <= 0 || pos_y <= 0 || pos_x >= rect.GetWidth()) && p->big_bed_image_popup) {
+    //auto pos_x = evt.GetX();
+    //auto pos_y = evt.GetY();
+    //auto rect  = p->image_printer_bed->GetRect();
+    //if ((pos_x <= 0 || pos_y <= 0 || pos_x >= rect.GetWidth()) && p->big_bed_image_popup) {
+    if (p->big_bed_image_popup) {
         p->big_bed_image_popup->on_hide();
+        if(!p->combo_printer_bed->is_drop_down())
+            p->combo_printer_bed->SetFocus();     // set focus back to bed type combo. this prevents weird look if focus on other item
     }
 }
 void Sidebar::on_change_color_mode(bool is_dark) {
