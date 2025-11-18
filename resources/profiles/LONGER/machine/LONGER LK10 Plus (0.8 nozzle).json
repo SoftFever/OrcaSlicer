@@ -20,6 +20,5 @@
   "gcode_flavor": "klipper",
   "default_filament_profile": ["Generic PLA @System"],
   "thumbnails": ["300x300"],
-  "thumbnails_format": "PNG",
-  "machine_start_gcode": "G90\nM83\nM140 S[bed_temperature_initial_layer_single]\nBED_MESH_CLEAR\nPROBE_EDDY_SINGLE_HOME\nG1 Z5 F10000\nG1 X161 Y-5 F15000\nM104 S170\nM190 S[bed_temperature_initial_layer_single]\nM109 S170\nG92 E0.0\nG1 Z5 F1200\n; 磨嘴中心点：X160 Y-5（位于0~-7区间内）\nG1 X161 Y-5 F15000  ; 圆弧起点（中心点X160+1，Y-5）\nG1 Z0.2 F1200\nG1 Z-1.11 F300\n; 磨嘴圆弧路径（半径保持不变）\nG2 X159 Y-5 I-1 J0 F400\nG3 X160.75 Y-5 I0.75 J0 F400\nG2 X159 Y-5 I-1 J0 F400\nG3 X160.75 Y-5 I0.75 J0 F400\nG2 X159 Y-5 I-1 J0 F400\nG3 X160.75 Y-5 I0.75 J0 F400\nG2 X159 Y-5 I-1 J0 F400\nG3 X160.75 Y-5 I0.75 J0 F400\nG1 Z5 F1200\nG28 Z\nG1 Z3 F1200\n; 划线区间：X110~210，Y0~-7（选用-1~-5之间的安全区域）\nG1 Y-5 F8000  ; 起始Y位置（远离-7边缘）\nM109 S[nozzle_temperature_initial_layer]\nBED_MESH_PROFILE LOAD=default\nG1 Y-5.0 Z0.3 F{travel_speed*60}\nG92 E0.0\nG1 X210.0 E19 F1000  ; X从110到210\nG1 Y-5.6  ; Y偏移（仍在0~-7内）\nG1 X110.0 E19 F1000   ; X从210回110\nG92 E0.0\nG1 Y-7.0 Z0.2 F1000  ; Y继续偏移（安全区间内）\nG1 X135.0 E9.0 F1000  ; X在110~210内\nG1 X185.0 E12.5 F1000 ; X在110~210内\nG92 E0.0\n; filament start gcode"
+  "thumbnails_format": "PNG"
 }
