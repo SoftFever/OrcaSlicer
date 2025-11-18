@@ -245,12 +245,12 @@ void Plater::show_illegal_characters_warning(wxWindow* parent)
 }
 
 static std::map<BedType, std::string> bed_type_thumbnails = {
-    {BedType::btPC,        "bed_plate_cool_smooth"     }, //"bed_cool"},
-    {BedType::btEP,        "bed_plate_engineering"     }, //"bed_engineering"},
-    {BedType::btPEI,       "bed_plate_high_temp_smooth"}, //"bed_high_templ"},
-    {BedType::btPTE,       "bed_plate_pei"             }, //"bed_pei"},
-    {BedType::btPCT,       "bed_plate_cool_textured"   }, //"bed_pei"}, // TODO: Orca hack
-    {BedType::btSuperTack, "bed_plate_cool_supertack"  }  //"bed_cool_supertack"}
+    {BedType::btPC,        "bed_cool"           },
+    {BedType::btEP,        "bed_engineering"    },
+    {BedType::btPEI,       "bed_high_templ"     },
+    {BedType::btPTE,       "bed_pei"            },
+    {BedType::btPCT,       "bed_pei_cool"       },
+    {BedType::btSuperTack, "bed_cool_supertack" }
 };
 
 // print_model_id
@@ -1750,8 +1750,7 @@ Sidebar::Sidebar(Plater *parent)
                 dlg.ShowModal();
             });
         */
-        {
-        // ORCA use Show/Hide to gain text area instead using blank icon
+        // ORCA use Show/Hide to gain text area instead using blank icon. also manages hover effect for border
         for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_printer_preset, p->btn_edit_printer, p->image_printer, p->combo_printer}) {
             w->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
                 if(!p->combo_printer->HasFocus())
@@ -1764,7 +1763,7 @@ Sidebar::Sidebar(Plater *parent)
             });
             w->Bind(wxEVT_LEAVE_WINDOW, [this, panel_bd_col](wxMouseEvent &e) {
                 wxWindow* next_w = wxFindWindowAtPoint(wxGetMousePosition());
-                if (!next_w || (next_w != p->panel_printer_preset && next_w != p->btn_edit_printer && next_w != p->image_printer && next_w != p->combo_printer)){
+                if (!next_w || !p->panel_printer_preset->IsDescendant(next_w)){
                     if(!p->combo_printer->HasFocus())
                         p->panel_printer_preset->SetBorderColor(panel_bd_col);
                     p->btn_edit_printer->Hide();
@@ -1772,7 +1771,6 @@ Sidebar::Sidebar(Plater *parent)
                 }
                 e.Skip();
             });
-        }
         }
 
         // ORCA unified Nozzle diameter selection
@@ -1828,6 +1826,22 @@ Sidebar::Sidebar(Plater *parent)
             p->combo_nozzle_dia->wxEvtHandler::ProcessEvent(evt);
         });
 
+        // highlight border on hover
+        for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_nozzle_dia, p->label_nozzle_title, p->label_nozzle_type, p->combo_nozzle_dia}) {
+            w->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+                if(!p->combo_nozzle_dia->HasFocus())
+                    p->panel_nozzle_dia->SetBorderColor(wxColour("#009688"));
+                e.Skip();
+            });
+                            
+            w->Bind(wxEVT_LEAVE_WINDOW, [this, panel_bd_col](wxMouseEvent &e) {
+                wxWindow* next_w = wxFindWindowAtPoint(wxGetMousePosition());
+                if (!p->combo_nozzle_dia->HasFocus() && (!next_w || !p->panel_nozzle_dia->IsDescendant(next_w)))
+                    p->panel_nozzle_dia->SetBorderColor(panel_bd_col);
+                e.Skip();
+            });
+        }
+
         wxGridSizer *nozzle_dia_sizer = new wxGridSizer(3, 1, FromDIP(2), 0);
         nozzle_dia_sizer->Add(p->label_nozzle_title, 0, wxALIGN_CENTER | wxTOP, FromDIP(4));
         nozzle_dia_sizer->Add(p->combo_nozzle_dia  , 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
@@ -1876,6 +1890,7 @@ Sidebar::Sidebar(Plater *parent)
             }
             e.Skip(); // fix bug:Event spreads to sidebar
         });
+
         p->combo_printer_bed->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) {
             if (p->big_bed_image_popup) {
                 p->big_bed_image_popup->on_hide();
@@ -1897,6 +1912,21 @@ Sidebar::Sidebar(Plater *parent)
         };
         p->combo_printer_bed->Bind(wxEVT_SET_FOCUS,  [this, bed_focus_bg](auto& e) {bed_focus_bg(true ); e.Skip();});
         p->combo_printer_bed->Bind(wxEVT_KILL_FOCUS, [this, bed_focus_bg](auto& e) {bed_focus_bg(false); e.Skip();});
+
+        // highlight border on hover
+        for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_printer_bed, p->image_printer_bed, p->combo_printer_bed}) {
+            w->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+                if(!p->combo_printer_bed->HasFocus())
+                    p->panel_printer_bed->SetBorderColor(wxColour("#009688"));
+                e.Skip();
+            });
+            w->Bind(wxEVT_LEAVE_WINDOW, [this, panel_bd_col](wxMouseEvent &e) {
+                wxWindow* next_w = wxFindWindowAtPoint(wxGetMousePosition());
+                if (!p->combo_printer_bed->HasFocus() && (!next_w || !p->panel_printer_bed->IsDescendant(next_w)))
+                    p->panel_printer_bed->SetBorderColor(panel_bd_col);
+                e.Skip();
+            });
+        }
 
         wxBoxSizer *bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
         bed_type_sizer->Add(p->combo_printer_bed, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
