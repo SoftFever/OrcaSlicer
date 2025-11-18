@@ -1227,6 +1227,12 @@ void PreferencesDialog::create_items()
     auto item_multi_machine    = create_item_checkbox(_L("Multi device management"), _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
     g_sizer->Add(item_multi_machine);
 
+    auto item_auto_reslice = create_item_checkbox(
+        _L("Auto slice after changes"),
+        _L("If enabled, OrcaSlicer will re-slice automatically whenever slicing-related settings change."),
+        "auto_slice_after_change");
+    g_sizer->Add(item_auto_reslice);
+
 #if 0
     g_sizer->Add(create_item_title(_L("Filament Grouping")), 1, wxEXPAND);
     //temporarily disable it
