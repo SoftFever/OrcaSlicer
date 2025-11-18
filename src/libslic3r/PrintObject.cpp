@@ -511,6 +511,7 @@ void PrintObject::make_perimeters()
         [this](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                 m_print->throw_if_canceled();
+                m_layers[layer_idx]->gridify();
                 m_layers[layer_idx]->make_perimeters();
             }
         }
@@ -1043,7 +1044,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "seam_gap"
             || opt_key == "role_based_wipe_speed"
             || opt_key == "wipe_on_loops"
-            || opt_key == "wipe_speed") {
+            || opt_key == "wipe_speed"
+            || boost::starts_with(opt_key, "gridify_")) {
             steps.emplace_back(posPerimeters);
         } else if (
             opt_key == "small_area_infill_flow_compensation_model") {

@@ -1176,6 +1176,7 @@ void PrintObject::slice_volumes()
     m_print->throw_if_canceled();
 
     this->apply_conical_overhang();
+    m_print->throw_if_canceled();
 
     // Is any ModelVolume multi-material painted?
     if (const auto& volumes = this->model_object()->volumes;

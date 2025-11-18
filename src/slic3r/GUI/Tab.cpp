@@ -2404,6 +2404,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("overhang_reverse_internal_only", "quality_settings_overhangs#reverse-internal-only");
         optgroup->append_single_option_line("overhang_reverse_threshold", "quality_settings_overhangs#reverse-threshold");
 
+        optgroup = page->new_optgroup(L("Gridify Anti-warping"));
+        optgroup->append_single_option_line("gridify_enabled");
+        optgroup->append_single_option_line("gridify_angle");
+        optgroup->append_single_option_line("gridify_gap_width");
+        optgroup->append_single_option_line("gridify_gap_layers");
+        optgroup->append_single_option_line("gridify_grid_width");
+        optgroup->append_single_option_line("gridify_inset");
+
     page = add_options_page(L("Strength"), "custom-gcode_strength"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
     optgroup->append_single_option_line("wall_loops", "strength_settings_walls#wall-loops");

@@ -260,6 +260,8 @@ protected:
     void    simplify_support_multi_path(ExtrusionMultiPath* multipath);
     void    simplify_support_loop(ExtrusionLoop* loop);
 
+    void gridify();
+
 private:
     // Sequential index of layer, 0-based, offsetted by number of raft layers.
     size_t              m_id;
