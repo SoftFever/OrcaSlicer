@@ -4121,6 +4121,7 @@ struct Plater::priv
     bool m_slice_all{false};
     bool m_is_slicing {false};
     bool auto_reslice_pending {false};
+    bool auto_reslice_after_cancel {false};
     bool m_is_publishing {false};
     int m_is_RightClickInLeftUI{-1};
     int m_cur_slice_plate;
@@ -7309,17 +7310,21 @@ void Plater::priv::schedule_auto_reslice_if_needed()
     if (cfg == nullptr || !cfg->get_bool("auto_slice_after_change"))
         return;
 
-    if (auto_reslice_pending)
-        return;
-
     if (model.objects.empty())
-        return;
-
-    if (background_process.running() || m_is_slicing)
         return;
 
     PartPlate* plate = partplate_list.get_curr_plate();
     if (plate == nullptr || !plate->has_printable_instances())
+        return;
+
+    if (background_process.running() || m_is_slicing) {
+        // Remember to restart once the current slice stops and cancel it now.
+        auto_reslice_after_cancel = true;
+        background_process.stop();
+        return;
+    }
+
+    if (auto_reslice_pending)
         return;
 
     auto_reslice_pending = true;
@@ -9474,6 +9479,11 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             }
         }
     }
+    if (auto_reslice_after_cancel) {
+        auto_reslice_after_cancel = false;
+        schedule_auto_reslice_if_needed();
+    }
+
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", exit.");
 }
 
