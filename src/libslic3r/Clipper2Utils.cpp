@@ -20,12 +20,12 @@ Slic3r::Polylines Paths64_to_polylines(const Clipper2Lib::Paths64& in)
 }
 
 //BBS: FIXME
-template <typename T>
-Clipper2Lib::Paths64 Slic3rPoints_to_Paths64(const std::vector<T>& in)
+template <typename Container>
+Clipper2Lib::Paths64 Slic3rPoints_to_Paths64(const Container& in)
 {
     Clipper2Lib::Paths64 out;
     out.reserve(in.size());
-    for (const T item: in) {
+    for (const auto& item : in) {
         Clipper2Lib::Path64 path;
         path.reserve(item.size());
         for (const Slic3r::Point& point : item.points)
