@@ -115,7 +115,7 @@ void AppConfig::set_defaults()
             set_bool("auto_slice_after_change", false);
 
         if (get("auto_slice_change_delay_seconds").empty())
-            set("auto_slice_change_delay_seconds", "0");
+            set("auto_slice_change_delay_seconds", "1");
 
         if (get("drop_project_action").empty())
             set_bool("drop_project_action", true);
