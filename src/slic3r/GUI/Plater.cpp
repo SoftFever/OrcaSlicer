@@ -2094,16 +2094,14 @@ Sidebar::Sidebar(Plater *parent)
 
     //bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
     wxSizer *sizer_filaments2 = new wxBoxSizer(wxVERTICAL);
-    sizer_filaments2->AddSpacer(SidebarProps::ContentMarginV());
     sizer_filaments2->Add(p->sizer_filaments, 0, wxEXPAND, 0);
-    sizer_filaments2->AddSpacer(SidebarProps::ContentMarginV());
     p->m_panel_filament_content->SetSizer(sizer_filaments2);
     p->m_panel_filament_content->Layout();
     auto min_size = sizer_filaments2->GetMinSize();
     if (min_size.y > p->m_panel_filament_content->GetMaxHeight())
         min_size.y = p->m_panel_filament_content->GetMaxHeight();
     p->m_panel_filament_content->SetMinSize(min_size);
-    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxEXPAND, 0);
+    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(SidebarProps::ContentMarginV())); // ORCA use vertical margin on parent otherwise it shows scrollbar even on 1 filament
     }
 
     {
