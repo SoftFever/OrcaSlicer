@@ -7557,16 +7557,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 // Don't convert single options here, implement such conversion in PrintConfigDef::handle_legacy() instead.
 void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
 {
-    if (!config.has("external_perimeter_cut_corners")) {
-        if (const ConfigOptionDef *opt = config.def()->get("external_perimeter_cut_corners")) {
-            if (opt->default_value)
-                config.set_key_value("external_perimeter_cut_corners", opt->default_value->clone());
-            else
-                config.set_key_value("external_perimeter_cut_corners", new ConfigOptionPercent(0));
-        } else {
-            config.set_key_value("external_perimeter_cut_corners", new ConfigOptionPercent(0));
-        }
-    }
 
     if (config.has("thumbnails")) {
         std::string extention;
