@@ -1922,8 +1922,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     def = this->add("external_perimeter_cut_corners", coPercent);
-    def->label = L("Cutting corners");
-    def->full_label = L("Ext. peri. cut corners");
+    def->label = L("External perimeter cut corners (Beta)");
     def->category = L("Quality");
     def->tooltip = L("Activate this option to adapt the flow near sharp outer corners to better match the round nozzle footprint and reduce over-extrusion."
                      " 0% disables the correction, 100% applies the full effect.");
