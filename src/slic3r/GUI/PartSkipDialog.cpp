@@ -69,7 +69,7 @@ PartSkipDialog::PartSkipDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _
     buf << put_time(std::localtime(&t), "%a_%b_%d_%H_%M_%S/");
     m_timestamp = buf.str();
 
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % Slic3r::resources_dir()).str();
     SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
     SetBackgroundColour(*wxWHITE);
 
@@ -110,7 +110,7 @@ PartSkipDialog::PartSkipDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _
     m_zoom_out_btn->SetCornerRadius(0);
     m_zoom_out_btn->SetMinSize(wxSize(FromDIP(56), FromDIP(28)));
 
-    m_percent_label = new Button(m_book_third_panel, _L("100 %"));
+    m_percent_label = new Button(m_book_third_panel, "100%");
     m_percent_label->SetBackgroundColor(percent_bg);
     m_percent_label->SetBorderColor(wxColour(238, 238, 238));
     m_percent_label->SetMinSize(wxSize(FromDIP(56), FromDIP(28)));
@@ -276,7 +276,7 @@ PartSkipDialog::PartSkipDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _
     m_loading_icon = new AnimaIcon(m_book_first_panel, wxID_ANY, list, "refresh_printer", 100);
     m_loading_icon->SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
 
-    m_loading_label = new Label(m_book_first_panel, _L("Loading ..."));
+    m_loading_label = new Label(m_book_first_panel, _L("Loading..."));
     m_loading_label->Wrap(-1);
     m_loading_label->SetBackgroundColour(*wxWHITE);
 
@@ -664,7 +664,7 @@ void PartSkipDialog::UpdatePartsStateFromCanvas(wxCommandEvent &event)
     UpdateDialogUI();
 }
 
-void PartSkipDialog::UpdateZoomPercent() { m_percent_label->SetLabel(wxString::Format(_L("%d%%"), m_zoom_percent)); }
+void PartSkipDialog::UpdateZoomPercent() { m_percent_label->SetLabel(wxString::Format("%d%%", m_zoom_percent)); }
 
 void PartSkipDialog::UpdateCountLabel()
 {
@@ -674,7 +674,7 @@ void PartSkipDialog::UpdateCountLabel()
         if (part_state == PartState::psChecked) check_cnt++;
         if (part_state != PartState::psSkipped) tot_cnt++;
     }
-    m_cnt_label->SetLabel(wxString::Format(_L("%d"), check_cnt));
+    m_cnt_label->SetLabel(wxString::Format("%d", check_cnt));
     m_cnt_label->Fit();
     m_tot_label->SetLabel(wxString::Format(_L("/%d Selected"), tot_cnt));
     m_tot_label->Fit();
@@ -955,7 +955,7 @@ int PartSkipDialog::GetAllSkippedPartsNum()
 
 PartSkipConfirmDialog::PartSkipConfirmDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _L("Skip Objects"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % Slic3r::resources_dir()).str();
     SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
     SetBackgroundColour(*wxWHITE);
     SetMinSize(wxSize(FromDIP(480), FromDIP(215)));
