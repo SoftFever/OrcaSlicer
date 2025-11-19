@@ -2762,6 +2762,8 @@ void Sidebar::msw_rescale()
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
+    set_flushing_volume_warning(is_flush_config_modified()); // ORCA reapply appearance
+
     //BBS
     p->left_extruder->Rescale();
     p->right_extruder->Rescale();
@@ -2842,6 +2844,7 @@ void Sidebar::sys_color_changed()
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
+    set_flushing_volume_warning(is_flush_config_modified()); // ORCA reapply appearance
 
     // BBS
 #if 0
@@ -3558,8 +3561,10 @@ wxButton* Sidebar::get_wiping_dialog_button()
 
 void Sidebar::set_flushing_volume_warning(const bool flushing_volume_modify)
 {
-    if(flushing_volume_modify)
+    if(flushing_volume_modify){
+        p->m_flushing_volume_btn->SetStyle(ButtonStyle::Regular, ButtonType::Compact);
         p->m_flushing_volume_btn->SetBorderColor(wxColour("#FF6F00"));
+    }
     else
         p->m_flushing_volume_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
 }
