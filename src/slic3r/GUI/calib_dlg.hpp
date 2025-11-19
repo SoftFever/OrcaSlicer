@@ -193,6 +193,7 @@ protected:
     virtual void on_start(wxCommandEvent& event);
     virtual void on_changed(wxCommandEvent& event);  
     virtual void on_changed2(wxMouseEvent& event);
+    virtual void on_show(wxShowEvent& event);
     Calib_Params m_params;
 
     RadioGroup*   m_rbModel;
@@ -204,6 +205,8 @@ protected:
     TextInput*    m_tiQuantity;
     CheckBox*     m_cbInterlaced;
     CheckBox*     m_cbUseZHop;
+    CheckBox*     m_cbPrintScale;
+    CheckBox*     m_cbPrintRuler;
     Plater*       m_plater;
 };
 }} // namespace Slic3r::GUI

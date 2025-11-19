@@ -37,8 +37,8 @@ struct Calib_Params
 {
     Calib_Params() : mode(CalibMode::Calib_None){};
     int extruder_id = 0;
-    double    start, end, step;
-    bool      print_numbers, use_zhop, interlaced;
+    double start, end, step;
+    bool print_numbers, print_ruler, use_zhop, interlaced;
     double freqStartX, freqEndX, freqStartY, freqEndY;
     int test_model, model_variant;
     std::string shaper_type;

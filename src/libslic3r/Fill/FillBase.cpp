@@ -172,7 +172,8 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                     break;
                 }
             case CalibMode::Calib_Practical_Flow_Ratio: 
-                eec->no_sort = true;
+                if (layer_id > 3)
+                    eec->no_sort = true;
                 //params.density = 0.5;
             }
         }
@@ -200,17 +201,16 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                 }
                 break;
             case CalibMode::Calib_Practical_Flow_Ratio:
-                eec->reverse();
-                if (layer_id > 3) {
-                    double      _wmin      = this->calib_params->start;
-                    double      _wmax      = this->calib_params->end;
-                    double      _wlen      = _wmax - _wmin;
-                    BoundingBox _bbox      = this->bounding_box;
-                    coord_t     _width     = _bbox.size().x();
-                    coord_t     _semiwidth = _width / 2;
-                    coord_t     _xmin      = _bbox.center().x() - _semiwidth;
-                    coord_t     _xmax      = _bbox.center().x() + _semiwidth;
-
+                const BoundingBox _bbox      = this->bounding_box;
+                const coord_t     _width     = _bbox.size().x();
+                const coord_t     _semiwidth = _width / 2;
+                const coord_t     _xmin      = _bbox.center().x() - _semiwidth;
+                const coord_t     _xmax      = _bbox.center().x() + _semiwidth;
+                const double      _wmin      = this->calib_params->start;
+                const double      _wmax      = this->calib_params->end;
+                const double      _wlen      = _wmax - _wmin;
+                if (layer_id > 3) { // Prepare calibration layers
+                    eec->reverse();
                     for (ExtrusionEntity* e : eec->entities) {
                         ExtrusionPath* _p = static_cast<ExtrusionPath*>(e);
                         coord_t        _x = _p->polyline.points.front().x();
@@ -254,6 +254,7 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
                     eec->entities.clear();
                     for (ExtrusionPath* _p : a)
                         eec->entities.emplace_back(_p);
+                } else { // Additional job at first layer
                 }
             }
         } else {
