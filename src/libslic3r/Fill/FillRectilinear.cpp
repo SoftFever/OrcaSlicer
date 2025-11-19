@@ -3004,7 +3004,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
     if (poly_with_offset_base.n_contours == 0)
         // Not a single infill line fits.
         return true;
-
+    
     Polylines fill_lines;
     coord_t line_width   = coord_t(scale_(this->spacing));
     coord_t line_spacing = coord_t(scale_(this->spacing) * params.multiline / params.density);
@@ -3012,19 +3012,17 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
     for (const SweepParams &sweep : sweep_params) {
         // Rotate polygons so that we can work with vertical lines here
         float angle = rotate_vector.first + sweep.angle_base;
-        //Fill Multiline
-        for (int i = 0; i < params.multiline; ++i) {
-            coord_t group_offset = i * line_spacing;
-            coord_t internal_offset = (i - (params.multiline - 1) / 2.0f) * line_width;
-            coord_t total_offset  = group_offset + internal_offset;
-            coord_t pattern_shift = scale_(sweep.pattern_shift + unscale_(total_offset));
 
-            make_fill_lines(ExPolygonWithOffset(poly_with_offset_base, -angle), rotate_vector.second.rotated(-angle), angle,
-                            line_width + coord_t(SCALED_EPSILON), line_spacing, pattern_shift, fill_lines);
-        }
+        make_fill_lines(ExPolygonWithOffset(poly_with_offset_base, -angle), rotate_vector.second.rotated(-angle), angle,
+                        line_width + coord_t(SCALED_EPSILON), line_spacing, coord_t(scale_(sweep.pattern_shift)), fill_lines);
     }
+    // Apply multiline offset if needed
+    multiline_fill(fill_lines, params, spacing, true);
 
-if ((params.pattern == ipLateralLattice || params.pattern == ipLateralHoneycomb ) && params.multiline >1 )
+    // Intersect polylines with perimeter
+    fill_lines = intersection_pl(std::move(fill_lines), surface->expolygon);
+
+    if ((params.pattern == ipLateralLattice || params.pattern == ipLateralHoneycomb ) && params.multiline >1 )
     remove_overlapped(fill_lines, line_width);
 
     if (!fill_lines.empty()) {
