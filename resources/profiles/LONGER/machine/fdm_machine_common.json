@@ -44,5 +44,5 @@
   "change_filament_gcode": "M600",
   "machine_end_gcode": "PRINT_END\nM84",
   "machine_pause_gcode": "PAUSE",
-  "machine_start_gcode": "START_PRINT BED_TEMP=[bed_temperature_initial_layer_single] NOZZLE_TEMP=[nozzle_temperature_initial_layer] TRAVEL_SPEED=[travel_speed]\n; filament start gcode"
+  "machine_start_gcode": "START_PRINT_PREPARE BED_TEMP=[bed_temperature_initial_layer_single]\nSTART_PURGE_WIPE TRAVEL_SPEED=[travel_speed]\nSTART_PRINT_COOL_PURGE\nSTART_PRINT_FINAL_HEAT BED_TEMP=[bed_temperature_initial_layer_single] NOZZLE_TEMP=[nozzle_temperature_initial_layer] TRAVEL_SPEED=[travel_speed]\nSTART_PRIME_LINES TRAVEL_SPEED=[travel_speed]\n; filament start gcode"
 }
