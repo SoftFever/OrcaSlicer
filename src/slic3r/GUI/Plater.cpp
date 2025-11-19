@@ -3565,21 +3565,10 @@ wxButton* Sidebar::get_wiping_dialog_button()
 
 void Sidebar::set_flushing_volume_warning(const bool flushing_volume_modify)
 {
-    if (flushing_volume_modify){
-        p->m_flushing_volume_btn->SetBorderColor(wxColour(255, 111, 0));
-        p->m_flushing_volume_btn->SetTextColor(wxColour(255, 111, 0));
-    }
-    else {
-        StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed),
-                                std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
-                                std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
-
-        StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Pressed),
-                                std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Hovered),
-                                std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
-        p->m_flushing_volume_btn->SetBorderColor(flush_bd_col);
-        p->m_flushing_volume_btn->SetTextColor(flush_fg_col);
-    }
+    if(flushing_volume_modify)
+        p->m_flushing_volume_btn->SetBorderColor(wxColour("#FF6F00"));
+    else
+        p->m_flushing_volume_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
 }
 
 void Sidebar::enable_buttons(bool enable)
