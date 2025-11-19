@@ -5,6 +5,7 @@
 #include <boost/filesystem/operations.hpp>
 #include "libslic3r/PrintConfig.hpp"
 #include "Job.hpp"
+#include "slic3r/GUI/DeviceCore/DevStorage.h" 
 
 namespace fs = boost::filesystem;
 
@@ -60,6 +61,7 @@ public:
     std::string m_ftp_folder;
     std::string m_access_code;
     std::string task_bed_type;
+    std::string task_nozzle_mapping;
     std::string task_ams_mapping;
     std::string task_ams_mapping2;
     std::string task_ams_mapping_info;
@@ -81,7 +83,10 @@ public:
     bool        task_layer_inspect;
     bool        cloud_print_only { false };
     bool        has_sdcard { false };
+    bool        could_emmc_print { false };
     bool        task_use_ams { true };
+
+    DevStorage::SdcardState sdcard_state = DevStorage::SdcardState::NO_SDCARD;        
     bool        task_ext_change_assist { false };
 
     int         auto_bed_leveling{0};
