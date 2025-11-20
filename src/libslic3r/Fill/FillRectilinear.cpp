@@ -3021,9 +3021,12 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 
     // Contract surface polygon by half line width to avoid excesive overlap with perimeter
     ExPolygons contracted = offset_ex(surface->expolygon, -float(scale_(0.5 * this->spacing)));
+    
+    // if contraction results in empty polygon, use original surface
+    const ExPolygon &intersection_surface = contracted.empty() ? surface->expolygon : contracted.front();
 
     // Intersect polylines with perimeter
-    fill_lines = intersection_pl(std::move(fill_lines), contracted.front());
+    fill_lines = intersection_pl(std::move(fill_lines), intersection_surface);
 
     if ((params.pattern == ipLateralLattice || params.pattern == ipLateralHoneycomb ) && params.multiline >1 )
     remove_overlapped(fill_lines, line_width);
@@ -3034,7 +3037,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
                 fill_lines = chain_polylines(std::move(fill_lines));
             append(polylines_out, std::move(fill_lines));
         } else
-             connect_infill(std::move(fill_lines), contracted.front(), polylines_out, this->spacing, params);
+             connect_infill(std::move(fill_lines), intersection_surface, polylines_out, this->spacing, params);
     }
 
     return true;
