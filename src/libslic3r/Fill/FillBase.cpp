@@ -2740,7 +2740,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
             continue;
 
         // Offset all polylines at once for this level
-        Clipper2Lib::Paths64 offset_paths = Clipper2Lib::InflatePaths(subject_paths, offset_distance, Clipper2Lib::JoinType::Miter,
+        Clipper2Lib::Paths64 offset_paths = Clipper2Lib::InflatePaths(subject_paths, offset_distance, Clipper2Lib::JoinType::Round,
                                                                       Clipper2Lib::EndType::Round, clipper_miter_limit);
 
         if (offset_paths.empty())
