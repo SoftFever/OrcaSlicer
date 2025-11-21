@@ -1364,6 +1364,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     auto clear_all_sync_status = [this, &not_synced_colour]() {
         panel_printer_preset->ShowBadge(false);
         panel_printer_bed->ShowBadge(false);
+        panel_nozzle_dia->ShowBadge(true); // ORCA add support for nozzle sync
         left_extruder->ShowBadge(false);
         left_extruder->sync_ams(nullptr, {}, {});
         right_extruder->ShowBadge(false);
@@ -1491,11 +1492,13 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     if (extruder_nums == 1) {
         if (is_same_nozzle_info(extruder_infos[0], machine_extruder_infos[0])) {
             single_extruder->ShowBadge(true);
+            panel_nozzle_dia->ShowBadge(true); // ORCA add support for nozzle sync
             single_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             extruder_synced[0] = true;
         }
         else {
             single_extruder->ShowBadge(false);
+            panel_nozzle_dia->ShowBadge(true); // ORCA add support for nozzle sync
             single_extruder->sync_ams(obj, {}, {});
         }
     }
@@ -1717,6 +1720,7 @@ Sidebar::Sidebar(Plater *parent)
 
         p->combo_printer = new PlaterPresetComboBox(p->panel_printer_preset, Preset::TYPE_PRINTER);
         p->combo_printer->SetBorderWidth(0);
+        p->combo_printer->SetMaxSize(wxSize(-1, FromDIP(30))); // limiting height makes badge visible
         // ORCA paint whole combobox on focus
         auto printer_focus_bg = [this, panel_color](bool focused){
             auto bg_color = StateColor::darkModeColorFor(focused ? panel_color.bg_focus : panel_color.bg_normal);
@@ -2764,6 +2768,7 @@ void Sidebar::msw_rescale()
     p->image_printer->SetSize(FromDIP(PRINTER_THUMBNAIL_SIZE));
     update_printer_thumbnail();
     p->combo_printer->Rescale();
+    p->combo_printer->SetMaxSize(wxSize(-1, FromDIP(30))); // limiting height makes badge visible
     p->btn_edit_printer->msw_rescale();
 
     p->panel_nozzle_dia->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
