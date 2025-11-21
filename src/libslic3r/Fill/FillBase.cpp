@@ -2701,7 +2701,7 @@ void Fill::connect_base_support(Polylines &&infill_ordered, const Polygons &boun
 }
 
 // Fill Multiline
-void multiline_fill(Polylines& polylines, const FillParams& params, float spacing, bool use_clipper)
+void multiline_fill(Polylines& polylines, const FillParams& params, float spacing)
 {
     if (params.multiline <= 1)
         return;
@@ -2712,174 +2712,60 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
 
     all_polylines.reserve(n_lines * n_polylines);
 
-    if (!use_clipper) {
-        // Improved multiline offset logic with bisectrix and miter limit
-        for (int line = 0; line < n_lines; ++line) {
-            float total_offset = scale_((static_cast<float>(line) - center) * spacing);
+    // Clipper2-based multiline offset logic
+    Clipper2Lib::Paths64 subject_paths;
+    subject_paths.reserve(polylines.size());
+    for (const Polyline& pl : polylines) {
+        if (pl.points.size() < 2)
+            continue;
+        Clipper2Lib::Path64 path64;
+        path64.reserve(pl.points.size());
+        for (const Point& pt : pl.points)
+            path64.emplace_back(pt.x(), pt.y());
+        subject_paths.emplace_back(std::move(path64));
+    }
 
-            for (const Polyline& pl : polylines) {
-                const size_t n = pl.points.size();
-                if (n < 2) {
-                    all_polylines.emplace_back(pl);
-                    continue;
-                }
+    const double clipper_miter_limit = DefaultLineMiterLimit > 0. ? DefaultLineMiterLimit : 2.0;
 
-                Points new_points;
-                new_points.reserve(n);
-                bool is_closed = (pl.points.front() == pl.points.back());
+    for (int line = 0; line < n_lines; ++line) {
+        const double offset_distance = scale_((static_cast<float>(line) - center) * spacing);
 
-                for (size_t i = 0; i < n; ++i) {
-                    Vec2f normal;
-
-                    if (n == 2) {
-                        // Simple 2-point line segment
-                        Vec2f segment = (pl.points[1] - pl.points[0]).template cast<float>();
-                        normal        = Vec2f(-segment.y(), segment.x()).normalized();
-                    } else if (i == 0) {
-                        // First point
-                        if (is_closed) {
-                            // For closed loop, use points on either side of the join
-                            Vec2f seg1 = (pl.points[0] - pl.points[n - 2]).template cast<float>();
-                            Vec2f seg2 = (pl.points[1] - pl.points[0]).template cast<float>();
-
-                            Vec2f normal1 = Vec2f(-seg1.y(), seg1.x()).normalized();
-                            Vec2f normal2 = Vec2f(-seg2.y(), seg2.x()).normalized();
-                            normal        = (normal1 + normal2).normalized();
-                        } else {
-                            // Open polyline - use first segment only
-                            Vec2f segment = (pl.points[1] - pl.points[0]).template cast<float>();
-                            normal        = Vec2f(-segment.y(), segment.x()).normalized();
-                        }
-                    } else if (i == n - 1) {
-                        // Last point
-                        if (is_closed) {
-                            // For closed loop, last point equals first point - use same calculation
-                            Vec2f seg1 = (pl.points[0] - pl.points[n - 2]).template cast<float>();
-                            Vec2f seg2 = (pl.points[1] - pl.points[0]).template cast<float>();
-
-                            Vec2f normal1 = Vec2f(-seg1.y(), seg1.x()).normalized();
-                            Vec2f normal2 = Vec2f(-seg2.y(), seg2.x()).normalized();
-                            normal        = (normal1 + normal2).normalized();
-                        } else {
-                            // Open polyline - use last segment only
-                            Vec2f segment = (pl.points[i] - pl.points[i - 1]).template cast<float>();
-                            normal        = Vec2f(-segment.y(), segment.x()).normalized();
-                        }
-                    } else {
-                        // Intermediate points - use bisectrix logic
-                        Vec2f seg1 = (pl.points[i] - pl.points[i - 1]).template cast<float>();
-                        Vec2f seg2 = (pl.points[i + 1] - pl.points[i]).template cast<float>();
-
-                        // Check for zero-length segments (duplicate points)
-                        if (seg1.squaredNorm() < std::numeric_limits<float>::epsilon() ||
-                            seg2.squaredNorm() < std::numeric_limits<float>::epsilon()) {
-                            // Use available segment or fallback to default direction
-                            if (seg1.squaredNorm() >= std::numeric_limits<float>::epsilon()) {
-                                normal = Vec2f(-seg1.y(), seg1.x()).normalized();
-                            } else if (seg2.squaredNorm() >= std::numeric_limits<float>::epsilon()) {
-                                normal = Vec2f(-seg2.y(), seg2.x()).normalized();
-                            } else {
-                                // Both segments are zero-length - use default direction
-                                normal = Vec2f(1.0f, 0.0f);
-                            }
-                        } else {
-                            Vec2f normal1 = Vec2f(-seg1.y(), seg1.x()).normalized();
-                            Vec2f normal2 = Vec2f(-seg2.y(), seg2.x()).normalized();
-
-                            float dot = normal1.dot(normal2);
-                            // Clamp dot product to avoid numerical issues
-                            dot         = std::max(-1.0f, std::min(1.0f, dot));
-                            float angle = std::acos(dot);
-
-                            // Only apply miter correction for angles between 5 and 175 degrees
-                            if (angle > 5.0f * float(M_PI) / 180.0f && angle < 175.0f * float(M_PI) / 180.0f) {
-                                float miter_length = 1.0f / std::cos(angle * 0.5f);
-
-                                // Apply stricter miter limit
-                                if (miter_length > 2.0f) { // max miter lenght corresponding to 60 degrees
-                                    normal = (normal1 + normal2).normalized();
-                                } else {
-                                    normal = (normal1 + normal2).normalized() * miter_length;
-                                }
-                            } else {
-                                // For small or very large angles, use simple average
-                                normal = (normal1 + normal2).normalized();
-                            }
-                        }
-                    }
-
-                    Point p = pl.points[i] + (normal * total_offset).template cast<coord_t>();
-                    new_points.push_back(p);
-                }
-
-                all_polylines.emplace_back(std::move(new_points));
-                
-                // simplify to 5x line width
-                for (Polyline& pl : polylines) {
-                    pl.simplify(5 * spacing); 
-                }
-            }
-        }
-    } else {
-        // Clipper2-based multiline offset logic
-        Clipper2Lib::Paths64 subject_paths;
-        subject_paths.reserve(polylines.size());
-        for (const Polyline& pl : polylines) {
-            if (pl.points.size() < 2)
-                continue;
-            Clipper2Lib::Path64 path64;
-            path64.reserve(pl.points.size());
-            for (const Point& pt : pl.points)
-                path64.emplace_back(pt.x(), pt.y());
-            subject_paths.emplace_back(std::move(path64));
+        // Skip center line calculation - just use originals when offset is near zero
+        if (std::abs(offset_distance) < 1.) {
+            all_polylines.insert(all_polylines.end(), polylines.begin(), polylines.end());
+            continue;
         }
 
-        const double clipper_miter_limit = DefaultLineMiterLimit > 0. ? DefaultLineMiterLimit : 2.0;
+        if (subject_paths.empty())
+            continue;
 
-        for (int line = 0; line < n_lines; ++line) {
-            const double offset_distance = scale_((static_cast<float>(line) - center) * spacing);
+        // Offset all polylines at once for this level
+        Clipper2Lib::Paths64 offset_paths = Clipper2Lib::InflatePaths(subject_paths, offset_distance, Clipper2Lib::JoinType::Miter,
+                                                                      Clipper2Lib::EndType::Round, clipper_miter_limit);
 
-            // Skip center line calculation - just use originals when offset is near zero
-            if (std::abs(offset_distance) < 1.) {
-                all_polylines.insert(all_polylines.end(), polylines.begin(), polylines.end());
-                continue;
-            }
+        if (offset_paths.empty())
+            continue;
 
-            if (subject_paths.empty())
-                continue;
+        // Merge overlapping results to keep things tidy
+        Clipper2Lib::Paths64 merged_paths = Clipper2Lib::Union(offset_paths, Clipper2Lib::FillRule::NonZero);
+        if (merged_paths.empty())
+            continue;
 
-            // Offset all polylines at once for this level
-            Clipper2Lib::Paths64 offset_paths = Clipper2Lib::InflatePaths(
-                subject_paths,
-                offset_distance,
-                Clipper2Lib::JoinType::Miter,
-                Clipper2Lib::EndType::Round,
-                clipper_miter_limit);
+        Polygons merged_polygons = Paths64_to_polygons(merged_paths);
 
-            if (offset_paths.empty())
+        // Convert merged polygons to polylines
+        for (const Polygon& poly : merged_polygons) {
+            if (poly.points.size() < 3)
                 continue;
 
-            // Merge overlapping results to keep things tidy
-            Clipper2Lib::Paths64 merged_paths = Clipper2Lib::Union(offset_paths, Clipper2Lib::FillRule::NonZero);
-            if (merged_paths.empty())
-                continue;
+            Polyline new_pl;
+            new_pl.points = poly.points;
 
-            Polygons merged_polygons = Paths64_to_polygons(merged_paths);
+            // Close open polylines
+            if (new_pl.points.front() != new_pl.points.back())
+                new_pl.points.push_back(new_pl.points.front());
 
-            // Convert merged polygons to polylines
-            for (const Polygon& poly : merged_polygons) {
-                if (poly.points.size() < 3)
-                    continue;
-
-                Polyline new_pl;
-                new_pl.points = poly.points;
-
-                // Close open polylines
-                if (new_pl.points.front() != new_pl.points.back())
-                    new_pl.points.push_back(new_pl.points.front());
-
-                all_polylines.emplace_back(std::move(new_pl));
-            }
+            all_polylines.emplace_back(std::move(new_pl));
         }
     }
 
