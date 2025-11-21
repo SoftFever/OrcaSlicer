@@ -388,8 +388,7 @@ namespace Clipper2Lib {
 
 		double Area() const
 		{
-			return std::accumulate(childs_.cbegin(), childs_.cend(),
-				Clipper2Lib::Area<int64_t>(polygon_),
+			return std::accumulate(childs_.cbegin(), childs_.cend(), Clipper2LibArea<int64_t>(polygon_),
 				[](double a, const auto& child) {return a + child->Area(); });
 		}
 
@@ -463,8 +462,7 @@ namespace Clipper2Lib {
 
 		double Area() const
 		{
-			return std::accumulate(childs_.begin(), childs_.end(),
-				Clipper2Lib::Area<double>(polygon_),
+			return std::accumulate(childs_.begin(), childs_.end(), Clipper2LibArea<double>(polygon_),
 				[](double a, const auto& child) {return a + child->Area(); });
 		}
 	};

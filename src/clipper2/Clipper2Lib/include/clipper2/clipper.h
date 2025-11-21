@@ -1,8 +1,8 @@
 /*******************************************************************************
 * Author    :  Angus Johnson                                                   *
-* Date      :  5 March 2025                                                    *
+* Date      :  27 April 2024                                                   *
 * Website   :  https://www.angusj.com                                          *
-* Copyright :  Angus Johnson 2010-2025                                         *
+* Copyright :  Angus Johnson 2010-2024                                         *
 * Purpose   :  This module provides a simple interface to the Clipper Library  *
 * License   :  https://www.boost.org/LICENSE_1_0.txt                           *
 *******************************************************************************/
@@ -154,7 +154,7 @@
     if (!delta) return paths;
     if (error_code) return PathsD();
     const double scale = std::pow(10, precision);
-    ClipperOffset clip_offset(miter_limit, arc_tolerance * scale);
+    ClipperOffset clip_offset(miter_limit, arc_tolerance);
     clip_offset.AddPaths(ScalePaths<int64_t,double>(paths, scale, error_code), jt, et);
     if (error_code) return PathsD();
     Paths64 solution;
@@ -353,29 +353,6 @@
 #else
         result.emplace_back( an_array[i], an_array[i + 1] );
 #endif
-    }
-
-    inline size_t GetNext(size_t current, size_t high,
-      const std::vector<bool>& flags)
-    {
-      ++current;
-      while (current <= high && flags[current]) ++current;
-      if (current <= high) return current;
-      current = 0;
-      while (flags[current]) ++current;
-      return current;
-    }
-
-    inline size_t GetPrior(size_t current, size_t high,
-      const std::vector<bool>& flags)
-    {
-      if (current == 0) current = high;
-      else --current;
-      while (current > 0 && flags[current]) --current;
-      if (!flags[current]) return current;
-      current = high;
-      while (flags[current]) --current;
-      return current;
     }
 
   } // end details namespace
@@ -638,6 +615,29 @@
     return result;
   }
 
+  inline size_t GetNext(size_t current, size_t high,
+    const std::vector<bool>& flags)
+  {
+    ++current;
+    while (current <= high && flags[current]) ++current;
+    if (current <= high) return current;
+    current = 0;
+    while (flags[current]) ++current;
+    return current;
+  }
+
+  inline size_t GetPrior(size_t current, size_t high,
+    const std::vector<bool>& flags)
+  {
+    if (current == 0) current = high;
+    else --current;
+    while (current > 0 && flags[current]) --current;
+    if (!flags[current]) return current;
+    current = high;
+    while (flags[current]) --current;
+    return current;
+  }
+
   template <typename T>
   inline Path<T> SimplifyPath(const Path<T> &path,
     double epsilon, bool isClosedPath = true)
@@ -669,13 +669,13 @@
         start = curr;
         do
         {
-          curr = details::GetNext(curr, high, flags);
+          curr = GetNext(curr, high, flags);
         } while (curr != start && distSqr[curr] > epsSqr);
         if (curr == start) break;
       }
 
-      prior = details::GetPrior(curr, high, flags);
-      next = details::GetNext(curr, high, flags);
+      prior = GetPrior(curr, high, flags);
+      next = GetNext(curr, high, flags);
       if (next == prior) break;
 
       // flag for removal the smaller of adjacent 'distances'
@@ -684,14 +684,14 @@
         prior2 = prior;
         prior = curr;
         curr = next;
-        next = details::GetNext(next, high, flags);
+        next = GetNext(next, high, flags);
       }
       else
-        prior2 = details::GetPrior(prior, high, flags);
+        prior2 = GetPrior(prior, high, flags);
 
       flags[curr] = true;
       curr = next;
-      next = details::GetNext(next, high, flags);
+      next = GetNext(next, high, flags);
 
       if (isClosedPath || ((curr != high) && (curr != 0)))
         distSqr[curr] = PerpendicDistFromLineSqrd(path[curr], path[prior], path[next]);
@@ -714,35 +714,6 @@
     for (const auto& path : paths)
       result.emplace_back(std::move(SimplifyPath(path, epsilon, isClosedPath)));
     return result;
-  }
-
- 
-  template <typename T>
-  inline bool Path2ContainsPath1(const Path<T>& path1, const Path<T>& path2)
-  {
-    // precondition: paths must not intersect, except for
-    // transient (and presumed 'micro') path intersections 
-    PointInPolygonResult pip = PointInPolygonResult::IsOn;
-    for (const Point<T>& pt : path1)
-    {
-      switch (PointInPolygon(pt, path2))
-      {
-      case PointInPolygonResult::IsOutside: 
-        if (pip == PointInPolygonResult::IsOutside) return false; 
-        pip = PointInPolygonResult::IsOutside; 
-        break;
-      case PointInPolygonResult::IsInside:
-        if (pip == PointInPolygonResult::IsInside) return true;
-        pip = PointInPolygonResult::IsInside;
-        break;
-      default: 
-        break;
-      }
-    }
-    if (pip != PointInPolygonResult::IsInside) return false;
-    // result is likely true but check midpoint
-    Point<T> mp1 = GetBounds(path1).MidPoint();
-    return PointInPolygon(mp1, path2) == PointInPolygonResult::IsInside;
   }
 
   template <typename T>
