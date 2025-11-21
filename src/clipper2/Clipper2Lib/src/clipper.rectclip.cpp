@@ -1028,4 +1028,8 @@ namespace Clipper2Lib {
     return result;
   }
 
-} // namespace
+#ifdef USINGZ
+}  // namespace Clipper2Lib_Z
+#else
+}  // namespace Clipper2Lib
+#endif

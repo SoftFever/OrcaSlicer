@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(Clipper2 VERSION 1.0.6 LANGUAGES C CXX)
+project(Clipper2 VERSION 1.5.4 LANGUAGES C CXX)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -13,6 +13,7 @@ include(GNUInstallDirs)
 
 set(CLIPPER2_INC
   Clipper2Lib/include/clipper2/clipper.h
+  Clipper2Lib/include/clipper2/clipper.version.h
   Clipper2Lib/include/clipper2/clipper.core.h
   Clipper2Lib/include/clipper2/clipper.engine.h
   Clipper2Lib/include/clipper2/clipper.export.h

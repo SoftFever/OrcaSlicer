@@ -115,6 +115,10 @@ namespace Clipper2Lib {
     return ScalePaths<double, int64_t>(tmp, 1 / scale, error_code);
   }
 
-} // Clipper2Lib namespace
+#ifdef USINGZ
+} // namespace Clipper2Lib_Z
+#else
+} // namespace Clipper2Lib
+#endif
 
 #endif  // CLIPPER_MINKOWSKI_H

@@ -79,5 +79,9 @@ namespace Clipper2Lib {
     Paths64 Execute(const Paths64& paths);
   };
 
-} // Clipper2Lib namespace
+#ifdef USINGZ
+} // namespace Clipper2Lib_Z
+#else
+} // namespace Clipper2Lib
+#endif
 #endif  // CLIPPER_RECTCLIP_H
