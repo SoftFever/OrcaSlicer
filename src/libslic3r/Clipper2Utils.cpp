@@ -4,6 +4,8 @@
 
 namespace Slic3r {
 
+Points Path64ToPoints(const Clipper2Lib::Path64& path64);
+
 //BBS: FIXME
 Slic3r::Polylines Paths64_to_polylines(const Clipper2Lib::Paths64& in)
 {
@@ -15,6 +17,18 @@ Slic3r::Polylines Paths64_to_polylines(const Clipper2Lib::Paths64& in)
         for (const Clipper2Lib::Point64& point64 : path64)
             points.emplace_back(std::move(Slic3r::Point(point64.x, point64.y)));
         out.emplace_back(std::move(Slic3r::Polyline(points)));
+    }
+    return out;
+}
+
+Slic3r::Polygons Paths64_to_polygons(const Clipper2Lib::Paths64& in)
+{
+    Slic3r::Polygons out;
+    out.reserve(in.size());
+    for (const Clipper2Lib::Path64& path64 : in) {
+        Polygon poly;
+        poly.points = Path64ToPoints(path64);
+        out.emplace_back(std::move(poly));
     }
     return out;
 }
@@ -33,6 +47,11 @@ Clipper2Lib::Paths64 Slic3rPoints_to_Paths64(const Container& in)
         out.emplace_back(std::move(path));
     }
     return out;
+}
+
+Clipper2Lib::Paths64 Slic3rPolylines_to_Paths64(const Polylines& in)
+{
+    return Slic3rPoints_to_Paths64(in);
 }
 
 Points Path64ToPoints(const Clipper2Lib::Path64& path64)
