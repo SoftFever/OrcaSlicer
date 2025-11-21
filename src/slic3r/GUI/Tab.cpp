@@ -3966,14 +3966,14 @@ void TabFilament::build()
                 update_spoolman_statistics();
             };
 
-            auto refresh_all_btn = new wxButton(parent, wxID_ANY, _L("Update Filament"));
+            auto refresh_all_btn = new Button(parent, _L("Update Filament"));
             refresh_all_btn->Bind(wxEVT_BUTTON, [on_click](wxCommandEvent& evt) { on_click(false); });
-            wxGetApp().UpdateDarkUI(refresh_all_btn);
+            refresh_all_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
             sizer->Add(refresh_all_btn);
 
-            auto refresh_stats_btn = new wxButton(parent, wxID_ANY, _L("Update Stats"));
+            auto refresh_stats_btn = new Button(parent, _L("Update Stats"));
             refresh_stats_btn->Bind(wxEVT_BUTTON, [on_click](wxCommandEvent& evt) { on_click(true); });
-            wxGetApp().UpdateDarkUI(refresh_stats_btn);
+            refresh_stats_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
             sizer->Add(refresh_stats_btn);
             return sizer;
         };
@@ -3984,16 +3984,16 @@ void TabFilament::build()
         line.widget = [&](wxWindow* parent){
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
 
-            auto sync_to_spoolman_btn = new wxButton(parent, wxID_ANY, _L("Save Preset to Spoolman"));
+            auto sync_to_spoolman_btn = new Button(parent, _L("Save Preset"));
             sync_to_spoolman_btn->Bind(wxEVT_BUTTON, [&](wxCommandEvent& evt) {
                 auto res = Spoolman::save_preset_to_spoolman(&m_presets->get_selected_preset());
                 if (res.has_failed())
                     show_error(this, res.build_error_dialog_message());
             });
-            wxGetApp().UpdateDarkUI(sync_to_spoolman_btn);
+            sync_to_spoolman_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
             sizer->Add(sync_to_spoolman_btn);
 
-            auto load_from_spoolman_btn = new wxButton(parent, wxID_ANY, _L("Load Preset from Spoolman"));
+            auto load_from_spoolman_btn = new Button(parent, _L("Load Preset"));
             load_from_spoolman_btn->Bind(wxEVT_BUTTON, [&](wxCommandEvent& evt) {
                 if (m_presets->current_is_dirty() && m_active_page->get_field("spoolman_spool_id")->m_is_modified_value) {
                     show_error(this, "This profile cannot be updated with an unsaved Spool ID value. Please save the profile, then try updating again.");
@@ -4028,7 +4028,7 @@ void TabFilament::build()
                 // Load config changes into the tab
                 this->load_config(config);
             });
-            wxGetApp().UpdateDarkUI(load_from_spoolman_btn);
+            load_from_spoolman_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
             sizer->Add(load_from_spoolman_btn);
 
             return sizer;
