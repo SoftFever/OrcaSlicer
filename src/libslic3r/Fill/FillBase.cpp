@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include "../ClipperUtils.hpp"
+#include "../Clipper2Utils.hpp"
 #include "../EdgeGrid.hpp"
 #include "../Geometry.hpp"
 #include "../Geometry/Circle.hpp"
@@ -2820,49 +2821,64 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
             }
         }
     } else {
-        // Clipper-based multiline offset logic
+        // Clipper2-based multiline offset logic
+        Clipper2Lib::Paths64 subject_paths;
+        subject_paths.reserve(polylines.size());
+        for (const Polyline& pl : polylines) {
+            if (pl.points.size() < 2)
+                continue;
+            Clipper2Lib::Path64 path64;
+            path64.reserve(pl.points.size());
+            for (const Point& pt : pl.points)
+                path64.emplace_back(pt.x(), pt.y());
+            subject_paths.emplace_back(std::move(path64));
+        }
+
+        const double clipper_miter_limit = DefaultLineMiterLimit > 0. ? DefaultLineMiterLimit : 2.0;
+
         for (int line = 0; line < n_lines; ++line) {
-            const float offset_distance = scale_((line - center) * spacing);
+            const double offset_distance = scale_((static_cast<float>(line) - center) * spacing);
 
             // Skip center line calculation - just use originals when offset is near zero
-            if (std::abs(offset_distance) < 1) {
+            if (std::abs(offset_distance) < 1.) {
                 all_polylines.insert(all_polylines.end(), polylines.begin(), polylines.end());
                 continue;
             }
 
-            // Collect all polygons for this offset level
-            Polygons all_offset_polygons;
+            if (subject_paths.empty())
+                continue;
 
-            for (const Polyline& pl : polylines) {
-                if (pl.points.size() < 2)
+            // Offset all polylines at once for this level
+            Clipper2Lib::Paths64 offset_paths = Clipper2Lib::InflatePaths(
+                subject_paths,
+                offset_distance,
+                Clipper2Lib::JoinType::Miter,
+                Clipper2Lib::EndType::Round,
+                clipper_miter_limit);
+
+            if (offset_paths.empty())
+                continue;
+
+            // Merge overlapping results to keep things tidy
+            Clipper2Lib::Paths64 merged_paths = Clipper2Lib::Union(offset_paths, Clipper2Lib::FillRule::NonZero);
+            if (merged_paths.empty())
+                continue;
+
+            Polygons merged_polygons = Paths64_to_polygons(merged_paths);
+
+            // Convert merged polygons to polylines
+            for (const Polygon& poly : merged_polygons) {
+                if (poly.points.size() < 3)
                     continue;
 
-                // Single offset call per polyline
-                Polygons offset_polygons = offset(pl, offset_distance, jtMiter, DefaultLineMiterLimit, ClipperLib::etOpenRound);
+                Polyline new_pl;
+                new_pl.points = poly.points;
 
-                // Add to collection for this offset level
-                all_offset_polygons.insert(all_offset_polygons.end(), offset_polygons.begin(), offset_polygons.end());
-            }
+                // Close open polylines
+                if (new_pl.points.front() != new_pl.points.back())
+                    new_pl.points.push_back(new_pl.points.front());
 
-            // Merge all polygons for this offset level
-            if (!all_offset_polygons.empty()) {
-                Polygons merged_polygons = union_(all_offset_polygons);
-
-                // Convert merged polygons to polylines
-                for (const Polygon& poly : merged_polygons) {
-                    if (poly.points.size() < 3)
-                        continue;
-
-                    Polyline new_pl;
-                    new_pl.points = poly.points;
-
-                    // Close open polylines
-                    if (new_pl.points.front() != new_pl.points.back()) {
-                        new_pl.points.push_back(new_pl.points.front());
-                    }
-
-                    all_polylines.emplace_back(std::move(new_pl));
-                }
+                all_polylines.emplace_back(std::move(new_pl));
             }
         }
     }
