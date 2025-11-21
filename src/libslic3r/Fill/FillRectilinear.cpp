@@ -3251,26 +3251,14 @@ bool FillRectilinear::fill_surface_trapezoidal(
     // Apply multiline fill
     multiline_fill(polylines, params, spacing);
 
-    // Apply negative offset to reduce overlap with perimeters
-    double offset_threshold = scale_(0.6 * this->spacing);
-
-    ExPolygon expolygon_offset = expolygon; // Default to original
-
-    try {
-        ExPolygons offsetted = offset_ex(expolygon, -offset_threshold);
-
-        if (!offsetted.empty() && offsetted.front().area() > scale_(this->spacing * this->spacing) &&
-            offsetted.front().contour.points.size() >= 3) {
-            expolygon_offset = offsetted.front();
-        } else {
-            BOOST_LOG_TRIVIAL(warning) << "FillRectilinear: Offset produced invalid geometry, using original";
-        }
-    } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(warning) << "FillRectilinear: Offset failed: " << e.what();
-    }
+    // Contract surface polygon by half line width to avoid excesive overlap with perimeter
+    ExPolygons contracted = offset_ex(expolygon, -float(scale_(0.5 * this->spacing)));
+    
+    // if contraction results in empty polygon, use original surface
+    const ExPolygon &intersection_surface = contracted.empty() ? expolygon : contracted.front();
 
     // Intersect polylines with offset expolygon
-    polylines = intersection_pl(std::move(polylines), to_polygons(expolygon_offset));
+    polylines = intersection_pl(std::move(polylines), intersection_surface);
 
     // Remove very short segments that may cause connection issues
     const double minlength = scale_(0.8 * this->spacing);
@@ -3283,7 +3271,7 @@ bool FillRectilinear::fill_surface_trapezoidal(
     // Connect infill lines using offset expolygon
     int infill_start_idx = polylines_out.size();
     if (!polylines.empty()) {
-        Slic3r::Fill::chain_or_connect_infill(std::move(polylines), expolygon_offset, polylines_out, this->spacing, params);
+        Slic3r::Fill::chain_or_connect_infill(std::move(polylines), intersection_surface, polylines_out, this->spacing, params);
 
         // Rotate back the infill lines to original orientation
         if (std::abs(base_angle) >= EPSILON) {
