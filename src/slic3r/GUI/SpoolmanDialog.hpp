@@ -37,6 +37,7 @@ protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
     bool            m_dirty_settings{false};
+    bool            m_dirty_host{false};
     OptionsGroup*   m_optgroup;
     wxPanel*        m_main_panel;
     wxPanel*        m_loading_panel;

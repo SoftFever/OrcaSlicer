@@ -2290,6 +2290,24 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     return preset;
 }
 
+bool PresetCollection::load_full_config(DynamicPrintConfig& config)
+{
+    const auto& inherits = Preset::inherits(config);
+    if (inherits.empty())
+        return true;
+
+    const auto inherits_preset = this->find_preset2(inherits);
+    if (!inherits_preset)
+        return false;
+
+    const auto& inherits_config = inherits_preset->config;
+    const auto input_copy = config;
+    config.clear();
+    config.apply(inherits_config);
+    config.apply(input_copy);
+    return true;
+}
+
 bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &, Preset::Type &)> modifier, bool force_rewritten)
 {
     std::vector<Preset> new_presets;

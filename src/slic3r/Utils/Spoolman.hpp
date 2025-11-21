@@ -66,13 +66,15 @@ class Spoolman
     Spoolman()
     {
         m_instance    = this;
-        if (is_server_valid())
+        if (is_server_valid()) {
+            on_server_changed();
             m_initialized = pull_spoolman_spools();
+        }
     };
 
     enum HTTPAction
     {
-        GET, PUT, POST
+        GET, PUT, POST, PATCH
     };
 
     /// get an Http instance for the specified HTTPAction
@@ -92,6 +94,10 @@ class Spoolman
     /// posts the provided data to the specified API endpoint
     /// \returns the json response
     static pt::ptree post_spoolman_json(const std::string& api_endpoint, const pt::ptree& data) { return spoolman_api_call(POST, api_endpoint, data); }
+
+    /// patches the provided data to the specified API endpoint
+    /// \returns the json response
+    static pt::ptree patch_spoolman_json(const std::string& api_endpoint, const pt::ptree& data) { return spoolman_api_call(PATCH, api_endpoint, data); }
 
     /// get all the spools from the api and store them
     /// \returns if succeeded
@@ -122,12 +128,16 @@ public:
                                                             bool    update_from_server     = true,
                                                             bool    only_update_statistics = false);
 
+    static SpoolmanResult save_preset_to_spoolman(const Preset* filament_preset);
+
     /// Update the statistics values for the visible filament profiles with spoolman enabled
     /// clear_cache should be set true if the update is due to a change in printer profile or other change that requires it
     static void update_visible_spool_statistics(bool clear_cache = false);
 
     /// Update the statistics values for the filament profiles tied to the specified spool IDs
     static void update_specific_spool_statistics(const std::vector<unsigned int>& spool_ids);
+
+    static void on_server_changed();
 
     /// Check if Spoolman is enabled and the provided host is valid
     static bool is_server_valid(bool force_check = false);
@@ -207,10 +217,12 @@ public:
     int         extruder_temp;
     int         bed_temp;
     std::string color;
+    std::string preset_data;
 
     SpoolmanVendorShrPtr m_vendor_ptr;
 
     void update_from_server(bool recursive = false);
+    DynamicPrintConfig get_config_from_preset_data() const;
 
 private:
     Spoolman* m_spoolman;

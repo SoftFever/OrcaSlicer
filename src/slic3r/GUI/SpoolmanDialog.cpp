@@ -82,7 +82,11 @@ SpoolmanDialog::SpoolmanDialog(wxWindow* parent)
 
     m_optgroup = new OptionsGroup(m_main_panel, _L("Spoolman Options"), wxEmptyString);
     build_options_group();
-    m_optgroup->m_on_change = [&](const std::string& key, const boost::any& value) { m_dirty_settings = true; };
+    m_optgroup->m_on_change = [&](const std::string& key, const boost::any& value) {
+        m_dirty_settings = true;
+        if (key == "spoolman_host")
+            m_dirty_host = true;
+    };
     main_panel_sizer->Add(m_optgroup->sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, EM);
 
     m_spoolman_error_label_sizer = new wxBoxSizer(wxVERTICAL);
@@ -226,8 +230,11 @@ void SpoolmanDialog::save_spoolman_settings()
         }
     }
 
-    Spoolman::update_visible_spool_statistics(true);
+    if (m_dirty_host)
+        Spoolman::on_server_changed();
+    Spoolman::update_visible_spool_statistics(m_dirty_host);
     m_dirty_settings = false;
+    m_dirty_host = false;
 }
 
 void SpoolmanDialog::OnFinishLoading(wxCommandEvent& event)

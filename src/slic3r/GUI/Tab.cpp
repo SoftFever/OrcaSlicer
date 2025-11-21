@@ -3958,8 +3958,10 @@ void TabFilament::build()
                 }
                 auto res = Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), true, stats_only);
 
-                if (res.has_failed())
+                if (res.has_failed()) {
+                    show_error(this, res.build_error_dialog_message());
                     return;
+                }
 
                 update_spoolman_statistics();
             };
@@ -3973,6 +3975,62 @@ void TabFilament::build()
             refresh_stats_btn->Bind(wxEVT_BUTTON, [on_click](wxCommandEvent& evt) { on_click(true); });
             wxGetApp().UpdateDarkUI(refresh_stats_btn);
             sizer->Add(refresh_stats_btn);
+            return sizer;
+        };
+        optgroup->append_line(line);
+
+        line = {"Preset Sync", ""};
+        line.append_option(Option(ConfigOptionDef(), "spoolman_preset_sync"));
+        line.widget = [&](wxWindow* parent){
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+
+            auto sync_to_spoolman_btn = new wxButton(parent, wxID_ANY, _L("Save Preset to Spoolman"));
+            sync_to_spoolman_btn->Bind(wxEVT_BUTTON, [&](wxCommandEvent& evt) {
+                auto res = Spoolman::save_preset_to_spoolman(&m_presets->get_selected_preset());
+                if (res.has_failed())
+                    show_error(this, res.build_error_dialog_message());
+            });
+            wxGetApp().UpdateDarkUI(sync_to_spoolman_btn);
+            sizer->Add(sync_to_spoolman_btn);
+
+            auto load_from_spoolman_btn = new wxButton(parent, wxID_ANY, _L("Load Preset from Spoolman"));
+            load_from_spoolman_btn->Bind(wxEVT_BUTTON, [&](wxCommandEvent& evt) {
+                if (m_presets->current_is_dirty() && m_active_page->get_field("spoolman_spool_id")->m_is_modified_value) {
+                    show_error(this, "This profile cannot be updated with an unsaved Spool ID value. Please save the profile, then try updating again.");
+                    return;
+                }
+
+                if (!Spoolman::is_server_valid()) {
+                    show_error(this, "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.");
+                    return;
+                }
+
+                auto spool = Spoolman::get_instance()->get_spoolman_spool_by_id(
+                    m_presets->get_selected_preset().config.opt_int("spoolman_spool_id", 0));
+                if (spool->m_filament_ptr->preset_data.empty()) {
+                    show_error(this, "The Spoolman filament does not contain any preset data.");
+                    return;
+                }
+
+                auto config = spool->m_filament_ptr->get_config_from_preset_data();
+                if (config.empty()) {
+                    show_error(this, "The stored preset data is invalid.");
+                    return;
+                }
+
+                // Do not change preset name in this operation
+                auto current_preset_name = m_presets->get_selected_preset().config.opt_string("filament_settings_id", 0u);
+                config.set_key_value("filament_settings_id", new ConfigOptionStrings({current_preset_name}));
+
+                // Apply spool configuration changes
+                spool->apply_to_config(config);
+
+                // Load config changes into the tab
+                this->load_config(config);
+            });
+            wxGetApp().UpdateDarkUI(load_from_spoolman_btn);
+            sizer->Add(load_from_spoolman_btn);
+
             return sizer;
         };
         optgroup->append_line(line);

@@ -51,6 +51,8 @@ Http Spoolman::get_http_instance(const HTTPAction action, const std::string& url
         return Http::put2(url);
     if (action == POST)
         return Http::post(url);
+    if (action == PATCH)
+        return Http::patch(url);
     throw RuntimeError("Invalid HTTP action");
 }
 
@@ -296,6 +298,54 @@ SpoolmanResult Spoolman::update_filament_preset_from_spool(Preset* filament_pres
     return result;
 }
 
+SpoolmanResult Spoolman::save_preset_to_spoolman(const Preset* filament_preset)
+{
+    SpoolmanResult result;
+    if (filament_preset->type != Preset::TYPE_FILAMENT) {
+        result.messages.emplace_back("Preset is not a filament preset");
+        return result;
+    }
+    const int&     spool_id = filament_preset->config.opt_int("spoolman_spool_id", 0);
+    if (spool_id < 1) {
+        result.messages.emplace_back(
+            "Preset provided does not have a valid Spoolman spool ID"); // IDs below 1 are not used by spoolman and should be ignored
+        return result;
+    }
+    SpoolmanSpoolShrPtr spool = get_instance()->get_spoolman_spool_by_id(spool_id);
+    if (!spool) {
+        result.messages.emplace_back("The spool ID does not exist in the local spool cache");
+        return result;
+    }
+    if (filament_preset->is_dirty) {
+        result.messages.emplace_back("Please save the current changes to the preset");
+        return result;
+    }
+
+    boost::nowide::ifstream fs(filament_preset->file);
+
+    std::string preset_data;
+    std::string line;
+    while (std::getline(fs, line)) {
+        preset_data += line;
+    }
+    // Spoolman extra fields are a string read as json
+    // To save a string to an extra field, the data must be surrounded by double quotes
+    // and literal quotes must be escaped twice
+    std::string formated_preset_data = boost::replace_all_copy(preset_data, "\"", "\\\"");
+    formated_preset_data = "\"" + formated_preset_data + "\"";
+
+    pt::ptree pt;
+    pt.add("extra.orcaslicer_preset_data", formated_preset_data);
+    auto res = patch_spoolman_json("filament/" + std::to_string(spool_id), pt);
+
+    if (res.empty())
+        result.messages.emplace_back("Failed to save the data");
+    else
+        spool->m_filament_ptr->preset_data = std::move(preset_data);
+    return result;
+}
+
+
 void Spoolman::update_visible_spool_statistics(bool clear_cache)
 {
     PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
@@ -332,6 +382,17 @@ void Spoolman::update_specific_spool_statistics(const std::vector<unsigned int>&
             }
         }
     }
+}
+
+
+void Spoolman::on_server_changed()
+{
+    if (!is_server_valid())
+        return;
+    pt::ptree pt;
+    pt.add("name", "OrcaSlicer Preset Data");
+    pt.add("field_type", "text");
+    post_spoolman_json("field/filament/orcaslicer_preset_data", pt);
 }
 
 
@@ -412,6 +473,10 @@ void SpoolmanFilament::update_from_json(pt::ptree json_data)
     extruder_temp  = get_opt<int>(json_data, "settings_extruder_temp");
     bed_temp       = get_opt<int>(json_data, "settings_bed_temp");
     color          = "#" + get_opt<string>(json_data, "color_hex");
+    preset_data    = get_opt<string>(json_data, "extra.orcaslicer_preset_data");
+    if (preset_data.front() == '"' && preset_data.back() == '"')
+        preset_data = preset_data.substr(1, preset_data.length() - 2);
+    boost::replace_all(preset_data, "\\\"", "\"");
 }
 
 void SpoolmanFilament::apply_to_config(Slic3r::DynamicConfig& config) const
@@ -431,6 +496,28 @@ void SpoolmanFilament::apply_to_config(Slic3r::DynamicConfig& config) const
     config.set_key_value("default_filament_colour", new ConfigOptionStrings{color});
     m_vendor_ptr->apply_to_config(config);
 }
+
+DynamicPrintConfig SpoolmanFilament::get_config_from_preset_data() const
+{
+    if (preset_data.empty())
+        return {};
+    json        j = json::parse(preset_data);
+    ConfigSubstitutionContext context(Enable);
+    std::map<std::string, std::string> key_values;
+    std::string reason;
+    DynamicPrintConfig config;
+    config.load_from_json(j, context, true, key_values, reason);
+    if (!reason.empty())
+        return {};
+    auto& presets = wxGetApp().preset_bundle->filaments;
+    if (!presets.load_full_config(config))
+        return {};
+    const auto invalid_keys = Preset::remove_invalid_keys(config, presets.default_preset().config);
+    if (!invalid_keys.empty())
+        return {};
+    return config;
+}
+
 
 //---------------------------------
 // SpoolmanSpool
