@@ -1364,7 +1364,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     auto clear_all_sync_status = [this, &not_synced_colour]() {
         panel_printer_preset->ShowBadge(false);
         panel_printer_bed->ShowBadge(false);
-        panel_nozzle_dia->ShowBadge(true); // ORCA add support for nozzle sync
+        panel_nozzle_dia->ShowBadge(false); // ORCA add support for nozzle sync
         left_extruder->ShowBadge(false);
         left_extruder->sync_ams(nullptr, {}, {});
         right_extruder->ShowBadge(false);
@@ -1498,7 +1498,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         }
         else {
             single_extruder->ShowBadge(false);
-            panel_nozzle_dia->ShowBadge(true); // ORCA add support for nozzle sync
+            panel_nozzle_dia->ShowBadge(false); // ORCA add support for nozzle sync
             single_extruder->sync_ams(obj, {}, {});
         }
     }
