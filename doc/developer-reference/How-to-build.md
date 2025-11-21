@@ -156,7 +156,7 @@ How to building with Xcode on MacOS 64-bit.
 
 Homebrew currently only offers the latest version of CMake (e.g. **4.X**), which is not compatible. To install the required version **3.31.X**, follow these steps:
 
-1. Download CMake **3.31.7** from: [https://cmake.org/download/](https://cmake.org/download/)
+1. Download CMake **3.31.10** from: [https://cmake.org/download/](https://cmake.org/download/)
 2. Install the application (drag it to `/Applications`).
 3. Add the following line to your shell configuration file (`~/.zshrc` or `~/.bash_profile`):
 
