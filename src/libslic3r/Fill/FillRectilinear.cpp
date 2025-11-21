@@ -3017,11 +3017,8 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
                         line_width + coord_t(SCALED_EPSILON), line_spacing, coord_t(scale_(sweep.pattern_shift)), fill_lines);
     }
         
-	//Only use clipper when is worth it
-    bool use_clipper = params.pattern == ipLateralLattice || params.pattern == ipLateralHoneycomb || params.pattern == ipCubic || params.pattern == ipStars;
-
     // Apply multiline offset if needed
-    multiline_fill(fill_lines, params, spacing, use_clipper);
+    multiline_fill(fill_lines, params, spacing);
  
     // Contract surface polygon by half line width to avoid excesive overlap with perimeter
     ExPolygons contracted = offset_ex(surface->expolygon, -float(scale_(0.5 * this->spacing)));
