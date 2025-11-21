@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <numeric>
+#include <algorithm>
 
 #include <cmath>
 #include "../ClipperUtils.hpp"
@@ -2713,58 +2714,48 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
     all_polylines.reserve(n_lines * n_polylines);
 
     // Clipper2-based multiline offset logic
-    Clipper2Lib::Paths64 subject_paths;
-    subject_paths.reserve(polylines.size());
-    for (const Polyline& pl : polylines) {
-        if (pl.points.size() < 2)
-            continue;
-        Clipper2Lib::Path64 path64;
-        path64.reserve(pl.points.size());
-        for (const Point& pt : pl.points)
-            path64.emplace_back(pt.x(), pt.y());
-        subject_paths.emplace_back(std::move(path64));
-    }
+    Clipper2Lib::Paths64 subject_paths = Slic3rPolylines_to_Paths64(polylines);
+    subject_paths.erase(std::remove_if(subject_paths.begin(), subject_paths.end(),
+                                       [](const Clipper2Lib::Path64& path) { return path.size() < 2; }),
+                        subject_paths.end());
+
+    if (subject_paths.empty())
+        return;
 
     const double clipper_miter_limit = DefaultLineMiterLimit > 0. ? DefaultLineMiterLimit : 2.0;
+    Clipper2Lib::ClipperOffset offsetter(clipper_miter_limit);
+    offsetter.AddPaths(subject_paths, Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Round);
 
+    bool center_inserted = false;
     for (int line = 0; line < n_lines; ++line) {
         const double offset_distance = scale_((static_cast<float>(line) - center) * spacing);
 
         // Skip center line calculation - just use originals when offset is near zero
         if (std::abs(offset_distance) < 1.) {
-            all_polylines.insert(all_polylines.end(), polylines.begin(), polylines.end());
+            if (!center_inserted) {
+                all_polylines.insert(all_polylines.end(), polylines.begin(), polylines.end());
+                center_inserted = true;
+            }
             continue;
         }
 
-        if (subject_paths.empty())
-            continue;
-
-        // Offset all polylines at once for this level
-        Clipper2Lib::Paths64 offset_paths = Clipper2Lib::InflatePaths(subject_paths, offset_distance, Clipper2Lib::JoinType::Round,
-                                                                      Clipper2Lib::EndType::Round, clipper_miter_limit);
-
+        Clipper2Lib::Paths64 offset_paths;
+        offsetter.Execute(offset_distance, offset_paths);
         if (offset_paths.empty())
             continue;
 
-        // Merge overlapping results to keep things tidy
-        Clipper2Lib::Paths64 merged_paths = Clipper2Lib::Union(offset_paths, Clipper2Lib::FillRule::NonZero);
+        Clipper2Lib::Paths64 merged_paths = offset_paths.size() > 1 ?
+            Clipper2Lib::Union(offset_paths, Clipper2Lib::FillRule::NonZero) :
+            std::move(offset_paths);
         if (merged_paths.empty())
             continue;
 
-        Polygons merged_polygons = Paths64_to_polygons(merged_paths);
-
-        // Convert merged polygons to polylines
-        for (const Polygon& poly : merged_polygons) {
-            if (poly.points.size() < 3)
+        Polylines new_polylines = Paths64_to_polylines(merged_paths);
+        for (Polyline& new_pl : new_polylines) {
+            if (new_pl.points.size() < 3)
                 continue;
-
-            Polyline new_pl;
-            new_pl.points = poly.points;
-
-            // Close open polylines
             if (new_pl.points.front() != new_pl.points.back())
                 new_pl.points.push_back(new_pl.points.front());
-
             all_polylines.emplace_back(std::move(new_pl));
         }
     }
