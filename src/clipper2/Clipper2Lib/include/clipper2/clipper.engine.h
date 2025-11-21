@@ -336,7 +336,7 @@ namespace Clipper2Lib {
 #ifdef USINGZ
             return Clipper2Lib_Z::Area<T>(poly);
 #else
-            return Clipper2Lib::Area<T>(poly);
+			return Clipper2LibArea<T>(poly);
 #endif
         }
 	};
@@ -389,7 +389,7 @@ namespace Clipper2Lib {
 		double Area() const
 		{
 			return std::accumulate(childs_.cbegin(), childs_.cend(),
-				Clipper2Lib::Area<int64_t>(polygon_),
+				Clipper2LibArea<int64_t>(polygon_),
 				[](double a, const auto& child) {return a + child->Area(); });
 		}
 
@@ -464,7 +464,7 @@ namespace Clipper2Lib {
 		double Area() const
 		{
 			return std::accumulate(childs_.begin(), childs_.end(),
-				Clipper2Lib::Area<double>(polygon_),
+				Clipper2LibArea<double>(polygon_),
 				[](double a, const auto& child) {return a + child->Area(); });
 		}
 	};
