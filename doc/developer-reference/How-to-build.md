@@ -33,12 +33,7 @@ How to building with Visual Studio on Windows 64-bit.
 
 ### Windows Tools Required
 
-- [Visual Studio](https://visualstudio.microsoft.com/vs/) 2022, 2026 or Visual Studio 2019
-  - 2022
-  ```shell
-  winget install --id=Microsoft.VisualStudio.2022.Professional -e
-  ```
-   - 2026
+- [Visual Studio](https://visualstudio.microsoft.com/vs/) 2026, 2022 or Visual Studio 2019
   ```shell
   winget install --id=Microsoft.VisualStudio.Community -e
   ```
@@ -68,18 +63,10 @@ How to building with Visual Studio on Windows 64-bit.
 > [!IMPORTANT]
 > Check your CMake version. Run `cmake --version` in your terminal and verify it returns a **4.x** version.  
 > If you see an older version (e.g. 3.29), it's likely due to another copy in your system's PATH (e.g. from Strawberry Perl).  
-> You can run where cmake to check the active paths and rearrange your **System Environment Variables** > PATH, ensuring the correct CMake (e.g. C:\Program Files\CMake\bin) appears before others like C:\Strawberry\c\bin.
+> You can run where cmake to check the active paths and rearrange your **System Environment Variables** > PATH, ensuring the correct CMake like `C:\Program Files\CMake\bin` appears before others like `C:\Strawberry\c\bin`.
 
-![windows_variables_path](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/windows_variables_path.png?raw=true)
-![windows_variables_order](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/windows_variables_order.png?raw=true)
-
-> [!IMPORTANT]
-> **For Visual Studio 2026**, you must use the CMake included with Visual Studio 2026 **until CMake 4.2 is released as a stable version**.  
-> To do this, you must include the cmake path contained in Visual Studio above the variable of the official cmake installed on your computer.  
-> The path will look something like this:
-> ```shell
-> C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin
-> ```
+![windows_variables_path](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/develop/windows_variables_path.png?raw=true)
+![windows_variables_order](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/develop/windows_variables_order.png?raw=true)
 
 ### Windows Hardware Requirements
 
@@ -95,7 +82,7 @@ How to building with Visual Studio on Windows 64-bit.
    - If using the command line:
      1. Clone the repository:
      ```shell
-     git clone https://github.com/SoftFever/OrcaSlicer
+     git clone https://github.com/OrcaSlicer/OrcaSlicer
      ```
      2. Run lfs to download tools on Windows:
      ```shell
@@ -118,7 +105,7 @@ How to building with Visual Studio on Windows 64-bit.
       build_release_vs.bat
       ```
 
-![vs_cmd](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/vs_cmd.png?raw=true)
+![vs_cmd](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/develop/vs_cmd.png?raw=true)
 
 > [!NOTE]
 > The build process will take a long time depending on your system but even with high-end hardware it can take up to 40 minutes.
@@ -131,7 +118,7 @@ How to building with Visual Studio on Windows 64-bit.
    build\OrcaSlicer.sln
    ```
 2. Open the solution in Visual Studio, set the build configuration to `Release` and run the `Local Windows Debugger`.  
-   ![compile_vs_local_debugger](https://github.com/SoftFever/OrcaSlicer/blob/main/doc/images/develop/compile_vs_local_debugger.png?raw=true)
+   ![compile_vs_local_debugger](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/develop/compile_vs_local_debugger.png?raw=true)
 3. Your resulting executable will be located in:
    ```shell
    \build\src\Release\orca-slicer.exe
@@ -169,7 +156,7 @@ How to building with Xcode on MacOS 64-bit.
 
 Homebrew currently only offers the latest version of CMake (e.g. **4.X**), which is not compatible. To install the required version **3.31.X**, follow these steps:
 
-1. Download CMake **3.31.7** from: [https://cmake.org/download/](https://cmake.org/download/)
+1. Download CMake **3.31.10** from: [https://cmake.org/download/](https://cmake.org/download/)
 2. Install the application (drag it to `/Applications`).
 3. Add the following line to your shell configuration file (`~/.zshrc` or `~/.bash_profile`):
 
@@ -192,7 +179,7 @@ cmake --version
 
 1. Clone the repository:
    ```shell
-   git clone https://github.com/SoftFever/OrcaSlicer
+   git clone https://github.com/OrcaSlicer/OrcaSlicer
    cd OrcaSlicer
    ```
 2. Build the application:
@@ -235,7 +222,7 @@ How to build and run OrcaSlicer using Docker.
 #### Docker Instructions
 
 ```shell
-git clone https://github.com/SoftFever/OrcaSlicer && cd OrcaSlicer && ./scripts/DockerBuild.sh && ./scripts/DockerRun.sh
+git clone https://github.com/OrcaSlicer/OrcaSlicer && cd OrcaSlicer && ./scripts/DockerBuild.sh && ./scripts/DockerRun.sh
 ```
 
 ### Troubleshooting
