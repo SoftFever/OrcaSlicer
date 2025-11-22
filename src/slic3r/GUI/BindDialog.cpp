@@ -44,8 +44,8 @@ wxString get_fail_reason(int code)
         return _L("Failed to post ticket to server");
 
     else if (code == BAMBU_NETWORK_ERR_BIND_PARSE_LOGIN_REPORT_FAILED)
-        return _L("Failed to parse login report reason"); 
-    
+        return _L("Failed to parse login report reason");
+
     else if (code == BAMBU_NETWORK_ERR_BIND_ECODE_LOGIN_REPORT_FAILED)
         return _L("Failed to parse login report reason");
 
@@ -68,7 +68,7 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
-    
+
 
     m_simplebook = new wxSimplebook(this);
     m_simplebook->SetSize(wxSize(FromDIP(460), FromDIP(240)));
@@ -111,7 +111,7 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     for (int i = 0; i < PING_CODE_LENGTH; i++) {
         m_text_input_single_code[i] = new TextInput(request_bind_panel, wxEmptyString, "", "", wxDefaultPosition, wxSize(FromDIP(38), FromDIP(38)), wxTE_PROCESS_ENTER | wxTE_CENTER);
         wxTextAttr textAttr;
-        textAttr.SetAlignment(wxTEXT_ALIGNMENT_CENTER); 
+        textAttr.SetAlignment(wxTEXT_ALIGNMENT_CENTER);
         textAttr.SetTextColour(wxColour(34, 139, 34));
         m_text_input_single_code[i]->GetTextCtrl()->SetDefaultStyle(textAttr);
         m_text_input_single_code[i]->SetFont(Label::Body_16);
@@ -232,11 +232,11 @@ void PingCodeBindDialog::on_key_input(wxKeyEvent& evt)
 
     if (keyCode == WXK_BACK  || (keyCode >= '0' && keyCode <= '9') || (keyCode >= 'a' && keyCode <= 'z') || (keyCode >= 'A' && keyCode <= 'Z'))
     {
-        evt.Skip(); 
+        evt.Skip();
     }
     else
     {
-        wxBell(); 
+        wxBell();
         return;
     }
 }
@@ -254,7 +254,7 @@ void PingCodeBindDialog::on_text_changed(wxCommandEvent& event) {
 
     if (idx != -1 && text_input->GetValue().Length() == 1) {
         if (idx < PING_CODE_LENGTH-1) {
-            m_text_input_single_code[idx + 1]->SetFocus(); 
+            m_text_input_single_code[idx + 1]->SetFocus();
         }
 
         auto has_empty = false;
@@ -288,7 +288,7 @@ void PingCodeBindDialog::on_key_backspace(wxKeyEvent& event)
             break;
         }
     }
-    
+
     if (event.GetKeyCode() == WXK_BACK && idx >= 0) {
         CallAfter([this, idx]() {
             m_text_input_single_code[idx - 1]->SetFocus();
@@ -298,7 +298,7 @@ void PingCodeBindDialog::on_key_backspace(wxKeyEvent& event)
     event.Skip();
 }
 
-void PingCodeBindDialog::on_bind_printer(wxCommandEvent& event) 
+void PingCodeBindDialog::on_bind_printer(wxCommandEvent& event)
 {
     wxString ping_code;
 
@@ -319,7 +319,7 @@ void PingCodeBindDialog::on_bind_printer(wxCommandEvent& event)
     }
 }
 
-void PingCodeBindDialog::on_cancel(wxCommandEvent& event) 
+void PingCodeBindDialog::on_cancel(wxCommandEvent& event)
 {
     EndModal(wxCLOSE);
 }
@@ -417,7 +417,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
 
      m_link_show_error = new wxStaticText(this, wxID_ANY, _L("Check the reason"));
-     m_link_show_error->SetForegroundColour(wxColour(0x6b6b6b));
+     m_link_show_error->SetForegroundColour(wxColour("#6b6b6b"));
      m_link_show_error->SetFont(::Label::Head_13);
 
      m_bitmap_show_error_close = create_scaled_bitmap("link_more_error_close",nullptr, 7);
@@ -453,8 +453,8 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_panel_agreement->SetBackgroundColour(*wxWHITE);
      m_panel_agreement->SetMinSize(wxSize(FromDIP(450), -1));
      m_panel_agreement->SetMaxSize(wxSize(FromDIP(450), -1));
- 
-    
+
+
      wxWrapSizer* sizer_privacy_agreement =  new wxWrapSizer( wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS );
      wxWrapSizer* sizere_notice_agreement=  new wxWrapSizer( wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS );
      wxBoxSizer* sizer_privacy_body = new wxBoxSizer(wxHORIZONTAL);
@@ -561,7 +561,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      wxBoxSizer* sizer_agreement = new wxBoxSizer(wxVERTICAL);
      sizer_agreement->Add(sizer_privacy_body, 1, wxEXPAND, 0);
      sizer_agreement->Add(sizere_notice_body, 1, wxEXPAND, 0);
-     
+
 
      m_checkbox_privacy->Bind(wxEVT_TOGGLEBUTTON, [this, m_checkbox_privacy](auto& e) {
          m_allow_privacy = m_checkbox_privacy->GetValue();
@@ -900,8 +900,12 @@ void BindMachineDialog::on_show(wxShowEvent &event)
     if (event.IsShown()) {
         auto img = m_machine_info->get_printer_thumbnail_img_str();
         if (wxGetApp().dark_mode()) { img += "_dark"; }
-        auto bitmap = create_scaled_bitmap(img, this, FromDIP(80));
-        m_printer_img->SetBitmap(bitmap);
+        try {
+            auto bitmap = create_scaled_bitmap(img, this, FromDIP(80));
+            m_printer_img->SetBitmap(bitmap);
+        }
+        catch (...){}
+
         m_printer_img->Refresh();
         m_printer_img->Show();
 
@@ -948,7 +952,7 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      SetBackgroundColour(*wxWHITE);
      wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
      auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+     m_line_top->SetBackgroundColour(wxColour("#A6A9AA"));
      m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
      m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(38));
 
@@ -1117,8 +1121,11 @@ void UnBindMachineDialog::on_show(wxShowEvent &event)
     if (event.IsShown()) {
         auto img = m_machine_info->get_printer_thumbnail_img_str();
         if (wxGetApp().dark_mode()) { img += "_dark"; }
-        auto bitmap = create_scaled_bitmap(img, this, FromDIP(80));
-        m_printer_img->SetBitmap(bitmap);
+        try {
+            auto bitmap = create_scaled_bitmap(img, this, FromDIP(80));
+            m_printer_img->SetBitmap(bitmap);
+        } catch (...) {}
+
         m_printer_img->Refresh();
         m_printer_img->Show();
 
@@ -1128,7 +1135,7 @@ void UnBindMachineDialog::on_show(wxShowEvent &event)
         if (wxGetApp().is_user_login()) {
             wxString username_text = from_u8(wxGetApp().getAgent()->get_user_name());
             m_user_name->SetLabelText(username_text);
-            
+
             std::string avatar_url = wxGetApp().getAgent()->get_user_avatar();
             Slic3r::Http http = Slic3r::Http::get(avatar_url);
             std::string  suffix = avatar_url.substr(avatar_url.find_last_of(".") + 1);
