@@ -209,10 +209,10 @@ public:
     int         id;
     std::string name;
     std::string material;
-    float       price;
-    float       density;
-    float       diameter;
-    float       weight;
+    double      price;
+    double      density;
+    double      diameter;
+    double      weight;
     std::string article_number;
     int         extruder_temp;
     int         bed_temp;
@@ -245,12 +245,12 @@ private:
 class SpoolmanSpool
 {
 public:
-    int   id;
-    float remaining_weight;
-    float used_weight;
-    float remaining_length;
-    float used_length;
-    bool  archived;
+    int    id;
+    double remaining_weight;
+    double used_weight;
+    double remaining_length;
+    double used_length;
+    bool   archived;
 
     SpoolmanFilamentShrPtr m_filament_ptr;
 

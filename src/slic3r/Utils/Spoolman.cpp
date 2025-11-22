@@ -465,10 +465,10 @@ void SpoolmanFilament::update_from_json(pt::ptree json_data)
     id             = json_data.get<int>("id");
     name           = get_opt<string>(json_data, "name");
     material       = get_opt<string>(json_data, "material");
-    price          = get_opt<float>(json_data, "price");
-    density        = get_opt<float>(json_data, "density");
-    diameter       = get_opt<float>(json_data, "diameter");
-    weight         = get_opt<float>(json_data, "weight");
+    price          = get_opt<double>(json_data, "price");
+    density        = get_opt<double>(json_data, "density");
+    diameter       = get_opt<double>(json_data, "diameter");
+    weight         = get_opt<double>(json_data, "weight");
     article_number = get_opt<string>(json_data, "article_number");
     extruder_temp  = get_opt<int>(json_data, "settings_extruder_temp");
     bed_temp       = get_opt<int>(json_data, "settings_bed_temp");
@@ -572,10 +572,10 @@ void SpoolmanSpool::update_from_json(pt::ptree json_data)
         m_filament_ptr = m_spoolman->m_filaments.at(filament_id);
     }
     id               = json_data.get<int>("id");
-    remaining_weight = get_opt<float>(json_data, "remaining_weight");
-    used_weight      = get_opt<float>(json_data, "used_weight");
-    remaining_length = get_opt<float>(json_data, "remaining_length");
-    used_length      = get_opt<float>(json_data, "used_length");
+    remaining_weight = get_opt<double>(json_data, "remaining_weight");
+    used_weight      = get_opt<double>(json_data, "used_weight");
+    remaining_length = get_opt<double>(json_data, "remaining_length");
+    used_length      = get_opt<double>(json_data, "used_length");
     archived         = get_opt<bool>(json_data, "archived");
 }
 
