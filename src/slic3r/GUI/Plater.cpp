@@ -1693,7 +1693,7 @@ Sidebar::Sidebar(Plater *parent)
             auto current_width = e.GetSize().GetWidth();
             auto narrow_width  = FromDIP(235);
             auto label_width   = p->combo_printer->GetTextExtent(p->combo_printer->GetStringSelection()).GetWidth(); 
-            auto min_width     = label_width + FromDIP(30  + PRINTER_PANEL_SIZE.GetWidth());
+            auto min_width     = label_width + FromDIP(25  + PRINTER_PANEL_SIZE.GetWidth());
             if(((min_width < narrow_width && min_width > current_width) || (current_width < narrow_width && min_width > narrow_width)) && p->image_printer->IsShown())
                 p->image_printer->Hide();
             else if((current_width > min_width || !(current_width < narrow_width)) && !p->image_printer->IsShown())
