@@ -2727,7 +2727,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
     offsetter.AddPaths(subject_paths, Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Round);
 
     bool center_inserted = false;
-    for (int line = 0; line < n_lines; ++line) {
+    for (int line = 0; line < n_lines/2; ++line) {
         const double offset_distance = scale_((static_cast<float>(line) - center) * spacing);
 
         // Skip center line calculation - just use originals when offset is near zero
