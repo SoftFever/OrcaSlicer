@@ -4505,8 +4505,6 @@ struct Plater::priv
                                       bool                    for_picking            = false,
                                       bool                    ban_light              = false);
     ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type);
-    //BBS
-    void generate_calibration_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
     PlateBBoxData generate_first_layer_bbox();
 
     void bring_instance_forward() const;
@@ -8529,7 +8527,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": single slice, reload print");
                 if (model_fits)
-                    this->preview->reload_print(true);
+                    this->preview->reload_print(); // TODO
                 else
                     this->update_fff_scene_only_shells();
             }
@@ -9979,11 +9977,6 @@ ThumbnailsList Plater::priv::generate_thumbnails(const ThumbnailsParams& params,
             thumbnails.pop_back();
     }
     return thumbnails;
-}
-
-void Plater::priv::generate_calibration_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
-{
-    preview->get_canvas3d()->render_calibration_thumbnail(data, w, h, thumbnail_params);
 }
 
 PlateBBoxData Plater::priv::generate_first_layer_bbox()
@@ -12873,7 +12866,7 @@ void Plater::load_gcode(const wxString& filename)
     //current_result->reset();
     //p->gcode_result.reset();
     //reset_gcode_toolpaths();
-    p->preview->reload_print(false, m_only_gcode);
+    p->preview->reload_print(m_only_gcode);
     wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
     p->set_current_panel(p->preview, true);
     p->get_current_canvas3D()->render();
@@ -12923,7 +12916,7 @@ void Plater::load_gcode(const wxString& filename)
     current_print.set_gcode_file_ready();
 
     // show results
-    p->preview->reload_print(false, m_only_gcode);
+    p->preview->reload_print(m_only_gcode);
     //BBS: zoom to bed 0 for gcode preview
     //p->preview->get_canvas3d()->zoom_to_gcode();
     p->preview->get_canvas3d()->zoom_to_plate(0);
@@ -12951,9 +12944,9 @@ void Plater::reload_gcode_from_disk()
     load_gcode(filename);
 }
 
-void Plater::refresh_print()
+void Plater::reload_print()
 {
-    p->preview->refresh_print();
+    p->preview->reload_print();
 }
 
 // BBS
@@ -15194,7 +15187,7 @@ void Plater::reslice()
     if (clean_gcode_toolpaths)
         reset_gcode_toolpaths();
 
-    p->preview->reload_print(!clean_gcode_toolpaths);
+    p->preview->reload_print();
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished, started slicing for plate %1%") % p->partplate_list.get_curr_plate_index();
 
@@ -15833,6 +15826,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->sidebar->update_searcher();
             p->reset_gcode_toolpaths();
             p->view3D->get_canvas3d()->reset_sequential_print_clearance();
+            p->preview->get_canvas3d()->reset_volumes();
             //BBS: invalid all the slice results
             p->partplate_list.invalid_all_slice_result();
         }
@@ -16685,7 +16679,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
                     else {
                         validate_current_plate(model_fits, validate_err);
                         //just refresh_print
-                        refresh_print();
+                        reload_print();
                         p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false, true);
                     }
                 }
@@ -16711,7 +16705,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
                     //p->ready_to_slice = false;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
 
-                    refresh_print();
+                    reload_print();
                 }
             }
         }
@@ -16751,7 +16745,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
                 else {
                     //p->ready_to_slice = false;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
-                    refresh_print();
+                    reload_print();
                 }
             }
             else
@@ -17113,7 +17107,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
                     //p->ready_to_slice = false;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
 
-                    refresh_print();
+                    reload_print();
                 }
             }
             else
