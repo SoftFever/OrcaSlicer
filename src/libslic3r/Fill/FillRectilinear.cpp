@@ -3417,8 +3417,8 @@ Polylines FillQuarterCubic::fill_surface(const Surface* surface, const FillParam
     using namespace boost::math::float_constants;
     Polylines polylines_out;
 
-    coord_t line_width = coord_t(scale_(this->spacing));
-    coord_t period = coord_t(scale_(this->spacing) / params.density) * 4;
+    coord_t line_width = coord_t(scale_(this->spacing)) * params.multiline;
+    coord_t period = coord_t(scale_(this->spacing) *params.multiline / params.density) * 4;
 
     // First half tetrahedral fill
     double  pattern_z_shift = 0.0;
