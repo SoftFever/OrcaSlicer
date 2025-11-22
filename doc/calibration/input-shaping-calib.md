@@ -79,6 +79,10 @@ Every firmware and even its version may have a different default type but usuall
 
 6. **Restore your 3D Printer settings to avoid keep using high acceleration and jerk values.**
 7. Save the settings
+  - Into your OrcaSlicer printer profile (**RECOMMENDED**):
+     1. Go to Printer settings → Motion ability → Resonance Compensation:
+     2. Set your Type, Frequencies and Damping values.  
+        ![inputshaping_printer](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/InputShaping/inputshaping_printer.png?raw=true)
    - Into your printer firmware settings save the values you found (Type, frequency/cies and damp)
    - Save it into Orca's printer profile settings in Printer settings/ Machine G-code/ Machine start G-code using the following G-code:
      - Klipper:
