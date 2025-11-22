@@ -2706,49 +2706,74 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
 {
     if (params.multiline <= 1)
         return;
-    const int   n_lines     = params.multiline;
-    const int   n_polylines = static_cast<int>(polylines.size());
-    Polylines   all_polylines;
-    const float center = (n_lines - 1) / 2.0f;
 
+    const int n_lines     = params.multiline;
+    const int n_polylines = static_cast<int>(polylines.size());
+    Polylines all_polylines;
     all_polylines.reserve(n_lines * n_polylines);
 
-    // Clipper2-based multiline offset logic
+    // Convert source polylines to Clipper2 paths
     Clipper2Lib::Paths64 subject_paths = Slic3rPolylines_to_Paths64(polylines);
     subject_paths.erase(std::remove_if(subject_paths.begin(), subject_paths.end(),
-                                       [](const Clipper2Lib::Path64& path) { return path.size() < 2; }),
+                                       [](const Clipper2Lib::Path64& p) { return p.size() < 2; }),
                         subject_paths.end());
 
     if (subject_paths.empty())
         return;
 
-    const double               clipper_miter_limit = DefaultLineMiterLimit > 0. ? DefaultLineMiterLimit : 2.0;
-    Clipper2Lib::ClipperOffset offsetter(clipper_miter_limit);
-    offsetter.AddPaths(subject_paths, Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Round);
+    const double miter_limit = 2.0;
+    const int    rings       = n_lines / 2;
+
+    // --- Compute offsets (in units of spacing) ---
+    std::vector<double> offsets;
+    offsets.reserve(n_lines);
 
     if (n_lines % 2 != 0) {
-        all_polylines.insert(all_polylines.end(), polylines.begin(), polylines.end());
+        // Odd: center line at offset = 0
+        offsets.push_back(0.0);
+
+        for (int i = 1; i <= rings; ++i)
+            offsets.push_back(i * spacing);
+    } else {
+        // Even: no center, start at 0.5 * spacing
+        double start = 0.5 * spacing;
+        for (int i = 0; i < rings; ++i)
+            offsets.push_back(start + i * spacing);
     }
-    for (int line = 0; line < n_lines / 2; ++line) {
-        const double offset_distance = scale_((static_cast<float>(line) - center) * spacing);
+
+    // --- Process each offset ---
+    for (double t : offsets) {
+        if (t == 0.0) {
+            // Center line (only applies when n_lines is odd)
+            all_polylines.insert(all_polylines.end(), polylines.begin(), polylines.end());
+            continue;
+        }
+
+        // Create a fresh ClipperOffset for each band
+        Clipper2Lib::ClipperOffset offsetter(miter_limit);
+        offsetter.AddPaths(subject_paths, Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Round);
 
         Clipper2Lib::Paths64 offset_paths;
-        offsetter.Execute(offset_distance, offset_paths);
+        offsetter.Execute(scale_(t), offset_paths);
         if (offset_paths.empty())
             continue;
 
-        Clipper2Lib::Paths64 merged_paths = offset_paths.size() > 1 ? Clipper2Lib::Union(offset_paths, Clipper2Lib::FillRule::NonZero) :
-                                                                      std::move(offset_paths);
+        // Merge multiple rings
+        Clipper2Lib::Paths64 merged_paths = (offset_paths.size() > 1) ? Clipper2Lib::Union(offset_paths, Clipper2Lib::FillRule::NonZero) :
+                                                                        std::move(offset_paths);
+
         if (merged_paths.empty())
             continue;
 
+        // Convert back to polylines
         Polylines new_polylines = Paths64_to_polylines(merged_paths);
-        for (Polyline& new_pl : new_polylines) {
-            if (new_pl.points.size() < 3)
+
+        for (Polyline& pl : new_polylines) {
+            if (pl.points.size() < 3)
                 continue;
-            if (new_pl.points.front() != new_pl.points.back())
-                new_pl.points.push_back(new_pl.points.front());
-            all_polylines.emplace_back(std::move(new_pl));
+            if (pl.points.front() != pl.points.back())
+                pl.points.push_back(pl.points.front());
+            all_polylines.emplace_back(std::move(pl));
         }
     }
 
