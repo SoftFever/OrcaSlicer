@@ -497,6 +497,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/Label.cpp
     GUI/Widgets/LabeledStaticBox.cpp
     GUI/Widgets/LabeledStaticBox.hpp
+    GUI/Widgets/LoadingSpinner.cpp
+    GUI/Widgets/LoadingSpinner.hpp
     GUI/Widgets/Label.hpp
     GUI/Widgets/PopupWindow.cpp
     GUI/Widgets/PopupWindow.hpp
@@ -619,6 +621,12 @@ set(SLIC3R_GUI_SOURCES
     Utils/UndoRedo.cpp
     Utils/UndoRedo.hpp
     Utils/WebSocketClient.hpp
+    Utils/Spoolman.cpp
+    Utils/Spoolman.hpp
+    GUI/SpoolmanImportDialog.cpp
+    GUI/SpoolmanImportDialog.hpp
+    GUI/SpoolmanDialog.cpp
+    GUI/SpoolmanDialog.hpp
     Utils/WxFontUtils.cpp
     Utils/WxFontUtils.hpp
     Utils/FileTransferUtils.cpp

@@ -200,6 +200,7 @@ public:
 	bool				is_activated() { return sizer != nullptr; }
 
 	void remove_option_if(std::function<bool(std::string const &)> const & comp);
+    void msw_rescale();
 protected:
 	std::map<t_config_option_key, Option>	m_options;
     wxWindow*				m_parent {nullptr};
@@ -293,7 +294,7 @@ public:
     void        Show(const bool show);
     bool        is_visible(ConfigOptionMode mode);
     bool        update_visibility(ConfigOptionMode mode);
-    void        msw_rescale();
+    // void        msw_rescale();
     void        sys_color_changed();
     void        refresh();
 	boost::any	config_value(const std::string& opt_key, int opt_index, bool deserialize);
