@@ -6,6 +6,10 @@ These settings control advanced slicing and printing behaviours, such as how lay
   - [Regular](#regular)
   - [Close Holes](#close-holes)
   - [Even Odd](#even-odd)
+- [Slicing Tolerance](#slicing-tolerance)
+  - [Middle](#middle)
+  - [Exclusive](#exclusive)
+  - [Inclusive](#inclusive)
 - [Print Sequence](#print-sequence)
   - [By Layer](#by-layer)
     - [Intra-layer order](#intra-layer-order)
@@ -36,6 +40,22 @@ This can help with models that have gaps or incomplete surfaces, ensuring a more
 ### Even Odd
 
 Use "Even-odd" for specific models like [3DLabPrint](https://3dlabprint.com) airplane models. This mode applies a special slicing algorithm that may be required for certain proprietary or experimental prints.
+
+## Slicing Tolerance
+
+![slicing-tolerance](https://github.com/OrcaSlicer/OrcaSlicer/blob/main/doc/images/Tolerance/SlicingTolerance.png?raw=true)
+
+### Middle
+
+The default option, attepting to match the cross sectional area of the layer to the model at the same height. This will result in half the layer underestimating the size and half the layer overestimating the size at any overhang.
+
+### Exclusive
+
+This setting aims to ensure that at each layer with an overhang, the cross section will not exceed the cross section of the model at the same height. This is useful when dealing with fitting parts together and managing tolerances with variable layer heights.
+
+### Inclusive
+
+This setting aims to ensure that at each layer with an overhang, the cross section is at least the same size or slightly larger than the model at the same height. This is particularly useful for any parts that will require sanding (e.g. to try and hide jagged overhangs).
 
 ## Print Sequence
 
