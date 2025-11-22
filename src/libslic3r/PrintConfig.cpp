@@ -1921,6 +1921,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
+    def = this->add("external_perimeter_cut_corners", coPercent);
+    def->label = L("External perimeter cut corners (Beta)");
+    def->category = L("Quality");
+    def->tooltip = L("Activate this option to adapt the flow near sharp outer corners to better match the round nozzle footprint and reduce over-extrusion."
+                     " 0% disables the correction, 100% applies the full effect.");
+    def->sidetext = L("%");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(0));
+
     def = this->add("outer_wall_speed", coFloat);
     def->label = L("Outer wall");
     def->category = L("Speed");
@@ -7548,6 +7557,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 // Don't convert single options here, implement such conversion in PrintConfigDef::handle_legacy() instead.
 void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
 {
+
     if (config.has("thumbnails")) {
         std::string extention;
         if (config.has("thumbnails_format")) {

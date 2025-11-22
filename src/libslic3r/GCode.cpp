@@ -5891,6 +5891,27 @@ void GCode::GCodeOutputStream::write_format(const char* format, ...)
     va_end(args);
 }
 
+static double compute_cut_corner_overlap_ratio(double bead_width, double angle_deg)
+{
+    if (bead_width <= 0.0)
+        return 0.0;
+
+    angle_deg = std::clamp(angle_deg, 0.0, 180.0);
+    double phi_deg = std::max(0.0, 90.0 - angle_deg / 2.0);
+    double phi_rad = phi_deg * PI / 180.0;
+    double half_width = bead_width / 2.0;
+    double tan_term = std::tan(phi_rad);
+
+    double area_triangle = (half_width * half_width) * tan_term / 2.0;
+    double area_sector = (PI / 4.0) * bead_width * bead_width * (phi_deg / 360.0);
+    double overlap_area = 2.0 * (area_triangle - area_sector);
+    double ratio = overlap_area / (bead_width * bead_width);
+
+    if (!std::isfinite(ratio))
+        return 0.0;
+    return std::clamp(ratio, 0.0, 1.0);
+}
+
 bool GCode::_needSAFC(const ExtrusionPath &path)
 {
     if (!m_small_area_infill_flow_compensator || !m_config.small_area_infill_flow_compensation.value)
@@ -6530,12 +6551,76 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             if (!m_config.enable_arc_fitting || path.polyline.fitting_result.empty() || m_config.spiral_mode || sloped != nullptr) {
                 double path_length = 0.;
                 double total_length = sloped == nullptr ? 0. : path.polyline.length() * SCALING_FACTOR;
+                const bool enable_cut_corners = sloped == nullptr && path.role() == erExternalPerimeter &&
+                    m_config.external_perimeter_cut_corners.value > 0 && !path.polyline.lines().empty();
+                const double cut_corner_user_factor = enable_cut_corners ? std::clamp(m_config.external_perimeter_cut_corners.value / 100.0, 0.0, 1.0) : 0.0;
+                Point last_corner_point;
+                if (enable_cut_corners)
+                    last_corner_point = path.polyline.lines().front().a;
+
+                const auto emit_cut_corner_segment = [&](const Point &target, double segment_length, double multiplier, const std::string &tempDescription) {
+                    if (segment_length <= 0.0)
+                        return;
+                    gcode += m_writer.extrude_to_xy(
+                        this->point_to_gcode(target),
+                        e_per_mm * segment_length * multiplier,
+                        GCodeWriter::full_gcode_comment ? tempDescription : "",
+                        path.is_force_no_extrusion());
+                };
+
+                const auto try_cut_corners = [&](const Line &line, double line_length, const std::string &tempDescription) -> bool {
+                    if (!enable_cut_corners)
+                        return false;
+                    double angle = line.a == last_corner_point ? PI : line.a.ccw_angle(last_corner_point, line.b);
+                    angle = (angle > PI) ? (angle - PI) : (PI - angle);
+                    const double angle_deg = 180.0 * angle / PI;
+                    if (angle_deg <= 60.0) {
+                        last_corner_point = line.a;
+                        return false;
+                    }
+                    const double coeff = compute_cut_corner_overlap_ratio(path.width, std::min(angle_deg, 145.0)) * cut_corner_user_factor;
+                    if (coeff <= 0.0) {
+                        last_corner_point = line.a;
+                        return false;
+                    }
+                    const double length1 = path.width / 4.0;
+                    if (line_length > length1 && length1 > EPSILON) {
+                        const double mult1 = 1.0 - coeff * 2.0;
+                        const double length2 = path.width / 2.0;
+                        double remaining_after_l1 = line_length - length1;
+                        Point inter_point1 = line.point_at(scale_(length1));
+                        emit_cut_corner_segment(inter_point1, length1, mult1, tempDescription);
+                        if (remaining_after_l1 > length2 + EPSILON) {
+                            Point inter_point2 = line.point_at(scale_(length1 + length2));
+                            emit_cut_corner_segment(inter_point2, length2, 1.0 - coeff, tempDescription);
+                            const double final_length = line_length - (length1 + length2);
+                            emit_cut_corner_segment(line.b, final_length, 1.0, tempDescription);
+                        } else if (remaining_after_l1 > EPSILON) {
+                            const double adjusted_mult = 1.0 - coeff * (length2 / remaining_after_l1);
+                            emit_cut_corner_segment(line.b, remaining_after_l1, adjusted_mult, tempDescription);
+                        } else if (remaining_after_l1 > 0.0) {
+                            emit_cut_corner_segment(line.b, remaining_after_l1, 1.0, tempDescription);
+                        }
+                    } else if (line_length > EPSILON) {
+                        const double ratio = path.width / line_length;
+                        const double mult = std::max(0.1, 1.0 - coeff * ratio);
+                        emit_cut_corner_segment(line.b, line_length, mult, tempDescription);
+                    } else {
+                        last_corner_point = line.a;
+                        return false;
+                    }
+                    last_corner_point = line.a;
+                    return true;
+                };
+
                 for (const Line& line : path.polyline.lines()) {
                     std::string tempDescription = description;
                     const double line_length = line.length() * SCALING_FACTOR;
                     if (line_length < EPSILON)
                         continue;
                     path_length += line_length;
+                    if (try_cut_corners(line, line_length, tempDescription))
+                        continue;
                     auto dE = e_per_mm * line_length;
                     if (_needSAFC(path)) {
                         auto oldE = dE;
