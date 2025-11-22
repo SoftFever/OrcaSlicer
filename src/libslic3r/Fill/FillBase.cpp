@@ -2722,31 +2722,23 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
     if (subject_paths.empty())
         return;
 
-    const double clipper_miter_limit = DefaultLineMiterLimit > 0. ? DefaultLineMiterLimit : 2.0;
+    const double               clipper_miter_limit = DefaultLineMiterLimit > 0. ? DefaultLineMiterLimit : 2.0;
     Clipper2Lib::ClipperOffset offsetter(clipper_miter_limit);
     offsetter.AddPaths(subject_paths, Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Round);
 
-    bool center_inserted = false;
-    for (int line = 0; line < n_lines/2; ++line) {
+    if (n_lines % 2 != 0) {
+        all_polylines.insert(all_polylines.end(), polylines.begin(), polylines.end());
+    }
+    for (int line = 0; line < n_lines / 2; ++line) {
         const double offset_distance = scale_((static_cast<float>(line) - center) * spacing);
-
-        // Skip center line calculation - just use originals when offset is near zero
-        if (std::abs(offset_distance) < 1.) {
-            if (!center_inserted) {
-                all_polylines.insert(all_polylines.end(), polylines.begin(), polylines.end());
-                center_inserted = true;
-            }
-            continue;
-        }
 
         Clipper2Lib::Paths64 offset_paths;
         offsetter.Execute(offset_distance, offset_paths);
         if (offset_paths.empty())
             continue;
 
-        Clipper2Lib::Paths64 merged_paths = offset_paths.size() > 1 ?
-            Clipper2Lib::Union(offset_paths, Clipper2Lib::FillRule::NonZero) :
-            std::move(offset_paths);
+        Clipper2Lib::Paths64 merged_paths = offset_paths.size() > 1 ? Clipper2Lib::Union(offset_paths, Clipper2Lib::FillRule::NonZero) :
+                                                                      std::move(offset_paths);
         if (merged_paths.empty())
             continue;
 
