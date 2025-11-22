@@ -4,12 +4,13 @@
 #include "Http.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <map>
-#include <libslic3r/Config.hpp>
 
 namespace pt = boost::property_tree;
 
 namespace Slic3r {
 class Preset;
+class DynamicConfig;
+class DynamicPrintConfig;
 
 class SpoolmanVendor;
 class SpoolmanFilament;
@@ -234,7 +235,7 @@ private:
     };
 
     void update_from_json(pt::ptree json_data);
-    void apply_to_config(Slic3r::DynamicConfig& config) const;
+    void apply_to_config(DynamicConfig& config) const;
 
     friend class Spoolman;
     friend class SpoolmanVendor;
