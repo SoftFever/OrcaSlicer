@@ -214,6 +214,7 @@ wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 #define PRINTER_THUMBNAIL_SIZE (wxSize(40, 40)) // ORCA
 #define PRINTER_PANEL_SIZE (    wxSize(70, 60)) // ORCA
+#define PRINTER_PANEL_RADIUS (6) // ORCA
 #define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
 
 static string get_diameter_string(float diameter)
@@ -544,7 +545,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
         //hsizer_printer->Add(btn_sync_printer , 0, wxLEFT, FromDIP(4));
         vsizer_printer->AddSpacer(FromDIP(SidebarProps::ContentMarginV()));
         vsizer_printer->Add(hsizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ContentMargin()));
-        vsizer_printer->AddSpacer(FromDIP(SidebarProps::ContentMarginV()));
+
         // Printer - extruder
 
         // double
@@ -559,7 +560,9 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
         extruder_sizer->Add(extruder_dual_sizer  , 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ContentMargin()));
         extruder_sizer->Add(extruder_single_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ContentMargin()));
 
-        vsizer_printer->Add(extruder_sizer, 1, wxEXPAND | wxBOTTOM, FromDIP(8));
+        vsizer_printer->Add(extruder_sizer, 1, wxEXPAND | wxTOP, FromDIP(2));
+
+        vsizer_printer->AddSpacer(FromDIP(SidebarProps::ContentMarginV()));
     }
 
     //btn_connect_printer->Show(!isBBL);
@@ -992,6 +995,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     SetFont(Label::Body_10);
     SetForegroundColour(wxColour("#CECECE"));
     SetBorderColor(wxColour("#EEEEEE"));
+    SetCornerRadius(FromDIP(PRINTER_PANEL_RADIUS)); // ORCA match radius with other boxes
     ShowBadge(true);
     // Nozzle
     wxStaticText *label_diameter = new wxStaticText(this, wxID_ANY, _L("Diameter"));
@@ -1096,8 +1100,8 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
         this->sizer = hsizer;
     } else {
         wxStaticBoxSizer *vsizer = new wxStaticBoxSizer(this, wxVERTICAL);
-        vsizer->Add(hsizer_ams, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, FromDIP(2));
-        vsizer->Add(hsizer_diameter, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, FromDIP(2));
+        vsizer->Add(hsizer_ams, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(2));
+        vsizer->Add(hsizer_diameter, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT | wxBOTTOM, FromDIP(2));
         //vsizer->Add(hsizer_nozzle, 0, wxEXPAND | wxALL, FromDIP(2));
         this->sizer = vsizer;
     }
@@ -1678,7 +1682,7 @@ Sidebar::Sidebar(Plater *parent)
         PanelColors panel_color;
 
         p->panel_printer_preset = new StaticBox(p->m_panel_printer_content);
-        p->panel_printer_preset->SetCornerRadius(FromDIP(8));
+        p->panel_printer_preset->SetCornerRadius(FromDIP(PRINTER_PANEL_RADIUS));
         p->panel_printer_preset->SetBorderColor(panel_color.bd_normal);
         p->panel_printer_preset->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
         p->panel_printer_preset->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
@@ -1763,7 +1767,7 @@ Sidebar::Sidebar(Plater *parent)
 
         // ORCA unified Nozzle diameter selection
         p->panel_nozzle_dia = new StaticBox(p->m_panel_printer_content);
-        p->panel_nozzle_dia->SetCornerRadius(FromDIP(8));
+        p->panel_nozzle_dia->SetCornerRadius(FromDIP(PRINTER_PANEL_RADIUS));
         p->panel_nozzle_dia->SetBorderColor(panel_color.bd_normal);
         p->panel_nozzle_dia->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
         p->panel_nozzle_dia->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
@@ -1834,7 +1838,7 @@ Sidebar::Sidebar(Plater *parent)
 
         // Bed type selection
         p->panel_printer_bed = new StaticBox(p->m_panel_printer_content);
-        p->panel_printer_bed->SetCornerRadius(FromDIP(8));
+        p->panel_printer_bed->SetCornerRadius(FromDIP(PRINTER_PANEL_RADIUS));
         p->panel_printer_bed->SetBorderColor(panel_color.bd_normal);
         p->panel_printer_bed->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
         p->panel_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
@@ -2757,7 +2761,7 @@ void Sidebar::msw_rescale()
     p->m_printer_setting->msw_rescale();
 
     p->panel_printer_preset->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
-    p->panel_printer_preset->SetCornerRadius(FromDIP(8));
+    p->panel_printer_preset->SetCornerRadius(FromDIP(PRINTER_PANEL_RADIUS));
     p->image_printer->SetSize(FromDIP(PRINTER_THUMBNAIL_SIZE));
     update_printer_thumbnail();
     p->combo_printer->Rescale();
@@ -2765,11 +2769,11 @@ void Sidebar::msw_rescale()
     p->btn_edit_printer->msw_rescale();
 
     p->panel_nozzle_dia->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
-    p->panel_nozzle_dia->SetCornerRadius(FromDIP(8));
+    p->panel_nozzle_dia->SetCornerRadius(FromDIP(PRINTER_PANEL_RADIUS));
     p->combo_nozzle_dia->Rescale();
 
     p->panel_printer_bed->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
-    p->panel_printer_bed->SetCornerRadius(FromDIP(8));
+    p->panel_printer_bed->SetCornerRadius(FromDIP(PRINTER_PANEL_RADIUS));
     p->combo_printer_bed->Rescale();
     p->combo_printer_bed->SetMinSize(FromDIP(wxSize(18,-1))); // ORCA show only arrow
     p->combo_printer_bed->SetMaxSize(FromDIP(wxSize(18,-1))); // ORCA show only arrow
