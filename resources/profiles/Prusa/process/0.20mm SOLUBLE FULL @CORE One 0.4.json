@@ -11,5 +11,8 @@
     "default_acceleration": "3000",
     "support_interface_top_layers": "3",
     "initial_layer_infill_speed": "100",
-    "initial_layer_speed": "45"
+    "initial_layer_speed": "45",
+    "small_perimeter_speed": "50",
+    "inner_wall_speed": "70",
+    "outer_wall_speed": "50"
 }
