@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <numeric>
-#include <algorithm>
 
 #include <cmath>
 #include "../ClipperUtils.hpp"
