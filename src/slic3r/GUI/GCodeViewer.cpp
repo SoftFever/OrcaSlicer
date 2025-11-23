@@ -872,13 +872,20 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
         m_nozzle_nums = preset_bundle->get_printer_extruder_count();
 
     // set to color print by default if use multi extruders
-    if (m_nozzle_nums > 1 || preset_bundle->filament_presets.size() > 1) {
-        m_view_type_sel = std::distance(view_type_items.begin(),std::find(view_type_items.begin(), view_type_items.end(), EViewType::Summary));
+    if (m_nozzle_nums > 1) {
+        m_view_type_sel = std::distance(view_type_items.begin(),
+                                        std::find(view_type_items.begin(), view_type_items.end(), EViewType::Summary));
         set_view_type(EViewType::Summary);
+    } else if (m_nozzle_nums == 1 && preset_bundle->filament_presets.size() > 1) {
+        m_view_type_sel = std::distance(view_type_items.begin(),
+                                        std::find(view_type_items.begin(), view_type_items.end(), EViewType::ColorPrint));
+        set_view_type(EViewType::ColorPrint);
     } else {
-        m_view_type_sel = std::distance(view_type_items.begin(),std::find(view_type_items.begin(), view_type_items.end(), EViewType::FeatureType));
+        m_view_type_sel = std::distance(view_type_items.begin(),
+                                        std::find(view_type_items.begin(), view_type_items.end(), EViewType::FeatureType));
         set_view_type(EViewType::FeatureType);
     }
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
 }
 
