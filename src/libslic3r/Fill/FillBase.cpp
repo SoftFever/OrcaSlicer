@@ -2711,14 +2711,15 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
     Polylines all_polylines;
     all_polylines.reserve(n_lines * n_polylines);
 
+    // Remove invalid polylines
+    polylines.erase(std::remove_if(polylines.begin(), polylines.end(),
+                              [](const Polyline& p) { return p.size() < 2; }),
+               polylines.end());
+
+    if (polylines.empty())
+    return;
     // Convert source polylines to Clipper2 paths
     Clipper2Lib::Paths64 subject_paths = Slic3rPolylines_to_Paths64(polylines);
-    subject_paths.erase(std::remove_if(subject_paths.begin(), subject_paths.end(),
-                                       [](const Clipper2Lib::Path64& p) { return p.size() < 2; }),
-                        subject_paths.end());
-
-    if (subject_paths.empty())
-        return;
 
     const double miter_limit = 2.0;
     const int    rings       = n_lines / 2;
@@ -2741,6 +2742,9 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
     }
 
     // --- Process each offset ---
+    Clipper2Lib::ClipperOffset offsetter(miter_limit);
+    offsetter.AddPaths(subject_paths, Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Round);
+
     for (double t : offsets) {
         if (t == 0.0) {
             // Center line (only applies when n_lines is odd)
@@ -2748,10 +2752,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
             continue;
         }
 
-        // Create a fresh ClipperOffset for each band
-        Clipper2Lib::ClipperOffset offsetter(miter_limit);
-        offsetter.AddPaths(subject_paths, Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Round);
-
+        // Reuse ClipperOffset with current offset distance
         Clipper2Lib::Paths64 offset_paths;
         offsetter.Execute(scale_(t), offset_paths);
         if (offset_paths.empty())
