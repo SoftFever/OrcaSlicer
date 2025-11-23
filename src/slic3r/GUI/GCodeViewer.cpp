@@ -870,13 +870,14 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 
     if (preset_bundle)
         m_nozzle_nums = preset_bundle->get_printer_extruder_count();
+        bool multimaterial = preset_bundle->filament_presets.empty() ? 0 : preset_bundle->filament_presets.size() > 1;
 
     // set to color print by default if use multi extruders
     if (m_nozzle_nums > 1) {
         m_view_type_sel = std::distance(view_type_items.begin(),
                                         std::find(view_type_items.begin(), view_type_items.end(), EViewType::Summary));
         set_view_type(EViewType::Summary);
-    } else if (m_nozzle_nums == 1 && preset_bundle->filament_presets.size() > 1) {
+    } else if (multimaterial) {
         m_view_type_sel = std::distance(view_type_items.begin(),
                                         std::find(view_type_items.begin(), view_type_items.end(), EViewType::ColorPrint));
         set_view_type(EViewType::ColorPrint);
