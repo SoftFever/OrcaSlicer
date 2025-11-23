@@ -4,7 +4,7 @@
     "inherits": "0.55mm DRAFT @MK4S 0.8",
     "from": "system",
     "instantiation": "true",
-    "top_surface_speed": "2000",
+    "top_surface_acceleration": "2000",
     "inner_wall_acceleration": "2500",
     "internal_solid_infill_acceleration": "5000",
     "sparse_infill_acceleration": "7000",
