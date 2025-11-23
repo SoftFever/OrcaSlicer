@@ -1095,7 +1095,7 @@ void PreferencesDialog::create()
 
     m_pref_tabs->SelectItem(0);
 
-    m_sizer_body->Add(m_pref_tabs, 0, wxEXPAND | wxBOTTOM, FromDIP(5));
+    m_sizer_body->Add(m_pref_tabs, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(5));
     m_sizer_body->Add(m_parent, 1, wxEXPAND);
 
     SetSizer(m_sizer_body);
@@ -1342,9 +1342,7 @@ void PreferencesDialog::create_items()
     g_sizer->Add(item_enable_plugin);
     
     auto item_legacy_network   = create_item_checkbox(_L("Use legacy network plugin"), _L("Disable to use latest network plugin that supports new BambuLab firmwares."), "legacy_networking", _L("(Requires restart)"));
-    g_sizer->Add(item_legacy_network);    
-    //// ONLINE > Storage
-    
+    g_sizer->Add(item_legacy_network);
 
     g_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(g_sizer, 0, wxEXPAND);
