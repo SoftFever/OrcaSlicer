@@ -12551,9 +12551,11 @@ void Plater::Calib_Practical_Flow_Ratio(const Calib_Params& params) {
     print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
 
-    printer_config->set_key_value("retract_lift_enforce", new ConfigOptionEnumsGeneric{params.use_zhop ? RetractLiftEnforceType::rletBottomOnly : RetractLiftEnforceType::rletBottomOnly});
+    printer_config->set_key_value("retract_lift_enforce", new ConfigOptionEnumsGeneric{params.use_zhop ? RetractLiftEnforceType::rletAllSurfaces : RetractLiftEnforceType::rletBottomOnly});
     printer_config->set_key_value("z_hop", new ConfigOptionFloats{params.use_zhop ? 0.4f : 0.0f});
     printer_config->set_key_value("z_hop_types", new ConfigOptionEnumsGeneric{ZHopType::zhtSlope});
+    printer_config->set_key_value("retract_lift_above", new ConfigOptionFloats{0.0f});
+    printer_config->set_key_value("retract_lift_below", new ConfigOptionFloats{100.0f});
     printer_config->set_key_value("travel_slope", new ConfigOptionFloats{45.0f});
     printer_config->set_key_value("wipe_distance", new ConfigOptionFloats{0.0f});
 
