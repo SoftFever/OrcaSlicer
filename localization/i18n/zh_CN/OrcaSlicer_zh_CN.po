@@ -1112,7 +1112,7 @@ msgstr "文字中心到模型曲面的距离。"
 msgid "Undo rotation"
 msgstr "撤消旋转"
 
-msgid "Rotate text Clock-wise."
+msgid "Rotate text Clockwise."
 msgstr "顺时针旋转文本。"
 
 msgid "Unlock the text's rotation when moving text along the object's surface."
@@ -1294,7 +1294,8 @@ msgstr "从磁盘重新加载SVG文件。"
 msgid "Change file"
 msgstr "改变文件"
 
-msgid "Change to another .svg file"
+#, fuzzy
+msgid "Change to another SVG file."
 msgstr "更改为另一个.svg文件"
 
 msgid "Forget the file path"
@@ -1321,7 +1322,8 @@ msgstr "另存为"
 msgid "Save SVG file"
 msgstr "保存SVG文件"
 
-msgid "Save as '.svg' file"
+#, fuzzy
+msgid "Save as SVG file."
 msgstr "另存为“.svg”文件"
 
 msgid "Size in emboss direction."
@@ -1671,20 +1673,20 @@ msgstr "加载当前预设"
 msgid "Loading a mode view"
 msgstr "加载模式视图"
 
-msgid "Choose one file (3mf):"
-msgstr "选择一个文件（3mf）："
+msgid "Choose one file (3MF):"
+msgstr "选择一个文件（3MF）："
 
-msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
-msgstr "选择一个或多个文件(3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgid "Choose one or more files (3MF/STEP/STL/SVG/OBJ/AMF/USD*/ABC/PLY):"
+msgstr "选择一个或多个文件(3MF/STEP/STL/SVG/OBJ/AMF/USD*/ABC/PLY):"
 
-msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
-msgstr "选择一个或多个文件（3mf/step/stl/svg/obj/amf）："
+msgid "Choose one or more files (3MF/STEP/STL/SVG/OBJ/AMF):"
+msgstr "选择一个或多个文件（3mf/step/STL/svg/obj/amf）："
 
 msgid "Choose ZIP file"
 msgstr "选择ZIP文件"
 
-msgid "Choose one file (gcode/3mf):"
-msgstr "选择一个文件（gcode/3mf）："
+msgid "Choose one file (GCODE/3MF):"
+msgstr "选择一个文件（GCODE/3MF）："
 
 msgid "Some presets are modified."
 msgstr "预设已被修改。"
@@ -1980,13 +1982,13 @@ msgstr "从磁盘重新加载选中的零件"
 msgid "Replace with STL"
 msgstr "替换为STL"
 
-msgid "Replace the selected part with new STL."
+msgid "Replace the selected part with new STL"
 msgstr "用新的STL替换选中的零件"
 
 msgid "Replace all with STL"
 msgstr ""
 
-msgid "Replace all selected parts with STL from folder."
+msgid "Replace all selected parts with STL from folder"
 msgstr ""
 
 msgid "Change filament"
@@ -2122,7 +2124,7 @@ msgstr "拆分所选对象"
 msgid "Auto orientation"
 msgstr "自动朝向"
 
-msgid "Auto orient the object to improve print quality."
+msgid "Auto orient the object to improve print quality"
 msgstr "自动调整对象朝向以提高打印质量。"
 
 msgid "Edit"
@@ -2659,7 +2661,7 @@ msgstr ""
 
 msgid ""
 "Enabling filtration during printing may reduce cooling and affect print "
-"qulity. Please choose carefully"
+"quality. Please choose carefully."
 msgstr ""
 
 msgid ""
@@ -3629,7 +3631,7 @@ msgstr "矩形"
 msgid "Circular"
 msgstr "圆"
 
-msgid "Load shape from STL ..."
+msgid "Load shape from STL..."
 msgstr "从STL文件加载形状..."
 
 msgid "Settings"
@@ -3969,10 +3971,10 @@ msgstr ""
 msgid "Pause (nozzle clog)"
 msgstr ""
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr ""
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr ""
 
 msgid "Measure motion accuracy"
@@ -3981,7 +3983,7 @@ msgstr ""
 msgid "Nozzle offset calibration"
 msgstr ""
 
-msgid "high temperature auto bed levelling"
+msgid "high temperature auto bed leveling"
 msgstr ""
 
 msgid "Auto Check: Quick Release Lever"
@@ -4085,13 +4087,13 @@ msgstr ""
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃. In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"45℃. In order to avoid extruder clogging, low temperature filament(PLA/PETG/"
 "TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
-"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
-"avoid extruder clogging,it is not allowed to set the chamber temperature."
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder. In order to "
+"avoid extruder clogging, it is not allowed to set the chamber temperature."
 msgstr ""
 
 msgid ""
@@ -4172,9 +4174,6 @@ msgid "Retry (problem solved)"
 msgstr ""
 
 msgid "Stop Drying"
-msgstr ""
-
-msgid "Cancle"
 msgstr ""
 
 msgid "Done"
@@ -4803,7 +4802,7 @@ msgstr "尺寸："
 
 #, c-format, boost-format
 msgid ""
-"Conflicts of G-code paths have been found at layer %d, z = %.2lf mm. Please "
+"Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 "发现G-code路径在层%d，高度为%.2lf mm处有冲突。请将有冲突的对象分离得更远(%s "
@@ -4829,7 +4828,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the "
+"Filaments %s are placed in the %s, but the generated G-code path exceeds the "
 "printable range of the %s."
 msgstr ""
 
@@ -4841,7 +4840,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the "
+"Filaments %s are placed in the %s, but the generated G-code path exceeds the "
 "printable height of the %s."
 msgstr ""
 
@@ -5135,8 +5134,8 @@ msgstr "导出所有对象为多个STL"
 msgid "Export Generic 3MF"
 msgstr "导出通用 3MF"
 
-msgid "Export 3mf file without using some 3mf-extensions"
-msgstr "导出不含 3mf 扩展的 3mf 文件"
+msgid "Export 3MF file without using some 3mf-extensions"
+msgstr "导出不含 3MF 扩展的 3MF 文件"
 
 msgid "Export current sliced file"
 msgstr "导出当前已切片的文件"
@@ -5570,7 +5569,8 @@ msgstr "录像"
 msgid "Switch to video files."
 msgstr "切换到视频文件列表"
 
-msgid "Switch to 3mf model files."
+#, fuzzy
+msgid "Switch to 3MF model files."
 msgstr "切换到3MF模型文件。"
 
 msgid "Delete selected files from printer."
@@ -5828,7 +5828,7 @@ msgstr "名称不允许以空格开头。"
 msgid "The name is not allowed to end with space character."
 msgstr "名称不允许以空格结尾。"
 
-msgid "The name is not allowed to exceeds 32 characters."
+msgid "The name is not allowed to exceed 32 characters."
 msgstr ""
 
 msgid "Bind with Pin Code"
@@ -5923,13 +5923,13 @@ msgstr "取消打印"
 msgid "Are you sure you want to stop this print?"
 msgstr ""
 
-msgid "The printer is busy on other print job"
+msgid "The printer is busy with another print job."
 msgstr "打印机正在执行其他打印任务"
 
-msgid "Current extruder is busy changing filament"
+msgid "Current extruder is busy changing filament."
 msgstr ""
 
-msgid "Current slot has alread been loaded"
+msgid "Current slot has already been loaded."
 msgstr ""
 
 msgid "The selected slot is empty."
@@ -5963,7 +5963,7 @@ msgid ""
 msgstr ""
 
 msgid "Please select an AMS slot before calibration"
-msgstr ""
+msgstr "请先选择一个AMS槽位后进行标定"
 
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
@@ -6141,11 +6141,13 @@ msgstr "%s 信息"
 msgid "Skip"
 msgstr "跳过"
 
-msgid "Newer 3mf version"
+#, fuzzy
+msgid "Newer 3MF version"
 msgstr "较新的3mf版本"
 
+#, fuzzy
 msgid ""
-"The 3mf file version is in Beta and it is newer than the current OrcaSlicer "
+"The 3MF file version is in Beta and it is newer than the current OrcaSlicer "
 "version."
 msgstr "3mf文件版本处于Beta测试阶段，比当前OrcaSlicer版本更新。"
 
@@ -6155,10 +6157,12 @@ msgstr "如果您想尝试Orca Slicer Beta，您可以点击"
 msgid "Download Beta Version"
 msgstr "下载Beta版本"
 
-msgid "The 3mf file version is newer than the current Orca Slicer version."
+#, fuzzy
+msgid "The 3MF file version is newer than the current OrcaSlicer version."
 msgstr "3mf文件版本比当前Orca Slicer版本更新。"
 
-msgid "Update your Orca Slicer could enable all functionality in the 3mf file."
+#, fuzzy
+msgid "Updating your OrcaSlicer could enable all functionality in the 3MF file."
 msgstr "更新你的Orca Slicer以启用3mf文件中的所有功能。"
 
 msgid "Current Version: "
@@ -6570,7 +6574,7 @@ msgid "Not installed"
 msgstr ""
 
 msgid ""
-"The software does not support using different diameter of nozzles for one  "
+"The software does not support using different diameter of nozzles for one "
 "print. If the left and right nozzles are inconsistent, we can only proceed "
 "with single-head printing. Please confirm which nozzle you would like to use "
 "for this project."
@@ -6653,7 +6657,7 @@ msgid "Sync filaments with AMS"
 msgstr "同步到 AMS 的材料列表"
 
 msgid ""
-"There are some unknown or uncompatible filaments mapped to generic preset.\n"
+"There are some unknown or incompatible filaments mapped to generic preset.\n"
 "Please update Orca Slicer or restart Orca Slicer to check if there is an "
 "update to system presets."
 msgstr ""
@@ -6722,10 +6726,12 @@ msgstr "标签"
 msgid "Loading file: %s"
 msgstr "加载文件：%s"
 
-msgid "The 3mf is not supported by OrcaSlicer, load geometry data only."
+#, fuzzy
+msgid "The 3MF is not supported by OrcaSlicer, loading geometry data only."
 msgstr "该3mf文件不是来自Orca Slicer，将只加载几何数据。"
 
-msgid "Load 3mf"
+#, fuzzy
+msgid "Load 3MF"
 msgstr "加载3mf"
 
 msgid ""
@@ -6741,32 +6747,34 @@ msgid ""
 "template settings?"
 msgstr "您是否希望 OrcaSlicer 清除旋转模板设置以自动修复此问题？"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, found following "
+"The 3MF file version %s is newer than %s's version %s, found the following "
 "unrecognized keys:"
 msgstr "该3mf的版本%s比%s的版本%s新，发现以下参数键值无法识别:"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "建议升级您的软件版本。\n"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
+"The 3MF file version %s is newer than %s's version %s, we suggest to "
+"upgrade your software."
 msgstr "该3mf的版本%s比%s的版本%s要新，建议升级你的软件。"
 
-msgid "The 3mf is generated by old OrcaSlicer, load geometry data only."
+msgid ""
+"The 3MF file was generated by an old OrcaSlicer version, loading geometry "
+"data only."
 msgstr ""
 
-msgid "Invalid values found in the 3mf:"
+msgid "Invalid values found in the 3MF:"
 msgstr "在3mf文件中发现无效值："
 
 msgid "Please correct them in the param tabs"
 msgstr "请在参数页更正它们"
 
 msgid ""
-"The 3mf has the following modified G-code in filament or printer presets:"
+"The 3MF has the following modified G-code in filament or printer presets:"
 msgstr "该3mf文件中的材料或者打印机预设包含以下修改过的G-codes:"
 
 msgid ""
@@ -6777,7 +6785,7 @@ msgstr "请确认这些修改过的G-codes是否安全，以防止对机器造�
 msgid "Modified G-code"
 msgstr "修改过的G-codes"
 
-msgid "The 3mf has the following customized filament or printer presets:"
+msgid "The 3MF has the following customized filament or printer presets:"
 msgstr "该3MF文件包含以下自定义的材料或打印机预设:"
 
 msgid ""
@@ -6788,7 +6796,8 @@ msgstr "请确认这些预设中的G-codes是否安全，以防止对机器造�
 msgid "Customized Preset"
 msgstr "自定义的预设"
 
-msgid "Name of components inside step file is not UTF8 format!"
+#, fuzzy
+msgid "Name of components inside STEP file is not UTF8 format!"
 msgstr "step 文件中的部件名称包含非UTF8格式的字符！"
 
 msgid "The name may show garbage characters!"
@@ -7019,7 +7028,7 @@ msgstr "保存项目"
 msgid "Importing Model"
 msgstr "正在导入模型"
 
-msgid "prepare 3mf file..."
+msgid "prepare 3MF file..."
 msgstr "正在准备3mf文件..."
 
 msgid "Download failed, unknown file format."
@@ -7450,7 +7459,7 @@ msgstr "仅加载几何形状"
 msgid "Load behaviour"
 msgstr "加载 交互项"
 
-msgid "Should printer/filament/process settings be loaded when opening a .3mf?"
+msgid "Should printer/filament/process settings be loaded when opening a 3MF file?"
 msgstr "printter/filament/process 设置项文件能否以 .3mf后缀方式打开"
 
 msgid "Maximum recent files"
@@ -7469,7 +7478,7 @@ msgid "Show options when importing STEP file"
 msgstr "显示STEP网格参数设置对话框"
 
 msgid ""
-"If enabled,a parameter settings dialog will appear during STEP file import."
+"If enabled, a parameter settings dialog will appear during STEP file import."
 msgstr "如果启用，在导入STEP文件时将出现参数设置对话框"
 
 msgid "Auto backup"
@@ -7513,7 +7522,7 @@ msgstr ""
 msgid "All"
 msgstr "所有"
 
-msgid "Auto flush after changing ..."
+msgid "Auto flush after changing..."
 msgstr ""
 
 msgid "Auto calculate flushing volumes when selected values changed"
@@ -7570,7 +7579,7 @@ msgstr "反转鼠标缩放"
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
 msgstr "如果启用，使用鼠标滚轮缩放的方向会反转。"
 
-msgid "Clear my choice on ..."
+msgid "Clear my choice on..."
 msgstr ""
 
 msgid "Unsaved projects"
@@ -7639,22 +7648,28 @@ msgstr "禁用以使用支持新BambuLab固件的最新网络插件。"
 msgid "Associate files to OrcaSlicer"
 msgstr "逆戟鲸文件关联"
 
-msgid "Associate .3mf files to OrcaSlicer"
+#, fuzzy
+msgid "Associate 3MF files to OrcaSlicer"
 msgstr "使用逆戟鲸打开.3mf文件"
 
-msgid "If enabled, sets OrcaSlicer as default application to open .3mf files"
+#, fuzzy
+msgid "If enabled, sets OrcaSlicer as default application to open 3MF files."
 msgstr "开启后，将缺省使用逆戟鲸打开.3mf文件"
 
-msgid "Associate .stl files to OrcaSlicer"
+#, fuzzy
+msgid "Associate STL files to OrcaSlicer"
 msgstr "使用逆戟鲸打开.stl文件"
 
-msgid "If enabled, sets OrcaSlicer as default application to open .stl files"
+#, fuzzy
+msgid "If enabled, sets OrcaSlicer as default application to open STL files."
 msgstr "开启后，将缺省使用逆戟鲸打开.stl文件"
 
-msgid "Associate .step/.stp files to OrcaSlicer"
+#, fuzzy
+msgid "Associate STEP files to OrcaSlicer"
 msgstr "使用逆戟鲸打开.step/.stp文件"
 
-msgid "If enabled, sets OrcaSlicer as default application to open .step files"
+#, fuzzy
+msgid "If enabled, sets OrcaSlicer as default application to open STEP files."
 msgstr "开启后，将缺省使用逆戟鲸打开.step文件"
 
 msgid "Associate web links to OrcaSlicer"
@@ -7892,10 +7907,10 @@ msgstr "登出"
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr "正在切片以获取切片信息和预估打印时间"
 
-msgid "Packing project data into 3mf file"
+msgid "Packing project data into 3MF file"
 msgstr "正在打包数据到3mf文件"
 
-msgid "Uploading 3mf"
+msgid "Uploading 3MF"
 msgstr "正在上传3mf"
 
 msgid "Jump to model publish web page"
@@ -7907,13 +7922,13 @@ msgstr "提示：发布前需要一些准备时间，请耐心等待。"
 msgid "Publish"
 msgstr "发布"
 
-msgid "Publish was cancelled"
+msgid "Publish was canceled"
 msgstr "发布已取消"
 
 msgid "Slicing Plate 1"
 msgstr "正在切片盘 1"
 
-msgid "Packing data to 3mf"
+msgid "Packing data to 3MF"
 msgstr "打包数据到3mf"
 
 msgid "Jump to webpage"
@@ -7986,17 +8001,17 @@ msgstr "低温打印板"
 msgid "PLA Plate"
 msgstr "PLA打印板"
 
-msgid "Bamabu Engineering Plate"
-msgstr ""
+msgid "Bambu Engineering Plate"
+msgstr "工程材料打印板"
 
-msgid "Bamabu Smooth PEI Plate"
-msgstr ""
+msgid "Bambu Smooth PEI Plate"
+msgstr "光面PEI打印板"
 
 msgid "High temperature Plate"
 msgstr "高温打印板"
 
-msgid "Bamabu Textured PEI Plate"
-msgstr ""
+msgid "Bambu Textured PEI Plate"
+msgstr "纹理PEI打印板"
 
 msgid "Bambu Cool Plate SuperTack"
 msgstr ""
@@ -8210,32 +8225,32 @@ msgstr ""
 msgid "Click here if you can't connect to the printer"
 msgstr "如果无法连接到打印机，请单击此处"
 
-msgid "No login account, only printers in LAN mode are displayed"
+msgid "No login account, only printers in LAN mode are displayed."
 msgstr "未登录账号，仅显示局域网模式的打印机"
 
-msgid "Connecting to server"
+msgid "Connecting to server..."
 msgstr "正在连接服务器..."
 
-msgid "Synchronizing device information"
+msgid "Synchronizing device information..."
 msgstr "正在同步设备信息"
 
-msgid "Synchronizing device information time out"
+msgid "Synchronizing device information timed out."
 msgstr "同步设备信息超时"
 
-msgid "Cannot send the print job when the printer is not at FDM mode"
+msgid "Cannot send a print job when the printer is not at FDM mode."
 msgstr ""
 
-msgid "Cannot send the print job when the printer is updating firmware"
+msgid "Cannot send a print job while the printer is updating firmware."
 msgstr "设备升级中，无法发送打印任务"
 
 msgid ""
-"The printer is executing instructions. Please restart printing after it ends"
+"The printer is executing instructions. Please restart printing after it ends."
 msgstr "打印机正在执行指令，请在其结束后重新发起打印"
 
 msgid "AMS is setting up. Please try again later."
 msgstr ""
 
-msgid "Please do not mix-use the Ext with AMS"
+msgid "Please do not mix-use the Ext with AMS."
 msgstr ""
 
 msgid ""
@@ -8257,7 +8272,7 @@ msgid ""
 "updated."
 msgstr "需要更新打印机固件后，才能将打印任务发送到打印机"
 
-msgid "Cannot send the print job for empty plate"
+msgid "Cannot send a print job for an empty plate."
 msgstr "无法为空盘发送打印任务"
 
 msgid "Storage needs to be inserted to record timelapse."
@@ -8277,7 +8292,7 @@ msgid ""
 "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr ""
 
-msgid "This printer does not support printing all plates"
+msgid "This printer does not support printing all plates."
 msgstr "此打印机类型不支持打印所有盘"
 
 msgid ""
@@ -8525,15 +8540,16 @@ msgid "Still print by object?"
 msgstr "仍然按对象打印吗？"
 
 msgid ""
-"Non-soluble support materials are not recommended for support base. \n"
-"Are you sure to use them for support base? \n"
+"Non-soluble support materials are not recommended for support base.\n"
+"Are you sure to use them for support base?\n"
 msgstr ""
 
+#, fuzzy
 msgid ""
 "When using support material for the support interface, we recommend the "
 "following settings:\n"
 "0 top Z distance, 0 interface spacing, interlaced rectilinear pattern and "
-"disable independent support layer height"
+"disable independent support layer height."
 msgstr ""
 "当使用支撑材料作为支撑接触面时，我们推荐以下设置：\n"
 "0顶部Z距离，0接触面间距，交错线性图案并禁用支撑独立层高"
@@ -8548,17 +8564,11 @@ msgstr ""
 "否 - 不用为我调整这些设置"
 
 msgid ""
-"When using soluble material for the support interface, We recommend the "
+"When using soluble material for the support interface, we recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, "
-"disable independent support layer height \n"
-"and use soluble materials for both support interface and support base"
-msgstr ""
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings automatically\n"
-"No  - Do not change these settings for me"
+"0 top Z distance, 0 interface spacing, interlaced rectilinear pattern, "
+"disable independent support layer height\n"
+"and use soluble materials for both support interface and support base."
 msgstr ""
 
 msgid ""
@@ -9062,7 +9072,7 @@ msgid "Number of extruders of the printer."
 msgstr "打印机的挤出机数。"
 
 msgid ""
-"Single Extruder Multi Material is selected, \n"
+"Single Extruder Multi Material is selected,\n"
 "and all extruders must have the same diameter.\n"
 "Do you want to change the diameter for all extruders to first extruder "
 "nozzle diameter value?"
@@ -9140,14 +9150,6 @@ msgstr "%1% 预设"
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "下列预设将被一起删除。"
-
-msgid ""
-"Are you sure to delete the selected preset? \n"
-"If the preset corresponds to a filament currently in use on your printer, "
-"please reset the filament information for that slot."
-msgstr ""
-"确定要删除所选预设吗？\n"
-"如果该预设对应于打印机上当前正在使用的耗材丝，请重置该插槽的耗材丝信息。"
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -9381,16 +9383,16 @@ msgstr "当前配置已经是最新版本。"
 msgid "Open Wiki for more information >"
 msgstr ""
 
-msgid "Obj file Import color"
+msgid "OBJ file import color"
 msgstr "Obj文件导入颜色"
 
 msgid "Some faces don't have color defined."
 msgstr ""
 
-msgid "mtl file exist error,could not find the material:"
+msgid "MTL file exist error, could not find the material:"
 msgstr ""
 
-msgid "Please check obj or mtl file."
+msgid "Please check OBJ or MTL file."
 msgstr ""
 
 msgid "Specify number of colors:"
@@ -10102,7 +10104,7 @@ msgstr ""
 msgid "Extension Board"
 msgstr "扩展板"
 
-msgid "Saving objects into the 3mf failed."
+msgid "Saving objects into the 3MF failed."
 msgstr "保存对象到3mf失败。"
 
 msgid "Only Windows 10 is supported."
@@ -10126,22 +10128,22 @@ msgstr "修复失败。"
 msgid "Loading repaired objects"
 msgstr "正在加载修复的对象。"
 
-msgid "Exporting 3mf file failed"
+msgid "Exporting 3MF file failed"
 msgstr "导出3mf失败"
 
-msgid "Import 3mf file failed"
+msgid "Import 3MF file failed"
 msgstr "导入3mf失败"
 
-msgid "Repaired 3mf file does not contain any object"
+msgid "Repaired 3MF file does not contain any object"
 msgstr "已修复的3mf文件不包含任何对象"
 
-msgid "Repaired 3mf file contains more than one object"
+msgid "Repaired 3MF file contains more than one object"
 msgstr "已修复的3mf文件包含了不止一个对象"
 
-msgid "Repaired 3mf file does not contain any volume"
+msgid "Repaired 3MF file does not contain any volume"
 msgstr "修复的3mf文件不包含任何零件"
 
-msgid "Repaired 3mf file contains more than one volume"
+msgid "Repaired 3MF file contains more than one volume"
 msgstr "已修复的3mf文件包含多个零件"
 
 msgid "Repair finished"
@@ -10732,7 +10734,7 @@ msgstr ""
 msgid "Preferred orientation"
 msgstr "零件朝向偏好"
 
-msgid "Automatically orient stls on the Z axis upon initial import."
+msgid "Automatically orient STL files on the Z axis upon initial import."
 msgstr "导入模型时自动旋转到指定的朝向"
 
 msgid "Printer preset names"
@@ -11062,7 +11064,7 @@ msgstr "外部桥接填充方向"
 msgid ""
 "Bridging angle override. If left to zero, the bridging angle will be "
 "calculated automatically. Otherwise the provided angle will be used for "
-"external bridges. Use 180°for zero angle."
+"external bridges. Use 180° for zero angle."
 msgstr ""
 "搭桥角度覆盖。如果设置为零，该角度将自动计算。否则外部的桥接将用提供的值。"
 "180°表示0度。"
@@ -11073,7 +11075,7 @@ msgstr "内部桥接填充方向"
 msgid ""
 "Internal bridging angle override. If left to zero, the bridging angle will "
 "be calculated automatically. Otherwise the provided angle will be used for "
-"internal bridges. Use 180°for zero angle.\n"
+"internal bridges. Use 180° for zero angle.\n"
 "\n"
 "It is recommended to leave it at 0 unless there is a specific model need not "
 "to."
@@ -11902,6 +11904,7 @@ msgstr "这将设置微小部位周长的阈值。默认阈值为0mm"
 msgid "Walls printing order"
 msgstr "墙顺序"
 
+#, fuzzy
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
@@ -11920,11 +11923,9 @@ msgid ""
 "option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy "
-"benefits of Inner/Outer/Inner option. However, the z seams will appear less "
+"benefits of Inner/Outer/Inner option. However, the Z seams will appear less "
 "consistent as the first extrusion of a new layer starts on a visible "
-"surface.\n"
-"\n"
-" "
+"surface."
 msgstr ""
 "内墙和外墙的打印顺序。\n"
 "\n"
@@ -11937,9 +11938,7 @@ msgstr ""
 "数情况下，此选项建议使用而不是外/内选项。\n"
 "\n"
 "使用外/内以获得与内/外/内选项相同的外部墙质量和尺寸精度优势。但是，由于新层的"
-"第一次挤出是在可见表面上开始的，因此z缝隙看起来不那么一致。\n"
-"\n"
-" "
+"第一次挤出是在可见表面上开始的，因此z缝隙看起来不那么一致。"
 
 msgid "Inner/Outer"
 msgstr "内墙/外墙"
@@ -12404,7 +12403,7 @@ msgstr "收缩率（XY）"
 #, no-c-format, no-boost-format
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling (94% "
-"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"if you measure 94mm instead of 100mm). The part will be scaled in XY to "
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
@@ -13156,7 +13155,7 @@ msgid "Precise Z height"
 msgstr "精准Z高度"
 
 msgid ""
-"Enable this to get precise z height of object after slicing. It will get the "
+"Enable this to get precise Z height of object after slicing. It will get the "
 "precise object height by fine-tuning the layer heights of the last few "
 "layers. Note that this is an experimental parameter."
 msgstr ""
@@ -14744,7 +14743,7 @@ msgid "Speed of internal solid infill, not the top and bottom surface."
 msgstr "内部实心填充的速度，不是顶面和底面。"
 
 msgid ""
-"Spiralize smooths out the z moves of the outer contour. And turns a solid "
+"Spiralize smooths out the Z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
 "generated model has no seam."
 msgstr ""
@@ -14965,7 +14964,7 @@ msgstr "普通(手动)"
 msgid "Tree (manual)"
 msgstr "树状(手动)"
 
-msgid "Support/object xy distance"
+msgid "Support/object XY distance"
 msgstr "支撑/模型xy间距"
 
 msgid "XY separation between an object and its support."
@@ -15162,7 +15161,7 @@ msgstr "支撑独立层高"
 
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
-"support customizing z-gap and save print time. This option will be invalid "
+"support customizing Z-gap and save print time. This option will be invalid "
 "when the prime tower is enabled."
 msgstr ""
 "支撑层使用与对象层独立的层高。这是为了支持自定义z-gap并且节省打印时间。当擦料"
@@ -15951,7 +15950,7 @@ msgstr "显示命令行帮助。"
 msgid "UpToDate"
 msgstr "最新"
 
-msgid "Update the configs values of 3mf to latest."
+msgid "Update the config values of 3MF to latest."
 msgstr "将3mf的配置值更新为最新值。"
 
 msgid "downward machines check"
@@ -15971,7 +15970,7 @@ msgstr "加载第一个打印材料为默认材料"
 msgid "Minimum save"
 msgstr "最小保存"
 
-msgid "export 3mf with minimum size."
+msgid "Export 3MF with minimum size."
 msgstr "以最小尺寸导出3mf。"
 
 msgid "mtcpp"
@@ -16196,40 +16195,48 @@ msgid ""
 "objects."
 msgstr ""
 
-msgid "Skip modified G-code in 3mf"
+#, fuzzy
+msgid "Skip modified G-code in 3MF"
 msgstr "跳过3mf中修改过的G代码"
 
-msgid "Skip the modified G-code in 3mf from Printer or filament Presets."
+#, fuzzy
+msgid "Skip the modified G-code in 3MF from printer or filament presets."
 msgstr "跳过3mf中来自打印机或耗材预设的修改过的G代码。"
 
 msgid "MakerLab name"
 msgstr "MakerLab名称"
 
-msgid "MakerLab name to generate this 3mf."
+#, fuzzy
+msgid "MakerLab name to generate this 3MF."
 msgstr "生成此3mf的MakerLab名称。"
 
 msgid "MakerLab version"
 msgstr "MakerLab版本"
 
-msgid "MakerLab version to generate this 3mf."
+#, fuzzy
+msgid "MakerLab version to generate this 3MF."
 msgstr "生成此3mf的MakerLab版本。"
 
-msgid "metadata name list"
+msgid "Metadata name list"
 msgstr "元数据名称列表"
 
-msgid "metadata name list added into 3mf."
+#, fuzzy
+msgid "Metadata name list added into 3MF."
 msgstr "添加到3mf中的元数据名称列表。"
 
-msgid "metadata value list"
+msgid "Metadata value list"
 msgstr "元数据值列表"
 
-msgid "metadata value list added into 3mf."
+#, fuzzy
+msgid "Metadata value list added into 3MF."
 msgstr "添加到3mf中的元数据值列表。"
 
-msgid "Allow 3mf with newer version to be sliced"
+#, fuzzy
+msgid "Allow 3MF with newer version to be sliced"
 msgstr "允许较新版本的3mf进行切片"
 
-msgid "Allow 3mf with newer version to be sliced."
+#, fuzzy
+msgid "Allow 3MF with newer version to be sliced."
 msgstr "允许较新版本的3mf进行切片。"
 
 msgid "Current Z-hop"
@@ -16372,7 +16379,7 @@ msgid ""
 "Contains a string with the information about what scaling was applied to the "
 "individual objects. Indexing of the objects is zero-based (first object has "
 "index 0).\n"
-"Example: 'x:100% y:50% z:100'."
+"Example: 'x:100% y:50% z:100%'."
 msgstr ""
 
 msgid "Input filename without extension"
@@ -16382,11 +16389,11 @@ msgid "Source filename of the first object, without extension."
 msgstr "第一个对象的源文件名，无扩展名。"
 
 msgid ""
-"The vector has two elements: x and y coordinate of the point. Values in mm."
+"The vector has two elements: X and Y coordinate of the point. Values in mm."
 msgstr ""
 
 msgid ""
-"The vector has two elements: x and y dimension of the bounding box. Values "
+"The vector has two elements: X and Y dimension of the bounding box. Values "
 "in mm."
 msgstr ""
 
@@ -17029,19 +17036,13 @@ msgid "Filament For Calibration"
 msgstr "校准用耗材"
 
 msgid ""
-"Tips for calibration material: \n"
+"Tips for calibration material:\n"
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family (Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
 "校准材料提示：\n"
 "-可以共享相同热床温度的材料\n"
 "-不同的耗材品牌和系列（Brand = Bambu, Family = Basic, Matte）"
-
-msgid ""
-"Tips for calibration material: \n"
-"- Materials that can share same hot bed temperature\n"
-"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
-msgstr ""
 
 msgid "Pattern"
 msgstr "图案"
@@ -18101,8 +18102,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle. "
+"Did you change your nozzle lately?"
 msgstr ""
 
 #, c-format, boost-format
@@ -18114,8 +18115,8 @@ msgid "nozzle[%d] memorized: %.1f"
 msgstr ""
 
 msgid ""
-"Your nozzle type in preset is not consistent with memorized nozzle.Did you "
-"change your nozzle lately ? "
+"Your nozzle type in preset is not consistent with memorized nozzle. Did you "
+"change your nozzle lately?"
 msgstr ""
 
 #, c-format, boost-format
@@ -18683,8 +18684,8 @@ msgstr "设备名"
 msgid "Device Status"
 msgstr "设备状态"
 
-msgid "Ams Status"
-msgstr ""
+msgid "AMS Status"
+msgstr "AMS状态"
 
 msgid ""
 "Please select the devices you would like to manage here (up to 6 devices)"
@@ -18817,13 +18818,13 @@ msgstr ""
 
 msgid ""
 "Generates filament grouping for the left and right nozzles based on the most "
-"filament-saving principles to minimize waste"
+"filament-saving principles to minimize waste."
 msgstr ""
 
 msgid ""
 "Generates filament grouping for the left and right nozzles based on the "
 "printer's actual filament status, reducing the need for manual filament "
-"adjustment"
+"adjustment."
 msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
@@ -18841,7 +18842,7 @@ msgstr ""
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
-msgid "Tips: You can drag the filaments to reassign them to different nozzles."
+msgid "Tip: You can drag the filaments to reassign them to different nozzles."
 msgstr ""
 
 msgid ""
@@ -18885,7 +18886,7 @@ msgstr "在您为此应用程序进行授权时，请允许所需的权限。"
 msgid "Something unexpected happened when trying to log in, please try again."
 msgstr "在尝试登录时发生了异常，请重试。"
 
-msgid "User cancelled."
+msgid "User canceled."
 msgstr "用户已取消。"
 
 msgid "Head diameter"
@@ -18942,9 +18943,6 @@ msgid "Zoom In"
 msgstr ""
 
 msgid "Load skipping objects information failed. Please try again."
-msgstr ""
-
-msgid "Loading ..."
 msgstr ""
 
 #, c-format, boost-format
@@ -19439,9 +19437,6 @@ msgstr ""
 #~ "AMS读取Bambu Lab耗材丝信息同时推算料卷的剩余容量。在打印过程中，剩余容量会"
 #~ "自动更新。"
 
-#~ msgid "AMS Status"
-#~ msgstr "AMS状态"
-
 #~ msgid ""
 #~ "The recommended minimum temperature is less than 190°C or the recommended "
 #~ "maximum temperature is greater than 300°C.\n"
@@ -19582,9 +19577,6 @@ msgstr ""
 #~ msgid "Still load"
 #~ msgstr "继续进料"
 
-#~ msgid "Please select an AMS slot before calibration."
-#~ msgstr "请先选择一个AMS槽位后进行标定"
-
 #~ msgid "Can't start this without SD card."
 #~ msgstr "没有SD卡无法开始任务"
 
@@ -19692,15 +19684,6 @@ msgstr ""
 
 #~ msgid "Please choose the filament color"
 #~ msgstr "请选择材料颜色"
-
-#~ msgid "Bambu Engineering Plate"
-#~ msgstr "工程材料打印板"
-
-#~ msgid "Bambu Smooth PEI Plate"
-#~ msgstr "光面PEI打印板"
-
-#~ msgid "Bambu Textured PEI Plate"
-#~ msgstr "纹理PEI打印板"
 
 #~ msgid "Send print job to"
 #~ msgstr "发送打印任务至"
