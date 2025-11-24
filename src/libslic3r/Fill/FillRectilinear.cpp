@@ -3075,7 +3075,7 @@ bool FillRectilinear::fill_surface_trapezoidal(
 
     const coord_t d2 = coord_t(0.5 * period - d1);
 
-    // Obtain the bounding box of the rotated polygon
+    // Obtain the expolygon and rotate to align with pattern base angle
     ExPolygon expolygon = surface->expolygon;
     if (std::abs(base_angle) >= EPSILON) {
         expolygon.rotate(-base_angle, rotate_vector.second);
@@ -3116,18 +3116,18 @@ bool FillRectilinear::fill_surface_trapezoidal(
         // Build complete rows from xmin to xmax
         for (coord_t x = xmin; x < xmax; x += period) {
             // Normal row
-            base_row_normal.points.push_back(Point(x, d1 / 2));                    // P0
-            base_row_normal.points.push_back(Point(x + d1, d1 / 2));               // P1
-            base_row_normal.points.push_back(Point(x + d1 + d2, d1 / 2 + d2));     // P2
-            base_row_normal.points.push_back(Point(x + 2 * d1 + d2, d1 / 2 + d2)); // P3
-            base_row_normal.points.push_back(Point(x + 2 * d1 + 2 * d2, d1 / 2));  // P4
+            base_row_normal.points.emplace_back(Point(x, d1 / 2));                    // P0
+            base_row_normal.points.emplace_back(Point(x + d1, d1 / 2));               // P1
+            base_row_normal.points.emplace_back(Point(x + d1 + d2, d1 / 2 + d2));     // P2
+            base_row_normal.points.emplace_back(Point(x + 2 * d1 + d2, d1 / 2 + d2)); // P3
+            base_row_normal.points.emplace_back(Point(x + 2 * d1 + 2 * d2, d1 / 2));  // P4
 
             // Flipped row
-            base_row_flipped.points.push_back(Point(x, d1 / 2 + d2));                   // P0'
-            base_row_flipped.points.push_back(Point(x + d1, d1 / 2 + d2));              // P1'
-            base_row_flipped.points.push_back(Point(x + d1 + d2, d1 / 2));              // P2'
-            base_row_flipped.points.push_back(Point(x + 2 * d1 + d2, d1 / 2));          // P3'
-            base_row_flipped.points.push_back(Point(x + 2 * d1 + 2 * d2, d1 / 2 + d2)); // P4'
+            base_row_flipped.points.emplace_back(Point(x, d1 / 2 + d2));                   // P0'
+            base_row_flipped.points.emplace_back(Point(x + d1, d1 / 2 + d2));              // P1'
+            base_row_flipped.points.emplace_back(Point(x + d1 + d2, d1 / 2));              // P2'
+            base_row_flipped.points.emplace_back(Point(x + 2 * d1 + d2, d1 / 2));          // P3'
+            base_row_flipped.points.emplace_back(Point(x + 2 * d1 + 2 * d2, d1 / 2 + d2)); // P4'
         }
 
         // Pre-allocate polylines
@@ -3200,26 +3200,26 @@ bool FillRectilinear::fill_surface_trapezoidal(
         Polyline trapezoid_row_shifted;
 
         // Build base line template (from x_min_aligned to x_max_aligned)
-        base_line_template.points.push_back(Point(x_min_aligned, 0));
-        base_line_template.points.push_back(Point(x_max_aligned, 0));
+        base_line_template.points.emplace_back(Point(x_min_aligned, 0));
+        base_line_template.points.emplace_back(Point(x_max_aligned, 0));
 
         // Build complete trapezoid rows once
         // Normal row (no shift)
         for (coord_t x = x_min_aligned; x < x_max_aligned; x += period) {
-            trapezoid_row_normal.points.push_back(Point(x + d2_tri / 2, d1));                  // P0
-            trapezoid_row_normal.points.push_back(Point(x + period / 2 - d2_tri / 2, h - d1)); // P1
-            trapezoid_row_normal.points.push_back(Point(x + period / 2 + d2_tri / 2, h - d1)); // P2
-            trapezoid_row_normal.points.push_back(Point(x + period - d2_tri / 2, d1));         // P3
-            trapezoid_row_normal.points.push_back(Point(x + period, d1));                      // P4
+            trapezoid_row_normal.points.emplace_back(Point(x + d2_tri / 2, d1));                  // P0
+            trapezoid_row_normal.points.emplace_back(Point(x + period / 2 - d2_tri / 2, h - d1)); // P1
+            trapezoid_row_normal.points.emplace_back(Point(x + period / 2 + d2_tri / 2, h - d1)); // P2
+            trapezoid_row_normal.points.emplace_back(Point(x + period - d2_tri / 2, d1));         // P3
+            trapezoid_row_normal.points.emplace_back(Point(x + period, d1));                      // P4
         }
 
         // Shifted row (with period/2 shift)
         for (coord_t x = x_min_aligned + period / 2; x < x_max_aligned; x += period) {
-            trapezoid_row_shifted.points.push_back(Point(x + d2_tri / 2, d1));                  // P0
-            trapezoid_row_shifted.points.push_back(Point(x + period / 2 - d2_tri / 2, h - d1)); // P1
-            trapezoid_row_shifted.points.push_back(Point(x + period / 2 + d2_tri / 2, h - d1)); // P2
-            trapezoid_row_shifted.points.push_back(Point(x + period - d2_tri / 2, d1));         // P3
-            trapezoid_row_shifted.points.push_back(Point(x + period, d1));                      // P4
+            trapezoid_row_shifted.points.emplace_back(Point(x + d2_tri / 2, d1));                  // P0
+            trapezoid_row_shifted.points.emplace_back(Point(x + period / 2 - d2_tri / 2, h - d1)); // P1
+            trapezoid_row_shifted.points.emplace_back(Point(x + period / 2 + d2_tri / 2, h - d1)); // P2
+            trapezoid_row_shifted.points.emplace_back(Point(x + period - d2_tri / 2, d1));         // P3
+            trapezoid_row_shifted.points.emplace_back(Point(x + period, d1));                      // P4
         }
 
         bool shift_row = false;
@@ -3227,16 +3227,19 @@ bool FillRectilinear::fill_surface_trapezoidal(
         // Generate pattern by copying and translating templates vertically
         for (coord_t y = y_min_aligned; y < y_max_aligned; y += h) {
             // Base line - copy and translate
-            Polyline base_line = base_line_template;
-            for (Point& p : base_line.points) {
-                p.y() += y;
+            Polyline base_line;
+            //base_line.points.reserve(base_line_template.points.size());
+            for (const Point& p : base_line_template.points) {
+                base_line.points.emplace_back(p.x(), p.y() + y);
             }
             polylines.emplace_back(std::move(base_line));
 
             // Trapezoid line - copy and translate the appropriate template
-            Polyline trapezoid_line = shift_row ? trapezoid_row_shifted : trapezoid_row_normal;
-            for (Point& p : trapezoid_line.points) {
-                p.y() += y;
+            const Polyline& trapezoid_template = shift_row ? trapezoid_row_shifted : trapezoid_row_normal;
+            Polyline        trapezoid_line;
+            //trapezoid_line.points.reserve(trapezoid_template.points.size());
+            for (const Point& p : trapezoid_template.points) {
+                trapezoid_line.points.emplace_back(p.x(), p.y() + y);
             }
 
             if (!trapezoid_line.points.empty()) {
