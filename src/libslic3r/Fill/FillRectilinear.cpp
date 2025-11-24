@@ -3227,19 +3227,16 @@ bool FillRectilinear::fill_surface_trapezoidal(
         // Generate pattern by copying and translating templates vertically
         for (coord_t y = y_min_aligned; y < y_max_aligned; y += h) {
             // Base line - copy and translate
-            Polyline base_line;
-            //base_line.points.reserve(base_line_template.points.size());
-            for (const Point& p : base_line_template.points) {
-                base_line.points.emplace_back(p.x(), p.y() + y);
+            Polyline base_line = base_line_template;
+            for (Point& p : base_line.points) {
+                p.y() += y;
             }
             polylines.emplace_back(std::move(base_line));
 
             // Trapezoid line - copy and translate the appropriate template
-            const Polyline& trapezoid_template = shift_row ? trapezoid_row_shifted : trapezoid_row_normal;
-            Polyline        trapezoid_line;
-            //trapezoid_line.points.reserve(trapezoid_template.points.size());
-            for (const Point& p : trapezoid_template.points) {
-                trapezoid_line.points.emplace_back(p.x(), p.y() + y);
+            Polyline trapezoid_line = shift_row ? trapezoid_row_shifted : trapezoid_row_normal;
+            for (Point& p : trapezoid_line.points) {
+                p.y() += y;
             }
 
             if (!trapezoid_line.points.empty()) {
