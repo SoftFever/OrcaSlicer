@@ -61,3 +61,24 @@ Recommended: **~110%** for good layer adhesion and visual quality.
 ### Support
 
 Typically set to **100%** to balance material usage and functionality. Reducing it too much can lead to weak support structures that may not hold up during printing or break easily during removal leaving debris on the model.
+
+### Default Line Width Multipliers
+When any line width parameter is set to **0**, it will be automatically calculated based on the nozzle diameter using the following rules:
+
+| Feature Type | Multiplier | Example (0.4mm nozzle) |
+|--------------|-----------|----------------------|
+| **Outer wall** | 1.125× | 0.45mm |
+| **Inner wall** | 1.125× | 0.45mm |
+| **Solid infill** | 1.125× | 0.45mm |
+| **Sparse infill** | 1.125× | 0.45mm |
+| **Top surface** | 1.0× | 0.40mm |
+| **Support material** | 1.0× | 0.40mm |
+| **Support interface** | 1.0× | 0.40mm |
+### Examples
+
+- **0.4mm nozzle**: Walls and infill → 0.45mm (0.4 × 1.125)
+- **0.6mm nozzle**: Walls and infill → 0.675mm (0.6 × 1.125)
+
+#### Displayed Precision
+
+In the slicing preview's line width tab, values may display with rounding (0.675mm might show as 0.68mm due to precision limitations).
