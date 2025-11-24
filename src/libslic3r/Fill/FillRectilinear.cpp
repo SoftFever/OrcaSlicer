@@ -3106,7 +3106,9 @@ bool FillRectilinear::fill_surface_trapezoidal(
 
         // Create the two base row patterns once
         Polyline base_row_normal;
+        base_row_normal.points.reserve(((xmax - xmin) / period + 1) * 5); // 5 points per trapezoid
         Polyline base_row_flipped;
+        base_row_flipped.points.reserve(((xmax - xmin) / period + 1) * 5); // 5 points per trapezoid
 
         // Build complete rows from xmin to xmax
         for (coord_t x = xmin; x < xmax; x += period) {
@@ -3186,14 +3188,16 @@ bool FillRectilinear::fill_surface_trapezoidal(
 
         // Pre-allocate estimated number of polylines
         const size_t estimated_rows = (y_max_aligned - y_min_aligned) / h + 2;
-        const size_t estimated_polylines = estimated_rows * 2; // base line + trapezoid line per row
+        const size_t estimated_polylines = (estimated_rows + 1) * 2; // base line + trapezoid line per row
         polylines.reserve(estimated_polylines);
 
         // Create the two base row templates once
         Polyline base_line_template;
+        base_line_template.points.reserve(2); // 2 points for base line
         Polyline trapezoid_row_normal;
+        trapezoid_row_normal.points.reserve(((x_max_aligned - x_min_aligned) / period + 1) * 5); // 5 points per trapezoid
         Polyline trapezoid_row_shifted;
-
+        trapezoid_row_shifted.points.reserve(((x_max_aligned - x_min_aligned) / period + 1) * 5); // 5 points per trapezoid
         // Build base line template (from x_min_aligned to x_max_aligned)
         base_line_template.points.emplace_back(Point(x_min_aligned, 0));
         base_line_template.points.emplace_back(Point(x_max_aligned, 0));
