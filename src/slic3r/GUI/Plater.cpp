@@ -3065,6 +3065,7 @@ void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
     wxGetApp().plater()->get_partplate_list().on_filament_deleted(filament_count, filament_id);
     wxGetApp().plater()->on_filaments_delete(filament_count, filament_id, replace_filament_id > (int)filament_id ? (replace_filament_id - 1) : replace_filament_id);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_visibility(true);
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 
     wxGetApp().plater()->update();
@@ -3093,6 +3094,7 @@ void Sidebar::add_custom_filament(wxColour new_col) {
     wxGetApp().plater()->get_partplate_list().on_filament_added(filament_count);
     wxGetApp().plater()->on_filament_count_change(filament_count);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_visibility(true);
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     auto_calc_flushing_volumes(filament_count - 1);
 }
