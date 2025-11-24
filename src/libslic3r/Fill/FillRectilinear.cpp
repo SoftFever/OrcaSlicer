@@ -3109,33 +3109,43 @@ bool FillRectilinear::fill_surface_trapezoidal(
         // P1x-P2x=P3x-P4x=d1
         // P0y-P1y=P2y-P3y=d2
 
-        // Pre-allocate estimated number of polylines (+1 row, +1 column margin)
-        polylines.reserve(static_cast<size_t>(((xmax - xmin) / period + 1) * ((ymax - ymin) / (period / 2) + 1)));
+        // Create the two base row patterns once
+        Polyline base_row_normal;
+        Polyline base_row_flipped;
 
-        // flag for vertical flip of trapezoids
+        // Build complete rows from xmin to xmax
+        for (coord_t x = xmin; x < xmax; x += period) {
+            // Normal row
+            base_row_normal.points.push_back(Point(x, d1 / 2));                    // P0
+            base_row_normal.points.push_back(Point(x + d1, d1 / 2));               // P1
+            base_row_normal.points.push_back(Point(x + d1 + d2, d1 / 2 + d2));     // P2
+            base_row_normal.points.push_back(Point(x + 2 * d1 + d2, d1 / 2 + d2)); // P3
+            base_row_normal.points.push_back(Point(x + 2 * d1 + 2 * d2, d1 / 2));  // P4
+
+            // Flipped row
+            base_row_flipped.points.push_back(Point(x, d1 / 2 + d2));                   // P0'
+            base_row_flipped.points.push_back(Point(x + d1, d1 / 2 + d2));              // P1'
+            base_row_flipped.points.push_back(Point(x + d1 + d2, d1 / 2));              // P2'
+            base_row_flipped.points.push_back(Point(x + 2 * d1 + d2, d1 / 2));          // P3'
+            base_row_flipped.points.push_back(Point(x + 2 * d1 + 2 * d2, d1 / 2 + d2)); // P4'
+        }
+
+        // Pre-allocate polylines
+        const size_t estimated_rows = ((ymax - ymin) / (period / 2) + 1);
+        polylines.reserve(estimated_rows);
+
         bool flip_vertical = false;
 
+        // Now just copy and translate vertically
         for (coord_t y = ymin; y < ymax; y += period / 2) {
-            Polyline pl_row;
-            for (coord_t x = xmin; x < xmax; x += period) {
-                if (!flip_vertical) {
-                    pl_row.points.push_back(Point(x, y + d1 / 2));                    // P0
-                    pl_row.points.push_back(Point(x + d1, y + d1 / 2));               // P1
-                    pl_row.points.push_back(Point(x + d1 + d2, y + d1 / 2 + d2));     // P2
-                    pl_row.points.push_back(Point(x + 2 * d1 + d2, y + d1 / 2 + d2)); // P3
-                    pl_row.points.push_back(Point(x + 2 * d1 + 2 * d2, y + d1 / 2));  // P4
-                } else {
-                    pl_row.points.push_back(Point(x, y + d1 / 2 + d2));                   // P0'
-                    pl_row.points.push_back(Point(x + d1, y + d1 / 2 + d2));              // P1'
-                    pl_row.points.push_back(Point(x + d1 + d2, y + d1 / 2));              // P2'
-                    pl_row.points.push_back(Point(x + 2 * d1 + d2, y + d1 / 2));          // P3'
-                    pl_row.points.push_back(Point(x + 2 * d1 + 2 * d2, y + d1 / 2 + d2)); // P4'
-                }
+            Polyline pl_row = flip_vertical ? base_row_flipped : base_row_normal;
+
+            // Translate all points vertically
+            for (Point& p : pl_row.points) {
+                p.y() += y;
             }
 
-            if (!pl_row.points.empty()) {
-                polylines.emplace_back(std::move(pl_row));
-            }
+            polylines.emplace_back(std::move(pl_row));
             flip_vertical = !flip_vertical;
         }
 
@@ -3184,40 +3194,56 @@ bool FillRectilinear::fill_surface_trapezoidal(
         const size_t estimated_polylines = estimated_rows * 2; // base line + trapezoid line per row
         polylines.reserve(estimated_polylines);
 
-        // Base trapezoid shape (local coordinates)
-        std::vector<Point> trapezoid_points = {
-            Point(d2_tri / 2, d1),                     // P0
-            Point(period / 2 - d2_tri / 2, h - d1),    // P1
-            Point(period / 2 + d2_tri / 2, h - d1),    // P2
-            Point(period - d2_tri / 2, d1),            // P3
-            Point(period, d1)                          // P4
-        };
+        // Create the two base row templates once
+        Polyline base_line_template;
+        Polyline trapezoid_row_normal;
+        Polyline trapezoid_row_shifted;
+
+        // Build base line template (from x_min_aligned to x_max_aligned)
+        base_line_template.points.push_back(Point(x_min_aligned, 0));
+        base_line_template.points.push_back(Point(x_max_aligned, 0));
+
+        // Build complete trapezoid rows once
+        // Normal row (no shift)
+        for (coord_t x = x_min_aligned; x < x_max_aligned; x += period) {
+            trapezoid_row_normal.points.push_back(Point(x + d2_tri / 2, d1));                  // P0
+            trapezoid_row_normal.points.push_back(Point(x + period / 2 - d2_tri / 2, h - d1)); // P1
+            trapezoid_row_normal.points.push_back(Point(x + period / 2 + d2_tri / 2, h - d1)); // P2
+            trapezoid_row_normal.points.push_back(Point(x + period - d2_tri / 2, d1));         // P3
+            trapezoid_row_normal.points.push_back(Point(x + period, d1));                      // P4
+        }
+
+        // Shifted row (with period/2 shift)
+        for (coord_t x = x_min_aligned + period / 2; x < x_max_aligned; x += period) {
+            trapezoid_row_shifted.points.push_back(Point(x + d2_tri / 2, d1));                  // P0
+            trapezoid_row_shifted.points.push_back(Point(x + period / 2 - d2_tri / 2, h - d1)); // P1
+            trapezoid_row_shifted.points.push_back(Point(x + period / 2 + d2_tri / 2, h - d1)); // P2
+            trapezoid_row_shifted.points.push_back(Point(x + period - d2_tri / 2, d1));         // P3
+            trapezoid_row_shifted.points.push_back(Point(x + period, d1));                      // P4
+        }
 
         bool shift_row = false;
 
-        // Generate pattern centered and aligned 
+        // Generate pattern by copying and translating templates vertically
         for (coord_t y = y_min_aligned; y < y_max_aligned; y += h) {
-            // Base line
-            Polyline base_line;
-            base_line.points.push_back(Point(x_min_aligned, y));
-            base_line.points.push_back(Point(x_max_aligned, y));
+            // Base line - copy and translate
+            Polyline base_line = base_line_template;
+            for (Point& p : base_line.points) {
+                p.y() += y;
+            }
             polylines.emplace_back(std::move(base_line));
 
-            // Trapezoid lines
-            Polyline pl_row;
-            const coord_t x_shift = shift_row ? period / 2 : 0;
-            
-            for (coord_t x = x_min_aligned + x_shift; x < x_max_aligned; x += period) {
-                for (const Point& rel_point : trapezoid_points) {
-                    pl_row.points.push_back(Point(x + rel_point.x(), y + rel_point.y()));
-                }
+            // Trapezoid line - copy and translate the appropriate template
+            Polyline trapezoid_line = shift_row ? trapezoid_row_shifted : trapezoid_row_normal;
+            for (Point& p : trapezoid_line.points) {
+                p.y() += y;
             }
-            
-            if (!pl_row.points.empty()) {
-                polylines.emplace_back(std::move(pl_row));
-            }
-            shift_row = !shift_row;
 
+            if (!trapezoid_line.points.empty()) {
+                polylines.emplace_back(std::move(trapezoid_line));
+            }
+
+            shift_row = !shift_row;
         }
 
         //  Rotate around origin (0,0) 
