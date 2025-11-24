@@ -15710,7 +15710,7 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id, int r
     sidebar().on_filaments_delete(filament_id);
 
     // update global support filament
-    static const char *keys[] = {"support_filament", "support_interface_filament"};
+    static const char *keys[] = {"support_filament", "support_interface_filament", "wipe_tower_filament"};
     for (auto key : keys)
         if (p->config->has(key)) {
             if(p->config->opt_int(key) == filament_id + 1)
@@ -15718,6 +15718,16 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id, int r
             else {
                 int new_value = p->config->opt_int(key) > filament_id ? p->config->opt_int(key) - 1 : p->config->opt_int(key);
                 (*(p->config)).set_key_value(key, new ConfigOptionInt(new_value));
+            }
+        }
+    static const char* keys_1based[] = {"wall_filament", "sparse_infill_filament", "solid_infill_filament"};
+    for (auto key : keys_1based)
+        if (p->config->has(key)) {
+            if(p->config->opt_int(key) == filament_id + 1)
+                (*(p->config)).erase(key);
+            else {
+                int new_value = p->config->opt_int(key) > filament_id ? p->config->opt_int(key) - 1 : p->config->opt_int(key);
+                (*(p->config)).set_key_value(key, new ConfigOptionInt(std::max(1, new_value)));
             }
         }
 
@@ -15883,7 +15893,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         // Orca: update when *_filament changed
         else if (opt_key == "support_interface_filament" || opt_key == "support_filament" || opt_key == "wall_filament" ||
-                 opt_key == "sparse_infill_filament" || opt_key == "solid_infill_filament") {
+                 opt_key == "sparse_infill_filament" || opt_key == "solid_infill_filament" || opt_key == "wipe_tower_filament") {
             update_scheduled = true;
         }
     }
