@@ -181,7 +181,6 @@ wxBoxSizer* NetworkTestDialog::create_result_sizer(wxWindow* parent)
 	sizer->Add(text_result, 0, wxALL, 5);
 
 	txt_log = new TextInput(this, "", "", "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
-    txt_log->SetCanFocus(false);
 	sizer->Add(txt_log, 1, wxALL | wxEXPAND, 5);
 	return sizer;
 }

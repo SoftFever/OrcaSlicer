@@ -66,7 +66,8 @@ void TextInput::Create(wxWindow *     parent,
         style &= ~wxRIGHT;
     state_handler.attach({&label_color, & text_color});
     state_handler.update_binds();
-    text_ctrl = new TextCtrl(this, wxID_ANY, text, wxPoint(1,1) * (is_multiline ? border_width : 4), wxDefaultSize, style | wxBORDER_NONE);
+    text_ctrl = is_multiline ? new TextCtrl(this, wxID_ANY, text, wxPoint(1,1) * border_width, wxDefaultSize, style | wxBORDER_NONE)
+                             : new TextCtrl(this, wxID_ANY, text, wxPoint(4,4)               , wxDefaultSize, style | wxBORDER_NONE | wxTE_PROCESS_ENTER);
     text_ctrl->SetFont(Label::Body_14);
     text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
     text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
