@@ -12530,8 +12530,9 @@ void Plater::Calib_Practical_Flow_Ratio(const Calib_Params& params) {
     print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("detect_thin_wall", new ConfigOptionBool(false));
     print_config->set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+    print_config->set_key_value("top_surface_speed", new ConfigOptionFloat(params.speeds[0])); // internal_solid_speed
     print_config->set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(params.speeds[0])); // internal_solid_speed
-    print_config->set_key_value("initial_layer_infill_speed", new ConfigOptionFloat(20));
+    //print_config->set_key_value("initial_layer_infill_speed", new ConfigOptionFloat(20));
     print_config->set_key_value("seam_slope_type", new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
     print_config->set_key_value("gap_fill_target", new ConfigOptionEnum<GapFillTarget>(GapFillTarget::gftNowhere));
     print_config->set_key_value("fuzzy_skin", new ConfigOptionEnum<FuzzySkinType>(FuzzySkinType::None));

@@ -1607,7 +1607,7 @@ void Practical_Flow_Ratio_Test_Dlg::on_start(wxCommandEvent& event) {
         MessageDialog msg_dlg(nullptr, _L("Please input valid values:\n(0.5 <= Flow Ratio <= 1.5)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
-    } else if (!m_tiQuantity->GetTextCtrl()->GetValue().ToDouble(&m_params.step) || m_params.step < 4 || m_params.step > 20) {
+    } else if (!m_tiQuantity->GetTextCtrl()->GetValue().ToDouble(&m_params.step) || m_params.step < 4 || m_params.step > 40) {
         MessageDialog msg_dlg(nullptr, _L("Please input valid layer value:\n(4 <= Number of Calibration Layers <= 40)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
