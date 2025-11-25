@@ -2700,7 +2700,7 @@ void Fill::connect_base_support(Polylines &&infill_ordered, const Polygons &boun
     connect_base_support(std::move(infill_ordered), polygons_src, bbox, polylines_out, spacing, params);
 }
 
-// Fill Multiline
+// Fill Multiline -Clipper2 version
 void multiline_fill(Polylines& polylines, const FillParams& params, float spacing)
 {
     if (params.multiline <= 1)
@@ -2724,7 +2724,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
     const double miter_limit = 2.0;
     const int    rings       = n_lines / 2;
 
-    // --- Compute offsets (in units of spacing) ---
+    // Compute offsets (in units of spacing)
     std::vector<double> offsets;
     offsets.reserve(n_lines);
 
@@ -2741,7 +2741,7 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
             offsets.push_back(start + i * spacing);
     }
 
-    // --- Process each offset ---
+    // Process each offset 
     Clipper2Lib::ClipperOffset offsetter(miter_limit);
     offsetter.AddPaths(subject_paths, Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Round);
 
@@ -2752,21 +2752,14 @@ void multiline_fill(Polylines& polylines, const FillParams& params, float spacin
             continue;
         }
 
-        // Reuse ClipperOffset with current offset distance
+        // ClipperOffset with current offset distance (union is not needed here)
         Clipper2Lib::Paths64 offset_paths;
         offsetter.Execute(scale_(t), offset_paths);
         if (offset_paths.empty())
             continue;
 
-        // Merge multiple rings
-        Clipper2Lib::Paths64 merged_paths = (offset_paths.size() > 1) ? Clipper2Lib::Union(offset_paths, Clipper2Lib::FillRule::NonZero) :
-                                                                        std::move(offset_paths);
-
-        if (merged_paths.empty())
-            continue;
-
         // Convert back to polylines
-        Polylines new_polylines = Paths64_to_polylines(merged_paths);
+        Polylines new_polylines = Paths64_to_polylines(offset_paths);
 
         for (Polyline& pl : new_polylines) {
             if (pl.points.size() < 3)
