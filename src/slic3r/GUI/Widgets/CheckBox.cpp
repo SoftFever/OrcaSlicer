@@ -85,7 +85,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         m_text_border->SetCanFocus(false);
         m_text_border->DisableFocusFromKeyboard();
 
-        // using wxStaticText allows wrapping wihout hustle but requires custom disable / enable since it has unwanted effect on text
+        // using wxStaticText allows wrapping without hustle but requires custom disable / enable since it has unwanted effect on text
         m_text = new wxStaticText(m_text_border, wxID_ANY, label);
         m_text->SetFont(m_font);
         m_text->SetForegroundColour(wxColour("#363636")); // disabled color "#6B6A6A"
@@ -107,7 +107,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         w->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
             if(m_has_text){
                 wxWindow* next_w = wxFindWindowAtPoint(wxGetMousePosition());
-                if (!next_w || (next_w != m_check && next_w != m_text_border && next_w != m_text))
+                if (!next_w || !IsDescendant(next_w))
                     m_hovered = false;
             }else
                 m_hovered = false;
