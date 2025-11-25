@@ -12356,12 +12356,13 @@ void Plater::Calib_Practical_Flow_Ratio(const Calib_Params& params) {
 
     string _name = format("Practical_FR_Test_%.2f~%.2f_@%.0f%s", params.start, params.end, params.speeds[0], params.interlaced ? "i" : "p");
 
-    const auto         bed_shape = printer_config->option<ConfigOptionPoints>("printable_area")->values;
-    const BoundingBoxf bed_ext   = get_extents(bed_shape);
-    const Vec2d        _center   = bed_ext.center();
+    const auto         bed_shape     = printer_config->option<ConfigOptionPoints>("printable_area")->values;
+    const BoundingBoxf bed_ext       = get_extents(bed_shape);
+    const Vec2d        _center       = bed_ext.center();
+    const double       _model_height = zscale * 1.2;
     
     auto         test_model = model().add_object();
-    TriangleMesh its_model  = TriangleMesh(make_cube(xscale * 100, yscale * 10, zscale * 1.2));
+    TriangleMesh its_model  = TriangleMesh(make_cube(xscale * 100, yscale * 10, _model_height));
     test_model->name        = _name;
     test_model->add_volume(its_model);
     test_model->add_instance();
@@ -12504,10 +12505,11 @@ void Plater::Calib_Practical_Flow_Ratio(const Calib_Params& params) {
     print_config->set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(100, true));
     print_config->set_key_value("only_one_wall_top", new ConfigOptionBool(true));
     print_config->set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f));
-    print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
+    print_config->set_key_value("top_shell_layers", new ConfigOptionInt(1));
     print_config->set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonicLine));
     print_config->set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
     print_config->set_key_value("top_shell_thickness", new ConfigOptionFloat(0));
+    print_config->set_key_value("top_surface_density", new ConfigOptionPercent(100));
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(2));
     print_config->set_key_value("bottom_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
     print_config->set_key_value("bottom_shell_thickness", new ConfigOptionFloat(0));
@@ -12551,11 +12553,12 @@ void Plater::Calib_Practical_Flow_Ratio(const Calib_Params& params) {
     print_config->set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
 
-    printer_config->set_key_value("retract_lift_enforce", new ConfigOptionEnumsGeneric{params.use_zhop ? RetractLiftEnforceType::rletAllSurfaces : RetractLiftEnforceType::rletBottomOnly});
+    printer_config->set_key_value("retract_lift_enforce", new ConfigOptionEnumsGeneric{params.use_zhop ? RetractLiftEnforceType::rletTopAndBottom : RetractLiftEnforceType::rletBottomOnly});
     printer_config->set_key_value("z_hop", new ConfigOptionFloats{params.use_zhop ? 0.4f : 0.0f});
-    printer_config->set_key_value("z_hop_types", new ConfigOptionEnumsGeneric{ZHopType::zhtSlope});
-    printer_config->set_key_value("retract_lift_above", new ConfigOptionFloats{0.0f});
-    printer_config->set_key_value("retract_lift_below", new ConfigOptionFloats{100.0f});
+    printer_config->set_key_value("z_hop_types", new ConfigOptionEnumsGeneric{ZHopType::zhtNormal});
+    printer_config->set_key_value("retraction_minimum_travel", new ConfigOptionFloats{5.0f});
+    printer_config->set_key_value("retract_lift_above", new ConfigOptionFloats{0.f}); //_model_height - first_layer_height
+    printer_config->set_key_value("retract_lift_below", new ConfigOptionFloats{100.f}); //layer_height
     printer_config->set_key_value("travel_slope", new ConfigOptionFloats{45.0f});
     printer_config->set_key_value("wipe_distance", new ConfigOptionFloats{0.0f});
 
@@ -12563,7 +12566,10 @@ void Plater::Calib_Practical_Flow_Ratio(const Calib_Params& params) {
     filament_config->set_key_value("filament_wipe_distance", new ConfigOptionFloatsNullable{ConfigOptionFloatsNullable::nil_value()});
     filament_config->set_key_value("filament_retract_lift_enforce", new ConfigOptionEnumsGenericNullable{ConfigOptionEnumsGenericNullable::nil_value()});
     filament_config->set_key_value("filament_z_hop_types", new ConfigOptionEnumsGenericNullable{ConfigOptionEnumsGenericNullable::nil_value()});
-    //filament_config->set_key_value("travel_slope", new ConfigOptionFloatsNullable{ConfigOptionFloatsNullable::nil_value()}); 
+    filament_config->set_key_value("filament_retraction_minimum_travel", new ConfigOptionFloatsNullable{ConfigOptionFloatsNullable::nil_value()});
+    filament_config->set_key_value("filament_retract_lift_above", new ConfigOptionFloatsNullable{ConfigOptionFloatsNullable::nil_value()});
+    filament_config->set_key_value("filament_retract_lift_below", new ConfigOptionFloatsNullable{ConfigOptionFloatsNullable::nil_value()});
+    //filament_config->set_key_value("filament_travel_slope", new ConfigOptionFloatsNullable{ConfigOptionFloatsNullable::nil_value()}); 
 
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->update_dirty();
