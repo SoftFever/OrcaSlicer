@@ -34,22 +34,10 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
 
     m_label = label;
 
-    Bind(wxEVT_CHECKBOX, ([this](wxCommandEvent e) {
-        // Crashes if all checkboxes not uses wxEVT_CHECKBOX event
-        //SetValue(e.GetInt());
-        //e.SetEventObject(this);
-        //e.SetId(GetId());
-        //GetEventHandler()->ProcessEvent(e);
-        e.Skip();
-    }));
-
-    // DPIDialog's uses wxEVT_CHAR_HOOK
     Bind(wxEVT_CHAR_HOOK, ([this](wxKeyEvent&e){
-        int  k = e.GetKeyCode();
-        if(HasFocus() && k == WXK_SPACE){
+        if(HasFocus() && e.GetKeyCode() == WXK_SPACE)
             SetValue(!m_value);
-            e.Skip(false);
-        }else
+        else
             e.Skip();
     }));
 
@@ -88,7 +76,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         // using wxStaticText allows wrapping without hustle but requires custom disable / enable since it has unwanted effect on text
         m_text = new wxStaticText(m_text_box, wxID_ANY, label);
         m_text->SetFont(m_font);
-        m_text->SetForegroundColour(wxColour("#363636")); // disabled color "#6B6A6A"
+        m_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#363636"))); // disabled color "#6B6A6A"
 
         wxBoxSizer *label_sizer = new wxBoxSizer(wxHORIZONTAL);
         label_sizer->Add(m_text, 0, wxALL, FromDIP(5));
@@ -192,30 +180,20 @@ wxWindow* CheckBox::GetScrollParent(wxWindow *pWindow)
 }
 
 void CheckBox::SetValue(bool value){
+    if (m_value == value)
+        return;
     m_value = value;
     m_half_checked = false;
     UpdateIcon();
 
-    // temporary solution to handle different events
-    // all events should be unify in wxEVT_CHECKBOX
-    try {
-        wxCommandEvent evt(wxEVT_CHECKBOX, GetId());
-        evt.SetInt(m_value);
-        evt.SetString(m_label);
-        GetEventHandler()->ProcessEvent(evt);
-    }
-    catch (const std::runtime_error& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        try {
-            wxCommandEvent evt(wxEVT_TOGGLEBUTTON, GetId());
-            evt.SetInt(m_value);
-            evt.SetString(m_label);
-            GetEventHandler()->ProcessEvent(evt);
-        }
-        catch (const std::runtime_error& e) {
-            std::cerr << "Error: " << e.what() << std::endl;
-        }
-    }
+    // temporary solution to handle both events. all events should be unify in wxEVT_CHECKBOX
+    wxCommandEvent evt(wxEVT_CHECKBOX, GetId());
+    evt.SetEventObject(this);
+    evt.SetInt(value ? 1 : 0);
+    GetEventHandler()->ProcessEvent(evt);
 
-     Refresh();
+    evt.SetEventType(wxEVT_TOGGLEBUTTON);
+    GetEventHandler()->ProcessEvent(evt);
+
+    Refresh();
 }

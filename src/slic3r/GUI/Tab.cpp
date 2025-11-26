@@ -3564,7 +3564,6 @@ void TabFilament::add_filament_overrides_page()
                     if (Field *field = optgroup_sh->get_fieldc(opt_key, opt_index); field != nullptr) {
                         field->toggle(is_checked);
                         
-                        /* NEEDFIX crash 
                         if (is_checked) {
                             field->update_na_value(_(L("N/A")));
                             field->set_last_meaningful_value();
@@ -3575,7 +3574,6 @@ void TabFilament::add_filament_overrides_page()
                             field->update_na_value(printer_config_value);
                             field->set_na_value();
                         }
-                        */
                     }
                 }
                 evt.Skip();
@@ -6659,7 +6657,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     deps.btn = btn;
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
+    sizer->Add((deps.checkbox), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     sizer->Add((deps.btn), 0, wxALIGN_CENTER_VERTICAL);
 
     if (deps.checkbox){

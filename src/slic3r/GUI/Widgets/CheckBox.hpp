@@ -40,7 +40,7 @@ public:
         m_enabled = enable;
         bool result = m_check->Enable(enable);
         if(m_has_text)
-            m_text->SetForegroundColour(wxColour("#6B6A6A")); // just change color otherwise it has unwanted effect
+            m_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#6B6A6A"))); // just change color otherwise it has unwanted effect
         UpdateIcon();
         Refresh();
         return result;
