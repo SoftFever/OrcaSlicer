@@ -1,8 +1,8 @@
 #include "CheckBox.hpp"
 
 /*
+Elipsize end on limited size when no wrapping
 Text on left
-on_dpi_changed
 on dark mode changed
 */
 
@@ -33,13 +33,6 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
 
     m_label = label;
 
-    Bind(wxEVT_CHAR_HOOK, ([this](wxKeyEvent&e){
-        if(HasFocus() && e.GetKeyCode() == WXK_SPACE)
-            SetValue(!m_value);
-        else
-            e.Skip();
-    }));
-
     m_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_check = new Button(this, "", "check_off", 0, 18);
@@ -68,7 +61,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
 
         m_text_box = new StaticBox(this);
         m_text_box->SetCornerRadius(0);
-        m_text_box->SetBorderColor(m_focus_color);
+        m_text_box->SetBorderColor(GetBackgroundColour());
         m_text_box->SetCanFocus(false);
         m_text_box->DisableFocusFromKeyboard();
 
@@ -112,6 +105,13 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
             e.Skip();
         });
     };
+
+    Bind(wxEVT_CHAR_HOOK, ([this](wxKeyEvent&e){
+        if(HasFocus() && e.GetKeyCode() == WXK_SPACE)
+            SetValue(!m_value);
+        else
+            e.Skip();
+    }));
 
     SetSizerAndFit(m_sizer);
     Layout();
@@ -173,16 +173,11 @@ void CheckBox::UpdateIcon()
 {
     ScalableBitmap icon;
     bool focus = HasFocus();
-    if      (!m_enabled)
-        icon = m_half_checked ? m_half_disabled : m_value ? m_on_disabled : m_off_disabled;
-    else if (m_hovered && focus)
-        icon = m_half_checked ? m_half_hvrfcs   : m_value ? m_on_hvrfcs   : m_off_hvrfcs;
-    else if (m_hovered && !focus)
-        icon = m_half_checked ? m_half_hover    : m_value ? m_on_hover    : m_off_hover;
-    else if (!m_hovered && focus)
-        icon = m_half_checked ? m_half_focused  : m_value ? m_on_focused  : m_off_focused;
-    else
-        icon = m_half_checked ? m_half          : m_value ? m_on          : m_off;
+    icon = (!m_enabled         ) ? (m_half_checked ? m_half_disabled : m_value ? m_on_disabled : m_off_disabled )
+         : (m_hovered && focus ) ? (m_half_checked ? m_half_hvrfcs   : m_value ? m_on_hvrfcs   : m_off_hvrfcs   )
+         : (m_hovered && !focus) ? (m_half_checked ? m_half_hover    : m_value ? m_on_hover    : m_off_hover    )
+         : (!m_hovered && focus) ? (m_half_checked ? m_half_focused  : m_value ? m_on_focused  : m_off_focused  ) 
+         :                         (m_half_checked ? m_half          : m_value ? m_on          : m_off          );
     m_check->SetIcon(icon.name());
     m_check->Refresh();
 }

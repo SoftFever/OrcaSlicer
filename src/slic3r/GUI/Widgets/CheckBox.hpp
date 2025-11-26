@@ -4,15 +4,10 @@
 #include "../wxExtensions.hpp"
 
 #include "Label.hpp"
-
 #include "Button.hpp"
-
-#include "StateColor.hpp"
 
 #include <string>
 #include <wx/wx.h>
-#include <wx/dcclient.h>
-#include <wx/dcgraph.h>
 #include <wx/tglbtn.h> // to keep wxEVT_TOGGLEBUTTON
 
 class CheckBox : public wxPanel
@@ -95,9 +90,6 @@ private:
     wxStaticText*   m_text  = nullptr;
     StaticBox*      m_text_box  = nullptr;
     wxFont          m_font;
-    wxColour        m_bg_track;
-    StateColor      m_text_color;
-    StateColor      m_focus_color;
     wxBoxSizer*     m_sizer;
 };
 
