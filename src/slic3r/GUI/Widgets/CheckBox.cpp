@@ -149,6 +149,10 @@ void CheckBox::Rescale()
         i.msw_rescale();
     m_check->SetSize(m_on.GetBmpSize());
     m_check->Rescale();
+    m_sizer->Fit(this);
+    m_sizer->SetSizeHints(this);
+    UpdateIcon();
+    Layout();
     Refresh();
 }
 
