@@ -91,7 +91,7 @@ private:
     wxString        m_label;
     Button* m_check = nullptr;
     wxStaticText*   m_text  = nullptr;
-    StaticBox*      m_text_border  = nullptr;
+    StaticBox*      m_text_box  = nullptr;
     wxFont          m_font;
     wxColour        m_bg_track;
     StateColor      m_text_color;

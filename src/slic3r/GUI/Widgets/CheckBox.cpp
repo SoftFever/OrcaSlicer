@@ -63,13 +63,13 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
 
     m_check->Bind(wxEVT_SET_FOCUS ,([this](wxFocusEvent e) {
         if(m_has_text)
-            m_text_border->SetBorderColor(wxColour("#009688"));
+            m_text_box->SetBorderColor(wxColour("#009688"));
         UpdateIcon();
         e.Skip();
     }));
     m_check->Bind(wxEVT_KILL_FOCUS,([this](wxFocusEvent e) {
         if(m_has_text)
-            m_text_border->SetBorderColor(GetBackgroundColour());
+            m_text_box->SetBorderColor(GetBackgroundColour());
         UpdateIcon();
         e.Skip(); 
     }));
@@ -79,25 +79,25 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
     if(!label.IsEmpty()){
         m_has_text = true;
 
-        m_text_border = new StaticBox(this);
-        m_text_border->SetCornerRadius(0);
-        m_text_border->SetBorderColor(m_focus_color);
-        m_text_border->SetCanFocus(false);
-        m_text_border->DisableFocusFromKeyboard();
+        m_text_box = new StaticBox(this);
+        m_text_box->SetCornerRadius(0);
+        m_text_box->SetBorderColor(m_focus_color);
+        m_text_box->SetCanFocus(false);
+        m_text_box->DisableFocusFromKeyboard();
 
         // using wxStaticText allows wrapping without hustle but requires custom disable / enable since it has unwanted effect on text
-        m_text = new wxStaticText(m_text_border, wxID_ANY, label);
+        m_text = new wxStaticText(m_text_box, wxID_ANY, label);
         m_text->SetFont(m_font);
         m_text->SetForegroundColour(wxColour("#363636")); // disabled color "#6B6A6A"
 
         wxBoxSizer *label_sizer = new wxBoxSizer(wxHORIZONTAL);
         label_sizer->Add(m_text, 0, wxALL, FromDIP(5));
-        m_text_border->SetSizer(label_sizer);
+        m_text_box->SetSizer(label_sizer);
 
-        h_sizer->Add(m_text_border, 0, wxALIGN_CENTER_VERTICAL); // Dont add spacing otherwise hover events will break
+        h_sizer->Add(m_text_box, 0, wxALIGN_CENTER_VERTICAL); // Dont add spacing otherwise hover events will break
     }
 
-    auto w_list = m_has_text ? std::initializer_list<wxWindow*>{m_text_border, m_text, m_check} : std::initializer_list<wxWindow*>{m_check};
+    auto w_list = m_has_text ? std::initializer_list<wxWindow*>{m_text_box, m_text, m_check} : std::initializer_list<wxWindow*>{m_check};
     for (wxWindow* w : w_list) {
         w->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
             m_hovered = true;
