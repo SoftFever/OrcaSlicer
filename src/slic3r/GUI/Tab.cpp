@@ -6677,20 +6677,6 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
         e.Skip();
     }), deps.checkbox->GetId());
 
-    /*
-    if (m_compatible_printers.checkbox) {
-        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
-        m_compatible_printers.checkbox->SetValue(is_empty);
-        is_empty ? m_compatible_printers.btn->Disable() : m_compatible_printers.btn->Enable();
-    }
-
-    if (m_compatible_prints.checkbox) {
-        bool is_empty = m_config->option<ConfigOptionStrings>("compatible_prints")->values.empty();
-        m_compatible_prints.checkbox->SetValue(is_empty);
-        is_empty ? m_compatible_prints.btn->Disable() : m_compatible_prints.btn->Enable();
-    }
-    */
-
     deps.btn->Bind(wxEVT_BUTTON, ([this, parent, &deps](wxCommandEvent e)
     {
         // Collect names of non-default non-external profiles.
