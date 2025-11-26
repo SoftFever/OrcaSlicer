@@ -1,7 +1,6 @@
 #include "CheckBox.hpp"
 
 /*
-Text wrapping
 Text on left
 on_dpi_changed
 on dark mode changed
@@ -41,7 +40,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
             e.Skip();
     }));
 
-    auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_check = new Button(this, "", "check_off", 0, 18);
     m_check->SetPaddingSize(FromDIP(wxSize(0,0)));
@@ -62,7 +61,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         e.Skip(); 
     }));
 
-    h_sizer->Add(m_check, 0, wxALIGN_CENTER_VERTICAL); // Dont add spacing otherwise hover events will break
+    m_sizer->Add(m_check, 0, wxALIGN_CENTER_VERTICAL); // Dont add spacing otherwise hover events will break
 
     if(!label.IsEmpty()){
         m_has_text = true;
@@ -82,7 +81,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         label_sizer->Add(m_text, 0, wxALL, FromDIP(5));
         m_text_box->SetSizer(label_sizer);
 
-        h_sizer->Add(m_text_box, 0, wxALIGN_CENTER_VERTICAL); // Dont add spacing otherwise hover events will break
+        m_sizer->Add(m_text_box, 0, wxALIGN_CENTER_VERTICAL); // Dont add spacing otherwise hover events will break
     }
 
     auto w_list = m_has_text ? std::initializer_list<wxWindow*>{m_text_box, m_text, m_check} : std::initializer_list<wxWindow*>{m_check};
@@ -114,9 +113,26 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         });
     };
 
-    SetSizerAndFit(h_sizer);
+    SetSizerAndFit(m_sizer);
     Layout();
 
+    Refresh();
+}
+
+void CheckBox::Wrap(int width)
+{
+    if(!m_has_text) return;
+    if(width > 0){
+        if(width > m_check->GetSize().x)
+            m_text->Wrap(width - m_check->GetSize().x);
+        else
+            m_text->Wrap(width);
+    }else
+        m_text->Wrap(width);
+
+    m_sizer->Fit(this);
+    m_sizer->SetSizeHints(this);
+    Layout();
     Refresh();
 }
 

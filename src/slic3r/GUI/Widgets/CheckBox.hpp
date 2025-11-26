@@ -32,6 +32,8 @@ public:
 
     bool IsChecked() const {return m_value;};
 
+    void Wrap(int width);
+
     void Rescale();
 
     void SetTooltip(wxString label);
@@ -96,6 +98,7 @@ private:
     wxColour        m_bg_track;
     StateColor      m_text_color;
     StateColor      m_focus_color;
+    wxBoxSizer*     m_sizer;
 };
 
 #endif // !slic3r_GUI_CheckBox_hpp_
