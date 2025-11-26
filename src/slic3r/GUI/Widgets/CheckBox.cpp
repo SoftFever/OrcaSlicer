@@ -95,7 +95,7 @@ CheckBox::CheckBox(wxWindow *parent, wxString label)
         w->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
             if(m_has_text){
                 wxWindow* next_w = wxFindWindowAtPoint(wxGetMousePosition());
-                if (!next_w || !IsDescendant(next_w))
+                if (!next_w || !IsDescendant(next_w) || next_w == this)
                     m_hovered = false;
             }else
                 m_hovered = false;
