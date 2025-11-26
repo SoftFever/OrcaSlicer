@@ -2197,9 +2197,8 @@ namespace client
                         initializer_list(_r1)[px::bind(&MyContext::vector_variable_new_from_initializer_list, _r1, _a, _b, _1)]
                         // Process it before conditional_expression, as conditional_expression requires a vector reference to be augmented with an index.
                         // Only process such variable references, which return a naked vector variable.
-                    // Orca todo: following code cause strange build errors with MSVC C++17
-                    // |  eps(px::bind(&MyContext::could_be_vector_variable_reference, _b)) >>
-                    //         variable_reference(_r1)[px::val(qi::_pass) = px::bind(&MyContext::vector_variable_new_from_copy, _r1, _a, _b, _1)]
+                    |  eps(px::bind(&MyContext::could_be_vector_variable_reference, _b)) >>
+                            variable_reference(_r1)[qi::_pass = px::bind(&MyContext::vector_variable_new_from_copy, _r1, _a, _b, _1)]
                        // Would NOT consume '(' conditional_expression ')' because such value was consumed with the expression above.
                     |  conditional_expression(_r1)
                             [px::bind(&MyContext::scalar_variable_new_from_scalar_expression, _r1, _a, _b, _1)]
