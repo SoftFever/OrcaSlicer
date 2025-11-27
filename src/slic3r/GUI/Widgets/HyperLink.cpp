@@ -32,7 +32,7 @@ HyperLink::HyperLink(
 }
 
 void HyperLink::SetFont(wxFont& font)
-{   // make sure its underlined
+{   // ensure it stays underlined
     wxFont f = font;
     f.SetUnderlined(true);
     wxStaticText::SetFont(f);
@@ -40,8 +40,7 @@ void HyperLink::SetFont(wxFont& font)
 
 void HyperLink::SetURL(const wxString& url) {
     m_url = url;
-    if (!m_url.IsEmpty())
-        SetToolTip(m_url);
+    SetToolTip(m_url);
 }
 
 wxString HyperLink::GetURL() const{
