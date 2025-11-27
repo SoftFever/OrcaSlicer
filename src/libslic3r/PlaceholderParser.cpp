@@ -1045,8 +1045,8 @@ namespace client
             case coFloatOrPercent:
             {
                 std::string opt_key(opt.it_range.begin(), opt.it_range.end());
-                if (boost::ends_with(opt_key, "extrusion_width")) {
-                    // Extrusion width supports defaults and a complex graph of dependencies.
+                if (boost::ends_with(opt_key, "line_width")) {
+                    // Line width supports defaults and a complex graph of dependencies.
                     output.set_d(Flow::extrusion_width(opt_key, *ctx, static_cast<unsigned int>(ctx->current_extruder_id)));
                 } else if (! static_cast<const ConfigOptionFloatOrPercent*>(opt.opt)->percent) {
                     // Not a percent, just return the value.
@@ -1060,8 +1060,8 @@ namespace client
     			        const ConfigOption *opt_parent = opt_def->ratio_over.empty() ? nullptr : ctx->resolve_symbol(opt_def->ratio_over);
     			        if (opt_parent == nullptr)
     			            ctx->throw_exception("FloatOrPercent variable failed to resolve the \"ratio_over\" dependencies", opt.it_range);
-    			        if (boost::ends_with(opt_def->ratio_over, "extrusion_width")) {
-                    		// Extrusion width supports defaults and a complex graph of dependencies.
+    			        if (boost::ends_with(opt_def->ratio_over, "line_width")) {
+                    		// Line width supports defaults and a complex graph of dependencies.
                             assert(opt_parent->type() == coFloatOrPercent);
                         	v *= Flow::extrusion_width(opt_def->ratio_over, static_cast<const ConfigOptionFloatOrPercent*>(opt_parent), *ctx, static_cast<unsigned int>(ctx->current_extruder_id));
                         	break;
