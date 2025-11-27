@@ -2803,6 +2803,14 @@ private:
 	template<class Archive> void serialize(Archive &ar) { ar(options); }
 };
 
+// An abstract class for a dynamic config that is expected to always return a valid def when calling this->def()
+class DynamicConfigWithDef : public DynamicConfig
+{
+    using DynamicConfig::DynamicConfig;
+public:
+    const ConfigDef* def() const override = 0;
+};
+
 // Configuration store with a static definition of configuration values.
 // In Slic3r, the static configuration stores are during the slicing / g-code generation for efficiency reasons,
 // because the configuration values could be accessed directly.

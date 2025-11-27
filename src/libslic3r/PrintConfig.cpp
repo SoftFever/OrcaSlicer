@@ -7742,7 +7742,7 @@ DynamicPrintConfig DynamicPrintConfig::full_print_config()
 	return DynamicPrintConfig((const PrintRegionConfig&)FullPrintConfig::defaults());
 }
 
-DynamicPrintConfig::DynamicPrintConfig(const StaticPrintConfig& rhs) : DynamicConfig(rhs, rhs.keys_ref())
+DynamicPrintConfig::DynamicPrintConfig(const StaticPrintConfig& rhs) : DynamicConfigWithDef(rhs, rhs.keys_ref())
 {
 }
 

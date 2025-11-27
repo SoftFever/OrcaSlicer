@@ -564,14 +564,14 @@ double min_object_distance(const ConfigBase &cfg);
 // so the modified configuration values may be diffed against the active configuration
 // to invalidate the proper slicing resp. g-code generation processing steps.
 // This object is mapped to Perl as Slic3r::Config.
-class DynamicPrintConfig : public DynamicConfig
+class DynamicPrintConfig : public DynamicConfigWithDef
 {
 public:
     DynamicPrintConfig() {}
-    DynamicPrintConfig(const DynamicPrintConfig &rhs) : DynamicConfig(rhs) {}
-    DynamicPrintConfig(DynamicPrintConfig &&rhs) noexcept : DynamicConfig(std::move(rhs)) {}
+    DynamicPrintConfig(const DynamicPrintConfig &rhs) : DynamicConfigWithDef(rhs) {}
+    DynamicPrintConfig(DynamicPrintConfig &&rhs) noexcept : DynamicConfigWithDef(std::move(rhs)) {}
     explicit DynamicPrintConfig(const StaticPrintConfig &rhs);
-    explicit DynamicPrintConfig(const ConfigBase &rhs) : DynamicConfig(rhs) {}
+    explicit DynamicPrintConfig(const ConfigBase &rhs) : DynamicConfigWithDef(rhs) {}
 
     DynamicPrintConfig& operator=(const DynamicPrintConfig &rhs) { DynamicConfig::operator=(rhs); return *this; }
     DynamicPrintConfig& operator=(DynamicPrintConfig &&rhs) noexcept { DynamicConfig::operator=(std::move(rhs)); return *this; }
