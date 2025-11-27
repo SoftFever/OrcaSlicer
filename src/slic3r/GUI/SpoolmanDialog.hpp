@@ -6,7 +6,9 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/LoadingSpinner.hpp"
 
-namespace Slic3r::GUI {
+namespace Slic3r {
+class SpoolmanDynamicConfig;
+namespace GUI {
 class SpoolInfoWidget : public wxPanel
 {
 public:
@@ -25,6 +27,7 @@ class SpoolmanDialog : DPIDialog
 {
 public:
     SpoolmanDialog(wxWindow* parent);
+    ~SpoolmanDialog() override;
     void build_options_group() const;
     void build_spool_info();
     void show_loading(bool show = true);
@@ -36,17 +39,18 @@ public:
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
-    bool            m_dirty_settings{false};
-    bool            m_dirty_host{false};
-    OptionsGroup*   m_optgroup;
-    wxPanel*        m_main_panel;
-    wxPanel*        m_loading_panel;
-    wxGridSizer*    m_info_widgets_sizer;
-    wxBoxSizer*     m_spoolman_error_label_sizer;
-    Label*          m_spoolman_error_label;
-    LoadingSpinner* m_loading_spinner;
-    DialogButtons*  m_buttons;
+    bool                   m_dirty_settings{false};
+    bool                   m_dirty_host{false};
+    ConfigOptionsGroup*    m_optgroup;
+    SpoolmanDynamicConfig* m_config;
+    wxPanel*               m_main_panel;
+    wxPanel*               m_loading_panel;
+    wxGridSizer*           m_info_widgets_sizer;
+    wxBoxSizer*            m_spoolman_error_label_sizer;
+    Label*                 m_spoolman_error_label;
+    LoadingSpinner*        m_loading_spinner;
+    DialogButtons*         m_buttons;
 };
-} // namespace Slic3r::GUI
+}} // namespace Slic3r::GUI
 
 #endif // ORCASLICER_SPOOLMANDIALOG_HPP

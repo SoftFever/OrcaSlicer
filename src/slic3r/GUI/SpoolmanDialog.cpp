@@ -5,6 +5,7 @@
 #include "OptionsGroup.hpp"
 #include "Plater.hpp"
 #include "Spoolman.hpp"
+#include "SpoolmanConfig.hpp"
 #include "Widgets/DialogButtons.hpp"
 #include "Widgets/LabeledStaticBox.hpp"
 #include "wx/sizer.h"
@@ -15,7 +16,6 @@ namespace Slic3r::GUI {
 
 wxDEFINE_EVENT(EVT_FINISH_LOADING, wxCommandEvent);
 static BitmapCache cache;
-const static std::regex spoolman_regex("^spoolman_");
 
 SpoolInfoWidget::SpoolInfoWidget(wxWindow* parent, const Preset* preset) : wxPanel(parent, wxID_ANY), m_preset(preset)
 {
@@ -80,7 +80,8 @@ SpoolmanDialog::SpoolmanDialog(wxWindow* parent)
     wxGetApp().UpdateDarkUI(m_main_panel);
     m_main_panel->SetSizer(main_panel_sizer);
 
-    m_optgroup = new OptionsGroup(m_main_panel, _L("Spoolman Options"), wxEmptyString);
+    m_config = new SpoolmanDynamicConfig(wxGetApp().app_config);
+    m_optgroup = new ConfigOptionsGroup(m_main_panel, _L("Spoolman Options"), wxEmptyString, m_config);
     build_options_group();
     m_optgroup->m_on_change = [&](const std::string& key, const boost::any& value) {
         m_dirty_settings = true;
@@ -139,39 +140,18 @@ SpoolmanDialog::SpoolmanDialog(wxWindow* parent)
     this->ShowModal();
 }
 
+SpoolmanDialog::~SpoolmanDialog()
+{
+    delete m_config;
+}
+
 void SpoolmanDialog::build_options_group() const
 {
-    ConfigOptionDef def;
-    def.type    = coBool;
-    def.label   = _u8L("Spoolman Enabled");
-    def.tooltip = _u8L("Enables spool management features powered by a Spoolman server instance");
-    def.set_default_value(new ConfigOptionBool());
-    m_optgroup->append_single_option_line((Option(def, "spoolman_enabled")));
-
-    def         = ConfigOptionDef();
-    def.type    = coString;
-    def.label   = _u8L("Spoolman Host");
-    def.tooltip = _u8L("Points to where you Spoolman instance is hosted. Use the format of <host>:<port>. You may also just specify the "
-                       "host and it will use the default Spoolman port of ") +
-                  Spoolman::DEFAULT_PORT;
-    def.set_default_value(new ConfigOptionString());
-    m_optgroup->append_single_option_line(Option(def, "spoolman_host"));
+    m_optgroup->append_single_option_line("spoolman_enabled");
+    m_optgroup->append_single_option_line("spoolman_host");
 
     m_optgroup->activate();
-
-    // Load config values from the app config
-    const auto        app_config = wxGetApp().app_config;
-    for (auto& line : m_optgroup->get_lines()) {
-        for (auto& option : line.get_options()) {
-            auto app_config_key = regex_replace(option.opt_id, spoolman_regex, "");
-            if (option.opt.type == coBool)
-                m_optgroup->set_value(option.opt_id, app_config->get_bool("spoolman", app_config_key));
-            else if (option.opt.type == coString)
-                m_optgroup->set_value(option.opt_id, wxString::FromUTF8(app_config->get("spoolman", app_config_key)));
-            else
-                BOOST_LOG_TRIVIAL(error) << "SpoolmanDialog load: Unknown option type " << option.opt.type;
-        }
-    }
+    m_optgroup->reload_config();
 }
 
 void SpoolmanDialog::build_spool_info()
@@ -216,19 +196,7 @@ void SpoolmanDialog::save_spoolman_settings()
         return;
 
     // Save config values to the app config
-    const auto        app_config = wxGetApp().app_config;
-    for (auto& line : m_optgroup->get_lines()) {
-        for (auto& option : line.get_options()) {
-            auto app_config_key = regex_replace(option.opt_id, spoolman_regex, "");
-            auto val            = m_optgroup->get_value(option.opt_id);
-            if (option.opt.type == coBool)
-                app_config->set("spoolman", app_config_key, any_cast<bool>(val));
-            else if (option.opt.type == coString)
-                app_config->set("spoolman", app_config_key, any_cast<std::string>(val));
-            else
-                BOOST_LOG_TRIVIAL(error) << "SpoolmanDialog save: Unknown option type " << option.opt.type;
-        }
-    }
+    m_config->save_to_appconfig(wxGetApp().app_config);
 
     if (m_dirty_host)
         Spoolman::on_server_changed();
@@ -271,5 +239,4 @@ void SpoolmanDialog::on_dpi_changed(const wxRect& suggested_rect)
     Fit();
     Refresh();
 }
-
 } // namespace Slic3r::GUI
