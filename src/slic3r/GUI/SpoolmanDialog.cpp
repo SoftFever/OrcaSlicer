@@ -149,6 +149,7 @@ void SpoolmanDialog::build_options_group() const
 {
     m_optgroup->append_single_option_line("spoolman_enabled");
     m_optgroup->append_single_option_line("spoolman_host");
+    m_optgroup->append_single_option_line("spoolman_consumption_type");
 
     m_optgroup->activate();
     m_optgroup->reload_config();

@@ -6,6 +6,12 @@
 namespace Slic3r {
 class AppConfig;
 
+enum ConsumptionType
+{
+    ctWEIGHT,
+    ctLENGTH
+};
+
 class SpoolmanConfigDef : public ConfigDef
 {
 public:

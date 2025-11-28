@@ -7,6 +7,11 @@
 namespace Slic3r {
 const static std::regex spoolman_regex("^spoolman_");
 
+static const t_config_enum_values s_keys_map_ConsumptionType = {
+    {"weight", ctWEIGHT},
+    {"length", ctLENGTH}
+};
+
 SpoolmanConfigDef::SpoolmanConfigDef()
 {
     ConfigOptionDef* def;
@@ -22,6 +27,20 @@ SpoolmanConfigDef::SpoolmanConfigDef()
                         "host and it will use the default Spoolman port of ") +
                    Spoolman::DEFAULT_PORT;
     def->set_default_value(new ConfigOptionString());
+
+    def = this->add("spoolman_consumption_type", coEnum);
+    def->label = _u8L("Consumption Type");
+    def->tooltip = _u8L("The unit of measurement that sent to Spoolman for consumption");
+    def->set_default_value(new ConfigOptionEnumGeneric(&s_keys_map_ConsumptionType, ctWEIGHT));
+    def->enum_keys_map = &s_keys_map_ConsumptionType;
+    def->enum_labels = {
+        _u8L("Weight"),
+        _u8L("Length")
+    };
+    def->enum_values = {
+        "weight",
+        "length"
+    };
 }
 
 const SpoolmanConfigDef spoolman_config_def;
