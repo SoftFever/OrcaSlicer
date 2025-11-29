@@ -1865,6 +1865,7 @@ Sidebar::Sidebar(Plater *parent)
         p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
             auto image_path        = get_cur_select_bed_image();
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
+            e.Skip();
         });
 
         // ORCA paint whole combobox on focus
