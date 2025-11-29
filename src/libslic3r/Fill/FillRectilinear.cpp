@@ -3176,15 +3176,22 @@ bool FillRectilinear::fill_surface_trapezoidal(
         const int    layer_mod = layer_id % 3;
         const double angle     = layer_mod * 2.0 * M_PI / 3.0;
 
-        const Point   rotation_center = bb.center();
-        const coord_t half_w          = bb.size().x() / 2;
-        const coord_t half_h          = bb.size().y() / 2;
-
-        // Align limits to integer multiples of period/h so the pattern tiles symmetrically
-        const coord_t x_min_aligned = -((coord_t) (std::ceil(double(half_w) / double(period))) * period );
-        const coord_t x_max_aligned = ((coord_t) (std::ceil(double(half_w) / double(period))) * period );
-        const coord_t y_min_aligned = -((coord_t) (std::ceil(double(half_h) / double(h))) * h * 2);
-        const coord_t y_max_aligned = ((coord_t) (std::ceil(double(half_h) / double(h))) * h * 2);
+        const Point rotation_center = bb.center();
+        const coord_t half_w = bb.size().x() / 2;
+        const coord_t half_h = bb.size().y() / 2;
+        
+        // Compute how many full periods fit in each direction
+        const coord_t num_periods_x = coord_t(std::ceil(half_w / double(period)));
+        coord_t num_periods_y =coord_t(std::ceil(half_h / double(h)));        
+        // Ensure an even number of rows so the pattern stays centered
+        if ((num_periods_y % 2) != 0)
+            ++num_periods_y;
+        
+        // Compute aligned limits (symmetric around the origin)
+        const coord_t x_min_aligned = -num_periods_x * period;
+        const coord_t x_max_aligned =  num_periods_x * period;   
+        const coord_t y_min_aligned = -num_periods_y * h;
+        const coord_t y_max_aligned =  num_periods_y * h;
 
         // Pre-allocate estimated number of polylines
         const size_t estimated_rows = (y_max_aligned - y_min_aligned) / h + 2;
