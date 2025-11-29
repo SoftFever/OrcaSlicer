@@ -3576,6 +3576,7 @@ void TabFilament::add_filament_overrides_page()
                         }
                     }
                 }
+                evt.Skip();
             }, check_box->GetId());
 
             m_overrides_options[opt_key] = check_box;
@@ -3677,6 +3678,7 @@ void TabFilament::add_filament_overrides_page()
                         }
                     }
                 }
+                evt.Skip();
             }, check_box->GetId());
 
             m_overrides_options[opt_key] = check_box;
