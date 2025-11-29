@@ -3116,15 +3116,14 @@ bool FillRectilinear::fill_surface_trapezoidal(
             base_row_normal.points.emplace_back(Point(x + d1 + d2, d1 / 2 + d2));     // P2
             base_row_normal.points.emplace_back(Point(x + 2 * d1 + d2, d1 / 2 + d2)); // P3
             base_row_normal.points.emplace_back(Point(x + 2 * d1 + 2 * d2, d1 / 2));  // P4
-
-            // Flipped row
-            base_row_flipped.points.emplace_back(Point(x, d1 / 2 + d2));                   // P0'
-            base_row_flipped.points.emplace_back(Point(x + d1, d1 / 2 + d2));              // P1'
-            base_row_flipped.points.emplace_back(Point(x + d1 + d2, d1 / 2));              // P2'
-            base_row_flipped.points.emplace_back(Point(x + 2 * d1 + d2, d1 / 2));          // P3'
-            base_row_flipped.points.emplace_back(Point(x + 2 * d1 + 2 * d2, d1 / 2 + d2)); // P4'
         }
 
+        // Flipped row (mirrored vertically)
+        base_row_flipped.points = base_row_normal.points;
+        for (auto& p : base_row_flipped.points) {
+            p.y() = period / 2 - p.y();
+        }
+        
         // Pre-allocate polylines
         const size_t estimated_rows = ((ymax - ymin) / (period / 2) + 1);
         polylines.reserve(estimated_rows);
@@ -3213,14 +3212,10 @@ bool FillRectilinear::fill_surface_trapezoidal(
             trapezoid_row_normal.points.emplace_back(Point(x + period, d1));                      // P4
         }
 
-        // Shifted row (with period/2 shift)
-        for (coord_t x = x_min_aligned + period / 2; x < x_max_aligned; x += period) {
-            trapezoid_row_shifted.points.emplace_back(Point(x + d2_tri / 2, d1));                  // P0
-            trapezoid_row_shifted.points.emplace_back(Point(x + period / 2 - d2_tri / 2, h - d1)); // P1
-            trapezoid_row_shifted.points.emplace_back(Point(x + period / 2 + d2_tri / 2, h - d1)); // P2
-            trapezoid_row_shifted.points.emplace_back(Point(x + period - d2_tri / 2, d1));         // P3
-            trapezoid_row_shifted.points.emplace_back(Point(x + period, d1));                      // P4
-        }
+        // Shifted row (mirrored vertically)
+        trapezoid_row_shifted.points = trapezoid_row_normal.points;
+        for (auto& p : trapezoid_row_shifted.points)
+            p.y() = h - p.y();
 
         bool shift_row = false;
 
@@ -3246,30 +3241,10 @@ bool FillRectilinear::fill_surface_trapezoidal(
             shift_row = !shift_row;
         }
 
-        //  Rotate around origin (0,0) 
-        if (layer_mod != 0) {
-            const double cos_a = std::cos(angle);
-            const double sin_a = std::sin(angle);
-
-            for (Polyline& pl : polylines) {
-                for (Point& p : pl.points) {
-                    const double x     = p.x();
-                    const double y     = p.y();
-                    const double new_x = x * cos_a - y * sin_a;
-                    const double new_y = x * sin_a + y * cos_a;
-                    p.x()              = coord_t(new_x);
-                    p.y()              = coord_t(new_y);
-                }
-            }
-        }
-
-        //Translate to bounding box center
-        for (Polyline& pl : polylines) {
-            for (Point& p : pl.points) {
-                p.x() += rotation_center.x();
-                p.y() += rotation_center.y();
-            }
-        }
+        //  Rotate around origin (0,0)
+        if (layer_mod)
+            for (auto& pl : polylines)
+                pl.rotate(angle, Point(0,0));
 
         break;
     }
@@ -3284,7 +3259,7 @@ bool FillRectilinear::fill_surface_trapezoidal(
 
     // Contract surface polygon by half line width to avoid excesive overlap with perimeter
     ExPolygons contracted = offset_ex(expolygon, -float(scale_(0.5 * this->spacing)));
-    
+
     // if contraction results in empty polygon, use original surface
     const ExPolygon &intersection_surface = contracted.empty() ? expolygon : contracted.front();
 
