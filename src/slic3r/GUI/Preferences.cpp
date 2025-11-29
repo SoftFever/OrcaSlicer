@@ -144,6 +144,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(wxString title, wxS
         wxLANGUAGE_CATALAN,
         wxLANGUAGE_PORTUGUESE_BRAZILIAN,
         wxLANGUAGE_LITHUANIAN,
+        wxLANGUAGE_VIETNAMESE
     };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
@@ -245,6 +246,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(wxString title, wxS
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_LITHUANIAN)) {
             language_name = wxString::FromUTF8("Lietuvių");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_VIETNAMESE)) {
+            language_name = wxString::FromUTF8("Tiếng Việt");
         }
 
         if (app_config->get(param) == vlist[i]->CanonicalName) {
@@ -386,7 +390,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxStr
         NetworkAgent* agent = wxGetApp().getAgent();
         AppConfig* config = GUI::wxGetApp().app_config;
         if (agent) {
-            MessageDialog msg_wingow(this, _L("Changing the region will log out your account.\n") + "\n" + _L("Do you want to continue?"), L("Region selection"),
+            MessageDialog msg_wingow(this, _L("Changing the region will log out your account.\n") + "\n" + _L("Do you want to continue?"), _L("Region selection"),
                                      wxICON_QUESTION | wxOK | wxCANCEL);
             if (msg_wingow.ShowModal() == wxID_CANCEL) {
                 combobox->SetSelection(current_region);
@@ -408,49 +412,6 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxStr
         e.Skip();
     });
 
-    return m_sizer_combox;
-}
-
-wxBoxSizer *PreferencesDialog::create_item_autoflush(wxString title, wxString tooltip)
-{
-    wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
-    m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
-
-    auto combo_title = new wxStaticText(m_parent, wxID_ANY, title , wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
-    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
-    combo_title->SetFont(::Label::Body_14);
-    combo_title->SetToolTip(tooltip);
-    combo_title->Wrap(DESIGN_TITLE_SIZE.x);
-    m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
-
-    auto combobox = new ::ComboBox(m_parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
-    combobox->SetFont(::Label::Body_14);
-    combobox->GetDropDown().SetFont(::Label::Body_14);
-
-    std::vector<wxString> FlushOptions = {_L("All"), _L("Color"), _L("Filament"), _L("None")};
-    std::vector<wxString>::iterator iter;
-    for (iter = FlushOptions.begin(); iter != FlushOptions.end(); iter++) { combobox->Append(*iter); }
-
-    auto opt_color = app_config->get("auto_calculate") == "true";
-    auto opt_filam = app_config->get("auto_calculate_when_filament_change") == "true";
-    if (opt_color && opt_filam) {
-        combobox->SetValue(FlushOptions[0]);
-    }else if(opt_color){
-        combobox->SetValue(FlushOptions[1]);
-    }else if(opt_filam){
-        combobox->SetValue(FlushOptions[2]);
-    }else{
-        combobox->SetValue(FlushOptions[3]);
-    }
-
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
-
-    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
-        auto sel = e.GetSelection();
-        app_config->set("auto_calculate"                     ,(sel == 0 || sel == 1) ? "true" : "false");
-        app_config->set("auto_calculate_when_filament_change",(sel == 0 || sel == 2) ? "true" : "false");
-        e.Skip();
-     });
     return m_sizer_combox;
 }
 
@@ -878,6 +839,43 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxString too
             }
         }
 
+        if (param == "enable_high_low_temp_mixed_printing") {
+            if (checkbox->GetValue()) {
+                const wxString warning_title = _L("Bed Temperature Difference Warning");
+                const wxString warning_message = 
+                    _L("Using filaments with significantly different temperatures may cause:\n"
+                        "• Extruder clogging\n"
+                        "• Nozzle damage\n"
+                        "• Layer adhesion issues\n\n"
+                        "Continue with enabling this feature?");
+                std::function<void(const wxString&)> link_callback = [](const wxString&) {
+                            const std::string lang_code = wxGetApp().app_config->get("language");
+                            const wxString region = (lang_code.find("zh") != std::string::npos) ? L"zh" : L"en";
+                            const wxString wiki_url = wxString::Format(
+                                L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit",
+                                region
+                            );
+                            wxGetApp().open_browser_with_warning_dialog(wiki_url);
+                            };
+
+                MessageDialog msg_dialog(
+                    nullptr,
+                    warning_message,
+                    warning_title,
+                    wxICON_WARNING | wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE,
+                    wxEmptyString,
+                    _L("Click Wiki for help."),
+                    link_callback
+                );
+
+                if (msg_dialog.ShowModal() != wxID_YES) {
+                    checkbox->SetValue(false);
+                    app_config->set_bool(param, false);
+                    app_config->save();
+                }
+            }
+        }
+
         e.Skip();
     });
 
@@ -1055,22 +1053,6 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     SetMinSize(DESIGN_WINDOW_SIZE);
     create();
     wxGetApp().UpdateDlgDarkUI(this);
-
-    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
-        try {
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) {
-                json j;
-                std::string value;
-                value = wxGetApp().app_config->get("auto_calculate");
-                j["auto_flushing"] = value;
-                value = wxGetApp().app_config->get("auto_calculate_when_filament_change");
-                j["auto_calculate_when_filament_change"] = value;
-                agent->track_event("preferences_changed", j.dump());
-            }
-        } catch(...) {}
-        event.Skip();
-        });
 }
 
 void PreferencesDialog::create()
@@ -1113,7 +1095,7 @@ void PreferencesDialog::create()
 
     m_pref_tabs->SelectItem(0);
 
-    m_sizer_body->Add(m_pref_tabs, 0, wxEXPAND | wxBOTTOM, FromDIP(5));
+    m_sizer_body->Add(m_pref_tabs, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(5));
     m_sizer_body->Add(m_parent, 1, wxEXPAND);
 
     SetSizer(m_sizer_body);
@@ -1211,7 +1193,7 @@ void PreferencesDialog::create_items()
 
     std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
     std::vector<string>   projectLoadSettingsConfigOptions    = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
-    auto item_project_load     = create_item_combobox(_L("Load behaviour"), _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
+    auto item_project_load     = create_item_combobox(_L("Load behaviour"), _L("Should printer/filament/process settings be loaded when opening a 3MF file?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
     g_sizer->Add(item_project_load);
 
     auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
@@ -1227,7 +1209,7 @@ void PreferencesDialog::create_items()
     auto item_gcodes_warning   = create_item_checkbox(_L("Don't warn when loading 3MF with modified G-code"), "", "no_warn_when_modified_gcodes");
     g_sizer->Add(item_gcodes_warning);
 
-    auto item_step_dialog      = create_item_checkbox(_L("Show options when importing STEP file"), _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
+    auto item_step_dialog      = create_item_checkbox(_L("Show options when importing STEP file"), _L("If enabled, a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
     g_sizer->Add(item_step_dialog);
 
     auto item_backup           = create_item_backup(_L("Auto backup"), _L("Backup your project periodically for restoring from the occasional crash."));
@@ -1245,6 +1227,14 @@ void PreferencesDialog::create_items()
     auto item_multi_machine    = create_item_checkbox(_L("Multi device management"), _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), "enable_multi_machine", _L("(Requires restart)"));
     g_sizer->Add(item_multi_machine);
 
+#if 0
+    g_sizer->Add(create_item_title(_L("Filament Grouping")), 1, wxEXPAND);
+    //temporarily disable it
+    //auto item_ignore_ext_filament = create_item_checkbox(_L("Ignore ext filament when auto grouping"), _L("Ignore ext filament when auto grouping"), 50, "ignore_ext_filament_when_group");
+    auto item_pop_up_filament_map_dialog = create_item_checkbox(_L("Pop up to select filament grouping mode"), _L("Pop up to select filament grouping mode"), 50, "pop_up_filament_map_dialog");
+    g_sizer->Add(item_pop_up_filament_map_dialog);
+#endif
+
     g_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(g_sizer, 0, wxEXPAND);
 
@@ -1259,7 +1249,9 @@ void PreferencesDialog::create_items()
     //// CONTROL > Behaviour
     g_sizer->Add(create_item_title(_L("Behaviour")), 1, wxEXPAND);
 
-    auto item_auto_flush       = create_item_autoflush(_L("Auto flush after changing ..."), _L("Auto calculate flushing volumes when selected values changed"));
+    std::vector<wxString> FlushOptionLabels = {_L("All"),_L("Color"),_L("None")};
+    std::vector<std::string> FlushOptionValues = { "all","color change","disabled" };
+    auto item_auto_flush = create_item_combobox(_L("Auto flush after changing..."), _L("Auto calculate flushing volumes when selected values changed"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
     g_sizer->Add(item_auto_flush);
 
     auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), "", "auto_arrange");
@@ -1293,7 +1285,7 @@ void PreferencesDialog::create_items()
     g_sizer->Add(item_right_mouse_drag);
 
     //// CONTROL > Clear my choice on ...
-    g_sizer->Add(create_item_title(_L("Clear my choice on ...")), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Clear my choice on...")), 1, wxEXPAND);
 
     auto item_save_choise      = create_item_button(_L("Unsaved projects"), _L("Clear"), "", _L("Clear my choice on the unsaved projects."), []() {
         wxGetApp().app_config->set("save_project_choise", "");
@@ -1304,6 +1296,11 @@ void PreferencesDialog::create_items()
         wxGetApp().app_config->set("save_preset_choise", "");
     });
     g_sizer->Add(item_save_presets);
+
+    auto item_restore_hide_pop_ups = create_item_button(_L("Synchronizing printer preset"), _L("Clear"), L"", _L("Clear my choice for synchronizing printer preset after loading the file."), []() {
+        wxGetApp().app_config->erase("app", "sync_after_load_file_show_flag");
+    });
+    g_sizer->Add(item_restore_hide_pop_ups);
 
     g_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(g_sizer, 0, wxEXPAND);
@@ -1367,13 +1364,13 @@ void PreferencesDialog::create_items()
     //// ASSOCIATE > Extensions
     g_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer")), 1, wxEXPAND);
 
-    auto item_associate_3mf    = create_item_checkbox(_L("Associate .3mf files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , "associate_3mf");
+    auto item_associate_3mf    = create_item_checkbox(_L("Associate 3MF files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open 3MF files.") , "associate_3mf");
     g_sizer->Add(item_associate_3mf);
 
-    auto item_associate_stl    = create_item_checkbox(_L("Associate .stl files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open .stl files") , "associate_stl");
+    auto item_associate_stl    = create_item_checkbox(_L("Associate STL files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open STL files.") , "associate_stl");
     g_sizer->Add(item_associate_stl);
 
-    auto item_associate_step   = create_item_checkbox(_L("Associate .step/.stp files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open .step files"), "associate_step");
+    auto item_associate_step   = create_item_checkbox(_L("Associate STEP files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open STEP files."), "associate_step");
     g_sizer->Add(item_associate_step);
 
     //// ASSOCIATE > WebLinks
@@ -1408,6 +1405,13 @@ void PreferencesDialog::create_items()
 
     auto item_ams_blacklist    = create_item_checkbox(_L("Skip AMS blacklist check"), "", "skip_ams_blacklist_check");
     g_sizer->Add(item_ams_blacklist);
+
+    auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove mixed temperature restriction"), _L("With this option enabled, you can print materials with a large temperature difference together."), "enable_high_low_temp_mixed_printing");
+    g_sizer->Add(item_mix_print_high_low_temperature);
+
+    g_sizer->Add(create_item_title(_L("Storage")), 1, wxEXPAND);
+    auto item_allow_abnormal_storage = create_item_checkbox(_L("Allow Abnormal Storage"), _L("This allows the use of Storage that is marked as abnormal by the Printer.\nUse at your own risk, can cause issues!"), "allow_abnormal_storage");
+    g_sizer->Add(item_allow_abnormal_storage);
 
     g_sizer->Add(create_item_title(_L("Log Level")), 1, wxEXPAND);
     auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
