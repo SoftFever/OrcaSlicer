@@ -3073,8 +3073,6 @@ bool FillRectilinear::fill_surface_trapezoidal(
         base_angle = rotate_vector.first + M_PI_2; //90
     }
 
-    const coord_t d2 = coord_t(0.5 * period - d1);
-
     // Obtain the expolygon and rotate to align with pattern base angle
     ExPolygon expolygon = surface->expolygon;
     if (std::abs(base_angle) >= EPSILON) {
@@ -3083,11 +3081,6 @@ bool FillRectilinear::fill_surface_trapezoidal(
 
     // Use extended object bounding box for consistent pattern across layers
     BoundingBox bb = this->extended_object_bounding_box();
-
-    coord_t xmin = bb.min.x();
-    coord_t xmax = bb.max.x();
-    coord_t ymin = bb.min.y();
-    coord_t ymax = bb.max.y();
 
     switch (Pattern_type) {
     case 0: // Grid / Trapezoidal
@@ -3100,8 +3093,15 @@ bool FillRectilinear::fill_surface_trapezoidal(
         // P1x-P2x=P3x-P4x=d1
         // P0y-P1y=P2y-P3y=d2
         
+        const coord_t d2 = coord_t(0.5 * period - d1);
+
         //  Align bounding box to the grid
         bb.merge(align_to_grid(bb.min, Point(period, period)));
+        const coord_t xmin = bb.min.x();
+        const coord_t xmax = bb.max.x();
+        const coord_t ymin = bb.min.y();
+        const coord_t ymax = bb.max.y();
+
         // Create the two base row patterns once
         Polyline base_row_normal;
         base_row_normal.points.reserve(((xmax - xmin) / period + 1) * 5); // 5 points per trapezoid
