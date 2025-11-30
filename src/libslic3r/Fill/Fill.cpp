@@ -1298,7 +1298,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
             }
             // Orca: Elefant foot compensation for solid layers above bottommost by infill density manipulation.
             float elefant_density = 1 - f->print_object_config->elefant_foot_layers_density.get_abs_value(1.0);
-            if (elefant_density && surface_fill.surface.is_solid()) {
+            if (elefant_density && surface_fill.surface.is_solid_infill()) {
                 size_t elefant_layers = f->print_object_config->elefant_foot_compensation_layers.value;
                 if (f->layer_id > 0 && f->layer_id <= elefant_layers)
                     params.density = 1 - elefant_density * (elefant_layers - (f->layer_id - 1)) / elefant_layers;
