@@ -1789,7 +1789,6 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_delete(menu);
         append_menu_items_convert_unit(menu);
         append_menu_item_replace_all_with_stl(menu);
-        append_menu_item_change_type(menu);
         append_menu_item_change_filament(menu);
         wxMenu* split_menu = new wxMenu();
         if (split_menu) {

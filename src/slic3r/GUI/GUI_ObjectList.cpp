@@ -5339,14 +5339,21 @@ ModelVolume* ObjectList::get_selected_model_volume()
     return (*m_objects)[obj_idx]->volumes[vol_idx];
 }
 
+
+struct ChangePartTypeGuard {
+    bool &flag;
+    explicit ChangePartTypeGuard(bool &f) : flag(f) { flag = true; }
+    ~ChangePartTypeGuard() { flag = false; }
+};
+
 void ObjectList::change_part_type()
 {
-  static bool s_change_type_in_progress = false;
-  if (s_change_type_in_progress) {
+  static bool change_part_type_in_progress = false;
+  if (change_part_type_in_progress) {
     std::cerr << "[change_part_type] re-entrant call, skip\n";
     return;
   }
-  s_change_type_in_progress = true;
+  ChangePartTypeGuard guard(change_part_type_in_progress);
 
   std::cerr << "Enter\n";
   wxDataViewItemArray selections;
@@ -5405,7 +5412,7 @@ void ObjectList::change_part_type()
       select_item(sel.front());
     }
 
-    s_change_type_in_progress = false;
+    change_part_type_in_progress = false;
     return;
   }
 
@@ -5531,7 +5538,7 @@ void ObjectList::change_part_type()
   }
 
   std::cerr << "[change_part_type] EXIT (multi)\n";
-  s_change_type_in_progress = false;
+  change_part_type_in_progress = false;
   return;
 }
 
