@@ -3,6 +3,7 @@
 #include "Spoolman.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include <regex>
 
 namespace Slic3r {
 const static std::regex spoolman_regex("^spoolman_");
