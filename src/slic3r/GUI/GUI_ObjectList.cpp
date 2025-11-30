@@ -24,6 +24,10 @@
 #include "SingleChoiceDialog.hpp"
 #include "StepMeshDialog.hpp"
 
+
+#include <vector>
+#include <unordered_map>
+#include <functional>
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
 #include <wx/listbook.h>
@@ -5337,26 +5341,43 @@ ModelVolume* ObjectList::get_selected_model_volume()
 
 void ObjectList::change_part_type()
 {
-    ModelVolume* volume = get_selected_model_volume();
-    if (!volume)
-        return;
+  static bool s_change_type_in_progress = false;
+  if (s_change_type_in_progress) {
+    std::cerr << "[change_part_type] re-entrant call, skip\n";
+    return;
+  }
+  s_change_type_in_progress = true;
 
-    const int obj_idx = get_selected_obj_idx();
-    if (obj_idx < 0) return;
+  std::cerr << "Enter\n";
+  wxDataViewItemArray selections;
+  GetSelections(selections);
+  std::cerr << "Selection Size = " <<selections.size() << "\n";
+  if (selections.size() <= 1) {
+    std::cerr << "Single Selection\n";
+    int obj_idx = get_selected_obj_idx();
+    std::cerr << "[change_part_type] (single) get_selected_obj_idx=" << obj_idx << "\n";
+    if (obj_idx < 0) {
+      std::cerr << "[change_part_type] (single) obj_idx < 0, RETURN\n";
+      return;
+    }
+
+    ModelVolume* volume = get_selected_model_volume();
+    if (!volume) {
+      return;
+    }
 
     const ModelVolumeType type = volume->type();
-    if (type == ModelVolumeType::MODEL_PART)
-    {
-        int model_part_cnt = 0;
-        for (auto vol : (*m_objects)[obj_idx]->volumes) {
-            if (vol->type() == ModelVolumeType::MODEL_PART)
-                ++model_part_cnt;
-        }
+    if (type == ModelVolumeType::MODEL_PART) {
+      int model_part_cnt = 0;
+      for (auto vol : (*m_objects)[obj_idx]->volumes) {
+        if (vol->type() == ModelVolumeType::MODEL_PART)
+          ++model_part_cnt;
+      }
 
-        if (model_part_cnt == 1) {
-            Slic3r::GUI::show_error(nullptr, _(L("The type of the last solid object part is not to be changed.")));
-            return;
-        }
+      if (model_part_cnt == 1) {
+        Slic3r::GUI::show_error(nullptr, _(L("The type of the last solid object part is not to be changed.")));
+        return;
+      }
     }
 
     // ORCA: Fix crash when changing type of svg / text modifier
@@ -5365,22 +5386,153 @@ void ObjectList::change_part_type()
     names.Add(_L("Negative Part"));
     names.Add(_L("Modifier"));
     if (!volume->is_svg() && !volume->is_text()) {
-        names.Add(_L("Support Blocker"));
-        names.Add(_L("Support Enforcer"));
+      names.Add(_L("Support Blocker"));
+      names.Add(_L("Support Enforcer"));
     }
 
     SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), names, int(type));
     auto new_type = ModelVolumeType(dlg.GetSingleChoiceIndex());
 
-	if (new_type == type || new_type == ModelVolumeType::INVALID)
-        return;
+    if (new_type == type || new_type == ModelVolumeType::INVALID) {
+      return;
+    }
 
     take_snapshot("Change part type");
 
     volume->set_type(new_type);
     wxDataViewItemArray sel = reorder_volumes_and_get_selection(obj_idx, [volume](const ModelVolume* vol) { return vol == volume; });
+    if (!sel.IsEmpty()) {
+      select_item(sel.front());
+    }
+
+    s_change_type_in_progress = false;
+    return;
+  }
+
+  // --- Multi Selection ---
+  std::cerr << "Multi selection]n";
+  struct Target { int obj_idx; Slic3r::ModelVolume* vol; };
+  std::vector<Target> targets;
+  targets.reserve(selections.size());
+  bool any_text_or_svg = false;
+
+  for (const auto& item : selections) {
+    auto typeMask = m_objects_model->GetItemType(item);
+    std::cerr << "Item type mask=" << typeMask << "\n";
+    if (!(typeMask & itVolume)) {
+      std::cerr << "Skip non-volume item\n";
+      continue;
+    }
+
+    int obj_idx = -1, vol_idx = -1;
+    get_selected_item_indexes(obj_idx, vol_idx, item);
+    std::cerr << "resolve obj idx=" << obj_idx << " vol_idx=" << vol_idx << "\n";
+    if (obj_idx < 0 || vol_idx < 0) {
+      std::cerr << "skip invalid indexes\n";
+      continue;
+    }
+
+    ModelVolume* vol = (*m_objects)[obj_idx]->volumes[vol_idx];
+    std::cerr << "resolved volume ptr=" << (void*)vol<< "\n";
+    if (!vol) {
+      std::cerr << "skip null volume\n";
+      continue;
+    }
+
+    targets.push_back({ obj_idx, vol });
+    if (vol->is_svg() || vol->is_text())
+      any_text_or_svg = true;
+  }
+  
+  std::cerr << "[change_part_type] targets.size=" << targets.size()
+            << " any_text_or_svg=" << any_text_or_svg << "\n";
+
+  if (targets.empty()) {
+    std::cerr << "no tragets... returning\n";
+    return;
+  }
+
+  wxArrayString names;
+  names.Add(_L("Part"));
+  names.Add(_L("Negative Part"));
+  names.Add(_L("Modifier"));
+  if (!any_text_or_svg) {
+    names.Add(_L("Support Blocker"));
+    names.Add(_L("Support Enforcer"));
+  }
+  std::cerr << "dialog options count multi=" <<names.size() << "\n";
+
+  // Preselect current type of the first selected volume
+  ModelVolumeType initial_type = targets.front().vol->type();
+  SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), names, int(initial_type));
+  std::cerr << "Dialog choice index multi=" << dlg.GetSingleChoiceIndex() << "\n";
+  auto new_type = ModelVolumeType(dlg.GetSingleChoiceIndex());
+  if (new_type == ModelVolumeType::INVALID) {
+    std::cerr << "INVALID choice returning... \n";
+    return;
+  }
+
+  // Take one snapshot for the batch change
+  take_snapshot("Change part type (multi)");
+  std::cerr << "snapshot taken\n";
+
+  // For each object in targets, count MODEL_PART volumes to protect the last one
+  std::unordered_map<int, int> part_counts;
+  for (const auto& t : targets) {
+    int cnt = 0;
+    for (auto v : (*m_objects)[t.obj_idx]->volumes) {
+      if (v->type() == ModelVolumeType::MODEL_PART) {
+        ++cnt;
+      }
+    }
+    part_counts[t.obj_idx] = cnt;
+    std::cerr << "[change_part_type] obj_idx=" << t.obj_idx << " MODEL_PART count=" << cnt << "\n";
+  }
+
+  // Apply change to all selected volumes, with "last solid part" protection
+  size_t applied = 0, skipped_last = 0, skipped_same = 0;
+  for (const auto& t : targets) {
+    const auto current = t.vol->type();
+    if (current == new_type) {
+      ++skipped_same;
+      continue;
+    }
+
+    const bool would_remove_last_part =
+      (current == ModelVolumeType::MODEL_PART) &&
+      (new_type  != ModelVolumeType::MODEL_PART) &&
+      (part_counts[t.obj_idx] == 1);
+
+    if (would_remove_last_part) {
+      ++skipped_last;  
+      continue;
+    }
+
+    t.vol->set_type(new_type);
+    ++applied;
+    std::cerr << "[change_part_type] APPLY obj_idx=" << t.obj_idx << " new_type=" << int(new_type) << "\n";
+  }
+    
+  std::cerr << "[change_part_type] APPLY results (multi): applied=" << applied
+            << " skipped_same=" << skipped_same
+            << " skipped_last=" << skipped_last << "\n";
+  
+  if (!targets.empty()) { // Refreshes UI to show visual change in parts
+    int obj_idx_first = targets.front().obj_idx;
+    Slic3r::ModelVolume* first_vol = targets.front().vol;
+
+    wxDataViewItemArray sel = reorder_volumes_and_get_selection(
+      obj_idx_first,
+      [first_vol](const Slic3r::ModelVolume* v){ return v == first_vol; }
+    );
+    std::cerr << "[change_part_type] (multi) reorder/select size=" << sel.size() << "\n";
     if (!sel.IsEmpty())
-        select_item(sel.front());
+      select_item(sel.front());
+  }
+
+  std::cerr << "[change_part_type] EXIT (multi)\n";
+  s_change_type_in_progress = false;
+  return;
 }
 
 void ObjectList::last_volume_is_deleted(const int obj_idx)
