@@ -4801,7 +4801,7 @@ if (is_marlin_flavor)
         // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
         auto page     = add_options_page(L("Multimaterial"), "custom-gcode_multi_material", true); // ORCA: icon only visible on placeholders
         auto optgroup = page->new_optgroup(L("Single extruder multi-material setup"), "param_multi_material");
-        optgroup->append_single_option_line("single_extruder_multi_material", "semm");
+        optgroup->append_single_option_line("single_extruder_multi_material", "printer_multimaterial_setup#single-extruder-multi-material");
         ConfigOptionDef def;
         def.type    = coInt, def.set_default_value(new ConfigOptionInt((int) m_extruders_count));
         def.label   = L("Extruders");
@@ -4810,7 +4810,7 @@ if (is_marlin_flavor)
         def.max     = MAXIMUM_EXTRUDER_NUMBER;
         def.mode    = comAdvanced;
         Option option(def, "extruders_count");
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_multimaterial_setup#extruders");
 
         // Orca: rebuild missed extruder pages
         optgroup->m_on_change = [this, optgroup_wk = ConfigOptionsGroupWkp(optgroup)](t_config_option_key opt_key, boost::any value) {
@@ -4884,24 +4884,24 @@ if (is_marlin_flavor)
                 }
             });
         };
-        optgroup->append_single_option_line("manual_filament_change", "semm#manual-filament-change");
+        optgroup->append_single_option_line("manual_filament_change", "printer_multimaterial_setup#manual-filament-change");
 
         optgroup = page->new_optgroup(L("Wipe tower"), "param_tower");
-        optgroup->append_single_option_line("purge_in_prime_tower", "semm");
-        optgroup->append_single_option_line("enable_filament_ramming", "semm");
+        optgroup->append_single_option_line("purge_in_prime_tower", "printer_multimaterial_wipe_tower#purge-in-prime-tower");
+        optgroup->append_single_option_line("enable_filament_ramming", "printer_multimaterial_wipe_tower#enable-filament-ramming");
 
 
         optgroup = page->new_optgroup(L("Single extruder multi-material parameters"), "param_settings");
-        optgroup->append_single_option_line("cooling_tube_retraction", "semm");
-        optgroup->append_single_option_line("cooling_tube_length", "semm");
-        optgroup->append_single_option_line("parking_pos_retraction", "semm");
-        optgroup->append_single_option_line("extra_loading_move", "semm");
-        optgroup->append_single_option_line("high_current_on_filament_swap", "semm");
+        optgroup->append_single_option_line("cooling_tube_retraction", "printer_multimaterial_semm_parameters#cooling-tube-position");
+        optgroup->append_single_option_line("cooling_tube_length", "printer_multimaterial_semm_parameters#cooling-tube-length");
+        optgroup->append_single_option_line("parking_pos_retraction", "printer_multimaterial_semm_parameters#filament-parking-positions");
+        optgroup->append_single_option_line("extra_loading_move", "printer_multimaterial_semm_parameters#extra-loading-distance");
+        optgroup->append_single_option_line("high_current_on_filament_swap", "printer_multimaterial_semm_parameters#high-extruder-current-on-filament-swap");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("machine_load_filament_time");
-        optgroup->append_single_option_line("machine_unload_filament_time");
-        optgroup->append_single_option_line("machine_tool_change_time");
+        optgroup->append_single_option_line("machine_load_filament_time", "printer_multimaterial_advanced#filament-load-time");
+        optgroup->append_single_option_line("machine_unload_filament_time", "printer_multimaterial_advanced#filament-unload-time");
+        optgroup->append_single_option_line("machine_tool_change_time", "printer_multimaterial_advanced#tool-change-time");
         m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
     }
 
@@ -4915,14 +4915,14 @@ if (is_marlin_flavor)
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
         auto optgroup = page->new_optgroup(L("Basic information"), L"param_information", -1, true);
-            optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
+            optgroup->append_single_option_line("nozzle_diameter", "printer_extruder_basic_information#nozzle-diameter", extruder_idx);
             //optgroup->append_single_option_line("nozzle_volume_type", "", extruder_idx);
 
-            optgroup->append_single_option_line("nozzle_volume", "", extruder_idx);
-            optgroup->append_single_option_line("extruder_printable_height", "", extruder_idx);
+            optgroup->append_single_option_line("nozzle_volume", "printer_extruder_basic_information#nozzle-volume", extruder_idx);
+            optgroup->append_single_option_line("extruder_printable_height", "printer_extruder_basic_information#extruder-layer-height-limits", extruder_idx);
             Option option         = optgroup->get_option("extruder_printable_area", extruder_idx);
             option.opt.full_width = true;
-            optgroup->append_single_option_line(option);
+            optgroup->append_single_option_line(option, "printer_extruder_basic_information#extruder-offset-position");
 
             optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
             {
@@ -4963,38 +4963,38 @@ if (is_marlin_flavor)
             };
 
             optgroup = page->new_optgroup(L("Layer height limits"), L"param_layer_height");
-            optgroup->append_single_option_line("min_layer_height", "", extruder_idx);
-            optgroup->append_single_option_line("max_layer_height", "", extruder_idx);
+            optgroup->append_single_option_line("min_layer_height", "printer_extruder_basic_information#extruder-layer-height-limits", extruder_idx);
+            optgroup->append_single_option_line("max_layer_height", "printer_extruder_basic_information#extruder-layer-height-limits", extruder_idx);
 
             optgroup = page->new_optgroup(L("Position"), L"param_position");
-            optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
+            optgroup->append_single_option_line("extruder_offset", "printer_extruder_basic_information#extruder-offset-position", extruder_idx);
 
             //BBS: don't show retract related config menu in machine page
             optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
-            optgroup->append_single_option_line("retraction_length", "", extruder_idx);
-            optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
-            optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
-            optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
-            optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
-            optgroup->append_single_option_line("retract_when_changing_layer", "", extruder_idx);
-            optgroup->append_single_option_line("wipe", "", extruder_idx);
-            optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
-            optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
+            optgroup->append_single_option_line("retraction_length", "printer_extruder_retraction#length", extruder_idx);
+            optgroup->append_single_option_line("retract_restart_extra", "printer_extruder_retraction#extra-length-on-restart", extruder_idx);
+            optgroup->append_single_option_line("retraction_speed", "printer_extruder_retraction#retraction-speed", extruder_idx);
+            optgroup->append_single_option_line("deretraction_speed", "printer_extruder_retraction#deretraction-speed", extruder_idx);
+            optgroup->append_single_option_line("retraction_minimum_travel", "printer_extruder_retraction#travel-distance-threshold", extruder_idx);
+            optgroup->append_single_option_line("retract_when_changing_layer", "printer_extruder_retraction#retract-on-layer-change", extruder_idx);
+            optgroup->append_single_option_line("wipe", "printer_extruder_retraction#wipe-while-retracting", extruder_idx);
+            optgroup->append_single_option_line("wipe_distance", "printer_extruder_retraction#wipe-distance", extruder_idx);
+            optgroup->append_single_option_line("retract_before_wipe", "printer_extruder_retraction#retract-amount-before-wipe", extruder_idx);
 
             optgroup = page->new_optgroup(L("Z-Hop"), L"param_extruder_lift_enforcement");
-            optgroup->append_single_option_line("retract_lift_enforce", "", extruder_idx);
-            optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
-            optgroup->append_single_option_line("z_hop", "", extruder_idx);
-            optgroup->append_single_option_line("travel_slope", "", extruder_idx);
-            optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
-            optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
+            optgroup->append_single_option_line("retract_lift_enforce", "printer_extruder_z_hop#on-surfaces", extruder_idx);
+            optgroup->append_single_option_line("z_hop_types", "printer_extruder_z_hop#z-hop-type", extruder_idx);
+            optgroup->append_single_option_line("z_hop", "printer_extruder_z_hop#z-hop-height", extruder_idx);
+            optgroup->append_single_option_line("travel_slope", "printer_extruder_z_hop#traveling-angle", extruder_idx);
+            optgroup->append_single_option_line("retract_lift_above", "printer_extruder_z_hop#only-lift-z-above", extruder_idx);
+            optgroup->append_single_option_line("retract_lift_below", "printer_extruder_z_hop#only-lift-z-below", extruder_idx);
 
             optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction_material_change");
-            optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
-            optgroup->append_single_option_line("retract_restart_extra_toolchange", "", extruder_idx);
+            optgroup->append_single_option_line("retract_length_toolchange", "printer_extruder_retraction#retraction-when-switching-materials", extruder_idx);
+            optgroup->append_single_option_line("retract_restart_extra_toolchange", "printer_extruder_retraction#retraction-when-switching-materials", extruder_idx);
             // do not display this params now
-            optgroup->append_single_option_line("long_retractions_when_cut", "", extruder_idx);
-            optgroup->append_single_option_line("retraction_distances_when_cut", "", extruder_idx);
+            optgroup->append_single_option_line("long_retractions_when_cut", "printer_extruder_retraction#long-retraction-when-cut-beta", extruder_idx);
+            optgroup->append_single_option_line("retraction_distances_when_cut", "printer_extruder_retraction#long-retraction-when-cut-beta", extruder_idx);
 #if 0
             //optgroup = page->new_optgroup(L("Preview"), -1, true);
 
