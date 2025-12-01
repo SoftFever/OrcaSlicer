@@ -101,8 +101,11 @@ SpoolmanDialog::SpoolmanDialog(wxWindow* parent)
     m_spoolman_error_label_sizer->AddStretchSpacer(1);
     main_panel_sizer->Add(m_spoolman_error_label_sizer, 1, wxALL | wxALIGN_CENTER | wxEXPAND, EM);
 
-    m_info_widgets_sizer = new wxGridSizer(2, EM, EM);
-    main_panel_sizer->Add(m_info_widgets_sizer, 1, wxALL | wxALIGN_CENTER, EM);
+    m_info_widgets_parent_sizer = new wxBoxSizer(wxVERTICAL);
+    m_info_widgets_grid_sizer = new wxGridSizer(2, EM, EM);
+    m_info_widgets_parent_sizer->Add(m_info_widgets_grid_sizer, 0, wxALIGN_CENTER);
+    m_info_widgets_parent_sizer->AddStretchSpacer();
+    main_panel_sizer->Add(m_info_widgets_parent_sizer, 1, wxALL | wxALIGN_CENTER, EM);
 
     m_buttons = new DialogButtons(m_main_panel, {"Refresh", "OK"});
     m_buttons->UpdateButtons();
@@ -158,10 +161,10 @@ void SpoolmanDialog::build_options_group() const
 void SpoolmanDialog::build_spool_info()
 {
     show_loading();
-    m_info_widgets_sizer->Show(false);
+    m_info_widgets_parent_sizer->Show(false);
     m_spoolman_error_label_sizer->Show(false);
     create_thread([&] {
-        m_info_widgets_sizer->Clear();
+        m_info_widgets_grid_sizer->Clear();
         bool show_widgets = false;
         if (!Spoolman::is_enabled()) {
             m_spoolman_error_label->SetLabelText(_L("Spoolman is not enabled"));
@@ -209,10 +212,10 @@ void SpoolmanDialog::save_spoolman_settings()
 void SpoolmanDialog::OnFinishLoading(wxCommandEvent& event)
 {
     if (event.GetInt()) {
-        m_info_widgets_sizer->Show(true);
+        m_info_widgets_parent_sizer->Show(true);
         auto preset_bundle = wxGetApp().preset_bundle;
         for (auto& filament_preset_name : preset_bundle->filament_presets) {
-            m_info_widgets_sizer->Add(new SpoolInfoWidget(m_main_panel, preset_bundle->filaments.find_preset(filament_preset_name)), 0, wxEXPAND);
+            m_info_widgets_grid_sizer->Add(new SpoolInfoWidget(m_main_panel, preset_bundle->filaments.find_preset(filament_preset_name)), 0, wxEXPAND);
         }
     }
     show_loading(false);
@@ -234,7 +237,7 @@ void SpoolmanDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     GetSizer()->SetMinSize(wxDefaultCoord, 45 * EM);
     m_optgroup->msw_rescale();
-    for (auto item : m_info_widgets_sizer->GetChildren())
+    for (auto item : m_info_widgets_grid_sizer->GetChildren())
         if (auto info_widget = dynamic_cast<SpoolInfoWidget*>(item))
             info_widget->rescale();
     Fit();
