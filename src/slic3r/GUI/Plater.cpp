@@ -4389,7 +4389,7 @@ struct Plater::priv
         }
     }
     void export_gcode(fs::path output_path, bool output_path_on_removable_media);
-    void export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job);
+    void export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job, bool export_all = false);
 
     void reload_from_disk();
     bool replace_volume_with_stl(int object_idx, int volume_idx, const fs::path& new_path, const std::string& snapshot = "");
@@ -4423,6 +4423,7 @@ struct Plater::priv
     // If Spoolman is active, the server is valid, and at least one Spoolman spool is used,
     // a dialog will be show asking if the user would like to consume the estimated filament usage
     void spoolman_consumption_dialog(const bool& all_plates);
+    void spoolman_consumption_dialog(int plate_idx);
 
     void on_action_add(SimpleEvent&);
     void on_action_add_plate(SimpleEvent&);
@@ -7661,7 +7662,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     this->background_process.set_task(PrintBase::TaskParams());
     this->restart_background_process(priv::UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT);
 }
-void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job)
+void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job, bool export_all)
 {
     wxCHECK_RET(!(output_path.empty() && upload_job.empty()), "export_gcode: output_path and upload_job empty");
 
@@ -7681,6 +7682,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;
 
+    m_export_all = export_all;
     show_warning_dialog = true;
     if (! output_path.empty()) {
         background_process.schedule_export(output_path.string(), output_path_on_removable_media);
@@ -9246,6 +9248,11 @@ bool Plater::priv::warnings_dialog()
 
 void Plater::priv::spoolman_consumption_dialog(const bool& all_plates)
 {
+    spoolman_consumption_dialog(all_plates ? PLATE_ALL_IDX : PLATE_CURRENT_IDX);
+}
+
+void Plater::priv::spoolman_consumption_dialog(int plate_idx)
+{
     static constexpr auto show_dlg_key = "show_spoolman_consumption_dialog";
     if (!wxGetApp().app_config->get_bool(show_dlg_key))
         return;
@@ -9276,11 +9283,13 @@ void Plater::priv::spoolman_consumption_dialog(const bool& all_plates)
         }
     };
 
-    if (all_plates)
+    if (plate_idx == PLATE_ALL_IDX)
         for (const auto& plate : partplate_list.get_plate_list())
             apply_estimates_from_plate(plate);
-    else
+    else if (plate_idx == PLATE_CURRENT_IDX)
         apply_estimates_from_plate(partplate_list.get_curr_plate());
+    else
+        apply_estimates_from_plate(partplate_list.get_plate(plate_idx));
 
     if (estimates.empty()) return;
 
@@ -9790,7 +9799,6 @@ void Plater::priv::on_action_export_all_sliced_file(SimpleEvent &)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export all sliced file event\n";
-        m_export_all = true;
         q->export_gcode_3mf(true);
     }
 }
@@ -9807,7 +9815,6 @@ void Plater::priv::on_action_export_to_sdcard_all(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export sliced file event\n";
-        m_export_all = true;
         q->send_to_printer(true);
     }
 }
@@ -14438,6 +14445,7 @@ void Plater::export_gcode_3mf(bool export_all)
         // update last output dir
         appconfig.update_last_output_dir(output_path.parent_path().string(), false);
         p->notification_manager->push_exporting_finished_notification(output_path.string(), p->last_output_dir_path, on_removable);
+        p->spoolman_consumption_dialog(plate_idx);
     }
 }
 
@@ -15589,7 +15597,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool us
         upload_job.upload_data.source_path = p->m_print_job_data._3mf_path;
     }
 
-    p->export_gcode(fs::path(), false, std::move(upload_job));
+    p->export_gcode(fs::path(), false, std::move(upload_job), plate_idx == PLATE_ALL_IDX);
 }
 int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 {
@@ -15653,6 +15661,7 @@ void Plater::send_calibration_job_finished(wxCommandEvent & evt)
         event.SetEventObject(curr_wizard);
         wxPostEvent(curr_wizard, event);
     }
+    p->spoolman_consumption_dialog(static_cast<int>(evt.GetExtraLong()));
     evt.Skip();
 }
 
@@ -15681,6 +15690,7 @@ void Plater::print_job_finished(wxCommandEvent &evt)
     MonitorPanel* curr_monitor = p->main_frame->m_monitor;
     if(curr_monitor)
        curr_monitor->get_tabpanel()->ChangeSelection(MonitorPanel::PrinterTab::PT_STATUS);
+    p->spoolman_consumption_dialog(static_cast<int>(evt.GetExtraLong()));
 }
 
 void Plater::send_job_finished(wxCommandEvent& evt)
@@ -15691,6 +15701,7 @@ void Plater::send_job_finished(wxCommandEvent& evt)
 
     send_gcode_finish(evt.GetString());
     p->hide_send_to_printer_dlg();
+    p->spoolman_consumption_dialog(evt.GetInt());
     //p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
     ////jump to monitor and select device status panel
     //MonitorPanel* curr_monitor = p->main_frame->m_monitor;
