@@ -44,7 +44,7 @@
     <releases>
 	    <release version="official"> <url>https://github.com/OrcaSlicer/OrcaSlicer/releases</url>
             <description>
-                <p>Official release: See Help > About Orca SLicer dialog for exact version information.</p>
+                <p>Official release: See Help > About Orca Slicer dialog for exact version information.</p>
             </description>
         </release>
     </releases>
