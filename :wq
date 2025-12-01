@@ -5341,12 +5341,16 @@ ModelVolume* ObjectList::get_selected_model_volume()
 
 void ObjectList::change_part_type()
 {
+  std::cerr << "Enter\n";
   wxDataViewItemArray selections;
   GetSelections(selections);
-
+  std::cerr << "Selection Size = " <<selections.size() << "\n";
   if (selections.size() <= 1) {
+    std::cerr << "Single Selection\n";
     int obj_idx = get_selected_obj_idx();
+    std::cerr << "[change_part_type] (single) get_selected_obj_idx=" << obj_idx << "\n";
     if (obj_idx < 0) {
+      std::cerr << "[change_part_type] (single) obj_idx < 0, RETURN\n";
       return;
     }
 
@@ -5393,7 +5397,6 @@ void ObjectList::change_part_type()
     if (!sel.IsEmpty()) {
       select_item(sel.front());
     }
-    
   return;
   }
 
@@ -5432,7 +5435,11 @@ void ObjectList::change_part_type()
       any_text_or_svg = true;
   }
   
+  std::cerr << "[change_part_type] targets.size=" << targets.size()
+            << " any_text_or_svg=" << any_text_or_svg << "\n";
+
   if (targets.empty()) {
+    std::cerr << "no tragets... returning\n";
     return;
   }
 
@@ -5444,89 +5451,85 @@ void ObjectList::change_part_type()
     names.Add(_L("Support Blocker"));
     names.Add(_L("Support Enforcer"));
   }
+  std::cerr << "dialog options count multi=" <<names.size() << "\n";
 
   // Preselect current type of the first selected volume
   ModelVolumeType initial_type = targets.front().vol->type();
   SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), names, int(initial_type));
   auto new_type = ModelVolumeType(dlg.GetSingleChoiceIndex());
   if (new_type == ModelVolumeType::INVALID) {
+    std::cerr << "INVALID choice returning... \n";
     return;
   }
 
-  if (new_type != ModelVolumeType::MODEL_PART) {
-    // Count initial MODEL_PARTs per object
-    std::unordered_map<int, int> parts_initial;
-    for (const auto& t : targets) {
-      int cnt = 0;
-      for (auto v : (*m_objects)[t.obj_idx]->volumes)
-          if (v->type() == ModelVolumeType::MODEL_PART) ++cnt;
-      parts_initial[t.obj_idx] = cnt;
-    }
-
-    // Count how many selected MODEL_PARTs would be converted away, per object
-    std::unordered_map<int, int> parts_to_remove;
-    for (const auto& t : targets) {
-      if (t.vol->type() == ModelVolumeType::MODEL_PART) {
-        ++parts_to_remove[t.obj_idx];
-      }
-    }
-
-    // If for any object: initial_parts > 0 and removals == initial_parts => would remove all
-    bool would_remove_all_for_any = false;
-    for (const auto& kv : parts_to_remove) {
-      const int obj_idx   = kv.first;
-      const int removing  = kv.second;
-      const int initial   = parts_initial[obj_idx];
-      if (initial > 0 && removing == initial) {
-        would_remove_all_for_any = true;
-        break;
-      }
-    }
-
-    if (would_remove_all_for_any) {
-      Slic3r::GUI::show_error(nullptr, _(L("The type of the last solid object part is not to be changed.")));
-      return;
-    }
-  }
-
+  // Take one snapshot for the batch change
   take_snapshot("Change part type (multi)");
+  std::cerr << "snapshot taken\n";
 
-  // Apply changes
-  size_t applied = 0, skipped_same = 0;
+  // For each object in targets, count MODEL_PART volumes to protect the last one
+  std::unordered_map<int, int> part_counts;
+  part_counts.reserve(targets.size());
+  for (const auto& t : targets) {
+    int cnt = 0;
+    for (auto v : (*m_objects)[t.obj_idx]->volumes) {
+      if (v->type() == ModelVolumeType::MODEL_PART) ++cnt;
+    }
+    part_counts[t.obj_idx] = cnt;
+    std::cerr << "[change_part_type] obj_idx=" << t.obj_idx
+              << " MODEL_PART count=" << cnt << "\n";
+  }
+  
+  // Apply change to all selected volumes, with "last solid part" protection
+  size_t applied = 0, skipped_last = 0, skipped_same = 0;
   std::unordered_map<int, std::vector<ModelVolume*>> changed_per_object;
   for (const auto& t : targets) {
     const auto current = t.vol->type();
     if (current == new_type) {
-        ++skipped_same;
-        continue;
+      ++skipped_same;
+      continue;
     }
+
+    const bool would_remove_last_part =
+      (current == ModelVolumeType::MODEL_PART) &&
+      (new_type  != ModelVolumeType::MODEL_PART) &&
+      (part_counts[t.obj_idx] == 1);
+
+    if (would_remove_last_part) {
+      ++skipped_last;  
+      continue;
+    }
+
     t.vol->set_type(new_type);
     changed_per_object[t.obj_idx].push_back(t.vol);
     ++applied;
+    std::cerr << "[change_part_type] APPLY obj_idx=" << t.obj_idx << " new_type=" << int(new_type) << "\n";
   }
+    
+  std::cerr << "[change_part_type] APPLY results (multi): applied=" << applied
+            << " skipped_same=" << skipped_same
+            << " skipped_last=" << skipped_last << "\n";
 
+  
   if (applied == 0) {
     // Nothing changed; keep the original selection as-is
     select_items(selections);
+    std::cerr << "[change_part_type] No changes applied, selection preserved.\n";
     return;
   }
 
- // Reorder per object and rebuild selection to follow changed volumes 
+ // ---- Reorder per object and rebuild selection to follow changed volumes ----
   wxDataViewItemArray new_selection;
   for (const auto& kv : changed_per_object) {
     const int obj_idx = kv.first;
     const auto& changed_vols = kv.second;
-    
-    std::unordered_set<const ModelVolume*> changed_set;
-    changed_set.reserve(changed_vols.size());
-    for (const auto* v : changed_vols) {
-      changed_set.insert(v);
-    }
 
+    // reorder_volumes_and_get_selection expects a predicate returning true
+    // for volumes to select after reorder.
     wxDataViewItemArray sel = reorder_volumes_and_get_selection(
       obj_idx,
-      [&changed_set](const ModelVolume* v) -> bool {
-        return changed_set.find(v) != changed_set.end();
+      &changed_vols {
+        // pointer identity
+        return std::find(changed_vols.begin(), changed_vols.end(), v) != changed_vols.end();
       }
     );
 
@@ -5537,9 +5540,11 @@ void ObjectList::change_part_type()
   if (!new_selection.IsEmpty()) {
     select_items(new_selection);
   } else {
+    // Fallback to original selection to avoid leaving the UI unselected
     select_items(selections);
   }
 
+  std::cerr << "[change_part_type] EXIT (multi)\n";
   return;
 }
 
