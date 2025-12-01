@@ -4350,28 +4350,28 @@ void TabPrinter::build_fff()
         });
         Option option = optgroup->get_option("bed_exclude_area");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_basic_information_printable_space#excluded-bed-area");
         // optgroup->append_single_option_line("printable_area");
-        optgroup->append_single_option_line("printable_height");
-        optgroup->append_single_option_line("support_multi_bed_types","bed-types");
-        optgroup->append_single_option_line("best_object_pos");
+        optgroup->append_single_option_line("printable_height", "printer_basic_information_printable_space#printable-height");
+        optgroup->append_single_option_line("support_multi_bed_types","printer_basic_information_printable_space#support-multi-bed-types");
+        optgroup->append_single_option_line("best_object_pos", "printer_basic_information_printable_space#best-object-position");
         // todo: for multi_extruder test
-        optgroup->append_single_option_line("z_offset");
-        optgroup->append_single_option_line("preferred_orientation");
+        optgroup->append_single_option_line("z_offset", "printer_basic_information_printable_space#z-offset");
+        optgroup->append_single_option_line("preferred_orientation", "printer_basic_information_printable_space#preferred-orientation");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("printer_structure");
-        optgroup->append_single_option_line("gcode_flavor");
-        optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
-        optgroup->append_single_option_line("bbl_use_printhost");
-        optgroup->append_single_option_line("scan_first_layer");
+        optgroup->append_single_option_line("printer_structure", "printer_basic_information_advanced#printer-structure");
+        optgroup->append_single_option_line("gcode_flavor", "printer_basic_information_advanced#g-code-flavor");
+        optgroup->append_single_option_line("pellet_modded_printer", "printer_basic_information_advanced#pellet-modded-printer");
+        optgroup->append_single_option_line("bbl_use_printhost", "printer_basic_information_advanced#use-3rd-party-print-host");
+        optgroup->append_single_option_line("scan_first_layer" , "printer_basic_information_advanced#scan-first-layer");
         //option  = optgroup->get_option("wrapping_exclude_area");
         //option.opt.full_width = true;
         //optgroup->append_single_option_line(option);
-        optgroup->append_single_option_line("disable_m73");
+        optgroup->append_single_option_line("disable_m73", "printer_basic_information_advanced#disable-set-remaining-print-time");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_basic_information_advanced#g-code-thumbnails");
         // optgroup->append_single_option_line("thumbnails_format");
         optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
             wxTheApp->CallAfter([this, opt_key, value]() {
@@ -4409,36 +4409,37 @@ void TabPrinter::build_fff()
             });
         };
 
-        optgroup->append_single_option_line("use_relative_e_distances");
-        optgroup->append_single_option_line("use_firmware_retraction");
-        optgroup->append_single_option_line("bed_temperature_formula");
+        optgroup->append_single_option_line("use_relative_e_distances", "printer_basic_information_advanced#use-relative-e-distances");
+        optgroup->append_single_option_line("use_firmware_retraction", "printer_basic_information_advanced#use-firmware-retraction");
+        optgroup->append_single_option_line("bed_temperature_formula", "printer_basic_information_advanced#bed-temperature-type");
         // optgroup->append_single_option_line("spaghetti_detector");
-        optgroup->append_single_option_line("time_cost");
+        optgroup->append_single_option_line("time_cost", "printer_basic_information_advanced#time-cost");
 
         optgroup  = page->new_optgroup(L("Cooling Fan"), "param_cooling_fan");
         Line line = Line{ L("Fan speed-up time"), optgroup->get_option("fan_speedup_time").opt.tooltip };
+        line.label_path = "printer_basic_information_cooling_fan#fan-speed-up-time";
         line.append_option(optgroup->get_option("fan_speedup_time"));
         line.append_option(optgroup->get_option("fan_speedup_overhangs"));
         optgroup->append_line(line);
-        optgroup->append_single_option_line("fan_kickstart");
+        optgroup->append_single_option_line("fan_kickstart", "printer_basic_information_cooling_fan#fan-kick-start-time");
 
         optgroup = page->new_optgroup(L("Extruder Clearance"), "param_extruder_clearance");
-        optgroup->append_single_option_line("extruder_clearance_radius");
-        optgroup->append_single_option_line("extruder_clearance_height_to_rod");
-        optgroup->append_single_option_line("extruder_clearance_height_to_lid");
+        optgroup->append_single_option_line("extruder_clearance_radius", "printer_basic_information_extruder_clearance#radius");
+        optgroup->append_single_option_line("extruder_clearance_height_to_rod", "printer_basic_information_extruder_clearance#height-to-rod");
+        optgroup->append_single_option_line("extruder_clearance_height_to_lid", "printer_basic_information_extruder_clearance#height-to-lid");
 
         optgroup = page->new_optgroup(L("Adaptive bed mesh"), "param_adaptive_mesh");
-        optgroup->append_single_option_line("bed_mesh_min", "adaptive-bed-mesh");
-        optgroup->append_single_option_line("bed_mesh_max", "adaptive-bed-mesh");
-        optgroup->append_single_option_line("bed_mesh_probe_distance", "adaptive-bed-mesh");
-        optgroup->append_single_option_line("adaptive_bed_mesh_margin", "adaptive-bed-mesh");
+        optgroup->append_single_option_line("bed_mesh_min", "printer_basic_information_adaptive_bed_mesh#bed-mesh-min");
+        optgroup->append_single_option_line("bed_mesh_max", "printer_basic_information_adaptive_bed_mesh#bed-mesh-max");
+        optgroup->append_single_option_line("bed_mesh_probe_distance", "printer_basic_information_adaptive_bed_mesh#probe-point-distance");
+        optgroup->append_single_option_line("adaptive_bed_mesh_margin", "printer_basic_information_adaptive_bed_mesh#mesh-margin");
 
         optgroup = page->new_optgroup(L("Accessory"), "param_accessory");
-        optgroup->append_single_option_line("nozzle_type");
-        optgroup->append_single_option_line("nozzle_hrc");
-        optgroup->append_single_option_line("auxiliary_fan", "auxiliary-fan");
+        optgroup->append_single_option_line("nozzle_type", "printer_basic_information_accessory#nozzle-type");
+        optgroup->append_single_option_line("nozzle_hrc", "printer_basic_information_accessory#nozzle-hrc");
+        optgroup->append_single_option_line("auxiliary_fan", "printer_basic_information_accessory#auxiliary-part-cooling-fan");
         optgroup->append_single_option_line("support_chamber_temp_control", "printer_basic_information_accessory#support-controlling-chamber-temperature");
-        optgroup->append_single_option_line("support_air_filtration", "air-filtration");
+        optgroup->append_single_option_line("support_air_filtration", "printer_basic_information_accessory#support-air-filtration");
 
         auto edit_custom_gcode_fn = [this](const t_config_option_key& opt_key) { edit_custom_gcode(opt_key); };
 
@@ -4454,7 +4455,7 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#machine-start-g-code");
 
         optgroup = page->new_optgroup(L("Machine end G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
@@ -4465,7 +4466,7 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#machine-end-g-code");
 
         optgroup              = page->new_optgroup(L("Printing by object G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
@@ -4476,7 +4477,7 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.is_code    = true;
         option.opt.height     = gcode_field_height; // 150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#printing-by-object-g-code");
 
 
         optgroup = page->new_optgroup(L("Before layer change G-code"),"param_gcode", 0);
@@ -4488,7 +4489,7 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#before-layer-change-g-code");
 
         optgroup = page->new_optgroup(L("Layer change G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
@@ -4499,7 +4500,7 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#layer-change-g-code");
 
         optgroup = page->new_optgroup(L("Timelapse G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
@@ -4510,7 +4511,7 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#timelapse-g-code");
 
         optgroup              = page->new_optgroup(L("Clumping Detection G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
@@ -4521,7 +4522,7 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.is_code    = true;
         option.opt.height     = gcode_field_height; // 150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#clumping-detection-g-code");
 
         optgroup = page->new_optgroup(L("Change filament G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
@@ -4532,7 +4533,7 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#change-filament-g-code");
 
         optgroup = page->new_optgroup(L("Change extrusion role G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key &opt_key, const boost::any &value) {
@@ -4543,7 +4544,7 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#change-extrusion-role-g-code");
 
         optgroup = page->new_optgroup(L("Pause G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
@@ -4553,7 +4554,7 @@ void TabPrinter::build_fff()
         option = optgroup->get_option("machine_pause_gcode");
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#pause-g-code");
 
         optgroup = page->new_optgroup(L("Template Custom G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, &optgroup_title = optgroup->title](const t_config_option_key& opt_key, const boost::any& value) {
@@ -4563,7 +4564,7 @@ void TabPrinter::build_fff()
         option = optgroup->get_option("template_custom_gcode");
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "printer_machine_gcode#template-custom-g-code");
 
     page = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Notes"), "note", 0);
@@ -4666,10 +4667,11 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
     }
 }
 
-void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
+void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key, const std::string& label_path)
 {
     auto option = optgroup->get_option(opt_key, 0);
     auto line = Line{ option.opt.full_label, "" };
+    line.label_path = label_path;
     line.append_option(option);
     if (m_use_silent_mode
         || m_printer_technology == ptSLA // just for first build, if SLA printer preset is selected
@@ -4706,14 +4708,15 @@ PageShp TabPrinter::build_kinematics_page()
         optgroup->append_line(line);
     }
     auto optgroup = page->new_optgroup(L("Advanced"), "param_advanced");
-    optgroup->append_single_option_line("emit_machine_limits_to_gcode");
+    optgroup->append_single_option_line("emit_machine_limits_to_gcode", "printer_motion_ability#emit-limits-to-g-code");
 
     // resonance avoidance ported over from qidi slicer
     optgroup = page->new_optgroup(L("Resonance Avoidance"), "param_resonance_avoidance");
-    optgroup->append_single_option_line("resonance_avoidance");
+    optgroup->append_single_option_line("resonance_avoidance", "printer_motion_ability_resonance_avoidance#resonance-avoidance");
     // Resonance‑avoidance speed inputs
     {
         Line resonance_line = {L("Resonance Avoidance Speed"), L""};
+        resonance_line.label_path = "printer_motion_ability_resonance_avoidance#resonance-avoidance-speed";
         resonance_line.append_option(optgroup->get_option("min_resonance_avoidance_speed"));
         resonance_line.append_option(optgroup->get_option("max_resonance_avoidance_speed"));
         optgroup->append_line(resonance_line);
@@ -4727,23 +4730,23 @@ PageShp TabPrinter::build_kinematics_page()
     };
     optgroup = page->new_optgroup(L("Speed limitation"), "param_speed");
         for (const std::string &speed_axis : speed_axes)	{
-            append_option_line(optgroup, speed_axis);
+            append_option_line(optgroup, speed_axis, "printer_motion_ability#speed-limitation");
         }
 
     const std::vector<std::string> axes{ "x", "y", "z", "e" };
     optgroup = page->new_optgroup(L("Acceleration limitation"), "param_acceleration");
         for (const std::string &axis : axes)	{
-            append_option_line(optgroup, "machine_max_acceleration_" + axis);
+            append_option_line(optgroup, "machine_max_acceleration_" + axis, "printer_motion_ability#acceleration-limitation");
         }
-        append_option_line(optgroup, "machine_max_acceleration_extruding");
-        append_option_line(optgroup, "machine_max_acceleration_retracting");
-        append_option_line(optgroup, "machine_max_acceleration_travel");
+        append_option_line(optgroup, "machine_max_acceleration_extruding", "printer_motion_ability#acceleration-limitation");
+        append_option_line(optgroup, "machine_max_acceleration_retracting", "printer_motion_ability#acceleration-limitation");
+        append_option_line(optgroup, "machine_max_acceleration_travel", "printer_motion_ability#acceleration-limitation");
 
         optgroup = page->new_optgroup(L("Jerk limitation"), "param_jerk");
         // machine max junction deviation
-        append_option_line(optgroup, "machine_max_junction_deviation");
+        append_option_line(optgroup, "machine_max_junction_deviation", "printer_motion_ability#maximum-junction-deviation");
         for (const std::string &axis : axes)	{
-            append_option_line(optgroup, "machine_max_jerk_" + axis);
+            append_option_line(optgroup, "machine_max_jerk_" + axis, "printer_motion_ability#maximum-jerk");
         }
 
     //optgroup = page->new_optgroup(L("Minimum feedrates"));
