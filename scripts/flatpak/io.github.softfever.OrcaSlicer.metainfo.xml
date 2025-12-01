@@ -41,8 +41,4 @@
     <branding>
 	  <color type="primary" scheme_preference="light">#009688</color>
 	</branding>
-    <releases>
-	    <release version="2.0.0-951fc8e" date="2024-01-30"> <url>https://github.com/OrcaSlicer/OrcaSlicer/commit/951fc8e98a0d5ca0ccb254315646ce7889a44836</url>
-        </release>
-    </releases>
 </component>
