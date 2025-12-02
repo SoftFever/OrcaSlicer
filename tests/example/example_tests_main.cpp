@@ -1,5 +1,5 @@
 #include <catch_main.hpp>
 
-TEST_CASE("Is example succesful", "[example]") {
+TEST_CASE("Is example successful", "[example]") {
     REQUIRE(true);
 }
