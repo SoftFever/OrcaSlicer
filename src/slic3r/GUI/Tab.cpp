@@ -4413,10 +4413,10 @@ void TabPrinter::build_fff()
         optgroup->append_line(line);
         optgroup->append_single_option_line("fan_kickstart");
 
-        optgroup = page->new_optgroup(L("Extruder clearence"), "param_extruder_clearence");
-        optgroup->append_single_option_line("extruder_clearence_radius");
-        optgroup->append_single_option_line("extruder_clearence_height_to_rod");
-        optgroup->append_single_option_line("extruder_clearence_height_to_lid");
+        optgroup = page->new_optgroup(L("Extruder clearance"), "param_extruder_clearance");
+        optgroup->append_single_option_line("extruder_clearance_radius");
+        optgroup->append_single_option_line("extruder_clearance_height_to_rod");
+        optgroup->append_single_option_line("extruder_clearance_height_to_lid");
 
         optgroup = page->new_optgroup(L("Adaptive bed mesh"), "param_adaptive_mesh");
         optgroup->append_single_option_line("bed_mesh_min", "adaptive-bed-mesh");
