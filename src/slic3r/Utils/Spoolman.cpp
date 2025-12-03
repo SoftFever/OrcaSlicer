@@ -9,7 +9,7 @@
 namespace Slic3r {
 
 namespace {
-template<class Type> Type get_opt(pt::ptree& data, string path) { return data.get_optional<Type>(path).value_or(Type()); }
+template<class Type> Type get_opt(pt::ptree& data, const string& path, Type default_val = {}) { return data.get_optional<Type>(path).value_or(default_val); }
 } // namespace
 
 // Max timout in seconds for Spoolman HTTP requests
@@ -451,16 +451,20 @@ void SpoolmanFilament::update_from_server(bool recursive)
 {
     const boost::property_tree::ptree& json_data = Spoolman::get_spoolman_json("filament/" + std::to_string(id));
     update_from_json(json_data);
-    if (recursive)
+    if (recursive && m_vendor_ptr)
         m_vendor_ptr->update_from_json(json_data.get_child("vendor"));
 }
 
 void SpoolmanFilament::update_from_json(pt::ptree json_data)
 {
-    if (int vendor_id = json_data.get<int>("vendor.id"); m_vendor_ptr && m_vendor_ptr->id != vendor_id) {
-        if (!m_spoolman->m_vendors.count(vendor_id))
-            m_spoolman->m_vendors.emplace(vendor_id, make_shared<SpoolmanVendor>(SpoolmanVendor(json_data.get_child("vendor"))));
-        m_vendor_ptr = m_spoolman->m_vendors[vendor_id];
+    auto vendor_id = json_data.get_optional<int>("vendor.id");
+    if (m_vendor_ptr && !vendor_id.has_value()) {
+        m_vendor_ptr = nullptr;
+    } else if (vendor_id.has_value() && (!m_vendor_ptr || m_vendor_ptr->id != vendor_id.get())) {
+        auto val = vendor_id.get();
+        if (!m_spoolman->m_vendors.count(val))
+            m_spoolman->m_vendors.emplace(val, make_shared<SpoolmanVendor>(SpoolmanVendor(json_data.get_child("vendor"))));
+        m_vendor_ptr = m_spoolman->m_vendors[val];
     }
     id             = json_data.get<int>("id");
     name           = get_opt<string>(json_data, "name");
@@ -494,7 +498,8 @@ void SpoolmanFilament::apply_to_config(Slic3r::DynamicConfig& config) const
         config.set_key_value("hot_plate_temp", new ConfigOptionInts({bed_temp}));
     }
     config.set_key_value("default_filament_colour", new ConfigOptionStrings{color});
-    m_vendor_ptr->apply_to_config(config);
+    if (m_vendor_ptr)
+        m_vendor_ptr->apply_to_config(config);
 }
 
 DynamicPrintConfig SpoolmanFilament::get_config_from_preset_data() const
@@ -529,18 +534,21 @@ void SpoolmanSpool::update_from_server(bool recursive)
     update_from_json(json_data);
     if (recursive) {
         m_filament_ptr->update_from_json(json_data.get_child("filament"));
-        getVendor()->update_from_json(json_data.get_child("filament.vendor"));
+        if (getVendor())
+            getVendor()->update_from_json(json_data.get_child("filament.vendor"));
     }
 }
 
 std::string SpoolmanSpool::get_preset_name()
 {
-    auto name = getVendor()->name;
-
+    string name;
+    if (getVendor())
+        name += getVendor()->name;
     if (!m_filament_ptr->name.empty())
         name += " " + m_filament_ptr->name;
     if (!m_filament_ptr->material.empty())
         name += " " + m_filament_ptr->material;
+    boost::trim(name);
 
     return remove_special_key(name);
 }
