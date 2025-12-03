@@ -354,7 +354,8 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 			<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
 			<<"[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
 			<< ":" << expr::smessage
-		)
+		),
+		keywords::auto_flush = true
 	);
 
 	logging::add_common_attributes();
@@ -910,6 +911,34 @@ __finished:
 #endif
 }
 
+bool copy_framework(const std::string &from, const std::string &to)
+{
+    boost::filesystem::path src(from), dst(to);
+    try {
+        if (!boost::filesystem::is_directory(src)) {
+            std::cerr << "Error: Source is not a directory: " << src << std::endl;
+            return false;
+        }
+        boost::filesystem::create_directories(dst);
+        for (boost::filesystem::directory_iterator it(src); it != boost::filesystem::directory_iterator(); ++it) {
+            const auto &entry     = it->path();
+            const auto  dest_path = dst / entry.filename();
+
+            if (boost::filesystem::is_symlink(entry)) {
+                boost::filesystem::copy_symlink(entry, dest_path);
+            } else if (boost::filesystem::is_directory(entry)) {
+                copy_framework(it->path().string(), dest_path.string());
+            } else {
+                boost::filesystem::copy(entry, dest_path, boost::filesystem::copy_options::overwrite_existing);
+            }
+        }
+        return true;
+    } catch (const boost::filesystem::filesystem_error &e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Filesystem error: " << e.what();
+    }
+    return false;
+}
+
 CopyFileResult check_copy(const std::string &origin, const std::string &copy)
 {
 	boost::nowide::ifstream f1(origin, std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
@@ -1124,6 +1153,18 @@ std::string normalize_utf8_nfc(const char *src)
 {
     static std::locale locale_utf8(boost::locale::generator().generate(""));
     return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
+}
+
+std::vector<std::string> split_string(const std::string &str, char delimiter)
+{
+    std::vector<std::string> result;
+    std::stringstream ss(str);
+    std::string substr;
+
+    while (std::getline(ss, substr, delimiter)) {
+        result.push_back(substr);
+    }
+    return result;
 }
 
 namespace PerlUtils {
