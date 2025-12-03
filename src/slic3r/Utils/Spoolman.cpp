@@ -478,9 +478,10 @@ void SpoolmanFilament::update_from_json(pt::ptree json_data)
     bed_temp       = get_opt<int>(json_data, "settings_bed_temp");
     color          = "#" + get_opt<string>(json_data, "color_hex");
     preset_data    = get_opt<string>(json_data, "extra.orcaslicer_preset_data");
-    if (preset_data.front() == '"' && preset_data.back() == '"')
-        preset_data = preset_data.substr(1, preset_data.length() - 2);
-    boost::replace_all(preset_data, "\\\"", "\"");
+    if (!preset_data.empty()) {
+        boost::trim_if(preset_data, [](char c) { return c == '"'; });
+        boost::replace_all(preset_data, "\\\"", "\"");
+    }
 }
 
 void SpoolmanFilament::apply_to_config(Slic3r::DynamicConfig& config) const
