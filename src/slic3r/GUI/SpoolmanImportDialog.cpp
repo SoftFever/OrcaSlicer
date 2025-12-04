@@ -129,13 +129,7 @@ SpoolmanViewCtrl::SpoolmanViewCtrl(wxWindow* parent) : wxDataViewCtrl(parent, wx
 SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
     : DPIDialog(parent, wxID_ANY, _L("Import from Spoolman"), wxDefaultPosition, {-1, 45 * EM}, wxDEFAULT_DIALOG_STYLE)
 {
-#ifdef _WIN32
     this->SetBackgroundColour(*wxWHITE);
-    wxGetApp().UpdateDarkUI(this);
-    wxGetApp().UpdateDlgDarkUI(this);
-#else
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#endif
 
     if (!Spoolman::is_server_valid()) {
         show_error(parent, "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.");
@@ -225,6 +219,7 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
     main_sizer->SetMinSize({-1, 45 * EM});
     this->SetSizerAndFit(main_sizer);
 
+    wxGetApp().UpdateDlgDarkUI(this);
     this->ShowModal();
 }
 

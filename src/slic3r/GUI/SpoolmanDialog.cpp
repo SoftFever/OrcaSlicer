@@ -19,6 +19,7 @@ static BitmapCache cache;
 
 SpoolInfoWidget::SpoolInfoWidget(wxWindow* parent, const Preset* preset) : wxPanel(parent, wxID_ANY), m_preset(preset)
 {
+    this->SetBackgroundColour(*wxWHITE);
     auto main_sizer = new wxStaticBoxSizer(new LabeledStaticBox(this), wxVERTICAL);
 
     auto bitmap = cache.load_svg("spool", EM * 10, EM * 10, false, false,
@@ -30,8 +31,6 @@ SpoolInfoWidget::SpoolInfoWidget(wxWindow* parent, const Preset* preset) : wxPan
 
     m_preset_name_label = new Label(this, wxString::FromUTF8(preset->name));
     m_preset_name_label->SetFont(Label::Body_12);
-    m_preset_name_label->SetBackgroundColour(*wxWHITE);
-    wxGetApp().UpdateDarkUI(m_preset_name_label);
     main_sizer->Add(m_preset_name_label, 0, wxALIGN_CENTER_HORIZONTAL | wxDOWN | wxLEFT | wxRIGHT, EM);
 
     m_remaining_weight_label = new Label(this);
@@ -44,10 +43,9 @@ SpoolInfoWidget::SpoolInfoWidget(wxWindow* parent, const Preset* preset) : wxPan
         m_remaining_weight_label->SetForegroundColour(*wxRED);
     }
     m_remaining_weight_label->SetFont(Label::Body_12);
-    m_remaining_weight_label->SetBackgroundColour(*wxWHITE);
-    wxGetApp().UpdateDarkUI(m_remaining_weight_label);
     main_sizer->Add(m_remaining_weight_label, 0, wxALIGN_CENTER_HORIZONTAL | wxDOWN | wxLEFT | wxRIGHT, EM);
 
+    wxGetApp().UpdateDarkUIWin(this);
     this->SetSizer(main_sizer);
 }
 
@@ -62,13 +60,7 @@ void SpoolInfoWidget::rescale()
 SpoolmanDialog::SpoolmanDialog(wxWindow* parent)
     : DPIDialog(parent, wxID_ANY, _L("Spoolman"), wxDefaultPosition, {-1, 45 * EM}, wxDEFAULT_DIALOG_STYLE)
 {
-#ifdef _WIN32
     this->SetBackgroundColour(*wxWHITE);
-    wxGetApp().UpdateDarkUI(this);
-    wxGetApp().UpdateDlgDarkUI(this);
-#else
-    wxWindow::SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#endif
 
     auto window_sizer = new wxBoxSizer(wxVERTICAL);
     window_sizer->SetMinSize({wxDefaultCoord, 45 * EM});
@@ -76,8 +68,6 @@ SpoolmanDialog::SpoolmanDialog(wxWindow* parent)
     // Main panel
     m_main_panel = new wxPanel(this);
     auto main_panel_sizer = new wxBoxSizer(wxVERTICAL);
-    m_main_panel->SetBackgroundColour(*wxWHITE);
-    wxGetApp().UpdateDarkUI(m_main_panel);
     m_main_panel->SetSizer(main_panel_sizer);
 
     m_config = new SpoolmanDynamicConfig(wxGetApp().app_config);
@@ -117,8 +107,6 @@ SpoolmanDialog::SpoolmanDialog(wxWindow* parent)
     // Loading Panel
     m_loading_panel = new wxPanel(this);
     auto loading_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_loading_panel->SetBackgroundColour(*wxWHITE);
-    wxGetApp().UpdateDarkUI(m_loading_panel);
     m_loading_panel->SetSizer(loading_panel_sizer);
     m_loading_panel->SetMinSize({main_panel_sizer->CalcMin().GetWidth(), wxDefaultCoord});
     loading_panel_sizer->AddStretchSpacer(1);
@@ -140,6 +128,7 @@ SpoolmanDialog::SpoolmanDialog(wxWindow* parent)
 
     this->Bind(EVT_FINISH_LOADING, &SpoolmanDialog::OnFinishLoading, this);
 
+    wxGetApp().UpdateDlgDarkUI(this);
     this->ShowModal();
 }
 
