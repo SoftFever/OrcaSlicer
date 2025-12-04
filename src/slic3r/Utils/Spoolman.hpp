@@ -258,7 +258,7 @@ public:
     SpoolmanFilamentShrPtr m_filament_ptr;
 
     // Can be nullptr
-    SpoolmanVendorShrPtr& getVendor() { return m_filament_ptr->m_vendor_ptr; }
+    SpoolmanVendorShrPtr& get_vendor() { return m_filament_ptr->m_vendor_ptr; }
 
     void update_from_server(bool recursive = false);
 

@@ -535,16 +535,16 @@ void SpoolmanSpool::update_from_server(bool recursive)
     update_from_json(json_data);
     if (recursive) {
         m_filament_ptr->update_from_json(json_data.get_child("filament"));
-        if (getVendor())
-            getVendor()->update_from_json(json_data.get_child("filament.vendor"));
+        if (get_vendor())
+            get_vendor()->update_from_json(json_data.get_child("filament.vendor"));
     }
 }
 
 std::string SpoolmanSpool::get_preset_name()
 {
     string name;
-    if (getVendor())
-        name += getVendor()->name;
+    if (get_vendor())
+        name += get_vendor()->name;
     if (!m_filament_ptr->name.empty())
         name += " " + m_filament_ptr->name;
     if (!m_filament_ptr->material.empty())
