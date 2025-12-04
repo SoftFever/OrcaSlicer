@@ -38,7 +38,7 @@ SpoolInfoWidget::SpoolInfoWidget(wxWindow* parent, const Preset* preset) : wxPan
     if (preset->spoolman_enabled()) {
         auto spool = Spoolman::get_instance()->get_spoolman_spool_by_id(preset->config.opt_int("spoolman_spool_id", 0));
         m_remaining_weight_label->SetLabelText(
-            format("%1% g / %2% g", double_to_string(spool->remaining_weight, 2), double_to_string(spool->m_filament_ptr->weight, 2)));
+            format("%1% g / %2% g", double_to_string(spool->remaining_weight, 2), double_to_string(spool->filament->weight, 2)));
     } else {
         m_remaining_weight_label->SetLabelText(_L("Not Spoolman enabled"));
         m_remaining_weight_label->SetForegroundColour(*wxRED);

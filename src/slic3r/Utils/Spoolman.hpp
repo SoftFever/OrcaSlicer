@@ -221,7 +221,7 @@ public:
     std::string preset_data;
 
     // Can be nullptr
-    SpoolmanVendorShrPtr m_vendor_ptr;
+    SpoolmanVendorShrPtr vendor;
 
     void update_from_server(bool recursive = false);
     DynamicPrintConfig get_config_from_preset_data() const;
@@ -232,7 +232,7 @@ private:
     explicit SpoolmanFilament(const pt::ptree& json_data) : m_spoolman(Spoolman::m_instance)
     {
         if (const auto vendor_id = json_data.get_optional<int>("vendor.id"); vendor_id.has_value())
-            m_vendor_ptr = m_spoolman->m_vendors[vendor_id.value()];
+            vendor = m_spoolman->m_vendors[vendor_id.value()];
         update_from_json(json_data);
     };
 
@@ -255,10 +255,10 @@ public:
     double used_length;
     bool   archived;
 
-    SpoolmanFilamentShrPtr m_filament_ptr;
+    SpoolmanFilamentShrPtr filament;
 
     // Can be nullptr
-    SpoolmanVendorShrPtr& get_vendor() { return m_filament_ptr->m_vendor_ptr; }
+    SpoolmanVendorShrPtr& get_vendor() { return filament->vendor; }
 
     void update_from_server(bool recursive = false);
 
@@ -273,7 +273,7 @@ private:
 
     explicit SpoolmanSpool(const pt::ptree& json_data) : m_spoolman(Spoolman::m_instance)
     {
-        m_filament_ptr = m_spoolman->m_filaments[json_data.get<int>("filament.id")];
+        filament = m_spoolman->m_filaments[json_data.get<int>("filament.id")];
         update_from_json(json_data);
     }
 

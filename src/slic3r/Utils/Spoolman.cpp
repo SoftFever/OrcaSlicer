@@ -243,7 +243,7 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
         }
 
         // Check if the material types match between the base preset and the spool
-        if (base_preset->config.opt_string("filament_type", 0) != spool->m_filament_ptr->material) {
+        if (base_preset->config.opt_string("filament_type", 0) != spool->filament->material) {
             result.messages.emplace_back(_u8L("The materials of the base preset and the Spoolman spool do not match"));
         }
     }
@@ -341,7 +341,7 @@ SpoolmanResult Spoolman::save_preset_to_spoolman(const Preset* filament_preset)
     if (res.empty())
         result.messages.emplace_back("Failed to save the data");
     else
-        spool->m_filament_ptr->preset_data = std::move(preset_data);
+        spool->filament->preset_data = std::move(preset_data);
     return result;
 }
 
@@ -451,20 +451,20 @@ void SpoolmanFilament::update_from_server(bool recursive)
 {
     const boost::property_tree::ptree& json_data = Spoolman::get_spoolman_json("filament/" + std::to_string(id));
     update_from_json(json_data);
-    if (recursive && m_vendor_ptr)
-        m_vendor_ptr->update_from_json(json_data.get_child("vendor"));
+    if (recursive && vendor)
+        vendor->update_from_json(json_data.get_child("vendor"));
 }
 
 void SpoolmanFilament::update_from_json(pt::ptree json_data)
 {
     auto vendor_id = json_data.get_optional<int>("vendor.id");
-    if (m_vendor_ptr && !vendor_id.has_value()) {
-        m_vendor_ptr = nullptr;
-    } else if (vendor_id.has_value() && (!m_vendor_ptr || m_vendor_ptr->id != vendor_id.get())) {
+    if (vendor && !vendor_id.has_value()) {
+        vendor = nullptr;
+    } else if (vendor_id.has_value() && (!vendor || vendor->id != vendor_id.get())) {
         auto val = vendor_id.get();
         if (!m_spoolman->m_vendors.count(val))
             m_spoolman->m_vendors.emplace(val, make_shared<SpoolmanVendor>(SpoolmanVendor(json_data.get_child("vendor"))));
-        m_vendor_ptr = m_spoolman->m_vendors[val];
+        vendor = m_spoolman->m_vendors[val];
     }
     id             = json_data.get<int>("id");
     name           = get_opt<string>(json_data, "name");
@@ -499,8 +499,8 @@ void SpoolmanFilament::apply_to_config(Slic3r::DynamicConfig& config) const
         config.set_key_value("hot_plate_temp", new ConfigOptionInts({bed_temp}));
     }
     config.set_key_value("default_filament_colour", new ConfigOptionStrings{color});
-    if (m_vendor_ptr)
-        m_vendor_ptr->apply_to_config(config);
+    if (vendor)
+        vendor->apply_to_config(config);
 }
 
 DynamicPrintConfig SpoolmanFilament::get_config_from_preset_data() const
@@ -534,7 +534,7 @@ void SpoolmanSpool::update_from_server(bool recursive)
     const boost::property_tree::ptree& json_data = Spoolman::get_spoolman_json("spool/" + std::to_string(id));
     update_from_json(json_data);
     if (recursive) {
-        m_filament_ptr->update_from_json(json_data.get_child("filament"));
+        filament->update_from_json(json_data.get_child("filament"));
         if (get_vendor())
             get_vendor()->update_from_json(json_data.get_child("filament.vendor"));
     }
@@ -545,10 +545,10 @@ std::string SpoolmanSpool::get_preset_name()
     string name;
     if (get_vendor())
         name += get_vendor()->name;
-    if (!m_filament_ptr->name.empty())
-        name += " " + m_filament_ptr->name;
-    if (!m_filament_ptr->material.empty())
-        name += " " + m_filament_ptr->material;
+    if (!filament->name.empty())
+        name += " " + filament->name;
+    if (!filament->material.empty())
+        name += " " + filament->material;
     boost::trim(name);
 
     return remove_special_key(name);
@@ -557,7 +557,7 @@ std::string SpoolmanSpool::get_preset_name()
 void SpoolmanSpool::apply_to_config(Slic3r::DynamicConfig& config) const
 {
     config.set_key_value("spoolman_spool_id", new ConfigOptionInts({id}));
-    m_filament_ptr->apply_to_config(config);
+    filament->apply_to_config(config);
 }
 
 void SpoolmanSpool::apply_to_preset(Preset* preset, bool only_update_statistics) const
@@ -575,10 +575,10 @@ void SpoolmanSpool::apply_to_preset(Preset* preset, bool only_update_statistics)
 
 void SpoolmanSpool::update_from_json(pt::ptree json_data)
 {
-    if (int filament_id = json_data.get<int>("filament.id"); m_filament_ptr && m_filament_ptr->id != filament_id) {
+    if (int filament_id = json_data.get<int>("filament.id"); filament && filament->id != filament_id) {
         if (!m_spoolman->m_filaments.count(filament_id))
             m_spoolman->m_filaments.emplace(filament_id, make_shared<SpoolmanFilament>(SpoolmanFilament(json_data.get_child("filament"))));
-        m_filament_ptr = m_spoolman->m_filaments.at(filament_id);
+        filament = m_spoolman->m_filaments.at(filament_id);
     }
     id               = json_data.get<int>("id");
     remaining_weight = get_opt<double>(json_data, "remaining_weight");

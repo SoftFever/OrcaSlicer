@@ -22,10 +22,10 @@ public:
     explicit SpoolmanNode(const SpoolmanSpoolShrPtr& spool) : m_spool(spool) {}
 
     int         get_id() const { return m_spool->id; };
-    wxColour    get_color() const { return wxColour(m_spool->m_filament_ptr->color); }
+    wxColour    get_color() const { return wxColour(m_spool->filament->color); }
     wxString    get_vendor_name() const { return m_spool->get_vendor() ? wxString::FromUTF8(m_spool->get_vendor()->name) : wxString(); }
-    wxString    get_filament_name() const { return wxString::FromUTF8(m_spool->m_filament_ptr->name); }
-    wxString    get_material() const { return wxString::FromUTF8(m_spool->m_filament_ptr->material); }
+    wxString    get_filament_name() const { return wxString::FromUTF8(m_spool->filament->name); }
+    wxString    get_material() const { return wxString::FromUTF8(m_spool->filament->material); }
     bool        is_archived() const { return m_spool->archived; }
 
     bool get_checked() { return m_checked; };

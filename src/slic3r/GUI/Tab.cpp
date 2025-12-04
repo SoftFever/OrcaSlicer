@@ -4130,12 +4130,12 @@ void TabFilament::build()
 
                 auto spool = Spoolman::get_instance()->get_spoolman_spool_by_id(
                     m_presets->get_selected_preset().config.opt_int("spoolman_spool_id", 0));
-                if (spool->m_filament_ptr->preset_data.empty()) {
+                if (spool->filament->preset_data.empty()) {
                     show_error(this, "The Spoolman filament does not contain any preset data.");
                     return;
                 }
 
-                auto config = spool->m_filament_ptr->get_config_from_preset_data();
+                auto config = spool->filament->get_config_from_preset_data();
                 if (config.empty()) {
                     show_error(this, "The stored preset data is invalid.");
                     return;
