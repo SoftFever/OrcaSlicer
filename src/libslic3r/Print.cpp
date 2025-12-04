@@ -3553,18 +3553,19 @@ std::vector<SpoolmanFilamentConsumptionEstimate> Print::get_spoolman_filament_co
     }
 
     // get used filament (meters and grams) from used volume in respect to the active extruder
-    auto get_used_filament_from_volume = [&](const int& extruder_id) {
+    auto get_used_filament_from_volume = [&](const int& extruder_id) -> std::optional<std::pair<double, double>> {
         // confirm the item exists in the stats map
         if (m_print_statistics.filament_stats.count(extruder_id) <= 0)
-            return std::pair {0., 0.};
+            return {};
 
         const double& volume = m_print_statistics.filament_stats.at(extruder_id);
-        return std::pair { volume / (PI * sqr(0.5 * m_config.filament_diameter.get_at(extruder_id))),
-                                          volume * m_config.filament_density.get_at(extruder_id) * 0.001 };
+        return std::make_optional(std::pair { volume / (PI * sqr(0.5 * m_config.filament_diameter.get_at(extruder_id))),
+                                          volume * m_config.filament_density.get_at(extruder_id) * 0.001 });
     };
 
     for (const auto& idx : filaments_with_spoolman_idxs)
-        spoolman_filament_consumption.emplace_back(idx, m_config, get_used_filament_from_volume(idx));
+        if (auto usage_opt = get_used_filament_from_volume(idx); usage_opt.has_value())
+            spoolman_filament_consumption.emplace_back(idx, m_config, usage_opt.value());
 
     return spoolman_filament_consumption;
 }
