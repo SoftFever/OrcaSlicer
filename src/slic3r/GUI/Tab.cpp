@@ -4498,6 +4498,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("handles_spoolman_consumption");
         optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
         optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("scan_first_layer");
@@ -5332,6 +5333,8 @@ void TabPrinter::toggle_options()
         // SoftFever: hide non-BBL settings
         for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer", "bed_mesh_max", "bed_mesh_min", "bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "thumbnails"})
           toggle_line(el, !is_BBL_printer);
+
+        toggle_line("handles_spoolman_consumption", Spoolman::is_enabled());
     }
 
     if (m_active_page->title() == L("Machine G-code")) {

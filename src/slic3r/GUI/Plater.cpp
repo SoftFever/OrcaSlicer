@@ -4420,7 +4420,7 @@ struct Plater::priv
     // Returns true if current_warnings vector is empty without showning the dialog
     bool warnings_dialog();
 
-    // If Spoolman is active, the server is valid, and at least one Spoolman spool is used,
+    // If Spoolman is active, the printer does not handle its own consumption, the server is valid, and at least one Spoolman spool is used,
     // a dialog will be show asking if the user would like to consume the estimated filament usage
     void spoolman_consumption_dialog(const bool& all_plates);
     void spoolman_consumption_dialog(int plate_idx);
@@ -9255,6 +9255,8 @@ void Plater::priv::spoolman_consumption_dialog(int plate_idx)
 {
     static constexpr auto show_dlg_key = "show_spoolman_consumption_dialog";
     if (!wxGetApp().app_config->get_bool(show_dlg_key))
+        return;
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_bool("handles_spoolman_consumption"))
         return;
     if (!Spoolman::is_server_valid())
         return;

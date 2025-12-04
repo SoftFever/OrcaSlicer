@@ -3545,6 +3545,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("handles_spoolman_consumption", coBool);
+    def->label = L("Handles Spoolman consumption");
+    def->tooltip = L("Indicates that the printer will handle sending consumption requests to Spoolman");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("gcode_label_objects", coBool);
     def->label = L("Label objects");
     def->tooltip = L("Enable this to add comments into the G-code labeling print moves with what object they belong to,"
