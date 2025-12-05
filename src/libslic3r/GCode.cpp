@@ -3086,7 +3086,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
                 //BBS: close powerlost recovery
                 {
-                    if (is_bbl_printers && m_second_layer_things_done) {
+                    if (is_bbl_printers && m_second_layer_things_done && print.config().disable_power_loss_recovery.value != true) {
                         file.write("; close powerlost recovery\n");
                         file.write("M1003 S0\n");
                     }
@@ -3168,7 +3168,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
             //BBS: close powerlost recovery
             {
-                if (is_bbl_printers && m_second_layer_things_done) {
+                if (is_bbl_printers && m_second_layer_things_done && print.config().disable_power_loss_recovery.value != true) {
                     file.write("; close powerlost recovery\n");
                     file.write("M1003 S0\n");
                 }
@@ -4388,7 +4388,7 @@ LayerResult GCode::process_layer(
     if (!first_layer && !m_second_layer_things_done) {
       if (print.is_BBL_printer()) {
         // BBS: open powerlost recovery
-        {
+        if (print.config().disable_power_loss_recovery.value != true) {
           gcode += "; open powerlost recovery\n";
           gcode += "M1003 S1\n";
         }

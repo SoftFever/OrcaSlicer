@@ -4356,6 +4356,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("pellet_modded_printer", "pellet-flow-coefficient");
         optgroup->append_single_option_line("bbl_use_printhost");
         optgroup->append_single_option_line("scan_first_layer");
+        optgroup->append_single_option_line("disable_power_loss_recovery");
         //option  = optgroup->get_option("wrapping_exclude_area");
         //option.opt.full_width = true;
         //optgroup->append_single_option_line(option);
@@ -5181,7 +5182,7 @@ void TabPrinter::toggle_options()
     if (m_active_page->title() == L("Basic information")) {
 
         // SoftFever: hide BBL specific settings
-        for (auto el : {"scan_first_layer", "bbl_calib_mark_logo", "bbl_use_printhost"})
+        for (auto el : {"scan_first_layer", "disable_power_loss_recovery", "bbl_calib_mark_logo", "bbl_use_printhost"})
             toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings

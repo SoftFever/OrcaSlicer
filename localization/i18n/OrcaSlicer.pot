@@ -12623,6 +12623,12 @@ msgid ""
 "layer."
 msgstr ""
 
+msgid "Disable Power Loss Recovery"
+msgstr ""
+
+msgid "Enable this to disable power loss recovery commands in generated G-code"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr ""
 

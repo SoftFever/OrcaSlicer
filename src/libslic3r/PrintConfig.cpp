@@ -3364,6 +3364,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    // BBS
+    def = this->add("disable_power_loss_recovery", coBool);
+    def->label = L("Disable Power Loss Recovery");
+    def->tooltip = L("Enable this to disable power loss recovery commands in generated G-code");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
 
     //BBS
     // def = this->add("spaghetti_detector", coBool);
